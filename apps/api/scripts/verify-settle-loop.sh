@@ -99,6 +99,24 @@ BODY8="{\"paymentId\":\"ct_1\",\"reference\":\"nope\",\"amountMinor\":\"1\",\"cu
 SIG8=$(printf '%s' "$BODY8" | sign)
 ok "text/plain rejected" "$(curl -s -o /dev/null -w '%{http_code}' -X POST $HOOK -H 'content-type: text/plain' -H "x-peanut-signature: $SIG8" -d "$BODY8")" "415"
 
+echo "=== 9. abandoning a settle-up frees the debt again ==="
+S9=$(newroom "Abandon"); A9=$(mem $S9 Alice); B9=$(mem $S9 Bob)
+expense $S9 $B9 $A9 4000
+R9=$(intent $S9 $A9 $B9 2000); REF9=$(echo "$R9" | python3 -c "import sys,json;print(json.load(sys.stdin)['reference'])")
+ok "manual mark blocked while it is live" "$(curl -s -o /dev/null -w '%{http_code}' -X POST $API/rooms/$S9/settlements -H 'content-type: application/json' -d "{\"fromMemberId\":\"$A9\",\"toMemberId\":\"$B9\",\"amountMinor\":\"2000\",\"method\":\"MANUAL\"}")" "409"
+ok "cancel accepted" "$(curl -s -o /dev/null -w '%{http_code}' -X DELETE $API/rooms/$S9/settle-intent/$REF9)" "200"
+ok "  -> no longer shown as in flight" "$(pending $S9)" "0"
+ok "manual mark works again" "$(curl -s -o /dev/null -w '%{http_code}' -X POST $API/rooms/$S9/settlements -H 'content-type: application/json' -d "{\"fromMemberId\":\"$A9\",\"toMemberId\":\"$B9\",\"amountMinor\":\"2000\",\"method\":\"MANUAL\"}")" "200"
+ok "  -> exactly one settlement" "$(count_settlements $S9)" "1"
+
+echo "=== 10. a cancelled payment that lands anyway is still recorded ==="
+S10=$(newroom "LateLand"); A10=$(mem $S10 Alice); B10=$(mem $S10 Bob)
+expense $S10 $B10 $A10 4000
+R10=$(intent $S10 $A10 $B10 2000); REF10=$(echo "$R10" | python3 -c "import sys,json;print(json.load(sys.stdin)['reference'])")
+curl -s -o /dev/null -X DELETE $API/rooms/$S10/settle-intent/$REF10
+ok "webhook after cancel still accepted" "$(post_hook "{\"paymentId\":\"late_1\",\"reference\":\"$REF10\",\"amountMinor\":\"2000\",\"currency\":\"EUR\",\"status\":\"completed\"}")" "200"
+ok "  -> money that moved IS recorded" "$(count_settlements $S10)" "1"
+
 echo
 echo "passed=$pass failed=$fail"
 [ "$fail" -eq 0 ]

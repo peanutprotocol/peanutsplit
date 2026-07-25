@@ -103,3 +103,9 @@ export async function createSettleIntent(
 ): Promise<{ reference: string; payUrl: string }> {
 	return splitFetch(`/rooms/${slug}/settle-intent`, { method: 'POST', body: JSON.stringify(input) })
 }
+
+/** Give up on a Peanut settle-up that was never paid. Does not stop a later
+ *  confirmation — if the payment does land, it still records. */
+export async function cancelSettleIntent(slug: string, reference: string): Promise<RoomState> {
+	return splitFetch(`/rooms/${slug}/settle-intent/${reference}`, { method: 'DELETE' })
+}

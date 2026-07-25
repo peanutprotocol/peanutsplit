@@ -15,6 +15,7 @@ import {
 	SplitError,
 	createRoom,
 	createSettleIntent,
+	cancelSettleIntent,
 	addMember,
 	addExpense,
 	updateExpense,
@@ -384,6 +385,26 @@ app.post(
 				note: intent.roomTitle ?? 'Peanut Split',
 			})
 			return reply.send({ reference: intent.reference, payUrl })
+		} catch (err) {
+			return replyError(reply, err)
+		}
+	}
+)
+
+/** Give up on a settle-up that was started but never paid, so the pay button
+ *  comes back instead of the room waiting on it for half an hour. */
+app.delete(
+	'/split/rooms/:slug/settle-intent/:reference',
+	{
+		schema: {
+			params: Type.Object({ slug: Type.String(), reference: Type.String() }),
+			response: { 200: RoomStateSchema, 404: ErrorSchema },
+		},
+	},
+	async (request, reply) => {
+		try {
+			await cancelSettleIntent(request.params.slug, request.params.reference)
+			return await sendRoomState(reply, request.params.slug)
 		} catch (err) {
 			return replyError(reply, err)
 		}

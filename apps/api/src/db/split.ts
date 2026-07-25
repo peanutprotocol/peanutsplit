@@ -654,3 +654,23 @@ export async function confirmPeanutSettlement(args: {
 
 /** Internal signal that another delivery claimed this intent first. */
 class AlreadyClaimed extends Error {}
+
+/**
+ * Abandon a settle-up that was started but never paid.
+ *
+ * Without this, tapping "Settle with Peanut" and then closing the checkout
+ * locks that debt for half an hour: the pay button is replaced by a waiting
+ * banner and the manual mark is refused. Someone who changed their mind, or
+ * paid by bank instead, has no way back.
+ *
+ * Cancelling does NOT refuse a later confirmation. If the payment does go
+ * through after all, it still records — the money moved either way.
+ */
+export async function cancelSettleIntent(slug: string, reference: string): Promise<void> {
+	const room = await prisma.splitRoom.findUnique({ where: { slug }, select: { id: true } })
+	if (!room) throw new SplitError(404, 'room not found')
+	await prisma.splitSettleIntent.updateMany({
+		where: { reference, roomId: room.id, status: 'PENDING' },
+		data: { status: 'EXPIRED' },
+	})
+}
