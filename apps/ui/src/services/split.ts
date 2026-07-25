@@ -20,12 +20,24 @@ import type {
 const splitUrl = (path: string): string =>
 	typeof window === 'undefined' ? `${SPLIT_API_URL}/split${path}` : `/_split${path}`
 
+/// Without a deadline a stalled request never settles, so the mutation stays
+/// pending forever and the button spins with nothing behind it.
+const REQUEST_TIMEOUT_MS = 10_000
+
 async function splitFetch<T>(path: string, init?: RequestInit): Promise<T> {
 	const headers: Record<string, string> = { ...(init?.headers as Record<string, string>) }
 	if (init?.body && !Object.keys(headers).some((k) => k.toLowerCase() === 'content-type')) {
 		headers['Content-Type'] = 'application/json'
 	}
-	const res = await fetch(splitUrl(path), { ...init, headers })
+	let res: Response
+	try {
+		res = await fetch(splitUrl(path), { ...init, headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) })
+	} catch (err) {
+		if (err instanceof DOMException && err.name === 'TimeoutError') {
+			throw new Error("That took too long — check your connection and try again. We didn't save anything.")
+		}
+		throw err
+	}
 	const data = await res.json().catch(() => ({}) as unknown)
 	if (!res.ok) {
 		const message = (data as { message?: string })?.message ?? `request failed (${res.status})`

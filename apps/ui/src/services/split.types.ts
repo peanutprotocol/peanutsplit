@@ -94,4 +94,6 @@ export interface NewSettlementInput {
 	toMemberId: string
 	amountMinor: string
 	method?: SettlementMethod
+	/** Stable across retries of one tap, so the server can drop the duplicate. */
+	idempotencyKey?: string
 }

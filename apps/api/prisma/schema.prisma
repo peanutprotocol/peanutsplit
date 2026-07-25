@@ -143,6 +143,10 @@ model SplitSettlement {
   /// Amount settled, in room base currency minor units.
   amountMinor  BigInt                @map("amount_minor")
   method       SplitSettlementMethod @default(MANUAL)
+  /// Client-generated and stable across retries of one tap, so a double-tap
+  /// (or a retried request) collides here instead of recording a second
+  /// payment. Null for settlements recorded before the key existed.
+  idempotencyKey String?             @map("idempotency_key") @db.VarChar(64)
   /// For method=PEANUT: reference to the Peanut transfer that settled this.
   peanutRef    String?               @map("peanut_ref") @db.VarChar(255)
 
@@ -152,6 +156,7 @@ model SplitSettlement {
   from SplitMember @relation("SettlementFrom", fields: [fromMemberId], references: [id])
   to   SplitMember @relation("SettlementTo", fields: [toMemberId], references: [id])
 
+  @@unique([roomId, idempotencyKey], map: "uniq_split_settlement_idempotency")
   @@index([roomId], map: "idx_split_settlement_room")
   @@map("split_settlements")
   @@schema("app")
