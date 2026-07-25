@@ -188,7 +188,7 @@ module.exports = {
                 '.btn-transparent-dark': {
                     '@apply btn border-transparent text-n-1 fill-n-1 hover:text-primary-1 hover:fill-primary-1': {},
                 },
-                '.btn-purple': {
+                '.btn-primary': {
                     '@apply btn bg-primary-1 text-n-1 fill-n-1 hover:bg-primary-1/90': {},
                 },
                 '.btn-yellow': {

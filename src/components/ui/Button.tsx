@@ -6,12 +6,10 @@ import Loading from './Loading'
 import { useHaptic } from 'use-haptic'
 import { useLongPress } from '@/hooks/useLongPress'
 
-// Variant names are carried over verbatim from peanut-ui so the shared idiom
-// (`variant="purple" shadowSize="4"` = primary CTA) still reads the same. In Split
-// the underlying `.btn-purple` class paints YELLOW (#FFC900) — the palette diverged,
-// the names did not.
+// Ported from peanut-ui's Bruddle Button, renamed for Split's palette:
+// variant="primary" shadowSize="4" is the primary CTA and paints YELLOW (#FFC900).
 export type ButtonVariant =
-    'purple' | 'dark' | 'stroke' | 'transparent-light' | 'transparent-dark' | 'transparent' | 'primary-soft'
+    'primary' | 'dark' | 'stroke' | 'transparent-light' | 'transparent-dark' | 'transparent' | 'primary-soft'
 export type ButtonSize = 'small' | 'medium' | 'large'
 type ButtonShape = 'default' | 'square'
 type ShadowSize = '3' | '4' | '6' | '8'
@@ -20,7 +18,7 @@ type ShadowType = 'primary' | 'secondary'
 /**
  * Primary button component.
  *
- * @prop variant - Visual style. 'purple' for primary CTAs, 'stroke' for secondary.
+ * @prop variant - Visual style. 'primary' for primary CTAs, 'stroke' for secondary.
  * @prop size - Height override. Omit for default h-13 (tallest). 'large' is h-10 (shorter!).
  * @prop shadowSize - Drop shadow depth. '4' is standard.
  * @prop longPress - Hold-to-confirm behavior with progress bar animation.
@@ -47,7 +45,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const buttonVariants: Record<ButtonVariant, string> = {
-    purple: 'btn-purple',
+    primary: 'btn-primary',
     dark: 'btn-dark',
     stroke: 'btn-stroke',
     'transparent-light': 'btn-transparent-light',
@@ -91,7 +89,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             children,
             className,
             loading,
-            variant = 'purple',
+            variant = 'primary',
             size,
             shape,
             shadowSize,
