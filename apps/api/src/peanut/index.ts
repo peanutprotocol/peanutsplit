@@ -31,7 +31,14 @@ export type PayIntent = {
 	reference: string
 	amountMinor: bigint
 	currency: string
-	/** Human label for the payment, e.g. the room name. Never identifying. */
+	/**
+	 * Human label for the payment, so the payer recognises what they're paying
+	 * for. This is the room title — user-authored text that WILL reach Peanut
+	 * and may appear in a memo, a receipt or a support console. Room titles are
+	 * not supposed to contain personal details, but nothing stops one; it is
+	 * truncated, and it is the only room-authored string that crosses over.
+	 * The slug never does.
+	 */
 	note: string
 }
 
@@ -59,7 +66,7 @@ export function buildPayUrl(intent: PayIntent): string {
 		.replace('{amount}', encodeURIComponent(toMajor(intent.amountMinor, intent.currency)))
 		.replace('{currency}', encodeURIComponent(intent.currency))
 		.replace('{reference}', encodeURIComponent(intent.reference))
-		.replace('{note}', encodeURIComponent(intent.note))
+		.replace('{note}', encodeURIComponent(intent.note.slice(0, 60)))
 }
 
 export type WebhookPayment = {
