@@ -317,7 +317,7 @@ app.post(
 				// silent no-op.
 				idempotencyKey: Type.Optional(Type.String({ maxLength: 64, pattern: '^(?!peanut:).+$' })),
 			}),
-			response: { 200: RoomStateSchema, 400: ErrorSchema, 404: ErrorSchema },
+			response: { 200: RoomStateSchema, 400: ErrorSchema, 404: ErrorSchema, 409: ErrorSchema },
 		},
 	},
 	async (request, reply) => {
@@ -367,6 +367,7 @@ app.post(
 				200: Type.Object({ reference: Type.String(), payUrl: Type.String() }),
 				400: ErrorSchema,
 				404: ErrorSchema,
+				409: ErrorSchema,
 			},
 		},
 	},

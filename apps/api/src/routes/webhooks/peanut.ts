@@ -50,7 +50,13 @@ export default app.register(async (webhooks) => {
 			},
 		},
 		async (request, reply) => {
-			const raw = request.body as Buffer
+			// The raw parser is registered for application/json only; Fastify's
+			// inherited text/plain parser would hand us a string, and
+			// `as Buffer` would be a lie on that path.
+			if (!Buffer.isBuffer(request.body)) {
+				return reply.status(415).send({ message: 'send application/json' })
+			}
+			const raw = request.body
 
 			try {
 				verifyWebhookSignature(raw, request.headers['x-peanut-signature'] as string | undefined)

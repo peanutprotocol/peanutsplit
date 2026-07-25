@@ -76,6 +76,29 @@ ok "non-completed status ignored" "$(post_hook "{\"paymentId\":\"pay_F\",\"refer
 ok "  -> still no settlement" "$(count_settlements $S3)" "0"
 ok "unknown reference does not retry-loop" "$(post_hook "{\"paymentId\":\"pay_G\",\"reference\":\"nope\",\"amountMinor\":\"2000\",\"currency\":\"EUR\",\"status\":\"completed\"}")" "200"
 
+echo "=== 6. one settle-up is one payment (reviewer finding 1) ==="
+S6=$(newroom "OneShot"); A6=$(mem $S6 Alice); B6=$(mem $S6 Bob)
+expense $S6 $B6 $A6 4000
+R6=$(intent $S6 $A6 $B6 2000); REF6=$(echo "$R6" | python3 -c "import sys,json;print(json.load(sys.stdin)['reference'])")
+ok "first payment on the intent" "$(post_hook "{\"paymentId\":\"one_1\",\"reference\":\"$REF6\",\"amountMinor\":\"2000\",\"currency\":\"EUR\",\"status\":\"completed\"}")" "200"
+ok "second DIFFERENT payment on the same intent" "$(post_hook "{\"paymentId\":\"one_2\",\"reference\":\"$REF6\",\"amountMinor\":\"2000\",\"currency\":\"EUR\",\"status\":\"completed\"}")" "200"
+ok "third" "$(post_hook "{\"paymentId\":\"one_3\",\"reference\":\"$REF6\",\"amountMinor\":\"2000\",\"currency\":\"EUR\",\"status\":\"completed\"}")" "200"
+ok "  -> still exactly one settlement" "$(count_settlements $S6)" "1"
+ok "  -> ledger not inverted" "$(state $S6 | python3 -c "import sys,json;print(sum(abs(int(b['netMinor'])) for b in json.load(sys.stdin)['balances']))")" "0"
+
+echo "=== 7. a payment in flight blocks a second handoff and a manual mark (finding 2) ==="
+S7=$(newroom "InFlight"); A7=$(mem $S7 Alice); B7=$(mem $S7 Bob)
+expense $S7 $B7 $A7 4000
+intent $S7 $A7 $B7 2000 > /dev/null
+ok "second intent for the same debt refused" "$(curl -s -o /dev/null -w '%{http_code}' -X POST $API/rooms/$S7/settle-intent -H 'content-type: application/json' -d "{\"fromMemberId\":\"$A7\",\"toMemberId\":\"$B7\",\"amountMinor\":\"2000\"}")" "409"
+ok "manual mark refused while it confirms" "$(curl -s -o /dev/null -w '%{http_code}' -X POST $API/rooms/$S7/settlements -H 'content-type: application/json' -d "{\"fromMemberId\":\"$A7\",\"toMemberId\":\"$B7\",\"amountMinor\":\"2000\",\"method\":\"MANUAL\"}")" "409"
+ok "  -> nothing recorded" "$(count_settlements $S7)" "0"
+
+echo "=== 8. content type is enforced on the webhook (finding 9) ==="
+BODY8="{\"paymentId\":\"ct_1\",\"reference\":\"nope\",\"amountMinor\":\"1\",\"currency\":\"EUR\",\"status\":\"completed\"}"
+SIG8=$(printf '%s' "$BODY8" | sign)
+ok "text/plain rejected" "$(curl -s -o /dev/null -w '%{http_code}' -X POST $HOOK -H 'content-type: text/plain' -H "x-peanut-signature: $SIG8" -d "$BODY8")" "415"
+
 echo
 echo "passed=$pass failed=$fail"
 [ "$fail" -eq 0 ]
