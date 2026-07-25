@@ -1,0 +1,36 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        env:
+            # Prisma needs a URL at generate/build time; nothing connects to it.
+            DATABASE_URL: postgresql://build:build@localhost:5432/build
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.17.1
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: pnpm
+
+            - run: pnpm install --frozen-lockfile
+
+            - run: pnpm exec prisma generate
+
+            - run: pnpm typecheck
+
+            - run: pnpm lint
+
+            - run: pnpm test
+
+            - run: pnpm build

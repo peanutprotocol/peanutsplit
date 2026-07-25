@@ -1,0 +1,35 @@
+services:
+    db:
+        image: postgres:16-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: split
+            POSTGRES_PASSWORD: split
+            POSTGRES_DB: split
+        ports:
+            - '5433:5432'
+        volumes:
+            - split-pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U split -d split']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+    app:
+        build: .
+        restart: unless-stopped
+        depends_on:
+            db:
+                condition: service_healthy
+        environment:
+            DATABASE_URL: postgresql://split:split@db:5432/split
+            NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+            NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+            NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://eu.i.posthog.com}
+            SENTRY_DSN: ${SENTRY_DSN:-}
+        ports:
+            - '3000:3000'
+
+volumes:
+    split-pgdata:
