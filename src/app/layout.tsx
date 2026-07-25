@@ -1,6 +1,7 @@
 import { type Metadata, type Viewport } from 'next'
 import { Roboto_Flex, Sniglet } from 'next/font/google'
 import localFont from 'next/font/local'
+import { Providers } from '@/lib/providers'
 import '../styles/globals.css'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://split.peanut.me'
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
         'Accountless, link-based expense splitting. Create a room, share the link, settle up however you like. Free forever.',
     metadataBase: new URL(baseUrl),
     applicationName: 'Peanut Split',
+    icons: { apple: '/icons/apple-touch-icon.png' },
 }
 
 export const viewport: Viewport = {
@@ -55,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body
                 className={`${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`}
             >
-                {children}
+                <Providers>{children}</Providers>
             </body>
         </html>
     )

@@ -1,0 +1,165 @@
+'use client'
+
+import { useEffect, useMemo, useRef } from 'react'
+import { Button } from '@/components/ui/Button'
+import { InstallPrompt } from '@/components/pwa/InstallPrompt'
+import { isApiError } from '@/lib/api'
+import { roomProps, track } from '@/lib/analytics'
+import type { MemberIdentity } from '@/lib/identity'
+import { useCurrencies, useRoomState } from '@/lib/queries'
+import { rememberRoom } from '@/lib/recent-rooms'
+import { useRoomParams } from '@/lib/room-params'
+import { useRoomIdentity } from '@/lib/use-identity'
+import { AllSettled } from './AllSettled'
+import { BalanceStrip } from './BalanceStrip'
+import { ExpenseDrawer } from './ExpenseDrawer'
+import { ExpenseList } from './ExpenseList'
+import { JoinGate } from './JoinGate'
+import { RoomErrorState, RoomNotFound, RoomSkeleton } from './RoomStates'
+import { RoomHeader } from './RoomHeader'
+import { SettleDrawer } from './SettleDrawer'
+import { ShareDrawer } from './ShareDrawer'
+
+/**
+ * THE room. One client component owning the whole screen: the join gate, the
+ * live state, and the four URL-driven drawers.
+ *
+ * Everything money-shaped comes straight from the server's RoomState — this file
+ * never derives a balance.
+ */
+export function RoomScreen({ slug }: { slug: string }) {
+    const { data: state, error, isPending, refetch } = useRoomState(slug)
+    const { data: currencies } = useCurrencies()
+    const { identity, loaded, claim, forget } = useRoomIdentity(slug)
+    const [params, setParams] = useRoomParams()
+    const celebrated = useRef(false)
+
+    useEffect(() => {
+        if (!state) return
+        rememberRoom({ slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
+    }, [slug, state])
+
+    const settledUp = !!state && state.expenses.length > 0 && state.suggestedTransfers.length === 0
+
+    useEffect(() => {
+        if (settledUp && !celebrated.current) {
+            celebrated.current = true
+            track('all_settled', roomProps(slug))
+        }
+        if (!settledUp) celebrated.current = false
+    }, [settledUp, slug])
+
+    const editing = useMemo(
+        () => (params.expense ? (state?.expenses.find((expense) => expense.id === params.expense) ?? null) : null),
+        [params.expense, state]
+    )
+
+    // A selected expense that vanished (deleted on another device) must not leave
+    // an empty drawer hanging around.
+    useEffect(() => {
+        if (params.expense && state && !editing) setParams({ expense: null })
+    }, [params.expense, state, editing, setParams])
+
+    if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound />
+    if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
+
+    const closeDrawers = () => setParams({ add: null, expense: null, settle: null })
+    const needsJoin = loaded && !identity && !!state
+
+    const onJoined = (next: MemberIdentity) => claim(next)
+
+    const meId =
+        identity && state?.members.some((member) => member.id === identity.memberId) ? identity.memberId : undefined
+    const defaultPaidById = meId ?? state?.members[0]?.id ?? ''
+
+    return (
+        <main className="relative mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background">
+            {state && (
+                <RoomHeader
+                    room={state.room}
+                    identity={identity}
+                    onShare={() => setParams({ share: true })}
+                    onForgetIdentity={forget}
+                />
+            )}
+
+            <div className="flex flex-1 flex-col gap-6 pb-32 pt-4">
+                {isPending && !state && <RoomSkeleton />}
+
+                {state && (
+                    <>
+                        <BalanceStrip state={state} currencies={currencies} meId={meId} />
+                        {settledUp && <AllSettled />}
+                        <ExpenseList
+                            state={state}
+                            currencies={currencies}
+                            meId={meId}
+                            onSelect={(expenseId) => setParams({ expense: expenseId })}
+                        />
+                    </>
+                )}
+            </div>
+
+            {state && !needsJoin && (
+                <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-xl border-t border-n-1 bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+                    <div className="flex gap-3">
+                        <Button
+                            variant="stroke"
+                            icon="hand-coins"
+                            className="w-auto shrink-0 justify-center px-4"
+                            onClick={() => setParams({ settle: true })}
+                            data-testid="open-settle"
+                        >
+                            Settle up
+                        </Button>
+                        <Button
+                            variant="primary"
+                            shadowSize="4"
+                            icon="plus"
+                            className="flex-1 justify-center text-h6"
+                            onClick={() => setParams({ add: true })}
+                            data-testid="open-add-expense"
+                        >
+                            Add expense
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {state && needsJoin && <JoinGate slug={slug} state={state} onJoined={onJoined} />}
+
+            {state && (
+                <>
+                    <ExpenseDrawer
+                        open={(params.add || !!editing) && !needsJoin}
+                        onClose={closeDrawers}
+                        slug={slug}
+                        state={state}
+                        currencies={currencies}
+                        token={identity?.token}
+                        expense={editing}
+                        defaultPaidById={defaultPaidById}
+                    />
+                    <SettleDrawer
+                        open={params.settle && !needsJoin}
+                        onClose={closeDrawers}
+                        slug={slug}
+                        state={state}
+                        currencies={currencies}
+                        token={identity?.token}
+                    />
+                    <ShareDrawer open={params.share} onClose={() => setParams({ share: null })} room={state.room} />
+                </>
+            )}
+
+            {/* Install prompt lives on the room, not the landing page: you only pin
+                something you are already using. */}
+            {state && !needsJoin && (
+                <InstallPrompt
+                    onShown={() => track('pwa_prompt_shown', roomProps(slug))}
+                    onInstalled={() => track('pwa_installed', roomProps(slug))}
+                />
+            )}
+        </main>
+    )
+}
