@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { twMerge } from 'tailwind-merge'
+import { cn as twMerge } from '@/lib/cn'
 
 type BaseInputVariant = 'sm' | 'md' | 'lg'
 

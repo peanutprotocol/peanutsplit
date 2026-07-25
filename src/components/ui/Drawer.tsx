@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { twMerge } from 'tailwind-merge'
+import { cn as twMerge } from '@/lib/cn'
 import { Drawer as DrawerPrimitive } from 'vaul'
 
 const Drawer = ({ shouldScaleBackground = true, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) => {

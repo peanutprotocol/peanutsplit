@@ -1,5 +1,5 @@
 import { type HTMLAttributes } from 'react'
-import { twMerge } from 'tailwind-merge'
+import { cn as twMerge } from '@/lib/cn'
 
 interface PageContainerProps extends HTMLAttributes<HTMLDivElement> {
     alignItems?: 'start' | 'center'

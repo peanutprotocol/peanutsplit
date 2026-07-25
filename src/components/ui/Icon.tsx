@@ -1,5 +1,5 @@
 import { type FC, type SVGProps } from 'react'
-import { twMerge } from 'tailwind-merge'
+import { cn as twMerge } from '@/lib/cn'
 import type { LucideIcon } from 'lucide-react'
 import {
     ArrowLeft,

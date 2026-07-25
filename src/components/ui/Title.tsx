@@ -1,4 +1,4 @@
-import { twMerge } from 'tailwind-merge'
+import { cn as twMerge } from '@/lib/cn'
 
 const Title = ({
     text,
