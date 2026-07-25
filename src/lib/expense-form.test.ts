@@ -127,9 +127,20 @@ const baseForm = (overrides: Partial<ExpenseFormValues> = {}): ExpenseFormValues
     paidById: 'm1',
     splitMode: 'EQUAL',
     participantIds: ['m1', 'm2', 'm3'],
+    participantsTouched: true,
     exactInputs: {},
     date: '2026-07-25T12:00:00.000Z',
     ...overrides,
+})
+
+describe('untouched participants mean "everyone at save time"', () => {
+    it('omits participantIds until the user deliberately edits the set', () => {
+        const untouched = baseForm({ participantsTouched: false })
+        expect(validateExpenseForm(untouched)).toBeNull()
+        expect('participantIds' in buildExpenseBody(untouched)).toBe(false)
+        // A deliberate selection is sent verbatim.
+        expect(buildExpenseBody(baseForm())).toMatchObject({ participantIds: ['m1', 'm2', 'm3'] })
+    })
 })
 
 describe('validateExpenseForm / remainingMinor', () => {
