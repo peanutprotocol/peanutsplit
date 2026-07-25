@@ -10,7 +10,8 @@
     "typecheck": "pnpm --filter \"./apps/*\" typecheck",
     "test": "pnpm --filter \"./apps/*\" test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "verify": "pnpm --filter @peanut-split/api verify:settle"
   },
   "devDependencies": {
     "prettier": "^3.3.3"

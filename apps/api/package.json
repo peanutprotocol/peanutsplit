@@ -14,7 +14,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "postinstall": "prisma generate",
-    "simulate:webhook": "tsx scripts/simulate-peanut-webhook.ts"
+    "simulate:webhook": "tsx scripts/simulate-peanut-webhook.ts",
+    "verify:settle": "bash scripts/verify-settle-loop.sh"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

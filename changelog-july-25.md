@@ -183,6 +183,50 @@ Deliberately not fixed, and listed here rather than forgotten:
 
 ---
 
+## Handing this over
+
+Everything below is committed and pushed to `main`. Nothing is half-applied, no branch is waiting to be merged, and the working tree is clean.
+
+### Get it running in five minutes
+
+```bash
+cd mono/peanut-split
+pnpm install
+cp apps/api/.env.example apps/api/.env      # DATABASE_URL + PEANUT_WEBHOOK_SECRET
+pnpm --filter @peanut-split/api db:migrate:dev
+pnpm dev                                     # API :5051, UI :3051
+```
+
+Then `pnpm typecheck && pnpm test` (84 tests) and `pnpm verify` (41 assertions against the running app). The two browser checks need playwright, so run them from `mono/engineering/qa`: `verify-settle-ui.cjs` and `verify-funnel.cjs`.
+
+One trap worth knowing: if mono's QA harness env is loaded it exports a `DATABASE_URL` pointing at the shared `peanut_dev`, and Prisma prefers the process env over `apps/api/.env`. Prefix Prisma commands with `env -u DATABASE_URL`. It fails safe (P3005) rather than corrupting anything, but the error is confusing.
+
+### What's next, in the order I'd do it
+
+1. **Get the real Peanut integration details** and rewrite the bodies in `apps/api/src/peanut/index.ts` — the pay-URL shape, the webhook payload field names, the signature scheme. This is the only thing standing between the settle loop and being real. Everything around it is built and tested against the mock.
+2. **Decide the settlement asset question.** `SplitSettlement` has no currency column; amounts are implicitly the room's base currency. If a Peanut payment settles in USDC while the room is in THB, the equality check in `confirmPeanutSettlement` becomes an FX comparison and the payer sees two different numbers at the moment they're being asked to pay. Worth settling before the surface freezes.
+3. **Deploy.** Nothing is deployed. `peanutsplit.com` isn't secured (TASK-20753), `split.peanut.me` points nowhere, and there's no CI.
+4. **Wire PostHog** into `deliver()` in `apps/ui/src/services/analytics.ts`, in its own project. Events are buffered in localStorage until then and `flushBuffered()` returns anything captured before the provider existed.
+5. **Rate-limit** the settle-intent endpoint. It's unauthenticated and creates rows; a reviewer created 300 in under three seconds.
+6. **The landing page and the "Splitwise alternative" page** on peanutsplit.com — locked as the SEO scope, not started.
+
+### What not to change without a conversation
+
+These were decided with Hugo on 20 July and are the reason the thing is shaped this way:
+
+- No accounts, no usernames, no identity stored in Split. Room names are labels.
+- Settle rides an existing payment-request link. No new endpoints on the money API.
+- The surface is frozen after launch. Growth-owned, off the eng roadmap.
+- One metric decides it: first-time Peanut signups via Split, 50 in 30 days.
+
+### Where I'd look first if something breaks
+
+- `apps/api/src/db/split.ts` is where every write lives, and the two settlement paths are the subtle part.
+- The webhook answers 200 for business problems on purpose (Peanut retries on non-2xx), so **failures show up in logs, not status codes**. `logger.error` with "peanut webhook:" is money that moved and wasn't recorded — that's the line to alert on when there's somewhere to alert to.
+- `pnpm verify` reproduces the whole settle loop including the failure modes, and is the fastest way to tell whether a change broke something real.
+
+---
+
 ## Nuking this
 
 If the number doesn't move, deleting Split is meant to be an afternoon. Concretely:

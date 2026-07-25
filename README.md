@@ -12,14 +12,31 @@ Split is top-of-funnel for Peanut, not a feature inside it. It stays standalone 
 - its anonymous, unauthenticated routes never live inside the money API,
 - it can be killed by deleting a deploy, with nothing in the core app entangled.
 
-The only integration point is the settle screen: a "Settle with Peanut" CTA that generates an existing Peanut payment-request link, and a webhook that posts the verified receipt back into the room. No new money-path endpoints.
+The only integration point is the settle screen: a "Settle with Peanut" CTA that hands off to an existing Peanut payment-request link, and a webhook that posts the verified receipt back into the room. No new money-path endpoints.
+
+**Everything we don't yet know about Peanut's API lives in one file**, `apps/api/src/peanut/index.ts` — the pay-URL shape, the webhook payload and the signature scheme are all documented guesses. When the real docs arrive, that file's exported surface stays and its bodies change; nothing else needs to move.
 
 ## Layout
 
 ```
-apps/api   Fastify + Prisma + Postgres. 11 anonymous /split/* routes, money math in src/split/.
-apps/ui    Next.js. /room (create) and /room/[slug] (the room).
+apps/api   Fastify + Prisma + its own Postgres, port 5051
+  src/split/       pure money math — splits, balances, minimal transfers, FX
+  src/db/split.ts  every write. Two settlement paths, deliberately (see below)
+  src/peanut/      the entire Peanut integration, mocked and documented
+  src/routes/      /split/* (anonymous, proxied) and /webhooks/* (signed, not proxied)
+apps/ui    Next 16, port 3051
+  /room            create a room
+  /room/[slug]     the room itself, plus its generated link preview
 ```
+
+### The one thing to understand before changing the settle code
+
+There are **two** ways a settlement gets written, and they are not interchangeable:
+
+- `recordSettlement` — someone _asking_ to record a payment ("I paid another way"). A debt ceiling refuses more than the pair actually owes.
+- `confirmPeanutSettlement` — money Peanut says has _already moved_. **No ceiling.** Balances routinely shift between a payment starting and confirming, and refusing there would mean real money moved while the ledger denies it. An overpayment is recorded and reported instead.
+
+`changelog-july-25.md` has the full reasoning under "Design choices".
 
 ## Running locally
 
@@ -32,11 +49,36 @@ pnpm dev                                  # API :5051, UI :3051
 
 Open http://localhost:3051/room.
 
+**Prefix Prisma commands with `env -u DATABASE_URL`** if you have mono's QA harness env loaded — it exports a `DATABASE_URL` pointing at the shared `peanut_dev`, and Prisma prefers the process env over `apps/api/.env`.
+
+### Checking it works
+
+```bash
+pnpm typecheck && pnpm test    # 84 tests; the API suite includes 15 against a real Postgres
+pnpm verify                    # 41 assertions against a running API + database
+```
+
+`pnpm verify` needs the app up and `PEANUT_WEBHOOK_SECRET` set. There are two more checks that drive a real browser and need playwright, so they live as scripts rather than in `pnpm test`: `apps/api/scripts/verify-settle-ui.cjs` (the settle flow, asserting backend state) and `apps/api/scripts/verify-funnel.cjs` (every analytics event). Run them from a directory that has playwright installed, e.g. `mono/engineering/qa`.
+
+To exercise the settle loop without Peanut:
+
+```bash
+pnpm --filter @peanut-split/api simulate:webhook <reference> <amountMinor> <currency>
+```
+
+That signs a real payload and posts it at the real route — there is deliberately no "simulate" endpoint in the app, since one that skips signature checks is a ledger-write primitive one missing env var away from production.
+
 The browser always talks to the API through the same-origin `/_split/*` rewrite (see `apps/ui/next.config.js`), so a devcontainer or preview only ever needs one forwarded port.
 
 ## Design
 
 Peanut's design system, with `primary-1` swapped from Peanut pink to violet so Split reads as its own product. Tokens live in `apps/ui/tailwind.config.js`.
+
+## Where the decisions live
+
+- `changelog-july-25.md` — what was built, and **why each design call went the way it did**. Read "Design choices" before changing the settle path or the analytics.
+- `CLAUDE.md` — working rules for this repo (it ships straight to main; money code still needs a test).
+- `docs-split-rooms-spike.md` — the original spike design doc and the 2026-07-06 review.
 
 ## Provenance
 
