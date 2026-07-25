@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { roomArt } from '@/utils/room-art'
+import { track, attribution, captureAttribution } from '@/services/analytics'
 import { Button } from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
 import {
@@ -42,14 +43,30 @@ export function RoomView({ slug }: { slug: string }) {
 	const [copied, setCopied] = useState(false)
 	const [undo, setUndo] = useState<{ message: string; expenseId: string } | null>(null)
 	const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+	// Fire once per confirmed payment, no matter how many polls surface it.
+	const seenConfirmed = useRef<Set<string>>(new Set())
 	const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	useEffect(() => setMeId(getStoredMemberId(slug)), [slug])
+	// Top of the funnel: somebody followed a shared link. Fired once per room
+	// per mount, before they've claimed a name — that's the whole point, it
+	// measures arrivals, not conversions.
+	useEffect(() => {
+		captureAttribution()
+		track('room_opened', { source: attribution() })
+	}, [slug])
 	const room = roomQ.data
 	useEffect(() => {
 		if (room) rememberRoom(room.slug, room.title)
 	}, [room])
 	useEffect(() => () => void (undoTimer.current && clearTimeout(undoTimer.current)), [])
+	useEffect(() => {
+		for (const s of room?.settlements ?? []) {
+			if (s.method !== 'PEANUT' || seenConfirmed.current.has(s.id)) continue
+			seenConfirmed.current.add(s.id)
+			track('peanut_settlement_confirmed', { source: attribution() })
+		}
+	}, [room?.settlements])
 
 	const currencies = currenciesQ.data ?? []
 	const currencyMap = useMemo(() => toCurrencyMap(currencies), [currencies])
@@ -376,7 +393,11 @@ export function RoomView({ slug }: { slug: string }) {
 					>
 						Add expense
 					</Button>
-					<Button variant="stroke" className="flex-1" onClick={() => setSettleOpen(true)}>
+					<Button
+						variant="stroke"
+						className="flex-1"
+						onClick={() => (track('settle_opened', { source: attribution() }), setSettleOpen(true))}
+					>
 						Settle up
 					</Button>
 				</div>

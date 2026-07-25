@@ -7,6 +7,7 @@ import { MemberAvatar } from './MemberAvatar'
 import { useAddMember } from '@/hooks/query/split'
 import { setStoredMemberId } from '@/utils/split-identity'
 import type { RoomState } from '@/services/split.types'
+import { track, attribution } from '@/services/analytics'
 
 /**
  * First-visit gate: possession of the link gets you in, but we still need to
@@ -28,6 +29,7 @@ export function IdentityGate({ room, onPicked }: { room: RoomState; onPicked: (m
 		// Use the id the server hands back — never diff the members array (racy
 		// when several people tap Join at the same instant).
 		const res = await addMember.mutateAsync(trimmed)
+		track('member_joined', { newName: true, source: attribution() })
 		pick(res.createdMemberId)
 	}
 
@@ -47,7 +49,10 @@ export function IdentityGate({ room, onPicked }: { room: RoomState; onPicked: (m
 						{room.members.map((m) => (
 							<button
 								key={m.id}
-								onClick={() => pick(m.id)}
+								onClick={() => {
+									track('member_joined', { newName: false, source: attribution() })
+									pick(m.id)
+								}}
 								className="flex items-center gap-3 rounded-sm border border-n-1 bg-white px-4 py-3 text-left transition hover:bg-primary-3/40"
 							>
 								<MemberAvatar name={m.displayName} colorSeed={m.colorSeed} />

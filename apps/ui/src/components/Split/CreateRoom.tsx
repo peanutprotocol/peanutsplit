@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { useCreateRoom, useCurrenciesQuery } from '@/hooks/query/split'
 import { getRecentRooms, type RecentRoom } from '@/utils/split-identity'
+import { track, attribution, captureAttribution } from '@/services/analytics'
 
 export function CreateRoom() {
 	const router = useRouter()
@@ -16,10 +17,15 @@ export function CreateRoom() {
 	const [recent, setRecent] = useState<RecentRoom[]>([])
 
 	useEffect(() => setRecent(getRecentRooms()), [])
+	// Seeded traffic lands HERE, not in a room, so attribution has to be read
+	// on this page too — otherwise every campaign visitor who starts their own
+	// room is counted as organic.
+	useEffect(() => captureAttribution(), [])
 
 	const create = async () => {
 		if (createRoom.isPending) return
 		const state = await createRoom.mutateAsync({ title: title.trim() || undefined, baseCurrency: currency })
+		track('room_created', { baseCurrency: currency, named: title.trim().length > 0, source: attribution() })
 		router.push(`/room/${state.slug}`)
 	}
 
