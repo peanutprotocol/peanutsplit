@@ -128,3 +128,19 @@ export function simplifyDebts(balances: Map<string, bigint>): Transfer[] {
 	}
 	return transfers
 }
+
+/**
+ * The most `from` can hand `to` without inverting the ledger: the smaller of
+ * what `from` still owes the group and what `to` is still owed by it. Zero (or
+ * negative) means there is nothing to settle in that direction.
+ *
+ * Recording a payment is not naturally idempotent, so without this ceiling a
+ * double-tapped "mark as paid" recorded the debt twice and flipped who owed
+ * whom.
+ */
+export function settleableAmount(balances: Map<string, bigint>, fromMemberId: string, toMemberId: string): bigint {
+	const owes = -(balances.get(fromMemberId) ?? 0n)
+	const isOwed = balances.get(toMemberId) ?? 0n
+	if (owes <= 0n || isOwed <= 0n) return 0n
+	return owes < isOwed ? owes : isOwed
+}

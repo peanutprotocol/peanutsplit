@@ -1,5 +1,12 @@
 import { describe, expect, test } from '@jest/globals'
-import { convertToBaseMinor, splitEqual, normalizeExact, computeBalances, simplifyDebts } from './math'
+import {
+	convertToBaseMinor,
+	splitEqual,
+	normalizeExact,
+	computeBalances,
+	simplifyDebts,
+	settleableAmount,
+} from './math'
 
 describe('splitEqual', () => {
 	test('divides evenly when it divides cleanly', () => {
@@ -162,5 +169,60 @@ describe('simplifyDebts', () => {
 				])
 			)
 		).toEqual([])
+	})
+})
+
+describe('settleableAmount', () => {
+	const ALICE = 'alice'
+	const BOB = 'bob'
+	const CARA = 'cara'
+	// Alice owes 20.00, Bob is owed 20.00.
+	const simple = () =>
+		new Map<string, bigint>([
+			[ALICE, -2000n],
+			[BOB, 2000n],
+		])
+
+	test('is the debt when both sides match', () => {
+		expect(settleableAmount(simple(), ALICE, BOB)).toBe(2000n)
+	})
+
+	test('is zero once the debt is cleared — this is what stops a double-tap flipping the ledger', () => {
+		const settled = new Map<string, bigint>([
+			[ALICE, 0n],
+			[BOB, 0n],
+		])
+		expect(settleableAmount(settled, ALICE, BOB)).toBe(0n)
+	})
+
+	test('is zero in the wrong direction', () => {
+		expect(settleableAmount(simple(), BOB, ALICE)).toBe(0n)
+	})
+
+	test('is capped by whichever side is smaller', () => {
+		// Alice owes 30.00 but Bob is only owed 12.00 — the rest is owed to Cara.
+		const balances = new Map<string, bigint>([
+			[ALICE, -3000n],
+			[BOB, 1200n],
+			[CARA, 1800n],
+		])
+		expect(settleableAmount(balances, ALICE, BOB)).toBe(1200n)
+		expect(settleableAmount(balances, ALICE, CARA)).toBe(1800n)
+	})
+
+	test('is zero for members with no balance at all', () => {
+		expect(settleableAmount(simple(), 'nobody', BOB)).toBe(0n)
+		expect(settleableAmount(simple(), ALICE, 'nobody')).toBe(0n)
+	})
+
+	test('every suggested transfer is settleable in full', () => {
+		const balances = new Map<string, bigint>([
+			[ALICE, -3000n],
+			[BOB, 1200n],
+			[CARA, 1800n],
+		])
+		for (const t of simplifyDebts(balances)) {
+			expect(settleableAmount(balances, t.fromMemberId, t.toMemberId)).toBeGreaterThanOrEqual(t.amountMinor)
+		}
 	})
 })

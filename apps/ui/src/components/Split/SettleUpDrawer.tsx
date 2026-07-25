@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Button } from '@/components/ui/Button'
 import { MemberAvatar } from './MemberAvatar'
@@ -17,6 +18,12 @@ interface Props {
 export function SettleUpDrawer({ open, onOpenChange, room, currencyMap }: Props) {
 	const settle = useRecordSettlement(room.slug)
 	const byId = Object.fromEntries(room.members.map((m) => [m.id, m]))
+
+	// One key per suggested transfer, regenerated whenever the suggestions
+	// change. Re-firing the same button sends the same key so the server drops
+	// the duplicate, while a genuine later payment of the same amount between
+	// the same two people gets a fresh key and is recorded.
+	const settleKeys = useMemo(() => room.suggestedTransfers.map(() => crypto.randomUUID()), [room.suggestedTransfers])
 
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
@@ -78,6 +85,7 @@ export function SettleUpDrawer({ open, onOpenChange, room, currencyMap }: Props)
 													toMemberId: t.toMemberId,
 													amountMinor: t.amountMinor,
 													method: 'MANUAL',
+													idempotencyKey: settleKeys[i],
 												})
 											}
 										>

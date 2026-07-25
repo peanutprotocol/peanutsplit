@@ -47,15 +47,21 @@ export function useRoomQuery(slug: string) {
 	})
 }
 
+// Cancel before seeding: a poll fired before the mutation can land after it and
+// overwrite the fresh snapshot with pre-mutation state — which is how a deleted
+// expense reappeared while its undo snackbar was still on screen.
 function seedCache(qc: ReturnType<typeof useQueryClient>, slug: string) {
-	return (state: RoomState) => qc.setQueryData(roomKey(slug), state)
+	return async (state: RoomState) => {
+		await qc.cancelQueries({ queryKey: roomKey(slug) })
+		qc.setQueryData(roomKey(slug), state)
+	}
 }
 
 export function useCreateRoom() {
 	const qc = useQueryClient()
 	return useMutation({
 		mutationFn: (input: { title?: string; baseCurrency: string }) => createRoom(input),
-		onSuccess: (state) => qc.setQueryData(roomKey(state.slug), state),
+		onSuccess: (state) => seedCache(qc, state.slug)(state),
 	})
 }
 
@@ -63,7 +69,7 @@ export function useAddMember(slug: string) {
 	const qc = useQueryClient()
 	return useMutation({
 		mutationFn: (displayName: string) => addMember(slug, displayName),
-		onSuccess: (res) => qc.setQueryData(roomKey(slug), res.room),
+		onSuccess: (res) => seedCache(qc, slug)(res.room),
 	})
 }
 
