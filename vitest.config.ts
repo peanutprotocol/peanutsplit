@@ -9,5 +9,10 @@ export default defineConfig({
         environment: 'node',
         include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
         passWithNoTests: true,
+        // Points DATABASE_URL at peanut_split_test and pins FX to the static table.
+        setupFiles: ['src/server/test/env.ts'],
+        globalSetup: ['src/server/test/globalSetup.ts'],
+        // Handler tests share one database — parallel files would truncate each other.
+        fileParallelism: false,
     },
 })
