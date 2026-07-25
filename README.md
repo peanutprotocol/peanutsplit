@@ -51,6 +51,14 @@ Open http://localhost:3051/room.
 
 **Prefix Prisma commands with `env -u DATABASE_URL`** if you have mono's QA harness env loaded — it exports a `DATABASE_URL` pointing at the shared `peanut_dev`, and Prisma prefers the process env over `apps/api/.env`.
 
+### See it with something in it
+
+```bash
+./scripts/demo.sh
+```
+
+Starts both apps and seeds a room that looks like a real trip — four people, two currencies, five expenses, and one settle-up already confirmed by Peanut — then prints the URL. You arrive as a stranger and pick a name, same as anyone following a shared link.
+
 ### Checking it works
 
 ```bash
