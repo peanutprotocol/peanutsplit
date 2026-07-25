@@ -38,6 +38,8 @@ export interface SplitSettlement {
 	toMemberId: string
 	amountMinor: string
 	method: SettlementMethod
+	/** Peanut's id for the payment that confirmed this. Only ever set by the webhook. */
+	peanutRef: string | null
 	createdAt: string
 }
 
@@ -60,8 +62,20 @@ export interface RoomState {
 	members: SplitMember[]
 	expenses: SplitExpense[]
 	settlements: SplitSettlement[]
+	/** Settle-ups handed off to Peanut and not yet confirmed. Server-side, so
+	 *  the whole room sees a payment in flight — not just the tab that started
+	 *  it, which is usually gone, because paying happens in another app. */
+	pendingSettleIntents: PendingSettleIntent[]
 	balances: SplitBalance[]
 	suggestedTransfers: SplitTransfer[]
+}
+
+export interface PendingSettleIntent {
+	reference: string
+	fromMemberId: string
+	toMemberId: string
+	amountMinor: string
+	createdAt: string
 }
 
 export interface CurrencyInfo {
@@ -93,7 +107,9 @@ export interface NewSettlementInput {
 	fromMemberId: string
 	toMemberId: string
 	amountMinor: string
-	method?: SettlementMethod
+	/** MANUAL only — a PEANUT settlement is a verified receipt and may only be
+	 *  written by the webhook, never claimed by a caller with the room link. */
+	method?: 'MANUAL'
 	/** Stable across retries of one tap, so the server can drop the duplicate. */
 	idempotencyKey?: string
 }

@@ -40,6 +40,7 @@ export function RoomView({ slug }: { slug: string }) {
 	const [settleOpen, setSettleOpen] = useState(false)
 	const [copied, setCopied] = useState(false)
 	const [undo, setUndo] = useState<{ message: string; expenseId: string } | null>(null)
+	const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 	const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	useEffect(() => setMeId(getStoredMemberId(slug)), [slug])
@@ -269,23 +270,52 @@ export function RoomView({ slug }: { slug: string }) {
 						{room.settlements.map((s) => {
 							const from = byId[s.fromMemberId]
 							const to = byId[s.toMemberId]
+							// A Peanut settlement is Peanut telling us the payment
+							// completed; a manual one is somebody saying so. They
+							// should not look alike.
+							const confirmed = s.method === 'PEANUT'
 							return (
 								<div
 									key={s.id}
-									className="flex items-center gap-2 rounded-sm border border-dashed border-grey-1 bg-white/60 p-3"
+									className={twMerge(
+										'flex items-center gap-2 rounded-sm p-3',
+										confirmed
+											? 'border border-n-1 bg-primary-3'
+											: 'border border-dashed border-grey-1 bg-white/60'
+									)}
 								>
 									<span className="flex-1 text-sm text-n-1">
-										✓ {from ? from.displayName : 'someone'} paid {to ? to.displayName : 'someone'}{' '}
+										{confirmed ? '🥜' : '✓'} {from ? from.displayName : 'someone'} paid{' '}
+										{to ? to.displayName : 'someone'}{' '}
 										<span className="font-bold">
 											{formatMoney(s.amountMinor, room.baseCurrency, currencyMap)}
 										</span>
+										{confirmed && (
+											<span className="mt-0.5 block text-xs font-semibold text-grey-1">
+												Confirmed by Peanut
+											</span>
+										)}
 									</span>
 									<button
-										onClick={() => deleteSettlement.mutate(s.id)}
+										onClick={() => {
+											// A confirmed payment is a fact about
+											// money that moved. Removing it should
+											// take a deliberate second action.
+											if (confirmed && confirmDelete !== s.id) {
+												setConfirmDelete(s.id)
+												return
+											}
+											setConfirmDelete(null)
+											deleteSettlement.mutate(s.id)
+										}}
 										className="flex size-10 shrink-0 items-center justify-center rounded-sm text-grey-1 hover:text-red"
-										aria-label="Undo settlement"
+										aria-label={confirmed ? 'Remove confirmed payment' : 'Undo settlement'}
 									>
-										✕
+										{confirmed && confirmDelete === s.id ? (
+											<span className="text-xs font-bold text-red">sure?</span>
+										) : (
+											'✕'
+										)}
 									</button>
 								</div>
 							)

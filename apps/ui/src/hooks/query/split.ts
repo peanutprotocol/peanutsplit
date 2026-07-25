@@ -16,6 +16,7 @@ import {
 	restoreExpense,
 	recordSettlement,
 	deleteSettlement,
+	createSettleIntent,
 } from '@/services/split'
 import type { RoomState, NewExpenseInput, NewSettlementInput } from '@/services/split.types'
 
@@ -119,5 +120,16 @@ export function useDeleteSettlement(slug: string) {
 	return useMutation({
 		mutationFn: (settlementId: string) => deleteSettlement(slug, settlementId),
 		onSuccess: seedCache(qc, slug),
+	})
+}
+
+/** Reserve a Peanut settle-up. The room snapshot picks up the pending intent
+ *  on the next poll, so every device in the room sees the payment in flight. */
+export function useCreateSettleIntent(slug: string) {
+	const qc = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { fromMemberId: string; toMemberId: string; amountMinor: string }) =>
+			createSettleIntent(slug, input),
+		onSuccess: () => qc.invalidateQueries({ queryKey: roomKey(slug) }),
 	})
 }
