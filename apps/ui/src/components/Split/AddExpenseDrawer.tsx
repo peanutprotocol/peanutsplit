@@ -69,7 +69,11 @@ export function AddExpenseDrawer({ open, onOpenChange, room, meMemberId, currenc
 			setPaidBy(editing.paidByMemberId)
 			setKind(editing.splitKind)
 			setParticipants(new Set(editing.shares.map((s) => s.memberId)))
-			seededIdsRef.current = new Set(editing.shares.map((s) => s.memberId))
+			// Everyone in the room, not just this expense's participants: the ref
+			// answers "who was already here when the drawer opened". Seeding it
+			// with the participants made every deliberately-excluded member look
+			// like a new joiner, so editing silently put them back in the split.
+			seededIdsRef.current = new Set(room.members.map((m) => m.id))
 			if (editing.splitKind === 'EXACT') {
 				const ex: Record<string, string> = {}
 				let sumMinor = 0n

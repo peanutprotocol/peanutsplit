@@ -7,7 +7,14 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '../db'
 import { getReferenceRate } from '../split/fx'
 import { isSupportedCurrency } from '../split/currencies'
-import { convertToBaseMinor, splitEqual, normalizeExact, computeBalances, simplifyDebts } from '../split/math'
+import {
+	convertToBaseMinor,
+	splitEqual,
+	normalizeExact,
+	computeBalances,
+	simplifyDebts,
+	settleableAmount,
+} from '../split/math'
 
 /** Handler-mappable error: carries the HTTP status to return. */
 export class SplitError extends Error {
@@ -62,6 +69,8 @@ export type NewSettlementInput = {
 	toMemberId: string
 	amountMinor: string
 	method?: 'MANUAL' | 'PEANUT'
+	/** Client-generated, stable across retries of the same tap. */
+	idempotencyKey?: string
 }
 
 export type CreatedMember = { id: string; displayName: string; colorSeed: number }
@@ -110,6 +119,12 @@ type ComputedExpense = {
 async function computeExpense(room: RoomForExpense, input: NewExpenseInput): Promise<ComputedExpense> {
 	if (!isSupportedCurrency(input.currency)) throw new SplitError(400, `unsupported currency: ${input.currency}`)
 	if (!room.memberIds.has(input.paidByMemberId)) throw new SplitError(400, 'payer is not a member of this room')
+	// Unchecked, this reached the FK directly: a non-UUID 500s, and a real
+	// member id borrowed from another room passes the constraint and quietly
+	// cross-links the two rooms.
+	if (input.createdByMemberId != null && !room.memberIds.has(input.createdByMemberId)) {
+		throw new SplitError(400, 'author is not a member of this room')
+	}
 
 	const amountMinor = BigInt(input.amountMinor)
 	assertSaneAmount(amountMinor)
@@ -271,15 +286,72 @@ export async function recordSettlement(slug: string, input: NewSettlementInput):
 	if (input.fromMemberId === input.toMemberId) throw new SplitError(400, 'cannot settle with yourself')
 	const amt = BigInt(input.amountMinor)
 	assertSaneAmount(amt)
-	await prisma.splitSettlement.create({
-		data: {
-			roomId: room.id,
-			fromMemberId: input.fromMemberId,
-			toMemberId: input.toMemberId,
-			amountMinor: amt,
-			method: input.method ?? 'MANUAL',
-		},
-	})
+
+	// Recording a payment is not idempotent by nature, and a settlement that
+	// overshoots the debt flips who owes whom — so a double-tap used to invert
+	// the ledger. Two independent guards: the key makes the retry a no-op, and
+	// the debt ceiling makes a genuine second payment impossible to record.
+	//
+	// The key is checked first on purpose. Once the first attempt lands there is
+	// nothing left to settle, so checking the ceiling first would answer a plain
+	// retry with "nothing to settle" — an error about a payment that in fact
+	// went through.
+	if (input.idempotencyKey) {
+		const already = await prisma.splitSettlement.findFirst({
+			where: { roomId: room.id, idempotencyKey: input.idempotencyKey },
+			select: { id: true },
+		})
+		if (already) return
+	}
+
+	try {
+		await prisma.$transaction(async (tx) => {
+			const owed = await settleableBetween(tx, room.id, input.fromMemberId, input.toMemberId)
+			if (owed <= 0n) throw new SplitError(400, 'there is nothing to settle between these two')
+			if (amt > owed) throw new SplitError(400, 'that is more than is owed between these two')
+			await tx.splitSettlement.create({
+				data: {
+					roomId: room.id,
+					fromMemberId: input.fromMemberId,
+					toMemberId: input.toMemberId,
+					amountMinor: amt,
+					method: input.method ?? 'MANUAL',
+					idempotencyKey: input.idempotencyKey ?? null,
+				},
+			})
+		})
+	} catch (err) {
+		// Same key twice == the same tap arriving twice. Already recorded.
+		if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') return
+		throw err
+	}
+}
+
+/** Current settleable amount between two members, read inside the caller's
+ *  transaction so the ceiling reflects settlements recorded a moment ago. */
+async function settleableBetween(
+	tx: Prisma.TransactionClient,
+	roomId: string,
+	fromMemberId: string,
+	toMemberId: string
+): Promise<bigint> {
+	const [members, expenses, settlements] = await Promise.all([
+		tx.splitMember.findMany({ where: { roomId, deletedAt: null }, select: { id: true } }),
+		tx.splitExpense.findMany({
+			where: { roomId, deletedAt: null },
+			select: {
+				paidByMemberId: true,
+				baseAmountMinor: true,
+				shares: { select: { memberId: true, amountMinor: true } },
+			},
+		}),
+		tx.splitSettlement.findMany({
+			where: { roomId },
+			select: { fromMemberId: true, toMemberId: true, amountMinor: true },
+		}),
+	])
+	const net = computeBalances({ memberIds: members.map((m) => m.id), expenses, settlements })
+	return settleableAmount(net, fromMemberId, toMemberId)
 }
 
 /** Undo a settlement (hard delete — a settlement is just a record of a payment). */

@@ -296,6 +296,7 @@ app.post(
 				toMemberId: Type.String(),
 				amountMinor: Money,
 				method: Type.Optional(Type.Union([Type.Literal('MANUAL'), Type.Literal('PEANUT')])),
+				idempotencyKey: Type.Optional(Type.String({ maxLength: 64 })),
 			}),
 			response: { 200: RoomStateSchema, 400: ErrorSchema, 404: ErrorSchema },
 		},
