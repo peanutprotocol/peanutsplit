@@ -1,0 +1,163 @@
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'motion/react'
+import { BaseInput } from '@/components/ui/BaseInput'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { isApiError } from '@/lib/api'
+import type { RoomState } from '@/lib/api-types'
+import { roomProps, track } from '@/lib/analytics'
+import type { MemberIdentity } from '@/lib/identity'
+import { useJoinRoom } from '@/lib/queries'
+import { MemberAvatar } from './MemberAvatar'
+
+interface JoinGateProps {
+    slug: string
+    state: RoomState
+    onJoined: (identity: MemberIdentity) => void
+}
+
+/**
+ * First visit, no stored identity. The room is already visible behind this — you
+ * can see the balances you are about to join, which is most of the trust.
+ *
+ * Tapping an existing member claims that identity locally only: there is no
+ * token for someone else's member, and that is by design. Impersonation inside a
+ * trusted circle is a category norm (Kittysplit, Splid) and the slug is the
+ * credential; writes are attributed, never authorised.
+ */
+export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
+    const joinRoom = useJoinRoom(slug)
+    const [mode, setMode] = useState<'pick' | 'new'>(state.members.length > 0 ? 'pick' : 'new')
+    const [name, setName] = useState('')
+    const [error, setError] = useState<string | null>(null)
+
+    const claimExisting = (memberId: string, memberName: string) => {
+        track('room_joined', roomProps(slug, { kind: 'existing' }))
+        onJoined({ memberId, name: memberName })
+    }
+
+    const joinAsNew = async (event: React.FormEvent) => {
+        event.preventDefault()
+        const trimmed = name.trim()
+        if (!trimmed) return
+        setError(null)
+        try {
+            const next = await joinRoom.mutateAsync({ name: trimmed })
+            track('room_joined', roomProps(slug, { kind: 'new' }))
+            onJoined({ memberId: next.memberId, token: next.memberToken, name: trimmed })
+        } catch (err) {
+            if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
+                setError(`${trimmed} is already here — tap their name above instead.`)
+                setMode('pick')
+                return
+            }
+            setError(isApiError(err) ? err.message : 'could not join — try again')
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 z-30 flex flex-col justify-end" data-testid="join-gate">
+            {/* Soft scrim: the room stays readable underneath on purpose. */}
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" aria-hidden="true" />
+
+            <motion.div
+                initial={{ y: 40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+                className="relative mx-auto w-full max-w-xl p-4"
+            >
+                <Card shadowSize="6" className="max-h-[80dvh] overflow-y-auto p-5">
+                    <h2 className="text-h5">Who are you?</h2>
+                    <p className="mt-1 text-sm text-grey-1">
+                        {state.room.name} · {state.members.length} {state.members.length === 1 ? 'person' : 'people'} so
+                        far
+                    </p>
+
+                    {mode === 'pick' && (
+                        <>
+                            <ul className="mt-4 flex flex-col gap-2">
+                                {state.members.map((member) => (
+                                    <li key={member.id}>
+                                        <button
+                                            type="button"
+                                            onClick={() => claimExisting(member.id, member.name)}
+                                            data-testid="claim-member"
+                                            data-member={member.name}
+                                            className="shadow-4 flex w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+                                        >
+                                            <MemberAvatar name={member.name} size={32} />
+                                            <span className="flex-1 truncate text-h7">{member.name}</span>
+                                            <span className="text-sm text-grey-1">{`that's me`}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            {error && (
+                                <p role="alert" className="mt-3 text-sm font-bold text-error">
+                                    {error}
+                                </p>
+                            )}
+
+                            <Button
+                                variant="stroke"
+                                icon="plus"
+                                className="mt-4 justify-center"
+                                onClick={() => {
+                                    setError(null)
+                                    setMode('new')
+                                }}
+                                data-testid="im-new"
+                            >
+                                {`I'm new here`}
+                            </Button>
+                        </>
+                    )}
+
+                    {mode === 'new' && (
+                        <form onSubmit={joinAsNew} className="mt-4 flex flex-col gap-3">
+                            <BaseInput
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                placeholder="Your name"
+                                maxLength={80}
+                                autoFocus
+                                data-testid="join-name"
+                            />
+                            {error && (
+                                <p role="alert" className="text-sm font-bold text-error">
+                                    {error}
+                                </p>
+                            )}
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                shadowSize="4"
+                                disabled={name.trim().length === 0}
+                                loading={joinRoom.isPending}
+                                className="justify-center"
+                                data-testid="join-room"
+                            >
+                                Join the room
+                            </Button>
+                            {state.members.length > 0 && (
+                                <Button
+                                    variant="transparent"
+                                    className="justify-center text-sm underline"
+                                    onClick={() => {
+                                        setError(null)
+                                        setMode('pick')
+                                    }}
+                                >
+                                    {`Actually, I'm already on the list`}
+                                </Button>
+                            )}
+                        </form>
+                    )}
+                </Card>
+            </motion.div>
+        </div>
+    )
+}
