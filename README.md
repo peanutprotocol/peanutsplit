@@ -15,6 +15,9 @@ pnpm exec prisma migrate dev
 pnpm dev                     # http://localhost:3000
 ```
 
+Handler tests need their own database once: `createdb peanut_split_test` (or set
+`TEST_DATABASE_URL`). `pnpm test` migrates it automatically on every run.
+
 ## Full stack in Docker
 
 ```bash
