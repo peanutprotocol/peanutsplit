@@ -56,6 +56,9 @@ async function fetchUsdPerUnit(): Promise<Record<string, number> | null> {
 
 /** Cached rates, refreshed at most once per TTL. Never throws — worst case static. */
 export async function getRateTable(): Promise<RateTable> {
+    // Static mode means STATIC — the DB cache may hold live rates written by a
+    // dev server without the flag, which silently breaks deterministic tests.
+    if (remoteDisabled()) return STATIC_TABLE
     let rows: { quote: string; rate: unknown; fetchedAt: Date }[] = []
     try {
         rows = await prisma.fxRate.findMany({ where: { base: 'USD' } })
