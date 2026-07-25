@@ -9,8 +9,21 @@ jobs:
     build:
         runs-on: ubuntu-latest
         env:
-            # Prisma needs a URL at generate/build time; nothing connects to it.
-            DATABASE_URL: postgresql://build:build@localhost:5432/build
+            DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: peanut
+                    POSTGRES_PASSWORD: peanut
+                    POSTGRES_DB: peanut_split_dev
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U peanut"
+                    --health-interval 5s
+                    --health-timeout 5s
+                    --health-retries 10
         steps:
             - uses: actions/checkout@v4
 
@@ -31,6 +44,17 @@ jobs:
 
             - run: pnpm lint
 
+            # Handler tests create/migrate their own peanut_split_test via globalSetup.
+            - name: Create test database
+              run: PGPASSWORD=peanut psql -h localhost -U peanut -d peanut_split_dev -c "CREATE DATABASE peanut_split_test OWNER peanut"
+
             - run: pnpm test
 
+            - run: pnpm exec prisma migrate deploy
+
             - run: pnpm build
+
+            - name: Install Playwright
+              run: pnpm exec playwright install --with-deps chromium
+
+            - run: pnpm e2e
