@@ -10,12 +10,12 @@ const { footer } = marketingCopy
 export function SiteFooter() {
     return (
         <footer className="mt-auto border-t border-n-1 bg-white pb-[env(safe-area-inset-bottom)]">
-            <div className="mx-auto flex w-full max-w-xl items-center justify-center px-5 py-6">
+            <div className="mx-auto flex w-full max-w-xl items-center justify-center px-5 py-4">
                 <a
                     href={footer.poweredByHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-grey-1 transition-opacity hover:opacity-70"
+                    className="flex min-h-11 items-center px-2 text-sm text-grey-1 transition-opacity hover:opacity-70"
                 >
                     {footer.poweredByPrefix}{' '}
                     <span className="font-display font-bold text-secondary-1">{footer.poweredByBrand}</span>

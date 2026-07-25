@@ -1,6 +1,6 @@
 'use client'
 
-import { twMerge } from 'tailwind-merge'
+import { cn } from '@/lib/cn'
 
 /**
  * A curated set beats an emoji keyboard here: one tap, no search, and every
@@ -40,7 +40,7 @@ export function EmojiPicker({ value, onChange }: { value: string; onChange: (emo
                         aria-checked={selected}
                         aria-label={`Emoji ${emoji}`}
                         onClick={() => onChange(emoji)}
-                        className={twMerge(
+                        className={cn(
                             'flex size-11 items-center justify-center rounded-sm border border-n-1 text-h5 transition-transform active:translate-y-[2px]',
                             selected ? 'shadow-4 bg-primary-1' : 'bg-white'
                         )}

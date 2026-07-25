@@ -10,6 +10,7 @@ import type { RoomState } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { useJoinRoom } from '@/lib/queries'
+import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from './MemberAvatar'
 
 interface JoinGateProps {
@@ -29,11 +30,13 @@ interface JoinGateProps {
  */
 export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
     const joinRoom = useJoinRoom(slug)
+    const feedback = useFeedback()
     const [mode, setMode] = useState<'pick' | 'new'>(state.members.length > 0 ? 'pick' : 'new')
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
 
     const claimExisting = (memberId: string, memberName: string) => {
+        feedback('pop')
         track('room_joined', roomProps(slug, { kind: 'existing' }))
         onJoined({ memberId, name: memberName })
     }
@@ -45,6 +48,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
         setError(null)
         try {
             const next = await joinRoom.mutateAsync({ name: trimmed })
+            feedback('pop')
             track('room_joined', roomProps(slug, { kind: 'new' }))
             onJoined({ memberId: next.memberId, token: next.memberToken, name: trimmed })
         } catch (err) {

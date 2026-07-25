@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BaseInput } from '@/components/ui/BaseInput'
@@ -12,8 +13,9 @@ import type { RoomStateWithMember } from '@/lib/api-types'
 import { writeIdentity } from '@/lib/identity'
 import { useCreateRoom, useCurrencies } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
+import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
-import { EmojiPicker, randomRoomEmoji } from './EmojiPicker'
+import { EmojiPicker, ROOM_EMOJIS, randomRoomEmoji } from './EmojiPicker'
 import { LinkMoment } from './LinkMoment'
 
 const DEFAULT_CURRENCY = 'EUR'
@@ -28,12 +30,19 @@ export function CreateRoomForm() {
     const { data: currencies } = useCurrencies()
     const createRoom = useCreateRoom()
 
+    const feedback = useFeedback()
+
     const [name, setName] = useState('')
-    const [emoji, setEmoji] = useState(() => randomRoomEmoji())
+    // Server-rendered with the peanut, then rolled on mount. Seeding the state
+    // with `Math.random()` renders a different emoji on each side of hydration,
+    // which React flags and then refuses to patch up.
+    const [emoji, setEmoji] = useState<string>(ROOM_EMOJIS[0])
     const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
     const [creatorName, setCreatorName] = useState('')
     const [created, setCreated] = useState<RoomStateWithMember | null>(null)
     const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => setEmoji(randomRoomEmoji()), [])
 
     const canSubmit = useMemo(
         () => name.trim().length > 0 && creatorName.trim().length > 0 && !createRoom.isPending,
@@ -60,6 +69,8 @@ export function CreateRoomForm() {
             })
             rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
             track('room_created', roomProps(state.room.slug, { currency: state.room.currency }))
+            // A room came into being — the cork, not the pencil.
+            feedback('pop')
             setCreated(state)
         } catch (err) {
             setError(isApiError(err) ? err.message : 'could not create the room — try again')
@@ -68,7 +79,7 @@ export function CreateRoomForm() {
 
     if (created) {
         return (
-            <div className="flex min-h-dvh flex-col justify-center px-5 py-10">
+            <div className="flex min-h-dvh flex-col justify-center px-5 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-10">
                 <LinkMoment
                     slug={created.room.slug}
                     roomName={created.room.name}
@@ -91,19 +102,27 @@ export function CreateRoomForm() {
     }
 
     return (
-        <form onSubmit={submit} className="flex min-h-dvh flex-col gap-8 px-5 pb-10 pt-6">
+        <form
+            onSubmit={submit}
+            className="flex min-h-dvh flex-col gap-8 px-5 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-6"
+        >
             <div className="flex items-center gap-3">
                 <Link
                     href="/"
                     aria-label="Back"
-                    className="flex size-10 items-center justify-center rounded-sm border border-n-1 bg-white"
+                    className="flex size-11 items-center justify-center rounded-sm border border-n-1 bg-white transition-transform active:translate-y-[2px]"
                 >
                     <Icon name="arrow-left" size={20} />
                 </Link>
                 <h1 className="text-h5">New split</h1>
             </div>
 
-            <div className="my-auto flex flex-col gap-6">
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="my-auto flex flex-col gap-6"
+            >
                 <label className="flex flex-col gap-2">
                     <span className="text-h8 uppercase tracking-wide text-grey-1">What are you splitting?</span>
                     <BaseInput
@@ -118,7 +137,13 @@ export function CreateRoomForm() {
 
                 <div className="flex flex-col gap-2">
                     <span className="text-h8 uppercase tracking-wide text-grey-1">Pick a face for it</span>
-                    <EmojiPicker value={emoji} onChange={setEmoji} />
+                    <EmojiPicker
+                        value={emoji}
+                        onChange={(next) => {
+                            setEmoji(next)
+                            feedback('tick')
+                        }}
+                    />
                 </div>
 
                 <label className="flex flex-col gap-2">
@@ -163,7 +188,7 @@ export function CreateRoomForm() {
                 >
                     Create the room
                 </Button>
-            </div>
+            </motion.div>
         </form>
     )
 }

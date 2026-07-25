@@ -1,11 +1,12 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { track, roomProps } from '@/lib/analytics'
+import { useFeedback } from '@/lib/use-settings'
 
 interface LinkMomentProps {
     slug: string
@@ -39,6 +40,8 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
+    const feedback = useFeedback()
+    const reduceMotion = useReducedMotion()
 
     const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
@@ -57,14 +60,16 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
             await navigator.clipboard.writeText(url)
             setCopied(true)
             setCopyFailed(false)
+            feedback('tick')
             track('link_copied', roomProps(slug))
             window.setTimeout(() => setCopied(false), 2_000)
         } catch {
             revealFallback()
         }
-    }, [url, slug, revealFallback])
+    }, [url, slug, revealFallback, feedback])
 
     const share = useCallback(async () => {
+        feedback('tick')
         track('share_opened', roomProps(slug))
         try {
             await navigator.share({
@@ -76,28 +81,44 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
         } catch {
             // AbortError just means they closed the sheet. Nothing to say.
         }
-    }, [roomName, url, slug])
+    }, [roomName, url, slug, feedback])
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2 text-center">
+            <motion.div
+                initial={reduceMotion ? false : { opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                className="flex flex-col gap-2 text-center"
+            >
                 <h1 className="text-h4">{title}</h1>
                 <p className="text-sm text-grey-1">{subtitle}</p>
-            </div>
+            </motion.div>
 
+            {/* Being handed something: the ticket drops in from above, overshoots,
+                and settles a hair off-square before straightening — the way a card
+                actually lands on a table. */}
             <motion.div
-                initial={{ y: 24, opacity: 0, rotate: -1.5 }}
-                animate={{ y: 0, opacity: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+                initial={reduceMotion ? false : { y: -56, opacity: 0, rotate: -4, scale: 0.94 }}
+                animate={{ y: 0, opacity: 1, rotate: [-4, 1.4, 0], scale: 1 }}
+                transition={{
+                    default: { type: 'spring', stiffness: 300, damping: 17, mass: 0.9, delay: 0.06 },
+                    rotate: { duration: 0.62, delay: 0.06, times: [0, 0.55, 1], ease: 'easeOut' },
+                }}
             >
                 <Card shadowSize="6" className="overflow-hidden">
                     <div className="flex items-center gap-3 border-b border-n-1 bg-primary-1 px-4 py-4">
-                        <span className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4">
+                        <motion.span
+                            initial={reduceMotion ? false : { scale: 0.4, rotate: -20 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }}
+                            className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"
+                        >
                             {emoji || '🥜'}
-                        </span>
+                        </motion.span>
                         <div className="min-w-0">
                             <p className="truncate text-h6">{roomName}</p>
-                            <p className="text-h10 uppercase tracking-wider text-n-1/70">your split room</p>
+                            <p className="text-h10 uppercase tracking-wide text-n-1/70">your split room</p>
                         </div>
                     </div>
 
@@ -105,10 +126,11 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                     <div className="relative h-0">
                         <span className="absolute -left-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
                         <span className="absolute -right-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
+                        <span className="absolute inset-x-4 -top-px block border-t border-dashed border-n-1/40" />
                     </div>
 
                     <div className="flex flex-col gap-3 px-4 py-5">
-                        <p className="text-h10 uppercase tracking-wider text-grey-1">Room link</p>
+                        <p className="text-h10 uppercase tracking-wide text-grey-1">Room link</p>
                         {copyFailed ? (
                             <div className="flex flex-col gap-2">
                                 <input
@@ -137,16 +159,40 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
             </motion.div>
 
             <div className="flex flex-col gap-3">
-                <Button
-                    variant="primary"
-                    shadowSize="4"
-                    onClick={copy}
-                    icon={copied ? 'check' : 'copy'}
-                    className="justify-center"
-                    data-testid="copy-link"
-                >
-                    {copied ? 'Copied!' : 'Copy link'}
-                </Button>
+                {/* The success state morphs rather than swaps: the icon spins into a
+                    check and the whole button flicks to green, so the confirmation is
+                    a thing that happened rather than a label that changed. The text
+                    swaps outright — a crossfaded label leaves the button momentarily
+                    empty, which reads as a bug. */}
+                <motion.div animate={copied ? { scale: [1, 1.02, 1] } : { scale: 1 }} transition={{ duration: 0.26 }}>
+                    <Button
+                        variant="primary"
+                        shadowSize="4"
+                        onClick={copy}
+                        icon={
+                            <AnimatePresence mode="popLayout" initial={false}>
+                                <motion.span
+                                    key={copied ? 'check' : 'copy'}
+                                    initial={{ scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 }}
+                                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                                    exit={{ scale: 0.3, opacity: 0 }}
+                                    transition={{ type: 'spring', stiffness: 520, damping: 20 }}
+                                    className="flex items-center justify-center"
+                                >
+                                    <Icon name={copied ? 'check' : 'copy'} size={18} />
+                                </motion.span>
+                            </AnimatePresence>
+                        }
+                        className={
+                            copied
+                                ? 'justify-center !bg-green-1 transition-colors duration-150'
+                                : 'justify-center transition-colors duration-150'
+                        }
+                        data-testid="copy-link"
+                    >
+                        {copied ? 'Copied!' : 'Copy link'}
+                    </Button>
+                </motion.div>
                 {canShare && (
                     <Button variant="stroke" onClick={share} icon="share" className="justify-center">
                         Share
