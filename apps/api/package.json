@@ -13,7 +13,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "simulate:webhook": "tsx scripts/simulate-peanut-webhook.ts"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

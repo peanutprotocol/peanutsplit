@@ -7,6 +7,7 @@ if (process.env.SENTRY_DSN) {
 
 const { app } = await import('./app')
 const { logger } = await import('./utils')
+await import('./routes/webhooks/peanut')
 await import('./routes/split/index')
 
 app.get('/health', async () => ({ ok: true }))

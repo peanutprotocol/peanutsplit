@@ -6,7 +6,7 @@ This repo does **not** follow mono's always-PR workflow. Split is growth-owned, 
 
 - **Push straight to `main`.** No PR, no review gate, no waiting. `main` is unprotected on purpose.
 - Open a PR only when you actually want a second opinion on something, not as ceremony.
-- Commit messages explain *why*. No AI co-author lines.
+- Commit messages explain _why_. No AI co-author lines.
 
 ## What still holds
 
