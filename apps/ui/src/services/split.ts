@@ -89,3 +89,17 @@ export async function recordSettlement(slug: string, input: NewSettlementInput):
 export async function deleteSettlement(slug: string, settlementId: string): Promise<RoomState> {
 	return splitFetch(`/rooms/${slug}/settlements/${settlementId}`, { method: 'DELETE' })
 }
+
+/**
+ * Reserve a settle-up through Peanut and get the URL to pay at.
+ *
+ * Nothing is recorded in the room by this call. The settlement only appears
+ * once Peanut confirms the payment to our webhook — which is what makes it a
+ * verified receipt rather than a claim.
+ */
+export async function createSettleIntent(
+	slug: string,
+	input: { fromMemberId: string; toMemberId: string; amountMinor: string }
+): Promise<{ reference: string; payUrl: string }> {
+	return splitFetch(`/rooms/${slug}/settle-intent`, { method: 'POST', body: JSON.stringify(input) })
+}
