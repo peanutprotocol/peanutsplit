@@ -17,6 +17,7 @@ import {
 	recordSettlement,
 	deleteSettlement,
 	createSettleIntent,
+	cancelSettleIntent,
 } from '@/services/split'
 import type { RoomState, NewExpenseInput, NewSettlementInput } from '@/services/split.types'
 
@@ -131,5 +132,13 @@ export function useCreateSettleIntent(slug: string) {
 		mutationFn: (input: { fromMemberId: string; toMemberId: string; amountMinor: string }) =>
 			createSettleIntent(slug, input),
 		onSuccess: () => qc.invalidateQueries({ queryKey: roomKey(slug) }),
+	})
+}
+
+export function useCancelSettleIntent(slug: string) {
+	const qc = useQueryClient()
+	return useMutation({
+		mutationFn: (reference: string) => cancelSettleIntent(slug, reference),
+		onSuccess: seedCache(qc, slug),
 	})
 }

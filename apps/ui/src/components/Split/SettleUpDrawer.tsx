@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Button } from '@/components/ui/Button'
 import { MemberAvatar } from './MemberAvatar'
-import { useRecordSettlement, useCreateSettleIntent } from '@/hooks/query/split'
+import { useRecordSettlement, useCreateSettleIntent, useCancelSettleIntent } from '@/hooks/query/split'
 import { formatMoney, type CurrencyMap } from '@/utils/split-format'
 import type { RoomState, SplitTransfer } from '@/services/split.types'
 import { track, attribution } from '@/services/analytics'
@@ -30,6 +30,7 @@ function fnv1a(input: string): string {
 export function SettleUpDrawer({ open, onOpenChange, room, currencyMap }: Props) {
 	const settle = useRecordSettlement(room.slug)
 	const startPeanutPayment = useCreateSettleIntent(room.slug)
+	const cancelPeanutPayment = useCancelSettleIntent(room.slug)
 	const byId = Object.fromEntries(room.members.map((m) => [m.id, m]))
 
 	// Which transfer already has a payment in flight. From the room snapshot, so
@@ -184,6 +185,15 @@ export function SettleUpDrawer({ open, onOpenChange, room, currencyMap }: Props)
 												<span className="mt-1 block font-normal text-grey-1">
 													It lands here on its own. Don&apos;t pay twice.
 												</span>
+												{/* Without a way out, changing your mind at the
+												    checkout locks this debt for half an hour. */}
+												<button
+													type="button"
+													className="mt-2 text-xs font-semibold text-grey-1 underline"
+													onClick={() => cancelPeanutPayment.mutate(pending.reference)}
+												>
+													I didn&apos;t end up paying
+												</button>
 											</div>
 										) : (
 											<>
