@@ -50,9 +50,10 @@ model SplitRoom {
   updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   archivedAt DateTime? @map("archived_at") @db.Timestamptz(6)
 
-  members     SplitMember[]
-  expenses    SplitExpense[]
-  settlements SplitSettlement[]
+  members      SplitMember[]
+  expenses     SplitExpense[]
+  settlements  SplitSettlement[]
+  settleIntents SplitSettleIntent[]
 
   @@map("split_rooms")
   @@schema("app")
@@ -74,6 +75,8 @@ model SplitMember {
   shares          SplitShare[]
   settlementsFrom SplitSettlement[] @relation("SettlementFrom")
   settlementsTo   SplitSettlement[] @relation("SettlementTo")
+  intentsFrom     SplitSettleIntent[] @relation("IntentFrom")
+  intentsTo       SplitSettleIntent[] @relation("IntentTo")
 
   @@index([roomId], map: "idx_split_member_room")
   @@map("split_members")
@@ -132,6 +135,49 @@ model SplitShare {
 
   @@unique([expenseId, memberId], map: "uniq_split_share_expense_member")
   @@map("split_shares")
+  @@schema("app")
+}
+
+/// A settle-up handed off to Peanut, from the tap on "Settle with Peanut"
+/// until the payment confirms. Persisted rather than encoded into a signed
+/// token so that: the reference we hand Peanut is opaque and carries nothing
+/// (no room slug — the slug IS the access control and must never leave), the
+/// whole room can see a payment is in flight, and a confirmation that never
+/// arrives is detectable instead of invisible.
+model SplitSettleIntent {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @map("split_settle_intent_id") @db.Uuid
+  /// Opaque random handle. This is what rides along with the Peanut payment
+  /// and comes back on the webhook; it grants nothing on its own.
+  reference String @unique @db.VarChar(64)
+
+  roomId       String @map("room_id") @db.Uuid
+  fromMemberId String @map("from_member_id") @db.Uuid
+  toMemberId   String @map("to_member_id") @db.Uuid
+  /// Room base currency minor units, as quoted when the intent was created.
+  amountMinor  BigInt @map("amount_minor")
+
+  status SplitSettleIntentStatus @default(PENDING)
+  /// Peanut's id for the payment that confirmed this, once it has.
+  peanutPaymentId String? @map("peanut_payment_id") @db.VarChar(255)
+
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  confirmedAt DateTime? @map("confirmed_at") @db.Timestamptz(6)
+
+  room SplitRoom   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  from SplitMember @relation("IntentFrom", fields: [fromMemberId], references: [id])
+  to   SplitMember @relation("IntentTo", fields: [toMemberId], references: [id])
+
+  @@index([roomId], map: "idx_split_settle_intent_room")
+  @@map("split_settle_intents")
+  @@schema("app")
+}
+
+enum SplitSettleIntentStatus {
+  PENDING
+  CONFIRMED
+  /// Superseded or abandoned; kept for the audit trail, never resurrected.
+  EXPIRED
+
   @@schema("app")
 }
 

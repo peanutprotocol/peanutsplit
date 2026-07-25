@@ -10,9 +10,11 @@ import { app } from '../../app'
 import { logger } from '../../utils'
 import { CURRENCIES, isSupportedCurrency } from '../../split/currencies'
 import { getReferenceRate } from '../../split/fx'
+import { buildPayUrl } from '../../peanut'
 import {
 	SplitError,
 	createRoom,
+	createSettleIntent,
 	addMember,
 	addExpense,
 	updateExpense,
@@ -59,6 +61,15 @@ const SettlementSchema = Type.Object({
 	toMemberId: Type.String(),
 	amountMinor: Money,
 	method: Type.Union([Type.Literal('MANUAL'), Type.Literal('PEANUT')]),
+	peanutRef: Type.Union([Type.String(), Type.Null()]),
+	createdAt: Type.String(),
+})
+
+const PendingSettleIntentSchema = Type.Object({
+	reference: Type.String(),
+	fromMemberId: Type.String(),
+	toMemberId: Type.String(),
+	amountMinor: Money,
 	createdAt: Type.String(),
 })
 
@@ -76,6 +87,7 @@ const RoomStateSchema = Type.Object({
 	members: Type.Array(MemberSchema),
 	expenses: Type.Array(ExpenseSchema),
 	settlements: Type.Array(SettlementSchema),
+	pendingSettleIntents: Type.Array(PendingSettleIntentSchema),
 	balances: Type.Array(Type.Object({ memberId: Type.String(), netMinor: Money })),
 	suggestedTransfers: Type.Array(TransferSchema),
 })
@@ -295,8 +307,15 @@ app.post(
 				fromMemberId: Type.String(),
 				toMemberId: Type.String(),
 				amountMinor: Money,
-				method: Type.Optional(Type.Union([Type.Literal('MANUAL'), Type.Literal('PEANUT')])),
-				idempotencyKey: Type.Optional(Type.String({ maxLength: 64 })),
+				// MANUAL only. A PEANUT settlement is a claim that a real
+				// payment completed, and it renders as a verified receipt — so
+				// it may only be written by the webhook, never by a caller who
+				// merely has the room link.
+				method: Type.Optional(Type.Literal('MANUAL')),
+				// `peanut:` is reserved for webhook-minted keys, so a caller
+				// can't pre-claim one and turn a later real confirmation into a
+				// silent no-op.
+				idempotencyKey: Type.Optional(Type.String({ maxLength: 64, pattern: '^(?!peanut:).+$' })),
 			}),
 			response: { 200: RoomStateSchema, 400: ErrorSchema, 404: ErrorSchema },
 		},
@@ -323,6 +342,47 @@ app.delete(
 		try {
 			await deleteSettlement(request.params.slug, request.params.settlementId)
 			return await sendRoomState(reply, request.params.slug)
+		} catch (err) {
+			return replyError(reply, err)
+		}
+	}
+)
+
+/**
+ * Start a settle-up through Peanut: reserve an opaque reference and hand back
+ * the URL to pay at. No money is recorded here — that only happens when Peanut
+ * confirms the payment (see routes/webhooks).
+ */
+app.post(
+	'/split/rooms/:slug/settle-intent',
+	{
+		schema: {
+			params: Type.Object({ slug: Type.String() }),
+			body: Type.Object({
+				fromMemberId: Type.String(),
+				toMemberId: Type.String(),
+				amountMinor: Money,
+			}),
+			response: {
+				200: Type.Object({ reference: Type.String(), payUrl: Type.String() }),
+				400: ErrorSchema,
+				404: ErrorSchema,
+			},
+		},
+	},
+	async (request, reply) => {
+		try {
+			const intent = await createSettleIntent(request.params.slug, {
+				...request.body,
+				method: 'PEANUT',
+			})
+			const payUrl = buildPayUrl({
+				reference: intent.reference,
+				amountMinor: intent.amountMinor,
+				currency: intent.baseCurrency,
+				note: intent.roomTitle ?? 'Peanut Split',
+			})
+			return reply.send({ reference: intent.reference, payUrl })
 		} catch (err) {
 			return replyError(reply, err)
 		}

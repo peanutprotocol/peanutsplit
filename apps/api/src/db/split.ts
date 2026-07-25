@@ -375,6 +375,7 @@ export async function buildRoomState(slug: string) {
 			members: { where: { deletedAt: null }, orderBy: { createdAt: 'asc' } },
 			expenses: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, include: { shares: true } },
 			settlements: { orderBy: { createdAt: 'desc' } },
+			settleIntents: { where: { status: 'PENDING' }, orderBy: { createdAt: 'desc' } },
 		},
 	})
 	if (!room) return null
@@ -424,8 +425,22 @@ export async function buildRoomState(slug: string) {
 			toMemberId: s.toMemberId,
 			amountMinor: s.amountMinor.toString(),
 			method: s.method,
+			peanutRef: s.peanutRef,
 			createdAt: s.createdAt.toISOString(),
 		})),
+		// Everyone in the room sees a payment in flight, not just the tab that
+		// started it — that tab is usually gone, because paying happens in
+		// another app. It's also what stops someone else marking the same debt
+		// paid by hand while the payment is still settling.
+		pendingSettleIntents: room.settleIntents
+			.filter((i) => !isIntentStale(i.createdAt))
+			.map((i) => ({
+				reference: i.reference,
+				fromMemberId: i.fromMemberId,
+				toMemberId: i.toMemberId,
+				amountMinor: i.amountMinor.toString(),
+				createdAt: i.createdAt.toISOString(),
+			})),
 		balances: memberIds.map((id) => ({ memberId: id, netMinor: (balances.get(id) ?? 0n).toString() })),
 		suggestedTransfers: suggested.map((t) => ({
 			fromMemberId: t.fromMemberId,
@@ -433,4 +448,142 @@ export async function buildRoomState(slug: string) {
 			amountMinor: t.amountMinor.toString(),
 		})),
 	}
+}
+
+// ─── Settling through Peanut ────────────────────────────────────────────────
+
+/** How long a pending intent is shown as "in flight" before the room stops
+ *  waiting on it. The payment can still confirm afterwards — this only governs
+ *  what the UI says, never whether money is recorded. */
+const INTENT_STALE_MS = 30 * 60 * 1000
+
+function isIntentStale(createdAt: Date): boolean {
+	return Date.now() - createdAt.getTime() > INTENT_STALE_MS
+}
+
+export type SettleIntent = {
+	reference: string
+	amountMinor: bigint
+	roomTitle: string | null
+	baseCurrency: string
+}
+
+/**
+ * Start a settle-up through Peanut. Writes a PENDING intent and returns the
+ * opaque reference the payment must carry back.
+ *
+ * The debt ceiling applies HERE, where the user is still choosing — not on the
+ * confirmation, where the money has already moved.
+ */
+export async function createSettleIntent(slug: string, input: NewSettlementInput): Promise<SettleIntent> {
+	const room = await prisma.splitRoom.findUnique({
+		where: { slug },
+		include: { members: { where: { deletedAt: null }, select: { id: true } } },
+	})
+	if (!room) throw new SplitError(404, 'room not found')
+	const ids = new Set(room.members.map((m) => m.id))
+	if (!ids.has(input.fromMemberId) || !ids.has(input.toMemberId)) throw new SplitError(400, 'member not in room')
+	if (input.fromMemberId === input.toMemberId) throw new SplitError(400, 'cannot settle with yourself')
+	const amt = BigInt(input.amountMinor)
+	assertSaneAmount(amt)
+
+	const owed = await settleableBetween(prisma, room.id, input.fromMemberId, input.toMemberId)
+	if (owed <= 0n) throw new SplitError(400, 'there is nothing to settle between these two')
+	if (amt > owed) throw new SplitError(400, 'that is more than is owed between these two')
+
+	// 128 bits of opacity. Carries no room slug and no member names: this
+	// string travels to Peanut and may end up in a payment memo, a receipt
+	// email or a support console, so it must grant nothing to whoever sees it.
+	const reference = randomBytes(16).toString('base64url')
+	await prisma.splitSettleIntent.create({
+		data: {
+			reference,
+			roomId: room.id,
+			fromMemberId: input.fromMemberId,
+			toMemberId: input.toMemberId,
+			amountMinor: amt,
+		},
+	})
+	return { reference, amountMinor: amt, roomTitle: room.title, baseCurrency: room.baseCurrency }
+}
+
+export type ConfirmResult =
+	| { outcome: 'recorded'; overpaidBy: bigint }
+	| { outcome: 'already-recorded' }
+	| { outcome: 'unknown-reference' }
+	| { outcome: 'amount-mismatch'; expected: bigint; got: bigint }
+	| { outcome: 'currency-mismatch'; expected: string; got: string }
+
+/**
+ * Record a payment Peanut has confirmed.
+ *
+ * Deliberately NOT `recordSettlement`. That path guards a user's tap with a
+ * debt ceiling, which is right when someone is asking to record something. Here
+ * the money has already moved, and the balances may well have shifted since the
+ * intent was created — someone else settled, an expense got added. Applying the
+ * ceiling would reject a real payment and leave the ledger claiming it never
+ * happened, which is the worst outcome available to us.
+ *
+ * So this records unconditionally, and reports any overpayment instead of
+ * refusing it. An overpayment is a true statement about the world: the room
+ * then simply shows the balance owed back the other way.
+ */
+export async function confirmPeanutSettlement(args: {
+	reference: string
+	paymentId: string
+	idempotencyKey: string
+	amountMinor: bigint
+	currency: string
+}): Promise<ConfirmResult> {
+	const intent = await prisma.splitSettleIntent.findUnique({
+		where: { reference: args.reference },
+		include: { room: { select: { id: true, baseCurrency: true } } },
+	})
+	if (!intent) return { outcome: 'unknown-reference' }
+
+	// The receipt asserts that this much money moved, so the assertion rests on
+	// what Peanut reported — not on the amount someone asked us to quote.
+	if (intent.room.baseCurrency !== args.currency) {
+		return { outcome: 'currency-mismatch', expected: intent.room.baseCurrency, got: args.currency }
+	}
+	if (intent.amountMinor !== args.amountMinor) {
+		return { outcome: 'amount-mismatch', expected: intent.amountMinor, got: args.amountMinor }
+	}
+
+	const existing = await prisma.splitSettlement.findFirst({
+		where: { roomId: intent.roomId, idempotencyKey: args.idempotencyKey },
+		select: { id: true },
+	})
+	if (existing) return { outcome: 'already-recorded' }
+
+	const owed = await settleableBetween(prisma, intent.roomId, intent.fromMemberId, intent.toMemberId)
+	const overpaidBy = args.amountMinor > owed ? args.amountMinor - owed : 0n
+
+	try {
+		await prisma.$transaction(async (tx) => {
+			await tx.splitSettlement.create({
+				data: {
+					roomId: intent.roomId,
+					fromMemberId: intent.fromMemberId,
+					toMemberId: intent.toMemberId,
+					amountMinor: args.amountMinor,
+					method: 'PEANUT',
+					peanutRef: args.paymentId,
+					idempotencyKey: args.idempotencyKey,
+				},
+			})
+			await tx.splitSettleIntent.update({
+				where: { id: intent.id },
+				data: { status: 'CONFIRMED', peanutPaymentId: args.paymentId, confirmedAt: new Date() },
+			})
+		})
+	} catch (err) {
+		// Two callbacks for the same payment raced. One of them won; that's the
+		// outcome we wanted either way.
+		if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+			return { outcome: 'already-recorded' }
+		}
+		throw err
+	}
+	return { outcome: 'recorded', overpaidBy }
 }
