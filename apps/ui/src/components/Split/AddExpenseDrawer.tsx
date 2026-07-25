@@ -9,6 +9,7 @@ import { MemberAvatar } from './MemberAvatar'
 import { useAddExpense, useUpdateExpense, useRateQuery } from '@/hooks/query/split'
 import { toMinorString, formatMoney, type CurrencyMap } from '@/utils/split-format'
 import type { RoomState, CurrencyInfo, SplitKind, SplitExpense } from '@/services/split.types'
+import { track, attribution } from '@/services/analytics'
 
 interface Props {
 	open: boolean
@@ -174,6 +175,14 @@ export function AddExpenseDrawer({ open, onOpenChange, room, meMemberId, currenc
 		try {
 			if (editing) await updateExpense.mutateAsync({ expenseId: editing.id, input })
 			else await addExpense.mutateAsync(input)
+			if (!editing) {
+				track('expense_added', {
+					splitKind: kind,
+					foreign: currency !== room.baseCurrency,
+					participants: participants.size,
+					source: attribution(),
+				})
+			}
 			onOpenChange(false)
 		} catch {
 			// mutation surfaces the error via isError; keep the drawer open to retry

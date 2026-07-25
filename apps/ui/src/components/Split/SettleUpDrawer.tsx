@@ -7,6 +7,7 @@ import { MemberAvatar } from './MemberAvatar'
 import { useRecordSettlement, useCreateSettleIntent } from '@/hooks/query/split'
 import { formatMoney, type CurrencyMap } from '@/utils/split-format'
 import type { RoomState, SplitTransfer } from '@/services/split.types'
+import { track, attribution } from '@/services/analytics'
 
 interface Props {
 	open: boolean
@@ -31,6 +32,8 @@ export function SettleUpDrawer({ open, onOpenChange, room, currencyMap }: Props)
 	const canPay = Object.keys(currencyMap).length > 0
 
 	const payWithPeanut = async (t: SplitTransfer) => {
+		// The number the whole project is judged on starts here.
+		track('settle_with_peanut_clicked', { source: attribution() })
 		// The tab is opened synchronously, before the await: browsers only allow
 		// a popup while a click is still being handled, so opening it after the
 		// request returns gets blocked.
@@ -131,7 +134,8 @@ export function SettleUpDrawer({ open, onOpenChange, room, currencyMap }: Props)
 													size="medium"
 													className="w-full"
 													loading={settle.isPending}
-													onClick={() =>
+													onClick={() => {
+														track('settle_marked_manually', { source: attribution() })
 														settle.mutate({
 															fromMemberId: t.fromMemberId,
 															toMemberId: t.toMemberId,
@@ -139,7 +143,7 @@ export function SettleUpDrawer({ open, onOpenChange, room, currencyMap }: Props)
 															method: 'MANUAL',
 															idempotencyKey: settleKeys[i],
 														})
-													}
+													}}
 												>
 													I paid another way
 												</Button>
