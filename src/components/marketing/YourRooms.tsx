@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'motion/react'
 import { Icon } from '@/components/ui/Icon'
 import { readRecentRooms, type RecentRoom } from '@/lib/recent-rooms'
 import { marketingCopy } from './copy'
@@ -39,15 +40,28 @@ export function YourRooms() {
     const overflow = recent.length - visible.length
 
     return (
-        <section className="mx-auto w-full max-w-xl px-5">
+        // The list can only exist after a localStorage read, so it necessarily
+        // arrives one frame late. Staggering it in turns that unavoidable pop
+        // into something that looks intended.
+        <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            className="mx-auto w-full max-w-xl px-5"
+        >
             <div className="flex items-baseline justify-between">
                 <h2 className="text-h5">{copy.title}</h2>
                 <span className="text-sm text-grey-1">{copy.subtitle}</span>
             </div>
 
             <ul className="mt-4 flex flex-col gap-3">
-                {visible.map((room) => (
-                    <li key={room.slug}>
+                {visible.map((room, index) => (
+                    <motion.li
+                        key={room.slug}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: 'spring', stiffness: 340, damping: 30, delay: 0.05 + index * 0.05 }}
+                    >
                         <Link
                             href={`/r/${room.slug}`}
                             aria-label={`${copy.openLabel}: ${room.name}`}
@@ -65,14 +79,14 @@ export function YourRooms() {
                             </span>
                             <Icon name="chevron-right" size={20} className="shrink-0 text-n-1" />
                         </Link>
-                    </li>
+                    </motion.li>
                 ))}
             </ul>
 
             {overflow > 0 && (
                 <p className="mt-3 text-sm text-grey-1">{copy.moreLabel.replace('{count}', String(overflow))}</p>
             )}
-        </section>
+        </motion.section>
     )
 }
 

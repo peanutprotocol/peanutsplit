@@ -1,13 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
-import { twMerge } from 'tailwind-merge'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
+import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import { fromDateInputValue, toDateInputValue } from '@/lib/dates'
@@ -22,6 +23,7 @@ import {
 } from '@/lib/expense-form'
 import { currencyInfo, equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useAddExpense, useDeleteExpense, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
+import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -53,6 +55,7 @@ export function ExpenseDrawer({
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
+    const feedback = useFeedback()
 
     const [values, setValues] = useState<ExpenseFormValues>(() =>
         emptyExpenseForm({ currency: state.room.currency, members: state.members, paidById: defaultPaidById })
@@ -148,6 +151,9 @@ export function ExpenseDrawer({
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
                 )
             }
+            // Moment #3, the audible half: pencil on paper as the row lands and
+            // every affected balance starts counting.
+            feedback('tick')
             close()
         } catch (err) {
             if (isApiError(err, 'EXPENSE_DELETED')) {
@@ -201,7 +207,7 @@ export function ExpenseDrawer({
                     <DrawerTitle className="text-h5">{expense ? 'Edit expense' : 'Add expense'}</DrawerTitle>
                 </DrawerHeader>
 
-                <div className="flex flex-col gap-5 px-4 pb-10 pt-4">
+                <div className="flex flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
                     {/* Amount first: it's the thing you came to type. */}
                     <div className="flex items-end gap-3">
                         <label className="flex flex-1 flex-col gap-2">
@@ -246,13 +252,18 @@ export function ExpenseDrawer({
                                 <button
                                     key={member.id}
                                     type="button"
-                                    onClick={() => patch({ paidById: member.id })}
+                                    onClick={() => {
+                                        patch({ paidById: member.id })
+                                        feedback('tick')
+                                    }}
                                     aria-pressed={values.paidById === member.id}
                                     data-testid="payer-chip"
                                     data-member={member.name}
-                                    className={twMerge(
-                                        'flex items-center gap-2 rounded-sm border border-n-1 py-2 pl-2 pr-3 text-h8',
-                                        values.paidById === member.id ? 'shadow-4 bg-primary-1' : 'bg-white'
+                                    className={cn(
+                                        'flex min-h-11 items-center gap-2 rounded-sm border border-n-1 py-2 pl-2 pr-3 text-h8 transition-all duration-100',
+                                        values.paidById === member.id
+                                            ? 'shadow-4 bg-primary-1'
+                                            : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
                                     )}
                                 >
                                     <MemberAvatar name={member.name} size={24} />
@@ -270,11 +281,14 @@ export function ExpenseDrawer({
                                     <button
                                         key={mode}
                                         type="button"
-                                        onClick={() => setSplitMode(mode)}
+                                        onClick={() => {
+                                            setSplitMode(mode)
+                                            feedback('tick')
+                                        }}
                                         aria-pressed={values.splitMode === mode}
                                         data-testid={`split-${mode.toLowerCase()}`}
-                                        className={twMerge(
-                                            'px-4 py-2 text-h8',
+                                        className={cn(
+                                            'min-h-11 px-4 py-2 text-h8 transition-colors duration-150',
                                             values.splitMode === mode ? 'bg-n-1 text-white' : 'bg-white text-n-1'
                                         )}
                                     >
@@ -292,24 +306,43 @@ export function ExpenseDrawer({
                                         <li key={member.id}>
                                             <button
                                                 type="button"
-                                                onClick={() => toggleParticipant(member.id)}
+                                                onClick={() => {
+                                                    toggleParticipant(member.id)
+                                                    feedback('tick')
+                                                }}
                                                 aria-pressed={checked}
                                                 data-testid="participant-toggle"
                                                 data-member={member.name}
-                                                className={twMerge(
-                                                    'flex w-full items-center gap-3 rounded-sm border border-n-1 p-3 text-left',
+                                                className={cn(
+                                                    'flex min-h-11 w-full items-center gap-3 rounded-sm border border-n-1 p-3 text-left transition-all duration-150 active:translate-y-[2px]',
                                                     checked ? 'bg-white' : 'bg-grey-4 opacity-60'
                                                 )}
                                             >
                                                 <MemberAvatar name={member.name} size={28} />
                                                 <span className="flex-1 truncate text-h8">{member.name}</span>
                                                 <span
-                                                    className={twMerge(
-                                                        'flex size-6 items-center justify-center rounded-sm border border-n-1',
+                                                    className={cn(
+                                                        'flex size-6 items-center justify-center rounded-sm border border-n-1 transition-colors duration-150',
                                                         checked ? 'bg-primary-1' : 'bg-white'
                                                     )}
                                                 >
-                                                    {checked && <Icon name="check" size={16} />}
+                                                    <AnimatePresence initial={false}>
+                                                        {checked && (
+                                                            <motion.span
+                                                                initial={{ scale: 0.2, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0.2, opacity: 0 }}
+                                                                transition={{
+                                                                    type: 'spring',
+                                                                    stiffness: 600,
+                                                                    damping: 24,
+                                                                }}
+                                                                className="flex"
+                                                            >
+                                                                <Icon name="check" size={16} />
+                                                            </motion.span>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </span>
                                             </button>
                                         </li>
@@ -374,11 +407,16 @@ export function ExpenseDrawer({
                                     </div>
                                 )}
 
-                                {/* Moment #4 — the cents reconcile in front of you. */}
-                                <div
+                                {/* Moment #4 — the cents reconcile in front of you. The
+                                    readout pops the instant it balances, so hitting zero
+                                    is something that happened rather than something you
+                                    have to go and read. */}
+                                <motion.div
                                     data-testid="remaining-readout"
-                                    className={twMerge(
-                                        'flex items-center justify-between rounded-sm border border-n-1 px-3 py-3 text-h8',
+                                    animate={remainingIsZero ? { scale: [1, 1.03, 1] } : { scale: 1 }}
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                    className={cn(
+                                        'flex items-center justify-between rounded-sm border border-n-1 px-3 py-3 text-h8 transition-colors duration-200',
                                         remainingIsZero ? 'bg-green-1' : 'bg-primary-3'
                                     )}
                                 >
@@ -400,7 +438,7 @@ export function ExpenseDrawer({
                                             )
                                         )}
                                     </span>
-                                </div>
+                                </motion.div>
                                 <p className="text-sm text-grey-1">
                                     Amounts are in {values.currency}
                                     {values.currency !== state.room.currency &&

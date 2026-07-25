@@ -1,8 +1,8 @@
 'use client'
 
-import { twMerge } from 'tailwind-merge'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo } from '@/lib/api-types'
+import { cn } from '@/lib/cn'
 
 interface CurrencySelectProps {
     value: string
@@ -20,7 +20,7 @@ interface CurrencySelectProps {
  */
 export function CurrencySelect({ value, onChange, currencies, className, id, ...rest }: CurrencySelectProps) {
     return (
-        <div className={twMerge('relative w-full', className)}>
+        <div className={cn('relative w-full', className)}>
             <select
                 id={id}
                 value={value}

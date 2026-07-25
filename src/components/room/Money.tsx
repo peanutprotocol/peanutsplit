@@ -1,8 +1,8 @@
 'use client'
 
 import NumberFlow from '@number-flow/react'
-import { twMerge } from 'tailwind-merge'
 import type { CurrencyInfo } from '@/lib/api-types'
+import { cn } from '@/lib/cn'
 import { currencyInfo, formatMoney, minorToNumber } from '@/lib/money'
 
 interface MoneyProps {
@@ -18,8 +18,20 @@ interface MoneyProps {
 /** Static amount. Everything money-shaped is tabular so columns never jitter. */
 export function Money({ minor, currency, catalog, className, absolute }: MoneyProps) {
     const value = absolute && minor.startsWith('-') ? minor.slice(1) : minor
-    return <span className={twMerge('tabular-nums', className)}>{formatMoney(value, currency, catalog)}</span>
+    return <span className={cn('tabular-nums', className)}>{formatMoney(value, currency, catalog)}</span>
 }
+
+/**
+ * Counting, not flickering.
+ *
+ * NumberFlow's stock timings are tuned for dashboards that tick every second;
+ * at that speed a balance jumping from −30.00 to +11.48 reads as a glitch. 720ms
+ * on a decelerating curve is long enough for the eye to follow the digits and
+ * short enough that nobody waits for it. The digits stay put horizontally
+ * (`transformTiming` is the same curve) so the row never jitters.
+ */
+const COUNT_TIMING: EffectTiming = { duration: 720, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+const FADE_TIMING: EffectTiming = { duration: 380, easing: 'ease-out' }
 
 /**
  * Animated amount — balances *count* to their new value when an expense lands
@@ -35,7 +47,11 @@ export function AnimatedMoney({ minor, currency, catalog, className, absolute }:
             value={value}
             prefix={info.symbol}
             format={{ minimumFractionDigits: info.decimals, maximumFractionDigits: info.decimals }}
-            className={twMerge('tabular-nums', className)}
+            spinTiming={COUNT_TIMING}
+            transformTiming={COUNT_TIMING}
+            opacityTiming={FADE_TIMING}
+            respectMotionPreference
+            className={cn('tabular-nums', className)}
         />
     )
 }
