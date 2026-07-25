@@ -12,7 +12,9 @@ const roomArgs = {
         members: { orderBy: { createdAt: 'asc' } },
         expenses: {
             where: { deletedAt: null },
-            include: { shares: true },
+            // Roster order, id as tiebreaker — wire order must be deterministic
+            // (uuid PKs mean physical order is arbitrary and flaked in CI).
+            include: { shares: { orderBy: [{ member: { createdAt: 'asc' } }, { id: 'asc' }] } },
             orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
         },
         settlements: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' } },
