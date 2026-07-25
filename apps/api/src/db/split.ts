@@ -613,8 +613,12 @@ export async function confirmPeanutSettlement(args: {
 			// Claim the intent FIRST, conditionally. Two callbacks for two
 			// different payments against one intent would otherwise both read
 			// PENDING and both write. Whoever loses this update writes nothing.
+			// PENDING *or* EXPIRED. Expiry is only about what the room stops
+			// waiting on; a payment that confirms an hour late is still real
+			// money, and refusing it would leave the ledger denying it happened.
+			// Only CONFIRMED blocks, which is what makes this one-shot.
 			const claimed = await tx.splitSettleIntent.updateMany({
-				where: { id: intent.id, status: 'PENDING' },
+				where: { id: intent.id, status: { in: ['PENDING', 'EXPIRED'] } },
 				data: { status: 'CONFIRMED', peanutPaymentId: args.paymentId, confirmedAt: new Date() },
 			})
 			if (claimed.count === 0) throw new AlreadyClaimed()
