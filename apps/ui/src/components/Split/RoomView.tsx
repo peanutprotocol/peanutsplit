@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { roomArt } from '@/utils/room-art'
 import { Button } from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
 import {
@@ -53,6 +54,7 @@ export function RoomView({ slug }: { slug: string }) {
 	const currencies = currenciesQ.data ?? []
 	const currencyMap = useMemo(() => toCurrencyMap(currencies), [currencies])
 	const byId = useMemo(() => Object.fromEntries((room?.members ?? []).map((m) => [m.id, m])), [room])
+	const art = useMemo(() => roomArt(room?.title ?? null), [room?.title])
 
 	if (roomQ.isLoading) {
 		return (
@@ -134,17 +136,40 @@ export function RoomView({ slug }: { slug: string }) {
 
 	return (
 		<Shell>
-			{/* header */}
-			<div className="flex items-start justify-between gap-3 border-b border-n-1 p-4">
-				<div className="min-w-0 flex-1">
-					<div className="line-clamp-2 break-words text-xl font-extrabold leading-tight text-n-1">
+			{/* header — the room's own artwork, derived from its name, so a room
+			    looks like the trip it is rather than like every other room */}
+			<div
+				className="relative flex items-start justify-between gap-3 overflow-hidden border-b border-n-1 p-4"
+				style={{ background: `linear-gradient(135deg, ${art.palette.from}, ${art.palette.to})` }}
+			>
+				<div aria-hidden className="pointer-events-none absolute inset-0 select-none">
+					{art.scatter.map((v, i) => (
+						<span
+							key={i}
+							className="absolute opacity-20"
+							style={{
+								left: `${6 + v * 86}%`,
+								top: `${(i * 29 + v * 60) % 70}%`,
+								fontSize: `${22 + (i % 3) * 14}px`,
+							}}
+						>
+							{art.motif}
+						</span>
+					))}
+				</div>
+				<div className="relative min-w-0 flex-1">
+					<div
+						className="line-clamp-2 break-words text-xl font-extrabold leading-tight"
+						style={{ color: art.palette.ink }}
+					>
+						<span className="mr-1.5">{art.motif}</span>
 						{room.title || 'Split room'}
 					</div>
-					<div className="mt-0.5 text-sm text-grey-1">
+					<div className="mt-0.5 text-sm font-medium opacity-70" style={{ color: art.palette.ink }}>
 						{room.members.length} {room.members.length === 1 ? 'person' : 'people'} · {room.baseCurrency}
 					</div>
 				</div>
-				<Button variant="stroke" size="medium" className="w-auto shrink-0 px-4" onClick={share}>
+				<Button variant="stroke" size="medium" className="relative w-auto shrink-0 px-4" onClick={share}>
 					{copied ? 'Copied!' : 'Share'}
 				</Button>
 			</div>
