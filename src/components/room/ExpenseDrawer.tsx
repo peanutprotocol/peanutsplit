@@ -99,7 +99,7 @@ export function ExpenseDrawer({
             patch({ splitMode: 'EQUAL' })
             return
         }
-        const participants = values.participantIds.length ? values.participantIds : state.members.map((m) => m.id)
+        const participants = values.participantsTouched ? values.participantIds : state.members.map((m) => m.id)
         const shares = equalSplitMinor(totalMinor ?? '0', participants.length)
         const exactInputs: Record<string, string> = {}
         participants.forEach((memberId, index) => {
@@ -109,11 +109,13 @@ export function ExpenseDrawer({
     }
 
     const toggleParticipant = (memberId: string) => {
-        const has = values.participantIds.includes(memberId)
+        // First touch materialises "everyone right now"; until then the form's
+        // list is a stale snapshot and the wire omits it (server = everyone).
+        const current = values.participantsTouched ? values.participantIds : state.members.map((m) => m.id)
+        const has = current.includes(memberId)
         patch({
-            participantIds: has
-                ? values.participantIds.filter((id) => id !== memberId)
-                : [...values.participantIds, memberId],
+            participantsTouched: true,
+            participantIds: has ? current.filter((id) => id !== memberId) : [...current, memberId],
         })
     }
 
@@ -301,7 +303,8 @@ export function ExpenseDrawer({
                         {values.splitMode === 'EQUAL' ? (
                             <ul className="flex flex-col gap-2">
                                 {state.members.map((member) => {
-                                    const checked = values.participantIds.includes(member.id)
+                                    const checked =
+                                        !values.participantsTouched || values.participantIds.includes(member.id)
                                     return (
                                         <li key={member.id}>
                                             <button

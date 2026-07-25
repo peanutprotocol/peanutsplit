@@ -22,6 +22,14 @@ export interface ExpenseFormValues {
     splitMode: SplitMode
     /** EQUAL mode: who the bill is shared between. */
     participantIds: string[]
+    /**
+     * False until the user deliberately toggles a participant. While false the
+     * body omits `participantIds`, so the SERVER splits among everyone in the
+     * room at save time — the client's roster can be up to a poll-interval
+     * stale, and "split with everyone" is intent, not a member-list snapshot.
+     * (A member who joined 3s ago must not be silently excluded.)
+     */
+    participantsTouched: boolean
     /** EXACT mode: memberId → major-unit text, in the EXPENSE currency. */
     exactInputs: Record<string, string>
     /** ISO date-time. */
@@ -39,6 +47,7 @@ export const emptyExpenseForm = (opts: {
     paidById: opts.paidById,
     splitMode: 'EQUAL',
     participantIds: opts.members.map((m) => m.id),
+    participantsTouched: false,
     exactInputs: {},
     date: new Date().toISOString(),
 })
@@ -64,6 +73,8 @@ export function expenseToFormValues(expense: ApiExpense, catalog?: readonly Curr
         paidById: expense.paidById,
         splitMode: expense.splitMode,
         participantIds: expense.shares.map((s) => s.memberId),
+        // Editing must preserve the saved participant set exactly.
+        participantsTouched: true,
         exactInputs,
         date: expense.date,
     }
@@ -98,7 +109,7 @@ export function validateExpenseForm(
     if (total === null || BigInt(total) <= 0n) return 'AMOUNT_REQUIRED'
     if (!values.paidById) return 'PAYER_REQUIRED'
     if (values.splitMode === 'EQUAL') {
-        if (values.participantIds.length === 0) return 'NO_PARTICIPANTS'
+        if (values.participantsTouched && values.participantIds.length === 0) return 'NO_PARTICIPANTS'
         return null
     }
     const shares = exactShareEntries(values, catalog)
@@ -140,5 +151,6 @@ export function buildExpenseBody(values: ExpenseFormValues, catalog?: readonly C
     if (values.splitMode === 'EXACT') {
         return { ...base, splitMode: 'EXACT', exactShares: exactShareEntries(values, catalog) }
     }
+    if (!values.participantsTouched) return { ...base, splitMode: 'EQUAL' }
     return { ...base, splitMode: 'EQUAL', participantIds: values.participantIds }
 }
