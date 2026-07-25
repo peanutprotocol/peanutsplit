@@ -10,3 +10,6 @@ coverage/
 
 .DS_Store
 next-env.d.ts
+
+# build artifact — regenerated on every typecheck
+*.tsbuildinfo
