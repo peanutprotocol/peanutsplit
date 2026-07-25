@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  /// Kept on the `app` schema so the migrations lifted from peanut-api-ts
+  /// apply here unchanged.
+  schemas  = ["app"]
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SPLIT ROOMS — link-based expense splitting (Splitwise/Tricount-style).
+//
+// A room IS its shareable link: access is gated ONLY by possession of the
+// high-entropy `slug` (no accounts, fully trust-based inside — like a shared
+// album). Members are just display names; a device claims "I am this member"
+// via localStorage. "Settle up" is manual today; the SplitSettlement.method /
+// peanutRef columns are the seam for paying via Peanut later.
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum SplitKind {
+  EQUAL // divide evenly across selected members
+  EXACT // caller supplies each member's exact share
+
+  @@schema("app")
+}
+
+enum SplitSettlementMethod {
+  MANUAL // "we squared up offline — mark it"
+  PEANUT // paid via a Peanut link (future); peanutRef points at the transfer
+
+  @@schema("app")
+}
+
+model SplitRoom {
+  id   String @id @default(dbgenerated("gen_random_uuid()")) @map("split_room_id") @db.Uuid
+  /// High-entropy public token embedded in the room URL. Unguessable == the
+  /// entire access-control model, so it must stay long + random (nanoid).
+  slug String @unique @db.VarChar(32)
+
+  title String? @db.VarChar(255)
+  /// Currency all balances net + display in. Expenses may be entered in any
+  /// currency and are converted to this at creation (rate locked on the row).
+  baseCurrency String @map("base_currency") @db.VarChar(8)
+
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz(6)
+
+  members     SplitMember[]
+  expenses    SplitExpense[]
+  settlements SplitSettlement[]
+
+  @@map("split_rooms")
+  @@schema("app")
+}
+
+model SplitMember {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @map("split_member_id") @db.Uuid
+  roomId      String @map("room_id") @db.Uuid
+  displayName String @map("display_name") @db.VarChar(80)
+  /// Deterministic seed for the member's avatar color on the client.
+  colorSeed   Int    @map("color_seed")
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  room            SplitRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  expensesPaid    SplitExpense[]    @relation("ExpensePaidBy")
+  expensesCreated SplitExpense[]    @relation("ExpenseCreatedBy")
+  shares          SplitShare[]
+  settlementsFrom SplitSettlement[] @relation("SettlementFrom")
+  settlementsTo   SplitSettlement[] @relation("SettlementTo")
+
+  @@index([roomId], map: "idx_split_member_room")
+  @@map("split_members")
+  @@schema("app")
+}
+
+model SplitExpense {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @map("split_expense_id") @db.Uuid
+  roomId      String @map("room_id") @db.Uuid
+  description String @db.VarChar(255)
+
+  /// What was actually spent, in `currency` minor units.
+  amountMinor BigInt @map("amount_minor")
+  currency    String @db.VarChar(8)
+  /// `amountMinor` converted into the room base currency (minor units of base).
+  baseAmountMinor BigInt @map("base_amount_minor")
+  /// FX locked at creation so historical balances never drift: baseAmount ==
+  /// amount * fxRate (major units). fxSource records where the rate came from.
+  fxRate      Decimal @map("fx_rate") @db.Decimal(28, 18)
+  fxSource    String  @map("fx_source") @db.VarChar(32)
+
+  splitKind         SplitKind @map("split_kind")
+  paidByMemberId    String    @map("paid_by_member_id") @db.Uuid
+  createdByMemberId String?   @map("created_by_member_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  room      SplitRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  paidBy    SplitMember  @relation("ExpensePaidBy", fields: [paidByMemberId], references: [id])
+  createdBy SplitMember? @relation("ExpenseCreatedBy", fields: [createdByMemberId], references: [id])
+  shares    SplitShare[]
+
+  @@index([roomId], map: "idx_split_expense_room")
+  @@map("split_expenses")
+  @@schema("app")
+}
+
+model SplitShare {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @map("split_share_id") @db.Uuid
+  expenseId String @map("expense_id") @db.Uuid
+  memberId  String @map("member_id") @db.Uuid
+  /// This member's owed share of the expense, in room base currency minor
+  /// units. Sum of an expense's shares == expense.baseAmountMinor (EQUAL splits
+  /// are materialized with largest-remainder rounding so it balances exactly).
+  amountMinor BigInt @map("amount_minor")
+  /// For EXACT splits: the share as originally entered in the EXPENSE currency's
+  /// minor units. Lets editing round-trip the exact typed amounts instead of
+  /// back-converting from base (which drifts a cent on foreign currencies).
+  /// Null for EQUAL splits.
+  enteredAmountMinor BigInt? @map("entered_amount_minor")
+
+  expense SplitExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member  SplitMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, memberId], map: "uniq_split_share_expense_member")
+  @@map("split_shares")
+  @@schema("app")
+}
+
+model SplitSettlement {
+  id           String                @id @default(dbgenerated("gen_random_uuid()")) @map("split_settlement_id") @db.Uuid
+  roomId       String                @map("room_id") @db.Uuid
+  fromMemberId String                @map("from_member_id") @db.Uuid
+  toMemberId   String                @map("to_member_id") @db.Uuid
+  /// Amount settled, in room base currency minor units.
+  amountMinor  BigInt                @map("amount_minor")
+  method       SplitSettlementMethod @default(MANUAL)
+  /// For method=PEANUT: reference to the Peanut transfer that settled this.
+  peanutRef    String?               @map("peanut_ref") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  room SplitRoom   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  from SplitMember @relation("SettlementFrom", fields: [fromMemberId], references: [id])
+  to   SplitMember @relation("SettlementTo", fields: [toMemberId], references: [id])
+
+  @@index([roomId], map: "idx_split_settlement_room")
+  @@map("split_settlements")
+  @@schema("app")
+}
