@@ -17,6 +17,10 @@ RUN pnpm exec prisma generate
 # The build must not reach a live DB — a dummy URL satisfies Prisma's env check.
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* is inlined at build time — runtime env can't fix it later.
+# Dokploy passes this as a Docker build arg (buildArgs in the app settings).
+ARG NEXT_PUBLIC_BASE_URL
+ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
 RUN pnpm build
 
 # ---- runtime ----------------------------------------------------------------
