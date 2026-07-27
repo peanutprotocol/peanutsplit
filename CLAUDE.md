@@ -11,11 +11,16 @@ apps/api    Fastify + Prisma + its own Postgres. All money logic: splits,
             balances, FX, settlements, and the settle-with-Peanut loop.
 apps/web    The live product — Next, PWA, per-room link previews. THIS is what
             peanutsplit.com serves.
-apps/ui     The earlier Next UI, kept only until its settle-up screens are
-            ported into apps/web. Not routed to anything. Do not build on it.
 ```
 
-⚠️ **`apps/ui` and `apps/web` are mid-merge and both still exist.** `apps/web` has the better product; `apps/api` has the money code and its tests. The merge folds one UI into the other and deletes the loser — until it lands, treat `apps/ui` as read-only reference. `apps/web` is also deliberately outside the pnpm workspace (it brought its own lockfile) and talks to its own database rather than `apps/api`.
+`main` is canonical: two apps, one of them live, nothing dead. The original
+standalone UI (the settle-up screens wired to `apps/api`'s settle loop) lives on
+the **`poc/original-split-ui`** branch — pull the screens from there when porting
+them into `apps/web`, don't develop on it.
+
+One seam still open: `apps/web` is outside the pnpm workspace (it brought its own
+lockfile) and talks to its own database rather than `apps/api`. Collapsing those
+two is the remaining merge.
 
 ## Shipping
 
