@@ -9,6 +9,13 @@ FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 
+# Next resolves `rewrites()` at BUILD time and freezes the result into
+# .next/routes-manifest.json, so SPLIT_API_URL has to be set here — setting it
+# only in the running container leaves the proxy pointed at the build-time
+# default (localhost:5051) and every /_split/* call 500s with ECONNREFUSED.
+ARG SPLIT_API_URL=http://localhost:5051
+ENV SPLIT_API_URL=$SPLIT_API_URL
+
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @peanut-split/ui build
