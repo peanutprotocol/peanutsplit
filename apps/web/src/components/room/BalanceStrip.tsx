@@ -1,0 +1,107 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import type { CurrencyInfo, RoomState } from '@/lib/api-types'
+import { cn } from '@/lib/cn'
+import { isZeroMinor } from '@/lib/money'
+import { useFeedback } from '@/lib/use-settings'
+import { AnimatedMoney } from './Money'
+import { MemberAvatar } from './MemberAvatar'
+
+interface BalanceStripProps {
+    state: RoomState
+    currencies: readonly CurrencyInfo[]
+    /** Highlighted card — "that one is me". */
+    meId?: string
+}
+
+const toneFor = (net: string) => {
+    if (isZeroMinor(net)) return { card: 'bg-white', label: 'settled up', labelClass: 'text-n-3' }
+    if (net.startsWith('-')) return { card: 'bg-error-1', label: 'owes', labelClass: 'text-n-1' }
+    return { card: 'bg-green-1', label: 'gets back', labelClass: 'text-n-1' }
+}
+
+/**
+ * Who is up and who is down, at a glance. Balances count to their new values
+ * (moment #3) and a member who joins mid-trip springs in and pops (moment #2) —
+ * both are driven purely by the 8s poll diff, no sockets.
+ */
+export function BalanceStrip({ state, currencies, meId }: BalanceStripProps) {
+    const feedback = useFeedback()
+    // Seeded on the first render so the initial roster does not fire n pops.
+    const known = useRef<Set<string> | null>(null)
+
+    useEffect(() => {
+        const ids = state.members.map((member) => member.id)
+        if (known.current === null) {
+            known.current = new Set(ids)
+            return
+        }
+        const arrived = ids.some((id) => !known.current!.has(id))
+        known.current = new Set(ids)
+        if (arrived) feedback('pop')
+    }, [state.members, feedback])
+
+    return (
+        <section aria-label="Balances" className="flex flex-col gap-2">
+            <h2 className="px-4 text-h8 uppercase tracking-wide text-grey-1">Balances</h2>
+
+            {/* The right-edge mask tells you there is more to scroll without a
+                scrollbar, which mobile hides anyway. */}
+            <div className="relative">
+                <ul className="flex gap-3 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <AnimatePresence initial={false}>
+                        {state.members.map((member) => {
+                            const net = state.balances[member.id] ?? '0'
+                            const tone = toneFor(net)
+                            return (
+                                <motion.li
+                                    key={member.id}
+                                    layout
+                                    initial={{ scale: 0.6, opacity: 0, y: 10 }}
+                                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                                    exit={{ scale: 0.6, opacity: 0 }}
+                                    transition={{ type: 'spring', stiffness: 340, damping: 18, mass: 0.8 }}
+                                    data-testid="balance-card"
+                                    data-member={member.name}
+                                    // Raw server truth, so e2e asserts the balance and not
+                                    // the animated text mid-transition.
+                                    data-net={net}
+                                    className={cn(
+                                        'flex w-[8.5rem] shrink-0 flex-col gap-2 rounded-sm border border-n-1 p-3',
+                                        tone.card,
+                                        member.id === meId && 'shadow-4'
+                                    )}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <MemberAvatar name={member.name} size={28} />
+                                        <span className="min-w-0 flex-1 truncate text-h8">
+                                            {member.id === meId ? 'You' : member.name}
+                                        </span>
+                                    </div>
+                                    {/* No letter-spacing here. At 10px the extra tracking
+                                        rounds up to a full pixel on some glyph pairs and
+                                        "SETTLED UP" starts reading "SET T LED UP"; 12px with
+                                        natural spacing is both legible and stable. */}
+                                    <span className={cn('text-h9 uppercase', tone.labelClass)}>{tone.label}</span>
+                                    <AnimatedMoney
+                                        minor={net}
+                                        currency={state.room.currency}
+                                        catalog={currencies}
+                                        absolute
+                                        className="text-h5"
+                                    />
+                                </motion.li>
+                            )
+                        })}
+                    </AnimatePresence>
+                </ul>
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-y-0 right-0 w-5 bg-gradient-to-l from-background to-transparent"
+                />
+            </div>
+        </section>
+    )
+}

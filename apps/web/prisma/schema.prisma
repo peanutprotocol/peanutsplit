@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["split"]
+}
+
+// — models owned by core-domain agent
+// Money is BigInt minor units everywhere; a float never touches it.
+
+enum SplitMode {
+  EQUAL
+  EXACT
+
+  @@schema("split")
+}
+
+model Room {
+  id          String       @id @default(uuid())
+  slug        String       @unique // "ski-trip-x7k2m9" — kebab name + 6 rand base32
+  name        String
+  emoji       String?
+  currency    String // display/settle currency, ISO 4217
+  coverUrl    String?
+  createdAt   DateTime     @default(now())
+  archivedAt  DateTime?
+  members     Member[]
+  expenses    Expense[]
+  settlements Settlement[]
+
+  @@schema("split")
+}
+
+model Member {
+  id        String    @id @default(uuid())
+  roomId    String
+  name      String
+  token     String    @unique // server-issued secret, returned once, held in localStorage
+  userId    String? // claim hook — null until account linking ships
+  createdAt DateTime  @default(now())
+  removedAt DateTime?
+  room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  paidExpenses       Expense[]      @relation("ExpensePaidBy")
+  createdExpenses    Expense[]      @relation("ExpenseCreatedBy")
+  shares             ExpenseShare[]
+  settlementsFrom    Settlement[]   @relation("SettlementFrom")
+  settlementsTo      Settlement[]   @relation("SettlementTo")
+  createdSettlements Settlement[]   @relation("SettlementCreatedBy")
+
+  @@index([roomId])
+  @@schema("split")
+}
+
+model Expense {
+  id          String @id @default(uuid())
+  roomId      String
+  description String
+  amountMinor BigInt // in `currency`
+  currency    String // may differ from the room currency
+
+  // Room-currency total and the rate used, frozen at write time so balances never
+  // depend on a live FX feed. Always equals the sum of the shares below.
+  baseAmountMinor BigInt
+  fxRate          Decimal @db.Decimal(24, 12)
+
+  paidById    String
+  createdById String? // attribution from X-Member-Token — never authorization
+  splitMode   SplitMode
+  date        DateTime  @default(now())
+  category    String?
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime? // soft delete → 6s Undo
+
+  room      Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  paidBy    Member         @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Cascade)
+  createdBy Member?        @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  shares    ExpenseShare[]
+
+  @@index([roomId])
+  @@schema("split")
+}
+
+model ExpenseShare {
+  id                 String  @id @default(uuid())
+  expenseId          String
+  memberId           String
+  amountMinor        BigInt // ALWAYS in room currency (post-FX)
+  enteredAmountMinor BigInt? // EXACT mode: verbatim in expense currency — no-drift re-save
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, memberId])
+  @@index([expenseId])
+  @@schema("split")
+}
+
+model Settlement {
+  id          String    @id @default(uuid())
+  roomId      String
+  fromId      String
+  toId        String
+  createdById String? // attribution only
+  amountMinor BigInt // room currency
+  method      String? // "cash" | "bank" | "peanut" | null
+  note        String?
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+
+  room      Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  from      Member  @relation("SettlementFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to        Member  @relation("SettlementTo", fields: [toId], references: [id], onDelete: Cascade)
+  createdBy Member? @relation("SettlementCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([roomId])
+  @@schema("split")
+}
+
+/// Cached indicative rates: one row per quote currency against USD.
+model FxRate {
+  id        String   @id @default(uuid())
+  base      String
+  quote     String
+  rate      Decimal  @db.Decimal(24, 12) // units of `base` per 1 unit of `quote`
+  fetchedAt DateTime @default(now())
+
+  @@unique([base, quote])
+  @@schema("split")
+}
+
+// Claim hooks — tables exist now, endpoints ship in the auth wave.
+
+model User {
+  id        String        @id @default(uuid())
+  createdAt DateTime      @default(now())
+  accounts  AuthAccount[]
+  members   Member[]
+
+  @@schema("split")
+}
+
+model AuthAccount {
+  id         String   @id @default(uuid())
+  userId     String
+  provider   String
+  providerId String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@schema("split")
+}

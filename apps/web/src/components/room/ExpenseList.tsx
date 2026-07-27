@@ -1,0 +1,133 @@
+'use client'
+
+import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
+import { peanutThinking } from '@/assets/mascot'
+import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
+import { dayLabel, groupByDay } from '@/lib/dates'
+import { Money } from './Money'
+import { MemberAvatar } from './MemberAvatar'
+
+interface ExpenseListProps {
+    state: RoomState
+    currencies: readonly CurrencyInfo[]
+    meId?: string
+    onSelect: (expenseId: string) => void
+}
+
+const isPending = (expense: ApiExpense) => expense.id.startsWith('pending-')
+
+export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListProps) {
+    if (state.expenses.length === 0) {
+        return (
+            <motion.section
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+                className="flex flex-col items-center gap-4 px-6 py-12 text-center"
+            >
+                <motion.div
+                    initial={{ scale: 0.7, rotate: -8, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.08 }}
+                >
+                    <Image src={peanutThinking} alt="" unoptimized className="h-32 w-32 object-contain" />
+                </motion.div>
+                <p className="text-h6">No expenses yet</p>
+                <p className="max-w-[18rem] text-sm text-grey-1">
+                    Add the first one — who paid, how much, and who it was for.
+                </p>
+            </motion.section>
+        )
+    }
+
+    const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? 'Someone'
+    const groups = groupByDay(state.expenses, (expense) => expense.date)
+
+    return (
+        <section aria-label="Expenses" className="flex flex-col gap-5 px-4">
+            {groups.map((group) => (
+                <div key={group.key} className="flex flex-col gap-2">
+                    <h3 className="text-h8 uppercase tracking-wide text-grey-1">{dayLabel(group.items[0].date)}</h3>
+                    <ul className="flex flex-col gap-2">
+                        {/* Default (sync) mode, deliberately: an optimistic `pending-…`
+                            row is replaced by the real one under a different key, and
+                            popLayout would keep the placeholder mounted alongside its
+                            replacement — two rows for one expense. */}
+                        <AnimatePresence initial={false}>
+                            {group.items.map((expense) => {
+                                const payer = memberName(expense.paidById)
+                                const foreign = expense.currency !== state.room.currency
+                                return (
+                                    <motion.li
+                                        key={expense.id}
+                                        layout
+                                        // Moment #3: a new row does not fade in, it drops in
+                                        // and settles — the same weight as the balances counting.
+                                        initial={{ opacity: 0, y: -14, scale: 0.96 }}
+                                        animate={{ opacity: isPending(expense) ? 0.55 : 1, y: 0, scale: 1 }}
+                                        // No exit for the placeholder: it is not leaving,
+                                        // it is being swapped for the real row, and an
+                                        // animated departure would briefly double it up.
+                                        exit={
+                                            isPending(expense)
+                                                ? undefined
+                                                : {
+                                                      opacity: 0,
+                                                      scale: 0.92,
+                                                      x: 12,
+                                                      transition: { duration: 0.2, ease: 'easeIn' },
+                                                  }
+                                        }
+                                        transition={{
+                                            layout: { type: 'spring', stiffness: 420, damping: 34, mass: 0.7 },
+                                            default: { type: 'spring', stiffness: 380, damping: 24, mass: 0.8 },
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            disabled={isPending(expense)}
+                                            onClick={() => onSelect(expense.id)}
+                                            data-testid="expense-row"
+                                            data-description={expense.description}
+                                            className="shadow-4 flex min-h-[3.5rem] w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:active:translate-x-0 disabled:active:translate-y-0"
+                                        >
+                                            <MemberAvatar name={payer} size={36} />
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block truncate text-h7">{expense.description}</span>
+                                                <span className="block text-sm text-grey-1">
+                                                    {expense.paidById === meId ? 'You' : payer} paid ·{' '}
+                                                    {expense.shares.length}{' '}
+                                                    {expense.shares.length === 1 ? 'person' : 'people'}
+                                                </span>
+                                            </span>
+                                            <span className="flex shrink-0 flex-col items-end">
+                                                <Money
+                                                    minor={expense.amountMinor}
+                                                    currency={expense.currency}
+                                                    catalog={currencies}
+                                                    className="text-h7"
+                                                />
+                                                {foreign && !isPending(expense) && (
+                                                    <span className="text-h10 text-grey-1">
+                                                        ~{' '}
+                                                        <Money
+                                                            minor={expense.baseAmountMinor}
+                                                            currency={state.room.currency}
+                                                            catalog={currencies}
+                                                        />{' '}
+                                                        indicative
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </button>
+                                    </motion.li>
+                                )
+                            })}
+                        </AnimatePresence>
+                    </ul>
+                </div>
+            ))}
+        </section>
+    )
+}

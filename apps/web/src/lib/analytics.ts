@@ -1,0 +1,66 @@
+/**
+ * PostHog, wrapped so nothing else in the app imports it directly.
+ *
+ * No key → every call is a no-op (local dev and self-hosters get silence, not
+ * console noise). Room slugs are hashed before they leave the device and member
+ * names, descriptions and amounts never do — a room link is a credential.
+ */
+
+import posthog from 'posthog-js'
+
+export type AnalyticsEvent =
+    | 'room_created'
+    | 'room_joined'
+    | 'expense_added'
+    | 'expense_edited'
+    | 'expense_deleted'
+    | 'expense_restored'
+    | 'settlement_recorded'
+    | 'settle_sheet_opened'
+    | 'share_opened'
+    | 'share_completed'
+    | 'link_copied'
+    | 'all_settled'
+    | 'pwa_prompt_shown'
+    | 'pwa_installed'
+    | 'peanut_option_shown'
+    | 'peanut_option_clicked'
+
+let ready = false
+
+/** djb2 — a stable, cheap, non-reversible-enough room identifier for funnels. */
+export function hashSlug(slug: string): string {
+    let hash = 5381
+    for (let i = 0; i < slug.length; i++) hash = ((hash << 5) + hash + slug.charCodeAt(i)) | 0
+    return (hash >>> 0).toString(16).padStart(8, '0')
+}
+
+export function initAnalytics(): void {
+    if (ready || typeof window === 'undefined') return
+    const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
+    if (!key) return
+    posthog.init(key, {
+        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
+        capture_pageview: true,
+        persistence: 'localStorage',
+        // Room slugs are credentials; never let autocapture lift one out of a URL.
+        mask_all_text: false,
+        autocapture: false,
+    })
+    ready = true
+}
+
+export function track(event: AnalyticsEvent, properties: Record<string, unknown> = {}): void {
+    if (!ready) return
+    try {
+        posthog.capture(event, properties)
+    } catch {
+        // Analytics must never break a flow.
+    }
+}
+
+/** The room-scoped property bag every room event carries. */
+export const roomProps = (slug: string, extra: Record<string, unknown> = {}) => ({
+    room: hashSlug(slug),
+    ...extra,
+})

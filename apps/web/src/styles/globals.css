@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Split identity — yellow primary. tailwind.config.js reads these through
+   `primary-base` / `secondary-base` / `accent`; removing them breaks the theme. */
+:root {
+    --primary-color: #ffc900;
+    --secondary-color: #000000;
+    --accent-color: #ff90e8;
+}
+
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+
+    html,
+    body {
+        /* no native pull-to-refresh — this is an installable PWA */
+        overscroll-behavior-y: none;
+    }
+
+    body {
+        @apply select-none;
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+@layer utilities {
+    button,
+    [type='button'] {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Money never jitters. */
+    .tabular-nums {
+        font-variant-numeric: tabular-nums;
+    }
+}
