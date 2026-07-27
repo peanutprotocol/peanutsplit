@@ -1,0 +1,60 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        env:
+            DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: peanut
+                    POSTGRES_PASSWORD: peanut
+                    POSTGRES_DB: peanut_split_dev
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U peanut"
+                    --health-interval 5s
+                    --health-timeout 5s
+                    --health-retries 10
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.17.1
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: pnpm
+
+            - run: pnpm install --frozen-lockfile
+
+            - run: pnpm exec prisma generate
+
+            - run: pnpm typecheck
+
+            - run: pnpm lint
+
+            # Handler tests create/migrate their own peanut_split_test via globalSetup.
+            - name: Create test database
+              run: PGPASSWORD=peanut psql -h localhost -U peanut -d peanut_split_dev -c "CREATE DATABASE peanut_split_test OWNER peanut"
+
+            - run: pnpm test
+
+            - run: pnpm exec prisma migrate deploy
+
+            - run: pnpm build
+
+            - name: Install Playwright
+              run: pnpm exec playwright install --with-deps chromium
+
+            - run: pnpm e2e
