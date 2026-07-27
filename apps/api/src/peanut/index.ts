@@ -4,11 +4,20 @@
  *
  * ─── WHAT IS REAL AND WHAT IS ASSUMED ────────────────────────────────────
  *
+ * ─── NOT IN V1 (decided 2026-07-27) ─────────────────────────────────────────
+ * None of this runs in the shipped product. `apps/web` is what peanutsplit.com
+ * serves, and its settle flow opens peanut.me and records the payment on the
+ * payer's tap — unverified, no callback, no polling. The verified-receipt
+ * design below was checked against peanut-api-ts and cannot work: nothing
+ * emits `charge:confirmed`, charge webhooks are unsigned, and charges are
+ * USD/ARS only. Reopening it is a product decision (see the repo CLAUDE.md),
+ * not a matter of filling in the blanks here.
+ *
  * Real (locked product decisions):
  *   - Split hands off to an EXISTING Peanut payment-request link. It never
  *     calls a bespoke Peanut endpoint and holds no funds.
- *   - Peanut calls back when the payment completes, and that callback is what
- *     turns a settle-up into a verified receipt in the room.
+ *   - IF a callback ever exists, it is what turns a settle-up into a verified
+ *     receipt in the room. Today no such callback exists.
  *
  * Assumed, because we do not have Peanut's API docs yet — every one of these
  * is a guess, isolated here so it can be corrected without touching anything
