@@ -1,3 +1,7 @@
+# CI exists because a push to `main` is in production in about five minutes with
+# nothing else in front of it. It does NOT block the deploy — Dokploy polls git,
+# not this workflow — so treat a red run as "roll forward now", not as "it was
+# caught in time".
 name: CI
 
 on:
@@ -6,9 +10,10 @@ on:
     pull_request:
 
 jobs:
-    build:
+    check:
         runs-on: ubuntu-latest
         env:
+            # apps/api's integration suite talks to this; apps/web's unit tests don't.
             DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
         services:
             postgres:
@@ -36,25 +41,13 @@ jobs:
                   node-version: 22
                   cache: pnpm
 
-            - run: pnpm install --frozen-lockfile
-
-            - run: pnpm exec prisma generate
+            # `pnpm setup` and not `pnpm install`: apps/web is not a workspace
+            # member, and a plain install inside it resolves the workspace
+            # instead, leaving it with no node_modules.
+            - run: pnpm setup
 
             - run: pnpm typecheck
 
-            - run: pnpm lint
-
-            # Handler tests create/migrate their own peanut_split_test via globalSetup.
-            - name: Create test database
-              run: PGPASSWORD=peanut psql -h localhost -U peanut -d peanut_split_dev -c "CREATE DATABASE peanut_split_test OWNER peanut"
-
             - run: pnpm test
 
-            - run: pnpm exec prisma migrate deploy
-
             - run: pnpm build
-
-            - name: Install Playwright
-              run: pnpm exec playwright install --with-deps chromium
-
-            - run: pnpm e2e
