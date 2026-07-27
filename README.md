@@ -24,9 +24,7 @@ apps/api   Fastify + Prisma + its own Postgres, port 5051
   src/db/split.ts  every write. Two settlement paths, deliberately (see below)
   src/peanut/      the entire Peanut integration, mocked and documented
   src/routes/      /split/* (anonymous, proxied) and /webhooks/* (signed, not proxied)
-apps/ui    Next 16, port 3051
-  /room            create a room
-  /room/[slug]     the room itself, plus its generated link preview
+apps/web   Next — the live product at peanutsplit.com (PWA, per-room previews)
 ```
 
 ### The one thing to understand before changing the settle code
@@ -76,11 +74,11 @@ pnpm --filter @peanut-split/api simulate:webhook <reference> <amountMinor> <curr
 
 That signs a real payload and posts it at the real route — there is deliberately no "simulate" endpoint in the app, since one that skips signature checks is a ledger-write primitive one missing env var away from production.
 
-The browser always talks to the API through the same-origin `/_split/*` rewrite (see `apps/ui/next.config.js`), so a devcontainer or preview only ever needs one forwarded port.
+The browser always talks to the API through a same-origin rewrite rather than a second host, so a devcontainer or preview only ever needs one forwarded port.
 
 ## Design
 
-Peanut's design system, with `primary-1` swapped from Peanut pink to violet so Split reads as its own product. Tokens live in `apps/ui/tailwind.config.js`.
+Peanut's design system, with `primary-1` swapped off Peanut pink so Split reads as its own product. Tokens live in `apps/web/tailwind.config.js`; pink is reserved for the "powered by Peanut" mark.
 
 ## Where the decisions live
 
