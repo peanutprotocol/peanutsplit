@@ -40,10 +40,18 @@ two is the remaining merge.
 ## Local dev
 
 ```bash
-pnpm install
-pnpm dev          # API :5051, UI :3051 → http://localhost:3051/room
-cd apps/web && pnpm dev   # the live product, :3000
+pnpm setup        # NOT plain `pnpm install` — see below
+pnpm dev          # API :5051 + web :3000 (or dev:api / dev:web for one)
 ```
+
+`apps/web` is not a workspace member, which has one sharp edge: running
+`pnpm install` inside `apps/web` walks *up* and installs the workspace instead,
+leaving `apps/web/node_modules` missing. It needs `--ignore-workspace`, which is
+what `pnpm setup` does. (Docker doesn't hit this — the web image's build context
+is `apps/web` alone, so there's no parent workspace file to find.) The root
+scripts reach it with `--dir apps/web` rather than a filter. If you add an app, wire it into the root
+`typecheck`/`test` the same way — a gate that silently covers nothing is worse
+than no gate.
 
 **Prefix every Prisma command with `env -u DATABASE_URL`.** The mono QA harness exports `DATABASE_URL` pointing at the shared `peanut_dev`, and Prisma prefers the process env over `apps/api/.env` — a migration will silently aim at the wrong database. It refuses (P3005) rather than corrupting anything, but the failure is confusing.
 

@@ -39,13 +39,13 @@ There are **two** ways a settlement gets written, and they are not interchangeab
 ## Running locally
 
 ```bash
-pnpm install
+pnpm setup                               # both apps — see note below
 cp apps/api/.env.example apps/api/.env   # point DATABASE_URL at a local Postgres
 pnpm --filter @peanut-split/api db:migrate:dev
-pnpm dev                                  # API :5051, UI :3051
+pnpm dev                                  # API :5051 + web :3000 (or dev:api / dev:web)
 ```
 
-Open http://localhost:3051/room.
+Open http://localhost:3000 for the product; the API answers on :5051.
 
 **Prefix Prisma commands with `env -u DATABASE_URL`** if you have mono's QA harness env loaded — it exports a `DATABASE_URL` pointing at the shared `peanut_dev`, and Prisma prefers the process env over `apps/api/.env`.
 
@@ -60,7 +60,7 @@ Starts both apps and seeds a room that looks like a real trip — four people, t
 ### Checking it works
 
 ```bash
-pnpm typecheck && pnpm test    # 84 tests; the API suite includes 15 against a real Postgres
+pnpm typecheck && pnpm test    # both apps; the API suite includes 15 against a real Postgres
 pnpm verify                    # 41 assertions against a running API + database
 ```
 

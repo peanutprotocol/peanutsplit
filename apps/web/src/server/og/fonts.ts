@@ -52,7 +52,7 @@ const load = async (file: string): Promise<ArrayBuffer> => {
 
 /**
  * Read the three faces off disk. Deliberately not memoised: the SPEC forbids
- * process-lifetime OG caches (a leaked per-locale font/image cache cost wordle
+ * process-lifetime OG caches (a leaked per-locale font/image cache has cost a prior app
  * ~40MB a pod), and a local read of ~215KB is noise next to the rasterizer.
  */
 export async function ogFonts(): Promise<OgFont[]> {
