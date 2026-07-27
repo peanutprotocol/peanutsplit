@@ -1,2 +1,8 @@
 packages:
-  - 'apps/*'
+  - 'apps/api'
+  - 'apps/ui'
+# apps/web is deliberately NOT a workspace member yet. It arrived from the
+# separate rework repo with its own lockfile and dependency set, and folding it
+# into this workspace now would mean reconciling both dependency trees for no
+# gain — it is going to be merged with apps/ui shortly and only one of the two
+# survives. Until then it builds standalone from its own directory.
