@@ -50,6 +50,11 @@ jobs:
 
             - run: pnpm typecheck
 
+            # apps/api's 15 integration tests run against a real database and
+            # create the `app` schema through migrations, not a seed — without
+            # this they fail on missing relations while the unit tests pass.
+            - run: pnpm --filter @peanut-split/api exec prisma migrate deploy
+
             - run: pnpm test
 
             - run: pnpm build
