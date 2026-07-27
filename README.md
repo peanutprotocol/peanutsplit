@@ -39,7 +39,7 @@ There are **two** ways a settlement gets written, and they are not interchangeab
 ## Running locally
 
 ```bash
-pnpm setup                               # both apps — see note below
+pnpm bootstrap                           # both apps — see note below
 cp apps/api/.env.example apps/api/.env   # point DATABASE_URL at a local Postgres
 pnpm --filter @peanut-split/api db:migrate:dev
 pnpm dev                                  # API :5051 + web :3000 (or dev:api / dev:web)

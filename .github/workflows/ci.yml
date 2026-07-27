@@ -32,19 +32,21 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - uses: pnpm/action-setup@v4
-              with:
-                  version: 10.17.1
-
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  cache: pnpm
 
-            # `pnpm setup` and not `pnpm install`: apps/web is not a workspace
+            # corepack rather than a pinned action: the two apps declare
+            # different pnpm versions in their own package.json, and corepack
+            # honours whichever directory it is invoked from — the same way the
+            # Docker builds resolve it. Pinning one version here breaks the other.
+            - run: corepack enable
+
+            # `pnpm bootstrap`, not `pnpm install`: apps/web is not a workspace
             # member, and a plain install inside it resolves the workspace
-            # instead, leaving it with no node_modules.
-            - run: pnpm setup
+            # instead, leaving it with no node_modules. (`setup` is a reserved
+            # pnpm command, hence the name.)
+            - run: pnpm bootstrap
 
             - run: pnpm typecheck
 
