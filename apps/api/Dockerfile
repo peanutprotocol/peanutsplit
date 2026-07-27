@@ -7,6 +7,17 @@
 
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
+
+# openssl must be here too, not just in the runner. Prisma picks its engine
+# binaries by sniffing the OpenSSL version at install time; with none present it
+# silently settles on debian-openssl-1.1.x, and the runtime — which does have
+# OpenSSL 3 — then tries to DOWNLOAD the 3.0.x engine on first boot. On a
+# network with no gateway that download cannot happen, so the container
+# crash-loops on `getaddrinfo EAI_AGAIN binaries.prisma.sh`. Pinning the target
+# as well keeps this deterministic if the base image ever shifts.
+ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 
 # Whole-repo copy on purpose: the api's postinstall runs `prisma generate`, so
