@@ -42,4 +42,11 @@ EXPOSE 5051
 # migrator. `migrate deploy` never generates or resets — it only applies what is
 # already committed, and refuses rather than improvising if history diverges.
 WORKDIR /app/apps/api
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/index.js"]
+# Served through tsx, not `node dist/index.js`. The package is ESM and the
+# TypeScript sources use extensionless relative imports (`import './app'`),
+# which tsc emits verbatim — Node's ESM resolver rejects those, so the compiled
+# output cannot start (ERR_MODULE_NOT_FOUND on dist/app). `pnpm build` is still
+# run in the builder as a typecheck gate; fixing `start` properly means adding
+# .js extensions across the API sources, which is the app's call, not the
+# deploy's.
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/tsx src/index.ts"]
