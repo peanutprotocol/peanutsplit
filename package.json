@@ -5,6 +5,7 @@
   "license": "UNLICENSED",
   "packageManager": "pnpm@9.12.0",
   "scripts": {
+    "bootstrap": "pnpm install && cd apps/web && pnpm install --ignore-workspace && pnpm exec prisma generate",
     "dev": "pnpm --filter @peanut-split/api dev & pnpm --dir apps/web dev",
     "dev:api": "pnpm --filter @peanut-split/api dev",
     "dev:web": "pnpm --dir apps/web dev",
@@ -13,8 +14,7 @@
     "test": "pnpm --filter @peanut-split/api test && pnpm --dir apps/web test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm --filter @peanut-split/api verify:settle",
-    "setup": "pnpm install && pnpm --dir apps/web install --ignore-workspace && pnpm --dir apps/web exec prisma generate"
+    "verify": "pnpm --filter @peanut-split/api verify:settle"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
