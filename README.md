@@ -94,19 +94,19 @@ Extracted from the `feat/split-rooms` spike branches in `peanut-ui` and `peanut-
 
 ## Deployment
 
-Live at **https://peanutsplit.com**, on the AX41 box via Dokploy: `split-org-ui`
-(public) → `split-org-api` (never published) → `split-org-db` (its own Postgres).
-**Pushing to `main` deploys both apps** — a GitHub webhook per app, no CI gate in
-between, which is the tradeoff this repo already chose by shipping straight to main.
+Live at **https://peanutsplit.com**, on a Hetzner box via Dokploy: `split-org-web`
+(public, serves `apps/web`) → `split-org-api` (never published) → Postgres.
+**Pushing to `main` deploys within ~5 minutes**, with no CI gate in between —
+the tradeoff this repo already chose by shipping straight to main.
 
 The deploy assumes **the code in this repo is untrusted**, so containment is the
 network, not the review:
 
-- Both containers sit on `split-net`, an overlay created `--internal`. They get
-  one interface and **no default route** — no host, no internet, no other app on
-  the box, no tailnet. Only Traefik reaches in, and only the UI is routable.
+- The containers sit on `split-net`, an overlay created `--internal`. They get
+  one interface and **no default route** — nothing outside that network is
+  reachable. Only the proxy reaches in, and only the public app is routable.
 - They run as a non-root user with no docker socket and no host mounts, capped at
-  1 CPU / 512MB (api) / 1GB (ui).
+  1 CPU, and 512MB–1GB of memory.
 - The only secret either holds is its own `DATABASE_URL`. No Peanut credentials.
 
 Two consequences worth knowing before changing anything:
