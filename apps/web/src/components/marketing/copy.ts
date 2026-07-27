@@ -79,9 +79,9 @@ export const marketingCopy = {
      */
     compare: {
         meta: {
-            title: 'Splitwise alternative — split expenses without an account',
+            title: 'Free Splitwise alternative — no signup, no daily limit',
             description:
-                'A free Splitwise alternative with no signup: share one link and everyone in the group adds what they paid. No app, no account, no paid tier.',
+                'A free Splitwise alternative with no account and no app: share one link, everyone adds what they paid, and nothing is capped or held back for a paid tier.',
         },
         hero: {
             eyebrow: 'splitwise alternative',
@@ -89,6 +89,32 @@ export const marketingCopy = {
             body: 'Splitwise works. It also asks every person in the group to make an account before they can add a single expense, and that is where most groups quietly give up. Peanut Split is a link. Send it, people type a name, everyone adds what they paid.',
             cta: 'Start a split',
             ctaHint: 'Takes ten seconds. No email, no password, no download.',
+        },
+        /**
+         * Three reasons that match what people actually search after hitting a wall in
+         * Splitwise. Each one quotes Splitwise's own Pro page rather than characterising
+         * their product, so the section stays true whatever they charge next year.
+         */
+        why: {
+            title: 'Why people go looking',
+            intro: 'Splitwise sells a Pro tier. What Pro promises is the clearest description of what the free version does to you:',
+            items: [
+                {
+                    title: 'The day you add a lot of expenses is the day it stops',
+                    quote: 'Add as many expenses as you like each day, with no interruptions.',
+                    body: 'That is Pro’s pitch for “unlimited expenses”, which tells you the free tier counts. A trip is exactly when you add a dozen in an afternoon. Split has no cap and no counter.',
+                },
+                {
+                    title: 'Splitting across currencies is a paid feature',
+                    quote: 'Splitwise can convert all your bills to any currency you’d like, using today’s foreign exchange rates.',
+                    body: 'Also Pro. If the group is in Lisbon paying in euros and settling in pounds, that is the whole job. In Split it is free and built in.',
+                },
+                {
+                    title: 'The free app shows you ads',
+                    quote: 'A totally ad-free experience.',
+                    body: 'Pro again. Split has no ads and no paid tier to sell you, because it is not how Peanut makes money.',
+                },
+            ],
         },
         table: {
             title: 'The difference, plainly',
@@ -106,12 +132,30 @@ export const marketingCopy = {
                     other: 'Invite people one by one, and each of them signs up.',
                 },
                 {
+                    feature: 'Adding expenses',
+                    split: 'As many as you like, every day.',
+                    other: 'Unlimited expenses are sold as a Pro feature.',
+                },
+                {
+                    feature: 'Other currencies',
+                    split: 'Built in and free.',
+                    other: 'Currency conversion is sold as a Pro feature.',
+                },
+                {
                     feature: 'Cost',
                     split: 'Free, with no paid tier to upgrade to.',
-                    other: 'Free, plus a Splitwise Pro tier their own page sells as “no limits and no ads”.',
+                    other: 'Free with ads, or Splitwise Pro.',
                 },
             ],
-            footnote: 'Splitwise claims checked against splitwise.com in July 2026.',
+            footnote: 'Quotes and features taken from splitwise.com/pro in July 2026.',
+        },
+        /**
+         * The concession. Every credible comparison page has one, and leaving it out is how a
+         * page reads like marketing. It is also true: Split is deliberately small.
+         */
+        honest: {
+            title: 'When Splitwise is the better tool',
+            body: 'If you want a permanent ledger with your flatmates, receipt scanning, card imports and charts, Splitwise does all of that and Split does none of it. Split is for the trip, the dinner, the weekend — one group, one link, cleared and forgotten.',
         },
         features: {
             title: 'What you get',
@@ -144,6 +188,14 @@ export const marketingCopy = {
                 {
                     q: 'Is it really free?',
                     a: 'Yes, and there is nothing to upgrade to. Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.',
+                },
+                {
+                    q: 'Is there a limit on how many expenses we can add?',
+                    a: 'No. Add fifty in an afternoon if that is the kind of trip it is.',
+                },
+                {
+                    q: 'Do we have to download an app?',
+                    a: 'No. It opens in a browser like any other page. If you want it to feel like an app, add it to your home screen — that is a phone feature, not an install.',
                 },
                 {
                     q: 'Can I import my Splitwise history?',

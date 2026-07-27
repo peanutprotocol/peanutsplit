@@ -67,6 +67,22 @@ export default function SplitwiseAlternativePage() {
                 </div>
             </section>
 
+            <section className="mx-auto w-full max-w-xl px-5">
+                <h2 className="text-h5">{compare.why.title}</h2>
+                <p className="mt-2 text-sm leading-5 text-grey-1">{compare.why.intro}</p>
+                <ul className="mt-4 flex flex-col gap-3">
+                    {compare.why.items.map((item) => (
+                        <li key={item.title} className="rounded-sm border border-n-1 bg-white p-4">
+                            <h3 className="text-h7">{item.title}</h3>
+                            <blockquote className="mt-3 border-l-2 border-n-1 pl-3 text-sm italic leading-5 text-n-1">
+                                “{item.quote}”
+                            </blockquote>
+                            <p className="mt-3 text-sm leading-5 text-grey-1">{item.body}</p>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+
             <CompareTable />
 
             <section className="mx-auto w-full max-w-xl px-5">
@@ -90,6 +106,13 @@ export default function SplitwiseAlternativePage() {
                         </li>
                     ))}
                 </ul>
+            </section>
+
+            <section className="mx-auto w-full max-w-xl px-5">
+                <div className="rounded-sm border border-n-1 bg-primary-3 p-4">
+                    <h2 className="text-h7">{compare.honest.title}</h2>
+                    <p className="mt-2 text-sm leading-5 text-n-1">{compare.honest.body}</p>
+                </div>
             </section>
 
             <CompareFaq />
