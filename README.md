@@ -91,3 +91,29 @@ Peanut's design system, with `primary-1` swapped from Peanut pink to violet so S
 ## Provenance
 
 Extracted from the `feat/split-rooms` spike branches in `peanut-ui` and `peanut-api-ts`. The original design doc and the 2026-07-06 review findings are kept in [`docs-split-rooms-spike.md`](docs-split-rooms-spike.md) — read it before touching the money math. Known issues carried over from the spike are tracked as open work; the ledger-integrity set (idempotency on settlements, edit/exclusion, poll-vs-mutation race, member-id validation, fetch timeout) is the pre-launch bar.
+
+## Deployment
+
+Live at **https://peanutsplit.com**, on the AX41 box via Dokploy: `split-org-ui`
+(public) → `split-org-api` (never published) → `split-org-db` (its own Postgres).
+**Pushing to `main` deploys both apps** — a GitHub webhook per app, no CI gate in
+between, which is the tradeoff this repo already chose by shipping straight to main.
+
+The deploy assumes **the code in this repo is untrusted**, so containment is the
+network, not the review:
+
+- Both containers sit on `split-net`, an overlay created `--internal`. They get
+  one interface and **no default route** — no host, no internet, no other app on
+  the box, no tailnet. Only Traefik reaches in, and only the UI is routable.
+- They run as a non-root user with no docker socket and no host mounts, capped at
+  1 CPU / 512MB (api) / 1GB (ui).
+- The only secret either holds is its own `DATABASE_URL`. No Peanut credentials.
+
+Two consequences worth knowing before changing anything:
+
+- **The app has no egress.** That is free today because nothing is fetched at
+  runtime (FX is a static table). The day the settle loop has to reach peanut.me,
+  it needs a proxy pinned to that host — not an opened network.
+- **`SPLIT_API_URL` is a build arg**, because Next freezes `rewrites()` into
+  `routes-manifest.json` at build time. Setting it only at runtime silently
+  leaves `/_split/*` pointed at localhost.
