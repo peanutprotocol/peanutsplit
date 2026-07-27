@@ -25,7 +25,7 @@ untrustworthy.
 3. **The link is the product:** invite links, OG previews, and the share moment get first-class
    design.
 4. **Anonymous-first, claimable later:** identity lives in localStorage; the schema supports
-   claiming your member into a real account (Google/Apple/Passkey — wordle-global methodology)
+   claiming your member into a real account (Google/Apple/Passkey)
    without migration pain. v1 ships anonymous; claim endpoints come right after.
 5. **Mobile-first PWA:** 390×844 is the design target; installable from day one; Capacitor-ready
    structure (no Node APIs in client code).
@@ -46,7 +46,7 @@ untrustworthy.
 | OG images     | `next/og` ImageResponse (satori, built in — no extra dep)                                                                                                                                                                                                                                                        |
 | Tests         | vitest (unit: maths, fx, api handlers), Playwright (e2e)                                                                                                                                                                                                                                                         |
 | Analytics     | PostHog (EU host, env-driven key) + Sentry (env-driven DSN) — both no-op when unset                                                                                                                                                                                                                              |
-| Deploy        | Docker (Next standalone output) → Dokploy on AX41; local dev via docker-compose postgres                                                                                                                                                                                                                         |
+| Deploy        | Docker (Next standalone output) → Dokploy; see README for the live topology; local dev via docker-compose postgres                                                                                                                                                                                                                         |
 
 Package manager pnpm. `.npmrc` MUST contain `minimum-release-age=20160` (supply-chain floor).
 Pin to well-established versions; if pnpm rejects a too-fresh version, pick an older minor.
@@ -204,7 +204,7 @@ credential. Slug: kebab-cased name + `-` + 6 chars of base32 (unambiguous alphab
 
 Rate limiting (deploy wave): per-IP token bucket on room/member creation — 20/hour, in-memory.
 
-**Ops endpoints (wordle-global production lessons — required):**
+**Ops endpoints (learned the hard way in production — required):**
 
 - `GET /healthcheck` — flat liveness, no DB, no SSR, must answer in ms (default health paths that
   render SSR get instances health-killed under load).
@@ -216,7 +216,7 @@ Rate limiting (deploy wave): per-IP token bucket on room/member creation — 20/
 - **Identity:** `src/lib/identity.ts` — localStorage `ps:member:<slug>` = `{memberId, token, name}`;
   `ps:recent` = list of visited rooms (drives "your rooms" on the landing page). Also mint a
   device UUID (`ps:device`, `crypto.randomUUID()`) and mirror it into a `device-id` cookie
-  (`path=/; SameSite=Lax`) — wordle-global's claim-flow lesson: OAuth redirect flows have no
+  (`path=/; SameSite=Lax`) — a claim-flow lesson: OAuth redirect flows have no
   request body, so account-claiming later needs the device identity server-visible. Costs one
   line now, saves a migration later.
 - **Join gate:** first visit to `/r/[slug]` with no stored identity → join UI _over a live preview
@@ -263,15 +263,15 @@ settings, both default ON, persisted in localStorage.
 
 - **OG image per room:** `opengraph-image.tsx` — room emoji + name, member avatar row, "n expenses ·
   total". The invite unfurl in WhatsApp/iMessage/Telegram is a designed artifact.
-  Satori constraints (wordle-global post-mortems): every multi-child flex container needs explicit
+  Satori constraints (from prior post-mortems): every multi-child flex container needs explicit
   `display:flex`; no grid, no `gap`, no CSS transforms beyond translate/rotate; inline styles only;
   register only the fonts you ship and strip non-ASCII room names to a safe fallback rather than
   rendering tofu. Set `Cache-Control` ~1h on the image response; renders must stay stateless
-  (unbounded in-memory OG caches leaked ~40MB/locale in wordle prod — don't add one).
+  (unbounded in-memory OG caches have leaked ~40MB/locale in production — don't add one).
 - **robots:** disallow `/r/*` for `*`; allow `Twitterbot`, `facebookexternalhit`, `WhatsApp`;
   `noindex` meta on room pages. Landing page fully indexable.
 - **PWA:** manifest (name, icons, standalone, theme `#FFC900`), Serwist service worker —
-  **NetworkOnly for `/api/*`** (a stale RoomState is worse than a spinner; wordle shipped a
+  **NetworkOnly for `/api/*`** (a stale RoomState is worse than a spinner; a prior app shipped a
   soft-lock bug from NetworkFirst on state endpoints), CacheFirst for hashed `/_next/static`,
   NetworkFirst (3s timeout) for navigations. Install prompt: never interrupt input; show after
   ~20s idle on a room page, exponential dismiss backoff (24h→48h→…→30d cap) in localStorage;
@@ -298,20 +298,21 @@ settle → undo → all-settled) against a docker-composed stack.
 ## Deploy
 
 Dockerfile: multi-stage, `output: "standalone"`, node:22-alpine, prisma migrate deploy on boot.
-Dokploy (AX41 37.27.67.44): app + dedicated postgres16 service; public URL
-`https://split.37.27.67.44.sslip.io` now, `split.peanut.me` when DNS record is added (GoDaddy).
-Nightly pg_dump into the box's existing backup pattern. Traefik health check → `/readiness`.
+Deployed via Dokploy with a dedicated Postgres service; nightly dumps ride the host's existing
+backup job. Health check → `/readiness`. **The live topology, the isolation model and the two
+build-time gotchas live in [`README.md`](../../../README.md) — not here**, so there is one
+description of the deploy rather than two that drift.
 
 ## Appendix — the auth/claim wave (first follow-up after the demo)
 
-Methodology proven in wordle-global (`/home/hugo/Projects/wordle`) — port the _decisions_:
+Methodology already proven in production on another Next app — port the _decisions_:
 
 - Sealed-cookie session (no DB session table), maxAge 10y (default session cookies die when iOS
   kills the pinned PWA → forced re-login).
 - One `setSessionForUser()` chokepoint; `requireUserId()` verifies the user row still exists and
   clears stale cookies.
 - Claim = **row flip, not data sweep**: find guest identity by device-id cookie, flip it into the
-  account atomically. Wordle's `claim-guest-user.ts` type-forces the fields a claim must set
+  account atomically. A prior implementation type-forced the fields a claim must set
   (an omitted field once stranded 562 accounts on placeholder names).
 - OAuth auto-link ONLY onto already-email-verified rows (pre-hijack guard, `oauth-link.ts`).
 - Apple form_post is cross-site: fold state into an HMAC-signed `state` param, `SameSite=None`
