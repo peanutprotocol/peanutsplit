@@ -101,6 +101,23 @@ describe('PATCH /api/rooms/:slug', () => {
         expect(row?.theme).toBeNull()
     })
 
+    it('refuses a body with no theme in it rather than resetting the room', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        await setTheme(slug, 'mint')
+
+        const { status, body } = await call<ApiError>(patchRoom as Handler, {
+            path: `/api/rooms/${slug}`,
+            method: 'PATCH',
+            params: { slug },
+            body: {},
+        })
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('VALIDATION_ERROR')
+        const row = await prisma.room.findUnique({ where: { slug }, select: { theme: true } })
+        expect(row?.theme).toBe('mint')
+    })
+
     it('rejects anything outside the catalog and leaves the room alone', async () => {
         const { body: created } = await newRoom()
         const slug = created.room.slug
