@@ -73,6 +73,14 @@ export function useRoomEvents(slug: string, onPoke: () => void): RoomEvents {
             stream.onopen = () => {
                 attempt = 0
                 setConnected(true)
+                // Catch up on the gap. A poke is fire-and-forget and is never
+                // replayed, so every write that landed while this stream was
+                // down — a container restart, a tunnel, the very first connect —
+                // produced nothing this device will ever hear about. Connecting
+                // then STRETCHES the poll to 45s, so without this a reconnect
+                // makes the room slower to heal than staying disconnected would
+                // have been. Same move as the visibility handler below.
+                pokeRef.current()
             }
 
             stream.onmessage = () => {

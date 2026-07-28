@@ -5,8 +5,9 @@
  * theme is a LINK-HOLDER write, like every other room write, and the test that
  * pins it is the one that sends no member token at all.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
+import { resetEvents, subscribe } from '@/server/events'
 import { resetRateLimits } from '@/server/rateLimit'
 import { DEFAULT_THEME, themeFor } from '@/lib/themes'
 import { loadRoomCard } from '@/server/og/roomCard'
@@ -54,7 +55,10 @@ const setTheme = (slug: string, theme: unknown, token?: string) =>
 beforeEach(async () => {
     await truncateAll()
     resetRateLimits()
+    resetEvents()
 })
+
+afterEach(() => resetEvents())
 
 describe('PATCH /api/rooms/:slug', () => {
     it('starts unthemed and says so on the wire', async () => {
@@ -134,6 +138,23 @@ describe('PATCH /api/rooms/:slug', () => {
             params: { slug },
         })
         expect(unchanged.room.theme).toBe('mint')
+    })
+
+    /**
+     * A repaint has to reach the other phones the same way an expense does.
+     * Without the poke it is the slowest write in the product: a peer holding an
+     * open stream polls at 45s, which is worse than the 8s it polled at before
+     * the stream existed.
+     */
+    it('pokes the room so an open stream repaints instead of waiting for the poll', async () => {
+        const { body: created } = await newRoom()
+        let pokes = 0
+        subscribe(created.room.id, () => {
+            pokes += 1
+        })
+
+        await setTheme(created.room.slug, 'lavender')
+        expect(pokes).toBe(1)
     })
 
     it('refuses to repaint an archived room', async () => {
