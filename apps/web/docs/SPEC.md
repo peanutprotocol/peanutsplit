@@ -41,12 +41,12 @@ untrustworthy.
 | Motion        | `motion` (ex-framer), `@number-flow/react`, View Transitions API, `vaul` (sheets), `sonner` (toasts)                                                                                                                                                                                                             |
 | Mascot        | Peanut animated WebPs copied from `peanut-ui/src/assets/mascot/` (no Lottie exists — `peanut-cheering.webp` = settle celebration, `peanut-waving-hello.webp` = landing/join, `peanut-thinking.webp` = empty states, `peanut-sad.webp` = errors)                                                                  |
 | PWA           | `@serwist/next` (same as peanut-ui) + `manifest.ts`                                                                                                                                                                                                                                                              |
-| Avatars       | `boring-avatars` (deterministic, seeded by member name)                                                                                                                                                                                                                                                          |
+| Avatars       | In-house deterministic doodle portraits, seeded by member name; no external icon/avatar system                                                                                                                                                                                                                   |
 | i18n          | next-intl — locales `en`, `es` (es-419 tone), `pt-BR`                                                                                                                                                                                                                                                            |
 | OG images     | `next/og` ImageResponse (satori, built in — no extra dep)                                                                                                                                                                                                                                                        |
 | Tests         | vitest (unit: maths, fx, api handlers), Playwright (e2e)                                                                                                                                                                                                                                                         |
 | Analytics     | PostHog (EU host, env-driven key) + Sentry (env-driven DSN) — both no-op when unset                                                                                                                                                                                                                              |
-| Deploy        | Docker (Next standalone output) → Dokploy; see README for the live topology; local dev via docker-compose postgres                                                                                                                                                                                                                         |
+| Deploy        | Docker (Next standalone output) → Dokploy; see README for the live topology; local dev via docker-compose postgres                                                                                                                                                                                               |
 
 Package manager pnpm. `.npmrc` MUST contain `minimum-release-age=20160` (supply-chain floor).
 Pin to well-established versions; if pnpm rejects a too-fresh version, pick an older minor.
@@ -230,11 +230,12 @@ Rate limiting (deploy wave): per-IP token bucket on room/member creation — 20/
 
 ## Design system
 
-**Peanut-family, but yellow.** Primary `#FFC900` (peanut-ui `yellow-1`), black ink, 1px black
-borders, hard black shadows (`shadowSize` idiom), `rounded-sm`, `bg-white`/warm neutrals. Pink
-`#FF90E8` may appear ONLY inside the "powered by Peanut" mark and the Peanut settle option.
-Copy token values + display fonts from peanut-ui (recon report gives exact paths), then diverge
-freely — no dependency on peanut-ui.
+**Peanut-family, but yellow.** Primary `#FFC900` (peanut-ui `yellow-1`), warm ink `#211C17`,
+1.5px pen-like borders, compact warm-ink shadows (`shadowSize` idiom), and friendly corners
+(`rounded-sm` starts at 12px) on `bg-white`/warm neutrals. Pink `#FF90E8` may appear ONLY inside
+the "powered by Peanut" mark and the Peanut settle option. Copy token values + display fonts
+from peanut-ui (recon report gives exact paths), then diverge freely — no dependency on
+peanut-ui.
 
 Typography: Peanut's chunky display face for headings/numbers, a clean sans for body. Numbers
 always tabular (`font-variant-numeric: tabular-nums`).

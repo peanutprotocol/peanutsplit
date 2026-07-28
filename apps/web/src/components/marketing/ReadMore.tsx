@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
@@ -7,8 +8,8 @@ import { Icon } from '@/components/ui/Icon'
 
 function Fold({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <details className="group/fold border-t-2 border-n-1 first:border-t-0">
-            <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-5 text-h6 outline-none transition-colors hover:bg-primary-4/40 focus-visible:bg-primary-4/60 sm:text-h5 [&::-webkit-details-marker]:hidden">
+        <details className="group/fold rounded-sm border border-n-1 bg-white px-4 transition-colors open:bg-primary-4/20 sm:px-5">
+            <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-h6 outline-none transition-colors focus-visible:text-n-1 sm:text-h5 [&::-webkit-details-marker]:hidden">
                 <span>{title}</span>
                 <Icon
                     name="plus"
@@ -17,7 +18,7 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
                     className="shrink-0 transition-transform duration-200 group-open/fold:rotate-45 motion-reduce:transition-none"
                 />
             </summary>
-            <div className="pb-7 pr-0 sm:pr-10">{children}</div>
+            <div className="pb-5 pr-0 sm:pr-10">{children}</div>
         </details>
     )
 }
@@ -25,10 +26,10 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
 /**
  * The deeper landing-page argument, presented as a real page fold.
  *
- * This follows peanut.me's FAQ interaction language: one full-width band, hard
- * dividers, whole-row native disclosures and a plus that turns into an x. The
- * copy remains server-rendered inside `<details>`, while each topic can be
- * explored independently instead of hiding the whole page behind one card.
+ * This follows peanut.me's FAQ interaction language: whole-row native
+ * disclosures and a plus that turns into an x. Each fold gets the cleaner,
+ * friendly rounded treatment used throughout the product while the copy
+ * remains server-rendered inside `<details>`.
  */
 export function ReadMore() {
     const t = useTranslations('marketing.readMore')
@@ -48,7 +49,10 @@ export function ReadMore() {
         { key: 'bank', doodle: 'bank' },
         { key: 'peanut', doodle: 'peanut' },
     ]
-    const team = ['konrad', 'hugo', 'natalia', 'jakub'] as const
+    const team = [
+        { key: 'konrad', portrait: '/doodles/portraits/konrad.webp' },
+        { key: 'hugo', portrait: '/doodles/portraits/hugo.webp' },
+    ] as const
     const points = ['built', 'free', 'data'] as const
     const questions = ['retype', 'access', 'lost', 'limits'] as const
 
@@ -63,7 +67,7 @@ export function ReadMore() {
                     <Doodle name="question" size={54} weight={1.5} className="mt-1 hidden shrink-0 sm:block" />
                 </div>
 
-                <div className="mt-10 border-y-2 border-n-1">
+                <div className="mt-10 flex flex-col gap-3">
                     <Fold title={t('join.title')}>
                         <div className="rounded-sm border border-n-1 bg-white p-4 sm:max-w-xl">
                             <p className="flex items-center gap-2 text-h8">
@@ -111,13 +115,25 @@ export function ReadMore() {
                     <Fold title={t('team.title')}>
                         <p className="max-w-xl text-sm leading-5 text-grey-1">{t('team.intro')}</p>
                         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                            {team.map((member) => (
-                                <li key={member} className="rounded-sm border border-n-1 bg-white p-4">
-                                    <p className="text-sm leading-5 text-n-1">“{t(`team.${member}.quote`)}”</p>
-                                    <p className="mt-2 text-h8">
-                                        {t(`team.${member}.name`)}
-                                        <span className="font-normal text-grey-1"> · {t(`team.${member}.role`)}</span>
-                                    </p>
+                            {team.map(({ key, portrait }) => (
+                                <li
+                                    key={key}
+                                    className="flex items-start gap-4 rounded-sm border border-n-1 bg-white p-4"
+                                >
+                                    <Image
+                                        src={portrait}
+                                        alt=""
+                                        width={80}
+                                        height={80}
+                                        className="size-20 shrink-0 rounded-sm border border-n-1 object-cover"
+                                    />
+                                    <div className="min-w-0">
+                                        <p className="text-sm leading-5 text-n-1">“{t(`team.${key}.quote`)}”</p>
+                                        <p className="mt-2 text-h8">
+                                            {t(`team.${key}.name`)}
+                                            <span className="font-normal text-grey-1"> · {t(`team.${key}.role`)}</span>
+                                        </p>
+                                    </div>
                                 </li>
                             ))}
                         </ul>

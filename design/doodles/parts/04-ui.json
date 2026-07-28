@@ -130,6 +130,28 @@
     "d": "M16 21C13.2 21 11 18.8 11 16C11 13.2 13.2 11 16 11C18.8 11 21 13.2 21 16C21 18.8 18.8 21 16 21Z M16 4V8 M16 24V28 M4 16H8 M24 16H28 M7.5 7.5L10.5 10.5 M21.5 21.5L24.5 24.5 M24.5 7.5L21.5 10.5 M10.5 21.5L7.5 24.5",
     "note": "a cog reduced to a hub and eight short teeth"
   },
+  "reactionfire": {
+    "d": "M17.5 3.5C19 8.5 16 10.5 19 13.5C20 11.5 22 10 23.5 8.5C26 12.5 27 16 25.5 20.5C24 25 20.5 28 16 28C10.5 28 6.5 24.5 6.5 19.5C6.5 15 9.5 12.5 12.5 9C12.5 12 13.5 14 15 15C16 12 14.5 9 17.5 3.5Z",
+    "note": "a single friendly flame — that expense was wild"
+  },
+  "reactionlaugh": {
+    "d": "M10 13C11 12 12 12 13 13 M19 13C20 12 21 12 22 13 M10.5 18C12.5 23 19.5 24 22 18Z M5 10L2.5 8 M27 10L29.5 8",
+    "dots": [[16, 16, 11.5]],
+    "note": "a round laughing face with closed eyes and a wide mouth"
+  },
+  "reactiontear": {
+    "d": "M10 13C11 12.2 12 12.2 13 13 M19 13C20 12.2 21 12.2 22 13 M12 22C14 19.5 18 19.5 20 22 M24 16C27 19.5 27.5 22 25 24C22.5 22 23 19.5 24 16Z",
+    "dots": [[16, 16, 11.5]],
+    "note": "a sad round face with one large tear"
+  },
+  "reactionlove": {
+    "d": "M16 27C13 24 6 19 6 12.5C6 8.5 8.5 6 12 6C14 6 15.5 7 16 9C16.8 7 18.2 6 20.5 6C24 6 26 8.7 26 12.5C26 19 19 24 16 27Z",
+    "note": "a loose heart outline — love and thanks"
+  },
+  "reactionclap": {
+    "d": "M9 25L6 19C5 17 7.5 15.5 9 17L10.5 19L7.5 11.5C6.7 9.5 9.5 8.5 10.5 10.5L13 16L11.5 8C11.2 6 14 5.5 14.5 7.5L16.5 15L17 8.5C17.2 6.5 20 6.8 20 9L20.5 16L22 12C22.7 10 25 11 24.5 13L23.5 19C22.5 24 18.5 27 14 27C12 27 10.5 26.5 9 25Z M24 5L27 2 M26 8H30 M22 4V1",
+    "note": "an applauding hand with three little motion rays"
+  },
   "candy": {
     "d": "M11 11L5 7L4 14L10 17 M21 11L27 7L28 14L22 17 M10 11C12 8 20 8 22 11V21C20 24 12 24 10 21Z",
     "note": "a wrapped sweet — the bubblegum palette"

@@ -34,7 +34,6 @@
         "@sentry/nextjs": "^10.65.0",
         "@serwist/next": "^9.2.1",
         "@tanstack/react-query": "^5.85.0",
-        "boring-avatars": "^2.0.0",
         "gray-matter": "^4.0.3",
         "https-proxy-agent": "^9.1.0",
         "jose": "^6.2.3",

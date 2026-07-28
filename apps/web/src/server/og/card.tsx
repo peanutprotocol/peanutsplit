@@ -20,14 +20,14 @@ export const OG_CONTENT_TYPE = 'image/png'
  */
 export const OG_CACHE_CONTROL = 'public, max-age=300'
 
-const INK = '#000000'
+const INK = '#211C17'
 const MUTED = '#5F646D'
 
 /**
  * The field colours come from the room's theme now, not from constants. Ink,
  * borders, the white sheet and the shadow do NOT — a theme tints the field, it
  * does not restyle the card, and every palette in the catalog is chosen to carry
- * black ink. `DEFAULT_THEME` is what the brand card and an unthemed room use, and
+ * warm dark ink. `DEFAULT_THEME` is what the brand card and an unthemed room use, and
  * its values are the literals this file shipped with.
  */
 
