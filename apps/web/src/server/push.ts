@@ -106,14 +106,17 @@ export const utcDayKey = (at: Date = new Date()): string => at.toISOString().sli
  * notification with nothing anywhere recording that it never went out — so
  * everything else rethrows and surfaces as a normal failure.
  */
-export async function claimSend(input: {
-    roomId: string
-    template: NotificationTemplate
-    dayKey: string
-    dedupeKey: string
-}): Promise<{ id: string } | null> {
+export async function claimSend(
+    input: {
+        roomId: string
+        template: NotificationTemplate
+        dayKey: string
+        dedupeKey: string
+    },
+    db: Pick<Prisma.TransactionClient, 'notificationSend'> = prisma
+): Promise<{ id: string } | null> {
     try {
-        return await prisma.notificationSend.create({
+        return await db.notificationSend.create({
             data: { ...input, status: 'claimed' },
             select: { id: true },
         })
@@ -151,15 +154,30 @@ export async function sendRoomEvent(input: SendRoomEventInput): Promise<SendOutc
     if (targets.length === 0) return { status: 'skipped', reason: 'no-targets' }
 
     const dayKey = utcDayKey()
-    if (template === 'expense_added') {
-        const alreadyToday = await prisma.notificationSend.count({
-            where: { roomId: room.id, template, dayKey },
-        })
-        if (alreadyToday >= EXPENSE_ADDED_DAILY_CAP) return { status: 'skipped', reason: 'daily-cap' }
-    }
-
     const dedupeKey = `${room.id}:${template}:${input.eventId ?? dayKey}`
-    const claim = await claimSend({ roomId: room.id, template, dayKey, dedupeKey })
+    const claim = await prisma.$transaction(async (tx) => {
+        // The cap and claim must be one room-scoped decision. Parallel expenses
+        // otherwise all see the same pre-cap count and each reserve a send.
+        await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+
+        if (template === 'expense_added') {
+            const alreadyToday = await tx.notificationSend.count({
+                where: { roomId: room.id, template, dayKey },
+            })
+            if (alreadyToday >= EXPENSE_ADDED_DAILY_CAP) return 'daily-cap' as const
+        }
+
+        // Avoid raising a uniqueness error inside the interactive transaction:
+        // PostgreSQL keeps the transaction aborted even when Prisma's P2002 is
+        // caught. The advisory lock makes this lookup authoritative for every
+        // send-pipeline caller in the room; the unique index remains the final
+        // guard for direct claim callers.
+        const existing = await tx.notificationSend.findUnique({ where: { dedupeKey }, select: { id: true } })
+        if (existing) return null
+
+        return claimSend({ roomId: room.id, template, dayKey, dedupeKey }, tx)
+    })
+    if (claim === 'daily-cap') return { status: 'skipped', reason: 'daily-cap' }
     if (!claim) return { status: 'skipped', reason: 'already-sent' }
 
     const payload = JSON.stringify(input.buildPayload(claim.id))
