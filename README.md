@@ -109,9 +109,13 @@ network, not the review:
 
 Two consequences worth knowing before changing anything:
 
-- **The app has no egress.** That is free today because nothing is fetched at
-  runtime (FX is a static table). The day the settle loop has to reach peanut.me,
-  it needs a proxy pinned to that host — not an opened network.
+- **Egress is default-deny, with one pinhole.** The app network has no route
+  out; every runtime fetch goes through the `split-egress` squid proxy, one
+  `*_PROXY_URL` env var per consumer (`SPLIT_EMAIL_PROXY_URL`,
+  `SPLIT_PUSH_PROXY_URL`, `SPLIT_SCAN_PROXY_URL`), against a CONNECT-443
+  allowlist: the browser push gateways, `api.onesignal.com`, `api.resend.com`
+  and `generativelanguage.googleapis.com`. A scan or email that 502s with the
+  proxy env unset is this, not the provider.
 - **Every `NEXT_PUBLIC_*` value is a build arg**, because Next inlines them into
   the client bundle at build time. Setting one only at runtime silently does
   nothing — the bundle already has the old value baked in. They are passed as

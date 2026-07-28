@@ -113,27 +113,45 @@ Still gated:
   request-link test. Optional hygiene: rotate the app key in-dashboard once
   live (its value transited an automation transcript during setup). Resend
   stays wired as the fallback transport.
+- **Receipt scan key** [Hugo, 2 min]: create a Split-scoped Gemini key in
+  Google AI Studio (same isolation rule as OneSignal — no shared Peanut creds
+  in the semi-trusted container) → set `SPLIT_GEMINI_API_KEY` as runtime env.
+  `SPLIT_SCAN_PROXY_URL` and the egress allowlist entry are already in place;
+  the scan button appears on the next page load, no rebuild.
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
   users about it.
 
-## Wave 3 — IN FLIGHT 2026-07-28 (five parallel branches)
+## Shipped 2026-07-28, third wave
 
-Being built now: receipt-scan (Gemini OCR → itemized EXACT split; needs a
-Split-scoped `SPLIT_GEMINI_API_KEY` to go live — host already on the egress
-allowlist), realtime (SSE poke + offline expense queue), trip-recap share card
-(image-only sharing — a recap URL would leak the room-slug credential), delight
-(theme catalog + token-proven emoji reactions), splitwise-import (client-side
-CSV parse, balances proven against Splitwise's own Total balance row). A
-three-lens adversarial review pass (correctness/money · elegance/DRY ·
-maintainability) gates the wave before it counts as done.
+All five branches merged, deployed, and smoke-tested live the same day:
 
-**Queued next (wave 3.5): PWA deepening** — permanent install row in settings
-(today a dismissed prompt leaves no manual path until backoff expires),
+- **Receipt scan** — photograph a bill → Gemini vision itemizes → editable
+  review → tap-assign items → lands as a normal EXACT expense through the one
+  tested money path. Images never persisted, receipt contents never logged,
+  model output re-validated like any anonymous input. Ships dark until
+  `SPLIT_GEMINI_API_KEY` lands (see "To light up").
+- **Realtime + offline** — SSE poke-and-refetch (polling stretched to 45s while
+  the stream is open, 8s floor otherwise, never removed); offline queue for
+  expense creates only (queued settlements could double-pay).
+- **Trip recap** — celebratory share card at all-settled; the shared artifact
+  is the image, never a URL (a recap link would carry the room-slug credential).
+- **Delight** — 8-theme catalog themed through to the OG unfurl; 6-emoji
+  reactions requiring a token-proven member.
+- **Splitwise import** — client-side CSV parse (the file never uploads),
+  net→shares reconstruction with per-row zero-sum validation, one transaction,
+  balances proven against the export's own Total balance row in tests.
+
+A three-lens adversarial review (money/correctness · elegance/DRY ·
+maintainability/security) ran the same day; the consolidated fix wave
+(`fix/review-wave-a`, 31 items — incl. a mid-drain queue-loss race, a
+queued-expense false "all settled", chunked-body cap bypass, and missing
+`publish()` on reactions/theme) follows as its own milestone.
+
+**Queued next (wave 3.5): PWA deepening** — permanent install row in settings,
 manifest `share_target` (share a receipt photo from the OS share sheet straight
 into the scan flow), manifest shortcuts, apple-touch-icon + iOS splash, app
-badge wiring. Deliberately sequenced after this wave — it integrates with the
-settings drawer and scan flow the wave is touching.
+badge wiring.
 
 Remaining candidates, ordered by expected value per effort:
 
@@ -189,6 +207,18 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   key) — unreachable behind Traefik, but wrong if the proxy ever changes.
 - `/favicon.ico` 404s (browsers probe it regardless of the manifest icons) —
   drop a real .ico in `public/`.
+- SSE fan-out and the per-room scan quota are per-container (in-memory); a
+  second replica halves poke delivery and doubles the quota. Single-replica by
+  assumption; the fix is Postgres LISTEN/NOTIFY + a shared store, not caps.
+- `useDeleteSettlement` (lib/queries.ts) is an exported mutation hook with no
+  caller (pre-dates wave 3).
+- `equalSplitMinor` (lib/money.ts) and `equalShares` (server/split.ts) are
+  documented as "the same rule" with nothing pinning them — a two-line
+  agreement test would close it.
+- The SSE route's sink late-binding could be a `TransformStream` (simpler, real
+  backpressure) — worth doing next time the file is open, not before.
+- No unused-export/unused-key lint (`knip` or similar) — dead exports
+  accumulate silently; wiring one in is the cheap permanent fix.
 - `all_settled` fires (analytics + would-be push) for a solo room whose only
   expense nets to zero — harmless (push skips with no targets) but the event
   is semantically noisy for single-member rooms.
