@@ -36,6 +36,17 @@ export const STATIC_PAGES: StaticPage[] = [
         priority: 0.8,
         inHub: true,
     },
+    {
+        // A tool, not a guide, so it stays off the /blog hub — but it answers a real query
+        // ("import splitwise") and is the page a switching group lands on, so it is sitemapped
+        // high. Registering it here is also what stops a `src/content/import.md` from ever
+        // shadowing a root-level route Next already owns.
+        href: '/import',
+        title: 'Import from Splitwise',
+        description: 'Turn a Splitwise group export into a Split room — expenses, payers and balances intact.',
+        priority: 0.8,
+        inHub: false,
+    },
 ]
 
 /**

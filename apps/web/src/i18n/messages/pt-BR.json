@@ -49,7 +49,8 @@
             "compareLink": "Alternativa ao Splitwise",
             "guidesLink": "Guias",
             "poweredByPrefix": "feito pela",
-            "poweredByBrand": "Peanut"
+            "poweredByBrand": "Peanut",
+            "importLink": "Importar do Splitwise"
         },
         "install": {
             "title": "Adicione o Split à sua tela de início",
@@ -242,6 +243,70 @@
             "useSuggestion": "Usar {name}"
         }
     },
+    "import": {
+        "drop": {
+            "title": "Solte aqui a sua exportação do Splitwise",
+            "body": "O arquivo .csv que o Splitwise te dá quando você exporta um grupo. Ele é lido aqui mesmo, no seu aparelho — nada é enviado.",
+            "cta": "Escolher um arquivo",
+            "privacy": "É o seu próprio navegador que abre o arquivo. A gente só recebe os gastos que estão dentro dele, e só quando você toca no botão."
+        },
+        "howto": {
+            "title": "Onde achar o arquivo",
+            "step1": "Abra o grupo no splitwise.com.",
+            "step2": "Entre nas configurações do grupo e escolha “Exportar como planilha”.",
+            "step3": "Volte com o .csv e solte aqui em cima."
+        },
+        "preview": {
+            "found": "{expenses, plural, one {# gasto} other {# gastos}} · {members, plural, one {# pessoa} other {# pessoas}}",
+            "total": "Dá {total}",
+            "roomName": "Dê um nome para a sala",
+            "roomNamePlaceholder": "Viagem de neve",
+            "fallbackName": "Grupo importado",
+            "currency": "Moeda",
+            "currencyLabel": "Moeda da sala",
+            "currencyHint": "Os saldos são acertados nesta moeda. Cada gasto fica na moeda em que foi pago.",
+            "members": "Todo mundo do grupo",
+            "whoAreYou": "Ajeite qualquer nome que veio estranho e escolha você mesmo na lista.",
+            "thatsMe": "Sou {name}",
+            "submit": "Criar a sala",
+            "startOver": "Usar outro arquivo"
+        },
+        "fx": {
+            "title": "Sobre as taxas de câmbio",
+            "body": "Este grupo gastou em mais de uma moeda. O Splitwise não exporta a taxa que usou no dia, então tudo é convertido pela de hoje — os totais vão ficar perto, não idênticos aos que você vê por lá."
+        },
+        "warnings": {
+            "title": "Vale saber",
+            "more": "…e mais {count, plural, one {#} other {#}}.",
+            "ROW_UNBALANCED": "A linha {row} não fecha no próprio arquivo, então ficou de fora.",
+            "ROW_UNSUPPORTED_CURRENCY": "A linha {row} está em {detail}, que o Split ainda não tem, então ficou de fora.",
+            "ROW_NO_PAYER": "A linha {row} não diz quem pagou, então ficou de fora.",
+            "ROW_ZERO_COST": "A linha {row} não tem valor, então ficou de fora.",
+            "ROW_BAD_AMOUNT": "A linha {row} tem um valor que a gente não conseguiu ler, então ficou de fora.",
+            "ROW_BAD_DATE": "A linha {row} tem uma data que a gente não conseguiu ler — ela entra com a data de hoje.",
+            "MULTI_PAYER_SPLIT": "“{detail}” foi pago por mais de uma pessoa. O arquivo não registra quanto cada uma pôs, então entra como um gasto por pagante — os saldos ficam exatos, a divisão entre os pagantes é a nossa melhor leitura.",
+            "PAYMENT_ROWS": "Pagamentos entre as pessoas entram como gastos, não como acertos já registrados. Os saldos dão no mesmo.",
+            "MIXED_CURRENCY": "O arquivo mistura {detail}.",
+            "DUPLICATE_MEMBER_NAME": "Tem duas pessoas chamadas {detail}, então a segunda aparece como “{detail} (2)”. Troque o nome aqui embaixo."
+        },
+        "errors": {
+            "NOT_SPLITWISE_CSV": "Isso não parece uma exportação do Splitwise. Tem que ser o arquivo .csv de “Exportar como planilha”.",
+            "NO_MEMBERS": "Essa exportação não tem ninguém dentro — confira se você exportou um grupo e não um gasto avulso.",
+            "NO_EXPENSES": "Não teve nada que a gente conseguisse ler nesse arquivo. Se os gastos estão em uma moeda que o Split não tem, pode ser por isso.",
+            "TOO_MANY_MEMBERS": "Esse grupo tem mais de 20 pessoas. As salas do Split são para uma viagem ou um apê, não para uma lista de e-mails.",
+            "TOO_MANY_EXPENSES": "Essa exportação tem mais de 500 gastos. Tente um grupo com menos histórico, ou comece uma sala nova.",
+            "FILE_TOO_BIG": "Esse arquivo é grande demais para ser uma exportação do Splitwise. Confira se você pegou o certo.",
+            "READ_FAILED": "Não deu para ler esse arquivo. Tente escolher de novo.",
+            "EMPTY_NAME": "Todo mundo precisa de um nome.",
+            "DUPLICATE_NAMES": "Tem duas pessoas com o mesmo nome — deixe diferentes para cada gasto cair na pessoa certa.",
+            "failed": "não deu para criar a sala — tente de novo"
+        },
+        "ready": {
+            "title": "Seu grupo entrou",
+            "subtitle": "Mande este link para todo mundo. Eles tocam, escolhem o nome, e tudo que você importou já está lá.",
+            "goToRoom": "Ir para a sala"
+        }
+    },
     "account": {
         "title": "Suas salas em qualquer aparelho",
         "blurb": "Salve suas salas — coloque seu e-mail e acesse de qualquer aparelho. Sem senha e sem cadastro.",
@@ -295,7 +360,9 @@
         "DUPLICATE_PARTICIPANT": "Alguém aparece duas vezes nesta divisão.",
         "SETTLEMENT_PAYER_NOT_MEMBER": "Quem pagou não está nesta sala — recarregue e tente de novo.",
         "SETTLEMENT_PAYEE_NOT_MEMBER": "Quem recebeu não está nesta sala — recarregue e tente de novo.",
-        "SETTLEMENT_SAME_MEMBER": "Um pagamento precisa de duas pessoas diferentes."
+        "SETTLEMENT_SAME_MEMBER": "Um pagamento precisa de duas pessoas diferentes.",
+        "IMPORT_TOO_LARGE": "Essa importação é grande demais para enviar. Tente um grupo com menos histórico.",
+        "RATE_LIMITED": "Foram muitas tentativas — espere um minuto e tente de novo."
     },
     "derivation": {
         "title": "De onde vem esse número",

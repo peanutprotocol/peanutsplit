@@ -49,6 +49,8 @@ export const KNOWN_ERROR_CODES = [
     'SETTLEMENT_PAYER_NOT_MEMBER',
     'SETTLEMENT_PAYEE_NOT_MEMBER',
     'SETTLEMENT_SAME_MEMBER',
+    'IMPORT_TOO_LARGE',
+    'RATE_LIMITED',
 ] as const
 
 export type KnownErrorCode = (typeof KNOWN_ERROR_CODES)[number]

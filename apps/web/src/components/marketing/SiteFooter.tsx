@@ -26,6 +26,12 @@ export function SiteFooter({ showCompareLink = true }: { showCompareLink?: boole
                         {t('compareLink')}
                     </Link>
                 )}
+                <Link
+                    href="/import"
+                    className="flex min-h-11 items-center px-2 text-sm text-grey-1 underline transition-opacity hover:opacity-70"
+                >
+                    {t('importLink')}
+                </Link>
                 {/* The hub is the only internal link every article shares — it is how a crawler
                     that lands on any page finds the rest of them. */}
                 <Link
