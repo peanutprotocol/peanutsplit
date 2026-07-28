@@ -219,7 +219,7 @@ Peanut mark only, cream `background`).
 
 Order below is execution order, not importance. Status per item.
 
-1. **Doodles as icons, emoji gone.** — *status: in progress — pipeline landed, drawings being cut*
+1. **Doodles as icons, emoji gone.** — *status: 51 drawings shipped; room emblem still emoji*
    Port `rough.py` and the `build.py` → generated-set pipeline from
    `munin/design/raven-doodles/`. Clean geometry in a 32-unit box, stroked at
    ~1.4–2px, `fill: none`, `stroke: currentColor`, so a drawing inherits the ink
@@ -246,12 +246,18 @@ Order below is execution order, not importance. Status per item.
    the hero would cost fold space to a control most people never need, and Split
    has no header bar on the LP to put it in without inventing one.
 
-4. **Room doodle auto-picked from the name.** — *status: —*
+4. **Room doodle auto-picked from the name.** — *status: `roomDoodleFor` shipped + tested, not yet wired*
    A keyword table maps what someone types ("ski", "esquí", "pizza", "airbnb")
    onto a drawing, so the room already looks like itself before anybody opens
-   the picker. Must cover all three locales; falls back to the peanut.
+   the picker. All three locales in one table, falling back to the peanut.
+   `lib/room-doodle.ts` is done and tested. WHAT IS LEFT is the wiring, and it
+   is not a one-liner: the emblem is stored per room as `Room.emoji`, it is what
+   the OG card renders through Satori (41 tests pin that card), and existing
+   rooms hold emoji characters. So the swap needs a value that can be either,
+   a render helper that knows which, and a decision about what the OG image
+   draws for a doodle room — Satori will not run our `<path>` set as-is.
 
-5. **Currency list, readable and friendlier.** — *status: —*
+5. **Currency list, readable and friendlier.** — *status: shipped 2026-07-28*
    `🇧🇷 R$ BRL — Brazilian Real` is four encodings of the same fact in one line.
    Draw the symbol, show three or four currencies, and put the rest behind a
    "more" step.
@@ -266,7 +272,7 @@ Order below is execution order, not importance. Status per item.
    Halves the vertical space the form takes, which is what puts the button above
    the fold on a 390px screen.
 
-8. **Cut superfluous copy.** — *status: in progress*
+8. **Cut superfluous copy.** — *status: first pass shipped 2026-07-28*
    Cold-read UX pass over every marketing surface; delete the lines that restate
    the line above them.
 
