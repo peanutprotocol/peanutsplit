@@ -7,7 +7,7 @@
  */
 import { MutationObserver, QueryClient } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { NETWORK_ERROR_CODE } from './api'
+import { EXPENSE_WRITE_TIMEOUT_MS, NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
 import { addExpenseMutationOptions, addMemberMutationOptions, claimMemberMutationOptions, roomKey } from './queries'
@@ -101,6 +101,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+    vi.useRealTimers()
     vi.unstubAllGlobals()
     setQueueStorage(null)
     queryClient.clear()
@@ -181,6 +182,31 @@ describe('adding an expense with no network', () => {
 
         expect(failure.code).toBe(NETWORK_ERROR_CODE)
         expect(queueSnapshot()).toEqual([])
+    })
+
+    it('queues a timed-out first attempt with the exact same client key', async () => {
+        vi.useFakeTimers()
+        const before = roomState()
+        queryClient.setQueryData(roomKey(SLUG), before)
+        const fetchMock = vi.fn((_url: string | URL | Request, init?: RequestInit) => {
+            return new Promise<Response>((_resolve, reject) => {
+                const signal = init?.signal
+                if (!signal) return
+                signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')), {
+                    once: true,
+                })
+            })
+        })
+        vi.stubGlobal('fetch', fetchMock)
+
+        const result = addExpense(queryClient)
+        await vi.advanceTimersByTimeAsync(EXPENSE_WRITE_TIMEOUT_MS)
+        await expect(result).resolves.toEqual(before)
+
+        const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1]?.body as string)
+        expect(queueSnapshot()).toHaveLength(1)
+        expect(queueSnapshot()[0].clientKey).toBe(firstAttempt.clientKey)
+        expect(queueSnapshot()[0].body.clientKey).toBe(firstAttempt.clientKey)
     })
 })
 
