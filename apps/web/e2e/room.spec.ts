@@ -196,6 +196,23 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
     await expect(bea.getByTestId('join-gate')).toHaveCount(0)
     await expectBalance(bea, 'Bea', '3000')
+
+    const slug = new URL(url).pathname.split('/').filter(Boolean).at(-1)
+    const storedIdentity = await bea.evaluate((key) => {
+        const raw = window.localStorage.getItem(key)
+        return raw ? JSON.parse(raw) : null
+    }, `ps:member:${slug}`)
+    expect(storedIdentity).toMatchObject({ name: 'Bea' })
+    expect(storedIdentity.token).toEqual(expect.any(String))
+    expect(storedIdentity.token.length).toBeGreaterThan(20)
+
+    // The claimed token is functional, not merely persisted: the social write
+    // that requires member proof is now enabled and reaches the real API.
+    const beaExpense = bea.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]').locator('..')
+    await expect(beaExpense.getByTestId('reaction-add')).toBeEnabled()
+    await beaExpense.getByTestId('reaction-add').click()
+    await beaExpense.getByTestId('reaction-option').first().click()
+    await expect(beaExpense.getByTestId('reaction-pill')).toHaveCount(1, { timeout: 15_000 })
     await second.close()
 })
 

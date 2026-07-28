@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
-import { addExpenseMutationOptions, addMemberMutationOptions, roomKey } from './queries'
+import { addExpenseMutationOptions, addMemberMutationOptions, claimMemberMutationOptions, roomKey } from './queries'
 
 const memoryStorage = (): Storage => {
     const map = new Map<string, string>()
@@ -88,6 +88,9 @@ const addExpense = (queryClient: QueryClient) =>
 
 const addMember = (queryClient: QueryClient) =>
     new MutationObserver(queryClient, addMemberMutationOptions(queryClient, SLUG)).mutate({ name: 'Carla' })
+
+const claimMember = (queryClient: QueryClient) =>
+    new MutationObserver(queryClient, claimMemberMutationOptions(queryClient, SLUG)).mutate({ memberId: 'bea' })
 
 let queryClient: QueryClient
 
@@ -183,27 +186,58 @@ describe('adding an expense with no network', () => {
 
 describe('adding somebody who has not tapped the link yet', () => {
     /**
-     * The organiser types four names in from the share sheet. The server issues a
-     * token for each — the same one-time secret a real join gets — and none of
-     * them may stay on the organiser's phone: a token is proof of BEING that
-     * person, and holding it would let one device react and subscribe as another.
+     * The organiser types four names in from the share sheet. The HTTP response
+     * itself is token-free, and the projection remains explicit so neither an
+     * identity envelope nor a future response field drifts into room state.
      */
-    it('returns the new id while keeping its token and identity envelope out of the cache', async () => {
+    it('requests a token-free roster addition and keeps its identity envelope out of the cache', async () => {
         const state = {
             ...roomState(),
             members: [...roomState().members, { id: 'cai', name: 'Carla', createdAt: '2026-07-02T00:00:00.000Z' }],
         }
-        const served = { ...state, memberId: 'cai', memberToken: 'secret-token-for-carla' }
-        vi.stubGlobal('fetch', respondWith(201, served))
+        const served = { ...state, memberId: 'cai' }
+        const fetchMock = respondWith(201, served)
+        vi.stubGlobal('fetch', fetchMock)
 
         const kept = await addMember(queryClient)
         const cached = queryClient.getQueryData<RoomState>(roomKey(SLUG))
 
         expect(kept).toEqual({ memberId: 'cai', state })
         expect(cached).toEqual(state)
-        expect(JSON.stringify(kept)).not.toContain('secret-token-for-carla')
-        expect(JSON.stringify(cached)).not.toContain('secret-token-for-carla')
+        expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ name: 'Carla', intent: 'add' })
         expect(cached).not.toHaveProperty('memberId')
         expect(cached).not.toHaveProperty('memberToken')
+    })
+
+    it('still sanitizes an overbroad or rolling-deploy response', async () => {
+        const state = {
+            ...roomState(),
+            members: [...roomState().members, { id: 'cai', name: 'Carla', createdAt: '2026-07-02T00:00:00.000Z' }],
+        }
+        vi.stubGlobal('fetch', respondWith(201, { ...state, memberId: 'cai', memberToken: 'legacy-token-for-carla' }))
+
+        const kept = await addMember(queryClient)
+        const cached = queryClient.getQueryData<RoomState>(roomKey(SLUG))
+
+        expect(JSON.stringify(kept)).not.toContain('legacy-token-for-carla')
+        expect(JSON.stringify(cached)).not.toContain('legacy-token-for-carla')
+    })
+})
+
+describe('claiming an existing roster entry', () => {
+    it('returns the usable token to the caller but seeds only token-free room state', async () => {
+        const state = roomState()
+        const served = { ...state, memberId: 'bea', memberToken: 'secret-token-for-bea' }
+        const fetchMock = respondWith(200, served)
+        vi.stubGlobal('fetch', fetchMock)
+
+        const claimed = await claimMember(queryClient)
+        const cached = queryClient.getQueryData<RoomState>(roomKey(SLUG))
+
+        expect(claimed.memberId).toBe('bea')
+        expect(claimed.memberToken).toBe('secret-token-for-bea')
+        expect(cached).toEqual(state)
+        expect(JSON.stringify(cached)).not.toContain('secret-token-for-bea')
+        expect(fetchMock.mock.calls[0][0]).toBe(`/api/rooms/${SLUG}/members/bea/claim`)
     })
 })

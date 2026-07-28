@@ -11,7 +11,7 @@ import type { RoomState } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { useErrorMessage } from '@/lib/error-messages'
-import { useJoinRoom } from '@/lib/queries'
+import { useClaimMember, useJoinRoom } from '@/lib/queries'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { useShake } from '@/hooks/useShake'
@@ -27,15 +27,16 @@ interface JoinGateProps {
  * First visit, no stored identity. The room is already visible behind this — you
  * can see the balances you are about to join, which is most of the trust.
  *
- * Tapping an existing member claims that identity locally only: there is no
- * token for someone else's member, and that is by design. Impersonation inside a
- * trusted circle is a category norm (Kittysplit, Splid) and the slug is the
- * credential; writes are attributed, never authorised.
+ * Tapping an existing member asks the server for that roster entry's existing
+ * token. The room link is still the credential: impersonation inside a trusted
+ * circle is a category norm (Kittysplit, Splid), while the token lets reactions
+ * and push bind to the identity this device selected.
  */
 export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
     const t = useTranslations('room.join')
     const errorMessage = useErrorMessage()
     const joinRoom = useJoinRoom(slug)
+    const claimMember = useClaimMember(slug)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
     const gateRootRef = useRef<HTMLDivElement>(null)
@@ -112,10 +113,18 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
         }
     }
 
-    const claimExisting = (memberId: string, memberName: string) => {
-        feedback('pop')
-        track('room_joined', roomProps(slug, { kind: 'existing' }))
-        onJoined({ memberId, name: memberName })
+    const claimExisting = async (memberId: string, memberName: string) => {
+        setError(null)
+        try {
+            const next = await claimMember.mutateAsync({ memberId })
+            feedback('pop')
+            track('room_joined', roomProps(slug, { kind: 'existing' }))
+            onJoined({ memberId: next.memberId, token: next.memberToken, name: memberName })
+        } catch (err) {
+            feedback('error', { haptic: 'error' })
+            shake()
+            setError(errorMessage(err, t('failed')))
+        }
     }
 
     const joinAsNew = async (event: React.FormEvent) => {
@@ -184,7 +193,8 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                             <button
                                                 ref={index === 0 ? firstMemberRef : undefined}
                                                 type="button"
-                                                onClick={() => claimExisting(member.id, member.name)}
+                                                disabled={claimMember.isPending}
+                                                onClick={() => void claimExisting(member.id, member.name)}
                                                 data-testid="claim-member"
                                                 data-member={member.name}
                                                 className="shadow-4 flex w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
