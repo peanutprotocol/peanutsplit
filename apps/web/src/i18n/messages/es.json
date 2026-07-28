@@ -723,5 +723,15 @@
             "subtitle": "Envía este link a todos. Lo tocan, eligen su nombre, y todo lo que importaste ya está ahí.",
             "goToRoom": "Ir a la sala"
         }
+    },
+    "preview": {
+        "roomDescription": "Súmate a la cuenta — mira quién debe qué y agrega lo que pagaste.",
+        "statNone": "Todavía no hay gastos",
+        "statOne": "1 gasto · {amount} hasta ahora",
+        "statMany": "{count} gastos · {amount} hasta ahora",
+        "peopleOne": "1 persona",
+        "peopleMany": "{count} personas",
+        "emptyRoster": "Todavía no entró nadie",
+        "tagline": "sin registro · gratis para siempre"
     }
 }

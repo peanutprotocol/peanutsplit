@@ -19,7 +19,17 @@ export interface CreatedMember {
     memberToken: string
 }
 
-export async function createRoom(body: CreateRoomBody): Promise<{ room: RoomWithRelations } & CreatedMember> {
+/**
+ * `locale` is the language the creator's screen was in. It is passed in rather
+ * than read here, for the reason at the top of this file: resolving a request
+ * context is the HTTP layer's job, and this module has to stay callable without
+ * one. The route reads it — see `server/locale.ts` for why the room has to
+ * remember at all.
+ */
+export async function createRoom(
+    body: CreateRoomBody,
+    locale: string | null = null
+): Promise<{ room: RoomWithRelations } & CreatedMember> {
     const token = memberToken()
 
     for (let attempt = 0; attempt < SLUG_ATTEMPTS; attempt++) {
@@ -30,6 +40,7 @@ export async function createRoom(body: CreateRoomBody): Promise<{ room: RoomWith
                     name: body.name,
                     emoji: body.emoji ?? null,
                     currency: body.currency,
+                    locale,
                     members: { create: { name: body.creatorName, token } },
                 },
                 include: { members: true },

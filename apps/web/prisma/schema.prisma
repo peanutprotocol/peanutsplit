@@ -29,6 +29,14 @@ model Room {
   // the default palette, so a room written before themes existed and a room set
   // back to default are the same row.
   theme       String?
+  // The language the room was STARTED in, and the only thing that can tell a
+  // link preview which language to unfurl in. A crawler fetching /r/<slug> for
+  // WhatsApp carries no cookie and no useful Accept-Language, so without this
+  // column the one screen a suspicious invitee sees before tapping is always
+  // English. Null means English and is what every room written before this
+  // existed holds; it is never inferred later, because the reader of a preview
+  // is not the room.
+  locale      String?
   createdAt   DateTime     @default(now())
   archivedAt  DateTime?
   members     Member[]

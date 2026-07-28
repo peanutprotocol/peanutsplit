@@ -723,5 +723,15 @@
             "subtitle": "Send this link to everyone. They tap it, pick their name, and everything you imported is already there.",
             "goToRoom": "Go to room"
         }
+    },
+    "preview": {
+        "roomDescription": "Join the split — see who owes what and add what you paid.",
+        "statNone": "No expenses yet",
+        "statOne": "1 expense · {amount} so far",
+        "statMany": "{count} expenses · {amount} so far",
+        "peopleOne": "1 person",
+        "peopleMany": "{count} people",
+        "emptyRoster": "Nobody has joined yet",
+        "tagline": "no signup · free forever"
     }
 }

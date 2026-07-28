@@ -9,7 +9,7 @@
  */
 import { DEFAULT_THEME, type RoomTheme } from '@/lib/themes'
 import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
-import { AVATAR_COLORS, type OgAvatar, type RoomCardData } from '@/server/og/roomCard'
+import { AVATAR_COLORS, ENGLISH_CARD_COPY, type OgAvatar, type RoomCardData } from '@/server/og/roomCard'
 
 export const OG_SIZE = { width: 1200, height: 630 } as const
 export const OG_CONTENT_TYPE = 'image/png'
@@ -95,7 +95,9 @@ function Field({ theme, children }: { theme: RoomTheme; children: React.ReactNod
     )
 }
 
-function Wordmark({ theme }: { theme: RoomTheme }) {
+/** "PEANUT SPLIT" is the brand and stays put in every language. The line beside
+ *  it is a sentence, so it arrives already localized and font-safe. */
+function Wordmark({ theme, tagline }: { theme: RoomTheme; tagline: string }) {
     return (
         <div
             style={{
@@ -107,7 +109,7 @@ function Wordmark({ theme }: { theme: RoomTheme }) {
             }}
         >
             <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 34, color: INK }}>PEANUT SPLIT</div>
-            <div style={{ display: 'flex', fontSize: 26, color: theme.fieldInk }}>no signup · free forever</div>
+            <div style={{ display: 'flex', fontSize: 26, color: theme.fieldInk }}>{tagline}</div>
         </div>
     )
 }
@@ -138,13 +140,11 @@ function Sheet({ children }: { children: React.ReactNode }) {
     )
 }
 
-function AvatarRow({ avatars, overflow, memberCount }: { avatars: OgAvatar[]; overflow: number; memberCount: number }) {
+function AvatarRow({ avatars, overflow, people }: { avatars: OgAvatar[]; overflow: number; people: string }) {
+    // `people` is already either the count or the empty-roster line — the branch
+    // lives with the copy, in `roomCard.ts`, so this file holds no sentences.
     if (avatars.length === 0) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', fontSize: 32, color: MUTED }}>
-                Nobody has joined yet
-            </div>
-        )
+        return <div style={{ display: 'flex', alignItems: 'center', fontSize: 32, color: MUTED }}>{people}</div>
     }
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -167,7 +167,7 @@ function AvatarRow({ avatars, overflow, memberCount }: { avatars: OgAvatar[]; ov
                 </div>
             ) : null}
             <div style={{ display: 'flex', alignItems: 'center', marginLeft: 26, fontSize: 32, color: MUTED }}>
-                {memberCount === 1 ? '1 person' : `${memberCount} people`}
+                {people}
             </div>
         </div>
     )
@@ -204,13 +204,13 @@ export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: str
                 {/* Roster and money read as one cluster, so the headline gets the
                     whole top half — the shape a chat preview crops best. */}
                 <div style={{ display: 'flex', flexDirection: 'column', marginTop: 44 }}>
-                    <AvatarRow avatars={card.avatars} overflow={card.overflow} memberCount={card.memberCount} />
+                    <AvatarRow avatars={card.avatars} overflow={card.overflow} people={card.people} />
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: 24, fontSize: 36, color: INK }}>
                         {card.stat}
                     </div>
                 </div>
             </Sheet>
-            <Wordmark theme={card.theme} />
+            <Wordmark theme={card.theme} tagline={card.tagline} />
         </Field>
     )
 }
@@ -258,7 +258,7 @@ export function BrandCard({ lines, tagline }: { lines: readonly [string, string]
                     </div>
                 </div>
             </Sheet>
-            <Wordmark theme={DEFAULT_THEME} />
+            <Wordmark theme={DEFAULT_THEME} tagline={ENGLISH_CARD_COPY.tagline} />
         </Field>
     )
 }

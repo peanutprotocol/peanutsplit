@@ -6,15 +6,37 @@
  * The image is where the glyph budget bites; see `roomCard.ts`.
  */
 import type { Metadata } from 'next'
+import { getTranslator } from '@/i18n/t'
 import { prisma } from '@/server/db'
 import { isEmoji } from '@/server/og/emoji'
 
 /** Chat previews truncate hard; keep the room name inside the visible run. */
 const MAX_TITLE_NAME = 48
 
+/**
+ * The English literals, still exported and still the fallback.
+ *
+ * They are what an unknown slug gets — there is no room, so there is no language
+ * to have — and what `getTranslator` resolves to when a catalog is missing a key.
+ */
 export const ROOM_DESCRIPTION = 'Join the split — see who owes what and add what you paid.'
 export const ROOM_FALLBACK_TITLE = 'Split room — Peanut Split'
 export const ROOM_FALLBACK_DESCRIPTION = 'Split expenses with one link. No signup, no app, free forever.'
+
+/**
+ * The room's description, in the language the room was started in.
+ *
+ * The TITLE is not translated and does not need to be: it is the room's own name
+ * plus the brand, and a group's name for their trip is already in their language.
+ * The description is the sentence Split says on their behalf, which is the part
+ * that was always English at somebody who does not read it.
+ *
+ * Unlike the OG image, this is HTML — no glyph budget, no sanitizing. A Cyrillic
+ * room name renders fine in a tab title and in every chat preview; the image is
+ * where the fonts bite, and `roomCard.ts` handles that end.
+ */
+const roomDescription = async (locale: string | null): Promise<string> =>
+    (await getTranslator(locale ?? 'en'))('preview.roomDescription')
 
 export const RECAP_DESCRIPTION = 'What this split added up to — days, expenses, people, and who fronted the most.'
 export const RECAP_FALLBACK_TITLE = 'Trip recap — Peanut Split'
@@ -42,11 +64,11 @@ export function recapTitle(name: string, emoji: string | null): string {
  */
 export async function roomMetadata(slug: string): Promise<Metadata> {
     const room = await prisma.room
-        .findUnique({ where: { slug }, select: { name: true, emoji: true } })
+        .findUnique({ where: { slug }, select: { name: true, emoji: true, locale: true } })
         .catch(() => null)
 
     const title = room ? roomTitle(room.name, room.emoji) : ROOM_FALLBACK_TITLE
-    const description = room ? ROOM_DESCRIPTION : ROOM_FALLBACK_DESCRIPTION
+    const description = room ? await roomDescription(room.locale) : ROOM_FALLBACK_DESCRIPTION
 
     return {
         title,
@@ -64,6 +86,14 @@ export async function roomMetadata(slug: string): Promise<Metadata> {
  * `/r/<slug>/recap`, so its URL *contains the room credential*. It is a members'
  * screen — the thing people actually share is the image the screen hands them,
  * which carries no slug. See the route's own note.
+ *
+ * DELIBERATELY STILL ENGLISH, unlike the room above, and the reason is who reads
+ * it. The room unfurl is a stranger's only look at the product before they decide
+ * to tap; the recap is reached from inside a room by somebody already using it,
+ * and what actually gets shared out of it is an image file rather than this link.
+ * Its glyph budget is fine — the recap card draws in the same Latin-1 body font —
+ * so this is scope, not capability, and it is a one-line change here plus the
+ * card's own strings whenever the recap is worth localizing.
  */
 export async function recapMetadata(slug: string): Promise<Metadata> {
     const room = await prisma.room
