@@ -2,11 +2,12 @@
  * PostHog, wrapped so nothing else in the app imports it directly.
  *
  * No key → every call is a no-op (local dev and self-hosters get silence, not
- * console noise). Room slugs are hashed before they leave the device and member
- * names, descriptions and amounts never do — a room link is a credential.
+ * console noise). Room slugs, member names, descriptions and amounts never
+ * leave the device — a room link is a credential.
  */
 
 import posthog from 'posthog-js'
+import type { CaptureResult } from 'posthog-js'
 
 export type AnalyticsEvent =
     | 'room_created'
@@ -80,11 +81,45 @@ export type AnalyticsEvent =
 
 let ready = false
 
-/** djb2 — a stable, cheap, non-reversible-enough room identifier for funnels. */
-export function hashSlug(slug: string): string {
-    let hash = 5381
-    for (let i = 0; i < slug.length; i++) hash = ((hash << 5) + hash + slug.charCodeAt(i)) | 0
-    return (hash >>> 0).toString(16).padStart(8, '0')
+/**
+ * PostHog adds browser context to custom events after `track` hands them over.
+ * A room slug can be in the URL and a room name can be in the document title,
+ * so remove every URL/title/referrer field at the final SDK boundary.
+ */
+const AUTOMATIC_PAGE_PROPERTIES = [
+    '$current_url',
+    '$pathname',
+    '$referrer',
+    '$referring_domain',
+    '$initial_current_url',
+    '$initial_pathname',
+    '$initial_referrer',
+    '$initial_referring_domain',
+    '$session_entry_url',
+    '$session_entry_pathname',
+    '$session_entry_referrer',
+    '$session_entry_referring_domain',
+    '$prev_pageview_url',
+    '$prev_pageview_pathname',
+    '$prev_pageview_title',
+    '$title',
+    'title',
+] as const
+
+function stripPageProperties(properties: CaptureResult['properties']): CaptureResult['properties'] {
+    const sanitized = { ...properties }
+    for (const property of AUTOMATIC_PAGE_PROPERTIES) delete sanitized[property]
+    return sanitized
+}
+
+function stripAutomaticPageContext(capture: CaptureResult | null): CaptureResult | null {
+    if (!capture) return null
+    return {
+        ...capture,
+        properties: stripPageProperties(capture.properties),
+        ...(capture.$set ? { $set: stripPageProperties(capture.$set) } : {}),
+        ...(capture.$set_once ? { $set_once: stripPageProperties(capture.$set_once) } : {}),
+    }
 }
 
 export function initAnalytics(): void {
@@ -93,11 +128,16 @@ export function initAnalytics(): void {
     if (!key) return
     posthog.init(key, {
         api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
-        capture_pageview: true,
+        capture_pageview: false,
+        capture_pageleave: false,
+        disable_session_recording: true,
         persistence: 'localStorage',
-        // Room slugs are credentials; never let autocapture lift one out of a URL.
-        mask_all_text: false,
+        save_referrer: false,
+        // Room slugs are credentials; never let automatic capture lift one out
+        // of a URL, title, referrer or DOM interaction.
+        mask_all_text: true,
         autocapture: false,
+        before_send: stripAutomaticPageContext,
     })
     ready = true
 }
@@ -111,8 +151,5 @@ export function track(event: AnalyticsEvent, properties: Record<string, unknown>
     }
 }
 
-/** The room-scoped property bag every room event carries. */
-export const roomProps = (slug: string, extra: Record<string, unknown> = {}) => ({
-    room: hashSlug(slug),
-    ...extra,
-})
+/** Keeps the room call sites ergonomic without attaching any room identifier. */
+export const roomProps = (_slug: string, extra: Record<string, unknown> = {}) => ({ ...extra })
