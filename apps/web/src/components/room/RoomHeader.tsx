@@ -159,20 +159,6 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                         >
                             {t('shareTheRoomLink')}
                         </Button>
-                        {identity && (
-                            <Button
-                                variant="stroke"
-                                className="justify-center"
-                                icon="users"
-                                onClick={() => {
-                                    setMenuOpen(false)
-                                    onForgetIdentity()
-                                }}
-                            >
-                                {t('notMe', { name: identity.name })}
-                            </Button>
-                        )}
-
                         <div className="mt-2 flex flex-col gap-2">
                             <span className="text-h8 uppercase tracking-wide text-grey-1">{t('feedback')}</span>
                             <SettingToggle
@@ -224,6 +210,28 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                             the product — the landing footer is the other, and a room is where
                             someone actually notices they are reading the wrong one. */}
                         <LocaleSwitcher label={tLocale('label')} className="mt-2" />
+
+                        {/* Last, under everything.
+                            This drops the identity this device is holding — the single
+                            most destructive thing in the drawer — and it used to sit
+                            second from the top, one row under "share the link", where a
+                            thumb reaching for share finds it. It is also not a setting:
+                            it answers a question ("someone else is using this phone?")
+                            that occurs to about one person in a hundred, so it belongs
+                            where you look when nothing above it was what you wanted. */}
+                        {identity && (
+                            <Button
+                                variant="stroke"
+                                className="mt-2 justify-center"
+                                icon="users"
+                                onClick={() => {
+                                    setMenuOpen(false)
+                                    onForgetIdentity()
+                                }}
+                            >
+                                {t('notMe')}
+                            </Button>
+                        )}
 
                         <p className="pt-2 text-center text-sm text-grey-1">{t('privacyNote')}</p>
                     </div>

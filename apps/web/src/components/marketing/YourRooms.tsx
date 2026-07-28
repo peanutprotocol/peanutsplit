@@ -9,6 +9,7 @@ import { SaveRoomsDrawer } from '@/components/account/SaveRoomsDrawer'
 import { Icon } from '@/components/ui/Icon'
 import { accountsEnabled } from '@/lib/flags'
 import { readRecentRooms, ROOMS_CHANGED_EVENT, type RecentRoom } from '@/lib/recent-rooms'
+import { themeFor } from '@/lib/themes'
 import { useAccount } from '@/lib/use-account'
 
 const VISIBLE = 5
@@ -93,8 +94,14 @@ export function YourRooms() {
                             aria-label={`${t('openLabel')}: ${room.name}`}
                             className="shadow-4 flex items-center gap-3 rounded-sm border border-n-1 bg-white p-3 transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
                         >
+                            {/* The tile wears the room's own palette. Eight rooms rendered in
+                                one lavender square are eight identical rows you have to READ;
+                                the colour is the thing you actually recognise, and it is the
+                                same colour the room's header will be a tap later. Lavender
+                                stays the literal fallback, so an unthemed room is unchanged. */}
                             <span
                                 aria-hidden="true"
+                                style={room.theme ? { backgroundColor: themeFor(room.theme).field } : undefined}
                                 className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
                             >
                                 <RoomEmblem value={room.emoji} size={26} />
