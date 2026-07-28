@@ -125,7 +125,7 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
             className="mx-4 flex flex-col gap-3 rounded-sm border border-n-1 bg-primary-3 p-4"
         >
             <div className="flex items-center gap-3">
-                <MemberAvatar name={offer.member.name} size={32} />
+                <MemberAvatar name={offer.member.name} avatar={offer.member.avatar} size={32} />
                 <p className="min-w-0 flex-1 text-h8">{t('title', { name: offer.member.name, count: total })}</p>
             </div>
             <p className="text-sm leading-5 text-n-1">{t('body')}</p>

@@ -124,8 +124,10 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     const onJoined = (next: MemberIdentity) => claim(next)
 
-    const meId =
-        identity && state?.members.some((member) => member.id === identity.memberId) ? identity.memberId : undefined
+    // The roster row for whoever is holding the phone, resolved once: the header
+    // needs the whole row (its avatar), everything else needs only the id.
+    const me = (identity && state?.members.find((member) => member.id === identity.memberId)) || null
+    const meId = me?.id
     const defaultPaidById = meId ?? state?.members[0]?.id ?? ''
 
     return (
@@ -142,6 +144,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                 <RoomHeader
                     room={state.room}
                     identity={identity}
+                    me={me}
                     onShare={() => setParams({ share: true })}
                     onForgetIdentity={forget}
                 />

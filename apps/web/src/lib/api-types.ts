@@ -34,6 +34,8 @@ export interface ApiRoom {
 export interface ApiMember {
     id: string
     name: string
+    /** A key from `lib/avatars.ts`. Null = the portrait drawn from the name. */
+    avatar: string | null
     createdAt: string
 }
 
@@ -157,6 +159,13 @@ export interface ExpenseInput {
 export interface ReactionInput {
     emoji: string
     memberId: string
+    memberToken: string
+}
+
+/** The member is named in the path; the token in the body is proof it is you. */
+export interface MemberAvatarInput {
+    /** A key from `lib/avatars.ts`, or null for the name-derived portrait. */
+    avatar: string | null
     memberToken: string
 }
 
