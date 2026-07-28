@@ -100,7 +100,7 @@ export const marketingCopy = {
          */
         honest: {
             title: 'When Splitwise is the better tool',
-            body: 'If you want a permanent ledger with your flatmates, receipt scanning, card imports and charts, Splitwise does all of that and Split does none of it. Split is for the trip, the dinner, the weekend — one group, one link, cleared and forgotten.',
+            body: 'Splitwise scans receipts, does card imports and draws charts, and it has apps in both stores. Split does none of that, on purpose. Split is for the trip, the dinner, the weekend — one group, one link, cleared and forgotten.',
         },
         features: {
             title: 'What you get',
@@ -110,12 +110,24 @@ export const marketingCopy = {
                     body: 'The link is the room. Anyone who has it is in, so keep it in the group chat and not somewhere public.',
                 },
                 {
-                    title: 'More than one currency',
-                    body: 'Pick what the room counts in. Add an expense in another currency and Split converts it.',
+                    title: 'Twelve currencies, converted',
+                    body: 'Pick what the room counts in. Add an expense in any of the twelve and Split converts it at the rate on the day, which it then keeps — editing the line later does not re-price it.',
                 },
                 {
                     title: 'Maths that reconciles',
-                    body: 'Balances sum to zero, down to the cent, and settling up suggests the fewest transfers that clear the room.',
+                    body: 'Balances sum to zero, down to the cent, and settling up suggests the fewest transfers that clear the room. Open any balance and it shows you the working.',
+                },
+                {
+                    title: 'Everyone sees it as it happens',
+                    body: 'Somebody adds the taxi on the way home and it is on everyone else’s screen before they are out of the car.',
+                },
+                {
+                    title: 'Keeps working with no signal',
+                    body: 'Expenses typed in a basement or up a mountain wait on your phone and go when the signal comes back. Recording a settle-up waits for a connection on purpose — a payment written down twice is worse than one written down late.',
+                },
+                {
+                    title: 'English, Spanish and Portuguese',
+                    body: 'The room speaks whichever of the three the phone reading it is set to. Nobody has to find a setting.',
                 },
                 {
                     title: 'Settle however you like',
@@ -141,6 +153,14 @@ export const marketingCopy = {
                 {
                     q: 'Do we have to download an app?',
                     a: 'No. It opens in a browser like any other page. If you want it to feel like an app, add it to your home screen — that is a phone feature, not an install.',
+                },
+                {
+                    q: 'Does it work without signal?',
+                    a: 'Expenses do. Anything you type with no connection is held on your phone — up to thirty of them — and sent the moment there is one. Recording a settle-up waits for a connection on purpose, because a payment written down twice is worse than one written down late.',
+                },
+                {
+                    q: 'Is it in Spanish or Portuguese?',
+                    a: 'Yes — English, Spanish and Brazilian Portuguese, picked from whatever the phone opening the link is set to. This comparison page stays in English because that is the language it is searched in.',
                 },
                 {
                     q: 'Can I import my Splitwise history?',
