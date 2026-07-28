@@ -25,9 +25,12 @@ import {
 import { useErrorMessage } from '@/lib/error-messages'
 import { currencyInfo, equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useAddExpense, useDeleteExpense, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
+import { useCurrencyHints } from '@/lib/use-currency-hint'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
+import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
+import { Money } from './Money'
 
 interface ExpenseDrawerProps {
     open: boolean
@@ -61,6 +64,7 @@ export function ExpenseDrawer({
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
     const feedback = useFeedback()
+    const hints = useCurrencyHints()
 
     const [values, setValues] = useState<ExpenseFormValues>(() =>
         emptyExpenseForm({ currency: state.room.currency, members: state.members, paidById: defaultPaidById })
@@ -89,6 +93,12 @@ export function ExpenseDrawer({
     }, [open, expense?.id])
 
     const decimals = currencyInfo(values.currency, currencies).decimals
+    const isForeign = values.currency !== state.room.currency
+    /** The room's own currency leads: most expenses are in it, and it is the one code that is
+     *  certainly relevant here. The device guess follows, for the traveller paying in their own. */
+    const suggestedCurrencies = [state.room.currency, ...hints.map((hint) => hint.currency)].filter(
+        (code, index, all) => all.indexOf(code) === index
+    )
     const validation = validateExpenseForm(values, currencies)
     const remaining = remainingMinor(values, currencies)
     const remainingIsZero = remaining === '0'
@@ -230,16 +240,35 @@ export function ExpenseDrawer({
                                 className="input h-20 px-4 text-h3 tabular-nums"
                             />
                         </label>
-                        <div className="w-[7.5rem] shrink-0">
+                        {/* Wider than it was: the trigger now carries a flag and a symbol as
+                            well as the code, and 7.5rem clipped "THB" to "T…" on a 390px screen. */}
+                        <div className="w-[8.5rem] shrink-0">
                             <CurrencySelect
                                 value={values.currency}
                                 onChange={(code) => patch({ currency: code })}
                                 currencies={currencies}
+                                suggested={suggestedCurrencies}
                                 aria-label={t('currency')}
                                 data-testid="expense-currency"
                             />
                         </div>
                     </div>
+
+                    {/* Foreign money, said once and in both split modes. The old copy only
+                        mentioned the conversion inside the EXACT branch, so an EQUAL split in
+                        another currency converted silently — the row it produces is the single
+                        most surprising thing in the room. */}
+                    {isForeign && (
+                        <div
+                            data-testid="expense-foreign-note"
+                            className="flex flex-wrap items-center gap-2 rounded-sm border border-dashed border-n-1 bg-primary-3 px-3 py-2 text-sm"
+                        >
+                            <CurrencyTag code={values.currency} catalog={currencies} />
+                            <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
+                            <CurrencyTag code={state.room.currency} catalog={currencies} />
+                            <span className="text-grey-1">{t('foreignHint')}</span>
+                        </div>
+                    )}
 
                     <label className="flex flex-col gap-2">
                         <span className="text-h8 uppercase tracking-wide text-grey-1">{t('description')}</span>
@@ -435,16 +464,16 @@ export function ExpenseDrawer({
                                               ? t('overBy')
                                               : t('leftToAllocate')}
                                     </span>
-                                    <span className="flex items-center gap-2 tabular-nums">
+                                    <span className="flex items-center gap-2">
                                         {remainingIsZero ? (
                                             <Icon name="check" size={18} />
                                         ) : (
-                                            formatMoney(
-                                                remaining.startsWith('-') ? remaining.slice(1) : remaining,
-                                                values.currency,
-                                                currencies,
-                                                locale
-                                            )
+                                            <Money
+                                                minor={remaining}
+                                                currency={values.currency}
+                                                catalog={currencies}
+                                                absolute
+                                            />
                                         )}
                                     </span>
                                 </motion.div>
