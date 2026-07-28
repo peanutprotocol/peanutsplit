@@ -9,6 +9,22 @@
             "ctaHint": "Toma diez segundos. Sin correo, sin contraseña, sin descargas.",
             "mascotAlt": "Peanut saludando"
         },
+        "gap": {
+            "title": "Donde las otras apps se detienen",
+            "intro": "Todas te llevan hasta un número. El número es la parte fácil. La incómoda son las tres semanas siguientes, cuando el número sigue ahí.",
+            "item1": {
+                "title": "Tu grupo está en cuatro países",
+                "body": "Pedir un pago solo funciona si todos tienen banco en el mismo lugar. Split nunca da eso por hecho."
+            },
+            "item2": {
+                "title": "Nadie tiene la misma app",
+                "body": "«Pásamelo y ya» se cae cuando uno tiene Revolut, otro tiene Venmo y otro un banco que cierra a las cuatro."
+            },
+            "item3": {
+                "title": "Pagaste en una moneda y debes en otra",
+                "body": "Elige en qué cuenta la sala, anota los gastos en lo que gastaste de verdad y Split convierte. Sin plan pago para la parte de las monedas."
+            }
+        },
         "rooms": {
             "title": "Tus salas",
             "subtitle": "Guardadas en este dispositivo.",
@@ -28,7 +44,35 @@
             "step3": {
                 "title": "Todos agregan gastos",
                 "body": "Los saldos se actualizan en vivo y las cuentas cuadran al centavo — en pantalla, siempre."
+            },
+            "step4": {
+                "title": "Salden las cuentas",
+                "body": "Split calcula la menor cantidad de pagos que deja la sala en cero. Paga en efectivo, por transferencia, o mándalo con Peanut cuando ninguna de las dos llega."
             }
+        },
+        "uses": {
+            "title": "Qué se divide aquí",
+            "item1": {
+                "title": "Viajes en grupo",
+                "body": "Una sala para toda la semana, saldada antes del vuelo de vuelta."
+            },
+            "item2": {
+                "title": "Roommates",
+                "body": "Renta, servicios, el súper. Una sala nueva cada mes la mantiene legible."
+            },
+            "item3": {
+                "title": "Cenas y rondas",
+                "body": "Seis personas, una tarjeta, nadie haciendo cuentas en la mesa."
+            },
+            "item4": {
+                "title": "Equipos remotos",
+                "body": "Distintos países, distintos bancos, un solo conjunto de números."
+            }
+        },
+        "finalCta": {
+            "title": "Pruébalo en la próxima cena",
+            "body": "Un link, diez segundos, y nadie tiene que instalar nada.",
+            "button": "Empezar a dividir"
         },
         "honesty": {
             "title": "La parte honesta",

@@ -9,6 +9,22 @@
             "ctaHint": "Leva dez segundos. Sem e-mail, sem senha, sem download.",
             "mascotAlt": "Peanut acenando"
         },
+        "gap": {
+            "title": "Onde os outros apps param",
+            "intro": "Todos levam vocês até um número. O número é a parte fácil. A parte chata são as três semanas seguintes, com o número ainda parado ali.",
+            "item1": {
+                "title": "Seu grupo está em quatro países",
+                "body": "Pedir um pagamento só funciona se todo mundo tem banco no mesmo lugar. O Split nunca supõe isso."
+            },
+            "item2": {
+                "title": "Ninguém tem o mesmo app",
+                "body": "“Me manda por aí” desanda quando um tem Revolut, outro tem Venmo e outro um banco que fecha às quatro."
+            },
+            "item3": {
+                "title": "Você pagou numa moeda e deve em outra",
+                "body": "Escolha em que a sala conta, lance as despesas no que você gastou de verdade, e o Split converte. Sem plano pago para a parte das moedas."
+            }
+        },
         "rooms": {
             "title": "Suas salas",
             "subtitle": "Salvas neste aparelho.",
@@ -28,7 +44,35 @@
             "step3": {
                 "title": "Todo mundo lança os gastos",
                 "body": "Os saldos atualizam na hora e a conta fecha até o centavo — na tela, sempre."
+            },
+            "step4": {
+                "title": "Acertem as contas",
+                "body": "O Split calcula o menor número de pagamentos que zera a sala. Pague em dinheiro, por transferência, ou mande com o Peanut quando nenhum dos dois alcança."
             }
+        },
+        "uses": {
+            "title": "O que as pessoas dividem aqui",
+            "item1": {
+                "title": "Viagens em grupo",
+                "body": "Uma sala para a semana inteira, zerada antes do voo de volta."
+            },
+            "item2": {
+                "title": "Colegas de apê",
+                "body": "Aluguel, contas, o mercado. Uma sala nova por mês mantém tudo legível."
+            },
+            "item3": {
+                "title": "Jantares e rodadas",
+                "body": "Seis pessoas, um cartão, ninguém fazendo conta na mesa."
+            },
+            "item4": {
+                "title": "Times remotos",
+                "body": "Países diferentes, bancos diferentes, um só conjunto de números."
+            }
+        },
+        "finalCta": {
+            "title": "Teste no próximo jantar",
+            "body": "Um link, dez segundos, e ninguém precisa instalar nada.",
+            "button": "Começar uma divisão"
         },
         "honesty": {
             "title": "A parte honesta",
