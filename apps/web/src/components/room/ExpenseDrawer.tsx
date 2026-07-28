@@ -24,7 +24,13 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { currencyInfo, equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
-import { useAddExpense, useDeleteExpense, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
+import {
+    useAddExpense,
+    useDeleteExpense,
+    useReceiptScanEnabled,
+    useRestoreExpense,
+    useUpdateExpense,
+} from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
 import { useFeedback } from '@/lib/use-settings'
@@ -33,6 +39,8 @@ import { CurrencySelect } from './CurrencySelect'
 import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
+import { ScanButton } from './scan/ScanButton'
+import { ScanFlow } from './scan/ScanFlow'
 
 interface ExpenseDrawerProps {
     open: boolean
@@ -72,6 +80,16 @@ export function ExpenseDrawer({
     )
     const [submitted, setSubmitted] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    /**
+     * The picked photo. Its presence IS the scan flow's open state — a separate
+     * boolean would let the two disagree, and "the overlay is up with no image"
+     * is a stuck screen with no way back.
+     */
+    const [scanFile, setScanFile] = useState<File | null>(null)
+    /** A server capability (an API key in the container), asked rather than
+     *  compiled in. False hides the affordance completely: an entry point that
+     *  leads to a 503 is worse than no entry point. */
+    const scanEnabled = useReceiptScanEnabled(slug)
 
     // Re-seed on every open: a drawer that remembers last time's amount is a
     // money bug waiting to happen.
@@ -79,6 +97,9 @@ export function ExpenseDrawer({
         if (!open) return
         setSubmitted(false)
         setError(null)
+        // A half-finished scan must not survive the drawer closing: reopening
+        // would drop the user back into someone else's receipt.
+        setScanFile(null)
         setValues(
             expense
                 ? expenseToFormValues(expense, currencies)
@@ -279,6 +300,12 @@ export function ExpenseDrawer({
                             />
                         </div>
                     </div>
+
+                    {/* Right under the amount, and only when adding: a scan rewrites the
+                        description, the currency, the total AND the whole split, which is a
+                        fine thing to do to an empty form and a hostile thing to do to an
+                        expense someone opened to fix a typo in. */}
+                    {!expense && scanEnabled && <ScanButton onFile={setScanFile} />}
 
                     {/* Foreign money, said once and in both split modes. The old copy only
                         mentioned the conversion inside the EXACT branch, so an EQUAL split in
@@ -579,6 +606,30 @@ export function ExpenseDrawer({
                     </div>
                 </div>
             </DrawerContent>
+
+            {/* The scan overlay lives above this sheet and writes back into it.
+                It creates nothing — `onApply` hands over form values and the
+                save button below is still the only thing that writes. */}
+            {scanFile && (
+                <ScanFlow
+                    file={scanFile}
+                    slug={slug}
+                    token={token}
+                    members={state.members}
+                    roomCurrency={state.room.currency}
+                    currencies={currencies}
+                    baseValues={values}
+                    onCancel={() => setScanFile(null)}
+                    onApply={(next) => {
+                        setValues(next)
+                        // The form is now reconciled by construction, so an error
+                        // left over from before the scan is stale by definition.
+                        setSubmitted(false)
+                        setError(null)
+                        setScanFile(null)
+                    }}
+                />
+            )}
         </Drawer>
     )
 }

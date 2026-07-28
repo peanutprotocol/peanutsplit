@@ -195,3 +195,42 @@ export interface PushUnsubscribeInput {
     memberId: string
     memberToken: string
 }
+
+// ─── receipt scan ───────────────────────────────────────────────────────────
+// A scan is a DRAFT, not a write. Nothing here is stored anywhere: the image is
+// forwarded once and dropped, and the reviewed result leaves as an ordinary
+// `ExpenseInput`. Amounts follow the same rule as the rest of this file — minor
+// units, as a decimal string.
+
+export interface ReceiptItem {
+    label: string
+    /** Minor units of `ParsedReceipt.currency`. */
+    amountMinor: string
+    /** As printed on the bill. Display only — `amountMinor` is the line total. */
+    quantity: number | null
+}
+
+export interface ParsedReceipt {
+    items: ReceiptItem[]
+    /** The server's own sum of `items` — never the model's arithmetic. */
+    suggestedTotalMinor: string
+    /** The total printed on the receipt, when one was read. Kept beside the sum
+     *  rather than reconciled with it, so a disagreement can be shown. */
+    receiptTotalMinor: string | null
+    /** ISO-4217, and only if the app supports it. Null → use the room's. */
+    currency: string | null
+    merchant: string | null
+    /** YYYY-MM-DD. */
+    date: string | null
+}
+
+/** `GET /api/rooms/:slug/receipt-parse` — whether the server has a vision key. */
+export interface ReceiptScanStatus {
+    enabled: boolean
+}
+
+export interface ReceiptParseInput {
+    /** Raw base64, no `data:` prefix. */
+    imageBase64: string
+    mimeType: 'image/jpeg' | 'image/png' | 'image/webp'
+}
