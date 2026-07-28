@@ -128,21 +128,25 @@ async function callGemini(call: ModelCall, config: ModelConfig): Promise<string>
 
     let response: EgressResponse
     try {
-        response = await egressFetch(process.env.SPLIT_SCAN_PROXY_URL, `${GEMINI_HOST}/v1beta/models/${encodeURIComponent(config.model)}:generateContent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
-            body: JSON.stringify({
-                contents: [{ role: 'user', parts }],
-                generationConfig: {
-                    // Zero temperature because this is transcription, not writing:
-                    // the same input should produce the same expense twice.
-                    temperature: 0,
-                    responseMimeType: 'application/json',
-                    maxOutputTokens: call.maxOutputTokens,
-                },
-            }),
-            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        })
+        response = await egressFetch(
+            process.env.SPLIT_SCAN_PROXY_URL,
+            `${GEMINI_HOST}/v1beta/models/${encodeURIComponent(config.model)}:generateContent`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
+                body: JSON.stringify({
+                    contents: [{ role: 'user', parts }],
+                    generationConfig: {
+                        // Zero temperature because this is transcription, not writing:
+                        // the same input should produce the same expense twice.
+                        temperature: 0,
+                        responseMimeType: 'application/json',
+                        maxOutputTokens: call.maxOutputTokens,
+                    },
+                }),
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            }
+        )
     } catch (err) {
         // Status only. The request body is a photograph of somebody's dinner, or
         // a line out of their group chat.
