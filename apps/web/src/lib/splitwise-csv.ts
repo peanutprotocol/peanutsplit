@@ -592,7 +592,9 @@ export function capHistory(
     const currencies = [...new Set(expenses.map((e) => e.currencyCode))]
     // The opening balance has to fit inside the ceiling alongside the history it
     // is standing in for, so its worst case is reserved before the cut rather
-    // than discovered after it.
+    // than discovered after it. The worst case is bounded by two other caps —
+    // `MAX_MEMBERS − 1` rows per currency, over at most `FALLBACK_CURRENCIES`
+    // currencies (19 × 12 = 228 of the 500); if either grows, this grows with it.
     const reserved = Math.max(0, members.length - 1) * Math.max(1, currencies.length)
     const cut = Math.max(1, MAX_EXPENSES - reserved)
 

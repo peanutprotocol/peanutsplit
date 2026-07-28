@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { FALLBACK_CURRENCIES } from '@/lib/money'
 import { CURRENCIES, convertMinorAtRate } from '@/server/money'
 import { exactShares } from '@/server/split'
 import { importRoomSchema } from '@/server/validation'
@@ -6,11 +7,13 @@ import {
     MAX_CATEGORY_CHARS,
     MAX_DESCRIPTION_CHARS,
     MAX_EXPENSES,
+    MAX_MEMBERS,
     MAX_NAME_CHARS,
     MAX_PARSED_EXPENSES,
     BROUGHT_FORWARD,
     SplitwiseParseError,
     allocateProportionally,
+    capHistory,
     intersectAllocation,
     isEvenSplit,
     openingBalance,
@@ -19,6 +22,7 @@ import {
     parseSplitwiseCsv,
     reconcileTotalBalance,
     roomNameFromFilename,
+    type ImportWarning,
     type ParsedExpense,
     type SplitwiseImport,
 } from '@/lib/splitwise-csv'
@@ -735,6 +739,44 @@ describe('carrying history a room cannot hold', () => {
     it('is the same room twice — the cut and the pairing are deterministic', () => {
         const file = generateLongHistory(640, MEMBERS)
         expect(parseSplitwiseCsv(file).expenses).toEqual(parseSplitwiseCsv(file).expenses)
+    })
+
+    /**
+     * The ceiling at the worst shape the other caps allow: the biggest roster a
+     * room can hold, spending in every currency Split knows, with one person
+     * fronting everything so the pairing cannot fold the residual into fewer than
+     * `n − 1` transfers per currency.
+     *
+     * That is the case `reserved` exists for, and the only one where it is spent
+     * to the last row: 19 × 12 = 228 carried rows plus 272 kept ones is exactly
+     * 500. Nothing else in the suite would notice `MAX_MEMBERS` or the currency
+     * catalog growing without the reservation following — the import would just
+     * start proposing rooms `importRoomSchema` refuses.
+     */
+    it('stays inside the ceiling at the worst case the caps allow', () => {
+        const members = Array.from({ length: MAX_MEMBERS }, (_, i) => `P${i}`)
+        const rows: ParsedExpense[] = Array.from({ length: 900 }, (_, i) => {
+            // A different amount each, so no two debtors can be paired off in one row.
+            const shares = members.slice(1).map((member, m) => ({ member, amountMinor: String(100 + m) }))
+            return {
+                date: new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10),
+                description: `Row ${i + 1}`,
+                category: null,
+                // Round-robin, so every currency still has rows below the cut.
+                currencyCode: FALLBACK_CURRENCIES[i % FALLBACK_CURRENCIES.length].code,
+                costMinor: String(shares.reduce((total, share) => total + Number(share.amountMinor), 0)),
+                paidBy: members[0],
+                splitMode: 'EXACT' as const,
+                shares,
+            }
+        })
+
+        const warnings: ImportWarning[] = []
+        const capped = capHistory(rows, warnings)
+        const carried = capped.expenses.filter((expense) => expense.description.startsWith(BROUGHT_FORWARD))
+
+        expect(capped.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
+        expect(carried).toHaveLength((MAX_MEMBERS - 1) * FALLBACK_CURRENCIES.length)
     })
 
     it('leaves a file inside the ceiling completely untouched', () => {
