@@ -186,8 +186,21 @@ export function mergeQueuedExpenses(state: RoomState, queued: readonly QueuedWri
  *  saved yet", the suffix so a row keeps its identity across renders. */
 export const queuedExpenseId = (clientKey: string): string => `pending-${clientKey}`
 
-/** True for a row this module put on screen (as opposed to an in-flight
- *  optimistic one). The affordance in the list keys off this. */
+/**
+ * True for a row this module put on screen, as opposed to an in-flight
+ * optimistic one — both wear the `pending-` prefix, and only one of them is
+ * going to sit there until the signal comes back.
+ *
+ * WIRING LEFT FOR THE LIST'S OWNER (ExpenseList.tsx is not this branch's to
+ * touch): the row already renders dimmed and untappable for anything
+ * `pending-…`. What is missing is the sentence that says why. In ExpenseList:
+ *
+ *     const queued = useQueuedWrites(slug)   // slug is on state.room.slug
+ *     … isQueuedExpenseId(expense.id, queued) && <span>{t('offline.rowHint')}</span>
+ *
+ * `offline.rowLabel` (short, for a badge) and `offline.rowHint` (the full
+ * sentence) are already in all three catalogs.
+ */
 export const isQueuedExpenseId = (expenseId: string, queued: readonly QueuedWrite[]): boolean =>
     queued.some((item) => queuedExpenseId(item.clientKey) === expenseId)
 
