@@ -120,7 +120,12 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             createdAt: room.createdAt.toISOString(),
             archivedAt: room.archivedAt?.toISOString() ?? null,
         },
-        members: room.members.map((m) => ({ id: m.id, name: m.name, createdAt: m.createdAt.toISOString() })),
+        members: room.members.map((m) => ({
+            id: m.id,
+            name: m.name,
+            avatar: m.avatar,
+            createdAt: m.createdAt.toISOString(),
+        })),
         expenses: room.expenses.map((e) => ({
             id: e.id,
             description: e.description,

@@ -50,10 +50,16 @@ model Room {
 }
 
 model Member {
-  id        String    @id @default(uuid())
-  roomId    String
-  name      String
-  token     String    @unique // server-issued secret, returned once, held in localStorage
+  id     String @id @default(uuid())
+  roomId String
+  name   String
+  token  String @unique // server-issued secret, returned once, held in localStorage
+  // A KEY into the code-side catalog in `lib/avatars.ts`, never artwork and never
+  // a URL. Null is the portrait drawn from the name, so a member written before
+  // the picker existed and a member who never opened it are the same row.
+  // Changing it needs the token above: an avatar is social identity, like a
+  // reaction, not a ledger row anyone with the link may write.
+  avatar    String?
   userId    String? // claim hook — null until account linking ships
   createdAt DateTime  @default(now())
   removedAt DateTime?

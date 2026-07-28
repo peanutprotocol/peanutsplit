@@ -140,7 +140,7 @@ describe('exactTouched — who has earned the celebration', () => {
     it('starts false on a new expense and true on one being edited', () => {
         const fresh = emptyExpenseForm({
             currency: 'EUR',
-            members: [{ id: 'm1', name: 'Ana', createdAt: '2026-07-25T12:00:00.000Z' }],
+            members: [{ id: 'm1', name: 'Ana', avatar: null, createdAt: '2026-07-25T12:00:00.000Z' }],
             paidById: 'm1',
         })
         expect(fresh.exactTouched).toBe(false)

@@ -108,7 +108,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                                 data-member={member.name}
                                                 className="shadow-4 flex w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
                                             >
-                                                <MemberAvatar name={member.name} size={32} />
+                                                <MemberAvatar name={member.name} avatar={member.avatar} size={32} />
                                                 <span className="flex-1 truncate text-h8">{member.name}</span>
                                                 <span className="text-sm text-grey-1">{t('thatsMe')}</span>
                                             </button>

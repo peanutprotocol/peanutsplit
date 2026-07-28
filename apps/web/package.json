@@ -14,6 +14,7 @@
         "i18n:audit": "node scripts/i18n-audit.mjs",
         "test:watch": "vitest",
         "e2e": "playwright test",
+        "e2e:v2": "playwright test --config playwright.v2.config.ts",
         "icons": "node scripts/generate-icons.mjs"
     },
     "pnpm": {

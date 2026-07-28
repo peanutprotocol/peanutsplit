@@ -74,6 +74,7 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
             ? tBalances('youGetBack')
             : tBalances('getsBack')
     const nameOf = (id: string) => state.members.find((candidate) => candidate.id === id)?.name ?? t('someone')
+    const avatarOf = (id: string) => state.members.find((candidate) => candidate.id === id)?.avatar ?? null
     const transfers = state.suggestedTransfers.filter(
         (transfer) => transfer.fromId === memberId || transfer.toId === memberId
     )
@@ -83,7 +84,7 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
             <DrawerContent className={drawerContentClass} data-testid="balance-drawer" data-member-id={memberId}>
                 <DrawerHeader className={drawerHeaderClass}>
                     <DrawerTitle className="flex items-center gap-2 text-h5">
-                        <MemberAvatar name={member.name} size={32} />
+                        <MemberAvatar name={member.name} avatar={member.avatar} size={32} />
                         <span className="min-w-0 truncate">{member.id === meId ? tBalances('you') : member.name}</span>
                     </DrawerTitle>
                     <p className="text-sm text-grey-1">{t('title')}</p>
@@ -142,7 +143,11 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                                             className="flex flex-col rounded-sm border border-n-1 bg-white"
                                         >
                                             <div className="flex items-center gap-2 p-3">
-                                                <MemberAvatar name={nameOf(otherId)} size={28} />
+                                                <MemberAvatar
+                                                    name={nameOf(otherId)}
+                                                    avatar={avatarOf(otherId)}
+                                                    size={28}
+                                                />
                                                 <span className="min-w-0 flex-1 truncate text-h8">
                                                     {sends
                                                         ? mine

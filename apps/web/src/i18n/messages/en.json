@@ -472,6 +472,7 @@
             "itemPlaceholder": "Item",
             "removeItem": "Remove this item",
             "addItem": "Add a missed item",
+            "noItems": "Nothing left on this bill.",
             "itemsTotal": "Items add up to",
             "receiptTotal": "Receipt says",
             "mismatch": "That is {amount} off the printed total — check for a missed line.",
@@ -517,6 +518,14 @@
                 "sand": "Sand",
                 "graphite": "Graphite"
             }
+        },
+        "avatar": {
+            "title": "Your avatar",
+            "hint": "Only you can change yours. Everyone in the room sees it.",
+            "open": "Change your avatar",
+            "option": "Use the {name} avatar",
+            "defaultOption": "Back to the one drawn from your name",
+            "failed": "could not change your avatar — try again"
         },
         "reactions": {
             "add": "React to this",
