@@ -140,12 +140,41 @@ describe('rooms and members', () => {
         expect(body.error.code).toBe('NOT_FOUND')
     })
 
+    it('meters only missing room lookups, then hides whether any slug exists', async () => {
+        const { body: created } = await newRoom()
+
+        // Normal room polling does not spend the miss budget.
+        for (let i = 0; i < 35; i++) {
+            const { status } = await call<RoomState>(getRoom as Handler, {
+                path: `/api/rooms/${created.room.slug}`,
+                params: { slug: created.room.slug },
+            })
+            expect(status).toBe(200)
+        }
+
+        for (let i = 0; i < 31; i++) {
+            const { status } = await call<ApiError>(getRoom as Handler, {
+                path: `/api/rooms/missing-${i}`,
+                params: { slug: `missing-${i}` },
+            })
+            expect(status).toBe(i < 30 ? 404 : 429)
+        }
+
+        const { status, body } = await call<ApiError>(getRoom as Handler, {
+            path: `/api/rooms/${created.room.slug}`,
+            params: { slug: created.room.slug },
+        })
+        expect(status).toBe(429)
+        expect(body.error.code).toBe('RATE_LIMITED')
+    })
+
     it('adds a joiner and returns the roster that already contains them', async () => {
         const { body: created } = await newRoom()
         const { status, body } = await join(created.room.slug, 'Bea')
         expect(status).toBe(201)
         expect(body.members.map((m) => m.name)).toEqual(['Ana', 'Bea'])
         expect(body.members.some((m) => m.id === body.memberId)).toBe(true)
+        expect(body.memberToken).toBeTruthy()
     })
 
     it('409s on a duplicate name so the join gate can offer the existing member', async () => {
@@ -153,6 +182,21 @@ describe('rooms and members', () => {
         const { status, body } = await join(created.room.slug, 'ana')
         expect(status).toBe(409)
         expect((body as unknown as ApiError).error.code).toBe('DUPLICATE_MEMBER_NAME')
+    })
+
+    it('serializes case-insensitive joins and returns a token only to the winner', async () => {
+        const { body: created } = await newRoom()
+        const results = await Promise.all([join(created.room.slug, 'Bea'), join(created.room.slug, 'bea')])
+
+        expect(results.map(({ status }) => status).sort()).toEqual([201, 409])
+        const winner = results.find(({ status }) => status === 201)
+        expect(winner?.body.memberToken).toBeTruthy()
+
+        const { body: room } = await call<RoomState>(getRoom as Handler, {
+            path: `/api/rooms/${created.room.slug}`,
+            params: { slug: created.room.slug },
+        })
+        expect(room.members.filter(({ name }) => name.toLowerCase() === 'bea')).toHaveLength(1)
     })
 
     it('400s on an empty name', async () => {

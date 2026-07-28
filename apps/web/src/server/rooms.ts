@@ -61,14 +61,29 @@ export async function createRoom(
 
 export async function addMember(room: RoomWithRelations, name: string): Promise<CreatedMember> {
     if (room.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
-    // The join gate offers existing members by name — a duplicate is nearly always
-    // someone who meant to pick themselves, so say so instead of silently forking.
-    if (room.members.some((m) => m.name.toLowerCase() === name.toLowerCase())) {
-        throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
-    }
     const token = memberToken()
-    const member = await prisma.member.create({ data: { roomId: room.id, name, token } })
-    return { memberId: member.id, memberToken: token }
+
+    return prisma.$transaction(async (tx) => {
+        // The name rule is case-insensitive but PostgreSQL cannot express that
+        // invariant with the existing schema. Serialize joins per room so two
+        // requests for Ana/ana cannot both pass the lookup before either inserts.
+        await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+
+        const current = await tx.room.findUnique({ where: { id: room.id }, select: { archivedAt: true } })
+        if (current?.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
+
+        // The join gate offers existing members by name — a duplicate is nearly
+        // always someone who meant to pick themselves, so say so instead of
+        // silently forking.
+        const duplicate = await tx.member.findFirst({
+            where: { roomId: room.id, name: { equals: name, mode: 'insensitive' } },
+            select: { id: true },
+        })
+        if (duplicate) throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
+
+        const member = await tx.member.create({ data: { roomId: room.id, name, token } })
+        return { memberId: member.id, memberToken: token }
+    })
 }
 
 export function assertWritable(room: RoomWithRelations): void {

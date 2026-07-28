@@ -26,6 +26,10 @@ export const CREATE_LIMIT: Limit = { capacity: 20, windowMs: HOUR_MS }
 /** Expenses and settlements are the normal traffic of a busy trip, so the ceiling
  *  only has to stop a runaway loop. */
 export const WRITE_LIMIT: Limit = { capacity: 120, windowMs: HOUR_MS }
+/** Missing room slugs are metered separately from normal polling. Once this
+ *  budget is empty, preflight rejects every lookup so a caller cannot use the
+ *  limiter response itself to distinguish an existing room from a missing one. */
+export const LOOKUP_MISS_LIMIT: Limit = { capacity: 30, windowMs: HOUR_MS }
 /** Event streams. Thirty an hour is a phone reconnecting all day; it is nowhere
  *  near the 2000 process-wide slots, which is the point — one client must not be
  *  able to hold every SSE slot on the box and silently demote every other room
@@ -101,6 +105,23 @@ export function enforceRateLimit(request: Request, limit: Limit, scope: string):
     const { allowed, next } = takeToken(buckets.get(key), limit, now)
     buckets.set(key, next)
     if (!allowed) throw rateLimited()
+}
+
+/**
+ * Check a bucket without spending an allowed token. Room reads use this before
+ * touching the database: ordinary polling stays free while budget remains, but
+ * an exhausted miss bucket rejects both valid and invalid slugs before either
+ * can be revealed.
+ */
+export function enforceRateLimitPreflight(request: Request, limit: Limit, scope: string): void {
+    const now = Date.now()
+    prune(now)
+    const key = `${scope}:${clientIp(request)}`
+    const { allowed, next } = takeToken(buckets.get(key), limit, now)
+    if (!allowed) {
+        buckets.set(key, next)
+        throw rateLimited()
+    }
 }
 
 /** Tests share one process, and a leaked bucket would fail a later test for a
