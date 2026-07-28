@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { ApiExpense, ApiMember, RoomState } from './api-types'
-import { backfillPatch, backfillableFor, latecomerOffer } from './latecomer'
+import type { ApiExpense, ApiMember, ExpenseInput, RoomState } from './api-types'
+import { backfillPatch, backfillableFor, latecomerOffer, runBackfill } from './latecomer'
 
 const iso = (minute: number) => new Date(Date.UTC(2026, 6, 1, 12, minute)).toISOString()
 
@@ -139,5 +139,74 @@ describe('backfillPatch', () => {
 
         expect(backfillPatch(offer.expenses[0], offer.member.id).participantIds).toEqual(['ana', 'bea', 'dani'])
         expect(cai.id).toBe('cai')
+    })
+})
+
+describe('runBackfill', () => {
+    const first = expense('e1', 10, ['ana', 'bea'])
+    const second = expense('e2', 12, ['ana', 'bea'])
+    const start = room([ana, bea, dani], [first, second])
+
+    /**
+     * The loop over a room a test can move UNDER it, which is what the room's own
+     * eight-second poll does between two PATCHes in the real one. `between` is
+     * called after each write lands and its return value becomes what the next
+     * iteration reads.
+     */
+    const run = async (options: { between?: (written: number) => RoomState | undefined } = {}) => {
+        let live = start
+        const sent: { id: string; input: ExpenseInput }[] = []
+        await runBackfill({
+            memberId: 'dani',
+            expenseIds: backfillableFor(start, 'dani').map((e) => e.id),
+            read: () => live,
+            patch: async (id, input) => {
+                sent.push({ id, input })
+            },
+            onWrote: (written) => {
+                live = options.between?.(written) ?? live
+            },
+            stopped: () => false,
+        })
+        return sent
+    }
+
+    it('sends one patch per pinned expense while nothing moves', async () => {
+        const sent = await run()
+        expect(sent.map((s) => s.id)).toEqual(['e1', 'e2'])
+        expect(sent[0].input.participantIds).toEqual(['ana', 'bea', 'dani'])
+    })
+
+    it('skips a row somebody switched to EXACT while the run was working down the list', async () => {
+        // The clobber this guards: the pinned payload says EQUAL, so writing it
+        // would rewrite the numbers they had just typed.
+        const sent = await run({
+            between: (written) =>
+                written === 1 ? room([ana, bea, dani], [first, { ...second, splitMode: 'EXACT' }]) : undefined,
+        })
+        expect(sent.map((s) => s.id)).toEqual(['e1'])
+    })
+
+    it('skips a row somebody added another person to, rather than dropping them', async () => {
+        // `participantIds` is spelled out from the snapshot, so the pinned patch
+        // would have named ana + bea + dani and quietly removed Eve.
+        const eve = member('eve', 40)
+        const withEve = {
+            ...second,
+            shares: [...second.shares, { memberId: 'eve', amountMinor: '2000', enteredAmountMinor: null }],
+        }
+        const sent = await run({
+            between: (written) => (written === 1 ? room([ana, bea, dani, eve], [first, withEve]) : undefined),
+        })
+        expect(sent.map((s) => s.id)).toEqual(['e1'])
+    })
+
+    it('carries an amount edited mid-run instead of writing the pinned one back', async () => {
+        const sent = await run({
+            between: (written) =>
+                written === 1 ? room([ana, bea, dani], [first, { ...second, amountMinor: '9900' }]) : undefined,
+        })
+        expect(sent.map((s) => s.id)).toEqual(['e1', 'e2'])
+        expect(sent[1].input.amountMinor).toBe('9900')
     })
 })
