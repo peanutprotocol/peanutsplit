@@ -66,23 +66,43 @@ silently; a rotation needs a dual-key window.
 
 Still gated:
 
-- **Email** [Hugo — the one hard external blocker]: transport is chosen by env,
-  OneSignal preferred (`src/server/email.ts` speaks both). Path A, OneSignal:
-  create a **separate Split-only app** in the existing OneSignal account (never
-  reuse Peanut's key — this container is semi-trusted and Peanut's key reaches
-  Peanut's whole audience), verify a peanutsplit.com sending domain, then set
-  `SPLIT_ONESIGNAL_APP_ID` + `SPLIT_ONESIGNAL_API_KEY`. Path B, Resend: new
-  account + DKIM → `RESEND_API_KEY`. Either way: `SPLIT_EMAIL_FROM`,
-  `SPLIT_EMAIL_PROXY_URL=http://split-egress:3128` (api.onesignal.com is
-  already on the proxy allowlist), then flip `NEXT_PUBLIC_ACCOUNTS_ENABLED=1`
-  (build arg) and the accounts UI appears. Everything else is wired and tested.
+- **Email** [Hugo, two small steps left]: OneSignal app **"Peanut Split"**
+  (`f2137b49-b2ef-4c39-baa4-0bff5a81ef4c`, Squirrel Labs org, email-only,
+  deliberately separate from Peanut's app) exists; key is on the box
+  (`/root/.split-onesignal-key`) and staged in Dokploy env with
+  `SPLIT_EMAIL_FROM="Peanut Split <hello@peanutsplit.com>"`, sending domain
+  `mail.peanutsplit.com`. Remaining: (1) add the 8 additive DNS records at
+  Namecheap (list in the 2026-07-28 session report / OneSignal email settings)
+  and pass its Check Records; (2) ask OneSignal Support to enable email
+  sending on the new app (new-app anti-abuse gate — a direct API send returns
+  "Email sending for this app has been disabled"). Then flip
+  `NEXT_PUBLIC_ACCOUNTS_ENABLED=1` (build arg) + redeploy, and re-run the
+  request-link test. Optional hygiene: rotate the app key in-dashboard once
+  live (its value transited an automation transcript during setup). Resend
+  stays wired as the fallback transport.
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
   users about it.
 
-## Wave 3 — build only if the day-30 read says the funnel is real
+## Wave 3 — IN FLIGHT 2026-07-28 (five parallel branches)
 
-Ordered by expected value per effort:
+Being built now: receipt-scan (Gemini OCR → itemized EXACT split; needs a
+Split-scoped `SPLIT_GEMINI_API_KEY` to go live — host already on the egress
+allowlist), realtime (SSE poke + offline expense queue), trip-recap share card
+(image-only sharing — a recap URL would leak the room-slug credential), delight
+(theme catalog + token-proven emoji reactions), splitwise-import (client-side
+CSV parse, balances proven against Splitwise's own Total balance row). A
+three-lens adversarial review pass (correctness/money · elegance/DRY ·
+maintainability) gates the wave before it counts as done.
+
+**Queued next (wave 3.5): PWA deepening** — permanent install row in settings
+(today a dismissed prompt leaves no manual path until backoff expires),
+manifest `share_target` (share a receipt photo from the OS share sheet straight
+into the scan flow), manifest shortcuts, apple-touch-icon + iOS splash, app
+badge wiring. Deliberately sequenced after this wave — it integrates with the
+settings drawer and scan flow the wave is touching.
+
+Remaining candidates, ordered by expected value per effort:
 
 1. **Trip recap share card** — at all-settled, a second shareable artifact
    ("Ski trip: 9 days, €2,340, María fronted the most") reusing the OG art
