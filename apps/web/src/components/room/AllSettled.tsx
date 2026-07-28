@@ -2,13 +2,16 @@
 
 import { useEffect, useRef } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { peanutCheering } from '@/assets/mascot'
+import { recapPath } from '@/lib/recap'
 import { DUCK_LEAD_MS, duckMaster } from '@/lib/sounds'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback, useSettings } from '@/lib/use-settings'
 import { Confetti } from './Confetti'
+import { RecapShareButton } from './RecapShareButton'
 
 /**
  * Signature moment #6. Deliberately screenshot-worthy — this is the state people
@@ -25,6 +28,13 @@ interface AllSettledProps {
     celebrate?: boolean
     /** The receipt line. Omitted in the drawer, where the room is right behind it. */
     summary?: { people: number; expenses: number }
+    /**
+     * Present only in the room, where the recap belongs. The settle drawer renders
+     * this card too, and offering "share the story" from behind a sheet — before
+     * the celebration has even played — is asking for the artefact at the one
+     * moment nobody wants it.
+     */
+    slug?: string
 }
 
 /**
@@ -52,8 +62,9 @@ const LAUNCH_S = BOUNCE_S * BOUNCE_TIMES[2]
  *  by the jump rather than as a second thing that happened at the same time. */
 const CONFETTI_DELAY_S = LAUNCH_S + 0.15
 
-export function AllSettled({ compact = false, celebrate = false, summary }: AllSettledProps) {
+export function AllSettled({ compact = false, celebrate = false, summary, slug }: AllSettledProps) {
     const t = useTranslations('room.allSettled')
+    const tRecap = useTranslations('room.recap')
     const motionAllowed = useMotionAllowed()
     const { settings } = useSettings()
     const feedback = useFeedback()
@@ -139,6 +150,18 @@ export function AllSettled({ compact = false, celebrate = false, summary }: AllS
                         </span>
                         <span>{t('allSquare')}</span>
                     </p>
+                )}
+
+                {/* The second artefact. It arrives AFTER the celebration has landed
+                    — the card is already the screenshot people take, and this is
+                    the version with the numbers on it, minted rather than cropped. */}
+                {slug && (
+                    <div className="mt-3 flex w-full max-w-xs flex-col items-center gap-2">
+                        <RecapShareButton slug={slug} />
+                        <Link href={recapPath(slug)} className="text-sm font-bold text-n-1 underline">
+                            {tRecap('seeRecap')}
+                        </Link>
+                    </div>
                 )}
             </motion.div>
         </motion.div>

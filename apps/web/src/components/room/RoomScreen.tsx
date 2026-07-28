@@ -143,6 +143,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                     <AllSettled
                                         key="all-settled"
                                         celebrate={celebrate}
+                                        slug={slug}
                                         summary={{
                                             people: state.members.length,
                                             expenses: state.expenses.length,
