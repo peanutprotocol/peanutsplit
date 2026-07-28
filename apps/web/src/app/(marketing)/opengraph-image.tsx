@@ -12,8 +12,10 @@ export const alt = 'Peanut Split — split expenses, no signup'
 export const size = OG_SIZE
 export const contentType = OG_CONTENT_TYPE
 
-// Deliberately not `marketingCopy.hero.subtitle`: that line is written for a
-// screen with room to breathe, and reads as a wall at unfurl scale.
+// Deliberately not the catalog's `marketing.hero.subtitle`: that line is written
+// for a screen with room to breathe, and reads as a wall at unfurl scale. English
+// in every locale, like the rest of the OG surface — these fonts are subset and
+// have no accented glyphs to render a translation with.
 const TAGLINE = 'Share one link. Everyone adds what they paid.'
 
 export default async function LandingOgImage() {

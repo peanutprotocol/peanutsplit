@@ -15,7 +15,7 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         const { slug, id } = await ctx.params
         const room = await loadRoom(slug)
         const existing = await prisma.settlement.findFirst({ where: { id, roomId: room.id } })
-        if (!existing) throw notFound('settlement not found')
+        if (!existing) throw notFound('settlement not found', 'SETTLEMENT_NOT_FOUND')
         if (!existing.deletedAt) {
             await prisma.settlement.update({ where: { id }, data: { deletedAt: new Date() } })
         }

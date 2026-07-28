@@ -7,14 +7,26 @@ const dayKey = (iso: string): string => {
 
 const startOfDay = (date: Date): number => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
 
+/**
+ * The two relative labels are passed in rather than looked up here: this module is pure and has
+ * no request context, and a `useTranslations` call would drag React into a date helper. The
+ * caller already has `t` — it hands over the two words and the locale to format the rest with.
+ */
+export interface DayLabelOptions {
+    /** BCP-47 tag for `toLocaleDateString`. Was hardcoded `en-GB`, which printed "Fri 25 Jul" at a Brazilian reader. */
+    locale: string
+    today: string
+    yesterday: string
+}
+
 /** "Today" / "Yesterday" / "Fri 25 Jul" — a receipt, not a timestamp. */
-export function dayLabel(iso: string, now: Date = new Date()): string {
+export function dayLabel(iso: string, options: DayLabelOptions, now: Date = new Date()): string {
     const date = new Date(iso)
     const days = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000)
-    if (days === 0) return 'Today'
-    if (days === 1) return 'Yesterday'
+    if (days === 0) return options.today
+    if (days === 1) return options.yesterday
     const sameYear = date.getFullYear() === now.getFullYear()
-    return date.toLocaleDateString('en-GB', {
+    return date.toLocaleDateString(options.locale, {
         weekday: 'short',
         day: 'numeric',
         month: 'short',

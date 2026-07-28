@@ -13,7 +13,7 @@ export const POST = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { id } = await ctx.params
         const expense = await prisma.expense.findUnique({ where: { id } })
-        if (!expense) throw notFound('expense not found')
+        if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
         if (expense.deletedAt) await prisma.expense.update({ where: { id }, data: { deletedAt: null } })
         return toRoomState(await loadRoomById(expense.roomId))
     })

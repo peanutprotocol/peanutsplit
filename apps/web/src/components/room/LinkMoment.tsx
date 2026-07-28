@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
@@ -36,6 +37,7 @@ export const roomUrl = (slug: string): string =>
  * pre-selected input with an explicit "select and copy" instruction.
  */
 export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: LinkMomentProps) {
+    const t = useTranslations('room.link')
     const url = roomUrl(slug)
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
@@ -73,15 +75,17 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
         track('share_opened', roomProps(slug))
         try {
             await navigator.share({
-                title: `${roomName} · Peanut Split`,
-                text: `Join "${roomName}" and let's split this properly.`,
+                // Localised on purpose: this text is pasted straight into the group chat by the
+                // person sharing, so it should be in the language they are already speaking.
+                title: t('shareTitle', { room: roomName }),
+                text: t('shareText', { room: roomName }),
                 url,
             })
             track('share_completed', roomProps(slug))
         } catch {
             // AbortError just means they closed the sheet. Nothing to say.
         }
-    }, [roomName, url, slug, feedback])
+    }, [roomName, url, slug, feedback, t])
 
     return (
         <div className="flex flex-col gap-6">
@@ -118,7 +122,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                         </motion.span>
                         <div className="min-w-0">
                             <p className="truncate text-h6">{roomName}</p>
-                            <p className="text-h10 uppercase tracking-wide text-n-1/70">your split room</p>
+                            <p className="text-h10 uppercase tracking-wide text-n-1/70">{t('subtitle')}</p>
                         </div>
                     </div>
 
@@ -130,7 +134,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                     </div>
 
                     <div className="flex flex-col gap-3 px-4 py-5">
-                        <p className="text-h10 uppercase tracking-wide text-grey-1">Room link</p>
+                        <p className="text-h10 uppercase tracking-wide text-grey-1">{t('roomLink')}</p>
                         {copyFailed ? (
                             <div className="flex flex-col gap-2">
                                 <input
@@ -138,13 +142,11 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                                     readOnly
                                     value={url}
                                     onFocus={(event) => event.currentTarget.select()}
-                                    aria-label="Room link"
+                                    aria-label={t('roomLink')}
                                     data-testid="room-link-input"
                                     className="input h-12 select-text px-3 text-sm"
                                 />
-                                <p className="text-sm text-error">
-                                    Your browser blocked the copy — select the link above and copy it manually.
-                                </p>
+                                <p className="text-sm text-error">{t('copyBlocked')}</p>
                             </div>
                         ) : (
                             <p
@@ -190,12 +192,12 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                         }
                         data-testid="copy-link"
                     >
-                        {copied ? 'Copied!' : 'Copy link'}
+                        {copied ? t('copied') : t('copy')}
                     </Button>
                 </motion.div>
                 {canShare && (
                     <Button variant="stroke" onClick={share} icon="share" className="justify-center">
-                        Share
+                        {t('share')}
                     </Button>
                 )}
                 {footer}
@@ -203,7 +205,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
 
             <p className="flex items-center justify-center gap-1.5 text-center text-sm text-grey-1">
                 <Icon name="users" size={16} />
-                Anyone with this link can join and add expenses.
+                {t('anyoneCanJoin')}
             </p>
         </div>
     )

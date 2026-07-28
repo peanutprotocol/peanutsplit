@@ -7,6 +7,7 @@
  * which needs a JS number by construction.
  */
 
+import { DEFAULT_LOCALE } from '@/i18n/locales'
 import type { CurrencyInfo } from './api-types'
 
 /**
@@ -41,16 +42,55 @@ export const decimalsOf = (code: string, catalog?: readonly CurrencyInfo[]): num
     currencyInfo(code, catalog).decimals
 
 /**
- * "12.34" → "1234" (2dp), "1.234" → "1234" (0dp… no: 0dp means "1" → "1").
- * Accepts `,` as the decimal separator and strips spaces and thousands dots are
- * NOT stripped — ambiguity there loses money silently, so "1.234" with 2
- * decimals is one euro twenty-three, and the field shows what you typed.
+ * Normalise a typed amount to a single `.`-separated decimal, or null if what was typed is
+ * genuinely ambiguous.
+ *
+ * The rule, which is a safety choice rather than a parsing convenience:
+ *
+ * - **Both separators present** — the LAST one is the decimal point and the other is grouping.
+ *   `1.234,56` (pt-BR/es) and `1,234.56` (en) both mean the same amount, and there is no
+ *   ambiguity left to guess about, so both are accepted.
+ * - **One separator only** — it is a decimal point, always. `1.234` is one-point-two-three-four,
+ *   never one thousand two hundred and thirty-four. Guessing "grouping" here is how a bill
+ *   silently becomes a thousand times bigger, and the field shows exactly what was typed.
+ * - **The same separator more than once** (`1.234.567`) — no decimal point can be identified
+ *   without guessing which convention is in play, so it is refused outright.
+ */
+function normaliseDecimalInput(input: string): string | null {
+    const raw = input.trim().replace(/\s/g, '')
+    const hasDot = raw.includes('.')
+    const hasComma = raw.includes(',')
+
+    if (hasDot && hasComma) {
+        const decimalSeparator = raw.lastIndexOf('.') > raw.lastIndexOf(',') ? '.' : ','
+        const cut = raw.lastIndexOf(decimalSeparator)
+        const whole = raw.slice(0, cut)
+        const fraction = raw.slice(cut + 1)
+        /**
+         * The remaining separators only get stripped if they are actually grouping: one to three
+         * digits, then groups of exactly three. Without this, "1.2.3,4" would quietly become
+         * 123.4 — the parser would have invented a number nobody typed rather than refusing one
+         * it cannot read.
+         */
+        const grouped = decimalSeparator === '.' ? /^\d{1,3}(,\d{3})*$/ : /^\d{1,3}(\.\d{3})*$/
+        if (!grouped.test(whole)) return null
+        if (!/^\d*$/.test(fraction)) return null
+        return `${whole.replace(/[.,]/g, '')}.${fraction}`
+    }
+
+    return raw.replace(',', '.')
+}
+
+/**
+ * "12.34" → "1234" (2dp). Accepts `.` or `,` as the decimal separator, and a mixed
+ * grouping+decimal pair in either convention (see `normaliseDecimalInput`).
  *
  * Returns null for anything that isn't a non-negative amount.
  * Extra fraction digits round half-up.
  */
 export function parseAmountToMinor(input: string, decimals: number): string | null {
-    const raw = input.trim().replace(/\s/g, '').replace(',', '.')
+    const raw = normaliseDecimalInput(input)
+    if (raw === null) return null
     if (raw.length === 0) return null
     if (!/^\d*\.?\d*$/.test(raw)) return null
     if (raw === '.' || raw === '') return null
@@ -83,11 +123,73 @@ export function formatMinorPlain(minor: string, decimals: number): string {
     return `${negative ? '-' : ''}${whole}.${fraction}`
 }
 
-/** "1234" + EUR → "€12.34". Zero-decimal currencies get no separator. */
-export function formatMoney(minor: string, code: string, catalog?: readonly CurrencyInfo[]): string {
+/** ISO-4217 shape. `Intl.NumberFormat` throws a RangeError on anything else. */
+const isCurrencyCode = (code: string): boolean => /^[A-Za-z]{3}$/.test(code)
+
+/**
+ * Narrower than `Intl.NumberFormatOptions` on purpose: NumberFlow accepts only a subset (no
+ * `notation: 'scientific'`, for one), and the whole point of this helper is that the animated
+ * and static paths can be handed the *same* object.
+ */
+export interface MoneyFormat {
+    style: 'currency' | 'decimal'
+    currency?: string
+    minimumFractionDigits: number
+    maximumFractionDigits: number
+}
+
+/**
+ * The catalog's `decimals` always wins over the currency's Intl default. The API decides that a
+ * JPY or COP room has no cents; letting Intl reintroduce them would print an amount that cannot
+ * be typed back into the field.
+ */
+export function moneyFormatOptions(info: CurrencyInfo): MoneyFormat {
+    const digits = { minimumFractionDigits: info.decimals, maximumFractionDigits: info.decimals }
+    return isCurrencyCode(info.code)
+        ? { style: 'currency', currency: info.code.toUpperCase(), ...digits }
+        : { style: 'decimal', ...digits }
+}
+
+/**
+ * Formatters are expensive to construct and a room re-renders one per row per poll, so they are
+ * memoised on everything that can change the output. The key set is tiny and bounded by
+ * (locales × currencies), so it never needs eviction.
+ */
+const formatterCache = new Map<string, Intl.NumberFormat>()
+
+export function moneyFormatter(locale: string, info: CurrencyInfo): Intl.NumberFormat {
+    const key = `${locale}|${info.code}|${info.decimals}`
+    const cached = formatterCache.get(key)
+    if (cached) return cached
+    const formatter = new Intl.NumberFormat(locale, moneyFormatOptions(info))
+    formatterCache.set(key, formatter)
+    return formatter
+}
+
+/**
+ * "1234" + EUR → "€12.34" in English, "12,34 €" in Spanish. Separators, grouping and symbol
+ * placement all come from the active locale — hardcoding English here while `NumberFlow` used
+ * the *browser's* locale is what made the animated and static amounts disagree on the same row.
+ *
+ * The exact decimal string is handed to `Intl` rather than a float: `format()` accepts a numeric
+ * string and formats it without going through a double, so a balance past 2^53 still prints
+ * every digit it was given.
+ */
+export function formatMoney(
+    minor: string,
+    code: string,
+    catalog?: readonly CurrencyInfo[],
+    locale: string = DEFAULT_LOCALE
+): string {
     const info = currencyInfo(code, catalog)
     const plain = formatMinorPlain(minor, info.decimals)
-    return plain.startsWith('-') ? `-${info.symbol}${plain.slice(1)}` : `${info.symbol}${plain}`
+    try {
+        return moneyFormatter(locale, info).format(plain as unknown as number)
+    } catch {
+        // An unknown code, or an engine without string input. Formatting must never throw
+        // mid-render, so fall back to the pre-Intl shape rather than losing the amount.
+        return plain.startsWith('-') ? `-${info.symbol}${plain.slice(1)}` : `${info.symbol}${plain}`
+    }
 }
 
 /** Display-only: NumberFlow animates numbers, so the major-unit float is the

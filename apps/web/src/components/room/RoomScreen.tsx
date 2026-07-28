@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError } from '@/lib/api'
@@ -29,6 +30,7 @@ import { ShareDrawer } from './ShareDrawer'
  * never derives a balance.
  */
 export function RoomScreen({ slug }: { slug: string }) {
+    const t = useTranslations('room.actions')
     const { data: state, error, isPending, refetch } = useRoomState(slug)
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
@@ -156,7 +158,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                             onClick={() => setParams({ settle: true })}
                             data-testid="open-settle"
                         >
-                            Settle up
+                            {t('settleUp')}
                         </Button>
                         <Button
                             variant="primary"
@@ -166,7 +168,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                             onClick={() => setParams({ add: true })}
                             data-testid="open-add-expense"
                         >
-                            Add expense
+                            {t('addExpense')}
                         </Button>
                     </div>
                 </div>

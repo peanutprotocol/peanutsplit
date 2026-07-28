@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +22,7 @@ import {
     validateExpenseForm,
     type ExpenseFormValues,
 } from '@/lib/expense-form'
+import { useErrorMessage } from '@/lib/error-messages'
 import { currencyInfo, equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useAddExpense, useDeleteExpense, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
 import { useFeedback } from '@/lib/use-settings'
@@ -51,6 +53,9 @@ export function ExpenseDrawer({
     expense,
     defaultPaidById,
 }: ExpenseDrawerProps) {
+    const t = useTranslations('room.expenseDrawer')
+    const locale = useLocale()
+    const errorMessage = useErrorMessage()
     const addExpense = useAddExpense(slug, token)
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
@@ -159,10 +164,10 @@ export function ExpenseDrawer({
             close()
         } catch (err) {
             if (isApiError(err, 'EXPENSE_DELETED')) {
-                setError('This expense was deleted. Undo the delete first, then edit it.')
+                setError(t('wasDeleted'))
                 return
             }
-            setError(isApiError(err) ? err.message : 'could not save the expense — try again')
+            setError(errorMessage(err, t('saveFailed')))
         }
     }
 
@@ -174,23 +179,23 @@ export function ExpenseDrawer({
             await deleteExpense.mutateAsync(id)
             close()
             track('expense_deleted', roomProps(slug))
-            toast(`"${description}" deleted`, {
+            toast(t('deletedToast', { description }), {
                 duration: UNDO_MS,
                 action: {
-                    label: 'Undo',
+                    label: t('undo'),
                     onClick: () => {
                         restoreExpense
                             .mutateAsync(id)
                             .then(() => {
                                 track('expense_restored', roomProps(slug))
-                                toast.success('Put back')
+                                toast.success(t('restored'))
                             })
-                            .catch(() => toast.error('Could not undo — refresh and try again'))
+                            .catch(() => toast.error(t('restoreFailed')))
                     },
                 },
             })
         } catch (err) {
-            setError(isApiError(err) ? err.message : 'could not delete the expense')
+            setError(errorMessage(err, t('deleteFailed')))
         }
     }
 
@@ -206,21 +211,21 @@ export function ExpenseDrawer({
         <Drawer open={open} onOpenChange={(next) => !next && close()}>
             <DrawerContent className="bg-background">
                 <DrawerHeader className="pb-0">
-                    <DrawerTitle className="text-h5">{expense ? 'Edit expense' : 'Add expense'}</DrawerTitle>
+                    <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
                 </DrawerHeader>
 
                 <div className="flex flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
                     {/* Amount first: it's the thing you came to type. */}
                     <div className="flex items-end gap-3">
                         <label className="flex flex-1 flex-col gap-2">
-                            <span className="text-h8 uppercase tracking-wide text-grey-1">Amount</span>
+                            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('amount')}</span>
                             <input
                                 value={values.amountInput}
                                 onChange={(event) => patch({ amountInput: event.target.value })}
                                 inputMode="decimal"
                                 autoComplete="off"
                                 placeholder={decimals === 0 ? '0' : '0.00'}
-                                aria-label="Amount"
+                                aria-label={t('amount')}
                                 data-testid="expense-amount"
                                 className="input h-20 px-4 text-h3 tabular-nums"
                             />
@@ -230,25 +235,25 @@ export function ExpenseDrawer({
                                 value={values.currency}
                                 onChange={(code) => patch({ currency: code })}
                                 currencies={currencies}
-                                aria-label="Expense currency"
+                                aria-label={t('currency')}
                                 data-testid="expense-currency"
                             />
                         </div>
                     </div>
 
                     <label className="flex flex-col gap-2">
-                        <span className="text-h8 uppercase tracking-wide text-grey-1">What for?</span>
+                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('description')}</span>
                         <BaseInput
                             value={values.description}
                             onChange={(event) => patch({ description: event.target.value })}
-                            placeholder="Dinner, taxi, lift pass…"
+                            placeholder={t('descriptionPlaceholder')}
                             maxLength={255}
                             data-testid="expense-description"
                         />
                     </label>
 
                     <div className="flex flex-col gap-2">
-                        <span className="text-h8 uppercase tracking-wide text-grey-1">Paid by</span>
+                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('paidBy')}</span>
                         <div className="flex flex-wrap gap-2">
                             {state.members.map((member) => (
                                 <button
@@ -277,7 +282,7 @@ export function ExpenseDrawer({
 
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-h8 uppercase tracking-wide text-grey-1">Split</span>
+                            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('split')}</span>
                             <div className="flex overflow-hidden rounded-sm border border-n-1">
                                 {(['EQUAL', 'EXACT'] as const).map((mode) => (
                                     <button
@@ -294,7 +299,7 @@ export function ExpenseDrawer({
                                             values.splitMode === mode ? 'bg-n-1 text-white' : 'bg-white text-n-1'
                                         )}
                                     >
-                                        {mode === 'EQUAL' ? 'Equally' : 'Exact amounts'}
+                                        {mode === 'EQUAL' ? t('equally') : t('exactAmounts')}
                                     </button>
                                 ))}
                             </div>
@@ -370,7 +375,7 @@ export function ExpenseDrawer({
                                                     })
                                                 }
                                                 inputMode="decimal"
-                                                aria-label={`Exact amount for ${member.name}`}
+                                                aria-label={t('exactAmountFor', { name: member.name })}
                                                 data-testid="exact-input"
                                                 data-member={member.name}
                                                 className="input h-12 flex-1 px-3 text-base tabular-nums"
@@ -379,7 +384,7 @@ export function ExpenseDrawer({
                                                 <button
                                                     type="button"
                                                     onClick={() => putRemainderOn(member.id)}
-                                                    aria-label={`Put the remainder on ${member.name}`}
+                                                    aria-label={t('putRemainderOn', { name: member.name })}
                                                     data-testid="put-remainder"
                                                     data-member={member.name}
                                                     className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
@@ -404,7 +409,7 @@ export function ExpenseDrawer({
                                                 }
                                                 className="rounded-sm border border-dashed border-n-1 px-3 py-2 text-h9"
                                             >
-                                                + {member.name}
+                                                {t('addToSplit', { name: member.name })}
                                             </button>
                                         ))}
                                     </div>
@@ -425,10 +430,10 @@ export function ExpenseDrawer({
                                 >
                                     <span>
                                         {remainingIsZero
-                                            ? 'Every cent allocated'
+                                            ? t('allocated')
                                             : remaining.startsWith('-')
-                                              ? 'Over by'
-                                              : 'Left to allocate'}
+                                              ? t('overBy')
+                                              : t('leftToAllocate')}
                                     </span>
                                     <span className="flex items-center gap-2 tabular-nums">
                                         {remainingIsZero ? (
@@ -437,30 +442,41 @@ export function ExpenseDrawer({
                                             formatMoney(
                                                 remaining.startsWith('-') ? remaining.slice(1) : remaining,
                                                 values.currency,
-                                                currencies
+                                                currencies,
+                                                locale
                                             )
                                         )}
                                     </span>
                                 </motion.div>
+                                {/* Three fragments rather than one message: the middle clause
+                                    only exists for a foreign-currency expense, and folding it
+                                    into an ICU `select` would make the common case unreadable in
+                                    every catalog. */}
                                 <p className="text-sm text-grey-1">
-                                    Amounts are in {values.currency}
+                                    {t('amountsAreIn', { currency: values.currency })}
                                     {values.currency !== state.room.currency &&
-                                        ` — converted to ${state.room.currency} at an indicative rate`}
-                                    . Allocated{' '}
-                                    {formatMoney(allocatedMinor(values, currencies), values.currency, currencies)} of{' '}
-                                    {formatMoney(totalMinor ?? '0', values.currency, currencies)}.
+                                        t('convertedAt', { roomCurrency: state.room.currency })}
+                                    {t('allocatedOf', {
+                                        allocated: formatMoney(
+                                            allocatedMinor(values, currencies),
+                                            values.currency,
+                                            currencies,
+                                            locale
+                                        ),
+                                        total: formatMoney(totalMinor ?? '0', values.currency, currencies, locale),
+                                    })}
                                 </p>
                             </div>
                         )}
                     </div>
 
                     <label className="flex flex-col gap-2">
-                        <span className="text-h8 uppercase tracking-wide text-grey-1">When</span>
+                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('when')}</span>
                         <input
                             type="date"
                             value={toDateInputValue(values.date)}
                             onChange={(event) => patch({ date: fromDateInputValue(event.target.value, values.date) })}
-                            aria-label="Expense date"
+                            aria-label={t('date')}
                             data-testid="expense-date"
                             className="input h-14 px-4"
                         />
@@ -468,12 +484,11 @@ export function ExpenseDrawer({
 
                     {submitted && validation && (
                         <p role="alert" className="text-sm font-bold text-error">
-                            {validation === 'DESCRIPTION_REQUIRED' &&
-                                'Give it a name so everyone remembers what it was.'}
-                            {validation === 'AMOUNT_REQUIRED' && 'Enter an amount greater than zero.'}
-                            {validation === 'PAYER_REQUIRED' && 'Pick who paid.'}
-                            {validation === 'NO_PARTICIPANTS' && 'Pick at least one person to split this between.'}
-                            {validation === 'SHARES_DO_NOT_ADD_UP' && 'The exact amounts have to add up to the total.'}
+                            {validation === 'DESCRIPTION_REQUIRED' && t('validation.DESCRIPTION_REQUIRED')}
+                            {validation === 'AMOUNT_REQUIRED' && t('validation.AMOUNT_REQUIRED')}
+                            {validation === 'PAYER_REQUIRED' && t('validation.PAYER_REQUIRED')}
+                            {validation === 'NO_PARTICIPANTS' && t('validation.NO_PARTICIPANTS')}
+                            {validation === 'SHARES_DO_NOT_ADD_UP' && t('validation.SHARES_DO_NOT_ADD_UP')}
                         </p>
                     )}
 
@@ -492,7 +507,7 @@ export function ExpenseDrawer({
                             className="justify-center text-h6"
                             data-testid="save-expense"
                         >
-                            {expense ? 'Save changes' : 'Add expense'}
+                            {expense ? t('save') : t('add')}
                         </Button>
                         {expense && (
                             <Button
@@ -503,7 +518,7 @@ export function ExpenseDrawer({
                                 className="justify-center"
                                 data-testid="delete-expense"
                             >
-                                Delete
+                                {t('delete')}
                             </Button>
                         )}
                     </div>
