@@ -67,6 +67,16 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
     const abandoned = useRef(false)
     const offeredFor = useRef<string | null>(null)
 
+    // A stale-room transition removes this banner. Treat that exactly like the
+    // explicit stop button so a multi-expense repair cannot continue mutating
+    // cached history after the refresh failure is known.
+    useEffect(
+        () => () => {
+            abandoned.current = true
+        },
+        []
+    )
+
     const live = latecomerOffer(state)
     const offer = running ?? (live && !dismissed.includes(live.member.id) ? live : null)
 
