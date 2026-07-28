@@ -5,9 +5,12 @@ import { useTranslations } from 'next-intl'
  * an unbroken run of cream. The peanut tile is knocked back to 20% — at full strength it reads
  * as leopard print rather than as peanuts.
  *
- * The steps are written out one key at a time rather than looped over a computed path. Three is
+ * The steps are written out one key at a time rather than looped over a computed path. Four is
  * not enough repetition to be worth `t(\`step${n}.title\`)`, and a literal key is a key
  * `pnpm i18n:audit` can actually check — a computed one it can only skip.
+ *
+ * Step four is settling. It is the last step because it is the one the other apps leave to the
+ * group chat, and a "how it works" that stops at the balance describes the easy half.
  */
 export function HowItWorks() {
     const t = useTranslations('marketing.how')
@@ -15,6 +18,7 @@ export function HowItWorks() {
         { n: '1', title: t('step1.title'), body: t('step1.body') },
         { n: '2', title: t('step2.title'), body: t('step2.body') },
         { n: '3', title: t('step3.title'), body: t('step3.body') },
+        { n: '4', title: t('step4.title'), body: t('step4.body') },
     ]
 
     return (
