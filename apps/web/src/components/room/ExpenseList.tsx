@@ -171,6 +171,7 @@ export function ExpenseList({
                                                 currencies={currencies}
                                                 meId={meId}
                                                 token={token}
+                                                actionsDisabled={savedActionsDisabled}
                                             />
                                         </motion.li>
                                     )

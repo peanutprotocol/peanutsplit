@@ -199,7 +199,9 @@ export function RoomScreen({ slug }: { slug: string }) {
                             {/* Above the history, below the balances: it is a
                                 statement about the numbers on the strip, and the
                                 fix it offers rewrites the rows underneath it. */}
-                            {!needsJoin && <LatecomerBanner slug={slug} state={state} token={identity?.token} />}
+                            {!needsJoin && !staleState && (
+                                <LatecomerBanner slug={slug} state={state} token={identity?.token} />
+                            )}
                             <AnimatePresence initial={false}>
                                 {settledUp && (
                                     <AllSettled
