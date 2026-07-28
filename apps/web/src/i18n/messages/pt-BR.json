@@ -464,6 +464,16 @@
                 "hint": "Tire a foto de frente, com a conta inteira no quadro e boa luz."
             }
         },
+        "quickAdd": {
+            "cta": "Adicionar rápido",
+            "placeholder": "táxi 12€ — ou cole do chat",
+            "action": "Preencher o formulário",
+            "reading": "Lendo…",
+            "unmatched": "Não deu para identificar: {names} — escolha essas pessoas abaixo.",
+            "errors": {
+                "generic": "Não deu para ler isso."
+            }
+        },
         "theme": {
             "title": "Tema",
             "hint": "Todo mundo da sala vê, e a prévia do link também.",
@@ -556,6 +566,11 @@
         "SCAN_NO_ITEMS": "Não deu para ler nenhum item nessa foto — tente uma foto mais reta e com mais luz.",
         "SCAN_ROOM_LIMIT": "Esta sala escaneou muitas contas hoje — tente amanhã.",
         "SCAN_FAILED": "Não deu para ler essa conta — tente de novo.",
+        "NL_UNAVAILABLE": "O adicionar rápido não está ligado aqui.",
+        "NL_TEXT_TOO_LONG": "Isso é mais texto do que um gasto só — encurte e tente de novo.",
+        "NL_NO_AMOUNT": "Não deu para ler nenhum valor aí — diga quanto custou.",
+        "NL_ROOM_LIMIT": "Esta sala já usou os adicionares rápidos de hoje — tente amanhã.",
+        "NL_FAILED": "Não deu para ler isso — tente de novo.",
         "IMPORT_TOO_LARGE": "Essa importação é grande demais para enviar. Tente um grupo com menos histórico.",
         "RATE_LIMITED": "Foram muitas tentativas — espere um minuto e tente de novo."
     },

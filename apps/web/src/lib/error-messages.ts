@@ -57,6 +57,14 @@ export const KNOWN_ERROR_CODES = [
     'SCAN_NO_ITEMS',
     'SCAN_ROOM_LIMIT',
     'SCAN_FAILED',
+    // Quick add. Its own codes rather than the scan's: "no items on that photo"
+    // and "no amount in that sentence" are the same shape of failure and
+    // completely different advice.
+    'NL_UNAVAILABLE',
+    'NL_TEXT_TOO_LONG',
+    'NL_NO_AMOUNT',
+    'NL_ROOM_LIMIT',
+    'NL_FAILED',
     'IMPORT_TOO_LARGE',
     'RATE_LIMITED',
 ] as const

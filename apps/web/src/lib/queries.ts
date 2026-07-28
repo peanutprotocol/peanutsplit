@@ -322,21 +322,22 @@ export function useDeleteSettlement(slug: string, token?: string | null) {
 }
 
 /**
- * Whether this deployment can read a bill photo. A server capability, so it is
- * asked rather than compiled in — see `api.receipt.status`.
+ * Whether this deployment can read a bill photo or a typed line. One server
+ * capability behind both, so it is asked once rather than compiled in — see
+ * `api.modelStatus`.
  *
- * Cached for the session and never retried: a failed probe means "no scanning
- * right now", and a button that flickers into existence on a background refetch
- * is worse than one that stays hidden until the next page load.
+ * Cached for the session and never retried: a failed probe means "no model
+ * features right now", and a button that flickers into existence on a background
+ * refetch is worse than one that stays hidden until the next page load.
  *
  * The key carries no slug, because the answer does not depend on one — the route
  * reads an env var and ignores the room entirely. Keying per room meant probing
  * once per room a device opened, for a fact that is the same every time.
  */
-export function useReceiptScanEnabled(slug: string) {
+export function useModelEnabled(slug: string) {
     const { data } = useQuery({
-        queryKey: ['receipt-scan-enabled'] as const,
-        queryFn: ({ signal }) => api.receipt.status(slug, signal),
+        queryKey: ['model-enabled'] as const,
+        queryFn: ({ signal }) => api.modelStatus(slug, signal),
         staleTime: 60 * 60 * 1000,
         retry: false,
         refetchOnWindowFocus: false,

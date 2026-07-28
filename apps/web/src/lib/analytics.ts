@@ -42,6 +42,15 @@ export type AnalyticsEvent =
     | 'receipt_scan_parsed'
     | 'receipt_scan_failed'
     | 'receipt_scan_applied'
+    // Quick add — the same discipline, and even blinder. What somebody typed is
+    // a line out of their group chat, so nothing about it is sent: not the text,
+    // not its length, not the amount, not whether names were in it. Three events
+    // and not four because a parse that succeeds IS applied — the form fills and
+    // the sheet closes in the same instant, so a `parsed` event would be a
+    // duplicate of `applied` with a different name.
+    | 'nl_parse_started'
+    | 'nl_parse_applied'
+    | 'nl_parse_failed'
     // Trip recap. `recap_shared` carries which rung of the share chain fired
     // (`files` | `clipboard` | `download`) and nothing else — no total, no day
     // count, no names. An amount in a property bag is the same leak as an

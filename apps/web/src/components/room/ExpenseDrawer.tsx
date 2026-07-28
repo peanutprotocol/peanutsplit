@@ -24,13 +24,7 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { currencyInfo, equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
-import {
-    useAddExpense,
-    useDeleteExpense,
-    useReceiptScanEnabled,
-    useRestoreExpense,
-    useUpdateExpense,
-} from '@/lib/queries'
+import { useAddExpense, useDeleteExpense, useModelEnabled, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
 import { useFeedback } from '@/lib/use-settings'
@@ -39,6 +33,7 @@ import { CurrencySelect } from './CurrencySelect'
 import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
+import { QuickAdd } from './QuickAdd'
 import { ScanButton } from './scan/ScanButton'
 import { ScanFlow } from './scan/ScanFlow'
 
@@ -86,10 +81,10 @@ export function ExpenseDrawer({
      * is a stuck screen with no way back.
      */
     const [scanFile, setScanFile] = useState<File | null>(null)
-    /** A server capability (an API key in the container), asked rather than
-     *  compiled in. False hides the affordance completely: an entry point that
-     *  leads to a 503 is worse than no entry point. */
-    const scanEnabled = useReceiptScanEnabled(slug)
+    /** A server capability (one API key in the container, gating both shortcuts),
+     *  asked rather than compiled in. False hides them completely: an entry point
+     *  that leads to a 503 is worse than no entry point. */
+    const modelEnabled = useModelEnabled(slug)
 
     // Re-seed on every open: a drawer that remembers last time's amount is a
     // money bug waiting to happen.
@@ -301,11 +296,29 @@ export function ExpenseDrawer({
                         </div>
                     </div>
 
-                    {/* Right under the amount, and only when adding: a scan rewrites the
-                        description, the currency, the total AND the whole split, which is a
-                        fine thing to do to an empty form and a hostile thing to do to an
-                        expense someone opened to fix a typo in. */}
-                    {!expense && scanEnabled && <ScanButton onFile={setScanFile} />}
+                    {/* Right under the amount, and only when adding: either of these
+                        rewrites the description, the currency, the total AND the whole
+                        split, which is a fine thing to do to an empty form and a hostile
+                        thing to do to an expense someone opened to fix a typo in.
+                        Both are hidden by the same probe — one key configures both. */}
+                    {!expense && modelEnabled && (
+                        <div className="flex flex-wrap items-start gap-2">
+                            <ScanButton onFile={setScanFile} />
+                            <QuickAdd
+                                slug={slug}
+                                roomCurrency={state.room.currency}
+                                currencies={currencies}
+                                values={values}
+                                onApply={(next) => {
+                                    setValues(next)
+                                    // The form has just been rewritten, so an error
+                                    // left over from before it is stale by definition.
+                                    setSubmitted(false)
+                                    setError(null)
+                                }}
+                            />
+                        </div>
+                    )}
 
                     {/* Foreign money, said once and in both split modes. The old copy only
                         mentioned the conversion inside the EXACT branch, so an EQUAL split in
