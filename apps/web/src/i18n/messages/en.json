@@ -240,6 +240,31 @@
             "suggested": "Suggested",
             "all": "All currencies",
             "useSuggestion": "Use {name}"
+        },
+        "theme": {
+            "title": "Theme",
+            "hint": "Everyone in the room sees it, and so does the link preview.",
+            "pick": "Use the {name} theme",
+            "failed": "could not change the theme — try again",
+            "names": {
+                "classic": "Classic",
+                "bubblegum": "Bubblegum",
+                "lavender": "Lavender",
+                "mint": "Mint",
+                "sky": "Sky",
+                "coral": "Coral",
+                "sand": "Sand",
+                "graphite": "Graphite"
+            }
+        },
+        "reactions": {
+            "add": "React to this",
+            "close": "Close the reactions",
+            "pick": "React with {emoji}",
+            "remove": "Remove your {emoji}",
+            "reacted": "{emoji} — {count, plural, one {# person} other {# people}}",
+            "needsToken": "Reacting needs proof it is really you — rejoin the room with your own name first.",
+            "failed": "could not save that reaction — try again"
         }
     },
     "account": {

@@ -10,11 +10,16 @@ import { cn } from '@/lib/cn'
 import { dayLabel, groupByDay } from '@/lib/dates'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
+import { ReactionBar } from './ReactionBar'
 
 interface ExpenseListProps {
     state: RoomState
     currencies: readonly CurrencyInfo[]
     meId?: string
+    /** Reactions are written against the expense id, which needs the room's slug
+     *  for the cache key and the member token as proof. */
+    slug: string
+    token?: string | null
     onSelect: (expenseId: string) => void
 }
 
@@ -60,7 +65,7 @@ function usePoppedExpenseId(expenses: readonly ApiExpense[]): string | null {
     return poppedId
 }
 
-export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListProps) {
+export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: ExpenseListProps) {
     const t = useTranslations('room.expenses')
     const tDates = useTranslations('dates')
     const locale = useLocale()
@@ -181,6 +186,13 @@ export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListPr
                                                 )}
                                             </span>
                                         </button>
+                                        {/* Outside the row button, not inside
+                                            it: a button cannot contain buttons,
+                                            and the row's own tap target has to
+                                            stay the whole row. */}
+                                        {!isPending(expense) && (
+                                            <ReactionBar slug={slug} expense={expense} meId={meId} token={token} />
+                                        )}
                                     </motion.li>
                                 )
                             })}
