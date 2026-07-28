@@ -26,9 +26,9 @@ export type AnalyticsEvent =
     | 'pwa_installed'
     | 'peanut_option_shown'
     | 'peanut_option_clicked'
-    // Push opt-in and accounts. Same discipline as everything above: the room is
-    // a hash, the count of recovered rooms is a number, and an email address
-    // never appears in a property bag.
+    // Push opt-in and accounts. Same discipline as everything above: the count
+    // of recovered rooms is a number, and neither a room identifier nor an
+    // email address ever appears in a property bag.
     | 'push_optin_shown'
     | 'push_optin_accepted'
     | 'push_optin_denied'
@@ -67,9 +67,9 @@ export type AnalyticsEvent =
     | 'reaction_removed'
     // Latecomer catch-up. Two counts and nothing else — how many earlier
     // expenses the offer covered, and how many the confirm actually rewrote. Not
-    // who joined, not who tapped, not what any of it was worth: this is the same
-    // room a slug hash stands for, and a name here would say more about a group
-    // than every other event in this file put together.
+    // who joined, not who tapped, not what any of it was worth: a name here
+    // would say more about a group than every other event in this file put
+    // together.
     | 'latecomer_backfill_offered'
     | 'latecomer_backfill_accepted'
     // Splitwise import. The file never leaves the device and neither does anything in it:
