@@ -372,6 +372,8 @@
         "states": {
             "errorTitle": "We could not load this room",
             "errorBody": "Probably a wobbly connection. Nothing is lost — try again.",
+            "staleTitle": "Balances may be out of date",
+            "staleBody": "Showing the last loaded balances. Reconnect and refresh before settling up. You can still add an expense.",
             "retry": "Try again",
             "notFoundTitle": "This split doesn’t exist",
             "notFoundBody": "Room links are case-sensitive — check you copied the whole thing, including the bit after the last dash.",

@@ -22,11 +22,14 @@ import type {
 } from './api-types'
 import { FALLBACK_CURRENCIES } from './money'
 import {
+    PENDING_ITEM_PREFIX,
+    PENDING_KEY,
     createClientKey,
     draftExpenseRow,
     enqueueWrite,
     isOfflineFailure,
     mergeQueuedExpenses,
+    refreshQueueSnapshot,
     requestDrain,
     setQueuePerformer,
     useQueuedWrites,
@@ -159,8 +162,16 @@ export function useOfflineQueueRunner(): void {
         // without ever having been "offline", and a cold boot covers the app
         // being killed while something was still queued.
         requestDrain()
+        const onStorage = (event: StorageEvent) => {
+            if (event.key === null || event.key === PENDING_KEY || event.key.startsWith(PENDING_ITEM_PREFIX)) {
+                refreshQueueSnapshot()
+                requestDrain()
+            }
+        }
+        window.addEventListener('storage', onStorage)
         window.addEventListener('online', requestDrain)
         return () => {
+            window.removeEventListener('storage', onStorage)
             window.removeEventListener('online', requestDrain)
             setQueuePerformer(null)
         }

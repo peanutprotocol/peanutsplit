@@ -88,6 +88,10 @@ export function ExpenseDrawer({
     const [newPayerName, setNewPayerName] = useState('')
     const [payerError, setPayerError] = useState<string | null>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
+    // React does not disable the button until the mutation state renders. A
+    // second tap in that gap would mint a second clientKey and create a second
+    // expense, so the synchronous guard owns the save attempt.
+    const savingRef = useRef(false)
     /** A server capability for typed quick-add, asked rather than compiled in.
      *  Receipt scanning stays in the codebase as backlog work, but its entry
      *  point is intentionally absent from v1 after the post-scan overlay proved
@@ -247,6 +251,7 @@ export function ExpenseDrawer({
     }
 
     const save = async () => {
+        if (savingRef.current) return
         setSubmitted(true)
         if (validation) {
             // The message alone is easy to miss on a long form — the sheet moving
@@ -255,6 +260,7 @@ export function ExpenseDrawer({
             shake()
             return
         }
+        savingRef.current = true
         setError(null)
         const body = buildExpenseBody(values, currencies)
         try {
@@ -285,6 +291,8 @@ export function ExpenseDrawer({
                 return
             }
             setError(errorMessage(err, t('saveFailed')))
+        } finally {
+            savingRef.current = false
         }
     }
 

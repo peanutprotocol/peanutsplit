@@ -35,7 +35,8 @@ import { ShareDrawer } from './ShareDrawer'
  */
 export function RoomScreen({ slug }: { slug: string }) {
     const t = useTranslations('room.actions')
-    const { data: state, error, isPending, refetch } = useRoomState(slug)
+    const tStates = useTranslations('room.states')
+    const { data: state, error, isPending, isFetching, isRefetchError, refetch } = useRoomState(slug)
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
     const [params, setParams] = useRoomParams()
@@ -72,6 +73,8 @@ export function RoomScreen({ slug }: { slug: string }) {
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
     const drawerOpen = params.add || params.settle || params.share || !!params.expense || !!params.balance
+    const needsJoin = loaded && !identity && !!state
+    const staleState = !!state && isRefetchError
 
     useEffect(() => {
         if (!state) return
@@ -110,11 +113,14 @@ export function RoomScreen({ slug }: { slug: string }) {
             setParams({ balance: null })
     }, [params.balance, state, setParams])
 
+    useEffect(() => {
+        if (staleState && params.settle) setParams({ settle: null })
+    }, [params.settle, setParams, staleState])
+
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound />
     if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
 
     const closeDrawers = () => setParams({ add: null, expense: null, settle: null })
-    const needsJoin = loaded && !identity && !!state
 
     const onJoined = (next: MemberIdentity) => claim(next)
 
@@ -139,6 +145,28 @@ export function RoomScreen({ slug }: { slug: string }) {
                     onShare={() => setParams({ share: true })}
                     onForgetIdentity={forget}
                 />
+            )}
+
+            {staleState && (
+                <div
+                    role="alert"
+                    data-testid="room-stale-warning"
+                    className="mx-4 mt-4 flex items-start gap-3 rounded-sm border border-n-1 bg-yellow-1 p-4"
+                >
+                    <div className="min-w-0 flex-1">
+                        <p className="text-h7">{tStates('staleTitle')}</p>
+                        <p className="mt-1 text-sm text-grey-1">{tStates('staleBody')}</p>
+                    </div>
+                    <Button
+                        variant="stroke"
+                        size="small"
+                        disabled={isFetching}
+                        loading={isFetching}
+                        onClick={() => void refetch()}
+                    >
+                        {tStates('retry')}
+                    </Button>
+                </div>
             )}
 
             <div className="flex flex-1 flex-col gap-6 pb-36 pt-4">
@@ -202,6 +230,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                             icon="hand-coins"
                             className="w-auto shrink-0 justify-center px-4"
                             onClick={() => setParams({ settle: true })}
+                            disabled={staleState}
                             data-testid="open-settle"
                         >
                             {t('settleUp')}
@@ -235,7 +264,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                         defaultPaidById={defaultPaidById}
                     />
                     <SettleDrawer
-                        open={params.settle && !needsJoin}
+                        open={params.settle && !needsJoin && !staleState}
                         onClose={closeDrawers}
                         slug={slug}
                         state={state}
