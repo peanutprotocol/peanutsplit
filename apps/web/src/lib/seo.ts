@@ -15,6 +15,15 @@ import type { Doc, Faq } from '@/lib/content'
 
 const SITE_NAME = 'Peanut Split'
 
+/**
+ * The site's one-line description. Lives here rather than inline in the root layout because two
+ * things need it and they must not drift: the `<meta name="description">` every page inherits,
+ * and the SoftwareApplication node in `siteSchema()` — a schema description that disagreed with
+ * the served meta description is the kind of mismatch that gets structured data ignored.
+ */
+export const SITE_DESCRIPTION =
+    'Accountless, link-based expense splitting. Create a room, share the link, settle up however you like. Free forever.'
+
 /** OG spells locales `language_TERRITORY`; everything else here uses BCP 47. */
 const OG_LOCALE: Record<Locale, string> = {
     en: 'en_US',
@@ -201,7 +210,11 @@ export function siteSchema() {
             },
             {
                 '@type': 'SoftwareApplication',
+                // Addressable, so a future node (a review, an app screenshot) can attach to this
+                // one entity instead of declaring a second unlinked copy of the app.
+                '@id': `${siteUrl}/#app`,
                 name: SITE_NAME,
+                description: SITE_DESCRIPTION,
                 url: siteUrl,
                 applicationCategory: 'FinanceApplication',
                 operatingSystem: 'Web',

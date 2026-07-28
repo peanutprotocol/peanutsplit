@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { absoluteUrl, articleSchema, breadcrumbSchema, faqSchema, pageMetadata, pageTitle, siteSchema } from './seo'
+import {
+    absoluteUrl,
+    articleSchema,
+    breadcrumbSchema,
+    faqSchema,
+    pageMetadata,
+    pageTitle,
+    siteSchema,
+    SITE_DESCRIPTION,
+} from './seo'
 import { COLLECTIONS, listDocs } from './content'
 import { siteUrl } from './site'
 
@@ -71,5 +80,19 @@ describe('structured data', () => {
         const website = graph.find((node) => node['@type'] === 'WebSite') as { publisher: { '@id': string } }
         const org = graph.find((node) => node['@type'] === 'Organization') as { '@id': string }
         expect(website.publisher['@id']).toBe(org['@id'])
+    })
+
+    /** Google reads name/description/applicationCategory/offers off this node; a missing one is
+     *  not an error it reports, it is a rich result that quietly never appears. */
+    it('describes the app with everything a SoftwareApplication result needs', () => {
+        const app = siteSchema()['@graph'].find((node) => node['@type'] === 'SoftwareApplication') as Record<
+            string,
+            unknown
+        >
+        expect(app.name).toBeTruthy()
+        expect(app.description).toBe(SITE_DESCRIPTION)
+        expect(app.applicationCategory).toBe('FinanceApplication')
+        expect(app.operatingSystem).toBe('Web')
+        expect(app.offers).toMatchObject({ price: '0', priceCurrency: 'USD' })
     })
 })
