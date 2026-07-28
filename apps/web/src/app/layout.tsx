@@ -5,14 +5,14 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getLocale } from 'next-intl/server'
 import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
-import { siteSchema } from '@/lib/seo'
+import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import '../styles/globals.css'
 
 export const metadata: Metadata = {
     title: 'Peanut Split — split expenses, no signup',
-    description:
-        'Accountless, link-based expense splitting. Create a room, share the link, settle up however you like. Free forever.',
+    // Shared with the SoftwareApplication node in `siteSchema()` — same sentence, one source.
+    description: SITE_DESCRIPTION,
     metadataBase: new URL(siteUrl),
     applicationName: 'Peanut Split',
     icons: { apple: '/icons/apple-touch-icon.png' },
