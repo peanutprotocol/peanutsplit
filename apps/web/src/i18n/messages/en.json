@@ -153,6 +153,10 @@
                     "title": "Everyone sees it at once",
                     "body": "Add something on the bus and it is on everyone else’s screen before you get off."
                 },
+                "offline": {
+                    "title": "Works with no signal",
+                    "body": "Type an expense in a basement or up a mountain. It waits on your phone and goes when the signal comes back."
+                },
                 "home": {
                     "title": "Add it to your home screen",
                     "body": "It opens like an app."
@@ -202,7 +206,8 @@
                 "title": "Questions people actually ask",
                 "retype": {
                     "q": "Do I have to retype everything from the group chat?",
-                    "a": "For a trip that already happened, yes — the expenses get typed in once. It is lighter than it sounds, because everyone in the room can add their own instead of it all landing on you. If you are coming from Splitwise, /import brings a group across."
+                    "a": "For a trip that already happened, yes — the expenses get typed in once. It is lighter than it sounds, because everyone in the room can add their own instead of it all landing on you.",
+                    "import": "If you are coming from Splitwise, the import page brings a whole group across in one step."
                 },
                 "access": {
                     "q": "Who can see our room?",

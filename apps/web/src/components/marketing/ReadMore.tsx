@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
+import { splitV2Enabled } from '@/lib/flags'
 
 function Fold({ title, children }: { title: string; children: ReactNode }) {
     return (
@@ -34,13 +35,14 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
 export function ReadMore() {
     const t = useTranslations('marketing.readMore')
     const features: Array<{
-        key: 'currency' | 'splits' | 'exact' | 'live' | 'home' | 'transfers'
+        key: 'currency' | 'splits' | 'exact' | 'live' | 'offline' | 'home' | 'transfers'
         doodle: DoodleName
     }> = [
         { key: 'currency', doodle: 'globe' },
         { key: 'splits', doodle: 'slice' },
         { key: 'exact', doodle: 'tally' },
         { key: 'live', doodle: 'pulse' },
+        { key: 'offline', doodle: 'tent' },
         { key: 'home', doodle: 'phone' },
         { key: 'transfers', doodle: 'swap' },
     ]
@@ -165,7 +167,13 @@ export function ReadMore() {
 
                     {questions.map((question) => (
                         <Fold key={question} title={t(`faq.${question}.q`)}>
-                            <p className="max-w-xl text-sm leading-6 text-grey-1">{t(`faq.${question}.a`)}</p>
+                            <p className="max-w-xl text-sm leading-6 text-grey-1">
+                                {t(`faq.${question}.a`)}
+                                {/* The importer is v2-only surface: /import 404s in a v1 build,
+                                    so pointing at it there would send the one reader who raised
+                                    this objection to a dead page. */}
+                                {question === 'retype' && splitV2Enabled() && ` ${t('faq.retype.import')}`}
+                            </p>
                         </Fold>
                     ))}
                 </div>

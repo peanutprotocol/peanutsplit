@@ -153,6 +153,10 @@
                     "title": "Todo mundo vê na hora",
                     "body": "Lance uma despesa no ônibus e ela já está na tela dos outros antes de você descer."
                 },
+                "offline": {
+                    "title": "Funciona sem sinal",
+                    "body": "Lance uma despesa num subsolo ou na montanha. Ela fica esperando no seu celular e vai sozinha quando o sinal volta."
+                },
                 "home": {
                     "title": "Coloque na tela de início",
                     "body": "Abre como um aplicativo."
@@ -202,7 +206,8 @@
                 "title": "As perguntas que as pessoas realmente fazem",
                 "retype": {
                     "q": "Preciso digitar de novo tudo o que está no grupo?",
-                    "a": "Para uma viagem que já aconteceu, sim: as despesas são digitadas uma vez. Pesa menos do que parece porque cada um na sala lança as suas em vez de sobrar tudo para você. Se você vem do Splitwise, /import traz um grupo inteiro."
+                    "a": "Para uma viagem que já aconteceu, sim: as despesas são digitadas uma vez. Pesa menos do que parece porque cada um na sala lança as suas em vez de sobrar tudo para você.",
+                    "import": "Se você vem do Splitwise, a página de importação traz um grupo inteiro de uma vez só."
                 },
                 "access": {
                     "q": "Quem consegue ver a nossa sala?",

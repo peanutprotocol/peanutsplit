@@ -153,6 +153,10 @@
                     "title": "Todos lo ven al mismo tiempo",
                     "body": "Cargá algo en el colectivo y ya está en la pantalla de los demás antes de que te bajes."
                 },
+                "offline": {
+                    "title": "Funciona sin señal",
+                    "body": "Cargá un gasto en un sótano o en la montaña. Queda esperando en tu teléfono y se manda solo cuando vuelve la señal."
+                },
                 "home": {
                     "title": "Agregalo a tu pantalla de inicio",
                     "body": "Se abre como una app."
@@ -202,7 +206,8 @@
                 "title": "Las preguntas que se hacen de verdad",
                 "retype": {
                     "q": "¿Tengo que volver a cargar todo lo que está en el chat?",
-                    "a": "Para un viaje que ya pasó, sí: los gastos se cargan una vez. Pesa menos de lo que parece porque cada uno en la sala puede cargar los suyos en vez de que caiga todo sobre vos. Si venís de Splitwise, /import trae un grupo entero."
+                    "a": "Para un viaje que ya pasó, sí: los gastos se cargan una vez. Pesa menos de lo que parece porque cada uno en la sala puede cargar los suyos en vez de que caiga todo sobre vos.",
+                    "import": "Si venís de Splitwise, la página de importación trae un grupo entero de una sola vez."
                 },
                 "access": {
                     "q": "¿Quién puede ver nuestra sala?",
