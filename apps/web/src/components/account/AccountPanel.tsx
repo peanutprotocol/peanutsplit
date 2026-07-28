@@ -17,11 +17,12 @@ import { useAccount, useRequestLink, useSignOut } from '@/lib/use-account'
  * device", offered next to a room someone is already using. Nobody is asked who
  * they are before they are allowed to split a dinner.
  *
- * Rendered inside whatever chrome the surface has (a section of the room's
- * settings drawer, a sheet on the landing page), so it draws no heading of its
- * own.
+ * `heading` is optional because the two call sites differ: the room's settings
+ * drawer needs the section label to belong to this component (so a panel that
+ * renders nothing does not leave a title hanging over empty space), while the
+ * landing sheet already says it in the drawer title.
  */
-export function AccountPanel() {
+export function AccountPanel({ heading }: { heading?: string }) {
     const t = useTranslations('account')
     const errorMessage = useErrorMessage()
     const { data: account, isPending } = useAccount()
@@ -34,7 +35,8 @@ export function AccountPanel() {
     // Belt and braces — every call site is already flag-gated, and this is the
     // component that must never appear by accident.
     if (!accountsEnabled()) return null
-    // Rather than flashing the signed-out form at someone who is signed in.
+    // Nothing at all rather than flashing the signed-out form at someone who is
+    // signed in; it resolves in one request.
     if (isPending) return null
 
     const submit = async (event: React.FormEvent) => {
@@ -53,76 +55,78 @@ export function AccountPanel() {
         }
     }
 
-    if (account) {
-        return (
-            <div className="flex flex-col gap-2 rounded-sm border border-n-1 bg-white p-3">
-                <p className="text-h8">{account.email ? t('signedInAs', { email: account.email }) : t('signedIn')}</p>
-                <p className="text-sm text-grey-1">{t('signedInHint')}</p>
-                <Button
-                    variant="stroke"
-                    size="medium"
-                    className="mt-1 justify-center"
-                    loading={signOut.isPending}
-                    onClick={() => signOut.mutate()}
-                >
-                    {t('signOut')}
-                </Button>
-            </div>
-        )
-    }
-
-    if (sent) {
-        return (
-            <div className="flex flex-col gap-2 rounded-sm border border-n-1 bg-white p-3">
-                <p className="text-h8">{t('sentTitle')}</p>
-                {/* Identical whether or not that address has an account: the API
-                    answers the same way for both, and a UI that distinguished
-                    them would hand back exactly what the API refuses to tell. */}
-                <p className="text-sm text-grey-1">{t('sentBody')}</p>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setSent(false)
-                        setEmail('')
-                    }}
-                    className="self-start text-sm text-black underline"
-                >
-                    {t('sentAgain')}
-                </button>
-            </div>
-        )
-    }
-
     return (
-        <form onSubmit={submit} className="flex flex-col gap-2">
-            <p className="text-sm text-grey-1">{t('blurb')}</p>
-            <BaseInput
-                type="email"
-                variant="sm"
-                required
-                autoComplete="email"
-                inputMode="email"
-                aria-label={t('emailLabel')}
-                placeholder={t('emailPlaceholder')}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                data-testid="account-email"
-            />
-            {error && (
-                <p role="alert" className="text-sm font-bold text-error">
-                    {error}
-                </p>
+        <div className="mt-2 flex flex-col gap-2">
+            {heading && <span className="text-h8 uppercase tracking-wide text-grey-1">{heading}</span>}
+
+            {account ? (
+                <div className="flex flex-col gap-2 rounded-sm border border-n-1 bg-white p-3">
+                    <p className="text-h8">
+                        {account.email ? t('signedInAs', { email: account.email }) : t('signedIn')}
+                    </p>
+                    <p className="text-sm text-grey-1">{t('signedInHint')}</p>
+                    <Button
+                        variant="stroke"
+                        size="medium"
+                        className="mt-1 justify-center"
+                        loading={signOut.isPending}
+                        onClick={() => signOut.mutate()}
+                        data-testid="account-sign-out"
+                    >
+                        {t('signOut')}
+                    </Button>
+                </div>
+            ) : sent ? (
+                <div className="flex flex-col gap-2 rounded-sm border border-n-1 bg-white p-3">
+                    <p className="text-h8">{t('sentTitle')}</p>
+                    {/* Identical whether or not that address has an account: the
+                        API answers the same way for both, and a UI that told
+                        them apart would hand back exactly what the API refuses
+                        to disclose. */}
+                    <p className="text-sm text-grey-1">{t('sentBody')}</p>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSent(false)
+                            setEmail('')
+                        }}
+                        className="self-start text-sm text-black underline"
+                    >
+                        {t('sentAgain')}
+                    </button>
+                </div>
+            ) : (
+                <form onSubmit={submit} className="flex flex-col gap-2">
+                    <p className="text-sm text-grey-1">{t('blurb')}</p>
+                    <BaseInput
+                        type="email"
+                        variant="sm"
+                        required
+                        autoComplete="email"
+                        inputMode="email"
+                        aria-label={t('emailLabel')}
+                        placeholder={t('emailPlaceholder')}
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        data-testid="account-email"
+                    />
+                    {error && (
+                        <p role="alert" className="text-sm font-bold text-error">
+                            {error}
+                        </p>
+                    )}
+                    <Button
+                        type="submit"
+                        variant="stroke"
+                        size="medium"
+                        className="justify-center"
+                        loading={requestLink.isPending}
+                        data-testid="account-submit"
+                    >
+                        {t('submit')}
+                    </Button>
+                </form>
             )}
-            <Button
-                type="submit"
-                variant="stroke"
-                size="medium"
-                className="justify-center"
-                loading={requestLink.isPending}
-                data-testid="account-submit"
-            >
-                {t('submit')}
-            </Button>
-        </form>
+        </div>
     )
 }
