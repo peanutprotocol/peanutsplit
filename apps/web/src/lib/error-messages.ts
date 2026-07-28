@@ -49,9 +49,8 @@ export const KNOWN_ERROR_CODES = [
     'SETTLEMENT_PAYER_NOT_MEMBER',
     'SETTLEMENT_PAYEE_NOT_MEMBER',
     'SETTLEMENT_SAME_MEMBER',
-    // Receipt scan. `RATE_LIMITED` is deliberately absent from this list still —
-    // it has no catalog entry and degrades to the server's English sentence,
-    // which is the pre-existing behaviour and not this feature's to change.
+    'MEMBER_TOKEN_INVALID',
+    // Receipt scan.
     'SCAN_UNAVAILABLE',
     'SCAN_IMAGE_TOO_LARGE',
     'SCAN_BAD_IMAGE',

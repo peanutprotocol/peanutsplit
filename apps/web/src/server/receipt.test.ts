@@ -210,4 +210,3 @@ describe('normalizeReceipt — the optional fields', () => {
         expect(one({ merchant: '   ' }).merchant).toBeNull()
     })
 })
-
