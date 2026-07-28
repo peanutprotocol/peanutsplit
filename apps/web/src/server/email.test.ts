@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { magicLinkUrl, renderMagicLinkEmail, sendMagicLink } from '@/server/email'
+import { magicLinkUrl, parseFrom, renderMagicLinkEmail, sendMagicLink } from '@/server/email'
 
 afterEach(() => {
     delete process.env.RESEND_API_KEY
     delete process.env.SPLIT_EMAIL_FROM
+    delete process.env.SPLIT_ONESIGNAL_APP_ID
+    delete process.env.SPLIT_ONESIGNAL_API_KEY
     vi.restoreAllMocks()
 })
 
@@ -67,6 +69,49 @@ describe('magic-link email', () => {
             reason: 'rejected',
             deadToken: false,
         })
+    })
+
+    it('prefers OneSignal when both transports are configured, and targets the address directly', async () => {
+        process.env.SPLIT_ONESIGNAL_APP_ID = 'app-uuid'
+        process.env.SPLIT_ONESIGNAL_API_KEY = 'os-key'
+        process.env.RESEND_API_KEY = 'resend-key'
+        process.env.SPLIT_EMAIL_FROM = 'Peanut Split <hello@peanutsplit.com>'
+
+        const fetchSpy = vi
+            .spyOn(globalThis, 'fetch')
+            .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'os-1' }), { status: 200 }))
+
+        expect(await sendMagicLink('ana@example.com', 'http://x/y')).toEqual({ ok: true, id: 'os-1' })
+        const [endpoint, init] = fetchSpy.mock.calls[0]
+        expect(String(endpoint)).toContain('api.onesignal.com')
+        const body = JSON.parse(String(init?.body))
+        expect(body.app_id).toBe('app-uuid')
+        expect(body.include_email_tokens).toEqual(['ana@example.com'])
+        expect(body.email_from_address).toBe('hello@peanutsplit.com')
+        expect(body.email_from_name).toBe('Peanut Split')
+    })
+
+    it('reads a OneSignal 200-with-errors as the rejection it is, dead on invalid_email', async () => {
+        process.env.SPLIT_ONESIGNAL_APP_ID = 'app-uuid'
+        process.env.SPLIT_ONESIGNAL_API_KEY = 'os-key'
+        process.env.SPLIT_EMAIL_FROM = 'hello@peanutsplit.com'
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+            new Response(JSON.stringify({ id: '', errors: { invalid_email_tokens: ['nope@example'] } }), {
+                status: 200,
+            })
+        )
+
+        expect(await sendMagicLink('nope@example', 'http://x/y')).toEqual({
+            ok: false,
+            reason: 'rejected',
+            deadToken: true,
+        })
+    })
+
+    it('splits a display-name from address and passes a bare address through', () => {
+        expect(parseFrom('Peanut Split <hi@x.com>')).toEqual({ name: 'Peanut Split', address: 'hi@x.com' })
+        expect(parseFrom('hi@x.com')).toEqual({ name: null, address: 'hi@x.com' })
     })
 
     it('treats a dead network as soft — the address is fine, the hop is not', async () => {
