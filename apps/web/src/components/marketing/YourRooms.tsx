@@ -38,7 +38,7 @@ export function YourRooms() {
     const locale = useLocale()
     const [recent, setRecent] = useState<RecentRoom[]>([])
     const [saveOpen, setSaveOpen] = useState(false)
-    const { data: account } = useAccount()
+    const { data: account, isPending: accountPending } = useAccount()
 
     useEffect(() => {
         const read = () => setRecent(readRecentRooms())
@@ -53,6 +53,10 @@ export function YourRooms() {
     if (recent.length === 0) return null
 
     const signedIn = accountsEnabled() && !!account
+    // Only once we know the answer: offering to save rooms that are already
+    // saved, for the half-second the session query takes, is the one way this
+    // quiet line could read as nagging.
+    const offerToSave = accountsEnabled() && !accountPending && !account
 
     const visible = recent.slice(0, VISIBLE)
     const overflow = recent.length - visible.length
@@ -112,7 +116,7 @@ export function YourRooms() {
                 modal, no timer, no dismiss state to remember. The pitch only
                 makes sense once there is something to lose, which is why it
                 lives here and not on an empty landing page. */}
-            {accountsEnabled() && !account && (
+            {offerToSave && (
                 <button
                     type="button"
                     onClick={() => setSaveOpen(true)}

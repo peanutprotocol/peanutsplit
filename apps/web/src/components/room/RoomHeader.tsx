@@ -11,7 +11,6 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { Icon } from '@/components/ui/Icon'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import type { ApiRoom } from '@/lib/api-types'
-import { accountsEnabled } from '@/lib/flags'
 import type { MemberIdentity } from '@/lib/identity'
 import { triggerHaptic, useSettings } from '@/lib/use-settings'
 
@@ -179,12 +178,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                         {/* An account is optional, does nothing but carry your rooms to
                             another device, and never gates anything in this drawer or
                             outside it. Hidden entirely until the flag is on. */}
-                        {accountsEnabled() && (
-                            <div className="mt-2 flex flex-col gap-2">
-                                <span className="text-h8 uppercase tracking-wide text-grey-1">{tAccount('title')}</span>
-                                <AccountPanel />
-                            </div>
-                        )}
+                        <AccountPanel heading={tAccount('title')} />
 
                         {/* The room drawer is the only place a language can be changed inside
                             the product — the landing footer is the other, and a room is where
