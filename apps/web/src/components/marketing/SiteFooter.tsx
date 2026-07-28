@@ -69,7 +69,7 @@ export function SiteFooter({
                     rel="noopener noreferrer"
                     className="inline-flex transition-opacity hover:opacity-80"
                 >
-                    <Image src={peanutLogo} alt={t('logoAlt')} width={104} height={38} unoptimized />
+                    <Image src={peanutLogo} alt={t('logoAlt')} width={104} height={26} unoptimized />
                 </a>
                 <p className="mt-2 text-sm text-white/70">{t('tagline')}</p>
 
