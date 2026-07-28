@@ -139,6 +139,7 @@
             "editTitle": "Editar gasto",
             "amount": "Monto",
             "currency": "Moneda del gasto",
+            "foreignHint": "convertido a un tipo de cambio indicativo",
             "description": "¿De qué fue?",
             "descriptionPlaceholder": "Cena, taxi, pase de esquí…",
             "paidBy": "Pagado por",
@@ -228,6 +229,11 @@
             "readyTitle": "Tu sala está lista",
             "readySubtitle": "Envía este link a todos los que dividen. Sin app, sin registro — solo lo tocan.",
             "goToRoom": "Ir a la sala"
+        },
+        "currency": {
+            "suggested": "Sugeridas",
+            "all": "Todas las monedas",
+            "useSuggestion": "Usar {name}"
         }
     },
     "errors": {
