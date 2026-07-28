@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { ApiExpense, RoomState } from './api-types'
+import type { ApiExpense, ApiMember, RoomState } from './api-types'
 import { isRoomSettled, savedExpenses } from './pending'
 
-const expense = (id: string): ApiExpense => ({
+/** Ana paid, Ana and Bea share it — a debt between two people, which is the only
+ *  kind of expense a room can ever have SETTLED. */
+const expense = (id: string, overrides: Partial<ApiExpense> = {}): ApiExpense => ({
     id,
     description: 'Dinner',
     amountMinor: '6000',
@@ -15,11 +17,21 @@ const expense = (id: string): ApiExpense => ({
     date: '2026-07-01T00:00:00.000Z',
     category: null,
     createdAt: '2026-07-01T00:00:00.000Z',
-    shares: [{ memberId: 'ana', amountMinor: '6000', enteredAmountMinor: null }],
+    shares: [
+        { memberId: 'ana', amountMinor: '3000', enteredAmountMinor: null },
+        { memberId: 'bea', amountMinor: '3000', enteredAmountMinor: null },
+    ],
     reactions: [],
+    ...overrides,
 })
 
-const room = (expenses: ApiExpense[], transfers: RoomState['suggestedTransfers'] = []): RoomState => ({
+const member = (id: string, name: string): ApiMember => ({ id, name, createdAt: '2026-07-01T00:00:00.000Z' })
+
+const room = (
+    expenses: ApiExpense[],
+    transfers: RoomState['suggestedTransfers'] = [],
+    members: ApiMember[] = [member('ana', 'Ana'), member('bea', 'Bea')]
+): RoomState => ({
     room: {
         id: 'r1',
         slug: 'ski-trip-aaa',
@@ -31,10 +43,10 @@ const room = (expenses: ApiExpense[], transfers: RoomState['suggestedTransfers']
         createdAt: '2026-07-01T00:00:00.000Z',
         archivedAt: null,
     },
-    members: [{ id: 'ana', name: 'Ana', createdAt: '2026-07-01T00:00:00.000Z' }],
+    members,
     expenses,
     settlements: [],
-    balances: { ana: '0' },
+    balances: Object.fromEntries(members.map((m) => [m.id, '0'])),
     suggestedTransfers: transfers,
 })
 
@@ -75,5 +87,44 @@ describe('isRoomSettled', () => {
     it('an empty room is empty, not settled', () => {
         expect(isRoomSettled(room([]))).toBe(false)
         expect(isRoomSettled(undefined)).toBe(false)
+    })
+
+    // ── the two states a person was congratulated in ─────────────────────────
+
+    /** Persona repro: an organiser opens a room, logs the deposit they paid, and
+     *  is told they are all settled up before anybody else has even tapped the
+     *  link. There is no second party — nothing could have been owed. */
+    it('a room with one member is never settled, however much it holds', () => {
+        const solo = room(
+            [
+                expense('real-1', {
+                    shares: [{ memberId: 'ana', amountMinor: '6000', enteredAmountMinor: null }],
+                }),
+            ],
+            [],
+            [member('ana', 'Ana')]
+        )
+        expect(isRoomSettled(solo)).toBe(false)
+    })
+
+    /** Persona repro: two people in the room, and the only expense so far is one
+     *  of them logging something they bought for themselves. Real money, no debt. */
+    it('a room whose expenses never crossed between people is not settled', () => {
+        const ownCoffee = expense('real-1', {
+            shares: [{ memberId: 'ana', amountMinor: '6000', enteredAmountMinor: null }],
+        })
+        expect(isRoomSettled(room([ownCoffee]))).toBe(false)
+    })
+
+    /** …and the counterpart, which a share COUNT would have got wrong: one share,
+     *  sitting on somebody who did not pay, is exactly a debt. This is the shape
+     *  the importer writes for a brought-forward balance. */
+    it('a single share on somebody other than the payer is a real debt', () => {
+        const covered = expense('real-1', {
+            splitMode: 'EXACT',
+            shares: [{ memberId: 'bea', amountMinor: '6000', enteredAmountMinor: '6000' }],
+        })
+        expect(isRoomSettled(room([covered]))).toBe(true)
+        expect(isRoomSettled(room([covered], [{ fromId: 'bea', toId: 'ana', amountMinor: '6000' }]))).toBe(false)
     })
 })

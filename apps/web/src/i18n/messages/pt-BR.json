@@ -280,7 +280,8 @@
             "you": "Você",
             "settled": "sem dívidas",
             "owes": "deve",
-            "getsBack": "recebe"
+            "getsBack": "recebe",
+            "nothingYet": "nada ainda"
         },
         "expenses": {
             "title": "Gastos",

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { isZeroMinor } from '@/lib/money'
+import { savedExpenses } from '@/lib/pending'
 import { useFeedback } from '@/lib/use-settings'
 import { AnimatedMoney } from './Money'
 import { MemberAvatar } from './MemberAvatar'
@@ -23,13 +24,22 @@ interface BalanceStripProps {
  * Takes the translator rather than returning a key to look up later: every key stays a literal
  * at the point it is read, which is what lets `pnpm i18n:audit` verify all three exist.
  */
-const toneFor = (net: string, t: (key: string) => string) => {
+const toneFor = (net: string, t: (key: string) => string, anySavedExpenses: boolean) => {
     // Only the settled card takes the room's tint. Red and green carry meaning —
     // a theme is allowed to tint the neutral state and nothing else, or "owes"
     // stops being a colour you can trust across two rooms. Classic's tint is
     // white, so the default palette is unchanged.
     if (isZeroMinor(net))
-        return { card: 'bg-[var(--split-theme-tint,#FFFFFF)]', label: t('settled'), labelClass: 'text-n-3' }
+        return {
+            card: 'bg-[var(--split-theme-tint,#FFFFFF)]',
+            // "settled up" is a claim about a debt that got paid. Before the
+            // server holds a single expense there was no debt, so the zero is an
+            // empty ledger and has to say so — the same false congratulation
+            // `isRoomSettled` refuses one card lower. Every member of a brand-new
+            // room read "SETTLED UP" the moment they joined.
+            label: anySavedExpenses ? t('settled') : t('nothingYet'),
+            labelClass: 'text-n-3',
+        }
     if (net.startsWith('-')) return { card: 'bg-error-1', label: t('owes'), labelClass: 'text-n-1' }
     return { card: 'bg-green-1', label: t('getsBack'), labelClass: 'text-n-1' }
 }
@@ -43,6 +53,9 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
     const t = useTranslations('room.balances')
     const tDerivation = useTranslations('derivation')
     const feedback = useFeedback()
+    // Server truth, not the merged list: a queued expense has moved no balance
+    // yet, so it cannot be the reason a zero stops meaning "nothing yet".
+    const anySavedExpenses = savedExpenses(state.expenses).length > 0
     // Seeded on the first render so the initial roster does not fire n pops.
     const known = useRef<Set<string> | null>(null)
 
@@ -68,7 +81,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                     <AnimatePresence initial={false}>
                         {state.members.map((member) => {
                             const net = state.balances[member.id] ?? '0'
-                            const tone = toneFor(net, t)
+                            const tone = toneFor(net, t, anySavedExpenses)
                             return (
                                 <motion.li
                                     key={member.id}
