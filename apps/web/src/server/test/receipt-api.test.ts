@@ -1,0 +1,265 @@
+/**
+ * The receipt-scan route, handler-level.
+ *
+ * Only one boundary is faked: the `fetch` to the vision API. Everything else —
+ * the room, the rate limiters, the schemas, the error envelope — is the real
+ * thing, because every gate in this file exists to stop a request reaching that
+ * boundary and a mock of the gates would prove nothing.
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { truncateAll } from '@/server/test/db'
+import { MAX_IMAGE_BASE64_CHARS, resetRoomScanLimits } from '@/server/receipt'
+import { resetRateLimits } from '@/server/rateLimit'
+import { GET as scanStatus, POST as scanParse } from '@/app/api/rooms/[slug]/receipt-parse/route'
+import { POST as postRoom } from '@/app/api/rooms/route'
+import type { ApiError, ParsedReceipt, RoomStateWithMember } from '@/lib/api-types'
+
+const BASE = 'http://localhost'
+const API_KEY = 'test-gemini-key'
+
+/** Valid base64 characters; the bytes are never decoded by anything under test. */
+const image = (chars = 2048) => 'A'.repeat(chars)
+
+const post = async <T>(slug: string, body: unknown, init: { contentLength?: number } = {}) => {
+    const request = new Request(`${BASE}/api/rooms/${slug}/receipt-parse`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(init.contentLength ? { 'Content-Length': String(init.contentLength) } : {}),
+        },
+        body: JSON.stringify(body),
+    })
+    const response = await scanParse(request, { params: Promise.resolve({ slug }) })
+    return { status: response.status, body: (await response.json()) as T }
+}
+
+/** What the model would have answered. `parts` is the shape the REST API uses. */
+const modelAnswer = (payload: unknown) =>
+    new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(payload) }] } }] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+    })
+
+const newRoom = async (): Promise<string> => {
+    const request = new Request(`${BASE}/api/rooms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Ski Trip', currency: 'EUR', creatorName: 'Ana' }),
+    })
+    const response = await postRoom(request)
+    const state = (await response.json()) as RoomStateWithMember
+    return state.room.slug
+}
+
+beforeEach(async () => {
+    await truncateAll()
+    resetRateLimits()
+    resetRoomScanLimits()
+    process.env.SPLIT_GEMINI_API_KEY = API_KEY
+    delete process.env.SPLIT_SCAN_PROXY_URL
+})
+
+afterEach(() => {
+    vi.unstubAllGlobals()
+    delete process.env.SPLIT_GEMINI_API_KEY
+})
+
+describe('capability probe', () => {
+    it('reports enabled when a key is configured, and caches the answer', async () => {
+        const response = scanStatus()
+        expect(response.status).toBe(200)
+        expect(await response.json()).toEqual({ enabled: true })
+        expect(response.headers.get('Cache-Control')).toContain('max-age=3600')
+    })
+
+    it('reports disabled with no key — the UI hides the whole feature on this', async () => {
+        delete process.env.SPLIT_GEMINI_API_KEY
+        expect(await scanStatus().json()).toEqual({ enabled: false })
+    })
+})
+
+describe('POST — the gates in front of the model', () => {
+    it('answers 503 with no key, without touching the database', async () => {
+        delete process.env.SPLIT_GEMINI_API_KEY
+        const fetchMock = vi.fn()
+        vi.stubGlobal('fetch', fetchMock)
+
+        const { status, body } = await post<ApiError>('does-not-exist', {
+            imageBase64: image(),
+            mimeType: 'image/jpeg',
+        })
+        expect(status).toBe(503)
+        expect(body.error.code).toBe('SCAN_UNAVAILABLE')
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('answers 413 on an oversized image', async () => {
+        const slug = await newRoom()
+        const fetchMock = vi.fn()
+        vi.stubGlobal('fetch', fetchMock)
+
+        const { status, body } = await post<ApiError>(slug, {
+            imageBase64: image(MAX_IMAGE_BASE64_CHARS + 4),
+            mimeType: 'image/jpeg',
+        })
+        expect(status).toBe(413)
+        expect(body.error.code).toBe('SCAN_IMAGE_TOO_LARGE')
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('answers 413 on a declared content-length past the ceiling, before reading the body', async () => {
+        const slug = await newRoom()
+        const { status, body } = await post<ApiError>(
+            slug,
+            { imageBase64: image(), mimeType: 'image/jpeg' },
+            { contentLength: MAX_IMAGE_BASE64_CHARS * 2 }
+        )
+        expect(status).toBe(413)
+        expect(body.error.code).toBe('SCAN_IMAGE_TOO_LARGE')
+    })
+
+    it('rejects an image type the model does not take', async () => {
+        const slug = await newRoom()
+        const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/gif' })
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('VALIDATION_ERROR')
+    })
+
+    it('rejects a data: URL left on the front of the base64', async () => {
+        const slug = await newRoom()
+        const { status, body } = await post<ApiError>(slug, {
+            imageBase64: `data:image/jpeg;base64,${image()}`,
+            mimeType: 'image/jpeg',
+        })
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('SCAN_BAD_IMAGE')
+    })
+
+    it('404s an unknown room', async () => {
+        vi.stubGlobal('fetch', vi.fn())
+        const { status, body } = await post<ApiError>('no-such-room-aaaaaa', {
+            imageBase64: image(),
+            mimeType: 'image/jpeg',
+        })
+        expect(status).toBe(404)
+        expect(body.error.code).toBe('NOT_FOUND')
+    })
+
+    it('caps a single IP at ten scans an hour', async () => {
+        const slug = await newRoom()
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () => modelAnswer({ items: [{ label: 'Beer', amountMinor: '500' }] }))
+        )
+
+        for (let i = 0; i < 10; i++) {
+            const { status } = await post<ParsedReceipt>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+            expect(status).toBe(200)
+        }
+        const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        expect(status).toBe(429)
+        expect(body.error.code).toBe('RATE_LIMITED')
+    })
+
+    it('caps a room at its daily allowance even across IPs', async () => {
+        const slug = await newRoom()
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () => modelAnswer({ items: [{ label: 'Beer', amountMinor: '500' }] }))
+        )
+
+        // The per-IP limiter would fire first, so it is reset between calls —
+        // this test is about the room bucket surviving a change of address.
+        for (let i = 0; i < 30; i++) {
+            resetRateLimits()
+            const { status } = await post<ParsedReceipt>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+            expect(status).toBe(200)
+        }
+        resetRateLimits()
+        const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        expect(status).toBe(429)
+        expect(body.error.code).toBe('SCAN_ROOM_LIMIT')
+    })
+})
+
+describe('POST — the model boundary', () => {
+    it('returns normalised items and sends the image as inline data with the key in a header', async () => {
+        const slug = await newRoom()
+        const fetchMock = vi.fn(async () =>
+            modelAnswer({
+                items: [
+                    { label: 'Margherita', amountMinor: '1200', quantity: 2 },
+                    { label: 'Water', amountMinor: '350' },
+                ],
+                total: { amountMinor: '1550' },
+                currency: 'EUR',
+                merchant: 'Da Nino',
+                date: '2026-07-15',
+            })
+        )
+        vi.stubGlobal('fetch', fetchMock)
+
+        const { status, body } = await post<ParsedReceipt>(slug, {
+            imageBase64: image(),
+            mimeType: 'image/jpeg',
+        })
+
+        expect(status).toBe(200)
+        expect(body.items).toHaveLength(2)
+        expect(body.suggestedTotalMinor).toBe('1550')
+        expect(body.receiptTotalMinor).toBe('1550')
+        expect(body.currency).toBe('EUR')
+        expect(body.merchant).toBe('Da Nino')
+        expect(body.date).toBe('2026-07-15')
+
+        // The mock declares no parameters, so its recorded call tuple is typed
+        // empty — through `unknown` is the only way to read the arguments back.
+        const [url, init] = fetchMock.mock.calls[0] as unknown as [
+            string,
+            RequestInit & { headers: Record<string, string> },
+        ]
+        expect(url).toContain('generativelanguage.googleapis.com')
+        expect(init.headers['x-goog-api-key']).toBe(API_KEY)
+        const sent = JSON.parse(String(init.body))
+        expect(sent.contents[0].parts[1].inline_data).toEqual({ mime_type: 'image/jpeg', data: image() })
+        expect(sent.generationConfig.responseMimeType).toBe('application/json')
+    })
+
+    it('turns an upstream rejection into a 502 the client can translate', async () => {
+        const slug = await newRoom()
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () => new Response('nope', { status: 429 }))
+        )
+
+        const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        expect(status).toBe(502)
+        expect(body.error.code).toBe('SCAN_FAILED')
+    })
+
+    it('turns a transport failure into a 502 rather than a 500', async () => {
+        const slug = await newRoom()
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () => {
+                throw new Error('connect ECONNREFUSED')
+            })
+        )
+
+        const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        expect(status).toBe(502)
+        expect(body.error.code).toBe('SCAN_FAILED')
+    })
+
+    it('reports "nothing readable" distinctly from "the call failed"', async () => {
+        const slug = await newRoom()
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () => modelAnswer({ items: [] }))
+        )
+
+        const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        expect(status).toBe(422)
+        expect(body.error.code).toBe('SCAN_NO_ITEMS')
+    })
+})
