@@ -192,6 +192,102 @@ export function formatMoney(
     }
 }
 
+/**
+ * One run of the formatted amount. `currency` is the symbol (or code) Intl chose and is the only
+ * part worth styling apart; everything else — digits, separators, the non-breaking space some
+ * locales put between them — is merged into `text` runs so the caller never has to reason about
+ * Intl's part vocabulary.
+ */
+export interface MoneyPart {
+    type: 'currency' | 'text'
+    value: string
+}
+
+/**
+ * `formatMoney`, split so the symbol can be rendered as its own object rather than as three
+ * characters of the number.
+ *
+ * Deliberately built from `formatToParts` rather than by string-searching for the symbol: `$` is
+ * the symbol of four catalog currencies, symbol placement flips between locales (`€12.34` vs
+ * `12,34 €`), and a search would eventually find the `$` inside an amount rather than in front
+ * of it. If the engine cannot take a decimal string here, the whole amount comes back as one
+ * `text` run — degraded styling, never a lost or wrong number.
+ */
+export function formatMoneyParts(
+    minor: string,
+    code: string,
+    catalog?: readonly CurrencyInfo[],
+    locale: string = DEFAULT_LOCALE
+): MoneyPart[] {
+    const info = currencyInfo(code, catalog)
+    const plain = formatMinorPlain(minor, info.decimals)
+    try {
+        const merged: MoneyPart[] = []
+        for (const part of moneyFormatter(locale, info).formatToParts(plain as unknown as number)) {
+            const type: MoneyPart['type'] = part.type === 'currency' ? 'currency' : 'text'
+            const last = merged[merged.length - 1]
+            if (last && last.type === type) last.value += part.value
+            else merged.push({ type, value: part.value })
+        }
+        if (merged.length > 0) return merged
+    } catch {
+        // Same contract as formatMoney: formatting never throws mid-render.
+    }
+    return [{ type: 'text', value: formatMoney(minor, code, catalog, locale) }]
+}
+
+/**
+ * The symbol as a standalone label, or '' when it would only repeat the code. The catalog gives
+ * CHF the symbol `CHF ` — rendering "CHF CHF" in a picker row is the kind of detail that makes a
+ * currency look like a string rather than a thing.
+ */
+export const displaySymbol = (info: CurrencyInfo): string => {
+    const symbol = info.symbol.trim()
+    return symbol === info.code ? '' : symbol
+}
+
+/**
+ * "BRL" → "Brazilian Real" in English, "real brasileño" in Spanish.
+ *
+ * `Intl.DisplayNames` is not universally implemented (and `type: 'currency'` less so than the
+ * rest), and it answers with the code itself for anything it has no name for — both of which are
+ * indistinguishable from success unless checked. So: try it, reject an answer that is just the
+ * code back, and fall through to the catalog's English name and finally the bare code. A picker
+ * row that says "BRL — BRL" is worse than one that says "BRL — Brazilian Real" in the wrong
+ * language.
+ */
+const displayNamesCache = new Map<string, Intl.DisplayNames | null>()
+
+function currencyDisplayNames(locale: string): Intl.DisplayNames | null {
+    const cached = displayNamesCache.get(locale)
+    if (cached !== undefined) return cached
+    let instance: Intl.DisplayNames | null = null
+    try {
+        instance = new Intl.DisplayNames([locale], { type: 'currency' })
+    } catch {
+        instance = null
+    }
+    displayNamesCache.set(locale, instance)
+    return instance
+}
+
+export function currencyDisplayName(
+    code: string,
+    locale: string = DEFAULT_LOCALE,
+    catalog?: readonly CurrencyInfo[]
+): string {
+    const info = currencyInfo(code, catalog)
+    if (isCurrencyCode(code)) {
+        try {
+            const named = currencyDisplayNames(locale)?.of(code.toUpperCase())
+            if (named && named.toUpperCase() !== code.toUpperCase()) return named
+        } catch {
+            // Fall through to the catalog name.
+        }
+    }
+    return info.name || code
+}
+
 /** Display-only: NumberFlow animates numbers, so the major-unit float is the
  *  one place a float is allowed near money. */
 export function minorToNumber(minor: string, decimals: number): number {

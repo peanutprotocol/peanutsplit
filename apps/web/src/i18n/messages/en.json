@@ -145,6 +145,7 @@
             "editTitle": "Edit expense",
             "amount": "Amount",
             "currency": "Expense currency",
+            "foreignHint": "converted at an indicative rate",
             "description": "What for?",
             "descriptionPlaceholder": "Dinner, taxi, lift pass…",
             "paidBy": "Paid by",
@@ -234,6 +235,11 @@
             "readyTitle": "Your room is ready",
             "readySubtitle": "Send this link to everyone splitting. No app, no signup — they just tap it.",
             "goToRoom": "Go to room"
+        },
+        "currency": {
+            "suggested": "Suggested",
+            "all": "All currencies",
+            "useSuggestion": "Use {name}"
         }
     },
     "account": {
