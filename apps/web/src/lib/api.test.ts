@@ -1,12 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiRequestError, NETWORK_ERROR_CODE, api, isApiError } from './api'
+import { ApiRequestError, EXPENSE_WRITE_TIMEOUT_MS, NETWORK_ERROR_CODE, api, isApiError } from './api'
 
 const respondWith = (status: number, body: unknown, ok = status < 400) => {
     const text = typeof body === 'string' ? body : JSON.stringify(body)
     return vi.fn().mockResolvedValue({ ok, status, text: () => Promise.resolve(text) } as unknown as Response)
 }
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+})
+
+const hangUntilAborted = () =>
+    vi.fn((_url: string | URL | Request, init?: RequestInit) => {
+        return new Promise<Response>((_resolve, reject) => {
+            const signal = init?.signal
+            if (!signal) return
+            const rejectAbort = () => reject(new DOMException('aborted', 'AbortError'))
+            if (signal.aborted) rejectAbort()
+            else signal.addEventListener('abort', rejectAbort, { once: true })
+        })
+    })
 
 describe('api error paths', () => {
     it('unwraps the { error: { code, message } } envelope', async () => {
@@ -113,5 +127,54 @@ describe('api requests', () => {
         })
 
         expect(JSON.parse(fetchMock.mock.calls[0][1].body).clientKey).toBe('legacy-queue-key-0001')
+    })
+
+    it('maps an initial expense timeout to NETWORK_ERROR without changing its client key', async () => {
+        vi.useFakeTimers()
+        const fetchMock = hangUntilAborted()
+        vi.stubGlobal('fetch', fetchMock)
+
+        const result = api
+            .addExpense('room-a', {
+                clientKey: 'first-attempt-key-0001',
+                description: 'Dinner',
+                amountMinor: '2000',
+                currency: 'EUR',
+                paidById: 'm1',
+                splitMode: 'EQUAL',
+            })
+            .catch((error) => error)
+        await vi.advanceTimersByTimeAsync(EXPENSE_WRITE_TIMEOUT_MS)
+
+        const failure = await result
+        expect(isApiError(failure, NETWORK_ERROR_CODE)).toBe(true)
+        expect(failure.status).toBe(0)
+        expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string).clientKey).toBe('first-attempt-key-0001')
+    })
+
+    it('maps a queued replay timeout to NETWORK_ERROR and reuses the stored client key', async () => {
+        vi.useFakeTimers()
+        const fetchMock = hangUntilAborted()
+        vi.stubGlobal('fetch', fetchMock)
+
+        const result = api
+            .replayWrite({
+                clientKey: 'queued-replay-key-0001',
+                endpoint: '/api/rooms/room-a/expenses',
+                method: 'POST',
+                body: {
+                    description: 'Dinner',
+                    amountMinor: '2000',
+                    currency: 'EUR',
+                    paidById: 'm1',
+                    splitMode: 'EQUAL',
+                },
+            })
+            .catch((error) => error)
+        await vi.advanceTimersByTimeAsync(EXPENSE_WRITE_TIMEOUT_MS)
+
+        const failure = await result
+        expect(isApiError(failure, NETWORK_ERROR_CODE)).toBe(true)
+        expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string).clientKey).toBe('queued-replay-key-0001')
     })
 })
