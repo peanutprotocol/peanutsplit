@@ -1,5 +1,20 @@
 'use client'
 
+/**
+ * Reactions on an expense row: the pills that are already there, plus a way to
+ * add one.
+ *
+ * A "+" affordance rather than a long-press, even though the hook exists. The
+ * row itself is a button that opens the expense drawer, and a long-press on a
+ * button still fires its click on release — the two gestures would fight, and
+ * the loser would be someone trying to react who gets an edit sheet instead. A
+ * small explicit target is also the only version that works with a keyboard.
+ *
+ * This is the room's social layer and deliberately its whole extent: reactions
+ * are the allowed subset of "messaging in the room", and there is no thread
+ * hanging off them.
+ */
+
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
@@ -24,20 +39,6 @@ interface ReactionBarProps {
     token?: string | null
 }
 
-/**
- * Reactions on an expense row: the pills that are already there, plus a way to
- * add one.
- *
- * A "+" affordance rather than a long-press, even though the hook exists. The
- * row itself is a button that opens the expense drawer, and a long-press on a
- * button still fires its click on release — the two gestures would fight, and
- * the loser would be someone trying to react who gets an edit sheet instead. A
- * small explicit target is also the only version that works with a keyboard.
- *
- * This is the room's social layer and deliberately its whole extent: reactions
- * are the allowed subset of "messaging in the room", and there is no thread
- * hanging off them.
- */
 export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
     const t = useTranslations('room.reactions')
     const errorMessage = useErrorMessage()

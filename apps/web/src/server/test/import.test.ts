@@ -21,7 +21,7 @@ import {
     SIMPLE_GROUP,
     WITH_PAYMENTS,
     generateGroup,
-} from '@/lib/splitwise-fixtures'
+} from '@/lib/__fixtures__/splitwise'
 import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
