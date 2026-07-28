@@ -41,7 +41,23 @@ export default defineConfig({
         // libavif16, …) that neither this box nor a plain CI image ships, and the
         // journey asserts layout-independent backend truth. Swap `browserName`
         // back to webkit once those deps are part of the image.
-        { name: 'mobile', use: { ...devices['iPhone 14'], browserName: 'chromium' } },
-        { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
+        {
+            name: 'mobile',
+            use: {
+                ...devices['iPhone 14'],
+                browserName: 'chromium',
+                // The two projects model independent visitors. Keeping their
+                // TEST-NET addresses distinct prevents one project's room/member
+                // creation budget from making the other project's QA order-dependent.
+                extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.10' },
+            },
+        },
+        {
+            name: 'desktop',
+            use: {
+                ...devices['Desktop Chrome'],
+                extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.11' },
+            },
+        },
     ],
 })
