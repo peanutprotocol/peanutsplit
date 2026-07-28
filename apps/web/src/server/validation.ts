@@ -124,11 +124,14 @@ export type SettlementBody = z.infer<typeof settlementSchema>
  * `null` is the default palette and is always legal.
  */
 export const roomThemeSchema = z.object({
+    // `nullable`, not `nullish`: an absent key would silently mean "back to the
+    // default palette", and a PATCH that resets a room because a field got
+    // dropped somewhere in the client is the kind of bug nobody reproduces.
     theme: z
         .string()
         .max(40)
-        .nullish()
-        .refine((value) => value == null || isThemeKey(value), { message: 'unknown theme' }),
+        .nullable()
+        .refine((value) => value === null || isThemeKey(value), { message: 'unknown theme' }),
 })
 
 /**
