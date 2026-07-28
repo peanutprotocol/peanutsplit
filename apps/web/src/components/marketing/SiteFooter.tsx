@@ -58,7 +58,7 @@ export function SiteFooter({
     const guides = listDocs('blog', locale).slice(0, GUIDES_SHOWN)
     const alternatives = listDocs('alternatives', locale)
 
-    const linkClass = 'flex min-h-9 items-center text-sm text-white/70 transition-colors hover:text-white'
+    const linkClass = 'flex min-h-9 items-center text-sm leading-5 text-white/70 transition-colors hover:text-white'
 
     return (
         <footer className="mt-auto bg-n-1 pb-[env(safe-area-inset-bottom)] text-white">
@@ -76,7 +76,7 @@ export function SiteFooter({
                 <nav className="mt-7 grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
                     <div>
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colSplit')}</h2>
-                        <ul className="mt-2 flex flex-col">
+                        <ul className="mt-2 flex flex-col gap-1.5">
                             <li>
                                 <Link href="/" className={linkClass}>
                                     {t('createSplit')}
@@ -92,7 +92,7 @@ export function SiteFooter({
 
                     <div>
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colCompare')}</h2>
-                        <ul className="mt-2 flex flex-col">
+                        <ul className="mt-2 flex flex-col gap-1.5">
                             {showCompareLink && (
                                 <li>
                                     <Link href="/splitwise-alternative" className={linkClass}>
@@ -112,7 +112,7 @@ export function SiteFooter({
 
                     <div>
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colGuides')}</h2>
-                        <ul className="mt-2 flex flex-col">
+                        <ul className="mt-2 flex flex-col gap-1.5">
                             {guides.map((doc) => (
                                 <li key={doc.slug}>
                                     <Link href={hrefFor('blog', doc.slug, locale)} className={linkClass}>
@@ -132,7 +132,7 @@ export function SiteFooter({
 
                     <div>
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colPeanut')}</h2>
-                        <ul className="mt-2 flex flex-col">
+                        <ul className="mt-2 flex flex-col gap-1.5">
                             {PEANUT_LINKS.map((entry) => (
                                 <li key={entry.key}>
                                     <a

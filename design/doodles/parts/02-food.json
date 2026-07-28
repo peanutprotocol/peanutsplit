@@ -5,7 +5,7 @@
     "note": "a slice of pizza, crust up, three pepperoni"
   },
   "beer": {
-    "d": "M7 8.5L8.5 27.5H19.5L21 8.5ZM7.4 12.8Q11 8.8 14.2 12.8T20.6 12.8M21 13.5C25.5 13.5 25.5 21 21 21",
+    "d": "M6 7L7.5 27.5H19L20.5 7ZM6.4 11.5Q10 6.5 13.4 11.5T20.2 11.5M20.5 12.5C25.5 12.5 25.5 21 20.5 21",
     "note": "a beer mug with a handle and a head of foam"
   },
   "noodles": {
@@ -30,7 +30,7 @@
     "note": "a burger: domed bun, lettuce, base"
   },
   "sushi": {
-    "d": "M4.5 14V10.6A3.55 3.55 0 0 1 11.5 11.8A3.55 3.55 0 0 1 18.5 13A3.55 3.55 0 0 1 25.5 14.2V17.6ZM11.5 17.8L19.5 19.2A4 4 0 0 1 19.5 27.2L11.5 25.8A4 4 0 0 1 11.5 17.8Z",
+    "d": "M4.5 13.8V10.3A4.5 4.5 0 0 1 12.2 11.4A4.5 4.5 0 0 1 19.8 12.6A4.5 4.5 0 0 1 27.5 13.7V17.2ZM10.5 17.7L21.5 19.3A4 4 0 0 1 21.5 27.3L10.5 25.7A4 4 0 0 1 10.5 17.7Z",
     "note": "nigiri: a slab of fish draped over the rice"
   },
   "cart": {
@@ -39,7 +39,7 @@
     "note": "a shopping trolley with its handle"
   },
   "market": {
-    "d": "M4 13L6.5 8.5H25.5L28 13M4 13A5 5 0 0 0 12 13A5 5 0 0 0 20 13A5 5 0 0 0 28 13M5.5 15V27M26.5 15V27M4 21.5H28",
+    "d": "M4 13L6.5 8.5H25.5L28 13M4 13A5 5 0 0 0 12 13A5 5 0 0 0 20 13A5 5 0 0 0 28 13M7.5 15.5V27M24.5 15.5V27M5.5 21.5H26.5",
     "note": "a market stall: awning, posts, counter"
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
@@ -77,11 +77,25 @@ export function HeroCreateForm() {
     }
 
     const stem = useMemo(() => (name.trim() ? slugStem(name) : ''), [name])
-    const canSubmit = name.trim().length > 0 && creatorName.trim().length > 0 && !pending
+
+    /**
+     * The button is never disabled, which is a deliberate reversal of what `/new` does.
+     *
+     * This one is the visual anchor of the whole page — it is what the yellow band is built
+     * around — and a greyed-out primary action at the top of a landing page reads as a product
+     * that is already broken, before anyone has typed a character. So it stays black and alive,
+     * and an empty field sends the cursor to itself instead of refusing silently. Nothing can be
+     * submitted half-filled either way; the difference is whether the page looks dead while you
+     * read it.
+     */
+    const nameRef = useRef<HTMLInputElement>(null)
+    const creatorRef = useRef<HTMLInputElement>(null)
 
     const onSubmit = async (event: React.FormEvent) => {
         event.preventDefault()
-        if (!canSubmit) return
+        if (pending) return
+        if (!name.trim()) return nameRef.current?.focus()
+        if (!creatorName.trim()) return creatorRef.current?.focus()
         const state = await submit({ name, emoji, currency, creatorName })
         if (state) router.push(`/r/${state.room.slug}`)
     }
@@ -93,6 +107,7 @@ export function HeroCreateForm() {
         >
             <div className="flex items-stretch gap-2">
                 <BaseInput
+                    ref={nameRef}
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder={tCreate('namePlaceholder')}
@@ -130,6 +145,7 @@ export function HeroCreateForm() {
 
             <div className="flex items-stretch gap-2">
                 <BaseInput
+                    ref={creatorRef}
                     value={creatorName}
                     onChange={(event) => setCreatorName(event.target.value)}
                     placeholder={tCreate('creatorNamePlaceholder')}
@@ -178,7 +194,6 @@ export function HeroCreateForm() {
                 type="submit"
                 variant="dark"
                 shadowSize="4"
-                disabled={!canSubmit}
                 loading={pending}
                 className="justify-center text-h6"
                 data-testid="hero-create-room"
