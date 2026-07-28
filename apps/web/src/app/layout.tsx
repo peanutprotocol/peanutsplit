@@ -2,6 +2,8 @@ import { type Metadata, type Viewport } from 'next'
 import { Roboto_Flex, Sniglet } from 'next/font/google'
 import localFont from 'next/font/local'
 import { Providers } from '@/lib/providers'
+import { JsonLd } from '@/components/marketing/JsonLd'
+import { siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import '../styles/globals.css'
 
@@ -56,6 +58,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body
                 className={`${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`}
             >
+                {/* WebSite + Organization + SoftwareApplication, declared once for the whole
+                    site so every page's publisher can reference one entity by @id instead of
+                    re-declaring an unlinked copy. Room pages are noindex, so this costs them
+                    nothing. */}
+                <JsonLd data={siteSchema()} />
                 <Providers>{children}</Providers>
             </body>
         </html>

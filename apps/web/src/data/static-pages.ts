@@ -38,5 +38,31 @@ export const STATIC_PAGES: StaticPage[] = [
     },
 ]
 
-/** Slugs owned by a hand-built route — the content engine must not shadow these. */
-export const staticPageSlugs = new Set(STATIC_PAGES.map((page) => page.href.replace(/^\//, '')).filter(Boolean))
+/**
+ * Every root-level path Next already owns. A markdown slug matching one of these would be
+ * unreachable — the static segment wins — while still being listed on the hub and in the
+ * sitemap, which is worse than a plain 404 because it advertises a page that cannot be opened.
+ *
+ * STATIC_PAGES alone is not enough: it only knows about marketing pages, not about `/new`,
+ * `/api` or the metadata routes. Keep this in step with the top level of src/app/.
+ */
+const RESERVED_ROOT_SEGMENTS = [
+    'new',
+    'r',
+    'blog',
+    'api',
+    'healthcheck',
+    'readiness',
+    'icons',
+    'fonts',
+    'sw.js',
+    'robots.txt',
+    'sitemap.xml',
+    'manifest.webmanifest',
+]
+
+/** Slugs owned by a hand-built route or by Next itself — the content engine must not shadow these. */
+export const staticPageSlugs = new Set([
+    ...STATIC_PAGES.map((page) => page.href.replace(/^\//, '')).filter(Boolean),
+    ...RESERVED_ROOT_SEGMENTS,
+])

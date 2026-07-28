@@ -13,8 +13,13 @@ import type { Doc, Faq } from '@/lib/content'
  */
 
 const SITE_NAME = 'Peanut Split'
+
+/** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
+export const ORGANIZATION_ID = `${siteUrl}/#organization`
+
 const PUBLISHER = {
     '@type': 'Organization' as const,
+    '@id': ORGANIZATION_ID,
     name: SITE_NAME,
     url: siteUrl,
     logo: {
@@ -74,6 +79,16 @@ export function pageMetadata({
     }
 }
 
+/**
+ * Human date for anything a reader sees. An ISO string in body text reads as unrendered data.
+ * Fixed en-GB so the string does not change under the server's locale.
+ */
+export function formatDate(iso: string): string {
+    const date = new Date(`${iso}T00:00:00Z`)
+    if (Number.isNaN(date.getTime())) return iso
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+}
+
 /** `<title>` for a content page. Suffix once, here, so no article has to remember to. */
 export function pageTitle(title: string): string {
     return title.endsWith(SITE_NAME) ? title : `${title} | ${SITE_NAME}`
@@ -129,8 +144,12 @@ export function articleSchema(doc: Doc) {
         inLanguage: 'en',
         datePublished: frontmatter.date,
         dateModified: frontmatter.updated ?? frontmatter.date,
-        author: frontmatter.author ? { '@type': 'Person', name: frontmatter.author } : PUBLISHER,
-        publisher: PUBLISHER,
+        author: frontmatter.author ? { '@type': 'Person', name: frontmatter.author } : { '@id': ORGANIZATION_ID },
+        publisher: { '@id': ORGANIZATION_ID },
+        // Google lists `image` as required for an Article rich result. Deliberately the app icon
+        // and not the unfurl card: Next hash-suffixes generated `opengraph-image` routes, so any
+        // URL spelled out here would be a guess that breaks the next time the card is rebuilt.
+        image: `${siteUrl}/icons/icon-512.png`,
         mainEntityOfPage: absoluteUrl(frontmatter.canonical ?? doc.href),
         url: absoluteUrl(frontmatter.canonical ?? doc.href),
     }
