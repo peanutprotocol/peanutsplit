@@ -308,6 +308,13 @@ export interface ImportedExpenseInput {
     currencyCode: string
     costMinor: string
     paidBy: string
+    /**
+     * How the row divided. Absent means EXACT, which is what every import sent
+     * before this field existed and what an import should default to: the shares
+     * below are the truth either way, and this only decides which mode the
+     * expense opens in when somebody edits it later.
+     */
+    splitMode?: SplitMode
     /** Must add up to `costMinor` exactly. */
     shares: ImportedShareInput[]
 }

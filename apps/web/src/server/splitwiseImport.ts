@@ -12,9 +12,10 @@
  *
  * The share maths is NOT reimplemented here. Every expense goes through `buildExpense`, the same
  * function the expense drawer posts into, in EXACT mode — so FX, the rounding residue and the
- * "shares reconstruct the total" invariant all come from one place. EXACT rather than EQUAL even
- * when a split looks even, because the whole promise of an import is that the numbers are the ones
- * that were already there.
+ * "shares reconstruct the total" invariant all come from one place. EXACT ARITHMETIC ALWAYS, even
+ * for a row the parser recognised as an even split, because the whole promise of an import is that
+ * the numbers are the ones that were already there. The `splitMode` a row arrives with is a label
+ * applied afterwards, and the loop below says why the two are separable.
  */
 import { randomUUID } from 'node:crypto'
 import { Prisma } from '@prisma/client'
@@ -131,6 +132,26 @@ async function writeRoom(
                     rateTable
                 )
 
+                /**
+                 * Built through EXACT arithmetic whatever the row calls itself, and then labelled.
+                 *
+                 * The two are separable because `splitMode` is an EDITING fact, not an arithmetic
+                 * one: the shares are always the truth. Recomputing an "equal" row through
+                 * `equalShares` would put the rounding residue wherever Split puts it rather than
+                 * where Splitwise put it, which moves a cent between two people on every row that
+                 * has one — for a file of five hundred rows, a slow drift away from the balances
+                 * the group already agreed on, in exchange for nothing. So the numbers are kept
+                 * verbatim and only the label is honest, which is all the label is for: the drawer
+                 * opens in equal mode, and the first real edit is what canonicalises the shares.
+                 *
+                 * `enteredAmountMinor` goes with the label. It means "as typed" and nobody typed
+                 * these, so an EQUAL row carries nulls, exactly as the wire contract says it does.
+                 */
+                const equal = imported.splitMode === 'EQUAL'
+                const shares = equal
+                    ? write.shares.map((share) => ({ ...share, enteredAmountMinor: null }))
+                    : write.shares
+
                 // The id is minted here rather than read back, which is what lets the shares be
                 // inserted in one statement instead of one round-trip per expense.
                 const expenseId = randomUUID()
@@ -144,11 +165,11 @@ async function writeRoom(
                     fxRate: write.fxRate,
                     paidById: write.paidById,
                     createdById: creatorId,
-                    splitMode: write.splitMode,
+                    splitMode: equal ? 'EQUAL' : write.splitMode,
                     date: write.date,
                     category: write.category,
                 })
-                for (const share of write.shares) shareRows.push({ ...share, expenseId })
+                for (const share of shares) shareRows.push({ ...share, expenseId })
             }
 
             await tx.expense.createMany({ data: expenseRows })

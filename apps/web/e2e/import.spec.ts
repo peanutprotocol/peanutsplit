@@ -25,7 +25,11 @@ test('import a Splitwise export → a room whose balances match the file', async
     await expect(page.getByTestId('import-member-name')).toHaveCount(3)
     await expect(page.getByTestId('import-currency')).toHaveValue('EUR')
 
-    // Ana is the first member, so she is who the importer is by default.
+    // Nobody is picked to start with, so there is nothing to submit yet: the
+    // creator's token goes to whoever this radio names, and guessing costs the
+    // person who ran the import their own identity in the room.
+    await expect(page.getByTestId('import-submit')).toBeDisabled()
+    await page.locator('[data-testid="import-me"][data-member="Ana"]').check()
     await page.getByTestId('import-submit').click()
 
     // ── The link moment, exactly as a fresh room gets ─────────────────────

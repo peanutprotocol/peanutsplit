@@ -39,6 +39,18 @@ export interface ParsedExpense {
     costMinor: string
     /** The member who fronted it, by name. Derived — Splitwise never states it. */
     paidBy: string
+    /**
+     * How the row divided, as far as the numbers can say.
+     *
+     * Splitwise exports nets, not intent, so this is a reading rather than a
+     * fact — see `isEvenSplit`. It changes nothing about the amounts that get
+     * written (the shares below are still what lands, to the cent); it decides
+     * which mode the expense OPENS in when somebody edits it later, and whether
+     * adding a person to it re-divides or leaves the typed numbers alone. A room
+     * where every historic dinner claims to be a hand-typed exact split is a room
+     * where the edit drawer is wrong about all of them.
+     */
+    splitMode: 'EQUAL' | 'EXACT'
     /** Sums to `costMinor` exactly. Zero shares are dropped, so a member absent here owes nothing. */
     shares: ParsedShare[]
 }
@@ -69,6 +81,7 @@ export type WarningCode =
     | 'PAYMENT_ROWS'
     | 'MIXED_CURRENCY'
     | 'DUPLICATE_MEMBER_NAME'
+    | 'TRUNCATED_HISTORY'
 
 export interface ImportWarning {
     code: WarningCode
@@ -115,6 +128,8 @@ export class SplitwiseParseError extends Error {
  */
 /** A room is a group chat, not a company ledger. */
 export const MAX_MEMBERS = 20
+/** How many expense rows a room may hold. A file with more is not refused any
+ *  more — see `capHistory`; the overflow becomes an opening balance. */
 export const MAX_EXPENSES = 500
 /** Per-field ceilings. Over-long values are truncated with a warning rather than dropped: the
  *  money on the row is the point, and a description cut at 255 characters still says what it was
@@ -124,6 +139,13 @@ export const MAX_CATEGORY_CHARS = 40
 export const MAX_NAME_CHARS = 80
 /** Bounds the work before any of it is done. 5000 rows is ten years of a busy flatshare. */
 export const MAX_ROWS = 5_000
+/**
+ * How many expenses may be PARSED, as opposed to written. A multi-payer row
+ * becomes one expense per payer, so `MAX_ROWS` alone does not bound this — and
+ * everything past `MAX_EXPENSES` still has to be read, because it is what the
+ * opening balance is derived from. Beyond this the file is not a group export.
+ */
+export const MAX_PARSED_EXPENSES = MAX_ROWS
 /** Characters, checked before the state machine runs. A Splitwise export of 500 expenses is
  *  ~60 KB; a megabyte of CSV is not one of these files, whatever it is. */
 export const MAX_FILE_CHARS = 1_000_000
@@ -356,6 +378,32 @@ export function intersectAllocation(rowTotals: readonly bigint[], columnTotals: 
     return grid
 }
 
+/**
+ * Was this row an even split, or numbers somebody typed?
+ *
+ * Splitwise exports nets, never intent, so the only evidence is the shape of the
+ * shares — and with the sum pinned to the total, "equal to within a minor unit"
+ * has exactly one meaning: every share is either `floor(cost/n)` or
+ * `ceil(cost/n)`. A three-way split of 100.00 is 33.34/33.33/33.33 and passes; a
+ * deliberate 50/30/20 fails on the first share it looks at.
+ *
+ * Two or more participants required. One share is not a split — it is one person
+ * carrying one cost — and calling it EQUAL would only make it possible for a
+ * later catch-up to divide somebody's covered ticket across the whole room.
+ *
+ * The reading is deliberately conservative in one direction: a row this calls
+ * EXACT that was really an even split costs nothing but a slightly wrong edit
+ * drawer, while a row this calls EQUAL that was really deliberate is a set of
+ * chosen numbers waiting to be overwritten.
+ */
+export function isEvenSplit(costMinor: bigint, shares: readonly bigint[]): boolean {
+    if (shares.length < 2) return false
+    const n = BigInt(shares.length)
+    const floor = costMinor / n
+    const ceiling = costMinor % n === 0n ? floor : floor + 1n
+    return shares.every((share) => share === floor || share === ceiling)
+}
+
 // ─── rows ───────────────────────────────────────────────────────────────────
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
@@ -460,20 +508,156 @@ function expensesFromRow(
     if (description !== values.description) warnings.push({ code: 'ROW_DESCRIPTION_TRUNCATED', row: line })
 
     return payers
-        .map((payer, k) => ({
-            date: values.date,
-            // A sub-expense that did not say which slice it is would read as a duplicate row.
-            description: payers.length === 1 ? description : `${description} (${k + 1}/${payers.length})`,
-            category: values.category,
-            currencyCode: values.currencyCode,
-            costMinor: subTotals[k].toString(),
-            paidBy: members[payer.i],
-            shares: owed
+        .map((payer, k) => {
+            const rowShares = owed
                 .map((entry, c) => ({ member: members[entry.i], amountMinor: grid[k][c].toString() }))
-                .filter((share) => share.amountMinor !== '0'),
-        }))
+                .filter((share) => share.amountMinor !== '0')
+            return {
+                date: values.date,
+                // A sub-expense that did not say which slice it is would read as a duplicate row.
+                description: payers.length === 1 ? description : `${description} (${k + 1}/${payers.length})`,
+                category: values.category,
+                currencyCode: values.currencyCode,
+                costMinor: subTotals[k].toString(),
+                paidBy: members[payer.i],
+                splitMode: isEvenSplit(
+                    subTotals[k],
+                    rowShares.map((share) => BigInt(share.amountMinor))
+                )
+                    ? ('EQUAL' as const)
+                    : ('EXACT' as const),
+                shares: rowShares,
+            }
+        })
         .filter((expense) => expense.costMinor !== '0')
 }
+
+// ─── the history cap ────────────────────────────────────────────────────────
+
+/**
+ * A room holds five hundred expenses. A four-year flatshare exports two thousand,
+ * and the old answer was "start a fresh room" — which is the same sentence as
+ * "your history is not welcome here", said to the person with the most history.
+ *
+ * So the overflow is carried instead of refused: keep the most recent
+ * `MAX_EXPENSES`-worth, and turn everything older into an OPENING BALANCE that
+ * reproduces its effect exactly.
+ *
+ * WHAT THE OPENING BALANCE IS MADE OF, and why it is this and not something else.
+ * The residual is derived from the DROPPED ROWS THEMSELVES, not from the file's
+ * "Total balance" summary minus the kept subset. Both give the same answer when
+ * the file reconciles, and when it does not, this one is still exactly right:
+ * the difference is then the unreadable rows, which already have their own
+ * warnings and must not be silently papered over by an opening balance that
+ * invents money to make a total match.
+ *
+ * The SHAPE is a settlement-style entry expressed as an expense, because an
+ * expense is the only thing an import can write:
+ *
+ *     debtor D owes creditor C the amount A
+ *       →  one expense, cost A, paid by C, with a single share of A on D
+ *
+ * whose effect on balances is `+A` to C and `−A` to D — which is the transfer,
+ * exactly. The pairing is the same greedy debtor-against-creditor walk
+ * `suggestedTransfers` does, so at most `n − 1` rows per currency, and every
+ * member's net over the opening balance equals their net over the dropped rows
+ * to the cent. Per currency, because a residual in one currency cannot be netted
+ * against another without inventing a rate nobody agreed to.
+ *
+ * They are EXACT, deliberately: a single-share row is not a division of anything,
+ * and marking it EQUAL would let a later catch-up spread somebody's carried-over
+ * debt across the room.
+ */
+export function capHistory(
+    expenses: readonly ParsedExpense[],
+    warnings: ImportWarning[]
+): { expenses: ParsedExpense[]; dropped: number } {
+    if (expenses.length <= MAX_EXPENSES) return { expenses: [...expenses], dropped: 0 }
+
+    const members = [...new Set(expenses.flatMap((e) => [e.paidBy, ...e.shares.map((s) => s.member)]))]
+    const currencies = [...new Set(expenses.map((e) => e.currencyCode))]
+    // The opening balance has to fit inside the ceiling alongside the history it
+    // is standing in for, so its worst case is reserved before the cut rather
+    // than discovered after it.
+    const reserved = Math.max(0, members.length - 1) * Math.max(1, currencies.length)
+    const cut = Math.max(1, MAX_EXPENSES - reserved)
+
+    // Newest first, with the original file order as the tie-break so two rows on
+    // the same day cannot swap places between runs.
+    const ordered = expenses
+        .map((expense, index) => ({ expense, index }))
+        .sort((a, b) =>
+            a.expense.date === b.expense.date ? a.index - b.index : a.expense.date < b.expense.date ? 1 : -1
+        )
+
+    const kept = ordered.slice(0, cut).map((entry) => entry.expense)
+    const dropped = ordered.slice(cut).map((entry) => entry.expense)
+    warnings.push({ code: 'TRUNCATED_HISTORY', detail: String(dropped.length) })
+
+    return { expenses: [...openingBalance(dropped), ...kept], dropped: dropped.length }
+}
+
+/** The dropped rows, folded into at most one transfer-shaped expense per pair per
+ *  currency. Exported for tests; pure. */
+export function openingBalance(dropped: readonly ParsedExpense[]): ParsedExpense[] {
+    const out: ParsedExpense[] = []
+
+    for (const currencyCode of [...new Set(dropped.map((expense) => expense.currencyCode))]) {
+        const rows = dropped.filter((expense) => expense.currencyCode === currencyCode)
+        const net = new Map<string, bigint>()
+        const bump = (member: string, delta: bigint) => net.set(member, (net.get(member) ?? 0n) + delta)
+        for (const expense of rows) {
+            bump(expense.paidBy, BigInt(expense.costMinor))
+            for (const share of expense.shares) bump(share.member, -BigInt(share.amountMinor))
+        }
+
+        // Sorted by size then name so the pairing — and therefore the rows, and
+        // therefore the preview — is the same on every run of the same file.
+        const byWeight = (a: { member: string; amount: bigint }, b: { member: string; amount: bigint }) =>
+            a.amount === b.amount ? a.member.localeCompare(b.member) : a.amount > b.amount ? -1 : 1
+        const entries = [...net.entries()].map(([member, amount]) => ({ member, amount }))
+        const debtors = entries
+            .filter((e) => e.amount < 0n)
+            .map((e) => ({ ...e, amount: -e.amount }))
+            .sort(byWeight)
+        const creditors = entries.filter((e) => e.amount > 0n).sort(byWeight)
+
+        // The newest of the rows being folded away: the opening balance is true as
+        // of the last thing it swallowed, and sits at the start of the history.
+        const date = rows.reduce((latest, expense) => (expense.date > latest ? expense.date : latest), rows[0].date)
+
+        let i = 0
+        let j = 0
+        while (i < debtors.length && j < creditors.length) {
+            const pay = debtors[i].amount < creditors[j].amount ? debtors[i].amount : creditors[j].amount
+            if (pay > 0n) {
+                out.push({
+                    date,
+                    description: clip(
+                        `${BROUGHT_FORWARD} — ${debtors[i].member} → ${creditors[j].member}`,
+                        MAX_DESCRIPTION_CHARS
+                    ),
+                    category: null,
+                    currencyCode,
+                    costMinor: pay.toString(),
+                    paidBy: creditors[j].member,
+                    splitMode: 'EXACT',
+                    shares: [{ member: debtors[i].member, amountMinor: pay.toString() }],
+                })
+            }
+            debtors[i].amount -= pay
+            creditors[j].amount -= pay
+            if (debtors[i].amount === 0n) i++
+            if (creditors[j].amount === 0n) j++
+        }
+    }
+
+    return out
+}
+
+/** Stored data rather than UI copy, so it is written here in English for the same
+ *  reason the blank-description fallback above is. */
+export const BROUGHT_FORWARD = 'Balance brought forward'
 
 // ─── entry point ────────────────────────────────────────────────────────────
 
@@ -566,7 +750,10 @@ export function parseSplitwiseCsv(text: string): SplitwiseImport {
         )
         if (produced.length > 0) currencyCounts.set(currencyCode, (currencyCounts.get(currencyCode) ?? 0) + 1)
         expenses.push(...produced)
-        if (expenses.length > MAX_EXPENSES) throw new SplitwiseParseError('TOO_MANY_EXPENSES')
+        // The ceiling that stands between us and an unbounded parse, NOT the
+        // ceiling on what a room holds — that one is carried rather than refused,
+        // in `capHistory` below.
+        if (expenses.length > MAX_PARSED_EXPENSES) throw new SplitwiseParseError('TOO_MANY_EXPENSES')
     }
 
     if (expenses.length === 0) throw new SplitwiseParseError('NO_EXPENSES')
@@ -585,7 +772,12 @@ export function parseSplitwiseCsv(text: string): SplitwiseImport {
         currencies[0]
     )
 
-    return { members, expenses, suggestedCurrency, currencies, totalBalance, warnings }
+    // Last, and after the currency tally: what gets carried is decided over the
+    // whole file, and an opening balance must not be counted as evidence for
+    // which currency the room should settle in.
+    const capped = capHistory(expenses, warnings)
+
+    return { members, expenses: capped.expenses, suggestedCurrency, currencies, totalBalance, warnings }
 }
 
 /** One member whose imported net does not match what the file's own summary row claims. */

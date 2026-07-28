@@ -680,7 +680,9 @@
             "balancesDiffer": "{count, plural, one {One person's balance ends up different from the total row in your file} other {# people's balances end up different from the total row in your file}} — some rows could not be read, so the room is the total of everything that could. The warnings below say which rows.",
             "thatsMe": "I’m {name}",
             "submit": "Create the room",
-            "startOver": "Use a different file"
+            "startOver": "Use a different file",
+            "driftShort": "{amount} short",
+            "driftOver": "{amount} over"
         },
         "fx": {
             "title": "About the exchange rates",
@@ -701,7 +703,8 @@
             "MULTI_PAYER_SPLIT": "“{detail}” was paid by more than one person. The file does not record who put in what, so it arrives as one expense per payer — the balances are exact, the split between payers is our best reading.",
             "PAYMENT_ROWS": "Payments between people arrive as expenses rather than as settled-up records. The balances come out the same.",
             "MIXED_CURRENCY": "The file mixes {detail}.",
-            "DUPLICATE_MEMBER_NAME": "Two people are called {detail}, so the second is listed as “{detail} (2)”. Rename them below."
+            "DUPLICATE_MEMBER_NAME": "Two people are called {detail}, so the second is listed as “{detail} (2)”. Rename them below.",
+            "TRUNCATED_HISTORY": "A room holds 500 expenses, so the {count, plural, one {# oldest one} other {# oldest ones}} arrive as a single “Balance brought forward” entry per person instead. Everyone's balance still comes out the same."
         },
         "errors": {
             "NOT_SPLITWISE_CSV": "That does not look like a Splitwise export. It should be the .csv you get from “Export as spreadsheet”.",
