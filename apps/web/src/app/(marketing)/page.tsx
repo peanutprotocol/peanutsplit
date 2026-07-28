@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import { AccountRecovery } from '@/components/account/AccountRecovery'
+import { FinalCta } from '@/components/marketing/FinalCta'
 import { Hero } from '@/components/marketing/Hero'
 import { HonestyStrip } from '@/components/marketing/HonestyStrip'
 import { HowItWorks } from '@/components/marketing/HowItWorks'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
+import { TheGap } from '@/components/marketing/TheGap'
+import { UseCases } from '@/components/marketing/UseCases'
 import { YourRooms } from '@/components/marketing/YourRooms'
 import enMessages from '@/i18n/messages/en.json'
 
@@ -40,8 +43,11 @@ export default function LandingPage() {
             <AccountRecovery />
             <Hero />
             <YourRooms />
+            <TheGap />
             <HowItWorks />
+            <UseCases />
             <HonestyStrip />
+            <FinalCta />
             <SiteFooter />
         </main>
     )
