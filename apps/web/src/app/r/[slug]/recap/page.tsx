@@ -71,7 +71,7 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
 
             {/* The number is the headline, the same way it is on the card — the
                 screen and the artefact should say the same thing in the same order. */}
-            <Card shadowSize="6" className={recap.settled ? 'gap-2 bg-green-1 px-5 py-6' : 'gap-2 px-5 py-6'}>
+            <Card shadowSize="6" className={recap.settled ? 'gap-2 bg-green-1 px-4 py-6' : 'gap-2 px-4 py-6'}>
                 <p className="text-h10 uppercase tracking-wide text-n-1/70">{t('totalLabel')}</p>
                 <p className="text-h1 leading-none" data-testid="recap-total">
                     {formatMoney(recap.totalMinor, recap.currency, undefined, locale)}
@@ -119,7 +119,7 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
             {/* This screen is reached by members, but a recap gets screenshotted and
                 passed around a group that is not all users yet — so it carries the
                 one acquisition ask, tagged so the funnel can see it. */}
-            <div className="mt-auto flex flex-col gap-3 rounded-sm border border-n-1 bg-white px-5 py-6 text-center">
+            <div className="mt-auto flex flex-col gap-3 rounded-sm border border-n-1 bg-white px-4 py-6 text-center">
                 <p className="text-h6">{t('ctaTitle')}</p>
                 <p className="text-sm text-grey-1">{t('ctaBody')}</p>
                 <Link href="/?utm_source=recap">

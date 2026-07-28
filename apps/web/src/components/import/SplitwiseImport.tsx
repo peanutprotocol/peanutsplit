@@ -263,7 +263,7 @@ export function SplitwiseImport() {
                 footer={
                     <Button
                         variant="stroke"
-                        className="justify-center"
+                        className="justify-center text-h6"
                         onClick={() => router.push(`/r/${created.room.slug}`)}
                         data-testid="go-to-imported-room"
                     >
@@ -490,7 +490,7 @@ export function SplitwiseImport() {
                 <Button
                     variant="primary"
                     shadowSize="4"
-                    className="justify-center text-h6"
+                    className="justify-center"
                     disabled={!roomName.trim() || !!nameProblem || meIndex === null || importRoom.isPending}
                     loading={importRoom.isPending}
                     onClick={submit}

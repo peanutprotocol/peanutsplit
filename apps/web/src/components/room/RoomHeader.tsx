@@ -11,6 +11,7 @@ import { ThemePicker } from '@/components/room/ThemePicker'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { roomProps, track } from '@/lib/analytics'
@@ -143,11 +144,11 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
             </div>
 
             <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
-                <DrawerContent className="bg-background">
-                    <DrawerHeader>
+                <DrawerContent className={drawerContentClass}>
+                    <DrawerHeader className={drawerHeaderClass}>
                         <DrawerTitle className="text-h5">{room.name}</DrawerTitle>
                     </DrawerHeader>
-                    <div className="flex flex-col gap-3 px-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
+                    <DrawerBody>
                         <Button
                             variant="stroke"
                             className="justify-center"
@@ -159,7 +160,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                         >
                             {t('shareTheRoomLink')}
                         </Button>
-                        <div className="mt-2 flex flex-col gap-2">
+                        <div className="flex flex-col gap-2">
                             <span className="text-h8 uppercase tracking-wide text-grey-1">{t('feedback')}</span>
                             <SettingToggle
                                 label={t('sound')}
@@ -209,7 +210,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                         {/* The room drawer is the only place a language can be changed inside
                             the product — the landing footer is the other, and a room is where
                             someone actually notices they are reading the wrong one. */}
-                        <LocaleSwitcher label={tLocale('label')} className="mt-2" />
+                        <LocaleSwitcher label={tLocale('label')} />
 
                         {/* Last, under everything.
                             This drops the identity this device is holding — the single
@@ -222,7 +223,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                         {identity && (
                             <Button
                                 variant="stroke"
-                                className="mt-2 justify-center"
+                                className="justify-center"
                                 icon="users"
                                 onClick={() => {
                                     setMenuOpen(false)
@@ -233,8 +234,8 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                             </Button>
                         )}
 
-                        <p className="pt-2 text-center text-sm text-grey-1">{t('privacyNote')}</p>
-                    </div>
+                        <p className="text-center text-sm text-grey-1">{t('privacyNote')}</p>
+                    </DrawerBody>
                 </DrawerContent>
             </Drawer>
         </header>

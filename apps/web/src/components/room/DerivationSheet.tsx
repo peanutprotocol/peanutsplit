@@ -67,7 +67,7 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
                             <Divider
                                 text={sectionTitle(section.id, t)}
                                 className="py-1"
-                                textClassname="whitespace-nowrap text-h9 uppercase tracking-wide text-grey-1"
+                                textClassname="whitespace-nowrap text-h8 uppercase tracking-wide text-grey-1"
                             />
                             <ul className="flex flex-col">
                                 {lines.map((line) => {
@@ -136,7 +136,7 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
             <div
                 data-testid="derivation-total"
                 data-total={derivation.totalMinor}
-                className="mt-1 flex items-center justify-between rounded-sm border border-dashed border-n-1 px-3 py-3"
+                className="mt-1 flex items-center justify-between rounded-sm border border-dashed border-n-1 p-3"
             >
                 <span className="text-h8 uppercase tracking-wide text-grey-1">{t('total')}</span>
                 <Money

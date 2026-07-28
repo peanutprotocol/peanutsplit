@@ -17,6 +17,7 @@
 
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
+import { fieldSizes } from '@/components/ui/field'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
@@ -65,7 +66,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                             maxLength={80}
                             aria-label={t('itemLabel')}
                             data-testid="scan-item-label"
-                            className="input h-12 min-w-0 flex-1 px-3 text-base"
+                            className={cn('input min-w-0 flex-1', fieldSizes.sm)}
                         />
                         <input
                             value={item.amountInput}
@@ -77,7 +78,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                             placeholder={decimals === 0 ? '0' : '0.00'}
                             aria-label={t('itemAmount')}
                             data-testid="scan-item-amount"
-                            className="input h-12 w-24 shrink-0 px-2 text-base tabular-nums"
+                            className={cn('input w-24 shrink-0 tabular-nums', fieldSizes.sm)}
                         />
                         <button
                             type="button"
@@ -87,7 +88,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                             }}
                             aria-label={t('removeItem')}
                             data-testid="scan-remove-item"
-                            className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
+                            className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
                         >
                             <Icon name="trash" size={16} />
                         </button>
@@ -102,7 +103,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                     feedback('tick')
                 }}
                 data-testid="scan-add-item"
-                className="flex min-h-11 items-center gap-2 self-start rounded-sm border border-dashed border-n-1 px-3 py-2 text-h9"
+                className="flex min-h-11 items-center gap-2 self-start rounded-sm border border-dashed border-n-1 px-3 py-2 text-h8"
             >
                 <Icon name="plus" size={14} />
                 {t('addItem')}
@@ -111,7 +112,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
             <div
                 data-testid="scan-totals"
                 className={cn(
-                    'flex flex-col gap-1 rounded-sm border border-n-1 px-3 py-3 text-h8',
+                    'flex flex-col gap-1 rounded-sm border border-n-1 p-3 text-h8',
                     hasMismatch ? 'bg-error-1' : 'bg-primary-3'
                 )}
             >

@@ -30,13 +30,13 @@ export function RoomErrorState({ onRetry }: { onRetry: () => void }) {
     const t = useTranslations('room.states')
 
     return (
-        <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+        <div className="flex flex-col items-center gap-4 px-4 py-16 text-center">
             {/* Always above the fold when it renders, and it is the LCP element —
                 eager, or the error screen paints its own headline before its face. */}
             <Image src={peanutSad} alt="" unoptimized priority className="h-32 w-32 object-contain" />
             <p className="text-h5">{t('errorTitle')}</p>
             <p className="max-w-[20rem] text-sm text-grey-1">{t('errorBody')}</p>
-            <Button variant="primary" shadowSize="4" className="max-w-xs justify-center" onClick={onRetry}>
+            <Button variant="primary" shadowSize="4" className="justify-center text-h6" onClick={onRetry}>
                 {t('retry')}
             </Button>
         </div>
@@ -47,7 +47,7 @@ export function RoomNotFound() {
     const t = useTranslations('room.states')
 
     return (
-        <div className="flex flex-col items-center gap-4 px-6 py-16 text-center" data-testid="room-not-found">
+        <div className="flex flex-col items-center gap-4 px-4 py-16 text-center" data-testid="room-not-found">
             {/* Always above the fold when it renders, and it is the LCP element —
                 eager, or the error screen paints its own headline before its face. */}
             <Image src={peanutSad} alt="" unoptimized priority className="h-32 w-32 object-contain" />
