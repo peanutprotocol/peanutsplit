@@ -1,17 +1,14 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
-import { balancesOf, type RoomWithRelations } from '@/server/roomState'
+import { type RoomWithRelations } from '@/server/roomState'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
+import { MEMBER_FALLBACK } from '@/server/og/roomCard'
 import {
-    MAX_MEMBER_CHARS,
-    MEMBER_FALLBACK,
     daySpan,
     isSettled,
     loadRecap,
-    netBalances,
     recapStatLine,
-    sanitizeMemberName,
     toRecapCard,
     toRoomRecap,
     topPayerName,
@@ -105,36 +102,6 @@ describe('topPayerName', () => {
     })
 })
 
-describe('sanitizeMemberName', () => {
-    it('keeps a name the body font can draw', () => {
-        expect(sanitizeMemberName('María')).toBe('María')
-        expect(sanitizeMemberName('Zoë')).toBe('Zoë')
-    })
-
-    it('strips decoration without losing the name', () => {
-        expect(sanitizeMemberName('Hugo 🥜')).toBe('Hugo')
-    })
-
-    it('falls back rather than render a name eaten down to nothing', () => {
-        expect(sanitizeMemberName('Кипр')).toBe(MEMBER_FALLBACK)
-        expect(sanitizeMemberName('東京')).toBe(MEMBER_FALLBACK)
-        expect(sanitizeMemberName('  ')).toBe(MEMBER_FALLBACK)
-    })
-
-    it('truncates with dots, never the ellipsis glyph', () => {
-        const long = sanitizeMemberName('Bartholomew Wolfeschlegelstein')
-        expect(long.endsWith('...')).toBe(true)
-        expect(long).not.toContain('…')
-        expect(long.length).toBeLessThanOrEqual(MAX_MEMBER_CHARS + 3)
-    })
-
-    it('only ever emits characters the body font can draw', () => {
-        for (const raw of ['María', '🥜🥜', 'Кипр', 'Ana~`', 'Zoë 東京', 'Fête']) {
-            expect(drawableByBody(sanitizeMemberName(raw))).toBe(true)
-        }
-    })
-})
-
 describe('recapStatLine', () => {
     it('reads naturally in the singular', () => {
         expect(recapStatLine({ dayCount: 1, expenseCount: 1, memberCount: 1 })).toBe('1 day · 1 expense · 1 person')
@@ -149,14 +116,14 @@ describe('recapStatLine', () => {
     })
 })
 
-// ------------------------------------------------- the settled fold, vs source
+// ------------------------------------------------------------- the settled fold
 
 /**
- * `netBalances` mirrors `balancesOf` in `@/server/roomState`, which owns the
- * semantics. This is the drift guard: both folds get the same fixture, and any
- * change to what a balance means there fails here.
+ * `isSettled` folds through `roomState.balancesOf` itself now — there is one
+ * definition of a balance and this is a consumer of it, so what is left to test
+ * is the "AND had something to square" rule, which is this module's own.
  */
-describe('netBalances agrees with roomState.balancesOf', () => {
+describe('isSettled', () => {
     type ExpenseFixture = { paidById: string; baseAmountMinor: bigint; shares: [string, bigint][] }
     type SettlementFixture = { fromId: string; toId: string; amountMinor: bigint }
 
@@ -215,12 +182,6 @@ describe('netBalances agrees with roomState.balancesOf', () => {
         ),
         room([], [], []),
     ]
-
-    it('produces the identical map on every fixture', () => {
-        for (const fixture of cases) {
-            expect([...netBalances(fixture).entries()]).toEqual([...balancesOf(fixture).entries()])
-        }
-    })
 
     it('calls a room settled only when it is square AND had something to square', () => {
         expect(isSettled(cases[0])).toBe(false)

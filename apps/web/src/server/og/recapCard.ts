@@ -13,13 +13,8 @@
  * rasterizer or a database.
  */
 import { prisma } from '@/server/db'
-import { BODY_CHARS } from '@/server/og/fonts'
-import { avatarsFor, safeAmount, sanitizeDisplayName, type OgAvatar } from '@/server/og/roomCard'
-
-/** Shown instead of a member name we cannot draw. Better than blank boxes. */
-export const MEMBER_FALLBACK = 'Someone'
-/** A name is one line inside a sentence here, not a headline. */
-export const MAX_MEMBER_CHARS = 22
+import { balancesOf, type BalanceInput } from '@/server/roomState'
+import { avatarsFor, safeAmount, sanitizeDisplayName, sanitizeMemberName, type OgAvatar } from '@/server/og/roomCard'
 
 /** The lean row shape `loadRecap` selects. Declared, not inferred, so the query
  *  and the derivation cannot drift apart silently. */
@@ -70,39 +65,6 @@ export interface RecapCardData {
     avatars: OgAvatar[]
     overflow: number
     settled: boolean
-}
-
-/**
- * Reduce a member name to something the BODY font can draw, by the same rule
- * `sanitizeDisplayName` applies to room names: keep the stripped name only if it
- * still reads as the same name (at least one alphanumeric, at least 70% of the
- * meaningful characters kept), otherwise fall back rather than ship something
- * half-eaten.
- *
- * A generalised copy rather than a shared helper because `roomCard.ts` has
- * another owner this week — the two want the same rule over different charsets
- * and different fallbacks. Dedupe once the OG module has one owner.
- */
-const DECORATIVE = new RegExp('[\\p{Extended_Pictographic}\\u200D\\uFE00-\\uFE0F]', 'u')
-
-const countMeaningful = (value: string) => [...value].filter((ch) => !/\s/.test(ch) && !DECORATIVE.test(ch)).length
-
-export function sanitizeMemberName(raw: string): string {
-    const kept = [...raw]
-        .filter((ch) => BODY_CHARS.has(ch))
-        .join('')
-        .replace(/\s+/g, ' ')
-        .trim()
-
-    if (!/[A-Za-z0-9]/.test(kept)) return MEMBER_FALLBACK
-
-    const meaningful = countMeaningful(raw)
-    if (meaningful > 0 && countMeaningful(kept) / meaningful < 0.7) return MEMBER_FALLBACK
-
-    const chars = [...kept]
-    if (chars.length <= MAX_MEMBER_CHARS) return kept
-    // `…` is not in either cmap — three dots always are.
-    return `${chars.slice(0, MAX_MEMBER_CHARS).join('').trimEnd()}...`
 }
 
 const DAY_MS = 86_400_000
@@ -160,51 +122,15 @@ export function topPayerName(
     return best?.name ?? null
 }
 
-/** The columns a balance is folded from — structural on purpose, so a full
- *  `RoomWithRelations` is assignable to it and the drift test can feed both
- *  folds the exact same fixture. */
-export interface BalanceInput {
-    members: readonly { id: string }[]
-    expenses: readonly {
-        paidById: string
-        baseAmountMinor: bigint
-        shares: readonly { memberId: string; amountMinor: bigint }[]
-    }[]
-    settlements: readonly { fromId: string; toId: string; amountMinor: bigint }[]
-}
-
-/**
- * Net position per member.
- *
- * MIRRORS `balancesOf` in `@/server/roomState`, which is the source of truth for
- * what a balance IS — this copy exists only because that one takes a full
- * `RoomWithRelations` and the recap deliberately selects four columns. The fold
- * is identical and `recapCard.test.ts` asserts the two agree on shared fixtures,
- * so a change to the semantics there fails here rather than drifting.
- */
-export function netBalances(room: BalanceInput): Map<string, bigint> {
-    const net = new Map<string, bigint>(room.members.map((m) => [m.id, 0n]))
-    const bump = (id: string, delta: bigint) => {
-        const current = net.get(id)
-        if (current !== undefined) net.set(id, current + delta)
-    }
-
-    for (const expense of room.expenses) {
-        bump(expense.paidById, expense.baseAmountMinor)
-        for (const share of expense.shares) bump(share.memberId, -share.amountMinor)
-    }
-    for (const settlement of room.settlements) {
-        bump(settlement.fromId, settlement.amountMinor)
-        bump(settlement.toId, -settlement.amountMinor)
-    }
-    return net
-}
-
 /** A room is settled when everybody is square AND there was something to square:
  *  an empty room is not "settled", it is empty, and the card must not claim a
- *  result that never happened. */
+ *  result that never happened.
+ *
+ *  Folded by `roomState.balancesOf` itself, not by a copy of it: `BalanceInput`
+ *  exists precisely so the four columns the recap selects can go through the one
+ *  definition of what a balance is. */
 export const isSettled = (room: BalanceInput): boolean =>
-    room.expenses.length > 0 && [...netBalances(room).values()].every((net) => net === 0n)
+    room.expenses.length > 0 && [...balancesOf(room).values()].every((net) => net === 0n)
 
 /** Shape the raw room row into the recap. Exported for tests; no I/O. */
 export function toRoomRecap(room: RecapRoomRow): RoomRecap {

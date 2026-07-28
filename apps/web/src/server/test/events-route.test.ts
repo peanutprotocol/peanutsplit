@@ -6,7 +6,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { MAX_SUBSCRIBERS_PER_ROOM, publish, resetEvents, subscribe, subscriberCount } from '@/server/events'
+import { EVENTS_LIMIT, resetRateLimits } from '@/server/rateLimit'
 import { GET as events } from '@/app/api/rooms/[slug]/events/route'
+import type { ApiError } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
 
@@ -34,6 +36,7 @@ const seedRoom = async (slug: string) =>
 
 beforeEach(async () => {
     resetEvents()
+    resetRateLimits()
     await truncateAll()
 })
 
@@ -113,6 +116,33 @@ describe('GET /api/rooms/[slug]/events', () => {
         const response = await openStream('no-such-room')
         expect(response.status).toBe(404)
         expect(subscriberCount()).toBe(0)
+        // The house envelope, not a bare status: this route cannot go through
+        // `respond`, and the failure shape must not drift because of it.
+        expect(((await response.json()) as ApiError).error.code).toBe('NOT_FOUND')
+    })
+
+    /**
+     * A stream is the most expensive thing one request can hold — a socket and a
+     * heartbeat timer, for as long as the client keeps it. Without a ceiling one
+     * IP can take every slot on the box and silently put every other room on the
+     * slow poll.
+     */
+    it('caps how many streams one IP can open, with the house envelope', async () => {
+        await seedRoom('ski-trip-fff')
+        const controllers: AbortController[] = []
+        for (let i = 0; i < EVENTS_LIMIT.capacity; i++) {
+            const controller = new AbortController()
+            controllers.push(controller)
+            const response = await openStream('ski-trip-fff', controller.signal)
+            expect(response.status).toBe(200)
+            await response.body!.cancel()
+        }
+
+        const refused = await openStream('ski-trip-fff')
+        expect(refused.status).toBe(429)
+        expect(((await refused.json()) as ApiError).error.code).toBe('RATE_LIMITED')
+
+        for (const controller of controllers) controller.abort()
     })
 
     it('answers 204 at capacity, which is the browser-level "do not reconnect"', async () => {

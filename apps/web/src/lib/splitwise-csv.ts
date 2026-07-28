@@ -289,30 +289,34 @@ export function allocateProportionally(total: bigint, weights: readonly bigint[]
 }
 
 /**
- * Exact 2D rounding by interval overlap.
+ * Exact 2D rounding by the northwest-corner rule.
  *
- * Lay the row totals end to end on a line of `Σrows` minor units, lay the column totals on the
- * same line, and take the length of every overlap. Each cell is a whole number of units, every row
- * sums to its total and every column sums to its total — no rounding pass, no residue to push
- * anywhere, because nothing was ever divided. Requires `Σrows === Σcolumns`, which the caller
- * guarantees by construction.
+ * Walk the two totals in step from the top-left corner: put as much into the current cell as the
+ * smaller of the two remainders allows, subtract it from both, and move on from whichever one
+ * emptied. Each cell is a whole number of units, every row sums to its total and every column sums
+ * to its total — no rounding pass, no residue to push anywhere, because nothing was ever divided.
+ * Requires `Σrows === Σcolumns`, which the caller guarantees by construction.
+ *
+ * The same walk `suggestedTransfers` does over debtors and creditors, and for the same reason: two
+ * pointers over sorted remainders is the shape that cannot leave a cent behind.
  */
 export function intersectAllocation(rowTotals: readonly bigint[], columnTotals: readonly bigint[]): bigint[][] {
-    const grid: bigint[][] = []
-    let rowStart = 0n
-    for (const rowTotal of rowTotals) {
-        const rowEnd = rowStart + rowTotal
-        const cells: bigint[] = []
-        let columnStart = 0n
-        for (const columnTotal of columnTotals) {
-            const columnEnd = columnStart + columnTotal
-            const lo = rowStart > columnStart ? rowStart : columnStart
-            const hi = rowEnd < columnEnd ? rowEnd : columnEnd
-            cells.push(hi > lo ? hi - lo : 0n)
-            columnStart = columnEnd
-        }
-        grid.push(cells)
-        rowStart = rowEnd
+    const rows = [...rowTotals]
+    const columns = [...columnTotals]
+    const grid = rows.map(() => columns.map(() => 0n))
+
+    let r = 0
+    let c = 0
+    while (r < rows.length && c < columns.length) {
+        const take = rows[r] < columns[c] ? rows[r] : columns[c]
+        grid[r][c] = take
+        rows[r] -= take
+        columns[c] -= take
+        // A zero row total is a real row that owns nothing, so it is stepped over
+        // rather than skipped — and when both empty at once the row moves first,
+        // which leaves the next column's cell at the zero it already holds.
+        if (rows[r] === 0n) r++
+        else c++
     }
     return grid
 }

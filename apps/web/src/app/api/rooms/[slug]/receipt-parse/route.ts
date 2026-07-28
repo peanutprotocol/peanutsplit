@@ -6,6 +6,9 @@
  * `NEXT_PUBLIC_` flag is the wrong instrument for that: it is baked at build
  * time, so setting the key would not reveal the feature and unsetting it would
  * not hide it. One cheap, cacheable GET tells the client the truth as of now.
+ * The `:slug` in the GET's path is DECORATIVE — the answer is process-wide and
+ * the param is not read — and it stays only so the probe and the POST share one
+ * URL. The client caches it once, not once per room.
  *
  * POST takes one image and returns line items. It writes nothing — no row, no
  * file, and no image anywhere. The scan produces a *draft* the user reviews and
@@ -13,7 +16,7 @@
  * not on the money path despite being about money.
  */
 
-import { ApiError, badRequest, json, readJson, respond } from '@/server/http'
+import { ApiError, badRequest, json, readJsonCapped, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit, type Limit } from '@/server/rateLimit'
 import { loadRoom } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -44,15 +47,13 @@ export const POST = (request: Request, ctx: Ctx) =>
         if (!scanEnabled()) throw new ApiError(503, 'SCAN_UNAVAILABLE', 'receipt scanning is not configured')
         enforceRateLimit(request, SCAN_LIMIT, 'scan')
 
-        // The declared length first — the whole point of a size ceiling is to
-        // refuse before buffering the body, and `content-length` is the only
-        // signal available that early. The base64 check below is the real gate;
-        // this one just makes the common case cheap.
-        const declared = Number(request.headers.get('content-length') ?? '0')
-        if (declared > MAX_IMAGE_BASE64_CHARS + 1024) throw imageTooLarge()
-
+        // Counted while it arrives, not taken on the sender's word: a chunked
+        // request declares no length, so a `content-length` check alone reads
+        // the missing header as zero and buffers a body of any size. The header
+        // is still the fast path for an honest client — see `readJsonCapped`.
+        // The base64 check below is the semantic gate; this one bounds memory.
         const { slug } = await ctx.params
-        const raw = await readJson(request)
+        const raw = await readJsonCapped(request, MAX_IMAGE_BASE64_CHARS + 1024, imageTooLarge())
         const body = receiptParseSchema.parse(raw)
 
         if (body.imageBase64.length > MAX_IMAGE_BASE64_CHARS) throw imageTooLarge()
