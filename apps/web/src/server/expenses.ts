@@ -2,7 +2,7 @@
  *  that keep balances honest. Shared by POST and PATCH so an edit behaves
  *  exactly like a fresh write. */
 import type { Expense } from '@prisma/client'
-import { getRateTable, rateFrom } from '@/server/fx'
+import { getRateTable, rateFrom, type RateTable } from '@/server/fx'
 import { badRequest } from '@/server/http'
 import { convertMinorAtRate, parseMinor } from '@/server/money'
 import { equalShares, exactShares, sumShares, type ShareDraft } from '@/server/split'
@@ -40,7 +40,11 @@ export type ExistingExpense = Pick<Expense, 'date' | 'currency' | 'fxRate'>
 export async function buildExpense(
     room: RoomWithRelations,
     body: ExpenseBody,
-    existing?: ExistingExpense
+    existing?: ExistingExpense,
+    /** A table the caller already holds. The importer builds hundreds of expenses in one pass and
+     *  must not re-read FX per row — one query per import, not one per expense. Omitted everywhere
+     *  else, where a single write can afford to fetch its own. */
+    rateTable?: RateTable
 ): Promise<ExpenseWrite> {
     const total = parseMinor(body.amountMinor)
     if (total <= 0n) throw badRequest('amount must be greater than zero', 'AMOUNT_NOT_POSITIVE')
@@ -52,7 +56,7 @@ export async function buildExpense(
     // everyone's balance the day live FX lands. Only a currency change earns a
     // fresh rate, because the stored one no longer describes the pair.
     const lockedRate = existing && existing.currency === body.currency ? Number(existing.fxRate) : null
-    const rate = lockedRate ?? rateFrom(await getRateTable(), body.currency, room.currency)
+    const rate = lockedRate ?? rateFrom(rateTable ?? (await getRateTable()), body.currency, room.currency)
     const baseAmountMinor = convertMinorAtRate(total, body.currency, room.currency, rate)
 
     let shares: ShareDraft[]

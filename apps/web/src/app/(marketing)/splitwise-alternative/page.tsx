@@ -71,6 +71,14 @@ export default function SplitwiseAlternativePage() {
                         </Button>
                     </Link>
                     <p className="mt-3 text-center text-sm text-grey-1">{compare.hero.ctaHint}</p>
+                    {/* The other half of the query. Someone comparing splitters usually already has
+                        a group in the old one, and "you keep your history" is the objection this
+                        page cannot answer on its own. */}
+                    <p className="mt-2 text-center text-sm text-grey-1">
+                        <Link href="/import" className="text-black underline">
+                            {compare.hero.importLink}
+                        </Link>
+                    </p>
                 </div>
             </section>
 

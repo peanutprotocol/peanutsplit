@@ -213,3 +213,74 @@ export const reactionSchema = z.object({
 
 export type RoomThemeBody = z.infer<typeof roomThemeSchema>
 export type ReactionBody = z.infer<typeof reactionSchema>
+// ── splitwise import ─────────────────────────────────────────────────────────
+
+/**
+ * The import posts a whole room at once, so this is the one schema where the request is big enough
+ * to be worth bounding. The caps are the same numbers `lib/splitwise-csv.ts` enforces while
+ * parsing — a preview that promises a room the POST would refuse is worse than an early no.
+ *
+ * The client parses the CSV and never uploads it, which means the server sees structured data it
+ * did not derive and has to re-establish every invariant itself: members exist, the payer is one
+ * of them, nobody is in a split twice, and the shares reconstruct the total. The last one is
+ * checked here AND again inside `buildExpense`; the duplication is deliberate, because that is the
+ * check that stands between a bad file and a room whose balances do not net to zero.
+ */
+export const IMPORT_MAX_MEMBERS = 20
+export const IMPORT_MAX_EXPENSES = 500
+
+/** Splitwise exports a calendar day, not an instant. */
+const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a YYYY-MM-DD date')
+
+const importedExpenseSchema = z.object({
+    date: isoDay,
+    description: z.string().trim().min(1, 'is required').max(255),
+    category: z.string().trim().max(40).nullish(),
+    currencyCode: currencyCode,
+    costMinor: minorAmount,
+    paidBy: personName,
+    shares: z
+        .array(z.object({ member: personName, amountMinor: minorAmount }))
+        .min(1)
+        .max(IMPORT_MAX_MEMBERS),
+})
+
+export const importRoomSchema = z
+    .object({
+        roomName: z.string().trim().min(1, 'is required').max(80),
+        emoji: z.string().max(8).nullish(),
+        currency: currencyCode,
+        creatorName: personName,
+        members: z.array(personName).min(1).max(IMPORT_MAX_MEMBERS),
+        expenses: z.array(importedExpenseSchema).min(1).max(IMPORT_MAX_EXPENSES),
+    })
+    .superRefine((body, ctx) => {
+        const fail = (message: string, path: (string | number)[]) =>
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message, path })
+
+        // Names are the join key between the roster and every expense, so they have to be unique
+        // the same way Split's own roster is: case-insensitively.
+        const roster = new Set(body.members.map((name) => name.toLowerCase()))
+        if (roster.size !== body.members.length) fail('every member needs a distinct name', ['members'])
+        if (!roster.has(body.creatorName.toLowerCase())) fail('must be one of the members', ['creatorName'])
+
+        body.expenses.forEach((expense, i) => {
+            if (!roster.has(expense.paidBy.toLowerCase())) fail('is not one of the members', ['expenses', i, 'paidBy'])
+
+            const seen = new Set<string>()
+            let total = 0n
+            expense.shares.forEach((share, s) => {
+                const key = share.member.toLowerCase()
+                if (!roster.has(key)) fail('is not one of the members', ['expenses', i, 'shares', s, 'member'])
+                if (seen.has(key)) fail('appears twice in this split', ['expenses', i, 'shares', s, 'member'])
+                seen.add(key)
+                total += BigInt(share.amountMinor)
+            })
+
+            const cost = BigInt(expense.costMinor)
+            if (cost <= 0n) fail('must be greater than zero', ['expenses', i, 'costMinor'])
+            if (total !== cost) fail('the shares must add up to the expense total', ['expenses', i, 'shares'])
+        })
+    })
+
+export type ImportRoomBody = z.infer<typeof importRoomSchema>

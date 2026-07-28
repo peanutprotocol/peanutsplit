@@ -12,6 +12,7 @@ import type {
     CreateRoomInput,
     CurrencyInfo,
     ExpenseInput,
+    ImportRoomInput,
     MembershipClaim,
     ParsedReceipt,
     PushSubscribeInput,
@@ -107,6 +108,11 @@ export const api = {
         ),
 
     createRoom: (input: CreateRoomInput) => request<RoomStateWithMember>('/api/rooms', { method: 'POST', body: input }),
+
+    /** A whole room from a parsed Splitwise export. The CSV itself is never sent — the browser
+     *  parses it and posts the result, so the file stays on the device that opened it. */
+    importRoom: (input: ImportRoomInput) =>
+        request<RoomStateWithMember>('/api/import', { method: 'POST', body: input }),
 
     room: (slug: string, signal?: AbortSignal) => request<RoomState>(`/api/rooms/${encode(slug)}`, { signal }),
 

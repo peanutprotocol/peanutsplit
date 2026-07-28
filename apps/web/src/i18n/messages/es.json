@@ -49,7 +49,8 @@
             "compareLink": "Alternativa a Splitwise",
             "guidesLink": "Guías",
             "poweredByPrefix": "hecho por",
-            "poweredByBrand": "Peanut"
+            "poweredByBrand": "Peanut",
+            "importLink": "Importar de Splitwise"
         },
         "install": {
             "title": "Agrega Split a tu pantalla de inicio",
@@ -387,7 +388,9 @@
         "SCAN_BAD_IMAGE": "No se pudo enviar esa imagen — probá sacarla de nuevo.",
         "SCAN_NO_ITEMS": "No se pudo leer ningún ítem en esa foto — probá una toma más derecha y con más luz.",
         "SCAN_ROOM_LIMIT": "Esta sala escaneó muchas cuentas hoy — probá mañana.",
-        "SCAN_FAILED": "No se pudo leer esa cuenta — probá de nuevo."
+        "SCAN_FAILED": "No se pudo leer esa cuenta — probá de nuevo.",
+        "IMPORT_TOO_LARGE": "Esa importación es demasiado grande para enviarse. Prueba con un grupo con menos historial.",
+        "RATE_LIMITED": "Fueron muchas solicitudes — espera un minuto e intenta de nuevo."
     },
     "derivation": {
         "title": "Cómo sale este número",
@@ -430,5 +433,69 @@
         "fullToast": "{count, plural, one {Hay demasiados gastos esperando — se descartó el más viejo.} other {Hay demasiados gastos esperando — se descartaron los # más viejos.}}",
         "rejectedToast": "{count, plural, one {Un gasto en espera no se pudo guardar — cargalo de nuevo.} other {# gastos en espera no se pudieron guardar — cargalos de nuevo.}}",
         "sentToast": "{count, plural, one {Gasto enviado} other {# gastos enviados}}"
+    },
+    "import": {
+        "drop": {
+            "title": "Suelta aquí tu exportación de Splitwise",
+            "body": "El archivo .csv que te da Splitwise cuando exportas un grupo. Se lee aquí mismo, en tu dispositivo: no se sube nada.",
+            "cta": "Elegir un archivo",
+            "privacy": "Tu propio navegador abre el archivo. Nosotros solo recibimos los gastos que tiene adentro, y solo cuando tocas el botón."
+        },
+        "howto": {
+            "title": "Dónde encontrar el archivo",
+            "step1": "Abre el grupo en splitwise.com.",
+            "step2": "Entra a la configuración del grupo y elige «Exportar como hoja de cálculo».",
+            "step3": "Vuelve con el .csv y suéltalo arriba."
+        },
+        "preview": {
+            "found": "{expenses, plural, one {# gasto} other {# gastos}} · {members, plural, one {# persona} other {# personas}}",
+            "total": "Suma {total}",
+            "roomName": "Ponle nombre a la sala",
+            "roomNamePlaceholder": "Viaje a la nieve",
+            "fallbackName": "Grupo importado",
+            "currency": "Moneda",
+            "currencyLabel": "Moneda de la sala",
+            "currencyHint": "Los saldos se saldan en esta moneda. Cada gasto conserva la moneda en la que se pagó.",
+            "members": "Todos los del grupo",
+            "whoAreYou": "Corrige los nombres que hayan quedado raros y elígete de la lista.",
+            "thatsMe": "Soy {name}",
+            "submit": "Crear la sala",
+            "startOver": "Usar otro archivo"
+        },
+        "fx": {
+            "title": "Sobre los tipos de cambio",
+            "body": "Este grupo gastó en más de una moneda. Splitwise no exporta el tipo de cambio que usó ese día, así que todo se convierte al de hoy: los totales van a quedar cerca, no idénticos a los que ves allá."
+        },
+        "warnings": {
+            "title": "Conviene que sepas",
+            "more": "…y {count, plural, one {# más} other {# más}}.",
+            "ROW_UNBALANCED": "La fila {row} no cuadra en el propio archivo, así que quedó fuera.",
+            "ROW_UNSUPPORTED_CURRENCY": "La fila {row} está en {detail}, que Split todavía no maneja, así que quedó fuera.",
+            "ROW_NO_PAYER": "La fila {row} no dice quién pagó, así que quedó fuera.",
+            "ROW_ZERO_COST": "La fila {row} no tiene monto, así que quedó fuera.",
+            "ROW_BAD_AMOUNT": "La fila {row} tiene un monto que no pudimos leer, así que quedó fuera.",
+            "ROW_BAD_DATE": "La fila {row} tiene una fecha que no pudimos leer: entra con la fecha de hoy.",
+            "MULTI_PAYER_SPLIT": "«{detail}» lo pagó más de una persona. El archivo no registra cuánto puso cada quien, así que entra como un gasto por pagador: los saldos son exactos, el reparto entre pagadores es nuestra mejor lectura.",
+            "PAYMENT_ROWS": "Los pagos entre personas entran como gastos, no como saldos ya pagados. Los saldos quedan igual.",
+            "MIXED_CURRENCY": "El archivo mezcla {detail}.",
+            "DUPLICATE_MEMBER_NAME": "Hay dos personas que se llaman {detail}, así que la segunda aparece como «{detail} (2)». Cámbiale el nombre abajo."
+        },
+        "errors": {
+            "NOT_SPLITWISE_CSV": "Eso no parece una exportación de Splitwise. Tiene que ser el archivo .csv de «Exportar como hoja de cálculo».",
+            "NO_MEMBERS": "Esa exportación no trae personas — fíjate que hayas exportado un grupo y no un gasto suelto.",
+            "NO_EXPENSES": "No pudimos leer nada en ese archivo. Si sus gastos están en una moneda que Split no maneja, esa puede ser la razón.",
+            "TOO_MANY_MEMBERS": "Ese grupo tiene más de 20 personas. Las salas de Split son para un viaje o un departamento, no para una lista de correo.",
+            "TOO_MANY_EXPENSES": "Esa exportación tiene más de 500 gastos. Prueba con un grupo con menos historial, o arranca una sala nueva.",
+            "FILE_TOO_BIG": "Ese archivo es demasiado grande para ser una exportación de Splitwise. Revisa que hayas elegido el correcto.",
+            "READ_FAILED": "No pudimos leer ese archivo. Prueba a elegirlo de nuevo.",
+            "EMPTY_NAME": "Todos necesitan un nombre.",
+            "DUPLICATE_NAMES": "Hay dos personas con el mismo nombre — ponlos distintos para que cada gasto caiga en quien corresponde.",
+            "failed": "no se pudo crear la sala — intenta de nuevo"
+        },
+        "ready": {
+            "title": "Tu grupo ya está adentro",
+            "subtitle": "Envía este link a todos. Lo tocan, eligen su nombre, y todo lo que importaste ya está ahí.",
+            "goToRoom": "Ir a la sala"
+        }
     }
 }
