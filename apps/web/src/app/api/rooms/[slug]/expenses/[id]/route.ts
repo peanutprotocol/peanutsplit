@@ -1,6 +1,7 @@
 import { prisma } from '@/server/db'
 import { buildExpense } from '@/server/expenses'
 import { conflict, notFound, readJson, respond } from '@/server/http'
+import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState, type RoomWithRelations } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { expenseSchema } from '@/server/validation'
@@ -17,6 +18,7 @@ const findExpense = async (room: RoomWithRelations, id: string) => {
 
 export const PATCH = (request: Request, ctx: Ctx) =>
     respond(async () => {
+        enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, id } = await ctx.params
         const body = expenseSchema.parse(await readJson(request))
         const room = await loadRoom(slug)
@@ -50,8 +52,9 @@ export const PATCH = (request: Request, ctx: Ctx) =>
 
 /** Soft delete — the client shows a 6s Undo that calls /api/expenses/:id/restore.
  *  Deleting twice is a no-op, not an error: the undo toast is tappable twice. */
-export const DELETE = (_request: Request, ctx: Ctx) =>
+export const DELETE = (request: Request, ctx: Ctx) =>
     respond(async () => {
+        enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, id } = await ctx.params
         const room = await loadRoom(slug)
         const existing = await findExpense(room, id)
