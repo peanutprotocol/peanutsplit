@@ -74,7 +74,8 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
     const tLocale = useTranslations('locale')
     const tAccount = useTranslations('account')
     const [menuOpen, setMenuOpen] = useState(false)
-    const { settings, setSoundEnabled, setHapticsEnabled } = useSettings()
+    const { settings, setSoundEnabled, setHapticsEnabled, setAnimationsEnabled } = useSettings()
+    const tSettings = useTranslations('settings')
 
     return (
         <header className="sticky top-0 z-10 border-b border-n-1 bg-primary-1">
@@ -167,6 +168,13 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                                     // gate still holds the pre-toggle value this render.
                                     if (next) triggerHaptic(16)
                                 }}
+                            />
+                            <SettingToggle
+                                label={tSettings('animations.title')}
+                                hint={tSettings('animations.description')}
+                                testId="setting-animations"
+                                checked={settings.animationsEnabled}
+                                onChange={setAnimationsEnabled}
                             />
                         </div>
 
