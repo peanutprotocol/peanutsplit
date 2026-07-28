@@ -101,3 +101,21 @@ export function resetRateLimits(): void {
     buckets.clear()
     lastPruneAt = 0
 }
+// ── accounts wave ────────────────────────────────────────────────────────────
+
+/**
+ * Same limiter, keyed by something other than an IP — the authenticated auth
+ * routes budget per account, because one signed-in user behind a shared NAT
+ * should not spend their office's allowance. Deliberately the same map, so the
+ * `MAX_KEYS` ceiling and the prune still cover every bucket in the process.
+ */
+export function enforceRateLimitOn(subject: string, limit: Limit, scope: string): void {
+    const now = Date.now()
+    prune(now)
+    const key = `${scope}:${subject}`
+    const { allowed, next } = takeToken(buckets.get(key), limit, now)
+    buckets.set(key, next)
+    if (!allowed) {
+        throw new ApiError(429, 'RATE_LIMITED', 'that was a lot of requests — give it a minute and try again')
+    }
+}

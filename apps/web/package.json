@@ -36,6 +36,7 @@
         "boring-avatars": "^2.0.0",
         "gray-matter": "^4.0.3",
         "https-proxy-agent": "^9.1.0",
+        "jose": "^6.2.3",
         "lucide-react": "^0.539.0",
         "motion": "^12.23.12",
         "next": "16.2.3",
@@ -49,6 +50,7 @@
         "remark-gfm": "^4.0.1",
         "sonner": "^2.0.7",
         "tailwind-merge": "^1.14.0",
+        "undici": "^8.7.0",
         "vaul": "^1.1.2",
         "web-push": "^3.6.7",
         "zod": "3.24.1"
