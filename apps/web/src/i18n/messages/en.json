@@ -389,7 +389,13 @@
             "record": "Record payment",
             "back": "Back",
             "recorded": "{from} → {to} recorded",
-            "failed": "could not record that payment — try again"
+            "failed": "could not record that payment — try again",
+            "amountLabel": "How much moved?",
+            "amountHint": "The whole debt is",
+            "amountInvalid": "Enter an amount greater than zero.",
+            "amountTooHigh": "That is more than {name} owes.",
+            "recordedTitle": "Recorded just now",
+            "recordedHint": "These are in the room history too, with everything else."
         },
         "share": {
             "title": "Invite the rest",
@@ -517,6 +523,17 @@
             "progress": "{done} of {count} updated",
             "stop": "Stop",
             "failed": "could not update them all — press again to carry on from where it stopped"
+        },
+        "timeline": {
+            "paymentLabel": "Payment",
+            "recordedBy": "recorded by {name}",
+            "recordedByYou": "recorded by you",
+            "remove": "Remove this payment",
+            "confirmRemove": "Remove this payment? There is no undo — you would have to record it again.",
+            "confirmYes": "Remove it",
+            "confirmNo": "Keep it",
+            "removed": "Payment removed. Record it again if that was a mistake.",
+            "removeFailed": "Could not remove that payment — try again."
         }
     },
     "account": {

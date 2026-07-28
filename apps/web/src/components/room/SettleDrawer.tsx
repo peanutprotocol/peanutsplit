@@ -12,6 +12,7 @@ import type { ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/l
 import { roomProps, track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
+import { decimalsOf, formatMinorPlain, parseAmountToMinor } from '@/lib/money'
 import { useAddSettlement } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -75,6 +76,26 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
     const [method, setMethod] = useState<SettlementMethod>('cash')
     const [note, setNote] = useState('')
     const [error, setError] = useState<string | null>(null)
+    /**
+     * The amount, as typed. Pre-filled with the suggestion, because the suggestion
+     * is right most of the time — but editable, because part-paying a debt is
+     * ordinary life ("I'll give you the fifty now and the rest on Friday") and the
+     * server has always accepted any positive amount. A sheet that could only
+     * record the whole thing forced people to either lie about what moved or
+     * record nothing, and recording nothing is how a room stops being believed.
+     */
+    const [amount, setAmount] = useState('')
+    /**
+     * Settlements recorded from this sheet since the page loaded, by id.
+     *
+     * Deliberately NOT cleared when the sheet reopens — that is the entire point.
+     * A recorded payment leaves `suggestedTransfers` immediately, so the sheet
+     * that had a row in it a second ago has nothing, which reads exactly like the
+     * payment having failed to save. Keeping the ids means the sheet can show the
+     * row again from server truth, so a deleted one correctly disappears and a
+     * partial one correctly shows the amount that actually moved.
+     */
+    const [recordedIds, setRecordedIds] = useState<string[]>([])
 
     /**
      * Signature moment #5 lives in these two pieces of state.
@@ -102,6 +123,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         setSelected(null)
         setMethod('cash')
         setNote('')
+        setAmount('')
         setError(null)
         setFrozen(null)
         setSettledKey(null)
@@ -120,24 +142,63 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
 
     const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
 
+    const decimals = decimalsOf(state.room.currency, currencies)
+
+    /** Picking a row seeds the field with what the room says is owed — the whole
+     *  suggestion, in the room's own decimal places. */
+    const pick = (transfer: ApiTransfer) => {
+        setSelected(transfer)
+        setAmount(formatMinorPlain(transfer.amountMinor, decimals))
+        setError(null)
+    }
+
+    /**
+     * The typed amount as minor units, or a reason it is not one. Bounded by the
+     * suggestion at the top: paying MORE than the debt is not a partial payment,
+     * it is a different transaction the room has no way to represent, and it
+     * would leave the payee owing the payer with no row explaining why.
+     */
+    const enteredMinor = (): { minor: string } | { problem: string } => {
+        if (!selected) return { problem: t('amountInvalid') }
+        const parsed = parseAmountToMinor(amount, decimals)
+        if (parsed === null || BigInt(parsed) <= 0n) return { problem: t('amountInvalid') }
+        if (BigInt(parsed) > BigInt(selected.amountMinor))
+            return { problem: t('amountTooHigh', { name: nameOf(selected.fromId) }) }
+        return { minor: parsed }
+    }
+
     const record = async () => {
         if (!selected) return
         setError(null)
+        const entered = enteredMinor()
+        if ('problem' in entered) {
+            feedback('error', { haptic: 'error' })
+            setError(entered.problem)
+            return
+        }
+        const partial = entered.minor !== selected.amountMinor
         const key = transferKey(selected)
         // Hold the list we are looking at *before* the mutation lands, so the row
         // is still mounted when we ask it to leave.
         setFrozen(state.suggestedTransfers)
         // Opened inside the click handler so Safari does not treat it as a popup.
         if (method === 'peanut') window.open(PEANUT_URL, '_blank', 'noopener,noreferrer')
+        // The ids the room already held, so the one that comes back can be told
+        // apart from them — the POST answers with the whole room, not the row.
+        const before = new Set(state.settlements.map((settlement) => settlement.id))
         try {
             const next = await addSettlement.mutateAsync({
                 fromId: selected.fromId,
                 toId: selected.toId,
-                amountMinor: selected.amountMinor,
+                amountMinor: entered.minor,
                 method,
                 note: note.trim() ? note.trim() : null,
             })
-            track('settlement_recorded', roomProps(slug, { method }))
+            const created = next.settlements.find((settlement) => !before.has(settlement.id))
+            if (created) setRecordedIds((previous) => [...previous, created.id])
+            // `partial` is a boolean about a payment, not an amount — the same
+            // line the rest of this file holds: what happened, never how much.
+            track('settlement_recorded', roomProps(slug, { method, partial }))
 
             // Wood on wood, the moment the money moves.
             feedback('thunk')
@@ -190,6 +251,11 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         .toString()
 
     const nothingToSettle = transfers.length === 0 && !settledKey
+
+    // Read back off the room rather than remembered as typed: a payment somebody
+    // deleted from the history in the meantime must not still be listed here as
+    // recorded, and a partial one has to show the amount that actually moved.
+    const recorded = state.settlements.filter((settlement) => recordedIds.includes(settlement.id))
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
@@ -267,7 +333,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                             >
                                                 <button
                                                     type="button"
-                                                    onClick={() => !settledKey && setSelected(transfer)}
+                                                    onClick={() => !settledKey && pick(transfer)}
                                                     disabled={settled}
                                                     data-testid="transfer-row"
                                                     data-settled={settled ? 'true' : undefined}
@@ -327,6 +393,43 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                         </>
                     )}
 
+                    {/* Shown whether or not anything is left outstanding — the
+                        case this exists for is the LAST payment, where the sheet
+                        would otherwise go from one row to an empty celebration
+                        with no trace of what just got recorded. */}
+                    {!selected && recorded.length > 0 && (
+                        <div className="flex flex-col gap-2" data-testid="recorded-settlements">
+                            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('recordedTitle')}</span>
+                            <ul className="flex flex-col gap-2">
+                                {recorded.map((settlement) => (
+                                    <li
+                                        key={settlement.id}
+                                        data-testid="recorded-settlement"
+                                        className="flex items-center gap-2 rounded-sm border border-dashed border-n-1 p-3"
+                                    >
+                                        <Icon name="check" size={16} className="shrink-0 text-grey-1" />
+                                        <span className="flex min-w-0 flex-1 items-center gap-2">
+                                            <MemberAvatar name={nameOf(settlement.fromId)} size={28} />
+                                            <span className="min-w-0 truncate text-h8">
+                                                {nameOf(settlement.fromId)}
+                                            </span>
+                                            <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
+                                            <MemberAvatar name={nameOf(settlement.toId)} size={28} />
+                                            <span className="min-w-0 truncate text-h8">{nameOf(settlement.toId)}</span>
+                                        </span>
+                                        <Money
+                                            minor={settlement.amountMinor}
+                                            currency={state.room.currency}
+                                            catalog={currencies}
+                                            className="shrink-0 text-h7"
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className="text-sm text-grey-1">{t('recordedHint')}</p>
+                        </div>
+                    )}
+
                     {selected && (
                         <motion.div
                             initial={{ opacity: 0, y: 14 }}
@@ -345,18 +448,38 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                     <span className="truncate text-h8">{nameOf(selected.toId)}</span>
                                 </span>
                             </div>
-                            <motion.p
+                            {/* The suggestion, editable. It arrives filled in, so
+                                the common case is still one tap — but a debt that
+                                was half paid can be recorded as half paid instead
+                                of as a lie or as nothing at all. */}
+                            <motion.label
                                 initial={{ scale: 0.86, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ type: 'spring', stiffness: 320, damping: 17, delay: 0.06 }}
-                                className="text-center text-h2 tabular-nums"
+                                className="flex flex-col gap-2"
                             >
-                                <Money
-                                    minor={selected.amountMinor}
-                                    currency={state.room.currency}
-                                    catalog={currencies}
+                                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('amountLabel')}</span>
+                                <BaseInput
+                                    value={amount}
+                                    onChange={(event) => {
+                                        setAmount(event.target.value)
+                                        setError(null)
+                                    }}
+                                    inputMode="decimal"
+                                    autoComplete="off"
+                                    maxLength={20}
+                                    className="text-center text-h3 tabular-nums"
+                                    data-testid="settle-amount"
                                 />
-                            </motion.p>
+                                <span className="text-center text-sm text-grey-1">
+                                    {t('amountHint')}{' '}
+                                    <Money
+                                        minor={selected.amountMinor}
+                                        currency={state.room.currency}
+                                        catalog={currencies}
+                                    />
+                                </span>
+                            </motion.label>
 
                             <div className="flex flex-col gap-2">
                                 <span className="text-h8 uppercase tracking-wide text-grey-1">{t('howPaid')}</span>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -9,10 +9,12 @@ import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
+import { roomTimeline } from '@/lib/timeline'
 import { dayLabel, groupByDay } from '@/lib/dates'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
 import { ReactionBar } from './ReactionBar'
+import { SettlementRow } from './SettlementRow'
 
 interface ExpenseListProps {
     state: RoomState
@@ -74,8 +76,13 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: 
     const locale = useLocale()
     const poppedId = usePoppedExpenseId(state.expenses)
     const queued = useQueuedWrites(slug)
+    /** Expenses and payments in one list, newest first — see `lib/timeline.ts`
+     *  for why a settlement's `createdAt` is the date it interleaves on. */
+    const timeline = useMemo(() => roomTimeline(state.expenses, state.settlements), [state.expenses, state.settlements])
 
-    if (state.expenses.length === 0) {
+    // The empty state belongs to the whole history, not to the expenses alone: a
+    // room holding a payment and no expenses has something to show.
+    if (timeline.length === 0) {
         return (
             <motion.section
                 initial={{ opacity: 0, y: 12 }}
@@ -97,7 +104,7 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: 
     }
 
     const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
-    const groups = groupByDay(state.expenses, (expense) => expense.date)
+    const groups = groupByDay(timeline, (entry) => entry.date)
 
     return (
         <section aria-label={t('title')} className="flex flex-col gap-5 px-4">
@@ -116,7 +123,37 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: 
                             popLayout would keep the placeholder mounted alongside its
                             replacement — two rows for one expense. */}
                         <AnimatePresence initial={false}>
-                            {group.items.map((expense) => {
+                            {group.items.map((entry) => {
+                                if (entry.kind === 'settlement') {
+                                    return (
+                                        <motion.li
+                                            key={entry.id}
+                                            layout
+                                            initial={{ opacity: 0, y: -14, scale: 0.96 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{
+                                                opacity: 0,
+                                                scale: 0.92,
+                                                x: 12,
+                                                transition: { duration: 0.2, ease: 'easeIn' },
+                                            }}
+                                            transition={{
+                                                layout: { type: 'spring', stiffness: 420, damping: 34, mass: 0.7 },
+                                                default: { type: 'spring', stiffness: 380, damping: 24, mass: 0.8 },
+                                            }}
+                                        >
+                                            <SettlementRow
+                                                slug={slug}
+                                                settlement={entry.settlement}
+                                                state={state}
+                                                currencies={currencies}
+                                                meId={meId}
+                                                token={token}
+                                            />
+                                        </motion.li>
+                                    )
+                                }
+                                const expense = entry.expense
                                 const payer = memberName(expense.paidById)
                                 const foreign = expense.currency !== state.room.currency
                                 return (

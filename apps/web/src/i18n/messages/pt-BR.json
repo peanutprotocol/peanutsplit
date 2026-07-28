@@ -389,7 +389,13 @@
             "record": "Registrar pagamento",
             "back": "Voltar",
             "recorded": "{from} → {to} registrado",
-            "failed": "não deu para registrar esse pagamento — tente de novo"
+            "failed": "não deu para registrar esse pagamento — tente de novo",
+            "amountLabel": "Quanto foi pago?",
+            "amountHint": "A dívida inteira é",
+            "amountInvalid": "Coloque um valor maior que zero.",
+            "amountTooHigh": "Isso é mais do que {name} deve.",
+            "recordedTitle": "Registrado agora",
+            "recordedHint": "Eles também ficam no histórico da sala, junto com o resto."
         },
         "share": {
             "title": "Chame o resto do grupo",
@@ -517,6 +523,17 @@
             "progress": "{done} de {count} atualizados",
             "stop": "Parar",
             "failed": "não deu para atualizar todos — toque de novo para continuar de onde parou"
+        },
+        "timeline": {
+            "paymentLabel": "Pagamento",
+            "recordedBy": "registrado por {name}",
+            "recordedByYou": "registrado por você",
+            "remove": "Excluir este pagamento",
+            "confirmRemove": "Excluir este pagamento? Não dá para desfazer — teria que registrar de novo.",
+            "confirmYes": "Excluir",
+            "confirmNo": "Deixar",
+            "removed": "Pagamento excluído. Registre de novo se foi engano.",
+            "removeFailed": "Não deu para excluir esse pagamento — tente de novo."
         }
     },
     "account": {
