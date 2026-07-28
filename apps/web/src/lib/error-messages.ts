@@ -53,8 +53,7 @@ export const KNOWN_ERROR_CODES = [
 
 export type KnownErrorCode = (typeof KNOWN_ERROR_CODES)[number]
 
-const isKnownCode = (code: string): code is KnownErrorCode =>
-    (KNOWN_ERROR_CODES as readonly string[]).includes(code)
+const isKnownCode = (code: string): code is KnownErrorCode => (KNOWN_ERROR_CODES as readonly string[]).includes(code)
 
 /**
  * Returns a stable `(error) => string`. Every drawer that catches a mutation calls this instead

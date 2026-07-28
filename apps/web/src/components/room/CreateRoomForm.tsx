@@ -2,14 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
-import { isApiError } from '@/lib/api'
 import { roomProps, track } from '@/lib/analytics'
 import type { RoomStateWithMember } from '@/lib/api-types'
+import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
 import { useCreateRoom, useCurrencies } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
@@ -26,6 +27,8 @@ const DEFAULT_CURRENCY = 'EUR'
  * gesture, not two steps.
  */
 export function CreateRoomForm() {
+    const t = useTranslations('room.create')
+    const errorMessage = useErrorMessage()
     const router = useRouter()
     const { data: currencies } = useCurrencies()
     const createRoom = useCreateRoom()
@@ -73,7 +76,7 @@ export function CreateRoomForm() {
             feedback('pop')
             setCreated(state)
         } catch (err) {
-            setError(isApiError(err) ? err.message : 'could not create the room — try again')
+            setError(errorMessage(err, t('failed')))
         }
     }
 
@@ -84,8 +87,8 @@ export function CreateRoomForm() {
                     slug={created.room.slug}
                     roomName={created.room.name}
                     emoji={created.room.emoji}
-                    title="Your room is ready"
-                    subtitle="Send this link to everyone splitting. No app, no signup — they just tap it."
+                    title={t('readyTitle')}
+                    subtitle={t('readySubtitle')}
                     footer={
                         <Button
                             variant="stroke"
@@ -93,7 +96,7 @@ export function CreateRoomForm() {
                             onClick={() => router.push(`/r/${created.room.slug}`)}
                             data-testid="go-to-room"
                         >
-                            Go to room
+                            {t('goToRoom')}
                         </Button>
                     }
                 />
@@ -109,12 +112,12 @@ export function CreateRoomForm() {
             <div className="flex items-center gap-3">
                 <Link
                     href="/"
-                    aria-label="Back"
+                    aria-label={t('back')}
                     className="flex size-11 items-center justify-center rounded-sm border border-n-1 bg-white transition-transform active:translate-y-[2px]"
                 >
                     <Icon name="arrow-left" size={20} />
                 </Link>
-                <h1 className="text-h5">New split</h1>
+                <h1 className="text-h5">{t('title')}</h1>
             </div>
 
             <motion.div
@@ -124,11 +127,11 @@ export function CreateRoomForm() {
                 className="my-auto flex flex-col gap-6"
             >
                 <label className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">What are you splitting?</span>
+                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('name')}</span>
                     <BaseInput
                         value={name}
                         onChange={(event) => setName(event.target.value)}
-                        placeholder="Ski trip"
+                        placeholder={t('namePlaceholder')}
                         maxLength={80}
                         autoFocus
                         data-testid="room-name"
@@ -136,7 +139,7 @@ export function CreateRoomForm() {
                 </label>
 
                 <div className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">Pick a face for it</span>
+                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('emoji')}</span>
                     <EmojiPicker
                         value={emoji}
                         onChange={(next) => {
@@ -147,25 +150,23 @@ export function CreateRoomForm() {
                 </div>
 
                 <label className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">Currency</span>
+                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('currency')}</span>
                     <CurrencySelect
                         value={currency}
                         onChange={setCurrency}
                         currencies={currencies}
-                        aria-label="Room currency"
+                        aria-label={t('currencyLabel')}
                         data-testid="room-currency"
                     />
-                    <span className="text-sm text-grey-1">
-                        Balances settle in this currency. Individual expenses can be in any of them.
-                    </span>
+                    <span className="text-sm text-grey-1">{t('currencyHint')}</span>
                 </label>
 
                 <label className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">And you are…</span>
+                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('creatorName')}</span>
                     <BaseInput
                         value={creatorName}
                         onChange={(event) => setCreatorName(event.target.value)}
-                        placeholder="Your name"
+                        placeholder={t('creatorNamePlaceholder')}
                         maxLength={80}
                         data-testid="creator-name"
                     />
@@ -186,7 +187,7 @@ export function CreateRoomForm() {
                     className="justify-center text-h6"
                     data-testid="create-room"
                 >
-                    Create the room
+                    {t('submit')}
                 </Button>
             </motion.div>
         </form>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -9,6 +10,7 @@ import { isApiError } from '@/lib/api'
 import type { RoomState } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
+import { useErrorMessage } from '@/lib/error-messages'
 import { useJoinRoom } from '@/lib/queries'
 import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from './MemberAvatar'
@@ -29,6 +31,8 @@ interface JoinGateProps {
  * credential; writes are attributed, never authorised.
  */
 export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
+    const t = useTranslations('room.join')
+    const errorMessage = useErrorMessage()
     const joinRoom = useJoinRoom(slug)
     const feedback = useFeedback()
     const [mode, setMode] = useState<'pick' | 'new'>(state.members.length > 0 ? 'pick' : 'new')
@@ -53,11 +57,13 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
             onJoined({ memberId: next.memberId, token: next.memberToken, name: trimmed })
         } catch (err) {
             if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
-                setError(`${trimmed} is already here — tap their name above instead.`)
+                // Named rather than generic: this is the one error where the fix is a tap on
+                // something already on screen, and pointing at it by name is the whole message.
+                setError(t('duplicate', { name: trimmed }))
                 setMode('pick')
                 return
             }
-            setError(isApiError(err) ? err.message : 'could not join — try again')
+            setError(errorMessage(err, t('failed')))
         }
     }
 
@@ -73,10 +79,9 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                 className="relative mx-auto w-full max-w-xl p-4"
             >
                 <Card shadowSize="6" className="max-h-[80dvh] overflow-y-auto p-5">
-                    <h2 className="text-h5">Who are you?</h2>
+                    <h2 className="text-h5">{t('title')}</h2>
                     <p className="mt-1 text-sm text-grey-1">
-                        {state.room.name} · {state.members.length} {state.members.length === 1 ? 'person' : 'people'} so
-                        far
+                        {t('roster', { room: state.room.name, count: state.members.length })}
                     </p>
 
                     {mode === 'pick' && (
@@ -93,7 +98,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                         >
                                             <MemberAvatar name={member.name} size={32} />
                                             <span className="flex-1 truncate text-h7">{member.name}</span>
-                                            <span className="text-sm text-grey-1">{`that's me`}</span>
+                                            <span className="text-sm text-grey-1">{t('thatsMe')}</span>
                                         </button>
                                     </li>
                                 ))}
@@ -115,7 +120,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                 }}
                                 data-testid="im-new"
                             >
-                                {`I'm new here`}
+                                {t('imNew')}
                             </Button>
                         </>
                     )}
@@ -125,7 +130,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                             <BaseInput
                                 value={name}
                                 onChange={(event) => setName(event.target.value)}
-                                placeholder="Your name"
+                                placeholder={t('namePlaceholder')}
                                 maxLength={80}
                                 autoFocus
                                 data-testid="join-name"
@@ -144,7 +149,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                 className="justify-center"
                                 data-testid="join-room"
                             >
-                                Join the room
+                                {t('submit')}
                             </Button>
                             {state.members.length > 0 && (
                                 <Button
@@ -155,7 +160,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                         setMode('pick')
                                     }}
                                 >
-                                    {`Actually, I'm already on the list`}
+                                    {t('alreadyOnList')}
                                 </Button>
                             )}
                         </form>

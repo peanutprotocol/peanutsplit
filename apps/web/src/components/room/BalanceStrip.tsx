@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { isZeroMinor } from '@/lib/money'
@@ -16,10 +17,14 @@ interface BalanceStripProps {
     meId?: string
 }
 
-const toneFor = (net: string) => {
-    if (isZeroMinor(net)) return { card: 'bg-white', label: 'settled up', labelClass: 'text-n-3' }
-    if (net.startsWith('-')) return { card: 'bg-error-1', label: 'owes', labelClass: 'text-n-1' }
-    return { card: 'bg-green-1', label: 'gets back', labelClass: 'text-n-1' }
+/**
+ * Takes the translator rather than returning a key to look up later: every key stays a literal
+ * at the point it is read, which is what lets `pnpm i18n:audit` verify all three exist.
+ */
+const toneFor = (net: string, t: (key: string) => string) => {
+    if (isZeroMinor(net)) return { card: 'bg-white', label: t('settled'), labelClass: 'text-n-3' }
+    if (net.startsWith('-')) return { card: 'bg-error-1', label: t('owes'), labelClass: 'text-n-1' }
+    return { card: 'bg-green-1', label: t('getsBack'), labelClass: 'text-n-1' }
 }
 
 /**
@@ -28,6 +33,7 @@ const toneFor = (net: string) => {
  * both are driven purely by the 8s poll diff, no sockets.
  */
 export function BalanceStrip({ state, currencies, meId }: BalanceStripProps) {
+    const t = useTranslations('room.balances')
     const feedback = useFeedback()
     // Seeded on the first render so the initial roster does not fire n pops.
     const known = useRef<Set<string> | null>(null)
@@ -44,8 +50,8 @@ export function BalanceStrip({ state, currencies, meId }: BalanceStripProps) {
     }, [state.members, feedback])
 
     return (
-        <section aria-label="Balances" className="flex flex-col gap-2">
-            <h2 className="px-4 text-h8 uppercase tracking-wide text-grey-1">Balances</h2>
+        <section aria-label={t('title')} className="flex flex-col gap-2">
+            <h2 className="px-4 text-h8 uppercase tracking-wide text-grey-1">{t('title')}</h2>
 
             {/* The right-edge mask tells you there is more to scroll without a
                 scrollbar, which mobile hides anyway. */}
@@ -54,7 +60,7 @@ export function BalanceStrip({ state, currencies, meId }: BalanceStripProps) {
                     <AnimatePresence initial={false}>
                         {state.members.map((member) => {
                             const net = state.balances[member.id] ?? '0'
-                            const tone = toneFor(net)
+                            const tone = toneFor(net, t)
                             return (
                                 <motion.li
                                     key={member.id}
@@ -77,7 +83,7 @@ export function BalanceStrip({ state, currencies, meId }: BalanceStripProps) {
                                     <div className="flex items-center gap-2">
                                         <MemberAvatar name={member.name} size={28} />
                                         <span className="min-w-0 flex-1 truncate text-h8">
-                                            {member.id === meId ? 'You' : member.name}
+                                            {member.id === meId ? t('you') : member.name}
                                         </span>
                                     </div>
                                     {/* No letter-spacing here. At 10px the extra tracking

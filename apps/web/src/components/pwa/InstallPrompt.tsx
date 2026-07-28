@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import { peanutPointing } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { marketingCopy } from '@/components/marketing/copy'
-
-const copy = marketingCopy.install
 
 const DISMISS_COUNT_KEY = 'ps:pwa-dismiss-count'
 const DISMISSED_AT_KEY = 'ps:pwa-dismissed-at'
@@ -78,6 +76,7 @@ export interface InstallPromptProps {
  * how-to sheet instead. Not mounted anywhere yet — mount it on the room page.
  */
 export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallPromptProps) {
+    const t = useTranslations('marketing.install')
     const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
     const [iosEligible, setIosEligible] = useState(false)
     const [visible, setVisible] = useState(false)
@@ -187,7 +186,7 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
                         className="fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
                         role="dialog"
-                        aria-label={copy.title}
+                        aria-label={t('title')}
                     >
                         <div className="shadow-4 mx-auto flex w-full max-w-xl gap-3 rounded-sm border border-n-1 bg-white p-4">
                             <Image
@@ -198,8 +197,8 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                                 className="size-12 shrink-0 object-contain"
                             />
                             <div className="min-w-0 flex-1">
-                                <p className="text-h7">{copy.title}</p>
-                                <p className="mt-1 text-sm leading-5 text-grey-1">{copy.body}</p>
+                                <p className="text-h7">{t('title')}</p>
+                                <p className="mt-1 text-sm leading-5 text-grey-1">{t('body')}</p>
                                 <div className="mt-3 flex items-center gap-2">
                                     <Button
                                         variant="primary"
@@ -208,7 +207,7 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                                         className="w-auto shrink-0 justify-center whitespace-nowrap px-4"
                                         onClick={install}
                                     >
-                                        {copy.cta}
+                                        {t('cta')}
                                     </Button>
                                     <Button
                                         variant="transparent"
@@ -216,14 +215,14 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                                         className="w-auto justify-center whitespace-nowrap px-2 text-grey-1"
                                         onClick={dismiss}
                                     >
-                                        {copy.dismiss}
+                                        {t('dismiss')}
                                     </Button>
                                 </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={dismiss}
-                                aria-label={copy.dismiss}
+                                aria-label={t('dismiss')}
                                 className="-mr-1 -mt-1 size-8 shrink-0 self-start rounded-sm text-grey-1"
                             >
                                 <Icon name="x" size={18} className="mx-auto" />
@@ -236,11 +235,13 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
             <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
                 <DrawerContent className="border-n-1">
                     <DrawerHeader className="text-left">
-                        <DrawerTitle className="text-h5">{copy.ios.title}</DrawerTitle>
-                        <DrawerDescription>{copy.ios.body}</DrawerDescription>
+                        <DrawerTitle className="text-h5">{t('ios.title')}</DrawerTitle>
+                        <DrawerDescription>{t('ios.body')}</DrawerDescription>
                     </DrawerHeader>
                     <ol className="flex flex-col gap-3 px-4 pb-2">
-                        {copy.ios.steps.map((step, index) => (
+                        {/* Literal keys: three steps is not enough repetition to justify a
+                            computed path, which the i18n audit could only skip. */}
+                        {[t('ios.step1'), t('ios.step2'), t('ios.step3')].map((step, index) => (
                             <li key={step} className="flex items-start gap-3">
                                 <span
                                     aria-hidden="true"
@@ -254,7 +255,7 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                     </ol>
                     <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                         <Button variant="stroke" className="justify-center" onClick={dismiss}>
-                            {copy.ios.done}
+                            {t('ios.done')}
                         </Button>
                     </div>
                 </DrawerContent>

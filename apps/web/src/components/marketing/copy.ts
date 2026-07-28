@@ -1,76 +1,20 @@
 /**
- * All landing-page strings, in one place.
+ * What is left of the marketing copy after i18n: the Splitwise comparison page, and only it.
  *
- * i18n: SPEC calls for next-intl with `en` / `es` (es-419 tone) / `pt-BR`. This pass ships
- * English only. Every user-visible string on the marketing surface lives in this object and
- * nowhere else, so extraction is a mechanical move into `messages/en.json` — the key paths
- * below are already namespaced to survive that translation verbatim (`marketing.hero.title`…).
+ * Everything else that used to live here — hero, rooms, how-it-works, honesty strip, footer,
+ * install prompt — moved into `src/i18n/messages/*.json` and is rendered through
+ * `useTranslations`. The key paths here were already namespaced for exactly that move.
+ *
+ * This page did NOT move, deliberately. It is the one SEO page: its `<title>`, its description
+ * and its FAQPage JSON-LD are all built from these strings at module scope, and the structured
+ * data has to match what a crawler is served. Rendering the body in Spanish while the JSON-LD
+ * stayed English would be a rich-result mismatch on the highest-intent page on the site. It is
+ * English because it is indexed in English — the same reason the OG images are.
  *
  * Rules for whoever edits this: keep it honest. Free forever is a promise, not a growth line;
  * "settle however you like" must never imply the Peanut path is safer than cash.
  */
 export const marketingCopy = {
-    hero: {
-        eyebrow: 'no app · no signup · free forever',
-        // Rendered as two stacked Knerd lines.
-        titleTop: 'SPLIT',
-        titleBottom: 'ANYTHING',
-        subtitle:
-            'Trips, dinners, flatmates. Share one link — everyone adds what they paid, and we work out who owes who.',
-        cta: 'Start a split',
-        ctaHint: 'Takes ten seconds. No email, no password, no download.',
-        mascotAlt: 'Peanut waving hello',
-    },
-    rooms: {
-        title: 'Your rooms',
-        subtitle: 'Saved on this device.',
-        openLabel: 'Open room',
-        // {count} is substituted at render time.
-        moreLabel: 'and {count} more',
-    },
-    how: {
-        title: 'How it works',
-        steps: [
-            {
-                n: '1',
-                title: 'Start a split',
-                body: 'Name it, pick an emoji and a currency. Ski trip, flat bills, Tuesday dinner.',
-            },
-            {
-                n: '2',
-                title: 'Share the link',
-                body: 'Drop it in the group chat. Nobody installs anything or makes an account.',
-            },
-            {
-                n: '3',
-                title: 'Everyone adds expenses',
-                body: 'Balances update live, and the maths reconciles to the cent — on screen, every time.',
-            },
-        ],
-    },
-    honesty: {
-        title: 'The honest bit',
-        items: [
-            {
-                title: 'Free forever',
-                body: 'No fees, no premium tier, nothing to upgrade to.',
-            },
-            {
-                title: 'No account needed',
-                body: 'No email, no password, no ID checks. The link is the key — keep it in the group.',
-            },
-            {
-                title: 'Settle however you like',
-                body: 'Cash, bank transfer, or whatever app you already use. We just record it.',
-            },
-        ],
-    },
-    footer: {
-        poweredByPrefix: 'powered by',
-        poweredByBrand: 'Peanut',
-        poweredByHref: 'https://peanut.me?utm_source=split&utm_medium=footer',
-        compareLink: 'Splitwise alternative',
-    },
     /**
      * The one SEO page (decision log, 2026-07-25: "LP + one strong Splitwise alternative page").
      * Every claim about Splitwise here was checked against their own site in July 2026 and is
@@ -215,22 +159,6 @@ export const marketingCopy = {
             title: 'Try it on the next dinner',
             body: 'One link, ten seconds, and nobody has to install anything.',
             button: 'Start a split',
-        },
-    },
-    install: {
-        title: 'Add Split to your home screen',
-        body: 'Opens instantly, works like an app. No store, no account.',
-        cta: 'Add to home screen',
-        dismiss: 'Not now',
-        ios: {
-            title: 'Add Split to your home screen',
-            body: 'Two taps in Safari and Split lives on your home screen like an app.',
-            steps: [
-                'Tap the Share button in the Safari toolbar.',
-                'Scroll down and choose “Add to Home Screen”.',
-                'Tap “Add”. That’s it.',
-            ],
-            done: 'Got it',
         },
     },
 } as const

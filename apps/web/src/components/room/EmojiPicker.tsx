@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/cn'
 
 /**
@@ -28,8 +29,10 @@ export const ROOM_EMOJIS = [
 export const randomRoomEmoji = (): string => ROOM_EMOJIS[Math.floor(Math.random() * ROOM_EMOJIS.length)]
 
 export function EmojiPicker({ value, onChange }: { value: string; onChange: (emoji: string) => void }) {
+    const t = useTranslations('room.create')
+
     return (
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Room emoji">
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('emojiGroup')}>
             {ROOM_EMOJIS.map((emoji) => {
                 const selected = emoji === value
                 return (
@@ -38,7 +41,7 @@ export function EmojiPicker({ value, onChange }: { value: string; onChange: (emo
                         type="button"
                         role="radio"
                         aria-checked={selected}
-                        aria-label={`Emoji ${emoji}`}
+                        aria-label={t('emojiOption', { emoji })}
                         onClick={() => onChange(emoji)}
                         className={cn(
                             'flex size-11 items-center justify-center rounded-sm border border-n-1 text-h5 transition-transform active:translate-y-[2px]',

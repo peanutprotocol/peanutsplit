@@ -47,7 +47,8 @@ export async function buildExpense(
     let shares: ShareDraft[]
     if (body.splitMode === 'EXACT') {
         const entered = body.exactShares ?? []
-        if (entered.length === 0) throw badRequest('exactShares is required for an EXACT split', 'EXACT_SHARES_REQUIRED')
+        if (entered.length === 0)
+            throw badRequest('exactShares is required for an EXACT split', 'EXACT_SHARES_REQUIRED')
         assertNoDuplicates(entered.map((s) => s.memberId))
         entered.forEach((s) => requireMember(room, s.memberId, 'share member'))
         const parsed = entered.map((s) => ({ memberId: s.memberId, amountMinor: parseMinor(s.amountMinor) }))
@@ -80,5 +81,6 @@ export async function buildExpense(
 }
 
 function assertNoDuplicates(ids: readonly string[]): void {
-    if (new Set(ids).size !== ids.length) throw badRequest('a member can only appear once in a split', 'DUPLICATE_PARTICIPANT')
+    if (new Set(ids).size !== ids.length)
+        throw badRequest('a member can only appear once in a split', 'DUPLICATE_PARTICIPANT')
 }
