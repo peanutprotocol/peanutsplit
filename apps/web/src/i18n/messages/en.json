@@ -296,5 +296,27 @@
         "SETTLEMENT_PAYER_NOT_MEMBER": "Whoever paid is not in this room — refresh and try again.",
         "SETTLEMENT_PAYEE_NOT_MEMBER": "Whoever was paid is not in this room — refresh and try again.",
         "SETTLEMENT_SAME_MEMBER": "A payment needs two different people."
+    },
+    "derivation": {
+        "title": "How this adds up",
+        "openLabel": "See how {name}’s balance adds up",
+        "checkNote": "Every line comes from this room. Add them up yourself — it matches.",
+        "paidTitle": "Expenses paid",
+        "shareTitle": "Share of expenses",
+        "settledTitle": "Payments recorded",
+        "paidBy": "paid by {name}",
+        "paidByYou": "you paid",
+        "sentTo": "Paid to {name}",
+        "receivedFrom": "Received from {name}",
+        "total": "Adds up to",
+        "emptyTitle": "Nothing yet",
+        "emptyBody": "No expenses, no payments — nothing has touched this balance.",
+        "suggestedTitle": "To clear this",
+        "suggestedNote": "Suggested payments clear the whole room in the fewest transfers, so who pays whom isn’t always who spent on whom. Both balances are here to check.",
+        "sends": "Pays {name}",
+        "receives": "Gets paid by {name}",
+        "showOther": "Show {name}’s balance",
+        "hideOther": "Hide {name}’s balance",
+        "someone": "Someone"
     }
 }
