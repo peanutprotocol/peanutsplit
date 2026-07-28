@@ -60,7 +60,7 @@ than no gate.
 Runs on a Hetzner box via Dokploy; see the Deployment section of [`README.md`](README.md) for the topology. Two rules that bite if you don't know them:
 
 - **The containers have no egress.** Nothing can be fetched at runtime. If code needs to reach an external host, it needs a proxy pinned to that host — not an opened network. This is why the Prisma engine is baked into the image rather than downloaded on boot.
-- **`SPLIT_API_URL` and `NEXT_PUBLIC_*` are build args**, because Next freezes `rewrites()` and inlines public env at build time. Setting them at runtime silently does nothing.
+- **`NEXT_PUBLIC_*` values are build args**, because Next inlines them into the client bundle at build time. Setting them at runtime silently does nothing; each one needs an `ARG`/`ENV` pair in `apps/web/Dockerfile` and a matching Dokploy build arg.
 
 You don't need server access to ship — push is enough. Ask Hugo for anything infra-side (env vars, domains, database, rollback, logs).
 
