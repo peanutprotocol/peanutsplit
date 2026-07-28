@@ -280,7 +280,8 @@
             "you": "You",
             "settled": "settled up",
             "owes": "owes",
-            "getsBack": "gets back"
+            "getsBack": "gets back",
+            "nothingYet": "nothing yet"
         },
         "expenses": {
             "title": "Expenses",
