@@ -126,9 +126,7 @@ describe('planRecovery', () => {
             now,
         })
         expect(plan.remember).toHaveLength(1)
-        expect(plan.identities).toEqual([
-            { slug: 'ski', identity: { memberId: 'm1', name: 'Ana', token: 'tok-ski' } },
-        ])
+        expect(plan.identities).toEqual([{ slug: 'ski', identity: { memberId: 'm1', name: 'Ana', token: 'tok-ski' } }])
     })
 
     it('is a no-op for an account with no rooms', () => {
