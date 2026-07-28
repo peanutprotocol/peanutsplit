@@ -8,15 +8,11 @@ import { useRouter } from 'next/navigation'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
-import { roomProps, track } from '@/lib/analytics'
-import type { RoomStateWithMember } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
-import { useErrorMessage } from '@/lib/error-messages'
-import { writeIdentity } from '@/lib/identity'
 import { currencyDisplayName } from '@/lib/money'
-import { useCreateRoom, useCurrencies } from '@/lib/queries'
-import { rememberRoom } from '@/lib/recent-rooms'
+import { useCurrencies } from '@/lib/queries'
+import { useCreateRoomFlow } from '@/lib/use-create-room'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
 import { CurrencyTag } from './CurrencyTag'
@@ -36,10 +32,9 @@ export function CreateRoomForm() {
     const t = useTranslations('room.create')
     const tCurrency = useTranslations('room.currency')
     const locale = useLocale()
-    const errorMessage = useErrorMessage()
     const router = useRouter()
     const { data: currencies } = useCurrencies()
-    const createRoom = useCreateRoom()
+    const { submit: createRoom, created, error, pending } = useCreateRoomFlow(t('failed'))
     const hints = useCurrencyHints()
 
     const feedback = useFeedback()
@@ -55,8 +50,6 @@ export function CreateRoomForm() {
     // not smart, it is broken.
     const [currencyChosen, setCurrencyChosen] = useState(false)
     const [creatorName, setCreatorName] = useState('')
-    const [created, setCreated] = useState<RoomStateWithMember | null>(null)
-    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => setEmoji(randomRoomEmoji()), [])
 
@@ -77,36 +70,14 @@ export function CreateRoomForm() {
     }
 
     const canSubmit = useMemo(
-        () => name.trim().length > 0 && creatorName.trim().length > 0 && !createRoom.isPending,
-        [name, creatorName, createRoom.isPending]
+        () => name.trim().length > 0 && creatorName.trim().length > 0 && !pending,
+        [name, creatorName, pending]
     )
 
     const submit = async (event: React.FormEvent) => {
         event.preventDefault()
         if (!canSubmit) return
-        setError(null)
-        try {
-            const state = await createRoom.mutateAsync({
-                name: name.trim(),
-                emoji,
-                currency,
-                creatorName: creatorName.trim(),
-            })
-            // The token is returned exactly once — store it before anything else
-            // can throw, or this device permanently loses its attribution.
-            writeIdentity(state.room.slug, {
-                memberId: state.memberId,
-                token: state.memberToken,
-                name: creatorName.trim(),
-            })
-            rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
-            track('room_created', roomProps(state.room.slug, { currency: state.room.currency }))
-            // A room came into being — the cork, not the pencil.
-            feedback('pop')
-            setCreated(state)
-        } catch (err) {
-            setError(errorMessage(err, t('failed')))
-        }
+        await createRoom({ name, emoji, currency, creatorName })
     }
 
     if (created) {
@@ -247,7 +218,7 @@ export function CreateRoomForm() {
                     variant="primary"
                     shadowSize="4"
                     disabled={!canSubmit}
-                    loading={createRoom.isPending}
+                    loading={pending}
                     className="justify-center text-h6"
                     data-testid="create-room"
                 >

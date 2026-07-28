@@ -1,29 +1,14 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "sem app · sem cadastro · grátis para sempre",
-            "titleTop": "DIVIDA",
-            "titleBottom": "TUDO",
-            "subtitle": "Viagens, jantares, colegas de apê. Compartilhe um link — cada um anota o que pagou e a gente calcula quem deve a quem.",
-            "cta": "Começar uma divisão",
-            "ctaHint": "Leva dez segundos. Sem e-mail, sem senha, sem download.",
-            "mascotAlt": "Peanut acenando"
-        },
-        "gap": {
-            "title": "Onde os outros apps param",
-            "intro": "Todos levam vocês até um número. O número é a parte fácil. A parte chata são as três semanas seguintes, com o número ainda parado ali.",
-            "item1": {
-                "title": "Seu grupo está em quatro países",
-                "body": "Pedir um pagamento só funciona se todo mundo tem banco no mesmo lugar. O Split nunca supõe isso."
-            },
-            "item2": {
-                "title": "Ninguém tem o mesmo app",
-                "body": "“Me manda por aí” desanda quando um tem Revolut, outro tem Venmo e outro um banco que fecha às quatro."
-            },
-            "item3": {
-                "title": "Você pagou numa moeda e deve em outra",
-                "body": "Escolha em que a sala conta, lance as despesas no que você gastou de verdade, e o Split converte. Sem plano pago para a parte das moedas."
-            }
+            "eyebrow": "grátis · sem conta · sem baixar nada",
+            "titleTop": "QUEM DEVE",
+            "titleBottom": "A QUEM",
+            "subtitle": "Compartilhe um link. Cada um adiciona o que pagou, na moeda em que pagou.",
+            "cta": "Abrir →",
+            "ctaHint": "Grátis, sem conta e sem baixar nada — nem você nem eles.",
+            "mascotAlt": "Peanut acenando",
+            "linkExplainerTrigger": "Como o link funciona"
         },
         "rooms": {
             "title": "Suas salas",
@@ -108,6 +93,142 @@
                 "step2": "Role para baixo e escolha “Adicionar à Tela de Início”.",
                 "step3": "Toque em “Adicionar”. Pronto.",
                 "done": "Entendi"
+            }
+        },
+        "linkExplainer": {
+            "title": "Como o link funciona",
+            "bearer": {
+                "title": "O link é a chave",
+                "body": "Não existem contas, então não há onde fazer login. Qualquer pessoa com o link abre a sala e adiciona despesas — deixe ele no grupo e ele fica com o grupo."
+            },
+            "private": {
+                "title": "Ninguém acha por acaso",
+                "body": "As salas ficam fora dos buscadores e o endereço termina numa sequência aleatória, então não dá para adivinhar. Ele só chega a quem você mandar."
+            },
+            "lost": {
+                "title": "Se todo mundo perder o link, a sala some",
+                "body": "As salas que você abriu ficam listadas nesta página, salvas no seu aparelho. Esse é o preço de não pedir conta a ninguém."
+            },
+            "nothingElse": {
+                "title": "O Split nunca toca no seu dinheiro",
+                "body": "Ele registra quem pagou o quê e quem deve a quem. Os pagamentos acontecem onde você já faz."
+            },
+            "done": "Entendi"
+        },
+        "readMore": {
+            "toggle": "Ainda não se convenceu? Leia mais",
+            "toggleHint": "O que seus amigos veem, o que ele faz, quem fez e as perguntas chatas.",
+            "join": {
+                "title": "O que seus amigos veem",
+                "roomName": "Viagem de esqui",
+                "nameLabel": "Seu nome",
+                "namePlaceholder": "Tom",
+                "button": "Entrar na sala",
+                "body": "Um toque e um nome. Sem e-mail, sem senha e sem baixar nada — o que você pede a eles é menos do que pede a si mesmo."
+            },
+            "features": {
+                "title": "O que o Split faz",
+                "currency": {
+                    "title": "Qualquer moeda",
+                    "body": "A sala conta em uma moeda. Adicione a despesa na moeda em que você pagou e o Split converte pela cotação do dia."
+                },
+                "splits": {
+                    "title": "Divisões desiguais",
+                    "body": "Igual, por partes, por valores exatos, ou deixando alguém de fora de uma linha."
+                },
+                "exact": {
+                    "title": "Fecha no centavo",
+                    "body": "Os saldos sempre somam zero, e dá para abrir qualquer saldo e ver exatamente como se chegou nele."
+                },
+                "live": {
+                    "title": "Todo mundo vê na hora",
+                    "body": "Lance uma despesa no ônibus e ela já está na tela dos outros antes de você descer."
+                },
+                "home": {
+                    "title": "Coloque na tela de início",
+                    "body": "Abre como um aplicativo. Sem loja, sem instalar, sem conta."
+                },
+                "transfers": {
+                    "title": "O menor número de pagamentos",
+                    "body": "Seis pessoas se devendo em círculo viram duas transferências, não onze."
+                }
+            },
+            "settle": {
+                "title": "Como você recebe de volta",
+                "body": "No fim, o Split calcula o menor número de pagamentos que zera a sala e diz quem paga a quem. Você manda o dinheiro do jeito que já mandaria, e a sala registra que mandou.",
+                "cash": "Dinheiro",
+                "bank": "Transferência",
+                "peanut": "Mandar com a Peanut"
+            },
+            "team": {
+                "title": "Quem construiu",
+                "intro": "O Split ainda não tem usuários, então não há quem citar além de nós. Estes quatro fizeram, e foi para isso que fizeram.",
+                "konrad": {
+                    "name": "Konrad",
+                    "role": "fez o Split",
+                    "quote": "Toda viagem terminava igual: uma planilha que ninguém atualizava e uma pessoa no prejuízo, calada."
+                },
+                "hugo": {
+                    "name": "Hugo",
+                    "role": "fez o Split",
+                    "quote": "Eu queria que a coisa toda fosse um link. Se seus amigos precisam criar conta, eles simplesmente não criam."
+                },
+                "natalia": {
+                    "name": "Natalia",
+                    "role": "fez o Split",
+                    "quote": "O que me importa é o fim — todo mundo no zero, e ninguém precisou cobrar duas vezes."
+                },
+                "jakub": {
+                    "name": "Jakub",
+                    "role": "fez o Split",
+                    "quote": "Tinha que funcionar para um grupo espalhado por quatro países, porque é assim que são todos os meus grupos."
+                }
+            },
+            "who": {
+                "title": "Quem fez isso, e por que é grátis",
+                "built": {
+                    "title": "A Peanut fez o Split",
+                    "body": "A Peanut é um app de pagamentos e uma empresa de verdade com produto de verdade — não um projeto de fim de semana que some."
+                },
+                "free": {
+                    "title": "É grátis porque apresenta a Peanut para as pessoas",
+                    "body": "Esse é o modelo de negócio inteiro. Sem plano premium, sem venda vindo depois, sem nada para comprar."
+                },
+                "data": {
+                    "title": "Não há muito aqui para vazar",
+                    "body": "Sem e-mail, sem senha, sem documento. Os links das salas ficam fora da nossa própria analítica, porque um link é uma chave."
+                }
+            },
+            "faq": {
+                "title": "As perguntas que as pessoas realmente fazem",
+                "retype": {
+                    "q": "Preciso digitar de novo tudo o que está no grupo?",
+                    "a": "Para uma viagem que já aconteceu, sim: as despesas são digitadas uma vez. Pesa menos do que parece porque cada um na sala lança as suas em vez de sobrar tudo para você. Se você vem do Splitwise, /import traz um grupo inteiro."
+                },
+                "accounts": {
+                    "q": "Meus amigos precisam de conta?",
+                    "a": "Não. Eles abrem o link, digitam um nome e estão dentro. Sem e-mail, sem senha, sem app."
+                },
+                "currencies": {
+                    "q": "E se a gente pagou em moedas diferentes?",
+                    "a": "A sala conta em uma moeda e as despesas podem ser lançadas em qualquer uma. O Split converte pela cotação do dia em que a despesa foi lançada e mantém o valor original na linha."
+                },
+                "access": {
+                    "q": "Quem consegue ver a nossa sala?",
+                    "a": "Quem tiver o link. Ele fica fora dos buscadores e não dá para adivinhar, mas é uma chave — deixe no grupo, não em lugar público."
+                },
+                "lost": {
+                    "q": "E se a gente perder o link?",
+                    "a": "As salas que você abriu ficam salvas no seu aparelho e listadas na página inicial. Se ninguém do grupo tiver mais o link, a sala se perdeu."
+                },
+                "limits": {
+                    "q": "Tem limite de despesas?",
+                    "a": "Não. Lance cinquenta numa tarde, se a viagem for desse tipo."
+                }
+            },
+            "compare": {
+                "line": "Vindo de outro app de divisão de contas?",
+                "link": "Veja como o Split se compara ao Splitwise"
             }
         }
     },
@@ -301,7 +422,8 @@
             "failed": "não deu para criar a sala — tente de novo",
             "readyTitle": "Sua sala está pronta",
             "readySubtitle": "Mande este link para todo mundo que vai dividir. Sem app, sem cadastro — é só tocar.",
-            "goToRoom": "Ir para a sala"
+            "goToRoom": "Ir para a sala",
+            "namePlaceholderSlug": "sua-viagem"
         },
         "currency": {
             "suggested": "Sugeridas",

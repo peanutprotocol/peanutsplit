@@ -1,29 +1,14 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "no app · no signup · free forever",
-            "titleTop": "SPLIT",
-            "titleBottom": "ANYTHING",
-            "subtitle": "Trips, dinners, flatmates. Share one link — everyone adds what they paid, and we work out who owes who.",
-            "cta": "Start a split",
-            "ctaHint": "Takes ten seconds. No email, no password, no download.",
-            "mascotAlt": "Peanut waving hello"
-        },
-        "gap": {
-            "title": "Where the other apps stop",
-            "intro": "They all get you to a number. The number is the easy part. The awkward part is the three weeks afterwards, when the number is still sitting there.",
-            "item1": {
-                "title": "Your group is in four countries",
-                "body": "A payment request only works if everyone banks in the same place. Split never assumes you do."
-            },
-            "item2": {
-                "title": "Nobody has the same app",
-                "body": "“Just send it to me” falls apart when one of you has Revolut, one has Venmo, and one has a bank that shuts at four."
-            },
-            "item3": {
-                "title": "You paid in one currency and owe in another",
-                "body": "Pick what the room counts in, add expenses in whatever you actually spent, and Split converts. No paid tier for the currency bit."
-            }
+            "eyebrow": "free · no account · no download",
+            "titleTop": "WHO OWES WHO",
+            "titleBottom": "SORTED",
+            "subtitle": "Share one link. Everyone adds what they paid, in whatever currency they paid it in.",
+            "cta": "Open it →",
+            "ctaHint": "Free, no account, no download — for you or for them.",
+            "mascotAlt": "Peanut waving hello",
+            "linkExplainerTrigger": "How the link works"
         },
         "rooms": {
             "title": "Your rooms",
@@ -108,6 +93,142 @@
                 "step2": "Scroll down and choose “Add to Home Screen”.",
                 "step3": "Tap “Add”. That’s it.",
                 "done": "Got it"
+            }
+        },
+        "linkExplainer": {
+            "title": "How the link works",
+            "bearer": {
+                "title": "The link is the key",
+                "body": "There are no accounts, so there is nothing to log into. Anyone holding the link can open the room and add expenses — keep it in the group chat and it stays with the group."
+            },
+            "private": {
+                "title": "Nobody finds it by accident",
+                "body": "Room pages are kept out of search engines and the address ends in a random tail, so it cannot be guessed. It only reaches the people you send it to."
+            },
+            "lost": {
+                "title": "If everyone loses it, the room is gone",
+                "body": "Rooms you have opened are listed on this page, saved on your device. That is the trade for not asking anyone to make an account."
+            },
+            "nothingElse": {
+                "title": "Split never touches your money",
+                "body": "It records who paid what and who owes whom. The payments themselves happen wherever you already make them."
+            },
+            "done": "Got it"
+        },
+        "readMore": {
+            "toggle": "Not convinced yet? Read more",
+            "toggleHint": "What your friends see, what it does, who made it, and the awkward questions.",
+            "join": {
+                "title": "What your friends see",
+                "roomName": "Ski trip",
+                "nameLabel": "Your name",
+                "namePlaceholder": "Tom",
+                "button": "Join the room",
+                "body": "One tap and a name. No email, no password, nothing to download — what you are asking of them is smaller than what you are asking of yourself."
+            },
+            "features": {
+                "title": "What Split does",
+                "currency": {
+                    "title": "Any currency",
+                    "body": "The room counts in one currency. Add an expense in whatever you actually paid and Split converts it at the rate on the day."
+                },
+                "splits": {
+                    "title": "Splits that are not even",
+                    "body": "Equal, by shares, by exact amounts, or with some people left out of a line."
+                },
+                "exact": {
+                    "title": "Reconciles to the cent",
+                    "body": "Balances always sum to zero, and you can open any balance to see exactly how it was reached."
+                },
+                "live": {
+                    "title": "Everyone sees it at once",
+                    "body": "Add something on the bus and it is on everyone else’s screen before you get off."
+                },
+                "home": {
+                    "title": "Add it to your home screen",
+                    "body": "It opens like an app. No store, no install, no account."
+                },
+                "transfers": {
+                    "title": "The fewest payments",
+                    "body": "Six people owing each other in circles becomes two transfers, not eleven."
+                }
+            },
+            "settle": {
+                "title": "How you get paid back",
+                "body": "When you are done, Split works out the fewest payments that clear the room and tells you who should pay whom. You send the money the way you already would, and the room records that you did.",
+                "cash": "Cash",
+                "bank": "Bank transfer",
+                "peanut": "Send it with Peanut"
+            },
+            "team": {
+                "title": "The people who built it",
+                "intro": "Split has no users yet, so there is nobody to quote but us. These four made it, and this is what we made it for.",
+                "konrad": {
+                    "name": "Konrad",
+                    "role": "built Split",
+                    "quote": "Every trip ended the same way: a spreadsheet nobody updated, and one person quietly out of pocket."
+                },
+                "hugo": {
+                    "name": "Hugo",
+                    "role": "built Split",
+                    "quote": "I wanted the whole thing to be a link. If your friends have to make accounts, they simply will not."
+                },
+                "natalia": {
+                    "name": "Natalia",
+                    "role": "built Split",
+                    "quote": "The part I care about is the end — everyone at zero, and nobody had to ask twice."
+                },
+                "jakub": {
+                    "name": "Jakub",
+                    "role": "built Split",
+                    "quote": "It had to work for a group spread across four countries, because that is every group I am in."
+                }
+            },
+            "who": {
+                "title": "Who made this, and why it is free",
+                "built": {
+                    "title": "Peanut built Split",
+                    "body": "Peanut is a payments app and a real company with a real product — not a weekend project that disappears."
+                },
+                "free": {
+                    "title": "It is free because it introduces people to Peanut",
+                    "body": "That is the whole business model. No premium tier, no upsell coming, nothing to buy."
+                },
+                "data": {
+                    "title": "There is not much here to leak",
+                    "body": "No email, no password, no ID. Room links are kept out of our own analytics, because a link is a key."
+                }
+            },
+            "faq": {
+                "title": "Questions people actually ask",
+                "retype": {
+                    "q": "Do I have to retype everything from the group chat?",
+                    "a": "For a trip that already happened, yes — the expenses get typed in once. It is lighter than it sounds, because everyone in the room can add their own instead of it all landing on you. If you are coming from Splitwise, /import brings a group across."
+                },
+                "accounts": {
+                    "q": "Do my friends need an account?",
+                    "a": "No. They open the link, type a name, and they are in. No email, no password, no app."
+                },
+                "currencies": {
+                    "q": "What if we paid in different currencies?",
+                    "a": "The room counts in one currency and expenses can be added in any. Split converts at the rate on the day the expense was added and keeps the original amount on the line."
+                },
+                "access": {
+                    "q": "Who can see our room?",
+                    "a": "Anyone with the link. It is kept out of search engines and cannot be guessed, but it is a key — keep it in the group chat rather than anywhere public."
+                },
+                "lost": {
+                    "q": "What happens if we lose the link?",
+                    "a": "Rooms you have opened are saved on your device and listed on the home page. If nobody in the group still has it, the room is gone."
+                },
+                "limits": {
+                    "q": "Is there a limit on how many expenses we can add?",
+                    "a": "No. Add fifty in an afternoon if that is the kind of trip it is."
+                }
+            },
+            "compare": {
+                "line": "Coming from another splitting app?",
+                "link": "See how Split compares to Splitwise"
             }
         }
     },
@@ -301,7 +422,8 @@
             "failed": "could not create the room — try again",
             "readyTitle": "Your room is ready",
             "readySubtitle": "Send this link to everyone splitting. No app, no signup — they just tap it.",
-            "goToRoom": "Go to room"
+            "goToRoom": "Go to room",
+            "namePlaceholderSlug": "your-trip"
         },
         "currency": {
             "suggested": "Suggested",

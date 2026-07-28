@@ -4,8 +4,8 @@ import { FinalCta } from '@/components/marketing/FinalCta'
 import { Hero } from '@/components/marketing/Hero'
 import { HonestyStrip } from '@/components/marketing/HonestyStrip'
 import { HowItWorks } from '@/components/marketing/HowItWorks'
+import { ReadMore } from '@/components/marketing/ReadMore'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
-import { TheGap } from '@/components/marketing/TheGap'
 import { UseCases } from '@/components/marketing/UseCases'
 import { YourRooms } from '@/components/marketing/YourRooms'
 import enMessages from '@/i18n/messages/en.json'
@@ -24,12 +24,12 @@ export const metadata: Metadata = {
     openGraph: {
         type: 'website',
         url: '/',
-        title: 'Peanut Split — split expenses, no signup',
+        title: 'Peanut Split — who owes who, sorted',
         description: heroSubtitle,
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Peanut Split — split expenses, no signup',
+        title: 'Peanut Split — who owes who, sorted',
         description: heroSubtitle,
     },
 }
@@ -43,10 +43,10 @@ export default function LandingPage() {
             <AccountRecovery />
             <Hero />
             <YourRooms />
-            <TheGap />
             <HowItWorks />
             <UseCases />
             <HonestyStrip />
+            <ReadMore />
             <FinalCta />
             <SiteFooter />
         </main>
