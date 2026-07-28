@@ -36,6 +36,7 @@ const roomState = (expenseIds: string[] = ['e1']): RoomState => ({
         emoji: '🎿',
         currency: 'EUR',
         coverUrl: null,
+        theme: null,
         createdAt: '2026-07-01T00:00:00.000Z',
         archivedAt: null,
     },
@@ -56,6 +57,7 @@ const roomState = (expenseIds: string[] = ['e1']): RoomState => ({
         date: '2026-07-01T00:00:00.000Z',
         category: null,
         createdAt: '2026-07-01T00:00:00.000Z',
+        reactions: [],
         shares: [
             { memberId: 'ana', amountMinor: '5000', enteredAmountMinor: null },
             { memberId: 'bea', amountMinor: '5000', enteredAmountMinor: null },
