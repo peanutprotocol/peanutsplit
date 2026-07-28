@@ -23,6 +23,7 @@ import type {
     ReceiptParseInput,
     ReactionInput,
     RoomState,
+    RoomStateWithAddedMember,
     RoomStateWithMember,
     SettlementInput,
 } from './api-types'
@@ -119,7 +120,21 @@ export const api = {
     room: (slug: string, signal?: AbortSignal) => request<RoomState>(`/api/rooms/${encode(slug)}`, { signal }),
 
     joinRoom: (slug: string, input: CreateMemberInput) =>
-        request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members`, { method: 'POST', body: input }),
+        request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members`, {
+            method: 'POST',
+            body: { ...input, intent: 'join' },
+        }),
+
+    addMember: (slug: string, input: CreateMemberInput) =>
+        request<RoomStateWithAddedMember>(`/api/rooms/${encode(slug)}/members`, {
+            method: 'POST',
+            body: { ...input, intent: 'add' },
+        }),
+
+    claimMember: (slug: string, memberId: string) =>
+        request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}/claim`, {
+            method: 'POST',
+        }),
 
     addExpense: (slug: string, input: ExpenseInput, token?: string | null) =>
         request<RoomState>(expensesPath(slug), { method: 'POST', body: input, token }),

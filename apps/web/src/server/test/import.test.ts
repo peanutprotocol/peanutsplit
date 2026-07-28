@@ -321,6 +321,18 @@ describe('what the route refuses', () => {
         expect(body.error.message).toMatch(/add up/)
     })
 
+    it('refuses an impossible calendar day at the import route boundary', async () => {
+        const file = parsed()
+        file.expenses[0].date = '2026-02-31'
+
+        const { status, body } = await post<ApiError>(bodyFor(file))
+
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('VALIDATION_ERROR')
+        expect(body.error.message).toContain('real calendar date')
+        expect(await prisma.room.count()).toBe(0)
+    })
+
     it('refuses a payer who is not on the roster', async () => {
         const file = parsed()
         file.expenses[0].paidBy = 'Nobody'
