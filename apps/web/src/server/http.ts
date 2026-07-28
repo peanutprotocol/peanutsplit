@@ -11,6 +11,12 @@ export class ApiError extends Error {
     }
 }
 
+/**
+ * `message` is English forever — it is for logs and for `curl`. `code` is the contract: the
+ * client looks it up in `errors.<CODE>` to render a translated sentence, so two failures a user
+ * would describe differently must not share one code. The default is the catch-all for schema
+ * rejections, not a licence to leave a distinct failure unnamed.
+ */
 export const badRequest = (message: string, code = 'VALIDATION_ERROR') => new ApiError(400, code, message)
 export const notFound = (message: string, code = 'NOT_FOUND') => new ApiError(404, code, message)
 export const conflict = (message: string, code = 'CONFLICT') => new ApiError(409, code, message)
@@ -49,7 +55,7 @@ export async function readJson(request: Request): Promise<unknown> {
     try {
         return await request.json()
     } catch {
-        throw badRequest('request body must be JSON')
+        throw badRequest('request body must be JSON', 'MALFORMED_JSON')
     }
 }
 

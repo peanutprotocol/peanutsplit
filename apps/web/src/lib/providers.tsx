@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useLocale } from 'next-intl'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from 'sonner'
+import { asLocale } from '@/i18n/locales'
 import { initAnalytics } from './analytics'
 import { ensureDeviceId } from './identity'
+import { writeLocaleCookie } from './locale-cookie'
 
 /**
  * The single client boundary at the root: React Query, nuqs' URL adapter, and
@@ -13,6 +16,7 @@ import { ensureDeviceId } from './identity'
  * that ships after v1 finds a cookie already in place.
  */
 export function Providers({ children }: { children: React.ReactNode }) {
+    const locale = useLocale()
     const [queryClient] = useState(
         () =>
             new QueryClient({
@@ -33,6 +37,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
         ensureDeviceId()
         initAnalytics()
     }, [])
+
+    /**
+     * Re-assert the language on every boot, including the very first visit where the locale came
+     * from Accept-Language and no cookie exists yet. iOS caps script-written cookies at ~7 days
+     * rolling, so without this a chosen language quietly expires between trips.
+     */
+    useEffect(() => {
+        writeLocaleCookie(asLocale(locale))
+    }, [locale])
 
     return (
         <QueryClientProvider client={queryClient}>

@@ -11,7 +11,7 @@ type Ctx = { params: Promise<{ slug: string; id: string }> }
 
 const findExpense = async (room: RoomWithRelations, id: string) => {
     const expense = await prisma.expense.findFirst({ where: { id, roomId: room.id } })
-    if (!expense) throw notFound('expense not found')
+    if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
     return expense
 }
 
