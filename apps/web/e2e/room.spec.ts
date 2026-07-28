@@ -20,6 +20,8 @@ const expectBalance = async (page: Page, member: string, netMinor: string) =>
     expect(balance(page, member)).toHaveAttribute('data-net', netMinor, { timeout: 15_000 })
 
 test('create → share → join → split → settle → undo', async ({ page, browser }) => {
+    test.setTimeout(60_000)
+
     // ── 1. Create the room ────────────────────────────────────────────────
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Ski trip')
@@ -45,9 +47,20 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await bea.goto(url)
 
     await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
+    const joinDialog = bea.getByRole('dialog')
+    await expect(joinDialog).toHaveAttribute('aria-modal', 'true')
+    await expect(bea.locator('[data-testid="claim-member"][data-member="Ana"]')).toBeFocused()
+    await bea.keyboard.press('Shift+Tab')
+    await expect(bea.getByTestId('im-new')).toBeFocused()
+    await bea.keyboard.press('Tab')
+    await expect(bea.locator('[data-testid="claim-member"][data-member="Ana"]')).toBeFocused()
+    const viewport = await bea.locator('meta[name="viewport"]').getAttribute('content')
+    expect(viewport).not.toContain('user-scalable=no')
+    expect(viewport).not.toContain('maximum-scale=1')
     // The room is legible behind the gate — you can see what you are joining.
     await expect(balance(bea, 'Ana')).toBeVisible()
     await bea.getByTestId('im-new').click()
+    await expect(bea.getByTestId('join-name')).toBeFocused()
     await bea.getByTestId('join-name').fill('Bea')
     await bea.getByTestId('join-room').click()
     await expect(bea.getByTestId('join-gate')).toHaveCount(0)
