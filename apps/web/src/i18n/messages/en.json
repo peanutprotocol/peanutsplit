@@ -464,6 +464,16 @@
                 "hint": "Take the photo straight on, with the whole bill in frame and the lights up."
             }
         },
+        "quickAdd": {
+            "cta": "Quick add",
+            "placeholder": "taxi 12€ — or paste from the chat",
+            "action": "Fill the form",
+            "reading": "Reading…",
+            "unmatched": "Couldn’t match: {names} — pick them below.",
+            "errors": {
+                "generic": "Could not read that."
+            }
+        },
         "theme": {
             "title": "Theme",
             "hint": "Everyone in the room sees it, and so does the link preview.",
@@ -556,6 +566,11 @@
         "SCAN_NO_ITEMS": "No items could be read on that photo — try a straighter shot with more light.",
         "SCAN_ROOM_LIMIT": "This room has scanned a lot of bills today — try again tomorrow.",
         "SCAN_FAILED": "Could not read that bill — try again.",
+        "NL_UNAVAILABLE": "Quick add is not switched on here.",
+        "NL_TEXT_TOO_LONG": "That is more text than one expense — trim it down and try again.",
+        "NL_NO_AMOUNT": "No amount could be read in that — say what it cost.",
+        "NL_ROOM_LIMIT": "This room has used its quick adds for today — try again tomorrow.",
+        "NL_FAILED": "Could not read that — try again.",
         "IMPORT_TOO_LARGE": "That import is too big to send. Try a group with less history.",
         "RATE_LIMITED": "That was a lot of requests — give it a minute and try again."
     },
