@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
-import { EmojiPicker, ROOM_EMOJIS, randomRoomEmoji } from '@/components/room/EmojiPicker'
+import { DoodlePicker } from '@/components/room/DoodlePicker'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
+import type { DoodleName } from '@/components/ui/doodles'
 import { useCurrencies } from '@/lib/queries'
+import { roomDoodleFor } from '@/lib/room-doodle'
 import { slugStem } from '@/lib/slugify'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCreateRoomFlow } from '@/lib/use-create-room'
@@ -50,15 +52,15 @@ export function HeroCreateForm() {
 
     const [name, setName] = useState('')
     const [creatorName, setCreatorName] = useState('')
-    // Rolled after mount: seeding with Math.random() renders a different emoji on each side of
-    // hydration, which React flags and then refuses to patch up.
-    const [emoji, setEmoji] = useState<string>(ROOM_EMOJIS[0])
+    // null means "follow the name". The emblem used to be rolled at random after mount, which
+    // needed an effect purely to dodge a hydration mismatch — a random value renders differently
+    // on each side of it. Reading the name instead is both deterministic and better: it is right
+    // far more often than one-in-sixteen.
+    const [emblem, setEmblem] = useState<DoodleName | null>(null)
     const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
     const [currencyChosen, setCurrencyChosen] = useState(false)
-    const [emojiOpen, setEmojiOpen] = useState(false)
+    const [pickerOpen, setPickerOpen] = useState(false)
     const [explainerOpen, setExplainerOpen] = useState(false)
-
-    useEffect(() => setEmoji(randomRoomEmoji()), [])
 
     /** Seeded after mount, not during render: `Intl` and `navigator` do not exist on the server.
      *  A guess may only fill an empty field — once someone picks, the inference stops talking. */
@@ -77,6 +79,9 @@ export function HeroCreateForm() {
     }
 
     const stem = useMemo(() => (name.trim() ? slugStem(name) : ''), [name])
+    /** The guess, until somebody overrules it. Recomputed as you type, so the tile beside the
+     *  name field turns into a pair of skis while you are still writing "Ski trip". */
+    const shownEmblem = emblem ?? roomDoodleFor(name)
 
     /**
      * The button is never disabled, which is a deliberate reversal of what `/new` does.
@@ -96,7 +101,7 @@ export function HeroCreateForm() {
         if (pending) return
         if (!name.trim()) return nameRef.current?.focus()
         if (!creatorName.trim()) return creatorRef.current?.focus()
-        const state = await submit({ name, emoji, currency, creatorName })
+        const state = await submit({ name, emoji: shownEmblem, currency, creatorName })
         if (state) router.push(`/r/${state.room.slug}`)
     }
 
@@ -120,23 +125,23 @@ export function HeroCreateForm() {
                 {/* A details/summary rather than a popover library: one line tall when closed,
                     no JS, and it reuses the same curated picker `/new` uses. */}
                 <details
-                    open={emojiOpen}
-                    onToggle={(event) => setEmojiOpen((event.target as HTMLDetailsElement).open)}
+                    open={pickerOpen}
+                    onToggle={(event) => setPickerOpen((event.target as HTMLDetailsElement).open)}
                     className="relative"
                 >
                     <summary
                         aria-label={tCreate('emoji')}
-                        className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 text-xl [&::-webkit-details-marker]:hidden"
+                        className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 [&::-webkit-details-marker]:hidden"
                     >
-                        {emoji}
+                        <Doodle name={shownEmblem} size={24} />
                     </summary>
                     <div className="shadow-4 absolute right-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
-                        <EmojiPicker
-                            value={emoji}
+                        <DoodlePicker
+                            value={shownEmblem}
                             onChange={(next) => {
-                                setEmoji(next)
+                                setEmblem(next)
                                 feedback('tick')
-                                setEmojiOpen(false)
+                                setPickerOpen(false)
                             }}
                         />
                     </div>

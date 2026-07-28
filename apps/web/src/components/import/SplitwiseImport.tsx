@@ -17,6 +17,7 @@ import { motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { BaseInput } from '@/components/ui/BaseInput'
+import { roomDoodleFor } from '@/lib/room-doodle'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
@@ -212,7 +213,9 @@ export function SplitwiseImport() {
         try {
             const state = await importRoom.mutateAsync({
                 roomName: roomName.trim(),
-                emoji: '🧾',
+                // Read from the group's own name, same as a hand-made room. It used to be a
+                // hardcoded 🧾, which made every imported room look identical in the list.
+                emoji: roomDoodleFor(roomName),
                 currency,
                 creatorName: names[meIndex].trim(),
                 members: names.map((name) => name.trim()),

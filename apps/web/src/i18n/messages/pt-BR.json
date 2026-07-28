@@ -18,7 +18,7 @@
             "title": "Como funciona",
             "step1": {
                 "title": "Comece uma divisão",
-                "body": "Dê um nome, escolha um emoji e uma moeda. Viagem de neve, contas da casa, jantar de terça."
+                "body": "Dê um nome e escolha uma moeda — o Split desenha para você. Viagem de neve, contas da casa, jantar de terça."
             },
             "step2": {
                 "title": "Compartilhe o link",
@@ -410,9 +410,9 @@
             "title": "Nova divisão",
             "name": "O que vocês vão dividir?",
             "namePlaceholder": "Viagem de neve…",
-            "emoji": "Escolha uma cara para ela",
-            "emojiGroup": "Emoji da sala",
-            "emojiOption": "Emoji {emoji}",
+            "emoji": "Ou escolha outro desenho",
+            "emojiGroup": "Desenho da sala",
+            "emojiOption": "Desenho: {emoji}",
             "currency": "Moeda",
             "currencyLabel": "Moeda da sala",
             "currencyHint": "Os saldos são acertados nesta moeda. Cada gasto pode ser em qualquer outra.",
