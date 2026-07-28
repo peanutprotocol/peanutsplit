@@ -3,7 +3,7 @@ import React, { forwardRef, useCallback, useEffect, useRef } from 'react'
 import { cn as twMerge } from '@/lib/cn'
 import { Icon, type IconName } from './Icon'
 import Loading from './Loading'
-import { useHaptic } from 'use-haptic'
+import { triggerHaptic, useSettings } from '@/lib/use-settings'
 import { useLongPress } from '@/hooks/useLongPress'
 
 // Ported from peanut-ui's Bruddle Button, renamed for Split's palette:
@@ -11,6 +11,8 @@ import { useLongPress } from '@/hooks/useLongPress'
 export type ButtonVariant =
     'primary' | 'dark' | 'stroke' | 'transparent-light' | 'transparent-dark' | 'transparent' | 'primary-soft'
 export type ButtonSize = 'small' | 'medium' | 'large'
+/** A tap is the lightest cue there is — the same duration use-settings gives 'tick'. */
+const TAP_HAPTIC_MS = 5
 type ButtonShape = 'default' | 'square'
 type ShadowSize = '3' | '4' | '6' | '8'
 type ShadowType = 'primary' | 'secondary'
@@ -109,7 +111,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         const localRef = useRef<HTMLButtonElement>(null)
         const buttonRef = (ref as React.RefObject<HTMLButtonElement>) || localRef
 
-        const { triggerHaptic } = useHaptic()
+        // Every other cue in the app goes through use-settings, which owns the
+        // one hidden iOS switch and the user's haptics preference. Calling the
+        // `use-haptic` hook here instead ignored that toggle — a user who turned
+        // haptics off still felt every button.
+        const { settings } = useSettings()
         const { isLongPressed, pressProgress, handlers: longPressHandlers } = useLongPress(longPress)
 
         useEffect(() => {
@@ -124,13 +130,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                     return
                 }
 
-                if (!disableHaptics) {
-                    triggerHaptic()
+                if (!disableHaptics && settings.hapticsEnabled) {
+                    triggerHaptic(TAP_HAPTIC_MS)
                 }
 
                 onClick?.(e)
             },
-            [longPress, isLongPressed, onClick, disableHaptics, triggerHaptic]
+            [longPress, isLongPressed, onClick, disableHaptics, settings.hapticsEnabled]
         )
 
         const buttonClasses = twMerge(
