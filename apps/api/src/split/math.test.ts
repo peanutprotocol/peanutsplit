@@ -43,6 +43,38 @@ describe('normalizeExact', () => {
 	test('absorbs negative drift onto the largest share', () => {
 		expect(normalizeExact([400n, 400n, 300n], 1000n)).toEqual([300n, 400n, 300n])
 	})
+
+	test('never makes a share negative when independent FX rounding exceeds the converted total', () => {
+		// R$0.03 converts to a little over half a euro cent, so each share
+		// independently rounds to one cent. The R$0.12 total converts to only two.
+		const rate = 0.2 / 1.08
+		const baseTotal = convertToBaseMinor(12n, 'BRL', 'EUR', rate)
+		const converted = Array.from({ length: 4 }, () => convertToBaseMinor(3n, 'BRL', 'EUR', rate))
+		const normalized = normalizeExact(converted, baseTotal)
+
+		expect(baseTotal).toBe(2n)
+		expect(converted).toEqual([1n, 1n, 1n, 1n])
+		expect(normalized).toEqual([0n, 0n, 1n, 1n])
+		expect(normalized.every((share) => share >= 0n)).toBe(true)
+		expect(normalized.reduce((sum, share) => sum + share, 0n)).toBe(baseTotal)
+	})
+
+	test('preserves non-negativity and the exact target across varied inputs', () => {
+		for (let size = 1; size <= 12; size++) {
+			const shares = Array.from({ length: size }, (_, index) => BigInt((index * 7 + size) % 19))
+			const sum = shares.reduce((a, b) => a + b, 0n)
+			for (let target = 0n; target <= sum + 3n; target++) {
+				const normalized = normalizeExact(shares, target)
+				expect(normalized.every((share) => share >= 0n)).toBe(true)
+				expect(normalized.reduce((a, b) => a + b, 0n)).toBe(target)
+			}
+		}
+	})
+
+	test('rejects negative amounts rather than manufacturing a ledger', () => {
+		expect(() => normalizeExact([-1n, 2n], 1n)).toThrow('non-negative')
+		expect(() => normalizeExact([1n, 2n], -1n)).toThrow('non-negative')
+	})
 })
 
 describe('convertToBaseMinor', () => {
