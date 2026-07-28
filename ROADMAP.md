@@ -186,7 +186,7 @@ Remaining candidates, ordered by expected value per effort:
    the room's only access control, it is redacted from telemetry (`lib/redact.ts`)
    and it is deliberately kept out of the shared recap URL. So cuteness must cost
    zero entropy, and the arithmetic is unusually kind here — 32⁶ and 1024³ are
-   the *same number* (1,073,741,824). **Three words from a frozen 1,024-word list
+   the _same number_ (1,073,741,824). **Three words from a frozen 1,024-word list
    is an exact swap for the current tail**, no security argument needed beyond
    pointing at that identity. Two words is not: even a 4,096-word list gives
    16.8M, a 64× weakening of a credential that sits in URLs and chat logs.
@@ -222,7 +222,7 @@ Peanut mark only, cream `background`).
 
 Order below is execution order, not importance. Status per item.
 
-1. **Doodles as icons, emoji gone.** — *status: shipped 2026-07-28*
+1. **Doodles as icons, emoji gone.** — _status: shipped 2026-07-28_
    Port `rough.py` and the `build.py` → generated-set pipeline from
    `munin/design/raven-doodles/`. Clean geometry in a 32-unit box, stroked at
    ~1.4–2px, `fill: none`, `stroke: currentColor`, so a drawing inherits the ink
@@ -232,12 +232,12 @@ Order below is execution order, not importance. Status per item.
    grid, the use-case cards — draws instead. Legibility floor learned in Munin:
    below about r2.5 a loop fills in and reads as a full stop.
 
-2. **Footer and sitemap.** — *status: shipped 2026-07-28*
+2. **Footer and sitemap.** — _status: shipped 2026-07-28_
    Real Peanut logo rather than the word set in `font-display`, and the
    structure peanut.me uses: named columns, not a single row of grey links.
    Every static page Split has should be reachable from it.
 
-3. **Language picker placement.** — *status: decided 2026-07-28 — stays in the footer, see below*
+3. **Language picker placement.** — _status: decided 2026-07-28 — stays in the footer, see below_
    RULED: it stays in the footer, but as a compact three-word row in the bottom
    bar rather than the full-width segmented control it was — which was the
    largest single control on the page, sitting at the very bottom of it.
@@ -249,7 +249,7 @@ Order below is execution order, not importance. Status per item.
    the hero would cost fold space to a control most people never need, and Split
    has no header bar on the LP to put it in without inventing one.
 
-4. **Room doodle auto-picked from the name.** — *status: shipped 2026-07-28*
+4. **Room doodle auto-picked from the name.** — _status: shipped 2026-07-28_
    A keyword table maps what someone types ("ski", "esquí", "pizza", "airbnb")
    onto a drawing, so the room already looks like itself before anybody opens
    the picker. All three locales in one table, falling back to the peanut.
@@ -265,31 +265,31 @@ Order below is execution order, not importance. Status per item.
    disc. `notifyCopy` is guarded, since a push titled "mountain Ski trip" is the
    one way this leaks into text.
 
-5. **Currency list, readable and friendlier.** — *status: shipped 2026-07-28*
+5. **Currency list, readable and friendlier.** — _status: shipped 2026-07-28_
    `🇧🇷 R$ BRL — Brazilian Real` is four encodings of the same fact in one line.
    Draw the symbol, show three or four currencies, and put the rest behind a
    "more" step.
 
-6. **Knerd is for one or two words.** — *status: shipped 2026-07-28*
+6. **Knerd is for one or two words.** — _status: shipped 2026-07-28_
    The display face has no accented glyphs and no lowercase worth reading; at
    three words it stops being a headline and becomes a texture. Cap it, and set
    the rest in the body face.
 
-7. **Inline the field labels.** — *status: shipped 2026-07-28*
+7. **Inline the field labels.** — _status: shipped 2026-07-28_
    "What are you splitting" above an empty box becomes `Ski trip…` inside it.
    Halves the vertical space the form takes, which is what puts the button above
    the fold on a 390px screen.
 
-8. **Cut superfluous copy.** — *status: first pass shipped 2026-07-28*
+8. **Cut superfluous copy.** — _status: first pass shipped 2026-07-28_
    Cold-read UX pass over every marketing surface; delete the lines that restate
    the line above them.
 
-9. **A `(?)` affordance instead of a sentence.** — *status: shipped 2026-07-28*
+9. **A `(?)` affordance instead of a sentence.** — _status: shipped 2026-07-28_
    The slug preview and "How the link works" currently take two lines and a
    underlined link. One small drawn `(?)` beside the preview opens the same
    sheet.
 
-10. **The form IS the first fold.** — *status: shipped 2026-07-28*
+10. **The form IS the first fold.** — _status: shipped 2026-07-28_
     Drop the yellow pitch band above the form and give the form the yellow
     instead, with enough weight that it reads as the subject of the page rather
     than a widget under a headline.

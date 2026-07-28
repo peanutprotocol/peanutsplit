@@ -10,16 +10,8 @@
   "ski": {
     "d": "M3.6 28.6h24.8 M8.6 28.6 16.4 10.6c.7-1.8 1.9-2.9 3.5-3.4 M9.6 24.2l3.4-1.8 M19.8 28.6 25 8.8",
     "dots": [
-      [
-        21,
-        23.4,
-        2.7
-      ],
-      [
-        25.2,
-        8,
-        1.0
-      ]
+      [21, 23.4, 2.7],
+      [25.2, 8, 1.0]
     ],
     "note": "a ski and a pole planted in the snow — a ski trip"
   },
@@ -38,16 +30,8 @@
   "van": {
     "d": "M4 21.5V11.5C4 10.1 5.1 9 6.5 9H25.5C26.9 9 28 10.1 28 11.5V21.5Z M4 15H11V9 M13 15H28",
     "dots": [
-      [
-        10,
-        22.8,
-        3
-      ],
-      [
-        22,
-        22.8,
-        3
-      ]
+      [10, 22.8, 3],
+      [22, 22.8, 3]
     ],
     "note": "a camper van in side view — the road trip"
   },
@@ -56,13 +40,7 @@
     "note": "a bed with a pillow — where everyone stayed"
   },
   "sun": {
-    "dots": [
-      [
-        16,
-        16,
-        5.5
-      ]
-    ],
+    "dots": [[16, 16, 5.5]],
     "d": "M16 8.6V3 M16 23.4V29 M8.6 16H3 M23.4 16H29 M10.8 10.8L6.8 6.8 M21.2 21.2L25.2 25.2 M21.2 10.8L25.2 6.8 M10.8 21.2L6.8 25.2",
     "note": "a sun with long rays — the good weather everyone paid for"
   },

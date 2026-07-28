@@ -45,7 +45,7 @@ pnpm dev          # API :5051 + web :3000 (or dev:api / dev:web for one)
 ```
 
 `apps/web` is not a workspace member, which has one sharp edge: running
-`pnpm install` inside `apps/web` walks *up* and installs the workspace instead,
+`pnpm install` inside `apps/web` walks _up_ and installs the workspace instead,
 leaving `apps/web/node_modules` missing. It needs `--ignore-workspace`, which is
 what `pnpm bootstrap` does. (Docker doesn't hit this — the web image's build context
 is `apps/web` alone, so there's no parent workspace file to find.) The root
