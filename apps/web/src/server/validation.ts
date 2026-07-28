@@ -84,6 +84,30 @@ export const pushFeedbackSchema = z.object({
 })
 
 export type PushSubscribeBody = z.infer<typeof pushSubscribeSchema>
+
+/** 254 is the RFC 5321 ceiling on an address; anything longer is a payload, not
+ *  an email. Normalised to lower case before validation so `Ana@x.com` and
+ *  `ana@x.com` cannot become two accounts on the same mailbox. */
+const emailAddress = z
+    .string()
+    .max(254)
+    .transform((s) => s.trim().toLowerCase())
+    .refine((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: 'must be an email address' })
+
+export const requestLinkSchema = z.object({ email: emailAddress })
+
+/** Fifty is far past any real device's history and bounds the batch the handler
+ *  has to hold in memory. */
+export const attachSchema = z.object({
+    memberships: z
+        .array(z.object({ slug: z.string().trim().min(1).max(120), memberId: id, token: z.string().min(1).max(200) }))
+        .min(1)
+        .max(50),
+})
+
+export type RequestLinkBody = z.infer<typeof requestLinkSchema>
+export type AttachBody = z.infer<typeof attachSchema>
+
 export type CreateRoomBody = z.infer<typeof createRoomSchema>
 export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
