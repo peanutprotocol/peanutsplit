@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest'
+import { importRoomSchema } from '@/server/validation'
 import {
+    MAX_CATEGORY_CHARS,
+    MAX_DESCRIPTION_CHARS,
     MAX_EXPENSES,
+    MAX_NAME_CHARS,
     SplitwiseParseError,
     allocateProportionally,
     intersectAllocation,
     parseCsvRows,
     parseSignedMinor,
     parseSplitwiseCsv,
+    reconcileTotalBalance,
     roomNameFromFilename,
     type ParsedExpense,
     type SplitwiseImport,
@@ -22,16 +27,12 @@ import {
     WITH_PAYMENTS,
     WRONG_CSV,
     generateGroup,
-} from '@/lib/splitwise-fixtures'
+} from '@/lib/__fixtures__/splitwise'
 
 const codes = (result: SplitwiseImport) => result.warnings.map((w) => w.code)
 
-/** The invariant every expense must hold on its own: shares reconstruct the total. */
-const sharesSumToCost = (expense: ParsedExpense) =>
-    expense.shares.reduce((a, s) => a + BigInt(s.amountMinor), 0n) === BigInt(expense.costMinor)
-
-/** Fold the parsed expenses the way Split's own `balancesOf` does: paid, minus your share. This
- *  is the number the file's "Total balance" row claims, computed from what we are about to write. */
+/** Absolute nets, for the cases that assert an actual number rather than agreement with the
+ *  file's own summary row — that comparison goes through `reconcileTotalBalance`. */
 function foldBalances(result: SplitwiseImport): Map<string, bigint> {
     const net = new Map(result.members.map((m) => [m, 0n]))
     const bump = (member: string, delta: bigint) => net.set(member, (net.get(member) ?? 0n) + delta)
@@ -41,6 +42,10 @@ function foldBalances(result: SplitwiseImport): Map<string, bigint> {
     }
     return net
 }
+
+/** The invariant every expense must hold on its own: shares reconstruct the total. */
+const sharesSumToCost = (expense: ParsedExpense) =>
+    expense.shares.reduce((a, s) => a + BigInt(s.amountMinor), 0n) === BigInt(expense.costMinor)
 
 describe('parseCsvRows — RFC 4180', () => {
     it('splits plain rows on commas and newlines', () => {
@@ -412,12 +417,114 @@ describe('the parsed expenses reproduce the file’s own Total balance row', () 
         it(`${name}: every member's net matches`, () => {
             const result = parseSplitwiseCsv(csv)
             expect(result.totalBalance).not.toBeNull()
-            const folded = foldBalances(result)
-            for (const stated of result.totalBalance ?? []) {
-                expect(`${stated.member}=${folded.get(stated.member)}`).toBe(`${stated.member}=${stated.netMinor}`)
-            }
+            // Through the same function the preview screen uses, so what the user is told and
+            // what this suite asserts are the same computation.
+            expect(reconcileTotalBalance(result)).toEqual([])
         })
     }
+
+    it('is not attempted for a mixed-currency file, where the row could not mean anything', () => {
+        expect(reconcileTotalBalance(parseSplitwiseCsv(MULTI_CURRENCY))).toBeNull()
+    })
+
+    it('names every member whose net drifted when rows had to be dropped', () => {
+        // Bruno's row does not sum to zero, so it is skipped — and the summary row at the bottom
+        // still counts it. That is exactly the disagreement the preview has to admit to.
+        const csv = [
+            'Date,Description,Category,Cost,Currency,Ana,Bruno',
+            '2026-01-02,Dinner,Dining out,60.00,EUR,30.00,-30.00',
+            '2026-01-03,Taxi,Transportation,20.00,EUR,20.00,-15.00',
+            'Total balance,,,0.00,EUR,35.00,-35.00',
+        ].join('\n')
+
+        const result = parseSplitwiseCsv(csv)
+        expect(codes(result)).toContain('ROW_UNBALANCED')
+        const drift = reconcileTotalBalance(result)
+        expect(drift?.map((entry) => entry.member).sort()).toEqual(['Ana', 'Bruno'])
+        expect(drift?.every((entry) => entry.deltaMinor !== '0')).toBe(true)
+    })
+})
+
+/**
+ * The preview has to promise only what the POST accepts. Splitwise has no length limits of its
+ * own, so a real export can carry a description, a category or a member name past Split's
+ * ceilings — and before this the preview showed a clean room, the POST answered a bare
+ * `VALIDATION_ERROR`, and there was no row number anywhere to say which one.
+ *
+ * Every case here ends by feeding the parsed result through the actual schema, because "we
+ * truncated it" is only interesting if the result is a payload the server takes.
+ */
+describe('field ceilings the POST would otherwise refuse', () => {
+    const payloadFor = (result: SplitwiseImport) => ({
+        roomName: 'Imported group',
+        emoji: '🧾',
+        currency: result.suggestedCurrency,
+        creatorName: result.members[0],
+        members: result.members,
+        expenses: result.expenses,
+    })
+
+    const accepted = (result: SplitwiseImport) => importRoomSchema.safeParse(payloadFor(result)).success
+
+    const oneRow = (description: string, category = 'Dining out', members = 'Ana,Bruno') =>
+        `Date,Description,Category,Cost,Currency,${members}\n2026-01-02,"${description}","${category}",60.00,EUR,30.00,-30.00\n`
+
+    it('shortens a description past the ceiling and says so', () => {
+        const result = parseSplitwiseCsv(oneRow('x'.repeat(400)))
+        expect(codes(result)).toContain('ROW_DESCRIPTION_TRUNCATED')
+        expect(result.expenses[0].description.length).toBe(MAX_DESCRIPTION_CHARS)
+        expect(accepted(result)).toBe(true)
+    })
+
+    /**
+     * The nasty one. A 253-character description is legal on its own, and the multi-payer path
+     * appends " (1/2)" AFTER the check — so a row that passed the preview arrived six characters
+     * over and took the entire import down with it.
+     */
+    it('leaves room for the multi-payer suffix rather than blowing the ceiling with it', () => {
+        const description = 'y'.repeat(MAX_DESCRIPTION_CHARS - 2)
+        const csv = `Date,Description,Category,Cost,Currency,Ana,Bruno,Carla\n2026-01-02,"${description}",Dining out,60.00,EUR,20.00,10.00,-30.00\n`
+        const result = parseSplitwiseCsv(csv)
+
+        expect(result.expenses.length).toBeGreaterThan(1)
+        for (const expense of result.expenses) {
+            expect(expense.description.endsWith(`/${result.expenses.length})`)).toBe(true)
+            expect(expense.description.length).toBeLessThanOrEqual(MAX_DESCRIPTION_CHARS)
+        }
+        expect(accepted(result)).toBe(true)
+    })
+
+    it('shortens a member name past the ceiling and says so', () => {
+        const long = 'N'.repeat(90)
+        const result = parseSplitwiseCsv(oneRow('Dinner', 'Dining out', `${long},Bruno`))
+        expect(codes(result)).toContain('MEMBER_NAME_TRUNCATED')
+        expect(result.members[0].length).toBe(MAX_NAME_CHARS)
+        expect(accepted(result)).toBe(true)
+    })
+
+    /** Cut before dedupe, never after: two long names that differ only past the ceiling would
+     *  otherwise truncate into the same string and be refused as a duplicate roster. */
+    it('does not manufacture a duplicate out of two names that differ past the ceiling', () => {
+        const base = 'N'.repeat(MAX_NAME_CHARS)
+        const result = parseSplitwiseCsv(oneRow('Dinner', 'Dining out', `${base}aaa,${base}bbb`))
+        expect(new Set(result.members.map((name) => name.toLowerCase())).size).toBe(2)
+        expect(result.members.every((name) => name.length <= MAX_NAME_CHARS)).toBe(true)
+        expect(accepted(result)).toBe(true)
+    })
+
+    it('shortens a category past the ceiling and says so', () => {
+        const result = parseSplitwiseCsv(oneRow('Dinner', 'C'.repeat(41)))
+        expect(codes(result)).toContain('ROW_CATEGORY_TRUNCATED')
+        expect(result.expenses[0].category?.length).toBe(MAX_CATEGORY_CHARS)
+        expect(accepted(result)).toBe(true)
+    })
+
+    it('leaves a file that was already inside every ceiling completely alone', () => {
+        const result = parseSplitwiseCsv(SIMPLE_GROUP)
+        expect(codes(result)).not.toContain('ROW_DESCRIPTION_TRUNCATED')
+        expect(codes(result)).not.toContain('ROW_CATEGORY_TRUNCATED')
+        expect(codes(result)).not.toContain('MEMBER_NAME_TRUNCATED')
+    })
 })
 
 describe('roomNameFromFilename', () => {

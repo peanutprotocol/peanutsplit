@@ -26,6 +26,7 @@
 
 import { ApiError } from '@/server/http'
 import { CURRENCY_CODES } from '@/server/money'
+import { enforceRateLimitOn, type Limit } from '@/server/rateLimit'
 import { receiptItemSchema, receiptModelSchema, type ReceiptParseBody } from '@/server/validation'
 
 /**
@@ -36,10 +37,6 @@ import { receiptItemSchema, receiptModelSchema, type ReceiptParseBody } from '@/
  */
 const DEFAULT_MODEL = 'gemini-2.5-flash-lite'
 const API_HOST = 'https://generativelanguage.googleapis.com'
-
-/** Egress host to allowlist on the squid pinhole. Exported so the deploy notes
- *  and the code cannot drift apart. */
-export const SCAN_EGRESS_HOST = 'generativelanguage.googleapis.com'
 
 /** 8MB of actual image bytes. A downscaled phone photo lands around 200-500KB;
  *  this ceiling exists for the person who picks a raw file out of their gallery,
@@ -136,7 +133,10 @@ async function proxyDispatcher(): Promise<unknown | null> {
         const { ProxyAgent } = await import('undici')
         return new ProxyAgent(proxyUrl)
     } catch (err) {
-        console.error('[scan] proxy unavailable', err)
+        // Name only, like every other log in this module. Undici puts the URL it
+        // was constructed with on its errors, and a proxy URL is allowed to
+        // carry credentials — see property 2 in the file header.
+        console.error('[scan] proxy unavailable', err instanceof Error ? err.name : 'unknown')
         return null
     }
 }
@@ -310,7 +310,7 @@ export function normalizeReceipt(rawText: string): ParsedReceipt {
 }
 
 /**
- * A room's daily allowance, in memory.
+ * A room's daily allowance.
  *
  * The tradeoff, stated so the next person does not have to guess: this is a
  * per-container counter that a deploy resets and two containers double. A DB
@@ -319,52 +319,24 @@ export function normalizeReceipt(rawText: string): ParsedReceipt {
  * in `rateLimit.ts` already carries the abuse case. A migration on a schema this
  * feature does not otherwise touch is the wrong price for tightening a number
  * that only has to be roughly right. Revisit if the bill ever shows up.
+ *
+ * "Roughly right" is also why this rides the ordinary token bucket rather than a
+ * hand-rolled fixed window: thirty tokens that trickle back over a day, sharing
+ * one map, one prune and one key ceiling with every other limiter in the
+ * process.
  */
-export const ROOM_SCANS_PER_DAY = 30
-const DAY_MS = 24 * 60 * 60 * 1000
+export const ROOM_SCAN_LIMIT: Limit = { capacity: 30, windowMs: 24 * 60 * 60 * 1000 }
 
-interface RoomScanBucket {
-    used: number
-    windowStartedAt: number
-}
-
-const roomScans = new Map<string, RoomScanBucket>()
-/** Same ceiling reasoning as the IP limiter: bounded memory beats a perfect
- *  count, and forgetting a room only ever gives someone a fresh allowance. */
-const MAX_ROOMS_TRACKED = 5_000
-
-/** Pure, so the window maths is testable without a clock. */
-export function takeRoomScan(
-    bucket: RoomScanBucket | undefined,
-    now: number
-): { allowed: boolean; next: RoomScanBucket } {
-    if (!bucket || now - bucket.windowStartedAt >= DAY_MS) {
-        return { allowed: true, next: { used: 1, windowStartedAt: now } }
-    }
-    if (bucket.used >= ROOM_SCANS_PER_DAY) return { allowed: false, next: bucket }
-    return { allowed: true, next: { used: bucket.used + 1, windowStartedAt: bucket.windowStartedAt } }
-}
-
-export function enforceRoomScanLimit(roomId: string): void {
-    const now = Date.now()
-    if (roomScans.size > MAX_ROOMS_TRACKED) {
-        for (const [key, bucket] of roomScans) {
-            if (now - bucket.windowStartedAt >= DAY_MS) roomScans.delete(key)
-        }
-        if (roomScans.size > MAX_ROOMS_TRACKED) roomScans.clear()
-    }
-    const { allowed, next } = takeRoomScan(roomScans.get(roomId), now)
-    roomScans.set(roomId, next)
-    if (!allowed) {
-        throw new ApiError(429, 'SCAN_ROOM_LIMIT', 'this room has scanned a lot of bills today — try again tomorrow')
-    }
-}
-
-/** Tests share one process; a leaked room bucket would fail a later test for a
- *  reason belonging to an earlier one. */
-export function resetRoomScanLimits(): void {
-    roomScans.clear()
-}
+/** Its own code rather than the generic `RATE_LIMITED`: a spent daily allowance
+ *  and "you are going too fast" are different things to say to someone holding a
+ *  bill and a phone. */
+export const enforceRoomScanLimit = (roomId: string): void =>
+    enforceRateLimitOn(
+        roomId,
+        ROOM_SCAN_LIMIT,
+        'scan-room',
+        new ApiError(429, 'SCAN_ROOM_LIMIT', 'this room has scanned a lot of bills today — try again tomorrow')
+    )
 
 /** The whole server side of a scan: send the image once, keep nothing, and hand
  *  back numbers we counted ourselves. */

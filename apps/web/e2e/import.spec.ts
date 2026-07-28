@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { SIMPLE_GROUP } from '../src/lib/splitwise-fixtures'
+import { SIMPLE_GROUP } from '../src/lib/__fixtures__/splitwise'
 
 /**
  * The switch, end to end: a real Splitwise export goes in through the real file input, and the

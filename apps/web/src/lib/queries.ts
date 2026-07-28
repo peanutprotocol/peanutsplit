@@ -22,6 +22,7 @@ import type {
 } from './api-types'
 import { FALLBACK_CURRENCIES } from './money'
 import {
+    draftExpenseRow,
     enqueueWrite,
     isOfflineFailure,
     mergeQueuedExpenses,
@@ -30,6 +31,7 @@ import {
     useQueuedWrites,
     useQueueNotices,
 } from './offline-queue'
+import { PENDING_ID_PREFIX, savedExpenses } from './pending'
 import { useRoomEvents } from './realtime'
 
 export const roomKey = (slug: string) => ['room', slug] as const
@@ -196,7 +198,7 @@ interface AddExpenseContext {
 const authoritativeState = (queryClient: QueryClient, slug: string): RoomState | undefined => {
     const cached = queryClient.getQueryData<RoomState>(roomKey(slug))
     if (!cached) return undefined
-    return { ...cached, expenses: cached.expenses.filter((expense) => !expense.id.startsWith('pending-')) }
+    return { ...cached, expenses: savedExpenses(cached.expenses) }
 }
 
 /**
@@ -249,37 +251,18 @@ export function addExpenseMutationOptions(
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
             if (previous) {
-                const participants =
-                    input.splitMode === 'EXACT'
-                        ? (input.exactShares ?? []).map((s) => s.memberId)
-                        : (input.participantIds ?? previous.members.map((m) => m.id))
+                const now = Date.now()
                 queryClient.setQueryData<RoomState>(roomKey(slug), {
                     ...previous,
                     expenses: [
-                        {
-                            id: `pending-${Date.now()}`,
-                            description: input.description,
-                            amountMinor: input.amountMinor,
-                            currency: input.currency,
-                            // Unknown until the server applies FX — the row shows
-                            // the expense-currency amount and no conversion line.
-                            baseAmountMinor: input.amountMinor,
-                            fxRate: '1',
-                            splitMode: input.splitMode,
-                            paidById: input.paidById,
-                            createdById: null,
-                            date: input.date ?? new Date().toISOString(),
-                            category: input.category ?? null,
-                            createdAt: new Date().toISOString(),
-                            shares: participants.map((memberId) => ({
-                                memberId,
-                                amountMinor: '0',
-                                enteredAmountMinor: null,
-                            })),
-                            // Nothing can have reacted to a row that does not
-                            // exist on the server yet.
-                            reactions: [],
-                        },
+                        // The same row the offline queue paints, built by the
+                        // same function — an in-flight write and a held one look
+                        // identical to the list, and only one shape may exist.
+                        draftExpenseRow(input, {
+                            id: `${PENDING_ID_PREFIX}${now}`,
+                            at: now,
+                            members: previous.members,
+                        }),
                         ...previous.expenses,
                     ],
                 })
@@ -345,10 +328,14 @@ export function useDeleteSettlement(slug: string, token?: string | null) {
  * Cached for the session and never retried: a failed probe means "no scanning
  * right now", and a button that flickers into existence on a background refetch
  * is worse than one that stays hidden until the next page load.
+ *
+ * The key carries no slug, because the answer does not depend on one — the route
+ * reads an env var and ignores the room entirely. Keying per room meant probing
+ * once per room a device opened, for a fact that is the same every time.
  */
 export function useReceiptScanEnabled(slug: string) {
     const { data } = useQuery({
-        queryKey: ['receipt-scan-enabled', slug] as const,
+        queryKey: ['receipt-scan-enabled'] as const,
         queryFn: ({ signal }) => api.receipt.status(slug, signal),
         staleTime: 60 * 60 * 1000,
         retry: false,

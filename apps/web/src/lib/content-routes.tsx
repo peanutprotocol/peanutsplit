@@ -6,7 +6,7 @@ import { getDoc, listSlugs, localesForSlug, type Collection } from '@/lib/conten
 import { renderArticle } from '@/lib/mdx'
 import { pageMetadata, pageTitle } from '@/lib/seo'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
-import type { Locale } from '@/i18n/locales'
+import { LOCALES, type Locale } from '@/i18n/locales'
 
 /**
  * One implementation of the article page, bound to a locale by the route that imports it.
@@ -72,6 +72,28 @@ export function articleMetadata(collection: Collection, locale: Locale, paramNam
             ...meta,
             alternates: { ...meta.alternates, languages: alternatesFor(collection, slug, locale) },
         }
+    }
+}
+
+/**
+ * The guides hub, per locale. Three files differed only in their `LOCALE` and in a hand-written
+ * path that `localizedPath` already knows how to produce — which is exactly the kind of literal
+ * that survives a route rename.
+ *
+ * Unlike an article, the hub exists in every language by construction, so it always advertises
+ * the full set of alternates.
+ */
+export function hubMetadata(locale: Locale) {
+    return async function generateMetadata(): Promise<Metadata> {
+        const t = await getTranslations({ locale, namespace: 'content' })
+        const meta = pageMetadata({
+            title: pageTitle(t('hubTitle')),
+            description: t('hubDescription'),
+            path: localizedPath('/blog', locale),
+            type: 'website',
+            locale,
+        })
+        return { ...meta, alternates: { ...meta.alternates, languages: hreflangAlternates('/blog', [...LOCALES]) } }
     }
 }
 
