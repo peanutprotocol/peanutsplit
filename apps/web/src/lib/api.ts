@@ -87,6 +87,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 const encode = encodeURIComponent
 
+/** Exported because the offline queue stores the endpoint it is holding a write
+ *  for, and two places building the same path is how they drift apart. */
+export const expensesPath = (slug: string): string => `/api/rooms/${encode(slug)}/expenses`
+
 export const api = {
     currencies: (signal?: AbortSignal) =>
         request<{ currencies: CurrencyInfo[] }>('/api/currencies', { signal }).then((r) => r.currencies),
@@ -106,7 +110,7 @@ export const api = {
         request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members`, { method: 'POST', body: input }),
 
     addExpense: (slug: string, input: ExpenseInput, token?: string | null) =>
-        request<RoomState>(`/api/rooms/${encode(slug)}/expenses`, { method: 'POST', body: input, token }),
+        request<RoomState>(expensesPath(slug), { method: 'POST', body: input, token }),
 
     updateExpense: (slug: string, id: string, input: ExpenseInput, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/expenses/${encode(id)}`, {
@@ -127,6 +131,15 @@ export const api = {
 
     deleteSettlement: (slug: string, id: string, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/settlements/${encode(id)}`, { method: 'DELETE', token }),
+
+    /**
+     * Replay a write the offline queue has been holding. Deliberately generic —
+     * the queue stores what it stored (endpoint, method, body, token) and does
+     * not re-derive a call from it, so a record written by an older build still
+     * replays exactly as it was captured.
+     */
+    replayWrite: (write: { endpoint: string; method: 'POST'; body: unknown; token?: string | null }) =>
+        request<RoomState>(write.endpoint, { method: write.method, body: write.body, token: write.token }),
 
     /**
      * The account endpoints. Authentication is the sealed `ps-session` cookie,

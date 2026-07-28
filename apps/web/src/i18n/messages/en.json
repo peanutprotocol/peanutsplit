@@ -318,5 +318,13 @@
         "showOther": "Show {name}’s balance",
         "hideOther": "Hide {name}’s balance",
         "someone": "Someone"
+    },
+    "offline": {
+        "rowLabel": "Waiting to send",
+        "rowHint": "Queued — sends itself when you’re back online",
+        "queuedToast": "No connection. This expense is saved on your phone and sends itself when you’re back.",
+        "fullToast": "{count, plural, one {Too many expenses waiting — the oldest one was dropped.} other {Too many expenses waiting — the # oldest were dropped.}}",
+        "rejectedToast": "{count, plural, one {A waiting expense could not be saved — add it again.} other {# waiting expenses could not be saved — add them again.}}",
+        "sentToast": "{count, plural, one {Expense sent} other {# expenses sent}}"
     }
 }
