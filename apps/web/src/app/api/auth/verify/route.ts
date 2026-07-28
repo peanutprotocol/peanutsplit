@@ -29,11 +29,11 @@ const confirmPage = (token: string): string => `<!doctype html>
 <meta name="robots" content="noindex, nofollow">
 <title>Open your rooms</title>
 <style>
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f6f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#111}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f6f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#211c17}
 main{max-width:420px;padding:32px;text-align:center}
 h1{font-size:22px;margin:0 0 12px}
 p{font-size:15px;line-height:1.6;color:#3f3f3f;margin:0 0 24px}
-button{width:100%;padding:14px 24px;font:inherit;font-weight:600;color:#fff;background:#111;border:0;border-radius:6px;cursor:pointer}
+button{width:100%;padding:14px 24px;font:inherit;font-weight:600;color:#fff;background:#211c17;border:0;border-radius:12px;cursor:pointer}
 </style>
 </head>
 <body>

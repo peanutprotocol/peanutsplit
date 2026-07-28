@@ -7,6 +7,15 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-07-28.
 
+## V1 hold — receipt scanning
+
+The scan implementation remains in `src/components/room/scan/` for a future
+stabilization pass, but its expense-drawer entry point is intentionally hidden
+in v1. A real-device post-scan review could become unresponsive while the
+underlying drawer remained reachable. Re-enable only after the image-decoding →
+review → assignment portal lifecycle has a mobile regression test and a
+real-device pass. Typed quick-add remains available.
+
 ## Shipped (beyond the 07-25 launch state)
 
 - **Correctness wave (2026-07-28):** service worker never caches `/api/*`
@@ -113,14 +122,6 @@ Still gated:
   request-link test. Optional hygiene: rotate the app key in-dashboard once
   live (its value transited an automation transcript during setup). Resend
   stays wired as the fallback transport.
-- **Receipt scan key** [Hugo, 2 min]: mint a Split-scoped key on the company
-  OpenRouter account with a per-key spend cap (same isolation rule as
-  OneSignal — no shared Peanut creds in the semi-trusted container) → set
-  `SPLIT_OPENROUTER_API_KEY` as runtime env. A Google AI Studio key in
-  `SPLIT_GEMINI_API_KEY` is the fallback transport if OpenRouter is not an
-  option. `SPLIT_SCAN_PROXY_URL` is already in place; the egress allowlist
-  needs `openrouter.ai` alongside the Gemini host. The scan button appears on
-  the next page load, no rebuild.
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
   users about it.
@@ -129,11 +130,11 @@ Still gated:
 
 All five branches merged, deployed, and smoke-tested live the same day:
 
-- **Receipt scan** — photograph a bill → Gemini vision itemizes → editable
-  review → tap-assign items → lands as a normal EXACT expense through the one
-  tested money path. Images never persisted, receipt contents never logged,
-  model output re-validated like any anonymous input. Ships dark until a scan
-  key lands (see "To light up").
+- **Receipt scan (code complete, v1 entry point held)** — photograph a bill →
+  Gemini vision itemizes → editable review → tap-assign items → lands as a
+  normal EXACT expense through the one tested money path. Images never
+  persisted, receipt contents never logged, model output re-validated like any
+  anonymous input. See the v1 hold above before re-enabling it.
 - **Realtime + offline** — SSE poke-and-refetch (polling stretched to 45s while
   the stream is open, 8s floor otherwise, never removed); offline queue for
   expense creates only (queued settlements could double-pay).
@@ -259,11 +260,10 @@ Order below is execution order, not importance. Status per item.
    drawing somebody meant by 🎿. A value is a doodle if the generated set has that
    name, which is unambiguous since emoji are pictographic and doodle names are
    lowercase ASCII. `RoomEmblem` is the single render seam; `og/emblem.ts` builds
-   the unfurl's image locally from the path data, which is strictly better than
-   the emoji branch — that one fetches a Twemoji glyph from a CDN the production
-   containers cannot reach, so emoji rooms have always unfurled with the fallback
-   disc. `notifyCopy` is guarded, since a push titled "mountain Ski trip" is the
-   one way this leaks into text.
+   the unfurl's image locally from the path data. Known legacy emoji resolve to
+   their matching doodles and unknown stored values fall back to the peanut; text
+   metadata and notifications omit the emblem entirely rather than reintroducing
+   a device-specific glyph.
 
 5. **Currency list, readable and friendlier.** — *status: shipped 2026-07-28*
    `🇧🇷 R$ BRL — Brazilian Real` is four encodings of the same fact in one line.

@@ -36,4 +36,12 @@ test('landing page uses doodles, a compact currency picker, and independent fold
     await folds.nth(1).locator('summary').click()
     await expect(folds.nth(0)).toHaveAttribute('open', '')
     await expect(folds.nth(1)).toHaveAttribute('open', '')
+
+    const teamFold = folds.filter({ hasText: 'The people who built it' })
+    await teamFold.locator('summary').click()
+    await expect(teamFold.getByText(/Konrad · built Split/)).toBeVisible()
+    await expect(teamFold.getByText(/Hugo · built Split/)).toBeVisible()
+    await expect(teamFold.getByText('Natalia', { exact: true })).toHaveCount(0)
+    await expect(teamFold.getByText('Jakub', { exact: true })).toHaveCount(0)
+    await expect(teamFold.locator('img[src*="portraits"]')).toHaveCount(2)
 })

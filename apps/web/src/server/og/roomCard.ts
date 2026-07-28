@@ -24,7 +24,7 @@ export const MAX_MEMBER_CHARS = 22
 export const MAX_AVATARS = 6
 
 /**
- * Six design-system fills, all legible with black ink on a white card, and all
+ * Six design-system fills, all legible with warm dark ink on a white card, and all
  * distinct in hue — the app's avatar palette has two yellows and a near-white
  * lavender, which turn a row of overlapping discs into one smear at thumbnail
  * size. Widely-spaced hues are the whole point here.

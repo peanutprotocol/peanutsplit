@@ -335,8 +335,8 @@ describe('toRecapCard', () => {
 })
 
 describe('recapTitle', () => {
-    it('prefixes the emoji and names the artefact', () => {
-        expect(recapTitle('Ski trip', '🎿')).toBe('🎿 Ski trip recap — Peanut Split')
+    it('keeps legacy emoji out of text metadata', () => {
+        expect(recapTitle('Ski trip', '🎿')).toBe('Ski trip recap — Peanut Split')
     })
 
     it('keeps non-Latin names — HTML has no glyph budget', () => {

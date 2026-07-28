@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { twemojiSlug } from '@/server/og/emoji'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
 import {
     MAX_AVATARS,
@@ -248,27 +247,9 @@ describe('toRoomCard', () => {
     })
 })
 
-describe('twemojiSlug', () => {
-    it('drops the VS16 presentation selector', () => {
-        expect(twemojiSlug('✈️')).toBe('2708')
-        expect(twemojiSlug('🏔️')).toBe('1f3d4')
-    })
-
-    it('keeps plain and ZWJ sequences intact', () => {
-        expect(twemojiSlug('🥜')).toBe('1f95c')
-        expect(twemojiSlug('👨‍👩‍👧')).toBe('1f468-200d-1f469-200d-1f467')
-    })
-
-    it('refuses non-emoji, so a text "emoji" column never 404-loops', () => {
-        expect(twemojiSlug('ski')).toBeNull()
-        expect(twemojiSlug('')).toBeNull()
-        expect(twemojiSlug(null)).toBeNull()
-    })
-})
-
 describe('roomTitle', () => {
-    it('prefixes the emoji and suffixes the brand', () => {
-        expect(roomTitle('Ski trip', '🎿')).toBe('🎿 Ski trip — Peanut Split')
+    it('keeps legacy emoji out of text metadata', () => {
+        expect(roomTitle('Ski trip', '🎿')).toBe('Ski trip — Peanut Split')
     })
 
     it('keeps non-Latin names — HTML has no glyph budget', () => {

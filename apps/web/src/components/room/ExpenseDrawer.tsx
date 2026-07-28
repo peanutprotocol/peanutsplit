@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { Doodle } from '@/components/ui/Doodle'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
@@ -35,8 +36,6 @@ import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
 import { QuickAdd } from './QuickAdd'
-import { ScanButton } from './scan/ScanButton'
-import { ScanFlow } from './scan/ScanFlow'
 
 interface ExpenseDrawerProps {
     open: boolean
@@ -76,15 +75,10 @@ export function ExpenseDrawer({
     )
     const [submitted, setSubmitted] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    /**
-     * The picked photo. Its presence IS the scan flow's open state — a separate
-     * boolean would let the two disagree, and "the overlay is up with no image"
-     * is a stuck screen with no way back.
-     */
-    const [scanFile, setScanFile] = useState<File | null>(null)
-    /** A server capability (one API key in the container, gating both shortcuts),
-     *  asked rather than compiled in. Disabled hides them completely: an entry
-     *  point that leads to a 503 is worse than no entry point. */
+    /** A server capability for typed quick-add, asked rather than compiled in.
+     *  Receipt scanning stays in the codebase as backlog work, but its entry
+     *  point is intentionally absent from v1 after the post-scan overlay proved
+     *  capable of trapping taps on real devices. */
     const { enabled: modelEnabled, resolved: modelResolved } = useModelStatus(slug)
 
     // Re-seed on every open: a drawer that remembers last time's amount is a
@@ -93,9 +87,6 @@ export function ExpenseDrawer({
         if (!open) return
         setSubmitted(false)
         setError(null)
-        // A half-finished scan must not survive the drawer closing: reopening
-        // would drop the user back into someone else's receipt.
-        setScanFile(null)
         setValues(
             expense
                 ? expenseToFormValues(expense, currencies)
@@ -338,25 +329,18 @@ export function ExpenseDrawer({
                         </div>
                     </div>
 
-                    {/* Right under the amount, and only when adding: either of these
-                        rewrites the description, the currency, the total AND the whole
-                        split, which is a fine thing to do to an empty form and a hostile
-                        thing to do to an expense someone opened to fix a typo in.
-                        Both are hidden by the same probe — one key configures both. */}
-                    {/* The probe is a network hop, and the two chips are 44px tall.
-                        Without a placeholder the form under them jumps by that much
-                        a beat after the sheet opens — right as a thumb is arriving at
-                        the description field. So the row holds its own height from
-                        the first frame and the real chips fade into it. */}
+                    {/* Right under the amount, and only when adding: quick add
+                        rewrites the description, currency, total and split. That
+                        is useful on an empty form and hostile on an edit. The
+                        probe is a network hop, so its placeholder keeps the form
+                        below from jumping as a thumb reaches the description. */}
                     {!expense && !modelResolved && (
                         <div aria-hidden="true" className="flex flex-wrap items-start gap-2">
-                            <span className="min-h-11 w-32 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
                             <span className="min-h-11 w-28 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
                         </div>
                     )}
                     {!expense && modelResolved && modelEnabled && (
                         <div className="flex flex-wrap items-start gap-2">
-                            <ScanButton onFile={setScanFile} />
                             <QuickAdd
                                 slug={slug}
                                 roomCurrency={state.room.currency}
@@ -641,14 +625,25 @@ export function ExpenseDrawer({
 
                     <label className="flex flex-col gap-2">
                         <span className="text-h8 uppercase tracking-wide text-grey-1">{t('when')}</span>
-                        <input
-                            type="date"
-                            value={toDateInputValue(values.date)}
-                            onChange={(event) => patch({ date: fromDateInputValue(event.target.value, values.date) })}
-                            aria-label={t('date')}
-                            data-testid="expense-date"
-                            className="input h-14 px-4"
-                        />
+                        <span className="relative">
+                            <input
+                                type="date"
+                                value={toDateInputValue(values.date)}
+                                onChange={(event) =>
+                                    patch({ date: fromDateInputValue(event.target.value, values.date) })
+                                }
+                                aria-label={t('date')}
+                                data-testid="expense-date"
+                                data-doodle-date
+                                className="input h-14 appearance-none px-4 pr-12"
+                            />
+                            <Doodle
+                                name="iconcalendar"
+                                size={21}
+                                weight={1.7}
+                                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2"
+                            />
+                        </span>
                     </label>
 
                     {submitted && validation && (
@@ -693,30 +688,6 @@ export function ExpenseDrawer({
                     </div>
                 </div>
             </DrawerContent>
-
-            {/* The scan overlay lives above this sheet and writes back into it.
-                It creates nothing — `onApply` hands over form values and the
-                save button below is still the only thing that writes. */}
-            {scanFile && (
-                <ScanFlow
-                    file={scanFile}
-                    slug={slug}
-                    token={token}
-                    members={state.members}
-                    roomCurrency={state.room.currency}
-                    currencies={currencies}
-                    baseValues={values}
-                    onCancel={() => setScanFile(null)}
-                    onApply={(next) => {
-                        setValues(next)
-                        // The form is now reconciled by construction, so an error
-                        // left over from before the scan is stale by definition.
-                        setSubmitted(false)
-                        setError(null)
-                        setScanFile(null)
-                    }}
-                />
-            )}
         </Drawer>
     )
 }

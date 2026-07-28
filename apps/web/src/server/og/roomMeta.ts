@@ -1,14 +1,13 @@
 /**
  * `<head>` copy for a room link.
  *
- * Unlike the OG image this is HTML, so nothing needs font sanitizing — a Cyrillic
- * or emoji room name renders fine in a tab title and in every chat preview.
- * The image is where the glyph budget bites; see `roomCard.ts`.
+ * The room emblem is deliberately absent from text metadata. Doodles are
+ * rendered in the card itself; falling back to a platform emoji in the title
+ * would reintroduce a second icon system on tabs and chat previews.
  */
 import type { Metadata } from 'next'
 import { getTranslator } from '@/i18n/t'
 import { prisma } from '@/server/db'
-import { isEmoji } from '@/server/og/emoji'
 
 /** Chat previews truncate hard; keep the room name inside the visible run. */
 const MAX_TITLE_NAME = 48
@@ -41,20 +40,18 @@ const roomDescription = async (locale: string | null): Promise<string> =>
 export const RECAP_DESCRIPTION = 'What this split added up to — days, expenses, people, and who fronted the most.'
 export const RECAP_FALLBACK_TITLE = 'Trip recap — Peanut Split'
 
-/** "🎿 Ski trip — Peanut Split". Exported for tests; no I/O. */
-export function roomTitle(name: string, emoji: string | null): string {
+/** "Ski trip — Peanut Split". Exported for tests; no I/O. */
+export function roomTitle(name: string, _emblem: string | null): string {
     const trimmed = name.replace(/\s+/g, ' ').trim()
     const clipped = trimmed.length > MAX_TITLE_NAME ? `${trimmed.slice(0, MAX_TITLE_NAME).trimEnd()}…` : trimmed
-    const prefix = isEmoji(emoji) ? `${emoji} ` : ''
-    return clipped ? `${prefix}${clipped} — Peanut Split` : ROOM_FALLBACK_TITLE
+    return clipped ? `${clipped} — Peanut Split` : ROOM_FALLBACK_TITLE
 }
 
-/** "🎿 Ski trip recap — Peanut Split". Exported for tests; no I/O. */
-export function recapTitle(name: string, emoji: string | null): string {
+/** "Ski trip recap — Peanut Split". Exported for tests; no I/O. */
+export function recapTitle(name: string, _emblem: string | null): string {
     const trimmed = name.replace(/\s+/g, ' ').trim()
     const clipped = trimmed.length > MAX_TITLE_NAME ? `${trimmed.slice(0, MAX_TITLE_NAME).trimEnd()}…` : trimmed
-    const prefix = isEmoji(emoji) ? `${emoji} ` : ''
-    return clipped ? `${prefix}${clipped} recap — Peanut Split` : RECAP_FALLBACK_TITLE
+    return clipped ? `${clipped} recap — Peanut Split` : RECAP_FALLBACK_TITLE
 }
 
 /**
