@@ -2,11 +2,9 @@
     "marketing": {
         "hero": {
             "eyebrow": "gratis · sin cuenta · sin descargar",
-            "titleTop": "QUIEN DEBE",
-            "titleBottom": "A QUIEN",
-            "subtitle": "Compartí un link. Cada quien agrega lo que pagó, en la moneda en que lo pagó.",
+            "title": "DIVIDILO",
+            "subtitle": "Quién le debe a quién, resuelto. Un link — cada quien agrega lo que pagó, en la moneda que sea.",
             "cta": "Abrilo →",
-            "ctaHint": "Gratis, sin cuenta y sin descargar nada — ni vos ni ellos.",
             "mascotAlt": "Peanut saludando",
             "linkExplainerTrigger": "Cómo funciona el link"
         },
@@ -75,11 +73,22 @@
             }
         },
         "footer": {
+            "logoAlt": "Peanut",
+            "tagline": "Dividí cualquier cuenta con un link. Peanut Split lo hace el equipo de Peanut.",
+            "colSplit": "Split",
+            "createSplit": "Crear una división",
+            "importLink": "Importar de Splitwise",
+            "colCompare": "Comparar",
             "compareLink": "Alternativa a Splitwise",
-            "guidesLink": "Guías",
-            "poweredByPrefix": "hecho por",
-            "poweredByBrand": "Peanut",
-            "importLink": "Importar de Splitwise"
+            "colGuides": "Guías",
+            "allGuides": "Todas las guías",
+            "colPeanut": "Peanut",
+            "peanutHome": "Enviar dinero",
+            "peanutHelp": "Ayuda",
+            "peanutTerms": "Términos",
+            "peanutPrivacy": "Privacidad",
+            "madeByPrefix": "hecho con amor por",
+            "madeByBrand": "Squirrel Labs"
         },
         "install": {
             "title": "Agrega Split a tu pantalla de inicio",
@@ -409,7 +418,7 @@
             "back": "Volver",
             "title": "Nueva división",
             "name": "¿Qué van a dividir?",
-            "namePlaceholder": "Viaje a la nieve",
+            "namePlaceholder": "Viaje a la nieve…",
             "emoji": "Elige una cara",
             "emojiGroup": "Emoji de la sala",
             "emojiOption": "Emoji {emoji}",
@@ -417,7 +426,7 @@
             "currencyLabel": "Moneda de la sala",
             "currencyHint": "Los saldos se saldan en esta moneda. Cada gasto puede ir en cualquier otra.",
             "creatorName": "Y tú eres…",
-            "creatorNamePlaceholder": "Tu nombre",
+            "creatorNamePlaceholder": "Tu nombre…",
             "submit": "Crear la sala",
             "failed": "no se pudo crear la sala — intenta de nuevo",
             "readyTitle": "Tu sala está lista",

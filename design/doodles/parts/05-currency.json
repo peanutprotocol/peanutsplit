@@ -1,0 +1,42 @@
+{
+  "dollar": {
+    "d": "M22 10.5C22 8.5 19.3 7.2 16 7.2C12.7 7.2 10 8.7 10 11C10 13.6 13 14.6 16 15.9C19.2 17.3 22 18.4 22 21.2C22 23.4 19.3 24.8 16 24.8C12.7 24.8 10 23.5 10 21.2M16 5V27",
+    "note": "a hand-drawn dollar sign — S over a single bar"
+  },
+  "euro": {
+    "d": "M22.5 10.3A7.95 7.95 0 1 0 22.5 21.7M7 13.5H19.5M7 18.5H19.5",
+    "note": "a hand-drawn euro sign — open C with two bars"
+  },
+  "pound": {
+    "d": "M20.5 10.6C20.5 8.3 18.7 6.8 16.3 6.8C13.8 6.8 12.2 8.6 12.2 11.4V19.8C12.2 22.9 10.6 24.7 8.3 25.4M8 25.4H22.8M9.2 17.2H19.5",
+    "note": "a hand-drawn pound sign — curled stem, crossbar, baseline"
+  },
+  "real": {
+    "d": "M5.8 6V26M5.8 6H11.2C13.9 6 15.4 8.1 15.4 10.9C15.4 13.7 13.9 15.8 11.2 15.8H5.8M10.4 15.8L15 26M25.8 11.4C25.8 9.4 24 7.8 21.6 7.8C19.2 7.8 17.4 9.1 17.4 11.1C17.4 13.4 19.7 14.4 21.6 15.5C23.8 16.7 25.8 17.7 25.8 20.1C25.8 22.4 24 24.2 21.6 24.2C19.2 24.2 17.4 22.8 17.4 20.9M21.6 6V26",
+    "note": "a hand-drawn Brazilian real sign — R next to $"
+  },
+  "yen": {
+    "d": "M7.5 7L16 15.5L24.5 7M16 15.5V25.5M8.5 18.4H23.5M8.5 22.2H23.5",
+    "note": "a hand-drawn yen sign — Y with two bars"
+  },
+  "rupee": {
+    "d": "M8 6.8H24M8 11.4H22.6M22.6 11.4C22.6 15 20 17.6 15.5 17.6L9 17.6L19.5 26",
+    "note": "a hand-drawn Indian rupee sign — two top bars, hooked bowl and leg"
+  },
+  "zloty": {
+    "d": "M6.8 13H15.4L6.8 24H15.8M21 6.4V24M19.3 15.6L22.7 11.4",
+    "note": "a hand-drawn Polish zloty sign — z and slashed l"
+  },
+  "peso": {
+    "d": "M22 10.5C22 8.5 19.3 7.2 16 7.2C12.7 7.2 10 8.7 10 11C10 13.6 13 14.6 16 15.9C19.2 17.3 22 18.4 22 21.2C22 23.4 19.3 24.8 16 24.8C12.7 24.8 10 23.5 10 21.2M13.5 5V27M18.5 5V27",
+    "note": "a hand-drawn peso sign — the double-bar cifrao"
+  },
+  "naira": {
+    "d": "M9.5 25V7L22.5 25V7M7.8 14H24.2M7.8 18.2H24.2",
+    "note": "a hand-drawn naira sign — N with two bars"
+  },
+  "franc": {
+    "d": "M12 6.8V25.5M12 6.8H23M12 14H20.5M8.5 20.5H16",
+    "note": "a hand-drawn franc sign — F with a barred stem"
+  }
+}

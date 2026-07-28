@@ -17,8 +17,51 @@ import { LOCALES, LOCALE_LABELS, type Locale } from '@/i18n/locales'
 import { cn } from '@/lib/cn'
 import { setLocaleAndReload } from '@/lib/locale-cookie'
 
-export function LocaleSwitcher({ label, className }: { label: string; className?: string }) {
+/**
+ * `compact` is the footer-bar form: three words on a dark ground, no boxes and no heading,
+ * sized to sit on one line beside the maker credit. The full form is the bordered segmented
+ * control, which needs a heading to explain what the three words are.
+ *
+ * Both forms are the same three buttons doing the same thing, so the testids match — a test
+ * does not care which skin the switcher is wearing.
+ */
+export function LocaleSwitcher({
+    label,
+    className,
+    compact = false,
+}: {
+    label: string
+    className?: string
+    compact?: boolean
+}) {
     const current = useLocale()
+
+    if (compact) {
+        return (
+            <div role="group" aria-label={label} className={cn('flex items-center gap-3', className)}>
+                {LOCALES.map((locale: Locale) => {
+                    const active = current === locale
+                    return (
+                        <button
+                            key={locale}
+                            type="button"
+                            lang={locale}
+                            translate="no"
+                            aria-pressed={active}
+                            data-testid={`locale-${locale}`}
+                            onClick={() => setLocaleAndReload(locale)}
+                            className={cn(
+                                'notranslate min-h-9 text-sm transition-colors duration-150',
+                                active ? 'font-bold text-white underline underline-offset-4' : 'text-white/70'
+                            )}
+                        >
+                            {LOCALE_LABELS[locale]}
+                        </button>
+                    )
+                })}
+            </div>
+        )
+    }
 
     return (
         <div className={cn('flex flex-col gap-2', className)}>

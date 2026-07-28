@@ -7,6 +7,7 @@ import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { EmojiPicker, ROOM_EMOJIS, randomRoomEmoji } from '@/components/room/EmojiPicker'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { Doodle } from '@/components/ui/Doodle'
 import { useCurrencies } from '@/lib/queries'
 import { slugStem } from '@/lib/slugify'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
@@ -18,9 +19,15 @@ import { LinkExplainer } from './LinkExplainer'
 const DEFAULT_CURRENCY = 'EUR'
 
 /**
- * The landing hero IS the form. There is no pitch above it and no second screen below it:
+ * The landing hero IS this form. There is no pitch above it and no second screen below it:
  * pressing the button creates the room and opens it, which is what lets the button honestly
  * say "Open it".
+ *
+ * NO LABELS ABOVE FIELDS. "What are you splitting?" over an empty box is a caption on a thing
+ * that could say it itself — two lines where one does, and on a 390px screen those stacked
+ * captions are the difference between the button being above the fold and below it. The
+ * question moved into the placeholder (`Ski trip…`), and stayed on the input as `aria-label`,
+ * so nothing was lost for a screen reader.
  *
  * The URL preview is the point of the whole layout — proof that this works arrives inside the
  * keystrokes you were already making, rather than as a claim you have to take on faith. It is
@@ -28,6 +35,9 @@ const DEFAULT_CURRENCY = 'EUR'
  * readable part is exact; the six-character tail is minted server-side with crypto randomness
  * because the slug is the room's credential, so it shows as dots until the room exists.
  * Inventing a tail here would be a promise the next screen breaks.
+ *
+ * The `(?)` beside it replaced an underlined "How the link works" — one drawn mark instead of a
+ * third line of text, sitting on the thing it explains rather than under it.
  */
 export function HeroCreateForm() {
     const t = useTranslations('marketing.hero')
@@ -77,7 +87,10 @@ export function HeroCreateForm() {
     }
 
     return (
-        <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-3">
+        <form
+            onSubmit={onSubmit}
+            className="shadow-primary-6 mt-6 flex flex-col gap-3 rounded-sm border border-n-1 bg-white p-4"
+        >
             <div className="flex items-stretch gap-2">
                 <BaseInput
                     value={name}
@@ -137,20 +150,22 @@ export function HeroCreateForm() {
             </div>
 
             {/* The stem is real and the tail is honest about not existing yet. */}
-            <p className="font-mono text-xs leading-5 text-n-1" data-testid="hero-slug-preview">
-                peanutsplit.com/r/
-                <span className={stem ? '' : 'text-grey-1'}>{stem || tCreate('namePlaceholderSlug')}</span>
-                <span className="tracking-widest text-grey-1">-••••••</span>
+            <p className="flex items-center gap-1.5 font-mono text-xs leading-5 text-n-1">
+                <span data-testid="hero-slug-preview">
+                    peanutsplit.com/r/
+                    <span className={stem ? '' : 'text-grey-1'}>{stem || tCreate('namePlaceholderSlug')}</span>
+                    <span className="tracking-widest text-grey-1">-••••••</span>
+                </span>
+                <button
+                    type="button"
+                    onClick={() => setExplainerOpen(true)}
+                    aria-label={t('linkExplainerTrigger')}
+                    className="text-grey-1 transition-colors hover:text-n-1"
+                    data-testid="hero-link-explainer"
+                >
+                    <Doodle name="question" size={17} weight={2.4} />
+                </button>
             </p>
-
-            <button
-                type="button"
-                onClick={() => setExplainerOpen(true)}
-                className="self-start text-left text-sm text-n-1 underline underline-offset-2"
-                data-testid="hero-link-explainer"
-            >
-                {t('linkExplainerTrigger')}
-            </button>
 
             {error && (
                 <p role="alert" className="text-sm font-bold text-error">
@@ -158,9 +173,10 @@ export function HeroCreateForm() {
                 </p>
             )}
 
+            {/* Black, not the app's yellow — a yellow button on the yellow band disappears. */}
             <Button
                 type="submit"
-                variant="primary"
+                variant="dark"
                 shadowSize="4"
                 disabled={!canSubmit}
                 loading={pending}
@@ -169,7 +185,6 @@ export function HeroCreateForm() {
             >
                 {t('cta')}
             </Button>
-            <p className="text-center text-sm text-grey-1">{t('ctaHint')}</p>
 
             <LinkExplainer open={explainerOpen} onClose={() => setExplainerOpen(false)} />
         </form>
