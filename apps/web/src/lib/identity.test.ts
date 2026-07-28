@@ -45,7 +45,7 @@ describe('readIdentity / writeIdentity', () => {
         expect(readIdentity('ski-trip-x7k2m9')).toEqual({ memberId: 'm1', name: 'Bea', token: 'tok_123' })
     })
 
-    it('round-trips a tokenless identity — claiming an existing member is by design', () => {
+    it('still reads legacy tokenless identities', () => {
         writeIdentity('room-a', { memberId: 'm2', name: 'Kai' })
         expect(readIdentity('room-a')).toEqual({ memberId: 'm2', name: 'Kai' })
     })

@@ -104,11 +104,19 @@ export interface RoomState {
     suggestedTransfers: ApiTransfer[]
 }
 
-/** Room and member creation return the state plus the one-time member token. */
+/** Creating a room, joining as new, and claiming an existing roster entry
+ *  return room state plus the member identity envelope. */
 export interface RoomStateWithMember extends RoomState {
     memberId: string
-    /** Returned ONCE. Client stores it and sends it as `X-Member-Token`. */
+    /** Returned to the member's device. Client stores it and sends it as
+     *  `X-Member-Token`; claiming reuses the existing value. */
     memberToken: string
+}
+
+/** Adding a payer on somebody else's behalf returns the new roster id but
+ *  never crosses the HTTP boundary with that person's identity token. */
+export interface RoomStateWithAddedMember extends RoomState {
+    memberId: string
 }
 
 export interface ApiError {

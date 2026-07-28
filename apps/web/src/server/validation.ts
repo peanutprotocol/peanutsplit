@@ -50,7 +50,13 @@ export const createRoomSchema = z.object({
     creatorName: personName,
 })
 
-export const createMemberSchema = z.object({ name: personName })
+export const createMemberSchema = z.object({
+    name: personName,
+    /** A roster addition is made on somebody else's behalf and must not return
+     *  their identity token. Missing stays `join` for clients deployed before
+     *  the two response contracts became explicit. */
+    intent: z.enum(['join', 'add']).default('join'),
+})
 
 export const expenseSchema = z.object({
     clientKey: clientKey.optional(),
@@ -296,7 +302,13 @@ export type ReactionBody = z.infer<typeof reactionSchema>
  * (`expenses.12.shares`) is in the English message for whoever is reading a log.
  */
 /** Splitwise exports a calendar day, not an instant. */
-const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a YYYY-MM-DD date')
+const isoDay = z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a YYYY-MM-DD date')
+    .refine((value) => {
+        const parsed = new Date(`${value}T00:00:00.000Z`)
+        return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+    }, 'must be a real calendar date')
 
 const importedExpenseSchema = z.object({
     date: isoDay,
