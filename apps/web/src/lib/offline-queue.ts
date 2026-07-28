@@ -226,6 +226,8 @@ function queuedExpenseRow(item: QueuedWrite, state: RoomState): ApiExpense {
         date: input.date ?? new Date(item.addedAt).toISOString(),
         category: input.category ?? null,
         createdAt: new Date(item.addedAt).toISOString(),
+        // Nobody can react to an expense that has not reached the server yet.
+        reactions: [],
         shares: participants.map((memberId) => ({ memberId, amountMinor: '0', enteredAmountMinor: null })),
     }
 }
