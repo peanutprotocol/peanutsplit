@@ -43,6 +43,7 @@
  * drifted is the day the same photo started producing two different splits.
  */
 
+import { egressFetch, type EgressResponse } from '@/server/egress'
 import { ApiError } from '@/server/http'
 import { CURRENCY_CODES } from '@/server/money'
 import { enforceRateLimitOn, type Limit } from '@/server/rateLimit'
@@ -175,27 +176,6 @@ Rules:
 - merchant is the business name. date is the receipt date as YYYY-MM-DD. Omit either if not printed.
 - If the image is not a receipt or you can read no line items, return {"items":[]}.`
 
-/**
- * Undici's `ProxyAgent` is the only route out of a container with no egress, and
- * it is imported lazily so the direct path never pulls it in. Same pattern and
- * the same reasoning as `server/email.ts` — see the deploy notes in the root
- * README on why the network is pinned rather than opened.
- */
-async function proxyDispatcher(): Promise<unknown | null> {
-    const proxyUrl = process.env.SPLIT_SCAN_PROXY_URL
-    if (!proxyUrl) return null
-    try {
-        const { ProxyAgent } = await import('undici')
-        return new ProxyAgent(proxyUrl)
-    } catch (err) {
-        // Name only, like every other log in this module. Undici puts the URL it
-        // was constructed with on its errors, and a proxy URL is allowed to
-        // carry credentials — see property 2 in the file header.
-        console.error('[scan] proxy unavailable', err instanceof Error ? err.name : 'unknown')
-        return null
-    }
-}
-
 /** Every way a scan can fail upstream is one thing to the person holding the
  *  phone. One constructor so two transports cannot drift into saying it
  *  differently, and so the code stays a code. */
@@ -204,36 +184,35 @@ const scanFailed = () => new ApiError(502, 'SCAN_FAILED', 'could not read the bi
 /** The model's raw answer, as text. Everything about whether it is *usable*
  *  belongs to `normalizeReceipt` — these functions only know about HTTP. */
 async function callGemini(body: ReceiptParseBody, config: ScanConfig): Promise<string> {
-    const dispatcher = await proxyDispatcher()
-
-    let response: Response
+    let response: EgressResponse
     try {
-        response = await fetch(`${GEMINI_HOST}/v1beta/models/${encodeURIComponent(config.model)}:generateContent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
-            body: JSON.stringify({
-                contents: [
-                    {
-                        role: 'user',
-                        parts: [
-                            { text: PROMPT },
-                            { inline_data: { mime_type: body.mimeType, data: body.imageBase64 } },
-                        ],
+        response = await egressFetch(
+            process.env.SPLIT_SCAN_PROXY_URL,
+            `${GEMINI_HOST}/v1beta/models/${encodeURIComponent(config.model)}:generateContent`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            role: 'user',
+                            parts: [
+                                { text: PROMPT },
+                                { inline_data: { mime_type: body.mimeType, data: body.imageBase64 } },
+                            ],
+                        },
+                    ],
+                    generationConfig: {
+                        // Zero temperature because this is transcription, not writing:
+                        // the same photo should produce the same split twice.
+                        temperature: 0,
+                        responseMimeType: 'application/json',
+                        maxOutputTokens: 8192,
                     },
-                ],
-                generationConfig: {
-                    // Zero temperature because this is transcription, not writing:
-                    // the same photo should produce the same split twice.
-                    temperature: 0,
-                    responseMimeType: 'application/json',
-                    maxOutputTokens: 8192,
-                },
-            }),
-            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-            // `dispatcher` is undici's, not the fetch standard's — same cast, and
-            // the same price, as the email transport pays.
-            ...(dispatcher ? ({ dispatcher } as Record<string, unknown>) : {}),
-        })
+                }),
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            }
+        )
     } catch (err) {
         // Status only. The request body is a photograph of somebody's dinner.
         console.error('[scan] model request failed', err instanceof Error ? err.name : 'unknown')
@@ -274,11 +253,9 @@ async function callGemini(body: ReceiptParseBody, config: ScanConfig): Promise<s
  * with `unfence` still standing behind it for the models that fence anyway.
  */
 async function callOpenRouter(body: ReceiptParseBody, config: ScanConfig): Promise<string> {
-    const dispatcher = await proxyDispatcher()
-
-    let response: Response
+    let response: EgressResponse
     try {
-        response = await fetch(OPENROUTER_ENDPOINT, {
+        response = await egressFetch(process.env.SPLIT_SCAN_PROXY_URL, OPENROUTER_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -309,9 +286,6 @@ async function callOpenRouter(body: ReceiptParseBody, config: ScanConfig): Promi
                 max_tokens: 4096,
             }),
             signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-            // `dispatcher` is undici's, not the fetch standard's — same cast, and
-            // the same price, as the email transport pays.
-            ...(dispatcher ? ({ dispatcher } as Record<string, unknown>) : {}),
         })
     } catch (err) {
         // Status only. The request body is a photograph of somebody's dinner.
