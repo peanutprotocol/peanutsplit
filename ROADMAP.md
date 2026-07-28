@@ -16,6 +16,16 @@ underlying drawer remained reachable. Re-enable only after the image-decoding �
 review → assignment portal lifecycle has a mobile regression test and a
 real-device pass. Typed quick-add remains available.
 
+**Owner: Konrad.** Decided 2026-07-28 (Hugo): the v1/v2 boundary —
+`splitV2Enabled()` and everything behind it (scan, NL entry, Splitwise import)
+— is Konrad's call to flip, and nobody else's. Engineering is meeting the
+re-enable condition on `fix/scan-delete-avatar` (portal-lifecycle root-cause
+fix, the mobile regression test above, per-item delete in the review step);
+once that merges, what remains is Konrad's real-device pass and his decision.
+The flip itself is one Dokploy build arg on the web app
+(`NEXT_PUBLIC_SPLIT_V2_ENABLED=1`) plus a redeploy — the marketing surface is
+already flag-aware and starts claiming the features on its own.
+
 ## Shipped (beyond the 07-25 launch state)
 
 - **Correctness wave (2026-07-28):** service worker never caches `/api/*`
