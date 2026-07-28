@@ -26,6 +26,9 @@ interface ExpenseListProps {
     slug: string
     token?: string | null
     onSelect: (expenseId: string) => void
+    /** Cached rows are useful offline, but mutating server-owned history from a
+     *  room we could not refresh risks acting on an expense that changed. */
+    savedActionsDisabled?: boolean
     /** Opens the share drawer. The empty state's copy leads with the invite, so
      *  the action it names has to be one tap away, not behind a header glyph. */
     onInvite?: () => void
@@ -73,7 +76,16 @@ function usePoppedExpenseId(expenses: readonly ApiExpense[]): string | null {
     return poppedId
 }
 
-export function ExpenseList({ state, currencies, meId, slug, token, onSelect, onInvite }: ExpenseListProps) {
+export function ExpenseList({
+    state,
+    currencies,
+    meId,
+    slug,
+    token,
+    onSelect,
+    onInvite,
+    savedActionsDisabled = false,
+}: ExpenseListProps) {
     const t = useTranslations('room.expenses')
     const tDates = useTranslations('dates')
     const tOffline = useTranslations('offline')
@@ -194,7 +206,10 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect, on
                                     >
                                         <button
                                             type="button"
-                                            disabled={isPending(expense)}
+                                            disabled={isPending(expense) || savedActionsDisabled}
+                                            aria-describedby={
+                                                savedActionsDisabled ? 'room-stale-warning-copy' : undefined
+                                            }
                                             onClick={() => onSelect(expense.id)}
                                             data-testid="expense-row"
                                             data-description={expense.description}

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { EXPENSE_WRITE_TIMEOUT_MS } from '../src/lib/api'
 
 async function createRoom(page: Page, name: string): Promise<{ url: string; slug: string }> {
     await page.goto('/new')
@@ -93,8 +94,62 @@ test('two taps in one render produce one expense request', async ({ page }) => {
     expect(posts).toBe(1)
 })
 
-test('a failed room refresh keeps cached balances visible but blocks settling', async ({ page }) => {
+test('a hung first expense write queues and replays with its original client key', async ({ page }) => {
+    test.setTimeout(45_000)
+    let posts = 0
+    let firstAttemptKey: string | undefined
+    let replayKey: string | undefined
+    let releaseReplay!: () => void
+    const replayGate = new Promise<void>((resolve) => {
+        releaseReplay = resolve
+    })
+
+    await page.route('**/api/rooms/*/expenses', async (route) => {
+        if (route.request().method() !== 'POST') return route.continue()
+        posts += 1
+        const key = (route.request().postDataJSON() as { clientKey: string }).clientKey
+        if (posts === 1) {
+            firstAttemptKey = key
+            await new Promise((resolve) => setTimeout(resolve, EXPENSE_WRITE_TIMEOUT_MS + 1_500))
+            await route.abort('timedout').catch(() => undefined)
+            return
+        }
+        replayKey = key
+        await replayGate
+        await route.continue()
+    })
+
+    await createRoom(page, 'Timeout queue room')
+    await fillExpense(page, 'Slow tunnel dinner')
+    await page.getByTestId('save-expense').click()
+
+    await expect.poll(() => firstAttemptKey).toBeTruthy()
+    await expect
+        .poll(() => replayKey, {
+            timeout: EXPENSE_WRITE_TIMEOUT_MS + 5_000,
+        })
+        .toBe(firstAttemptKey)
+    await expect
+        .poll(() => page.evaluate((key) => localStorage.getItem(`ps:pending:${key}`), firstAttemptKey!))
+        .not.toBeNull()
+
+    releaseReplay()
+    await expect(
+        page.locator('[data-testid="expense-row"][data-description="Slow tunnel dinner"]:not([disabled])')
+    ).toBeVisible({ timeout: 15_000 })
+    await expect
+        .poll(() => page.evaluate((key) => localStorage.getItem(`ps:pending:${key}`), firstAttemptKey!))
+        .toBeNull()
+    await page.unrouteAll({ behavior: 'wait' })
+})
+
+test('a failed room refresh keeps cached history visible but blocks saved expense actions', async ({ page }) => {
     const { slug } = await createRoom(page, 'Stale balance room')
+    await fillExpense(page, 'Saved dinner')
+    await page.getByTestId('save-expense').click()
+    const savedRow = page.locator('[data-testid="expense-row"][data-description="Saved dinner"]')
+    await expect(savedRow).toBeEnabled({ timeout: 15_000 })
+
     let failedReads = 0
     await page.route(`**/api/rooms/${slug}`, async (route) => {
         if (route.request().method() !== 'GET') return route.continue()
@@ -110,4 +165,12 @@ test('a failed room refresh keeps cached balances visible but blocks settling', 
     await expect(page.getByTestId('room-stale-warning')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('open-settle')).toBeDisabled()
     await expect(page.getByTestId('open-add-expense')).toBeEnabled()
+    await expect(savedRow).toBeDisabled()
+    await expect(savedRow).toHaveAttribute('aria-describedby', 'room-stale-warning-copy')
+    await expect(page.getByTestId('delete-expense')).toHaveCount(0)
+
+    // New expense creation remains deliberately available: its idempotent write
+    // can queue, while stale server-owned history cannot be mutated.
+    await page.getByTestId('open-add-expense').click()
+    await expect(page.getByTestId('expense-amount')).toBeVisible()
 })
