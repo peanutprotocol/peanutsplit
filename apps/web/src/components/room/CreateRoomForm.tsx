@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BaseInput } from '@/components/ui/BaseInput'
@@ -10,15 +10,21 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { roomProps, track } from '@/lib/analytics'
 import type { RoomStateWithMember } from '@/lib/api-types'
+import { cn } from '@/lib/cn'
+import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
+import { currencyDisplayName } from '@/lib/money'
 import { useCreateRoom, useCurrencies } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
+import { CurrencyTag } from './CurrencyTag'
 import { EmojiPicker, ROOM_EMOJIS, randomRoomEmoji } from './EmojiPicker'
 import { LinkMoment } from './LinkMoment'
 
+/** The server-rendered seed only. The real default is the device's top hint, which cannot be
+ *  known until after mount — see the effect below. */
 const DEFAULT_CURRENCY = 'EUR'
 
 /**
@@ -28,10 +34,13 @@ const DEFAULT_CURRENCY = 'EUR'
  */
 export function CreateRoomForm() {
     const t = useTranslations('room.create')
+    const tCurrency = useTranslations('room.currency')
+    const locale = useLocale()
     const errorMessage = useErrorMessage()
     const router = useRouter()
     const { data: currencies } = useCurrencies()
     const createRoom = useCreateRoom()
+    const hints = useCurrencyHints()
 
     const feedback = useFeedback()
 
@@ -41,11 +50,31 @@ export function CreateRoomForm() {
     // which React flags and then refuses to patch up.
     const [emoji, setEmoji] = useState<string>(ROOM_EMOJIS[0])
     const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
+    // A guess is only ever allowed to fill an empty field. The moment someone picks a currency
+    // themselves, the inference is done talking — a hint that overwrites a deliberate choice is
+    // not smart, it is broken.
+    const [currencyChosen, setCurrencyChosen] = useState(false)
     const [creatorName, setCreatorName] = useState('')
     const [created, setCreated] = useState<RoomStateWithMember | null>(null)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => setEmoji(randomRoomEmoji()), [])
+
+    /** Seeded after mount, not during render: `Intl` and `navigator` do not exist on the server,
+     *  and a currency that differs across hydration is a mismatch React will not patch up. */
+    useEffect(() => {
+        if (currencyChosen) return
+        const remembered = readCurrencyChoice()
+        const next = remembered ?? hints[0]?.currency
+        if (next && currencies.some((info) => info.code === next)) setCurrency(next)
+    }, [hints, currencies, currencyChosen])
+
+    const chooseCurrency = (code: string) => {
+        setCurrency(code)
+        setCurrencyChosen(true)
+        rememberCurrencyChoice(code)
+        feedback('tick')
+    }
 
     const canSubmit = useMemo(
         () => name.trim().length > 0 && creatorName.trim().length > 0 && !createRoom.isPending,
@@ -149,17 +178,52 @@ export function CreateRoomForm() {
                     />
                 </div>
 
-                <label className="flex flex-col gap-2">
+                {/* A div rather than a label, like the emoji block: the suggestion chips are
+                    interactive content, and burying buttons inside a label is asking for a click
+                    to be forwarded to the select instead. The select carries its own aria-label. */}
+                <div className="flex flex-col gap-2">
                     <span className="text-h8 uppercase tracking-wide text-grey-1">{t('currency')}</span>
+                    {/* The guess, offered rather than applied silently. One tap is cheaper than
+                        opening the picker, and seeing the alternatives is how you notice the top
+                        one is wrong for this particular trip. */}
+                    {hints.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-h9 uppercase tracking-wide text-grey-1">
+                                {tCurrency('suggested')}
+                            </span>
+                            {hints.map((hint) => (
+                                <button
+                                    key={hint.currency}
+                                    type="button"
+                                    onClick={() => chooseCurrency(hint.currency)}
+                                    aria-pressed={currency === hint.currency}
+                                    aria-label={tCurrency('useSuggestion', {
+                                        name: currencyDisplayName(hint.currency, locale, currencies),
+                                    })}
+                                    data-testid="currency-suggestion"
+                                    data-currency={hint.currency}
+                                    className={cn(
+                                        'flex min-h-11 items-center rounded-sm border border-n-1 px-3 py-2 transition-all duration-100',
+                                        currency === hint.currency
+                                            ? 'shadow-4 bg-primary-1'
+                                            : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
+                                    )}
+                                >
+                                    <CurrencyTag code={hint.currency} catalog={currencies} />
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     <CurrencySelect
                         value={currency}
-                        onChange={setCurrency}
+                        onChange={chooseCurrency}
                         currencies={currencies}
+                        suggested={hints.map((hint) => hint.currency)}
                         aria-label={t('currencyLabel')}
                         data-testid="room-currency"
                     />
                     <span className="text-sm text-grey-1">{t('currencyHint')}</span>
-                </label>
+                </div>
 
                 <label className="flex flex-col gap-2">
                     <span className="text-h8 uppercase tracking-wide text-grey-1">{t('creatorName')}</span>
