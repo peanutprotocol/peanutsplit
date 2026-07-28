@@ -21,6 +21,22 @@
         overscroll-behavior-y: none;
     }
 
+    html {
+        /*
+         * The room's action bar is `position: fixed` at the bottom, so the last
+         * ~80px of the viewport is not somewhere anything can be tapped. Every
+         * scroll the BROWSER performs on our behalf — focusing the last row's
+         * reaction button with a keyboard, an anchor jump, an automated
+         * `scrollIntoView` — scrolls the minimum needed to make the element
+         * visible, which parks it flush against the viewport bottom and
+         * therefore underneath that bar. The room's own `pb-36` covers the case
+         * where the USER scrolls to the end; this covers the case where the
+         * browser decides where the end is. Generous enough for the bar plus a
+         * home indicator.
+         */
+        scroll-padding-bottom: 7rem;
+    }
+
     body {
         @apply select-none;
         -webkit-tap-highlight-color: transparent;

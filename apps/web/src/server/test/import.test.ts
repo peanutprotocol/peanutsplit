@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { importRoom } from '@/server/splitwiseImport'
-import { IMPORT_MAX_EXPENSES, IMPORT_MAX_MEMBERS } from '@/server/validation'
+import { roomStateBySlug } from '@/server/roomState'
 import { POST as postImport } from '@/app/api/import/route'
 import { MAX_EXPENSES, MAX_MEMBERS, parseSplitwiseCsv, type SplitwiseImport } from '@/lib/splitwise-csv'
 import {
@@ -22,7 +22,7 @@ import {
     SIMPLE_GROUP,
     WITH_PAYMENTS,
     generateGroup,
-} from '@/lib/splitwise-fixtures'
+} from '@/lib/__fixtures__/splitwise'
 import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
@@ -36,6 +36,35 @@ const post = async <T>(body: unknown): Promise<{ status: number; body: T }> => {
     })
     const res = await postImport(request)
     return { status: res.status, body: (await res.json()) as T }
+}
+
+/**
+ * The same POST with a streamed body and NO `content-length` — which is what
+ * `Transfer-Encoding: chunked` produces, and what a declared-length check reads
+ * as zero. Chunked on purpose: the cap has to hold mid-read, not on a blob that
+ * was already buffered.
+ */
+const postChunked = async (payload: string) => {
+    const encoder = new TextEncoder()
+    const CHUNK = 64 * 1024
+    const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+            for (let at = 0; at < payload.length; at += CHUNK) {
+                controller.enqueue(encoder.encode(payload.slice(at, at + CHUNK)))
+            }
+            controller.close()
+        },
+    })
+    // `duplex` is required by Node for a streaming request body and is not in
+    // the DOM's RequestInit.
+    const request = new Request(`${BASE}/api/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        duplex: 'half',
+    } as RequestInit & { duplex: 'half' })
+    const res = await postImport(request)
+    return { status: res.status, body: (await res.json()) as ApiError }
 }
 
 /** The parsed file, as the browser would post it. */
@@ -152,20 +181,36 @@ describe('importing a group', () => {
         expect(body.expenses).toHaveLength(500)
         expect(Object.values(body.balances).reduce((a, b) => a + BigInt(b), 0n)).toBe(0n)
     })
+
+    /**
+     * A bulk import writes every row in one `createMany`, so a whole day's worth
+     * of expenses share a `createdAt` to the millisecond. With only date and
+     * createdAt to sort on, ties fell through to physical row order — and an
+     * edit anywhere rewrote the page, teleporting a row twenty places up the
+     * list under whoever was reading it. The id tiebreaker is what makes the
+     * order arbitrary but STABLE.
+     */
+    it('keeps the same order across an unrelated edit, with every row written in one batch', async () => {
+        const parsed = parseSplitwiseCsv(generateGroup(60, ['Ana', 'Bruno']))
+        const { body: created } = await post<RoomStateWithMember>(bodyFor(parsed))
+        const before = created.expenses.map((expense) => expense.id)
+
+        // Same day, so the date cannot break the tie either.
+        const sameDay = created.expenses.filter((expense) => expense.date === created.expenses[0].date)
+        expect(sameDay.length).toBeGreaterThan(1)
+
+        await prisma.expense.update({
+            where: { id: sameDay[1].id },
+            data: { description: 'Edited' },
+        })
+
+        const after = await roomStateBySlug(created.room.slug)
+        expect(after.expenses.map((expense) => expense.id)).toEqual(before)
+    })
 })
 
 describe('what the route refuses', () => {
     const parsed = () => parseSplitwiseCsv(SIMPLE_GROUP)
-
-    /**
-     * The parser refuses in the browser and the schema refuses on the wire, which only works if
-     * they refuse at the same number. Two constants, one rule — so the rule gets a test rather
-     * than a comment asking the next person to keep them in step.
-     */
-    it('caps the same file the preview would have capped', () => {
-        expect(IMPORT_MAX_MEMBERS).toBe(MAX_MEMBERS)
-        expect(IMPORT_MAX_EXPENSES).toBe(MAX_EXPENSES)
-    })
 
     it('refuses more expenses than a room holds', async () => {
         const one = parsed().expenses[0]
@@ -239,6 +284,21 @@ describe('what the route refuses', () => {
         const res = await postImport(request)
         expect(res.status).toBe(400)
         expect(((await res.json()) as ApiError).error.code).toBe('IMPORT_TOO_LARGE')
+    })
+
+    /** The bypass the declared-length check could never have caught: no header,
+     *  so the old code read the size as 0 and buffered the lot. */
+    it('refuses an oversized body that declares no length at all', async () => {
+        const oversized = JSON.stringify(bodyFor(parsed(), { roomName: 'x'.repeat(1_200_000) }))
+        const { status, body } = await postChunked(oversized)
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('IMPORT_TOO_LARGE')
+        expect(await prisma.room.count()).toBe(0)
+    })
+
+    it('still accepts an ordinary chunked body under the cap', async () => {
+        const { status } = await postChunked(JSON.stringify(bodyFor(parsed())))
+        expect(status).toBe(201)
     })
 
     it('writes nothing when it refuses', async () => {

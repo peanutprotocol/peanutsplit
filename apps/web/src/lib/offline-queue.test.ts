@@ -409,6 +409,79 @@ describe('the queue end to end', () => {
         expect(notices.at(-1)).toEqual({ kind: 'dropped-rejected', count: 1 })
     })
 
+    /**
+     * The window is wide open in practice: `seed` asks for a drain after every
+     * successful mutation, so a slow save has a whole round trip during which
+     * `enqueueWrite` can append. Writing the drain's own `remaining` back
+     * unconditionally erased whatever arrived — the expense and its row, with no
+     * toast and no trace, which is precisely the loss this module exists to
+     * prevent.
+     */
+    describe('a write that arrives mid-drain', () => {
+        /** A performer that stops on the first item until the test lets it go. */
+        const gated = () => {
+            let release!: () => void
+            const started = new Promise<void>((resolve) => {
+                setQueuePerformer(async () => {
+                    resolve()
+                    await gate
+                })
+            })
+            const gate = new Promise<void>((resolve) => {
+                release = resolve
+            })
+            return { started, release }
+        }
+
+        const queue = (description: string) =>
+            enqueueWrite({
+                slug: 'ski-trip-aaa',
+                endpoint: '/api/rooms/ski-trip-aaa/expenses',
+                method: 'POST',
+                body: input({ description }),
+            })
+
+        it('survives a drain that succeeds', async () => {
+            queue('Dinner')
+            const { started, release } = gated()
+
+            const draining = drainPending()
+            await started
+            queue('Taxi')
+            release()
+            await draining
+
+            expect(queueSnapshot().map((held) => (held.body as ExpenseInput).description)).toEqual(['Taxi'])
+        })
+
+        it('survives a drain that stops on a refusal', async () => {
+            queue('Dinner')
+            let started!: () => void
+            const hasStarted = new Promise<void>((resolve) => {
+                started = resolve
+            })
+            let release!: () => void
+            const gate = new Promise<void>((resolve) => {
+                release = resolve
+            })
+            setQueuePerformer(async () => {
+                started()
+                await gate
+                throw networkError()
+            })
+
+            const draining = drainPending()
+            await hasStarted
+            queue('Taxi')
+            release()
+            await draining
+
+            // The refused item is kept AND the newcomer is still there — the
+            // stop verdict must not be a licence to forget.
+            expect(queueSnapshot().map((held) => (held.body as ExpenseInput).description)).toEqual(['Dinner', 'Taxi'])
+        })
+    })
+
     it('never drains twice at once — every success asks for a drain, including its own', async () => {
         enqueueWrite({
             slug: 'ski-trip-aaa',

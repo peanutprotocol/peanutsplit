@@ -383,6 +383,7 @@
         "SETTLEMENT_PAYER_NOT_MEMBER": "Quem pagou não está nesta sala — recarregue e tente de novo.",
         "SETTLEMENT_PAYEE_NOT_MEMBER": "Quem recebeu não está nesta sala — recarregue e tente de novo.",
         "SETTLEMENT_SAME_MEMBER": "Um pagamento precisa de duas pessoas diferentes.",
+        "MEMBER_TOKEN_INVALID": "Essa não era a sua chave de participante — abra a sala de novo pelo seu próprio link.",
         "SCAN_UNAVAILABLE": "O escaneamento de contas não está ligado aqui.",
         "SCAN_IMAGE_TOO_LARGE": "Essa imagem é grande demais — tire uma foto nova.",
         "SCAN_BAD_IMAGE": "Não deu para enviar essa imagem — tente tirar de novo.",
@@ -427,7 +428,6 @@
         "otherLanguages": "Também em"
     },
     "offline": {
-        "rowLabel": "Esperando para enviar",
         "rowHint": "Na fila — envia sozinho quando você voltar a ficar online",
         "queuedToast": "Sem conexão. A despesa fica salva no seu celular e vai sozinha quando você voltar.",
         "fullToast": "{count, plural, one {Tem despesa demais esperando — a mais antiga foi descartada.} other {Tem despesa demais esperando — as # mais antigas foram descartadas.}}",
@@ -437,9 +437,9 @@
     "import": {
         "drop": {
             "title": "Solte aqui a sua exportação do Splitwise",
-            "body": "O arquivo .csv que o Splitwise te dá quando você exporta um grupo. Ele é lido aqui mesmo, no seu aparelho — nada é enviado.",
+            "body": "O arquivo .csv que o Splitwise te dá quando você exporta um grupo. Seu navegador lê ele aqui mesmo — o arquivo nunca sai do seu aparelho.",
             "cta": "Escolher um arquivo",
-            "privacy": "É o seu próprio navegador que abre o arquivo. A gente só recebe os gastos que estão dentro dele, e só quando você toca no botão."
+            "privacy": "O arquivo fica no seu aparelho. O que a gente recebe são os gastos que o seu navegador leu dele, e só quando você toca no botão."
         },
         "howto": {
             "title": "Onde achar o arquivo",
@@ -457,7 +457,10 @@
             "currencyLabel": "Moeda da sala",
             "currencyHint": "Os saldos são acertados nesta moeda. Cada gasto fica na moeda em que foi pago.",
             "members": "Todo mundo do grupo",
-            "whoAreYou": "Ajeite qualquer nome que veio estranho e escolha você mesmo na lista.",
+            "whoAreYou": "Ajeite qualquer nome que veio estranho e marque qual é você na lista.",
+            "balancesMatch": "Os saldos batem com a linha de total do próprio Splitwise.",
+            "balancesDifferTitle": "Estes saldos não vão bater com o Splitwise",
+            "balancesDiffer": "{count, plural, one {O saldo de uma pessoa fica diferente da linha de total do seu arquivo} other {Os saldos de # pessoas ficam diferentes da linha de total do seu arquivo}} — algumas linhas não deram para ler, então a sala é o total de tudo que deu. Os avisos abaixo dizem quais linhas.",
             "thatsMe": "Sou {name}",
             "submit": "Criar a sala",
             "startOver": "Usar outro arquivo"
@@ -475,6 +478,9 @@
             "ROW_ZERO_COST": "A linha {row} não tem valor, então ficou de fora.",
             "ROW_BAD_AMOUNT": "A linha {row} tem um valor que a gente não conseguiu ler, então ficou de fora.",
             "ROW_BAD_DATE": "A linha {row} tem uma data que a gente não conseguiu ler — ela entra com a data de hoje.",
+            "ROW_DESCRIPTION_TRUNCATED": "A linha {row} tem uma descrição bem longa — ela entra encurtada.",
+            "ROW_CATEGORY_TRUNCATED": "A linha {row} tem uma categoria bem longa — ela entra encurtada.",
+            "MEMBER_NAME_TRUNCATED": "Um nome era comprido demais e entra encurtado, como “{detail}”. Dá para editar ele acima.",
             "MULTI_PAYER_SPLIT": "“{detail}” foi pago por mais de uma pessoa. O arquivo não registra quanto cada uma pôs, então entra como um gasto por pagante — os saldos ficam exatos, a divisão entre os pagantes é a nossa melhor leitura.",
             "PAYMENT_ROWS": "Pagamentos entre as pessoas entram como gastos, não como acertos já registrados. Os saldos dão no mesmo.",
             "MIXED_CURRENCY": "O arquivo mistura {detail}.",
@@ -489,7 +495,7 @@
             "FILE_TOO_BIG": "Esse arquivo é grande demais para ser uma exportação do Splitwise. Confira se você pegou o certo.",
             "READ_FAILED": "Não deu para ler esse arquivo. Tente escolher de novo.",
             "EMPTY_NAME": "Todo mundo precisa de um nome.",
-            "DUPLICATE_NAMES": "Tem duas pessoas com o mesmo nome — deixe diferentes para cada gasto cair na pessoa certa.",
+            "DUPLICATE_NAMES": "Tem duas pessoas com o mesmo nome — deixe os nomes diferentes para cada gasto cair na pessoa certa.",
             "failed": "não deu para criar a sala — tente de novo"
         },
         "ready": {

@@ -3,12 +3,15 @@ import { twemojiSlug } from '@/server/og/emoji'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
 import {
     MAX_AVATARS,
+    MAX_MEMBER_CHARS,
     MAX_NAME_CHARS,
+    MEMBER_FALLBACK,
     NAME_FALLBACK,
     avatarLetter,
     avatarsFor,
     safeAmount,
     sanitizeDisplayName,
+    sanitizeMemberName,
     statLine,
     toRoomCard,
 } from '@/server/og/roomCard'
@@ -55,6 +58,49 @@ describe('sanitizeDisplayName', () => {
     it('only ever emits characters the display font can draw', () => {
         for (const raw of ['Ski trip 🎿', 'Café Zürich', 'Кипр 2026', '東京旅行', 'A~B`C', 'Fête d’été']) {
             expect(drawableByDisplay(sanitizeDisplayName(raw))).toBe(true)
+        }
+    })
+})
+
+/** The other binding of `sanitizeForFont`: body charset, shorter ceiling, its own
+ *  fallback. Lived beside the recap as a hand-copy until the copies drifted. */
+describe('sanitizeMemberName', () => {
+    it('keeps a name the body font can draw', () => {
+        expect(sanitizeMemberName('María')).toBe('María')
+        expect(sanitizeMemberName('Zoë')).toBe('Zoë')
+    })
+
+    it('strips decoration without losing the name', () => {
+        expect(sanitizeMemberName('Hugo 🥜')).toBe('Hugo')
+    })
+
+    it('falls back rather than render a name eaten down to nothing', () => {
+        expect(sanitizeMemberName('Кипр')).toBe(MEMBER_FALLBACK)
+        expect(sanitizeMemberName('東京')).toBe(MEMBER_FALLBACK)
+        expect(sanitizeMemberName('  ')).toBe(MEMBER_FALLBACK)
+    })
+
+    it('truncates with dots, never the ellipsis glyph', () => {
+        const long = sanitizeMemberName('Bartholomew Wolfeschlegelstein')
+        expect(long.endsWith('...')).toBe(true)
+        expect(long).not.toContain('…')
+        expect(long.length).toBeLessThanOrEqual(MAX_MEMBER_CHARS + 3)
+    })
+
+    /** The reconciled rule. A cut that lands on a comma used to leave ",..." on
+     *  the recap card and not on the room card, because the two truncations were
+     *  separate copies. */
+    it('drops punctuation the cut landed on, exactly as the room card does', () => {
+        // The 22nd character is the comma, so the cut lands exactly on it.
+        expect(sanitizeMemberName('Bartholomew Rodriguez, Jr')).toBe('Bartholomew Rodriguez...')
+        expect(sanitizeDisplayName(`${'a'.repeat(MAX_NAME_CHARS - 1)}, and more`)).toBe(
+            `${'a'.repeat(MAX_NAME_CHARS - 1)}...`
+        )
+    })
+
+    it('only ever emits characters the body font can draw', () => {
+        for (const raw of ['María', '🥜🥜', 'Кипр', 'Ana~`', 'Zoë 東京', 'Fête']) {
+            expect(drawableByBody(sanitizeMemberName(raw))).toBe(true)
         }
     })
 })

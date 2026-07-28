@@ -15,8 +15,16 @@
  * 2. Slug-free, like the restore endpoint: the expense id is an unguessable
  *    uuid, the room is looked up from it, and the row a reaction bar is sitting
  *    on only ever has that id in hand.
+ *
+ * Two deviations from the house shape, both deliberate. POST answers 200 rather
+ * than the 201 every other create uses, because the verb here is a toggle and
+ * not a creation — a second tap on a reaction you already left writes no row and
+ * must not claim it did. And the rate-limit scope is `reaction` rather than the
+ * shared `write` bucket: tapping an emoji is the cheapest thing in the product
+ * and must not spend the allowance a room needs for its expenses.
  */
 import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { conflict, notFound, readJson, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { assertProvenMember, loadRoomById, toRoomState } from '@/server/roomState'
@@ -62,7 +70,12 @@ export const POST = (request: Request, ctx: Ctx) =>
             data: [{ expenseId: expense.id, memberId: body.memberId, emoji: body.emoji }],
             skipDuplicates: true,
         })
-        return toRoomState(await loadRoomById(room.id))
+        const state = toRoomState(await loadRoomById(room.id))
+        // After the commit, like every other write. A reaction that only travels
+        // on the poll arrives up to 45s late for anyone holding an open stream —
+        // slower than it was before the stream existed.
+        publish(room.id)
+        return state
     })
 
 /** Your own reaction only — the proven member id is part of the key, so there is
@@ -73,5 +86,8 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         await prisma.expenseReaction.deleteMany({
             where: { expenseId: expense.id, memberId: body.memberId, emoji: body.emoji },
         })
-        return toRoomState(await loadRoomById(room.id))
+        const state = toRoomState(await loadRoomById(room.id))
+        // Taking one back is as visible as leaving one — same poke, same reason.
+        publish(room.id)
+        return state
     })

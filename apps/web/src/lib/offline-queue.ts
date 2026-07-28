@@ -30,6 +30,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ApiRequestError, NETWORK_ERROR_CODE } from './api'
 import type { ApiExpense, ExpenseInput, RoomState } from './api-types'
+import { PENDING_ID_PREFIX } from './pending'
 import { TOAST_MS } from './toasts'
 
 export const PENDING_KEY = 'ps:pending'
@@ -178,59 +179,70 @@ export async function drainQueue(
  */
 export function mergeQueuedExpenses(state: RoomState, queued: readonly QueuedWrite[]): RoomState {
     if (queued.length === 0) return state
-    const rows = queued.map((item) => queuedExpenseRow(item, state))
+    const rows = queued.map((item) =>
+        draftExpenseRow(item.body, {
+            id: queuedExpenseId(item.clientKey),
+            at: item.addedAt,
+            members: state.members,
+        })
+    )
     return { ...state, expenses: [...rows, ...state.expenses] }
 }
 
 /** `pending-<clientKey>` — the prefix the expense list already treats as "not
  *  saved yet", the suffix so a row keeps its identity across renders. */
-export const queuedExpenseId = (clientKey: string): string => `pending-${clientKey}`
+export const queuedExpenseId = (clientKey: string): string => `${PENDING_ID_PREFIX}${clientKey}`
 
 /**
- * True for a row this module put on screen, as opposed to an in-flight
- * optimistic one — both wear the `pending-` prefix, and only one of them is
- * going to sit there until the signal comes back.
+ * The row a not-yet-saved expense renders as — the one shape, for both paths
+ * that need one.
  *
- * WIRING LEFT FOR THE LIST'S OWNER (ExpenseList.tsx is not this branch's to
- * touch): the row already renders dimmed and untappable for anything
- * `pending-…`. What is missing is the sentence that says why. In ExpenseList:
+ * There are exactly two: the optimistic add (`queries.ts`, in flight) and the
+ * offline queue (below, waiting for signal). They produce the same fourteen
+ * fields for the same reason, and they were two hand-written copies until a
+ * change to one of them had to be applied to the other by hand.
  *
- *     const queued = useQueuedWrites(slug)   // slug is on state.room.slug
- *     … isQueuedExpenseId(expense.id, queued) && <span>{t('offline.rowHint')}</span>
- *
- * `offline.rowLabel` (short, for a badge) and `offline.rowHint` (the full
- * sentence) are already in all three catalogs.
+ * `at` is when the row was made — the queue passes the enqueue time so a row
+ * that has been waiting an hour still says so.
  */
-export const isQueuedExpenseId = (expenseId: string, queued: readonly QueuedWrite[]): boolean =>
-    queued.some((item) => queuedExpenseId(item.clientKey) === expenseId)
-
-function queuedExpenseRow(item: QueuedWrite, state: RoomState): ApiExpense {
-    const input = item.body
+export function draftExpenseRow(
+    input: ExpenseInput,
+    context: { id: string; at: number; members: readonly { id: string }[] }
+): ApiExpense {
     const participants =
         input.splitMode === 'EXACT'
             ? (input.exactShares ?? []).map((share) => share.memberId)
-            : (input.participantIds ?? state.members.map((member) => member.id))
+            : (input.participantIds ?? context.members.map((member) => member.id))
 
     return {
-        id: queuedExpenseId(item.clientKey),
+        id: context.id,
         description: input.description,
         amountMinor: input.amountMinor,
         currency: input.currency,
-        // No FX has been applied — the row shows the entered amount and no
-        // conversion line, exactly like the optimistic path.
+        // No FX applied yet — the row shows the entered amount and no conversion
+        // line, because the server is the only thing that knows the rate.
         baseAmountMinor: input.amountMinor,
         fxRate: '1',
         splitMode: input.splitMode,
         paidById: input.paidById,
         createdById: null,
-        date: input.date ?? new Date(item.addedAt).toISOString(),
+        date: input.date ?? new Date(context.at).toISOString(),
         category: input.category ?? null,
-        createdAt: new Date(item.addedAt).toISOString(),
+        createdAt: new Date(context.at).toISOString(),
+        // Shares are zeroed, not guessed: a draft moves no money, and the
+        // authoritative RoomState brings the real split back in one commit.
+        shares: participants.map((memberId) => ({ memberId, amountMinor: '0', enteredAmountMinor: null })),
         // Nobody can react to an expense that has not reached the server yet.
         reactions: [],
-        shares: participants.map((memberId) => ({ memberId, amountMinor: '0', enteredAmountMinor: null })),
     }
 }
+
+/** True for a row this module put on screen, as opposed to an in-flight
+ *  optimistic one — both wear the `pending-` prefix, and only one of them is
+ *  going to sit there until the signal comes back, which is what earns it the
+ *  explanatory line the list renders. */
+export const isQueuedExpenseId = (expenseId: string, queued: readonly QueuedWrite[]): boolean =>
+    queued.some((item) => queuedExpenseId(item.clientKey) === expenseId)
 
 // ─── storage ────────────────────────────────────────────────────────────────
 
@@ -395,7 +407,17 @@ export async function drainPending(): Promise<DrainSummary | null> {
     draining = true
     try {
         const summary = await drainQueue(items, performer)
-        writeQueue(summary.remaining)
+        // Merge, never overwrite. A drain awaits the network for as long as the
+        // network takes, and `enqueueWrite` is reachable throughout — every
+        // successful mutation calls `requestDrain`, so the window is the whole
+        // of any slow save. Writing `summary.remaining` blind erased anything
+        // added meanwhile, expense and row together, silently: the exact loss
+        // this module exists to prevent. Survivors first, then the newcomers,
+        // which is arrival order either way — everything drained was queued
+        // before anything that arrived during the drain.
+        const drained = new Set(items.map((item) => item.clientKey))
+        const arrivedDuringDrain = queueSnapshot().filter((item) => !drained.has(item.clientKey))
+        writeQueue([...summary.remaining, ...arrivedDuringDrain])
         if (summary.sent.length > 0) notify({ kind: 'sent', count: summary.sent.length })
         if (summary.dropped.length > 0) notify({ kind: 'dropped-rejected', count: summary.dropped.length })
         return summary

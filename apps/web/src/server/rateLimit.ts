@@ -26,6 +26,11 @@ export const CREATE_LIMIT: Limit = { capacity: 20, windowMs: HOUR_MS }
 /** Expenses and settlements are the normal traffic of a busy trip, so the ceiling
  *  only has to stop a runaway loop. */
 export const WRITE_LIMIT: Limit = { capacity: 120, windowMs: HOUR_MS }
+/** Event streams. Thirty an hour is a phone reconnecting all day; it is nowhere
+ *  near the 2000 process-wide slots, which is the point — one client must not be
+ *  able to hold every SSE slot on the box and silently demote every other room
+ *  in the container to the slow poll. */
+export const EVENTS_LIMIT: Limit = { capacity: 30, windowMs: HOUR_MS }
 
 export interface Bucket {
     tokens: number
@@ -83,6 +88,11 @@ export function clientIp(request: Request): string {
     return request.headers.get('x-real-ip')?.trim() || 'unknown'
 }
 
+/** The generic 429. A caller with a more specific sentence passes its own — see
+ *  `enforceRateLimitOn`. */
+const rateLimited = () =>
+    new ApiError(429, 'RATE_LIMITED', 'that was a lot of requests — give it a minute and try again')
+
 /** Throws a 429 the same way every other failure leaves a route. */
 export function enforceRateLimit(request: Request, limit: Limit, scope: string): void {
     const now = Date.now()
@@ -90,9 +100,7 @@ export function enforceRateLimit(request: Request, limit: Limit, scope: string):
     const key = `${scope}:${clientIp(request)}`
     const { allowed, next } = takeToken(buckets.get(key), limit, now)
     buckets.set(key, next)
-    if (!allowed) {
-        throw new ApiError(429, 'RATE_LIMITED', 'that was a lot of requests — give it a minute and try again')
-    }
+    if (!allowed) throw rateLimited()
 }
 
 /** Tests share one process, and a leaked bucket would fail a later test for a
@@ -108,14 +116,17 @@ export function resetRateLimits(): void {
  * routes budget per account, because one signed-in user behind a shared NAT
  * should not spend their office's allowance. Deliberately the same map, so the
  * `MAX_KEYS` ceiling and the prune still cover every bucket in the process.
+ *
+ * `tooMany` is overridable because a per-subject budget is a domain fact, not a
+ * traffic one: "this room has used today's scans" and "slow down" are different
+ * sentences to the person holding the phone, and the client picks its copy off
+ * the code.
  */
-export function enforceRateLimitOn(subject: string, limit: Limit, scope: string): void {
+export function enforceRateLimitOn(subject: string, limit: Limit, scope: string, tooMany?: ApiError): void {
     const now = Date.now()
     prune(now)
     const key = `${scope}:${subject}`
     const { allowed, next } = takeToken(buckets.get(key), limit, now)
     buckets.set(key, next)
-    if (!allowed) {
-        throw new ApiError(429, 'RATE_LIMITED', 'that was a lot of requests — give it a minute and try again')
-    }
+    if (!allowed) throw tooMany ?? rateLimited()
 }

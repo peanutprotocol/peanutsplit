@@ -4,6 +4,13 @@ import { z } from 'zod'
 import { CURRENCY_CODES } from '@/server/money'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isThemeKey } from '@/lib/themes'
+import {
+    MAX_CATEGORY_CHARS,
+    MAX_DESCRIPTION_CHARS,
+    MAX_EXPENSES,
+    MAX_MEMBERS,
+    MAX_NAME_CHARS,
+} from '@/lib/splitwise-csv'
 
 const currencyCode = z
     .string()
@@ -17,7 +24,7 @@ const minorAmount = z
     .refine((s) => /^\d+$/.test(s), { message: 'must be a whole number of minor units' })
 
 const id = z.string().min(1).max(64)
-const personName = z.string().trim().min(1, 'is required').max(80)
+const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
 
 export const createRoomSchema = z.object({
     name: z.string().trim().min(1, 'is required').max(80),
@@ -29,7 +36,7 @@ export const createRoomSchema = z.object({
 export const createMemberSchema = z.object({ name: personName })
 
 export const expenseSchema = z.object({
-    description: z.string().trim().min(1, 'is required').max(255),
+    description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
     amountMinor: minorAmount,
     currency: currencyCode,
     paidById: id,
@@ -37,7 +44,7 @@ export const expenseSchema = z.object({
     participantIds: z.array(id).optional(),
     exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
     date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
-    category: z.string().trim().max(40).nullish(),
+    category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
 })
 
 export const settlementSchema = z.object({
@@ -217,32 +224,35 @@ export type ReactionBody = z.infer<typeof reactionSchema>
 
 /**
  * The import posts a whole room at once, so this is the one schema where the request is big enough
- * to be worth bounding. The caps are the same numbers `lib/splitwise-csv.ts` enforces while
- * parsing — a preview that promises a room the POST would refuse is worse than an early no.
+ * to be worth bounding. The caps are IMPORTED from `lib/splitwise-csv.ts` rather than restated:
+ * a preview that promises a room the POST would refuse is worse than an early no, and two numbers
+ * that have to agree should be one number.
  *
  * The client parses the CSV and never uploads it, which means the server sees structured data it
  * did not derive and has to re-establish every invariant itself: members exist, the payer is one
  * of them, nobody is in a split twice, and the shares reconstruct the total. The last one is
  * checked here AND again inside `buildExpense`; the duplication is deliberate, because that is the
  * check that stands between a bad file and a room whose balances do not net to zero.
+ *
+ * Every one of those failures leaves as a generic `VALIDATION_ERROR`, deliberately: the client
+ * already showed a per-row preview of exactly what it was about to post, so a row number in the
+ * error would be a second, worse copy of a screen the user just read and approved. The zod path
+ * (`expenses.12.shares`) is in the English message for whoever is reading a log.
  */
-export const IMPORT_MAX_MEMBERS = 20
-export const IMPORT_MAX_EXPENSES = 500
-
 /** Splitwise exports a calendar day, not an instant. */
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a YYYY-MM-DD date')
 
 const importedExpenseSchema = z.object({
     date: isoDay,
-    description: z.string().trim().min(1, 'is required').max(255),
-    category: z.string().trim().max(40).nullish(),
+    description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
+    category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
     currencyCode: currencyCode,
     costMinor: minorAmount,
     paidBy: personName,
     shares: z
         .array(z.object({ member: personName, amountMinor: minorAmount }))
         .min(1)
-        .max(IMPORT_MAX_MEMBERS),
+        .max(MAX_MEMBERS),
 })
 
 export const importRoomSchema = z
@@ -251,8 +261,8 @@ export const importRoomSchema = z
         emoji: z.string().max(8).nullish(),
         currency: currencyCode,
         creatorName: personName,
-        members: z.array(personName).min(1).max(IMPORT_MAX_MEMBERS),
-        expenses: z.array(importedExpenseSchema).min(1).max(IMPORT_MAX_EXPENSES),
+        members: z.array(personName).min(1).max(MAX_MEMBERS),
+        expenses: z.array(importedExpenseSchema).min(1).max(MAX_EXPENSES),
     })
     .superRefine((body, ctx) => {
         const fail = (message: string, path: (string | number)[]) =>

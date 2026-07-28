@@ -8,7 +8,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { truncateAll } from '@/server/test/db'
-import { MAX_IMAGE_BASE64_CHARS, resetRoomScanLimits } from '@/server/receipt'
+import { MAX_IMAGE_BASE64_CHARS, ROOM_SCAN_LIMIT } from '@/server/receipt'
 import { resetRateLimits } from '@/server/rateLimit'
 import { GET as scanStatus, POST as scanParse } from '@/app/api/rooms/[slug]/receipt-parse/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
@@ -20,17 +20,46 @@ const API_KEY = 'test-gemini-key'
 /** Valid base64 characters; the bytes are never decoded by anything under test. */
 const image = (chars = 2048) => 'A'.repeat(chars)
 
-const post = async <T>(slug: string, body: unknown, init: { contentLength?: number } = {}) => {
+const post = async <T>(slug: string, body: unknown, init: { contentLength?: number; ip?: string } = {}) => {
     const request = new Request(`${BASE}/api/rooms/${slug}/receipt-parse`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             ...(init.contentLength ? { 'Content-Length': String(init.contentLength) } : {}),
+            ...(init.ip ? { 'X-Forwarded-For': init.ip } : {}),
         },
         body: JSON.stringify(body),
     })
     const response = await scanParse(request, { params: Promise.resolve({ slug }) })
     return { status: response.status, body: (await response.json()) as T }
+}
+
+/**
+ * The same POST with a streamed body and NO `content-length` — what
+ * `Transfer-Encoding: chunked` produces, and what a declared-length check reads
+ * as zero. Chunked on purpose: the ceiling has to hold mid-read.
+ */
+const postChunked = async (slug: string, payload: string) => {
+    const encoder = new TextEncoder()
+    const CHUNK = 64 * 1024
+    const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+            for (let at = 0; at < payload.length; at += CHUNK) {
+                controller.enqueue(encoder.encode(payload.slice(at, at + CHUNK)))
+            }
+            controller.close()
+        },
+    })
+    // `duplex` is required by Node for a streaming request body and is not in
+    // the DOM's RequestInit.
+    const request = new Request(`${BASE}/api/rooms/${slug}/receipt-parse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        duplex: 'half',
+    } as RequestInit & { duplex: 'half' })
+    const response = await scanParse(request, { params: Promise.resolve({ slug }) })
+    return { status: response.status, body: (await response.json()) as ApiError }
 }
 
 /** What the model would have answered. `parts` is the shape the REST API uses. */
@@ -53,8 +82,8 @@ const newRoom = async (): Promise<string> => {
 
 beforeEach(async () => {
     await truncateAll()
+    // One map holds every bucket, per-IP and per-room alike.
     resetRateLimits()
-    resetRoomScanLimits()
     process.env.SPLIT_GEMINI_API_KEY = API_KEY
     delete process.env.SPLIT_SCAN_PROXY_URL
 })
@@ -118,6 +147,27 @@ describe('POST — the gates in front of the model', () => {
         expect(body.error.code).toBe('SCAN_IMAGE_TOO_LARGE')
     })
 
+    /**
+     * The bypass a declared-length check could never catch: chunked, so there is
+     * no header at all and the missing value reads as zero. The bulk sits in a
+     * field the schema ignores, which is what makes this a body-size test rather
+     * than an image-size one — buffered, this payload would have passed every
+     * later gate and gone to the model.
+     */
+    it('answers 413 on an oversized body that declares no length at all', async () => {
+        const slug = await newRoom()
+        const fetchMock = vi.fn()
+        vi.stubGlobal('fetch', fetchMock)
+
+        const { status, body } = await postChunked(
+            slug,
+            JSON.stringify({ imageBase64: image(), mimeType: 'image/jpeg', junk: 'x'.repeat(MAX_IMAGE_BASE64_CHARS) })
+        )
+        expect(status).toBe(413)
+        expect(body.error.code).toBe('SCAN_IMAGE_TOO_LARGE')
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+
     it('rejects an image type the model does not take', async () => {
         const slug = await newRoom()
         const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/gif' })
@@ -168,15 +218,22 @@ describe('POST — the gates in front of the model', () => {
             vi.fn(async () => modelAnswer({ items: [{ label: 'Beer', amountMinor: '500' }] }))
         )
 
-        // The per-IP limiter would fire first, so it is reset between calls —
-        // this test is about the room bucket surviving a change of address.
-        for (let i = 0; i < 30; i++) {
-            resetRateLimits()
-            const { status } = await post<ParsedReceipt>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        // The per-IP allowance is ten, so each scan comes from a different
+        // address — this test is about the room's own budget surviving a change
+        // of address, which is the whole reason it is keyed on the room.
+        for (let i = 0; i < ROOM_SCAN_LIMIT.capacity; i++) {
+            const { status } = await post<ParsedReceipt>(
+                slug,
+                { imageBase64: image(), mimeType: 'image/jpeg' },
+                { ip: `10.0.0.${i + 1}` }
+            )
             expect(status).toBe(200)
         }
-        resetRateLimits()
-        const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        const { status, body } = await post<ApiError>(
+            slug,
+            { imageBase64: image(), mimeType: 'image/jpeg' },
+            { ip: '10.0.1.1' }
+        )
         expect(status).toBe(429)
         expect(body.error.code).toBe('SCAN_ROOM_LIMIT')
     })

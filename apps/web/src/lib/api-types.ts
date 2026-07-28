@@ -142,11 +142,6 @@ export interface ExpenseInput {
     category?: string | null
 }
 
-/** PATCH /api/rooms/:slug. `null` puts the room back on the default palette. */
-export interface RoomThemeInput {
-    theme: string | null
-}
-
 /** POST and DELETE /api/expenses/:id/reactions. The token is proof, not
  *  attribution, which is why it rides the body — see the route. */
 export interface ReactionInput {

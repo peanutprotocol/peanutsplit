@@ -1,6 +1,7 @@
 import { prisma } from '@/server/db'
-import { subscribe } from '@/server/events'
-import { errorResponse } from '@/server/http'
+import { subscribe, type Poke } from '@/server/events'
+import { errorEnvelope, notFound } from '@/server/http'
+import { EVENTS_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,24 +24,50 @@ const POKE = 'data: bump\n\n'
 const HEARTBEAT = ': keepalive\n\n'
 const HEARTBEAT_MS = 25_000
 
-export const GET = async (request: Request, ctx: Ctx): Promise<Response> => {
+/**
+ * Everything that has to succeed before a stream can exist, in one throwing
+ * function. Separated because this route is the one that cannot go through
+ * `respond`: its success value is a live `Response`, not something to
+ * JSON-encode. So the half that can fail is isolated and its failures are given
+ * the house envelope by hand, and the stream half never goes near either.
+ *
+ * Returns the unsubscribe, or null when the room is at capacity.
+ */
+async function openSubscription(request: Request, ctx: Ctx, onPoke: Poke): Promise<(() => void) | null> {
+    // Per IP, before the database is touched. A stream costs a socket and a
+    // heartbeat timer for as long as it is held, so the cheap thing to refuse is
+    // the request to open one.
+    enforceRateLimit(request, EVENTS_LIMIT, 'events')
     const { slug } = await ctx.params
     // Deliberately not `loadRoom` — that pulls every expense, share and
     // settlement to answer a question that is only "does this room exist".
     const room = await prisma.room.findUnique({ where: { slug }, select: { id: true } })
-    if (!room) return errorResponse('NOT_FOUND', 'room not found', 404)
+    if (!room) throw notFound('room not found')
+    // Capacity has to be checked BEFORE a stream exists: subscribing from inside
+    // `start()` would mean the response is already committed by the time we
+    // learn the room is full.
+    return subscribe(room.id, onPoke)
+}
 
-    // The sink is late-bound because capacity has to be checked BEFORE a stream
-    // exists: subscribing from inside `start()` would mean the response is
-    // already committed by the time we learn the room is full.
+export const GET = async (request: Request, ctx: Ctx): Promise<Response> => {
+    // The sink is late-bound: it only exists once the stream's `start` runs, and
+    // the subscription has to be taken before that.
     let push: ((chunk: string) => void) | null = null
-    const unsubscribe = subscribe(room.id, () => push?.(POKE))
+    let unsubscribe: (() => void) | null = null
+
+    try {
+        unsubscribe = await openSubscription(request, ctx, () => push?.(POKE))
+    } catch (err) {
+        return errorEnvelope(err)
+    }
+
     if (!unsubscribe) {
         // 204 is load-bearing, not a generic "no": per the EventSource spec it
         // tells the browser to close the connection and NOT reconnect. A capped
         // client goes quiet and keeps polling, which is exactly the fallback.
         return new Response(null, { status: 204 })
     }
+    const release = unsubscribe
 
     const encoder = new TextEncoder()
     let heartbeat: ReturnType<typeof setInterval> | null = null
@@ -51,7 +78,7 @@ export const GET = async (request: Request, ctx: Ctx): Promise<Response> => {
             const close = () => {
                 if (closed) return
                 closed = true
-                unsubscribe()
+                release()
                 if (heartbeat) clearInterval(heartbeat)
                 push = null
                 try {
@@ -84,7 +111,7 @@ export const GET = async (request: Request, ctx: Ctx): Promise<Response> => {
             request.signal.addEventListener('abort', close)
         },
         cancel() {
-            unsubscribe()
+            release()
             if (heartbeat) clearInterval(heartbeat)
             push = null
         },

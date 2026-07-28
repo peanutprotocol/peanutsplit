@@ -6,8 +6,9 @@
  * rides its expense — soft-delete the expense and the reactions leave the wire
  * with it, undo and they come back.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
+import { resetEvents, subscribe } from '@/server/events'
 import { resetRateLimits } from '@/server/rateLimit'
 import { REACTION_EMOJIS } from '@/lib/reactions'
 import { POST as postRoom } from '@/app/api/rooms/route'
@@ -41,6 +42,7 @@ const call = async <T>(
 
 interface Fixture {
     slug: string
+    roomId: string
     expenseId: string
     ana: { id: string; token: string }
     bruno: { id: string; token: string }
@@ -74,6 +76,7 @@ async function makeRoom(): Promise<Fixture> {
     })
     return {
         slug,
+        roomId: created.room.id,
         expenseId: withExpense.expenses[0].id,
         ana: { id: created.memberId, token: created.memberToken },
         bruno: { id: joined.memberId, token: joined.memberToken },
@@ -98,7 +101,10 @@ const reactionsOf = (state: RoomState, expenseId: string) =>
 beforeEach(async () => {
     await truncateAll()
     resetRateLimits()
+    resetEvents()
 })
+
+afterEach(() => resetEvents())
 
 describe('POST /api/expenses/:id/reactions', () => {
     it('records a reaction and hands back the whole room', async () => {
@@ -244,6 +250,43 @@ describe('DELETE /api/expenses/:id/reactions', () => {
         )
         expect(status).toBe(403)
         expect(await prisma.expenseReaction.count()).toBe(1)
+    })
+})
+
+/**
+ * Both verbs poke the room. A reaction that only travels on the poll lands up to
+ * 45s late on a phone holding an open stream — slower than the 8s it managed
+ * before the stream existed, which is the shape of the regression this pins.
+ */
+describe('reactions reach the other phones', () => {
+    it('pokes on the way in and on the way back out', async () => {
+        const fixture = await makeRoom()
+        let pokes = 0
+        subscribe(fixture.roomId, () => {
+            pokes += 1
+        })
+        const input = { emoji: '🔥', memberId: fixture.ana.id, memberToken: fixture.ana.token }
+
+        await reactWith(fixture.expenseId, input)
+        expect(pokes).toBe(1)
+
+        await reactWith(fixture.expenseId, input, 'remove')
+        expect(pokes).toBe(2)
+    })
+
+    it('does not poke for a write it refused', async () => {
+        const fixture = await makeRoom()
+        let pokes = 0
+        subscribe(fixture.roomId, () => {
+            pokes += 1
+        })
+
+        await reactWith(fixture.expenseId, {
+            emoji: '🔥',
+            memberId: fixture.ana.id,
+            memberToken: fixture.bruno.token,
+        })
+        expect(pokes).toBe(0)
     })
 })
 

@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/server/http'
-import { MAX_ITEMS, ROOM_SCANS_PER_DAY, normalizeReceipt, takeRoomScan } from '@/server/receipt'
+import { MAX_ITEMS, normalizeReceipt } from '@/server/receipt'
 
 const answer = (payload: unknown) => JSON.stringify(payload)
 
@@ -208,33 +208,5 @@ describe('normalizeReceipt — the optional fields', () => {
         expect(one({ merchant: ' Nino\n  Via Roma 12\n Milano ' }).merchant).toBe('Nino Via Roma 12 Milano')
         expect(one({ merchant: 'x'.repeat(200) }).merchant).toHaveLength(80)
         expect(one({ merchant: '   ' }).merchant).toBeNull()
-    })
-})
-
-describe('takeRoomScan — the per-room daily allowance', () => {
-    const start = 1_800_000_000_000
-    const DAY = 24 * 60 * 60 * 1000
-
-    it('opens a window on the first scan', () => {
-        expect(takeRoomScan(undefined, start)).toEqual({ allowed: true, next: { used: 1, windowStartedAt: start } })
-    })
-
-    it('allows exactly the daily allowance and then refuses', () => {
-        let bucket = { used: 0, windowStartedAt: start }
-        for (let i = 0; i < ROOM_SCANS_PER_DAY; i++) {
-            const taken = takeRoomScan(bucket, start + i * 1000)
-            expect(taken.allowed).toBe(true)
-            bucket = taken.next
-        }
-        expect(bucket.used).toBe(ROOM_SCANS_PER_DAY)
-        expect(takeRoomScan(bucket, start + 60_000).allowed).toBe(false)
-    })
-
-    it('starts a fresh window a day later', () => {
-        const drained = { used: ROOM_SCANS_PER_DAY, windowStartedAt: start }
-        expect(takeRoomScan(drained, start + DAY - 1).allowed).toBe(false)
-        const rolled = takeRoomScan(drained, start + DAY)
-        expect(rolled.allowed).toBe(true)
-        expect(rolled.next).toEqual({ used: 1, windowStartedAt: start + DAY })
     })
 })

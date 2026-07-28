@@ -31,7 +31,7 @@ export interface ReactionGroup {
 /**
  * Wire rows → the pills a row renders. Ordered by the allowlist rather than by
  * count, so a pill never jumps sideways under the finger about to tap it when
- * somebody else's reaction lands on the 8s poll.
+ * somebody else's reaction arrives on the next poke.
  */
 export function groupReactions(
     reactions: readonly { emoji: string; memberId: string }[],
