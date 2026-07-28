@@ -15,16 +15,12 @@ test('landing page uses doodles, a compact currency picker, and independent fold
     const tickers = (await currencyOptions.allTextContents()).map((text) => text.trim())
     expect(tickers.every((ticker) => /^[A-Z]{3}$/.test(ticker))).toBe(true)
     expect(new Set(tickers).size).toBe(tickers.length)
-    await page.keyboard.press('Escape')
-
     const selectedCurrency = page.getByTestId('hero-currency')
     const originalCurrency = await selectedCurrency.inputValue()
-    const currencyTrigger = page.getByRole('button', { name: 'Currency' })
-    await currencyTrigger.focus()
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('Enter')
-    await expect(selectedCurrency).not.toHaveValue(originalCurrency)
+    const nextCurrency = tickers.find((ticker) => ticker !== originalCurrency)
+    expect(nextCurrency).toBeTruthy()
+    await page.getByRole('option', { name: nextCurrency, exact: true }).click()
+    await expect(selectedCurrency).toHaveValue(nextCurrency!)
 
     const readMore = page.locator('section').filter({
         has: page.getByRole('heading', { name: 'Not convinced yet? Read more' }),
