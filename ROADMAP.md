@@ -55,24 +55,25 @@ Owner of record for each open item is in brackets. Last full update: 2026-07-28.
   fixed — a configured build arg the Dockerfile doesn't declare is silently
   dropped).
 
-## To light up (infra gates)
+## To light up (remaining gates)
 
-- **Egress proxy** [Hugo or session]: split containers have no egress by
-  design. A squid CONNECT-allowlist service on `split-net` + `dokploy-network`
-  (allowed: `fcm.googleapis.com`, `updates.push.services.mozilla.com`,
-  `*.push.apple.com`, `*.notify.windows.com`, `api.resend.com`, port 443 only)
-  unblocks push + email. Config drafted; the sandbox classifier blocked the
-  session from deploying it — commands are in the session report.
-- **Push env** [after proxy]: `SPLIT_VAPID_{PUBLIC,PRIVATE}_KEY`,
-  `SPLIT_VAPID_SUBJECT`, `SPLIT_PUSH_PROXY_URL` (runtime) +
-  `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (build arg). Keypair already generated. NEVER
-  rotate in place — every subscription dies silently; dual-key window required.
+Done 2026-07-28 and verified live: the `split-egress` squid pinhole (allowed
+CONNECT-443 to push gateways + `api.resend.com`, everything else 403), VAPID
+keys + `SPLIT_AUTH_SECRET` + proxy URL as runtime env, all build-arg ARG/ENV
+pairs, and PostHog events confirmed arriving in project 234225 from a real
+prod session. NEVER rotate the VAPID pair in place — every subscription dies
+silently; a rotation needs a dual-key window.
+
+Still gated:
+
 - **Email** [Hugo — the one hard external blocker]: a Resend account (or other
   provider) + DKIM/SPF/DMARC on a peanutsplit.com sending subdomain →
-  `RESEND_API_KEY`, `SPLIT_EMAIL_FROM`, `SPLIT_EMAIL_PROXY_URL`. Then set
-  `SPLIT_AUTH_SECRET`, flip `NEXT_PUBLIC_ACCOUNTS_ENABLED`.
-- **PostHog/Sentry verification** [session]: after next deploy, confirm events
-  and errors arrive; close the two Notion tasks (PostHog wiring, Sentry DSN).
+  `RESEND_API_KEY`, `SPLIT_EMAIL_FROM`, `SPLIT_EMAIL_PROXY_URL=http://split-egress:3128`.
+  Then flip `NEXT_PUBLIC_ACCOUNTS_ENABLED=1` (build arg) and the accounts UI
+  appears. Everything else is already wired and tested.
+- **Push exercise** [next session]: infra + UI are live; nobody has completed a
+  real two-device subscribe→notify loop in prod yet. Run one before telling
+  users about it.
 
 ## Wave 3 — build only if the day-30 read says the funnel is real
 
@@ -130,3 +131,8 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   before any multi-currency settlement work.
 - In-memory rate limiter shares one bucket for header-less clients ('unknown'
   key) — unreachable behind Traefik, but wrong if the proxy ever changes.
+- `/favicon.ico` 404s (browsers probe it regardless of the manifest icons) —
+  drop a real .ico in `public/`.
+- `all_settled` fires (analytics + would-be push) for a solo room whose only
+  expense nets to zero — harmless (push skips with no targets) but the event
+  is semantically noisy for single-member rooms.
