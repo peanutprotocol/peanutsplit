@@ -4,7 +4,7 @@
  */
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
-import { notFound } from '@/server/http'
+import { ApiError, notFound } from '@/server/http'
 import type { ApiTransfer, RoomState } from '@/lib/api-types'
 
 const roomArgs = {
@@ -14,7 +14,13 @@ const roomArgs = {
             where: { deletedAt: null },
             // Roster order, id as tiebreaker — wire order must be deterministic
             // (uuid PKs mean physical order is arbitrary and flaked in CI).
-            include: { shares: { orderBy: [{ member: { createdAt: 'asc' } }, { id: 'asc' }] } },
+            include: {
+                shares: { orderBy: [{ member: { createdAt: 'asc' } }, { id: 'asc' }] },
+                // Reactions ride the expense: they are loaded through it, so a
+                // soft-deleted expense takes its reactions off the wire with it,
+                // and an undo brings them back untouched.
+                reactions: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
+            },
             orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
         },
         settlements: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' } },
@@ -84,6 +90,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             emoji: room.emoji,
             currency: room.currency,
             coverUrl: room.coverUrl,
+            theme: room.theme,
             createdAt: room.createdAt.toISOString(),
             archivedAt: room.archivedAt?.toISOString() ?? null,
         },
@@ -106,6 +113,9 @@ export function toRoomState(room: RoomWithRelations): RoomState {
                 amountMinor: s.amountMinor.toString(),
                 enteredAmountMinor: s.enteredAmountMinor?.toString() ?? null,
             })),
+            // Flat rows, grouped into pills client-side — the count and the
+            // "did I react" flag are a rendering decision, not a wire fact.
+            reactions: e.reactions.map((r) => ({ emoji: r.emoji, memberId: r.memberId })),
         })),
         settlements: room.settlements.map((s) => ({
             id: s.id,
@@ -140,4 +150,19 @@ export const roomStateBySlug = async (slug: string): Promise<RoomState> => toRoo
 export function memberIdForToken(room: RoomWithRelations, token: string | null): string | null {
     if (!token) return null
     return room.members.find((m) => m.token === token)?.id ?? null
+}
+
+/**
+ * The token as PROOF rather than attribution — the gate for the handful of
+ * writes that a bare link-holder must not be able to make on somebody else's
+ * behalf (a push channel bound to a phone, a reaction signed with a name).
+ *
+ * Lives here beside `memberIdForToken` so the two readings of the same token sit
+ * next to each other and nobody reaches for the wrong one.
+ */
+export function assertProvenMember(room: RoomWithRelations, memberId: string, memberToken: string): void {
+    const member = room.members.find((m) => m.id === memberId)
+    if (!member || member.token !== memberToken) {
+        throw new ApiError(403, 'MEMBER_TOKEN_INVALID', 'this device is not signed in as a member of this room')
+    }
 }

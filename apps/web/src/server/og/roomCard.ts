@@ -9,6 +9,7 @@
 import { prisma } from '@/server/db'
 import { formatMinor } from '@/server/money'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
+import { themeFor, type RoomTheme } from '@/lib/themes'
 
 /** Shown instead of a name we cannot draw. Better than a row of blank boxes. */
 export const NAME_FALLBACK = 'A split'
@@ -42,6 +43,11 @@ export interface RoomCardData {
     memberCount: number
     /** "3 expenses · $128.50 so far" */
     stat: string
+    /** Resolved, never a raw key — the renderer must not have to know what a
+     *  missing or unknown theme means. This is the whole point of the feature:
+     *  re-theme a room and the unfurl in the group chat follows within the
+     *  300s cache window. */
+    theme: RoomTheme
 }
 
 /** Emoji, variation selectors and ZWJ — present in names, never renderable. */
@@ -160,6 +166,7 @@ export function toRoomCard(room: {
     name: string
     emoji: string | null
     currency: string
+    theme?: string | null
     members: { name: string }[]
     expenses: { baseAmountMinor: bigint }[]
 }): RoomCardData {
@@ -172,6 +179,7 @@ export function toRoomCard(room: {
         overflow,
         memberCount: room.members.length,
         stat: statLine(room.expenses.length, total, room.currency),
+        theme: themeFor(room.theme),
     }
 }
 
@@ -187,6 +195,7 @@ export async function loadRoomCard(slug: string): Promise<RoomCardData | null> {
             name: true,
             emoji: true,
             currency: true,
+            theme: true,
             members: { orderBy: { createdAt: 'asc' }, select: { name: true } },
             expenses: { where: { deletedAt: null }, select: { baseAmountMinor: true } },
         },

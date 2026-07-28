@@ -2,6 +2,8 @@
  *  exact shares adding up) live in the domain modules, not here. */
 import { z } from 'zod'
 import { CURRENCY_CODES } from '@/server/money'
+import { isReactionEmoji } from '@/lib/reactions'
+import { isThemeKey } from '@/lib/themes'
 
 const currencyCode = z
     .string()
@@ -179,3 +181,35 @@ export const receiptModelSchema = z.object({
 })
 
 export type ReceiptParseBody = z.infer<typeof receiptParseSchema>
+// ── delight wave ─────────────────────────────────────────────────────────────
+
+/**
+ * A theme is a key into `lib/themes.ts`, never a colour. Anything not in the
+ * catalog is rejected outright rather than stored and ignored — a row holding a
+ * key nothing can render is a bug that only shows up months later, on an unfurl.
+ * `null` is the default palette and is always legal.
+ */
+export const roomThemeSchema = z.object({
+    // `nullable`, not `nullish`: an absent key would silently mean "back to the
+    // default palette", and a PATCH that resets a room because a field got
+    // dropped somewhere in the client is the kind of bug nobody reproduces.
+    theme: z
+        .string()
+        .max(40)
+        .nullable()
+        .refine((value) => value === null || isThemeKey(value), { message: 'unknown theme' }),
+})
+
+/**
+ * `memberToken` sits in the body rather than the header for the same reason it
+ * does on push subscriptions: here the token is PROOF, not attribution, and the
+ * shape of the request should say which of the two it is.
+ */
+export const reactionSchema = z.object({
+    emoji: z.string().refine(isReactionEmoji, { message: 'not a reaction we support' }),
+    memberId: id,
+    memberToken: memberSecret,
+})
+
+export type RoomThemeBody = z.infer<typeof roomThemeSchema>
+export type ReactionBody = z.infer<typeof reactionSchema>

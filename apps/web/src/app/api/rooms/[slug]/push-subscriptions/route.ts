@@ -10,7 +10,7 @@
 import { prisma } from '@/server/db'
 import { ApiError, readJson, respond } from '@/server/http'
 import { isAllowedPushEndpoint } from '@/server/pushHosts'
-import { loadRoom, type RoomWithRelations } from '@/server/roomState'
+import { assertProvenMember, loadRoom } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { enforceRateLimit, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushSubscribeSchema, pushUnsubscribeSchema } from '@/server/validation'
@@ -22,13 +22,6 @@ type Ctx = { params: Promise<{ slug: string }> }
 /** A trip is a dozen people with a phone and maybe a laptop each. Well past
  *  that, and it is a script rather than a room. */
 const MAX_SUBSCRIPTIONS_PER_ROOM = 30
-
-function assertProvenMember(room: RoomWithRelations, memberId: string, memberToken: string): void {
-    const member = room.members.find((m) => m.id === memberId)
-    if (!member || member.token !== memberToken) {
-        throw new ApiError(403, 'MEMBER_TOKEN_INVALID', 'this device is not signed in as a member of this room')
-    }
-}
 
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {

@@ -24,7 +24,12 @@ interface BalanceStripProps {
  * at the point it is read, which is what lets `pnpm i18n:audit` verify all three exist.
  */
 const toneFor = (net: string, t: (key: string) => string) => {
-    if (isZeroMinor(net)) return { card: 'bg-white', label: t('settled'), labelClass: 'text-n-3' }
+    // Only the settled card takes the room's tint. Red and green carry meaning —
+    // a theme is allowed to tint the neutral state and nothing else, or "owes"
+    // stops being a colour you can trust across two rooms. Classic's tint is
+    // white, so the default palette is unchanged.
+    if (isZeroMinor(net))
+        return { card: 'bg-[var(--split-theme-tint,#FFFFFF)]', label: t('settled'), labelClass: 'text-n-3' }
     if (net.startsWith('-')) return { card: 'bg-error-1', label: t('owes'), labelClass: 'text-n-1' }
     return { card: 'bg-green-1', label: t('getsBack'), labelClass: 'text-n-1' }
 }

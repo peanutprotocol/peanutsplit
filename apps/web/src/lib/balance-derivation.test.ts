@@ -55,6 +55,7 @@ const state = (
         emoji: null,
         currency: ROOM_CURRENCY,
         coverUrl: null,
+        theme: null,
         createdAt: iso(1),
         archivedAt: null,
     },
@@ -157,6 +158,9 @@ function randomRoom(rng: () => number, seed: number) {
                 amountMinor: parts[position],
                 enteredAmountMinor: rng() < 0.5 ? parts[position] : null,
             })),
+            // Loaded through the expense by `roomArgs`, so the fixture carries the
+            // relation even though no balance has ever depended on a reaction.
+            reactions: rng() < 0.3 ? [{ emoji: '🔥', memberId: participants[0].id }] : [],
         }
     })
 
@@ -186,6 +190,7 @@ function randomRoom(rng: () => number, seed: number) {
         emoji: null,
         currency: ROOM_CURRENCY,
         coverUrl: null,
+        theme: null,
         createdAt: new Date(Date.UTC(2026, 6, 1)),
         archivedAt: null,
         members,
