@@ -4,7 +4,7 @@
 import type { Expense } from '@prisma/client'
 import { getRateTable, rateFrom, type RateTable } from '@/server/fx'
 import { badRequest } from '@/server/http'
-import { convertMinorAtRate, parseMinor } from '@/server/money'
+import { convertMinorAtRate, MAX_SIGNED_MINOR, parseMinor } from '@/server/money'
 import { equalShares, exactShares, sumShares, type ShareDraft } from '@/server/split'
 import type { RoomWithRelations } from '@/server/roomState'
 import type { ExpenseBody } from '@/server/validation'
@@ -58,6 +58,8 @@ export async function buildExpense(
     const lockedRate = existing && existing.currency === body.currency ? Number(existing.fxRate) : null
     const rate = lockedRate ?? rateFrom(rateTable ?? (await getRateTable()), body.currency, room.currency)
     const baseAmountMinor = convertMinorAtRate(total, body.currency, room.currency, rate)
+    if (baseAmountMinor > MAX_SIGNED_MINOR)
+        throw badRequest('converted amount is too large to store', 'AMOUNT_TOO_LARGE')
 
     let shares: ShareDraft[]
     if (body.splitMode === 'EXACT') {

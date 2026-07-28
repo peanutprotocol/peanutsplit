@@ -2,7 +2,7 @@
  * Share maths. Both modes guarantee the same invariant: the shares sum to the
  * room-currency total exactly, so balances always net to zero.
  */
-import { convertMinorAtRate } from '@/server/money'
+import { decimalsOf, RATE_SCALE } from '@/server/money'
 
 export interface ShareDraft {
     memberId: string
@@ -19,26 +19,73 @@ export interface EnteredShare {
 
 export const sumShares = (shares: readonly ShareDraft[]): bigint => shares.reduce((a, s) => a + s.amountMinor, 0n)
 
+interface ApportionPart {
+    memberId: string
+    enteredAmountMinor: bigint | null
+    /** Exact rational numerator before division by the shared denominator. */
+    numerator: bigint
+}
+
+/**
+ * Turn non-negative rational parts with one shared denominator into integer
+ * minor units that add up to `total`.
+ *
+ * Every part starts at its quotient (round down), then the remaining units go
+ * to the largest fractional remainders. Input order breaks ties, which makes
+ * retries and untouched edits byte-for-byte deterministic. Equal splitting and
+ * foreign EXACT conversion both use this one rule so neither can grow its own
+ * subtly different idea of where a rounding cent belongs.
+ */
+function apportionMinor(total: bigint, denominator: bigint, parts: readonly ApportionPart[]): ShareDraft[] {
+    if (parts.length === 0) throw new Error('an expense needs at least one participant')
+    if (total < 0n || denominator <= 0n || parts.some((part) => part.numerator < 0n))
+        throw new Error('shares cannot be negative')
+
+    const apportioned = parts.map((part, index) => ({
+        memberId: part.memberId,
+        enteredAmountMinor: part.enteredAmountMinor,
+        amountMinor: part.numerator / denominator,
+        remainder: part.numerator % denominator,
+        index,
+    }))
+    const floors = apportioned.reduce((sum, part) => sum + part.amountMinor, 0n)
+    const residue = total - floors
+
+    // Each rational part can absorb at most one unit above its floor. Anything
+    // outside that range means the caller mixed a total, denominator or rate.
+    if (residue < 0n || residue > BigInt(apportioned.length))
+        throw new Error('shares cannot reconcile to the expense total')
+
+    const byRemainder = [...apportioned].sort((a, b) =>
+        a.remainder === b.remainder ? a.index - b.index : a.remainder > b.remainder ? -1 : 1
+    )
+    for (let i = 0; i < Number(residue); i++) byRemainder[i].amountMinor += 1n
+
+    return apportioned.map(({ memberId, enteredAmountMinor, amountMinor }) => ({
+        memberId,
+        enteredAmountMinor,
+        amountMinor,
+    }))
+}
+
 /** Spread `total` across the participants so the shares sum to it exactly — the
  *  first `remainder` participants absorb one extra minor unit each. */
 export function equalShares(total: bigint, memberIds: readonly string[]): ShareDraft[] {
-    if (memberIds.length === 0) throw new Error('an expense needs at least one participant')
-    const n = BigInt(memberIds.length)
-    const base = total / n
-    const remainder = total % n
-    return memberIds.map((memberId, i) => ({
-        memberId,
-        amountMinor: base + (BigInt(i) < remainder ? 1n : 0n),
-        enteredAmountMinor: null,
-    }))
+    return apportionMinor(
+        total,
+        BigInt(memberIds.length),
+        memberIds.map((memberId) => ({ memberId, enteredAmountMinor: null, numerator: total }))
+    )
 }
 
 /**
  * EXACT shares are typed in the EXPENSE currency and kept verbatim as
  * `enteredAmountMinor` — that round-trip is what lets the UI re-open a
  * foreign-currency expense and re-save it without the balances drifting.
- * `amountMinor` is the room-currency conversion, with the rounding residue
- * pushed onto the largest share.
+ * `amountMinor` is the room-currency conversion. Each share starts at its exact
+ * conversion rounded down; the converted total's remaining minor units then go
+ * to the largest fractional remainders. Unlike independently rounding every
+ * share and subtracting drift from one row, this can never make a share negative.
  */
 export function exactShares(
     entered: readonly EnteredShare[],
@@ -48,18 +95,21 @@ export function exactShares(
     rate: number
 ): ShareDraft[] {
     if (entered.length === 0) throw new Error('an expense needs at least one participant')
-    const converted = entered.map((s) => ({
-        memberId: s.memberId,
-        enteredAmountMinor: s.amountMinor,
-        amountMinor: convertMinorAtRate(s.amountMinor, expenseCurrency, baseCurrency, rate),
-    }))
-    const residue = baseTotal - converted.reduce((a, s) => a + s.amountMinor, 0n)
-    if (residue !== 0n) {
-        let biggest = 0
-        for (let i = 1; i < converted.length; i++) {
-            if (converted[i].amountMinor > converted[biggest].amountMinor) biggest = i
-        }
-        converted[biggest].amountMinor += residue
-    }
-    return converted
+
+    // Character-identical arithmetic to convertMinorAtRate. buildExpense made
+    // `baseTotal` with the same rate, so these quotients and remainders describe
+    // the exact rational value that total rounded from.
+    const scaledRate = expenseCurrency === baseCurrency ? RATE_SCALE : BigInt(Math.round(rate * Number(RATE_SCALE)))
+    const numeratorScale = scaledRate * 10n ** BigInt(decimalsOf(baseCurrency))
+    const denominator = RATE_SCALE * 10n ** BigInt(decimalsOf(expenseCurrency))
+
+    return apportionMinor(
+        baseTotal,
+        denominator,
+        entered.map((share) => ({
+            memberId: share.memberId,
+            enteredAmountMinor: share.amountMinor,
+            numerator: share.amountMinor * numeratorScale,
+        }))
+    )
 }
