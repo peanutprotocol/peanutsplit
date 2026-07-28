@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { BTN_MEDIUM } from '@/components/ui/control'
+import { cn } from '@/lib/cn'
 import { track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import { accountsEnabled, accountsSoon } from '@/lib/flags'
@@ -36,7 +38,7 @@ export function AccountPanel({ heading }: { heading?: string }) {
     // as a disabled row — never a form that would promise a mail nobody sends.
     if (accountsSoon())
         return (
-            <div className="mt-2 flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
                 {heading && <span className="text-h8 uppercase tracking-wide text-grey-1">{heading}</span>}
                 <div className="flex items-start justify-between gap-3 rounded-sm border border-n-1 bg-white p-3 opacity-80">
                     <div className="flex flex-col gap-1">
@@ -74,7 +76,7 @@ export function AccountPanel({ heading }: { heading?: string }) {
     }
 
     return (
-        <div className="mt-2 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
             {heading && <span className="text-h8 uppercase tracking-wide text-grey-1">{heading}</span>}
 
             {account ? (
@@ -86,7 +88,7 @@ export function AccountPanel({ heading }: { heading?: string }) {
                     <Button
                         variant="stroke"
                         size="medium"
-                        className="mt-1 justify-center"
+                        className={cn(BTN_MEDIUM, 'justify-center')}
                         loading={signOut.isPending}
                         onClick={() => signOut.mutate()}
                         data-testid="account-sign-out"
@@ -137,7 +139,7 @@ export function AccountPanel({ heading }: { heading?: string }) {
                         type="submit"
                         variant="stroke"
                         size="medium"
-                        className="justify-center"
+                        className={cn(BTN_MEDIUM, 'justify-center')}
                         loading={requestLink.isPending}
                         data-testid="account-submit"
                     >

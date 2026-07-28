@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
+import { BTN_MEDIUM } from '@/components/ui/control'
+import { cn } from '@/lib/cn'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
@@ -71,17 +74,23 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
                     {t('iosHow')}
                 </button>
                 <Drawer open={iosSheetOpen} onOpenChange={setIosSheetOpen}>
-                    <DrawerContent className="border-n-1">
-                        <DrawerHeader className="text-left">
+                    <DrawerContent className={drawerContentClass}>
+                        <DrawerHeader className={drawerHeaderClass}>
                             <DrawerTitle className="text-h5">{tInstall('ios.title')}</DrawerTitle>
                             <DrawerDescription>{tInstall('ios.body')}</DrawerDescription>
                         </DrawerHeader>
-                        <IosInstallSteps />
-                        <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-                            <Button variant="stroke" className="justify-center" onClick={() => setIosSheetOpen(false)}>
-                                {tInstall('ios.done')}
-                            </Button>
-                        </div>
+                        <DrawerBody>
+                            <IosInstallSteps />
+                            <DrawerActions>
+                                <Button
+                                    variant="stroke"
+                                    className="justify-center"
+                                    onClick={() => setIosSheetOpen(false)}
+                                >
+                                    {tInstall('ios.done')}
+                                </Button>
+                            </DrawerActions>
+                        </DrawerBody>
                     </DrawerContent>
                 </Drawer>
             </Section>
@@ -136,7 +145,7 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
                 <Button
                     variant={subscribed ? 'transparent' : 'stroke'}
                     size="medium"
-                    className="w-auto shrink-0 justify-center whitespace-nowrap px-3"
+                    className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center whitespace-nowrap')}
                     disabled={!provenIdentity || busy}
                     loading={busy}
                     onClick={subscribed ? disable : enable}
@@ -158,7 +167,7 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
 /** The settings drawer's group shape: a small uppercase label over its rows. */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
-        <div className="mt-2 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
             <span className="text-h8 uppercase tracking-wide text-grey-1">{title}</span>
             {children}
         </div>

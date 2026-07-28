@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { deriveBalance, derivePair } from '@/lib/balance-derivation'
@@ -79,8 +80,8 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className="bg-background" data-testid="balance-drawer" data-member-id={memberId}>
-                <DrawerHeader className="pb-0">
+            <DrawerContent className={drawerContentClass} data-testid="balance-drawer" data-member-id={memberId}>
+                <DrawerHeader className={drawerHeaderClass}>
                     <DrawerTitle className="flex items-center gap-2 text-h5">
                         <MemberAvatar name={member.name} size={32} />
                         <span className="min-w-0 truncate">{member.id === meId ? tBalances('you') : member.name}</span>
@@ -88,7 +89,7 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                     <p className="text-sm text-grey-1">{t('title')}</p>
                 </DrawerHeader>
 
-                <div className="flex flex-col gap-4 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
+                <DrawerBody>
                     <motion.div
                         initial={{ scale: 0.94, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -98,7 +99,7 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                             toneFor(net)
                         )}
                     >
-                        <span className="text-h9 uppercase tracking-wide text-n-1">{label}</span>
+                        <span className="text-h8 uppercase tracking-wide text-n-1">{label}</span>
                         <Money
                             minor={net}
                             currency={state.room.currency}
@@ -186,7 +187,7 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                             </ul>
                         </div>
                     )}
-                </div>
+                </DrawerBody>
             </DrawerContent>
         </Drawer>
     )

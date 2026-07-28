@@ -92,7 +92,7 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect, on
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-                className="flex flex-col items-center gap-4 px-6 py-12 text-center"
+                className="flex flex-col items-center gap-4 px-4 py-12 text-center"
             >
                 <motion.div
                     initial={{ scale: 0.7, rotate: -8, opacity: 0 }}
@@ -208,7 +208,7 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect, on
                                         >
                                             <MemberAvatar name={payer} size={36} />
                                             <span className="min-w-0 flex-1">
-                                                <span className="block truncate text-h7">{expense.description}</span>
+                                                <span className="block truncate text-h8">{expense.description}</span>
                                                 {isQueuedExpenseId(expense.id, queued) && (
                                                     <span className="block text-sm text-grey-1">
                                                         {tOffline('rowHint')}

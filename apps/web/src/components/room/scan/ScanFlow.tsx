@@ -173,7 +173,7 @@ export function ScanFlow({
             data-testid="scan-flow"
             className="fixed inset-0 z-[60] overflow-y-auto bg-background"
         >
-            <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-4 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
+            <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
                 <div className="flex items-center justify-between">
                     <span className="text-h8 uppercase tracking-wide text-grey-1">
                         {phase === 'assign' ? t('step2') : t('step1')}
@@ -192,7 +192,7 @@ export function ScanFlow({
                 {phase === 'scanning' && <ScanningAnimation />}
 
                 {phase === 'error' && (
-                    <div className="flex flex-col gap-4 py-8">
+                    <div className="flex flex-col gap-3 py-8">
                         <p role="alert" className="text-h7 text-error">
                             {error}
                         </p>
