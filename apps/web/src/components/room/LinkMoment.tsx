@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { track, roomProps } from '@/lib/analytics'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 
 interface LinkMomentProps {
@@ -43,7 +44,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
     const [copyFailed, setCopyFailed] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
     const feedback = useFeedback()
-    const reduceMotion = useReducedMotion()
+    const motionAllowed = useMotionAllowed()
 
     const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
@@ -62,7 +63,9 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
             await navigator.clipboard.writeText(url)
             setCopied(true)
             setCopyFailed(false)
-            feedback('tick')
+            // Whoosh, not tick: the link just left the card and went somewhere.
+            // A tick would say "registered"; this has to say "gone".
+            feedback('whoosh')
             track('link_copied', roomProps(slug))
             window.setTimeout(() => setCopied(false), 2_000)
         } catch {
@@ -71,7 +74,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
     }, [url, slug, revealFallback, feedback])
 
     const share = useCallback(async () => {
-        feedback('tick')
+        feedback('whoosh')
         track('share_opened', roomProps(slug))
         try {
             await navigator.share({
@@ -90,7 +93,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
     return (
         <div className="flex flex-col gap-6">
             <motion.div
-                initial={reduceMotion ? false : { opacity: 0, y: -8 }}
+                initial={!motionAllowed ? false : { opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 340, damping: 30 }}
                 className="flex flex-col gap-2 text-center"
@@ -103,7 +106,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                 and settles a hair off-square before straightening — the way a card
                 actually lands on a table. */}
             <motion.div
-                initial={reduceMotion ? false : { y: -56, opacity: 0, rotate: -4, scale: 0.94 }}
+                initial={!motionAllowed ? false : { y: -56, opacity: 0, rotate: -4, scale: 0.94 }}
                 animate={{ y: 0, opacity: 1, rotate: [-4, 1.4, 0], scale: 1 }}
                 transition={{
                     default: { type: 'spring', stiffness: 300, damping: 17, mass: 0.9, delay: 0.06 },
@@ -113,7 +116,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                 <Card shadowSize="6" className="overflow-hidden">
                     <div className="flex items-center gap-3 border-b border-n-1 bg-primary-1 px-4 py-4">
                         <motion.span
-                            initial={reduceMotion ? false : { scale: 0.4, rotate: -20 }}
+                            initial={!motionAllowed ? false : { scale: 0.4, rotate: -20 }}
                             animate={{ scale: 1, rotate: 0 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }}
                             className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"

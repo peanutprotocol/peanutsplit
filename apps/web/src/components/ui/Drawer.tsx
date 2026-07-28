@@ -41,7 +41,11 @@ const DrawerContent = React.forwardRef<
         >
             <div className="mx-auto my-4 h-1.5 w-10 rounded-full bg-black" />
             <div className="flex w-full justify-center">
-                <div className="max-h-[80vh] w-full overflow-auto md:max-w-xl">{children}</div>
+                {/* vaul animates the sheet; this is the content settling inside it.
+                    A mount-time CSS animation rather than a transition, because the
+                    content is portalled in on open — there is no "before" state for
+                    a transition to run from. */}
+                <div className="animate-drawer-in max-h-[80vh] w-full overflow-auto md:max-w-xl">{children}</div>
             </div>
         </DrawerPrimitive.Content>
     </DrawerPortal>

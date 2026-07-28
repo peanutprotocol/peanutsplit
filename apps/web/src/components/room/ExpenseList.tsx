@@ -1,10 +1,12 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
+import { cn } from '@/lib/cn'
 import { dayLabel, groupByDay } from '@/lib/dates'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
@@ -18,10 +20,51 @@ interface ExpenseListProps {
 
 const isPending = (expense: ApiExpense) => expense.id.startsWith('pending-')
 
+/** Long enough to strip the class again; the animation itself is 100ms. */
+const POP_MS = 260
+
+/**
+ * Which row, if any, should pop right now.
+ *
+ * "New" has to mean *this device just added it*, not "an id I have not seen",
+ * or every poll that lands someone else's expense pops a row on your screen
+ * while you are reading something else. The optimistic mutation is what carries
+ * that knowledge: `useAddExpense` puts a `pending-…` row in the cache on save and
+ * the authoritative state replaces it in one commit. So the row to pop is the
+ * real id that arrived in the same render the placeholder left — a poll adds ids
+ * but never removes a placeholder, so it never qualifies.
+ */
+function usePoppedExpenseId(expenses: readonly ApiExpense[]): string | null {
+    const [poppedId, setPoppedId] = useState<string | null>(null)
+    const seen = useRef<Set<string> | null>(null)
+    const hadPending = useRef(false)
+
+    useEffect(() => {
+        const ids = new Set(expenses.map((expense) => expense.id))
+        const previous = seen.current
+        const placeholderWasThere = hadPending.current
+        seen.current = ids
+        hadPending.current = expenses.some(isPending)
+
+        // No previous render to diff against (first paint of a room full of
+        // expenses) — nothing here is new, it is just arriving.
+        if (!previous || !placeholderWasThere) return
+        const arrived = [...ids].find((id) => !previous.has(id) && !id.startsWith('pending-'))
+        if (!arrived) return
+
+        setPoppedId(arrived)
+        const timer = window.setTimeout(() => setPoppedId(null), POP_MS)
+        return () => window.clearTimeout(timer)
+    }, [expenses])
+
+    return poppedId
+}
+
 export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListProps) {
     const t = useTranslations('room.expenses')
     const tDates = useTranslations('dates')
     const locale = useLocale()
+    const poppedId = usePoppedExpenseId(state.expenses)
 
     if (state.expenses.length === 0) {
         return (
@@ -99,7 +142,14 @@ export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListPr
                                             onClick={() => onSelect(expense.id)}
                                             data-testid="expense-row"
                                             data-description={expense.description}
-                                            className="shadow-4 flex min-h-[3.5rem] w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:active:translate-x-0 disabled:active:translate-y-0"
+                                            // The pop rides the inner button, not the
+                                            // motion.li: the li's transform is already
+                                            // owned by motion, and two writers on one
+                                            // property is a fight nobody wins.
+                                            className={cn(
+                                                'shadow-4 flex min-h-[3.5rem] w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:active:translate-x-0 disabled:active:translate-y-0',
+                                                poppedId === expense.id && 'animate-pop'
+                                            )}
                                         >
                                             <MemberAvatar name={payer} size={36} />
                                             <span className="min-w-0 flex-1">
