@@ -1,10 +1,16 @@
 /**
- * The sound palette — four synthesized cues, no audio files.
+ * The sound palette — seven synthesized cues, no audio files.
  *
- * Physical metaphors, not musical tones: everything here is a *struck object*,
- * built from inharmonic partials with exponential decay (the signature of a
- * real body being hit) plus a noise transient for the impact itself. A sine
- * beep would read as "notification"; a woodblock reads as "that happened".
+ * Physical metaphors, not musical tones: everything here is a *struck object* or
+ * a moving surface, built from inharmonic partials with exponential decay (the
+ * signature of a real body being hit) plus a noise transient for the impact
+ * itself. A sine beep would read as "notification"; a woodblock reads as "that
+ * happened".
+ *
+ * Three loudness tiers, because a palette without a hierarchy is just noise:
+ *   - tier 1 (≤0.08 peak) — fires constantly: `tick`, `blip`
+ *   - tier 2 (≤0.15 peak) — fires on a deliberate action: `pop`, `whoosh`, `error`
+ *   - tier 3 — terminal, once per flow: `thunk`, `bell`
  *
  * Non-negotiables from the spec:
  *   - master gain ≤ 0.3, through a DynamicsCompressor so nothing ever spikes
@@ -13,7 +19,7 @@
  *     real user gesture, or the first *meaningful* sound is swallowed
  */
 
-export type SoundName = 'tick' | 'thunk' | 'bell' | 'pop'
+export type SoundName = 'tick' | 'thunk' | 'bell' | 'pop' | 'whoosh' | 'blip' | 'error'
 
 const MASTER_GAIN = 0.28
 const THROTTLE_MS = 60
@@ -21,8 +27,12 @@ const THROTTLE_MS = 60
 let ctx: AudioContext | null = null
 /** Every voice connects here: compressor → master trim → speakers. */
 let bus: AudioNode | null = null
+/** The trim itself, held so `duckMaster` can dip the whole bed under a cue. */
+let master: GainNode | null = null
 let warmed = false
-const lastPlayedAt: Partial<Record<SoundName, number>> = {}
+/** Keyed by throttle key, not by sound: a repeated-step cue can ask for its own
+ *  window (see `playSound`) without starving the shared one. */
+const lastPlayedAt: Record<string, number> = {}
 
 type WebkitWindow = Window & { webkitAudioContext?: typeof AudioContext }
 
@@ -48,13 +58,50 @@ function audio(): { ctx: AudioContext; bus: AudioNode } | null {
     compressor.attack.value = 0.002
     compressor.release.value = 0.15
 
-    const master = ctx.createGain()
-    master.gain.value = MASTER_GAIN
+    const trim = ctx.createGain()
+    trim.gain.value = MASTER_GAIN
 
-    compressor.connect(master)
-    master.connect(ctx.destination)
+    compressor.connect(trim)
+    trim.connect(ctx.destination)
+    master = trim
     bus = compressor
     return { ctx, bus }
+}
+
+/** How long `duckMaster` needs to get the bed out of the way. Play the cue that
+ *  the duck is *for* this many milliseconds after calling it. */
+export const DUCK_LEAD_MS = 20
+
+/**
+ * Dip the master bus so a terminal cue lands on top of whatever is still ringing.
+ *
+ * The all-settled bell arrives a beat after a settle thunk, a row collapse and a
+ * balance counting down, and the compressor cannot fix that on its own: it pulls
+ * *everything* down together, so the bell comes down with the tail it was meant
+ * to rise over. Ducking is the mixing-desk answer — take the bed down first, then
+ * play the thing that matters.
+ *
+ * `amount` is the proportion of the master gain to remove (0.55 → down to 45%);
+ * `holdMs` is how long it stays there before a slow return, because a fast one is
+ * audible in its own right as the room opening back up.
+ */
+export function duckMaster(amount = 0.55, holdMs = 400): void {
+    const a = audio()
+    if (!a || !master) return
+    const gain = master.gain
+    const now = a.ctx.currentTime
+    const floor = MASTER_GAIN * (1 - Math.min(Math.max(amount, 0), 1))
+    const bottom = now + DUCK_LEAD_MS / 1000
+    const release = bottom + holdMs / 1000
+    try {
+        gain.cancelScheduledValues(now)
+        gain.setValueAtTime(gain.value, now)
+        gain.linearRampToValueAtTime(floor, bottom)
+        gain.setValueAtTime(floor, release)
+        gain.linearRampToValueAtTime(MASTER_GAIN, release + 0.6)
+    } catch {
+        // A mix decision must never take a UI interaction down with it.
+    }
 }
 
 /**
@@ -145,6 +192,44 @@ function transient(
     source.stop(at + seconds + 0.02)
 }
 
+/**
+ * Filtered-noise sweep — the whoosh primitive, and the one thing `transient`
+ * cannot do: its bandpass is fixed, so it can only ever be an impact. Here the
+ * centre frequency slides while the noise under it swells and dies, which is a
+ * surface *moving past you* rather than a surface being hit. A pitch-swept
+ * oscillator would be a synthesiser rising; paper has no pitch.
+ */
+function sweep(
+    context: AudioContext,
+    destination: AudioNode,
+    at: number,
+    {
+        seconds,
+        from,
+        to,
+        q,
+        gain: level,
+        peakAt = 0.35,
+    }: { seconds: number; from: number; to: number; q: number; gain: number; peakAt?: number }
+): void {
+    const source = context.createBufferSource()
+    source.buffer = noiseBuffer(context, seconds)
+    const biquad = context.createBiquadFilter()
+    biquad.type = 'bandpass'
+    biquad.Q.value = q
+    biquad.frequency.setValueAtTime(from, at)
+    biquad.frequency.exponentialRampToValueAtTime(to, at + seconds)
+    const gain = context.createGain()
+    gain.gain.setValueAtTime(0.0001, at)
+    gain.gain.exponentialRampToValueAtTime(level, at + seconds * peakAt)
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + seconds)
+    source.connect(biquad)
+    biquad.connect(gain)
+    gain.connect(destination)
+    source.start(at)
+    source.stop(at + seconds + 0.02)
+}
+
 const voices: Record<SoundName, (context: AudioContext, out: AudioNode, at: number) => void> = {
     /**
      * Pencil tick — graphite meeting paper. Almost entirely transient: a very
@@ -211,19 +296,67 @@ const voices: Record<SoundName, (context: AudioContext, out: AudioNode, at: numb
         osc.stop(at + 0.12)
         transient(context, out, at, { seconds: 0.012, filter: 1800, q: 3, gain: 0.22 })
     },
+
+    /**
+     * Whoosh — the link leaving your hands (copy, share). A bandpass sweeping up
+     * through the noise floor with a slower counter-sweep under it: two surfaces
+     * passing each other, which is what paper actually sounds like. Tier 2, ~150ms
+     * — long enough to read as movement, short enough not to become a swoosh.
+     */
+    whoosh: (context, out, at) => {
+        sweep(context, out, at, { seconds: 0.15, from: 620, to: 2600, q: 1.1, gain: 0.13 })
+        // Downward while the first goes up, 20ms behind: the body of the slide.
+        // Offset on purpose — landing both peaks on one frame is how a paper
+        // slide turns into a cymbal.
+        sweep(context, out, at + 0.02, { seconds: 0.11, from: 1900, to: 780, q: 0.9, gain: 0.05, peakAt: 0.5 })
+    },
+
+    /**
+     * Blip — a sheet opening. Tier 1 and then some: under 40ms end to end, peak
+     * 0.06, effectively no body. A drawer opens because you asked it to, so the
+     * cue only has to acknowledge; anything with more presence becomes the sound
+     * you remember the app by, and it should not be this one.
+     */
+    blip: (context, out, at) => {
+        transient(context, out, at, { seconds: 0.012, filter: 3200, q: 8, gain: 0.06 })
+        strike(context, out, at, 2400, [{ ratio: 1, gain: 0.05, decay: 0.024 }])
+    },
+
+    /**
+     * Error — a dull thud, deliberately not a buzzer. A buzzer is a machine
+     * telling you off; a heavy thing refusing to move is the room telling you it
+     * did not go. Same modal-stack construction as `thunk` but an octave and a
+     * bit lower, partials pulled *flat* of the harmonic ratios so nothing in it
+     * rings, and a second softer knock behind the first — the double-knock of a
+     * door that will not open.
+     */
+    error: (context, out, at) => {
+        transient(context, out, at, { seconds: 0.06, filter: 190, q: 0.9, gain: 0.62, type: 'lowpass' })
+        strike(context, out, at, 120, [
+            { ratio: 1, gain: 0.4, decay: 0.28 },
+            { ratio: 1.93, gain: 0.1, decay: 0.13 },
+            { ratio: 3.11, gain: 0.04, decay: 0.07 },
+        ])
+        strike(context, out, at + 0.085, 116, [{ ratio: 1, gain: 0.16, decay: 0.2 }])
+    },
 }
 
 /**
  * Play a cue. Silently no-ops when Web Audio is unavailable, when the context
  * refuses to start (no gesture yet), or inside the 60ms retrigger window.
+ *
+ * `throttleKey` splits that window: a cue fired once per step of a repeating
+ * interaction can pass its own key so consecutive steps are not eaten by the
+ * shared one. Default is the sound's own name, which is what almost everything
+ * wants.
  */
-export function playSound(name: SoundName): void {
+export function playSound(name: SoundName, throttleKey: string = name): void {
     const a = audio()
     if (!a) return
     const now = performance.now()
-    const last = lastPlayedAt[name]
+    const last = lastPlayedAt[throttleKey]
     if (last !== undefined && now - last < THROTTLE_MS) return
-    lastPlayedAt[name] = now
+    lastPlayedAt[throttleKey] = now
     try {
         voices[name](a.ctx, a.bus, a.ctx.currentTime + 0.001)
     } catch {
