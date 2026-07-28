@@ -21,6 +21,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Dokploy passes this as a Docker build arg (buildArgs in the app settings).
 ARG NEXT_PUBLIC_BASE_URL
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
+ARG NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 RUN pnpm build
 
 # ---- runtime ----------------------------------------------------------------
