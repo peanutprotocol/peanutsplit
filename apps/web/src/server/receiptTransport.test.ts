@@ -17,7 +17,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/server/http'
-import { parseReceipt, scanEnabled } from '@/server/receipt'
+import { modelEnabled } from '@/server/model'
+import { parseReceipt } from '@/server/receipt'
 
 const OPENROUTER_KEY = 'test-openrouter-key'
 const GEMINI_KEY = 'test-gemini-key'
@@ -74,18 +75,18 @@ afterEach(() => {
 describe('transport selection', () => {
     it('is disabled with neither key, and a call that arrives anyway never reaches the network', async () => {
         const fetchSpy = stubFetch()
-        expect(scanEnabled()).toBe(false)
+        expect(modelEnabled()).toBe(false)
         expect(await codeOf(() => parseReceipt(body))).toBe('SCAN_UNAVAILABLE')
         expect(fetchSpy).not.toHaveBeenCalled()
     })
 
     it('is enabled on either key alone — the probe answers for the feature, not a provider', () => {
         process.env.SPLIT_OPENROUTER_API_KEY = OPENROUTER_KEY
-        expect(scanEnabled()).toBe(true)
+        expect(modelEnabled()).toBe(true)
 
         delete process.env.SPLIT_OPENROUTER_API_KEY
         process.env.SPLIT_GEMINI_API_KEY = GEMINI_KEY
-        expect(scanEnabled()).toBe(true)
+        expect(modelEnabled()).toBe(true)
     })
 
     it('prefers OpenRouter when both are configured', async () => {
