@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { siteUrl } from '@/lib/site'
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales'
 import type { Doc, Faq } from '@/lib/content'
 
 /**
@@ -13,6 +14,13 @@ import type { Doc, Faq } from '@/lib/content'
  */
 
 const SITE_NAME = 'Peanut Split'
+
+/** OG spells locales `language_TERRITORY`; everything else here uses BCP 47. */
+const OG_LOCALE: Record<Locale, string> = {
+    en: 'en_US',
+    es: 'es_ES',
+    'pt-BR': 'pt_BR',
+}
 
 /** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
 export const ORGANIZATION_ID = `${siteUrl}/#organization`
@@ -44,6 +52,8 @@ export interface PageMetaInput {
     type?: 'article' | 'website'
     publishedTime?: string
     modifiedTime?: string
+    /** Language of THIS page. Drives `og:locale`, which unfurls read to pick a rendering. */
+    locale?: Locale
 }
 
 /**
@@ -58,6 +68,7 @@ export function pageMetadata({
     type = 'article',
     publishedTime,
     modifiedTime,
+    locale = DEFAULT_LOCALE,
 }: PageMetaInput): Metadata {
     return {
         title,
@@ -67,6 +78,8 @@ export function pageMetadata({
             type,
             url: path,
             siteName: SITE_NAME,
+            // OG wants `es_ES`-style underscores, not the BCP 47 hyphen the rest of the app uses.
+            locale: OG_LOCALE[locale],
             title,
             description,
             ...(type === 'article' ? { publishedTime, modifiedTime: modifiedTime ?? publishedTime } : {}),
@@ -81,12 +94,23 @@ export function pageMetadata({
 
 /**
  * Human date for anything a reader sees. An ISO string in body text reads as unrendered data.
- * Fixed en-GB so the string does not change under the server's locale.
+ *
+ * The locale is passed in, never taken from the server's environment: the same page must render
+ * the same string on every machine, and a build box in a different region would otherwise change
+ * the month name. `en-GB` rather than `en-US` for English — "28 July 2026" reads as a date in
+ * both, where "July 28, 2026" reads as American to everyone else.
  */
-export function formatDate(iso: string): string {
+const DATE_LOCALE: Record<Locale, string> = { en: 'en-GB', es: 'es-419', 'pt-BR': 'pt-BR' }
+
+export function formatDate(iso: string, locale: Locale = DEFAULT_LOCALE): string {
     const date = new Date(`${iso}T00:00:00Z`)
     if (Number.isNaN(date.getTime())) return iso
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    return date.toLocaleDateString(DATE_LOCALE[locale], {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    })
 }
 
 /** `<title>` for a content page. Suffix once, here, so no article has to remember to. */
@@ -141,7 +165,7 @@ export function articleSchema(doc: Doc) {
         '@type': doc.collection === 'blog' ? 'BlogPosting' : 'Article',
         headline: frontmatter.title,
         description: frontmatter.description,
-        inLanguage: 'en',
+        inLanguage: doc.locale,
         datePublished: frontmatter.date,
         dateModified: frontmatter.updated ?? frontmatter.date,
         author: frontmatter.author ? { '@type': 'Person', name: frontmatter.author } : { '@id': ORGANIZATION_ID },

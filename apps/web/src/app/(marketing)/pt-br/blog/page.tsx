@@ -5,15 +5,15 @@ import { hreflangAlternates } from '@/i18n/paths'
 import { LOCALES } from '@/i18n/locales'
 import { pageMetadata, pageTitle } from '@/lib/seo'
 
-/** The English guides hub. Implementation is shared — see ContentHub. */
-const LOCALE = 'en' as const
+/** The Portuguese guides hub. Implementation is shared — see ContentHub. */
+const LOCALE = 'pt-BR' as const
 
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations({ locale: LOCALE, namespace: 'content' })
     const meta = pageMetadata({
         title: pageTitle(t('hubTitle')),
         description: t('hubDescription'),
-        path: '/blog',
+        path: '/pt-br/blog',
         type: 'website',
         locale: LOCALE,
     })

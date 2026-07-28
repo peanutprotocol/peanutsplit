@@ -318,5 +318,17 @@
         "showOther": "Ver el saldo de {name}",
         "hideOther": "Ocultar el saldo de {name}",
         "someone": "Alguien"
+    },
+    "content": {
+        "home": "Inicio",
+        "guides": "Guías",
+        "hubTitle": "Guías",
+        "hubDescription": "Cómo dividir gastos sin cuenta, sin instalar nada y sin suscripción.",
+        "empty": "Todavía no hay nada publicado.",
+        "startRoom": "Crear una sala",
+        "startRoomHint": "Sin registro. Sin instalación. Gratis para siempre.",
+        "published": "Publicado el {date}",
+        "updated": "actualizado el {date}",
+        "otherLanguages": "También en"
     }
 }

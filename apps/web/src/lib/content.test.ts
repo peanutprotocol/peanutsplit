@@ -2,8 +2,19 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { COLLECTIONS, getDoc, hrefFor, listAllDocs, listDocs, listSlugs } from './content'
+import {
+    COLLECTIONS,
+    getDoc,
+    hrefFor,
+    listAllDocs,
+    listAllTranslations,
+    listDocs,
+    listSlugs,
+    localesForSlug,
+} from './content'
 import { staticPageSlugs } from '@/data/static-pages'
+import { LOCALES } from '@/i18n/locales'
+import { localizedPath } from '@/i18n/paths'
 import { pageTitle } from './seo'
 
 /**
@@ -13,9 +24,40 @@ import { pageTitle } from './seo'
  * fixture directory would pass while the site 404s.
  */
 
-const ALL = COLLECTIONS.flatMap((collection) => listDocs(collection))
+/**
+ * Every language of every article, not just English. The length limits, the link check and the
+ * FAQ/schema agreement are properties of a published page — a translation is a published page,
+ * and checking only `en` is how a 70-character Spanish title ships unnoticed.
+ */
+const ALL = listAllTranslations()
 
 describe('content tree', () => {
+    /**
+     * The loader swallows a broken file on purpose — a half-written article must not be able to
+     * fail `next build`. The cost is that a translation with one bad line of YAML silently does
+     * not publish, which is exactly how three of these shipped unparsed. This turns that silence
+     * into a red test: every .md on disk must survive the loader.
+     *
+     * (The usual culprit is `: ` inside an unquoted frontmatter scalar — YAML reads it as a
+     * mapping. Quote the string.)
+     */
+    it('parses every markdown file that exists', () => {
+        const root = path.join(process.cwd(), 'src/content')
+        for (const collection of COLLECTIONS) {
+            const dir = path.join(root, collection)
+            for (const slug of fs.readdirSync(dir)) {
+                for (const file of fs.readdirSync(path.join(dir, slug))) {
+                    const locale = file.replace(/\.md$/, '')
+                    expect(LOCALES, `${collection}/${slug}/${file} is not a known locale`).toContain(locale)
+                    expect(
+                        getDoc(collection, slug, locale as (typeof LOCALES)[number]),
+                        `${collection}/${slug}/${file} exists but did not parse`
+                    ).not.toBeNull()
+                }
+            }
+        }
+    })
+
     it('publishes at least one doc per collection', () => {
         for (const collection of COLLECTIONS) {
             expect(listDocs(collection).length, `${collection} is empty`).toBeGreaterThan(0)
@@ -84,18 +126,27 @@ describe('loader, against a scratch tree', () => {
     const cwd = process.cwd()
 
     beforeAll(() => {
-        fs.mkdirSync(path.join(root, 'src/content/blog'), { recursive: true })
-        fs.mkdirSync(path.join(root, 'src/content/alternatives'), { recursive: true })
-        const write = (rel: string, body: string) => fs.writeFileSync(path.join(root, 'src/content', rel), body)
+        const write = (rel: string, body: string) => {
+            const full = path.join(root, 'src/content', rel)
+            fs.mkdirSync(path.dirname(full), { recursive: true })
+            fs.writeFileSync(full, body)
+        }
+        const doc = (title: string, date: string, extra = '') =>
+            `---\ntitle: ${title}\ndescription: d\ndate: ${date}\n${extra}---\nbody\n`
 
-        write('blog/older.md', '---\ntitle: Older\ndescription: d\ndate: 2026-01-01\n---\nbody\n')
-        write('blog/newer.md', '---\ntitle: Newer\ndescription: d\ndate: 2026-06-01\n---\nbody\n')
-        write('blog/draft.md', '---\ntitle: Draft\ndescription: d\ndate: 2026-06-02\npublished: false\n---\nbody\n')
-        write('blog/dateless.md', '---\ntitle: Dateless\ndescription: d\n---\nbody\n')
-        write('blog/broken.md', '---\ntitle: "unterminated\ndescription: d\ndate: 2026-06-03\n---\nbody\n')
+        write('blog/older/en.md', doc('Older', '2026-01-01'))
+        write('blog/newer/en.md', doc('Newer', '2026-06-01'))
+        write('blog/draft/en.md', doc('Draft', '2026-06-02', 'published: false\n'))
+        write('blog/dateless/en.md', '---\ntitle: Dateless\ndescription: d\n---\nbody\n')
+        write('blog/broken/en.md', '---\ntitle: "unterminated\ndescription: d\ndate: 2026-06-03\n---\nbody\n')
         // Would be served by /new, not by the content route — must never be listed.
-        write('alternatives/new.md', '---\ntitle: New\ndescription: d\ndate: 2026-06-04\n---\nbody\n')
-        write('alternatives/keep-alternative.md', '---\ntitle: Keep\ndescription: d\ndate: 2026-06-05\n---\nbody\n')
+        write('alternatives/new/en.md', doc('New', '2026-06-04'))
+        write('alternatives/keep-alternative/en.md', doc('Keep', '2026-06-05'))
+
+        // Translations: one article fully localised, one Spanish-only draft, one English-only.
+        write('blog/newer/es.md', doc('Nuevo', '2026-06-01'))
+        write('blog/newer/pt-BR.md', doc('Novo', '2026-06-01'))
+        write('blog/older/es.md', doc('Viejo', '2026-01-01', 'published: false\n'))
 
         process.chdir(root)
     })
@@ -125,15 +176,60 @@ describe('loader, against a scratch tree', () => {
         expect(listSlugs('alternatives')).toEqual(['keep-alternative'])
         expect(getDoc('alternatives', 'new')).toBeNull()
     })
+
+    /**
+     * The rule the whole design rests on: a missing translation is a missing page, never an
+     * English body at a translated URL. Every assertion here is one that a fallback would break.
+     */
+    describe('translations', () => {
+        it('serves each language its own file', () => {
+            expect(getDoc('blog', 'newer', 'en')?.frontmatter.title).toBe('Newer')
+            expect(getDoc('blog', 'newer', 'es')?.frontmatter.title).toBe('Nuevo')
+            expect(getDoc('blog', 'newer', 'pt-BR')?.frontmatter.title).toBe('Novo')
+        })
+
+        it('never falls back to English for an untranslated article', () => {
+            // `older` has no pt-BR file at all, and its es file is a draft.
+            expect(getDoc('blog', 'older', 'pt-BR')).toBeNull()
+            expect(getDoc('blog', 'older', 'es')).toBeNull()
+        })
+
+        it('lists only what exists in that language', () => {
+            expect(listSlugs('blog', 'es')).toEqual(['newer'])
+            expect(listSlugs('blog', 'pt-BR')).toEqual(['newer'])
+        })
+
+        it('reports the locales a slug has, in a stable order', () => {
+            expect(localesForSlug('blog', 'newer')).toEqual(['en', 'es', 'pt-BR'])
+            expect(localesForSlug('blog', 'dateless')).toEqual(['en'])
+            expect(localesForSlug('blog', 'no-such-slug')).toEqual([])
+        })
+
+        it('prefixes non-default locales and leaves English bare', () => {
+            expect(getDoc('blog', 'newer', 'en')?.href).toBe('/blog/newer')
+            expect(getDoc('blog', 'newer', 'es')?.href).toBe('/es/blog/newer')
+            expect(getDoc('blog', 'newer', 'pt-BR')?.href).toBe('/pt-br/blog/newer')
+            expect(getDoc('alternatives', 'keep-alternative', 'en')?.href).toBe('/keep-alternative')
+        })
+
+        it('enumerates every published translation for the sitemap', () => {
+            const hrefs = listAllTranslations().map((doc) => doc.href)
+            expect(hrefs).toContain('/blog/newer')
+            expect(hrefs).toContain('/es/blog/newer')
+            expect(hrefs).toContain('/pt-br/blog/newer')
+            // The Spanish draft of `older` is published:false — a live English page beside it
+            // must not drag the unfinished translation into the sitemap.
+            expect(hrefs).not.toContain('/es/blog/older')
+            expect(new Set(hrefs).size).toBe(hrefs.length)
+        })
+    })
 })
 
 describe('article bodies', () => {
     /** Internal links are the only thing here that can rot silently — a renamed slug 404s. */
     it('only links internally to pages that exist', () => {
         const known = new Set<string>([
-            '/',
-            '/new',
-            '/blog',
+            ...LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
             ...ALL.map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
         ])
