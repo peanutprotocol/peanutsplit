@@ -15,6 +15,14 @@
 
 export const accountsEnabled = (): boolean => process.env.NEXT_PUBLIC_ACCOUNTS_ENABLED === '1'
 
+/**
+ * The teaser state between "hidden" and "live": the save-your-rooms surface is
+ * announced with a Soon badge while the email transport clears its last
+ * external gates. ENABLED wins — flipping the real flag retires the teaser
+ * without a second cleanup deploy.
+ */
+export const accountsSoon = (): boolean => process.env.NEXT_PUBLIC_ACCOUNTS_SOON === '1' && !accountsEnabled()
+
 /** The VAPID public key the browser subscribes against. Absent → no push UI at
  *  all; see `push-status.ts`, which treats a missing key as `unsupported`. */
 export const vapidPublicKey = (): string | undefined => process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || undefined

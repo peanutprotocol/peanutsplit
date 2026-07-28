@@ -258,7 +258,12 @@
         "newPhone": "¿Algún día cambias de teléfono? Guarda tus salas",
         "synced": "Guardadas en tu cuenta.",
         "roomsAreBack": "Tus salas volvieron",
-        "signedIn": "Ya iniciaste sesión"
+        "signedIn": "Ya iniciaste sesión",
+        "soon": {
+            "title": "Guarda tus salas en cualquier dispositivo",
+            "description": "Ingresa tu correo y vuelve a abrir tus salas donde sea. Ya casi está listo.",
+            "badge": "Pronto"
+        }
     },
     "push": {
         "title": "Notificaciones",
