@@ -53,7 +53,7 @@ model Member {
   id     String @id @default(uuid())
   roomId String
   name   String
-  token  String @unique // server-issued secret, returned once, held in localStorage
+  token  String @unique // stable server-issued secret, returned only to a device claiming this member
   // A KEY into the code-side catalog in `lib/avatars.ts`, never artwork and never
   // a URL. Null is the portrait drawn from the name, so a member written before
   // the picker existed and a member who never opened it are the same row.

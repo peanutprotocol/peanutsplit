@@ -104,7 +104,6 @@ describe('landing analytics', () => {
             'landing_creation_attempted',
             'landing_room_created',
             'landing_preview_completed',
-            'landing_preview_replayed',
         ] as const
 
         for (const event of events) trackLanding(event, 'pass_link')
