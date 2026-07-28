@@ -3,7 +3,7 @@
         "hero": {
             "eyebrow": "gratis · sin cuenta · sin descargar",
             "title": "DIVIDILO",
-            "subtitle": "Quién le debe a quién, resuelto. Un link — cada quien agrega lo que pagó, en la moneda que sea.",
+            "subtitle": "Quién le debe a quién, resuelto. Un link — cada uno agrega lo que pagó, en la moneda que sea.",
             "cta": "Abrilo →",
             "mascotAlt": "Peanut saludando",
             "linkExplainerTrigger": "Cómo funciona el link"
@@ -75,7 +75,7 @@
             "logoAlt": "Peanut",
             "tagline": "Dividí cualquier cuenta con un link. Peanut Split lo hace el equipo de Peanut.",
             "colSplit": "Split",
-            "createSplit": "Crear una división",
+            "createSplit": "Crear una sala",
             "importLink": "Importar de Splitwise",
             "colCompare": "Comparar",
             "compareLink": "Alternativa a Splitwise",
@@ -256,8 +256,8 @@
             "roomMenu": "Menú de la sala",
             "youAre": "eres {name}",
             "shareTheRoomLink": "Compartir el link de la sala",
-            "notMe": "No soy {name}",
-            "feedback": "Sonido y tacto",
+            "notMe": "¿Otra persona está usando este teléfono?",
+            "feedback": "Sonido y vibración",
             "sound": "Sonido",
             "soundHint": "Clics, golpecitos y una campana",
             "haptics": "Vibración",
@@ -268,10 +268,10 @@
             "title": "¿Quién eres?",
             "roster": "{room} · {count, plural, one {# persona} other {# personas}} hasta ahora",
             "thatsMe": "soy yo",
-            "imNew": "Soy nuevo aquí",
+            "imNew": "No estoy en la lista",
             "namePlaceholder": "Tu nombre",
             "submit": "Entrar a la sala",
-            "alreadyOnList": "En realidad ya estoy en la lista",
+            "alreadyOnList": "Ya estoy en la lista",
             "duplicate": "{name} ya está aquí — toca su nombre arriba.",
             "failed": "no se pudo entrar — intenta de nuevo"
         },
@@ -281,28 +281,32 @@
             "settled": "sin deudas",
             "owes": "debe",
             "getsBack": "le deben",
-            "nothingYet": "nada aún"
+            "nothingYet": "nada aún",
+            "youOwe": "debes",
+            "youGetBack": "te deben"
         },
         "expenses": {
             "title": "Gastos",
             "emptyTitle": "Todavía no hay gastos",
-            "emptyBody": "Agrega el primero — quién pagó, cuánto y para quién.",
+            "emptyBody": "Manda el link primero — los gastos se dividen entre quienes estén en la sala",
             "someone": "Alguien",
             "you": "Tú",
             "paidBy": "{payer} pagó · {count, plural, one {# persona} other {# personas}}",
-            "indicative": "indicativo"
+            "indicative": "indicativo",
+            "paidByYou": "Pagaste tú · {count, plural, one {# persona} other {# personas}}",
+            "emptyInvite": "Invita al resto"
         },
         "states": {
             "errorTitle": "No pudimos cargar esta sala",
             "errorBody": "Seguro es la conexión. No se perdió nada — intenta otra vez.",
             "retry": "Intentar de nuevo",
-            "notFoundTitle": "Esta división no existe",
+            "notFoundTitle": "Esta sala no existe",
             "notFoundBody": "Los links distinguen mayúsculas — revisa que copiaste todo, incluida la parte después del último guion.",
-            "notFoundCta": "Empezar una nueva división"
+            "notFoundCta": "Crear una sala nueva"
         },
         "allSettled": {
             "title": "Todo saldado",
-            "body": "Nadie le debe nada a nadie. Disfruta la sensación.",
+            "body": "Nadie le debe nada a nadie. Disfrútalo.",
             "expenseCount": "{count, plural, one {# gasto} other {# gastos}}",
             "peopleCount": "{count, plural, one {# persona} other {# personas}}",
             "allSquare": "a mano"
@@ -319,15 +323,19 @@
             "share": "Compartir la historia",
             "sharing": "Preparándola…",
             "shareTitle": "Peanut Split",
-            "shareText": "Nuestra división, saldada.",
+            "shareText": "Nuestras cuentas, saldadas.",
             "copied": "Resumen copiado — pégalo donde quieras.",
             "downloaded": "Resumen guardado en tus descargas.",
             "shareFailed": "No pudimos armar el resumen. Intenta otra vez.",
             "seeRecap": "Ver el resumen",
             "backToRoom": "Volver a la sala",
-            "ctaTitle": "Te toca",
+            "ctaTitle": "Ahora te toca a ti",
             "ctaBody": "Un link, sin registro, gratis para siempre.",
-            "cta": "Empezar tu propia división"
+            "cta": "Empezar tu propia sala",
+            "yourLine": "Pusiste {amount} · {position}",
+            "youOwe": "debes {amount}",
+            "youGetBack": "te deben {amount}",
+            "youSettled": "estás a mano"
         },
         "expenseDrawer": {
             "addTitle": "Agregar gasto",
@@ -368,7 +376,9 @@
                 "PAYER_REQUIRED": "Elige quién pagó.",
                 "NO_PARTICIPANTS": "Elige al menos a una persona para dividir esto.",
                 "SHARES_DO_NOT_ADD_UP": "Los montos exactos tienen que sumar el total."
-            }
+            },
+            "equallyHint": "Lo mismo para todos",
+            "exactAmountsHint": "Montos distintos"
         },
         "settle": {
             "listTitle": "Quién le debe a quién",
@@ -423,7 +433,7 @@
         },
         "create": {
             "back": "Volver",
-            "title": "Nueva división",
+            "title": "Nueva sala",
             "name": "¿Qué van a dividir?",
             "namePlaceholder": "Viaje a la nieve…",
             "emoji": "O elige otro dibujo",
@@ -431,7 +441,7 @@
             "emojiOption": "Dibujo: {emoji}",
             "currency": "Moneda",
             "currencyLabel": "Moneda de la sala",
-            "currencyHint": "Los saldos se saldan en esta moneda. Cada gasto puede ir en cualquier otra.",
+            "currencyHint": "Las cuentas se cierran en esta moneda. Cada gasto puede ir en cualquier otra.",
             "creatorName": "Y tú eres…",
             "creatorNamePlaceholder": "Tu nombre…",
             "submit": "Crear la sala",
@@ -555,7 +565,7 @@
         "signedIn": "Ya iniciaste sesión",
         "soon": {
             "title": "Guarda tus salas en cualquier dispositivo",
-            "description": "Ingresa tu correo y vuelve a abrir tus salas donde sea. Ya casi está listo.",
+            "description": "Ingresa tu correo y vuelve a abrir tus salas donde sea. Ya casi está listo. Por ahora tus salas se guardan en este dispositivo y aparecen en la página de inicio de Split.",
             "badge": "Pronto"
         }
     },
@@ -615,7 +625,7 @@
         "openLabel": "Ver de dónde sale el saldo de {name}",
         "checkNote": "Cada línea sale de esta sala. Súmalas tú mismo: el total coincide.",
         "paidTitle": "Gastos pagados",
-        "shareTitle": "Parte de los gastos",
+        "shareTitle": "Tu parte de cada gasto",
         "settledTitle": "Pagos registrados",
         "paidBy": "pagado por {name}",
         "paidByYou": "pagaste tú",
@@ -630,7 +640,9 @@
         "receives": "{name} le paga",
         "showOther": "Ver el saldo de {name}",
         "hideOther": "Ocultar el saldo de {name}",
-        "someone": "Alguien"
+        "someone": "Alguien",
+        "sendsYou": "Le pagas a {name}",
+        "receivesYou": "{name} te paga"
     },
     "content": {
         "home": "Inicio",
@@ -672,7 +684,7 @@
             "fallbackName": "Grupo importado",
             "currency": "Moneda",
             "currencyLabel": "Moneda de la sala",
-            "currencyHint": "Los saldos se saldan en esta moneda. Cada gasto conserva la moneda en la que se pagó.",
+            "currencyHint": "Las cuentas se cierran en esta moneda. Cada gasto conserva la moneda en la que se pagó.",
             "members": "Todos los del grupo",
             "whoAreYou": "Corrige los nombres que hayan quedado raros y marca cuál eres tú en la lista.",
             "balancesMatch": "Los saldos coinciden con la fila de totales de Splitwise.",

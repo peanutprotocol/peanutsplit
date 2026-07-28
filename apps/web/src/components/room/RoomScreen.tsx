@@ -50,7 +50,12 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     useEffect(() => {
         if (!state) return
-        rememberRoom({ slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
+        rememberRoom({
+            slug,
+            name: state.room.name,
+            emoji: state.room.emoji ?? undefined,
+            theme: state.room.theme ?? undefined,
+        })
     }, [slug, state])
 
     /**
@@ -182,6 +187,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 slug={slug}
                                 token={identity?.token}
                                 onSelect={(expenseId) => setParams({ expense: expenseId })}
+                                onInvite={() => setParams({ share: true })}
                             />
                         </motion.div>
                     ) : null}

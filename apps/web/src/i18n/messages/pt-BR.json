@@ -75,7 +75,7 @@
             "logoAlt": "Peanut",
             "tagline": "Rache qualquer conta com um link. O Peanut Split é feito pelo time da Peanut.",
             "colSplit": "Split",
-            "createSplit": "Criar uma divisão",
+            "createSplit": "Criar uma sala",
             "importLink": "Importar do Splitwise",
             "colCompare": "Comparar",
             "compareLink": "Alternativa ao Splitwise",
@@ -256,8 +256,8 @@
             "roomMenu": "Menu da sala",
             "youAre": "você é {name}",
             "shareTheRoomLink": "Compartilhar o link da sala",
-            "notMe": "Não sou {name}",
-            "feedback": "Som e toque",
+            "notMe": "Outra pessoa está usando este celular?",
+            "feedback": "Som e vibração",
             "sound": "Som",
             "soundHint": "Cliques, batidinhas e um sino",
             "haptics": "Vibração",
@@ -268,10 +268,10 @@
             "title": "Quem é você?",
             "roster": "{room} · {count, plural, one {# pessoa} other {# pessoas}} até agora",
             "thatsMe": "sou eu",
-            "imNew": "Sou novo por aqui",
+            "imNew": "Não estou na lista",
             "namePlaceholder": "Seu nome",
             "submit": "Entrar na sala",
-            "alreadyOnList": "Na verdade eu já estou na lista",
+            "alreadyOnList": "Já estou na lista",
             "duplicate": "{name} já está aqui — toque no nome dele acima.",
             "failed": "não deu para entrar — tente de novo"
         },
@@ -281,28 +281,32 @@
             "settled": "sem dívidas",
             "owes": "deve",
             "getsBack": "recebe",
-            "nothingYet": "nada ainda"
+            "nothingYet": "nada ainda",
+            "youOwe": "você deve",
+            "youGetBack": "te devem"
         },
         "expenses": {
             "title": "Gastos",
             "emptyTitle": "Nenhum gasto ainda",
-            "emptyBody": "Lance o primeiro — quem pagou, quanto e para quem.",
+            "emptyBody": "Mande o link primeiro — os gastos são divididos entre quem estiver na sala",
             "someone": "Alguém",
             "you": "Você",
             "paidBy": "{payer} pagou · {count, plural, one {# pessoa} other {# pessoas}}",
-            "indicative": "indicativo"
+            "indicative": "indicativo",
+            "paidByYou": "Você pagou · {count, plural, one {# pessoa} other {# pessoas}}",
+            "emptyInvite": "Convide o resto"
         },
         "states": {
             "errorTitle": "Não conseguimos carregar esta sala",
             "errorBody": "Deve ser a conexão. Nada se perdeu — tente de novo.",
             "retry": "Tentar de novo",
-            "notFoundTitle": "Esta divisão não existe",
+            "notFoundTitle": "Esta sala não existe",
             "notFoundBody": "Os links diferenciam maiúsculas — confira se você copiou tudo, inclusive o pedaço depois do último traço.",
-            "notFoundCta": "Começar uma nova divisão"
+            "notFoundCta": "Criar uma sala nova"
         },
         "allSettled": {
             "title": "Tudo acertado",
-            "body": "Ninguém deve nada a ninguém. Aproveite a sensação rara.",
+            "body": "Ninguém deve nada a ninguém. Aproveite.",
             "expenseCount": "{count, plural, one {# gasto} other {# gastos}}",
             "peopleCount": "{count, plural, one {# pessoa} other {# pessoas}}",
             "allSquare": "quites"
@@ -319,15 +323,19 @@
             "share": "Compartilhar a história",
             "sharing": "Preparando…",
             "shareTitle": "Peanut Split",
-            "shareText": "Nossa divisão, acertada.",
+            "shareText": "Nossas contas, acertadas.",
             "copied": "Resumo copiado — cole onde quiser.",
             "downloaded": "Resumo salvo nos seus downloads.",
             "shareFailed": "Não conseguimos montar o resumo. Tente de novo.",
             "seeRecap": "Ver o resumo",
             "backToRoom": "Voltar para a sala",
-            "ctaTitle": "Sua vez",
+            "ctaTitle": "Agora é a sua vez",
             "ctaBody": "Um link, sem cadastro, grátis para sempre.",
-            "cta": "Começar sua própria divisão"
+            "cta": "Começar sua própria sala",
+            "yourLine": "Você entrou com {amount} · {position}",
+            "youOwe": "você deve {amount}",
+            "youGetBack": "te devem {amount}",
+            "youSettled": "você está quite"
         },
         "expenseDrawer": {
             "addTitle": "Lançar gasto",
@@ -368,7 +376,9 @@
                 "PAYER_REQUIRED": "Escolha quem pagou.",
                 "NO_PARTICIPANTS": "Escolha pelo menos uma pessoa para dividir.",
                 "SHARES_DO_NOT_ADD_UP": "Os valores exatos precisam somar o total."
-            }
+            },
+            "equallyHint": "Igual para todo mundo",
+            "exactAmountsHint": "Valores diferentes"
         },
         "settle": {
             "listTitle": "Quem deve a quem",
@@ -423,7 +433,7 @@
         },
         "create": {
             "back": "Voltar",
-            "title": "Nova divisão",
+            "title": "Nova sala",
             "name": "O que vocês vão dividir?",
             "namePlaceholder": "Viagem de neve…",
             "emoji": "Ou escolha outro desenho",
@@ -431,7 +441,7 @@
             "emojiOption": "Desenho: {emoji}",
             "currency": "Moeda",
             "currencyLabel": "Moeda da sala",
-            "currencyHint": "Os saldos são acertados nesta moeda. Cada gasto pode ser em qualquer outra.",
+            "currencyHint": "As contas são fechadas nesta moeda. Cada gasto pode ser em qualquer outra.",
             "creatorName": "E você é…",
             "creatorNamePlaceholder": "Seu nome…",
             "submit": "Criar a sala",
@@ -555,7 +565,7 @@
         "signedIn": "Você está conectado",
         "soon": {
             "title": "Salve suas salas em qualquer aparelho",
-            "description": "Digite seu e-mail e reabra suas salas onde quiser. Está quase pronto.",
+            "description": "Digite seu e-mail e reabra suas salas onde quiser. Está quase pronto. Por enquanto suas salas ficam salvas neste aparelho e aparecem na página inicial do Split.",
             "badge": "Em breve"
         }
     },
@@ -615,7 +625,7 @@
         "openLabel": "Ver de onde vem o saldo de {name}",
         "checkNote": "Cada linha vem desta sala. Some você mesmo — bate certinho.",
         "paidTitle": "Gastos pagos",
-        "shareTitle": "Parte dos gastos",
+        "shareTitle": "Sua parte de cada gasto",
         "settledTitle": "Pagamentos registrados",
         "paidBy": "pago por {name}",
         "paidByYou": "você pagou",
@@ -630,7 +640,9 @@
         "receives": "{name} paga",
         "showOther": "Ver o saldo de {name}",
         "hideOther": "Ocultar o saldo de {name}",
-        "someone": "Alguém"
+        "someone": "Alguém",
+        "sendsYou": "Você paga {name}",
+        "receivesYou": "{name} te paga"
     },
     "content": {
         "home": "Início",
@@ -672,7 +684,7 @@
             "fallbackName": "Grupo importado",
             "currency": "Moeda",
             "currencyLabel": "Moeda da sala",
-            "currencyHint": "Os saldos são acertados nesta moeda. Cada gasto fica na moeda em que foi pago.",
+            "currencyHint": "As contas são fechadas nesta moeda. Cada gasto fica na moeda em que foi pago.",
             "members": "Todo mundo do grupo",
             "whoAreYou": "Ajeite qualquer nome que veio estranho e marque qual é você na lista.",
             "balancesMatch": "Os saldos batem com a linha de total do próprio Splitwise.",

@@ -11,6 +11,7 @@ import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
 import { dayLabel, groupByDay } from '@/lib/dates'
+import { Button } from '@/components/ui/Button'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
 import { ReactionBar } from './ReactionBar'
@@ -25,6 +26,9 @@ interface ExpenseListProps {
     slug: string
     token?: string | null
     onSelect: (expenseId: string) => void
+    /** Opens the share drawer. The empty state's copy leads with the invite, so
+     *  the action it names has to be one tap away, not behind a header glyph. */
+    onInvite?: () => void
 }
 
 const isPending = (expense: ApiExpense) => isPendingExpenseId(expense.id)
@@ -69,7 +73,7 @@ function usePoppedExpenseId(expenses: readonly ApiExpense[]): string | null {
     return poppedId
 }
 
-export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: ExpenseListProps) {
+export function ExpenseList({ state, currencies, meId, slug, token, onSelect, onInvite }: ExpenseListProps) {
     const t = useTranslations('room.expenses')
     const tDates = useTranslations('dates')
     const tOffline = useTranslations('offline')
@@ -99,6 +103,11 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: 
                 </motion.div>
                 <p className="text-h6">{t('emptyTitle')}</p>
                 <p className="max-w-[18rem] text-sm text-grey-1">{t('emptyBody')}</p>
+                {onInvite && (
+                    <Button variant="stroke" icon="link" onClick={onInvite} data-testid="empty-invite">
+                        {t('emptyInvite')}
+                    </Button>
+                )}
             </motion.section>
         )
     }
@@ -206,10 +215,12 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: 
                                                     </span>
                                                 )}
                                                 <span className="block text-sm text-grey-1">
-                                                    {t('paidBy', {
-                                                        payer: expense.paidById === meId ? t('you') : payer,
-                                                        count: expense.shares.length,
-                                                    })}
+                                                    {/* Separate first-person key, not an interpolated "you":
+                                                        Spanish must conjugate — "Tú pagó" was a literal
+                                                        grammar error on the most-read line in the app. */}
+                                                    {expense.paidById === meId
+                                                        ? t('paidByYou', { count: expense.shares.length })
+                                                        : t('paidBy', { payer, count: expense.shares.length })}
                                                 </span>
                                             </span>
                                             <span className="flex shrink-0 flex-col items-end">

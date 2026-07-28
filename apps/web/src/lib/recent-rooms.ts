@@ -18,6 +18,13 @@ export interface RecentRoom {
     name: string
     /** Room emoji, if the room has one. */
     emoji?: string
+    /**
+     * The room's theme KEY, if it has one — never a colour. Stored so the landing
+     * list can wear the same palette the room does without a request per tile;
+     * `themeFor` maps an unknown or stale key back to the default, so a key
+     * written by an older build can only ever be a no-op.
+     */
+    theme?: string
     /** Epoch milliseconds. ISO strings are also accepted on read and normalised. */
     lastSeenAt: number
 }
@@ -35,12 +42,13 @@ const toEpochMs = (value: unknown): number => {
 
 const normalise = (value: unknown): RecentRoom | null => {
     if (typeof value !== 'object' || value === null) return null
-    const { slug, name, emoji, lastSeenAt } = value as Record<string, unknown>
+    const { slug, name, emoji, theme, lastSeenAt } = value as Record<string, unknown>
     if (typeof slug !== 'string' || slug.length === 0) return null
     return {
         slug,
         name: typeof name === 'string' && name.length > 0 ? name : slug,
         emoji: typeof emoji === 'string' && emoji.length > 0 ? emoji : undefined,
+        theme: typeof theme === 'string' && theme.length > 0 ? theme : undefined,
         lastSeenAt: toEpochMs(lastSeenAt),
     }
 }
@@ -71,6 +79,7 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
         slug: room.slug,
         name: room.name,
         emoji: room.emoji,
+        theme: room.theme,
         lastSeenAt: room.lastSeenAt ?? Date.now(),
     }
     const next = [entry, ...readRecentRooms().filter((existing) => existing.slug !== entry.slug)].slice(

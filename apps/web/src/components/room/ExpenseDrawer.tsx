@@ -23,10 +23,11 @@ import {
     type ExpenseFormValues,
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
-import { currencyInfo, equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
-import { useAddExpense, useDeleteExpense, useModelEnabled, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
+import { currencyInfo, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
+import { useAddExpense, useDeleteExpense, useModelStatus, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
+import { convertMinorForPreview, useRate } from '@/lib/use-rate'
 import { useFeedback } from '@/lib/use-settings'
 import { useShake } from '@/hooks/useShake'
 import { CurrencySelect } from './CurrencySelect'
@@ -82,9 +83,9 @@ export function ExpenseDrawer({
      */
     const [scanFile, setScanFile] = useState<File | null>(null)
     /** A server capability (one API key in the container, gating both shortcuts),
-     *  asked rather than compiled in. False hides them completely: an entry point
-     *  that leads to a 503 is worse than no entry point. */
-    const modelEnabled = useModelEnabled(slug)
+     *  asked rather than compiled in. Disabled hides them completely: an entry
+     *  point that leads to a 503 is worse than no entry point. */
+    const { enabled: modelEnabled, resolved: modelResolved } = useModelStatus(slug)
 
     // Re-seed on every open: a drawer that remembers last time's amount is a
     // money bug waiting to happen.
@@ -127,12 +128,26 @@ export function ExpenseDrawer({
     const validation = validateExpenseForm(values, currencies)
     const remaining = remainingMinor(values, currencies)
     const remainingIsZero = remaining === '0'
+    /** The green celebration. Zero left to allocate is NOT enough on its own —
+     *  an untouched EXACT form is zero against zero, and cheering before the work
+     *  starts spends the moment that was supposed to land at the end of it. */
+    const allocationSettled = remainingIsZero && values.exactTouched
     const totalMinor = parseAmountToMinor(values.amountInput, decimals)
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
 
-    /** Switching to EXACT seeds an equal division, so the drawer opens reconciled
-     *  and the cents visibly move only when you push them around. */
+    /**
+     * Switching to EXACT opens EMPTY, with the whole amount still to allocate.
+     *
+     * It used to pre-seed an equal division, which read as helpful and was not:
+     * every field already held a number, so the first thing anyone did was clear
+     * one — and a form that arrives "already correct" gives you nothing to do and
+     * no way to tell whether it heard you. Empty fields plus a running "left to
+     * allocate" is the same maths with the work visible.
+     *
+     * Editing a saved EXACT expense keeps its amounts; this only runs on a
+     * deliberate mode switch.
+     */
     const setSplitMode = (mode: 'EQUAL' | 'EXACT') => {
         if (mode === values.splitMode) return
         if (mode === 'EQUAL') {
@@ -140,12 +155,9 @@ export function ExpenseDrawer({
             return
         }
         const participants = values.participantsTouched ? values.participantIds : state.members.map((m) => m.id)
-        const shares = equalSplitMinor(totalMinor ?? '0', participants.length)
         const exactInputs: Record<string, string> = {}
-        participants.forEach((memberId, index) => {
-            exactInputs[memberId] = totalMinor ? formatMinorPlain(shares[index], decimals) : ''
-        })
-        patch({ splitMode: 'EXACT', exactInputs })
+        for (const memberId of participants) exactInputs[memberId] = ''
+        patch({ splitMode: 'EXACT', exactInputs, exactTouched: false })
     }
 
     const toggleParticipant = (memberId: string) => {
@@ -159,15 +171,27 @@ export function ExpenseDrawer({
         })
     }
 
+    /** Every write into an EXACT field goes through here, so `exactTouched` cannot
+     *  be set in one path and forgotten in another. */
+    const editExact = (memberId: string, input: string) =>
+        patch({ exactInputs: { ...values.exactInputs, [memberId]: input }, exactTouched: true })
+
+    /** On blur, what was typed becomes what the currency actually looks like —
+     *  "12" in a EUR room is 12.00, and a field that keeps saying "12" next to a
+     *  neighbour saying "8.50" invites the reader to add them up wrong. A field
+     *  left blank stays blank: it means "not in this split", not zero. */
+    const normaliseExact = (memberId: string) => {
+        const raw = values.exactInputs[memberId] ?? ''
+        if (raw.trim().length === 0) return
+        const minor = parseAmountToMinor(raw, decimals)
+        if (minor === null) return
+        patch({ exactInputs: { ...values.exactInputs, [memberId]: formatMinorPlain(minor, decimals) } })
+    }
+
     const putRemainderOn = (memberId: string) => {
         const current = parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals) ?? '0'
         const next = BigInt(current) + BigInt(remaining)
-        patch({
-            exactInputs: {
-                ...values.exactInputs,
-                [memberId]: formatMinorPlain((next < 0n ? 0n : next).toString(), decimals),
-            },
-        })
+        editExact(memberId, formatMinorPlain((next < 0n ? 0n : next).toString(), decimals))
     }
 
     const close = () => {
@@ -248,6 +272,24 @@ export function ExpenseDrawer({
         }
     }
 
+    /**
+     * "≈ 8,82 €" beside the currency pair. The note already said a conversion was
+     * happening; what it would not say is HOW MUCH, which is the only part anyone
+     * actually wants — a foreign expense is the most surprising row in the room
+     * precisely because its room-currency size is invisible until it lands.
+     *
+     * Everything about it degrades quietly: no rate (probe failed, offline, a pair
+     * the feed does not carry) or no amount typed yet and the note renders exactly
+     * as it did before this existed.
+     */
+    const { data: rateQuote } = useRate(values.currency, state.room.currency)
+    const convertedPreview = useMemo(() => {
+        if (!isForeign || !rateQuote || !totalMinor) return null
+        const roomDecimals = currencyInfo(state.room.currency, currencies).decimals
+        const minor = convertMinorForPreview(totalMinor, rateQuote.rate, decimals, roomDecimals)
+        return minor === null ? null : formatMoney(minor, state.room.currency, currencies, locale)
+    }, [isForeign, rateQuote, totalMinor, state.room.currency, currencies, decimals, locale])
+
     const participantsForExact = useMemo(
         () => state.members.filter((member) => values.exactInputs[member.id] !== undefined),
         [state.members, values.exactInputs]
@@ -301,7 +343,18 @@ export function ExpenseDrawer({
                         split, which is a fine thing to do to an empty form and a hostile
                         thing to do to an expense someone opened to fix a typo in.
                         Both are hidden by the same probe — one key configures both. */}
-                    {!expense && modelEnabled && (
+                    {/* The probe is a network hop, and the two chips are 44px tall.
+                        Without a placeholder the form under them jumps by that much
+                        a beat after the sheet opens — right as a thumb is arriving at
+                        the description field. So the row holds its own height from
+                        the first frame and the real chips fade into it. */}
+                    {!expense && !modelResolved && (
+                        <div aria-hidden="true" className="flex flex-wrap items-start gap-2">
+                            <span className="min-h-11 w-32 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
+                            <span className="min-h-11 w-28 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
+                        </div>
+                    )}
+                    {!expense && modelResolved && modelEnabled && (
                         <div className="flex flex-wrap items-start gap-2">
                             <ScanButton onFile={setScanFile} />
                             <QuickAdd
@@ -332,6 +385,11 @@ export function ExpenseDrawer({
                             <CurrencyTag code={values.currency} catalog={currencies} />
                             <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
                             <CurrencyTag code={state.room.currency} catalog={currencies} />
+                            {convertedPreview && (
+                                <span data-testid="expense-foreign-preview" className="text-h8 tabular-nums">
+                                    ≈ {convertedPreview}
+                                </span>
+                            )}
                             <span className="text-grey-1">{t('foreignHint')}</span>
                         </div>
                     )}
@@ -400,6 +458,14 @@ export function ExpenseDrawer({
                             </div>
                         </div>
 
+                        {/* "Equally" and "Exact amounts" name the modes; they do not say
+                            what picking one DOES, and the difference is the whole decision.
+                            One line for whichever is active — a hint under each button
+                            would double the height of a control that is two words wide. */}
+                        <p className="-mt-1 text-right text-sm text-grey-1" data-testid="split-hint">
+                            {values.splitMode === 'EQUAL' ? t('equallyHint') : t('exactAmountsHint')}
+                        </p>
+
                         {values.splitMode === 'EQUAL' ? (
                             <ul className="flex flex-col gap-2">
                                 {state.members.map((member) => {
@@ -461,14 +527,15 @@ export function ExpenseDrawer({
                                             <span className="w-20 shrink-0 truncate text-h8">{member.name}</span>
                                             <input
                                                 value={values.exactInputs[member.id] ?? ''}
-                                                onChange={(event) =>
-                                                    patch({
-                                                        exactInputs: {
-                                                            ...values.exactInputs,
-                                                            [member.id]: event.target.value,
-                                                        },
-                                                    })
-                                                }
+                                                onChange={(event) => editExact(member.id, event.target.value)}
+                                                // Tap-and-type replaces. These fields arrive
+                                                // holding a number often enough (the remainder
+                                                // button, a reopened expense) that landing the
+                                                // caret mid-digits and appending is the default
+                                                // outcome — and "50" becoming "5060" is a wrong
+                                                // number nobody reads back.
+                                                onFocus={(event) => event.target.select()}
+                                                onBlur={() => normaliseExact(member.id)}
                                                 inputMode="decimal"
                                                 aria-label={t('exactAmountFor', { name: member.name })}
                                                 data-testid="exact-input"
@@ -476,15 +543,22 @@ export function ExpenseDrawer({
                                                 className="input h-12 flex-1 px-3 text-base tabular-nums"
                                             />
                                             {!remainingIsZero && (
+                                                /* The chip says what it will do. A bare "+"
+                                                   next to five names is five identical
+                                                   buttons with five different effects, and the
+                                                   one that SUBTRACTS is the one wearing a plus
+                                                   sign. Printing the signed delta makes the
+                                                   outcome readable before the tap. */
                                                 <button
                                                     type="button"
                                                     onClick={() => putRemainderOn(member.id)}
                                                     aria-label={t('putRemainderOn', { name: member.name })}
                                                     data-testid="put-remainder"
                                                     data-member={member.name}
-                                                    className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
+                                                    className="flex h-12 shrink-0 items-center justify-center rounded-sm border border-dashed border-n-1 bg-white px-2 text-h9 tabular-nums"
                                                 >
-                                                    <Icon name="plus" size={16} />
+                                                    {remaining.startsWith('-') ? '−' : '+'}
+                                                    {formatMinorPlain(remaining.replace('-', ''), decimals)}
                                                 </button>
                                             )}
                                         </li>
@@ -516,22 +590,22 @@ export function ExpenseDrawer({
                                     have to go and read. */}
                                 <motion.div
                                     data-testid="remaining-readout"
-                                    animate={remainingIsZero ? { scale: [1, 1.03, 1] } : { scale: 1 }}
+                                    animate={allocationSettled ? { scale: [1, 1.03, 1] } : { scale: 1 }}
                                     transition={{ duration: 0.3, ease: 'easeOut' }}
                                     className={cn(
                                         'flex items-center justify-between rounded-sm border border-n-1 px-3 py-3 text-h8 transition-colors duration-200',
-                                        remainingIsZero ? 'bg-green-1' : 'bg-primary-3'
+                                        allocationSettled ? 'bg-green-1' : 'bg-primary-3'
                                     )}
                                 >
                                     <span>
-                                        {remainingIsZero
+                                        {allocationSettled
                                             ? t('allocated')
                                             : remaining.startsWith('-')
                                               ? t('overBy')
                                               : t('leftToAllocate')}
                                     </span>
                                     <span className="flex items-center gap-2">
-                                        {remainingIsZero ? (
+                                        {allocationSettled ? (
                                             <Icon name="check" size={18} />
                                         ) : (
                                             <Money

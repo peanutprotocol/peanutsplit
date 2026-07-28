@@ -380,16 +380,21 @@ export function useDeleteSettlement(slug: string, token?: string | null) {
  * The key carries no slug, because the answer does not depend on one — the route
  * reads an env var and ignores the room entirely. Keying per room meant probing
  * once per room a device opened, for a fact that is the same every time.
+ *
+ * `resolved` is why this returns a pair rather than a boolean: the drawer has to
+ * tell "no, this deployment has no model" apart from "not back yet", or the row
+ * of shortcuts materialises a beat after the sheet opens and shoves the whole
+ * form down under the thumb already reaching for it.
  */
-export function useModelEnabled(slug: string) {
-    const { data } = useQuery({
+export function useModelStatus(slug: string): { enabled: boolean; resolved: boolean } {
+    const { data, isPending } = useQuery({
         queryKey: ['model-enabled'] as const,
         queryFn: ({ signal }) => api.modelStatus(slug, signal),
         staleTime: 60 * 60 * 1000,
         retry: false,
         refetchOnWindowFocus: false,
     })
-    return data?.enabled ?? false
+    return { enabled: data?.enabled ?? false, resolved: !isPending }
 }
 
 // ── delight wave ─────────────────────────────────────────────────────────────
