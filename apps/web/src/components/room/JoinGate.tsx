@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
@@ -12,6 +12,7 @@ import { roomProps, track } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useJoinRoom } from '@/lib/queries'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { useShake } from '@/hooks/useShake'
 import { MemberAvatar } from './MemberAvatar'
@@ -36,10 +37,80 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
     const errorMessage = useErrorMessage()
     const joinRoom = useJoinRoom(slug)
     const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
+    const gateRootRef = useRef<HTMLDivElement>(null)
+    const dialogRef = useRef<HTMLDivElement>(null)
+    const firstMemberRef = useRef<HTMLButtonElement>(null)
+    const nameInputRef = useRef<HTMLInputElement>(null)
+    const titleId = useId()
+    const rosterId = useId()
     const { ref: cardRef, shake } = useShake<HTMLDivElement>()
     const [mode, setMode] = useState<'pick' | 'new'>(state.members.length > 0 ? 'pick' : 'new')
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+        const gateRoot = gateRootRef.current
+        const background = gateRoot?.parentElement
+            ? Array.from(gateRoot.parentElement.children).filter(
+                  (element): element is HTMLElement => element instanceof HTMLElement && element !== gateRoot
+              )
+            : []
+        const priorAttributes = background.map((element) => ({
+            element,
+            inert: element.hasAttribute('inert'),
+            ariaHidden: element.getAttribute('aria-hidden'),
+        }))
+
+        for (const element of background) {
+            element.setAttribute('inert', '')
+            element.setAttribute('aria-hidden', 'true')
+        }
+
+        return () => {
+            for (const { element, inert, ariaHidden } of priorAttributes) {
+                if (!inert) element.removeAttribute('inert')
+                if (ariaHidden === null) element.removeAttribute('aria-hidden')
+                else element.setAttribute('aria-hidden', ariaHidden)
+            }
+            if (previouslyFocused?.isConnected) previouslyFocused.focus()
+        }
+    }, [])
+
+    useEffect(() => {
+        const target = mode === 'pick' ? firstMemberRef.current : nameInputRef.current
+        ;(target ?? dialogRef.current)?.focus()
+    }, [mode])
+
+    const trapFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key !== 'Tab') return
+
+        const dialog = dialogRef.current
+        if (!dialog) return
+
+        const focusable = Array.from(
+            dialog.querySelectorAll<HTMLElement>(
+                'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+        )
+        if (focusable.length === 0) {
+            event.preventDefault()
+            dialog.focus()
+            return
+        }
+
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        const active = document.activeElement
+        if (event.shiftKey && (active === first || !dialog.contains(active))) {
+            event.preventDefault()
+            last.focus()
+        } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+            event.preventDefault()
+            first.focus()
+        }
+    }
 
     const claimExisting = (memberId: string, memberName: string) => {
         feedback('pop')
@@ -74,14 +145,21 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
     }
 
     return (
-        <div className="fixed inset-0 z-30 flex flex-col justify-end" data-testid="join-gate">
+        <div ref={gateRootRef} className="fixed inset-0 z-30 flex flex-col justify-end" data-testid="join-gate">
             {/* Soft scrim: the room stays readable underneath on purpose. */}
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" aria-hidden="true" />
 
             <motion.div
-                initial={{ y: 40, opacity: 0 }}
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={rosterId}
+                tabIndex={-1}
+                onKeyDown={trapFocus}
+                initial={motionAllowed ? { y: 40, opacity: 0 } : false}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+                transition={motionAllowed ? { type: 'spring', stiffness: 280, damping: 26 } : { duration: 0 }}
                 className="relative mx-auto w-full max-w-xl p-4"
             >
                 {/* A plain wrapper for the shake rather than the motion.div above it:
@@ -90,8 +168,10 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                 <div ref={cardRef}>
                     <Card shadowSize="6" className="max-h-[80dvh] gap-5 overflow-y-auto p-4">
                         <div className="flex flex-col gap-1">
-                            <h2 className="text-h5">{t('title')}</h2>
-                            <p className="text-sm text-grey-1">
+                            <h2 id={titleId} className="text-h5">
+                                {t('title')}
+                            </h2>
+                            <p id={rosterId} className="text-sm text-grey-1">
                                 {t('roster', { room: state.room.name, count: state.members.length })}
                             </p>
                         </div>
@@ -99,9 +179,10 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                         {mode === 'pick' && (
                             <div className="flex flex-col gap-3">
                                 <ul className="flex flex-col gap-2">
-                                    {state.members.map((member) => (
+                                    {state.members.map((member, index) => (
                                         <li key={member.id}>
                                             <button
+                                                ref={index === 0 ? firstMemberRef : undefined}
                                                 type="button"
                                                 onClick={() => claimExisting(member.id, member.name)}
                                                 data-testid="claim-member"
@@ -140,11 +221,11 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                         {mode === 'new' && (
                             <form onSubmit={joinAsNew} className="flex flex-col gap-3">
                                 <BaseInput
+                                    ref={nameInputRef}
                                     value={name}
                                     onChange={(event) => setName(event.target.value)}
                                     placeholder={t('namePlaceholder')}
                                     maxLength={80}
-                                    autoFocus
                                     data-testid="join-name"
                                 />
                                 {error && (
