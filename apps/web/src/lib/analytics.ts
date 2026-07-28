@@ -55,6 +55,12 @@ export type AnalyticsEvent =
     | 'theme_changed'
     | 'reaction_added'
     | 'reaction_removed'
+    // Splitwise import. The file never leaves the device and neither does anything in it:
+    // the only properties these carry are two counts and a failure code.
+    | 'import_started'
+    | 'import_parsed'
+    | 'import_completed'
+    | 'import_failed'
 
 let ready = false
 

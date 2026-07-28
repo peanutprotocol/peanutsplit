@@ -33,6 +33,7 @@ export const marketingCopy = {
             body: 'Splitwise works. It also asks every person in the group to make an account before they can add a single expense, and that is where most groups quietly give up. Peanut Split is a link. Send it, people type a name, everyone adds what they paid.',
             cta: 'Start a split',
             ctaHint: 'Takes ten seconds. No email, no password, no download.',
+            importLink: 'Already on Splitwise? Bring your group’s history with you →',
         },
         /**
          * Three reasons that match what people actually search after hitting a wall in
@@ -143,7 +144,7 @@ export const marketingCopy = {
                 },
                 {
                     q: 'Can I import my Splitwise history?',
-                    a: 'No. Split has no import. Start a room for the next trip or the next month rather than moving old balances across.',
+                    a: 'Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import — the expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.',
                 },
                 {
                     q: 'What happens if we lose the link?',
@@ -158,6 +159,81 @@ export const marketingCopy = {
         cta: {
             title: 'Try it on the next dinner',
             body: 'One link, ten seconds, and nobody has to install anything.',
+            button: 'Start a split',
+        },
+    },
+
+    /**
+     * The import page. English for the same reason the comparison page is: its <title>, its
+     * description and its FAQPage JSON-LD are built from these strings at module scope, and a body
+     * rendered in Spanish under English structured data is a rich-result mismatch.
+     *
+     * The IMPORTER ITSELF is not here — it is product surface, it is localised, and its copy lives
+     * in the message catalogs under `import.*`. This block is only the frame a search engine reads.
+     *
+     * Keep the honesty section honest: historic FX really is converted at today's rate, and
+     * settle-ups really do arrive as expenses. Both are stated here before anyone uploads anything.
+     */
+    importPage: {
+        meta: {
+            title: 'Import your Splitwise group — free, no account',
+            description:
+                'Move a Splitwise group to Peanut Split in one step: export the group as a spreadsheet, drop the file in, and get a shareable room with the expenses and balances already in it.',
+        },
+        hero: {
+            eyebrow: 'splitwise import',
+            title: 'Bring your group’s history with you',
+            body: 'Switching splitters normally means abandoning everything you already logged. Export your Splitwise group as a spreadsheet, drop it here, and Split rebuilds it — every expense, who paid, and the balances you had a minute ago — as a room link you can paste into the group chat.',
+        },
+        honest: {
+            title: 'What to expect',
+            items: [
+                {
+                    title: 'The file never leaves your device',
+                    body: 'It is read in your browser. What reaches us is the list of expenses, not the document — and nobody has to make an account for any of it.',
+                },
+                {
+                    title: 'Balances match to the cent',
+                    body: 'Splitwise records what each person came out ahead or behind by, and that is what the imported room reproduces. If your export has a “Total balance” row, compare it.',
+                },
+                {
+                    title: 'Old exchange rates are not in the file',
+                    body: 'A group that spent in more than one currency is converted at today’s rate, because Splitwise does not export the rate it used on the day. Single-currency groups are unaffected.',
+                },
+                {
+                    title: 'Settle-ups arrive as expenses',
+                    body: 'Payments between people come across as rows in the history rather than as recorded settlements. The balances come out identical either way.',
+                },
+            ],
+        },
+        faq: {
+            title: 'Questions people actually ask',
+            items: [
+                {
+                    q: 'How do I export my group from Splitwise?',
+                    a: 'Open the group on the web, use the group settings menu, and choose “Export as spreadsheet”. Splitwise emails or downloads a .csv file — that is the file to drop here.',
+                },
+                {
+                    q: 'Does everyone in my group have to sign up?',
+                    a: 'No. The import creates a room and a link. Everyone else opens the link, picks their name from the list you imported, and they are in.',
+                },
+                {
+                    q: 'Is my data uploaded anywhere?',
+                    a: 'The .csv is opened and read by your own browser. We receive the expenses it contains in order to build the room, and never the file itself.',
+                },
+                {
+                    q: 'What if the file has something we cannot read?',
+                    a: 'You see it before anything is created. The preview lists every row that was skipped and why, and nothing is written until you press the button.',
+                },
+                {
+                    q: 'How big a group can I import?',
+                    a: 'Up to 20 people and 500 expenses. Groups larger than that are not what Split is for — it is built for a trip, a flat or a dinner.',
+                },
+            ],
+        },
+        cta: {
+            title: 'Or just start fresh',
+            body: 'If the old balances are already settled, a new room takes ten seconds.',
             button: 'Start a split',
         },
     },

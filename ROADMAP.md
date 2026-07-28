@@ -65,6 +65,29 @@ Owner of record for each open item is in brackets. Last full update: 2026-07-28.
   fixed — a configured build arg the Dockerfile doesn't declare is silently
   dropped).
 
+## Shipped 2026-07-28, third wave
+
+- **Splitwise import** (`/import`) — a group export becomes a room: expenses,
+  payers, shares and balances, with the link moment at the end. The parser
+  (`src/lib/splitwise-csv.ts`, no CSV dependency — RFC 4180 is ~40 lines and the
+  repo has a 14-day release-age floor) inverts Splitwise's per-member NET back
+  into payer + shares; the identity that makes it exact is the same statement as
+  "the row sums to zero". Rows fronted by two people are genuinely ambiguous, so
+  they become one expense per payer, cut by interval overlap so no cent is
+  created or lost — balances exact, per-expense attribution flagged in the UI as
+  a reconstruction. `POST /api/import` re-validates everything with zod and
+  writes the whole room in ONE transaction (createMany for expenses and shares,
+  FX table read once, no query in a loop). The CSV never reaches the server: the
+  browser parses it and posts structured data. 103 tests, the load-bearing one
+  being the round trip — parse a fixture, create the room through the real
+  handler, and compare Split's balances against the file's own "Total balance"
+  row — plus a Playwright spec that does the same through a real file input.
+  Registered in `static-pages.ts`, linked from the footer and from
+  `/splitwise-alternative` (whose FAQ used to say Split had no import).
+  Known limits, all surfaced in the UI before anything is written: historic FX
+  uses today's rate (Splitwise does not export the rate it used on the day), and
+  settle-up rows arrive as balance-identical expenses rather than settlements.
+
 ## To light up (remaining gates)
 
 Done 2026-07-28 and verified live: the `split-egress` squid pinhole (allowed
@@ -126,12 +149,11 @@ Remaining candidates, ordered by expected value per effort:
 4. **Expense reactions** — tap-to-react emoji on expenses. Social warmth with
    no chat surface. Small.
 5. **CSV export** — Tricount deleted theirs and users still rage; cheap trust
-   win.
+   win. ~~Splitwise importer~~ shipped 2026-07-28 (below); export is the other
+   half of the same trust argument and now the cheaper of the two.
 6. **Verified settle receipts** — reopens the 2026-07-27 decision (Peanut emits
    no signed charge webhook; polling public `GET /charges/:id` is the cheapest
    route). Revisit only if day-30 shows conversion is what's broken.
-7. **Splitwise importer** — bunq's en-US play; pairs with the
-   `/splitwise-alternative` page.
 
 ## Deliberately not building
 

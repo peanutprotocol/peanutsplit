@@ -49,7 +49,8 @@
             "compareLink": "Splitwise alternative",
             "guidesLink": "Guides",
             "poweredByPrefix": "powered by",
-            "poweredByBrand": "Peanut"
+            "poweredByBrand": "Peanut",
+            "importLink": "Import from Splitwise"
         },
         "install": {
             "title": "Add Split to your home screen",
@@ -387,7 +388,9 @@
         "SCAN_BAD_IMAGE": "That image could not be sent — try taking it again.",
         "SCAN_NO_ITEMS": "No items could be read on that photo — try a straighter shot with more light.",
         "SCAN_ROOM_LIMIT": "This room has scanned a lot of bills today — try again tomorrow.",
-        "SCAN_FAILED": "Could not read that bill — try again."
+        "SCAN_FAILED": "Could not read that bill — try again.",
+        "IMPORT_TOO_LARGE": "That import is too big to send. Try a group with less history.",
+        "RATE_LIMITED": "That was a lot of requests — give it a minute and try again."
     },
     "derivation": {
         "title": "How this adds up",
@@ -430,5 +433,69 @@
         "fullToast": "{count, plural, one {Too many expenses waiting — the oldest one was dropped.} other {Too many expenses waiting — the # oldest were dropped.}}",
         "rejectedToast": "{count, plural, one {A waiting expense could not be saved — add it again.} other {# waiting expenses could not be saved — add them again.}}",
         "sentToast": "{count, plural, one {Expense sent} other {# expenses sent}}"
+    },
+    "import": {
+        "drop": {
+            "title": "Drop your Splitwise export here",
+            "body": "The .csv file Splitwise gives you when you export a group. It is read right here on your device — nothing is uploaded.",
+            "cta": "Choose a file",
+            "privacy": "Your own browser opens the file. We only ever receive the expenses inside it, and only when you press the button."
+        },
+        "howto": {
+            "title": "Where to find the file",
+            "step1": "Open the group on splitwise.com.",
+            "step2": "Open the group settings and choose “Export as spreadsheet”.",
+            "step3": "Come back with the .csv and drop it above."
+        },
+        "preview": {
+            "found": "{expenses, plural, one {# expense} other {# expenses}} · {members, plural, one {# person} other {# people}}",
+            "total": "Adds up to {total}",
+            "roomName": "Name the room",
+            "roomNamePlaceholder": "Ski trip",
+            "fallbackName": "Imported group",
+            "currency": "Currency",
+            "currencyLabel": "Room currency",
+            "currencyHint": "Balances settle in this currency. Each expense keeps the one it was paid in.",
+            "members": "Everyone in the group",
+            "whoAreYou": "Fix any name that came across oddly, and pick yourself from the list.",
+            "thatsMe": "I’m {name}",
+            "submit": "Create the room",
+            "startOver": "Use a different file"
+        },
+        "fx": {
+            "title": "About the exchange rates",
+            "body": "This group spent in more than one currency. Splitwise does not export the rate it used on the day, so everything is converted at today’s rate — the totals will be close, not identical to the ones you see there."
+        },
+        "warnings": {
+            "title": "Worth knowing",
+            "more": "…and {count, plural, one {# more} other {# more}}.",
+            "ROW_UNBALANCED": "Row {row} does not add up in the file itself, so it was left out.",
+            "ROW_UNSUPPORTED_CURRENCY": "Row {row} is in {detail}, which Split does not carry yet, so it was left out.",
+            "ROW_NO_PAYER": "Row {row} does not say who paid, so it was left out.",
+            "ROW_ZERO_COST": "Row {row} has no amount, so it was left out.",
+            "ROW_BAD_AMOUNT": "Row {row} has an amount we could not read, so it was left out.",
+            "ROW_BAD_DATE": "Row {row} has a date we could not read — it comes in dated today.",
+            "MULTI_PAYER_SPLIT": "“{detail}” was paid by more than one person. The file does not record who put in what, so it arrives as one expense per payer — the balances are exact, the split between payers is our best reading.",
+            "PAYMENT_ROWS": "Payments between people arrive as expenses rather than as settled-up records. The balances come out the same.",
+            "MIXED_CURRENCY": "The file mixes {detail}.",
+            "DUPLICATE_MEMBER_NAME": "Two people are called {detail}, so the second is listed as “{detail} (2)”. Rename them below."
+        },
+        "errors": {
+            "NOT_SPLITWISE_CSV": "That does not look like a Splitwise export. It should be the .csv you get from “Export as spreadsheet”.",
+            "NO_MEMBERS": "That export has no people in it — check you exported a group rather than a single expense.",
+            "NO_EXPENSES": "There was nothing we could read in that file. If its expenses are in a currency Split does not carry, that would be why.",
+            "TOO_MANY_MEMBERS": "That group has more than 20 people. Split rooms are built for a trip or a flat, not a mailing list.",
+            "TOO_MANY_EXPENSES": "That export has more than 500 expenses. Try a group with less history, or start a fresh room.",
+            "FILE_TOO_BIG": "That file is too big to be a Splitwise export. Check you picked the right one.",
+            "READ_FAILED": "We could not read that file. Try choosing it again.",
+            "EMPTY_NAME": "Everyone needs a name.",
+            "DUPLICATE_NAMES": "Two people have the same name — make them different so every expense lands on the right person.",
+            "failed": "could not create the room — try again"
+        },
+        "ready": {
+            "title": "Your group is in",
+            "subtitle": "Send this link to everyone. They tap it, pick their name, and everything you imported is already there.",
+            "goToRoom": "Go to room"
+        }
     }
 }

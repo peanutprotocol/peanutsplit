@@ -15,6 +15,7 @@ import type {
     CreateRoomInput,
     CurrencyInfo,
     ExpenseInput,
+    ImportRoomInput,
     RoomState,
     RoomStateWithMember,
     SettlementInput,
@@ -452,5 +453,15 @@ export function useRemoveReaction(slug: string) {
             if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
         },
         onSuccess: (state) => seed(queryClient, slug, state),
+    })
+}
+
+/** The Splitwise import. Seeds the cache exactly like a creation, because that is what it is —
+ *  one call that returns a finished room, history and balances included. */
+export function useImportRoom(): UseMutationResult<RoomStateWithMember, Error, ImportRoomInput> {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (input: ImportRoomInput) => api.importRoom(input),
+        onSuccess: (state) => seed(queryClient, state.room.slug, state),
     })
 }

@@ -58,6 +58,8 @@ export const KNOWN_ERROR_CODES = [
     'SCAN_NO_ITEMS',
     'SCAN_ROOM_LIMIT',
     'SCAN_FAILED',
+    'IMPORT_TOO_LARGE',
+    'RATE_LIMITED',
 ] as const
 
 export type KnownErrorCode = (typeof KNOWN_ERROR_CODES)[number]
