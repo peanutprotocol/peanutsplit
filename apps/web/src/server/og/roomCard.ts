@@ -6,6 +6,7 @@
  * `+N` overflow, the unknown-slug fallback — are unit-testable without booting
  * a rasterizer.
  */
+import { interpolate, getTranslator } from '@/i18n/t'
 import { prisma } from '@/server/db'
 import { formatMinor } from '@/server/money'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
@@ -36,6 +37,65 @@ export interface OgAvatar {
     color: string
 }
 
+/**
+ * Every sentence on the card that is not somebody's name, in the room's own
+ * language.
+ *
+ * A room link's unfurl is the ONE screen a suspicious invitee reads before
+ * deciding whether to tap something a friend dropped in a group chat, and it was
+ * hard English regardless of the language the room was started in. The crawler
+ * that renders it carries no cookie and no useful `Accept-Language`, so the room
+ * has to remember — see `Room.locale`.
+ *
+ * Written as templates rather than resolved through ICU because the translator
+ * this file reaches for (`i18n/t.ts`) deliberately is not an ICU implementation:
+ * it substitutes `{param}` and nothing else, so a plural has to be two keys and
+ * a branch rather than one message. Two keys is the cheaper of the two costs.
+ */
+export interface CardCopy {
+    statNone: string
+    /** `{amount}`. */
+    statOne: string
+    /** `{count}`, `{amount}`. */
+    statMany: string
+    peopleOne: string
+    /** `{count}`. */
+    peopleMany: string
+    emptyRoster: string
+    tagline: string
+}
+
+/**
+ * The literals this file shipped with. They are the default for every pure
+ * function below, so the unit tests stay about the arithmetic, and they are what
+ * the brand card and an unknown slug get — neither has a room to have a language.
+ */
+export const ENGLISH_CARD_COPY: CardCopy = {
+    statNone: 'No expenses yet',
+    statOne: '1 expense · {amount} so far',
+    statMany: '{count} expenses · {amount} so far',
+    peopleOne: '1 person',
+    peopleMany: '{count} people',
+    emptyRoster: 'Nobody has joined yet',
+    tagline: 'no signup · free forever',
+}
+
+/** The card's copy in a room's own language. Null (and anything unrecognised)
+ *  falls back to English through `getTranslator` itself. */
+export async function cardCopy(locale: string | null | undefined): Promise<CardCopy> {
+    const t = await getTranslator(locale ?? 'en')
+    const [statNone, statOne, statMany, peopleOne, peopleMany, emptyRoster, tagline] = await Promise.all([
+        t('preview.statNone'),
+        t('preview.statOne'),
+        t('preview.statMany'),
+        t('preview.peopleOne'),
+        t('preview.peopleMany'),
+        t('preview.emptyRoster'),
+        t('preview.tagline'),
+    ])
+    return { statNone, statOne, statMany, peopleOne, peopleMany, emptyRoster, tagline }
+}
+
 export interface RoomCardData {
     /** Display-font-safe, already truncated. */
     name: string
@@ -45,8 +105,12 @@ export interface RoomCardData {
     /** Members not shown in the row; 0 when everyone fits. */
     overflow: number
     memberCount: number
-    /** "3 expenses · $128.50 so far" */
+    /** "3 expenses · $128.50 so far" — localized and font-safe. */
     stat: string
+    /** "6 people", or `emptyRoster` when nobody has joined. */
+    people: string
+    /** The strip under the card. Localized and font-safe like the rest. */
+    tagline: string
     /** Resolved, never a raw key — the renderer must not have to know what a
      *  missing or unknown theme means. This is the whole point of the feature:
      *  re-theme a room and the unfurl in the group chat follows within the
@@ -176,21 +240,53 @@ export function safeAmount(totalMinor: bigint, code: string): string {
     return stripped ? `${stripped} ${code}` : `${totalMinor.toString()} ${code}`
 }
 
-export function statLine(expenseCount: number, totalMinor: bigint, code: string): string {
-    if (expenseCount === 0) return 'No expenses yet'
-    const noun = expenseCount === 1 ? 'expense' : 'expenses'
-    return `${expenseCount} ${noun} · ${safeAmount(totalMinor, code)} so far`
+/**
+ * Anything the body font cannot draw, dropped.
+ *
+ * `safeAmount` already does this for the amount, where the failure is a known one
+ * (`฿` is outside Sniglet). A translated sentence is the other half: the shipped
+ * copy is Latin-1 and draws fine, but a catalog is edited by people rather than
+ * by this file, and one pasted typographic character nobody thought about would
+ * put a blank rectangle in the middle of the product's storefront. The filter
+ * costs nothing and removes the class.
+ */
+const bodySafe = (value: string): string =>
+    [...value]
+        .filter((ch) => BODY_CHARS.has(ch))
+        .join('')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+export function statLine(
+    expenseCount: number,
+    totalMinor: bigint,
+    code: string,
+    copy: CardCopy = ENGLISH_CARD_COPY
+): string {
+    if (expenseCount === 0) return bodySafe(copy.statNone)
+    const amount = safeAmount(totalMinor, code)
+    const template = expenseCount === 1 ? copy.statOne : copy.statMany
+    return bodySafe(interpolate(template, { count: expenseCount, amount }))
+}
+
+/** "1 person" / "6 people", or the empty-roster line. Same font discipline. */
+export function peopleLine(memberCount: number, copy: CardCopy = ENGLISH_CARD_COPY): string {
+    if (memberCount === 0) return bodySafe(copy.emptyRoster)
+    return bodySafe(memberCount === 1 ? copy.peopleOne : interpolate(copy.peopleMany, { count: memberCount }))
 }
 
 /** Shape the raw room row into card data. Exported for tests; no I/O. */
-export function toRoomCard(room: {
-    name: string
-    emoji: string | null
-    currency: string
-    theme?: string | null
-    members: { name: string }[]
-    expenses: { baseAmountMinor: bigint }[]
-}): RoomCardData {
+export function toRoomCard(
+    room: {
+        name: string
+        emoji: string | null
+        currency: string
+        theme?: string | null
+        members: { name: string }[]
+        expenses: { baseAmountMinor: bigint }[]
+    },
+    copy: CardCopy = ENGLISH_CARD_COPY
+): RoomCardData {
     const total = room.expenses.reduce((sum, e) => sum + e.baseAmountMinor, 0n)
     const { avatars, overflow } = avatarsFor(room.members.map((m) => m.name))
     return {
@@ -199,7 +295,9 @@ export function toRoomCard(room: {
         avatars,
         overflow,
         memberCount: room.members.length,
-        stat: statLine(room.expenses.length, total, room.currency),
+        stat: statLine(room.expenses.length, total, room.currency, copy),
+        people: peopleLine(room.members.length, copy),
+        tagline: bodySafe(copy.tagline),
         theme: themeFor(room.theme),
     }
 }
@@ -217,9 +315,10 @@ export async function loadRoomCard(slug: string): Promise<RoomCardData | null> {
             emoji: true,
             currency: true,
             theme: true,
+            locale: true,
             members: { orderBy: { createdAt: 'asc' }, select: { name: true } },
             expenses: { where: { deletedAt: null }, select: { baseAmountMinor: true } },
         },
     })
-    return room ? toRoomCard(room) : null
+    return room ? toRoomCard(room, await cardCopy(room.locale)) : null
 }
