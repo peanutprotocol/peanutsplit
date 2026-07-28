@@ -58,6 +58,11 @@ export function localeFromPrefix(prefix: string): Locale | null {
 /**
  * Prefix a root-relative path for a locale. `/blog/x` + `es` → `/es/blog/x`, and the same path
  * in `en` comes back untouched.
+ *
+ * Only ever point this at a path that HAS a locale-prefixed route — the guides hub, the articles,
+ * the comparison pages. The app shell (`/`, `/new`, `/r/*`) answers at one URL by design, so
+ * prefixing one of those produces a URL nothing serves: `/es` and `/es/new` both shipped as live
+ * 404s, linked from every Spanish page's breadcrumb and the Spanish hub's only CTA.
  */
 export function localizedPath(path: string, locale: Locale): string {
     if (locale === DEFAULT_LOCALE) return path

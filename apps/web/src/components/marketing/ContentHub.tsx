@@ -35,8 +35,10 @@ interface HubEntry {
 export async function ContentHub({ locale }: { locale: Locale }) {
     const t = await getTranslations({ locale, namespace: 'content' })
 
+    // The landing is bare `/` in every language — it is app shell, so it answers at one URL and
+    // has no `/es` or `/pt-br` route (see `@/i18n/paths`). Only `/blog` is locale-prefixed here.
     const crumbs = [
-        { name: t('home'), href: localizedPath('/', locale) },
+        { name: t('home'), href: '/' },
         { name: t('guides'), href: localizedPath('/blog', locale) },
     ]
 
@@ -113,7 +115,9 @@ export async function ContentHub({ locale }: { locale: Locale }) {
                     </ul>
                 )}
 
-                <Link href={localizedPath('/new', locale)} className="mt-8 block">
+                {/* `/new` is app shell too — one URL, cookie decides the language. `/es/new` and
+                    `/pt-br/new` are not routes, so prefixing this made the hub's only CTA a 404. */}
+                <Link href="/new" className="mt-8 block">
                     <Button variant="primary" shadowSize="4" className="justify-center text-h6">
                         {t('startRoom')}
                     </Button>

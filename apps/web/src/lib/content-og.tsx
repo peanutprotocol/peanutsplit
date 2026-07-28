@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { getTranslations } from 'next-intl/server'
 import { BrandCard, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/card'
 import { BODY_CHARS, ogFonts } from '@/server/og/fonts'
 import { getDoc, listSlugs, type Collection } from '@/lib/content'
@@ -36,6 +37,25 @@ function drawable(text: string): string {
             .replace(/\s+/g, ' ')
             .trim() || 'Peanut Split'
     )
+}
+
+/**
+ * Unfurl for a translated guides hub.
+ *
+ * The English hub has its own file; `/es/blog` and `/pt-br/blog` had none and were therefore
+ * sharing as a blank card — a metadata image file is NOT inherited across route segments, so a
+ * segment without one simply emits no `og:image`. The tagline is the hub's own description from
+ * the catalog rather than a second string to keep in step, and it goes through `drawable` because
+ * the accented Spanish and Portuguese lines are only safe up to Latin-1.
+ */
+export function hubOgImage(locale: Locale) {
+    return async function HubOgImage() {
+        const t = await getTranslations({ locale, namespace: 'content' })
+        return new ImageResponse(<BrandCard lines={['SPLIT', 'GUIDES']} tagline={drawable(t('hubDescription'))} />, {
+            ...OG_SIZE,
+            fonts: await ogFonts(),
+        })
+    }
 }
 
 export function contentOgStaticParams(collection: Collection, locale: Locale, paramName: 'slug' | 'alternative') {
