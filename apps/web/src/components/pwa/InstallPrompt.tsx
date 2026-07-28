@@ -8,6 +8,7 @@ import { peanutPointing } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { IosInstallSteps } from './IosInstallSteps'
 
 const DISMISS_COUNT_KEY = 'ps:pwa-dismiss-count'
 const DISMISSED_AT_KEY = 'ps:pwa-dismissed-at'
@@ -238,21 +239,7 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                         <DrawerTitle className="text-h5">{t('ios.title')}</DrawerTitle>
                         <DrawerDescription>{t('ios.body')}</DrawerDescription>
                     </DrawerHeader>
-                    <ol className="flex flex-col gap-3 px-4 pb-2">
-                        {/* Literal keys: three steps is not enough repetition to justify a
-                            computed path, which the i18n audit could only skip. */}
-                        {[t('ios.step1'), t('ios.step2'), t('ios.step3')].map((step, index) => (
-                            <li key={step} className="flex items-start gap-3">
-                                <span
-                                    aria-hidden="true"
-                                    className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-1 font-display text-h8 leading-none"
-                                >
-                                    {index + 1}
-                                </span>
-                                <span className="flex-1 text-sm leading-5">{step}</span>
-                            </li>
-                        ))}
-                    </ol>
+                    <IosInstallSteps />
                     <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                         <Button variant="stroke" className="justify-center" onClick={dismiss}>
                             {t('ios.done')}

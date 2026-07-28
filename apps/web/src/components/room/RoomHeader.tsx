@@ -4,11 +4,14 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
+import { AccountPanel } from '@/components/account/AccountPanel'
+import { PushOptIn } from '@/components/pwa/PushOptIn'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Icon } from '@/components/ui/Icon'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import type { ApiRoom } from '@/lib/api-types'
+import { accountsEnabled } from '@/lib/flags'
 import type { MemberIdentity } from '@/lib/identity'
 import { triggerHaptic, useSettings } from '@/lib/use-settings'
 
@@ -70,6 +73,7 @@ function SettingToggle({
 export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const tLocale = useTranslations('locale')
+    const tAccount = useTranslations('account')
     const [menuOpen, setMenuOpen] = useState(false)
     const { settings, setSoundEnabled, setHapticsEnabled } = useSettings()
 
@@ -166,6 +170,21 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                                 }}
                             />
                         </div>
+
+                        {/* Per room and per device, which is why it lives in the room's own
+                            drawer rather than anywhere global. Renders nothing on a browser
+                            that cannot do push at all. */}
+                        <PushOptIn slug={room.slug} identity={identity} />
+
+                        {/* An account is optional, does nothing but carry your rooms to
+                            another device, and never gates anything in this drawer or
+                            outside it. Hidden entirely until the flag is on. */}
+                        {accountsEnabled() && (
+                            <div className="mt-2 flex flex-col gap-2">
+                                <span className="text-h8 uppercase tracking-wide text-grey-1">{tAccount('title')}</span>
+                                <AccountPanel />
+                            </div>
+                        )}
 
                         {/* The room drawer is the only place a language can be changed inside
                             the product — the landing footer is the other, and a room is where
