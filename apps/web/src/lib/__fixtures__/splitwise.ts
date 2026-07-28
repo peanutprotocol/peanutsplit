@@ -119,23 +119,33 @@ export function generateGroup(count: number, members = ['Ana', 'Bruno']): string
  * (`reconcileTotalBalance` returning an empty array). If the opening-balance
  * construction is wrong in any way, that comparison is where it shows.
  *
- * Costs divide evenly by the roster so no row carries a rounding residue — the
- * question here is whether the carried-forward arithmetic is exact, and a residue
- * would make a failure ambiguous between the two. Dates advance one day per row,
- * so "the most recent N" has exactly one meaning, and the payer rotates so every
- * member ends up genuinely up or down rather than all square.
+ * By default costs divide evenly by the roster so no row carries a rounding
+ * residue — the question there is whether the carried-forward arithmetic is
+ * exact, and a residue would make a failure ambiguous between the two. Pass
+ * `costMinor` for the opposite case: a cost the roster cannot divide, so every
+ * single row leaves a residue, which is what the room-currency bound has to hold
+ * up against. Dates advance one day per row, so "the most recent N" has exactly
+ * one meaning, and the payer rotates so every member ends up genuinely up or
+ * down rather than all square.
  */
-export function generateLongHistory(count: number, members = ['Ana', 'Bruno', 'Carla', 'Dan']): string {
+export function generateLongHistory(
+    count: number,
+    members = ['Ana', 'Bruno', 'Carla', 'Dan'],
+    costMinor?: number
+): string {
     const header = `Date,Description,Category,Cost,Currency,${members.join(',')}`
     const cents = (value: number) => (value / 100).toFixed(2)
-    // 12.00 per head, whatever the roster size — no remainder, ever.
-    const share = 1200
-    const cost = share * members.length
+    // 12.00 per head by default, whatever the roster size — no remainder, ever.
+    const cost = costMinor ?? 1200 * members.length
+    // Splitwise's own division: the first few members carry the extra cent.
+    const base = Math.floor(cost / members.length)
+    const remainder = cost % members.length
+    const shares = members.map((_, i) => base + (i < remainder ? 1 : 0))
 
     const totals = members.map(() => 0)
     const rows = Array.from({ length: count }, (_, i) => {
         const payer = i % members.length
-        const nets = members.map((_, m) => (m === payer ? cost - share : -share))
+        const nets = members.map((_, m) => (m === payer ? cost - shares[m] : -shares[m]))
         nets.forEach((net, m) => (totals[m] += net))
         const day = new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10)
         return `${day},Expense ${i + 1},Dining out,${cents(cost)},EUR,${nets.map(cents).join(',')}`
