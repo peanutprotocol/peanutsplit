@@ -1,256 +1,256 @@
 {
-  "marketing": {
-    "hero": {
-      "eyebrow": "sin app · sin registro · gratis para siempre",
-      "titleTop": "DIVIDE",
-      "titleBottom": "TODO",
-      "subtitle": "Viajes, cenas, roommates. Comparte un link — cada quien anota lo que pagó y nosotros calculamos quién le debe a quién.",
-      "cta": "Empezar a dividir",
-      "ctaHint": "Toma diez segundos. Sin correo, sin contraseña, sin descargas.",
-      "mascotAlt": "Peanut saludando"
+    "marketing": {
+        "hero": {
+            "eyebrow": "sin app · sin registro · gratis para siempre",
+            "titleTop": "DIVIDE",
+            "titleBottom": "TODO",
+            "subtitle": "Viajes, cenas, roommates. Comparte un link — cada quien anota lo que pagó y nosotros calculamos quién le debe a quién.",
+            "cta": "Empezar a dividir",
+            "ctaHint": "Toma diez segundos. Sin correo, sin contraseña, sin descargas.",
+            "mascotAlt": "Peanut saludando"
+        },
+        "rooms": {
+            "title": "Tus salas",
+            "subtitle": "Guardadas en este dispositivo.",
+            "openLabel": "Abrir sala",
+            "more": "y {count, plural, one {# más} other {# más}}"
+        },
+        "how": {
+            "title": "Cómo funciona",
+            "step1": {
+                "title": "Empieza a dividir",
+                "body": "Ponle nombre, elige un emoji y una moneda. Viaje a la nieve, gastos de la casa, cena del martes."
+            },
+            "step2": {
+                "title": "Comparte el link",
+                "body": "Pégalo en el chat del grupo. Nadie instala nada ni crea una cuenta."
+            },
+            "step3": {
+                "title": "Todos agregan gastos",
+                "body": "Los saldos se actualizan en vivo y las cuentas cuadran al centavo — en pantalla, siempre."
+            }
+        },
+        "honesty": {
+            "title": "La parte honesta",
+            "item1": {
+                "title": "Gratis para siempre",
+                "body": "Sin comisiones, sin plan premium, no hay nada que comprar."
+            },
+            "item2": {
+                "title": "Sin cuenta",
+                "body": "Sin correo, sin contraseña, sin verificación de identidad. El link es la llave — déjalo en el grupo."
+            },
+            "item3": {
+                "title": "Paga como quieras",
+                "body": "Efectivo, transferencia o la app que ya usas. Nosotros solo lo registramos."
+            }
+        },
+        "footer": {
+            "compareLink": "Alternativa a Splitwise",
+            "guidesLink": "Guías",
+            "poweredByPrefix": "hecho por",
+            "poweredByBrand": "Peanut"
+        },
+        "install": {
+            "title": "Agrega Split a tu pantalla de inicio",
+            "body": "Abre al instante y funciona como app. Sin tienda, sin cuenta.",
+            "cta": "Agregar a pantalla de inicio",
+            "dismiss": "Ahora no",
+            "ios": {
+                "title": "Agrega Split a tu pantalla de inicio",
+                "body": "Dos toques en Safari y Split queda en tu pantalla de inicio como una app.",
+                "step1": "Toca el botón Compartir en la barra de Safari.",
+                "step2": "Baja y elige «Agregar a inicio».",
+                "step3": "Toca «Agregar». Listo.",
+                "done": "Entendido"
+            }
+        }
     },
-    "rooms": {
-      "title": "Tus salas",
-      "subtitle": "Guardadas en este dispositivo.",
-      "openLabel": "Abrir sala",
-      "more": "y {count, plural, one {# más} other {# más}}"
+    "locale": {
+        "label": "Idioma"
     },
-    "how": {
-      "title": "Cómo funciona",
-      "step1": {
-        "title": "Empieza a dividir",
-        "body": "Ponle nombre, elige un emoji y una moneda. Viaje a la nieve, gastos de la casa, cena del martes."
-      },
-      "step2": {
-        "title": "Comparte el link",
-        "body": "Pégalo en el chat del grupo. Nadie instala nada ni crea una cuenta."
-      },
-      "step3": {
-        "title": "Todos agregan gastos",
-        "body": "Los saldos se actualizan en vivo y las cuentas cuadran al centavo — en pantalla, siempre."
-      }
+    "dates": {
+        "today": "Hoy",
+        "yesterday": "Ayer"
     },
-    "honesty": {
-      "title": "La parte honesta",
-      "item1": {
-        "title": "Gratis para siempre",
-        "body": "Sin comisiones, sin plan premium, no hay nada que comprar."
-      },
-      "item2": {
-        "title": "Sin cuenta",
-        "body": "Sin correo, sin contraseña, sin verificación de identidad. El link es la llave — déjalo en el grupo."
-      },
-      "item3": {
-        "title": "Paga como quieras",
-        "body": "Efectivo, transferencia o la app que ya usas. Nosotros solo lo registramos."
-      }
+    "room": {
+        "actions": {
+            "settleUp": "Saldar cuentas",
+            "addExpense": "Agregar gasto"
+        },
+        "header": {
+            "allRooms": "Todas las salas",
+            "shareRoomLink": "Compartir el link de la sala",
+            "roomMenu": "Menú de la sala",
+            "youAre": "eres {name}",
+            "shareTheRoomLink": "Compartir el link de la sala",
+            "notMe": "No soy {name}",
+            "feedback": "Sonido y tacto",
+            "sound": "Sonido",
+            "soundHint": "Clics, golpecitos y una campana",
+            "haptics": "Vibración",
+            "hapticsHint": "Un toque que se siente",
+            "privacyNote": "Gratis para siempre, sin registro. Los links de sala no aparecen en ningún lado — solo entra quien tú invites."
+        },
+        "join": {
+            "title": "¿Quién eres?",
+            "roster": "{room} · {count, plural, one {# persona} other {# personas}} hasta ahora",
+            "thatsMe": "soy yo",
+            "imNew": "Soy nuevo aquí",
+            "namePlaceholder": "Tu nombre",
+            "submit": "Entrar a la sala",
+            "alreadyOnList": "En realidad ya estoy en la lista",
+            "duplicate": "{name} ya está aquí — toca su nombre arriba.",
+            "failed": "no se pudo entrar — intenta de nuevo"
+        },
+        "balances": {
+            "title": "Saldos",
+            "you": "Tú",
+            "settled": "sin deudas",
+            "owes": "debe",
+            "getsBack": "le deben"
+        },
+        "expenses": {
+            "title": "Gastos",
+            "emptyTitle": "Todavía no hay gastos",
+            "emptyBody": "Agrega el primero — quién pagó, cuánto y para quién.",
+            "someone": "Alguien",
+            "you": "Tú",
+            "paidBy": "{payer} pagó · {count, plural, one {# persona} other {# personas}}",
+            "indicative": "indicativo"
+        },
+        "states": {
+            "errorTitle": "No pudimos cargar esta sala",
+            "errorBody": "Seguro es la conexión. No se perdió nada — intenta otra vez.",
+            "retry": "Intentar de nuevo",
+            "notFoundTitle": "Esta división no existe",
+            "notFoundBody": "Los links distinguen mayúsculas — revisa que copiaste todo, incluida la parte después del último guion.",
+            "notFoundCta": "Empezar una nueva división"
+        },
+        "allSettled": {
+            "title": "Todo saldado",
+            "body": "Nadie le debe nada a nadie. Disfruta la sensación.",
+            "expenseCount": "{count, plural, one {# gasto} other {# gastos}}",
+            "peopleCount": "{count, plural, one {# persona} other {# personas}}",
+            "allSquare": "a mano"
+        },
+        "expenseDrawer": {
+            "addTitle": "Agregar gasto",
+            "editTitle": "Editar gasto",
+            "amount": "Monto",
+            "currency": "Moneda del gasto",
+            "description": "¿De qué fue?",
+            "descriptionPlaceholder": "Cena, taxi, pase de esquí…",
+            "paidBy": "Pagado por",
+            "split": "División",
+            "equally": "En partes iguales",
+            "exactAmounts": "Montos exactos",
+            "exactAmountFor": "Monto exacto de {name}",
+            "putRemainderOn": "Poner el resto en {name}",
+            "addToSplit": "+ {name}",
+            "allocated": "Todo repartido al centavo",
+            "overBy": "Te pasaste por",
+            "leftToAllocate": "Falta repartir",
+            "amountsAreIn": "Los montos están en {currency}",
+            "convertedAt": " — convertidos a {roomCurrency} a un tipo de cambio indicativo",
+            "allocatedOf": ". Repartido {allocated} de {total}.",
+            "when": "Cuándo",
+            "date": "Fecha del gasto",
+            "save": "Guardar cambios",
+            "add": "Agregar gasto",
+            "delete": "Eliminar",
+            "deletedToast": "«{description}» eliminado",
+            "undo": "Deshacer",
+            "restored": "Restaurado",
+            "restoreFailed": "No se pudo deshacer — recarga e intenta de nuevo",
+            "wasDeleted": "Este gasto fue eliminado. Deshaz la eliminación antes de editarlo.",
+            "saveFailed": "no se pudo guardar el gasto — intenta de nuevo",
+            "deleteFailed": "no se pudo eliminar el gasto",
+            "validation": {
+                "DESCRIPTION_REQUIRED": "Ponle un nombre para que todos recuerden qué fue.",
+                "AMOUNT_REQUIRED": "Escribe un monto mayor que cero.",
+                "PAYER_REQUIRED": "Elige quién pagó.",
+                "NO_PARTICIPANTS": "Elige al menos a una persona para dividir esto.",
+                "SHARES_DO_NOT_ADD_UP": "Los montos exactos tienen que sumar el total."
+            }
+        },
+        "settle": {
+            "listTitle": "Quién le debe a quién",
+            "recordTitle": "Registrar un pago",
+            "nothingToSettle": "Nada que saldar todavía — agrega un gasto primero.",
+            "intro": "La menor cantidad de pagos que deja todo en cero. Paga como quieras — nosotros solo lo registramos.",
+            "stillOutstanding": "Falta por saldar",
+            "howPaid": "¿Cómo se pagó?",
+            "cash": "Efectivo",
+            "cashHint": "en mano",
+            "bank": "Banco",
+            "bankHint": "transferencia",
+            "peanut": "Peanut",
+            "peanutHint": "al instante, sin comisiones",
+            "peanutNote": "Abre peanut.me en otra pestaña para enviarlo — y registra el pago aquí de todos modos.",
+            "note": "Nota (opcional)",
+            "notePlaceholder": "Enviado el viernes",
+            "record": "Registrar pago",
+            "back": "Volver",
+            "recorded": "{from} → {to} registrado",
+            "failed": "no se pudo registrar ese pago — intenta de nuevo"
+        },
+        "share": {
+            "title": "Invita al resto",
+            "subtitle": "Un link. Lo tocan, eligen su nombre y ya están adentro."
+        },
+        "link": {
+            "subtitle": "tu sala para dividir",
+            "roomLink": "Link de la sala",
+            "copyBlocked": "Tu navegador bloqueó la copia — selecciona el link de arriba y cópialo a mano.",
+            "copy": "Copiar link",
+            "copied": "¡Copiado!",
+            "share": "Compartir",
+            "anyoneCanJoin": "Cualquiera con este link puede entrar y agregar gastos.",
+            "shareTitle": "{room} · Peanut Split",
+            "shareText": "Entra a «{room}» y dividamos esto bien."
+        },
+        "create": {
+            "back": "Volver",
+            "title": "Nueva división",
+            "name": "¿Qué van a dividir?",
+            "namePlaceholder": "Viaje a la nieve",
+            "emoji": "Elige una cara",
+            "emojiGroup": "Emoji de la sala",
+            "emojiOption": "Emoji {emoji}",
+            "currency": "Moneda",
+            "currencyLabel": "Moneda de la sala",
+            "currencyHint": "Los saldos se saldan en esta moneda. Cada gasto puede ir en cualquier otra.",
+            "creatorName": "Y tú eres…",
+            "creatorNamePlaceholder": "Tu nombre",
+            "submit": "Crear la sala",
+            "failed": "no se pudo crear la sala — intenta de nuevo",
+            "readyTitle": "Tu sala está lista",
+            "readySubtitle": "Envía este link a todos los que dividen. Sin app, sin registro — solo lo tocan.",
+            "goToRoom": "Ir a la sala"
+        }
     },
-    "footer": {
-      "compareLink": "Alternativa a Splitwise",
-      "guidesLink": "Guías",
-      "poweredByPrefix": "hecho por",
-      "poweredByBrand": "Peanut"
-    },
-    "install": {
-      "title": "Agrega Split a tu pantalla de inicio",
-      "body": "Abre al instante y funciona como app. Sin tienda, sin cuenta.",
-      "cta": "Agregar a pantalla de inicio",
-      "dismiss": "Ahora no",
-      "ios": {
-        "title": "Agrega Split a tu pantalla de inicio",
-        "body": "Dos toques en Safari y Split queda en tu pantalla de inicio como una app.",
-        "step1": "Toca el botón Compartir en la barra de Safari.",
-        "step2": "Baja y elige «Agregar a inicio».",
-        "step3": "Toca «Agregar». Listo.",
-        "done": "Entendido"
-      }
-    }
-  },
-  "locale": {
-    "label": "Idioma"
-  },
-  "dates": {
-    "today": "Hoy",
-    "yesterday": "Ayer"
-  },
-  "room": {
-    "actions": {
-      "settleUp": "Saldar cuentas",
-      "addExpense": "Agregar gasto"
-    },
-    "header": {
-      "allRooms": "Todas las salas",
-      "shareRoomLink": "Compartir el link de la sala",
-      "roomMenu": "Menú de la sala",
-      "youAre": "eres {name}",
-      "shareTheRoomLink": "Compartir el link de la sala",
-      "notMe": "No soy {name}",
-      "feedback": "Sonido y tacto",
-      "sound": "Sonido",
-      "soundHint": "Clics, golpecitos y una campana",
-      "haptics": "Vibración",
-      "hapticsHint": "Un toque que se siente",
-      "privacyNote": "Gratis para siempre, sin registro. Los links de sala no aparecen en ningún lado — solo entra quien tú invites."
-    },
-    "join": {
-      "title": "¿Quién eres?",
-      "roster": "{room} · {count, plural, one {# persona} other {# personas}} hasta ahora",
-      "thatsMe": "soy yo",
-      "imNew": "Soy nuevo aquí",
-      "namePlaceholder": "Tu nombre",
-      "submit": "Entrar a la sala",
-      "alreadyOnList": "En realidad ya estoy en la lista",
-      "duplicate": "{name} ya está aquí — toca su nombre arriba.",
-      "failed": "no se pudo entrar — intenta de nuevo"
-    },
-    "balances": {
-      "title": "Saldos",
-      "you": "Tú",
-      "settled": "sin deudas",
-      "owes": "debe",
-      "getsBack": "le deben"
-    },
-    "expenses": {
-      "title": "Gastos",
-      "emptyTitle": "Todavía no hay gastos",
-      "emptyBody": "Agrega el primero — quién pagó, cuánto y para quién.",
-      "someone": "Alguien",
-      "you": "Tú",
-      "paidBy": "{payer} pagó · {count, plural, one {# persona} other {# personas}}",
-      "indicative": "indicativo"
-    },
-    "states": {
-      "errorTitle": "No pudimos cargar esta sala",
-      "errorBody": "Seguro es la conexión. No se perdió nada — intenta otra vez.",
-      "retry": "Intentar de nuevo",
-      "notFoundTitle": "Esta división no existe",
-      "notFoundBody": "Los links distinguen mayúsculas — revisa que copiaste todo, incluida la parte después del último guion.",
-      "notFoundCta": "Empezar una nueva división"
-    },
-    "allSettled": {
-      "title": "Todo saldado",
-      "body": "Nadie le debe nada a nadie. Disfruta la sensación.",
-      "expenseCount": "{count, plural, one {# gasto} other {# gastos}}",
-      "peopleCount": "{count, plural, one {# persona} other {# personas}}",
-      "allSquare": "a mano"
-    },
-    "expenseDrawer": {
-      "addTitle": "Agregar gasto",
-      "editTitle": "Editar gasto",
-      "amount": "Monto",
-      "currency": "Moneda del gasto",
-      "description": "¿De qué fue?",
-      "descriptionPlaceholder": "Cena, taxi, pase de esquí…",
-      "paidBy": "Pagado por",
-      "split": "División",
-      "equally": "En partes iguales",
-      "exactAmounts": "Montos exactos",
-      "exactAmountFor": "Monto exacto de {name}",
-      "putRemainderOn": "Poner el resto en {name}",
-      "addToSplit": "+ {name}",
-      "allocated": "Todo repartido al centavo",
-      "overBy": "Te pasaste por",
-      "leftToAllocate": "Falta repartir",
-      "amountsAreIn": "Los montos están en {currency}",
-      "convertedAt": " — convertidos a {roomCurrency} a un tipo de cambio indicativo",
-      "allocatedOf": ". Repartido {allocated} de {total}.",
-      "when": "Cuándo",
-      "date": "Fecha del gasto",
-      "save": "Guardar cambios",
-      "add": "Agregar gasto",
-      "delete": "Eliminar",
-      "deletedToast": "«{description}» eliminado",
-      "undo": "Deshacer",
-      "restored": "Restaurado",
-      "restoreFailed": "No se pudo deshacer — recarga e intenta de nuevo",
-      "wasDeleted": "Este gasto fue eliminado. Deshaz la eliminación antes de editarlo.",
-      "saveFailed": "no se pudo guardar el gasto — intenta de nuevo",
-      "deleteFailed": "no se pudo eliminar el gasto",
-      "validation": {
-        "DESCRIPTION_REQUIRED": "Ponle un nombre para que todos recuerden qué fue.",
-        "AMOUNT_REQUIRED": "Escribe un monto mayor que cero.",
-        "PAYER_REQUIRED": "Elige quién pagó.",
+    "errors": {
+        "generic": "Algo salió mal — intenta de nuevo.",
+        "NETWORK_ERROR": "No pudimos conectar con el servidor — revisa tu conexión.",
+        "INTERNAL": "Algo salió mal de nuestro lado. Intenta en un momento.",
+        "VALIDATION_ERROR": "Algo no cuadra — revisa los campos e intenta de nuevo.",
+        "MALFORMED_JSON": "Algo salió mal al enviar eso — intenta de nuevo.",
+        "NOT_FOUND": "Esta sala no existe.",
+        "EXPENSE_NOT_FOUND": "Ese gasto ya no está — recarga la sala.",
+        "SETTLEMENT_NOT_FOUND": "Ese pago ya no está — recarga la sala.",
+        "SLUG_EXHAUSTED": "No pudimos crear el link de la sala ahora — intenta de nuevo.",
+        "ROOM_ARCHIVED": "Esta sala está archivada.",
+        "DUPLICATE_MEMBER_NAME": "Ese nombre ya está en la sala — elígelo de la lista.",
+        "EXPENSE_DELETED": "Este gasto fue eliminado. Deshaz la eliminación antes de editarlo.",
+        "NOT_A_MEMBER": "Esa persona no está en la sala — recarga e intenta de nuevo.",
+        "AMOUNT_NOT_POSITIVE": "El monto tiene que ser mayor que cero.",
+        "EXACT_SHARES_REQUIRED": "Una división exacta necesita un monto por persona.",
+        "SHARES_DO_NOT_ADD_UP": "Los montos exactos tienen que sumar el total.",
         "NO_PARTICIPANTS": "Elige al menos a una persona para dividir esto.",
-        "SHARES_DO_NOT_ADD_UP": "Los montos exactos tienen que sumar el total."
-      }
-    },
-    "settle": {
-      "listTitle": "Quién le debe a quién",
-      "recordTitle": "Registrar un pago",
-      "nothingToSettle": "Nada que saldar todavía — agrega un gasto primero.",
-      "intro": "La menor cantidad de pagos que deja todo en cero. Paga como quieras — nosotros solo lo registramos.",
-      "stillOutstanding": "Falta por saldar",
-      "howPaid": "¿Cómo se pagó?",
-      "cash": "Efectivo",
-      "cashHint": "en mano",
-      "bank": "Banco",
-      "bankHint": "transferencia",
-      "peanut": "Peanut",
-      "peanutHint": "al instante, sin comisiones",
-      "peanutNote": "Abre peanut.me en otra pestaña para enviarlo — y registra el pago aquí de todos modos.",
-      "note": "Nota (opcional)",
-      "notePlaceholder": "Enviado el viernes",
-      "record": "Registrar pago",
-      "back": "Volver",
-      "recorded": "{from} → {to} registrado",
-      "failed": "no se pudo registrar ese pago — intenta de nuevo"
-    },
-    "share": {
-      "title": "Invita al resto",
-      "subtitle": "Un link. Lo tocan, eligen su nombre y ya están adentro."
-    },
-    "link": {
-      "subtitle": "tu sala para dividir",
-      "roomLink": "Link de la sala",
-      "copyBlocked": "Tu navegador bloqueó la copia — selecciona el link de arriba y cópialo a mano.",
-      "copy": "Copiar link",
-      "copied": "¡Copiado!",
-      "share": "Compartir",
-      "anyoneCanJoin": "Cualquiera con este link puede entrar y agregar gastos.",
-      "shareTitle": "{room} · Peanut Split",
-      "shareText": "Entra a «{room}» y dividamos esto bien."
-    },
-    "create": {
-      "back": "Volver",
-      "title": "Nueva división",
-      "name": "¿Qué van a dividir?",
-      "namePlaceholder": "Viaje a la nieve",
-      "emoji": "Elige una cara",
-      "emojiGroup": "Emoji de la sala",
-      "emojiOption": "Emoji {emoji}",
-      "currency": "Moneda",
-      "currencyLabel": "Moneda de la sala",
-      "currencyHint": "Los saldos se saldan en esta moneda. Cada gasto puede ir en cualquier otra.",
-      "creatorName": "Y tú eres…",
-      "creatorNamePlaceholder": "Tu nombre",
-      "submit": "Crear la sala",
-      "failed": "no se pudo crear la sala — intenta de nuevo",
-      "readyTitle": "Tu sala está lista",
-      "readySubtitle": "Envía este link a todos los que dividen. Sin app, sin registro — solo lo tocan.",
-      "goToRoom": "Ir a la sala"
+        "DUPLICATE_PARTICIPANT": "Alguien aparece dos veces en esta división.",
+        "SETTLEMENT_PAYER_NOT_MEMBER": "Quien pagó no está en esta sala — recarga e intenta de nuevo.",
+        "SETTLEMENT_PAYEE_NOT_MEMBER": "Quien recibió no está en esta sala — recarga e intenta de nuevo.",
+        "SETTLEMENT_SAME_MEMBER": "Un pago necesita dos personas distintas."
     }
-  },
-  "errors": {
-    "generic": "Algo salió mal — intenta de nuevo.",
-    "NETWORK_ERROR": "No pudimos conectar con el servidor — revisa tu conexión.",
-    "INTERNAL": "Algo salió mal de nuestro lado. Intenta en un momento.",
-    "VALIDATION_ERROR": "Algo no cuadra — revisa los campos e intenta de nuevo.",
-    "MALFORMED_JSON": "Algo salió mal al enviar eso — intenta de nuevo.",
-    "NOT_FOUND": "Esta sala no existe.",
-    "EXPENSE_NOT_FOUND": "Ese gasto ya no está — recarga la sala.",
-    "SETTLEMENT_NOT_FOUND": "Ese pago ya no está — recarga la sala.",
-    "SLUG_EXHAUSTED": "No pudimos crear el link de la sala ahora — intenta de nuevo.",
-    "ROOM_ARCHIVED": "Esta sala está archivada.",
-    "DUPLICATE_MEMBER_NAME": "Ese nombre ya está en la sala — elígelo de la lista.",
-    "EXPENSE_DELETED": "Este gasto fue eliminado. Deshaz la eliminación antes de editarlo.",
-    "NOT_A_MEMBER": "Esa persona no está en la sala — recarga e intenta de nuevo.",
-    "AMOUNT_NOT_POSITIVE": "El monto tiene que ser mayor que cero.",
-    "EXACT_SHARES_REQUIRED": "Una división exacta necesita un monto por persona.",
-    "SHARES_DO_NOT_ADD_UP": "Los montos exactos tienen que sumar el total.",
-    "NO_PARTICIPANTS": "Elige al menos a una persona para dividir esto.",
-    "DUPLICATE_PARTICIPANT": "Alguien aparece dos veces en esta división.",
-    "SETTLEMENT_PAYER_NOT_MEMBER": "Quien pagó no está en esta sala — recarga e intenta de nuevo.",
-    "SETTLEMENT_PAYEE_NOT_MEMBER": "Quien recibió no está en esta sala — recarga e intenta de nuevo.",
-    "SETTLEMENT_SAME_MEMBER": "Un pago necesita dos personas distintas."
-  }
 }

@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Icon } from '@/components/ui/Icon'
+import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import type { ApiRoom } from '@/lib/api-types'
 import type { MemberIdentity } from '@/lib/identity'
 import { triggerHaptic, useSettings } from '@/lib/use-settings'
@@ -28,11 +30,18 @@ function SettingToggle({
     hint,
     checked,
     onChange,
+    testId,
 }: {
     label: string
     hint: string
     checked: boolean
     onChange: (next: boolean) => void
+    /**
+     * Passed in rather than derived from `label`. The test id used to be
+     * `setting-${label.toLowerCase()}`, which meant translating "Sound" renamed the hook the e2e
+     * suite selects on — a locale change would have silently broken the tests.
+     */
+    testId: string
 }) {
     return (
         <button
@@ -40,7 +49,7 @@ function SettingToggle({
             role="switch"
             aria-checked={checked}
             onClick={() => onChange(!checked)}
-            data-testid={`setting-${label.toLowerCase()}`}
+            data-testid={testId}
             className="flex min-h-11 w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-y-[2px]"
         >
             <span className="min-w-0 flex-1">
@@ -59,6 +68,8 @@ function SettingToggle({
 }
 
 export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHeaderProps) {
+    const t = useTranslations('room.header')
+    const tLocale = useTranslations('locale')
     const [menuOpen, setMenuOpen] = useState(false)
     const { settings, setSoundEnabled, setHapticsEnabled } = useSettings()
 
@@ -67,7 +78,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
             <div className="flex items-center gap-3 px-4 py-3">
                 <Link
                     href="/"
-                    aria-label="All rooms"
+                    aria-label={t('allRooms')}
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
                 >
                     {room.emoji || '🥜'}
@@ -77,14 +88,14 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                     <h1 className="truncate text-h6">{room.name}</h1>
                     <p className="text-h10 uppercase tracking-wide text-n-1/70">
                         {room.currency}
-                        {identity ? ` · you are ${identity.name}` : ''}
+                        {identity ? ` · ${t('youAre', { name: identity.name })}` : ''}
                     </p>
                 </div>
 
                 <button
                     type="button"
                     onClick={onShare}
-                    aria-label="Share room link"
+                    aria-label={t('shareRoomLink')}
                     data-testid="share-room"
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white transition-transform active:translate-y-[2px]"
                 >
@@ -94,7 +105,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                 <button
                     type="button"
                     onClick={() => setMenuOpen(true)}
-                    aria-label="Room menu"
+                    aria-label={t('roomMenu')}
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white transition-transform active:translate-y-[2px]"
                 >
                     <Icon name="settings" size={18} />
@@ -116,7 +127,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                                 onShare()
                             }}
                         >
-                            Share the room link
+                            {t('shareTheRoomLink')}
                         </Button>
                         {identity && (
                             <Button
@@ -128,21 +139,23 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                                     onForgetIdentity()
                                 }}
                             >
-                                {`I'm not ${identity.name}`}
+                                {t('notMe', { name: identity.name })}
                             </Button>
                         )}
 
                         <div className="mt-2 flex flex-col gap-2">
-                            <span className="text-h8 uppercase tracking-wide text-grey-1">Feedback</span>
+                            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('feedback')}</span>
                             <SettingToggle
-                                label="Sound"
-                                hint="Little ticks, thunks and a bell"
+                                label={t('sound')}
+                                hint={t('soundHint')}
+                                testId="setting-sound"
                                 checked={settings.soundEnabled}
                                 onChange={setSoundEnabled}
                             />
                             <SettingToggle
-                                label="Haptics"
-                                hint="A tap you can feel"
+                                label={t('haptics')}
+                                hint={t('hapticsHint')}
+                                testId="setting-haptics"
                                 checked={settings.hapticsEnabled}
                                 onChange={(next) => {
                                     setHapticsEnabled(next)
@@ -154,9 +167,12 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                             />
                         </div>
 
-                        <p className="pt-2 text-center text-sm text-grey-1">
-                            Free forever, no signup. Room links are unlisted — only people you send it to can open it.
-                        </p>
+                        {/* The room drawer is the only place a language can be changed inside
+                            the product — the landing footer is the other, and a room is where
+                            someone actually notices they are reading the wrong one. */}
+                        <LocaleSwitcher label={tLocale('label')} className="mt-2" />
+
+                        <p className="pt-2 text-center text-sm text-grey-1">{t('privacyNote')}</p>
                     </div>
                 </DrawerContent>
             </Drawer>

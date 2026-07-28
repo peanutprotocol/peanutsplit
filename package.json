@@ -12,9 +12,10 @@
     "build": "pnpm --filter @peanut-split/api build && pnpm --dir apps/web build",
     "typecheck": "pnpm --filter @peanut-split/api typecheck && pnpm --dir apps/web typecheck",
     "test": "pnpm --filter @peanut-split/api test && pnpm --dir apps/web test",
+    "i18n:audit": "pnpm --dir apps/web run i18n:audit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm --filter @peanut-split/api verify:settle"
+    "verify": "pnpm typecheck && pnpm i18n:audit && pnpm test && pnpm --filter @peanut-split/api verify:settle"
   },
   "devDependencies": {
     "prettier": "^3.3.3"

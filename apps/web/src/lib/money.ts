@@ -58,16 +58,24 @@ export const decimalsOf = (code: string, catalog?: readonly CurrencyInfo[]): num
  */
 function normaliseDecimalInput(input: string): string | null {
     const raw = input.trim().replace(/\s/g, '')
-    const dots = raw.split('.').length - 1
-    const commas = raw.split(',').length - 1
+    const hasDot = raw.includes('.')
+    const hasComma = raw.includes(',')
 
-    if (dots > 0 && commas > 0) {
+    if (hasDot && hasComma) {
         const decimalSeparator = raw.lastIndexOf('.') > raw.lastIndexOf(',') ? '.' : ','
-        const grouping = decimalSeparator === '.' ? ',' : '.'
-        // The decimal separator must be unambiguous even after the grouping marks come out:
-        // "1.2.3,4" has no single reading and must fail rather than pick one.
-        if ((decimalSeparator === '.' ? dots : commas) !== 1) return null
-        return raw.split(grouping).join('').replace(decimalSeparator, '.')
+        const cut = raw.lastIndexOf(decimalSeparator)
+        const whole = raw.slice(0, cut)
+        const fraction = raw.slice(cut + 1)
+        /**
+         * The remaining separators only get stripped if they are actually grouping: one to three
+         * digits, then groups of exactly three. Without this, "1.2.3,4" would quietly become
+         * 123.4 — the parser would have invented a number nobody typed rather than refusing one
+         * it cannot read.
+         */
+        const grouped = decimalSeparator === '.' ? /^\d{1,3}(,\d{3})*$/ : /^\d{1,3}(\.\d{3})*$/
+        if (!grouped.test(whole)) return null
+        if (!/^\d*$/.test(fraction)) return null
+        return `${whole.replace(/[.,]/g, '')}.${fraction}`
     }
 
     return raw.replace(',', '.')
@@ -119,11 +127,23 @@ export function formatMinorPlain(minor: string, decimals: number): string {
 const isCurrencyCode = (code: string): boolean => /^[A-Za-z]{3}$/.test(code)
 
 /**
+ * Narrower than `Intl.NumberFormatOptions` on purpose: NumberFlow accepts only a subset (no
+ * `notation: 'scientific'`, for one), and the whole point of this helper is that the animated
+ * and static paths can be handed the *same* object.
+ */
+export interface MoneyFormat {
+    style: 'currency' | 'decimal'
+    currency?: string
+    minimumFractionDigits: number
+    maximumFractionDigits: number
+}
+
+/**
  * The catalog's `decimals` always wins over the currency's Intl default. The API decides that a
  * JPY or COP room has no cents; letting Intl reintroduce them would print an amount that cannot
- * be entered back into the field.
+ * be typed back into the field.
  */
-export function moneyFormatOptions(info: CurrencyInfo): Intl.NumberFormatOptions {
+export function moneyFormatOptions(info: CurrencyInfo): MoneyFormat {
     const digits = { minimumFractionDigits: info.decimals, maximumFractionDigits: info.decimals }
     return isCurrencyCode(info.code)
         ? { style: 'currency', currency: info.code.toUpperCase(), ...digits }

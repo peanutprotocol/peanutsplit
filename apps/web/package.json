@@ -11,6 +11,7 @@
         "lint": "prettier --check .",
         "format": "prettier --write .",
         "test": "vitest run",
+        "i18n:audit": "node scripts/i18n-audit.mjs",
         "test:watch": "vitest",
         "e2e": "playwright test",
         "icons": "node scripts/generate-icons.mjs"

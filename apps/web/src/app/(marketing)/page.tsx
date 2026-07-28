@@ -4,7 +4,16 @@ import { HonestyStrip } from '@/components/marketing/HonestyStrip'
 import { HowItWorks } from '@/components/marketing/HowItWorks'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { YourRooms } from '@/components/marketing/YourRooms'
-import { marketingCopy } from '@/components/marketing/copy'
+import enMessages from '@/i18n/messages/en.json'
+
+/**
+ * Head copy stays English in every locale, on purpose. The title and description are what is
+ * indexed and what the OG image (also English — its fonts have no accented glyphs) already
+ * says; serving a translated `og:description` beside an English card is worse than serving one
+ * language consistently. Read from the English catalog rather than re-typed, so the page and
+ * its own unfurl cannot drift apart.
+ */
+const heroSubtitle = enMessages.marketing.hero.subtitle
 
 export const metadata: Metadata = {
     alternates: { canonical: '/' },
@@ -12,12 +21,12 @@ export const metadata: Metadata = {
         type: 'website',
         url: '/',
         title: 'Peanut Split — split expenses, no signup',
-        description: marketingCopy.hero.subtitle,
+        description: heroSubtitle,
     },
     twitter: {
         card: 'summary_large_image',
         title: 'Peanut Split — split expenses, no signup',
-        description: marketingCopy.hero.subtitle,
+        description: heroSubtitle,
     },
 }
 

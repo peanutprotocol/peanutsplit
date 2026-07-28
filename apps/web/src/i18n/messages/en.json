@@ -1,256 +1,256 @@
 {
-  "marketing": {
-    "hero": {
-      "eyebrow": "no app · no signup · free forever",
-      "titleTop": "SPLIT",
-      "titleBottom": "ANYTHING",
-      "subtitle": "Trips, dinners, flatmates. Share one link — everyone adds what they paid, and we work out who owes who.",
-      "cta": "Start a split",
-      "ctaHint": "Takes ten seconds. No email, no password, no download.",
-      "mascotAlt": "Peanut waving hello"
+    "marketing": {
+        "hero": {
+            "eyebrow": "no app · no signup · free forever",
+            "titleTop": "SPLIT",
+            "titleBottom": "ANYTHING",
+            "subtitle": "Trips, dinners, flatmates. Share one link — everyone adds what they paid, and we work out who owes who.",
+            "cta": "Start a split",
+            "ctaHint": "Takes ten seconds. No email, no password, no download.",
+            "mascotAlt": "Peanut waving hello"
+        },
+        "rooms": {
+            "title": "Your rooms",
+            "subtitle": "Saved on this device.",
+            "openLabel": "Open room",
+            "more": "and {count, plural, one {# more} other {# more}}"
+        },
+        "how": {
+            "title": "How it works",
+            "step1": {
+                "title": "Start a split",
+                "body": "Name it, pick an emoji and a currency. Ski trip, flat bills, Tuesday dinner."
+            },
+            "step2": {
+                "title": "Share the link",
+                "body": "Drop it in the group chat. Nobody installs anything or makes an account."
+            },
+            "step3": {
+                "title": "Everyone adds expenses",
+                "body": "Balances update live, and the maths reconciles to the cent — on screen, every time."
+            }
+        },
+        "honesty": {
+            "title": "The honest bit",
+            "item1": {
+                "title": "Free forever",
+                "body": "No fees, no premium tier, nothing to upgrade to."
+            },
+            "item2": {
+                "title": "No account needed",
+                "body": "No email, no password, no ID checks. The link is the key — keep it in the group."
+            },
+            "item3": {
+                "title": "Settle however you like",
+                "body": "Cash, bank transfer, or whatever app you already use. We just record it."
+            }
+        },
+        "footer": {
+            "compareLink": "Splitwise alternative",
+            "guidesLink": "Guides",
+            "poweredByPrefix": "powered by",
+            "poweredByBrand": "Peanut"
+        },
+        "install": {
+            "title": "Add Split to your home screen",
+            "body": "Opens instantly, works like an app. No store, no account.",
+            "cta": "Add to home screen",
+            "dismiss": "Not now",
+            "ios": {
+                "title": "Add Split to your home screen",
+                "body": "Two taps in Safari and Split lives on your home screen like an app.",
+                "step1": "Tap the Share button in the Safari toolbar.",
+                "step2": "Scroll down and choose “Add to Home Screen”.",
+                "step3": "Tap “Add”. That’s it.",
+                "done": "Got it"
+            }
+        }
     },
-    "rooms": {
-      "title": "Your rooms",
-      "subtitle": "Saved on this device.",
-      "openLabel": "Open room",
-      "more": "and {count, plural, one {# more} other {# more}}"
+    "locale": {
+        "label": "Language"
     },
-    "how": {
-      "title": "How it works",
-      "step1": {
-        "title": "Start a split",
-        "body": "Name it, pick an emoji and a currency. Ski trip, flat bills, Tuesday dinner."
-      },
-      "step2": {
-        "title": "Share the link",
-        "body": "Drop it in the group chat. Nobody installs anything or makes an account."
-      },
-      "step3": {
-        "title": "Everyone adds expenses",
-        "body": "Balances update live, and the maths reconciles to the cent — on screen, every time."
-      }
+    "dates": {
+        "today": "Today",
+        "yesterday": "Yesterday"
     },
-    "honesty": {
-      "title": "The honest bit",
-      "item1": {
-        "title": "Free forever",
-        "body": "No fees, no premium tier, nothing to upgrade to."
-      },
-      "item2": {
-        "title": "No account needed",
-        "body": "No email, no password, no ID checks. The link is the key — keep it in the group."
-      },
-      "item3": {
-        "title": "Settle however you like",
-        "body": "Cash, bank transfer, or whatever app you already use. We just record it."
-      }
+    "room": {
+        "actions": {
+            "settleUp": "Settle up",
+            "addExpense": "Add expense"
+        },
+        "header": {
+            "allRooms": "All rooms",
+            "shareRoomLink": "Share room link",
+            "roomMenu": "Room menu",
+            "youAre": "you are {name}",
+            "shareTheRoomLink": "Share the room link",
+            "notMe": "I’m not {name}",
+            "feedback": "Feedback",
+            "sound": "Sound",
+            "soundHint": "Little ticks, thunks and a bell",
+            "haptics": "Haptics",
+            "hapticsHint": "A tap you can feel",
+            "privacyNote": "Free forever, no signup. Room links are unlisted — only people you send it to can open it."
+        },
+        "join": {
+            "title": "Who are you?",
+            "roster": "{room} · {count, plural, one {# person} other {# people}} so far",
+            "thatsMe": "that’s me",
+            "imNew": "I’m new here",
+            "namePlaceholder": "Your name",
+            "submit": "Join the room",
+            "alreadyOnList": "Actually, I’m already on the list",
+            "duplicate": "{name} is already here — tap their name above instead.",
+            "failed": "could not join — try again"
+        },
+        "balances": {
+            "title": "Balances",
+            "you": "You",
+            "settled": "settled up",
+            "owes": "owes",
+            "getsBack": "gets back"
+        },
+        "expenses": {
+            "title": "Expenses",
+            "emptyTitle": "No expenses yet",
+            "emptyBody": "Add the first one — who paid, how much, and who it was for.",
+            "someone": "Someone",
+            "you": "You",
+            "paidBy": "{payer} paid · {count, plural, one {# person} other {# people}}",
+            "indicative": "indicative"
+        },
+        "states": {
+            "errorTitle": "We could not load this room",
+            "errorBody": "Probably a wobbly connection. Nothing is lost — try again.",
+            "retry": "Try again",
+            "notFoundTitle": "This split doesn’t exist",
+            "notFoundBody": "Room links are case-sensitive — check you copied the whole thing, including the bit after the last dash.",
+            "notFoundCta": "Start a new split"
+        },
+        "allSettled": {
+            "title": "All settled up",
+            "body": "Nobody owes anybody anything. Enjoy the rare feeling.",
+            "expenseCount": "{count, plural, one {# expense} other {# expenses}}",
+            "peopleCount": "{count, plural, one {# person} other {# people}}",
+            "allSquare": "all square"
+        },
+        "expenseDrawer": {
+            "addTitle": "Add expense",
+            "editTitle": "Edit expense",
+            "amount": "Amount",
+            "currency": "Expense currency",
+            "description": "What for?",
+            "descriptionPlaceholder": "Dinner, taxi, lift pass…",
+            "paidBy": "Paid by",
+            "split": "Split",
+            "equally": "Equally",
+            "exactAmounts": "Exact amounts",
+            "exactAmountFor": "Exact amount for {name}",
+            "putRemainderOn": "Put the remainder on {name}",
+            "addToSplit": "+ {name}",
+            "allocated": "Every cent allocated",
+            "overBy": "Over by",
+            "leftToAllocate": "Left to allocate",
+            "amountsAreIn": "Amounts are in {currency}",
+            "convertedAt": " — converted to {roomCurrency} at an indicative rate",
+            "allocatedOf": ". Allocated {allocated} of {total}.",
+            "when": "When",
+            "date": "Expense date",
+            "save": "Save changes",
+            "add": "Add expense",
+            "delete": "Delete",
+            "deletedToast": "“{description}” deleted",
+            "undo": "Undo",
+            "restored": "Put back",
+            "restoreFailed": "Could not undo — refresh and try again",
+            "wasDeleted": "This expense was deleted. Undo the delete first, then edit it.",
+            "saveFailed": "could not save the expense — try again",
+            "deleteFailed": "could not delete the expense",
+            "validation": {
+                "DESCRIPTION_REQUIRED": "Give it a name so everyone remembers what it was.",
+                "AMOUNT_REQUIRED": "Enter an amount greater than zero.",
+                "PAYER_REQUIRED": "Pick who paid.",
+                "NO_PARTICIPANTS": "Pick at least one person to split this between.",
+                "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total."
+            }
+        },
+        "settle": {
+            "listTitle": "Who owes whom",
+            "recordTitle": "Record a payment",
+            "nothingToSettle": "Nothing to settle yet — add an expense first.",
+            "intro": "The fewest payments that clear everything. Pay however you like — we just record it.",
+            "stillOutstanding": "Still outstanding",
+            "howPaid": "How was it paid?",
+            "cash": "Cash",
+            "cashHint": "handed over",
+            "bank": "Bank",
+            "bankHint": "transfer",
+            "peanut": "Peanut",
+            "peanutHint": "instant, no fees",
+            "peanutNote": "Opens peanut.me in a new tab to send it — and records the payment here either way.",
+            "note": "Note (optional)",
+            "notePlaceholder": "Sent on Friday",
+            "record": "Record payment",
+            "back": "Back",
+            "recorded": "{from} → {to} recorded",
+            "failed": "could not record that payment — try again"
+        },
+        "share": {
+            "title": "Invite the rest",
+            "subtitle": "One link. They tap it, pick their name, and they are in."
+        },
+        "link": {
+            "subtitle": "your split room",
+            "roomLink": "Room link",
+            "copyBlocked": "Your browser blocked the copy — select the link above and copy it manually.",
+            "copy": "Copy link",
+            "copied": "Copied!",
+            "share": "Share",
+            "anyoneCanJoin": "Anyone with this link can join and add expenses.",
+            "shareTitle": "{room} · Peanut Split",
+            "shareText": "Join “{room}” and let’s split this properly."
+        },
+        "create": {
+            "back": "Back",
+            "title": "New split",
+            "name": "What are you splitting?",
+            "namePlaceholder": "Ski trip",
+            "emoji": "Pick a face for it",
+            "emojiGroup": "Room emoji",
+            "emojiOption": "Emoji {emoji}",
+            "currency": "Currency",
+            "currencyLabel": "Room currency",
+            "currencyHint": "Balances settle in this currency. Individual expenses can be in any of them.",
+            "creatorName": "And you are…",
+            "creatorNamePlaceholder": "Your name",
+            "submit": "Create the room",
+            "failed": "could not create the room — try again",
+            "readyTitle": "Your room is ready",
+            "readySubtitle": "Send this link to everyone splitting. No app, no signup — they just tap it.",
+            "goToRoom": "Go to room"
+        }
     },
-    "footer": {
-      "compareLink": "Splitwise alternative",
-      "guidesLink": "Guides",
-      "poweredByPrefix": "powered by",
-      "poweredByBrand": "Peanut"
-    },
-    "install": {
-      "title": "Add Split to your home screen",
-      "body": "Opens instantly, works like an app. No store, no account.",
-      "cta": "Add to home screen",
-      "dismiss": "Not now",
-      "ios": {
-        "title": "Add Split to your home screen",
-        "body": "Two taps in Safari and Split lives on your home screen like an app.",
-        "step1": "Tap the Share button in the Safari toolbar.",
-        "step2": "Scroll down and choose “Add to Home Screen”.",
-        "step3": "Tap “Add”. That’s it.",
-        "done": "Got it"
-      }
-    }
-  },
-  "locale": {
-    "label": "Language"
-  },
-  "dates": {
-    "today": "Today",
-    "yesterday": "Yesterday"
-  },
-  "room": {
-    "actions": {
-      "settleUp": "Settle up",
-      "addExpense": "Add expense"
-    },
-    "header": {
-      "allRooms": "All rooms",
-      "shareRoomLink": "Share room link",
-      "roomMenu": "Room menu",
-      "youAre": "you are {name}",
-      "shareTheRoomLink": "Share the room link",
-      "notMe": "I’m not {name}",
-      "feedback": "Feedback",
-      "sound": "Sound",
-      "soundHint": "Little ticks, thunks and a bell",
-      "haptics": "Haptics",
-      "hapticsHint": "A tap you can feel",
-      "privacyNote": "Free forever, no signup. Room links are unlisted — only people you send it to can open it."
-    },
-    "join": {
-      "title": "Who are you?",
-      "roster": "{room} · {count, plural, one {# person} other {# people}} so far",
-      "thatsMe": "that’s me",
-      "imNew": "I’m new here",
-      "namePlaceholder": "Your name",
-      "submit": "Join the room",
-      "alreadyOnList": "Actually, I’m already on the list",
-      "duplicate": "{name} is already here — tap their name above instead.",
-      "failed": "could not join — try again"
-    },
-    "balances": {
-      "title": "Balances",
-      "you": "You",
-      "settled": "settled up",
-      "owes": "owes",
-      "getsBack": "gets back"
-    },
-    "expenses": {
-      "title": "Expenses",
-      "emptyTitle": "No expenses yet",
-      "emptyBody": "Add the first one — who paid, how much, and who it was for.",
-      "someone": "Someone",
-      "you": "You",
-      "paidBy": "{payer} paid · {count, plural, one {# person} other {# people}}",
-      "indicative": "indicative"
-    },
-    "states": {
-      "errorTitle": "We could not load this room",
-      "errorBody": "Probably a wobbly connection. Nothing is lost — try again.",
-      "retry": "Try again",
-      "notFoundTitle": "This split doesn’t exist",
-      "notFoundBody": "Room links are case-sensitive — check you copied the whole thing, including the bit after the last dash.",
-      "notFoundCta": "Start a new split"
-    },
-    "allSettled": {
-      "title": "All settled up",
-      "body": "Nobody owes anybody anything. Enjoy the rare feeling.",
-      "expenseCount": "{count, plural, one {# expense} other {# expenses}}",
-      "peopleCount": "{count, plural, one {# person} other {# people}}",
-      "allSquare": "all square"
-    },
-    "expenseDrawer": {
-      "addTitle": "Add expense",
-      "editTitle": "Edit expense",
-      "amount": "Amount",
-      "currency": "Expense currency",
-      "description": "What for?",
-      "descriptionPlaceholder": "Dinner, taxi, lift pass…",
-      "paidBy": "Paid by",
-      "split": "Split",
-      "equally": "Equally",
-      "exactAmounts": "Exact amounts",
-      "exactAmountFor": "Exact amount for {name}",
-      "putRemainderOn": "Put the remainder on {name}",
-      "addToSplit": "+ {name}",
-      "allocated": "Every cent allocated",
-      "overBy": "Over by",
-      "leftToAllocate": "Left to allocate",
-      "amountsAreIn": "Amounts are in {currency}",
-      "convertedAt": " — converted to {roomCurrency} at an indicative rate",
-      "allocatedOf": ". Allocated {allocated} of {total}.",
-      "when": "When",
-      "date": "Expense date",
-      "save": "Save changes",
-      "add": "Add expense",
-      "delete": "Delete",
-      "deletedToast": "“{description}” deleted",
-      "undo": "Undo",
-      "restored": "Put back",
-      "restoreFailed": "Could not undo — refresh and try again",
-      "wasDeleted": "This expense was deleted. Undo the delete first, then edit it.",
-      "saveFailed": "could not save the expense — try again",
-      "deleteFailed": "could not delete the expense",
-      "validation": {
-        "DESCRIPTION_REQUIRED": "Give it a name so everyone remembers what it was.",
-        "AMOUNT_REQUIRED": "Enter an amount greater than zero.",
-        "PAYER_REQUIRED": "Pick who paid.",
+    "errors": {
+        "generic": "Something went wrong — try again.",
+        "NETWORK_ERROR": "Could not reach the server — check your connection.",
+        "INTERNAL": "Something went wrong on our side. Try again in a moment.",
+        "VALIDATION_ERROR": "That does not look right — check the fields and try again.",
+        "MALFORMED_JSON": "Something went wrong sending that — try again.",
+        "NOT_FOUND": "This room does not exist.",
+        "EXPENSE_NOT_FOUND": "That expense is no longer here — refresh the room.",
+        "SETTLEMENT_NOT_FOUND": "That payment is no longer here — refresh the room.",
+        "SLUG_EXHAUSTED": "Could not create a room link just now — try again.",
+        "ROOM_ARCHIVED": "This room is archived.",
+        "DUPLICATE_MEMBER_NAME": "That name is already in this room — pick it from the list instead.",
+        "EXPENSE_DELETED": "This expense was deleted. Undo the delete first, then edit it.",
+        "NOT_A_MEMBER": "That person is not in this room — refresh and try again.",
+        "AMOUNT_NOT_POSITIVE": "The amount has to be greater than zero.",
+        "EXACT_SHARES_REQUIRED": "An exact split needs an amount for each person.",
+        "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total.",
         "NO_PARTICIPANTS": "Pick at least one person to split this between.",
-        "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total."
-      }
-    },
-    "settle": {
-      "listTitle": "Who owes whom",
-      "recordTitle": "Record a payment",
-      "nothingToSettle": "Nothing to settle yet — add an expense first.",
-      "intro": "The fewest payments that clear everything. Pay however you like — we just record it.",
-      "stillOutstanding": "Still outstanding",
-      "howPaid": "How was it paid?",
-      "cash": "Cash",
-      "cashHint": "handed over",
-      "bank": "Bank",
-      "bankHint": "transfer",
-      "peanut": "Peanut",
-      "peanutHint": "instant, no fees",
-      "peanutNote": "Opens peanut.me in a new tab to send it — and records the payment here either way.",
-      "note": "Note (optional)",
-      "notePlaceholder": "Sent on Friday",
-      "record": "Record payment",
-      "back": "Back",
-      "recorded": "{from} → {to} recorded",
-      "failed": "could not record that payment — try again"
-    },
-    "share": {
-      "title": "Invite the rest",
-      "subtitle": "One link. They tap it, pick their name, and they are in."
-    },
-    "link": {
-      "subtitle": "your split room",
-      "roomLink": "Room link",
-      "copyBlocked": "Your browser blocked the copy — select the link above and copy it manually.",
-      "copy": "Copy link",
-      "copied": "Copied!",
-      "share": "Share",
-      "anyoneCanJoin": "Anyone with this link can join and add expenses.",
-      "shareTitle": "{room} · Peanut Split",
-      "shareText": "Join “{room}” and let’s split this properly."
-    },
-    "create": {
-      "back": "Back",
-      "title": "New split",
-      "name": "What are you splitting?",
-      "namePlaceholder": "Ski trip",
-      "emoji": "Pick a face for it",
-      "emojiGroup": "Room emoji",
-      "emojiOption": "Emoji {emoji}",
-      "currency": "Currency",
-      "currencyLabel": "Room currency",
-      "currencyHint": "Balances settle in this currency. Individual expenses can be in any of them.",
-      "creatorName": "And you are…",
-      "creatorNamePlaceholder": "Your name",
-      "submit": "Create the room",
-      "failed": "could not create the room — try again",
-      "readyTitle": "Your room is ready",
-      "readySubtitle": "Send this link to everyone splitting. No app, no signup — they just tap it.",
-      "goToRoom": "Go to room"
+        "DUPLICATE_PARTICIPANT": "Someone appears twice in this split.",
+        "SETTLEMENT_PAYER_NOT_MEMBER": "Whoever paid is not in this room — refresh and try again.",
+        "SETTLEMENT_PAYEE_NOT_MEMBER": "Whoever was paid is not in this room — refresh and try again.",
+        "SETTLEMENT_SAME_MEMBER": "A payment needs two different people."
     }
-  },
-  "errors": {
-    "generic": "Something went wrong — try again.",
-    "NETWORK_ERROR": "Could not reach the server — check your connection.",
-    "INTERNAL": "Something went wrong on our side. Try again in a moment.",
-    "VALIDATION_ERROR": "That does not look right — check the fields and try again.",
-    "MALFORMED_JSON": "Something went wrong sending that — try again.",
-    "NOT_FOUND": "This room does not exist.",
-    "EXPENSE_NOT_FOUND": "That expense is no longer here — refresh the room.",
-    "SETTLEMENT_NOT_FOUND": "That payment is no longer here — refresh the room.",
-    "SLUG_EXHAUSTED": "Could not create a room link just now — try again.",
-    "ROOM_ARCHIVED": "This room is archived.",
-    "DUPLICATE_MEMBER_NAME": "That name is already in this room — pick it from the list instead.",
-    "EXPENSE_DELETED": "This expense was deleted. Undo the delete first, then edit it.",
-    "NOT_A_MEMBER": "That person is not in this room — refresh and try again.",
-    "AMOUNT_NOT_POSITIVE": "The amount has to be greater than zero.",
-    "EXACT_SHARES_REQUIRED": "An exact split needs an amount for each person.",
-    "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total.",
-    "NO_PARTICIPANTS": "Pick at least one person to split this between.",
-    "DUPLICATE_PARTICIPANT": "Someone appears twice in this split.",
-    "SETTLEMENT_PAYER_NOT_MEMBER": "Whoever paid is not in this room — refresh and try again.",
-    "SETTLEMENT_PAYEE_NOT_MEMBER": "Whoever was paid is not in this room — refresh and try again.",
-    "SETTLEMENT_SAME_MEMBER": "A payment needs two different people."
-  }
 }

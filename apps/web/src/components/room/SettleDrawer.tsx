@@ -2,15 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Icon } from '@/components/ui/Icon'
-import { isApiError } from '@/lib/api'
 import type { ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
+import { useErrorMessage } from '@/lib/error-messages'
 import { useAddSettlement } from '@/lib/queries'
 import { useFeedback } from '@/lib/use-settings'
 import { AllSettled } from './AllSettled'
@@ -30,11 +31,17 @@ interface SettleDrawerProps {
  *  it sits as an equal among cash and bank transfer — by product guardrail. */
 const PEANUT_URL = 'https://peanut.me/send?utm_source=split&utm_medium=settle'
 
-const METHODS: { id: SettlementMethod; label: string; subtitle: string; icon: 'banknote' | 'wallet' | 'sparkles' }[] = [
-    { id: 'cash', label: 'Cash', subtitle: 'handed over', icon: 'banknote' },
-    { id: 'bank', label: 'Bank', subtitle: 'transfer', icon: 'wallet' },
-    { id: 'peanut', label: 'Peanut', subtitle: 'instant, no fees', icon: 'sparkles' },
-]
+/**
+ * Built inside the component so the labels can be translated, but each key is still written out
+ * literally — a `t(\`settle.${id}\`)` loop would save two lines and cost the audit script its
+ * ability to prove all six strings exist in all three catalogs.
+ */
+const methodOptions = (t: (key: string) => string) =>
+    [
+        { id: 'cash', label: t('cash'), subtitle: t('cashHint'), icon: 'banknote' },
+        { id: 'bank', label: t('bank'), subtitle: t('bankHint'), icon: 'wallet' },
+        { id: 'peanut', label: t('peanut'), subtitle: t('peanutHint'), icon: 'sparkles' },
+    ] satisfies { id: SettlementMethod; label: string; subtitle: string; icon: 'banknote' | 'wallet' | 'sparkles' }[]
 
 /** Stable identity for a suggested transfer — it has no id of its own. */
 const transferKey = (transfer: ApiTransfer) => `${transfer.fromId}-${transfer.toId}-${transfer.amountMinor}`
@@ -45,6 +52,9 @@ const STAMP_MS = 280
 const COLLAPSE_MS = 620
 
 export function SettleDrawer({ open, onClose, slug, state, currencies, token }: SettleDrawerProps) {
+    const t = useTranslations('room.settle')
+    const tExpenses = useTranslations('room.expenses')
+    const errorMessage = useErrorMessage()
     const addSettlement = useAddSettlement(slug, token)
     const feedback = useFeedback()
     const reduceMotion = useReducedMotion()
@@ -94,7 +104,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         if (open && selected) track('peanut_option_shown', roomProps(slug))
     }, [open, selected, slug])
 
-    const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? 'Someone'
+    const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
 
     const record = async () => {
         if (!selected) return
@@ -131,7 +141,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
             if (reduceMotion) {
                 // No collapse played, so there is nothing to have watched — say it
                 // in words instead. Everyone else already saw the row go.
-                toast.success(`${nameOf(selected.fromId)} → ${nameOf(selected.toId)} recorded`)
+                toast.success(t('recorded', { from: nameOf(selected.fromId), to: nameOf(selected.toId) }))
                 done()
                 return
             }
@@ -143,7 +153,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
             setFrozen(null)
             setSettledKey(null)
             setCollapsing(false)
-            setError(isApiError(err) ? err.message : 'could not record that payment — try again')
+            setError(errorMessage(err, t('failed')))
         }
     }
 
@@ -164,7 +174,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
             <DrawerContent className="bg-background">
                 <DrawerHeader className="pb-0">
-                    <DrawerTitle className="text-h5">{selected ? 'Record a payment' : 'Who owes whom'}</DrawerTitle>
+                    <DrawerTitle className="text-h5">{selected ? t('recordTitle') : t('listTitle')}</DrawerTitle>
                 </DrawerHeader>
 
                 <div className="flex flex-col gap-4 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
@@ -173,18 +183,14 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                             {state.expenses.length > 0 ? (
                                 <AllSettled compact />
                             ) : (
-                                <p className="px-6 py-8 text-center text-sm text-grey-1">
-                                    Nothing to settle yet — add an expense first.
-                                </p>
+                                <p className="px-6 py-8 text-center text-sm text-grey-1">{t('nothingToSettle')}</p>
                             )}
                         </div>
                     )}
 
                     {!nothingToSettle && !selected && (
                         <>
-                            <p className="text-sm text-grey-1">
-                                The fewest payments that clear everything. Pay however you like — we just record it.
-                            </p>
+                            <p className="text-sm text-grey-1">{t('intro')}</p>
 
                             <ul className="flex flex-col gap-2">
                                 <AnimatePresence initial={false} mode="popLayout">
@@ -269,7 +275,9 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                 layout
                                 className="flex items-center justify-between rounded-sm border border-dashed border-n-1 px-3 py-3"
                             >
-                                <span className="text-h8 uppercase tracking-wide text-grey-1">Still outstanding</span>
+                                <span className="text-h8 uppercase tracking-wide text-grey-1">
+                                    {t('stillOutstanding')}
+                                </span>
                                 <AnimatedMoney
                                     minor={outstandingMinor}
                                     currency={state.room.currency}
@@ -312,9 +320,9 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                             </motion.p>
 
                             <div className="flex flex-col gap-2">
-                                <span className="text-h8 uppercase tracking-wide text-grey-1">How was it paid?</span>
+                                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('howPaid')}</span>
                                 <div className="grid grid-cols-3 gap-2">
-                                    {METHODS.map((option) => {
+                                    {methodOptions(t).map((option) => {
                                         const active = method === option.id
                                         const isPeanut = option.id === 'peanut'
                                         return (
@@ -346,20 +354,15 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                         )
                                     })}
                                 </div>
-                                {method === 'peanut' && (
-                                    <p className="text-sm text-grey-1">
-                                        Opens peanut.me in a new tab to send it — and records the payment here either
-                                        way.
-                                    </p>
-                                )}
+                                {method === 'peanut' && <p className="text-sm text-grey-1">{t('peanutNote')}</p>}
                             </div>
 
                             <label className="flex flex-col gap-2">
-                                <span className="text-h8 uppercase tracking-wide text-grey-1">Note (optional)</span>
+                                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('note')}</span>
                                 <BaseInput
                                     value={note}
                                     onChange={(event) => setNote(event.target.value)}
-                                    placeholder="Sent on Friday"
+                                    placeholder={t('notePlaceholder')}
                                     maxLength={280}
                                     data-testid="settle-note"
                                 />
@@ -380,10 +383,10 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                     className="justify-center text-h6"
                                     data-testid="record-settlement"
                                 >
-                                    Record payment
+                                    {t('record')}
                                 </Button>
                                 <Button variant="stroke" className="justify-center" onClick={() => setSelected(null)}>
-                                    Back
+                                    {t('back')}
                                 </Button>
                             </div>
                         </motion.div>
