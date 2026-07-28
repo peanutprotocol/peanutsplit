@@ -20,6 +20,8 @@
  * notes in the root README on why the network is closed rather than opened.
  */
 
+import { egressFetch, type EgressResponse } from '@/server/egress'
+
 const RESEND_ENDPOINT = 'https://api.resend.com/emails'
 const ONESIGNAL_ENDPOINT = 'https://api.onesignal.com/notifications'
 
@@ -62,20 +64,6 @@ export function parseFrom(from: string): { name: string | null; address: string 
     const match = /^\s*(.*?)\s*<([^<>]+)>\s*$/.exec(from)
     if (match) return { name: match[1] || null, address: match[2] }
     return { name: null, address: from.trim() }
-}
-
-/** Undici's `ProxyAgent` is the only thing global `fetch` accepts as a route out,
- *  and it is imported lazily so the no-proxy path never pulls it into the bundle. */
-async function proxyDispatcher(): Promise<unknown | null> {
-    const proxyUrl = process.env.SPLIT_EMAIL_PROXY_URL
-    if (!proxyUrl) return null
-    try {
-        const { ProxyAgent } = await import('undici')
-        return new ProxyAgent(proxyUrl)
-    } catch (err) {
-        console.error('[auth] email proxy unavailable', err)
-        return null
-    }
 }
 
 export interface MagicLinkEmail {
@@ -138,8 +126,6 @@ export async function sendMagicLink(to: string, url: string): Promise<SendResult
     }
 
     const { subject, html, text } = renderMagicLinkEmail(url)
-    const dispatcher = await proxyDispatcher()
-
     const request =
         config.provider === 'onesignal'
             ? {
@@ -162,15 +148,12 @@ export async function sendMagicLink(to: string, url: string): Promise<SendResult
                   body: { from: config.from, to: [to], subject, html, text },
               }
 
-    let response: Response
+    let response: EgressResponse
     try {
-        response = await fetch(request.endpoint, {
+        response = await egressFetch(process.env.SPLIT_EMAIL_PROXY_URL, request.endpoint, {
             method: 'POST',
             headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(request.body),
-            // `dispatcher` is undici's, not the fetch standard's — the cast is the
-            // price of routing through the egress proxy without an http client.
-            ...(dispatcher ? ({ dispatcher } as Record<string, unknown>) : {}),
         })
     } catch (err) {
         console.error('[auth] magic link send failed', err)

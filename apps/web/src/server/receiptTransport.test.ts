@@ -200,12 +200,20 @@ describe('OpenRouter — the request', () => {
         expect(sentBody(sentAt(fetchSpy)).model).toBe('qwen/qwen2.5-vl-72b-instruct')
     })
 
-    it('routes through the pinned proxy when one is configured — the prod container has no egress', async () => {
+    it('leaves the patched global fetch entirely when a proxy is configured', async () => {
+        // Next wraps global fetch and the undici `dispatcher` option does not
+        // survive the wrapper — in production the first real scan died with a
+        // bare TypeError while the same request succeeded from a raw container.
+        // So the proxy path must not touch this spy at all: it goes through
+        // undici's own fetch inside `egressFetch`. Making that call would need
+        // a live proxy, so the observable contract here is the road taken, and
+        // the resulting SCAN_FAILED (undici cannot reach proxy.internal) is the
+        // expected end of it.
         process.env.SPLIT_SCAN_PROXY_URL = 'http://proxy.internal:3128'
-        const fetchSpy = stubFetch().mockResolvedValueOnce(openRouterAnswer(RECEIPT))
+        const fetchSpy = stubFetch()
 
-        await parseReceipt(body)
-        expect((sentAt(fetchSpy).init as { dispatcher?: unknown }).dispatcher).toBeDefined()
+        await expect(parseReceipt(body)).rejects.toMatchObject({ code: 'SCAN_FAILED' })
+        expect(fetchSpy).not.toHaveBeenCalled()
     })
 
     it('strips a markdown fence with the same helper the Gemini path uses', async () => {
