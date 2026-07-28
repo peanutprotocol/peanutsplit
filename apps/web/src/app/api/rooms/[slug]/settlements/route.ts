@@ -1,4 +1,5 @@
 import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { badRequest, memberTokenOf, readJson, respond } from '@/server/http'
 import { parseMinor } from '@/server/money'
 import { notifyRoomWrite } from '@/server/push'
@@ -43,6 +44,7 @@ export const POST = (request: Request, ctx: Ctx) =>
 
         const fresh = await loadRoom(slug)
         const state = toRoomState(fresh)
+        publish(room.id)
         // Fire-and-forget, and only once the response value is ready — the
         // settlement is recorded whether or not anybody's phone hears about it.
         notifyRoomWrite({

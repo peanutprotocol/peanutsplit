@@ -10,8 +10,16 @@ import { asLocale } from '@/i18n/locales'
 import { initAnalytics } from './analytics'
 import { ensureDeviceId } from './identity'
 import { writeLocaleCookie } from './locale-cookie'
+import { useOfflineQueueRunner } from './queries'
 import { TOAST_MS } from './toasts'
 import { useAnimationPreferenceClass } from './use-motion'
+
+/** The offline queue's engine, mounted once. A component only because it needs
+ *  to be inside the QueryClientProvider — it renders nothing. */
+function OfflineQueueRunner() {
+    useOfflineQueueRunner()
+    return null
+}
 
 /**
  * The single client boundary at the root: React Query, nuqs' URL adapter, and
@@ -59,6 +67,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <NuqsAdapter>
                 {children}
+                <OfflineQueueRunner />
                 <PushNavigation />
                 <Toaster
                     position="top-center"

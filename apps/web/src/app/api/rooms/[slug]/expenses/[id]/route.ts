@@ -1,4 +1,5 @@
 import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { buildExpense } from '@/server/expenses'
 import { conflict, notFound, readJson, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
@@ -47,6 +48,7 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                 },
             }),
         ])
+        publish(room.id)
         return toRoomState(await loadRoom(slug))
     })
 
@@ -61,5 +63,6 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         if (!existing.deletedAt) {
             await prisma.expense.update({ where: { id }, data: { deletedAt: new Date() } })
         }
+        publish(room.id)
         return toRoomState(await loadRoom(slug))
     })
