@@ -106,11 +106,14 @@ afterEach(() => {
 describe('adding an expense', () => {
     it('seeds the room cache from the response, in one hop', async () => {
         const served = roomState(['e1', 'e2'])
-        vi.stubGlobal('fetch', respondWith(201, served))
+        const fetchMock = respondWith(201, served)
+        vi.stubGlobal('fetch', fetchMock)
 
         await addExpense(queryClient)
 
         expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(served)
+        const sent = JSON.parse(fetchMock.mock.calls[0][1].body)
+        expect(sent.clientKey).toMatch(/^[A-Za-z0-9-]{16,64}$/)
     })
 
     it('shows the row immediately and replaces it with the server truth', async () => {
@@ -144,12 +147,16 @@ describe('adding an expense', () => {
 })
 
 describe('adding an expense with no network', () => {
-    const offline = () => vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+    const offline = () => {
+        const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
+        vi.stubGlobal('fetch', fetchMock)
+        return fetchMock
+    }
 
     it('queues the write and resolves with the room exactly as it was', async () => {
         const before = roomState()
         queryClient.setQueryData(roomKey(SLUG), before)
-        offline()
+        const fetchMock = offline()
 
         await expect(addExpense(queryClient)).resolves.toEqual(before)
 
@@ -159,6 +166,9 @@ describe('adding an expense with no network', () => {
         expect(queueSnapshot()).toHaveLength(1)
         expect(queueSnapshot()[0].endpoint).toBe(`/api/rooms/${SLUG}/expenses`)
         expect(queueSnapshot()[0].token).toBe('token-1')
+        const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1].body)
+        expect(queueSnapshot()[0].clientKey).toBe(firstAttempt.clientKey)
+        expect(queueSnapshot()[0].body.clientKey).toBe(firstAttempt.clientKey)
     })
 
     it('fails honestly when there is no cached room to resolve with', async () => {

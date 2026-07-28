@@ -318,6 +318,7 @@ describe('the queue end to end', () => {
 
         expect(queued).not.toBeNull()
         expect(queueSnapshot()).toHaveLength(1)
+        expect(queued?.body.clientKey).toBe(queued?.clientKey)
         expect(parseQueue(storage.getItem(PENDING_KEY))).toHaveLength(1)
         expect(notices).toEqual([{ kind: 'queued' }])
     })

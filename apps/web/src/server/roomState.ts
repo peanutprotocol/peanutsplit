@@ -158,8 +158,10 @@ export function toRoomState(room: RoomWithRelations): RoomState {
     }
 }
 
-export async function loadRoom(slug: string): Promise<RoomWithRelations> {
-    const room = await prisma.room.findUnique({ where: { slug }, ...roomArgs })
+type RoomReader = Pick<Prisma.TransactionClient, 'room'>
+
+export async function loadRoom(slug: string, db: RoomReader = prisma): Promise<RoomWithRelations> {
+    const room = await db.room.findUnique({ where: { slug }, ...roomArgs })
     if (!room) throw notFound('room not found')
     return room
 }

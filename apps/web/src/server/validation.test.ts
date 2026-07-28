@@ -61,6 +61,20 @@ describe('public wire money', () => {
     })
 })
 
+describe('money-write request keys', () => {
+    it('accepts opaque browser keys and rejects short or punctuated values', () => {
+        expect(expenseSchema.safeParse({ ...expense('100'), clientKey: 'expense-request-0001' }).success).toBe(true)
+        expect(settlementSchema.safeParse({ ...settlement('100'), clientKey: 'settlement-request-0001' }).success).toBe(
+            true
+        )
+
+        for (const clientKey of ['short', 'request key with spaces', 'request/key/with/slashes']) {
+            expect(expenseSchema.safeParse({ ...expense('100'), clientKey }).success).toBe(false)
+            expect(settlementSchema.safeParse({ ...settlement('100'), clientKey }).success).toBe(false)
+        }
+    })
+})
+
 describe('model money normalization', () => {
     it('keeps bounded safe numeric output working for receipt scan and quick add', () => {
         expect(receiptItemSchema.parse({ label: 'Coffee', amountMinor: 1250 }).amountMinor).toBe('1250')

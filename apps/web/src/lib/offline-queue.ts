@@ -341,7 +341,7 @@ const notify = (notice: QueueNotice): void => {
 
 // ─── the queue itself ───────────────────────────────────────────────────────
 
-const newClientKey = (): string => {
+export const createClientKey = (): string => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
     return `k-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
 }
@@ -360,12 +360,16 @@ export function enqueueWrite(input: {
 }): QueuedWrite | null {
     if (!isQueueable(input.endpoint, input.method)) return null
 
+    const clientKey = input.body.clientKey ?? createClientKey()
     const item: QueuedWrite = {
-        clientKey: newClientKey(),
+        clientKey,
         slug: input.slug,
         endpoint: input.endpoint,
         method: 'POST',
-        body: input.body,
+        // Keep the key inside the request too. The outer copy keys the local row;
+        // the body copy is what makes the server recognize a replay after the
+        // first response was lost.
+        body: { ...input.body, clientKey },
         token: input.token ?? null,
         addedAt: Date.now(),
     }
