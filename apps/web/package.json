@@ -38,7 +38,6 @@
         "gray-matter": "^4.0.3",
         "https-proxy-agent": "^9.1.0",
         "jose": "^6.2.3",
-        "lucide-react": "^0.539.0",
         "motion": "^12.23.12",
         "next": "16.2.3",
         "next-intl": "^4.3.4",

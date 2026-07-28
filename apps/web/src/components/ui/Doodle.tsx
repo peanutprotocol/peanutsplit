@@ -25,7 +25,7 @@ export interface DoodleProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
  * Not a client component and it must not become one — these render inside server components
  * (the read-more fold, the use-case cards) and are static markup with no behaviour.
  */
-export function Doodle({ name, size = 28, weight = 2, label, className, ...props }: DoodleProps) {
+export function Doodle({ name, size = 28, weight = 2, label, className, style, ...props }: DoodleProps) {
     return (
         <svg
             viewBox="0 0 32 32"
@@ -42,6 +42,10 @@ export function Doodle({ name, size = 28, weight = 2, label, className, ...props
             // Hand-drawn strokes wander a little past the box they were drawn in; clipping them
             // shaves a flick off the odd drawing and reads as a rendering fault.
             className={cn('shrink-0 overflow-visible', className)}
+            // Button variants carry a legacy `fill-*` utility for the Lucide
+            // icons they used to render. Doodles are stroke-only, so keep the
+            // path hollow even inside those buttons.
+            style={{ ...style, fill: 'none' }}
             {...props}
         >
             <path d={DOODLE[name]} />

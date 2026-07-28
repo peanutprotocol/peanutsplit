@@ -1,102 +1,116 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { Doodle } from '@/components/ui/Doodle'
+import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
 
+function Fold({ title, children }: { title: string; children: ReactNode }) {
+    return (
+        <details className="group/fold border-t-2 border-n-1 first:border-t-0">
+            <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-5 text-h6 outline-none transition-colors hover:bg-primary-4/40 focus-visible:bg-primary-4/60 sm:text-h5 [&::-webkit-details-marker]:hidden">
+                <span>{title}</span>
+                <Icon
+                    name="plus"
+                    size={24}
+                    aria-hidden="true"
+                    className="shrink-0 transition-transform duration-200 group-open/fold:rotate-45 motion-reduce:transition-none"
+                />
+            </summary>
+            <div className="pb-7 pr-0 sm:pr-10">{children}</div>
+        </details>
+    )
+}
+
 /**
- * Everything a normal app landing page carries — features, proof, who built it, FAQ — folded
- * behind one toggle, for the minority who want it.
+ * The deeper landing-page argument, presented as a real page fold.
  *
- * A plain `<details>` and not a route: it keeps one URL, it needs no JavaScript, and because
- * it is server-rendered the content is in the DOM from first paint, so the short page above it
- * does not cost the site its only body copy.
- *
- * Order is the one that was picked (features → proof → who made it → FAQ), with the join
- * preview promoted to the front. That block answers the question the sharer actually has —
- * whether they are about to inflict something on four friends who did not ask for it — and
- * four out of five people who ever meet Split arrive on a room link, never here.
+ * This follows peanut.me's FAQ interaction language: one full-width band, hard
+ * dividers, whole-row native disclosures and a plus that turns into an x. The
+ * copy remains server-rendered inside `<details>`, while each topic can be
+ * explored independently instead of hiding the whole page behind one card.
  */
 export function ReadMore() {
     const t = useTranslations('marketing.readMore')
-    const features = ['currency', 'splits', 'exact', 'live', 'home', 'transfers'] as const
-    const methods = ['cash', 'bank', 'peanut'] as const
+    const features: Array<{
+        key: 'currency' | 'splits' | 'exact' | 'live' | 'home' | 'transfers'
+        doodle: DoodleName
+    }> = [
+        { key: 'currency', doodle: 'globe' },
+        { key: 'splits', doodle: 'slice' },
+        { key: 'exact', doodle: 'tally' },
+        { key: 'live', doodle: 'pulse' },
+        { key: 'home', doodle: 'phone' },
+        { key: 'transfers', doodle: 'swap' },
+    ]
+    const methods: Array<{ key: 'cash' | 'bank' | 'peanut'; doodle: DoodleName }> = [
+        { key: 'cash', doodle: 'cash' },
+        { key: 'bank', doodle: 'bank' },
+        { key: 'peanut', doodle: 'peanut' },
+    ]
     const team = ['konrad', 'hugo', 'natalia', 'jakub'] as const
     const points = ['built', 'free', 'data'] as const
-    // 'accounts' and 'currencies' were cut: the first is answered by the join preview that
-    // opens this same disclosure, with a picture of the screen, and the second repeated the
-    // multi-currency feature card six blocks above it. Neither fed JSON-LD — `faqSchema`
-    // runs on /splitwise-alternative, /import and article frontmatter, never here — so
-    // removing them costs nothing in search.
     const questions = ['retype', 'access', 'lost', 'limits'] as const
 
     return (
-        <section className="mx-auto w-full max-w-xl px-5">
-            <details className="group">
-                <summary className="shadow-4 flex cursor-pointer list-none items-center justify-between gap-3 rounded-sm border border-n-1 bg-white p-4 [&::-webkit-details-marker]:hidden">
-                    <span>
-                        <span className="block text-h7">{t('toggle')}</span>
-                        <span className="mt-1 block text-sm leading-5 text-grey-1">{t('toggleHint')}</span>
-                    </span>
-                    <Icon
-                        name="chevron-down"
-                        size={18}
-                        aria-hidden="true"
-                        className="shrink-0 transition-transform group-open:rotate-180"
-                    />
-                </summary>
+        <section className="w-full border-y-2 border-n-1 bg-primary-3">
+            <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:py-20">
+                <div className="flex items-start justify-between gap-6">
+                    <div>
+                        <h2 className="text-h3 sm:text-h2">{t('toggle')}</h2>
+                        <p className="mt-3 max-w-xl text-base leading-6 text-grey-1">{t('toggleHint')}</p>
+                    </div>
+                    <Doodle name="question" size={54} weight={1.5} className="mt-1 hidden shrink-0 sm:block" />
+                </div>
 
-                <div className="mt-6 flex flex-col gap-8">
-                    {/* What your friends see. First, because it is the sharer's real hesitation. */}
-                    <div className="rounded-sm border border-n-1 bg-primary-3 p-4">
-                        <h3 className="text-h6">{t('join.title')}</h3>
-                        <div className="mt-3 rounded-sm border border-n-1 bg-white p-3">
-                            <p className="text-h8">🏔️ {t('join.roomName')}</p>
-                            <p className="mt-2 text-sm text-grey-1">{t('join.nameLabel')}</p>
+                <div className="mt-10 border-y-2 border-n-1">
+                    <Fold title={t('join.title')}>
+                        <div className="rounded-sm border border-n-1 bg-white p-4 sm:max-w-xl">
+                            <p className="flex items-center gap-2 text-h8">
+                                <Doodle name="mountain" size={22} weight={1.8} />
+                                {t('join.roomName')}
+                            </p>
+                            <p className="mt-3 text-sm text-grey-1">{t('join.nameLabel')}</p>
                             <p className="mt-1 rounded-sm border border-dashed border-n-1 px-2 py-1 text-sm text-grey-1">
                                 {t('join.namePlaceholder')}
                             </p>
-                            <p className="mt-2 text-center text-h8">{t('join.button')}</p>
+                            <p className="mt-3 text-center text-h8">{t('join.button')}</p>
                         </div>
-                        <p className="mt-3 text-sm leading-5 text-n-1">{t('join.body')}</p>
-                    </div>
+                        <p className="mt-4 max-w-xl text-sm leading-5 text-n-1">{t('join.body')}</p>
+                    </Fold>
 
-                    <div>
-                        <h3 className="text-h6">{t('features.title')}</h3>
-                        <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {features.map((feature) => (
-                                <li key={feature} className="rounded-sm border border-n-1 bg-white p-4">
-                                    <span className="block text-h7">{t(`features.${feature}.title`)}</span>
+                    <Fold title={t('features.title')}>
+                        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {features.map(({ key, doodle }) => (
+                                <li key={key} className="rounded-sm border border-n-1 bg-white p-4">
+                                    <Doodle name={doodle} size={25} weight={1.8} />
+                                    <span className="mt-2 block text-h7">{t(`features.${key}.title`)}</span>
                                     <span className="mt-1 block text-sm leading-5 text-grey-1">
-                                        {t(`features.${feature}.body`)}
+                                        {t(`features.${key}.body`)}
                                     </span>
                                 </li>
                             ))}
                         </ul>
-                    </div>
+                    </Fold>
 
-                    {/* Settling, worded as you sending it. Split records the payment; it never
-                        moves the money, and no line here may imply otherwise. */}
-                    <div>
-                        <h3 className="text-h6">{t('settle.title')}</h3>
-                        <p className="mt-2 text-sm leading-5 text-grey-1">{t('settle.body')}</p>
-                        <ul className="mt-3 grid grid-cols-3 gap-2">
-                            {methods.map((method) => (
+                    <Fold title={t('settle.title')}>
+                        <p className="max-w-xl text-sm leading-5 text-grey-1">{t('settle.body')}</p>
+                        <ul className="mt-4 grid grid-cols-3 gap-2">
+                            {methods.map(({ key, doodle }) => (
                                 <li
-                                    key={method}
-                                    className="rounded-sm border border-n-1 bg-white p-3 text-center text-h8"
+                                    key={key}
+                                    className="flex flex-col items-center gap-2 rounded-sm border border-n-1 bg-white p-3 text-center text-h8"
                                 >
-                                    {t(`settle.${method}`)}
+                                    <Doodle name={doodle} size={25} weight={1.8} />
+                                    {t(`settle.${key}`)}
                                 </li>
                             ))}
                         </ul>
-                    </div>
+                    </Fold>
 
-                    {/* The quote band. These four built Split, and the heading says so — an
-                        unlabelled first-name quote reads as a customer, which is the one thing
-                        these are not. Replace with real users' words once there are some. */}
-                    <div>
-                        <h3 className="text-h6">{t('team.title')}</h3>
-                        <p className="mt-2 text-sm leading-5 text-grey-1">{t('team.intro')}</p>
-                        <ul className="mt-3 flex flex-col gap-3">
+                    <Fold title={t('team.title')}>
+                        <p className="max-w-xl text-sm leading-5 text-grey-1">{t('team.intro')}</p>
+                        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                             {team.map((member) => (
                                 <li key={member} className="rounded-sm border border-n-1 bg-white p-4">
                                     <p className="text-sm leading-5 text-n-1">“{t(`team.${member}.quote`)}”</p>
@@ -107,11 +121,10 @@ export function ReadMore() {
                                 </li>
                             ))}
                         </ul>
-                    </div>
+                    </Fold>
 
-                    <div>
-                        <h3 className="text-h6">{t('who.title')}</h3>
-                        <ul className="mt-3 flex flex-col gap-3">
+                    <Fold title={t('who.title')}>
+                        <ul className="flex flex-col gap-3">
                             {points.map((point) => (
                                 <li
                                     key={point}
@@ -132,40 +145,22 @@ export function ReadMore() {
                                 </li>
                             ))}
                         </ul>
-                    </div>
+                    </Fold>
 
-                    <div>
-                        <h3 className="text-h6">{t('faq.title')}</h3>
-                        <ul className="mt-3 flex flex-col gap-2">
-                            {questions.map((question) => (
-                                <li key={question} className="rounded-sm border border-n-1 bg-white">
-                                    <details className="group/faq">
-                                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 text-h8 [&::-webkit-details-marker]:hidden">
-                                            {t(`faq.${question}.q`)}
-                                            <Icon
-                                                name="chevron-down"
-                                                size={16}
-                                                aria-hidden="true"
-                                                className="shrink-0 transition-transform group-open/faq:rotate-180"
-                                            />
-                                        </summary>
-                                        <p className="px-4 pb-4 text-sm leading-5 text-grey-1">
-                                            {t(`faq.${question}.a`)}
-                                        </p>
-                                    </details>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <p className="text-sm leading-5 text-grey-1">
-                        {t('compare.line')}{' '}
-                        <Link href="/splitwise-alternative" className="text-n-1 underline underline-offset-2">
-                            {t('compare.link')}
-                        </Link>
-                    </p>
+                    {questions.map((question) => (
+                        <Fold key={question} title={t(`faq.${question}.q`)}>
+                            <p className="max-w-xl text-sm leading-6 text-grey-1">{t(`faq.${question}.a`)}</p>
+                        </Fold>
+                    ))}
                 </div>
-            </details>
+
+                <p className="mt-8 text-sm leading-5 text-grey-1">
+                    {t('compare.line')}{' '}
+                    <Link href="/splitwise-alternative" className="text-n-1 underline underline-offset-2">
+                        {t('compare.link')}
+                    </Link>
+                </p>
+            </div>
         </section>
     )
 }
