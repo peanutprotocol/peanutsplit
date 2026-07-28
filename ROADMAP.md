@@ -29,6 +29,16 @@ Owner of record for each open item is in brackets. Last full update: 2026-07-28.
 
 ## Shipped 2026-07-28, second wave
 
+- **Trip recap share card** — at all-settled, a second artefact: green field,
+  the total as the headline, a shape-drawn SETTLED stamp, avatar row, and
+  "María fronted the most". Data in `src/server/og/recapCard.ts` (one lean
+  query; settled fold mirrors `roomState.balancesOf` with a drift test), art in
+  `recapCardArt.tsx`, screen at `/r/[slug]/recap` (noindex, members-only).
+  **The URL is never shared** — it carries the room slug, which is the room's
+  credential — so "Share the story" fetches the PNG and shares the FILE
+  (native → clipboard → download), with the domain printed on the card as the
+  acquisition path. A public, slug-free recap URL needs a second read-only
+  token; deliberately not V1. Events: `recap_viewed`, `recap_shared` (+ tier).
 - **i18n** — en / es-419 / pt-BR live product-wide (cookie-resolved, no URL
   prefixes), Intl money/date formatting, error codes → localized client
   messages, CI key-parity audit. SEO pages and OG images stay English by design.
@@ -84,9 +94,8 @@ Still gated:
 
 Ordered by expected value per effort:
 
-1. **Trip recap share card** — at all-settled, a second shareable artifact
-   ("Ski trip: 9 days, €2,340, María fronted the most") reusing the OG art
-   system. Probably the best virality-per-effort item on this list.
+1. ~~**Trip recap share card**~~ — shipped 2026-07-28, see above. Numbering
+   left alone so the other items keep the IDs they were discussed under.
 2. **Bill photo → itemized split** — snap a receipt, a vision model itemizes,
    assign items to people. Splitwise paywalls OCR; this is the sharpest "all
    premium features free" attack. Needs: one more allowlisted egress host + an
