@@ -6,8 +6,9 @@
    `primary-base` / `secondary-base` / `accent`; removing them breaks the theme. */
 :root {
     --primary-color: #ffc900;
-    --secondary-color: #000000;
+    --secondary-color: #211c17;
     --accent-color: #ff90e8;
+    --split-ink: #211c17;
 }
 
 @layer base {
@@ -40,6 +41,15 @@
     body {
         @apply select-none;
         -webkit-tap-highlight-color: transparent;
+    }
+
+    /*
+     * Native date controls paint their own platform calendar glyph. It is the
+     * one icon we cannot draw or theme, so date inputs hide it and place the
+     * same calendar doodle as every other surface in the field.
+     */
+    input[data-doodle-date]::-webkit-calendar-picker-indicator {
+        opacity: 0;
     }
 }
 

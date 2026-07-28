@@ -19,6 +19,8 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
+import { Doodle } from '@/components/ui/Doodle'
+import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiExpense } from '@/lib/api-types'
@@ -29,6 +31,15 @@ import { groupReactions, REACTION_EMOJIS } from '@/lib/reactions'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+
+const REACTION_ART = {
+    '🔥': { doodle: 'reactionfire', label: 'wild' },
+    '😂': { doodle: 'reactionlaugh', label: 'laugh' },
+    '😭': { doodle: 'reactiontear', label: 'ouch' },
+    '🫶': { doodle: 'reactionlove', label: 'love' },
+    '👏': { doodle: 'reactionclap', label: 'clap' },
+    '🤑': { doodle: 'cash', label: 'money' },
+} as const satisfies Record<string, { doodle: DoodleName; label: string }>
 
 interface ReactionBarProps {
     slug: string
@@ -94,7 +105,10 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                         disabled={!canReact}
                         onClick={() => react(group.emoji, group.mine)}
                         aria-pressed={group.mine}
-                        aria-label={t('reacted', { emoji: group.emoji, count: group.count })}
+                        aria-label={t('reacted', {
+                            emoji: t(`names.${REACTION_ART[group.emoji].label}`),
+                            count: group.count,
+                        })}
                         data-testid="reaction-pill"
                         data-emoji={group.emoji}
                         data-mine={group.mine}
@@ -107,7 +121,7 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                             canReact && 'active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
                         )}
                     >
-                        <span aria-hidden="true">{group.emoji}</span>
+                        <Doodle name={REACTION_ART[group.emoji].doodle} size={17} weight={1.8} />
                         <span aria-hidden="true" className="tabular-nums">
                             {group.count}
                         </span>
@@ -159,12 +173,13 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                     >
                         {REACTION_EMOJIS.map((emoji) => {
                             const mine = groups.some((group) => group.emoji === emoji && group.mine)
+                            const label = t(`names.${REACTION_ART[emoji].label}`)
                             return (
                                 <button
                                     key={emoji}
                                     type="button"
                                     onClick={() => react(emoji, mine)}
-                                    aria-label={mine ? t('remove', { emoji }) : t('pick', { emoji })}
+                                    aria-label={mine ? t('remove', { emoji: label }) : t('pick', { emoji: label })}
                                     data-testid="reaction-option"
                                     data-emoji={emoji}
                                     className={cn(
@@ -172,7 +187,7 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                                         mine && 'bg-[var(--split-theme-tint,#FFFFFF)]'
                                     )}
                                 >
-                                    <span aria-hidden="true">{emoji}</span>
+                                    <Doodle name={REACTION_ART[emoji].doodle} size={22} weight={1.7} />
                                 </button>
                             )
                         })}

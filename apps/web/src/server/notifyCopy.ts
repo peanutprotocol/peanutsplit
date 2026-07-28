@@ -12,7 +12,6 @@
  * line or an analytics property.
  */
 import { formatMoney } from '@/lib/money'
-import { isEmojiEmblem } from '@/lib/room-emblem'
 
 export type NotificationTemplate = 'expense_added' | 'settlement_recorded' | 'all_settled'
 
@@ -35,14 +34,9 @@ interface RoomRef {
     currency: string
 }
 
-/**
- * `🏔️ Ski trip`, or just `Ski trip`.
- *
- * Guarded by `isEmojiEmblem` because the column now also holds doodle names, and a push titled
- * "mountain Ski trip" is the exact failure this check exists to stop. A drawn emblem simply does
- * not appear in the title — a notification is text, and there is nowhere to render a path in it.
- */
-const titleOf = (room: RoomRef) => (isEmojiEmblem(room.emoji) ? `${room.emoji} ${room.name}` : room.name)
+/** Notifications are text-only. The drawn emblem stays in the app rather than
+ * being replaced with a platform emoji on the lock screen. */
+const titleOf = (room: RoomRef) => room.name
 
 const roomUrl = (room: RoomRef) => `/r/${room.slug}`
 

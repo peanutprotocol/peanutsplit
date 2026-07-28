@@ -133,7 +133,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldTint: '#D3D5D8',
         fieldInk: '#3A3E45',
         tint: '#F4F5F6',
-        accent: '#000000',
+        accent: '#211C17',
         motif: 'iconpencil',
     },
 ]

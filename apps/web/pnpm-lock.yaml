@@ -26,9 +26,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.85.0
         version: 5.101.2(react@19.2.7)
-      boring-avatars:
-        specifier: ^2.0.0
-        version: 2.0.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -1854,12 +1851,6 @@ packages:
 
   bn.js@4.12.5:
     resolution: {integrity: sha512-3aRg6/JxfffFD+OlOjOFR3Vo79l39ooBTFucxx+MT3dhCtzn3EmiUPQo+6/OZuI2jbXi3YKgmiTFBgChQMwIRQ==}
-
-  boring-avatars@2.0.4:
-    resolution: {integrity: sha512-xhZO/w/6aFmRfkaWohcl2NfyIy87gK5SBbys8kctZeTGF1Apjpv/10pfUuv+YEfVPkESU/h2Y6tt/Dwp+bIZPw==}
-    peerDependencies:
-      react: '>=18.0.0'
-      react-dom: '>=18.0.0'
 
   brace-expansion@5.0.7:
     resolution: {integrity: sha512-7oFy703dxfY3/NLxC1fh2SUCQ0H9rmAY+5EpDVfXjUTTs+HEwR2nYaqLv+GWcTsumwxPfiz6CzCNkwXwBUwqCA==}
@@ -5152,11 +5143,6 @@ snapshots:
   binary-extensions@2.3.0: {}
 
   bn.js@4.12.5: {}
-
-  boring-avatars@2.0.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
-    dependencies:
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
 
   brace-expansion@5.0.7:
     dependencies:

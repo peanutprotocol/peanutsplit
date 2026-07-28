@@ -27,7 +27,7 @@ import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
 import type { RecapCardData } from '@/server/og/recapCard'
 import { OG_SIZE } from '@/server/og/card'
 
-const INK = '#000000'
+const INK = '#211C17'
 /** green-1 — the all-settled colour the app already celebrates in. */
 const FIELD = '#98E9AB'
 const FIELD_TINT = '#B2F0C1'

@@ -29,7 +29,7 @@ export function ScanningAnimation() {
 
     return (
         <div className="flex flex-col items-center gap-6 py-8" role="status" aria-live="polite">
-            <div className="relative w-44 overflow-hidden rounded-sm border border-n-1 bg-white p-4 shadow-[4px_4px_0_0_#000]">
+            <div className="relative w-44 overflow-hidden rounded-sm border border-n-1 bg-white p-4 shadow-[4px_4px_0_0_#211C17]">
                 <div className="flex flex-col gap-2.5">
                     {LINES.map((width, index) => (
                         <motion.div
