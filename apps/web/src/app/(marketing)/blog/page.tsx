@@ -6,7 +6,7 @@ import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { Button } from '@/components/ui/Button'
 import { STATIC_PAGES } from '@/data/static-pages'
 import { listAllDocs } from '@/lib/content'
-import { absoluteUrl, breadcrumbSchema, pageMetadata, pageTitle } from '@/lib/seo'
+import { absoluteUrl, breadcrumbSchema, formatDate, pageMetadata, pageTitle } from '@/lib/seo'
 
 /**
  * The content hub. Every indexable article on the site is reachable from here in one click,
@@ -34,7 +34,9 @@ interface HubEntry {
     href: string
     title: string
     description: string
+    /** Omitted for hand-built pages, which have no date to show. */
     date?: string
+    tags?: string[]
 }
 
 export default function BlogHubPage() {
@@ -44,7 +46,10 @@ export default function BlogHubPage() {
             href: doc.href,
             title: doc.frontmatter.title,
             description: doc.frontmatter.description,
-            date: doc.collection === 'blog' ? doc.frontmatter.date : undefined,
+            // Both collections show a date. Showing it for one and not the other made a single
+            // card in the list look broken rather than looking like a different kind of page.
+            date: doc.frontmatter.date,
+            tags: doc.frontmatter.tags,
         })),
         ...STATIC_PAGES.filter((page) => page.inHub).map((page) => ({
             href: page.href,
@@ -91,10 +96,15 @@ export default function BlogHubPage() {
                                     <span className="mt-1 block text-sm leading-5 text-grey-1">
                                         {entry.description}
                                     </span>
-                                    {entry.date && (
-                                        <time dateTime={entry.date} className="mt-2 block text-xs text-grey-1">
-                                            {entry.date}
-                                        </time>
+                                    {(entry.date || entry.tags?.length) && (
+                                        <span className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-grey-1">
+                                            {entry.date && <time dateTime={entry.date}>{formatDate(entry.date)}</time>}
+                                            {entry.tags?.map((tag) => (
+                                                <span key={tag} className="rounded-sm bg-grey-4 px-1.5 py-0.5">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </span>
                                     )}
                                 </Link>
                             </li>

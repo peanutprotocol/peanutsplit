@@ -19,7 +19,12 @@ import { staticPageSlugs } from '@/data/static-pages'
  * sitemap.ts both read this module, so nothing else has to be touched.
  */
 
-const CONTENT_ROOT = path.join(process.cwd(), 'src/content')
+/**
+ * Resolved per call rather than once at module load. Next runs the build from the app root so
+ * either would work in production, but a frozen root cannot be pointed at a fixture tree — which
+ * is what let the loader's draft/malformed/shadowed handling go untested.
+ */
+const contentRoot = () => path.join(process.cwd(), 'src/content')
 
 /** The collections that have a route. Adding one means adding a route; keep the two in step. */
 export const COLLECTIONS = ['blog', 'alternatives'] as const
@@ -72,7 +77,7 @@ export function hrefFor(collection: Collection, slug: string): string {
 }
 
 function collectionDir(collection: Collection): string {
-    return path.join(CONTENT_ROOT, collection)
+    return path.join(contentRoot(), collection)
 }
 
 /** A frontmatter date may come back from YAML as a Date; the rest of the app wants YYYY-MM-DD. */
@@ -96,18 +101,32 @@ function coerceFaqs(value: unknown): Faq[] | undefined {
  * is a publishing surface, not a code path — it should fail quiet and visible, not loud.
  */
 function parseDoc(collection: Collection, slug: string): Doc | null {
+    // A slug reaches this from a route param. `dynamicParams = false` already pins the match set,
+    // but the loader should not be the thing relying on that — `../` in a slug would otherwise
+    // walk out of the content tree and produce a doc with a nonsense href.
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null
+
     const filePath = path.join(collectionDir(collection), `${slug}.md`)
-    let raw: string
+
+    // Both the read and the YAML parse are inside the guard. gray-matter throws on malformed
+    // frontmatter, and a half-written article must not be able to fail `next build` — every
+    // caller here (sitemap, generateStaticParams, the hub) runs at build time.
+    let data: Record<string, unknown>
+    let content: string
     try {
-        raw = fs.readFileSync(filePath, 'utf8')
+        const parsed = matter(fs.readFileSync(filePath, 'utf8'))
+        data = parsed.data
+        content = parsed.content
     } catch {
         return null
     }
 
-    const { data, content } = matter(raw)
     const title = typeof data.title === 'string' ? data.title.trim() : ''
     const description = typeof data.description === 'string' ? data.description.trim() : ''
-    if (!title || !description) return null
+    const date = coerceDate(data.date)
+    // A dateless article emits an empty datePublished into BlogPosting schema, which is worse
+    // than not publishing it — so the date is required, not defaulted.
+    if (!title || !description || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
 
     return {
         collection,
@@ -116,7 +135,7 @@ function parseDoc(collection: Collection, slug: string): Doc | null {
         frontmatter: {
             title,
             description,
-            date: coerceDate(data.date),
+            date,
             updated: data.updated ? coerceDate(data.updated) : undefined,
             author: typeof data.author === 'string' ? data.author : undefined,
             tags: Array.isArray(data.tags) ? data.tags.filter((t): t is string => typeof t === 'string') : undefined,

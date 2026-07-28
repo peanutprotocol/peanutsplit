@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { JsonLd } from './JsonLd'
 import { Breadcrumbs } from './Breadcrumbs'
 import { SiteFooter } from './SiteFooter'
-import { articleSchema, breadcrumbSchema, faqSchema, type Breadcrumb } from '@/lib/seo'
+import { articleSchema, breadcrumbSchema, faqSchema, formatDate, type Breadcrumb } from '@/lib/seo'
 import type { Doc } from '@/lib/content'
 
 /**
@@ -11,12 +11,10 @@ import type { Doc } from '@/lib/content'
  * has an article problem, not a layout problem.
  *
  * `crumbs` is used twice on purpose (rendered + BreadcrumbList) so the two can't disagree.
- * Blog posts show a date line; the alternative pages don't, because a visible date on an
- * evergreen comparison invites the reader to treat it as stale.
  */
 export function ArticleLayout({ doc, crumbs, children }: { doc: Doc; crumbs: Breadcrumb[]; children: ReactNode }) {
     const { frontmatter } = doc
-    const showDate = doc.collection === 'blog' && !!frontmatter.date
+    const showDate = !!frontmatter.date
 
     return (
         <main className="flex min-h-dvh flex-col bg-background">
@@ -30,9 +28,9 @@ export function ArticleLayout({ doc, crumbs, children }: { doc: Doc; crumbs: Bre
                 {showDate && (
                     <div className="mx-auto w-full max-w-xl px-5 pt-4">
                         <time dateTime={frontmatter.date} className="block text-xs text-grey-1">
-                            Published {frontmatter.date}
+                            Published {formatDate(frontmatter.date)}
                             {frontmatter.updated && frontmatter.updated !== frontmatter.date
-                                ? ` · updated ${frontmatter.updated}`
+                                ? ` · updated ${formatDate(frontmatter.updated)}`
                                 : ''}
                         </time>
                     </div>

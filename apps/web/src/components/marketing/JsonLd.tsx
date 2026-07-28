@@ -7,7 +7,11 @@
  */
 export function JsonLd({ data }: { data: unknown | null }) {
     if (!data) return null
-    return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+    // JSON.stringify does not escape `<`, so a title containing `</script>` would close the tag
+    // and everything after it would be parsed as markup. Nothing outside this repo feeds these
+    // schemas today; the escape is what keeps that from mattering the day something does.
+    const json = JSON.stringify(data).replace(/</g, '\\u003c')
+    return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />
 }
 
 export default JsonLd

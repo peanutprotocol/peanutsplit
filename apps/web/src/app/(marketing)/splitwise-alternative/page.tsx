@@ -1,30 +1,34 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { CompareFaq } from '@/components/marketing/CompareFaq'
 import { CompareTable } from '@/components/marketing/CompareTable'
+import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { marketingCopy } from '@/components/marketing/copy'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { breadcrumbSchema, pageMetadata } from '@/lib/seo'
 
 const { compare } = marketingCopy
 
-export const metadata: Metadata = {
+/**
+ * Built by hand rather than through the content engine — the copy here is argued over line by
+ * line and carries an interactive comparison table. It goes through `pageMetadata` anyway so the
+ * head does not drift from the generated pages: this is the highest-intent page on the site and
+ * it was the one missing `og:site_name`, breadcrumbs and an Article node.
+ */
+export const metadata: Metadata = pageMetadata({
     title: compare.meta.title,
     description: compare.meta.description,
-    alternates: { canonical: '/splitwise-alternative' },
-    openGraph: {
-        type: 'article',
-        url: '/splitwise-alternative',
-        title: compare.meta.title,
-        description: compare.meta.description,
-    },
-    twitter: {
-        card: 'summary_large_image',
-        title: compare.meta.title,
-        description: compare.meta.description,
-    },
-}
+    path: '/splitwise-alternative',
+    type: 'article',
+})
+
+const crumbs = [
+    { name: 'Home', href: '/' },
+    { name: 'Splitwise alternative', href: '/splitwise-alternative' },
+]
 
 /** Rich result for the FAQ block. Mirrors what's rendered — if the copy changes, this follows. */
 const faqJsonLd = {
@@ -44,7 +48,10 @@ const faqJsonLd = {
 export default function SplitwiseAlternativePage() {
     return (
         <main className="flex min-h-dvh flex-col gap-10 bg-background">
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+            <JsonLd data={faqJsonLd} />
+            <JsonLd data={breadcrumbSchema(crumbs)} />
+
+            <Breadcrumbs crumbs={crumbs} />
 
             <section>
                 <div className="border-b border-n-1 bg-primary-1">
