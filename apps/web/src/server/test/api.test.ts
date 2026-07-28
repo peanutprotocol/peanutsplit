@@ -446,6 +446,8 @@ describe('write validation', () => {
         expect((await post(expenseBody(ana, { currency: 'XYZ' }))).status).toBe(400)
         expect((await post(expenseBody(ana, { description: '' }))).status).toBe(400)
         expect((await post(expenseBody(ana, { amountMinor: '10.00' }))).status).toBe(400)
+        expect((await post(expenseBody(ana, { amountMinor: 1000 }))).status).toBe(400)
+        expect((await post(expenseBody(ana, { amountMinor: '9223372036854775808' }))).status).toBe(400)
     })
 
     it('rejects EXACT shares that do not add up to the total', async () => {
@@ -485,6 +487,8 @@ describe('write validation', () => {
 
         expect((await post({ fromId: ana, toId: ana, amountMinor: '100' })).status).toBe(400)
         expect((await post({ fromId: ana, toId: bea, amountMinor: '0' })).status).toBe(400)
+        expect((await post({ fromId: ana, toId: bea, amountMinor: 100 })).status).toBe(400)
+        expect((await post({ fromId: ana, toId: bea, amountMinor: '9223372036854775808' })).status).toBe(400)
         expect((await post({ fromId: ana, toId: 'ghost', amountMinor: '100' })).status).toBe(400)
     })
 
@@ -578,6 +582,98 @@ describe('fx is locked at creation', () => {
         const repriced = afterCurrency.expenses[0]
         expect(Number(repriced.fxRate)).toBeCloseTo(2.54 / 1.08, 12)
         expect(repriced.baseAmountMinor).not.toBe(added.baseAmountMinor)
+    })
+})
+
+describe('foreign EXACT share apportionment', () => {
+    it('persists only nonnegative shares that sum exactly to the converted total', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const members = [created.memberId]
+        for (const name of ['Bea', 'Caro', 'Dani']) members.push((await join(slug, name)).body.memberId)
+
+        // At the static BRL→EUR rate, each R$0.03 share independently rounds to
+        // €0.01, but the R$0.12 total is €0.02. The old reconciliation wrote a
+        // negative share to force four rounded cents back to two.
+        const { status, body } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Four tiny coffees',
+                amountMinor: '12',
+                currency: 'BRL',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: members.map((memberId) => ({ memberId, amountMinor: '3' })),
+            },
+        })
+
+        expect(status).toBe(201)
+        const expense = body.expenses[0]
+        expect(expense.baseAmountMinor).toBe('2')
+        expect(expense.shares.map((share) => share.amountMinor)).toEqual(['1', '1', '0', '0'])
+        expect(expense.shares.every((share) => BigInt(share.amountMinor) >= 0n)).toBe(true)
+        expect(expense.shares.reduce((sum, share) => sum + BigInt(share.amountMinor), 0n)).toBe(2n)
+        expect(netsToZero(body)).toBe(true)
+
+        const stored = await prisma.expense.findUniqueOrThrow({
+            where: { id: expense.id },
+            include: { shares: true },
+        })
+        expect(stored.shares.every((share) => share.amountMinor >= 0n)).toBe(true)
+        expect(stored.shares.reduce((sum, share) => sum + share.amountMinor, 0n)).toBe(stored.baseAmountMinor)
+    })
+})
+
+describe('expense request idempotency', () => {
+    const key = 'expense-retry-key-0001'
+
+    const bodyFor = (paidById: string) => ({
+        clientKey: key,
+        description: 'Dinner',
+        amountMinor: '4000',
+        currency: 'EUR',
+        paidById,
+        splitMode: 'EQUAL',
+    })
+
+    it('returns the original write for sequential and concurrent retries', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        await join(slug, 'Bea')
+        const post = () =>
+            call<RoomState>(postExpense as Handler, {
+                path: `/api/rooms/${slug}/expenses`,
+                method: 'POST',
+                params: { slug },
+                body: bodyFor(created.memberId),
+            })
+
+        expect((await post()).status).toBe(201)
+        const retries = await Promise.all(Array.from({ length: 6 }, post))
+        expect(retries.every((result) => result.status === 201)).toBe(true)
+        expect(await prisma.expense.count({ where: { id: key, roomId: created.room.id } })).toBe(1)
+        expect(await prisma.expenseShare.count({ where: { expenseId: key } })).toBe(2)
+    })
+
+    it('turns a concurrent cross-room key collision into 409, never 500', async () => {
+        const { body: first } = await newRoom({ name: 'First' })
+        const { body: second } = await newRoom({ name: 'Second' })
+        const post = (room: RoomStateWithMember) =>
+            call<RoomState | ApiError>(postExpense as Handler, {
+                path: `/api/rooms/${room.room.slug}/expenses`,
+                method: 'POST',
+                params: { slug: room.room.slug },
+                body: bodyFor(room.memberId),
+            })
+
+        const results = await Promise.all([post(first), post(second)])
+        expect(results.map((result) => result.status).sort()).toEqual([201, 409])
+        expect(results.some((result) => result.status === 500)).toBe(false)
+        const conflictResult = results.find((result) => result.status === 409)!
+        expect((conflictResult.body as ApiError).error.code).toBe('IDEMPOTENCY_KEY_REUSED')
+        expect(await prisma.expense.count({ where: { id: key } })).toBe(1)
     })
 })
 
@@ -742,5 +838,120 @@ describe('recording part of a debt', () => {
 
         expect(status).toBe(400)
         expect(body.error.code).toBe('AMOUNT_NOT_POSITIVE')
+    })
+
+    it('refuses to record more than the payer currently owes the payee', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const { body: withBea } = await join(slug, 'Bea')
+        await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Cabin',
+                amountMinor: '10000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+
+        const { status, body } = await call<ApiError>(postSettlement as Handler, {
+            path: `/api/rooms/${slug}/settlements`,
+            method: 'POST',
+            params: { slug },
+            body: { fromId: withBea.memberId, toId: created.memberId, amountMinor: '5001' },
+        })
+
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('SETTLEMENT_EXCEEDS_DEBT')
+        expect(await prisma.settlement.count()).toBe(0)
+    })
+})
+
+describe('settlement request idempotency and serialization', () => {
+    const roomWithDebt = async (name: string) => {
+        const { body: created } = await newRoom({ name })
+        const { body: joined } = await join(created.room.slug, 'Bea')
+        await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Cabin',
+                amountMinor: '10000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        return { created, joined }
+    }
+
+    const settle = (room: Awaited<ReturnType<typeof roomWithDebt>>, clientKey: string, amountMinor = '5000') =>
+        call<RoomState | ApiError>(postSettlement as Handler, {
+            path: `/api/rooms/${room.created.room.slug}/settlements`,
+            method: 'POST',
+            params: { slug: room.created.room.slug },
+            token: room.joined.memberToken,
+            body: {
+                clientKey,
+                fromId: room.joined.memberId,
+                toId: room.created.memberId,
+                amountMinor,
+                method: 'cash',
+            },
+        })
+
+    it('checks the idempotency key before a retry sees the now-empty debt', async () => {
+        const room = await roomWithDebt('Retry room')
+        const clientKey = 'settlement-retry-key-0001'
+
+        expect((await settle(room, clientKey)).status).toBe(201)
+        expect((await settle(room, clientKey)).status).toBe(201)
+        expect(await prisma.settlement.count({ where: { id: clientKey } })).toBe(1)
+    })
+
+    it('makes concurrent deliveries of one key one settlement', async () => {
+        const room = await roomWithDebt('Concurrent retry room')
+        const clientKey = 'settlement-concurrent-key-01'
+        const results = await Promise.all(Array.from({ length: 8 }, () => settle(room, clientKey)))
+
+        expect(results.every((result) => result.status === 201)).toBe(true)
+        expect(await prisma.settlement.count({ where: { id: clientKey } })).toBe(1)
+    })
+
+    it('serializes distinct keys so their sum cannot exceed the debt', async () => {
+        const room = await roomWithDebt('Serialized room')
+        const results = await Promise.all(
+            Array.from({ length: 8 }, (_, index) =>
+                settle(room, `settlement-serialized-${String(index).padStart(4, '0')}`, '1000')
+            )
+        )
+
+        expect(results.filter((result) => result.status === 201)).toHaveLength(5)
+        expect(results.filter((result) => result.status === 400)).toHaveLength(3)
+        expect(results.some((result) => result.status === 500)).toBe(false)
+        expect(await prisma.settlement.count({ where: { roomId: room.created.room.id } })).toBe(5)
+        const final = await call<RoomState>(getRoom as Handler, {
+            path: `/api/rooms/${room.created.room.slug}`,
+            params: { slug: room.created.room.slug },
+        })
+        expect(final.body.suggestedTransfers).toEqual([])
+        expect(Object.values(final.body.balances).every((balance) => balance === '0')).toBe(true)
+    })
+
+    it('turns a concurrent cross-room key collision into 409, never 500', async () => {
+        const first = await roomWithDebt('Settlement first')
+        const second = await roomWithDebt('Settlement second')
+        const clientKey = 'settlement-cross-room-key-01'
+        const results = await Promise.all([settle(first, clientKey), settle(second, clientKey)])
+
+        expect(results.map((result) => result.status).sort()).toEqual([201, 409])
+        expect(results.some((result) => result.status === 500)).toBe(false)
+        const conflictResult = results.find((result) => result.status === 409)!
+        expect((conflictResult.body as ApiError).error.code).toBe('IDEMPOTENCY_KEY_REUSED')
+        expect(await prisma.settlement.count({ where: { id: clientKey } })).toBe(1)
     })
 })

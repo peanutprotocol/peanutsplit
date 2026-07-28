@@ -129,6 +129,8 @@ export interface CreateMemberInput {
 }
 
 export interface ExpenseInput {
+    /** Stable for one save attempt so a lost response can be replayed safely. */
+    clientKey?: string
     description: string
     amountMinor: string
     currency: string
@@ -151,6 +153,8 @@ export interface ReactionInput {
 }
 
 export interface SettlementInput {
+    /** Stable across retries of the same real-world payment. */
+    clientKey?: string
     fromId: string
     toId: string
     amountMinor: string

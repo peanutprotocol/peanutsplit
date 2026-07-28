@@ -150,8 +150,20 @@ export const api = {
      * not re-derive a call from it, so a record written by an older build still
      * replays exactly as it was captured.
      */
-    replayWrite: (write: { endpoint: string; method: 'POST'; body: unknown; token?: string | null }) =>
-        request<RoomState>(write.endpoint, { method: write.method, body: write.body, token: write.token }),
+    replayWrite: (write: {
+        clientKey: string
+        endpoint: string
+        method: 'POST'
+        body: ExpenseInput
+        token?: string | null
+    }) =>
+        request<RoomState>(write.endpoint, {
+            method: write.method,
+            // Old queue records kept the stable key outside the body. Injecting
+            // it here upgrades those records at replay time too.
+            body: { ...write.body, clientKey: write.clientKey },
+            token: write.token,
+        }),
 
     /**
      * The account endpoints. Authentication is the sealed `ps-session` cookie,

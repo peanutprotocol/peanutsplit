@@ -95,4 +95,23 @@ describe('api requests', () => {
         await api.room('weird/slug')
         expect(fetchMock.mock.calls[0][0]).toBe('/api/rooms/weird%2Fslug')
     })
+
+    it('injects a stored queue key into legacy expense bodies on replay', async () => {
+        const fetchMock = respondWith(201, {})
+        vi.stubGlobal('fetch', fetchMock)
+        await api.replayWrite({
+            clientKey: 'legacy-queue-key-0001',
+            endpoint: '/api/rooms/room-a/expenses',
+            method: 'POST',
+            body: {
+                description: 'Dinner',
+                amountMinor: '2000',
+                currency: 'EUR',
+                paidById: 'm1',
+                splitMode: 'EQUAL',
+            },
+        })
+
+        expect(JSON.parse(fetchMock.mock.calls[0][1].body).clientKey).toBe('legacy-queue-key-0001')
+    })
 })

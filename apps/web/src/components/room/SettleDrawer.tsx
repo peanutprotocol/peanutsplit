@@ -14,6 +14,7 @@ import { roomProps, track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { decimalsOf, formatMinorPlain, parseAmountToMinor } from '@/lib/money'
+import { createClientKey } from '@/lib/offline-queue'
 import { useAddSettlement } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -111,6 +112,8 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
     const [settledKey, setSettledKey] = useState<string | null>(null)
     const [collapsing, setCollapsing] = useState(false)
     const timers = useRef<number[]>([])
+    const recordingRef = useRef(false)
+    const requestRef = useRef<{ signature: string; clientKey: string } | null>(null)
 
     const clearTimers = useCallback(() => {
         timers.current.forEach((id) => window.clearTimeout(id))
@@ -129,6 +132,8 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         setFrozen(null)
         setSettledKey(null)
         setCollapsing(false)
+        recordingRef.current = false
+        requestRef.current = null
         clearTimers()
         feedback('blip')
         track('settle_sheet_opened', roomProps(slug, { openDebts: state.suggestedTransfers.length }))
@@ -159,13 +164,9 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
      * it is a different transaction the room has no way to represent, and it
      * would leave the payee owing the payer with no row explaining why.
      *
-     * A UI ceiling, not a server invariant — worth being plain about, because the
-     * sentence above sounds like one. `POST /settlements` accepts any positive
-     * amount between two members, and the room link is the only credential there
-     * is, so anybody who can open this sheet can post past the ceiling with a
-     * fetch. Left that way on purpose: enforcing it would mean deriving the gross
-     * debt inside the route, and the thing being prevented is a typo among people
-     * who already trust each other with the link, not an attacker.
+     * The server repeats this ceiling under a room-scoped transaction lock. The
+     * UI check gives immediate feedback; the server check is what prevents two
+     * concurrent taps or devices from spending the same outstanding debt.
      */
     const enteredMinor = (): { minor: string } | { problem: string } => {
         if (!selected) return { problem: t('amountInvalid') }
@@ -177,7 +178,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
     }
 
     const record = async () => {
-        if (!selected) return
+        if (!selected || recordingRef.current) return
         setError(null)
         const entered = enteredMinor()
         if ('problem' in entered) {
@@ -185,8 +186,13 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
             setError(entered.problem)
             return
         }
+        recordingRef.current = true
         const partial = entered.minor !== selected.amountMinor
         const key = transferKey(selected)
+        const trimmedNote = note.trim()
+        const signature = [selected.fromId, selected.toId, entered.minor, method, trimmedNote].join('\u0000')
+        const clientKey = requestRef.current?.signature === signature ? requestRef.current.clientKey : createClientKey()
+        requestRef.current = { signature, clientKey }
         // Hold the list we are looking at *before* the mutation lands, so the row
         // is still mounted when we ask it to leave.
         setFrozen(state.suggestedTransfers)
@@ -197,14 +203,18 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         const before = new Set(state.settlements.map((settlement) => settlement.id))
         try {
             const next = await addSettlement.mutateAsync({
+                clientKey,
                 fromId: selected.fromId,
                 toId: selected.toId,
                 amountMinor: entered.minor,
                 method,
-                note: note.trim() ? note.trim() : null,
+                note: trimmedNote || null,
             })
-            const created = next.settlements.find((settlement) => !before.has(settlement.id))
-            if (created) setRecordedIds((previous) => [...previous, created.id])
+            const created =
+                next.settlements.find((settlement) => settlement.id === clientKey) ??
+                next.settlements.find((settlement) => !before.has(settlement.id))
+            if (created)
+                setRecordedIds((previous) => (previous.includes(created.id) ? previous : [...previous, created.id]))
             // `partial` is a boolean about a payment, not an amount — the same
             // line the rest of this file holds: what happened, never how much.
             track('settlement_recorded', roomProps(slug, { method, partial }))
@@ -212,6 +222,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
             // Wood on wood, the moment the money moves.
             feedback('thunk')
             setSelected(null)
+            requestRef.current = null
             setSettledKey(key)
 
             const done = () => {
@@ -245,6 +256,8 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
             // "no", not a red line of text on its own.
             feedback('error', { haptic: 'error' })
             setError(errorMessage(err, t('failed')))
+        } finally {
+            recordingRef.current = false
         }
     }
 

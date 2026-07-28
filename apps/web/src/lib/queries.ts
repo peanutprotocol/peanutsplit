@@ -22,6 +22,7 @@ import type {
 } from './api-types'
 import { FALLBACK_CURRENCIES } from './money'
 import {
+    createClientKey,
     draftExpenseRow,
     enqueueWrite,
     isOfflineFailure,
@@ -294,8 +295,12 @@ export function addExpenseMutationOptions(
          * (edits, deletes, settlements) still rejects; see offline-queue.ts.
          */
         mutationFn: async (input: ExpenseInput): Promise<RoomState> => {
+            // Mint before the first network attempt. If the write commits but
+            // its response is lost, the offline replay addresses that row
+            // instead of creating a second expense.
+            const requestInput = { ...input, clientKey: input.clientKey ?? createClientKey() }
             try {
-                return await api.addExpense(slug, input, token)
+                return await api.addExpense(slug, requestInput, token)
             } catch (error) {
                 if (!isOfflineFailure(error)) throw error
                 // No cached room to hand back (a save before the first GET
@@ -306,7 +311,7 @@ export function addExpenseMutationOptions(
                     slug,
                     endpoint: expensesPath(slug),
                     method: 'POST',
-                    body: input,
+                    body: requestInput,
                     token,
                 })
                 if (!queued) throw error

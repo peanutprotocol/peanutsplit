@@ -34,6 +34,11 @@ const minorAmount = z
     )
 
 const id = z.string().min(1).max(64)
+const clientKey = z
+    .string()
+    .min(16)
+    .max(64)
+    .regex(/^[A-Za-z0-9-]+$/, 'must be an opaque request key')
 const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
 
 export const createRoomSchema = z.object({
@@ -48,6 +53,7 @@ export const createRoomSchema = z.object({
 export const createMemberSchema = z.object({ name: personName })
 
 export const expenseSchema = z.object({
+    clientKey: clientKey.optional(),
     description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
     amountMinor: minorAmount,
     currency: currencyCode,
@@ -60,6 +66,7 @@ export const expenseSchema = z.object({
 })
 
 export const settlementSchema = z.object({
+    clientKey: clientKey.optional(),
     fromId: id,
     toId: id,
     amountMinor: minorAmount,
