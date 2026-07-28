@@ -76,7 +76,8 @@ describe('derivePushStatus', () => {
 
 describe('isIOSDevice', () => {
     it('matches iPhone and iPod user agents', () => {
-        expect(isIOSDevice({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)', platform: '', maxTouchPoints: 5 })
+        expect(
+            isIOSDevice({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)', platform: '', maxTouchPoints: 5 })
         ).toBe(true)
         expect(isIOSDevice({ userAgent: 'Mozilla/5.0 (iPod touch)', platform: '', maxTouchPoints: 5 })).toBe(true)
     })
@@ -94,7 +95,8 @@ describe('isIOSDevice', () => {
     })
 
     it('is false on Android and desktop Windows', () => {
-        expect(isIOSDevice({ userAgent: 'Mozilla/5.0 (Linux; Android 14)', platform: 'Linux armv8l', maxTouchPoints: 5 })
+        expect(
+            isIOSDevice({ userAgent: 'Mozilla/5.0 (Linux; Android 14)', platform: 'Linux armv8l', maxTouchPoints: 5 })
         ).toBe(false)
         expect(isIOSDevice({ userAgent: 'Mozilla/5.0 (Windows NT 10.0)', platform: 'Win32', maxTouchPoints: 10 })).toBe(
             false
@@ -131,8 +133,7 @@ describe('urlBase64ToUint8Array', () => {
     })
 
     it('produces the 65 bytes a real VAPID key decodes to', () => {
-        const key =
-            'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
+        const key = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
         expect(urlBase64ToUint8Array(key)).toHaveLength(65)
     })
 })

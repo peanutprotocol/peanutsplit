@@ -57,15 +57,21 @@ export const isIOSDevice = ({ userAgent, platform, maxTouchPoints }: DeviceHints
 
 /** The two signals a PWA can be launched from: the standard display-mode media
  *  query, and Safari's pre-standard `navigator.standalone`. */
-export const isStandaloneDisplay = (displayModeStandalone: boolean, navigatorStandalone: boolean | undefined): boolean =>
-    displayModeStandalone || navigatorStandalone === true
+export const isStandaloneDisplay = (
+    displayModeStandalone: boolean,
+    navigatorStandalone: boolean | undefined
+): boolean => displayModeStandalone || navigatorStandalone === true
 
 /**
  * VAPID keys are published base64url; `PushManager.subscribe` wants raw bytes.
  * `atob` only speaks standard base64, hence the padding and the two character
  * swaps.
+ *
+ * The explicit `Uint8Array<ArrayBuffer>` is load-bearing: bare `Uint8Array` now
+ * means `Uint8Array<ArrayBufferLike>`, which `applicationServerKey` rejects
+ * because a SharedArrayBuffer view is not a `BufferSource`.
  */
-export function urlBase64ToUint8Array(base64UrlKey: string): Uint8Array {
+export function urlBase64ToUint8Array(base64UrlKey: string): Uint8Array<ArrayBuffer> {
     const padding = '='.repeat((4 - (base64UrlKey.length % 4)) % 4)
     const base64 = (base64UrlKey + padding).replace(/-/g, '+').replace(/_/g, '/')
     const raw = atob(base64)
