@@ -33,6 +33,12 @@ export type AnalyticsEvent =
     | 'push_optin_denied'
     | 'account_link_requested'
     | 'account_rooms_recovered'
+    // Trip recap. `recap_shared` carries which rung of the share chain fired
+    // (`files` | `clipboard` | `download`) and nothing else — no total, no day
+    // count, no names. An amount in a property bag is the same leak as an
+    // amount in a URL.
+    | 'recap_viewed'
+    | 'recap_shared'
 
 let ready = false
 
