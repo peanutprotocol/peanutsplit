@@ -508,6 +508,15 @@
             "reacted": "{emoji} — {count, plural, one {# persona} other {# personas}}",
             "needsToken": "Para reaccionar necesitamos comprobar que eres tú — vuelve a entrar a la sala con tu nombre.",
             "failed": "no se pudo guardar esa reacción — inténtalo de nuevo"
+        },
+        "latecomer": {
+            "title": "{name} llegó después de {count, plural, one {# gasto} other {# gastos}}",
+            "body": "Esos se dividieron entre quienes estaban en la sala en ese momento, así que {name} no aparece. Al agregarlo, cada uno se vuelve a dividir en partes iguales. Los gastos con montos escritos a mano quedan como están.",
+            "confirm": "Agregar {count, plural, one {al # gasto} other {a los # gastos}}",
+            "dismiss": "No, gracias",
+            "progress": "{done} de {count} actualizados",
+            "stop": "Detener",
+            "failed": "no se pudieron actualizar todos — toca de nuevo para seguir desde donde quedó"
         }
     },
     "account": {

@@ -508,6 +508,15 @@
             "reacted": "{emoji} — {count, plural, one {# person} other {# people}}",
             "needsToken": "Reacting needs proof it is really you — rejoin the room with your own name first.",
             "failed": "could not save that reaction — try again"
+        },
+        "latecomer": {
+            "title": "{name} joined after {count, plural, one {# earlier expense} other {# earlier expenses}}",
+            "body": "Those were split between whoever was in the room at the time, so {name} is not in them. Adding them re-splits each one equally. Expenses with amounts somebody typed by hand are left alone.",
+            "confirm": "Add to {count, plural, one {the # expense} other {all # expenses}}",
+            "dismiss": "No thanks",
+            "progress": "{done} of {count} updated",
+            "stop": "Stop",
+            "failed": "could not update them all — press again to carry on from where it stopped"
         }
     },
     "account": {
