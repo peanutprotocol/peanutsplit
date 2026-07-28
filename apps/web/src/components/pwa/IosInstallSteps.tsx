@@ -14,7 +14,7 @@ export function IosInstallSteps() {
     const t = useTranslations('marketing.install')
 
     return (
-        <ol className="flex flex-col gap-3 px-4 pb-2">
+        <ol className="flex flex-col gap-3">
             {/* Literal keys: three steps is not enough repetition to justify a
                 computed path, which the i18n audit could only skip. */}
             {[t('ios.step1'), t('ios.step2'), t('ios.step3')].map((step, index) => (

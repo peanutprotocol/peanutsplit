@@ -1,22 +1,15 @@
 import { forwardRef } from 'react'
 import { cn as twMerge } from '@/lib/cn'
-
-type BaseInputVariant = 'sm' | 'md' | 'lg'
+import { fieldSizes, type FieldSize } from './field'
 
 interface BaseInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    variant?: BaseInputVariant
+    variant?: FieldSize
     rightContent?: React.ReactNode
 }
 
 const BaseInput = forwardRef<HTMLInputElement, BaseInputProps>(
     ({ className, variant = 'md', rightContent, ...props }, ref) => {
-        const variants: Record<BaseInputVariant, string> = {
-            sm: 'h-10 px-3',
-            md: 'h-16 px-5',
-            lg: 'h-20 px-6',
-        }
-
-        const c = twMerge('input', variants[variant], className)
+        const c = twMerge('input', fieldSizes[variant], className)
 
         return (
             <div className="relative w-full">

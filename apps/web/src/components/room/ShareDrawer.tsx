@@ -6,7 +6,10 @@ import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent } from '@/components/ui/Drawer'
+import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
+import { BTN_MEDIUM } from '@/components/ui/control'
+import { cn } from '@/lib/cn'
 import { isApiError } from '@/lib/api'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -73,8 +76,8 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className="bg-background">
-                <div className="flex flex-col gap-5 px-5 pb-10 pt-2">
+            <DrawerContent className={drawerContentClass}>
+                <DrawerBody>
                     <LinkMoment
                         slug={room.slug}
                         roomName={room.name}
@@ -145,7 +148,8 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                                                 icon="plus"
                                                 disabled={name.trim().length === 0}
                                                 loading={addMember.isPending}
-                                                className="h-10 w-auto shrink-0 justify-center px-4"
+                                                size="medium"
+                                                className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center')}
                                                 data-testid="add-person"
                                             >
                                                 {t('addPeople.add')}
@@ -164,7 +168,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                             )}
                         </AnimatePresence>
                     </div>
-                </div>
+                </DrawerBody>
             </DrawerContent>
         </Drawer>
     )

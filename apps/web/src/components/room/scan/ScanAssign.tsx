@@ -111,7 +111,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                             data-testid="scan-assignee-chip"
                                             data-member={member.name}
                                             className={cn(
-                                                'flex min-h-11 items-center gap-2 rounded-sm border border-n-1 py-1.5 pl-1.5 pr-3 text-h9 transition-all duration-100',
+                                                'flex min-h-11 items-center gap-2 rounded-sm border border-n-1 py-2 pl-2 pr-3 text-h8 transition-all duration-100',
                                                 on
                                                     ? 'shadow-4 bg-primary-1'
                                                     : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
@@ -134,7 +134,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                     aria-pressed={isEveryone}
                                     data-testid="scan-everyone"
                                     className={cn(
-                                        'flex min-h-11 items-center gap-1.5 rounded-sm border border-dashed border-n-1 px-3 py-1.5 text-h9 transition-all duration-100',
+                                        'flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-n-1 px-3 py-2 text-h8 transition-all duration-100',
                                         isEveryone ? 'bg-primary-3' : 'bg-white'
                                     )}
                                 >
@@ -153,7 +153,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                 </p>
             )}
 
-            <div className="flex flex-col gap-1 rounded-sm border border-n-1 bg-primary-3 px-3 py-3 text-h8">
+            <div className="flex flex-col gap-1 rounded-sm border border-n-1 bg-primary-3 p-3 text-h8">
                 {members
                     .filter((member) => totals[member.id])
                     .map((member) => (

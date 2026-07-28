@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
@@ -267,12 +268,12 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className="bg-background">
-                <DrawerHeader className="pb-0">
+            <DrawerContent className={drawerContentClass}>
+                <DrawerHeader className={drawerHeaderClass}>
                     <DrawerTitle className="text-h5">{selected ? t('recordTitle') : t('listTitle')}</DrawerTitle>
                 </DrawerHeader>
 
-                <div className="flex flex-col gap-4 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
+                <DrawerBody>
                     {nothingToSettle && (
                         <div className="-mx-4">
                             {state.expenses.length > 0 ? (
@@ -386,7 +387,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                 outstanding total counts down to its new value. */}
                             <motion.div
                                 layout
-                                className="flex items-center justify-between rounded-sm border border-dashed border-n-1 px-3 py-3"
+                                className="flex items-center justify-between rounded-sm border border-dashed border-n-1 p-3"
                             >
                                 <span className="text-h8 uppercase tracking-wide text-grey-1">
                                     {t('stillOutstanding')}
@@ -443,7 +444,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                             initial={{ opacity: 0, y: 14 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                            className="flex flex-col gap-4"
+                            className="flex flex-col gap-5"
                         >
                             <div className="shadow-4 flex items-center justify-center gap-3 rounded-sm border border-n-1 bg-white p-4">
                                 <span className="flex min-w-0 items-center gap-2">
@@ -476,6 +477,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                     inputMode="decimal"
                                     autoComplete="off"
                                     maxLength={20}
+                                    variant="lg"
                                     className="text-center text-h3 tabular-nums"
                                     data-testid="settle-amount"
                                 />
@@ -507,7 +509,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                                 aria-pressed={active}
                                                 data-testid={`method-${option.id}`}
                                                 className={cn(
-                                                    'flex min-h-[3.25rem] flex-col items-center gap-1 rounded-sm border border-n-1 px-2 py-3 text-center transition-transform active:translate-y-[2px]',
+                                                    'flex min-h-13 flex-col items-center gap-1 rounded-sm border border-n-1 p-3 text-center transition-transform active:translate-y-[2px]',
                                                     active
                                                         ? isPeanut
                                                             ? 'shadow-4 bg-secondary-1'
@@ -544,7 +546,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                 </p>
                             )}
 
-                            <div className="flex flex-col gap-3">
+                            <DrawerActions>
                                 <Button
                                     variant="primary"
                                     shadowSize="4"
@@ -558,10 +560,10 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                 <Button variant="stroke" className="justify-center" onClick={() => setSelected(null)}>
                                     {t('back')}
                                 </Button>
-                            </div>
+                            </DrawerActions>
                         </motion.div>
                     )}
-                </div>
+                </DrawerBody>
             </DrawerContent>
         </Drawer>
     )

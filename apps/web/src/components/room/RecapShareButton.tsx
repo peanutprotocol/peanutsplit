@@ -100,7 +100,7 @@ export function RecapShareButton({ slug, variant = 'primary' }: { slug: string; 
             icon="share"
             loading={busy}
             onClick={() => void share()}
-            className="justify-center"
+            className={variant === 'primary' ? 'justify-center text-h6' : 'justify-center'}
             data-testid="share-recap"
         >
             {busy ? t('sharing') : t('share')}
