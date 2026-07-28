@@ -88,15 +88,17 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                     motion writes `transform` inline on every render, and a CSS
                     keyframe animation on the same property is a fight, not a stack. */}
                 <div ref={cardRef}>
-                    <Card shadowSize="6" className="max-h-[80dvh] overflow-y-auto p-5">
-                        <h2 className="text-h5">{t('title')}</h2>
-                        <p className="mt-1 text-sm text-grey-1">
-                            {t('roster', { room: state.room.name, count: state.members.length })}
-                        </p>
+                    <Card shadowSize="6" className="max-h-[80dvh] gap-5 overflow-y-auto p-4">
+                        <div className="flex flex-col gap-1">
+                            <h2 className="text-h5">{t('title')}</h2>
+                            <p className="text-sm text-grey-1">
+                                {t('roster', { room: state.room.name, count: state.members.length })}
+                            </p>
+                        </div>
 
                         {mode === 'pick' && (
-                            <>
-                                <ul className="mt-4 flex flex-col gap-2">
+                            <div className="flex flex-col gap-3">
+                                <ul className="flex flex-col gap-2">
                                     {state.members.map((member) => (
                                         <li key={member.id}>
                                             <button
@@ -107,7 +109,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                                 className="shadow-4 flex w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
                                             >
                                                 <MemberAvatar name={member.name} size={32} />
-                                                <span className="flex-1 truncate text-h7">{member.name}</span>
+                                                <span className="flex-1 truncate text-h8">{member.name}</span>
                                                 <span className="text-sm text-grey-1">{t('thatsMe')}</span>
                                             </button>
                                         </li>
@@ -115,7 +117,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                 </ul>
 
                                 {error && (
-                                    <p role="alert" className="mt-3 text-sm font-bold text-error">
+                                    <p role="alert" className="text-sm font-bold text-error">
                                         {error}
                                     </p>
                                 )}
@@ -123,7 +125,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                 <Button
                                     variant="stroke"
                                     icon="plus"
-                                    className="mt-4 justify-center"
+                                    className="justify-center"
                                     onClick={() => {
                                         setError(null)
                                         setMode('new')
@@ -132,11 +134,11 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                 >
                                     {t('imNew')}
                                 </Button>
-                            </>
+                            </div>
                         )}
 
                         {mode === 'new' && (
-                            <form onSubmit={joinAsNew} className="mt-4 flex flex-col gap-3">
+                            <form onSubmit={joinAsNew} className="flex flex-col gap-3">
                                 <BaseInput
                                     value={name}
                                     onChange={(event) => setName(event.target.value)}
@@ -156,15 +158,15 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                     shadowSize="4"
                                     disabled={name.trim().length === 0}
                                     loading={joinRoom.isPending}
-                                    className="justify-center"
+                                    className="justify-center text-h6"
                                     data-testid="join-room"
                                 >
                                     {t('submit')}
                                 </Button>
                                 {state.members.length > 0 && (
                                     <Button
-                                        variant="transparent"
-                                        className="justify-center text-sm underline"
+                                        variant="stroke"
+                                        className="justify-center"
                                         onClick={() => {
                                             setError(null)
                                             setMode('pick')

@@ -5,6 +5,8 @@ import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
+import { BTN_MEDIUM } from '@/components/ui/control'
+import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiSettlement, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -129,7 +131,7 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
                         onClick={() => setConfirming(true)}
                         aria-label={t('remove')}
                         data-testid="remove-settlement"
-                        className="shrink-0 p-1 text-grey-1 transition-transform active:translate-y-[1px]"
+                        className="-my-3 -mr-3 flex size-11 shrink-0 items-center justify-center text-grey-1 transition-transform active:translate-y-[1px]"
                     >
                         <Icon name="trash" size={16} />
                     </button>
@@ -146,7 +148,8 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
                     <div className="flex gap-2">
                         <Button
                             variant="stroke"
-                            className="h-10 flex-1 justify-center"
+                            size="medium"
+                            className={cn(BTN_MEDIUM, 'flex-1 justify-center')}
                             loading={deleteSettlement.isPending}
                             onClick={remove}
                             data-testid="confirm-remove-settlement"
@@ -154,8 +157,9 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
                             {t('confirmYes')}
                         </Button>
                         <Button
-                            variant="transparent"
-                            className="h-10 w-auto shrink-0 justify-center px-3 text-sm underline"
+                            variant="stroke"
+                            size="medium"
+                            className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center')}
                             onClick={() => setConfirming(false)}
                         >
                             {t('confirmNo')}

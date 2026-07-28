@@ -5,6 +5,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
+import { BTN_MEDIUM } from '@/components/ui/control'
+import { cn } from '@/lib/cn'
 import { roomProps, track } from '@/lib/analytics'
 import type { RoomState } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -124,7 +126,7 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
         >
             <div className="flex items-center gap-3">
                 <MemberAvatar name={offer.member.name} size={32} />
-                <p className="min-w-0 flex-1 text-h7">{t('title', { name: offer.member.name, count: total })}</p>
+                <p className="min-w-0 flex-1 text-h8">{t('title', { name: offer.member.name, count: total })}</p>
             </div>
             <p className="text-sm leading-5 text-n-1">{t('body')}</p>
 
@@ -141,7 +143,8 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
                     </span>
                     <Button
                         variant="stroke"
-                        className="h-10 w-auto shrink-0 justify-center px-4"
+                        size="medium"
+                        className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center')}
                         onClick={() => {
                             abandoned.current = true
                         }}
@@ -151,19 +154,19 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
                     </Button>
                 </div>
             ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-3">
                     <Button
                         variant="primary"
                         shadowSize="4"
-                        className="flex-1 justify-center"
+                        className="justify-center text-h6"
                         onClick={run}
                         data-testid="latecomer-confirm"
                     >
                         {t('confirm', { count: total })}
                     </Button>
                     <Button
-                        variant="transparent"
-                        className="w-auto shrink-0 justify-center px-3 text-sm underline"
+                        variant="stroke"
+                        className="justify-center"
                         onClick={() => {
                             dismiss(slug, offer.member.id)
                             setDismissed((previous) => [...previous, offer.member.id])

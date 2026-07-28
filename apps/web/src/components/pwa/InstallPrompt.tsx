@@ -7,7 +7,10 @@ import { useTranslations } from 'next-intl'
 import { peanutPointing } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { BTN_MEDIUM } from '@/components/ui/control'
+import { cn } from '@/lib/cn'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { IosInstallSteps } from './IosInstallSteps'
 
 const DISMISS_COUNT_KEY = 'ps:pwa-dismiss-count'
@@ -197,15 +200,18 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                                 unoptimized
                                 className="size-12 shrink-0 object-contain"
                             />
-                            <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 flex-1 flex-col gap-1">
                                 <p className="text-h7">{t('title')}</p>
-                                <p className="mt-1 text-sm leading-5 text-grey-1">{t('body')}</p>
-                                <div className="mt-3 flex items-center gap-2">
+                                <p className="text-sm leading-5 text-grey-1">{t('body')}</p>
+                                {/* An inline banner is the one place a pair of actions sits
+                                    side by side rather than stacked — but both halves take the
+                                    same size, so the row has one baseline and one height. */}
+                                <div className="mt-2 flex items-center gap-2">
                                     <Button
                                         variant="primary"
                                         size="medium"
                                         shadowSize="3"
-                                        className="w-auto shrink-0 justify-center whitespace-nowrap px-4"
+                                        className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center whitespace-nowrap')}
                                         onClick={install}
                                     >
                                         {t('cta')}
@@ -213,7 +219,10 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                                     <Button
                                         variant="transparent"
                                         size="medium"
-                                        className="w-auto justify-center whitespace-nowrap px-2 text-grey-1"
+                                        className={cn(
+                                            BTN_MEDIUM,
+                                            'w-auto justify-center whitespace-nowrap text-grey-1'
+                                        )}
                                         onClick={dismiss}
                                     >
                                         {t('dismiss')}
@@ -224,9 +233,9 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                                 type="button"
                                 onClick={dismiss}
                                 aria-label={t('dismiss')}
-                                className="-mr-1 -mt-1 size-8 shrink-0 self-start rounded-sm text-grey-1"
+                                className="-mr-2 -mt-2 flex size-11 shrink-0 items-center justify-center self-start rounded-sm text-grey-1"
                             >
-                                <Icon name="x" size={18} className="mx-auto" />
+                                <Icon name="x" size={18} />
                             </button>
                         </div>
                     </motion.div>
@@ -234,17 +243,19 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
             </AnimatePresence>
 
             <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
-                <DrawerContent className="border-n-1">
-                    <DrawerHeader className="text-left">
+                <DrawerContent className={drawerContentClass}>
+                    <DrawerHeader className={drawerHeaderClass}>
                         <DrawerTitle className="text-h5">{t('ios.title')}</DrawerTitle>
                         <DrawerDescription>{t('ios.body')}</DrawerDescription>
                     </DrawerHeader>
-                    <IosInstallSteps />
-                    <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-                        <Button variant="stroke" className="justify-center" onClick={dismiss}>
-                            {t('ios.done')}
-                        </Button>
-                    </div>
+                    <DrawerBody>
+                        <IosInstallSteps />
+                        <DrawerActions>
+                            <Button variant="stroke" className="justify-center" onClick={dismiss}>
+                                {t('ios.done')}
+                            </Button>
+                        </DrawerActions>
+                    </DrawerBody>
                 </DrawerContent>
             </Drawer>
         </>

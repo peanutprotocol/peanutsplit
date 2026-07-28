@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { AccountPanel } from './AccountPanel'
 
 /**
@@ -14,15 +15,15 @@ export function SaveRoomsDrawer({ open, onOpenChange }: { open: boolean; onOpenC
 
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
-            <DrawerContent className="border-n-1">
+            <DrawerContent className={drawerContentClass}>
                 {/* Title only — the panel already carries the blurb, and saying
                     it twice in one sheet reads as a marketing page. */}
-                <DrawerHeader className="text-left">
+                <DrawerHeader className={drawerHeaderClass}>
                     <DrawerTitle className="text-h5">{t('title')}</DrawerTitle>
                 </DrawerHeader>
-                <div className="px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                <DrawerBody>
                     <AccountPanel />
-                </div>
+                </DrawerBody>
             </DrawerContent>
         </Drawer>
     )
