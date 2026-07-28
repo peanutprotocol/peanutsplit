@@ -69,6 +69,12 @@
     "locale": {
         "label": "Language"
     },
+    "settings": {
+        "animations": {
+            "title": "Animations",
+            "description": "Bounces, pops and confetti"
+        }
+    },
     "dates": {
         "today": "Today",
         "yesterday": "Yesterday"

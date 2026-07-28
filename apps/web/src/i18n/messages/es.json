@@ -69,6 +69,12 @@
     "locale": {
         "label": "Idioma"
     },
+    "settings": {
+        "animations": {
+            "title": "Animaciones",
+            "description": "Rebotes, saltitos y confeti"
+        }
+    },
     "dates": {
         "today": "Hoy",
         "yesterday": "Ayer"

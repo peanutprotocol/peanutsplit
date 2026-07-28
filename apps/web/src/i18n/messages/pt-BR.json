@@ -69,6 +69,12 @@
     "locale": {
         "label": "Idioma"
     },
+    "settings": {
+        "animations": {
+            "title": "Animações",
+            "description": "Pulinhos, estalos e confete"
+        }
+    },
     "dates": {
         "today": "Hoje",
         "yesterday": "Ontem"
