@@ -96,13 +96,29 @@ export function HeroCreateForm() {
     const nameRef = useRef<HTMLInputElement>(null)
     const creatorRef = useRef<HTMLInputElement>(null)
 
+    /** A `<details>` has no light-dismiss of its own, so the drawing grid stayed open over the
+     *  form until it was toggled again — including while the person typed into the fields it
+     *  was covering. Tapping anywhere outside closes it, which is what every other popover on
+     *  the page already does. */
+    const pickerRef = useRef<HTMLDetailsElement>(null)
+    useEffect(() => {
+        if (!pickerOpen) return
+        const onPointerDown = (event: PointerEvent) => {
+            if (!pickerRef.current?.contains(event.target as Node)) setPickerOpen(false)
+        }
+        document.addEventListener('pointerdown', onPointerDown)
+        return () => document.removeEventListener('pointerdown', onPointerDown)
+    }, [pickerOpen])
+
     const onSubmit = async (event: React.FormEvent) => {
         event.preventDefault()
         if (pending) return
         if (!name.trim()) return nameRef.current?.focus()
         if (!creatorName.trim()) return creatorRef.current?.focus()
         const state = await submit({ name, emoji: shownEmblem, currency, creatorName })
-        if (state) router.push(`/r/${state.room.slug}`)
+        // Land with the share sheet already up: a room with one person in it is not
+        // a split yet, and the next thing to do is always send the link.
+        if (state) router.push(`/r/${state.room.slug}?share=true`)
     }
 
     return (
@@ -125,6 +141,7 @@ export function HeroCreateForm() {
                 {/* A details/summary rather than a popover library: one line tall when closed,
                     no JS, and it reuses the same curated picker `/new` uses. */}
                 <details
+                    ref={pickerRef}
                     open={pickerOpen}
                     onToggle={(event) => setPickerOpen((event.target as HTMLDetailsElement).open)}
                     className="relative"

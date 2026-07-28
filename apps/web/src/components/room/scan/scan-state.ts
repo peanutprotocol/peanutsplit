@@ -235,6 +235,10 @@ export function toExpenseFormValues(
         participantIds: Object.keys(exactInputs),
         participantsTouched: true,
         exactInputs,
+        // The receipt did the allocating, item by item, on the screen before this
+        // one — so the drawer's readout opens already celebrating rather than
+        // asking for numbers that are visibly all there.
+        exactTouched: true,
         // The receipt's own date when it had one, keeping the time of day off the
         // form's current value so same-day ordering survives.
         date: state.date ? fromDateInputValue(state.date, opts.base.date) : opts.base.date,

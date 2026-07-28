@@ -256,7 +256,7 @@
             "roomMenu": "Room menu",
             "youAre": "you are {name}",
             "shareTheRoomLink": "Share the room link",
-            "notMe": "I’m not {name}",
+            "notMe": "Someone else is using this phone?",
             "feedback": "Feedback",
             "sound": "Sound",
             "soundHint": "Little ticks, thunks and a bell",
@@ -281,16 +281,20 @@
             "settled": "settled up",
             "owes": "owes",
             "getsBack": "gets back",
-            "nothingYet": "nothing yet"
+            "nothingYet": "nothing yet",
+            "youOwe": "you owe",
+            "youGetBack": "you get back"
         },
         "expenses": {
             "title": "Expenses",
             "emptyTitle": "No expenses yet",
-            "emptyBody": "Add the first one — who paid, how much, and who it was for.",
+            "emptyBody": "Send the link first — expenses split between whoever’s in the room",
             "someone": "Someone",
             "you": "You",
             "paidBy": "{payer} paid · {count, plural, one {# person} other {# people}}",
-            "indicative": "indicative"
+            "indicative": "indicative",
+            "paidByYou": "You paid · {count, plural, one {# person} other {# people}}",
+            "emptyInvite": "Invite the rest"
         },
         "states": {
             "errorTitle": "We could not load this room",
@@ -327,7 +331,11 @@
             "backToRoom": "Back to the room",
             "ctaTitle": "Your turn",
             "ctaBody": "One link, no signup, free forever.",
-            "cta": "Start your own split"
+            "cta": "Start your own split",
+            "yourLine": "You put in {amount} · {position}",
+            "youOwe": "you owe {amount}",
+            "youGetBack": "you get back {amount}",
+            "youSettled": "all square"
         },
         "expenseDrawer": {
             "addTitle": "Add expense",
@@ -368,7 +376,9 @@
                 "PAYER_REQUIRED": "Pick who paid.",
                 "NO_PARTICIPANTS": "Pick at least one person to split this between.",
                 "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total."
-            }
+            },
+            "equallyHint": "Same for everyone",
+            "exactAmountsHint": "Different amounts"
         },
         "settle": {
             "listTitle": "Who owes whom",
@@ -555,7 +565,7 @@
         "signedIn": "You’re signed in",
         "soon": {
             "title": "Save your rooms to any device",
-            "description": "Enter your email and reopen your rooms anywhere. Almost ready.",
+            "description": "Enter your email and reopen your rooms anywhere. Almost ready. For now your rooms are saved on this device and listed on the Split home page.",
             "badge": "Soon"
         }
     },
@@ -630,7 +640,9 @@
         "receives": "Gets paid by {name}",
         "showOther": "Show {name}’s balance",
         "hideOther": "Hide {name}’s balance",
-        "someone": "Someone"
+        "someone": "Someone",
+        "sendsYou": "You pay {name}",
+        "receivesYou": "{name} pays you"
     },
     "content": {
         "home": "Home",

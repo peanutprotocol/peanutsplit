@@ -77,13 +77,21 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await page.locator('[data-testid="payer-chip"][data-member="Ana"]').click()
     await page.getByTestId('split-exact').click()
 
-    // Switching to EXACT seeds an equal division, so the readout opens reconciled.
-    await expect(page.getByTestId('remaining-readout')).toContainText('Every cent allocated')
+    // Switching to EXACT opens EMPTY: the whole amount is still to allocate, and
+    // the readout is neutral until the person has actually done the allocating.
+    await expect(page.getByTestId('remaining-readout')).toContainText('Left to allocate')
+    await expect(page.getByTestId('remaining-readout')).toContainText('CHF 100.00')
 
-    // Pushing Ana's share up (50 → 60) leaves the split over-allocated, visibly.
     await page.locator('[data-testid="exact-input"][data-member="Ana"]').fill('60')
+    await expect(page.getByTestId('remaining-readout')).toContainText('Left to allocate')
+    await expect(page.getByTestId('remaining-readout')).toContainText('CHF 40.00')
+
+    // Over-allocating is just as visible as under-allocating.
+    await page.locator('[data-testid="exact-input"][data-member="Bea"]').fill('50')
     await expect(page.getByTestId('remaining-readout')).toContainText('Over by')
     await expect(page.getByTestId('remaining-readout')).toContainText('CHF 10.00')
+
+    // And the celebration lands only once it reconciles, after real edits.
     await page.locator('[data-testid="exact-input"][data-member="Bea"]').fill('40')
     await expect(page.getByTestId('remaining-readout')).toContainText('Every cent allocated')
 

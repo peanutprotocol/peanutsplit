@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
@@ -23,8 +23,13 @@ interface BalanceStripProps {
 /**
  * Takes the translator rather than returning a key to look up later: every key stays a literal
  * at the point it is read, which is what lets `pnpm i18n:audit` verify all three exist.
+ *
+ * `mine` picks the first-person wording. Third-person copy on your own card is not a small
+ * infelicity in Spanish — the strip said "debe" ("he/she owes") above a card labelled "Tú",
+ * which reads as a sentence about somebody else. The derivation sheet already branches this
+ * way for "you paid"; this is the same branch on the balance itself.
  */
-const toneFor = (net: string, t: (key: string) => string, anySavedExpenses: boolean) => {
+const toneFor = (net: string, mine: boolean, t: (key: string) => string, anySavedExpenses: boolean) => {
     // Only the settled card takes the room's tint. Red and green carry meaning —
     // a theme is allowed to tint the neutral state and nothing else, or "owes"
     // stops being a colour you can trust across two rooms. Classic's tint is
@@ -40,8 +45,24 @@ const toneFor = (net: string, t: (key: string) => string, anySavedExpenses: bool
             label: anySavedExpenses ? t('settled') : t('nothingYet'),
             labelClass: 'text-n-3',
         }
-    if (net.startsWith('-')) return { card: 'bg-error-1', label: t('owes'), labelClass: 'text-n-1' }
-    return { card: 'bg-green-1', label: t('getsBack'), labelClass: 'text-n-1' }
+    if (net.startsWith('-'))
+        return { card: 'bg-error-1', label: mine ? t('youOwe') : t('owes'), labelClass: 'text-n-1' }
+    return { card: 'bg-green-1', label: mine ? t('youGetBack') : t('getsBack'), labelClass: 'text-n-1' }
+}
+
+/**
+ * Debts first, deepest first; then the people who are owed.
+ *
+ * Roster order is arrival order, which is a fact about the past and not about who needs to do
+ * something. What the strip is for is "who still has to pay" — so the person furthest under
+ * water leads, and reading left to right walks the room from most owing to most owed. The id
+ * tie-break keeps two equal balances from swapping places on every poll.
+ */
+const byDebtFirst = (balances: Record<string, string>) => (a: { id: string }, b: { id: string }) => {
+    const left = BigInt(balances[a.id] ?? '0')
+    const right = BigInt(balances[b.id] ?? '0')
+    if (left !== right) return left < right ? -1 : 1
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
 }
 
 /**
@@ -56,6 +77,9 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
     // Server truth, not the merged list: a queued expense has moved no balance
     // yet, so it cannot be the reason a zero stops meaning "nothing yet".
     const anySavedExpenses = savedExpenses(state.expenses).length > 0
+    // Copied before sorting: `state.members` is the query cache's array, and sorting in place
+    // would reorder it for every other reader of the same room.
+    const ordered = useMemo(() => [...state.members].sort(byDebtFirst(state.balances)), [state.members, state.balances])
     // Seeded on the first render so the initial roster does not fire n pops.
     const known = useRef<Set<string> | null>(null)
 
@@ -79,9 +103,9 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
             <div className="relative">
                 <ul className="flex gap-3 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <AnimatePresence initial={false}>
-                        {state.members.map((member) => {
+                        {ordered.map((member) => {
                             const net = state.balances[member.id] ?? '0'
-                            const tone = toneFor(net, t, anySavedExpenses)
+                            const tone = toneFor(net, member.id === meId, t, anySavedExpenses)
                             return (
                                 <motion.li
                                     key={member.id}

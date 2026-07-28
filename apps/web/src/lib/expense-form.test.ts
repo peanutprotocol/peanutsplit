@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ApiExpense } from './api-types'
 import {
     buildExpenseBody,
+    emptyExpenseForm,
     expenseToFormValues,
     remainingMinor,
     validateExpenseForm,
@@ -130,8 +131,29 @@ const baseForm = (overrides: Partial<ExpenseFormValues> = {}): ExpenseFormValues
     participantIds: ['m1', 'm2', 'm3'],
     participantsTouched: true,
     exactInputs: {},
+    exactTouched: true,
     date: '2026-07-25T12:00:00.000Z',
     ...overrides,
+})
+
+describe('exactTouched — who has earned the celebration', () => {
+    it('starts false on a new expense and true on one being edited', () => {
+        const fresh = emptyExpenseForm({
+            currency: 'EUR',
+            members: [{ id: 'm1', name: 'Ana', createdAt: '2026-07-25T12:00:00.000Z' }],
+            paidById: 'm1',
+        })
+        expect(fresh.exactTouched).toBe(false)
+        // A saved EXACT expense could not have been saved unallocated, so reopening
+        // it opens reconciled rather than asking for work that is already done.
+        expect(expenseToFormValues(foreignExactExpense).exactTouched).toBe(true)
+    })
+
+    it('is display state only — it never changes what gets posted', () => {
+        const allocated = baseForm({ splitMode: 'EXACT', exactInputs: { m1: '30.00', m2: '30.00' } })
+        expect(validateExpenseForm(allocated)).toBeNull()
+        expect(buildExpenseBody({ ...allocated, exactTouched: false })).toEqual(buildExpenseBody(allocated))
+    })
 })
 
 describe('untouched participants mean "everyone at save time"', () => {

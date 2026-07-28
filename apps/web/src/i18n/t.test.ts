@@ -49,7 +49,7 @@ describe('translate', () => {
     })
 
     it('interpolates', async () => {
-        await expect(translate('en', 'room.header.notMe', { name: 'Ana' })).resolves.toBe('I’m not Ana')
+        await expect(translate('en', 'room.header.youAre', { name: 'Ana' })).resolves.toBe('you are Ana')
     })
 
     it('falls back to English before it falls back to the key', async () => {
