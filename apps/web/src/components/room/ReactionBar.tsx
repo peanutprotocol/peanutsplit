@@ -148,16 +148,14 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                     canReact ? 'active:translate-y-[1px]' : 'opacity-50'
                 )}
             >
-                {/* A faded face rather than a "+". The dashed square already says
-                    "something goes here"; what it did not say is WHAT, and a plus
-                    beside a money row reads as "add an expense" — the one thing on
-                    this screen it must not be confused with. */}
+                {/* A faded drawn face rather than a "+". The dashed square already
+                    says "something goes here"; what it did not say is WHAT, and a
+                    plus beside a money row reads as "add an expense" — the one
+                    thing on this screen it must not be confused with. */}
                 {pickerOpen ? (
                     <Icon name="x" size={15} />
                 ) : (
-                    <span aria-hidden="true" className="text-[13px] leading-none opacity-45">
-                        🙂
-                    </span>
+                    <Doodle name="reactionlaugh" size={17} weight={1.6} className="opacity-45" />
                 )}
             </button>
 
