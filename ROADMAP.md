@@ -143,10 +143,12 @@ All five branches merged, deployed, and smoke-tested live the same day:
   balances proven against the export's own Total balance row in tests.
 
 A three-lens adversarial review (money/correctness · elegance/DRY ·
-maintainability/security) ran the same day; the consolidated fix wave
-(`fix/review-wave-a`, 31 items — incl. a mid-drain queue-loss race, a
-queued-expense false "all settled", chunked-body cap bypass, and missing
-`publish()` on reactions/theme) follows as its own milestone.
+maintainability/security) ran the same day, and its consolidated 32-item fix
+wave shipped hours later: the mid-drain queue-loss race, the queued-expense
+false "all settled", the chunked-body cap bypass, missing `publish()` on
+reactions/theme, one balance fold instead of two, one fake-expense
+constructor, one rate limiter, the voseo→tuteo sweep, the i18n-audit
+object-form blind spot, and a scroll-padding a11y fix. 690 tests.
 
 **Queued next (wave 3.5): PWA deepening** — permanent install row in settings,
 manifest `share_target` (share a receipt photo from the OS share sheet straight
