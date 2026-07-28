@@ -59,7 +59,17 @@ export function SplitwiseImport() {
     const [roomName, setRoomName] = useState('')
     const [currency, setCurrency] = useState('EUR')
     const [names, setNames] = useState<string[]>([])
-    const [meIndex, setMeIndex] = useState(0)
+    /**
+     * Null until somebody picks, and the submit button is disabled until they do.
+     *
+     * It used to default to 0, which is not a default — it is a guess that the
+     * first name in the CSV header is you, dressed up as a filled-in field.
+     * Whoever it lands on gets the creator's member token, so the person who ran
+     * the import ends up holding somebody else's identity in a room they cannot
+     * then claim themselves. A radio group nobody read is exactly how that
+     * happens.
+     */
+    const [meIndex, setMeIndex] = useState<number | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [dragging, setDragging] = useState(false)
     const [created, setCreated] = useState<RoomStateWithMember | null>(null)
@@ -119,6 +129,8 @@ export function SplitwiseImport() {
                 return t('warnings.MIXED_CURRENCY', { detail })
             case 'DUPLICATE_MEMBER_NAME':
                 return t('warnings.DUPLICATE_MEMBER_NAME', { detail })
+            case 'TRUNCATED_HISTORY':
+                return t('warnings.TRUNCATED_HISTORY', { count: Number(detail) || 0 })
         }
     }
 
@@ -148,7 +160,7 @@ export function SplitwiseImport() {
                 setRoomName(roomNameFromFilename(file.name) || t('preview.fallbackName'))
                 setCurrency(result.suggestedCurrency)
                 setNames(result.members)
-                setMeIndex(0)
+                setMeIndex(null)
                 feedback('pop')
                 // Counts only. Not the group's name, not a member's, not an amount.
                 track('import_parsed', { expenses: result.expenses.length, members: result.members.length })
@@ -197,8 +209,9 @@ export function SplitwiseImport() {
     }, [names, t])
 
     const submit = async () => {
-        if (!parsed || nameProblem || !roomName.trim()) return
+        if (!parsed || nameProblem || !roomName.trim() || meIndex === null) return
         setError(null)
+        const me = names[meIndex].trim()
 
         // A renamed member has to be renamed everywhere: names are the only join key an import
         // has, so a rename that missed an expense would be an expense attributed to nobody.
@@ -217,7 +230,7 @@ export function SplitwiseImport() {
                 // hardcoded 🧾, which made every imported room look identical in the list.
                 emoji: roomDoodleFor(roomName),
                 currency,
-                creatorName: names[meIndex].trim(),
+                creatorName: me,
                 members: names.map((name) => name.trim()),
                 expenses,
             })
@@ -226,7 +239,7 @@ export function SplitwiseImport() {
             writeIdentity(state.room.slug, {
                 memberId: state.memberId,
                 token: state.memberToken,
-                name: names[meIndex].trim(),
+                name: me,
             })
             rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
             track('import_completed', { expenses: expenses.length, members: names.length })
@@ -355,6 +368,34 @@ export function SplitwiseImport() {
                     <p className="mt-2 text-sm leading-5 text-n-1">
                         {t('preview.balancesDiffer', { count: drift.length })}
                     </p>
+                    {/* The count was the whole message, which told somebody that
+                        three balances were wrong and nothing about whose or by
+                        how much — so the only way to find out was to import it
+                        and compare two screens. The numbers are already computed;
+                        printing them is what turns a warning into a decision. */}
+                    <ul className="mt-3 flex flex-col gap-1" data-testid="import-drift-lines">
+                        {drift.map((entry) => (
+                            <li
+                                key={entry.member}
+                                data-testid="import-drift-line"
+                                data-member={entry.member}
+                                data-delta={entry.deltaMinor}
+                                className="flex items-baseline justify-between gap-3 text-sm text-n-1"
+                            >
+                                <span className="min-w-0 truncate">{entry.member}</span>
+                                <span className="shrink-0 tabular-nums">
+                                    {t(entry.deltaMinor.startsWith('-') ? 'preview.driftShort' : 'preview.driftOver', {
+                                        amount: formatMoney(
+                                            entry.deltaMinor.replace('-', ''),
+                                            parsed.suggestedCurrency,
+                                            currencies,
+                                            locale
+                                        ),
+                                    })}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
 
@@ -404,6 +445,7 @@ export function SplitwiseImport() {
                             onChange={() => setMeIndex(index)}
                             aria-label={t('preview.thatsMe', { name })}
                             data-testid="import-me"
+                            data-member={name}
                             className="size-5 shrink-0 accent-primary-1"
                         />
                         <BaseInput
@@ -449,7 +491,7 @@ export function SplitwiseImport() {
                     variant="primary"
                     shadowSize="4"
                     className="justify-center text-h6"
-                    disabled={!roomName.trim() || !!nameProblem || importRoom.isPending}
+                    disabled={!roomName.trim() || !!nameProblem || meIndex === null || importRoom.isPending}
                     loading={importRoom.isPending}
                     onClick={submit}
                     data-testid="import-submit"

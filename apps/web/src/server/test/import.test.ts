@@ -22,6 +22,7 @@ import {
     SIMPLE_GROUP,
     WITH_PAYMENTS,
     generateGroup,
+    generateLongHistory,
 } from '@/lib/__fixtures__/splitwise'
 import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
 
@@ -102,6 +103,27 @@ describe('the imported room reproduces the export’s own Total balance row', ()
             }
         })
     }
+
+    /**
+     * The same promise, for a group whose history does not fit. Two hundred of
+     * these rows are never written — they arrive as an opening balance instead —
+     * and every member still lands on the number the file's own summary row
+     * states. This is the end-to-end version of the parser proof: if the carried
+     * balance is wrong by a cent, it is wrong here too.
+     */
+    it('holds when two hundred rows were carried rather than imported', async () => {
+        const parsed = parseSplitwiseCsv(generateLongHistory(700))
+        expect(parsed.warnings.some((warning) => warning.code === 'TRUNCATED_HISTORY')).toBe(true)
+
+        const { status, body } = await post<RoomStateWithMember>(bodyFor(parsed))
+        expect(status).toBe(201)
+
+        const balances = balancesByName(body)
+        for (const stated of parsed.totalBalance ?? []) {
+            expect(`${stated.member}=${balances.get(stated.member)}`).toBe(`${stated.member}=${stated.netMinor}`)
+        }
+        expect([...balances.values()].reduce((a, b) => a + b, 0n)).toBe(0n)
+    }, 60_000)
 })
 
 describe('importing a group', () => {
@@ -140,7 +162,29 @@ describe('importing a group', () => {
 
         expect(dinner?.date.slice(0, 10)).toBe('2026-01-02')
         expect(dinner?.category).toBe('Dining out')
-        expect(dinner?.splitMode).toBe('EXACT')
+        // 60.00 three ways is an even split, and the room says so — the edit
+        // drawer opens in equal mode instead of showing three typed numbers.
+        expect(dinner?.splitMode).toBe('EQUAL')
+        expect(dinner?.shares.map((s) => s.amountMinor)).toEqual(['2000', '2000', '2000'])
+        // "as typed" is meaningless when nobody typed them.
+        expect(dinner?.shares.every((s) => s.enteredAmountMinor === null)).toBe(true)
+    })
+
+    it('leaves an uneven split EXACT, with the file\u2019s own numbers', async () => {
+        // Ana fronts 100.00; Bruno owes 30, Carla owes 20, Ana carries 50.
+        const parsed = parseSplitwiseCsv(
+            'Date,Description,Category,Cost,Currency,Ana,Bruno,Carla\n2026-01-01,Dinner,Food,100.00,EUR,50.00,-30.00,-20.00\n'
+        )
+        const { body } = await post<RoomStateWithMember>(bodyFor(parsed))
+        const dinner = body.expenses[0]
+
+        expect(dinner.splitMode).toBe('EXACT')
+        // Sorted, not in roster order: a bulk import writes every member in one
+        // statement, so they share a `createdAt` and the wire order falls to the
+        // uuid tie-break.
+        expect(dinner.shares.map((s) => s.amountMinor).sort()).toEqual(['2000', '3000', '5000'])
+        // Kept verbatim, which is what makes a re-save non-drifting.
+        expect(dinner.shares.every((s) => s.enteredAmountMinor !== null)).toBe(true)
     })
 
     it('attributes every imported row to whoever ran the import', async () => {

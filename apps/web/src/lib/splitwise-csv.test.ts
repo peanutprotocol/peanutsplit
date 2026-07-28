@@ -5,9 +5,13 @@ import {
     MAX_DESCRIPTION_CHARS,
     MAX_EXPENSES,
     MAX_NAME_CHARS,
+    MAX_PARSED_EXPENSES,
+    BROUGHT_FORWARD,
     SplitwiseParseError,
     allocateProportionally,
     intersectAllocation,
+    isEvenSplit,
+    openingBalance,
     parseCsvRows,
     parseSignedMinor,
     parseSplitwiseCsv,
@@ -27,6 +31,7 @@ import {
     WITH_PAYMENTS,
     WRONG_CSV,
     generateGroup,
+    generateLongHistory,
 } from '@/lib/__fixtures__/splitwise'
 
 const codes = (result: SplitwiseImport) => result.warnings.map((w) => w.code)
@@ -360,8 +365,16 @@ describe('parseSplitwiseCsv — caps', () => {
         expect(parseSplitwiseCsv(generateGroup(MAX_EXPENSES)).expenses).toHaveLength(MAX_EXPENSES)
     })
 
-    it('refuses one expense past it', () => {
-        expect(() => parseSplitwiseCsv(generateGroup(MAX_EXPENSES + 1))).toThrow(/TOO_MANY_EXPENSES/)
+    it('carries the overflow instead of refusing the file', () => {
+        const parsed = parseSplitwiseCsv(generateGroup(MAX_EXPENSES + 1))
+        expect(parsed.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
+        expect(codes(parsed)).toContain('TRUNCATED_HISTORY')
+    })
+
+    it('still refuses a file too big to be a group export at all', () => {
+        expect(() => parseSplitwiseCsv(generateGroup(MAX_PARSED_EXPENSES + 1))).toThrow(
+            /TOO_MANY_EXPENSES|FILE_TOO_BIG/
+        )
     })
 
     it('refuses a group bigger than a room', () => {
@@ -538,5 +551,130 @@ describe('roomNameFromFilename', () => {
 
     it('never returns an empty name', () => {
         expect(roomNameFromFilename('.csv')).toBe('')
+    })
+})
+
+describe('recognising an even split', () => {
+    it('reads a clean division as EQUAL', () => {
+        expect(isEvenSplit(6000n, [2000n, 2000n, 2000n])).toBe(true)
+    })
+
+    it('reads a division with its rounding residue as EQUAL, wherever the residue landed', () => {
+        expect(isEvenSplit(10000n, [3334n, 3333n, 3333n])).toBe(true)
+        expect(isEvenSplit(10000n, [3333n, 3333n, 3334n])).toBe(true)
+    })
+
+    it('refuses numbers somebody chose', () => {
+        expect(isEvenSplit(10000n, [5000n, 3000n, 2000n])).toBe(false)
+        // Two apart is not a rounding residue, it is a decision.
+        expect(isEvenSplit(6000n, [2001n, 2000n, 1999n])).toBe(false)
+    })
+
+    it('refuses a single share — one person carrying one cost is not a split', () => {
+        expect(isEvenSplit(6000n, [6000n])).toBe(false)
+        expect(isEvenSplit(0n, [])).toBe(false)
+    })
+
+    it('labels the rows of a real export', () => {
+        const parsed = parseSplitwiseCsv(SIMPLE_GROUP)
+        // Every row of the simple group is a clean three-way split.
+        expect(parsed.expenses.map((expense) => expense.splitMode)).toEqual(['EQUAL', 'EQUAL', 'EQUAL'])
+
+        // Ana fronts 100.00; Bruno owes 30, Carla owes 20, Ana carries 50. Three
+        // numbers somebody decided on, and the room has to keep them.
+        const uneven = parseSplitwiseCsv(
+            'Date,Description,Category,Cost,Currency,Ana,Bruno,Carla\n2026-01-01,Dinner,Food,100.00,EUR,50.00,-30.00,-20.00\n'
+        )
+        expect(uneven.expenses[0].splitMode).toBe('EXACT')
+        expect(uneven.expenses[0].shares.map((share) => share.amountMinor)).toEqual(['5000', '3000', '2000'])
+    })
+})
+
+describe('carrying history a room cannot hold', () => {
+    const MEMBERS = ['Ana', 'Bruno', 'Carla', 'Dan']
+
+    it('keeps the most recent expenses and rolls the rest into an opening balance', () => {
+        const parsed = parseSplitwiseCsv(generateLongHistory(700, MEMBERS))
+
+        expect(parsed.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
+        expect(codes(parsed)).toContain('TRUNCATED_HISTORY')
+
+        const carried = parsed.expenses.filter((expense) => expense.description.startsWith(BROUGHT_FORWARD))
+        expect(carried.length).toBeGreaterThan(0)
+        // At most one row per pair per currency, which is n − 1 at the very worst.
+        expect(carried.length).toBeLessThanOrEqual(MEMBERS.length - 1)
+        // A carried row is a ledger entry, never a division: one share, and it
+        // must not be something a later catch-up could spread across the room.
+        expect(carried.every((expense) => expense.splitMode === 'EXACT')).toBe(true)
+        expect(carried.every((expense) => expense.shares.length === 1)).toBe(true)
+
+        const history = parsed.expenses.filter((expense) => !expense.description.startsWith(BROUGHT_FORWARD))
+        // The newest survived; the oldest did not.
+        expect(history.some((expense) => expense.description === 'Expense 700')).toBe(true)
+        expect(history.some((expense) => expense.description === 'Expense 1')).toBe(false)
+    })
+
+    /**
+     * THE proof. Every member's balance in the room we are about to write must
+     * equal the number in the file's own "Total balance" row, to the cent, even
+     * though two hundred of the rows behind it were never imported.
+     */
+    it('reproduces the file’s own total balance row exactly', () => {
+        const parsed = parseSplitwiseCsv(generateLongHistory(700, MEMBERS))
+        expect(reconcileTotalBalance(parsed)).toEqual([])
+    })
+
+    it('holds for a roster size that leaves a remainder in the pairing', () => {
+        for (const size of [2, 3, 5, 7]) {
+            const members = Array.from({ length: size }, (_, i) => `P${i}`)
+            const parsed = parseSplitwiseCsv(generateLongHistory(MAX_EXPENSES + 137, members))
+            expect(parsed.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
+            expect(reconcileTotalBalance(parsed)).toEqual([])
+        }
+    })
+
+    it('is the same room twice — the cut and the pairing are deterministic', () => {
+        const file = generateLongHistory(640, MEMBERS)
+        expect(parseSplitwiseCsv(file).expenses).toEqual(parseSplitwiseCsv(file).expenses)
+    })
+
+    it('leaves a file inside the ceiling completely untouched', () => {
+        const parsed = parseSplitwiseCsv(generateLongHistory(120, MEMBERS))
+        expect(parsed.expenses).toHaveLength(120)
+        expect(codes(parsed)).not.toContain('TRUNCATED_HISTORY')
+        expect(parsed.expenses.some((expense) => expense.description.startsWith(BROUGHT_FORWARD))).toBe(false)
+    })
+
+    it('carries each currency on its own, because a residual in one is not a residual in another', () => {
+        const dropped: ParsedExpense[] = [
+            {
+                date: '2026-01-01',
+                description: 'Old EUR',
+                category: null,
+                currencyCode: 'EUR',
+                costMinor: '1000',
+                paidBy: 'Ana',
+                splitMode: 'EQUAL',
+                shares: [{ member: 'Bruno', amountMinor: '1000' }],
+            },
+            {
+                date: '2026-01-02',
+                description: 'Old CHF',
+                category: null,
+                currencyCode: 'CHF',
+                costMinor: '500',
+                paidBy: 'Bruno',
+                splitMode: 'EQUAL',
+                shares: [{ member: 'Ana', amountMinor: '500' }],
+            },
+        ]
+
+        const carried = openingBalance(dropped)
+
+        expect(carried).toHaveLength(2)
+        expect(carried.map((expense) => expense.currencyCode).sort()).toEqual(['CHF', 'EUR'])
+        // Nothing netted across the pair: 10.00 one way and 5.00 the other stay
+        // two facts, because turning them into one needs a rate nobody quoted.
+        expect(carried.map((expense) => expense.costMinor).sort()).toEqual(['1000', '500'])
     })
 })

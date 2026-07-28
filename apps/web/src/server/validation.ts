@@ -283,6 +283,11 @@ const importedExpenseSchema = z.object({
     currencyCode: currencyCode,
     costMinor: minorAmount,
     paidBy: personName,
+    // Optional, and absent means EXACT — the shape every import sent before the
+    // parser learned to recognise an even split, and the safe default: the shares
+    // are what land either way, and EXACT is the mode that promises not to
+    // recompute them.
+    splitMode: z.enum(['EQUAL', 'EXACT']).optional(),
     shares: z
         .array(z.object({ member: personName, amountMinor: minorAmount }))
         .min(1)

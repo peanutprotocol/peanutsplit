@@ -680,7 +680,9 @@
             "balancesDiffer": "{count, plural, one {O saldo de uma pessoa fica diferente da linha de total do seu arquivo} other {Os saldos de # pessoas ficam diferentes da linha de total do seu arquivo}} — algumas linhas não deram para ler, então a sala é o total de tudo que deu. Os avisos abaixo dizem quais linhas.",
             "thatsMe": "Sou {name}",
             "submit": "Criar a sala",
-            "startOver": "Usar outro arquivo"
+            "startOver": "Usar outro arquivo",
+            "driftShort": "{amount} a menos",
+            "driftOver": "{amount} a mais"
         },
         "fx": {
             "title": "Sobre as taxas de câmbio",
@@ -701,7 +703,8 @@
             "MULTI_PAYER_SPLIT": "“{detail}” foi pago por mais de uma pessoa. O arquivo não registra quanto cada uma pôs, então entra como um gasto por pagante — os saldos ficam exatos, a divisão entre os pagantes é a nossa melhor leitura.",
             "PAYMENT_ROWS": "Pagamentos entre as pessoas entram como gastos, não como acertos já registrados. Os saldos dão no mesmo.",
             "MIXED_CURRENCY": "O arquivo mistura {detail}.",
-            "DUPLICATE_MEMBER_NAME": "Tem duas pessoas chamadas {detail}, então a segunda aparece como “{detail} (2)”. Troque o nome aqui embaixo."
+            "DUPLICATE_MEMBER_NAME": "Tem duas pessoas chamadas {detail}, então a segunda aparece como “{detail} (2)”. Troque o nome aqui embaixo.",
+            "TRUNCATED_HISTORY": "Uma sala guarda 500 gastos, então {count, plural, one {o # mais antigo entra} other {os # mais antigos entram}} como um único “Saldo anterior” por pessoa. O saldo de cada um continua igual."
         },
         "errors": {
             "NOT_SPLITWISE_CSV": "Isso não parece uma exportação do Splitwise. Tem que ser o arquivo .csv de “Exportar como planilha”.",
