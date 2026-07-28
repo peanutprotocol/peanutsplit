@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -23,6 +23,8 @@ interface SettlementRowProps {
     currencies: readonly CurrencyInfo[]
     meId?: string
     token?: string | null
+    /** A failed refresh leaves this row readable but not safe to mutate. */
+    actionsDisabled?: boolean
 }
 
 /**
@@ -46,7 +48,15 @@ interface SettlementRowProps {
  * answer; it is a new money-path endpoint, which this repo has frozen, so it is
  * a product decision rather than a TODO.)
  */
-export function SettlementRow({ slug, settlement, state, currencies, meId, token }: SettlementRowProps) {
+export function SettlementRow({
+    slug,
+    settlement,
+    state,
+    currencies,
+    meId,
+    token,
+    actionsDisabled = false,
+}: SettlementRowProps) {
     const t = useTranslations('room.timeline')
     const tSettle = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
@@ -54,6 +64,10 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
     const feedback = useFeedback()
     const deleteSettlement = useDeleteSettlement(slug, token)
     const [confirming, setConfirming] = useState(false)
+
+    useEffect(() => {
+        if (actionsDisabled) setConfirming(false)
+    }, [actionsDisabled])
 
     const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
     const avatarOf = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
@@ -78,6 +92,7 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
     }
 
     const remove = async () => {
+        if (actionsDisabled) return
         try {
             await deleteSettlement.mutateAsync(settlement.id)
             feedback('thunk')
@@ -129,10 +144,12 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
                 {!confirming && (
                     <button
                         type="button"
+                        disabled={actionsDisabled}
                         onClick={() => setConfirming(true)}
                         aria-label={t('remove')}
+                        aria-describedby={actionsDisabled ? 'room-stale-warning-copy' : undefined}
                         data-testid="remove-settlement"
-                        className="-my-3 -mr-3 flex size-11 shrink-0 items-center justify-center text-grey-1 transition-transform active:translate-y-[1px]"
+                        className="-my-3 -mr-3 flex size-11 shrink-0 items-center justify-center text-grey-1 transition-transform active:translate-y-[1px] disabled:opacity-45 disabled:active:translate-y-0"
                     >
                         <Icon name="trash" size={16} />
                     </button>
