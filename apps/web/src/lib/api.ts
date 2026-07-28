@@ -45,34 +45,65 @@ export const isApiError = (error: unknown, code?: string): error is ApiRequestEr
 /** Transport failure — offline, DNS, connection reset. Status 0 by convention. */
 export const NETWORK_ERROR_CODE = 'NETWORK_ERROR'
 
+/** A write that never answers is indistinguishable from a broken connection to
+ *  the person holding the phone. Expense creates are safe to retry because
+ *  their client key is minted before the first attempt and reused on replay. */
+export const EXPENSE_WRITE_TIMEOUT_MS = 12_000
+
 interface RequestOptions {
     method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
     body?: unknown
     /** Sent as `X-Member-Token`. Attribution only — absence never blocks a write. */
     token?: string | null
     signal?: AbortSignal
+    timeoutMs?: number
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const { method = 'GET', body, token, signal } = options
+    const { method = 'GET', body, token, signal, timeoutMs } = options
     const headers: Record<string, string> = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
     if (token) headers['X-Member-Token'] = token
 
+    const timeoutController = timeoutMs === undefined ? null : new AbortController()
+    let timedOut = false
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    let forwardAbort: (() => void) | undefined
+    if (timeoutController) {
+        if (signal?.aborted) {
+            timeoutController.abort(signal.reason)
+        } else if (signal) {
+            forwardAbort = () => timeoutController.abort(signal.reason)
+            signal.addEventListener('abort', forwardAbort, { once: true })
+        }
+        timeout = setTimeout(() => {
+            timedOut = true
+            timeoutController.abort()
+        }, timeoutMs)
+    }
+
     let response: Response
+    let text: string
     try {
         response = await fetch(path, {
             method,
             headers,
             body: body === undefined ? undefined : JSON.stringify(body),
-            signal,
+            signal: timeoutController?.signal ?? signal,
         })
+        // Keep the deadline through the body read too: response headers alone do
+        // not mean the write has produced an answer the queue can act on.
+        text = await response.text()
     } catch (error) {
+        if (timedOut)
+            throw new ApiRequestError(0, NETWORK_ERROR_CODE, 'the server took too long to respond — try again')
         if (error instanceof DOMException && error.name === 'AbortError') throw error
         throw new ApiRequestError(0, NETWORK_ERROR_CODE, 'could not reach the server — check your connection')
+    } finally {
+        if (timeout !== undefined) clearTimeout(timeout)
+        if (signal && forwardAbort) signal.removeEventListener('abort', forwardAbort)
     }
 
-    const text = await response.text()
     let payload: unknown = undefined
     if (text.length > 0) {
         try {
@@ -122,7 +153,12 @@ export const api = {
         request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members`, { method: 'POST', body: input }),
 
     addExpense: (slug: string, input: ExpenseInput, token?: string | null) =>
-        request<RoomState>(expensesPath(slug), { method: 'POST', body: input, token }),
+        request<RoomState>(expensesPath(slug), {
+            method: 'POST',
+            body: input,
+            token,
+            timeoutMs: EXPENSE_WRITE_TIMEOUT_MS,
+        }),
 
     updateExpense: (slug: string, id: string, input: ExpenseInput, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/expenses/${encode(id)}`, {
@@ -163,6 +199,7 @@ export const api = {
             // it here upgrades those records at replay time too.
             body: { ...write.body, clientKey: write.clientKey },
             token: write.token,
+            timeoutMs: EXPENSE_WRITE_TIMEOUT_MS,
         }),
 
     /**

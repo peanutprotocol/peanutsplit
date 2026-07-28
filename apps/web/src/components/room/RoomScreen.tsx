@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
+import { Doodle } from '@/components/ui/Doodle'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError } from '@/lib/api'
 import { roomProps, track } from '@/lib/analytics'
@@ -114,8 +115,8 @@ export function RoomScreen({ slug }: { slug: string }) {
     }, [params.balance, state, setParams])
 
     useEffect(() => {
-        if (staleState && params.settle) setParams({ settle: null })
-    }, [params.settle, setParams, staleState])
+        if (staleState && (params.settle || params.expense)) setParams({ settle: null, expense: null })
+    }, [params.expense, params.settle, setParams, staleState])
 
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound />
     if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
@@ -153,7 +154,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                     data-testid="room-stale-warning"
                     className="mx-4 mt-4 flex items-start gap-3 rounded-sm border border-n-1 bg-yellow-1 p-4"
                 >
-                    <div className="min-w-0 flex-1">
+                    <Doodle name="pulse" size={28} weight={1.8} className="mt-0.5 shrink-0" aria-hidden />
+                    <div id="room-stale-warning-copy" className="min-w-0 flex-1">
                         <p className="text-h7">{tStates('staleTitle')}</p>
                         <p className="mt-1 text-sm text-grey-1">{tStates('staleBody')}</p>
                     </div>
@@ -216,6 +218,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 token={identity?.token}
                                 onSelect={(expenseId) => setParams({ expense: expenseId })}
                                 onInvite={() => setParams({ share: true })}
+                                savedActionsDisabled={staleState}
                             />
                         </motion.div>
                     ) : null}
@@ -254,7 +257,7 @@ export function RoomScreen({ slug }: { slug: string }) {
             {state && (
                 <>
                     <ExpenseDrawer
-                        open={(params.add || !!editing) && !needsJoin}
+                        open={(params.add || (!!editing && !staleState)) && !needsJoin}
                         onClose={closeDrawers}
                         slug={slug}
                         state={state}

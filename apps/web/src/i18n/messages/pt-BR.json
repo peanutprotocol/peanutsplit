@@ -372,8 +372,8 @@
         "states": {
             "errorTitle": "Não conseguimos carregar esta sala",
             "errorBody": "Deve ser a conexão. Nada se perdeu — tente de novo.",
-            "staleTitle": "Os saldos podem estar desatualizados",
-            "staleBody": "Estamos mostrando os últimos saldos carregados. Reconecte-se e atualize antes de acertar as contas. Você ainda pode lançar uma despesa.",
+            "staleTitle": "Esta sala pode estar desatualizada",
+            "staleBody": "Estamos mostrando a última sala carregada. Editar ou excluir gastos salvos e acertar as contas fica pausado até atualizar. Você ainda pode lançar uma despesa.",
             "retry": "Tentar de novo",
             "notFoundTitle": "Esta sala não existe",
             "notFoundBody": "Os links diferenciam maiúsculas — confira se você copiou tudo, inclusive o pedaço depois do último traço.",
