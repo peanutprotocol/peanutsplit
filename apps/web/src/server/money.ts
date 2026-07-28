@@ -34,6 +34,10 @@ const BY_CODE = new Map(CURRENCIES.map((c) => [c.code, c]))
 
 export const CURRENCY_CODES: readonly string[] = CURRENCIES.map((c) => c.code)
 
+/** PostgreSQL BIGINT's positive ceiling. Public money writes are positive, but
+ *  every amount still has to fit the signed column it will be stored in. */
+export const MAX_SIGNED_MINOR = 9_223_372_036_854_775_807n
+
 /** Public catalog shape — the static `usdPerUnit` is an implementation detail. */
 export const publicCurrencies = () =>
     CURRENCIES.map(({ code, symbol, name, decimals }) => ({ code, symbol, name, decimals }))

@@ -67,6 +67,43 @@ describe('exactShares', () => {
         expect(sumShares(shares)).toBe(baseTotal)
     })
 
+    it('never makes a share negative when independent FX rounding exceeds the converted total', () => {
+        // R$0.03 converts to half a euro cent at the static rate. Independently
+        // rounding four shares produces [1, 1, 1, 1], while the R$0.12 total is
+        // only €0.02. The old single-row correction persisted [-1, 1, 1, 1].
+        const brlToEur = staticRate('BRL', 'EUR')
+        const entered = ['a', 'b', 'c', 'd'].map((memberId) => ({ memberId, amountMinor: 3n }))
+        const baseTotal = convertMinorAtRate(12n, 'BRL', 'EUR', brlToEur)
+        const shares = exactShares(entered, 'BRL', 'EUR', baseTotal, brlToEur)
+
+        expect(baseTotal).toBe(2n)
+        expect(amounts(shares)).toEqual([1n, 1n, 0n, 0n])
+        expect(shares.every((share) => share.amountMinor >= 0n)).toBe(true)
+        expect(sumShares(shares)).toBe(baseTotal)
+    })
+
+    it('is deterministic, nonnegative and exact across every currency pair and roster size', () => {
+        for (const from of CURRENCIES) {
+            for (const to of CURRENCIES) {
+                const pairRate = staticRate(from.code, to.code)
+                for (let size = 1; size <= 20; size++) {
+                    const entered = Array.from({ length: size }, (_, index) => ({
+                        memberId: `m${index}`,
+                        amountMinor: BigInt(1 + ((index * 7 + size) % 53)),
+                    }))
+                    const enteredTotal = entered.reduce((sum, share) => sum + share.amountMinor, 0n)
+                    const baseTotal = convertMinorAtRate(enteredTotal, from.code, to.code, pairRate)
+                    const first = exactShares(entered, from.code, to.code, baseTotal, pairRate)
+                    const second = exactShares(entered, from.code, to.code, baseTotal, pairRate)
+
+                    expect(first).toEqual(second)
+                    expect(first.every((share) => share.amountMinor >= 0n)).toBe(true)
+                    expect(sumShares(first)).toBe(baseTotal)
+                }
+            }
+        }
+    })
+
     it('re-splitting the stored entered amounts reproduces the same shares (no drift)', () => {
         const baseTotal = convertMinorAtRate(15n, 'EUR', 'USD', 1.08)
         const first = exactShares(

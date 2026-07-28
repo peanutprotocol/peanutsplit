@@ -339,6 +339,17 @@ describe('what the route refuses', () => {
         expect(status).toBe(400)
     })
 
+    it('refuses numeric and out-of-range money before opening the import transaction', async () => {
+        for (const amountMinor of [1000, '9223372036854775808']) {
+            const file = parsed()
+            file.expenses[0] = { ...file.expenses[0], costMinor: amountMinor as never }
+            file.expenses[0].shares = [{ ...file.expenses[0].shares[0], amountMinor: amountMinor as never }]
+            const { status } = await post<ApiError>(bodyFor(file))
+            expect(status).toBe(400)
+            expect(await prisma.room.count()).toBe(0)
+        }
+    })
+
     it('refuses an oversized body before reading it', async () => {
         const request = new Request(`${BASE}/api/import`, {
             method: 'POST',

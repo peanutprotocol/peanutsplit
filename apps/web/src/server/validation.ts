@@ -1,7 +1,7 @@
 /** Request-shape validation. Cross-field rules that need the room (membership,
  *  exact shares adding up) live in the domain modules, not here. */
 import { z } from 'zod'
-import { CURRENCY_CODES } from '@/server/money'
+import { CURRENCY_CODES, MAX_SIGNED_MINOR } from '@/server/money'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isThemeKey } from '@/lib/themes'
 import {
@@ -19,9 +19,19 @@ const currencyCode = z
 
 /** Minor units as a decimal string — the only money representation on the wire. */
 const minorAmount = z
-    .union([z.string(), z.number().int()])
-    .transform((v) => String(v))
-    .refine((s) => /^\d+$/.test(s), { message: 'must be a whole number of minor units' })
+    .string()
+    .regex(/^\d+$/, 'must be a whole number of minor units')
+    .max(19, 'amount is too large')
+    .refine(
+        (s) => {
+            try {
+                return BigInt(s) <= MAX_SIGNED_MINOR
+            } catch {
+                return false
+            }
+        },
+        { message: 'amount is too large' }
+    )
 
 const id = z.string().min(1).max(64)
 const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
@@ -154,7 +164,12 @@ export const receiptParseSchema = z.object({
  * model-fed features: a hallucinated amount is a hallucinated amount whether it
  * came off a photo or out of a sentence.
  */
-export const modelAmountMinor = minorAmount.refine((s) => s.length <= 12, { message: 'implausibly large amount' })
+export const modelAmountMinor = z
+    // Models routinely emit a JSON number despite being asked for a string.
+    // Twelve digits is safely below Number's exact-integer ceiling, so accept
+    // that shape only at this model seam and normalize it immediately.
+    .union([minorAmount, z.number().int().min(0).max(999_999_999_999).transform(String)])
+    .refine((s) => s.length <= 12, { message: 'implausibly large amount' })
 
 /** One line item, as the model claims it. Parsed per item so a single bad row is
  *  dropped rather than costing the user the whole scan. */
@@ -308,6 +323,18 @@ export const importRoomSchema = z
     .superRefine((body, ctx) => {
         const fail = (message: string, path: (string | number)[]) =>
             ctx.addIssue({ code: z.ZodIssueCode.custom, message, path })
+        // Zod still runs a parent superRefine when a child refinement has added
+        // an issue. Never let the cross-field sum turn an already-invalid wire
+        // string such as "12.00" into a thrown SyntaxError.
+        const parsedMinor = (value: unknown): bigint | null => {
+            if (typeof value !== 'string' || !/^\d{1,19}$/.test(value)) return null
+            try {
+                const amount = BigInt(value)
+                return amount <= MAX_SIGNED_MINOR ? amount : null
+            } catch {
+                return null
+            }
+        }
 
         // Names are the join key between the roster and every expense, so they have to be unique
         // the same way Split's own roster is: case-insensitively.
@@ -320,15 +347,19 @@ export const importRoomSchema = z
 
             const seen = new Set<string>()
             let total = 0n
+            let amountsParsed = true
             expense.shares.forEach((share, s) => {
                 const key = share.member.toLowerCase()
                 if (!roster.has(key)) fail('is not one of the members', ['expenses', i, 'shares', s, 'member'])
                 if (seen.has(key)) fail('appears twice in this split', ['expenses', i, 'shares', s, 'member'])
                 seen.add(key)
-                total += BigInt(share.amountMinor)
+                const amount = parsedMinor(share.amountMinor)
+                if (amount === null) amountsParsed = false
+                else total += amount
             })
 
-            const cost = BigInt(expense.costMinor)
+            const cost = parsedMinor(expense.costMinor)
+            if (cost === null || !amountsParsed) return
             if (cost <= 0n) fail('must be greater than zero', ['expenses', i, 'costMinor'])
             if (total !== cost) fail('the shares must add up to the expense total', ['expenses', i, 'shares'])
         })
