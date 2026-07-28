@@ -1,3 +1,5 @@
+import type { DoodleName } from '@/components/ui/doodles'
+
 /**
  * The room theme catalog.
  *
@@ -35,8 +37,8 @@ export interface RoomTheme {
     tint: string
     /** Small accents: the selected swatch, focus rings. Never a text colour. */
     accent: string
-    /** One glyph that gives the palette a name you can point at in the picker. */
-    motif: string
+    /** One drawing that gives the palette a name you can point at in the picker. */
+    motif: DoodleName
 }
 
 /**
@@ -62,7 +64,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         // the default theme is not allowed to move a single pixel.
         tint: '#FFFFFF',
         accent: '#FF90E8',
-        motif: '🥜',
+        motif: 'peanut',
     },
     {
         key: 'bubblegum',
@@ -72,7 +74,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldInk: '#8A2E77',
         tint: '#FFEAFA',
         accent: '#FFC900',
-        motif: '🍬',
+        motif: 'candy',
     },
     {
         key: 'lavender',
@@ -82,7 +84,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldInk: '#5B3E8C',
         tint: '#F7F1FF',
         accent: '#AE7AFF',
-        motif: '🔮',
+        motif: 'crystal',
     },
     {
         key: 'mint',
@@ -92,7 +94,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldInk: '#1F6B33',
         tint: '#EAFBEE',
         accent: '#90A8ED',
-        motif: '🌿',
+        motif: 'leaf',
     },
     {
         key: 'sky',
@@ -102,7 +104,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldInk: '#26356B',
         tint: '#E9EEFB',
         accent: '#FFC900',
-        motif: '🌊',
+        motif: 'wave',
     },
     {
         key: 'coral',
@@ -112,7 +114,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldInk: '#7A2E2E',
         tint: '#FBEAEA',
         accent: '#FFC900',
-        motif: '🌅',
+        motif: 'sun',
     },
     {
         key: 'sand',
@@ -122,7 +124,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldInk: '#7A5E00',
         tint: '#FFFBEE',
         accent: '#FFC900',
-        motif: '🏝️',
+        motif: 'island',
     },
     {
         key: 'graphite',
@@ -132,7 +134,7 @@ export const ROOM_THEMES: readonly RoomTheme[] = [
         fieldInk: '#3A3E45',
         tint: '#F4F5F6',
         accent: '#000000',
-        motif: '✏️',
+        motif: 'iconpencil',
     },
 ]
 

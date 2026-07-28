@@ -19,6 +19,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
+import { Icon } from '@/components/ui/Icon'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiExpense } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
@@ -133,7 +134,7 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                     canReact ? 'active:translate-y-[1px]' : 'opacity-50'
                 )}
             >
-                <span aria-hidden="true">{pickerOpen ? '×' : '+'}</span>
+                <Icon name={pickerOpen ? 'x' : 'plus'} size={15} />
             </button>
 
             <AnimatePresence initial={false}>
