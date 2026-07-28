@@ -1,19 +1,96 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "one link · whole group",
+            "utilityBrand": "PEANUT SPLIT",
+            "utilityTag": "THE GROUP CHAT’S NEW +1",
+            "eyebrow": "NO APP FOR YOUR FRIENDS.",
             "title": "PASS IT",
-            "titleAccessible": "PASS IT",
-            "subtitle": "Start the room, drop one link in the group chat, and let everyone add what they paid — across 12 currencies.",
-            "cta": "Make the link →",
-            "ctaTrust": "Free · no account · nothing to install",
-            "linkExplainerTrigger": "How the link works"
+            "controlTitleAccessible": "PASS IT",
+            "titleAccessible": "PASS THE LINK.\nNOT THE SPREADSHEET.",
+            "subtitle": "One room. Every expense. Nobody chasing screenshots.",
+            "cta": "Make the link",
+            "ctaTrust": "Free · no account needed · nothing to install",
+            "linkExplainerTrigger": "How the link works",
+            "chat": {
+                "question": "who paid dinner?",
+                "reply": "I got it",
+                "linkPrompt": "Everyone adds their own",
+                "reaction": "wait… that’s it?"
+            },
+            "stageSummary": "A Peanut Split room link moves through a group chat so every friend can open the same room and add expenses.",
+            "ticker": {
+                "noSignup": "NO SIGNUP",
+                "noDownload": "NO DOWNLOAD",
+                "currencies": "12 SUPPORTED CURRENCIES",
+                "linkKey": "THE LINK IS THE KEY"
+            },
+            "validation": {
+                "roomRequired": "Name the room first.",
+                "creatorRequired": "Tell us who you are."
+            }
         },
         "rooms": {
             "title": "Your rooms",
             "subtitle": "Saved on this device.",
             "openLabel": "Open room",
             "more": "and {count, plural, one {# more} other {# more}}"
+        },
+        "proof": {
+            "linkIdentity": {
+                "eyebrow": "01 · OPEN THE LINK",
+                "title": "PICK WHO YOU ARE.",
+                "body": "The room is already there. Choose your name from the group—or add it. No account needed, no invite flow, no owner approval.",
+                "linkLabel": "ROOM LINK",
+                "identityLabel": "Who are you in Lisbon weekend?",
+                "you": "You",
+                "friendOne": "Bea",
+                "friendTwo": "Jules"
+            },
+            "everyoneAdds": {
+                "eyebrow": "02 · EVERYONE ADDS",
+                "title": "PAID BY BEA. ADDED BY YOU.",
+                "body": "The room trusts the group. Log your own expense or enter one for someone else, then include exactly who shared it.",
+                "expenseOne": "Bea · train",
+                "expenseOneMeta": "€60 · paid by Bea",
+                "expenseTwo": "Jules · dinner",
+                "expenseTwoMeta": "€90 · paid by Jules",
+                "expenseThree": "Ana · added it",
+                "expenseThreeMeta": "on Bea’s behalf"
+            },
+            "suggestedPlan": {
+                "eyebrow": "03 · SETTLE THE ROOM",
+                "title": "ONE SUGGESTED PLAN. ZERO GROUP MATH.",
+                "body": "Balances reconcile to the cent, then Split suggests a short list of who should pay whom. Pay however your group already pays.",
+                "planLabel": "SUGGESTED PAYMENT PLAN",
+                "paymentOne": "You pay Bea · €10",
+                "paymentTwo": "You pay Jules · €40"
+            },
+            "rail": {
+                "roomCreated": "ROOM CREATED",
+                "linkShared": "LINK SHARED",
+                "friendJoined": "FRIEND JOINED",
+                "roomEven": "EVERYONE EVEN"
+            },
+            "examples": {
+                "eyebrow": "BUILT FOR THE GROUP CHAT",
+                "title": "ONE LINK FOR WHATEVER YOU’RE SPLITTING.",
+                "lisbon": {
+                    "name": "Lisbon weekend",
+                    "meta": "4 friends · EUR · 8 expenses"
+                },
+                "flat": {
+                    "name": "Flat 4B",
+                    "meta": "3 flatmates · GBP · this month"
+                },
+                "dinner": {
+                    "name": "Tuesday ramen",
+                    "meta": "6 friends · USD · one card"
+                },
+                "retreat": {
+                    "name": "Remote retreat",
+                    "meta": "6 people · 3 currencies"
+                }
+            }
         },
         "how": {
             "title": "How it works",
@@ -126,7 +203,7 @@
         },
         "readMore": {
             "toggle": "Not convinced yet? Read more",
-            "toggleHint": "What your friends see, what it does, who made it, and the awkward questions.",
+            "toggleHint": "Who made it, why it is free, and the awkward questions.",
             "join": {
                 "title": "What your friends see",
                 "roomName": "Ski trip",
@@ -400,7 +477,7 @@
             "notePlaceholder": "Sent on Friday",
             "record": "Record payment",
             "back": "Back",
-            "recorded": "{from} → {to} recorded",
+            "recorded": "{from} paid {to}",
             "failed": "could not record that payment — try again",
             "amountLabel": "How much moved?",
             "amountHint": "The whole debt is",

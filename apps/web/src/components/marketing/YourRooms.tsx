@@ -71,7 +71,7 @@ export function YourRooms() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-            className="mx-auto w-full max-w-xl px-5"
+            className="mx-auto w-full max-w-xl px-5 py-10"
         >
             <div className="flex items-baseline justify-between">
                 <h2 className="text-h5">{t('title')}</h2>

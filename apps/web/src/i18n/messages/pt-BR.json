@@ -1,19 +1,96 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "um link · grupo inteiro",
+            "utilityBrand": "PEANUT SPLIT",
+            "utilityTag": "O NOVO +1 DO GRUPO",
+            "eyebrow": "SEM APP PARA OS AMIGOS.",
             "title": "MANDA AI",
-            "titleAccessible": "MANDA AÍ",
-            "subtitle": "Crie a sala, mande um link no grupo e deixe cada pessoa adicionar o que pagou — em 12 moedas.",
-            "cta": "Criar o link →",
-            "ctaTrust": "Grátis · sem conta · sem instalar nada",
-            "linkExplainerTrigger": "Como o link funciona"
+            "controlTitleAccessible": "MANDA AÍ",
+            "titleAccessible": "MANDA O LINK.\nNÃO A PLANILHA.",
+            "subtitle": "Uma sala. Toda despesa. Ninguém caçando print.",
+            "cta": "Criar o link",
+            "ctaTrust": "Grátis · sem conta obrigatória · sem instalar nada",
+            "linkExplainerTrigger": "Como o link funciona",
+            "chat": {
+                "question": "quem pagou o jantar?",
+                "reply": "eu paguei",
+                "linkPrompt": "Cada um lança o seu",
+                "reaction": "ué… é só isso?"
+            },
+            "stageSummary": "Um link do Peanut Split passa pelo grupo para que cada amigo abra a mesma sala e lance despesas.",
+            "ticker": {
+                "noSignup": "SEM CADASTRO",
+                "noDownload": "SEM BAIXAR NADA",
+                "currencies": "12 MOEDAS DISPONÍVEIS",
+                "linkKey": "O LINK É A CHAVE"
+            },
+            "validation": {
+                "roomRequired": "Dê um nome para a sala.",
+                "creatorRequired": "Diga quem é você."
+            }
         },
         "rooms": {
             "title": "Suas salas",
             "subtitle": "Salvas neste aparelho.",
             "openLabel": "Abrir sala",
             "more": "e mais {count, plural, one {#} other {#}}"
+        },
+        "proof": {
+            "linkIdentity": {
+                "eyebrow": "01 · ABRA O LINK",
+                "title": "ESCOLHA QUEM É VOCÊ.",
+                "body": "A sala já está ali. Escolha seu nome no grupo ou adicione um. Sem precisar de conta, convite ou aprovação de dono.",
+                "linkLabel": "LINK DA SALA",
+                "identityLabel": "Quem é você no Fim de semana em Lisboa?",
+                "you": "Você",
+                "friendOne": "Bea",
+                "friendTwo": "Jules"
+            },
+            "everyoneAdds": {
+                "eyebrow": "02 · TODO MUNDO LANÇA",
+                "title": "A BEA PAGOU. VOCÊ LANÇOU.",
+                "body": "A sala confia no grupo. Lance a sua despesa ou registre uma por outra pessoa, depois escolha exatamente quem participou.",
+                "expenseOne": "Bea · trem",
+                "expenseOneMeta": "€60 · Bea pagou",
+                "expenseTwo": "Jules · jantar",
+                "expenseTwoMeta": "€90 · Jules pagou",
+                "expenseThree": "Ana · lançou",
+                "expenseThreeMeta": "pela Bea"
+            },
+            "suggestedPlan": {
+                "eyebrow": "03 · ACERTE A SALA",
+                "title": "UM PLANO SUGERIDO. ZERO CONTA NO GRUPO.",
+                "body": "Os saldos fecham no centavo e o Split sugere uma lista curta de quem paga quem. Paguem como o grupo já paga.",
+                "planLabel": "PLANO DE PAGAMENTOS SUGERIDO",
+                "paymentOne": "Você paga Bea · €10",
+                "paymentTwo": "Você paga Jules · €40"
+            },
+            "rail": {
+                "roomCreated": "SALA CRIADA",
+                "linkShared": "LINK COMPARTILHADO",
+                "friendJoined": "AMIGO ENTROU",
+                "roomEven": "TODO MUNDO QUITE"
+            },
+            "examples": {
+                "eyebrow": "FEITO PARA O GRUPO",
+                "title": "UM LINK PARA O QUE VOCÊS ESTIVEREM DIVIDINDO.",
+                "lisbon": {
+                    "name": "Fim de semana em Lisboa",
+                    "meta": "4 amigos · EUR · 8 despesas"
+                },
+                "flat": {
+                    "name": "Apê 4B",
+                    "meta": "3 colegas · BRL · este mês"
+                },
+                "dinner": {
+                    "name": "Lámen de terça",
+                    "meta": "6 amigos · BRL · um cartão"
+                },
+                "retreat": {
+                    "name": "Retiro remoto",
+                    "meta": "6 pessoas · 3 moedas"
+                }
+            }
         },
         "how": {
             "title": "Como funciona",
@@ -126,7 +203,7 @@
         },
         "readMore": {
             "toggle": "Ainda não se convenceu? Leia mais",
-            "toggleHint": "O que seus amigos veem, o que ele faz, quem fez e as perguntas chatas.",
+            "toggleHint": "Quem fez, por que é grátis e as perguntas chatas.",
             "join": {
                 "title": "O que seus amigos veem",
                 "roomName": "Viagem de esqui",
@@ -400,7 +477,7 @@
             "notePlaceholder": "Mandei na sexta",
             "record": "Registrar pagamento",
             "back": "Voltar",
-            "recorded": "{from} → {to} registrado",
+            "recorded": "{from} pagou a {to}",
             "failed": "não deu para registrar esse pagamento — tente de novo",
             "amountLabel": "Quanto foi pago?",
             "amountHint": "A dívida inteira é",

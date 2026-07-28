@@ -29,10 +29,9 @@ const PEANUT_LINKS = [
  * the left, named columns beside it, a thin bar underneath — because Split is a Peanut product
  * and the two feet should rhyme.
  *
- * BRAND GUARDRAIL, unchanged: Peanut appears here as a mark and nowhere else on the page. What
- * changed is that the mark is now the real logo rather than the word set in the display face and
- * painted `secondary-1`. Pink is still reserved — this footer and the Peanut settle option, and
- * nowhere else in Split.
+ * Peanut appears here as the maker mark while the product itself owns the page above it. Pink is
+ * also the Pass-the-Link story field now; the footer stays dark so that maker attribution does
+ * not compete with the product's primary scene.
  *
  * The guide and comparison columns are read off disk for the current locale, so a new markdown
  * file appears here without anyone editing this component. That is the point: a page nothing
