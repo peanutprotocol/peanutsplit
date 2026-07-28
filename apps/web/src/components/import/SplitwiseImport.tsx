@@ -1,5 +1,17 @@
 'use client'
 
+/**
+ * Bring a Splitwise group across.
+ *
+ * THE FILE NEVER LEAVES THE DEVICE. It is read with `File.text()`, parsed here, and only the
+ * structured result is posted — descriptions, amounts and who owes whom are a group's private
+ * business, and there is no reason for a server to hold the document itself. It also means the
+ * preview is instant and works with no network at all.
+ *
+ * Three steps, and the middle one is the point: nothing is written until somebody has looked at
+ * what we understood. An import that silently guesses wrong is worse than one that refuses.
+ */
+
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -31,17 +43,6 @@ import { useFeedback } from '@/lib/use-settings'
 /** Enough to see what came in without turning the preview into the room itself. */
 const WARNINGS_SHOWN = 8
 
-/**
- * Bring a Splitwise group across.
- *
- * THE FILE NEVER LEAVES THE DEVICE. It is read with `File.text()`, parsed here, and only the
- * structured result is posted — descriptions, amounts and who owes whom are a group's private
- * business, and there is no reason for a server to hold the document itself. It also means the
- * preview is instant and works with no network at all.
- *
- * Three steps, and the middle one is the point: nothing is written until somebody has looked at
- * what we understood. An import that silently guesses wrong is worse than one that refuses.
- */
 export function SplitwiseImport() {
     const t = useTranslations('import')
     const locale = useLocale()

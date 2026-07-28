@@ -22,7 +22,7 @@ import {
     WITH_PAYMENTS,
     WRONG_CSV,
     generateGroup,
-} from '@/lib/splitwise-fixtures'
+} from '@/lib/__fixtures__/splitwise'
 
 const codes = (result: SplitwiseImport) => result.warnings.map((w) => w.code)
 

@@ -38,10 +38,6 @@ import { receiptItemSchema, receiptModelSchema, type ReceiptParseBody } from '@/
 const DEFAULT_MODEL = 'gemini-2.5-flash-lite'
 const API_HOST = 'https://generativelanguage.googleapis.com'
 
-/** Egress host to allowlist on the squid pinhole. Exported so the deploy notes
- *  and the code cannot drift apart. */
-export const SCAN_EGRESS_HOST = 'generativelanguage.googleapis.com'
-
 /** 8MB of actual image bytes. A downscaled phone photo lands around 200-500KB;
  *  this ceiling exists for the person who picks a raw file out of their gallery,
  *  not for the normal path. */

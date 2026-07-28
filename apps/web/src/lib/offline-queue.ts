@@ -236,21 +236,10 @@ export function draftExpenseRow(
     }
 }
 
-/**
- * True for a row this module put on screen, as opposed to an in-flight
- * optimistic one — both wear the `pending-` prefix, and only one of them is
- * going to sit there until the signal comes back.
- *
- * WIRING LEFT FOR THE LIST'S OWNER (ExpenseList.tsx is not this branch's to
- * touch): the row already renders dimmed and untappable for anything
- * `pending-…`. What is missing is the sentence that says why. In ExpenseList:
- *
- *     const queued = useQueuedWrites(slug)   // slug is on state.room.slug
- *     … isQueuedExpenseId(expense.id, queued) && <span>{t('offline.rowHint')}</span>
- *
- * `offline.rowLabel` (short, for a badge) and `offline.rowHint` (the full
- * sentence) are already in all three catalogs.
- */
+/** True for a row this module put on screen, as opposed to an in-flight
+ *  optimistic one — both wear the `pending-` prefix, and only one of them is
+ *  going to sit there until the signal comes back, which is what earns it the
+ *  explanatory line the list renders. */
 export const isQueuedExpenseId = (expenseId: string, queued: readonly QueuedWrite[]): boolean =>
     queued.some((item) => queuedExpenseId(item.clientKey) === expenseId)
 

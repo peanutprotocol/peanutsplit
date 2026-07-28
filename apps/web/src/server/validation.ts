@@ -227,6 +227,11 @@ export type ReactionBody = z.infer<typeof reactionSchema>
  * of them, nobody is in a split twice, and the shares reconstruct the total. The last one is
  * checked here AND again inside `buildExpense`; the duplication is deliberate, because that is the
  * check that stands between a bad file and a room whose balances do not net to zero.
+ *
+ * Every one of those failures leaves as a generic `VALIDATION_ERROR`, deliberately: the client
+ * already showed a per-row preview of exactly what it was about to post, so a row number in the
+ * error would be a second, worse copy of a screen the user just read and approved. The zod path
+ * (`expenses.12.shares`) is in the English message for whoever is reading a log.
  */
 /** Splitwise exports a calendar day, not an instant. */
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a YYYY-MM-DD date')

@@ -4,16 +4,29 @@ import { expect, test, type Page } from '@playwright/test'
  * Two devices in one room, and the proof that the second one hears about a write
  * without asking for it.
  *
- * The budget is the whole assertion: the fallback poll is 8s, so anything that
- * lands inside 6s cannot have come from polling — it came down the event stream.
- * If this ever goes flaky, do not raise the timeout past 8s; that turns the test
- * into "the poll works", which is already covered by room.spec.ts.
+ * WHAT THIS ACTUALLY PROVES, which is not what the budget alone would: the
+ * stream is observed to open (a 200 on `/events`), and then every update lands
+ * inside 6s. The budget on its own proves nothing — the fallback poll runs on a
+ * uniform phase, so with SSE completely dead roughly three quarters of 8s polls
+ * still land inside 6s, and Playwright's retries make that worse rather than
+ * better. The `waitForResponse` is the mechanism; the budget is a latency bound
+ * on top of it.
+ *
+ * If this goes flaky, do not raise the timeout past 8s — that turns it back into
+ * "the poll works", which room.spec.ts already covers.
  */
 const LIVE_BUDGET_MS = 6_000
 
 const balance = (page: Page, member: string) => page.locator(`[data-testid="balance-card"][data-member="${member}"]`)
 
 test('an expense on one device lands on the other without a refresh', async ({ page, browser }) => {
+    // Armed BEFORE the room exists, because the room screen opens its stream on
+    // mount and a listener attached afterwards would miss it.
+    const streamOpened = page.waitForResponse(
+        (response) => response.url().includes('/events') && response.status() === 200,
+        { timeout: 30_000 }
+    )
+
     // ── Ana opens a room ──────────────────────────────────────────────────
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Live room')
@@ -26,6 +39,10 @@ test('an expense on one device lands on the other without a refresh', async ({ p
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
     await expect(balance(page, 'Ana')).toHaveAttribute('data-net', '0', { timeout: 15_000 })
+
+    // The mechanism, observed. Everything below is a latency bound on a stream
+    // that is demonstrably open, rather than a bet on poll phase.
+    await streamOpened
 
     // ── Bea joins from a second device ────────────────────────────────────
     const second = await browser.newContext({ viewport: { width: 390, height: 844 } })
