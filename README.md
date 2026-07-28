@@ -55,7 +55,7 @@ Open http://localhost:3000 for the product; the API answers on :5051.
 ./scripts/demo.sh
 ```
 
-Starts both apps and seeds a room that looks like a real trip — four people, two currencies, five expenses, and one settle-up already confirmed by Peanut — then prints the URL. You arrive as a stranger and pick a name, same as anyone following a shared link.
+Starts both apps and seeds a room that looks like a real trip — four people, two currencies, five expenses, and one settle-up already paid — then prints the URL. You arrive as a stranger and pick a name, same as anyone following a shared link.
 
 ### Checking it works
 
@@ -112,6 +112,8 @@ Two consequences worth knowing before changing anything:
 - **The app has no egress.** That is free today because nothing is fetched at
   runtime (FX is a static table). The day the settle loop has to reach peanut.me,
   it needs a proxy pinned to that host — not an opened network.
-- **`SPLIT_API_URL` is a build arg**, because Next freezes `rewrites()` into
-  `routes-manifest.json` at build time. Setting it only at runtime silently
-  leaves `/_split/*` pointed at localhost.
+- **Every `NEXT_PUBLIC_*` value is a build arg**, because Next inlines them into
+  the client bundle at build time. Setting one only at runtime silently does
+  nothing — the bundle already has the old value baked in. They are passed as
+  Docker build args (`buildArgs` in the Dokploy app settings), which is why each
+  one needs an `ARG`/`ENV` pair in `apps/web/Dockerfile`.
