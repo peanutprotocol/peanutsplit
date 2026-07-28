@@ -4,6 +4,7 @@ import { listAllTranslations, localesForSlug, type Doc } from '@/lib/content'
 import { absoluteUrl } from '@/lib/seo'
 import { LOCALES } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
+import { splitV2Enabled } from '@/lib/flags'
 
 /**
  * Derived, not maintained. Hand-built pages come from STATIC_PAGES; every article and every
@@ -21,11 +22,13 @@ import { hreflangAlternates, localizedPath } from '@/i18n/paths'
  * changed on every deploy teaches crawlers to ignore the field.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-    const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.map((page) => ({
-        url: absoluteUrl(page.href),
-        changeFrequency: 'monthly',
-        priority: page.priority,
-    }))
+    const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.filter((page) => !page.v2Only || splitV2Enabled()).map(
+        (page) => ({
+            url: absoluteUrl(page.href),
+            changeFrequency: 'monthly',
+            priority: page.priority,
+        })
+    )
 
     // The hub exists in every locale by construction — it lists whatever that locale has, even
     // when that is nothing yet.

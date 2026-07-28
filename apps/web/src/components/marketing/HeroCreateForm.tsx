@@ -21,9 +21,8 @@ import { LinkExplainer } from './LinkExplainer'
 const DEFAULT_CURRENCY = 'EUR'
 
 /**
- * The landing hero IS this form. There is no pitch above it and no second screen below it:
- * pressing the button creates the room and opens it, which is what lets the button honestly
- * say "Open it".
+ * The landing hero's action is this real form. Pressing the button creates the room and opens
+ * it; the live URL stem is the product demonstration, not a decorative mockup beside it.
  *
  * NO LABELS ABOVE FIELDS. "What are you splitting?" over an empty box is a caption on a thing
  * that could say it itself — two lines where one does, and on a 390px screen those stacked
@@ -116,9 +115,7 @@ export function HeroCreateForm() {
         if (!name.trim()) return nameRef.current?.focus()
         if (!creatorName.trim()) return creatorRef.current?.focus()
         const state = await submit({ name, emoji: shownEmblem, currency, creatorName })
-        // Land with the share sheet already up: a room with one person in it is not
-        // a split yet, and the next thing to do is always send the link.
-        if (state) router.push(`/r/${state.room.slug}?share=true`)
+        if (state) router.push(`/r/${state.room.slug}`)
     }
 
     return (
@@ -222,6 +219,8 @@ export function HeroCreateForm() {
             >
                 {t('cta')}
             </Button>
+
+            <p className="text-center text-h10 uppercase tracking-[0.08em] text-grey-1">{t('ctaTrust')}</p>
 
             <LinkExplainer open={explainerOpen} onClose={() => setExplainerOpen(false)} />
         </form>

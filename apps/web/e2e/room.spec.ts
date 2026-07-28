@@ -140,6 +140,52 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await second.close()
 })
 
+test('one person can add a payer and submit an expense on their behalf', async ({ page, browser }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('Trust room')
+    await page.getByTestId('room-currency').selectOption('EUR')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+
+    const roomLink = page.getByTestId('room-link')
+    await expect(roomLink).toBeVisible({ timeout: 15_000 })
+    const url = (await roomLink.innerText()).trim()
+    await page.getByTestId('go-to-room').click()
+
+    await page.getByTestId('open-add-expense').click()
+    await expect(page.getByTestId('quick-add')).toHaveCount(0)
+    await expect(page.getByTestId('payer-chip')).toHaveCount(1)
+    await page.getByTestId('add-payer').click()
+    await page.getByTestId('new-payer-name').fill('Bea')
+    await page.getByTestId('add-payer-submit').click()
+
+    const beaPayer = page.locator('[data-testid="payer-chip"][data-member="Bea"]')
+    await expect(beaPayer).toBeVisible({ timeout: 15_000 })
+    await expect(beaPayer).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('[data-testid="participant-toggle"][data-member="Bea"]')).toBeVisible()
+
+    await page.getByTestId('expense-amount').fill('60')
+    await page.getByTestId('expense-description').fill('Dinner Bea covered')
+    await page.getByTestId('save-expense').click()
+
+    await expect(
+        page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]:not([disabled])')
+    ).toContainText('Bea paid', { timeout: 15_000 })
+    await expectBalance(page, 'Ana', '-3000')
+    await expectBalance(page, 'Bea', '3000')
+
+    // Adding Bea did not switch Ana's device identity. On another device the
+    // room link exposes the trusted roster, and Bea can simply claim herself.
+    const second = await browser.newContext({ viewport: { width: 390, height: 844 } })
+    const bea = await second.newPage()
+    await bea.goto(url)
+    await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
+    await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
+    await expect(bea.getByTestId('join-gate')).toHaveCount(0)
+    await expectBalance(bea, 'Bea', '3000')
+    await second.close()
+})
+
 test('an unknown slug says so instead of spinning', async ({ page }) => {
     await page.goto('/r/definitely-not-a-room-zzz999')
     await expect(page.getByTestId('room-not-found')).toBeVisible({ timeout: 15_000 })

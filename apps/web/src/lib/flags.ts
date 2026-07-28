@@ -16,6 +16,13 @@
 export const accountsEnabled = (): boolean => process.env.NEXT_PUBLIC_ACCOUNTS_ENABLED === '1'
 
 /**
+ * V2 is a product boundary, not an experiment cohort. The current app stays the
+ * small, trust-based room: no AI affordances and no migration tooling. A v2
+ * deployment opts in explicitly at build time.
+ */
+export const splitV2Enabled = (): boolean => process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED === '1'
+
+/**
  * The teaser state between "hidden" and "live": the save-your-rooms surface is
  * announced with a Soon badge while the email transport clears its last
  * external gates. ENABLED wins — flipping the real flag retires the teaser

@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { marketingCopy } from '@/components/marketing/copy'
 import { SplitwiseImport } from '@/components/import/SplitwiseImport'
 import { Button } from '@/components/ui/Button'
+import { splitV2Enabled } from '@/lib/flags'
 import { breadcrumbSchema, pageMetadata } from '@/lib/seo'
 
 const { importPage } = marketingCopy
@@ -46,6 +48,8 @@ const faqJsonLd = {
 }
 
 export default function ImportPage() {
+    if (!splitV2Enabled()) notFound()
+
     return (
         <main className="flex min-h-dvh flex-col gap-10 bg-background">
             <JsonLd data={faqJsonLd} />

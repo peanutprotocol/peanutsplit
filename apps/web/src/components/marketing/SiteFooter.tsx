@@ -6,6 +6,7 @@ import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { asLocale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { hrefFor, listDocs } from '@/lib/content'
+import { splitV2Enabled } from '@/lib/flags'
 
 /** Guides listed by name before the column defers to the hub. Four is the point at which the
  *  column stops being a directory and starts being a second copy of /blog. */
@@ -82,11 +83,13 @@ export function SiteFooter({
                                     {t('createSplit')}
                                 </Link>
                             </li>
-                            <li>
-                                <Link href="/import" className={linkClass}>
-                                    {t('importLink')}
-                                </Link>
-                            </li>
+                            {splitV2Enabled() && (
+                                <li>
+                                    <Link href="/import" className={linkClass}>
+                                        {t('importLink')}
+                                    </Link>
+                                </li>
+                            )}
                         </ul>
                     </div>
 

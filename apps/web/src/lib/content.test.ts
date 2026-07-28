@@ -113,6 +113,21 @@ describe('content tree', () => {
         const hrefs = listAllDocs().map((doc) => doc.href)
         expect(new Set(hrefs).size).toBe(hrefs.length)
     })
+
+    it('keeps v2-only guides valid but undiscoverable in v1', () => {
+        const prior = process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+        try {
+            delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+            expect(getDoc('blog', 'scan-a-receipt-to-split-a-bill')).not.toBeNull()
+            expect(listSlugs('blog')).not.toContain('scan-a-receipt-to-split-a-bill')
+
+            process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
+            expect(listSlugs('blog')).toContain('scan-a-receipt-to-split-a-bill')
+        } finally {
+            if (prior === undefined) delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+            else process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = prior
+        }
+    })
 })
 
 /**

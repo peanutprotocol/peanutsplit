@@ -19,6 +19,8 @@ export interface StaticPage {
     priority: number
     /** Show on the /blog hub. The LP is registered for the sitemap but is not a "guide". */
     inHub: boolean
+    /** Kept reserved and buildable, but omitted from v1 discovery. */
+    v2Only?: boolean
 }
 
 export const STATIC_PAGES: StaticPage[] = [
@@ -46,6 +48,7 @@ export const STATIC_PAGES: StaticPage[] = [
         description: 'Turn a Splitwise group export into a Split room — expenses, payers and balances intact.',
         priority: 0.8,
         inHub: false,
+        v2Only: true,
     },
 ]
 

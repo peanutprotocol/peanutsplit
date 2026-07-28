@@ -1,11 +1,12 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "free · no account · no download",
-            "title": "SPLIT IT",
-            "subtitle": "Who owes who, sorted. One link — everyone adds what they paid, in any currency.",
-            "cta": "Open it →",
-            "mascotAlt": "Peanut waving hello",
+            "eyebrow": "one link · whole group",
+            "title": "PASS IT",
+            "titleAccessible": "PASS IT",
+            "subtitle": "Start the room, drop one link in the group chat, and let everyone add what they paid — across 12 currencies.",
+            "cta": "Make the link →",
+            "ctaTrust": "Free · no account · nothing to install",
             "linkExplainerTrigger": "How the link works"
         },
         "rooms": {
@@ -30,7 +31,7 @@
             },
             "step4": {
                 "title": "Settle up",
-                "body": "Split works out the fewest payments that clear the room. Pay in cash, by bank, or send it with Peanut when neither of those reaches."
+                "body": "Split suggests a payment plan that clears the room. Pay in cash, by bank, or send it with Peanut when neither of those reaches."
             }
         },
         "uses": {
@@ -137,8 +138,8 @@
             "features": {
                 "title": "What Split does",
                 "currency": {
-                    "title": "Any currency",
-                    "body": "The room counts in one currency. Add an expense in whatever you actually paid and Split converts it at the rate on the day."
+                    "title": "12 supported currencies",
+                    "body": "The room counts in one currency. Add an expense in any of the 12 supported currencies and Split converts it at the rate on the day."
                 },
                 "splits": {
                     "title": "Splits that are not even",
@@ -157,8 +158,8 @@
                     "body": "It opens like an app."
                 },
                 "transfers": {
-                    "title": "The fewest payments",
-                    "body": "Six people owing each other in circles becomes two transfers, not eleven."
+                    "title": "A simpler payment plan",
+                    "body": "Split turns a web of balances into a short suggested list of who should pay whom."
                 }
             },
             "settle": {
@@ -336,6 +337,12 @@
             "description": "What for?",
             "descriptionPlaceholder": "Dinner, taxi, lift pass…",
             "paidBy": "Paid by",
+            "addPayer": "Add person",
+            "payerNamePlaceholder": "Person’s name",
+            "confirmPayer": "Add person",
+            "cancelPayer": "Cancel",
+            "payerDuplicate": "{name} is already in the room — pick them above.",
+            "payerAddFailed": "could not add that person — try again",
             "split": "Split",
             "equally": "Equally",
             "exactAmounts": "Exact amounts",

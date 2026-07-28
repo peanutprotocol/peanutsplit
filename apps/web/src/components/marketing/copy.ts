@@ -145,6 +145,7 @@ export const marketingCopy = {
                 {
                     q: 'Can I import my Splitwise history?',
                     a: 'Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import — the expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.',
+                    v2Only: true,
                 },
                 {
                     q: 'What happens if we lose the link?',

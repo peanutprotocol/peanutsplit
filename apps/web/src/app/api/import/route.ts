@@ -1,9 +1,10 @@
-import { badRequest, readJsonCapped, respond } from '@/server/http'
+import { badRequest, notFound, readJsonCapped, respond } from '@/server/http'
 import { CREATE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { toRoomState } from '@/server/roomState'
 import { importRoom } from '@/server/splitwiseImport'
 import { importRoomSchema } from '@/server/validation'
 import type { RoomStateWithMember } from '@/lib/api-types'
+import { splitV2Enabled } from '@/lib/flags'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,7 @@ const MAX_BODY_BYTES = 1_000_000
  */
 export const POST = (request: Request) =>
     respond(async (): Promise<RoomStateWithMember> => {
+        if (!splitV2Enabled()) throw notFound('not found')
         enforceRateLimit(request, CREATE_LIMIT, 'create')
 
         const raw = await readJsonCapped(

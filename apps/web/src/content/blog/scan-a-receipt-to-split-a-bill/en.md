@@ -2,6 +2,7 @@
 title: Scan a receipt to split a bill by item
 description: Photograph the bill, check the lines it read, tap who had what. Free receipt splitting with no per-scan limit, no premium tier and no account to make first.
 date: 2026-07-28
+v2Only: true
 tags: [receipts, dinners]
 faqs:
     - question: Is receipt scanning free?

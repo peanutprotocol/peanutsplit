@@ -8,9 +8,11 @@ import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { marketingCopy } from '@/components/marketing/copy'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { splitV2Enabled } from '@/lib/flags'
 import { breadcrumbSchema, pageMetadata } from '@/lib/seo'
 
 const { compare } = marketingCopy
+const compareFaqItems = compare.faq.items.filter((item) => splitV2Enabled() || !('v2Only' in item && item.v2Only))
 
 /**
  * Built by hand rather than through the content engine — the copy here is argued over line by
@@ -34,7 +36,7 @@ const crumbs = [
 const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: compare.faq.items.map((item) => ({
+    mainEntity: compareFaqItems.map((item) => ({
         '@type': 'Question',
         name: item.q,
         acceptedAnswer: { '@type': 'Answer', text: item.a },
@@ -71,14 +73,13 @@ export default function SplitwiseAlternativePage() {
                         </Button>
                     </Link>
                     <p className="mt-3 text-center text-sm text-grey-1">{compare.hero.ctaHint}</p>
-                    {/* The other half of the query. Someone comparing splitters usually already has
-                        a group in the old one, and "you keep your history" is the objection this
-                        page cannot answer on its own. */}
-                    <p className="mt-2 text-center text-sm text-grey-1">
-                        <Link href="/import" className="text-black underline">
-                            {compare.hero.importLink}
-                        </Link>
-                    </p>
+                    {splitV2Enabled() && (
+                        <p className="mt-2 text-center text-sm text-grey-1">
+                            <Link href="/import" className="text-black underline">
+                                {compare.hero.importLink}
+                            </Link>
+                        </p>
+                    )}
                 </div>
             </section>
 
@@ -130,7 +131,7 @@ export default function SplitwiseAlternativePage() {
                 </div>
             </section>
 
-            <CompareFaq />
+            <CompareFaq items={compareFaqItems} />
 
             <section className="mx-auto w-full max-w-xl px-5">
                 <div className="rounded-sm border border-n-1 bg-white p-5">
