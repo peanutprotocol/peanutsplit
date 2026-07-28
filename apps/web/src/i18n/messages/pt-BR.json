@@ -230,6 +230,38 @@
             "goToRoom": "Ir para a sala"
         }
     },
+    "account": {
+        "title": "Suas salas em qualquer aparelho",
+        "blurb": "Salve suas salas — coloque seu e-mail e acesse de qualquer aparelho. Sem senha e sem cadastro.",
+        "emailLabel": "E-mail",
+        "emailPlaceholder": "voce@exemplo.com",
+        "submit": "Salvar minhas salas",
+        "sentTitle": "Dá uma olhada no e-mail",
+        "sentBody": "Se esse endereço receber e-mails, o link para as suas salas já está a caminho. Abra no aparelho onde você quer elas.",
+        "sentAgain": "Usar outro endereço",
+        "signedInAs": "Conectado como {email}",
+        "signedInHint": "Abra esse link em qualquer aparelho e estas salas vão junto.",
+        "signOut": "Sair",
+        "failed": "não deu para enviar o link — tente de novo",
+        "newPhone": "Um dia troca de celular? Salve suas salas",
+        "synced": "Salvas na sua conta.",
+        "roomsAreBack": "Suas salas voltaram",
+        "signedIn": "Você está conectado"
+    },
+    "push": {
+        "title": "Notificações",
+        "notifyMe": "Me avisar sobre esta sala",
+        "notifyHint": "Quando alguém adiciona um gasto ou acerta as contas.",
+        "enable": "Ativar",
+        "on": "Você vai receber notificações desta sala",
+        "onHint": "Só neste aparelho.",
+        "stop": "Parar de notificar neste aparelho",
+        "iosNeedsPwa": "Adicione o Split à sua tela de início para receber notificações.",
+        "iosHow": "Como?",
+        "denied": "As notificações estão bloqueadas para este site nas configurações do navegador.",
+        "needsToken": "Para ativar, precisamos ter certeza de que é você — entre na sala de novo com o seu nome.",
+        "failed": "não deu para mudar as notificações — tente de novo"
+    },
     "errors": {
         "generic": "Algo deu errado — tente de novo.",
         "NETWORK_ERROR": "Não conseguimos falar com o servidor — confira sua conexão.",
