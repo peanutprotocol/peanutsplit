@@ -27,47 +27,33 @@ Owner of record for each open item is in brackets. Last full update: 2026-07-28.
   expense/settlement/all-settled with a 3-per-room-per-day cap on expense
   pushes. Inert until VAPID env vars are set (see "To light up").
 
-## In flight (agents running as of 2026-07-28)
+## Shipped 2026-07-28, second wave
 
-- **i18n** (`feat/i18n`): en / es-419 / pt-BR via next-intl, cookie-resolved
-  (`ps-locale`), no URL locale prefixes; full string extraction incl. drawers and
-  install prompt; API errors become code→message client mapping; Intl-based money
-  and date formatting (pt-BR "1.234,56" parsing rules); key-parity audit script
-  in CI. SEO/content pages stay English (Konrad's surface). OG images stay
-  English (font glyph coverage + no-cache rule in `src/server/og/fonts.ts`).
-- **Accounts backend** (`feat/accounts-core`): optional email + magic link, the
-  Kittysplit framing — "access your rooms from any device", never a signup wall.
-  Stateless HMAC tokens (purpose-scoped, epoch-invalidated), sealed 10-year
-  session cookie, scanner-safe GET-form/POST-write verify, Resend-shaped email
-  adapter (inert without `RESEND_API_KEY`), `attach` links only token-proven
-  memberships, `rooms` re-issues member tokens to their proven owner (the
-  device-recovery feature). UI ships later, gated on
-  `NEXT_PUBLIC_ACCOUNTS_ENABLED`.
-
-## Queued — phase 2 (start as phase-1 branches merge)
-
-- **Polish pass** [session]: expand the synthesized sound palette using the
-  primitives already in `src/lib/sounds.ts` (excite/modal-stack recipes, master
-  ducking, per-key retrigger throttle); haptic vocabulary (confirm/error/success
-  patterns, iOS stagger emulation); animation catalog — squash-and-stretch
-  bounce for the all-settled moment, pop on expense add, shake on invalid input,
-  staggered list reveals; `animationsEnabled` setting (a `reduce-animations`
-  class on `<html>`, decorative pseudo-elements also get `opacity: 0`, OS-level
-  `prefers-reduced-motion` always wins).
-- **Smart UX / currency delight** [session]: infer the proposed room currency
-  from device language + `Intl` timezone (offline — the no-egress deploy can't
-  do IP-geo, and doesn't need to); playful currency picker (flags/symbols,
-  animated selection, inferred currencies first); currency display as a designed
-  object rather than a string.
-- **Auditable balances** [session]: tap a balance → drawer deriving it from the
-  expenses/shares/settlements already in RoomState. The deepest unnamed
-  Splitwise complaint ("it expects you to trust it") — free differentiator,
-  client-only.
-- **Accounts + push UI** [session]: settings-drawer entries; email save/login
-  flow (gated `NEXT_PUBLIC_ACCOUNTS_ENABLED`); push opt-in with the six-state
-  status model (unsupported / ios-needs-pwa / denied / default / subscribed —
-  never call `Notification.requestPermission()` on iOS outside standalone, it
-  burns the one-shot); "your rooms on this device" merge after login.
+- **i18n** — en / es-419 / pt-BR live product-wide (cookie-resolved, no URL
+  prefixes), Intl money/date formatting, error codes → localized client
+  messages, CI key-parity audit. SEO pages and OG images stay English by design.
+- **Polish** — whoosh/blip/error cues + master ducking, haptic vocabulary
+  (confirm/error/success, iOS-tuned), squash-and-stretch all-settled, expense
+  pop, error shake, drawer entrances, staggered reveals, `animationsEnabled`
+  setting (OS reduced-motion always wins), standardized toast durations.
+- **Smart currency** — offline inference (timezone beats language; ranked, max
+  3, honest about ambiguity), suggestion chips on create, flag+symbol+localized-
+  name picker over a native select, styled symbol runs, foreign-conversion
+  strip in both split modes.
+- **Auditable balances** — tap any balance → its complete derivation
+  (paid/shares/settlements, chronological, signed, foreign originals), pair
+  view that refuses to fake pairwise attribution and shows both sheets instead;
+  proven by a 300-random-room property test against the server's own fold.
+- **Accounts + push UI** — gated dark behind `NEXT_PUBLIC_ACCOUNTS_ENABLED` /
+  VAPID build args: email save/recover panel, `?login=1` attach-and-merge
+  recovery, six-state push opt-in row (never burns iOS's permission one-shot),
+  token-proven subscribe with rollback on server failure.
+- **Infra** — `split-egress` squid pinhole live on the box and verified
+  (push gateways + email API only, port 443 CONNECT, everything else 403);
+  VAPID keys + auth secret set as runtime env; all `NEXT_PUBLIC_*` build args
+  now have Dockerfile ARG/ENV pairs (the missing PostHog pair was found and
+  fixed — a configured build arg the Dockerfile doesn't declare is silently
+  dropped).
 
 ## To light up (infra gates)
 
