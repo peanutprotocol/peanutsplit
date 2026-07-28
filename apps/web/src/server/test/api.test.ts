@@ -11,6 +11,7 @@ import { GET as getRate } from '@/app/api/rate/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
+import { POST as claimMember } from '@/app/api/rooms/[slug]/members/[memberId]/claim/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense, PATCH as patchExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
 import { POST as restoreExpense } from '@/app/api/expenses/[id]/restore/route'
@@ -19,7 +20,7 @@ import { DELETE as deleteSettlement } from '@/app/api/rooms/[slug]/settlements/[
 import { GET as readiness } from '@/app/readiness/route'
 import { GET as healthcheck } from '@/app/healthcheck/route'
 import { backfillPatch, latecomerOffer } from '@/lib/latecomer'
-import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
+import type { ApiError, RoomState, RoomStateWithAddedMember, RoomStateWithMember } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
 
@@ -55,6 +56,21 @@ const join = (slug: string, name: string) =>
         method: 'POST',
         params: { slug },
         body: { name },
+    })
+
+const addPayer = (slug: string, name: string) =>
+    call<RoomStateWithAddedMember>(postMember as Handler, {
+        path: `/api/rooms/${slug}/members`,
+        method: 'POST',
+        params: { slug },
+        body: { name, intent: 'add' },
+    })
+
+const claim = (slug: string, memberId: string) =>
+    call<RoomStateWithMember>(claimMember as Handler, {
+        path: `/api/rooms/${slug}/members/${memberId}/claim`,
+        method: 'POST',
+        params: { slug, memberId },
     })
 
 /** Balances must always net to zero — the whole model rests on it. */
@@ -175,6 +191,45 @@ describe('rooms and members', () => {
         expect(body.members.map((m) => m.name)).toEqual(['Ana', 'Bea'])
         expect(body.members.some((m) => m.id === body.memberId)).toBe(true)
         expect(body.memberToken).toBeTruthy()
+    })
+
+    it('adds a payer without returning their identity token at the HTTP boundary', async () => {
+        const { body: created } = await newRoom()
+        const { status, body } = await addPayer(created.room.slug, 'Bea')
+
+        expect(status).toBe(201)
+        expect(body.members.some((member) => member.id === body.memberId && member.name === 'Bea')).toBe(true)
+        expect(body).not.toHaveProperty('memberToken')
+
+        const stored = await prisma.member.findUnique({ where: { id: body.memberId }, select: { token: true } })
+        expect(stored?.token).toBeTruthy()
+        expect(JSON.stringify(body)).not.toContain(stored?.token)
+    })
+
+    it('claims an existing roster entry with its stable token instead of rotating it', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const before = await prisma.member.findUnique({ where: { id: added.memberId }, select: { token: true } })
+
+        const first = await claim(created.room.slug, added.memberId)
+        const second = await claim(created.room.slug, added.memberId)
+        const after = await prisma.member.findUnique({ where: { id: added.memberId }, select: { token: true } })
+
+        expect(first.status).toBe(200)
+        expect(first.body.memberId).toBe(added.memberId)
+        expect(first.body.memberToken).toBe(before?.token)
+        expect(second.body.memberToken).toBe(first.body.memberToken)
+        expect(after?.token).toBe(before?.token)
+    })
+
+    it('will not claim a member id through a different room link', async () => {
+        const { body: first } = await newRoom()
+        const { body: second } = await newRoom({ name: 'Other Trip' })
+
+        const { status, body } = await claim(second.room.slug, first.memberId)
+
+        expect(status).toBe(404)
+        expect((body as unknown as ApiError).error.code).toBe('NOT_FOUND')
     })
 
     it('409s on a duplicate name so the join gate can offer the existing member', async () => {

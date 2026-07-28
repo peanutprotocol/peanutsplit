@@ -61,8 +61,8 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
     const [pickerOpen, setPickerOpen] = useState(false)
 
     const groups = groupReactions(expense.reactions, meId)
-    /** A token-less "that's me" identity can read the room's reactions but not
-     *  sign one — same rule, and same disabled-with-a-reason shape, as push. */
+    /** A legacy tokenless identity can read the room's reactions but not sign
+     *  one — same rule, and same disabled-with-a-reason shape, as push. */
     const canReact = !!meId && !!token
 
     // Nothing to show and nothing to do: a disabled "+" under every row would be

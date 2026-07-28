@@ -109,11 +109,10 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
     }
 
     /**
-     * A token-less identity is someone who tapped "that's me" on the join gate.
-     * The room believes them — impersonation inside a room is visible and
-     * fixable — but the push endpoint does not: binding a delivery channel needs
-     * the server-issued member token, or anyone holding the link could make
-     * somebody else's phone buzz. So the row renders, disabled, with the reason.
+     * Legacy tokenless identities can still read the room, but the push endpoint
+     * cannot bind a delivery channel without a member token. New "that's me"
+     * claims receive the roster entry's existing token; this fallback remains
+     * for old localStorage records and unavailable storage.
      */
     const provenIdentity = identity?.token ? identity : null
 

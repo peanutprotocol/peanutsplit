@@ -2,12 +2,11 @@
  * Who you are, per room, on this device. There are no accounts — identity is a
  * localStorage record and the room slug is the credential.
  *
- * Two shapes exist by design:
+ * Two shapes remain readable for backwards compatibility:
  *  - you created the room, or joined as a new member → we hold a server-issued
  *    `token` (sent as `X-Member-Token`, attribution only);
- *  - you tapped an existing member on the join gate ("I'm Bea") → no token exists
- *    for that member on this device, and that is fine. Writes still work; they
- *    are simply unattributed.
+ *  - an older client stored a tokenless existing-member claim. New claims
+ *    receive the member's existing token so reactions and push work.
  *
  * A device UUID (`ps:device`) is minted once and mirrored into a `device-id`
  * cookie so a future OAuth claim flow — which arrives with no request body — can
@@ -17,7 +16,7 @@
 export interface MemberIdentity {
     memberId: string
     name: string
-    /** Undefined for claimed-existing-member identities. */
+    /** Undefined only for legacy tokenless claims or unavailable storage. */
     token?: string
 }
 
@@ -59,7 +58,7 @@ export function readIdentity(slug: string): MemberIdentity | null {
 }
 
 /** Store (or replace) the identity for `slug`. Call this the instant a token
- *  comes back — the server returns it exactly once. */
+ *  comes back from room creation, a new join, or an existing-member claim. */
 export function writeIdentity(slug: string, identity: MemberIdentity): void {
     const store = storage()
     if (!store) return

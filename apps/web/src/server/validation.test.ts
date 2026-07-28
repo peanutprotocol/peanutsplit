@@ -61,6 +61,20 @@ describe('public wire money', () => {
     })
 })
 
+describe('structured import dates', () => {
+    it('accepts real leap days and rejects impossible calendar dates', () => {
+        const withDate = (date: string) => {
+            const body = imported('100')
+            body.expenses[0].date = date
+            return body
+        }
+
+        expect(importRoomSchema.safeParse(withDate('2024-02-29')).success).toBe(true)
+        expect(importRoomSchema.safeParse(withDate('2026-02-31')).success).toBe(false)
+        expect(importRoomSchema.safeParse(withDate('2025-02-29')).success).toBe(false)
+    })
+})
+
 describe('money-write request keys', () => {
     it('accepts opaque browser keys and rejects short or punctuated values', () => {
         expect(expenseSchema.safeParse({ ...expense('100'), clientKey: 'expense-request-0001' }).success).toBe(true)

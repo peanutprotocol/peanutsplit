@@ -17,6 +17,7 @@ import type {
     ExpenseInput,
     ImportRoomInput,
     RoomState,
+    RoomStateWithAddedMember,
     RoomStateWithMember,
     SettlementInput,
 } from './api-types'
@@ -175,12 +176,45 @@ export function useCreateRoom(): UseMutationResult<RoomStateWithMember, Error, C
     })
 }
 
+/**
+ * Strip the member identity envelope before room state enters react-query.
+ *
+ * The mutation caller still receives `memberId`/`memberToken` and stores them in
+ * the per-room identity record. The shared room cache contains only data every
+ * holder of the link can already read.
+ */
+const roomStateResult = (response: RoomState): RoomState => ({
+    room: response.room,
+    members: response.members,
+    expenses: response.expenses,
+    settlements: response.settlements,
+    balances: response.balances,
+    suggestedTransfers: response.suggestedTransfers,
+})
+
 export function useJoinRoom(slug: string): UseMutationResult<RoomStateWithMember, Error, { name: string }> {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: (input: { name: string }) => api.joinRoom(slug, input),
-        onSuccess: (state) => seed(queryClient, slug, state),
+        onSuccess: (response) => seed(queryClient, slug, roomStateResult(response)),
     })
+}
+
+/** Claim an existing public roster entry and return its already-issued token to
+ * this device without putting the identity envelope in shared room state. */
+export function claimMemberMutationOptions(
+    queryClient: QueryClient,
+    slug: string
+): UseMutationOptions<RoomStateWithMember, Error, { memberId: string }> {
+    return {
+        mutationFn: ({ memberId }) => api.claimMember(slug, memberId),
+        onSuccess: (response) => seed(queryClient, slug, roomStateResult(response)),
+    }
+}
+
+export function useClaimMember(slug: string): UseMutationResult<RoomStateWithMember, Error, { memberId: string }> {
+    const queryClient = useQueryClient()
+    return useMutation(claimMemberMutationOptions(queryClient, slug))
 }
 
 /**
@@ -194,14 +228,11 @@ export function useJoinRoom(slug: string): UseMutationResult<RoomStateWithMember
  * An organiser typing four names in before the first round is the cheap version
  * of that.
  *
- * **The `memberToken` that comes back is deliberately thrown away.** A token is
- * the proof that a device IS a particular person — it signs reactions and binds
- * push channels — so it may only ever come to rest on that person's own device.
- * Keeping it on the organiser's phone would let them react as their friend, and
- * would hand the friend a room that believes they already hold a key nobody ever
- * sent them. They claim their name through the join gate like everybody else and
- * are issued a token there. The organiser stays themselves throughout: nothing
- * here touches the stored identity.
+ * **The HTTP response contains no `memberToken`.** A token is proof that a
+ * device IS a particular person — it signs reactions and binds push channels —
+ * so adding a payer on somebody else's behalf returns only their public roster
+ * id. They claim that entry from their own device to receive its existing token.
+ * The organiser stays themselves throughout.
  */
 interface AddedMemberResult {
     /** Needed only to select the new roster entry as the payer. */
@@ -211,35 +242,24 @@ interface AddedMemberResult {
 }
 
 /**
- * Build the add-member result field by field, so the token is not merely unread
- * — it is absent before either the caller or the cache sees the response. The
+ * Keep building the result field by field even though the route is token-free.
+ * That preserves the cache boundary if the response envelope grows again. The
  * new id stays outside `state`: the organiser needs it to select a payer, but it
  * is not room state and does not belong in react-query.
- *
- * Narrowing the return TYPE would not be enough: `RoomStateWithMember` is
- * structurally a `RoomState`, so handing the whole response back under a
- * narrower annotation compiles cleanly and leaks the token anyway.
  */
-const addedMemberResult = (response: RoomStateWithMember): AddedMemberResult => ({
+const addedMemberResult = (response: RoomStateWithAddedMember): AddedMemberResult => ({
     memberId: response.memberId,
-    state: {
-        room: response.room,
-        members: response.members,
-        expenses: response.expenses,
-        settlements: response.settlements,
-        balances: response.balances,
-        suggestedTransfers: response.suggestedTransfers,
-    },
+    state: roomStateResult(response),
 })
 
-/** Exported as options so the token-discarding and cache contract can be tested
+/** Exported as options so the token-free HTTP and cache contract can be tested
  * against react-query's real mutation machinery without a component renderer. */
 export function addMemberMutationOptions(
     queryClient: QueryClient,
     slug: string
 ): UseMutationOptions<AddedMemberResult, Error, { name: string }> {
     return {
-        mutationFn: async (input) => addedMemberResult(await api.joinRoom(slug, input)),
+        mutationFn: async (input) => addedMemberResult(await api.addMember(slug, input)),
         onSuccess: ({ state }) => seed(queryClient, slug, state),
     }
 }
