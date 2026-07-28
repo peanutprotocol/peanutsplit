@@ -2,7 +2,7 @@
 
 This repo does **not** follow mono's always-PR workflow. Split is growth-owned, deliberately small, and meant to be shippable (and killable) in an afternoon. `mono/CONTRIBUTING.md` governs `peanut-ui` and `peanut-api-ts`; the rules below govern this repo and win where they differ.
 
-Product rationale, status, milestones and the decision log live in the Notion project (linked from `mono/projects/peanut-split/`). This file is the working rules only — don't restate them there or here.
+Product rationale, status, milestones and the decision log live in the Notion project (linked from `mono/projects/peanut-split/`). The engineering backlog — what's built, building, queued, gated on infra, and deliberately not built — lives in [`ROADMAP.md`](ROADMAP.md). This file is the working rules only — don't restate either here.
 
 ## What's in here
 
@@ -32,7 +32,7 @@ two is the remaining merge.
 ## What still holds
 
 - **Money code needs a test before it ships.** Balances, splits, FX, settlements: if it can produce a wrong number, it has a test. The pure math in `apps/api/src/split/math.ts` is where that logic belongs — testable without a database.
-- **The surface is frozen.** Split settles through an existing Peanut payment-request link. No new money-path endpoints, no accounts, no identity stored in Split. If a change needs one of those, it's the wrong change.
+- **The money surface is frozen.** Split settles through an existing Peanut payment-request link. No new money-path endpoints. Identity is bounded by decision (Hugo, 2026-07-28): an account is an **optional email for device portability only** — magic link in, your rooms follow you. No passwords, no OAuth, no profile, no room ownership; the room link stays the credential. Push notifications are opt-in per device per room. Anything past that is the wrong change.
 - **No identity in analytics either** — no room slug, no member name, no amount. The slug is the room's access control; a name is what someone chose to show their friends.
 - Dependencies must be ≥14 days old (`.npmrc` enforces it).
 - Run `pnpm typecheck && pnpm test && pnpm format` before pushing.
@@ -68,8 +68,7 @@ You don't need server access to ship — push is enough. Ask Hugo for anything i
 
 Read [`docs-split-rooms-spike.md`](docs-split-rooms-spike.md) — the original design doc and the 2026-07-06 review — and the "Design choices" section of [`changelog-july-25.md`](changelog-july-25.md), which explains why the settle path is shaped the way it is. Known-open issues:
 
-- FX is re-priced on edit, contradicting "rate locked at creation". Latent while the reference table is static; breaks history the day live FX lands.
 - `formatMoney` assumes 2 decimals until `/split/currencies` loads, so a JPY room can flash a hero balance 100× off.
-- `convertToBaseMinor` round-trips through `Number`, losing integer precision past 2^53.
-- **No rate limiting** on the unauthenticated settle-intent endpoint — 300 rows were created in 2.9s during review.
+- `convertToBaseMinor` (apps/api) round-trips through `Number`, losing integer precision past 2^53.
+- ~~FX re-priced on edit~~ and ~~no rate limiting~~ — both fixed 2026-07-28 (`src/server/expenses.ts`, `src/server/rateLimit.ts`).
 - **The settle loop cannot complete against real Peanut, and V1 ships without it.** `apps/api/src/peanut/index.ts` assumes a signed `charge:confirmed` webhook. In `peanut-api-ts`, `CHARGE_CONFIRMED` is an enum member nothing emits, charge delivery carries no signature, and charge creation rejects any currency but USD/ARS — so the verified path could not serve a EUR or THB room even if the event existed. **Decided 2026-07-27 (Konrad): the soft launch ships the settle flow as it stands** — `apps/web`'s SettleDrawer opens peanut.me and the room records the payment on the payer's tap, unverified. Nobody is polling anything. If you are here to "finish the receipts", that is a reopened product decision, not a TODO. Polling the public `GET /charges/:chargeId` remains the cheapest route if it is reopened.
