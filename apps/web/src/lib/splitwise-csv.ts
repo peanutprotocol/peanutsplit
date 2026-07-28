@@ -564,6 +564,20 @@ function expensesFromRow(
  * to the cent. Per currency, because a residual in one currency cannot be netted
  * against another without inventing a rate nobody agreed to.
  *
+ * HOW FAR "TO THE CENT" REACHES. Exactly that far and no further: it is a claim
+ * about the EXPENSE currency, which is the only currency this file works in.
+ * A room whose own currency differs converts on the way in (`buildExpense`), and
+ * conversion rounds — so the carried rows and the rows they stand for do not
+ * have to land on the same room-currency integer. They cannot: the fold rounds
+ * ONCE per carried row where the history rounded once per dropped row, which is
+ * the honest direction of the trade (fewer roundings, not more) but is still a
+ * different number. The residue is bounded by the pairing rather than by the
+ * length of the history — at most `n − 1` carried rows exist, each contributing
+ * under half a minor unit, so no member is off by more than the roster size
+ * however many thousand rows were folded away. And every carried row moves ONE
+ * integer from a debtor to a creditor, so whatever the rounding did, the room
+ * still sums to zero. `splitwise-csv.test.ts` pins both halves.
+ *
  * They are EXACT, deliberately: a single-share row is not a division of anything,
  * and marking it EQUAL would let a later catch-up spread somebody's carried-over
  * debt across the room.

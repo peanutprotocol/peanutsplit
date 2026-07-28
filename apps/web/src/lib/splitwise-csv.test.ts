@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { CURRENCIES, convertMinorAtRate } from '@/server/money'
+import { exactShares } from '@/server/split'
 import { importRoomSchema } from '@/server/validation'
 import {
     MAX_CATEGORY_CHARS,
@@ -590,6 +592,53 @@ describe('recognising an even split', () => {
     })
 })
 
+/** Every member's net over a list of expenses, in the currency the rows are in. */
+const fileNets = (expenses: readonly ParsedExpense[]): Map<string, bigint> => {
+    const net = new Map<string, bigint>()
+    const bump = (member: string, delta: bigint) => net.set(member, (net.get(member) ?? 0n) + delta)
+    for (const expense of expenses) {
+        bump(expense.paidBy, BigInt(expense.costMinor))
+        for (const share of expense.shares) bump(share.member, -BigInt(share.amountMinor))
+    }
+    return net
+}
+
+/** A room that settles in something the group never spent. THB is 2-decimal like
+ *  EUR, so the rate is the only thing moving — not a decimals change as well. */
+const ROOM_CURRENCY = 'THB'
+const EUR_TO_THB = rateOf('EUR') / rateOf('THB')
+
+function rateOf(code: string): number {
+    // What `rateFrom` does with the static table, without dragging Prisma into a
+    // pure test through `server/fx`.
+    return CURRENCIES.find((c) => c.code === code)!.usdPerUnit
+}
+
+/**
+ * The importer's arithmetic in miniature, and it has to be the importer's: total
+ * converted once, each share converted on its own, the residue pushed onto the
+ * largest — which is `buildExpense` in EXACT mode, the single path every imported
+ * row takes (`server/splitwiseImport.ts`). Reimplementing it as "convert the
+ * shares and add them up" would test a rounding rule the product does not use.
+ */
+const roomNets = (expenses: readonly ParsedExpense[]): Map<string, bigint> => {
+    const net = new Map<string, bigint>()
+    const bump = (member: string, delta: bigint) => net.set(member, (net.get(member) ?? 0n) + delta)
+    for (const expense of expenses) {
+        const total = convertMinorAtRate(BigInt(expense.costMinor), expense.currencyCode, ROOM_CURRENCY, EUR_TO_THB)
+        bump(expense.paidBy, total)
+        const shares = exactShares(
+            expense.shares.map((share) => ({ memberId: share.member, amountMinor: BigInt(share.amountMinor) })),
+            expense.currencyCode,
+            ROOM_CURRENCY,
+            total,
+            EUR_TO_THB
+        )
+        for (const share of shares) bump(share.memberId, -share.amountMinor)
+    }
+    return net
+}
+
 describe('carrying history a room cannot hold', () => {
     const MEMBERS = ['Ana', 'Bruno', 'Carla', 'Dan']
 
@@ -631,6 +680,56 @@ describe('carrying history a room cannot hold', () => {
             expect(parsed.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
             expect(reconcileTotalBalance(parsed)).toEqual([])
         }
+    })
+
+    /**
+     * The room-currency half of the brought-forward claim, which the file-currency
+     * proofs above cannot see: a room that settles in something other than what the
+     * group spent converts every row on the way in (`buildExpense`), and conversion
+     * rounds. The carried rows round ONCE per pair where the history they replace
+     * rounded once per dropped row, so the two cannot be the same integer — and the
+     * question is how far apart they are allowed to be.
+     *
+     * The bound, derived rather than guessed. A member is a debtor or a creditor in
+     * the pairing, never both, so their carried room-currency net is a sum of at
+     * most `n − 1` converted transfers, each within half a minor unit of its exact
+     * value; the ideal they are compared against — the whole residual converted in
+     * one go — is itself within half a unit. That is `n / 2`, and the assertion uses
+     * the rounder `n` so the pairing can change without this becoming a trap. What
+     * it is NOT is a function of how much history was folded away: a thousand
+     * dropped rows and ten are the same bound, which is the entire point of folding.
+     *
+     * Cost 40.01 across 7 people, so every row of the file carries a residue too,
+     * and the room is in THB while the file is in EUR.
+     */
+    it('bounds a foreign-currency room by the roster, and still nets to zero', () => {
+        const members = ['Ana', 'Bruno', 'Carla', 'Dan', 'Eve', 'Fran', 'Gus']
+        const parsed = parseSplitwiseCsv(generateLongHistory(MAX_EXPENSES + 137, members, 4001))
+        const carried = parsed.expenses.filter((expense) => expense.description.startsWith(BROUGHT_FORWARD))
+        expect(carried.length).toBeGreaterThan(0)
+        expect(parsed.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
+
+        // What the dropped rows were worth, in the file's own currency: the file's
+        // summary row minus what survived the cut. Exact, and it never needs the
+        // dropped rows themselves.
+        const kept = parsed.expenses.filter((expense) => !expense.description.startsWith(BROUGHT_FORWARD))
+        const keptNet = fileNets(kept)
+        const stated = new Map((parsed.totalBalance ?? []).map((row) => [row.member, BigInt(row.netMinor)]))
+        const droppedNet = new Map(members.map((m) => [m, (stated.get(m) ?? 0n) - (keptNet.get(m) ?? 0n)]))
+
+        const carriedNet = roomNets(carried)
+        for (const member of members) {
+            // The ideal: one conversion of the whole residual, no intermediate rounding.
+            const ideal = convertMinorAtRate(droppedNet.get(member) ?? 0n, 'EUR', ROOM_CURRENCY, EUR_TO_THB)
+            const drift = (carriedNet.get(member) ?? 0n) - ideal
+            expect(drift < 0n ? -drift : drift).toBeLessThanOrEqual(BigInt(members.length))
+        }
+
+        // Rounding moved cents between people; it cannot have created any. Every
+        // carried row moves one integer from a debtor to a creditor, so the room —
+        // opening balance and surviving history alike — still sums to zero.
+        expect([...carriedNet.values()].reduce((a, b) => a + b, 0n)).toBe(0n)
+        expect([...roomNets(parsed.expenses).values()].reduce((a, b) => a + b, 0n)).toBe(0n)
     })
 
     it('is the same room twice — the cut and the pairing are deterministic', () => {
