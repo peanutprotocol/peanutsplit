@@ -6,7 +6,7 @@ import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
-import { accountsEnabled } from '@/lib/flags'
+import { accountsEnabled, accountsSoon } from '@/lib/flags'
 import { useAccount, useRequestLink, useSignOut } from '@/lib/use-account'
 
 /**
@@ -31,6 +31,24 @@ export function AccountPanel({ heading }: { heading?: string }) {
     const [email, setEmail] = useState('')
     const [sent, setSent] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    // The teaser: the surface is announced before the email transport is live,
+    // as a disabled row — never a form that would promise a mail nobody sends.
+    if (accountsSoon())
+        return (
+            <div className="mt-2 flex flex-col gap-2">
+                {heading && <span className="text-h8 uppercase tracking-wide text-grey-1">{heading}</span>}
+                <div className="flex items-start justify-between gap-3 rounded-sm border border-n-1 bg-white p-3 opacity-80">
+                    <div className="flex flex-col gap-1">
+                        <p className="text-h8">{t('soon.title')}</p>
+                        <p className="text-sm text-grey-1">{t('soon.description')}</p>
+                    </div>
+                    <span className="shrink-0 rounded-sm border border-n-1 bg-primary-1 px-2 py-0.5 text-h9 uppercase">
+                        {t('soon.badge')}
+                    </span>
+                </div>
+            </div>
+        )
 
     // Belt and braces — every call site is already flag-gated, and this is the
     // component that must never appear by accident.

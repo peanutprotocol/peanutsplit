@@ -258,7 +258,12 @@
         "newPhone": "Using a new phone someday? Save your rooms",
         "synced": "Saved to your account.",
         "roomsAreBack": "Your rooms are back",
-        "signedIn": "You’re signed in"
+        "signedIn": "You’re signed in",
+        "soon": {
+            "title": "Save your rooms to any device",
+            "description": "Enter your email and reopen your rooms anywhere. Almost ready.",
+            "badge": "Soon"
+        }
     },
     "push": {
         "title": "Notifications",

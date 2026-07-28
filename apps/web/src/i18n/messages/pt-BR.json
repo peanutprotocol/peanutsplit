@@ -258,7 +258,12 @@
         "newPhone": "Um dia troca de celular? Salve suas salas",
         "synced": "Salvas na sua conta.",
         "roomsAreBack": "Suas salas voltaram",
-        "signedIn": "Você está conectado"
+        "signedIn": "Você está conectado",
+        "soon": {
+            "title": "Salve suas salas em qualquer aparelho",
+            "description": "Digite seu e-mail e reabra suas salas onde quiser. Está quase pronto.",
+            "badge": "Em breve"
+        }
     },
     "push": {
         "title": "Notificações",
