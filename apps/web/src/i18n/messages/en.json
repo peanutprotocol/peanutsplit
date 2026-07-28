@@ -140,6 +140,28 @@
             "peopleCount": "{count, plural, one {# person} other {# people}}",
             "allSquare": "all square"
         },
+        "recap": {
+            "settledBadge": "All settled",
+            "ongoingBadge": "So far",
+            "totalLabel": "Total spent",
+            "days": "{count, plural, one {# day} other {# days}}",
+            "expenses": "{count, plural, one {# expense} other {# expenses}}",
+            "people": "{count, plural, one {# person} other {# people}}",
+            "settlements": "{count, plural, =0 {No payments recorded yet} one {# payment recorded} other {# payments recorded}}",
+            "topPayer": "{name} fronted the most",
+            "share": "Share the story",
+            "sharing": "Getting it ready…",
+            "shareTitle": "Peanut Split",
+            "shareText": "Our split, settled.",
+            "copied": "Recap copied — paste it anywhere.",
+            "downloaded": "Recap saved to your downloads.",
+            "shareFailed": "We could not build the recap card. Try again.",
+            "seeRecap": "See the recap",
+            "backToRoom": "Back to the room",
+            "ctaTitle": "Your turn",
+            "ctaBody": "One link, no signup, free forever.",
+            "cta": "Start your own split"
+        },
         "expenseDrawer": {
             "addTitle": "Add expense",
             "editTitle": "Edit expense",

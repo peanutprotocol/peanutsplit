@@ -6,6 +6,10 @@ import { absoluteUrl } from '@/lib/seo'
  * unfurl IS the product (SPEC §Growth layer), and the crawlers that build link previews
  * need to reach `/r/*` to fetch the OG image. Hence: blanket disallow, explicit allow for
  * the three preview fetchers.
+ *
+ * These are prefix rules, so `/r/<slug>/recap` is already covered by both halves — the
+ * recap screen inherits the noindex, and a member who pastes its URL still gets a preview.
+ * Nothing to add for it: the recap is shared as an image, never as a link (`@/lib/recap`).
  */
 export default function robots(): MetadataRoute.Robots {
     return {
