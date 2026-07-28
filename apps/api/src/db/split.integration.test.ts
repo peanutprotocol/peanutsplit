@@ -8,8 +8,8 @@
  *
  * Each test works in its OWN room and nothing is ever truncated, so this is safe
  * to run against a shared dev database and safe to run concurrently with the app.
- * If no database is reachable the suite skips rather than fails, so `pnpm test`
- * still works on a machine that hasn't run migrations.
+ * The ordinary unit command may skip when no database is reachable; the
+ * `test:integration` release gate sets REQUIRE_DB=1 and fails closed.
  */
 
 import 'dotenv/config'
@@ -32,7 +32,8 @@ beforeAll(async () => {
 	try {
 		await prisma.$queryRaw`SELECT 1`
 		dbUp = true
-	} catch {
+	} catch (error) {
+		if (process.env.REQUIRE_DB === '1') throw error
 		console.warn('[split] no database reachable — skipping integration tests')
 	}
 })
@@ -210,6 +211,19 @@ describe('starting a settle-up', () => {
 		).rejects.toBeInstanceOf(SplitError)
 	})
 
+	itDb('mints only one handoff when the same debt is requested concurrently', async () => {
+		const { slug, alice, bob } = await roomWithDebt()
+		const attempts = await Promise.allSettled(
+			Array.from({ length: 8 }, () =>
+				createSettleIntent(slug, { fromMemberId: alice, toMemberId: bob, amountMinor: '2000' })
+			)
+		)
+
+		expect(attempts.filter((attempt) => attempt.status === 'fulfilled')).toHaveLength(1)
+		expect(attempts.filter((attempt) => attempt.status === 'rejected')).toHaveLength(7)
+		expect((await buildRoomState(slug))!.pendingSettleIntents).toHaveLength(1)
+	})
+
 	itDb('refuses a manual mark while a payment is confirming', async () => {
 		const { slug, alice, bob } = await roomWithDebt()
 		await createSettleIntent(slug, { fromMemberId: alice, toMemberId: bob, amountMinor: '2000' })
@@ -241,6 +255,24 @@ describe('starting a settle-up', () => {
 		expect(await netOf(slug, alice)).toBe(0n)
 		expect(await settlementCount(slug)).toBe(2)
 	})
+
+	itDb('allows either an intent or a manual mark to claim a debt concurrently, never both', async () => {
+		const { slug, alice, bob } = await roomWithDebt()
+		const attempts = await Promise.allSettled([
+			createSettleIntent(slug, { fromMemberId: alice, toMemberId: bob, amountMinor: '2000' }),
+			recordSettlement(slug, {
+				fromMemberId: alice,
+				toMemberId: bob,
+				amountMinor: '2000',
+				idempotencyKey: 'manual-vs-intent',
+			}),
+		])
+
+		expect(attempts.filter((attempt) => attempt.status === 'fulfilled')).toHaveLength(1)
+		expect(attempts.filter((attempt) => attempt.status === 'rejected')).toHaveLength(1)
+		const state = (await buildRoomState(slug))!
+		expect(state.pendingSettleIntents.length + state.settlements.length).toBe(1)
+	})
 })
 
 describe('manual settlements', () => {
@@ -259,5 +291,27 @@ describe('manual settlements', () => {
 			recordSettlement(slug, { fromMemberId: alice, toMemberId: bob, amountMinor: '2000' })
 		).rejects.toBeInstanceOf(SplitError)
 		expect(await netOf(slug, alice)).toBe(0n)
+	})
+
+	itDb('serializes distinct concurrent marks so their sum cannot exceed the debt', async () => {
+		const { slug, alice, bob } = await roomWithDebt()
+		const attempts = await Promise.allSettled(
+			Array.from({ length: 8 }, (_, index) =>
+				recordSettlement(slug, {
+					fromMemberId: alice,
+					toMemberId: bob,
+					amountMinor: '1000',
+					idempotencyKey: `concurrent-mark-${index}`,
+				})
+			)
+		)
+
+		// Two €10 marks consume the €20 debt. Every waiter after them must read
+		// the committed remainder rather than the original €20 snapshot.
+		expect(attempts.filter((attempt) => attempt.status === 'fulfilled')).toHaveLength(2)
+		expect(attempts.filter((attempt) => attempt.status === 'rejected')).toHaveLength(6)
+		expect(await settlementCount(slug)).toBe(2)
+		expect(await netOf(slug, alice)).toBe(0n)
+		expect(await netOf(slug, bob)).toBe(0n)
 	})
 })

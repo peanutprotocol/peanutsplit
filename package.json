@@ -15,7 +15,7 @@
     "i18n:audit": "pnpm --dir apps/web run i18n:audit",
     "format": "prettier --write . && pnpm --dir apps/web format",
     "format:check": "prettier --check . && pnpm --dir apps/web lint",
-    "verify": "pnpm typecheck && pnpm i18n:audit && pnpm test && pnpm --filter @peanut-split/api verify:settle"
+    "verify": "pnpm typecheck && pnpm i18n:audit && pnpm test && pnpm --filter @peanut-split/api test:integration && pnpm --filter @peanut-split/api verify:settle"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
