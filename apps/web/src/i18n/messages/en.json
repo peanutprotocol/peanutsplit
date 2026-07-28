@@ -22,11 +22,11 @@
             },
             "step2": {
                 "title": "Share the link",
-                "body": "Drop it in the group chat. Nobody installs anything or makes an account."
+                "body": "Drop it in the group chat."
             },
             "step3": {
                 "title": "Everyone adds expenses",
-                "body": "Balances update live, and the maths reconciles to the cent — on screen, every time."
+                "body": "Balances update live, and the maths reconciles to the cent."
             },
             "step4": {
                 "title": "Settle up",
@@ -54,7 +54,6 @@
         },
         "finalCta": {
             "title": "Try it on the next dinner",
-            "body": "One link, ten seconds, and nobody has to install anything.",
             "button": "Start a split"
         },
         "honesty": {
@@ -97,11 +96,11 @@
             "dismiss": "Not now",
             "ios": {
                 "title": "Add Split to your home screen",
-                "body": "Two taps in Safari and Split lives on your home screen like an app.",
                 "step1": "Tap the Share button in the Safari toolbar.",
                 "step2": "Scroll down and choose “Add to Home Screen”.",
                 "step3": "Tap “Add”. That’s it.",
-                "done": "Got it"
+                "done": "Got it",
+                "body": "Two taps in Safari and Split lives on your home screen like an app."
             }
         },
         "linkExplainer": {
@@ -155,7 +154,7 @@
                 },
                 "home": {
                     "title": "Add it to your home screen",
-                    "body": "It opens like an app. No store, no install, no account."
+                    "body": "It opens like an app."
                 },
                 "transfers": {
                     "title": "The fewest payments",
@@ -164,14 +163,14 @@
             },
             "settle": {
                 "title": "How you get paid back",
-                "body": "When you are done, Split works out the fewest payments that clear the room and tells you who should pay whom. You send the money the way you already would, and the room records that you did.",
+                "body": "Split tells you who should pay whom. You send the money the way you already would, and the room records that you did.",
                 "cash": "Cash",
                 "bank": "Bank transfer",
                 "peanut": "Send it with Peanut"
             },
             "team": {
                 "title": "The people who built it",
-                "intro": "Split has no users yet, so there is nobody to quote but us. These four made it, and this is what we made it for.",
+                "intro": "Split has no users yet, so there is nobody to quote but us.",
                 "konrad": {
                     "name": "Konrad",
                     "role": "built Split",
@@ -180,7 +179,7 @@
                 "hugo": {
                     "name": "Hugo",
                     "role": "built Split",
-                    "quote": "I wanted the whole thing to be a link. If your friends have to make accounts, they simply will not."
+                    "quote": "I wanted the whole thing to be a link. If your friends have to make an account, they will not."
                 },
                 "natalia": {
                     "name": "Natalia",
@@ -201,11 +200,11 @@
                 },
                 "free": {
                     "title": "It is free because it introduces people to Peanut",
-                    "body": "That is the whole business model. No premium tier, no upsell coming, nothing to buy."
+                    "body": "No premium tier, no upsell coming, nothing to buy."
                 },
                 "data": {
                     "title": "There is not much here to leak",
-                    "body": "No email, no password, no ID. Room links are kept out of our own analytics, because a link is a key."
+                    "body": "Room links are kept out of our own analytics, because a link is a key."
                 }
             },
             "faq": {
@@ -213,14 +212,6 @@
                 "retype": {
                     "q": "Do I have to retype everything from the group chat?",
                     "a": "For a trip that already happened, yes — the expenses get typed in once. It is lighter than it sounds, because everyone in the room can add their own instead of it all landing on you. If you are coming from Splitwise, /import brings a group across."
-                },
-                "accounts": {
-                    "q": "Do my friends need an account?",
-                    "a": "No. They open the link, type a name, and they are in. No email, no password, no app."
-                },
-                "currencies": {
-                    "q": "What if we paid in different currencies?",
-                    "a": "The room counts in one currency and expenses can be added in any. Split converts at the rate on the day the expense was added and keeps the original amount on the line."
                 },
                 "access": {
                     "q": "Who can see our room?",
@@ -430,7 +421,7 @@
             "submit": "Create the room",
             "failed": "could not create the room — try again",
             "readyTitle": "Your room is ready",
-            "readySubtitle": "Send this link to everyone splitting. No app, no signup — they just tap it.",
+            "readySubtitle": "Send this link to everyone splitting.",
             "goToRoom": "Go to room",
             "namePlaceholderSlug": "your-trip"
         },

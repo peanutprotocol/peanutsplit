@@ -22,11 +22,11 @@
             },
             "step2": {
                 "title": "Comparte el link",
-                "body": "Pégalo en el chat del grupo. Nadie instala nada ni crea una cuenta."
+                "body": "Pégalo en el chat del grupo."
             },
             "step3": {
                 "title": "Todos agregan gastos",
-                "body": "Los saldos se actualizan en vivo y las cuentas cuadran al centavo — en pantalla, siempre."
+                "body": "Los saldos se actualizan en vivo y las cuentas cuadran al centavo."
             },
             "step4": {
                 "title": "Salden las cuentas",
@@ -54,7 +54,6 @@
         },
         "finalCta": {
             "title": "Pruébalo en la próxima cena",
-            "body": "Un link, diez segundos, y nadie tiene que instalar nada.",
             "button": "Empezar a dividir"
         },
         "honesty": {
@@ -97,11 +96,11 @@
             "dismiss": "Ahora no",
             "ios": {
                 "title": "Agrega Split a tu pantalla de inicio",
-                "body": "Dos toques en Safari y Split queda en tu pantalla de inicio como una app.",
                 "step1": "Toca el botón Compartir en la barra de Safari.",
                 "step2": "Baja y elige «Agregar a inicio».",
                 "step3": "Toca «Agregar». Listo.",
-                "done": "Entendido"
+                "done": "Entendido",
+                "body": "Dos toques en Safari y Split queda en tu pantalla de inicio como una app."
             }
         },
         "linkExplainer": {
@@ -155,7 +154,7 @@
                 },
                 "home": {
                     "title": "Agregalo a tu pantalla de inicio",
-                    "body": "Se abre como una app. Sin tienda, sin instalar, sin cuenta."
+                    "body": "Se abre como una app."
                 },
                 "transfers": {
                     "title": "La menor cantidad de pagos",
@@ -164,14 +163,14 @@
             },
             "settle": {
                 "title": "Cómo cobrás lo tuyo",
-                "body": "Cuando terminan, Split calcula la menor cantidad de pagos que cierran la sala y te dice quién le paga a quién. Vos mandás la plata como ya lo hacés, y la sala registra que lo hiciste.",
+                "body": "Split te dice quién le paga a quién. Vos mandás la plata como ya lo hacés, y la sala registra que lo hiciste.",
                 "cash": "Efectivo",
                 "bank": "Transferencia",
                 "peanut": "Mandalo con Peanut"
             },
             "team": {
                 "title": "Los que lo hicimos",
-                "intro": "Split todavía no tiene usuarios, así que no hay a quién citar más que a nosotros. Estos cuatro lo hicieron, y esto es para lo que lo hicieron.",
+                "intro": "Split todavía no tiene usuarios, así que no hay a quién citar más que a nosotros.",
                 "konrad": {
                     "name": "Konrad",
                     "role": "hizo Split",
@@ -180,7 +179,7 @@
                 "hugo": {
                     "name": "Hugo",
                     "role": "hizo Split",
-                    "quote": "Quería que todo fuera un link. Si tus amigos tienen que crearse una cuenta, directamente no lo hacen."
+                    "quote": "Quería que todo fuera un link. Si tus amigos tienen que crearse una cuenta, no lo hacen."
                 },
                 "natalia": {
                     "name": "Natalia",
@@ -201,11 +200,11 @@
                 },
                 "free": {
                     "title": "Es gratis porque acerca gente a Peanut",
-                    "body": "Ese es todo el modelo de negocio. No hay plan premium, no viene ninguna venta después, no hay nada que comprar."
+                    "body": "No hay plan premium, no viene ninguna venta después, no hay nada que comprar."
                 },
                 "data": {
                     "title": "Acá no hay mucho que filtrar",
-                    "body": "Sin mail, sin contraseña, sin documento. Los links de las salas quedan fuera de nuestra propia analítica, porque un link es una llave."
+                    "body": "Los links de las salas quedan fuera de nuestra propia analítica, porque un link es una llave."
                 }
             },
             "faq": {
@@ -213,14 +212,6 @@
                 "retype": {
                     "q": "¿Tengo que volver a cargar todo lo que está en el chat?",
                     "a": "Para un viaje que ya pasó, sí: los gastos se cargan una vez. Pesa menos de lo que parece porque cada uno en la sala puede cargar los suyos en vez de que caiga todo sobre vos. Si venís de Splitwise, /import trae un grupo entero."
-                },
-                "accounts": {
-                    "q": "¿Mis amigos necesitan una cuenta?",
-                    "a": "No. Abren el link, escriben un nombre y ya están adentro. Sin mail, sin contraseña, sin app."
-                },
-                "currencies": {
-                    "q": "¿Y si pagamos en monedas distintas?",
-                    "a": "La sala cuenta en una moneda y los gastos se pueden cargar en cualquiera. Split convierte al cambio del día en que se cargó el gasto y deja el monto original en la línea."
                 },
                 "access": {
                     "q": "¿Quién puede ver nuestra sala?",
@@ -430,7 +421,7 @@
             "submit": "Crear la sala",
             "failed": "no se pudo crear la sala — intenta de nuevo",
             "readyTitle": "Tu sala está lista",
-            "readySubtitle": "Envía este link a todos los que dividen. Sin app, sin registro — solo lo tocan.",
+            "readySubtitle": "Envía este link a todos los que dividen.",
             "goToRoom": "Ir a la sala",
             "namePlaceholderSlug": "tu-viaje"
         },
