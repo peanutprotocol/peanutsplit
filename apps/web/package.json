@@ -35,6 +35,7 @@
         "@tanstack/react-query": "^5.85.0",
         "boring-avatars": "^2.0.0",
         "gray-matter": "^4.0.3",
+        "https-proxy-agent": "^9.1.0",
         "lucide-react": "^0.539.0",
         "motion": "^12.23.12",
         "next": "16.2.3",
@@ -49,6 +50,7 @@
         "sonner": "^2.0.7",
         "tailwind-merge": "^1.14.0",
         "vaul": "^1.1.2",
+        "web-push": "^3.6.7",
         "zod": "3.24.1"
     },
     "devDependencies": {
@@ -56,6 +58,7 @@
         "@types/node": "^22.17.0",
         "@types/react": "^19.1.9",
         "@types/react-dom": "^19.1.7",
+        "@types/web-push": "^3.6.4",
         "autoprefixer": "^10.4.21",
         "postcss": "^8.5.6",
         "postcss-import": "^16.1.1",

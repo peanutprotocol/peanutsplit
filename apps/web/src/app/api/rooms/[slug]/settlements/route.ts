@@ -1,6 +1,7 @@
 import { prisma } from '@/server/db'
 import { badRequest, memberTokenOf, readJson, respond } from '@/server/http'
 import { parseMinor } from '@/server/money'
+import { notifyRoomWrite } from '@/server/push'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, memberIdForToken, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -25,7 +26,8 @@ export const POST = (request: Request, ctx: Ctx) =>
         const amountMinor = parseMinor(body.amountMinor)
         if (amountMinor <= 0n) throw badRequest('settlement amount must be greater than zero')
 
-        await prisma.settlement.create({
+        const actorMemberId = memberIdForToken(room, memberTokenOf(request))
+        const settlement = await prisma.settlement.create({
             data: {
                 roomId: room.id,
                 fromId: body.fromId,
@@ -33,8 +35,19 @@ export const POST = (request: Request, ctx: Ctx) =>
                 amountMinor,
                 method: body.method ?? null,
                 note: body.note ?? null,
-                createdById: memberIdForToken(room, memberTokenOf(request)),
+                createdById: actorMemberId,
             },
         })
-        return toRoomState(await loadRoom(slug))
+
+        const fresh = await loadRoom(slug)
+        const state = toRoomState(fresh)
+        // Fire-and-forget, and only once the response value is ready — the
+        // settlement is recorded whether or not anybody's phone hears about it.
+        notifyRoomWrite({
+            room: fresh,
+            state,
+            actorMemberId,
+            event: { kind: 'settlement_recorded', settlementId: settlement.id },
+        })
+        return state
     }, 201)
