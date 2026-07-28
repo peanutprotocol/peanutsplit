@@ -133,10 +133,27 @@ model FxRate {
   @@schema("split")
 }
 
-// Claim hooks — tables exist now, endpoints ship in the auth wave.
+// Accounts. An account is an optional email and nothing else: no password, no
+// profile, no room ownership. Its only job is device portability — the room link
+// stays the credential, and a User is the thread that lets you find your links
+// again on a new phone.
 
 model User {
-  id        String        @id @default(uuid())
+  id String @id @default(uuid())
+
+  /// Null for rows created by a future non-email provider; unique so the
+  /// find-or-create in the magic-link flow can race safely on the index.
+  email           String?   @unique
+  emailVerifiedAt DateTime?
+
+  /// Bumped on every successful login, which retires every token signed against
+  /// the old value. That is what makes a magic link single-use without a token
+  /// table: the replayed link still verifies its HMAC but names a dead epoch.
+  tokenEpoch Int @default(0)
+
+  /// Cheap "is this account still in use" signal, refreshed at most hourly.
+  lastSeenAt DateTime @default(now())
+
   createdAt DateTime      @default(now())
   accounts  AuthAccount[]
   members   Member[]
