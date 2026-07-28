@@ -1,3 +1,4 @@
+import { publish } from '@/server/events'
 import { readJson, respond } from '@/server/http'
 import { CREATE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { addMember } from '@/server/rooms'
@@ -14,7 +15,9 @@ export const POST = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, CREATE_LIMIT, 'create')
         const { slug } = await ctx.params
         const body = createMemberSchema.parse(await readJson(request))
-        const { memberId, memberToken } = await addMember(await loadRoom(slug), body.name)
+        const room = await loadRoom(slug)
+        const { memberId, memberToken } = await addMember(room, body.name)
+        publish(room.id)
         // Reload: the roster the client renders must already contain the joiner.
         return { ...toRoomState(await loadRoom(slug)), memberId, memberToken }
     }, 201)

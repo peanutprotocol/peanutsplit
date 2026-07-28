@@ -1,4 +1,5 @@
 import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { notFound, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState } from '@/server/roomState'
@@ -19,5 +20,6 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         if (!existing.deletedAt) {
             await prisma.settlement.update({ where: { id }, data: { deletedAt: new Date() } })
         }
+        publish(room.id)
         return toRoomState(await loadRoom(slug))
     })

@@ -1,4 +1,5 @@
 import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { notFound, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoomById, toRoomState } from '@/server/roomState'
@@ -15,5 +16,6 @@ export const POST = (request: Request, ctx: Ctx) =>
         const expense = await prisma.expense.findUnique({ where: { id } })
         if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
         if (expense.deletedAt) await prisma.expense.update({ where: { id }, data: { deletedAt: null } })
+        publish(expense.roomId)
         return toRoomState(await loadRoomById(expense.roomId))
     })
