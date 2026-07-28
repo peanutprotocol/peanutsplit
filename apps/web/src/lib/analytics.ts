@@ -16,7 +16,6 @@ export type LandingEvent =
     | 'landing_creation_attempted'
     | 'landing_room_created'
     | 'landing_preview_completed'
-    | 'landing_preview_replayed'
 
 export type AnalyticsEvent =
     | LandingEvent
