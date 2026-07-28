@@ -6,7 +6,7 @@
  * file itself carries. That row is Splitwise's own arithmetic. If our number differs by a cent,
  * the import is wrong, and no amount of unit testing the pieces would have said so.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { importRoom } from '@/server/splitwiseImport'
@@ -27,6 +27,7 @@ import {
 import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
+const priorV2 = process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
 
 const post = async <T>(body: unknown): Promise<{ status: number; body: T }> => {
     const payload = JSON.stringify(body)
@@ -83,8 +84,27 @@ const balancesByName = (state: RoomState): Map<string, bigint> =>
     new Map(state.members.map((m) => [m.name, BigInt(state.balances[m.id] ?? '0')]))
 
 beforeEach(async () => {
+    process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
     await truncateAll()
     resetRateLimits()
+})
+
+afterAll(() => {
+    if (priorV2 === undefined) delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+    else process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = priorV2
+})
+
+describe('v2 boundary', () => {
+    it('does not expose the import API in v1', async () => {
+        delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+        try {
+            const { status, body } = await post<ApiError>({})
+            expect(status).toBe(404)
+            expect(body.error.code).toBe('NOT_FOUND')
+        } finally {
+            process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
+        }
+    })
 })
 
 describe('the imported room reproduces the export’s own Total balance row', () => {

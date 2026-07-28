@@ -23,6 +23,7 @@ import { loadRoom } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { nlParseSchema } from '@/server/validation'
 import { MAX_NL_TEXT_CHARS } from '@/lib/quick-add'
+import { splitV2Enabled } from '@/lib/flags'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,7 @@ const MAX_BODY_BYTES = MAX_NL_TEXT_CHARS * 4 + 512
 
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {
+        if (!splitV2Enabled()) throw new ApiError(404, 'NOT_FOUND', 'not found')
         // Before anything else, including the DB read: an unconfigured
         // deployment should cost a request no work at all.
         if (!modelEnabled()) throw new ApiError(503, 'NL_UNAVAILABLE', 'quick add is not configured')

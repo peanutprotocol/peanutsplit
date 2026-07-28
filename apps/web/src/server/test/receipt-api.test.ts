@@ -6,7 +6,7 @@
  * thing, because every gate in this file exists to stop a request reaching that
  * boundary and a mock of the gates would prove nothing.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { truncateAll } from '@/server/test/db'
 import { MAX_IMAGE_BASE64_CHARS, ROOM_SCAN_LIMIT } from '@/server/receipt'
 import { resetRateLimits } from '@/server/rateLimit'
@@ -16,6 +16,7 @@ import type { ApiError, ParsedReceipt, RoomStateWithMember } from '@/lib/api-typ
 
 const BASE = 'http://localhost'
 const API_KEY = 'test-gemini-key'
+const priorV2 = process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
 
 /** Valid base64 characters; the bytes are never decoded by anything under test. */
 const image = (chars = 2048) => 'A'.repeat(chars)
@@ -92,6 +93,7 @@ const newRoom = async (): Promise<string> => {
 }
 
 beforeEach(async () => {
+    process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
     await truncateAll()
     // One map holds every bucket, per-IP and per-room alike.
     resetRateLimits()
@@ -106,6 +108,24 @@ afterEach(() => {
     vi.unstubAllGlobals()
     delete process.env.SPLIT_GEMINI_API_KEY
     delete process.env.SPLIT_OPENROUTER_API_KEY
+})
+
+afterAll(() => {
+    if (priorV2 === undefined) delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+    else process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = priorV2
+})
+
+describe('v2 boundary', () => {
+    it('does not expose scanning in v1, even when the model key exists', async () => {
+        delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+        try {
+            const response = scanStatus()
+            expect(response.status).toBe(404)
+            expect((await response.json()).error.code).toBe('NOT_FOUND')
+        } finally {
+            process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
+        }
+    })
 })
 
 describe('capability probe', () => {

@@ -52,7 +52,7 @@ The effect is that there is no stale state to get stuck in and nothing to tap to
 <Checklist title="Still true, and worth saying">
 <ChecklistItem title="A room is not a chat">There is no message thread, by decision. You get reactions on expenses and that is the whole social surface — the conversation is already happening in the group chat you pasted the link into.</ChecklistItem>
 <ChecklistItem title="Live is not the same as verified">Watching a payment appear means somebody recorded it, not that a bank moved anything. No expense splitter is watching your account, and it is worth knowing which of the two you are looking at.</ChecklistItem>
-<ChecklistItem title="Somebody still has to type it">The bill does not add itself. Scanning the receipt is the shortest version of typing it, not an alternative to it.</ChecklistItem>
+<ChecklistItem title="Somebody still has to type it">The bill does not add itself. Live updating makes everyone see an expense quickly; it does not decide what the expense should say.</ChecklistItem>
 </Checklist>
 
 <CTA
@@ -69,6 +69,6 @@ The effect is that there is no stale state to get stuck in and nothing to tap to
 
 <RelatedPages>
 <RelatedLink href="/blog/split-expenses-offline">Adding expenses where there is no signal</RelatedLink>
-<RelatedLink href="/blog/scan-a-receipt-to-split-a-bill">Splitting a bill by item, without typing it out</RelatedLink>
+<RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip across countries and currencies</RelatedLink>
 <RelatedLink href="/blog/split-bills-without-an-app">Splitting bills without making anyone sign up</RelatedLink>
 </RelatedPages>

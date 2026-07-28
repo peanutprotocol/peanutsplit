@@ -386,15 +386,16 @@ export function useDeleteSettlement(slug: string, token?: string | null) {
  * of shortcuts materialises a beat after the sheet opens and shoves the whole
  * form down under the thumb already reaching for it.
  */
-export function useModelStatus(slug: string): { enabled: boolean; resolved: boolean } {
+export function useModelStatus(slug: string, enabled = true): { enabled: boolean; resolved: boolean } {
     const { data, isPending } = useQuery({
         queryKey: ['model-enabled'] as const,
         queryFn: ({ signal }) => api.modelStatus(slug, signal),
+        enabled,
         staleTime: 60 * 60 * 1000,
         retry: false,
         refetchOnWindowFocus: false,
     })
-    return { enabled: data?.enabled ?? false, resolved: !isPending }
+    return { enabled: enabled && (data?.enabled ?? false), resolved: !enabled || !isPending }
 }
 
 // ── delight wave ─────────────────────────────────────────────────────────────

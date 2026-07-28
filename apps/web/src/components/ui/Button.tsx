@@ -103,6 +103,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             iconContainerClassName,
             longPress,
             onClick,
+            disabled,
             disableHaptics,
             ...props
         },
@@ -142,7 +143,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         const buttonClasses = twMerge(
             'btn flex w-full items-center gap-2 transition-all duration-100 active:translate-x-[3px] active:shadow-none notranslate',
             buttonVariants[variant],
-            variant === 'transparent' && props.disabled && 'disabled:bg-transparent disabled:border-transparent',
+            variant === 'transparent' && disabled && 'disabled:bg-transparent disabled:border-transparent',
             size && buttonSizes[size],
             shape === 'square' && 'btn-square',
             shadowSize && buttonShadows[shadowType || 'primary'][shadowSize],
@@ -177,6 +178,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 onTouchEnd={longPress ? longPressHandlers.onTouchEnd : undefined}
                 onTouchCancel={longPress ? longPressHandlers.onTouchCancel : undefined}
                 {...props}
+                disabled={disabled || loading}
+                aria-busy={loading || undefined}
             >
                 {/* Progress bar for long press */}
                 {longPress && pressProgress > 0 && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -24,8 +24,16 @@ import {
     type ExpenseFormValues,
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
+import { splitV2Enabled } from '@/lib/flags'
 import { currencyInfo, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
-import { useAddExpense, useDeleteExpense, useModelStatus, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
+import {
+    useAddExpense,
+    useDeleteExpense,
+    useJoinRoom,
+    useModelStatus,
+    useRestoreExpense,
+    useUpdateExpense,
+} from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
 import { convertMinorForPreview, useRate } from '@/lib/use-rate'
@@ -63,6 +71,7 @@ export function ExpenseDrawer({
     const locale = useLocale()
     const errorMessage = useErrorMessage()
     const addExpense = useAddExpense(slug, token)
+    const addMember = useJoinRoom(slug)
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
@@ -75,11 +84,15 @@ export function ExpenseDrawer({
     )
     const [submitted, setSubmitted] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [addingPayer, setAddingPayer] = useState(false)
+    const [newPayerName, setNewPayerName] = useState('')
+    const [payerError, setPayerError] = useState<string | null>(null)
+    const payerNameRef = useRef<HTMLInputElement>(null)
     /** A server capability for typed quick-add, asked rather than compiled in.
      *  Receipt scanning stays in the codebase as backlog work, but its entry
      *  point is intentionally absent from v1 after the post-scan overlay proved
      *  capable of trapping taps on real devices. */
-    const { enabled: modelEnabled, resolved: modelResolved } = useModelStatus(slug)
+    const { enabled: modelEnabled, resolved: modelResolved } = useModelStatus(slug, splitV2Enabled())
 
     // Re-seed on every open: a drawer that remembers last time's amount is a
     // money bug waiting to happen.
@@ -87,6 +100,9 @@ export function ExpenseDrawer({
         if (!open) return
         setSubmitted(false)
         setError(null)
+        setAddingPayer(false)
+        setNewPayerName('')
+        setPayerError(null)
         setValues(
             expense
                 ? expenseToFormValues(expense, currencies)
@@ -126,6 +142,47 @@ export function ExpenseDrawer({
     const totalMinor = parseAmountToMinor(values.amountInput, decimals)
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
+
+    const choosePayer = (memberId: string) => {
+        patch({ paidById: memberId })
+        setAddingPayer(false)
+        setNewPayerName('')
+        setPayerError(null)
+        feedback('tick')
+    }
+
+    /**
+     * This creates a roster entry, not a new identity for this device. The room
+     * link is the credential and writes are trust-based, so the person holding
+     * the phone may add Bea and record an expense Bea paid while remaining Ana.
+     */
+    const createPayer = async (event: React.FormEvent) => {
+        event.preventDefault()
+        const name = newPayerName.trim()
+        if (!name || addMember.isPending) return
+
+        const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
+        if (existing) {
+            choosePayer(existing.id)
+            return
+        }
+
+        setPayerError(null)
+        try {
+            const next = await addMember.mutateAsync({ name })
+            patch({ paidById: next.memberId })
+            setAddingPayer(false)
+            setNewPayerName('')
+            feedback('pop')
+        } catch (err) {
+            feedback('error', { haptic: 'error' })
+            if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
+                setPayerError(t('payerDuplicate', { name }))
+                return
+            }
+            setPayerError(errorMessage(err, t('payerAddFailed')))
+        }
+    }
 
     /**
      * Switching to EXACT opens EMPTY, with the whole amount still to allocate.
@@ -396,10 +453,7 @@ export function ExpenseDrawer({
                                 <button
                                     key={member.id}
                                     type="button"
-                                    onClick={() => {
-                                        patch({ paidById: member.id })
-                                        feedback('tick')
-                                    }}
+                                    onClick={() => choosePayer(member.id)}
                                     aria-pressed={values.paidById === member.id}
                                     data-testid="payer-chip"
                                     data-member={member.name}
@@ -414,7 +468,74 @@ export function ExpenseDrawer({
                                     {member.name}
                                 </button>
                             ))}
+                            {!addingPayer && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAddingPayer(true)
+                                        setPayerError(null)
+                                        requestAnimationFrame(() => payerNameRef.current?.focus())
+                                    }}
+                                    aria-label={t('addPayer')}
+                                    title={t('addPayer')}
+                                    className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-n-1 bg-white px-3 py-2 text-h8 transition-colors hover:bg-grey-3"
+                                    data-testid="add-payer"
+                                >
+                                    <Icon name="plus" size={18} />
+                                    {t('addPayer')}
+                                </button>
+                            )}
                         </div>
+
+                        {addingPayer && (
+                            <form
+                                onSubmit={createPayer}
+                                className="flex flex-col gap-2 rounded-sm border border-dashed border-n-1 bg-white p-3"
+                            >
+                                <BaseInput
+                                    ref={payerNameRef}
+                                    value={newPayerName}
+                                    onChange={(event) => setNewPayerName(event.target.value)}
+                                    placeholder={t('payerNamePlaceholder')}
+                                    aria-label={t('payerNamePlaceholder')}
+                                    maxLength={80}
+                                    variant="sm"
+                                    data-testid="new-payer-name"
+                                />
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="submit"
+                                        size="small"
+                                        shadowSize="3"
+                                        loading={addMember.isPending}
+                                        disabled={!newPayerName.trim()}
+                                        className="flex-1 justify-center"
+                                        data-testid="add-payer-submit"
+                                    >
+                                        {t('confirmPayer')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="stroke"
+                                        size="small"
+                                        className="w-auto justify-center"
+                                        onClick={() => {
+                                            setAddingPayer(false)
+                                            setNewPayerName('')
+                                            setPayerError(null)
+                                        }}
+                                    >
+                                        {t('cancelPayer')}
+                                    </Button>
+                                </div>
+                            </form>
+                        )}
+
+                        {payerError && (
+                            <p role="alert" className="text-sm font-bold text-error">
+                                {payerError}
+                            </p>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-3">

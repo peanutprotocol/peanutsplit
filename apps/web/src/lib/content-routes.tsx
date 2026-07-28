@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { ArticleLayout } from '@/components/marketing/ArticleLayout'
-import { getDoc, listSlugs, localesForSlug, type Collection } from '@/lib/content'
+import { getDoc, isDocAvailable, listSlugs, localesForSlug, type Collection } from '@/lib/content'
 import { renderArticle } from '@/lib/mdx'
 import { pageMetadata, pageTitle } from '@/lib/seo'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
@@ -60,7 +60,7 @@ export function articleMetadata(collection: Collection, locale: Locale, paramNam
     return async function generateMetadata({ params }: ArticleParams): Promise<Metadata> {
         const slug = (await params)[paramName]
         const doc = getDoc(collection, slug, locale)
-        if (!doc) return {}
+        if (!doc || !isDocAvailable(doc)) return {}
 
         const meta = pageMetadata({
             title: pageTitle(doc.frontmatter.title),
@@ -112,7 +112,7 @@ export function articlePage(collection: Collection, locale: Locale, paramName: P
         const doc = getDoc(collection, slug, locale)
         // Untranslated is indistinguishable from missing on purpose: no English body ever renders
         // at a Spanish URL, so there is no duplicate content to disambiguate later.
-        if (!doc) notFound()
+        if (!doc || !isDocAvailable(doc)) notFound()
 
         const body = await renderArticle(doc.body)
         const crumbs = await crumbsFor(locale, collection, doc.frontmatter.title, doc.href)

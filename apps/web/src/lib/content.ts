@@ -4,6 +4,7 @@ import matter from 'gray-matter'
 import { staticPageSlugs } from '@/data/static-pages'
 import { DEFAULT_LOCALE, LOCALES, isLocale, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
+import { splitV2Enabled } from '@/lib/flags'
 
 /**
  * Split's content engine. Same shape as the one on peanut.me — markdown + frontmatter on disk,
@@ -60,6 +61,8 @@ export interface Frontmatter {
     faqs?: Faq[]
     /** Set false to keep a draft in the repo but out of routes, sitemap and hub. */
     published?: boolean
+    /** Available only in builds that explicitly expose the v2 product surface. */
+    v2Only?: boolean
     /** Overrides the derived canonical path. Only needed for pages that moved. */
     canonical?: string
 }
@@ -184,6 +187,7 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
             tags: Array.isArray(data.tags) ? data.tags.filter((t): t is string => typeof t === 'string') : undefined,
             faqs: coerceFaqs(data.faqs),
             published: data.published !== false,
+            v2Only: data.v2Only === true,
             canonical: typeof data.canonical === 'string' ? data.canonical : undefined,
         },
         body: content.trim(),
@@ -218,13 +222,19 @@ function isShadowed(doc: Doc): boolean {
     return doc.collection !== 'blog' && staticPageSlugs.has(doc.slug)
 }
 
+/** Product-version visibility is separate from publishing: v2 content stays
+ * valid and testable in v1 builds, but is not routable or discoverable. */
+export function isDocAvailable(doc: Doc): boolean {
+    return !doc.frontmatter.v2Only || splitV2Enabled()
+}
+
 /**
  * Published docs in a collection for one language, newest first. The only listing the app should
  * use. A doc with no file in `locale` is absent, not substituted — see the module docstring.
  */
 export function listDocs(collection: Collection, locale: Locale = DEFAULT_LOCALE): Doc[] {
     return readCollection(collection, locale)
-        .filter((doc) => doc.frontmatter.published !== false && !isShadowed(doc))
+        .filter((doc) => doc.frontmatter.published !== false && !isShadowed(doc) && isDocAvailable(doc))
         .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date))
 }
 

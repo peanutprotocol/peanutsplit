@@ -28,6 +28,7 @@ import { assertWritable } from '@/server/rooms'
 import { modelEnabled } from '@/server/model'
 import { MAX_IMAGE_BASE64_CHARS, enforceRoomScanLimit, parseReceipt } from '@/server/receipt'
 import { receiptParseSchema } from '@/server/validation'
+import { splitV2Enabled } from '@/lib/flags'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,11 +44,14 @@ const SCAN_LIMIT: Limit = { capacity: 10, windowMs: WRITE_LIMIT.windowMs }
 
 /** An hour of caching on a flag that only changes when someone redeploys with a
  *  different env. The client re-probes on a cold start either way. */
-export const GET = () =>
-    json({ enabled: modelEnabled() }, 200, { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' })
+export const GET = () => {
+    if (!splitV2Enabled()) return json({ error: { code: 'NOT_FOUND', message: 'not found' } }, 404)
+    return json({ enabled: modelEnabled() }, 200, { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' })
+}
 
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {
+        if (!splitV2Enabled()) throw new ApiError(404, 'NOT_FOUND', 'not found')
         // Before anything else, including the DB read: an unconfigured
         // deployment should cost a request no work at all.
         if (!modelEnabled()) throw new ApiError(503, 'SCAN_UNAVAILABLE', 'receipt scanning is not configured')

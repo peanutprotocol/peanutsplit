@@ -11,7 +11,7 @@
  * a single token is bought, and that the route reaches the same draft when it
  * does.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { truncateAll } from '@/server/test/db'
 import { ROOM_NL_LIMIT } from '@/server/nlExpense'
 import { resetRateLimits } from '@/server/rateLimit'
@@ -23,6 +23,7 @@ import type { ApiError, NlParseResult, RoomStateWithMember } from '@/lib/api-typ
 
 const BASE = 'http://localhost'
 const API_KEY = 'test-gemini-key'
+const priorV2 = process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
 
 const post = async <T>(slug: string, body: unknown, init: { contentLength?: number; ip?: string } = {}) => {
     const request = new Request(`${BASE}/api/rooms/${slug}/parse-expense`, {
@@ -85,6 +86,7 @@ const newRoom = async (): Promise<string> => {
 }
 
 beforeEach(async () => {
+    process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
     await truncateAll()
     // One map holds every bucket, per-IP and per-room alike.
     resetRateLimits()
@@ -99,6 +101,24 @@ afterEach(() => {
     vi.unstubAllGlobals()
     delete process.env.SPLIT_GEMINI_API_KEY
     delete process.env.SPLIT_OPENROUTER_API_KEY
+})
+
+afterAll(() => {
+    if (priorV2 === undefined) delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+    else process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = priorV2
+})
+
+describe('v2 boundary', () => {
+    it('does not expose quick add in v1, even when the model key exists', async () => {
+        delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
+        try {
+            const { status, body } = await post<ApiError>('anything', { text: 'taxi 12' })
+            expect(status).toBe(404)
+            expect(body.error.code).toBe('NOT_FOUND')
+        } finally {
+            process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
+        }
+    })
 })
 
 describe('the shared capability probe', () => {

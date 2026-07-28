@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test'
 test('landing page uses doodles, a compact currency picker, and independent folds', async ({ page }) => {
     await page.goto('/')
 
+    await expect(page.getByTestId('hero-create-room')).toContainText('Make the link')
+
     const useCases = page.getByRole('heading', { name: 'What people split here' }).locator('..')
     await expect(useCases.locator('li')).toHaveCount(4)
     await expect(useCases.locator('li svg')).toHaveCount(4)
@@ -40,4 +42,31 @@ test('landing page uses doodles, a compact currency picker, and independent fold
     await expect(teamFold.getByText('Natalia', { exact: true })).toHaveCount(0)
     await expect(teamFold.getByText('Jakub', { exact: true })).toHaveCount(0)
     await expect(teamFold.locator('img[src*="portraits"]')).toHaveCount(2)
+})
+
+test('room-creation hero stays usable at a narrow mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+
+    await expect(page.getByTestId('hero-create-room')).toBeVisible()
+    await expect(page.getByText('Free · no account · nothing to install')).toBeVisible()
+    await expect(page.getByTestId('hero-slug-preview')).toContainText('peanutsplit.com/r/')
+
+    expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
+    ).toBe(true)
+
+    await page.getByTestId('hero-create-room').click()
+    await expect(page.getByTestId('hero-room-name')).toBeFocused()
+    await page.getByTestId('hero-room-name').fill('Lisbon weekend')
+    await page.getByTestId('hero-create-room').click()
+    await expect(page.getByTestId('hero-creator-name')).toBeFocused()
+})
+
+test('v1 does not expose AI or migration tooling', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('link', { name: 'Import from Splitwise' })).toHaveCount(0)
+
+    expect((await page.goto('/import'))?.status()).toBe(404)
+    expect((await page.goto('/blog/scan-a-receipt-to-split-a-bill'))?.status()).toBe(404)
 })

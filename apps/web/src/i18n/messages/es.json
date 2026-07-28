@@ -1,11 +1,12 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "gratis · sin cuenta · sin descargar",
-            "title": "DIVIDILO",
-            "subtitle": "Quién le debe a quién, resuelto. Un link — cada uno agrega lo que pagó, en la moneda que sea.",
-            "cta": "Abrilo →",
-            "mascotAlt": "Peanut saludando",
+            "eyebrow": "un link · todo el grupo",
+            "title": "PASALO",
+            "titleAccessible": "PÁSALO",
+            "subtitle": "Crea la sala, pega un link en el chat del grupo y deja que todos agreguen lo que pagaron — en 12 monedas.",
+            "cta": "Crear el link →",
+            "ctaTrust": "Gratis · sin cuenta · sin instalar nada",
             "linkExplainerTrigger": "Cómo funciona el link"
         },
         "rooms": {
@@ -30,7 +31,7 @@
             },
             "step4": {
                 "title": "Salden las cuentas",
-                "body": "Split calcula la menor cantidad de pagos que deja la sala en cero. Paga en efectivo, por transferencia, o mándalo con Peanut cuando ninguna de las dos llega."
+                "body": "Split sugiere un plan de pagos que deja la sala en cero. Paga en efectivo, por transferencia, o mándalo con Peanut cuando ninguna de las dos llega."
             }
         },
         "uses": {
@@ -137,8 +138,8 @@
             "features": {
                 "title": "Qué hace Split",
                 "currency": {
-                    "title": "Cualquier moneda",
-                    "body": "La sala cuenta en una moneda. Agregá un gasto en la que pagaste de verdad y Split lo convierte al cambio del día."
+                    "title": "12 monedas disponibles",
+                    "body": "La sala cuenta en una moneda. Agregá un gasto en cualquiera de las 12 monedas disponibles y Split lo convierte al cambio del día."
                 },
                 "splits": {
                     "title": "Divisiones que no son parejas",
@@ -157,8 +158,8 @@
                     "body": "Se abre como una app."
                 },
                 "transfers": {
-                    "title": "La menor cantidad de pagos",
-                    "body": "Seis personas debiéndose en círculo se resuelven en dos transferencias, no en once."
+                    "title": "Un plan de pagos más simple",
+                    "body": "Split convierte una red de saldos en una lista corta sugerida de quién debería pagarle a quién."
                 }
             },
             "settle": {
@@ -336,6 +337,12 @@
             "description": "¿De qué fue?",
             "descriptionPlaceholder": "Cena, taxi, pase de esquí…",
             "paidBy": "Pagado por",
+            "addPayer": "Agregar persona",
+            "payerNamePlaceholder": "Nombre de la persona",
+            "confirmPayer": "Agregar persona",
+            "cancelPayer": "Cancelar",
+            "payerDuplicate": "{name} ya está en la sala — elígelo arriba.",
+            "payerAddFailed": "no pudimos agregar a esa persona — intenta otra vez",
             "split": "División",
             "equally": "En partes iguales",
             "exactAmounts": "Montos exactos",
