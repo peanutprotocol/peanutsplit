@@ -318,5 +318,13 @@
         "showOther": "Ver o saldo de {name}",
         "hideOther": "Ocultar o saldo de {name}",
         "someone": "Alguém"
+    },
+    "offline": {
+        "rowLabel": "Esperando para enviar",
+        "rowHint": "Na fila — envia sozinho quando você voltar a ficar online",
+        "queuedToast": "Sem conexão. A despesa fica salva no seu celular e vai sozinha quando você voltar.",
+        "fullToast": "{count, plural, one {Tem despesa demais esperando — a mais antiga foi descartada.} other {Tem despesa demais esperando — as # mais antigas foram descartadas.}}",
+        "rejectedToast": "{count, plural, one {Uma despesa da fila não pôde ser salva — adicione de novo.} other {# despesas da fila não puderam ser salvas — adicione de novo.}}",
+        "sentToast": "{count, plural, one {Despesa enviada} other {# despesas enviadas}}"
     }
 }

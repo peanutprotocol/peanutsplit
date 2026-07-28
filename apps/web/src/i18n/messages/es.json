@@ -318,5 +318,13 @@
         "showOther": "Ver el saldo de {name}",
         "hideOther": "Ocultar el saldo de {name}",
         "someone": "Alguien"
+    },
+    "offline": {
+        "rowLabel": "Esperando para enviarse",
+        "rowHint": "En espera — se envía solo cuando vuelvas a tener conexión",
+        "queuedToast": "Sin conexión. El gasto queda guardado en tu teléfono y se envía solo cuando vuelvas.",
+        "fullToast": "{count, plural, one {Hay demasiados gastos esperando — se descartó el más viejo.} other {Hay demasiados gastos esperando — se descartaron los # más viejos.}}",
+        "rejectedToast": "{count, plural, one {Un gasto en espera no se pudo guardar — cargalo de nuevo.} other {# gastos en espera no se pudieron guardar — cargalos de nuevo.}}",
+        "sentToast": "{count, plural, one {Gasto enviado} other {# gastos enviados}}"
     }
 }
