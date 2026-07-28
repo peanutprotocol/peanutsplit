@@ -140,6 +140,28 @@
             "peopleCount": "{count, plural, one {# persona} other {# personas}}",
             "allSquare": "a mano"
         },
+        "recap": {
+            "settledBadge": "Todo saldado",
+            "ongoingBadge": "Hasta ahora",
+            "totalLabel": "Total gastado",
+            "days": "{count, plural, one {# día} other {# días}}",
+            "expenses": "{count, plural, one {# gasto} other {# gastos}}",
+            "people": "{count, plural, one {# persona} other {# personas}}",
+            "settlements": "{count, plural, =0 {Todavía no hay pagos registrados} one {# pago registrado} other {# pagos registrados}}",
+            "topPayer": "{name} fue quien más puso",
+            "share": "Compartir la historia",
+            "sharing": "Preparándola…",
+            "shareTitle": "Peanut Split",
+            "shareText": "Nuestra división, saldada.",
+            "copied": "Resumen copiado — pégalo donde quieras.",
+            "downloaded": "Resumen guardado en tus descargas.",
+            "shareFailed": "No pudimos armar el resumen. Intenta otra vez.",
+            "seeRecap": "Ver el resumen",
+            "backToRoom": "Volver a la sala",
+            "ctaTitle": "Te toca",
+            "ctaBody": "Un link, sin registro, gratis para siempre.",
+            "cta": "Empezar tu propia división"
+        },
         "expenseDrawer": {
             "addTitle": "Agregar gasto",
             "editTitle": "Editar gasto",
