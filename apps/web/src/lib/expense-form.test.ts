@@ -30,6 +30,7 @@ const foreignExactExpense: ApiExpense = {
         { memberId: 'm1', amountMinor: '5804', enteredAmountMinor: '6500' },
         { memberId: 'm2', amountMinor: '3125', enteredAmountMinor: '3500' },
     ],
+    reactions: [],
 }
 
 describe('expenseToFormValues — the no-drift path', () => {

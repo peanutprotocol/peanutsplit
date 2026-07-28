@@ -106,6 +106,9 @@ export function useAddExpense(slug: string, token?: string | null) {
                                 amountMinor: '0',
                                 enteredAmountMinor: null,
                             })),
+                            // Nothing can have reacted to a row that does not
+                            // exist on the server yet.
+                            reactions: [],
                         },
                         ...previous.expenses,
                     ],
