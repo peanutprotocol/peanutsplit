@@ -36,39 +36,46 @@ export const POST = (request: Request, ctx: Ctx) =>
             throw new ApiError(400, 'UNSUPPORTED_PUSH_HOST', 'that is not a push service we can deliver to')
         }
 
-        const existing = await prisma.pushSubscription.findUnique({
-            where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
-            select: { id: true },
-        })
-        // The cap only applies to a NEW channel — a device re-subscribing (the
-        // browser rotates its keys whenever it likes) must never be locked out
-        // of a room that is already at the ceiling.
-        if (!existing) {
-            const count = await prisma.pushSubscription.count({ where: { roomId: room.id } })
-            if (count >= MAX_SUBSCRIPTIONS_PER_ROOM) {
-                throw new ApiError(429, 'PUSH_SUBSCRIPTION_LIMIT', 'this room has too many devices subscribed')
-            }
-        }
+        await prisma.$transaction(async (tx) => {
+            // Count and insert are one room-scoped critical section. Without it,
+            // several new devices can all observe 29 rows and push the room past
+            // its hard ceiling.
+            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
 
-        await prisma.pushSubscription.upsert({
-            where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
-            create: {
-                roomId: room.id,
-                memberId: body.memberId,
-                endpoint: body.endpoint,
-                p256dh: body.keys.p256dh,
-                auth: body.keys.auth,
-                userAgent: body.userAgent ?? null,
-            },
-            update: {
-                // memberId too: one phone can be passed to whoever is paying, and
-                // the channel should follow whoever it last proved it was.
-                memberId: body.memberId,
-                p256dh: body.keys.p256dh,
-                auth: body.keys.auth,
-                userAgent: body.userAgent ?? null,
-                lastSeenAt: new Date(),
-            },
+            const existing = await tx.pushSubscription.findUnique({
+                where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
+                select: { id: true },
+            })
+            // The cap only applies to a NEW channel — a device re-subscribing
+            // (the browser rotates its keys whenever it likes) must never be
+            // locked out of a room that is already at the ceiling.
+            if (!existing) {
+                const count = await tx.pushSubscription.count({ where: { roomId: room.id } })
+                if (count >= MAX_SUBSCRIPTIONS_PER_ROOM) {
+                    throw new ApiError(429, 'PUSH_SUBSCRIPTION_LIMIT', 'this room has too many devices subscribed')
+                }
+            }
+
+            await tx.pushSubscription.upsert({
+                where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
+                create: {
+                    roomId: room.id,
+                    memberId: body.memberId,
+                    endpoint: body.endpoint,
+                    p256dh: body.keys.p256dh,
+                    auth: body.keys.auth,
+                    userAgent: body.userAgent ?? null,
+                },
+                update: {
+                    // memberId too: one phone can be passed to whoever is paying,
+                    // and the channel should follow whoever it last proved it was.
+                    memberId: body.memberId,
+                    p256dh: body.keys.p256dh,
+                    auth: body.keys.auth,
+                    userAgent: body.userAgent ?? null,
+                    lastSeenAt: new Date(),
+                },
+            })
         })
 
         return { subscribed: true }

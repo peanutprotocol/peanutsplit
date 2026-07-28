@@ -190,6 +190,27 @@ describe('subscribe endpoint', () => {
         expect((await subscribe(fixture, fixture.owner, FCM('seed-0'))).status).toBe(201)
     })
 
+    it('keeps the 30-device cap under concurrent subscriptions', async () => {
+        const fixture = await makeRoom()
+        await prisma.pushSubscription.createMany({
+            data: Array.from({ length: 29 }, (_, i) => ({
+                roomId: fixture.roomId,
+                memberId: fixture.owner.id,
+                endpoint: FCM(`seed-${i}`),
+                p256dh: 'p256dh',
+                auth: 'auth',
+            })),
+        })
+
+        const results = await Promise.all(
+            Array.from({ length: 6 }, (_, i) => subscribe(fixture, fixture.owner, FCM(`racer-${i}`)))
+        )
+
+        expect(results.filter(({ status }) => status === 201)).toHaveLength(1)
+        expect(results.filter(({ status }) => status === 429)).toHaveLength(5)
+        expect(await prisma.pushSubscription.count({ where: { roomId: fixture.roomId } })).toBe(30)
+    })
+
     it('drops the channel on DELETE', async () => {
         const fixture = await makeRoom()
         await subscribe(fixture, fixture.owner, FCM('a'))
@@ -322,6 +343,22 @@ describe('send pipeline', () => {
         }
         expect(await expenseEvent(fixture, 'e4')).toEqual({ status: 'skipped', reason: 'daily-cap' })
         expect(sendNotification).toHaveBeenCalledTimes(3)
+    })
+
+    it('keeps the daily expense cap under concurrent sends', async () => {
+        const fixture = await makeRoom()
+        await seedSubscription(fixture.roomId, fixture.friend.id, FCM('friend-phone'))
+
+        const results = await Promise.all(Array.from({ length: 8 }, (_, i) => expenseEvent(fixture, `race-${i}`)))
+
+        expect(results.filter(({ status }) => status === 'sent')).toHaveLength(3)
+        expect(results.filter(({ status }) => status === 'skipped')).toHaveLength(5)
+        expect(sendNotification).toHaveBeenCalledTimes(3)
+        expect(
+            await prisma.notificationSend.count({
+                where: { roomId: fixture.roomId, template: 'expense_added', dayKey: utcDayKey() },
+            })
+        ).toBe(3)
     })
 
     it('prunes an endpoint the push service says is gone, and keeps the live one', async () => {
