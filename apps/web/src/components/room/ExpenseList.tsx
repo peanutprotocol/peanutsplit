@@ -113,6 +113,7 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect, on
     }
 
     const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
+    const memberAvatar = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
     const groups = groupByDay(timeline, (entry) => entry.date)
 
     return (
@@ -206,7 +207,11 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect, on
                                                 poppedId === expense.id && 'animate-pop'
                                             )}
                                         >
-                                            <MemberAvatar name={payer} size={36} />
+                                            <MemberAvatar
+                                                name={payer}
+                                                avatar={memberAvatar(expense.paidById)}
+                                                size={36}
+                                            />
                                             <span className="min-w-0 flex-1">
                                                 <span className="block truncate text-h7">{expense.description}</span>
                                                 {isQueuedExpenseId(expense.id, queued) && (

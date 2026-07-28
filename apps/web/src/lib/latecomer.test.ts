@@ -4,7 +4,12 @@ import { backfillPatch, backfillableFor, latecomerOffer, runBackfill } from './l
 
 const iso = (minute: number) => new Date(Date.UTC(2026, 6, 1, 12, minute)).toISOString()
 
-const member = (id: string, minute: number): ApiMember => ({ id, name: id.toUpperCase(), createdAt: iso(minute) })
+const member = (id: string, minute: number): ApiMember => ({
+    id,
+    name: id.toUpperCase(),
+    avatar: null,
+    createdAt: iso(minute),
+})
 
 const expense = (
     id: string,

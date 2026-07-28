@@ -7,6 +7,8 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { AccountPanel } from '@/components/account/AccountPanel'
+import { AvatarPicker } from '@/components/room/AvatarPicker'
+import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { ThemePicker } from '@/components/room/ThemePicker'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
 import { Button } from '@/components/ui/Button'
@@ -14,16 +16,20 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { Icon } from '@/components/ui/Icon'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { roomProps, track } from '@/lib/analytics'
-import type { ApiRoom } from '@/lib/api-types'
+import type { ApiMember, ApiRoom } from '@/lib/api-types'
+import { avatarFamily } from '@/lib/avatars'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
-import { useSetTheme } from '@/lib/queries'
+import { useSetAvatar, useSetTheme } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { triggerHaptic, useFeedback, useSettings } from '@/lib/use-settings'
 
 interface RoomHeaderProps {
     room: ApiRoom
     identity: MemberIdentity | null
+    /** The roster row for `identity`, when this device is one of the members.
+     *  Null while the room is still loading or when nobody has joined here. */
+    me: ApiMember | null
     onShare: () => void
     onForgetIdentity: () => void
 }
@@ -76,7 +82,7 @@ function SettingToggle({
     )
 }
 
-export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHeaderProps) {
+export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const tLocale = useTranslations('locale')
     const tAccount = useTranslations('account')
@@ -87,6 +93,29 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const setTheme = useSetTheme(room.slug)
+    const tAvatar = useTranslations('room.avatar')
+    /**
+     * Only a device that can PROVE it is this member may change the face — the
+     * server demands the token and this is the same gate, one step earlier. A
+     * member claimed through the join gate ("I'm Bea") holds no token, so the
+     * picker is simply absent for them rather than present and failing.
+     */
+    const pickableMe = me && identity?.token ? me : null
+    const setAvatar = useSetAvatar(room.slug, me?.id ?? '', identity?.token)
+
+    const chooseAvatar = (avatar: string | null) => {
+        if (!pickableMe || avatar === pickableMe.avatar) return
+        feedback('tick')
+        // The FAMILY, never the key: which avatar a particular person picked is
+        // exactly the social detail analytics.ts exists to keep out of a funnel.
+        track('avatar_changed', roomProps(room.slug, { family: avatarFamily(avatar) }))
+        setAvatar.mutate(avatar, {
+            onError: (error) => {
+                feedback('error')
+                toast.error(errorMessage(error, tAvatar('failed')), { duration: TOAST_MS.actionable })
+            },
+        })
+    }
 
     const chooseTheme = (theme: string | null) => {
         if (theme === (room.theme ?? null)) return
@@ -116,10 +145,32 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
 
                 <div className="min-w-0 flex-1">
                     <h1 className="truncate text-h6">{room.name}</h1>
-                    <p className="text-h10 uppercase tracking-wide text-n-1/70">
-                        {room.currency}
-                        {identity ? ` · ${t('youAre', { name: identity.name })}` : ''}
-                    </p>
+                    {/* Your own face, and the way to change it.
+                        This is the one entry point: the thing you tap to change how
+                        you look is the picture of how you look. It opens the room
+                        drawer, where the picker is the first section — the drawer
+                        already owns every other preference, and a fourth 44px
+                        control in this row would crush the room name on a phone.
+                        Nobody else's avatar is tappable anywhere. */}
+                    {pickableMe ? (
+                        <button
+                            type="button"
+                            onClick={() => setMenuOpen(true)}
+                            aria-label={tAvatar('open')}
+                            data-testid="open-avatar"
+                            className="-my-0.5 flex items-center gap-1.5 py-0.5"
+                        >
+                            <MemberAvatar name={pickableMe.name} avatar={pickableMe.avatar} size={16} />
+                            <span className="truncate text-h10 uppercase tracking-wide text-n-1/70">
+                                {`${room.currency} · ${t('youAre', { name: pickableMe.name })}`}
+                            </span>
+                        </button>
+                    ) : (
+                        <p className="text-h10 uppercase tracking-wide text-n-1/70">
+                            {room.currency}
+                            {identity ? ` · ${t('youAre', { name: identity.name })}` : ''}
+                        </p>
+                    )}
                 </div>
 
                 <button
@@ -159,6 +210,20 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                         >
                             {t('shareTheRoomLink')}
                         </Button>
+                        {/* Under the share button, which is what most people open this
+                            drawer for, and above everything else — the header's avatar
+                            taps straight here. Unlike the theme below, this is a
+                            property of YOU rather than of the room, which is why it
+                            needs the token and the theme does not. */}
+                        {pickableMe && (
+                            <AvatarPicker
+                                name={pickableMe.name}
+                                value={pickableMe.avatar}
+                                onChange={chooseAvatar}
+                                disabled={setAvatar.isPending}
+                            />
+                        )}
+
                         <div className="mt-2 flex flex-col gap-2">
                             <span className="text-h8 uppercase tracking-wide text-grey-1">{t('feedback')}</span>
                             <SettingToggle

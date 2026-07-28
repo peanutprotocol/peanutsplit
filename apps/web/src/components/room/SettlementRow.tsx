@@ -54,6 +54,7 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
     const [confirming, setConfirming] = useState(false)
 
     const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
+    const avatarOf = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
 
     /**
      * Written out one literal at a time rather than `tSettle(settlement.method)`:
@@ -107,12 +108,12 @@ export function SettlementRow({ slug, settlement, state, currencies, meId, token
         >
             <div className="flex items-center gap-2">
                 <span className="flex min-w-0 flex-1 items-center gap-2">
-                    <MemberAvatar name={nameOf(settlement.fromId)} size={28} />
+                    <MemberAvatar name={nameOf(settlement.fromId)} avatar={avatarOf(settlement.fromId)} size={28} />
                     <span className="min-w-0 truncate text-h8">
                         {settlement.fromId === meId ? tExpenses('you') : nameOf(settlement.fromId)}
                     </span>
                     <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
-                    <MemberAvatar name={nameOf(settlement.toId)} size={28} />
+                    <MemberAvatar name={nameOf(settlement.toId)} avatar={avatarOf(settlement.toId)} size={28} />
                     <span className="min-w-0 truncate text-h8">
                         {settlement.toId === meId ? tExpenses('you') : nameOf(settlement.toId)}
                     </span>
