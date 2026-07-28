@@ -26,7 +26,7 @@ import { memberAvatarSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
 
-type Ctx = { params: Promise<{ slug: string; id: string }> }
+type Ctx = { params: Promise<{ slug: string; memberId: string }> }
 
 export const PATCH = (request: Request, ctx: Ctx) =>
     respond(async () => {
@@ -34,14 +34,14 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         // grid, and a few taps of taste must not spend the allowance the room
         // needs for its expenses.
         enforceRateLimit(request, WRITE_LIMIT, 'reaction')
-        const { slug, id } = await ctx.params
+        const { slug, memberId } = await ctx.params
         const body = memberAvatarSchema.parse(await readJson(request))
 
         const room = await loadRoom(slug)
         assertWritable(room)
-        assertProvenMember(room, id, body.memberToken)
+        assertProvenMember(room, memberId, body.memberToken)
 
-        await prisma.member.update({ where: { id }, data: { avatar: body.avatar } })
+        await prisma.member.update({ where: { id: memberId }, data: { avatar: body.avatar } })
         const state = toRoomState(await loadRoomById(room.id))
         // After the commit, like every other write — a face that only travelled
         // on the poll would arrive up to 45s late on a phone holding an open

@@ -13,7 +13,7 @@ import { resetRateLimits } from '@/server/rateLimit'
 import { AVATAR_KEYS } from '@/lib/avatars'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
-import { PATCH as patchMember } from '@/app/api/rooms/[slug]/members/[id]/route'
+import { PATCH as patchMember } from '@/app/api/rooms/[slug]/members/[memberId]/route'
 import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
@@ -66,7 +66,7 @@ const setAvatar = (fixture: Fixture, memberId: string, body: { avatar: string | 
     call<RoomState & ApiError>(patchMember as Handler, {
         path: `/api/rooms/${fixture.slug}/members/${memberId}`,
         method: 'PATCH',
-        params: { slug: fixture.slug, id: memberId },
+        params: { slug: fixture.slug, memberId },
         body,
     })
 
@@ -81,7 +81,7 @@ beforeEach(async () => {
 
 afterEach(() => resetEvents())
 
-describe('PATCH /api/rooms/:slug/members/:id', () => {
+describe('PATCH /api/rooms/:slug/members/:memberId', () => {
     it('sets your own avatar and hands back the whole room', async () => {
         const fixture = await makeRoom()
         const { status, body } = await setAvatar(fixture, fixture.ana.id, {
