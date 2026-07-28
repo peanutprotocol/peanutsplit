@@ -1,0 +1,14 @@
+# apps/web is formatted by its OWN prettier, from its own directory — its
+# .prettierrc loads prettier-plugin-tailwindcss, which is a dependency of
+# apps/web and cannot be resolved from the root. Reaching into it from here is
+# what made `pnpm format` fail outright instead of formatting anything at all;
+# the root scripts now run `pnpm --dir apps/web format` as a second step.
+apps/web/
+
+node_modules/
+apps/api/dist/
+pnpm-lock.yaml
+
+# A hand-minified design scratch, rendered once to strip.png. Expanding it
+# would say nothing about anything.
+strip.html
