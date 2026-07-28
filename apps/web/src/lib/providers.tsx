@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from 'sonner'
+import { PushNavigation } from '@/components/pwa/PushNavigation'
 import { initAnalytics } from './analytics'
 import { ensureDeviceId } from './identity'
 
@@ -38,6 +39,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <NuqsAdapter>
                 {children}
+                <PushNavigation />
                 <Toaster
                     position="top-center"
                     toastOptions={{
