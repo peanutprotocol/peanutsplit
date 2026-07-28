@@ -180,16 +180,6 @@
                     "name": "Hugo",
                     "role": "built Split",
                     "quote": "I wanted the whole thing to be a link. If your friends have to make an account, they will not."
-                },
-                "natalia": {
-                    "name": "Natalia",
-                    "role": "built Split",
-                    "quote": "The part I care about is the end — everyone at zero, and nobody had to ask twice."
-                },
-                "jakub": {
-                    "name": "Jakub",
-                    "role": "built Split",
-                    "quote": "It had to work for a group spread across four countries, because that is every group I am in."
                 }
             },
             "who": {
@@ -523,7 +513,15 @@
             "remove": "Remove your {emoji}",
             "reacted": "{emoji} — {count, plural, one {# person} other {# people}}",
             "needsToken": "Reacting needs proof it is really you — rejoin the room with your own name first.",
-            "failed": "could not save that reaction — try again"
+            "failed": "could not save that reaction — try again",
+            "names": {
+                "wild": "wild",
+                "laugh": "laugh",
+                "ouch": "ouch",
+                "love": "love",
+                "clap": "applause",
+                "money": "money"
+            }
         },
         "latecomer": {
             "title": "{name} joined after {count, plural, one {# earlier expense} other {# earlier expenses}}",

@@ -15,16 +15,12 @@ test('landing page uses doodles, a compact currency picker, and independent fold
     const tickers = (await currencyOptions.allTextContents()).map((text) => text.trim())
     expect(tickers.every((ticker) => /^[A-Z]{3}$/.test(ticker))).toBe(true)
     expect(new Set(tickers).size).toBe(tickers.length)
-    await page.keyboard.press('Escape')
-
     const selectedCurrency = page.getByTestId('hero-currency')
     const originalCurrency = await selectedCurrency.inputValue()
-    const currencyTrigger = page.getByRole('button', { name: 'Currency' })
-    await currencyTrigger.focus()
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('Enter')
-    await expect(selectedCurrency).not.toHaveValue(originalCurrency)
+    const nextCurrency = tickers.find((ticker) => ticker !== originalCurrency)
+    expect(nextCurrency).toBeTruthy()
+    await page.getByRole('option', { name: nextCurrency, exact: true }).click()
+    await expect(selectedCurrency).toHaveValue(nextCurrency!)
 
     const readMore = page.locator('section').filter({
         has: page.getByRole('heading', { name: 'Not convinced yet? Read more' }),
@@ -36,4 +32,12 @@ test('landing page uses doodles, a compact currency picker, and independent fold
     await folds.nth(1).locator('summary').click()
     await expect(folds.nth(0)).toHaveAttribute('open', '')
     await expect(folds.nth(1)).toHaveAttribute('open', '')
+
+    const teamFold = folds.filter({ hasText: 'The people who built it' })
+    await teamFold.locator('summary').click()
+    await expect(teamFold.getByText(/Konrad · built Split/)).toBeVisible()
+    await expect(teamFold.getByText(/Hugo · built Split/)).toBeVisible()
+    await expect(teamFold.getByText('Natalia', { exact: true })).toHaveCount(0)
+    await expect(teamFold.getByText('Jakub', { exact: true })).toHaveCount(0)
+    await expect(teamFold.locator('img[src*="portraits"]')).toHaveCount(2)
 })

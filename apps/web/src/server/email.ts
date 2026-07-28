@@ -93,11 +93,11 @@ export function renderMagicLinkEmail(url: string): MagicLinkEmail {
     const html = `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(PREHEADER)}${'&zwnj;&nbsp;'.repeat(60)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;padding:24px 0">
   <tr><td align="center">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#ffffff;border:1px solid #111111;border-radius:8px">
-      <tr><td style="padding:32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#111111">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#ffffff;border:1.5px solid #211c17;border-radius:16px">
+      <tr><td style="padding:32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#211c17">
         <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3">${escapeHtml(HEADLINE)}</h1>
         <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3f3f3f">${escapeHtml(BODY)}</p>
-        <a href="${safeUrl}" style="display:inline-block;padding:14px 24px;background:#111111;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:6px">${escapeHtml(CTA)}</a>
+        <a href="${safeUrl}" style="display:inline-block;padding:14px 24px;background:#211c17;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:12px">${escapeHtml(CTA)}</a>
         <p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#6b6b6b">${escapeHtml(FOOTER)}</p>
       </td></tr>
     </table>

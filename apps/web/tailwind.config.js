@@ -13,6 +13,13 @@ module.exports = {
         './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
+        borderWidth: {
+            DEFAULT: '1.5px',
+            0: '0px',
+            2: '2px',
+            4: '4px',
+            8: '8px',
+        },
         extend: {
             colors: {
                 primary: {
@@ -48,8 +55,8 @@ module.exports = {
                     3: '#E99898',
                 },
                 n: {
-                    1: '#000000',
-                    2: '#161616',
+                    1: '#211C17',
+                    2: '#2B251F',
                     3: '#5F646D',
                     4: '#E7E8E9',
                 },
@@ -61,7 +68,7 @@ module.exports = {
                     2: '#EAFBEE',
                 },
                 white: '#FFFFFF',
-                black: '#000000',
+                black: '#211C17',
                 red: '#FF0000',
 
                 'primary-base': 'var(--primary-color)',
@@ -117,7 +124,12 @@ module.exports = {
                 95: '.95',
             },
             borderRadius: {
-                1: '0.0625rem',
+                1: '0.75rem',
+                sm: '0.75rem',
+                md: '0.875rem',
+                lg: '1rem',
+                xl: '1.25rem',
+                '2xl': '1.5rem',
             },
             fontFamily: {
                 sans: ['var(--font-roboto)', ...fontFamily.sans],
@@ -252,7 +264,7 @@ module.exports = {
                     '@apply label border-n-1 bg-n-1 text-white': {},
                 },
                 '.card': {
-                    '@apply bg-white border border-n-1 max-w-[27rem] relative mx-auto w-11/12 flex flex-col items-center justify-center px-4 py-6':
+                    '@apply bg-white border border-n-1 rounded-sm max-w-[27rem] relative mx-auto w-11/12 flex flex-col items-center justify-center px-4 py-6':
                         {},
                 },
                 '.card-head': {
@@ -284,52 +296,52 @@ module.exports = {
                     '@apply !w-7 !h-7': {},
                 },
                 '.shadow-2': {
-                    '@apply shadow-[0.125rem_0.125rem_0_#000000]': {},
+                    '@apply shadow-[0.125rem_0.125rem_0_#211C17]': {},
                 },
                 '.shadow-4': {
-                    '@apply shadow-[0.25rem_0.25rem_0_#000000]': {},
+                    '@apply shadow-[0.25rem_0.25rem_0_#211C17]': {},
                 },
                 '.shadow-primary-4': {
-                    '@apply shadow-[0.25rem_0.25rem_0_#000000]': {},
+                    '@apply shadow-[0.25rem_0.25rem_0_#211C17]': {},
                 },
                 '.shadow-primary-6': {
-                    '@apply shadow-[0.375rem_0.375rem_0_#000000]': {},
+                    '@apply shadow-[0.375rem_0.375rem_0_#211C17]': {},
                 },
                 '.shadow-primary-8': {
-                    '@apply shadow-[0.5rem_0.5rem_0_#000000]': {},
+                    '@apply shadow-[0.5rem_0.5rem_0_#211C17]': {},
                 },
                 '.shadow-secondary-4': {
-                    '@apply shadow-[0.25rem_-0.25rem_0_#000000]': {},
+                    '@apply shadow-[0.25rem_-0.25rem_0_#211C17]': {},
                 },
                 '.shadow-secondary-6': {
-                    '@apply shadow-[0.375rem_-0.375rem_0_#000000]': {},
+                    '@apply shadow-[0.375rem_-0.375rem_0_#211C17]': {},
                 },
                 '.shadow-secondary-8': {
-                    '@apply shadow-[0.5rem_-0.5rem_0_#000000]': {},
+                    '@apply shadow-[0.5rem_-0.5rem_0_#211C17]': {},
                 },
                 '.btn-shadow-primary-3': {
-                    '@apply shadow-[0.1875rem_0.1875rem_0_#000000]': {},
+                    '@apply shadow-[0.1875rem_0.1875rem_0_#211C17]': {},
                 },
                 '.btn-shadow-primary-4': {
-                    '@apply shadow-[0.25rem_0.25rem_0_#000000]': {},
+                    '@apply shadow-[0.25rem_0.25rem_0_#211C17]': {},
                 },
                 '.btn-shadow-primary-6': {
-                    '@apply shadow-[0.375rem_0.375rem_0_#000000]': {},
+                    '@apply shadow-[0.375rem_0.375rem_0_#211C17]': {},
                 },
                 '.btn-shadow-primary-8': {
-                    '@apply shadow-[0.5rem_0.5rem_0_#000000]': {},
+                    '@apply shadow-[0.5rem_0.5rem_0_#211C17]': {},
                 },
                 '.btn-shadow-secondary-3': {
-                    '@apply shadow-[0.1875rem_-0.1875rem_0_#000000]': {},
+                    '@apply shadow-[0.1875rem_-0.1875rem_0_#211C17]': {},
                 },
                 '.btn-shadow-secondary-4': {
-                    '@apply shadow-[0.25rem_-0.25rem_0_#000000]': {},
+                    '@apply shadow-[0.25rem_-0.25rem_0_#211C17]': {},
                 },
                 '.btn-shadow-secondary-6': {
-                    '@apply shadow-[0.375rem_-0.375rem_0_#000000]': {},
+                    '@apply shadow-[0.375rem_-0.375rem_0_#211C17]': {},
                 },
                 '.btn-shadow-secondary-8': {
-                    '@apply shadow-[0.5rem_-0.5rem_0_#000000]': {},
+                    '@apply shadow-[0.5rem_-0.5rem_0_#211C17]': {},
                 },
                 '.brutal-border': {
                     '@apply border-2 border-black': {},

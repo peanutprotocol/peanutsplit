@@ -180,16 +180,6 @@
                     "name": "Hugo",
                     "role": "hizo Split",
                     "quote": "Quería que todo fuera un link. Si tus amigos tienen que crearse una cuenta, no lo hacen."
-                },
-                "natalia": {
-                    "name": "Natalia",
-                    "role": "hizo Split",
-                    "quote": "Lo que me importa es el final: todos en cero y nadie tuvo que pedirlo dos veces."
-                },
-                "jakub": {
-                    "name": "Jakub",
-                    "role": "hizo Split",
-                    "quote": "Tenía que funcionar para un grupo repartido en cuatro países, porque son todos los grupos en los que estoy."
                 }
             },
             "who": {
@@ -523,7 +513,15 @@
             "remove": "Quitar tu {emoji}",
             "reacted": "{emoji} — {count, plural, one {# persona} other {# personas}}",
             "needsToken": "Para reaccionar necesitamos comprobar que eres tú — vuelve a entrar a la sala con tu nombre.",
-            "failed": "no se pudo guardar esa reacción — inténtalo de nuevo"
+            "failed": "no se pudo guardar esa reacción — inténtalo de nuevo",
+            "names": {
+                "wild": "una locura",
+                "laugh": "risa",
+                "ouch": "dolió",
+                "love": "amor",
+                "clap": "aplausos",
+                "money": "dinero"
+            }
         },
         "latecomer": {
             "title": "{name} llegó después de {count, plural, one {# gasto} other {# gastos}}",

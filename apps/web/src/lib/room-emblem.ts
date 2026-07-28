@@ -1,8 +1,8 @@
 import { isDoodleName, type DoodleName } from '@/components/ui/doodles'
 
 /** The old sixteen-option room picker, translated at render time. The stored
- * value stays untouched, so notifications may still use the emoji as text while
- * every visual room surface uses Split's own drawing. */
+ * value stays untouched while every visual room surface uses Split's own drawing;
+ * text-only surfaces omit the emblem. */
 const LEGACY_EMBLEM_DOODLES: Record<string, DoodleName> = {
     '🥜': 'peanut',
     '🏔️': 'mountain',
@@ -45,16 +45,4 @@ export function emblemDoodle(value: string | null | undefined): DoodleName | nul
     if (!value) return null
     if (isDoodleName(value)) return value
     return LEGACY_EMBLEM_DOODLES[value] ?? null
-}
-
-/**
- * True when the stored value is a literal emoji character — a legacy room, or one imported from
- * Splitwise before the swap.
- *
- * This exists so the places that put the emblem into TEXT can ask. A push notification titled
- * "🏔️ Ski trip" reads correctly; the same line built from a doodle room says "mountain Ski trip",
- * which is the failure mode this whole file is here to prevent.
- */
-export function isEmojiEmblem(value: string | null | undefined): boolean {
-    return !!value && !isDoodleName(value)
 }

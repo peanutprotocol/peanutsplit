@@ -7,7 +7,7 @@ import { useMotionAllowed } from '@/lib/use-motion'
 
 /** Brand confetti only — yellow, pink and black. Anything else and it stops
  *  looking like Peanut and starts looking like a party-supplies website. */
-const COLORS = ['#FFC900', '#FF90E8', '#000000', '#FFC900', '#98E9AB'] as const
+const COLORS = ['#FFC900', '#FF90E8', '#211C17', '#FFC900', '#98E9AB'] as const
 
 const PIECES = 24
 
@@ -68,7 +68,7 @@ export function Confetti({ className, delay = 0 }: { className?: string; delay?:
             {pieces.map((piece, index) => (
                 <motion.span
                     key={index}
-                    className="absolute left-1/2 top-1/2 block rounded-[1px] border border-n-1"
+                    className="absolute left-1/2 top-1/2 block rounded-full border border-n-1"
                     style={{ width: piece.width, height: piece.height, backgroundColor: piece.color }}
                     initial={{ x: 0, y: 0, scale: 0.4, opacity: 0, rotate: 0 }}
                     animate={{
