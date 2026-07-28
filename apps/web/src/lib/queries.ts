@@ -182,6 +182,53 @@ export function useJoinRoom(slug: string): UseMutationResult<RoomStateWithMember
     })
 }
 
+/**
+ * Put somebody on the roster who has not tapped the link yet.
+ *
+ * The same endpoint as joining, because it is the same act — but performed by
+ * somebody else, and that difference is the whole reason this is not
+ * `useJoinRoom`. It exists because shares materialise at WRITE time: an expense
+ * saved while four of the six people are still in the group chat is split four
+ * ways, permanently, and the only fix afterwards is editing every row by hand.
+ * An organiser typing four names in before the first round is the cheap version
+ * of that.
+ *
+ * **The `memberToken` that comes back is deliberately thrown away.** A token is
+ * the proof that a device IS a particular person — it signs reactions and binds
+ * push channels — so it may only ever come to rest on that person's own device.
+ * Keeping it on the organiser's phone would let them react as their friend, and
+ * would hand the friend a room that believes they already hold a key nobody ever
+ * sent them. They claim their name through the join gate like everybody else and
+ * are issued a token there. The organiser stays themselves throughout: nothing
+ * here touches the stored identity.
+ */
+export function useAddMember(slug: string): UseMutationResult<RoomState, Error, { name: string }> {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: async (input: { name: string }) => withoutMemberToken(await api.joinRoom(slug, input)),
+        onSuccess: (state) => seed(queryClient, slug, state),
+    })
+}
+
+/**
+ * The envelope rebuilt field by field, so the token is not merely unread — it is
+ * not in the value, and therefore cannot reach a cache, a devtools panel or a
+ * replayed mutation.
+ *
+ * Exported so the discarding is a thing a test can hold. Narrowing the return
+ * TYPE would not have been enough on its own: `RoomStateWithMember` is
+ * structurally a `RoomState`, so handing the whole response back under the
+ * narrower annotation compiles cleanly and leaks the token anyway.
+ */
+export const withoutMemberToken = (state: RoomStateWithMember): RoomState => ({
+    room: state.room,
+    members: state.members,
+    expenses: state.expenses,
+    settlements: state.settlements,
+    balances: state.balances,
+    suggestedTransfers: state.suggestedTransfers,
+})
+
 /** What `onMutate` hands `onError` so a failed add can be rolled back. */
 interface AddExpenseContext {
     previous?: RoomState

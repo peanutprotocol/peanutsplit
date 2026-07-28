@@ -393,7 +393,16 @@
         },
         "share": {
             "title": "Chame o resto do grupo",
-            "subtitle": "Um link. Eles tocam, escolhem o nome e já estão dentro."
+            "subtitle": "Um link. Eles tocam, escolhem o nome e já estão dentro.",
+            "addPeople": {
+                "toggle": "Adicione os nomes agora",
+                "body": "A divisão é feita na hora em que o gasto é salvo, então quem ainda está no grupo do chat fica de fora. Coloque os nomes aqui e o primeiro gasto já sai dividido certo.",
+                "placeholder": "Nome dela",
+                "add": "Adicionar",
+                "note": "Elas ainda vão abrir o link e escolher o próprio nome — isso só guarda o lugar.",
+                "duplicate": "{name} já está nesta sala.",
+                "failed": "não deu para adicionar — tente de novo"
+            }
         },
         "link": {
             "subtitle": "sua sala de divisão",

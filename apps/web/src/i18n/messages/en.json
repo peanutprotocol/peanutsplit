@@ -393,7 +393,16 @@
         },
         "share": {
             "title": "Invite the rest",
-            "subtitle": "One link. They tap it, pick their name, and they are in."
+            "subtitle": "One link. They tap it, pick their name, and they are in.",
+            "addPeople": {
+                "toggle": "Add their names now",
+                "body": "A split is worked out the moment the expense is saved, so anyone still in the group chat is not in it. Put their names in and the first round already divides the right way.",
+                "placeholder": "Their name",
+                "add": "Add",
+                "note": "They still open the link and pick their own name — this only holds their place.",
+                "duplicate": "{name} is already in this room.",
+                "failed": "could not add them — try again"
+            }
         },
         "link": {
             "subtitle": "your split room",
