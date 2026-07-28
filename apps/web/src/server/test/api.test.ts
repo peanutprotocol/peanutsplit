@@ -2,8 +2,10 @@
  * Handler-level tests: the real route modules against the real `peanut_split_test`
  * database. No HTTP server — Next route handlers are plain functions.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
-import { truncateAll } from '@/server/test/db'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { prisma, truncateAll } from '@/server/test/db'
+import { CURRENCIES } from '@/server/money'
+import { resetRateLimits } from '@/server/rateLimit'
 import { GET as getCurrencies } from '@/app/api/currencies/route'
 import { GET as getRate } from '@/app/api/rate/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
@@ -59,6 +61,9 @@ const netsToZero = (state: RoomState) => Object.values(state.balances).reduce((a
 
 beforeEach(async () => {
     await truncateAll()
+    // The limiter is process-wide: without this, the room a later test
+    // creates fails for a reason belonging to an earlier one.
+    resetRateLimits()
 })
 
 describe('ops endpoints', () => {
@@ -453,5 +458,89 @@ describe('write validation', () => {
             params: { slug: roomB.room.slug, id: added.expenses[0].id },
         })
         expect(status).toBe(404)
+    })
+})
+
+describe('fx is locked at creation', () => {
+    /** The static table is deterministic but immovable, and these tests need the
+     *  rate to MOVE between a write and an edit. Seeding a complete, fresh cache
+     *  gives a movable table that still never reaches the network. */
+    const seedRates = async (overrides: Record<string, number>) => {
+        await prisma.fxRate.deleteMany()
+        await prisma.fxRate.createMany({
+            data: CURRENCIES.map((c) => ({
+                base: 'USD',
+                quote: c.code,
+                rate: overrides[c.code] ?? c.usdPerUnit,
+                fetchedAt: new Date(),
+            })),
+        })
+    }
+
+    beforeEach(() => {
+        process.env.SPLIT_FX_MODE = ''
+    })
+    afterEach(() => {
+        process.env.SPLIT_FX_MODE = 'static'
+    })
+
+    it('keeps the creation rate through an edit, and re-derives it when the currency changes', async () => {
+        await seedRates({})
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const ana = created.memberId
+        const expense = (body: Record<string, unknown>) => ({
+            description: 'Marina fees',
+            amountMinor: '300000',
+            currency: 'THB',
+            paidById: ana,
+            splitMode: 'EQUAL',
+            ...body,
+        })
+
+        const { body: afterAdd } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: expense({}),
+        })
+        const added = afterAdd.expenses[0]
+        expect(Number(added.fxRate)).toBeCloseTo(0.028 / 1.08, 12)
+
+        // The world moves under the expense: THB doubles, GBP doubles.
+        await seedRates({ THB: 0.056, GBP: 2.54 })
+
+        const { body: afterRename } = await call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${added.id}`,
+            method: 'PATCH',
+            params: { slug, id: added.id },
+            body: expense({ description: 'Marina fees (final)' }),
+        })
+        const renamed = afterRename.expenses[0]
+        expect(renamed.description).toBe('Marina fees (final)')
+        // Fixing a typo must not move anyone's balance.
+        expect(renamed.fxRate).toBe(added.fxRate)
+        expect(renamed.baseAmountMinor).toBe(added.baseAmountMinor)
+        expect(renamed.shares.map((s) => s.amountMinor)).toEqual(added.shares.map((s) => s.amountMinor))
+
+        // A different currency makes the stored rate meaningless — re-derive it.
+        const { body: afterCurrency } = await call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${added.id}`,
+            method: 'PATCH',
+            params: { slug, id: added.id },
+            body: expense({ currency: 'GBP' }),
+        })
+        const repriced = afterCurrency.expenses[0]
+        expect(Number(repriced.fxRate)).toBeCloseTo(2.54 / 1.08, 12)
+        expect(repriced.baseAmountMinor).not.toBe(added.baseAmountMinor)
+    })
+})
+
+describe('rate limiting', () => {
+    it('429s room creation once the hourly bucket is empty', async () => {
+        for (let i = 0; i < 20; i++) expect((await newRoom()).status).toBe(201)
+        const { status, body } = await newRoom()
+        expect(status).toBe(429)
+        expect((body as unknown as ApiError).error.code).toBe('RATE_LIMITED')
     })
 })

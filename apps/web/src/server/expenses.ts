@@ -1,6 +1,7 @@
 /** Turning an expense request into rows: FX, share maths, and the invariants
  *  that keep balances honest. Shared by POST and PATCH so an edit behaves
  *  exactly like a fresh write. */
+import type { Expense } from '@prisma/client'
 import { getRateTable, rateFrom } from '@/server/fx'
 import { badRequest } from '@/server/http'
 import { convertMinorAtRate, parseMinor } from '@/server/money'
@@ -26,16 +27,26 @@ const requireMember = (room: RoomWithRelations, id: string, label: string): stri
     return id
 }
 
+/** The row an edit is rewriting. `currency` + `fxRate` are what keep the rate
+ *  locked at creation; `date` is reused when the body omits one. */
+export type ExistingExpense = Pick<Expense, 'date' | 'currency' | 'fxRate'>
+
 export async function buildExpense(
     room: RoomWithRelations,
     body: ExpenseBody,
-    existing?: { date: Date }
+    existing?: ExistingExpense
 ): Promise<ExpenseWrite> {
     const total = parseMinor(body.amountMinor)
     if (total <= 0n) throw badRequest('amount must be greater than zero')
     requireMember(room, body.paidById, 'payer')
 
-    const rate = rateFrom(await getRateTable(), body.currency, room.currency)
+    // The rate is locked at creation (schema.prisma says so, and history depends
+    // on it). Re-reading the table on every edit would silently re-price a
+    // foreign-currency expense — fixing a typo in the description would move
+    // everyone's balance the day live FX lands. Only a currency change earns a
+    // fresh rate, because the stored one no longer describes the pair.
+    const lockedRate = existing && existing.currency === body.currency ? Number(existing.fxRate) : null
+    const rate = lockedRate ?? rateFrom(await getRateTable(), body.currency, room.currency)
     const baseAmountMinor = convertMinorAtRate(total, body.currency, room.currency, rate)
 
     let shares: ShareDraft[]
