@@ -1,14 +1,14 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { peanutWavingHello } from '@/assets/mascot'
-import { Button } from '@/components/ui/Button'
 import { Title } from '@/components/ui/Title'
+import { HeroCreateForm } from './HeroCreateForm'
 
 /**
  * Landing hero. Full-bleed yellow band (the brand primary, so the first thing you see is
- * the colour) with the chunky two-layer Knerd headline, then the primary CTA sitting on the
- * cream background right below — a yellow button on a yellow band would disappear.
+ * the colour) with the chunky two-layer Knerd headline, and then — instead of a button that
+ * promises a tool — the tool. The form sits on the cream background right below the band,
+ * because a yellow button on a yellow band would disappear.
  *
  * The two headline words are translated but the font is not negotiable: Knerd has a narrow
  * glyph set, so every locale's pair has to be plain unaccented capitals (SPLIT/ANYTHING,
@@ -49,12 +49,7 @@ export function Hero() {
             </div>
 
             <div className="mx-auto w-full max-w-xl px-5 pt-6">
-                <Link href="/new" className="block">
-                    <Button variant="primary" shadowSize="4" className="justify-center text-h6">
-                        {t('cta')}
-                    </Button>
-                </Link>
-                <p className="mt-3 text-center text-sm text-grey-1">{t('ctaHint')}</p>
+                <HeroCreateForm />
             </div>
         </section>
     )
