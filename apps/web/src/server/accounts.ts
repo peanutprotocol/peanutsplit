@@ -14,7 +14,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { badRequest } from '@/server/http'
-import { claimedUserId, issueToken, verifyToken } from '@/server/authTokens'
+import { authSecret, claimedUserId, issueToken, verifyToken } from '@/server/authTokens'
 import { magicLinkUrl, sendMagicLink } from '@/server/email'
 import type { Limit } from '@/server/rateLimit'
 
@@ -73,6 +73,10 @@ async function findOrCreateUserByEmail(email: string) {
  * enumeration.
  */
 export async function requestMagicLink(email: string): Promise<void> {
+    // Before anything is written: an unconfigured deployment must answer 503 and
+    // leave no trace, not quietly collect account rows it can never send to.
+    authSecret()
+
     const startedAt = Date.now()
     try {
         const user = await findOrCreateUserByEmail(email)
