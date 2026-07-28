@@ -10,6 +10,7 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest --runInBand",
+    "test:integration": "REQUIRE_DB=1 jest --runInBand src/db/split.integration.test.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",

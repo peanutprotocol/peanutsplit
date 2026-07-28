@@ -300,20 +300,28 @@ export async function recordSettlement(slug: string, input: NewSettlementInput):
 	// Recording it by hand too is the single likeliest way a real room ends up
 	// with the balance inverted.
 	await expireStaleIntents(room.id)
-	if (await livePendingIntent(room.id, input.fromMemberId, input.toMemberId)) {
-		throw new SplitError(409, 'a Peanut payment for this is still confirming — give it a moment')
-	}
-
-	if (input.idempotencyKey) {
-		const already = await prisma.splitSettlement.findFirst({
-			where: { roomId: room.id, idempotencyKey: input.idempotencyKey },
-			select: { id: true },
-		})
-		if (already) return
-	}
 
 	try {
 		await prisma.$transaction(async (tx) => {
+			await lockSettlementDecision(tx, room.id)
+
+			// Re-check the key after taking the lock. A concurrent delivery may
+			// have committed while this transaction waited, and retrying that
+			// same tap remains a successful no-op.
+			if (input.idempotencyKey) {
+				const already = await tx.splitSettlement.findFirst({
+					where: { roomId: room.id, idempotencyKey: input.idempotencyKey },
+					select: { id: true },
+				})
+				if (already) return
+			}
+
+			// These three operations are one room-scoped decision: no manual mark
+			// may race another mark or a new Peanut handoff against the same
+			// pre-payment balance.
+			if (await livePendingIntent(tx, room.id, input.fromMemberId, input.toMemberId)) {
+				throw new SplitError(409, 'a Peanut payment for this is still confirming — give it a moment')
+			}
 			const owed = await settleableBetween(tx, room.id, input.fromMemberId, input.toMemberId)
 			if (owed <= 0n) throw new SplitError(400, 'there is nothing to settle between these two')
 			if (amt > owed) throw new SplitError(400, 'that is more than is owed between these two')
@@ -470,6 +478,19 @@ export async function buildRoomState(slug: string) {
 const INTENT_STALE_MS = 30 * 60 * 1000
 
 /**
+ * Serialize the two paths that reserve or manually spend a room's current debt:
+ * `createSettleIntent` and `recordSettlement`.
+ *
+ * This deliberately does not govern confirmed Peanut receipts. Confirmation
+ * records money that already moved and retains its separate no-ceiling path.
+ */
+async function lockSettlementDecision(tx: Prisma.TransactionClient, roomId: string): Promise<void> {
+	// Prisma cannot deserialize PostgreSQL's `void` pseudo-type, so return a
+	// plain integer from the locking statement.
+	await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${roomId}, 0))`
+}
+
+/**
  * Retire intents nobody came back for.
  *
  * Done lazily on the room's own writes rather than on a schedule: this product
@@ -485,8 +506,13 @@ async function expireStaleIntents(roomId: string): Promise<void> {
 }
 
 /** A live, unconfirmed handoff for exactly this debt. */
-async function livePendingIntent(roomId: string, fromMemberId: string, toMemberId: string) {
-	return prisma.splitSettleIntent.findFirst({
+async function livePendingIntent(
+	tx: Prisma.TransactionClient,
+	roomId: string,
+	fromMemberId: string,
+	toMemberId: string
+) {
+	return tx.splitSettleIntent.findFirst({
 		where: {
 			roomId,
 			fromMemberId,
@@ -525,29 +551,33 @@ export async function createSettleIntent(slug: string, input: NewSettlementInput
 	assertSaneAmount(amt)
 
 	await expireStaleIntents(room.id)
-	// One live handoff per pair. Two intents for the same debt both pass the
-	// ceiling on their own and both confirm, recording the debt twice.
-	const inFlight = await livePendingIntent(room.id, input.fromMemberId, input.toMemberId)
-	if (inFlight) throw new SplitError(409, 'a payment for this is already in progress')
+	return prisma.$transaction(async (tx) => {
+		await lockSettlementDecision(tx, room.id)
 
-	const owed = await settleableBetween(prisma, room.id, input.fromMemberId, input.toMemberId)
-	if (owed <= 0n) throw new SplitError(400, 'there is nothing to settle between these two')
-	if (amt > owed) throw new SplitError(400, 'that is more than is owed between these two')
+		// One live handoff per pair. The lock makes this check and insert one
+		// decision even when several requests arrive together.
+		const inFlight = await livePendingIntent(tx, room.id, input.fromMemberId, input.toMemberId)
+		if (inFlight) throw new SplitError(409, 'a payment for this is already in progress')
 
-	// 128 bits of opacity. Carries no room slug and no member names: this
-	// string travels to Peanut and may end up in a payment memo, a receipt
-	// email or a support console, so it must grant nothing to whoever sees it.
-	const reference = randomBytes(16).toString('base64url')
-	await prisma.splitSettleIntent.create({
-		data: {
-			reference,
-			roomId: room.id,
-			fromMemberId: input.fromMemberId,
-			toMemberId: input.toMemberId,
-			amountMinor: amt,
-		},
+		const owed = await settleableBetween(tx, room.id, input.fromMemberId, input.toMemberId)
+		if (owed <= 0n) throw new SplitError(400, 'there is nothing to settle between these two')
+		if (amt > owed) throw new SplitError(400, 'that is more than is owed between these two')
+
+		// 128 bits of opacity. Carries no room slug and no member names: this
+		// string travels to Peanut and may end up in a payment memo, a receipt
+		// email or a support console, so it must grant nothing to whoever sees it.
+		const reference = randomBytes(16).toString('base64url')
+		await tx.splitSettleIntent.create({
+			data: {
+				reference,
+				roomId: room.id,
+				fromMemberId: input.fromMemberId,
+				toMemberId: input.toMemberId,
+				amountMinor: amt,
+			},
+		})
+		return { reference, amountMinor: amt, roomTitle: room.title, baseCurrency: room.baseCurrency }
 	})
-	return { reference, amountMinor: amt, roomTitle: room.title, baseCurrency: room.baseCurrency }
 }
 
 export type ConfirmResult =
