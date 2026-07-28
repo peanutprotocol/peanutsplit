@@ -18,7 +18,7 @@ export function FinalCta() {
     const t = useTranslations('marketing.finalCta')
 
     return (
-        <section className="mx-auto w-full max-w-xl px-5">
+        <section className="mx-auto w-full max-w-xl px-5 py-10">
             <div className="shadow-4 rounded-sm border border-n-1 bg-white p-5">
                 <h2 className="text-h5">{t('title')}</h2>
                 <Link href="/new" className="mt-4 block">

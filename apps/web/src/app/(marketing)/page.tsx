@@ -2,11 +2,9 @@ import type { Metadata } from 'next'
 import { AccountRecovery } from '@/components/account/AccountRecovery'
 import { FinalCta } from '@/components/marketing/FinalCta'
 import { Hero } from '@/components/marketing/Hero'
-import { HonestyStrip } from '@/components/marketing/HonestyStrip'
-import { HowItWorks } from '@/components/marketing/HowItWorks'
+import { LandingProof } from '@/components/marketing/LandingProof'
 import { ReadMore } from '@/components/marketing/ReadMore'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
-import { UseCases } from '@/components/marketing/UseCases'
 import { YourRooms } from '@/components/marketing/YourRooms'
 import enMessages from '@/i18n/messages/en.json'
 
@@ -20,32 +18,32 @@ import enMessages from '@/i18n/messages/en.json'
 const heroSubtitle = enMessages.marketing.hero.subtitle
 
 export const metadata: Metadata = {
+    title: 'Peanut Split — pass the link, not the spreadsheet',
+    description: heroSubtitle,
     alternates: { canonical: '/' },
     openGraph: {
         type: 'website',
         url: '/',
-        title: 'Peanut Split — who owes who, sorted',
+        title: 'Peanut Split — pass the link, not the spreadsheet',
         description: heroSubtitle,
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Peanut Split — who owes who, sorted',
+        title: 'Peanut Split — pass the link, not the spreadsheet',
         description: heroSubtitle,
     },
 }
 
 export default function LandingPage() {
     return (
-        <main className="flex min-h-dvh flex-col gap-10 bg-background">
+        <main className="flex min-h-dvh flex-col bg-background">
             {/* Renders nothing. `/api/auth/verify` redirects here with `?login=1`
                 after a magic link is spent, and this is what turns that into
                 "your rooms are back". */}
             <AccountRecovery />
             <Hero />
             <YourRooms />
-            <HowItWorks />
-            <UseCases />
-            <HonestyStrip />
+            <LandingProof />
             <ReadMore />
             <FinalCta />
             <SiteFooter />

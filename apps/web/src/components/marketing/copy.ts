@@ -33,7 +33,7 @@ export const marketingCopy = {
             body: 'Splitwise works. It also asks every person in the group to make an account before they can add a single expense, and that is where most groups quietly give up. Peanut Split is a link. Send it, people type a name, everyone adds what they paid.',
             cta: 'Start a split',
             ctaHint: 'Takes ten seconds. No email, no password, no download.',
-            importLink: 'Already on Splitwise? Bring your group’s history with you →',
+            importLink: 'Already on Splitwise? Bring your group’s history with you',
         },
         /**
          * Three reasons that match what people actually search after hitting a wall in
@@ -115,7 +115,7 @@ export const marketingCopy = {
                 },
                 {
                     title: 'Maths that reconciles',
-                    body: 'Balances sum to zero, down to the cent, and settling up suggests the fewest transfers that clear the room. Open any balance and it shows you the working.',
+                    body: 'Balances sum to zero, down to the cent, and settling up suggests a short payment plan that clears the room. Open any balance and it shows you the working.',
                 },
                 {
                     title: 'Everyone sees it as it happens',

@@ -8,8 +8,18 @@
 
 import posthog from 'posthog-js'
 import type { CaptureResult } from 'posthog-js'
+import type { LandingVariant } from './flags'
+
+export type LandingEvent =
+    | 'landing_hero_exposed'
+    | 'landing_form_started'
+    | 'landing_creation_attempted'
+    | 'landing_room_created'
+    | 'landing_preview_completed'
+    | 'landing_preview_replayed'
 
 export type AnalyticsEvent =
+    | LandingEvent
     | 'room_created'
     | 'room_joined'
     | 'expense_added'
@@ -143,12 +153,25 @@ export function initAnalytics(): void {
 }
 
 export function track(event: AnalyticsEvent, properties: Record<string, unknown> = {}): void {
+    // Child effects run before the provider's effect on first paint. Initialising
+    // lazily keeps `landing_hero_exposed` from disappearing on that first pass;
+    // the provider's later call is idempotent.
+    if (!ready) initAnalytics()
     if (!ready) return
     try {
         posthog.capture(event, properties)
     } catch {
         // Analytics must never break a flow.
     }
+}
+
+/**
+ * The landing funnel's complete property surface. Callers cannot accidentally
+ * attach the room draft, the eventual slug, a person, an amount or a currency:
+ * the deployment variant is the only value accepted here.
+ */
+export function trackLanding(event: LandingEvent, variant: LandingVariant): void {
+    track(event, { variant })
 }
 
 /** Keeps the room call sites ergonomic without attaching any room identifier. */

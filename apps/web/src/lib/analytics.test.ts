@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const posthog = vi.hoisted(() => ({
     capture: vi.fn(),
@@ -7,11 +7,23 @@ const posthog = vi.hoisted(() => ({
 
 vi.mock('posthog-js', () => ({ default: posthog }))
 
+const priorKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
+const priorHost = process.env.NEXT_PUBLIC_POSTHOG_HOST
+
 beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
     vi.stubGlobal('window', {})
-    process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key'
+    process.env.NEXT_PUBLIC_POSTHOG_KEY = 'phc_landing_test'
+    process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://analytics.invalid'
+})
+
+afterAll(() => {
+    vi.unstubAllGlobals()
+    if (priorKey === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_KEY
+    else process.env.NEXT_PUBLIC_POSTHOG_KEY = priorKey
+    if (priorHost === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_HOST
+    else process.env.NEXT_PUBLIC_POSTHOG_HOST = priorHost
 })
 
 describe('privacy-safe analytics', () => {
@@ -22,6 +34,7 @@ describe('privacy-safe analytics', () => {
         expect(posthog.init).toHaveBeenCalledOnce()
         const config = posthog.init.mock.calls[0][1]
         expect(config).toMatchObject({
+            api_host: 'https://analytics.invalid',
             autocapture: false,
             capture_pageleave: false,
             capture_pageview: false,
@@ -79,5 +92,39 @@ describe('privacy-safe analytics', () => {
         expect(properties).toEqual({ items: 3 })
         expect(JSON.stringify(properties)).not.toContain('ski-trip-x7k2m9')
         expect(properties).not.toHaveProperty('room')
+    })
+})
+
+describe('landing analytics', () => {
+    it('sends only the allowlisted variant for every landing-funnel event', async () => {
+        const { trackLanding } = await import('./analytics')
+        const events = [
+            'landing_hero_exposed',
+            'landing_form_started',
+            'landing_creation_attempted',
+            'landing_room_created',
+            'landing_preview_completed',
+            'landing_preview_replayed',
+        ] as const
+
+        for (const event of events) trackLanding(event, 'pass_link')
+        trackLanding('landing_hero_exposed', 'control')
+
+        expect(posthog.init).toHaveBeenCalledOnce()
+        expect(posthog.capture.mock.calls).toEqual([
+            ...events.map((event) => [event, { variant: 'pass_link' }]),
+            ['landing_hero_exposed', { variant: 'control' }],
+        ])
+
+        for (const [, properties] of posthog.capture.mock.calls) {
+            expect(Object.keys(properties)).toEqual(['variant'])
+            expect(properties).not.toHaveProperty('room')
+            expect(properties).not.toHaveProperty('slug')
+            expect(properties).not.toHaveProperty('name')
+            expect(properties).not.toHaveProperty('person')
+            expect(properties).not.toHaveProperty('amount')
+            expect(properties).not.toHaveProperty('currency')
+            expect(properties).not.toHaveProperty('description')
+        }
     })
 })

@@ -1,21 +1,15 @@
 import { useTranslations } from 'next-intl'
 import { Title } from '@/components/ui/Title'
+import { landingVariant, type LandingVariant } from '@/lib/flags'
 import { HeroCreateForm } from './HeroCreateForm'
+import { PassTheLinkHero } from './PassTheLinkHero'
 
 /**
- * The first fold is the real form.
- *
- * The product's useful distinction is not merely "bill splitting"; it is the handoff. One
- * person makes a room, passes its link to the group, and everyone adds their own expenses.
- * "PASS IT", the body copy, and the real URL preview inside the form communicate that loop
- * without a second, illustrative version of the product competing beside it.
- *
- * KNERD IS ONE OR TWO WORDS, NEVER MORE. The display face is all-caps, has no accented glyphs,
- * and is drawn to be looked at rather than read. Every locale's title therefore stays short and
- * unaccented. The actual promise is set below it in the
- * body face, where it can be read.
+ * The former compact creator remains one build flag away as a rollback. The new default hands
+ * the same real form to `PassTheLinkHero`, which adds social context without adding another
+ * creation path or any illustrative network activity.
  */
-export function Hero() {
+function CompactHero() {
     const t = useTranslations('marketing.hero')
 
     return (
@@ -34,15 +28,23 @@ export function Hero() {
                             className="text-[3.25rem] leading-[0.9] tracking-tight lg:text-[4.5rem]"
                         />
                     </div>
-                    <h1 className="sr-only">{`${t('titleAccessible')} — ${t('subtitle')}`}</h1>
+                    <h1 className="sr-only">{`${t('controlTitleAccessible')} — ${t('subtitle')}`}</h1>
                     <p className="mt-3 max-w-xl text-base font-medium leading-6 text-n-1 lg:text-lg lg:leading-7">
                         {t('subtitle')}
                     </p>
                 </div>
 
-                <HeroCreateForm />
+                <HeroCreateForm analyticsVariant="control" />
             </div>
         </section>
+    )
+}
+
+export function Hero({ variant = landingVariant() }: { variant?: LandingVariant }) {
+    return (
+        <div data-testid="landing-hero-variant" data-variant={variant}>
+            {variant === 'control' ? <CompactHero /> : <PassTheLinkHero />}
+        </div>
     )
 }
 
