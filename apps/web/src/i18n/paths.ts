@@ -34,13 +34,6 @@ const LOCALE_BY_PREFIX = new Map<string, Locale>(
     LOCALES.filter((locale) => locale !== DEFAULT_LOCALE).map((locale) => [PREFIX_BY_LOCALE[locale], locale])
 )
 
-/** hreflang values. Google matches these case-insensitively but wants the BCP 47 shape. */
-const HREFLANG_BY_LOCALE: Record<Locale, string> = {
-    en: 'en',
-    es: 'es',
-    'pt-BR': 'pt-BR',
-}
-
 /**
  * How `middleware.ts` tells `request.ts` what language a URL is in. It lives here rather than in
  * the middleware so the server config does not have to import an edge-runtime module to read one
@@ -88,7 +81,9 @@ export function hreflangAlternates(path: string, available: Locale[]): Record<st
 
     const languages: Record<string, string> = {}
     for (const locale of available) {
-        languages[HREFLANG_BY_LOCALE[locale]] = localizedPath(path, locale)
+        // The locale IS the hreflang value: both are BCP 47, and Google matches
+        // them case-insensitively. Only the URL prefix has its own spelling.
+        languages[locale] = localizedPath(path, locale)
     }
     if (available.includes(DEFAULT_LOCALE)) {
         languages['x-default'] = localizedPath(path, DEFAULT_LOCALE)

@@ -1,4 +1,4 @@
-import { badRequest, readJson, respond } from '@/server/http'
+import { badRequest, readJsonCapped, respond } from '@/server/http'
 import { CREATE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { toRoomState } from '@/server/roomState'
 import { importRoom } from '@/server/splitwiseImport'
@@ -9,8 +9,9 @@ export const dynamic = 'force-dynamic'
 
 /**
  * Bytes of JSON. Five hundred expenses across twenty members is roughly 400 KB, so a megabyte is
- * generous and still refuses a payload sized to hurt. Checked before the body is read at all —
- * `readJson` would otherwise buffer whatever was sent before zod got a chance to say no.
+ * generous and still refuses a payload sized to hurt. Counted as the body streams in (see
+ * `readJsonCapped`), so a chunked request with no declared length is refused at the same byte a
+ * declared one is — the header alone would be a claim, and an absent one reads as zero.
  */
 const MAX_BODY_BYTES = 1_000_000
 
@@ -34,10 +35,12 @@ export const POST = (request: Request) =>
     respond(async (): Promise<RoomStateWithMember> => {
         enforceRateLimit(request, CREATE_LIMIT, 'create')
 
-        const declared = Number(request.headers.get('content-length') ?? 0)
-        if (declared > MAX_BODY_BYTES) throw badRequest('that import is too big', 'IMPORT_TOO_LARGE')
-
-        const body = importRoomSchema.parse(await readJson(request))
+        const raw = await readJsonCapped(
+            request,
+            MAX_BODY_BYTES,
+            badRequest('that import is too big', 'IMPORT_TOO_LARGE')
+        )
+        const body = importRoomSchema.parse(raw)
         const { room, memberId, memberToken } = await importRoom(body)
         return { ...toRoomState(room), memberId, memberToken }
     }, 201)

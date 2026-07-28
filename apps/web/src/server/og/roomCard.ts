@@ -15,6 +15,10 @@ import { themeFor, type RoomTheme } from '@/lib/themes'
 export const NAME_FALLBACK = 'A split'
 /** Two lines of the smallest display size. Beyond this it stops being a title. */
 export const MAX_NAME_CHARS = 40
+/** Shown instead of a member name we cannot draw. */
+export const MEMBER_FALLBACK = 'Someone'
+/** A member name is one line inside a sentence, not a headline. */
+export const MAX_MEMBER_CHARS = 22
 /** Faces in the avatar row before it collapses into a `+N` chip. */
 export const MAX_AVATARS = 6
 
@@ -69,28 +73,45 @@ function truncate(value: string, max: number): string {
 }
 
 /**
- * Reduce a room name to something the display font can draw.
+ * Reduce a name to something ONE of the shipped OG fonts can draw.
  *
  * Dropping unmappable characters is fine for the odd emoji or stray symbol, but
  * a wholly non-Latin name ("Кипр 2026") would survive as a meaningless "2026".
  * So: keep the stripped name only when it still reads as the same name — at
  * least one alphanumeric left, and at least 70% of the meaningful characters
  * retained. Otherwise fall back rather than ship something half-eaten.
+ *
+ * One function, two bindings below. A room name is a headline in the display
+ * font; a member name is one line inside a sentence in the body font. The
+ * charset, the fallback and the ceiling are the only differences — and these
+ * were two hand-copied implementations until they drifted: only one of them
+ * dropped the trailing comma before the dots.
  */
-export function sanitizeDisplayName(raw: string): string {
+export function sanitizeForFont(
+    raw: string,
+    options: { charset: ReadonlySet<string>; fallback: string; max: number }
+): string {
     const kept = [...raw]
-        .filter((ch) => DISPLAY_CHARS.has(ch))
+        .filter((ch) => options.charset.has(ch))
         .join('')
         .replace(/\s+/g, ' ')
         .trim()
 
-    if (!/[A-Za-z0-9]/.test(kept)) return NAME_FALLBACK
+    if (!/[A-Za-z0-9]/.test(kept)) return options.fallback
 
     const meaningful = countMeaningful(raw)
-    if (meaningful > 0 && countMeaningful(kept) / meaningful < 0.7) return NAME_FALLBACK
+    if (meaningful > 0 && countMeaningful(kept) / meaningful < 0.7) return options.fallback
 
-    return truncate(kept, MAX_NAME_CHARS)
+    return truncate(kept, options.max)
 }
+
+/** The room's own name, as the unfurl's headline. */
+export const sanitizeDisplayName = (raw: string): string =>
+    sanitizeForFont(raw, { charset: DISPLAY_CHARS, fallback: NAME_FALLBACK, max: MAX_NAME_CHARS })
+
+/** A member's name, as it appears inside a recap sentence. */
+export const sanitizeMemberName = (raw: string): string =>
+    sanitizeForFont(raw, { charset: BODY_CHARS, fallback: MEMBER_FALLBACK, max: MAX_MEMBER_CHARS })
 
 /** First drawable letter of a member's name, diacritics folded away. Checked
  *  against the display font because that is what the avatar discs render in. */

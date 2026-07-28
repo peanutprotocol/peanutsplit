@@ -29,9 +29,29 @@ const roomArgs = {
 
 export type RoomWithRelations = Prisma.RoomGetPayload<typeof roomArgs>
 
+/**
+ * The columns a balance is folded from, and nothing else.
+ *
+ * Structural rather than `RoomWithRelations` so a caller that selected four
+ * columns — the recap card does exactly that, and loading every share to draw an
+ * unfurl would be absurd — can use THIS fold instead of writing a second one.
+ * `RoomWithRelations` satisfies it, so every existing call site is unchanged.
+ */
+export interface BalanceInput {
+    members: readonly { id: string }[]
+    expenses: readonly {
+        paidById: string
+        baseAmountMinor: bigint
+        shares: readonly { memberId: string; amountMinor: bigint }[]
+    }[]
+    settlements: readonly { fromId: string; toId: string; amountMinor: bigint }[]
+}
+
 /** Net position per member: what they paid out, minus their share of everything,
- *  adjusted by settlements already recorded. Sums to zero by construction. */
-export function balancesOf(room: RoomWithRelations): Map<string, bigint> {
+ *  adjusted by settlements already recorded. Sums to zero by construction.
+ *
+ *  THE definition of a balance in this product. There is no second one. */
+export function balancesOf(room: BalanceInput): Map<string, bigint> {
     const net = new Map<string, bigint>(room.members.map((m) => [m.id, 0n]))
     const bump = (id: string, delta: bigint) => {
         const current = net.get(id)

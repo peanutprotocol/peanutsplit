@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { CURRENCY_CODES } from '@/server/money'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isThemeKey } from '@/lib/themes'
+import { MAX_EXPENSES, MAX_MEMBERS } from '@/lib/splitwise-csv'
 
 const currencyCode = z
     .string()
@@ -217,8 +218,9 @@ export type ReactionBody = z.infer<typeof reactionSchema>
 
 /**
  * The import posts a whole room at once, so this is the one schema where the request is big enough
- * to be worth bounding. The caps are the same numbers `lib/splitwise-csv.ts` enforces while
- * parsing — a preview that promises a room the POST would refuse is worse than an early no.
+ * to be worth bounding. The caps are IMPORTED from `lib/splitwise-csv.ts` rather than restated:
+ * a preview that promises a room the POST would refuse is worse than an early no, and two numbers
+ * that have to agree should be one number.
  *
  * The client parses the CSV and never uploads it, which means the server sees structured data it
  * did not derive and has to re-establish every invariant itself: members exist, the payer is one
@@ -226,9 +228,6 @@ export type ReactionBody = z.infer<typeof reactionSchema>
  * checked here AND again inside `buildExpense`; the duplication is deliberate, because that is the
  * check that stands between a bad file and a room whose balances do not net to zero.
  */
-export const IMPORT_MAX_MEMBERS = 20
-export const IMPORT_MAX_EXPENSES = 500
-
 /** Splitwise exports a calendar day, not an instant. */
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a YYYY-MM-DD date')
 
@@ -242,7 +241,7 @@ const importedExpenseSchema = z.object({
     shares: z
         .array(z.object({ member: personName, amountMinor: minorAmount }))
         .min(1)
-        .max(IMPORT_MAX_MEMBERS),
+        .max(MAX_MEMBERS),
 })
 
 export const importRoomSchema = z
@@ -251,8 +250,8 @@ export const importRoomSchema = z
         emoji: z.string().max(8).nullish(),
         currency: currencyCode,
         creatorName: personName,
-        members: z.array(personName).min(1).max(IMPORT_MAX_MEMBERS),
-        expenses: z.array(importedExpenseSchema).min(1).max(IMPORT_MAX_EXPENSES),
+        members: z.array(personName).min(1).max(MAX_MEMBERS),
+        expenses: z.array(importedExpenseSchema).min(1).max(MAX_EXPENSES),
     })
     .superRefine((body, ctx) => {
         const fail = (message: string, path: (string | number)[]) =>

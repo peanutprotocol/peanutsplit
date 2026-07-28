@@ -178,13 +178,63 @@ export async function drainQueue(
  */
 export function mergeQueuedExpenses(state: RoomState, queued: readonly QueuedWrite[]): RoomState {
     if (queued.length === 0) return state
-    const rows = queued.map((item) => queuedExpenseRow(item, state))
+    const rows = queued.map((item) =>
+        draftExpenseRow(item.body, {
+            id: queuedExpenseId(item.clientKey),
+            at: item.addedAt,
+            members: state.members,
+        })
+    )
     return { ...state, expenses: [...rows, ...state.expenses] }
 }
 
 /** `pending-<clientKey>` — the prefix the expense list already treats as "not
  *  saved yet", the suffix so a row keeps its identity across renders. */
 export const queuedExpenseId = (clientKey: string): string => `pending-${clientKey}`
+
+/**
+ * The row a not-yet-saved expense renders as — the one shape, for both paths
+ * that need one.
+ *
+ * There are exactly two: the optimistic add (`queries.ts`, in flight) and the
+ * offline queue (below, waiting for signal). They produce the same fourteen
+ * fields for the same reason, and they were two hand-written copies until a
+ * change to one of them had to be applied to the other by hand.
+ *
+ * `at` is when the row was made — the queue passes the enqueue time so a row
+ * that has been waiting an hour still says so.
+ */
+export function draftExpenseRow(
+    input: ExpenseInput,
+    context: { id: string; at: number; members: readonly { id: string }[] }
+): ApiExpense {
+    const participants =
+        input.splitMode === 'EXACT'
+            ? (input.exactShares ?? []).map((share) => share.memberId)
+            : (input.participantIds ?? context.members.map((member) => member.id))
+
+    return {
+        id: context.id,
+        description: input.description,
+        amountMinor: input.amountMinor,
+        currency: input.currency,
+        // No FX applied yet — the row shows the entered amount and no conversion
+        // line, because the server is the only thing that knows the rate.
+        baseAmountMinor: input.amountMinor,
+        fxRate: '1',
+        splitMode: input.splitMode,
+        paidById: input.paidById,
+        createdById: null,
+        date: input.date ?? new Date(context.at).toISOString(),
+        category: input.category ?? null,
+        createdAt: new Date(context.at).toISOString(),
+        // Shares are zeroed, not guessed: a draft moves no money, and the
+        // authoritative RoomState brings the real split back in one commit.
+        shares: participants.map((memberId) => ({ memberId, amountMinor: '0', enteredAmountMinor: null })),
+        // Nobody can react to an expense that has not reached the server yet.
+        reactions: [],
+    }
+}
 
 /**
  * True for a row this module put on screen, as opposed to an in-flight
@@ -203,34 +253,6 @@ export const queuedExpenseId = (clientKey: string): string => `pending-${clientK
  */
 export const isQueuedExpenseId = (expenseId: string, queued: readonly QueuedWrite[]): boolean =>
     queued.some((item) => queuedExpenseId(item.clientKey) === expenseId)
-
-function queuedExpenseRow(item: QueuedWrite, state: RoomState): ApiExpense {
-    const input = item.body
-    const participants =
-        input.splitMode === 'EXACT'
-            ? (input.exactShares ?? []).map((share) => share.memberId)
-            : (input.participantIds ?? state.members.map((member) => member.id))
-
-    return {
-        id: queuedExpenseId(item.clientKey),
-        description: input.description,
-        amountMinor: input.amountMinor,
-        currency: input.currency,
-        // No FX has been applied — the row shows the entered amount and no
-        // conversion line, exactly like the optimistic path.
-        baseAmountMinor: input.amountMinor,
-        fxRate: '1',
-        splitMode: input.splitMode,
-        paidById: input.paidById,
-        createdById: null,
-        date: input.date ?? new Date(item.addedAt).toISOString(),
-        category: input.category ?? null,
-        createdAt: new Date(item.addedAt).toISOString(),
-        // Nobody can react to an expense that has not reached the server yet.
-        reactions: [],
-        shares: participants.map((memberId) => ({ memberId, amountMinor: '0', enteredAmountMinor: null })),
-    }
-}
 
 // ─── storage ────────────────────────────────────────────────────────────────
 
