@@ -1,4 +1,5 @@
 import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { readJson, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, loadRoomById, roomStateBySlug, toRoomState } from '@/server/roomState'
@@ -31,5 +32,11 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         assertWritable(room)
 
         await prisma.room.update({ where: { id: room.id }, data: { theme: body.theme ?? null } })
-        return toRoomState(await loadRoomById(room.id))
+        const state = toRoomState(await loadRoomById(room.id))
+        // Same placement rule as every other write: after the row committed, so
+        // the refetch it triggers can only see the new palette. Without it a
+        // repaint is the SLOWEST write in the product — a peer holding an open
+        // stream polls at 45s, where before the stream existed it polled at 8s.
+        publish(room.id)
+        return state
     })
