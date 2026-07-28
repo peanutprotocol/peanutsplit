@@ -112,3 +112,70 @@ export type CreateRoomBody = z.infer<typeof createRoomSchema>
 export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
 export type SettlementBody = z.infer<typeof settlementSchema>
+
+// ── receipt scan ─────────────────────────────────────────────────────────────
+//
+// Two schemas, and it is worth saying why the second one lives beside the first.
+// `receiptParseSchema` bounds what a *browser* sends us. `receiptModelSchema`
+// bounds what a *language model* sends us, and that is the same category of
+// input: unauthenticated text of unknown provenance that ends up deciding how
+// money is divided. It gets the same `minorAmount` primitive every other amount
+// on this surface gets, in the same file, so nobody can wire the model's
+// arithmetic straight into a split without walking past this.
+
+/** The image formats the model accepts and a phone can actually produce. HEIC is
+ *  deliberately absent — the client converts it via canvas before upload, so the
+ *  server never needs a decoder for Apple's container. */
+export const RECEIPT_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+
+export const receiptParseSchema = z.object({
+    /** Raw base64, no `data:` prefix. The route checks the byte ceiling before it
+     *  ever gets here — an oversized upload is a 413, not a schema rejection. */
+    imageBase64: z.string().min(16),
+    mimeType: z.enum(RECEIPT_IMAGE_TYPES),
+})
+
+/**
+ * Twelve digits is a trillion minor units — past any bill anyone has ever split,
+ * and short enough that a hallucinated run of digits cannot turn one line item
+ * into a number that dwarfs every real one on the receipt.
+ */
+export const receiptAmountMinor = minorAmount.refine((s) => s.length <= 12, { message: 'implausibly large amount' })
+
+/** One line item, as the model claims it. Parsed per item so a single bad row is
+ *  dropped rather than costing the user the whole scan. */
+export const receiptItemSchema = z.object({
+    // Truncated, not rejected: a model that returned the whole address block as
+    // a label still read a real line item, and dropping the row would drop money
+    // off the bill to punish a formatting mistake.
+    label: z
+        .string()
+        .trim()
+        .min(1)
+        .transform((s) => s.slice(0, 80)),
+    amountMinor: receiptAmountMinor,
+    /** Printed quantity, when there is one. Display only — the amount is the line
+     *  total, so nothing multiplies by this. Nonsense degrades to "not printed"
+     *  rather than costing the item its place. */
+    quantity: z.coerce.number().int().min(1).max(999).nullish().catch(null),
+})
+
+/**
+ * The envelope, kept deliberately loose: `items` and `total` come in as unknown
+ * and are narrowed one at a time in `server/receipt.ts`. A strict array schema
+ * would fail the whole payload on one malformed row, which is exactly the moment
+ * a user has already spent their photo and their patience.
+ *
+ * Every field `.catch`es to null for the same reason: the only thing that should
+ * be able to fail this parse is "the model did not return an object at all". A
+ * hallucinated `date` must not cost someone their itemised bill.
+ */
+export const receiptModelSchema = z.object({
+    items: z.array(z.unknown()).nullish().catch(null),
+    total: z.unknown(),
+    currency: z.string().max(16).nullish().catch(null),
+    merchant: z.string().max(200).nullish().catch(null),
+    date: z.string().max(40).nullish().catch(null),
+})
+
+export type ReceiptParseBody = z.infer<typeof receiptParseSchema>

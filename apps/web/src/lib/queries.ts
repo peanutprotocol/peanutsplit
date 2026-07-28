@@ -159,3 +159,22 @@ export function useDeleteSettlement(slug: string, token?: string | null) {
         onSuccess: (state) => seed(queryClient, slug, state),
     })
 }
+
+/**
+ * Whether this deployment can read a bill photo. A server capability, so it is
+ * asked rather than compiled in — see `api.receipt.status`.
+ *
+ * Cached for the session and never retried: a failed probe means "no scanning
+ * right now", and a button that flickers into existence on a background refetch
+ * is worse than one that stays hidden until the next page load.
+ */
+export function useReceiptScanEnabled(slug: string) {
+    const { data } = useQuery({
+        queryKey: ['receipt-scan-enabled', slug] as const,
+        queryFn: ({ signal }) => api.receipt.status(slug, signal),
+        staleTime: 60 * 60 * 1000,
+        retry: false,
+        refetchOnWindowFocus: false,
+    })
+    return data?.enabled ?? false
+}
