@@ -39,26 +39,41 @@ export function splitEqual(total: bigint, n: number): bigint[] {
 }
 
 /**
- * Normalize caller-supplied exact shares so they sum EXACTLY to `total`. Any
- * rounding drift (e.g. from currency conversion) is absorbed by the
- * largest-magnitude share so the ledger always balances.
+ * Normalize caller-supplied exact shares so they sum EXACTLY to `total`.
+ *
+ * Positive rounding drift is absorbed by the largest share. Negative drift is
+ * removed from the largest shares in order, but never below zero. Fractional FX
+ * remainders are no longer available at this layer, so this deterministic
+ * largest-first adjustment is the narrowest safe reconciliation.
  */
 export function normalizeExact(shares: bigint[], total: bigint): bigint[] {
 	if (shares.length === 0) throw new Error('normalizeExact requires at least one share')
+	if (total < 0n || shares.some((share) => share < 0n)) {
+		throw new Error('normalizeExact requires non-negative amounts')
+	}
 	const sum = shares.reduce((a, b) => a + b, 0n)
 	const drift = total - sum
 	if (drift === 0n) return shares.slice()
-	let idx = 0
-	for (let i = 1; i < shares.length; i++) {
-		if (abs(shares[i]) > abs(shares[idx])) idx = i
-	}
-	const out = shares.slice()
-	out[idx] += drift
-	return out
-}
 
-function abs(x: bigint): bigint {
-	return x < 0n ? -x : x
+	const order = shares
+		.map((amount, index) => ({ amount, index }))
+		.sort((a, b) => (a.amount === b.amount ? a.index - b.index : a.amount > b.amount ? -1 : 1))
+	const out = shares.slice()
+
+	if (drift > 0n) {
+		out[order[0].index] += drift
+		return out
+	}
+
+	let remaining = -drift
+	for (const { index } of order) {
+		const take = out[index] < remaining ? out[index] : remaining
+		out[index] -= take
+		remaining -= take
+		if (remaining === 0n) break
+	}
+	if (remaining !== 0n) throw new Error('exact shares cannot reconcile to a negative total')
+	return out
 }
 
 export type BalanceInput = {
