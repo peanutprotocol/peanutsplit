@@ -537,29 +537,38 @@ async function withStorageLease<T>(run: () => Promise<T>): Promise<Ownership<T>>
 
     const mine = queueOwnerId()
     const now = Date.now()
+    let lease: DrainLease
     try {
         const current = parseLease(store.getItem(DRAIN_LEASE_KEY))
         if (current && current.ownerId !== mine && current.expiresAt > now) return { acquired: false }
 
-        const lease: DrainLease = {
+        lease = {
             ownerId: mine,
             nonce: createClientKey(),
             expiresAt: now + DRAIN_LEASE_MS,
         }
         store.setItem(DRAIN_LEASE_KEY, JSON.stringify(lease))
         if (parseLease(store.getItem(DRAIN_LEASE_KEY))?.nonce !== lease.nonce) return { acquired: false }
-
-        try {
-            return { acquired: true, value: await run() }
-        } finally {
-            if (parseLease(store.getItem(DRAIN_LEASE_KEY))?.nonce === lease.nonce) {
-                store.removeItem(DRAIN_LEASE_KEY)
-            }
-        }
     } catch {
         // If storage itself is unavailable, the tabs cannot share a queue
         // either. The in-tab guard is sufficient for the in-memory fallback.
         return { acquired: true, value: await run() }
+    }
+
+    // Keep the callback outside the storage catch. A callback failure belongs to
+    // the drain and must propagate once; treating it as a lease failure would
+    // execute the same write sequence a second time.
+    try {
+        return { acquired: true, value: await run() }
+    } finally {
+        try {
+            if (parseLease(store.getItem(DRAIN_LEASE_KEY))?.nonce === lease.nonce) {
+                store.removeItem(DRAIN_LEASE_KEY)
+            }
+        } catch {
+            // Losing storage during cleanup only lets this lease expire
+            // naturally. It must never replace the callback's result or error.
+        }
     }
 }
 
@@ -602,6 +611,10 @@ export async function drainPending(): Promise<DrainSummary | null> {
             // network request is in flight without sharing an overwrite target.
             snapshot = removeQueuedItems([...summary.sent, ...summary.dropped])
             notifyChanged()
+            // Any forward progress means the connection is not in the same
+            // failure streak. Give the first retained item the short retry
+            // again instead of inheriting a five-minute delay from an older one.
+            if (summary.sent.length > 0 || summary.dropped.length > 0) retryAttempt = 0
             if (snapshot.length > 0) scheduleRetry()
             else cancelRetry()
             if (summary.sent.length > 0) notify({ kind: 'sent', count: summary.sent.length })
