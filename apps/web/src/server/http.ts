@@ -67,13 +67,26 @@ export async function respond(run: () => Promise<unknown>, successStatus = 200):
     }
 }
 
-/** Body parsing that fails as a 400, not a 500. */
-export async function readJson(request: Request): Promise<unknown> {
+const malformedJson = () => badRequest('request body must be JSON', 'MALFORMED_JSON')
+
+function parseJson(text: string): unknown {
     try {
-        return await request.json()
+        return JSON.parse(text)
     } catch {
-        throw badRequest('request body must be JSON', 'MALFORMED_JSON')
+        throw malformedJson()
     }
+}
+
+/** A generous ceiling for the small JSON commands used by ordinary routes. */
+export const DEFAULT_JSON_BODY_BYTES = 64 * 1024
+
+/** Body parsing that is bounded by default and fails in the house error shape. */
+export async function readJson(request: Request): Promise<unknown> {
+    return readJsonCapped(
+        request,
+        DEFAULT_JSON_BODY_BYTES,
+        new ApiError(413, 'REQUEST_TOO_LARGE', 'request body is too large')
+    )
 }
 
 /**
@@ -99,9 +112,7 @@ export async function readJsonCapped(request: Request, maxBytes: number, tooBig:
     if (Number.isFinite(declared) && declared > maxBytes) throw tooBig
 
     const body = request.body
-    // No stream to count (a bodiless request, or a runtime that already buffered
-    // it). `readJson` gives the same MALFORMED_JSON a missing body deserves.
-    if (!body) return readJson(request)
+    if (!body) throw malformedJson()
 
     const reader = body.getReader()
     const decoder = new TextDecoder()
@@ -122,11 +133,7 @@ export async function readJsonCapped(request: Request, maxBytes: number, tooBig:
     }
     text += decoder.decode()
 
-    try {
-        return JSON.parse(text)
-    } catch {
-        throw badRequest('request body must be JSON', 'MALFORMED_JSON')
-    }
+    return parseJson(text)
 }
 
 /** Attribution only — never authorization. The slug is the credential. */
