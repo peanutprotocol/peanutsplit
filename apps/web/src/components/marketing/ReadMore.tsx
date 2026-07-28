@@ -21,7 +21,12 @@ export function ReadMore() {
     const methods = ['cash', 'bank', 'peanut'] as const
     const team = ['konrad', 'hugo', 'natalia', 'jakub'] as const
     const points = ['built', 'free', 'data'] as const
-    const questions = ['retype', 'accounts', 'currencies', 'access', 'lost', 'limits'] as const
+    // 'accounts' and 'currencies' were cut: the first is answered by the join preview that
+    // opens this same disclosure, with a picture of the screen, and the second repeated the
+    // multi-currency feature card six blocks above it. Neither fed JSON-LD — `faqSchema`
+    // runs on /splitwise-alternative, /import and article frontmatter, never here — so
+    // removing them costs nothing in search.
+    const questions = ['retype', 'access', 'lost', 'limits'] as const
 
     return (
         <section className="mx-auto w-full max-w-xl px-5">

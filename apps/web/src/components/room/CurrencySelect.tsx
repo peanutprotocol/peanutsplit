@@ -5,8 +5,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
-import { currencyFlag } from '@/lib/currency-hint'
-import { currencyDisplayName, displaySymbol } from '@/lib/money'
+import { currencyDisplayName } from '@/lib/money'
 import { CurrencyTag } from './CurrencyTag'
 
 interface CurrencySelectProps {
@@ -27,15 +26,15 @@ interface CurrencySelectProps {
  * The OS picker is faster than anything we could build, is accessible for free, never fights a
  * virtual keyboard on a 390px screen, and is what `selectOption()` drives in the e2e journey. So
  * the select stays — it is just made invisible and stretched over a trigger we draw ourselves,
- * which is how the closed state can carry a flag and a symbol while the open state is still the
+ * which is how the closed state can carry a drawn currency sign while the open state is still the
  * platform's own wheel. The `peer-focus-visible` classes carry the focus ring across to the drawn
  * trigger, so a keyboard user still sees what they have focused.
  *
  * Suggested currencies are a real `<optgroup>` rather than a hand-drawn divider — the OS renders
- * it as a section header at zero cost. They are repeated in the alphabetical group below on
- * purpose: a shortcut must not make a currency vanish from where someone expects to find it.
- * Duplicate values are legal HTML, and since the trigger is ours, picking either copy looks
- * identical.
+ * it as a section header at zero cost, which is what "three or four, then everything else" looks
+ * like in a native picker. They are repeated in the full group below on purpose: a shortcut must
+ * not make a currency vanish from where someone expects to find it. Duplicate values are legal
+ * HTML, and since the trigger is ours, picking either copy looks identical.
  */
 export function CurrencySelect({
     value,
@@ -54,14 +53,20 @@ export function CurrencySelect({
     const suggestedInfos = (suggested ?? [])
         .map((code) => byCode.get(code))
         .filter((info): info is CurrencyInfo => info !== undefined)
-    const alphabetical = [...currencies].sort((a, b) => a.code.localeCompare(b.code))
+    /** `Brazilian Real (BRL)`. An `<option>` holds text and nothing else, so this is one string.
+     *
+     *  It used to read `🇧🇷 R$ BRL — Brazilian Real`: a flag, a symbol, a code and a name — four
+     *  encodings of one fact, in a control you scroll past two hundred times. The name leads now
+     *  because the name is the part a person reads; the code follows in brackets because it is
+     *  the part they may be looking for. */
+    const optionLabel = (info: CurrencyInfo) => `${currencyDisplayName(info.code, locale, currencies)} (${info.code})`
 
-    /** `🇧🇷 R$ BRL — Brazilian Real`. An `<option>` holds text and nothing else, so the flag, the
-     *  symbol and the localized name are one string here rather than three elements. */
-    const optionLabel = (info: CurrencyInfo) => {
-        const lead = [currencyFlag(info.code), displaySymbol(info), info.code].filter(Boolean).join(' ')
-        return `${lead} — ${currencyDisplayName(info.code, locale, currencies)}`
-    }
+    /** By name, not by code, because that is now what the row leads with — a list labelled
+     *  "Brazilian Real" and ordered B-R-L reads as unsorted. `localeCompare` with the user's
+     *  locale so accented names land where that language expects them. */
+    const byName = [...currencies].sort((a, b) =>
+        optionLabel(a).localeCompare(optionLabel(b), locale, { sensitivity: 'base' })
+    )
 
     return (
         <div className={cn('relative w-full', className)}>
@@ -82,7 +87,7 @@ export function CurrencySelect({
                     </optgroup>
                 )}
                 <optgroup label={t('all')}>
-                    {alphabetical.map((info) => (
+                    {byName.map((info) => (
                         <option key={info.code} value={info.code}>
                             {optionLabel(info)}
                         </option>

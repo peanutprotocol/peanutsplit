@@ -219,7 +219,7 @@ Peanut mark only, cream `background`).
 
 Order below is execution order, not importance. Status per item.
 
-1. **Doodles as icons, emoji gone.** — *status: —*
+1. **Doodles as icons, emoji gone.** — *status: in progress — pipeline landed, drawings being cut*
    Port `rough.py` and the `build.py` → generated-set pipeline from
    `munin/design/raven-doodles/`. Clean geometry in a 32-unit box, stroked at
    ~1.4–2px, `fill: none`, `stroke: currentColor`, so a drawing inherits the ink
@@ -229,14 +229,22 @@ Order below is execution order, not importance. Status per item.
    grid, the use-case cards — draws instead. Legibility floor learned in Munin:
    below about r2.5 a loop fills in and reads as a full stop.
 
-2. **Footer and sitemap.** — *status: —*
+2. **Footer and sitemap.** — *status: shipped 2026-07-28*
    Real Peanut logo rather than the word set in `font-display`, and the
    structure peanut.me uses: named columns, not a single row of grey links.
    Every static page Split has should be reachable from it.
 
-3. **Language picker placement.** — *status: —*
-   Currently a three-button group nailed to the bottom of the footer, below the
-   fold on every page. Mock alternatives before moving it.
+3. **Language picker placement.** — *status: decided 2026-07-28 — stays in the footer, see below*
+   RULED: it stays in the footer, but as a compact three-word row in the bottom
+   bar rather than the full-width segmented control it was — which was the
+   largest single control on the page, sitting at the very bottom of it.
+   No mockup round, because the premise was wrong. Locale is already resolved
+   server-side from the cookie and then `Accept-Language`, so a Portuguese
+   speaker arrives in Portuguese without touching anything. The switcher is not
+   the way in, it is the correction path for the minority the header guesses
+   wrong — and a correction path is exactly what a footer is for. Putting it in
+   the hero would cost fold space to a control most people never need, and Split
+   has no header bar on the LP to put it in without inventing one.
 
 4. **Room doodle auto-picked from the name.** — *status: —*
    A keyword table maps what someone types ("ski", "esquí", "pizza", "airbnb")
@@ -248,26 +256,26 @@ Order below is execution order, not importance. Status per item.
    Draw the symbol, show three or four currencies, and put the rest behind a
    "more" step.
 
-6. **Knerd is for one or two words.** — *status: —*
+6. **Knerd is for one or two words.** — *status: shipped 2026-07-28*
    The display face has no accented glyphs and no lowercase worth reading; at
    three words it stops being a headline and becomes a texture. Cap it, and set
    the rest in the body face.
 
-7. **Inline the field labels.** — *status: —*
+7. **Inline the field labels.** — *status: shipped 2026-07-28*
    "What are you splitting" above an empty box becomes `Ski trip…` inside it.
    Halves the vertical space the form takes, which is what puts the button above
    the fold on a 390px screen.
 
-8. **Cut superfluous copy.** — *status: —*
+8. **Cut superfluous copy.** — *status: in progress*
    Cold-read UX pass over every marketing surface; delete the lines that restate
    the line above them.
 
-9. **A `(?)` affordance instead of a sentence.** — *status: —*
+9. **A `(?)` affordance instead of a sentence.** — *status: shipped 2026-07-28*
    The slug preview and "How the link works" currently take two lines and a
    underlined link. One small drawn `(?)` beside the preview opens the same
    sheet.
 
-10. **The form IS the first fold.** — *status: —*
+10. **The form IS the first fold.** — *status: shipped 2026-07-28*
     Drop the yellow pitch band above the form and give the form the yellow
     instead, with enough weight that it reads as the subject of the page rather
     than a widget under a headline.

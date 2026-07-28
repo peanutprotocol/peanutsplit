@@ -16,27 +16,27 @@
     "note": "a hand-drawn Brazilian real sign — R next to $"
   },
   "yen": {
-    "d": "M7.5 7L16 15.5L24.5 7M16 15.5V25.5M8.5 18.4H23.5M8.5 22.2H23.5",
+    "d": "M7 6.8L16 15.2L25 6.8M16 15.2V25.8M8.5 18.2H23.5M8.5 22.6H23.5",
     "note": "a hand-drawn yen sign — Y with two bars"
   },
   "rupee": {
-    "d": "M8 6.8H24M8 11.4H22.6M22.6 11.4C22.6 15 20 17.6 15.5 17.6L9 17.6L19.5 26",
+    "d": "M7.5 6.5H24.5M7.5 11.6H23M23 11.6C23 15.4 20.2 18.2 15.5 18.2L8.5 18.2L19 26",
     "note": "a hand-drawn Indian rupee sign — two top bars, hooked bowl and leg"
   },
   "zloty": {
-    "d": "M6.8 13H15.4L6.8 24H15.8M21 6.4V24M19.3 15.6L22.7 11.4",
-    "note": "a hand-drawn Polish zloty sign — z and slashed l"
+    "d": "M6.6 12.8H15.4L6.6 24H16M21 6.2V24M18.8 16L23.2 11.2",
+    "note": "a hand-drawn Polish zloty sign — z beside a slashed l"
   },
   "peso": {
-    "d": "M22 10.5C22 8.5 19.3 7.2 16 7.2C12.7 7.2 10 8.7 10 11C10 13.6 13 14.6 16 15.9C19.2 17.3 22 18.4 22 21.2C22 23.4 19.3 24.8 16 24.8C12.7 24.8 10 23.5 10 21.2M13.5 5V27M18.5 5V27",
-    "note": "a hand-drawn peso sign — the double-bar cifrao"
+    "d": "M22 10.5C22 8.5 19.3 7.2 16 7.2C12.7 7.2 10 8.7 10 11C10 13.6 13 14.6 16 15.9C19.2 17.3 22 18.4 22 21.2C22 23.4 19.3 24.8 16 24.8C12.7 24.8 10 23.5 10 21.2M12.7 5V27M19.3 5V27",
+    "note": "a hand-drawn peso sign — the double-barred cifrao"
   },
   "naira": {
-    "d": "M9.5 25V7L22.5 25V7M7.8 14H24.2M7.8 18.2H24.2",
+    "d": "M8.5 25V7L23.5 25V7M7.2 12.5H24.8M7.2 19.5H24.8",
     "note": "a hand-drawn naira sign — N with two bars"
   },
   "franc": {
-    "d": "M12 6.8V25.5M12 6.8H23M12 14H20.5M8.5 20.5H16",
+    "d": "M12.5 6.5V25.5M12.5 6.5H24M12.5 13.6H21M8 21H17",
     "note": "a hand-drawn franc sign — F with a barred stem"
   }
 }

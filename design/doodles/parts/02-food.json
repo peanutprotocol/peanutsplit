@@ -30,8 +30,8 @@
     "note": "a burger: domed bun, lettuce, base"
   },
   "sushi": {
-    "d": "M4.5 17.5C6 8.5 26 8.5 27.5 17.5ZM8 18H24A4.2 4.2 0 0 1 24 26.4H8A4.2 4.2 0 0 1 8 18ZM13.2 11.8V26.4M18.8 11.6V26.4",
-    "note": "a piece of nigiri: fish over rice, nori band"
+    "d": "M4.5 14V10.6A3.55 3.55 0 0 1 11.5 11.8A3.55 3.55 0 0 1 18.5 13A3.55 3.55 0 0 1 25.5 14.2V17.6ZM11.5 17.8L19.5 19.2A4 4 0 0 1 19.5 27.2L11.5 25.8A4 4 0 0 1 11.5 17.8Z",
+    "note": "nigiri: a slab of fish draped over the rice"
   },
   "cart": {
     "d": "M4 5.5H7.2L11.8 19.5H24.5M8.3 9.5H28L24.5 19.5",
