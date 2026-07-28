@@ -624,3 +624,79 @@ describe('adding a latecomer to the expenses that predate them', () => {
         expect(latecomerOffer(repaired)).toBeNull()
     })
 })
+
+/**
+ * Part-paying a debt. The route has always taken an arbitrary positive amount —
+ * this pins that, because the settle sheet now offers it and a regression here
+ * would silently turn "I gave you half" into "I gave you all of it".
+ */
+describe('recording part of a debt', () => {
+    it('leaves the remainder outstanding and keeps the room net to zero', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const ana = created.memberId
+        const { body: withBea } = await join(slug, 'Bea')
+        const bea = withBea.memberId
+
+        await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            token: created.memberToken,
+            body: { description: 'Cabin', amountMinor: '10000', currency: 'EUR', paidById: ana, splitMode: 'EQUAL' },
+        })
+
+        const owed = (state: RoomState) => state.suggestedTransfers.map((t) => t.amountMinor)
+
+        // Bea owes 50.00. She hands over 20.00 now.
+        const { status, body: afterPart } = await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${slug}/settlements`,
+            method: 'POST',
+            params: { slug },
+            token: withBea.memberToken,
+            body: { fromId: bea, toId: ana, amountMinor: '2000', method: 'cash', note: 'rest on Friday' },
+        })
+
+        expect(status).toBe(201)
+        expect(afterPart.settlements).toHaveLength(1)
+        expect(afterPart.settlements[0].amountMinor).toBe('2000')
+        // Method, note and who recorded it all survive to the wire — the three
+        // fields the timeline row is built from.
+        expect(afterPart.settlements[0].method).toBe('cash')
+        expect(afterPart.settlements[0].note).toBe('rest on Friday')
+        expect(afterPart.settlements[0].createdById).toBe(bea)
+        expect(afterPart.balances).toEqual({ [ana]: '3000', [bea]: '-3000' })
+        expect(owed(afterPart)).toEqual(['3000'])
+        expect(netsToZero(afterPart)).toBe(true)
+
+        // Friday. The rest clears it.
+        const { body: afterRest } = await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${slug}/settlements`,
+            method: 'POST',
+            params: { slug },
+            token: withBea.memberToken,
+            body: { fromId: bea, toId: ana, amountMinor: '3000', method: 'bank' },
+        })
+
+        expect(afterRest.settlements).toHaveLength(2)
+        expect(afterRest.balances).toEqual({ [ana]: '0', [bea]: '0' })
+        expect(owed(afterRest)).toEqual([])
+        expect(netsToZero(afterRest)).toBe(true)
+    })
+
+    it('refuses a payment of nothing', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const { body: withBea } = await join(slug, 'Bea')
+
+        const { status, body } = await call<ApiError>(postSettlement as Handler, {
+            path: `/api/rooms/${slug}/settlements`,
+            method: 'POST',
+            params: { slug },
+            body: { fromId: withBea.memberId, toId: created.memberId, amountMinor: '0' },
+        })
+
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('AMOUNT_NOT_POSITIVE')
+    })
+})
