@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
@@ -38,7 +37,6 @@ export function CurrencySelect({
     'aria-label': ariaLabel = 'Currency',
     'data-testid': testId,
 }: CurrencySelectProps) {
-    const reduceMotion = useReducedMotion()
     const generatedId = useId()
     const listboxId = `${id ?? generatedId}-options`
     const rootRef = useRef<HTMLDivElement>(null)
@@ -143,15 +141,9 @@ export function CurrencySelect({
                 }}
                 className="input flex h-16 w-full items-center justify-between gap-1 pl-4 pr-3 text-left focus-visible:border-primary-1 focus-visible:ring-2 focus-visible:ring-primary-1"
             >
-                <motion.span
-                    key={value}
-                    aria-hidden
-                    initial={reduceMotion ? false : { scale: 0.94, opacity: 0.55 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 520, damping: 26 }}
-                >
+                <span key={value} aria-hidden>
                     <CurrencyTag code={value} catalog={currencies} />
-                </motion.span>
+                </span>
                 <Icon
                     name="chevron-down"
                     size={20}
