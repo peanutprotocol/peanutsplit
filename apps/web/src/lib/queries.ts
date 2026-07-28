@@ -428,6 +428,44 @@ export function useSetTheme(slug: string) {
     })
 }
 
+/**
+ * Your own face, painted on the tap.
+ *
+ * Optimistic for the same reason the theme is: the grid is something you flick
+ * through, and a round trip per tile turns picking into waiting. On failure the
+ * snapshot goes back, so a rejected avatar never lingers as a face the room
+ * cannot see.
+ */
+export function useSetAvatar(slug: string, memberId: string, memberToken?: string | null) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (avatar: string | null) => {
+            // Unreachable from the UI — the picker only renders for a member this
+            // device can prove — but the client must not send a request the
+            // server is certain to refuse.
+            if (!memberToken) throw new Error('no member token on this device')
+            return api.setMemberAvatar(slug, memberId, { avatar, memberToken })
+        },
+        onMutate: async (avatar) => {
+            await queryClient.cancelQueries({ queryKey: roomKey(slug) })
+            const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
+            if (previous) {
+                queryClient.setQueryData<RoomState>(roomKey(slug), {
+                    ...previous,
+                    members: previous.members.map((member) =>
+                        member.id === memberId ? { ...member, avatar } : member
+                    ),
+                })
+            }
+            return { previous }
+        },
+        onError: (_error, _avatar, context) => {
+            if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
+        },
+        onSuccess: (state) => seed(queryClient, slug, state),
+    })
+}
+
 /** Both reaction mutations edit the same one place in the cache. Kept as a
  *  helper rather than repeated, because getting the expense id wrong in one of
  *  the two copies is a bug you only see when the row you tapped is not the row

@@ -142,6 +142,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
     }, [open, selected, slug])
 
     const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
+    const avatarOf = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
 
     const decimals = decimalsOf(state.room.currency, currencies)
 
@@ -354,7 +355,11 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                                     )}
                                                 >
                                                     <span className="flex min-w-0 flex-1 items-center gap-2">
-                                                        <MemberAvatar name={nameOf(transfer.fromId)} size={32} />
+                                                        <MemberAvatar
+                                                            name={nameOf(transfer.fromId)}
+                                                            avatar={avatarOf(transfer.fromId)}
+                                                            size={32}
+                                                        />
                                                         <span className="min-w-0 truncate text-h8">
                                                             {nameOf(transfer.fromId)}
                                                         </span>
@@ -365,7 +370,11 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                                         className={cn('shrink-0', settled ? 'text-n-1' : 'text-grey-1')}
                                                     />
                                                     <span className="flex min-w-0 flex-1 items-center gap-2">
-                                                        <MemberAvatar name={nameOf(transfer.toId)} size={32} />
+                                                        <MemberAvatar
+                                                            name={nameOf(transfer.toId)}
+                                                            avatar={avatarOf(transfer.toId)}
+                                                            size={32}
+                                                        />
                                                         <span className="min-w-0 truncate text-h8">
                                                             {nameOf(transfer.toId)}
                                                         </span>
@@ -418,12 +427,20 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                     >
                                         <Icon name="check" size={16} className="shrink-0 text-grey-1" />
                                         <span className="flex min-w-0 flex-1 items-center gap-2">
-                                            <MemberAvatar name={nameOf(settlement.fromId)} size={28} />
+                                            <MemberAvatar
+                                                name={nameOf(settlement.fromId)}
+                                                avatar={avatarOf(settlement.fromId)}
+                                                size={28}
+                                            />
                                             <span className="min-w-0 truncate text-h8">
                                                 {nameOf(settlement.fromId)}
                                             </span>
                                             <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
-                                            <MemberAvatar name={nameOf(settlement.toId)} size={28} />
+                                            <MemberAvatar
+                                                name={nameOf(settlement.toId)}
+                                                avatar={avatarOf(settlement.toId)}
+                                                size={28}
+                                            />
                                             <span className="min-w-0 truncate text-h8">{nameOf(settlement.toId)}</span>
                                         </span>
                                         <Money
@@ -448,12 +465,20 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                         >
                             <div className="shadow-4 flex items-center justify-center gap-3 rounded-sm border border-n-1 bg-white p-4">
                                 <span className="flex min-w-0 items-center gap-2">
-                                    <MemberAvatar name={nameOf(selected.fromId)} size={36} />
+                                    <MemberAvatar
+                                        name={nameOf(selected.fromId)}
+                                        avatar={avatarOf(selected.fromId)}
+                                        size={36}
+                                    />
                                     <span className="truncate text-h8">{nameOf(selected.fromId)}</span>
                                 </span>
                                 <Icon name="arrow-right" size={18} className="shrink-0" />
                                 <span className="flex min-w-0 items-center gap-2">
-                                    <MemberAvatar name={nameOf(selected.toId)} size={36} />
+                                    <MemberAvatar
+                                        name={nameOf(selected.toId)}
+                                        avatar={avatarOf(selected.toId)}
+                                        size={36}
+                                    />
                                     <span className="truncate text-h8">{nameOf(selected.toId)}</span>
                                 </span>
                             </div>

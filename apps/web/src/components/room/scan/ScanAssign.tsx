@@ -17,6 +17,14 @@
  *   to nobody would silently leave the split, and "the total came out wrong and
  *   nobody knows why" is the single worst outcome this flow can produce. The
  *   counter is loud and the button is disabled until it reads zero.
+ *
+ * Rows are deletable HERE as well as on the review screen, and that is not
+ * duplication for its own sake. A line the model invented — the loyalty-card
+ * footer read as a 9.90 item, the same round ordered twice — is not obvious
+ * while you are reading a list of words and numbers; it becomes obvious the
+ * moment nobody's face belongs on it. Making the user carry that discovery back
+ * a screen is how "I can't delete the wrong item" happens, and the unassigned
+ * counter then blocks the submit on a line they never wanted.
  */
 
 import { useTranslations } from 'next-intl'
@@ -77,7 +85,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                 needsSomeone && 'border-dashed bg-error-1'
                             )}
                         >
-                            <div className="flex items-baseline justify-between gap-3">
+                            <div className="flex items-center justify-between gap-2">
                                 <span className="min-w-0 flex-1 truncate text-h8">
                                     {item.label || t('itemPlaceholder')}
                                     {item.quantity && item.quantity > 1 && (
@@ -90,6 +98,23 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                     catalog={currencies}
                                     className="shrink-0 text-h8"
                                 />
+                                {/* No confirm. Nothing has been written yet — this is a
+                                    draft on the way to a form — and the item is one tap
+                                    back on the review screen if it was a mistake. A
+                                    dialog here would cost every real deletion two taps
+                                    to protect against an undoable one. */}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        dispatch({ type: 'remove-item', itemId: item.id })
+                                        feedback('tick')
+                                    }}
+                                    aria-label={t('removeItem')}
+                                    data-testid="scan-item-remove"
+                                    className="-my-2 flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
+                                >
+                                    <Icon name="trash" size={16} />
+                                </button>
                             </div>
 
                             <div className="flex flex-wrap gap-2">
@@ -117,7 +142,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                                     : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
                                             )}
                                         >
-                                            <MemberAvatar name={member.name} size={22} />
+                                            <MemberAvatar name={member.name} avatar={member.avatar} size={22} />
                                             {member.name}
                                         </button>
                                     )
@@ -147,6 +172,15 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                 })}
             </ul>
 
+            {/* Deleting the last row is legal — the model can hallucinate a whole
+                receipt — and an empty screen with a dead button on it says nothing
+                about why. */}
+            {state.items.length === 0 && (
+                <p data-testid="scan-no-items" className="text-sm text-grey-1">
+                    {t('noItems')}
+                </p>
+            )}
+
             {unassigned.length > 0 && (
                 <p role="alert" data-testid="scan-unassigned" className="text-sm font-bold text-error">
                     {t('unassigned', { count: unassigned.length })}
@@ -159,7 +193,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                     .map((member) => (
                         <div key={member.id} className="flex items-center justify-between gap-3">
                             <span className="flex min-w-0 items-center gap-2">
-                                <MemberAvatar name={member.name} size={22} />
+                                <MemberAvatar name={member.name} avatar={member.avatar} size={22} />
                                 <span className="truncate">{member.name}</span>
                             </span>
                             <Money minor={totals[member.id]} currency={state.currency} catalog={currencies} />

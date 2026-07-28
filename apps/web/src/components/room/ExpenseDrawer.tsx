@@ -44,6 +44,8 @@ import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
 import { QuickAdd } from './QuickAdd'
+import { ScanButton } from './scan/ScanButton'
+import { ScanFlow } from './scan/ScanFlow'
 
 interface ExpenseDrawerProps {
     open: boolean
@@ -84,6 +86,12 @@ export function ExpenseDrawer({
     )
     const [submitted, setSubmitted] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    /**
+     * The picked photo. Its presence IS the scan flow's open state — a separate
+     * boolean would let the two disagree, and "the overlay is up with no image"
+     * is a stuck screen with no way back.
+     */
+    const [scanFile, setScanFile] = useState<File | null>(null)
     const [addingPayer, setAddingPayer] = useState(false)
     const [newPayerName, setNewPayerName] = useState('')
     const [payerError, setPayerError] = useState<string | null>(null)
@@ -100,6 +108,9 @@ export function ExpenseDrawer({
         if (!open) return
         setSubmitted(false)
         setError(null)
+        // A half-finished scan must not survive the drawer closing: reopening
+        // would drop the user back into someone else's receipt.
+        setScanFile(null)
         setAddingPayer(false)
         setNewPayerName('')
         setPayerError(null)
@@ -348,7 +359,26 @@ export function ExpenseDrawer({
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && close()}>
-            <DrawerContent className="bg-background">
+            <DrawerContent
+                className="bg-background"
+                /**
+                 * The scan overlay is portalled to `document.body`, and Radix decides
+                 * what is "outside" this sheet by containment — so every tap in the
+                 * review screen was an outside interaction and the first one dismissed
+                 * the drawer. `close()` clears the URL state, so the reviewed bill came
+                 * back to a sheet that no longer existed and the user's form went with
+                 * it. Vetoing by TARGET rather than by a piece of state is what makes
+                 * this race-free: Radix dispatches the outside interaction on the click
+                 * that follows the pointer-down, by which time any `scanFile`-shaped
+                 * guard has already been cleared by the tap being handled.
+                 */
+                onPointerDownOutside={(event) => {
+                    const target = event.detail.originalEvent.target
+                    if (target instanceof Element && target.closest('[data-testid="scan-flow"]')) {
+                        event.preventDefault()
+                    }
+                }}
+            >
                 <DrawerHeader className="pb-0">
                     <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
                 </DrawerHeader>
@@ -393,11 +423,21 @@ export function ExpenseDrawer({
                         below from jumping as a thumb reaches the description. */}
                     {!expense && !modelResolved && (
                         <div aria-hidden="true" className="flex flex-wrap items-start gap-2">
+                            {/* The scan chip's own placeholder, so the row reserves the
+                                width it will actually take. Flag-off this is exactly the
+                                one-chip placeholder v1 ships. */}
+                            {splitV2Enabled() && (
+                                <span className="min-h-11 w-32 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
+                            )}
                             <span className="min-h-11 w-28 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
                         </div>
                     )}
                     {!expense && modelResolved && modelEnabled && (
                         <div className="flex flex-wrap items-start gap-2">
+                            {/* Already behind the flag: `modelEnabled` is
+                                `splitV2Enabled() && the server has a key`, so a v1 build
+                                renders this row with quick-add alone, exactly as before. */}
+                            <ScanButton onFile={setScanFile} />
                             <QuickAdd
                                 slug={slug}
                                 roomCurrency={state.room.currency}
@@ -464,7 +504,7 @@ export function ExpenseDrawer({
                                             : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
                                     )}
                                 >
-                                    <MemberAvatar name={member.name} size={24} />
+                                    <MemberAvatar name={member.name} avatar={member.avatar} size={24} />
                                     {member.name}
                                 </button>
                             ))}
@@ -592,7 +632,7 @@ export function ExpenseDrawer({
                                                     checked ? 'bg-white' : 'bg-grey-4 opacity-60'
                                                 )}
                                             >
-                                                <MemberAvatar name={member.name} size={28} />
+                                                <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
                                                 <span className="flex-1 truncate text-h8">{member.name}</span>
                                                 <span
                                                     className={cn(
@@ -628,7 +668,7 @@ export function ExpenseDrawer({
                                 <ul className="flex flex-col gap-2">
                                     {participantsForExact.map((member) => (
                                         <li key={member.id} className="flex items-center gap-2">
-                                            <MemberAvatar name={member.name} size={28} />
+                                            <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
                                             <span className="w-20 shrink-0 truncate text-h8">{member.name}</span>
                                             <input
                                                 value={values.exactInputs[member.id] ?? ''}
@@ -809,6 +849,30 @@ export function ExpenseDrawer({
                     </div>
                 </div>
             </DrawerContent>
+
+            {/* The scan overlay writes back into this sheet and creates nothing:
+                `onApply` hands over form values and the save button above is still
+                the only thing that writes. */}
+            {scanFile && (
+                <ScanFlow
+                    file={scanFile}
+                    slug={slug}
+                    token={token}
+                    members={state.members}
+                    roomCurrency={state.room.currency}
+                    currencies={currencies}
+                    baseValues={values}
+                    onCancel={() => setScanFile(null)}
+                    onApply={(next) => {
+                        setValues(next)
+                        // The form is now reconciled by construction, so an error
+                        // left over from before the scan is stale by definition.
+                        setSubmitted(false)
+                        setError(null)
+                        setScanFile(null)
+                    }}
+                />
+            )}
         </Drawer>
     )
 }

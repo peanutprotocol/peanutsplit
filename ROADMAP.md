@@ -18,13 +18,45 @@ real-device pass. Typed quick-add remains available.
 
 **Owner: Konrad.** Decided 2026-07-28 (Hugo): the v1/v2 boundary —
 `splitV2Enabled()` and everything behind it (scan, NL entry, Splitwise import)
-— is Konrad's call to flip, and nobody else's. Engineering is meeting the
-re-enable condition on `fix/scan-delete-avatar` (portal-lifecycle root-cause
-fix, the mobile regression test above, per-item delete in the review step);
-once that merges, what remains is Konrad's real-device pass and his decision.
-The flip itself is one Dokploy build arg on the web app
-(`NEXT_PUBLIC_SPLIT_V2_ENABLED=1`) plus a redeploy — the marketing surface is
-already flag-aware and starts claiming the features on its own.
+— is Konrad's call to flip, and nobody else's. The flip itself is one Dokploy
+build arg on the web app (`NEXT_PUBLIC_SPLIT_V2_ENABLED=1`) plus a redeploy —
+the marketing surface is already flag-aware and starts claiming the features
+on its own.
+
+**Status 2026-07-28, second pass.** The tap trap was root-caused and fixed, and
+the entry point now renders behind `splitV2Enabled()` — the flag itself has NOT
+been flipped and that decision stays with Konrad. Three defects made the one
+symptom, all of them in how a `document.body` portal coexists with a modal Radix
+layer:
+
+1. The expense drawer is a modal Radix layer, so while it is open Radix sets
+   `document.body { pointer-events: none }` and re-enables pointer events only
+   inside its own content. The scan overlay is portalled to `document.body` (it
+   must be — vaul transforms the sheet, and a `position: fixed` child of a
+   transformed ancestor is positioned against that ancestor), so it was a
+   sibling of that content and inherited `none`: drawn on top, taking no taps,
+   with every tap falling through to the live drawer underneath. Fixed with
+   `pointer-events-auto` on the overlay root.
+2. Radix decides "outside" by containment, so the first tap that DID land was an
+   outside interaction and dismissed the drawer — which clears the URL state,
+   so the reviewed bill came back to a sheet that no longer existed and took the
+   user's form with it. Fixed by vetoing that one interaction by TARGET
+   (`onPointerDownOutside` on `DrawerContent`), not by a state flag: Radix
+   dispatches it on the click after the pointer-down, by which time any
+   `scanFile`-shaped guard has already cleared.
+3. The read could deadlock before the review ever appeared. A ref that
+   remembered "already scanned this file" meant a remount cancelled the first
+   read and skipped the second, leaving "Reading the bill…" forever. Fixed by
+   memoising the PROMISE rather than a flag — one vision call per photo, and
+   whichever run is alive applies it.
+
+The mobile regression test is `apps/web/e2e-v2/scan.spec.ts`, run with
+`pnpm --dir apps/web e2e:v2` against its own flag-on dev server
+(`playwright.v2.config.ts`, port 3101 — a build-time flag cannot be a project in
+the v1 config, and the v1 suite asserts the absence of what this one drives).
+Verified as a real gate: reverting the `pointer-events-auto` fix fails it with
+all nine viewport probes landing outside the overlay. **A real-device pass is
+still outstanding** and is the remaining half of the written condition.
 
 ## Shipped (beyond the 07-25 launch state)
 
