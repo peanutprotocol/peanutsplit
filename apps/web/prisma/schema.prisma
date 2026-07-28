@@ -31,6 +31,9 @@ model Room {
   expenses    Expense[]
   settlements Settlement[]
 
+  pushSubscriptions PushSubscription[]
+  notificationSends NotificationSend[]
+
   @@schema("split")
 }
 
@@ -51,6 +54,8 @@ model Member {
   settlementsFrom    Settlement[]   @relation("SettlementFrom")
   settlementsTo      Settlement[]   @relation("SettlementTo")
   createdSettlements Settlement[]   @relation("SettlementCreatedBy")
+
+  pushSubscriptions PushSubscription[]
 
   @@index([roomId])
   @@schema("split")
@@ -130,6 +135,65 @@ model FxRate {
   fetchedAt DateTime @default(now())
 
   @@unique([base, quote])
+  @@schema("split")
+}
+
+// — web push
+// A room member opts a device in, and that device gets a notification when
+// somebody ELSE in the room writes. No accounts exist here, so the identity a
+// subscription carries is the per-room member it was registered as.
+
+/// One delivery channel: this browser, acting as this member, in this room.
+///
+/// The key is (endpoint, roomId), not endpoint alone. A browser has exactly one
+/// push endpoint, so a phone that joins two rooms would collide on a globally
+/// unique endpoint and the second room would silently steal the first room's
+/// channel. Scoping the uniqueness to the room lets one device hold a channel
+/// per room, while a re-subscribe in the same room still updates in place
+/// instead of piling up rows (the keys rotate whenever the browser feels like
+/// it, so the row must be upserted, never appended).
+model PushSubscription {
+  id         String   @id @default(uuid())
+  roomId     String
+  memberId   String
+  endpoint   String // push-service URL; the host is allowlisted at write time
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([endpoint, roomId])
+  @@index([roomId])
+  @@index([memberId])
+  @@schema("split")
+}
+
+/// The idempotency ledger. A row IS the claim on a notification: inserting it is
+/// what buys the right to send, and the unique `dedupeKey` is what stops a retry
+/// (or two containers racing on the same write) from buzzing everyone twice.
+///
+/// `dedupeKey` is `roomId:template:eventId` for per-event templates and
+/// `roomId:template:dayKey` for the once-a-day ones. `dayKey` stays a column
+/// either way so the per-room daily throttle can count without parsing keys.
+model NotificationSend {
+  id             String   @id @default(uuid())
+  roomId         String
+  template       String
+  dayKey         String // UTC yyyy-mm-dd
+  dedupeKey      String   @unique
+  status         String // claimed | sent | failed
+  errorCode      String?
+  openedCount    Int      @default(0)
+  dismissedCount Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, template, dayKey])
   @@schema("split")
 }
 
