@@ -208,9 +208,11 @@ describe('OpenRouter — the request', () => {
         // So the proxy path must not touch this spy at all: it goes through
         // undici's own fetch inside `egressFetch`. Making that call would need
         // a live proxy, so the observable contract here is the road taken, and
-        // the resulting SCAN_FAILED (undici cannot reach proxy.internal) is the
-        // expected end of it.
-        process.env.SPLIT_SCAN_PROXY_URL = 'http://proxy.internal:3128'
+        // the resulting SCAN_FAILED is the expected end of it. The proxy points
+        // at a port nothing can be listening on, which refuses immediately and
+        // without asking a resolver anything — a hostname would put this test's
+        // runtime at the mercy of whatever DNS the machine happens to have.
+        process.env.SPLIT_SCAN_PROXY_URL = 'http://127.0.0.1:1/'
         const fetchSpy = stubFetch()
 
         await expect(parseReceipt(body)).rejects.toMatchObject({ code: 'SCAN_FAILED' })

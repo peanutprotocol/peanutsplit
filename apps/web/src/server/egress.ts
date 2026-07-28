@@ -11,6 +11,8 @@
  *
  * No proxy configured (local dev) → the plain global fetch, untouched.
  */
+// Type-only, so undici stays a runtime import that never loads without a proxy.
+import type { ProxyAgent } from 'undici'
 
 /** Fields we rely on — structurally satisfied by both fetch implementations,
  *  so callers stay ignorant of which one answered. */
@@ -18,8 +20,17 @@ export interface EgressResponse {
     ok: boolean
     status: number
     json(): Promise<unknown>
-    text(): Promise<string>
 }
+
+/**
+ * One agent per proxy URL, for the lifetime of the process.
+ *
+ * A ProxyAgent owns a keep-alive connection pool, so building one per request
+ * meant a fresh pool per scan and per email — sockets opened, never reused, and
+ * left for the GC to close. The URL is the whole of an agent's identity here, so
+ * the key is the URL.
+ */
+const agents = new Map<string, ProxyAgent>()
 
 export async function egressFetch(
     proxyUrl: string | undefined,
@@ -28,6 +39,11 @@ export async function egressFetch(
 ): Promise<EgressResponse> {
     if (!proxyUrl) return fetch(url, init)
     const { fetch: undiciFetch, ProxyAgent } = await import('undici')
+    let agent = agents.get(proxyUrl)
+    if (!agent) {
+        agent = new ProxyAgent(proxyUrl)
+        agents.set(proxyUrl, agent)
+    }
     // The cast crosses undici's nominal types; the shape above is what we use.
-    return undiciFetch(url, { ...init, dispatcher: new ProxyAgent(proxyUrl) } as never) as unknown as EgressResponse
+    return undiciFetch(url, { ...init, dispatcher: agent } as never) as unknown as EgressResponse
 }
