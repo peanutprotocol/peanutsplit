@@ -2,10 +2,12 @@
 
 import { useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { motion, useReducedMotion } from 'motion/react'
+import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { peanutCheering } from '@/assets/mascot'
-import { useFeedback } from '@/lib/use-settings'
+import { DUCK_LEAD_MS, duckMaster } from '@/lib/sounds'
+import { useMotionAllowed } from '@/lib/use-motion'
+import { useFeedback, useSettings } from '@/lib/use-settings'
 import { Confetti } from './Confetti'
 
 /**
@@ -25,22 +27,55 @@ interface AllSettledProps {
     summary?: { people: number; expenses: number }
 }
 
+/**
+ * The Pixar bounce, hand-keyed rather than sprung. A spring can overshoot but it
+ * cannot *anticipate*, and the crouch before the launch is the entire reason this
+ * reads as alive rather than as a scaling image.
+ *
+ * Nine keyframes over ~1s: crouch, stretch off the floor, apex, land heavy, then
+ * two decaying hops. scaleX and scaleY move opposite each other the whole way —
+ * squash wide is squash short — because conserved volume is what the eye reads
+ * as a body.
+ */
+const BOUNCE_S = 1
+const BOUNCE_TIMES = [0, 0.09, 0.22, 0.34, 0.46, 0.58, 0.7, 0.82, 1]
+const BOUNCE = {
+    scaleX: [1, 1.18, 0.84, 0.96, 1.16, 0.94, 1.08, 0.98, 1],
+    scaleY: [1, 0.8, 1.24, 1.06, 0.86, 1.1, 0.93, 1.03, 1],
+    y: [0, 4, -18, -40, 0, -18, 0, -6, 0],
+    rotate: 0,
+    opacity: 1,
+}
+/** Index 2 of the keyframes: the stretch that leaves the floor. */
+const LAUNCH_S = BOUNCE_S * BOUNCE_TIMES[2]
+/** The burst trails the launch instead of firing with it, so it reads as caused
+ *  by the jump rather than as a second thing that happened at the same time. */
+const CONFETTI_DELAY_S = LAUNCH_S + 0.15
+
 export function AllSettled({ compact = false, celebrate = false, summary }: AllSettledProps) {
     const t = useTranslations('room.allSettled')
-    const reduceMotion = useReducedMotion()
+    const motionAllowed = useMotionAllowed()
+    const { settings } = useSettings()
     const feedback = useFeedback()
     const rung = useRef(false)
+    const bouncing = celebrate && motionAllowed
 
     useEffect(() => {
         if (!celebrate || rung.current) return
         rung.current = true
-        feedback('bell')
-    }, [celebrate, feedback])
+        // Terminal cue: pull the bed down first so the bell rides over the settle
+        // thunk and the row collapse still decaying under it. Gated on the sound
+        // setting directly — `duckMaster` would otherwise build an AudioContext
+        // for someone who has turned sound off.
+        if (settings.soundEnabled) duckMaster()
+        const timer = window.setTimeout(() => feedback('bell', { haptic: 'success' }), DUCK_LEAD_MS)
+        return () => window.clearTimeout(timer)
+    }, [celebrate, feedback, settings.soundEnabled])
 
     return (
         <motion.div
             data-testid="all-settled"
-            initial={reduceMotion ? false : { scale: 0.92, opacity: 0, y: 8 }}
+            initial={motionAllowed ? { scale: 0.92, opacity: 0, y: 8 } : false}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.94, opacity: 0, transition: { duration: 0.18 } }}
             transition={{ type: 'spring', stiffness: 260, damping: 20, mass: 0.9 }}
@@ -52,12 +87,25 @@ export function AllSettled({ compact = false, celebrate = false, summary }: AllS
         >
             {/* Spilling past the card edge is the point — a burst contained by a
                 border is a progress bar, not a celebration. */}
-            {celebrate && <Confetti className="-inset-8" />}
+            {celebrate && <Confetti className="-inset-8" delay={CONFETTI_DELAY_S} />}
 
             <motion.div
-                initial={reduceMotion ? false : { scale: 0.3, rotate: -14, opacity: 0 }}
-                animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 13, mass: 1.1, delay: celebrate ? 0.08 : 0 }}
+                initial={
+                    !motionAllowed
+                        ? false
+                        : bouncing
+                          ? // The bounce starts from rest and fades in over its own
+                            // crouch — a scale-in entrance in front of it would eat
+                            // the anticipation, which is the whole point.
+                            { scaleX: 1, scaleY: 1, y: 0, opacity: 0 }
+                          : { scale: 0.3, rotate: -14, opacity: 0 }
+                }
+                animate={bouncing ? BOUNCE : { scale: 1, rotate: 0, opacity: 1 }}
+                transition={
+                    bouncing
+                        ? { duration: BOUNCE_S, times: BOUNCE_TIMES, ease: 'easeOut', opacity: { duration: 0.14 } }
+                        : { type: 'spring', stiffness: 300, damping: 13, mass: 1.1 }
+                }
                 className="relative"
             >
                 <Image
@@ -69,9 +117,9 @@ export function AllSettled({ compact = false, celebrate = false, summary }: AllS
             </motion.div>
 
             <motion.div
-                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                initial={motionAllowed ? { opacity: 0, y: 10 } : false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 320, damping: 26, delay: celebrate ? 0.22 : 0 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 26, delay: bouncing ? LAUNCH_S : 0 }}
                 className="flex flex-col items-center gap-2"
             >
                 <p className={compact ? 'text-h5' : 'text-h3'}>{t('title')}</p>

@@ -25,7 +25,9 @@ import {
 import { useErrorMessage } from '@/lib/error-messages'
 import { currencyInfo, equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useAddExpense, useDeleteExpense, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
+import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
+import { useShake } from '@/hooks/useShake'
 import { CurrencySelect } from './CurrencySelect'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -40,8 +42,6 @@ interface ExpenseDrawerProps {
     expense: ApiExpense | null
     defaultPaidById: string
 }
-
-const UNDO_MS = 6_000
 
 export function ExpenseDrawer({
     open,
@@ -61,6 +61,7 @@ export function ExpenseDrawer({
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
     const feedback = useFeedback()
+    const { ref: formRef, shake } = useShake<HTMLDivElement>()
 
     const [values, setValues] = useState<ExpenseFormValues>(() =>
         emptyExpenseForm({ currency: state.room.currency, members: state.members, paidById: defaultPaidById })
@@ -87,6 +88,14 @@ export function ExpenseDrawer({
         // mid-edit must not stomp on what is being typed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, expense?.id])
+
+    // Own effect rather than a line in the re-seed above: that one also runs when
+    // you tap straight from one expense to another, and the sheet is already open
+    // by then — a second blip for a sheet that never closed is a lie.
+    useEffect(() => {
+        if (open) feedback('blip')
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open])
 
     const decimals = currencyInfo(values.currency, currencies).decimals
     const validation = validateExpenseForm(values, currencies)
@@ -141,7 +150,13 @@ export function ExpenseDrawer({
 
     const save = async () => {
         setSubmitted(true)
-        if (validation) return
+        if (validation) {
+            // The message alone is easy to miss on a long form — the sheet moving
+            // is what tells you the tap was received and refused.
+            feedback('error', { haptic: 'error' })
+            shake()
+            return
+        }
         setError(null)
         const body = buildExpenseBody(values, currencies)
         try {
@@ -159,10 +174,14 @@ export function ExpenseDrawer({
                 )
             }
             // Moment #3, the audible half: pencil on paper as the row lands and
-            // every affected balance starts counting.
-            feedback('tick')
+            // every affected balance starts counting. The haptic is the two-pulse
+            // `confirm` rather than the tick's single tap — an amount, a payer and
+            // a split all landed at once, and that deserves a shape.
+            feedback('tick', { haptic: 'confirm' })
             close()
         } catch (err) {
+            feedback('error', { haptic: 'error' })
+            shake()
             if (isApiError(err, 'EXPENSE_DELETED')) {
                 setError(t('wasDeleted'))
                 return
@@ -179,8 +198,10 @@ export function ExpenseDrawer({
             await deleteExpense.mutateAsync(id)
             close()
             track('expense_deleted', roomProps(slug))
+            // The toast IS the undo window — it has to outlive "wait, did I mean
+            // to do that?", which is why it takes the actionable duration.
             toast(t('deletedToast', { description }), {
-                duration: UNDO_MS,
+                duration: TOAST_MS.actionable,
                 action: {
                     label: t('undo'),
                     onClick: () => {
@@ -188,13 +209,15 @@ export function ExpenseDrawer({
                             .mutateAsync(id)
                             .then(() => {
                                 track('expense_restored', roomProps(slug))
-                                toast.success(t('restored'))
+                                toast.success(t('restored'), { duration: TOAST_MS.state })
                             })
-                            .catch(() => toast.error(t('restoreFailed')))
+                            // "refresh and try again" is an instruction, not a status.
+                            .catch(() => toast.error(t('restoreFailed'), { duration: TOAST_MS.actionable }))
                     },
                 },
             })
         } catch (err) {
+            feedback('error', { haptic: 'error' })
             setError(errorMessage(err, t('deleteFailed')))
         }
     }
@@ -214,7 +237,10 @@ export function ExpenseDrawer({
                     <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
                 </DrawerHeader>
 
-                <div className="flex flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
+                <div
+                    ref={formRef}
+                    className="flex flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4"
+                >
                     {/* Amount first: it's the thing you came to type. */}
                     <div className="flex items-end gap-3">
                         <label className="flex flex-1 flex-col gap-2">

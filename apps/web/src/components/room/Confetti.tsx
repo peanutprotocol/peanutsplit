@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { motion } from 'motion/react'
 import { cn } from '@/lib/cn'
+import { useMotionAllowed } from '@/lib/use-motion'
 
 /** Brand confetti only — yellow, pink and black. Anything else and it stops
  *  looking like Peanut and starts looking like a party-supplies website. */
@@ -30,8 +31,8 @@ interface Piece {
  * `aria-hidden` — decoration that must never intercept a tap or reach a screen
  * reader.
  */
-export function Confetti({ className }: { className?: string }) {
-    const reduceMotion = useReducedMotion()
+export function Confetti({ className, delay = 0 }: { className?: string; delay?: number }) {
+    const motionAllowed = useMotionAllowed()
 
     const pieces = useMemo<Piece[]>(
         () =>
@@ -45,20 +46,25 @@ export function Confetti({ className }: { className?: string }) {
                     // Bias upward: things thrown in the air go up before they go out.
                     y: Math.sin(angle) * distance - 40,
                     rotate: (Math.random() - 0.5) * 540,
-                    delay: Math.random() * 0.12,
+                    delay: delay + Math.random() * 0.12,
                     duration: 0.9 + Math.random() * 0.5,
                     color: COLORS[index % COLORS.length],
                     width: 6 + Math.random() * 5,
                     height: 9 + Math.random() * 7,
                 }
             }),
+        // `delay` is a launch offset chosen once by the parent, not a live value —
+        // recomputing every trajectory because it changed would restart the burst.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         []
     )
 
-    if (reduceMotion) return null
+    if (!motionAllowed) return null
 
     return (
-        <div aria-hidden="true" className={cn('pointer-events-none absolute inset-0', className)}>
+        // data-decorative: if the preference flips while a burst is in the air, CSS
+        // takes it to opacity 0 rather than leaving pieces frozen mid-flight.
+        <div aria-hidden="true" data-decorative className={cn('pointer-events-none absolute inset-0', className)}>
             {pieces.map((piece, index) => (
                 <motion.span
                     key={index}

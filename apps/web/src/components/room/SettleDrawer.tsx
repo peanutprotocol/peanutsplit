@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
@@ -13,6 +13,8 @@ import { roomProps, track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useAddSettlement } from '@/lib/queries'
+import { TOAST_MS } from '@/lib/toasts'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { AllSettled } from './AllSettled'
 import { MemberAvatar } from './MemberAvatar'
@@ -51,13 +53,24 @@ const STAMP_MS = 280
 /** Beat two — the collapse itself, plus a moment to watch the gap close. */
 const COLLAPSE_MS = 620
 
+/**
+ * Rows arrive one after another, not as a block: a list that appears all at once
+ * is a page, a list that arrives in sequence is something being dealt out to you,
+ * and this one is a list of debts you are about to act on.
+ *
+ * Capped, because the stagger is a reveal and not a queue — a room with fifteen
+ * open transfers should not make you wait a second for the last one.
+ */
+const REVEAL_STAGGER_S = 0.07
+const REVEAL_STAGGER_MAX = 6
+
 export function SettleDrawer({ open, onClose, slug, state, currencies, token }: SettleDrawerProps) {
     const t = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
     const errorMessage = useErrorMessage()
     const addSettlement = useAddSettlement(slug, token)
     const feedback = useFeedback()
-    const reduceMotion = useReducedMotion()
+    const motionAllowed = useMotionAllowed()
     const [selected, setSelected] = useState<ApiTransfer | null>(null)
     const [method, setMethod] = useState<SettlementMethod>('cash')
     const [note, setNote] = useState('')
@@ -94,6 +107,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         setSettledKey(null)
         setCollapsing(false)
         clearTimers()
+        feedback('blip')
         track('settle_sheet_opened', roomProps(slug, { openDebts: state.suggestedTransfers.length }))
         // Only on open — a poll landing mid-confirm must not reset the sheet.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,10 +152,14 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                 onClose()
             }
 
-            if (reduceMotion) {
+            if (!motionAllowed) {
                 // No collapse played, so there is nothing to have watched — say it
                 // in words instead. Everyone else already saw the row go.
-                toast.success(t('recorded', { from: nameOf(selected.fromId), to: nameOf(selected.toId) }))
+                toast.success(t('recorded', { from: nameOf(selected.fromId), to: nameOf(selected.toId) }), {
+                    // A debt disappeared and they did not see it move: this is the
+                    // only account of it, so it gets the longer state duration.
+                    duration: TOAST_MS.state,
+                })
                 done()
                 return
             }
@@ -153,6 +171,9 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
             setFrozen(null)
             setSettledKey(null)
             setCollapsing(false)
+            // Money did not move. That deserves the dull thud and the three-pulse
+            // "no", not a red line of text on its own.
+            feedback('error', { haptic: 'error' })
             setError(errorMessage(err, t('failed')))
         }
     }
@@ -193,10 +214,18 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                             <p className="text-sm text-grey-1">{t('intro')}</p>
 
                             <ul className="flex flex-col gap-2">
-                                <AnimatePresence initial={false} mode="popLayout">
-                                    {transfers.map((transfer) => {
+                                {/* `initial` left on (the default) so the list deals itself
+                                    out on open. The sheet unmounts when it closes, so this
+                                    is a genuine reveal every time rather than a re-entrance. */}
+                                <AnimatePresence mode="popLayout">
+                                    {transfers.map((transfer, index) => {
                                         const key = transferKey(transfer)
                                         const settled = key === settledKey
+                                        // Delay lives on the animate target rather than in
+                                        // `transition`, which motion would also apply to the
+                                        // stamp and the collapse — a settle that hesitates
+                                        // for half a second reads as a failed tap.
+                                        const revealDelay = Math.min(index, REVEAL_STAGGER_MAX) * REVEAL_STAGGER_S
                                         return (
                                             <motion.li
                                                 key={key}
@@ -206,7 +235,17 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                                     settled
                                                         ? // The stamp: a short overshoot as the debt lands.
                                                           { opacity: 1, y: 0, scale: [1, 1.035, 1] }
-                                                        : { opacity: 1, y: 0, scale: 1 }
+                                                        : {
+                                                              opacity: 1,
+                                                              y: 0,
+                                                              scale: 1,
+                                                              transition: {
+                                                                  type: 'spring',
+                                                                  stiffness: 380,
+                                                                  damping: 30,
+                                                                  delay: revealDelay,
+                                                              },
+                                                          }
                                                 }
                                                 exit={{
                                                     opacity: 0,
