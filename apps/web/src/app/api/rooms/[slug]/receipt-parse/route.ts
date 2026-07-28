@@ -1,5 +1,5 @@
 /**
- * The receipt-scan endpoint, and its own capability probe.
+ * The receipt-scan endpoint, and THE capability probe for every model feature.
  *
  * GET answers `{ enabled }`. It exists because the thing being gated is a
  * *server* capability — an API key that lives in the container — and the usual
@@ -9,6 +9,11 @@
  * The `:slug` in the GET's path is DECORATIVE — the answer is process-wide and
  * the param is not read — and it stays only so the probe and the POST share one
  * URL. The client caches it once, not once per room.
+ *
+ * It also answers for quick add (`../parse-expense`), which has no GET of its
+ * own: one key configures both, so a second probe would be a second round trip
+ * returning the same boolean — and two booleans that must always agree are a bug
+ * waiting for the deploy where they don't.
  *
  * POST takes one image and returns line items. It writes nothing — no row, no
  * file, and no image anywhere. The scan produces a *draft* the user reviews and
@@ -20,7 +25,8 @@ import { ApiError, badRequest, json, readJsonCapped, respond } from '@/server/ht
 import { WRITE_LIMIT, enforceRateLimit, type Limit } from '@/server/rateLimit'
 import { loadRoom } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
-import { MAX_IMAGE_BASE64_CHARS, enforceRoomScanLimit, parseReceipt, scanEnabled } from '@/server/receipt'
+import { modelEnabled } from '@/server/model'
+import { MAX_IMAGE_BASE64_CHARS, enforceRoomScanLimit, parseReceipt } from '@/server/receipt'
 import { receiptParseSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -38,13 +44,13 @@ const SCAN_LIMIT: Limit = { capacity: 10, windowMs: WRITE_LIMIT.windowMs }
 /** An hour of caching on a flag that only changes when someone redeploys with a
  *  different env. The client re-probes on a cold start either way. */
 export const GET = () =>
-    json({ enabled: scanEnabled() }, 200, { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' })
+    json({ enabled: modelEnabled() }, 200, { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' })
 
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {
         // Before anything else, including the DB read: an unconfigured
         // deployment should cost a request no work at all.
-        if (!scanEnabled()) throw new ApiError(503, 'SCAN_UNAVAILABLE', 'receipt scanning is not configured')
+        if (!modelEnabled()) throw new ApiError(503, 'SCAN_UNAVAILABLE', 'receipt scanning is not configured')
         enforceRateLimit(request, SCAN_LIMIT, 'scan')
 
         // Counted while it arrives, not taken on the sender's word: a chunked
