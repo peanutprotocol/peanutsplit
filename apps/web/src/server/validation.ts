@@ -48,6 +48,42 @@ export const settlementSchema = z.object({
 
 export const rateQuerySchema = z.object({ from: currencyCode, to: currencyCode })
 
+/** Push-service URL. The host allowlist is a separate, testable gate — see
+ *  `server/pushHosts.ts`; this only bounds the shape and the length. */
+const pushEndpoint = z.string().trim().url().max(2048)
+/** p256dh and auth are base64url out of the browser's own SubscriptionKeys. */
+const pushKey = z
+    .string()
+    .trim()
+    .min(1)
+    .max(256)
+    .regex(/^[A-Za-z0-9_\-=]+$/, 'must be base64')
+const memberSecret = z.string().min(1).max(200)
+
+export const pushSubscribeSchema = z.object({
+    endpoint: pushEndpoint,
+    keys: z.object({ p256dh: pushKey, auth: pushKey }),
+    memberId: id,
+    memberToken: memberSecret,
+    userAgent: z.string().trim().max(512).nullish(),
+})
+
+export const pushUnsubscribeSchema = z.object({
+    endpoint: pushEndpoint,
+    memberId: id,
+    memberToken: memberSecret,
+})
+
+/** What the service worker beacons back on a tap or a swipe-away. Every field is
+ *  optional-ish because the worker is fire-and-forget and must never be the
+ *  reason a notification misbehaves. */
+export const pushFeedbackSchema = z.object({
+    sendId: z.string().uuid(),
+    template: z.string().max(40).nullish(),
+    action: z.string().max(40).nullish(),
+})
+
+export type PushSubscribeBody = z.infer<typeof pushSubscribeSchema>
 export type CreateRoomBody = z.infer<typeof createRoomSchema>
 export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
