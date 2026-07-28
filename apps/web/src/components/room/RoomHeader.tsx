@@ -98,8 +98,9 @@ export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: Ro
     /**
      * Only a device that can PROVE it is this member may change the face — the
      * server demands the token and this is the same gate, one step earlier. A
-     * member claimed through the join gate ("I'm Bea") holds no token, so the
-     * picker is simply absent for them rather than present and failing.
+     * A member claimed through the join gate receives their stable token, so
+     * their picker is available on this device without rotating other devices
+     * out. Legacy tokenless claims keep the picker absent instead of failing.
      */
     const pickableMe = me && identity?.token ? me : null
     const setAvatar = useSetAvatar(room.slug, me?.id ?? '', identity?.token)

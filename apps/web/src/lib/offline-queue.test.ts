@@ -5,6 +5,7 @@ import {
     MAX_QUEUED,
     PENDING_ITEM_PREFIX,
     PENDING_KEY,
+    RETRY_BASE_MS,
     appendQueued,
     drainPending,
     drainQueue,
@@ -459,6 +460,45 @@ describe('the queue end to end', () => {
         expect(queueRetryDelay(1)).toBe(10_000)
         expect(queueRetryDelay(6)).toBe(300_000)
         expect(queueRetryDelay(20)).toBe(300_000)
+    })
+
+    it('returns to the short backoff when a retry makes partial progress', async () => {
+        const scheduled: Array<{ callback: () => void; delay: number }> = []
+        vi.stubGlobal('window', {
+            setTimeout: (callback: () => void, delay: number) => {
+                scheduled.push({ callback, delay })
+                return scheduled.length
+            },
+            clearTimeout: vi.fn(),
+        })
+        const first = enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input({ description: 'Dinner' }),
+        })!
+        const second = enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input({ description: 'Taxi' }),
+        })!
+        setQueuePerformer(async () => {
+            throw networkError()
+        })
+
+        await drainPending()
+        expect(scheduled.map((entry) => entry.delay)).toEqual([RETRY_BASE_MS])
+
+        setQueuePerformer(async (queued) => {
+            if (queued.clientKey === second.clientKey) throw networkError()
+        })
+        scheduled[0].callback()
+        await vi.waitFor(() => expect(scheduled).toHaveLength(2))
+
+        expect(scheduled[1].delay).toBe(RETRY_BASE_MS)
+        expect(queueSnapshot().map((queued) => queued.clientKey)).toEqual([second.clientKey])
+        expect(queueSnapshot().some((queued) => queued.clientKey === first.clientKey)).toBe(false)
     })
 
     it('drops an item the server refused and says why it disappeared', async () => {
