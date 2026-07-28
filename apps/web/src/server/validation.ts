@@ -2,6 +2,8 @@
  *  exact shares adding up) live in the domain modules, not here. */
 import { z } from 'zod'
 import { CURRENCY_CODES } from '@/server/money'
+import { isReactionEmoji } from '@/lib/reactions'
+import { isThemeKey } from '@/lib/themes'
 
 const currencyCode = z
     .string()
@@ -112,3 +114,33 @@ export type CreateRoomBody = z.infer<typeof createRoomSchema>
 export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
 export type SettlementBody = z.infer<typeof settlementSchema>
+
+// ── delight wave ─────────────────────────────────────────────────────────────
+
+/**
+ * A theme is a key into `lib/themes.ts`, never a colour. Anything not in the
+ * catalog is rejected outright rather than stored and ignored — a row holding a
+ * key nothing can render is a bug that only shows up months later, on an unfurl.
+ * `null` is the default palette and is always legal.
+ */
+export const roomThemeSchema = z.object({
+    theme: z
+        .string()
+        .max(40)
+        .nullish()
+        .refine((value) => value == null || isThemeKey(value), { message: 'unknown theme' }),
+})
+
+/**
+ * `memberToken` sits in the body rather than the header for the same reason it
+ * does on push subscriptions: here the token is PROOF, not attribution, and the
+ * shape of the request should say which of the two it is.
+ */
+export const reactionSchema = z.object({
+    emoji: z.string().refine(isReactionEmoji, { message: 'not a reaction we support' }),
+    memberId: id,
+    memberToken: memberSecret,
+})
+
+export type RoomThemeBody = z.infer<typeof roomThemeSchema>
+export type ReactionBody = z.infer<typeof reactionSchema>

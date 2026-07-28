@@ -7,6 +7,7 @@
  *  - inline styles only; no class names, no Tailwind, no CSS variables
  *  - text lives in a leaf element, never as a sibling of another element
  */
+import { DEFAULT_THEME, type RoomTheme } from '@/lib/themes'
 import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
 import { AVATAR_COLORS, type OgAvatar, type RoomCardData } from '@/server/og/roomCard'
 
@@ -20,10 +21,15 @@ export const OG_CONTENT_TYPE = 'image/png'
 export const OG_CACHE_CONTROL = 'public, max-age=300'
 
 const INK = '#000000'
-const FIELD = '#FFC900'
-const FIELD_TINT = '#FFD84D'
 const MUTED = '#5F646D'
-const FIELD_INK = '#7A5E00'
+
+/**
+ * The field colours come from the room's theme now, not from constants. Ink,
+ * borders, the white sheet and the shadow do NOT — a theme tints the field, it
+ * does not restyle the card, and every palette in the catalog is chosen to carry
+ * black ink. `DEFAULT_THEME` is what the brand card and an unthemed room use, and
+ * its values are the literals this file shipped with.
+ */
 
 /** Knerd is wide; step the name down rather than let it wrap to three lines. */
 function nameFontSize(name: string): number {
@@ -47,7 +53,7 @@ const disc = (size: number, color: string) =>
         flexShrink: 0,
     }) as const
 
-function Field({ children }: { children: React.ReactNode }) {
+function Field({ theme, children }: { theme: RoomTheme; children: React.ReactNode }) {
     return (
         <div
             style={{
@@ -55,7 +61,7 @@ function Field({ children }: { children: React.ReactNode }) {
                 flexDirection: 'column',
                 width: OG_SIZE.width,
                 height: OG_SIZE.height,
-                backgroundColor: FIELD,
+                backgroundColor: theme.field,
                 fontFamily: BODY_FONT,
                 position: 'relative',
             }}
@@ -69,7 +75,7 @@ function Field({ children }: { children: React.ReactNode }) {
                     width: 470,
                     height: 470,
                     borderRadius: 9999,
-                    backgroundColor: FIELD_TINT,
+                    backgroundColor: theme.fieldTint,
                 }}
             />
             <div
@@ -81,7 +87,7 @@ function Field({ children }: { children: React.ReactNode }) {
                     width: 430,
                     height: 430,
                     borderRadius: 9999,
-                    backgroundColor: FIELD_TINT,
+                    backgroundColor: theme.fieldTint,
                 }}
             />
             {children}
@@ -89,7 +95,7 @@ function Field({ children }: { children: React.ReactNode }) {
     )
 }
 
-function Wordmark() {
+function Wordmark({ theme }: { theme: RoomTheme }) {
     return (
         <div
             style={{
@@ -101,7 +107,7 @@ function Wordmark() {
             }}
         >
             <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 34, color: INK }}>PEANUT SPLIT</div>
-            <div style={{ display: 'flex', fontSize: 26, color: FIELD_INK }}>no signup · free forever</div>
+            <div style={{ display: 'flex', fontSize: 26, color: theme.fieldInk }}>no signup · free forever</div>
         </div>
     )
 }
@@ -170,14 +176,14 @@ function AvatarRow({ avatars, overflow, memberCount }: { avatars: OgAvatar[]; ov
 /** The room unfurl. `emojiSrc` is a resolved data URI, or null for the initial. */
 export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: string | null }) {
     return (
-        <Field>
+        <Field theme={card.theme}>
             <Sheet>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     {emojiSrc ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={emojiSrc} width={128} height={128} alt="" style={{ flexShrink: 0 }} />
                     ) : (
-                        <div style={{ ...disc(128, FIELD), fontFamily: DISPLAY_FONT, fontSize: 60 }}>
+                        <div style={{ ...disc(128, card.theme.field), fontFamily: DISPLAY_FONT, fontSize: 60 }}>
                             {card.name.slice(0, 1).toUpperCase()}
                         </div>
                     )}
@@ -204,7 +210,7 @@ export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: str
                     </div>
                 </div>
             </Sheet>
-            <Wordmark />
+            <Wordmark theme={card.theme} />
         </Field>
     )
 }
@@ -215,7 +221,7 @@ export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: str
  */
 export function BrandCard({ lines, tagline }: { lines: readonly [string, string]; tagline: string }) {
     return (
-        <Field>
+        <Field theme={DEFAULT_THEME}>
             <Sheet>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 108, lineHeight: 1.02 }}>
@@ -252,7 +258,7 @@ export function BrandCard({ lines, tagline }: { lines: readonly [string, string]
                     </div>
                 </div>
             </Sheet>
-            <Wordmark />
+            <Wordmark theme={DEFAULT_THEME} />
         </Field>
     )
 }

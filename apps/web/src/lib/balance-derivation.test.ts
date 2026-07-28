@@ -55,6 +55,7 @@ const state = (
         emoji: null,
         currency: ROOM_CURRENCY,
         coverUrl: null,
+        theme: null,
         createdAt: iso(1),
         archivedAt: null,
     },
