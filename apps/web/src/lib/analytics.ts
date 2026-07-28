@@ -64,6 +64,13 @@ export type AnalyticsEvent =
     | 'theme_changed'
     | 'reaction_added'
     | 'reaction_removed'
+    // Latecomer catch-up. Two counts and nothing else — how many earlier
+    // expenses the offer covered, and how many the confirm actually rewrote. Not
+    // who joined, not who tapped, not what any of it was worth: this is the same
+    // room a slug hash stands for, and a name here would say more about a group
+    // than every other event in this file put together.
+    | 'latecomer_backfill_offered'
+    | 'latecomer_backfill_accepted'
     // Splitwise import. The file never leaves the device and neither does anything in it:
     // the only properties these carry are two counts and a failure code.
     | 'import_started'

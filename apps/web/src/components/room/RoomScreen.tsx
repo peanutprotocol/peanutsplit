@@ -20,6 +20,7 @@ import { BalanceStrip } from './BalanceStrip'
 import { ExpenseDrawer } from './ExpenseDrawer'
 import { ExpenseList } from './ExpenseList'
 import { JoinGate } from './JoinGate'
+import { LatecomerBanner } from './LatecomerBanner'
 import { RoomErrorState, RoomNotFound, RoomSkeleton } from './RoomStates'
 import { RoomHeader } from './RoomHeader'
 import { SettleDrawer } from './SettleDrawer'
@@ -157,6 +158,10 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 meId={meId}
                                 onSelect={(memberId) => setParams({ balance: memberId })}
                             />
+                            {/* Above the history, below the balances: it is a
+                                statement about the numbers on the strip, and the
+                                fix it offers rewrites the rows underneath it. */}
+                            {!needsJoin && <LatecomerBanner slug={slug} state={state} token={identity?.token} />}
                             <AnimatePresence initial={false}>
                                 {settledUp && (
                                     <AllSettled
