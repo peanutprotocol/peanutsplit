@@ -32,6 +32,19 @@ export interface ExpenseFormValues {
     participantsTouched: boolean
     /** EXACT mode: memberId → major-unit text, in the EXPENSE currency. */
     exactInputs: Record<string, string>
+    /**
+     * False until the user has actually put a number into an EXACT field.
+     *
+     * It gates the "every cent allocated" celebration, and nothing else. A fresh
+     * switch to EXACT opens with empty fields, which sum to zero, which reconciles
+     * against a zero total — so without this flag the reward fires before anyone
+     * has typed anything, and then goes AWAY the moment they start. The cheer
+     * belongs at the end of the work, not in front of it.
+     *
+     * True when editing a saved EXACT expense: those amounts were allocated, just
+     * not in this session.
+     */
+    exactTouched: boolean
     /** ISO date-time. */
     date: string
 }
@@ -49,6 +62,7 @@ export const emptyExpenseForm = (opts: {
     participantIds: opts.members.map((m) => m.id),
     participantsTouched: false,
     exactInputs: {},
+    exactTouched: false,
     date: new Date().toISOString(),
 })
 
@@ -76,6 +90,9 @@ export function expenseToFormValues(expense: ApiExpense, catalog?: readonly Curr
         // Editing must preserve the saved participant set exactly.
         participantsTouched: true,
         exactInputs,
+        // A saved EXACT expense is allocated by definition — it could not have
+        // been saved otherwise — so the readout opens reconciled and green.
+        exactTouched: true,
         date: expense.date,
     }
 }

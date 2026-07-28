@@ -59,11 +59,19 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
     if (!member) return null
 
     const net = state.balances[memberId] ?? '0'
+    // First person on your own sheet, third on everyone else's — the same branch the strip
+    // and the derivation lines make. "Debe" over a card headed "Tú" is a sentence about
+    // somebody else.
+    const mine = memberId === meId
     const label = isZeroMinor(net)
         ? tBalances('settled')
         : net.startsWith('-')
-          ? tBalances('owes')
-          : tBalances('getsBack')
+          ? mine
+              ? tBalances('youOwe')
+              : tBalances('owes')
+          : mine
+            ? tBalances('youGetBack')
+            : tBalances('getsBack')
     const nameOf = (id: string) => state.members.find((candidate) => candidate.id === id)?.name ?? t('someone')
     const transfers = state.suggestedTransfers.filter(
         (transfer) => transfer.fromId === memberId || transfer.toId === memberId
@@ -136,8 +144,12 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                                                 <MemberAvatar name={nameOf(otherId)} size={28} />
                                                 <span className="min-w-0 flex-1 truncate text-h8">
                                                     {sends
-                                                        ? t('sends', { name: nameOf(otherId) })
-                                                        : t('receives', { name: nameOf(otherId) })}
+                                                        ? mine
+                                                            ? t('sendsYou', { name: nameOf(otherId) })
+                                                            : t('sends', { name: nameOf(otherId) })
+                                                        : mine
+                                                          ? t('receivesYou', { name: nameOf(otherId) })
+                                                          : t('receives', { name: nameOf(otherId) })}
                                                 </span>
                                                 <Money
                                                     minor={transfer.amountMinor}

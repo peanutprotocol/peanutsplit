@@ -3,6 +3,7 @@ import { RoomEmblem } from '@/components/room/RoomEmblem'
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
+import { RecapPersonalLine } from '@/components/room/RecapPersonalLine'
 import { RecapShareButton } from '@/components/room/RecapShareButton'
 import { RecapViewed } from '@/components/room/RecapViewed'
 import { RoomNotFound } from '@/components/room/RoomStates'
@@ -103,6 +104,10 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
                     <p className="text-sm font-medium">{t('topPayer', { name: recap.topPayerName })}</p>
                 )}
                 <p className="text-sm text-grey-1">{t('settlements', { count: recap.settlementCount })}</p>
+                {/* Client-side, from the room state this device can already read — the
+                    server render has no idea who is holding the phone, and the whole
+                    identity model is "the link plus what is in localStorage". */}
+                <RecapPersonalLine slug={slug} />
             </div>
 
             {recap.settled && <RecapShareButton slug={slug} />}
