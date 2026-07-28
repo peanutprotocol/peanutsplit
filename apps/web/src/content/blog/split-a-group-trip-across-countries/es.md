@@ -1,0 +1,86 @@
+---
+title: Dividir gastos de un viaje entre países
+description: Cuatro personas, cuatro bancos, tres monedas, una cena. Cómo llevar los gastos de un viaje sin pelearse y, sobre todo, cómo cobrar después.
+date: 2026-07-28
+tags: [viajes, monedas, cobrar]
+faqs:
+    - question: ¿Todos tienen que instalar algo?
+      answer: 'No. Una sala de Split es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin app, sin cuenta, sin correo.'
+    - question: ¿En qué moneda conviene armar la sala?
+      answer: En la que van a discutir al final, que suele ser en la que se pagó casi todo el viaje. Igual podés cargar cada gasto en la moneda en que lo pagaste.
+    - question: ¿Cómo se pagan entre países?
+      answer: Como ya lo hacen. Split reduce las deudas para que hagan dos o tres transferencias en vez de veinte, y registra cada una cuando el que pagó dice que pagó.
+---
+
+<Hero
+  eyebrow="viajes en grupo"
+  title="Dividir un viaje cuando nadie comparte banco"
+  subtitle="Las cuentas son la parte fácil. Lo difícil es que cuatro personas en cuatro países se paguen de verdad."
+  cta="Crear un split"
+  ctaHint="Diez segundos. Sin correo, sin contraseña, sin descargas." />
+
+Un viaje con amigos que viven en la misma ciudad se acomoda solo. Uno paga la cena, otro el taxi, y más o menos se empareja porque la semana que viene se ven.
+
+Un viaje con amigos que viven en cuatro países no se acomoda. Uno pagó la casa en euros desde una cuenta alemana. Otro pagó el auto en bahts tailandeses con una tarjeta que cobra en libras. Dos vienen comprando la comida en efectivo. Tres semanas después hay un número en el chat del grupo que nadie termina de creer y que nadie pagó.
+
+## Armá la sala antes de llegar
+
+Tres cosas para acordar antes del primer gasto.
+
+<Steps title="Antes del primer gasto">
+<Step title="Elegí la moneda en la que van a discutir">Poné aquella en la que se está pagando casi todo, no la de tu banco. Si la casa, el auto y los restaurantes son en euros, la sala es en euros. Cada uno carga lo que pagó de verdad y Split lo convierte, así nadie hace cuentas en la fila del taxi.</Step>
+<Step title="Meté a todos antes del primer gasto">Pegá el enlace en el chat el primer día, mientras todavía hay entusiasmo por el viaje. La razón número uno por la que se cae un split de viaje es que dos personas nunca entraron, y lo que gastaron quedó perdido en el scroll de WhatsApp.</Step>
+<Step title="Acordá qué entra">Digan en voz alta si la bolsa común cubre alcohol, propinas y taxis, o solo lo grande. Toma treinta segundos y es la única regla que van a necesitar.</Step>
+</Steps>
+
+## Cargalo mientras tenés el ticket en la mano
+
+El que pagó carga el gasto antes de que levanten los platos. No esa noche, no en el vuelo de vuelta.
+
+Después no te vas a acordar. A la semana esa cena costó "como noventa" y te equivocaste por quince, y el que pagó no va a discutir porque tampoco se acuerda. Cada uno de esos redondeos chicos sale del bolsillo de alguien.
+
+<Callout title="Cargá lo que pagaste de verdad">
+Si pagaste 3.200 bahts, poné 3.200 bahts, no lo que tu teléfono estimó en euros. Convertir al cargar tira el único número que podés demostrar, y de todos modos no va a coincidir con tu resumen de tarjeta.
+</Callout>
+
+## No se persigan por cada cosa
+
+Con cuatro personas y dos semanas de gastos podés terminar con veinte deudas chiquitas apuntando en todas direcciones. Pagarlas de a una es la forma en que un viaje saldado sigue sin saldarse un mes después.
+
+Split compensa las deudas entre sí para que hagan dos o tres transferencias en vez de veinte. Con cuatro personas casi siempre baja a eso, y cada una es una decisión de una sola persona, no una negociación grupal.
+
+<Checklist title="Cómo debería verse saldado">
+<ChecklistItem title="Dos o tres pagos, no veinte">Que una persona le pague a otra pasa. Que seis se paguen entre todas se discute.</ChecklistItem>
+<ChecklistItem title="Cada pago con dueño y con número">"Mark le debe 140 € a Ana" es accionable. "Todos nos debemos más o menos lo mismo" no.</ChecklistItem>
+<ChecklistItem title="Alguien tiene que decir que llegó">Una fila saldada es la palabra de una persona de que pagó. Split no verifica con ningún banco y no puede: entre amigos está bien, y conviene saberlo sobre tu registro.</ChecklistItem>
+</Checklist>
+
+## Y ahora la parte incómoda: pagar entre países
+
+Acá es donde se termina casi todo el consejo sobre dividir viajes.
+
+Si el grupo comparte país ya tenés la respuesta: una app de transferencias que todos tienen. Si no, "mandámelo y listo" se convierte en una semana de idas y vueltas sobre quién tiene qué app, cuánto sale una transferencia internacional y si vale la pena discutir 4 € de comisión sobre una deuda de 40 €.
+
+En orden de preferencia:
+
+- **Efectivo, si todavía están en el mismo lugar.** Gratis, inmediato, y pasa antes de que cada uno se vaya. Salden en el aeropuerto si pueden.
+- **Una transferencia local entre las dos personas que comparten país.** Compensen las deudas para que la mayor cantidad posible de pagos sea local.
+- **Un enlace de pago para el resto.** Uno manda un enlace y el otro lo paga con lo que tenga. Se saltea el problema de "qué app tenés", que es el que realmente traba todo.
+
+Split registra el pago cuando el que pagó dice que pagó. No le importa cómo se movió la plata, y no verifica con el banco: una fila saldada significa que alguien tocó, no que el dinero llegó.
+
+<CTA
+  title="Abrí la sala antes del viaje, no después"
+  body="Un enlace en el chat del grupo. Cada uno carga lo que pagó, en la moneda que pagó, y Split calcula quién le debe a quién."
+  text="Crear un split" />
+
+<FAQ title="Preguntas">
+<FAQItem question="¿Todos tienen que instalar algo?">No. Una sala de Split es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin app, sin cuenta, sin correo.</FAQItem>
+<FAQItem question="¿En qué moneda conviene armar la sala?">En la que van a discutir al final, que suele ser en la que se pagó casi todo el viaje. Igual podés cargar cada gasto en la moneda en que lo pagaste.</FAQItem>
+<FAQItem question="¿Cómo se pagan entre países?">Como ya lo hacen. Split reduce las deudas para que hagan dos o tres transferencias en vez de veinte, y registra cada una cuando el que pagó dice que pagó.</FAQItem>
+</FAQ>
+
+<RelatedPages title="Seguí leyendo">
+<RelatedLink href="/es/blog/split-expenses-across-currencies">Cuando pagaste en una moneda y debés en otra</RelatedLink>
+<RelatedLink href="/es/tricount-alternative">Cómo se compara Split con Tricount</RelatedLink>
+</RelatedPages>

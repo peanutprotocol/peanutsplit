@@ -8,10 +8,20 @@ import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
  * do not reach for it anywhere else in Split.
  *
  * This is also one of exactly two places you can change language. It belongs here because the
- * footer is the one component every page shares, including the article pages whose bodies stay
- * English — the shell around them still speaks the reader's language.
+ * footer is the one component every page shares.
+ *
+ * `showLocaleSwitcher` exists for the indexed pages. The switcher sets a cookie and reloads,
+ * which is right for the app — one URL, three languages. On `/es/blog/…` it would reload the same
+ * Spanish URL, so it reads as a broken control. Those pages pass `false` and offer real links to
+ * the translations that exist instead (see ArticleLayout / ContentHub).
  */
-export function SiteFooter({ showCompareLink = true }: { showCompareLink?: boolean }) {
+export function SiteFooter({
+    showCompareLink = true,
+    showLocaleSwitcher = true,
+}: {
+    showCompareLink?: boolean
+    showLocaleSwitcher?: boolean
+}) {
     const t = useTranslations('marketing.footer')
     const tLocale = useTranslations('locale')
 
@@ -44,9 +54,11 @@ export function SiteFooter({ showCompareLink = true }: { showCompareLink?: boole
                     <span className="font-display font-bold text-secondary-1">{t('poweredByBrand')}</span>
                 </a>
             </div>
-            <div className="mx-auto w-full max-w-xl px-5 pb-5">
-                <LocaleSwitcher label={tLocale('label')} className="items-center" />
-            </div>
+            {showLocaleSwitcher && (
+                <div className="mx-auto w-full max-w-xl px-5 pb-5">
+                    <LocaleSwitcher label={tLocale('label')} className="items-center" />
+                </div>
+            )}
         </footer>
     )
 }

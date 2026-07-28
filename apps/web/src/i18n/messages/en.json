@@ -318,5 +318,17 @@
         "showOther": "Show {name}’s balance",
         "hideOther": "Hide {name}’s balance",
         "someone": "Someone"
+    },
+    "content": {
+        "home": "Home",
+        "guides": "Guides",
+        "hubTitle": "Guides",
+        "hubDescription": "How to split expenses without an account, an app install, or a subscription.",
+        "empty": "Nothing published yet.",
+        "startRoom": "Start a room",
+        "startRoomHint": "No signup. No install. Free forever.",
+        "published": "Published {date}",
+        "updated": "updated {date}",
+        "otherLanguages": "Also in"
     }
 }

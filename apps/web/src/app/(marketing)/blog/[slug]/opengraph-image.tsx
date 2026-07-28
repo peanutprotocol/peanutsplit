@@ -1,31 +1,14 @@
-import { ImageResponse } from 'next/og'
-import { BrandCard, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/card'
-import { ogFonts } from '@/server/og/fonts'
-import { getDoc, listSlugs } from '@/lib/content'
+import { contentOgImage, contentOgStaticParams, ogImageExports } from '@/lib/content-og'
 
-/**
- * Unfurl for a guide. Without this the card falls back to nothing — an article shared into a
- * group chat is the whole distribution mechanism, and a linkless grey box is a share that does
- * not get clicked.
- *
- * The title goes in the tagline slot rather than the display lines: BrandCard's two lines are
- * Knerd at 108px, sized for "SPLIT ANYTHING", and an article title would overflow them.
- */
+/** English guide unfurl. Implementation shared — see `lib/content-og`. */
+const LOCALE = 'en' as const
+
+// Literal, not `ogImageExports.runtime`: Next parses this export statically and rejects
+// a member expression outright.
 export const runtime = 'nodejs'
-export const size = OG_SIZE
-export const contentType = OG_CONTENT_TYPE
+export const size = ogImageExports.size
+export const contentType = ogImageExports.contentType
 export const alt = 'Peanut Split guide'
 
-export function generateStaticParams() {
-    return listSlugs('blog').map((slug) => ({ slug }))
-}
-
-export default async function BlogOgImage({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = await params
-    const doc = getDoc('blog', slug)
-
-    return new ImageResponse(
-        <BrandCard lines={['SPLIT', 'GUIDES']} tagline={doc?.frontmatter.title ?? 'Peanut Split'} />,
-        { ...OG_SIZE, fonts: await ogFonts() }
-    )
-}
+export const generateStaticParams = contentOgStaticParams('blog', LOCALE, 'slug')
+export default contentOgImage('blog', LOCALE, 'slug')

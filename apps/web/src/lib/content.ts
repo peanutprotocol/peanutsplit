@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import { staticPageSlugs } from '@/data/static-pages'
+import { DEFAULT_LOCALE, LOCALES, isLocale, type Locale } from '@/i18n/locales'
+import { localizedPath } from '@/i18n/paths'
 
 /**
  * Split's content engine. Same shape as the one on peanut.me — markdown + frontmatter on disk,
@@ -10,13 +12,19 @@ import { staticPageSlugs } from '@/data/static-pages'
  * generation pipeline; Split owns its articles outright, in this repo, in this folder. Split
  * must never inherit a content change it did not ask for, so the duplication is the point.
  *
- * Layout: src/content/{collection}/{slug}.md — one file, one page, English only.
- * peanut.me nests a locale file per slug because it ships five locales; Split ships one, and a
- * `{slug}/en.md` directory per article would be ceremony with no payload. If Split ever
- * localises, that is the change: swap the leaf for a directory here and nowhere else.
+ * Layout: `src/content/{collection}/{slug}/{locale}.md` — a directory per article, a file per
+ * language, locale codes taken from `@/i18n/locales` so there is exactly one list of locales in
+ * the repo. peanut.me nests the same way for the same reason.
  *
- * Publishing an article is: drop the .md in, push. The route's generateStaticParams and
- * sitemap.ts both read this module, so nothing else has to be touched.
+ * **No fallback to English.** peanut.me renders the English body at a Spanish URL when the
+ * translation is missing; that publishes the same text at two addresses and lets Google decide
+ * which one to drop. Here, a locale a page has no file for simply has no page: the route 404s,
+ * the sitemap omits it, the hub does not list it, and hreflang never points at it. Partial
+ * translation is a normal state, and this is what makes it a safe one.
+ *
+ * Publishing an article is: drop `{slug}/en.md` in, push. Translating one is: drop `es.md` in
+ * beside it. `generateStaticParams` and `sitemap.ts` both derive from the directory, so neither
+ * has a list to update.
  */
 
 /**
@@ -59,7 +67,9 @@ export interface Frontmatter {
 export interface Doc {
     collection: Collection
     slug: string
-    /** Path the page is served at, leading slash, no origin. */
+    /** The language this doc was written in. Never a fallback — the file exists or the doc does not. */
+    locale: Locale
+    /** Path the page is served at, leading slash, no origin, locale prefix included. */
     href: string
     frontmatter: Frontmatter
     /** Markdown/MDX body with frontmatter stripped. */
@@ -71,13 +81,39 @@ export interface Doc {
  * because that is what the query looks like ("splitwise alternative") and a /compare/ prefix
  * buys nothing. Root-level slugs are safe: Next matches the static segments (/new, /r, /blog,
  * /api) before the dynamic one, and the route pins `dynamicParams = false`.
+ *
+ * The locale prefix goes on the front for everything but English — see `@/i18n/paths`.
  */
-export function hrefFor(collection: Collection, slug: string): string {
-    return collection === 'blog' ? `/blog/${slug}` : `/${slug}`
+export function hrefFor(collection: Collection, slug: string, locale: Locale = DEFAULT_LOCALE): string {
+    const base = collection === 'blog' ? `/blog/${slug}` : `/${slug}`
+    return localizedPath(base, locale)
 }
 
 function collectionDir(collection: Collection): string {
     return path.join(contentRoot(), collection)
+}
+
+/** `src/content/{collection}/{slug}/{locale}.md` */
+function docPath(collection: Collection, slug: string, locale: Locale): string {
+    return path.join(collectionDir(collection), slug, `${locale}.md`)
+}
+
+/**
+ * Which languages this article actually exists in, English first. Drives hreflang and the
+ * language links on the page, so it must reflect files on disk rather than the locale list —
+ * offering a translation that is not there is worse than offering none.
+ */
+export function localesForSlug(collection: Collection, slug: string): Locale[] {
+    let entries: string[]
+    try {
+        entries = fs.readdirSync(path.join(collectionDir(collection), slug))
+    } catch {
+        return []
+    }
+    const present = new Set(entries.filter((f) => f.endsWith('.md')).map((f) => f.replace(/\.md$/, '')))
+    // Ordered by LOCALES, not by readdir — directory order is filesystem-dependent and would
+    // make the rendered hreflang block change between machines for no reason.
+    return LOCALES.filter((locale) => present.has(locale))
 }
 
 /** A frontmatter date may come back from YAML as a Date; the rest of the app wants YYYY-MM-DD. */
@@ -100,13 +136,19 @@ function coerceFaqs(value: unknown): Faq[] | undefined {
  * half-written article can sit in the tree without breaking the build or the sitemap. Content
  * is a publishing surface, not a code path — it should fail quiet and visible, not loud.
  */
-function parseDoc(collection: Collection, slug: string): Doc | null {
+function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | null {
     // A slug reaches this from a route param. `dynamicParams = false` already pins the match set,
     // but the loader should not be the thing relying on that — `../` in a slug would otherwise
     // walk out of the content tree and produce a doc with a nonsense href.
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null
+    //
+    // The typeof check is load-bearing and was learned the hard way: a route reading the wrong
+    // param name hands this `undefined`, `.test()` stringifies that to "undefined", which matches
+    // the pattern, and `path.join` then throws on a non-string — a 500 where a 404 belonged.
+    if (typeof slug !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null
+    // Same reasoning for the locale, which is a path segment on every non-English route.
+    if (!isLocale(locale)) return null
 
-    const filePath = path.join(collectionDir(collection), `${slug}.md`)
+    const filePath = docPath(collection, slug, locale)
 
     // Both the read and the YAML parse are inside the guard. gray-matter throws on malformed
     // frontmatter, and a half-written article must not be able to fail `next build` — every
@@ -131,7 +173,8 @@ function parseDoc(collection: Collection, slug: string): Doc | null {
     return {
         collection,
         slug,
-        href: hrefFor(collection, slug),
+        locale,
+        href: hrefFor(collection, slug, locale),
         frontmatter: {
             title,
             description,
@@ -152,17 +195,17 @@ function parseDoc(collection: Collection, slug: string): Doc | null {
  * times and dev wants edits picked up without a restart. If this ever shows up in build
  * profiles, memoise on (collection, mtime) — not on collection alone.
  */
-function readCollection(collection: Collection): Doc[] {
-    let entries: string[]
+function readCollection(collection: Collection, locale: Locale): Doc[] {
+    let entries: fs.Dirent[]
     try {
-        entries = fs.readdirSync(collectionDir(collection))
+        entries = fs.readdirSync(collectionDir(collection), { withFileTypes: true })
     } catch {
         return []
     }
 
     return entries
-        .filter((f) => f.endsWith('.md'))
-        .map((f) => parseDoc(collection, f.replace(/\.md$/, '')))
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => parseDoc(collection, entry.name, locale))
         .filter((doc): doc is Doc => doc !== null)
 }
 
@@ -175,28 +218,40 @@ function isShadowed(doc: Doc): boolean {
     return doc.collection !== 'blog' && staticPageSlugs.has(doc.slug)
 }
 
-/** Published docs in a collection, newest first. The only listing the app should use. */
-export function listDocs(collection: Collection): Doc[] {
-    return readCollection(collection)
+/**
+ * Published docs in a collection for one language, newest first. The only listing the app should
+ * use. A doc with no file in `locale` is absent, not substituted — see the module docstring.
+ */
+export function listDocs(collection: Collection, locale: Locale = DEFAULT_LOCALE): Doc[] {
+    return readCollection(collection, locale)
         .filter((doc) => doc.frontmatter.published !== false && !isShadowed(doc))
         .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date))
 }
 
 /** Published slugs in a collection — what generateStaticParams and the sitemap iterate. */
-export function listSlugs(collection: Collection): string[] {
-    return listDocs(collection).map((doc) => doc.slug)
+export function listSlugs(collection: Collection, locale: Locale = DEFAULT_LOCALE): string[] {
+    return listDocs(collection, locale).map((doc) => doc.slug)
 }
 
-/** One published doc, or null. Unpublished or shadowed reads as missing so the route 404s. */
-export function getDoc(collection: Collection, slug: string): Doc | null {
-    const doc = parseDoc(collection, slug)
+/** One published doc, or null. Unpublished, shadowed or untranslated all read as missing. */
+export function getDoc(collection: Collection, slug: string, locale: Locale = DEFAULT_LOCALE): Doc | null {
+    const doc = parseDoc(collection, slug, locale)
     if (!doc || doc.frontmatter.published === false || isShadowed(doc)) return null
     return doc
 }
 
-/** Everything published, across collections, newest first. Powers the /blog hub. */
-export function listAllDocs(): Doc[] {
-    return COLLECTIONS.flatMap((collection) => listDocs(collection)).sort((a, b) =>
+/** Everything published in one language, across collections, newest first. Powers the hub. */
+export function listAllDocs(locale: Locale = DEFAULT_LOCALE): Doc[] {
+    return COLLECTIONS.flatMap((collection) => listDocs(collection, locale)).sort((a, b) =>
         b.frontmatter.date.localeCompare(a.frontmatter.date)
     )
+}
+
+/**
+ * Every (collection, slug, locale) that has a file — the sitemap's whole input, and what proves
+ * a translation is reachable. Published-gated per locale: a draft `es.md` beside a live `en.md`
+ * hides only the Spanish URL.
+ */
+export function listAllTranslations(): Doc[] {
+    return COLLECTIONS.flatMap((collection) => LOCALES.flatMap((locale) => listDocs(collection, locale)))
 }
