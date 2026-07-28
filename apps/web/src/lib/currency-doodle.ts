@@ -29,6 +29,7 @@ const DOODLE_BY_CURRENCY: Record<string, string> = {
     PLN: 'zloty',
     NGN: 'naira',
     CHF: 'franc',
+    THB: 'baht',
     MXN: 'peso',
     ARS: 'peso',
     COP: 'peso',

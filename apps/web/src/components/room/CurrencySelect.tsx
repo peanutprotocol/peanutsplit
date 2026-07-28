@@ -1,11 +1,10 @@
 'use client'
 
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { useLocale, useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
-import { currencyDisplayName } from '@/lib/money'
 import { CurrencyTag } from './CurrencyTag'
 
 interface CurrencySelectProps {
@@ -21,20 +20,13 @@ interface CurrencySelectProps {
 }
 
 /**
- * Still a native `<select>` underneath, and that is the whole design.
+ * Compact currency picker: one drawn sign and one ticker, everywhere.
  *
- * The OS picker is faster than anything we could build, is accessible for free, never fights a
- * virtual keyboard on a 390px screen, and is what `selectOption()` drives in the e2e journey. So
- * the select stays — it is just made invisible and stretched over a trigger we draw ourselves,
- * which is how the closed state can carry a drawn currency sign while the open state is still the
- * platform's own wheel. The `peer-focus-visible` classes carry the focus ring across to the drawn
- * trigger, so a keyboard user still sees what they have focused.
- *
- * Suggested currencies are a real `<optgroup>` rather than a hand-drawn divider — the OS renders
- * it as a section header at zero cost, which is what "three or four, then everything else" looks
- * like in a native picker. They are repeated in the full group below on purpose: a shortcut must
- * not make a currency vanish from where someone expects to find it. Duplicate values are legal
- * HTML, and since the trigger is ours, picking either copy looks identical.
+ * A native option can only contain text, which is why the old picker expanded
+ * every row to “Brazilian Real (BRL)” and still could not show the drawing from
+ * its closed trigger. The visible control is now a keyboard listbox. A silent
+ * native select remains as a form/test bridge, so existing journeys that set
+ * its value still exercise the same `onChange` path.
  */
 export function CurrencySelect({
     value,
@@ -43,71 +35,188 @@ export function CurrencySelect({
     suggested,
     className,
     id,
-    ...rest
+    'aria-label': ariaLabel = 'Currency',
+    'data-testid': testId,
 }: CurrencySelectProps) {
-    const t = useTranslations('room.currency')
-    const locale = useLocale()
     const reduceMotion = useReducedMotion()
+    const generatedId = useId()
+    const listboxId = `${id ?? generatedId}-options`
+    const rootRef = useRef<HTMLDivElement>(null)
+    const triggerRef = useRef<HTMLButtonElement>(null)
+    const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
+    const [open, setOpen] = useState(false)
 
-    const byCode = new Map(currencies.map((info) => [info.code, info]))
-    const suggestedInfos = (suggested ?? [])
-        .map((code) => byCode.get(code))
-        .filter((info): info is CurrencyInfo => info !== undefined)
-    /** `Brazilian Real (BRL)`. An `<option>` holds text and nothing else, so this is one string.
-     *
-     *  It used to read `🇧🇷 R$ BRL — Brazilian Real`: a flag, a symbol, a code and a name — four
-     *  encodings of one fact, in a control you scroll past two hundred times. The name leads now
-     *  because the name is the part a person reads; the code follows in brackets because it is
-     *  the part they may be looking for. */
-    const optionLabel = (info: CurrencyInfo) => `${currencyDisplayName(info.code, locale, currencies)} (${info.code})`
+    const ordered = useMemo(() => {
+        const byCode = new Map(currencies.map((info) => [info.code, info]))
+        const pinned = (suggested ?? [])
+            .map((code) => byCode.get(code))
+            .filter((info): info is CurrencyInfo => info !== undefined)
+            .filter((info, index, list) => list.findIndex((candidate) => candidate.code === info.code) === index)
+        const pinnedCodes = new Set(pinned.map((info) => info.code))
+        const rest = [...currencies]
+            .filter((info) => !pinnedCodes.has(info.code))
+            .sort((a, b) => a.code.localeCompare(b.code))
+        return [...pinned, ...rest]
+    }, [currencies, suggested])
 
-    /** By name, not by code, because that is now what the row leads with — a list labelled
-     *  "Brazilian Real" and ordered B-R-L reads as unsorted. `localeCompare` with the user's
-     *  locale so accented names land where that language expects them. */
-    const byName = [...currencies].sort((a, b) =>
-        optionLabel(a).localeCompare(optionLabel(b), locale, { sensitivity: 'base' })
+    const selectedIndex = Math.max(
+        0,
+        ordered.findIndex((info) => info.code === value)
     )
+    const [activeIndex, setActiveIndex] = useState(selectedIndex)
+
+    useEffect(() => {
+        if (!open) return
+        requestAnimationFrame(() => optionRefs.current[activeIndex]?.focus())
+    }, [activeIndex, open])
+
+    useEffect(() => {
+        const closeOnOutsidePress = (event: PointerEvent) => {
+            if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+        }
+        document.addEventListener('pointerdown', closeOnOutsidePress)
+        return () => document.removeEventListener('pointerdown', closeOnOutsidePress)
+    }, [])
+
+    const close = (restoreFocus = true) => {
+        setOpen(false)
+        if (restoreFocus) requestAnimationFrame(() => triggerRef.current?.focus())
+    }
+
+    const choose = (code: string) => {
+        onChange(code)
+        close()
+    }
+
+    const focusOption = (index: number) => {
+        const next = (index + ordered.length) % ordered.length
+        setActiveIndex(next)
+        optionRefs.current[next]?.focus()
+        optionRefs.current[next]?.scrollIntoView({ block: 'nearest' })
+    }
 
     return (
-        <div className={cn('relative w-full', className)}>
+        <div ref={rootRef} className={cn('relative w-full', className)}>
+            {/* Compatibility bridge for forms and existing Playwright journeys.
+                It is not an interaction surface and is hidden from the accessibility tree. */}
             <select
                 id={id}
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
-                className="peer absolute inset-0 z-1 h-full w-full cursor-pointer appearance-none opacity-0"
-                {...rest}
+                tabIndex={-1}
+                aria-hidden="true"
+                data-testid={testId}
+                className="pointer-events-none absolute size-px opacity-0"
             >
-                {suggestedInfos.length > 0 && (
-                    <optgroup label={t('suggested')}>
-                        {suggestedInfos.map((info) => (
-                            <option key={`suggested-${info.code}`} value={info.code}>
-                                {optionLabel(info)}
-                            </option>
-                        ))}
-                    </optgroup>
-                )}
-                <optgroup label={t('all')}>
-                    {byName.map((info) => (
-                        <option key={info.code} value={info.code}>
-                            {optionLabel(info)}
-                        </option>
-                    ))}
-                </optgroup>
+                {currencies.map((info) => (
+                    <option key={info.code} value={info.code}>
+                        {info.code}
+                    </option>
+                ))}
             </select>
 
-            {/* Keyed on the value so a change replays the settle. Transform and opacity only —
-                nothing in here can reflow the row it sits in. */}
-            <motion.div
-                key={value}
-                aria-hidden
-                initial={reduceMotion ? false : { scale: 0.94, opacity: 0.55 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 520, damping: 26 }}
-                className="input flex h-16 w-full items-center justify-between gap-1 pl-4 pr-3 peer-focus-visible:border-primary-1 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-1"
+            <button
+                ref={triggerRef}
+                type="button"
+                aria-label={ariaLabel}
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                aria-controls={listboxId}
+                onClick={() => {
+                    if (open) {
+                        setOpen(false)
+                    } else {
+                        setActiveIndex(selectedIndex)
+                        setOpen(true)
+                    }
+                }}
+                onKeyDown={(event) => {
+                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                        event.preventDefault()
+                        setOpen(true)
+                        setActiveIndex(
+                            event.key === 'ArrowDown'
+                                ? selectedIndex
+                                : (selectedIndex - 1 + ordered.length) % ordered.length
+                        )
+                    }
+                }}
+                className="input flex h-16 w-full items-center justify-between gap-1 pl-4 pr-3 text-left focus-visible:border-primary-1 focus-visible:ring-2 focus-visible:ring-primary-1"
             >
-                <CurrencyTag code={value} catalog={currencies} />
-                <Icon name="chevron-down" size={20} className="shrink-0 text-n-1" />
-            </motion.div>
+                <motion.span
+                    key={value}
+                    aria-hidden
+                    initial={reduceMotion ? false : { scale: 0.94, opacity: 0.55 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 26 }}
+                >
+                    <CurrencyTag code={value} catalog={currencies} />
+                </motion.span>
+                <Icon
+                    name="chevron-down"
+                    size={20}
+                    aria-hidden="true"
+                    className={cn(
+                        'shrink-0 text-n-1 transition-transform motion-reduce:transition-none',
+                        open && 'rotate-180'
+                    )}
+                />
+            </button>
+
+            {open && (
+                <div
+                    id={listboxId}
+                    role="listbox"
+                    aria-label={ariaLabel}
+                    className="shadow-4 absolute bottom-[calc(100%+0.5rem)] left-0 z-50 max-h-[min(16rem,45vh)] w-full min-w-[8.5rem] overflow-y-auto rounded-sm border border-n-1 bg-white p-1"
+                >
+                    {ordered.map((info, index) => {
+                        const selected = info.code === value
+                        const divider =
+                            index > 0 &&
+                            (suggested ?? []).includes(ordered[index - 1]?.code) &&
+                            !(suggested ?? []).includes(info.code)
+                        return (
+                            <button
+                                key={info.code}
+                                ref={(node) => {
+                                    optionRefs.current[index] = node
+                                }}
+                                type="button"
+                                role="option"
+                                aria-selected={selected}
+                                tabIndex={index === activeIndex ? 0 : -1}
+                                onClick={() => choose(info.code)}
+                                onFocus={() => setActiveIndex(index)}
+                                onKeyDown={(event) => {
+                                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                                        event.preventDefault()
+                                        focusOption(activeIndex + (event.key === 'ArrowDown' ? 1 : -1))
+                                    } else if (event.key === 'Home') {
+                                        event.preventDefault()
+                                        focusOption(0)
+                                    } else if (event.key === 'End') {
+                                        event.preventDefault()
+                                        focusOption(ordered.length - 1)
+                                    } else if (event.key === 'Escape') {
+                                        event.preventDefault()
+                                        close()
+                                    } else if (event.key === 'Tab') {
+                                        close(false)
+                                    }
+                                }}
+                                className={cn(
+                                    'flex min-h-11 w-full items-center rounded-sm px-3 text-left outline-none hover:bg-primary-3 focus-visible:bg-primary-3',
+                                    divider && 'mt-1 border-t border-n-1 pt-1',
+                                    selected && 'bg-primary-1'
+                                )}
+                            >
+                                <CurrencyTag code={info.code} catalog={currencies} />
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
         </div>
     )
 }

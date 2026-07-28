@@ -9,11 +9,10 @@ describe('emblemDoodle', () => {
         expect(emblemDoodle('peanut')).toBe('peanut')
     })
 
-    it('does not mistake a legacy emoji for one', () => {
-        // Every room made before the swap holds one of these, forever. There is no migration.
-        expect(emblemDoodle('🏔️')).toBeNull()
-        expect(emblemDoodle('🥜')).toBeNull()
-        expect(emblemDoodle('🧾')).toBeNull()
+    it('draws legacy room-picker emoji without rewriting stored room data', () => {
+        expect(emblemDoodle('🏔️')).toBe('mountain')
+        expect(emblemDoodle('🥜')).toBe('peanut')
+        expect(emblemDoodle('🧾')).toBe('iconreceipt')
     })
 
     it('treats an unknown or empty value as not drawn', () => {

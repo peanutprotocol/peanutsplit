@@ -5,7 +5,11 @@
   },
   "cash": {
     "d": "M4 5H27V17H4Z",
-    "dots": [[15.5, 11, 3.0], [10, 23.5, 4.2], [21.5, 23.5, 4.2]],
+    "dots": [
+      [15.5, 11, 3.0],
+      [10, 23.5, 4.2],
+      [21.5, 23.5, 4.2]
+    ],
     "note": "a banknote over two coins — settling in cash"
   },
   "bank": {
@@ -41,5 +45,105 @@
   "link": {
     "d": "M10.78 14.44L5.68 19.54C3.81 21.42 3.81 24.45 5.68 26.32C7.56 28.2 10.59 28.2 12.46 26.32L17.56 21.22C19.44 19.35 19.44 16.32 17.56 14.44C15.69 12.57 12.66 12.57 10.78 14.44Z M21.22 17.56L26.32 12.46C28.19 10.58 28.19 7.55 26.32 5.68C24.44 3.8 21.41 3.8 19.54 5.68L14.44 10.78C12.56 12.65 12.56 15.68 14.44 17.56C16.31 19.43 19.34 19.43 21.22 17.56Z",
     "note": "two interlocking chain links — a room is just a link"
+  },
+  "iconplus": {
+    "d": "M16 6V26 M6 16H26",
+    "note": "a simple drawn plus — add or open"
+  },
+  "iconx": {
+    "d": "M8 8L24 24 M24 8L8 24",
+    "note": "a simple drawn x — close or remove"
+  },
+  "iconcheck": {
+    "d": "M5.5 16.5L12.5 23.5L26.5 8.5",
+    "note": "a long drawn tick — confirmed"
+  },
+  "iconshare": {
+    "d": "M16 21V5 M10 11L16 5L22 11 M7 16V27H25V16",
+    "note": "an arrow leaving a tray — share"
+  },
+  "iconcopy": {
+    "d": "M10 4H26V21H10Z M6 10H22V28H6Z",
+    "note": "two overlapping sheets — copy"
+  },
+  "iconusers": {
+    "d": "M10.5 13C8.2 13 6.5 11.2 6.5 9C6.5 6.8 8.2 5 10.5 5C12.8 5 14.5 6.8 14.5 9C14.5 11.2 12.8 13 10.5 13Z M3.5 27C3.5 21.5 6.2 18 10.5 18C14.8 18 17.5 21.5 17.5 27 M21 14C23.2 14 25 12.2 25 10C25 7.8 23.2 6 21 6 M18.5 19C24.5 19 28 22 28 27",
+    "note": "two loose portraits — people"
+  },
+  "iconarrowleft": {
+    "d": "M27 16H5 M13 8L5 16L13 24",
+    "note": "a long arrow pointing left"
+  },
+  "iconarrowright": {
+    "d": "M5 16H27 M19 8L27 16L19 24",
+    "note": "a long arrow pointing right"
+  },
+  "iconchevrondown": {
+    "d": "M7 11L16 20L25 11",
+    "note": "a broad chevron pointing down"
+  },
+  "iconchevronup": {
+    "d": "M7 21L16 12L25 21",
+    "note": "a broad chevron pointing up"
+  },
+  "iconchevronright": {
+    "d": "M11 7L20 16L11 25",
+    "note": "a broad chevron pointing right"
+  },
+  "icontrash": {
+    "d": "M7 9H25 M12 9V5H20V9 M9 9L10.5 27H21.5L23 9 M14 13V23 M18 13V23",
+    "note": "a plain bin with a lid — delete"
+  },
+  "iconpencil": {
+    "d": "M6 25L8 18L21 5L27 11L14 24L6 25Z M8 18L14 24 M19 7L25 13",
+    "note": "a pencil with a sharpened point — edit"
+  },
+  "iconreceipt": {
+    "d": "M8 4H24V28L21 25L18 28L15 25L12 28L8 25Z M12 10H20 M12 15H20 M12 20H18",
+    "note": "a paper receipt with a torn foot"
+  },
+  "iconwallet": {
+    "d": "M5 8H24C25.7 8 27 9.3 27 11V25H5Z M5 8L21 4V8 M18 14H28V21H18C16.3 21 15 19.7 15 18C15 16.3 16.3 14 18 14Z",
+    "note": "a folded wallet with a clasp"
+  },
+  "iconhandcoins": {
+    "d": "M5 22C8 19 10 18 13 18H20C22 18 23 20 21 22H15 M5 22L10 27H20L28 20 M17 12C14.8 12 13 10.2 13 8C13 5.8 14.8 4 17 4C19.2 4 21 5.8 21 8C21 10.2 19.2 12 17 12Z",
+    "note": "an open hand under a coin"
+  },
+  "iconsparkles": {
+    "d": "M16 4L18 12L26 16L18 19L16 28L13 19L5 16L13 12Z M25 4V10 M22 7H28",
+    "note": "one large and one small sparkle"
+  },
+  "iconcamera": {
+    "d": "M4 10H10L12 6H20L22 10H28V26H4Z M16 22C12.7 22 10 19.3 10 16C10 12.7 12.7 10 16 10C19.3 10 22 12.7 22 16C22 19.3 19.3 22 16 22Z",
+    "note": "a compact camera with one lens"
+  },
+  "iconcalendar": {
+    "d": "M5 8H27V27H5Z M5 13H27 M11 4V10 M21 4V10 M10 18H14 M18 18H22 M10 23H14",
+    "note": "a small ring-bound calendar"
+  },
+  "iconundo": {
+    "d": "M12 8L5 14L12 20 M6 14H18C24 14 27 18 27 25",
+    "note": "a bent arrow returning left — undo"
+  },
+  "iconsettings": {
+    "d": "M16 21C13.2 21 11 18.8 11 16C11 13.2 13.2 11 16 11C18.8 11 21 13.2 21 16C21 18.8 18.8 21 16 21Z M16 4V8 M16 24V28 M4 16H8 M24 16H28 M7.5 7.5L10.5 10.5 M21.5 21.5L24.5 24.5 M24.5 7.5L21.5 10.5 M10.5 21.5L7.5 24.5",
+    "note": "a cog reduced to a hub and eight short teeth"
+  },
+  "candy": {
+    "d": "M11 11L5 7L4 14L10 17 M21 11L27 7L28 14L22 17 M10 11C12 8 20 8 22 11V21C20 24 12 24 10 21Z",
+    "note": "a wrapped sweet — the bubblegum palette"
+  },
+  "crystal": {
+    "d": "M9 7L16 4L24 8L27 17L16 28L5 17Z M9 7L12 17L16 28 M24 8L20 17L16 28 M5 17H27 M9 7L20 17 M24 8L12 17",
+    "note": "a faceted crystal — the lavender palette"
+  },
+  "leaf": {
+    "d": "M6 25C7 14 13 7 26 5C25 18 19 25 6 25Z M7 24L22 9 M13 18L13 11 M15 16H22",
+    "note": "one veined leaf — the mint palette"
+  },
+  "wave": {
+    "d": "M3 12C7 7 11 7 15 12C19 17 23 17 29 11 M3 20C7 15 11 15 15 20C19 25 23 25 29 19",
+    "note": "two rolling water lines — the sky palette"
   }
 }
