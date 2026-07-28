@@ -36,7 +36,10 @@ interface ArticleParams {
 /** Crumb labels come from the catalog so the trail is not English inside a Spanish page. */
 async function crumbsFor(locale: Locale, collection: Collection, title: string, href: string) {
     const t = await getTranslations({ locale, namespace: 'content' })
-    const home = { name: t('home'), href: localizedPath('/', locale) }
+    // Bare `/`, never `localizedPath('/', locale)`: the landing is app shell, so it answers at one
+    // URL in every language (see `@/i18n/paths`) and there is no route at `/es` or `/pt-br`. The
+    // prefixed version 404s — in the rendered trail AND in the BreadcrumbList it feeds.
+    const home = { name: t('home'), href: '/' }
     const article = { name: title, href }
     if (collection === 'blog') {
         return [home, { name: t('guides'), href: localizedPath('/blog', locale) }, article]
