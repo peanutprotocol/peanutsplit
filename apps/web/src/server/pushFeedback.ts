@@ -10,6 +10,7 @@
  * the ledger row that produced the notification.
  */
 import { prisma } from '@/server/db'
+import { readJson } from '@/server/http'
 import { enforceRateLimit, type Limit } from '@/server/rateLimit'
 import { pushFeedbackSchema } from '@/server/validation'
 
@@ -29,7 +30,7 @@ export function pushFeedbackHandler(action: FeedbackAction) {
             // the beacon still gets its 204 either way. Rate limiting a beacon is
             // about protecting the database, not about answering the caller.
             enforceRateLimit(request, BEACON_LIMIT, `push-${action}`)
-            const parsed = pushFeedbackSchema.safeParse(await request.json())
+            const parsed = pushFeedbackSchema.safeParse(await readJson(request))
             if (parsed.success) await bumpCounter(parsed.data.sendId, action)
         } catch {
             // Rate limited, unparseable body, dropped connection, a ledger row
