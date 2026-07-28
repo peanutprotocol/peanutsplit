@@ -10,6 +10,8 @@ import { asLocale } from '@/i18n/locales'
 import { initAnalytics } from './analytics'
 import { ensureDeviceId } from './identity'
 import { writeLocaleCookie } from './locale-cookie'
+import { TOAST_MS } from './toasts'
+import { useAnimationPreferenceClass } from './use-motion'
 
 /**
  * The single client boundary at the root: React Query, nuqs' URL adapter, and
@@ -39,6 +41,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         initAnalytics()
     }, [])
 
+    // Mirrors `animationsEnabled` onto <html> for the CSS-keyframe half of the
+    // animation catalog. Here rather than in the room, because drawers portal
+    // outside it and the landing page animates too.
+    useAnimationPreferenceClass()
+
     /**
      * Re-assert the language on every boot, including the very first visit where the locale came
      * from Accept-Language and no cookie exists yet. iOS caps script-written cookies at ~7 days
@@ -55,6 +62,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 <PushNavigation />
                 <Toaster
                     position="top-center"
+                    // The floor, not the rule: anything that asks for an action
+                    // passes its own duration from TOAST_MS at the call site.
+                    duration={TOAST_MS.default}
                     toastOptions={{
                         className: 'rounded-sm border border-n-1 bg-white text-n-1 font-sans',
                     }}
