@@ -28,7 +28,9 @@ const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
 
 export const createRoomSchema = z.object({
     name: z.string().trim().min(1, 'is required').max(80),
-    emoji: z.string().max(8).nullish(),
+    // 8 was sized for an emoji grapheme cluster; the column now also takes a doodle name
+    // (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a text field.
+    emoji: z.string().max(24).nullish(),
     currency: currencyCode,
     creatorName: personName,
 })
@@ -258,7 +260,9 @@ const importedExpenseSchema = z.object({
 export const importRoomSchema = z
     .object({
         roomName: z.string().trim().min(1, 'is required').max(80),
-        emoji: z.string().max(8).nullish(),
+        // 8 was sized for an emoji grapheme cluster; the column now also takes a doodle name
+        // (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a text field.
+        emoji: z.string().max(24).nullish(),
         currency: currencyCode,
         creatorName: personName,
         members: z.array(personName).min(1).max(MAX_MEMBERS),

@@ -18,7 +18,7 @@
             "title": "How it works",
             "step1": {
                 "title": "Start a split",
-                "body": "Name it, pick an emoji and a currency. Ski trip, flat bills, Tuesday dinner."
+                "body": "Name it and pick a currency — Split draws it for you. Ski trip, flat bills, Tuesday dinner."
             },
             "step2": {
                 "title": "Share the link",
@@ -410,9 +410,9 @@
             "title": "New split",
             "name": "What are you splitting?",
             "namePlaceholder": "Ski trip…",
-            "emoji": "Pick a face for it",
-            "emojiGroup": "Room emoji",
-            "emojiOption": "Emoji {emoji}",
+            "emoji": "Or pick a different drawing",
+            "emojiGroup": "Room drawing",
+            "emojiOption": "Drawing: {emoji}",
             "currency": "Currency",
             "currencyLabel": "Room currency",
             "currencyHint": "Balances settle in this currency. Individual expenses can be in any of them.",

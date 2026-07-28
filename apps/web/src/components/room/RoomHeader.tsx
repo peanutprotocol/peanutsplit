@@ -1,4 +1,5 @@
 'use client'
+import { RoomEmblem } from './RoomEmblem'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -110,7 +111,7 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                     aria-label={t('allRooms')}
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
                 >
-                    {room.emoji || '🥜'}
+                    <RoomEmblem value={room.emoji} size={26} />
                 </Link>
 
                 <div className="min-w-0 flex-1">

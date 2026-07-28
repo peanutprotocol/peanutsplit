@@ -1,4 +1,5 @@
 'use client'
+import { RoomEmblem } from './RoomEmblem'
 
 import { useCallback, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -121,7 +122,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                             transition={{ type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }}
                             className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"
                         >
-                            {emoji || '🥜'}
+                            <RoomEmblem value={emoji} size={30} />
                         </motion.span>
                         <div className="min-w-0">
                             <p className="truncate text-h6">{roomName}</p>

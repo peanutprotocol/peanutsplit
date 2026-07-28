@@ -1,4 +1,5 @@
 'use client'
+import { RoomEmblem } from '@/components/room/RoomEmblem'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -96,7 +97,7 @@ export function YourRooms() {
                                 aria-hidden="true"
                                 className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
                             >
-                                {room.emoji || '🥜'}
+                                <RoomEmblem value={room.emoji} size={26} />
                             </span>
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate text-h7">{room.name}</span>

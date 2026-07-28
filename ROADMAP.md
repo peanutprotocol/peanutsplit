@@ -219,7 +219,7 @@ Peanut mark only, cream `background`).
 
 Order below is execution order, not importance. Status per item.
 
-1. **Doodles as icons, emoji gone.** — *status: 51 drawings shipped; room emblem still emoji*
+1. **Doodles as icons, emoji gone.** — *status: shipped 2026-07-28*
    Port `rough.py` and the `build.py` → generated-set pipeline from
    `munin/design/raven-doodles/`. Clean geometry in a 32-unit box, stroked at
    ~1.4–2px, `fill: none`, `stroke: currentColor`, so a drawing inherits the ink
@@ -246,16 +246,21 @@ Order below is execution order, not importance. Status per item.
    the hero would cost fold space to a control most people never need, and Split
    has no header bar on the LP to put it in without inventing one.
 
-4. **Room doodle auto-picked from the name.** — *status: `roomDoodleFor` shipped + tested, not yet wired*
+4. **Room doodle auto-picked from the name.** — *status: shipped 2026-07-28*
    A keyword table maps what someone types ("ski", "esquí", "pizza", "airbnb")
    onto a drawing, so the room already looks like itself before anybody opens
    the picker. All three locales in one table, falling back to the peanut.
-   `lib/room-doodle.ts` is done and tested. WHAT IS LEFT is the wiring, and it
-   is not a one-liner: the emblem is stored per room as `Room.emoji`, it is what
-   the OG card renders through Satori (41 tests pin that card), and existing
-   rooms hold emoji characters. So the swap needs a value that can be either,
-   a render helper that knows which, and a decision about what the OG image
-   draws for a doodle room — Satori will not run our `<path>` set as-is.
+   Wired through `lib/room-emblem.ts`: the `emoji` column holds a doodle name for
+   new rooms and an emoji character for every room made before the swap, and both
+   are valid forever — no migration, because a rewrite could only guess which
+   drawing somebody meant by 🎿. A value is a doodle if the generated set has that
+   name, which is unambiguous since emoji are pictographic and doodle names are
+   lowercase ASCII. `RoomEmblem` is the single render seam; `og/emblem.ts` builds
+   the unfurl's image locally from the path data, which is strictly better than
+   the emoji branch — that one fetches a Twemoji glyph from a CDN the production
+   containers cannot reach, so emoji rooms have always unfurled with the fallback
+   disc. `notifyCopy` is guarded, since a push titled "mountain Ski trip" is the
+   one way this leaks into text.
 
 5. **Currency list, readable and friendlier.** — *status: shipped 2026-07-28*
    `🇧🇷 R$ BRL — Brazilian Real` is four encodings of the same fact in one line.

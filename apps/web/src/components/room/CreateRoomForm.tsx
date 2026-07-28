@@ -7,16 +7,19 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { Doodle } from '@/components/ui/Doodle'
+import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
 import { cn } from '@/lib/cn'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { currencyDisplayName } from '@/lib/money'
 import { useCurrencies } from '@/lib/queries'
+import { roomDoodleFor } from '@/lib/room-doodle'
 import { useCreateRoomFlow } from '@/lib/use-create-room'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
 import { CurrencyTag } from './CurrencyTag'
-import { EmojiPicker, ROOM_EMOJIS, randomRoomEmoji } from './EmojiPicker'
+import { DoodlePicker } from './DoodlePicker'
 import { LinkMoment } from './LinkMoment'
 
 /** The server-rendered seed only. The real default is the device's top hint, which cannot be
@@ -40,18 +43,16 @@ export function CreateRoomForm() {
     const feedback = useFeedback()
 
     const [name, setName] = useState('')
-    // Server-rendered with the peanut, then rolled on mount. Seeding the state
-    // with `Math.random()` renders a different emoji on each side of hydration,
-    // which React flags and then refuses to patch up.
-    const [emoji, setEmoji] = useState<string>(ROOM_EMOJIS[0])
+    // null means "follow the name" — see the same state in HeroCreateForm. The emblem used to
+    // be rolled at random after mount, which needed an effect purely to dodge a hydration
+    // mismatch; reading the name is deterministic and right far more often.
+    const [emblem, setEmblem] = useState<DoodleName | null>(null)
     const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
     // A guess is only ever allowed to fill an empty field. The moment someone picks a currency
     // themselves, the inference is done talking — a hint that overwrites a deliberate choice is
     // not smart, it is broken.
     const [currencyChosen, setCurrencyChosen] = useState(false)
     const [creatorName, setCreatorName] = useState('')
-
-    useEffect(() => setEmoji(randomRoomEmoji()), [])
 
     /** Seeded after mount, not during render: `Intl` and `navigator` do not exist on the server,
      *  and a currency that differs across hydration is a mismatch React will not patch up. */
@@ -69,6 +70,9 @@ export function CreateRoomForm() {
         feedback('tick')
     }
 
+    /** The guess, until somebody overrules it with the grid below. */
+    const shownEmblem = emblem ?? roomDoodleFor(name)
+
     const canSubmit = useMemo(
         () => name.trim().length > 0 && creatorName.trim().length > 0 && !pending,
         [name, creatorName, pending]
@@ -77,7 +81,7 @@ export function CreateRoomForm() {
     const submit = async (event: React.FormEvent) => {
         event.preventDefault()
         if (!canSubmit) return
-        await createRoom({ name, emoji, currency, creatorName })
+        await createRoom({ name, emoji: shownEmblem, currency, creatorName })
     }
 
     if (created) {
@@ -141,12 +145,14 @@ export function CreateRoomForm() {
                     data-testid="room-name"
                 />
 
+                {/* The one label that stays above its control: this is a grid of sixteen tiles,
+                    not a text field, and it has nowhere to put a placeholder. */}
                 <div className="flex flex-col gap-2">
                     <span className="text-h8 uppercase tracking-wide text-grey-1">{t('emoji')}</span>
-                    <EmojiPicker
-                        value={emoji}
+                    <DoodlePicker
+                        value={shownEmblem}
                         onChange={(next) => {
-                            setEmoji(next)
+                            setEmblem(next)
                             feedback('tick')
                         }}
                     />
