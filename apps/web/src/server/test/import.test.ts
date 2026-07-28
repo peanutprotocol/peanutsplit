@@ -10,8 +10,9 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { importRoom } from '@/server/splitwiseImport'
+import { IMPORT_MAX_EXPENSES, IMPORT_MAX_MEMBERS } from '@/server/validation'
 import { POST as postImport } from '@/app/api/import/route'
-import { parseSplitwiseCsv, type SplitwiseImport } from '@/lib/splitwise-csv'
+import { MAX_EXPENSES, MAX_MEMBERS, parseSplitwiseCsv, type SplitwiseImport } from '@/lib/splitwise-csv'
 import {
     LOCALISED_DECIMALS,
     MESSY_GROUP,
@@ -155,6 +156,16 @@ describe('importing a group', () => {
 
 describe('what the route refuses', () => {
     const parsed = () => parseSplitwiseCsv(SIMPLE_GROUP)
+
+    /**
+     * The parser refuses in the browser and the schema refuses on the wire, which only works if
+     * they refuse at the same number. Two constants, one rule — so the rule gets a test rather
+     * than a comment asking the next person to keep them in step.
+     */
+    it('caps the same file the preview would have capped', () => {
+        expect(IMPORT_MAX_MEMBERS).toBe(MAX_MEMBERS)
+        expect(IMPORT_MAX_EXPENSES).toBe(MAX_EXPENSES)
+    })
 
     it('refuses more expenses than a room holds', async () => {
         const one = parsed().expenses[0]
