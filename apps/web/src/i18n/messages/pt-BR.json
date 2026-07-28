@@ -230,6 +230,28 @@
             "goToRoom": "Ir para a sala"
         }
     },
+    "derivation": {
+        "title": "De onde vem esse número",
+        "openLabel": "Ver de onde vem o saldo de {name}",
+        "checkNote": "Cada linha vem desta sala. Some você mesmo — bate certinho.",
+        "paidTitle": "Gastos pagos",
+        "shareTitle": "Parte dos gastos",
+        "settledTitle": "Pagamentos registrados",
+        "paidBy": "pago por {name}",
+        "paidByYou": "você pagou",
+        "sentTo": "Pago para {name}",
+        "receivedFrom": "Recebido de {name}",
+        "total": "Dá um total de",
+        "emptyTitle": "Nada ainda",
+        "emptyBody": "Sem gastos nem pagamentos — nada mexeu neste saldo.",
+        "suggestedTitle": "Para ficar quite",
+        "suggestedNote": "Os pagamentos sugeridos zeram a sala inteira com o menor número de transferências, então quem paga quem nem sempre é quem gastou com quem. Os dois saldos estão aqui para conferir.",
+        "sends": "Paga {name}",
+        "receives": "{name} paga",
+        "showOther": "Ver o saldo de {name}",
+        "hideOther": "Ocultar o saldo de {name}",
+        "someone": "Alguém"
+    },
     "errors": {
         "generic": "Algo deu errado — tente de novo.",
         "NETWORK_ERROR": "Não conseguimos falar com o servidor — confira sua conexão.",

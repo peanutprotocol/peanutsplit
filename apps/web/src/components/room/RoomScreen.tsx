@@ -13,6 +13,7 @@ import { rememberRoom } from '@/lib/recent-rooms'
 import { useRoomParams } from '@/lib/room-params'
 import { useRoomIdentity } from '@/lib/use-identity'
 import { AllSettled } from './AllSettled'
+import { BalanceDrawer } from './BalanceDrawer'
 import { BalanceStrip } from './BalanceStrip'
 import { ExpenseDrawer } from './ExpenseDrawer'
 import { ExpenseList } from './ExpenseList'
@@ -53,7 +54,7 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
-    const drawerOpen = params.add || params.settle || params.share || !!params.expense
+    const drawerOpen = params.add || params.settle || params.share || !!params.expense || !!params.balance
 
     useEffect(() => {
         if (!state) return
@@ -84,6 +85,13 @@ export function RoomScreen({ slug }: { slug: string }) {
     useEffect(() => {
         if (params.expense && state && !editing) setParams({ expense: null })
     }, [params.expense, state, editing, setParams])
+
+    // Same for a balance sheet whose member is not on the roster — a link shared from
+    // another room, or a stale param.
+    useEffect(() => {
+        if (params.balance && state && !state.members.some((member) => member.id === params.balance))
+            setParams({ balance: null })
+    }, [params.balance, state, setParams])
 
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound />
     if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
@@ -124,7 +132,12 @@ export function RoomScreen({ slug }: { slug: string }) {
                             transition={{ duration: 0.24, ease: 'easeOut' }}
                             className="flex flex-col gap-6"
                         >
-                            <BalanceStrip state={state} currencies={currencies} meId={meId} />
+                            <BalanceStrip
+                                state={state}
+                                currencies={currencies}
+                                meId={meId}
+                                onSelect={(memberId) => setParams({ balance: memberId })}
+                            />
                             <AnimatePresence initial={false}>
                                 {settledUp && (
                                     <AllSettled
@@ -197,6 +210,14 @@ export function RoomScreen({ slug }: { slug: string }) {
                         token={identity?.token}
                     />
                     <ShareDrawer open={params.share} onClose={() => setParams({ share: null })} room={state.room} />
+                    <BalanceDrawer
+                        open={!!params.balance && !needsJoin}
+                        onClose={() => setParams({ balance: null })}
+                        state={state}
+                        currencies={currencies}
+                        memberId={params.balance}
+                        meId={meId}
+                    />
                 </>
             )}
 

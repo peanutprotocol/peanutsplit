@@ -285,7 +285,7 @@ describe('deriveBalance', () => {
             [{ id: 'e1', description: 'Taxi', paidById: 'a', baseAmountMinor: '900', shares: [['b', '900']] }]
         )
         const [line] = deriveBalance(wire, 'b').lines
-        expect(line).toMatchObject({ kind: 'share', title: 'Taxi', partyName: 'A', amountMinor: '-900' })
+        expect(line).toMatchObject({ kind: 'share', title: 'Taxi', partyName: 'A', partyId: 'a', amountMinor: '-900' })
     })
 
     it('adds what you handed over and subtracts what you were handed', () => {

@@ -230,6 +230,28 @@
             "goToRoom": "Go to room"
         }
     },
+    "derivation": {
+        "title": "How this adds up",
+        "openLabel": "See how {name}’s balance adds up",
+        "checkNote": "Every line comes from this room. Add them up yourself — it matches.",
+        "paidTitle": "Expenses paid",
+        "shareTitle": "Share of expenses",
+        "settledTitle": "Payments recorded",
+        "paidBy": "paid by {name}",
+        "paidByYou": "you paid",
+        "sentTo": "Paid to {name}",
+        "receivedFrom": "Received from {name}",
+        "total": "Adds up to",
+        "emptyTitle": "Nothing yet",
+        "emptyBody": "No expenses, no payments — nothing has touched this balance.",
+        "suggestedTitle": "To clear this",
+        "suggestedNote": "Suggested payments clear the whole room in the fewest transfers, so who pays whom isn’t always who spent on whom. Both balances are here to check.",
+        "sends": "Pays {name}",
+        "receives": "Gets paid by {name}",
+        "showOther": "Show {name}’s balance",
+        "hideOther": "Hide {name}’s balance",
+        "someone": "Someone"
+    },
     "errors": {
         "generic": "Something went wrong — try again.",
         "NETWORK_ERROR": "Could not reach the server — check your connection.",

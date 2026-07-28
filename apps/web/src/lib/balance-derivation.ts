@@ -37,6 +37,8 @@ export interface DerivationLine {
      *  settlement line, null on your own payment. Null also when the member has left the
      *  roster, which the caller renders as "someone". */
     partyName: string | null
+    /** The same party's id, so the renderer can say "you paid" instead of your own name. */
+    partyId: string | null
     /** ISO instant: the expense date (user-editable, the one the receipt shows) or the
      *  settlement's `createdAt`. */
     date: string
@@ -106,6 +108,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 kind: 'paid',
                 title: expense.description,
                 partyName: null,
+                partyId: null,
                 date: expense.date,
                 amountMinor: expense.baseAmountMinor,
                 original: isForeign(expense) ? { amountMinor: expense.amountMinor, currency: expense.currency } : null,
@@ -119,6 +122,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 kind: 'share',
                 title: expense.description,
                 partyName: nameOf(expense.paidById),
+                partyId: expense.paidById,
                 date: expense.date,
                 amountMinor: negate(share.amountMinor),
                 // An EQUAL split has no typed original to show — the share is a division of
@@ -142,6 +146,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 kind: 'settlement-sent',
                 title: null,
                 partyName: nameOf(settlement.toId),
+                partyId: settlement.toId,
                 date: settlement.createdAt,
                 amountMinor: settlement.amountMinor,
                 original: null,
@@ -153,6 +158,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 kind: 'settlement-received',
                 title: null,
                 partyName: nameOf(settlement.fromId),
+                partyId: settlement.fromId,
                 date: settlement.createdAt,
                 amountMinor: negate(settlement.amountMinor),
                 original: null,

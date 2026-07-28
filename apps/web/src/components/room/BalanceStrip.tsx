@@ -15,6 +15,8 @@ interface BalanceStripProps {
     currencies: readonly CurrencyInfo[]
     /** Highlighted card — "that one is me". */
     meId?: string
+    /** Opens that member's derivation. Every balance is one tap from its working. */
+    onSelect: (memberId: string) => void
 }
 
 /**
@@ -32,8 +34,9 @@ const toneFor = (net: string, t: (key: string) => string) => {
  * (moment #3) and a member who joins mid-trip springs in and pops (moment #2) —
  * both are driven purely by the 8s poll diff, no sockets.
  */
-export function BalanceStrip({ state, currencies, meId }: BalanceStripProps) {
+export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStripProps) {
     const t = useTranslations('room.balances')
+    const tDerivation = useTranslations('derivation')
     const feedback = useFeedback()
     // Seeded on the first render so the initial roster does not fire n pops.
     const known = useRef<Set<string> | null>(null)
@@ -75,29 +78,42 @@ export function BalanceStrip({ state, currencies, meId }: BalanceStripProps) {
                                     // the animated text mid-transition.
                                     data-net={net}
                                     className={cn(
-                                        'flex w-[8.5rem] shrink-0 flex-col gap-2 rounded-sm border border-n-1 p-3',
+                                        'flex w-[8.5rem] shrink-0 rounded-sm border border-n-1',
                                         tone.card,
                                         member.id === meId && 'shadow-4'
                                     )}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <MemberAvatar name={member.name} size={28} />
-                                        <span className="min-w-0 flex-1 truncate text-h8">
-                                            {member.id === meId ? t('you') : member.name}
+                                    {/* The whole card is the target — a balance you cannot
+                                        interrogate is the thing this product is against. */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            feedback('tick')
+                                            onSelect(member.id)
+                                        }}
+                                        aria-label={tDerivation('openLabel', { name: member.name })}
+                                        data-testid="open-balance"
+                                        className="flex w-full flex-col gap-2 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <MemberAvatar name={member.name} size={28} />
+                                            <span className="min-w-0 flex-1 truncate text-h8">
+                                                {member.id === meId ? t('you') : member.name}
+                                            </span>
                                         </span>
-                                    </div>
-                                    {/* No letter-spacing here. At 10px the extra tracking
-                                        rounds up to a full pixel on some glyph pairs and
-                                        "SETTLED UP" starts reading "SET T LED UP"; 12px with
-                                        natural spacing is both legible and stable. */}
-                                    <span className={cn('text-h9 uppercase', tone.labelClass)}>{tone.label}</span>
-                                    <AnimatedMoney
-                                        minor={net}
-                                        currency={state.room.currency}
-                                        catalog={currencies}
-                                        absolute
-                                        className="text-h5"
-                                    />
+                                        {/* No letter-spacing here. At 10px the extra tracking
+                                            rounds up to a full pixel on some glyph pairs and
+                                            "SETTLED UP" starts reading "SET T LED UP"; 12px with
+                                            natural spacing is both legible and stable. */}
+                                        <span className={cn('text-h9 uppercase', tone.labelClass)}>{tone.label}</span>
+                                        <AnimatedMoney
+                                            minor={net}
+                                            currency={state.room.currency}
+                                            catalog={currencies}
+                                            absolute
+                                            className="text-h5"
+                                        />
+                                    </button>
                                 </motion.li>
                             )
                         })}
