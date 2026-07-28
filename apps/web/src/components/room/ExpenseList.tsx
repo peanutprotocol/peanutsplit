@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
+import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { dayLabel, groupByDay } from '@/lib/dates'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
@@ -68,8 +69,10 @@ function usePoppedExpenseId(expenses: readonly ApiExpense[]): string | null {
 export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: ExpenseListProps) {
     const t = useTranslations('room.expenses')
     const tDates = useTranslations('dates')
+    const tOffline = useTranslations('offline')
     const locale = useLocale()
     const poppedId = usePoppedExpenseId(state.expenses)
+    const queued = useQueuedWrites(slug)
 
     if (state.expenses.length === 0) {
         return (
@@ -159,6 +162,11 @@ export function ExpenseList({ state, currencies, meId, slug, token, onSelect }: 
                                             <MemberAvatar name={payer} size={36} />
                                             <span className="min-w-0 flex-1">
                                                 <span className="block truncate text-h7">{expense.description}</span>
+                                                {isQueuedExpenseId(expense.id, queued) && (
+                                                    <span className="block text-sm text-grey-1">
+                                                        {tOffline('rowHint')}
+                                                    </span>
+                                                )}
                                                 <span className="block text-sm text-grey-1">
                                                     {t('paidBy', {
                                                         payer: expense.paidById === meId ? t('you') : payer,
