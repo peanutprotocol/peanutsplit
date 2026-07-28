@@ -236,6 +236,38 @@
             "goToRoom": "Go to room"
         }
     },
+    "account": {
+        "title": "Your rooms on any device",
+        "blurb": "Save your rooms — enter your email and access them from any device. No password, nothing to sign up for.",
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@example.com",
+        "submit": "Save my rooms",
+        "sentTitle": "Check your inbox",
+        "sentBody": "If that address can receive mail, a link to your rooms is on its way. Open it on whichever device you want them on.",
+        "sentAgain": "Use a different address",
+        "signedInAs": "Signed in as {email}",
+        "signedInHint": "Open that link on any device and these rooms follow you there.",
+        "signOut": "Sign out",
+        "failed": "could not send the link — try again",
+        "newPhone": "Using a new phone someday? Save your rooms",
+        "synced": "Saved to your account.",
+        "roomsAreBack": "Your rooms are back",
+        "signedIn": "You’re signed in"
+    },
+    "push": {
+        "title": "Notifications",
+        "notifyMe": "Notify me about this room",
+        "notifyHint": "When someone adds an expense or settles up.",
+        "enable": "Turn on",
+        "on": "You’ll get notifications for this room",
+        "onHint": "On this device only.",
+        "stop": "Stop notifying this device",
+        "iosNeedsPwa": "Add Split to your home screen to get notifications.",
+        "iosHow": "How?",
+        "denied": "Notifications are blocked for this site in your browser settings.",
+        "needsToken": "Turning these on needs proof it is really you — rejoin the room with your own name first.",
+        "failed": "could not change notifications — try again"
+    },
     "errors": {
         "generic": "Something went wrong — try again.",
         "NETWORK_ERROR": "Could not reach the server — check your connection.",

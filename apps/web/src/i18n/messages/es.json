@@ -236,6 +236,38 @@
             "goToRoom": "Ir a la sala"
         }
     },
+    "account": {
+        "title": "Tus salas en cualquier dispositivo",
+        "blurb": "Guarda tus salas — escribe tu correo y ábrelas desde cualquier dispositivo. Sin contraseña y sin registro.",
+        "emailLabel": "Correo",
+        "emailPlaceholder": "tu@ejemplo.com",
+        "submit": "Guardar mis salas",
+        "sentTitle": "Revisa tu correo",
+        "sentBody": "Si esa dirección recibe correos, ya va en camino un link a tus salas. Ábrelo en el dispositivo donde las quieras.",
+        "sentAgain": "Usar otra dirección",
+        "signedInAs": "Sesión iniciada como {email}",
+        "signedInHint": "Abre ese link en cualquier dispositivo y estas salas te siguen.",
+        "signOut": "Cerrar sesión",
+        "failed": "no se pudo enviar el link — inténtalo de nuevo",
+        "newPhone": "¿Algún día cambias de teléfono? Guarda tus salas",
+        "synced": "Guardadas en tu cuenta.",
+        "roomsAreBack": "Tus salas volvieron",
+        "signedIn": "Ya iniciaste sesión"
+    },
+    "push": {
+        "title": "Notificaciones",
+        "notifyMe": "Avísame de esta sala",
+        "notifyHint": "Cuando alguien agrega un gasto o salda cuentas.",
+        "enable": "Activar",
+        "on": "Vas a recibir notificaciones de esta sala",
+        "onHint": "Solo en este dispositivo.",
+        "stop": "Dejar de notificar en este dispositivo",
+        "iosNeedsPwa": "Agrega Split a tu pantalla de inicio para recibir notificaciones.",
+        "iosHow": "¿Cómo?",
+        "denied": "Las notificaciones están bloqueadas para este sitio en la configuración de tu navegador.",
+        "needsToken": "Para activarlas necesitamos comprobar que eres tú — vuelve a entrar a la sala con tu propio nombre.",
+        "failed": "no se pudieron cambiar las notificaciones — inténtalo de nuevo"
+    },
     "errors": {
         "generic": "Algo salió mal — intenta de nuevo.",
         "NETWORK_ERROR": "No pudimos conectar con el servidor — revisa tu conexión.",
