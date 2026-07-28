@@ -280,17 +280,29 @@ function boundMemberNames(names: string[], warnings: ImportWarning[]): string[] 
 /** Two people in a group really can both be called Ana. Split refuses duplicate member names, so
  *  disambiguate here rather than letting the POST fail on row 40 of a preview that looked fine. */
 function dedupeMemberNames(names: string[], warnings: ImportWarning[]): string[] {
-    const seen = new Map<string, number>()
+    const used = new Set<string>()
+    const nextSuffix = new Map<string, number>()
+
     return names.map((name) => {
         const key = name.toLowerCase()
-        const count = (seen.get(key) ?? 0) + 1
-        seen.set(key, count)
-        if (count === 1) return name
+        if (!used.has(key)) {
+            used.add(key)
+            return name
+        }
+
         warnings.push({ code: 'DUPLICATE_MEMBER_NAME', detail: name })
-        // The suffix has to fit inside the ceiling too — an already-maximal name plus " (2)"
-        // would be four characters over, which is the same rejection by a different route.
-        const suffix = ` (${count})`
-        return `${clip(name, MAX_NAME_CHARS - suffix.length)}${suffix}`
+        let count = nextSuffix.get(key) ?? 2
+        let candidate: string
+        do {
+            // Leave room for the suffix so the generated name still passes server validation.
+            const suffix = ` (${count})`
+            candidate = `${clip(name, MAX_NAME_CHARS - suffix.length)}${suffix}`
+            count++
+        } while (used.has(candidate.toLowerCase()))
+
+        nextSuffix.set(key, count)
+        used.add(candidate.toLowerCase())
+        return candidate
     })
 }
 
@@ -412,9 +424,18 @@ const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
  *  to today — a wrong date is a cosmetic loss, a dropped expense is a money one. */
 function parseDate(cell: string): { date: string; ok: boolean } {
     const raw = cell.trim()
-    if (ISO_DATE.test(raw)) return { date: raw, ok: true }
+    if (ISO_DATE.test(raw)) {
+        const parsed = new Date(`${raw}T00:00:00.000Z`)
+        if (!Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === raw) {
+            return { date: raw, ok: true }
+        }
+    }
+
     const parsed = new Date(raw)
-    if (raw !== '' && !Number.isNaN(parsed.getTime())) return { date: parsed.toISOString().slice(0, 10), ok: true }
+    if (raw !== '' && !ISO_DATE.test(raw) && !Number.isNaN(parsed.getTime())) {
+        return { date: parsed.toISOString().slice(0, 10), ok: true }
+    }
+
     return { date: new Date().toISOString().slice(0, 10), ok: false }
 }
 

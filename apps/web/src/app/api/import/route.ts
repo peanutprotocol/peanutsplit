@@ -5,6 +5,7 @@ import { importRoom } from '@/server/splitwiseImport'
 import { importRoomSchema } from '@/server/validation'
 import type { RoomStateWithMember } from '@/lib/api-types'
 import { splitV2Enabled } from '@/lib/flags'
+import { MAX_EXPENSES, MAX_MEMBERS } from '@/lib/splitwise-csv'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +16,33 @@ export const dynamic = 'force-dynamic'
  * declared one is — the header alone would be a claim, and an absent one reads as zero.
  */
 const MAX_BODY_BYTES = 1_000_000
+
+/**
+ * Bound multiplicative collections before Zod traverses them. The byte cap protects buffering,
+ * while these limits prevent a compact array of invalid values from producing an unbounded issue
+ * list. Field-level validation remains the schema's job once the collections fit product limits.
+ */
+export function assertImportCardinality(raw: unknown): void {
+    if (typeof raw !== 'object' || raw === null) return
+
+    const record = raw as Record<string, unknown>
+    if (Array.isArray(record.members) && record.members.length > MAX_MEMBERS) {
+        throw badRequest('that import has too many members', 'IMPORT_TOO_LARGE')
+    }
+
+    if (!Array.isArray(record.expenses)) return
+    if (record.expenses.length > MAX_EXPENSES) {
+        throw badRequest('that import has too many expenses', 'IMPORT_TOO_LARGE')
+    }
+
+    for (const expense of record.expenses) {
+        if (typeof expense !== 'object' || expense === null) continue
+        const shares = (expense as Record<string, unknown>).shares
+        if (Array.isArray(shares) && shares.length > MAX_MEMBERS) {
+            throw badRequest('an imported expense has too many shares', 'IMPORT_TOO_LARGE')
+        }
+    }
+}
 
 /**
  * Create a whole room from a parsed Splitwise export.
@@ -42,6 +70,7 @@ export const POST = (request: Request) =>
             MAX_BODY_BYTES,
             badRequest('that import is too big', 'IMPORT_TOO_LARGE')
         )
+        assertImportCardinality(raw)
         const body = importRoomSchema.parse(raw)
         const { room, memberId, memberToken } = await importRoom(body)
         return { ...toRoomState(room), memberId, memberToken }
