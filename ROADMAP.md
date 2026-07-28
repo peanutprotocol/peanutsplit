@@ -113,11 +113,14 @@ Still gated:
   request-link test. Optional hygiene: rotate the app key in-dashboard once
   live (its value transited an automation transcript during setup). Resend
   stays wired as the fallback transport.
-- **Receipt scan key** [Hugo, 2 min]: create a Split-scoped Gemini key in
-  Google AI Studio (same isolation rule as OneSignal — no shared Peanut creds
-  in the semi-trusted container) → set `SPLIT_GEMINI_API_KEY` as runtime env.
-  `SPLIT_SCAN_PROXY_URL` and the egress allowlist entry are already in place;
-  the scan button appears on the next page load, no rebuild.
+- **Receipt scan key** [Hugo, 2 min]: mint a Split-scoped key on the company
+  OpenRouter account with a per-key spend cap (same isolation rule as
+  OneSignal — no shared Peanut creds in the semi-trusted container) → set
+  `SPLIT_OPENROUTER_API_KEY` as runtime env. A Google AI Studio key in
+  `SPLIT_GEMINI_API_KEY` is the fallback transport if OpenRouter is not an
+  option. `SPLIT_SCAN_PROXY_URL` is already in place; the egress allowlist
+  needs `openrouter.ai` alongside the Gemini host. The scan button appears on
+  the next page load, no rebuild.
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
   users about it.
@@ -129,8 +132,8 @@ All five branches merged, deployed, and smoke-tested live the same day:
 - **Receipt scan** — photograph a bill → Gemini vision itemizes → editable
   review → tap-assign items → lands as a normal EXACT expense through the one
   tested money path. Images never persisted, receipt contents never logged,
-  model output re-validated like any anonymous input. Ships dark until
-  `SPLIT_GEMINI_API_KEY` lands (see "To light up").
+  model output re-validated like any anonymous input. Ships dark until a scan
+  key lands (see "To light up").
 - **Realtime + offline** — SSE poke-and-refetch (polling stretched to 45s while
   the stream is open, 8s floor otherwise, never removed); offline queue for
   expense creates only (queued settlements could double-pay).
