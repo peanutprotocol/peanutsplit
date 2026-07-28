@@ -1,67 +1,34 @@
 /**
- * Bill photo → line items. The one place Split talks to a vision model.
+ * Bill photo → line items. What a scan MEANS; how it travels is `server/model.ts`.
  *
- * Three properties this module exists to hold, all of them the kind that quietly
- * stop being true if nobody writes them down:
+ * Two properties this module exists to hold, both of them the kind that quietly
+ * stop being true if nobody writes them down. (The third — that nothing sent is
+ * persisted and nothing sent reaches a log — is the transport's, and is stated
+ * in its header.)
  *
  * 1. **The image is never persisted.** It arrives in a request body, is
  *    forwarded once, and goes out of scope with the handler. There is no column,
  *    no bucket, no temp file. A photograph of a receipt carries a card's last
  *    four, a table number, a date and a place — it is the most identifying thing
  *    anyone will ever hand this app, and the only safe amount to keep is none.
- * 2. **Receipt content never reaches a log.** No labels, no amounts, no merchant,
- *    not in an error path either. Every `console.error` below carries a status
- *    code — and, on OpenRouter, the machine-readable error code beside it — and
- *    nothing else. Never `error.message`: a provider is free to quote the
- *    request back at you in it. If you are debugging this in production and
- *    wishing for the payload, that wish is the feature working.
- * 3. **The model's arithmetic is never trusted.** It reads; we count. Item
+ * 2. **The model's arithmetic is never trusted.** It reads; we count. Item
  *    amounts go through the same `minorAmount` primitive as every other amount
  *    on this surface, the sum is recomputed here, and the total the model claims
  *    it read is kept *beside* our sum rather than instead of it, so a
  *    disagreement can be shown to the user instead of silently resolved.
  *
- * Two interchangeable transports carry the image out, picked by which key is
- * set. Same shape as `server/email.ts` and for the same reason: one function
- * decides, and nothing downstream is allowed to know which wire it got.
- *
- * - **OpenRouter** (`SPLIT_OPENROUTER_API_KEY`) — preferred. It fronts the same
- *   Gemini weights alongside every other vision model behind one bill and one
- *   per-key spend cap, so "the cheapest model that can read a bill" becomes an
- *   env change rather than a second integration to write and keep alive.
- * - **Gemini direct** (`SPLIT_GEMINI_API_KEY`) — the original path, kept as the
- *   fallback so a key we already hold stays sufficient on its own.
- *
- * Neither key is a first-class state: the capability probe says
- * `enabled: false`, the UI hides the affordance, and a POST that arrives anyway
- * answers 503 `SCAN_UNAVAILABLE`. Nothing half-works.
- *
  * What the transports do NOT get to differ on is everything that decides what a
- * scan means: both send `PROMPT` verbatim, and both hand their answer to the
- * same `normalizeReceipt`. A transport with its own prompt or its own parsing
- * would be a second scan feature wearing this one's name, and the day they
- * drifted is the day the same photo started producing two different splits.
+ * scan means: `PROMPT` goes out verbatim over whichever wire is configured, and
+ * both answers land in the same `normalizeReceipt`. A transport with its own
+ * prompt or its own parsing would be a second scan feature wearing this one's
+ * name, and the day they drifted is the day the same photo started producing two
+ * different splits.
  */
 
-import { egressFetch, type EgressResponse } from '@/server/egress'
 import { ApiError } from '@/server/http'
-import { CURRENCY_CODES } from '@/server/money'
+import { callModel, coerceCurrency, coerceDate, modelConfig, unfence } from '@/server/model'
 import { enforceRateLimitOn, type Limit } from '@/server/rateLimit'
 import { receiptItemSchema, receiptModelSchema, type ReceiptParseBody } from '@/server/validation'
-
-/**
- * Flash-Lite is the cheapest vision-capable model in the 2.5 family, and reading
- * printed text off a photo is the task it is least likely to be the wrong choice
- * for. Overridable because "cheapest current" is a fact with a shelf life, and a
- * model swap should not need a deploy of new code.
- */
-const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite'
-/** The same weights, spelled the way OpenRouter's catalog addresses them. Two
- *  constants rather than one because the two APIs do not share a namespace —
- *  `gemini-2.5-flash-lite` is a 404 on OpenRouter and vice versa. */
-const DEFAULT_OPENROUTER_MODEL = 'google/gemini-2.5-flash-lite'
-const GEMINI_HOST = 'https://generativelanguage.googleapis.com'
-const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions'
 
 /** 8MB of actual image bytes. A downscaled phone photo lands around 200-500KB;
  *  this ceiling exists for the person who picks a raw file out of their gallery,
@@ -71,42 +38,13 @@ export const MAX_IMAGE_BYTES = 8 * 1024 * 1024
  *  before decoding — the point of a size limit is to not do the work. */
 export const MAX_IMAGE_BASE64_CHARS = Math.ceil(MAX_IMAGE_BYTES / 3) * 4
 
-/** The model gets one shot and a hard stop. A phone on hotel wifi has already
- *  given up by 25s, and a hung request holds a serverless invocation open. */
-const REQUEST_TIMEOUT_MS = 25_000
-
 /** More lines than any real bill, and the ceiling on how much work one photo can
  *  make for the review screen. */
 export const MAX_ITEMS = 60
 
-type ScanConfig =
-    { transport: 'openrouter'; apiKey: string; model: string } | { transport: 'gemini'; apiKey: string; model: string }
-
-/**
- * The one place a transport is chosen. Read per call, never at import: env
- * arrives after the module graph in some runtimes, and a module-level snapshot
- * would cache "unconfigured" forever — the same reason `emailConfig()` is a
- * function.
- */
-function scanConfig(): ScanConfig | null {
-    const openRouterKey = process.env.SPLIT_OPENROUTER_API_KEY
-    if (openRouterKey) {
-        return {
-            transport: 'openrouter',
-            apiKey: openRouterKey,
-            model: process.env.SPLIT_SCAN_MODEL || DEFAULT_OPENROUTER_MODEL,
-        }
-    }
-    const geminiKey = process.env.SPLIT_GEMINI_API_KEY
-    if (geminiKey) {
-        return { transport: 'gemini', apiKey: geminiKey, model: process.env.SPLIT_GEMINI_MODEL || DEFAULT_GEMINI_MODEL }
-    }
-    return null
-}
-
-/** Either key is enough. The probe answers for the feature, not for a provider —
- *  swapping transports must never make the button flicker out of existence. */
-export const scanEnabled = (): boolean => scanConfig() !== null
+/** Generous: a long bill is a long answer, and a truncated one is unparseable
+ *  JSON — a cheap ceiling here costs the whole scan. */
+const MAX_ANSWER_TOKENS = 4096
 
 export interface ReceiptItem {
     label: string
@@ -181,152 +119,6 @@ Rules:
  *  differently, and so the code stays a code. */
 const scanFailed = () => new ApiError(502, 'SCAN_FAILED', 'could not read the bill — try again')
 
-/** The model's raw answer, as text. Everything about whether it is *usable*
- *  belongs to `normalizeReceipt` — these functions only know about HTTP. */
-async function callGemini(body: ReceiptParseBody, config: ScanConfig): Promise<string> {
-    let response: EgressResponse
-    try {
-        response = await egressFetch(
-            process.env.SPLIT_SCAN_PROXY_URL,
-            `${GEMINI_HOST}/v1beta/models/${encodeURIComponent(config.model)}:generateContent`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            role: 'user',
-                            parts: [
-                                { text: PROMPT },
-                                { inline_data: { mime_type: body.mimeType, data: body.imageBase64 } },
-                            ],
-                        },
-                    ],
-                    generationConfig: {
-                        // Zero temperature because this is transcription, not writing:
-                        // the same photo should produce the same split twice.
-                        temperature: 0,
-                        responseMimeType: 'application/json',
-                        maxOutputTokens: 8192,
-                    },
-                }),
-                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-            }
-        )
-    } catch (err) {
-        // Status only. The request body is a photograph of somebody's dinner.
-        console.error('[scan] model request failed', err instanceof Error ? err.name : 'unknown')
-        throw scanFailed()
-    }
-
-    if (!response.ok) {
-        console.error(`[scan] model rejected the request (${response.status})`)
-        throw scanFailed()
-    }
-
-    const payload = (await response.json().catch(() => null)) as {
-        candidates?: { content?: { parts?: { text?: string }[] } }[]
-    } | null
-
-    const text = (payload?.candidates?.[0]?.content?.parts ?? [])
-        .map((part) => part.text ?? '')
-        .join('')
-        .trim()
-
-    if (!text) {
-        console.error('[scan] model returned an empty candidate')
-        throw scanFailed()
-    }
-    return text
-}
-
-/**
- * The same request over OpenRouter's OpenAI-compatible chat API. The image goes
- * as a `data:` URI inside the message rather than as a sibling `inline_data`
- * part — that is the whole of the difference at this layer, and everything past
- * the `return` is identical to the Gemini path by construction.
- *
- * `HTTP-Referer` and `X-Title` are the attribution pair OpenRouter asks senders
- * for; they name the app on their dashboards and rankings and carry nothing
- * about the request. `response_format: json_object` is the counterpart of
- * Gemini's `responseMimeType` — the thing that actually stops a markdown fence,
- * with `unfence` still standing behind it for the models that fence anyway.
- */
-async function callOpenRouter(body: ReceiptParseBody, config: ScanConfig): Promise<string> {
-    let response: EgressResponse
-    try {
-        response = await egressFetch(process.env.SPLIT_SCAN_PROXY_URL, OPENROUTER_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${config.apiKey}`,
-                'HTTP-Referer': 'https://peanutsplit.com',
-                'X-Title': 'Peanut Split',
-            },
-            body: JSON.stringify({
-                model: config.model,
-                messages: [
-                    {
-                        role: 'user',
-                        content: [
-                            { type: 'text', text: PROMPT },
-                            {
-                                type: 'image_url',
-                                image_url: { url: `data:${body.mimeType};base64,${body.imageBase64}` },
-                            },
-                        ],
-                    },
-                ],
-                response_format: { type: 'json_object' },
-                // Zero temperature because this is transcription, not writing:
-                // the same photo should produce the same split twice.
-                temperature: 0,
-                // Generous: a long bill is a long answer, and a truncated one is
-                // unparseable JSON — a cheap ceiling here costs the whole scan.
-                max_tokens: 4096,
-            }),
-            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        })
-    } catch (err) {
-        // Status only. The request body is a photograph of somebody's dinner.
-        console.error('[scan] model request failed', err instanceof Error ? err.name : 'unknown')
-        throw scanFailed()
-    }
-
-    const payload = (await response.json().catch(() => null)) as {
-        choices?: { message?: { content?: string } }[]
-        error?: { message?: string; code?: string | number }
-    } | null
-
-    // OpenRouter reports an upstream refusal two ways — a non-2xx, and a 200
-    // carrying an `error` object where the choices should be (a provider that
-    // failed after the stream opened). They are the same outcome here, and
-    // checking only the status is how the second one becomes "the model
-    // returned an empty answer" three log lines later.
-    if (!response.ok || payload?.error) {
-        // Code, never `error.message`: OpenRouter quotes provider text back in
-        // it, and provider text has been known to include the prompt.
-        console.error(`[scan] model rejected the request (${response.status} ${payload?.error?.code ?? 'unknown'})`)
-        throw scanFailed()
-    }
-
-    const text = (payload?.choices?.[0]?.message?.content ?? '').trim()
-    if (!text) {
-        console.error('[scan] model returned an empty candidate')
-        throw scanFailed()
-    }
-    return text
-}
-
-/**
- * Strip a markdown fence if one survived `responseMimeType`. Cheap insurance
- * against the one failure mode that is both common and trivially recoverable.
- */
-function unfence(text: string): string {
-    const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(text.trim())
-    return fenced ? fenced[1] : text.trim()
-}
-
 /** `{ amountMinor }`, a bare string, a number — models produce all three for a
  *  total. Anything else, including a negative, is simply absent. */
 function coerceTotal(raw: unknown): string | null {
@@ -336,33 +128,6 @@ function coerceTotal(raw: unknown): string | null {
     const text = String(value).trim()
     if (!/^\d{1,12}$/.test(text)) return null
     return String(BigInt(text))
-}
-
-/** ISO-4217 only if we actually support it. An unsupported guess is worse than
- *  no guess: the review screen falls back to the room's currency, which is right
- *  far more often than a currency the app cannot price. */
-function coerceCurrency(raw: unknown): string | null {
-    if (typeof raw !== 'string') return null
-    const code = raw.trim().toUpperCase()
-    return CURRENCY_CODES.includes(code) ? code : null
-}
-
-/** A date is a nicety, so the bar is "unambiguous and plausible" — anything else
- *  is dropped rather than guessed at, and the expense keeps today's date. */
-function coerceDate(raw: unknown): string | null {
-    if (typeof raw !== 'string') return null
-    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw.trim())
-    if (!match) return null
-    const [, year, month, day] = match
-    const iso = `${year}-${month}-${day}`
-    const parsed = new Date(`${iso}T00:00:00.000Z`)
-    if (Number.isNaN(parsed.getTime())) return null
-    // Round-trip catches 2026-02-31, which `Date` happily rolls into March.
-    if (parsed.toISOString().slice(0, 10) !== iso) return null
-    const yearNumber = Number(year)
-    const nextYear = new Date().getUTCFullYear() + 1
-    if (yearNumber < 2000 || yearNumber > nextYear) return null
-    return iso
 }
 
 const coerceMerchant = (raw: unknown): string | null => {
@@ -452,14 +217,22 @@ export const enforceRoomScanLimit = (roomId: string): void =>
     )
 
 /** The whole server side of a scan: send the image once, keep nothing, and hand
- *  back numbers we counted ourselves. The transport is chosen here and nowhere
- *  else — past this line the two paths are one string of model text. */
+ *  back numbers we counted ourselves. */
 export async function parseReceipt(body: ReceiptParseBody): Promise<ParsedReceipt> {
-    const config = scanConfig()
-    // The route checks `scanEnabled()` first, so this is the belt to that brace
+    const config = modelConfig()
+    // The route checks `modelEnabled()` first, so this is the belt to that brace
     // — and the only correct answer for a caller that skipped it.
     if (!config) throw new ApiError(503, 'SCAN_UNAVAILABLE', 'receipt scanning is not configured')
 
-    const text = config.transport === 'openrouter' ? await callOpenRouter(body, config) : await callGemini(body, config)
+    const text = await callModel(
+        {
+            tag: 'scan',
+            prompt: PROMPT,
+            image: { base64: body.imageBase64, mimeType: body.mimeType },
+            maxOutputTokens: MAX_ANSWER_TOKENS,
+            failed: scanFailed,
+        },
+        config
+    )
     return normalizeReceipt(text)
 }

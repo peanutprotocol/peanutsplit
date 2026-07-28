@@ -124,15 +124,16 @@ export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
 export type SettlementBody = z.infer<typeof settlementSchema>
 
-// ── receipt scan ─────────────────────────────────────────────────────────────
+// ── what a model says ────────────────────────────────────────────────────────
 //
-// Two schemas, and it is worth saying why the second one lives beside the first.
-// `receiptParseSchema` bounds what a *browser* sends us. `receiptModelSchema`
-// bounds what a *language model* sends us, and that is the same category of
-// input: unauthenticated text of unknown provenance that ends up deciding how
-// money is divided. It gets the same `minorAmount` primitive every other amount
-// on this surface gets, in the same file, so nobody can wire the model's
-// arithmetic straight into a split without walking past this.
+// Two kinds of schema live below, and it is worth saying why they share a file.
+// `receiptParseSchema` and `nlParseSchema` bound what a *browser* sends us.
+// `receiptModelSchema` and `nlModelSchema` bound what a *language model* sends
+// us, and that is the same category of input: unauthenticated text of unknown
+// provenance that ends up deciding how money is divided. It gets the same
+// `minorAmount` primitive every other amount on this surface gets, in the same
+// file, so nobody can wire a model's arithmetic straight into a split without
+// walking past this.
 
 /** The image formats the model accepts and a phone can actually produce. HEIC is
  *  deliberately absent — the client converts it via canvas before upload, so the
@@ -149,9 +150,11 @@ export const receiptParseSchema = z.object({
 /**
  * Twelve digits is a trillion minor units — past any bill anyone has ever split,
  * and short enough that a hallucinated run of digits cannot turn one line item
- * into a number that dwarfs every real one on the receipt.
+ * into a number that dwarfs every real one on the receipt. Shared by both
+ * model-fed features: a hallucinated amount is a hallucinated amount whether it
+ * came off a photo or out of a sentence.
  */
-export const receiptAmountMinor = minorAmount.refine((s) => s.length <= 12, { message: 'implausibly large amount' })
+export const modelAmountMinor = minorAmount.refine((s) => s.length <= 12, { message: 'implausibly large amount' })
 
 /** One line item, as the model claims it. Parsed per item so a single bad row is
  *  dropped rather than costing the user the whole scan. */
@@ -164,7 +167,7 @@ export const receiptItemSchema = z.object({
         .trim()
         .min(1)
         .transform((s) => s.slice(0, 80)),
-    amountMinor: receiptAmountMinor,
+    amountMinor: modelAmountMinor,
     /** Printed quantity, when there is one. Display only — the amount is the line
      *  total, so nothing multiplies by this. Nonsense degrades to "not printed"
      *  rather than costing the item its place. */
@@ -190,6 +193,35 @@ export const receiptModelSchema = z.object({
 })
 
 export type ReceiptParseBody = z.infer<typeof receiptParseSchema>
+
+// ── quick add (free text → one expense) ──────────────────────────────────────
+
+/** One line, typed or pasted. The ceiling is enforced in the route rather than
+ *  here so an over-long paste gets its own sentence instead of the generic
+ *  "check the fields" — see `MAX_NL_TEXT_CHARS`. */
+export const nlParseSchema = z.object({ text: z.string().trim().min(1, 'is required') })
+
+/**
+ * The envelope, kept deliberately loose for the same reason `receiptModelSchema`
+ * is: the only thing that should be able to fail this parse is "the model did
+ * not return an object at all". Every field is narrowed one at a time in
+ * `server/nlExpense.ts`, and a hallucinated `date` must not cost someone the
+ * amount that was read correctly.
+ *
+ * `participantNames` comes in as unknown elements rather than `string[]`: one
+ * non-string in the array would otherwise fail the whole payload, when the right
+ * answer is to drop that element and keep the people the model got right.
+ */
+export const nlModelSchema = z.object({
+    description: z.string().max(400).nullish().catch(null),
+    amountMinor: z.unknown(),
+    currency: z.string().max(16).nullish().catch(null),
+    date: z.string().max(40).nullish().catch(null),
+    payerName: z.string().max(200).nullish().catch(null),
+    participantNames: z.array(z.unknown()).nullish().catch(null),
+})
+
+export type NlParseBody = z.infer<typeof nlParseSchema>
 // ── delight wave ─────────────────────────────────────────────────────────────
 
 /**
