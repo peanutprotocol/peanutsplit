@@ -1,14 +1,15 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { roomProps, track } from '@/lib/analytics'
 import type { RoomState } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
-import { backfillPatch, dismiss, dismissedMemberIds, latecomerOffer, type LatecomerOffer } from '@/lib/latecomer'
-import { useUpdateExpense } from '@/lib/queries'
+import { dismiss, dismissedMemberIds, latecomerOffer, runBackfill, type LatecomerOffer } from '@/lib/latecomer'
+import { roomKey, useUpdateExpense } from '@/lib/queries'
 import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -32,11 +33,15 @@ interface LatecomerBannerProps {
  * rows it already fixed fixed, because every PATCH is complete on its own. And
  * eligibility re-derives from the room, so pressing the button again resumes
  * from wherever it stopped and cannot add anybody twice.
+ *
+ * The loop itself lives in `runBackfill`, which re-reads the query cache before
+ * every write so a concurrent edit is skipped rather than reverted.
  */
 export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
     const t = useTranslations('room.latecomer')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
+    const queryClient = useQueryClient()
     const updateExpense = useUpdateExpense(slug, token)
 
     /**
@@ -83,12 +88,19 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
         abandoned.current = false
         let fixed = 0
         try {
-            for (const expense of offer.expenses) {
-                if (abandoned.current) break
-                await updateExpense.mutateAsync({ id: expense.id, input: backfillPatch(expense, offer.member.id) })
-                fixed += 1
-                setDone(fixed)
-            }
+            await runBackfill({
+                memberId: offer.member.id,
+                expenseIds: offer.expenses.map((expense) => expense.id),
+                // The cache, not `state`: the prop is the render this run started
+                // from, and by the third PATCH it is three round trips old.
+                read: () => queryClient.getQueryData<RoomState>(roomKey(slug)),
+                patch: (id, input) => updateExpense.mutateAsync({ id, input }),
+                onWrote: (done) => {
+                    fixed = done
+                    setDone(done)
+                },
+                stopped: () => abandoned.current,
+            })
             if (fixed > 0 && !abandoned.current) feedback('pop')
         } catch (err) {
             feedback('error', { haptic: 'error' })

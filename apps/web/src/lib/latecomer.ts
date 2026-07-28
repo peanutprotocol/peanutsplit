@@ -126,6 +126,57 @@ export function backfillPatch(expense: ApiExpense, memberId: string): ExpenseInp
     }
 }
 
+/** What one run of the repair needs to know, and how it talks to the room. */
+export interface BackfillRun {
+    memberId: string
+    /** Pinned when the button is pressed: which rows this run is about, in order. */
+    expenseIds: readonly string[]
+    /** The room as it stands RIGHT NOW — the live query cache, not the snapshot
+     *  the banner was rendered from. */
+    read: () => RoomState | undefined
+    patch: (id: string, input: ExpenseInput) => Promise<unknown>
+    /** How many writes have actually landed. */
+    onWrote: (done: number) => void
+    /** "Stop" was pressed. Read between writes, which is the only point in the
+     *  run where the room is in a state worth leaving behind. */
+    stopped: () => boolean
+}
+
+/**
+ * The repair itself: one PATCH per expense, each one re-derived from the live
+ * room immediately before it is sent.
+ *
+ * The ids are pinned at the tap; the BODIES deliberately are not. A room refetches
+ * every eight seconds and each PATCH is its own round trip, so a run over a dozen
+ * expenses spans a dozen windows in which somebody else's edit can land — and a
+ * body built from the click-time snapshot would write that edit straight back
+ * out: the old amount over their new one, a participant they just added dropped,
+ * an EXACT split they just chose rewritten as EQUAL. Re-reading the cache per
+ * expense means a landed edit either rides along (a changed amount is carried
+ * into the patch verbatim) or disqualifies the row through the same predicate the
+ * offer was built from, and it is skipped rather than overwritten.
+ *
+ * What is left is the single request in flight: an edit that lands after this row
+ * was read and before its PATCH is applied. Closing that too needs an
+ * optimistic-concurrency token on the expense — a version on the wire, a
+ * migration, and a conflict branch in every writer — to protect one row in the
+ * rare case where two people edit the same dinner in the same second. Narrowing
+ * the race from "the whole run" to "one request" is the part worth paying for.
+ */
+export async function runBackfill(run: BackfillRun): Promise<void> {
+    let done = 0
+    for (const id of run.expenseIds) {
+        if (run.stopped()) break
+        const live = run.read()
+        const expense = live ? backfillableFor(live, run.memberId).find((candidate) => candidate.id === id) : undefined
+        // Not eligible any more: edited under us, or already fixed by somebody else.
+        if (!expense) continue
+        await run.patch(id, backfillPatch(expense, run.memberId))
+        done += 1
+        run.onWrote(done)
+    }
+}
+
 // ── dismissal ───────────────────────────────────────────────────────────────
 // Per room, per person, on this device. Not a server fact: "no, Dani was not on
 // that trip" is an answer this phone gave, and asking the rest of the room to
