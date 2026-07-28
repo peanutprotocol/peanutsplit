@@ -1,6 +1,7 @@
 import { prisma } from '@/server/db'
 import { badRequest, memberTokenOf, readJson, respond } from '@/server/http'
 import { parseMinor } from '@/server/money'
+import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, memberIdForToken, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { settlementSchema } from '@/server/validation'
@@ -11,6 +12,7 @@ type Ctx = { params: Promise<{ slug: string }> }
 
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {
+        enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug } = await ctx.params
         const body = settlementSchema.parse(await readJson(request))
         const room = await loadRoom(slug)
