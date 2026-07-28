@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { equalSplitMinor, formatMinorPlain, formatMoney, parseAmountToMinor } from './money'
+import {
+    currencyDisplayName,
+    currencyInfo,
+    displaySymbol,
+    equalSplitMinor,
+    formatMinorPlain,
+    formatMoney,
+    formatMoneyParts,
+    parseAmountToMinor,
+} from './money'
 
 describe('parseAmountToMinor', () => {
     it('parses the shapes a phone keyboard actually produces', () => {
@@ -103,6 +112,79 @@ describe('formatting', () => {
     /** `Intl.NumberFormat` is handed the exact decimal string, so nothing rounds through a double. */
     it('does not lose digits past 2^53', () => {
         expect(formatMoney('900719925474099123', 'EUR', undefined, 'en')).toBe('€9,007,199,254,740,991.23')
+    })
+})
+
+describe('formatMoneyParts', () => {
+    /** The contract that matters: reassembling the parts must give back exactly `formatMoney`.
+     *  Styling the symbol is not allowed to change, drop or reorder a single character. */
+    const rejoin = (...args: Parameters<typeof formatMoneyParts>) =>
+        formatMoneyParts(...args)
+            .map((part) => part.value)
+            .join('')
+
+    it('reassembles into the same string formatMoney produces', () => {
+        for (const [minor, code, locale] of [
+            ['123456', 'EUR', 'en'],
+            ['123456', 'EUR', 'es'],
+            ['123456', 'BRL', 'pt-BR'],
+            ['-1148', 'GBP', 'en'],
+            ['4500', 'JPY', 'en'],
+            ['0', 'CHF', 'es'],
+        ] as const) {
+            expect(rejoin(minor, code, undefined, locale)).toBe(formatMoney(minor, code, undefined, locale))
+        }
+    })
+
+    it('isolates the symbol wherever the locale puts it', () => {
+        expect(formatMoneyParts('123456', 'EUR', undefined, 'en')).toEqual([
+            { type: 'currency', value: '€' },
+            { type: 'text', value: '1,234.56' },
+        ])
+        // Spanish puts it last, behind a non-breaking space that belongs to the text run.
+        expect(formatMoneyParts('123456', 'EUR', undefined, 'es')).toEqual([
+            { type: 'text', value: '1234,56 ' },
+            { type: 'currency', value: '€' },
+        ])
+    })
+
+    it('keeps the minus sign with the digits, not with the symbol', () => {
+        expect(formatMoneyParts('-1148', 'EUR', undefined, 'en')).toEqual([
+            { type: 'text', value: '-' },
+            { type: 'currency', value: '€' },
+            { type: 'text', value: '11.48' },
+        ])
+    })
+
+    it('falls back to one undivided run rather than losing the amount', () => {
+        expect(formatMoneyParts('1234', 'not-a-code')).toEqual([
+            { type: 'text', value: formatMoney('1234', 'not-a-code') },
+        ])
+    })
+})
+
+describe('displaySymbol', () => {
+    it('drops a symbol that only repeats the code', () => {
+        // The catalog gives CHF the symbol "CHF " — "CHF CHF" is not a currency chip.
+        expect(displaySymbol(currencyInfo('CHF'))).toBe('')
+        expect(displaySymbol(currencyInfo('BRL'))).toBe('R$')
+        expect(displaySymbol(currencyInfo('USD'))).toBe('$')
+    })
+})
+
+describe('currencyDisplayName', () => {
+    it('names the currency in the active locale', () => {
+        expect(currencyDisplayName('BRL', 'en').toLowerCase()).toContain('brazilian')
+        expect(currencyDisplayName('BRL', 'pt-BR').toLowerCase()).toContain('real')
+    })
+
+    it('never answers with the bare code when the catalog has a name', () => {
+        // A locale Intl has no currency data for must still not produce "BRL — BRL".
+        expect(currencyDisplayName('BRL', 'zz-ZZ')).not.toBe('BRL')
+    })
+
+    it('falls back to the code for something outside the catalog entirely', () => {
+        expect(currencyDisplayName('not-a-code', 'en')).toBe('not-a-code')
     })
 })
 
