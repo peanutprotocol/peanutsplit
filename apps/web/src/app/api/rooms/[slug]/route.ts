@@ -1,7 +1,7 @@
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { readJson, respond } from '@/server/http'
-import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
+import { ApiError, readJson, respond } from '@/server/http'
+import { LOOKUP_MISS_LIMIT, WRITE_LIMIT, enforceRateLimit, enforceRateLimitPreflight } from '@/server/rateLimit'
 import { loadRoom, loadRoomById, roomStateBySlug, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { roomThemeSchema } from '@/server/validation'
@@ -10,7 +10,18 @@ export const dynamic = 'force-dynamic'
 
 type Ctx = { params: Promise<{ slug: string }> }
 
-export const GET = (_request: Request, ctx: Ctx) => respond(async () => roomStateBySlug((await ctx.params).slug))
+export const GET = (request: Request, ctx: Ctx) =>
+    respond(async () => {
+        enforceRateLimitPreflight(request, LOOKUP_MISS_LIMIT, 'room-lookup-miss')
+        try {
+            return await roomStateBySlug((await ctx.params).slug)
+        } catch (error) {
+            if (error instanceof ApiError && error.status === 404) {
+                enforceRateLimit(request, LOOKUP_MISS_LIMIT, 'room-lookup-miss')
+            }
+            throw error
+        }
+    })
 
 /**
  * The room's palette.
