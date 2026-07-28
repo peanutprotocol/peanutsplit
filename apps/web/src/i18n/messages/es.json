@@ -240,6 +240,40 @@
             "suggested": "Sugeridas",
             "all": "Todas las monedas",
             "useSuggestion": "Usar {name}"
+        },
+        "scan": {
+            "cta": "Escanear una cuenta",
+            "step1": "Escanear una cuenta · revisá los ítems",
+            "step2": "Escanear una cuenta · quién pidió qué",
+            "reading": "Leyendo la cuenta…",
+            "privacyNote": "La foto se lee una vez y no se guarda nunca.",
+            "reviewTitle": "Revisá los ítems",
+            "reviewBody": "Corregí lo que haya salido mal, borrá lo que no es tuyo y sumá lo que falte.",
+            "reviewFromMerchant": "De {merchant}. Corregí lo que haya salido mal y sumá lo que falte.",
+            "itemLabel": "Ítem",
+            "itemAmount": "Importe del ítem",
+            "itemPlaceholder": "Ítem",
+            "removeItem": "Quitar este ítem",
+            "addItem": "Agregar un ítem que falta",
+            "itemsTotal": "Los ítems suman",
+            "receiptTotal": "La cuenta dice",
+            "mismatch": "Hay {amount} de diferencia con el total impreso — fijate si falta alguna línea.",
+            "continue": "Seguir: quién pidió qué",
+            "cancel": "Cancelar",
+            "assignTitle": "Quién pidió qué",
+            "assignBody": "Tocá a las personas de cada ítem. Con dos o más, ese ítem se divide en partes iguales.",
+            "everyone": "Todos",
+            "unassigned": "{count, plural, one {# ítem todavía no es de nadie} other {# ítems todavía no son de nadie}}",
+            "assignedTotal": "Total",
+            "apply": "Usar esta división",
+            "back": "Volver a los ítems",
+            "defaultDescription": "Cuenta escaneada",
+            "errors": {
+                "tooLarge": "Esa foto es demasiado grande para enviar, incluso reducida.",
+                "unreadable": "No se pudo abrir ese archivo como imagen.",
+                "generic": "No se pudo leer esa cuenta.",
+                "hint": "Sacá la foto de frente, con toda la cuenta en cuadro y buena luz."
+            }
         }
     },
     "account": {
@@ -295,7 +329,13 @@
         "DUPLICATE_PARTICIPANT": "Alguien aparece dos veces en esta división.",
         "SETTLEMENT_PAYER_NOT_MEMBER": "Quien pagó no está en esta sala — recarga e intenta de nuevo.",
         "SETTLEMENT_PAYEE_NOT_MEMBER": "Quien recibió no está en esta sala — recarga e intenta de nuevo.",
-        "SETTLEMENT_SAME_MEMBER": "Un pago necesita dos personas distintas."
+        "SETTLEMENT_SAME_MEMBER": "Un pago necesita dos personas distintas.",
+        "SCAN_UNAVAILABLE": "El escaneo de cuentas no está activado acá.",
+        "SCAN_IMAGE_TOO_LARGE": "Esa imagen es demasiado grande — sacá una foto nueva.",
+        "SCAN_BAD_IMAGE": "No se pudo enviar esa imagen — probá sacarla de nuevo.",
+        "SCAN_NO_ITEMS": "No se pudo leer ningún ítem en esa foto — probá una toma más derecha y con más luz.",
+        "SCAN_ROOM_LIMIT": "Esta sala escaneó muchas cuentas hoy — probá mañana.",
+        "SCAN_FAILED": "No se pudo leer esa cuenta — probá de nuevo."
     },
     "derivation": {
         "title": "Cómo sale este número",

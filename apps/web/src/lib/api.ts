@@ -13,8 +13,11 @@ import type {
     CurrencyInfo,
     ExpenseInput,
     MembershipClaim,
+    ParsedReceipt,
     PushSubscribeInput,
     PushUnsubscribeInput,
+    ReceiptParseInput,
+    ReceiptScanStatus,
     RoomState,
     RoomStateWithMember,
     SettlementInput,
@@ -151,6 +154,23 @@ export const api = {
 
         rooms: (signal?: AbortSignal) =>
             request<{ rooms: AccountRoom[] }>('/api/auth/rooms', { signal }).then((r) => r.rooms),
+    },
+
+    /**
+     * Bill photo → line items. `status` is a capability probe, not a feature
+     * flag: the key lives on the server, so a `NEXT_PUBLIC_` value baked at
+     * build time could not tell the truth about it.
+     */
+    receipt: {
+        status: (slug: string, signal?: AbortSignal) =>
+            request<ReceiptScanStatus>(`/api/rooms/${encode(slug)}/receipt-parse`, { signal }),
+
+        parse: (slug: string, input: ReceiptParseInput, token?: string | null) =>
+            request<ParsedReceipt>(`/api/rooms/${encode(slug)}/receipt-parse`, {
+                method: 'POST',
+                body: input,
+                token,
+            }),
     },
 
     /** Per room, per device. The member token travels in the body rather than

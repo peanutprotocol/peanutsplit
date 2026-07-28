@@ -49,6 +49,15 @@ export const KNOWN_ERROR_CODES = [
     'SETTLEMENT_PAYER_NOT_MEMBER',
     'SETTLEMENT_PAYEE_NOT_MEMBER',
     'SETTLEMENT_SAME_MEMBER',
+    // Receipt scan. `RATE_LIMITED` is deliberately absent from this list still —
+    // it has no catalog entry and degrades to the server's English sentence,
+    // which is the pre-existing behaviour and not this feature's to change.
+    'SCAN_UNAVAILABLE',
+    'SCAN_IMAGE_TOO_LARGE',
+    'SCAN_BAD_IMAGE',
+    'SCAN_NO_ITEMS',
+    'SCAN_ROOM_LIMIT',
+    'SCAN_FAILED',
 ] as const
 
 export type KnownErrorCode = (typeof KNOWN_ERROR_CODES)[number]

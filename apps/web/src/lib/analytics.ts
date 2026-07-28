@@ -33,6 +33,15 @@ export type AnalyticsEvent =
     | 'push_optin_denied'
     | 'account_link_requested'
     | 'account_rooms_recovered'
+    // Bill scanning. A receipt is the most identifying thing anyone hands this
+    // app, so the funnel is deliberately blind: `receipt_scan_parsed` carries a
+    // COUNT of items and nothing else. No labels, no amounts, no merchant, no
+    // currency — a merchant name plus a room hash plus a timestamp is a person
+    // at a table, and no funnel is worth that.
+    | 'receipt_scan_started'
+    | 'receipt_scan_parsed'
+    | 'receipt_scan_failed'
+    | 'receipt_scan_applied'
 
 let ready = false
 

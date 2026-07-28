@@ -240,6 +240,40 @@
             "suggested": "Suggested",
             "all": "All currencies",
             "useSuggestion": "Use {name}"
+        },
+        "scan": {
+            "cta": "Scan a bill",
+            "step1": "Scan a bill · check the items",
+            "step2": "Scan a bill · who had what",
+            "reading": "Reading the bill…",
+            "privacyNote": "The photo is read once and never stored.",
+            "reviewTitle": "Check the items",
+            "reviewBody": "Fix anything that came out wrong, delete what is not yours, add what was missed.",
+            "reviewFromMerchant": "From {merchant}. Fix anything that came out wrong, add what was missed.",
+            "itemLabel": "Item",
+            "itemAmount": "Item amount",
+            "itemPlaceholder": "Item",
+            "removeItem": "Remove this item",
+            "addItem": "Add a missed item",
+            "itemsTotal": "Items add up to",
+            "receiptTotal": "Receipt says",
+            "mismatch": "That is {amount} off the printed total — check for a missed line.",
+            "continue": "Next: who had what",
+            "cancel": "Cancel",
+            "assignTitle": "Who had what",
+            "assignBody": "Tap the people on each item. Two or more splits that item equally between them.",
+            "everyone": "Everyone",
+            "unassigned": "{count, plural, one {# item still belongs to nobody} other {# items still belong to nobody}}",
+            "assignedTotal": "Total",
+            "apply": "Use this split",
+            "back": "Back to the items",
+            "defaultDescription": "Scanned bill",
+            "errors": {
+                "tooLarge": "That photo is too big to send, even shrunk down.",
+                "unreadable": "That file could not be opened as an image.",
+                "generic": "Could not read that bill.",
+                "hint": "Take the photo straight on, with the whole bill in frame and the lights up."
+            }
         }
     },
     "account": {
@@ -295,7 +329,13 @@
         "DUPLICATE_PARTICIPANT": "Someone appears twice in this split.",
         "SETTLEMENT_PAYER_NOT_MEMBER": "Whoever paid is not in this room — refresh and try again.",
         "SETTLEMENT_PAYEE_NOT_MEMBER": "Whoever was paid is not in this room — refresh and try again.",
-        "SETTLEMENT_SAME_MEMBER": "A payment needs two different people."
+        "SETTLEMENT_SAME_MEMBER": "A payment needs two different people.",
+        "SCAN_UNAVAILABLE": "Bill scanning is not switched on here.",
+        "SCAN_IMAGE_TOO_LARGE": "That image is too large — take a new photo.",
+        "SCAN_BAD_IMAGE": "That image could not be sent — try taking it again.",
+        "SCAN_NO_ITEMS": "No items could be read on that photo — try a straighter shot with more light.",
+        "SCAN_ROOM_LIMIT": "This room has scanned a lot of bills today — try again tomorrow.",
+        "SCAN_FAILED": "Could not read that bill — try again."
     },
     "derivation": {
         "title": "How this adds up",
