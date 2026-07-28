@@ -282,14 +282,35 @@ describe('what the route refuses', () => {
             bodyFor(parsed(), { expenses: Array.from({ length: 501 }, () => one) })
         )
         expect(status).toBe(400)
-        expect(body.error.code).toBe('VALIDATION_ERROR')
+        expect(body.error.code).toBe('IMPORT_TOO_LARGE')
     })
 
     it('refuses more members than a room holds', async () => {
-        const { status } = await post<ApiError>(
+        const { status, body } = await post<ApiError>(
             bodyFor(parsed(), { members: Array.from({ length: 21 }, (_, i) => `P${i}`), creatorName: 'P0' })
         )
         expect(status).toBe(400)
+        expect(body.error.code).toBe('IMPORT_TOO_LARGE')
+    })
+
+    it('refuses more shares than a room expense can hold', async () => {
+        const file = parsed()
+        const expense = file.expenses[0]
+        const { status, body } = await post<ApiError>(
+            bodyFor(file, {
+                expenses: [
+                    {
+                        ...expense,
+                        shares: Array.from({ length: MAX_MEMBERS + 1 }, (_, i) => ({
+                            member: `P${i}`,
+                            amountMinor: '1',
+                        })),
+                    },
+                ],
+            })
+        )
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('IMPORT_TOO_LARGE')
     })
 
     it('refuses shares that do not add up to the expense', async () => {
@@ -374,6 +395,15 @@ describe('what the route refuses', () => {
     it('still accepts an ordinary chunked body under the cap', async () => {
         const { status } = await postChunked(JSON.stringify(bodyFor(parsed())))
         expect(status).toBe(201)
+    })
+
+    it('rejects oversized arrays before deep schema validation amplifies their errors', async () => {
+        const { status, body } = await post<ApiError>(
+            bodyFor(parsed(), { expenses: Array.from({ length: 50_000 }, () => null) })
+        )
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('IMPORT_TOO_LARGE')
+        expect(await prisma.room.count()).toBe(0)
     })
 
     it('writes nothing when it refuses', async () => {

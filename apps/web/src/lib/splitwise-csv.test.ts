@@ -353,11 +353,45 @@ describe('parseSplitwiseCsv — hostile and messy input', () => {
         expect(codes(parsed)).toContain('DUPLICATE_MEMBER_NAME')
     })
 
+    it('keeps generated suffixes unique when a suffixed name already exists', () => {
+        const collidingNames =
+            'Date,Description,Category,Cost,Currency,Ana,Ana,Ana (2)\n' + '2026-01-01,X,Y,10.00,EUR,5.00,-3.00,-2.00\n'
+        const parsed = parseSplitwiseCsv(collidingNames)
+
+        expect(parsed.members).toEqual(['Ana', 'Ana (2)', 'Ana (2) (2)'])
+        expect(new Set(parsed.members.map((name) => name.toLowerCase())).size).toBe(3)
+        expect(
+            importRoomSchema.safeParse({
+                roomName: 'Imported group',
+                currency: parsed.suggestedCurrency,
+                creatorName: parsed.members[0],
+                members: parsed.members,
+                expenses: parsed.expenses,
+            }).success
+        ).toBe(true)
+    })
+
     it('falls back to today when a date will not parse, and says so', () => {
         const badDate = 'Date,Description,Category,Cost,Currency,Ana,Bruno\nnot a date,X,Y,10.00,EUR,5.00,-5.00\n'
         const parsed = parseSplitwiseCsv(badDate)
         expect(codes(parsed)).toContain('ROW_BAD_DATE')
         expect(parsed.expenses[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    })
+
+    it('rejects impossible ISO calendar dates instead of rolling them forward', () => {
+        const badDate = 'Date,Description,Category,Cost,Currency,Ana,Bruno\n2026-02-31,X,Y,10.00,EUR,5.00,-5.00\n'
+        const parsed = parseSplitwiseCsv(badDate)
+
+        expect(codes(parsed)).toContain('ROW_BAD_DATE')
+        expect(parsed.expenses[0].date).not.toBe('2026-02-31')
+    })
+
+    it('accepts a real leap day without a date warning', () => {
+        const leapDay = 'Date,Description,Category,Cost,Currency,Ana,Bruno\n2024-02-29,X,Y,10.00,EUR,5.00,-5.00\n'
+        const parsed = parseSplitwiseCsv(leapDay)
+
+        expect(parsed.expenses[0].date).toBe('2024-02-29')
+        expect(codes(parsed)).not.toContain('ROW_BAD_DATE')
     })
 
     it('falls back to the category when the description is blank', () => {
