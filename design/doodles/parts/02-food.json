@@ -1,0 +1,45 @@
+{
+  "pizza": {
+    "d": "M5.2 8.6L16 27.5L26.8 8.6M5.2 8.6A17 17 0 0 1 26.8 8.6M7.3 12.6A16 16 0 0 1 24.7 12.6",
+    "dots": [[13, 16.5, 2.7], [19, 16.5, 2.7], [16, 21.8, 2.4]],
+    "note": "a slice of pizza, crust up, three pepperoni"
+  },
+  "beer": {
+    "d": "M7 8.5L8.5 27.5H19.5L21 8.5ZM7.4 12.8Q11 8.8 14.2 12.8T20.6 12.8M21 13.5C25.5 13.5 25.5 21 21 21",
+    "note": "a beer mug with a handle and a head of foam"
+  },
+  "noodles": {
+    "d": "M4.5 14.5H27.5A11.5 11.5 0 0 1 4.5 14.5ZM12 13L26.5 4M13.6 15.5L28 6.5M8 18Q12 22.5 16 18T24 18",
+    "note": "a noodle bowl with a pair of chopsticks"
+  },
+  "coffee": {
+    "d": "M7 12L9.5 23.5H21.5L24 12ZM4 26Q15.5 29 27 26M11.5 9Q14.5 6.5 11.5 4M19 9Q22 6.5 19 4",
+    "note": "a coffee cup on a saucer, steaming"
+  },
+  "cake": {
+    "d": "M6 15H26V26.5H6ZM6 17.5A3.33 3.33 0 0 0 12.67 17.5A3.33 3.33 0 0 0 19.33 17.5A3.33 3.33 0 0 0 26 17.5M11.5 14.5V8.5M20.5 14.5V8.5",
+    "dots": [[11.5, 6.4, 1.8], [20.5, 6.4, 1.8]],
+    "note": "a cake with dripping icing and two lit candles"
+  },
+  "wine": {
+    "d": "M8.5 6H23.5C23.5 15 20 19 16 19C12 19 8.5 15 8.5 6ZM16 19V27M9.5 26.5Q16 28.5 22.5 26.5",
+    "note": "a wine glass on its stem"
+  },
+  "burger": {
+    "d": "M5.5 14.5A10.5 8 0 0 1 26.5 14.5ZM4.5 18A6 6 0 0 0 12.17 18A6 6 0 0 0 19.83 18A6 6 0 0 0 27.5 18M5.5 22C5.5 26.5 9.5 28 16 28C22.5 28 26.5 26.5 26.5 22Z",
+    "note": "a burger: domed bun, lettuce, base"
+  },
+  "sushi": {
+    "d": "M4.5 17.5C6 8.5 26 8.5 27.5 17.5ZM8 18H24A4.2 4.2 0 0 1 24 26.4H8A4.2 4.2 0 0 1 8 18ZM13.2 11.8V26.4M18.8 11.6V26.4",
+    "note": "a piece of nigiri: fish over rice, nori band"
+  },
+  "cart": {
+    "d": "M4 5.5H7.2L11.8 19.5H24.5M8.3 9.5H28L24.5 19.5",
+    "dots": [[14, 24.3, 2.7], [22.5, 24.3, 2.7]],
+    "note": "a shopping trolley with its handle"
+  },
+  "market": {
+    "d": "M4 13L6.5 8.5H25.5L28 13M4 13A5 5 0 0 0 12 13A5 5 0 0 0 20 13A5 5 0 0 0 28 13M5.5 15V27M26.5 15V27M4 21.5H28",
+    "note": "a market stall: awning, posts, counter"
+  }
+}

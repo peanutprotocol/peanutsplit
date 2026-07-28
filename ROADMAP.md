@@ -208,6 +208,70 @@ Remaining candidates, ordered by expected value per effort:
    QR code, and not at all in a pasted link. Pairs naturally with item 3 (room
    themes) — both are "the room feels like a place" work.
 
+## Design roadmap (opened 2026-07-28)
+
+Split shipped fast and looks it: emoji where drawings should be, a Knerd headline
+nobody can read at three words, labels stacked above inputs, and a footer that is
+four grey links in a row. This section is the visual pass, taken from Munin's
+line — the same hand-drawn stroke set, run through the same seeded roughening
+build — kept in Peanut's colours (`primary-1` yellow, `secondary-1` pink for the
+Peanut mark only, cream `background`).
+
+Order below is execution order, not importance. Status per item.
+
+1. **Doodles as icons, emoji gone.** — *status: —*
+   Port `rough.py` and the `build.py` → generated-set pipeline from
+   `munin/design/raven-doodles/`. Clean geometry in a 32-unit box, stroked at
+   ~1.4–2px, `fill: none`, `stroke: currentColor`, so a drawing inherits the ink
+   of whatever it sits in and needs no second asset per theme. Output is a
+   TS map (`name → path`) plus a `<Doodle>` component. Everything currently
+   carrying an emoji — the sixteen room emojis, the settle methods, the feature
+   grid, the use-case cards — draws instead. Legibility floor learned in Munin:
+   below about r2.5 a loop fills in and reads as a full stop.
+
+2. **Footer and sitemap.** — *status: —*
+   Real Peanut logo rather than the word set in `font-display`, and the
+   structure peanut.me uses: named columns, not a single row of grey links.
+   Every static page Split has should be reachable from it.
+
+3. **Language picker placement.** — *status: —*
+   Currently a three-button group nailed to the bottom of the footer, below the
+   fold on every page. Mock alternatives before moving it.
+
+4. **Room doodle auto-picked from the name.** — *status: —*
+   A keyword table maps what someone types ("ski", "esquí", "pizza", "airbnb")
+   onto a drawing, so the room already looks like itself before anybody opens
+   the picker. Must cover all three locales; falls back to the peanut.
+
+5. **Currency list, readable and friendlier.** — *status: —*
+   `🇧🇷 R$ BRL — Brazilian Real` is four encodings of the same fact in one line.
+   Draw the symbol, show three or four currencies, and put the rest behind a
+   "more" step.
+
+6. **Knerd is for one or two words.** — *status: —*
+   The display face has no accented glyphs and no lowercase worth reading; at
+   three words it stops being a headline and becomes a texture. Cap it, and set
+   the rest in the body face.
+
+7. **Inline the field labels.** — *status: —*
+   "What are you splitting" above an empty box becomes `Ski trip…` inside it.
+   Halves the vertical space the form takes, which is what puts the button above
+   the fold on a 390px screen.
+
+8. **Cut superfluous copy.** — *status: —*
+   Cold-read UX pass over every marketing surface; delete the lines that restate
+   the line above them.
+
+9. **A `(?)` affordance instead of a sentence.** — *status: —*
+   The slug preview and "How the link works" currently take two lines and a
+   underlined link. One small drawn `(?)` beside the preview opens the same
+   sheet.
+
+10. **The form IS the first fold.** — *status: —*
+    Drop the yellow pitch band above the form and give the form the yellow
+    instead, with enough weight that it reads as the subject of the page rather
+    than a widget under a headline.
+
 ## Deliberately not building
 
 Each of these either breaks "a room is a link" or adds a maintenance surface

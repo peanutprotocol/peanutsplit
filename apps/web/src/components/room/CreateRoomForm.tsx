@@ -126,17 +126,20 @@ export function CreateRoomForm() {
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 className="my-auto flex flex-col gap-6"
             >
-                <label className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('name')}</span>
-                    <BaseInput
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        placeholder={t('namePlaceholder')}
-                        maxLength={80}
-                        autoFocus
-                        data-testid="room-name"
-                    />
-                </label>
+                {/* The question lives in the placeholder, not in a caption above the box. A
+                    label that only restates what the empty field already asks costs a line of
+                    vertical space per field, and four of those is what used to push the submit
+                    button off a 390px screen. It survives as `aria-label`, so a screen reader
+                    hears the same question a sighted user reads inside the box. */}
+                <BaseInput
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder={t('namePlaceholder')}
+                    aria-label={t('name')}
+                    maxLength={80}
+                    autoFocus
+                    data-testid="room-name"
+                />
 
                 <div className="flex flex-col gap-2">
                     <span className="text-h8 uppercase tracking-wide text-grey-1">{t('emoji')}</span>
@@ -196,16 +199,14 @@ export function CreateRoomForm() {
                     <span className="text-sm text-grey-1">{t('currencyHint')}</span>
                 </div>
 
-                <label className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('creatorName')}</span>
-                    <BaseInput
-                        value={creatorName}
-                        onChange={(event) => setCreatorName(event.target.value)}
-                        placeholder={t('creatorNamePlaceholder')}
-                        maxLength={80}
-                        data-testid="creator-name"
-                    />
-                </label>
+                <BaseInput
+                    value={creatorName}
+                    onChange={(event) => setCreatorName(event.target.value)}
+                    placeholder={t('creatorNamePlaceholder')}
+                    aria-label={t('creatorName')}
+                    maxLength={80}
+                    data-testid="creator-name"
+                />
 
                 {error && (
                     <p role="alert" className="text-sm font-bold text-error">

@@ -2,11 +2,9 @@
     "marketing": {
         "hero": {
             "eyebrow": "free · no account · no download",
-            "titleTop": "WHO OWES WHO",
-            "titleBottom": "SORTED",
-            "subtitle": "Share one link. Everyone adds what they paid, in whatever currency they paid it in.",
+            "title": "SPLIT IT",
+            "subtitle": "Who owes who, sorted. One link — everyone adds what they paid, in any currency.",
             "cta": "Open it →",
-            "ctaHint": "Free, no account, no download — for you or for them.",
             "mascotAlt": "Peanut waving hello",
             "linkExplainerTrigger": "How the link works"
         },
@@ -75,11 +73,22 @@
             }
         },
         "footer": {
+            "logoAlt": "Peanut",
+            "tagline": "Split any bill with a link. Peanut Split is made by the team behind Peanut.",
+            "colSplit": "Split",
+            "createSplit": "Start a split",
+            "importLink": "Import from Splitwise",
+            "colCompare": "Compare",
             "compareLink": "Splitwise alternative",
-            "guidesLink": "Guides",
-            "poweredByPrefix": "powered by",
-            "poweredByBrand": "Peanut",
-            "importLink": "Import from Splitwise"
+            "colGuides": "Guides",
+            "allGuides": "All guides",
+            "colPeanut": "Peanut",
+            "peanutHome": "Send money",
+            "peanutHelp": "Help",
+            "peanutTerms": "Terms",
+            "peanutPrivacy": "Privacy",
+            "madeByPrefix": "made with love by",
+            "madeByBrand": "Squirrel Labs"
         },
         "install": {
             "title": "Add Split to your home screen",
@@ -409,7 +418,7 @@
             "back": "Back",
             "title": "New split",
             "name": "What are you splitting?",
-            "namePlaceholder": "Ski trip",
+            "namePlaceholder": "Ski trip…",
             "emoji": "Pick a face for it",
             "emojiGroup": "Room emoji",
             "emojiOption": "Emoji {emoji}",
@@ -417,7 +426,7 @@
             "currencyLabel": "Room currency",
             "currencyHint": "Balances settle in this currency. Individual expenses can be in any of them.",
             "creatorName": "And you are…",
-            "creatorNamePlaceholder": "Your name",
+            "creatorNamePlaceholder": "Your name…",
             "submit": "Create the room",
             "failed": "could not create the room — try again",
             "readyTitle": "Your room is ready",
