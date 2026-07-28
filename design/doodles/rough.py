@@ -44,7 +44,7 @@ import re
 # because a wobble you can see *within* one stroke reads as noise on a drawing
 # somebody has to take a measurement off.
 FIGURE = dict(step=0.09, amp=0.003, wobble=1.6, jitter=0.0, seed=5)     # "L1 breath"
-DOODLE = dict(step=0.22, amp=0.050, wobble=1.4, jitter=0.25, seed=47)   # "B5 loose & wonky"
+DOODLE = dict(step=0.18, amp=0.030, wobble=1.7, jitter=0.08, seed=47)   # "B3 tidy sketch"
 
 _NUM = r"[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?"
 _TOKENS = re.compile(r"[MmLlHhVvCcSsQqTtAaZz]|" + _NUM)

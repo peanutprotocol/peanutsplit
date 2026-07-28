@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { Doodle } from '@/components/ui/Doodle'
 import { cn } from '@/lib/cn'
 import { DEFAULT_THEME_KEY, ROOM_THEMES } from '@/lib/themes'
 
@@ -56,7 +57,7 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
                                 // then be a two-file change.
                                 style={{ backgroundColor: theme.field }}
                             >
-                                <span aria-hidden="true">{theme.motif}</span>
+                                <Doodle name={theme.motif} size={23} weight={1.8} />
                             </button>
                         </li>
                     )
