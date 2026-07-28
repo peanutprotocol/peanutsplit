@@ -1,4 +1,5 @@
 import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { buildExpense } from '@/server/expenses'
 import { memberTokenOf, readJson, respond } from '@/server/http'
 import { notifyRoomWrite } from '@/server/push'
@@ -40,6 +41,9 @@ export const POST = (request: Request, ctx: Ctx) =>
 
         const fresh = await loadRoom(slug)
         const state = toRoomState(fresh)
+        // Everyone with the room open refetches now instead of up to 8s from now.
+        // Same placement rule as the push below: after the write committed.
+        publish(room.id)
         // After the response value exists, never before it: a push service that
         // times out must not turn a saved expense into a 500 for the person who
         // saved it. `notifyRoomWrite` is void and swallows its own failures.
