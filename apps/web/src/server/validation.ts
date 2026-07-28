@@ -138,7 +138,10 @@ const importedExpenseSchema = z.object({
     currencyCode: currencyCode,
     costMinor: minorAmount,
     paidBy: personName,
-    shares: z.array(z.object({ member: personName, amountMinor: minorAmount })).min(1).max(IMPORT_MAX_MEMBERS),
+    shares: z
+        .array(z.object({ member: personName, amountMinor: minorAmount }))
+        .min(1)
+        .max(IMPORT_MAX_MEMBERS),
 })
 
 export const importRoomSchema = z

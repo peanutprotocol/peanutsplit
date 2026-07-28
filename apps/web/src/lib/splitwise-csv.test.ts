@@ -44,11 +44,7 @@ function foldBalances(result: SplitwiseImport): Map<string, bigint> {
 
 describe('parseCsvRows — RFC 4180', () => {
     it('splits plain rows on commas and newlines', () => {
-        expect(parseCsvRows('a,b\nc,d\n')).toEqual([
-            ['a', 'b'],
-            ['c', 'd'],
-            [''],
-        ])
+        expect(parseCsvRows('a,b\nc,d\n')).toEqual([['a', 'b'], ['c', 'd'], ['']])
     })
 
     it('keeps commas that are inside a quoted field', () => {

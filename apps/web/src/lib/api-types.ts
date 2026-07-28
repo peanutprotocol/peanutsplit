@@ -195,3 +195,40 @@ export interface PushUnsubscribeInput {
     memberId: string
     memberToken: string
 }
+
+// ─── splitwise import ───────────────────────────────────────────────────────
+// Structurally the parser's own output (`lib/splitwise-csv.ts`), re-declared here for the same
+// reason the account types are: this file is the wire contract and must not depend on the module
+// that happens to produce it today.
+
+export interface ImportedShareInput {
+    /** Member display name, as it appears in `members`. Names are the join key — an import has no
+     *  ids yet, because none of these people exist server-side until the room does. */
+    member: string
+    /** In the expense's own currency. */
+    amountMinor: string
+}
+
+export interface ImportedExpenseInput {
+    /** Calendar day, YYYY-MM-DD. Splitwise records a day, not an instant. */
+    date: string
+    description: string
+    category?: string | null
+    currencyCode: string
+    costMinor: string
+    paidBy: string
+    /** Must add up to `costMinor` exactly. */
+    shares: ImportedShareInput[]
+}
+
+/** POST /api/import — a whole room in one body. */
+export interface ImportRoomInput {
+    roomName: string
+    emoji?: string | null
+    /** What the room settles in. Expenses in other currencies are converted at import time. */
+    currency: string
+    /** Must be one of `members`; that member gets the token back. */
+    creatorName: string
+    members: string[]
+    expenses: ImportedExpenseInput[]
+}
