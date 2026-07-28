@@ -4,7 +4,13 @@ import { z } from 'zod'
 import { CURRENCY_CODES } from '@/server/money'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isThemeKey } from '@/lib/themes'
-import { MAX_EXPENSES, MAX_MEMBERS } from '@/lib/splitwise-csv'
+import {
+    MAX_CATEGORY_CHARS,
+    MAX_DESCRIPTION_CHARS,
+    MAX_EXPENSES,
+    MAX_MEMBERS,
+    MAX_NAME_CHARS,
+} from '@/lib/splitwise-csv'
 
 const currencyCode = z
     .string()
@@ -18,7 +24,7 @@ const minorAmount = z
     .refine((s) => /^\d+$/.test(s), { message: 'must be a whole number of minor units' })
 
 const id = z.string().min(1).max(64)
-const personName = z.string().trim().min(1, 'is required').max(80)
+const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
 
 export const createRoomSchema = z.object({
     name: z.string().trim().min(1, 'is required').max(80),
@@ -30,7 +36,7 @@ export const createRoomSchema = z.object({
 export const createMemberSchema = z.object({ name: personName })
 
 export const expenseSchema = z.object({
-    description: z.string().trim().min(1, 'is required').max(255),
+    description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
     amountMinor: minorAmount,
     currency: currencyCode,
     paidById: id,
@@ -38,7 +44,7 @@ export const expenseSchema = z.object({
     participantIds: z.array(id).optional(),
     exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
     date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
-    category: z.string().trim().max(40).nullish(),
+    category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
 })
 
 export const settlementSchema = z.object({
@@ -238,8 +244,8 @@ const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a YYYY-MM-DD dat
 
 const importedExpenseSchema = z.object({
     date: isoDay,
-    description: z.string().trim().min(1, 'is required').max(255),
-    category: z.string().trim().max(40).nullish(),
+    description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
+    category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
     currencyCode: currencyCode,
     costMinor: minorAmount,
     paidBy: personName,

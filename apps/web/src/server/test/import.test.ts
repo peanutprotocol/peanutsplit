@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { importRoom } from '@/server/splitwiseImport'
+import { roomStateBySlug } from '@/server/roomState'
 import { POST as postImport } from '@/app/api/import/route'
 import { MAX_EXPENSES, MAX_MEMBERS, parseSplitwiseCsv, type SplitwiseImport } from '@/lib/splitwise-csv'
 import {
@@ -179,6 +180,32 @@ describe('importing a group', () => {
         expect(status).toBe(201)
         expect(body.expenses).toHaveLength(500)
         expect(Object.values(body.balances).reduce((a, b) => a + BigInt(b), 0n)).toBe(0n)
+    })
+
+    /**
+     * A bulk import writes every row in one `createMany`, so a whole day's worth
+     * of expenses share a `createdAt` to the millisecond. With only date and
+     * createdAt to sort on, ties fell through to physical row order — and an
+     * edit anywhere rewrote the page, teleporting a row twenty places up the
+     * list under whoever was reading it. The id tiebreaker is what makes the
+     * order arbitrary but STABLE.
+     */
+    it('keeps the same order across an unrelated edit, with every row written in one batch', async () => {
+        const parsed = parseSplitwiseCsv(generateGroup(60, ['Ana', 'Bruno']))
+        const { body: created } = await post<RoomStateWithMember>(bodyFor(parsed))
+        const before = created.expenses.map((expense) => expense.id)
+
+        // Same day, so the date cannot break the tie either.
+        const sameDay = created.expenses.filter((expense) => expense.date === created.expenses[0].date)
+        expect(sameDay.length).toBeGreaterThan(1)
+
+        await prisma.expense.update({
+            where: { id: sameDay[1].id },
+            data: { description: 'Edited' },
+        })
+
+        const after = await roomStateBySlug(created.room.slug)
+        expect(after.expenses.map((expense) => expense.id)).toEqual(before)
     })
 })
 

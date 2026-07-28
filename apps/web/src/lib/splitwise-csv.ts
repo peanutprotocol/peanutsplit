@@ -62,6 +62,9 @@ export type WarningCode =
     | 'ROW_ZERO_COST'
     | 'ROW_BAD_AMOUNT'
     | 'ROW_BAD_DATE'
+    | 'ROW_DESCRIPTION_TRUNCATED'
+    | 'ROW_CATEGORY_TRUNCATED'
+    | 'MEMBER_NAME_TRUNCATED'
     | 'MULTI_PAYER_SPLIT'
     | 'PAYMENT_ROWS'
     | 'MIXED_CURRENCY'
@@ -102,10 +105,23 @@ export class SplitwiseParseError extends Error {
 
 // ─── limits ─────────────────────────────────────────────────────────────────
 
-/** A room is a group chat, not a company ledger. Also the server's cap — the two must agree or
- *  the preview promises something the POST refuses. */
+/**
+ * The caps, and the reason they live in the PARSER rather than only in the schema: this file is
+ * what the preview is built from, and a preview that promises a room the POST would refuse is the
+ * worst failure this feature has — the user approves a screen, presses the button, and gets a
+ * `VALIDATION_ERROR` with no row number on it. So every ceiling is enforced here, where it can be
+ * turned into a warning the user reads BEFORE deciding, and `server/validation.ts` imports these
+ * same numbers so the two can never disagree.
+ */
+/** A room is a group chat, not a company ledger. */
 export const MAX_MEMBERS = 20
 export const MAX_EXPENSES = 500
+/** Per-field ceilings. Over-long values are truncated with a warning rather than dropped: the
+ *  money on the row is the point, and a description cut at 255 characters still says what it was
+ *  for. Splitwise itself has no such limits, so real exports do exceed these. */
+export const MAX_DESCRIPTION_CHARS = 255
+export const MAX_CATEGORY_CHARS = 40
+export const MAX_NAME_CHARS = 80
 /** Bounds the work before any of it is done. 5000 rows is ten years of a busy flatshare. */
 export const MAX_ROWS = 5_000
 /** Characters, checked before the state machine runs. A Splitwise export of 500 expenses is
@@ -223,6 +239,22 @@ function findHeader(rows: string[][]): Header | null {
     return null
 }
 
+/** Cut to fit, without leaving a trailing space where the cut landed. */
+const clip = (value: string, max: number): string => (value.length <= max ? value : value.slice(0, max).trimEnd())
+
+/**
+ * Bound the member names BEFORE deduping, never after: two ninety-character names that differ only
+ * past the eightieth would truncate into the same string, and Split refuses a roster with a
+ * repeat — so cutting last would manufacture exactly the duplicate the next step exists to remove.
+ */
+function boundMemberNames(names: string[], warnings: ImportWarning[]): string[] {
+    return names.map((name) => {
+        const bounded = clip(name, MAX_NAME_CHARS)
+        if (bounded !== name) warnings.push({ code: 'MEMBER_NAME_TRUNCATED', detail: bounded })
+        return bounded
+    })
+}
+
 /** Two people in a group really can both be called Ana. Split refuses duplicate member names, so
  *  disambiguate here rather than letting the POST fail on row 40 of a preview that looked fine. */
 function dedupeMemberNames(names: string[], warnings: ImportWarning[]): string[] {
@@ -233,7 +265,10 @@ function dedupeMemberNames(names: string[], warnings: ImportWarning[]): string[]
         seen.set(key, count)
         if (count === 1) return name
         warnings.push({ code: 'DUPLICATE_MEMBER_NAME', detail: name })
-        return `${name} (${count})`
+        // The suffix has to fit inside the ceiling too — an already-maximal name plus " (2)"
+        // would be four characters over, which is the same rejection by a different route.
+        const suffix = ` (${count})`
+        return `${clip(name, MAX_NAME_CHARS - suffix.length)}${suffix}`
     })
 }
 
@@ -416,11 +451,19 @@ function expensesFromRow(
 
     if (payers.length > 1) warnings.push({ code: 'MULTI_PAYER_SPLIT', row: line, detail: values.description })
 
+    // The suffix is part of the description the POST will see, so the base is cut to leave room
+    // for it — a legal 253-character description on a two-payer row would otherwise become 259
+    // and take the whole import down with a message naming no row. Widest form of the suffix, so
+    // the ceiling holds for the tenth slice as well as the first.
+    const suffixWidth = payers.length === 1 ? 0 : ` (${payers.length}/${payers.length})`.length
+    const description = clip(values.description, MAX_DESCRIPTION_CHARS - suffixWidth)
+    if (description !== values.description) warnings.push({ code: 'ROW_DESCRIPTION_TRUNCATED', row: line })
+
     return payers
         .map((payer, k) => ({
             date: values.date,
             // A sub-expense that did not say which slice it is would read as a duplicate row.
-            description: payers.length === 1 ? values.description : `${values.description} (${k + 1}/${payers.length})`,
+            description: payers.length === 1 ? description : `${description} (${k + 1}/${payers.length})`,
             category: values.category,
             currencyCode: values.currencyCode,
             costMinor: subTotals[k].toString(),
@@ -452,7 +495,10 @@ export function parseSplitwiseCsv(text: string): SplitwiseImport {
 
     const warnings: ImportWarning[] = []
     const members = dedupeMemberNames(
-        header.members.map((column) => column.name),
+        boundMemberNames(
+            header.members.map((column) => column.name),
+            warnings
+        ),
         warnings
     )
     const memberColumns = header.members.map((column) => column.index)
@@ -499,8 +545,12 @@ export function parseSplitwiseCsv(text: string): SplitwiseImport {
             continue
         }
 
-        const category = cellAt(row, header.columns.category).trim()
-        if (PAYMENT_CATEGORIES.includes(normalise(category))) sawPaymentRow = true
+        const rawCategory = cellAt(row, header.columns.category).trim()
+        // Matched before the cut: a payment category is one short word, and testing the truncated
+        // form would be testing something the file never said.
+        if (PAYMENT_CATEGORIES.includes(normalise(rawCategory))) sawPaymentRow = true
+        const category = clip(rawCategory, MAX_CATEGORY_CHARS)
+        if (category !== rawCategory) warnings.push({ code: 'ROW_CATEGORY_TRUNCATED', row: line })
 
         const { date, ok } = parseDate(dateCell)
         if (!ok) warnings.push({ code: 'ROW_BAD_DATE', row: line })
@@ -536,6 +586,44 @@ export function parseSplitwiseCsv(text: string): SplitwiseImport {
     )
 
     return { members, expenses, suggestedCurrency, currencies, totalBalance, warnings }
+}
+
+/** One member whose imported net does not match what the file's own summary row claims. */
+export interface BalanceDrift {
+    member: string
+    /** Ours minus theirs, in minor units. Non-zero by construction. */
+    deltaMinor: string
+}
+
+/**
+ * The import's free end-to-end proof, finally spent.
+ *
+ * Splitwise appends a "Total balance" row: its own arithmetic over the same file. Folding the
+ * expenses we are about to write and comparing gives an exact answer to the only question that
+ * matters here — will this room show the same numbers the group is used to? — for the price of one
+ * loop, before anything is written.
+ *
+ * Null when the question is not meaningful: no summary row, or more than one currency (the row is
+ * per-currency and Splitwise never reconciles them, so a mismatch would say nothing).
+ * Empty array means every member matched to the cent.
+ */
+export function reconcileTotalBalance(result: SplitwiseImport): BalanceDrift[] | null {
+    if (!result.totalBalance || result.currencies.length !== 1) return null
+
+    const net = new Map<string, bigint>(result.members.map((member) => [member, 0n]))
+    const bump = (member: string, delta: bigint) => net.set(member, (net.get(member) ?? 0n) + delta)
+    for (const expense of result.expenses) {
+        bump(expense.paidBy, BigInt(expense.costMinor))
+        for (const share of expense.shares) bump(share.member, -BigInt(share.amountMinor))
+    }
+
+    const drift: BalanceDrift[] = []
+    for (const stated of result.totalBalance) {
+        const ours = net.get(stated.member) ?? 0n
+        const delta = ours - BigInt(stated.netMinor)
+        if (delta !== 0n) drift.push({ member: stated.member, deltaMinor: delta.toString() })
+    }
+    return drift
 }
 
 /** "Ski trip 2026 - expenses.csv" → "Ski trip 2026". The filename is the only name the export

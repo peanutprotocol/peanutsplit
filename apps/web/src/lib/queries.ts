@@ -31,6 +31,7 @@ import {
     useQueuedWrites,
     useQueueNotices,
 } from './offline-queue'
+import { PENDING_ID_PREFIX, savedExpenses } from './pending'
 import { useRoomEvents } from './realtime'
 
 export const roomKey = (slug: string) => ['room', slug] as const
@@ -197,7 +198,7 @@ interface AddExpenseContext {
 const authoritativeState = (queryClient: QueryClient, slug: string): RoomState | undefined => {
     const cached = queryClient.getQueryData<RoomState>(roomKey(slug))
     if (!cached) return undefined
-    return { ...cached, expenses: cached.expenses.filter((expense) => !expense.id.startsWith('pending-')) }
+    return { ...cached, expenses: savedExpenses(cached.expenses) }
 }
 
 /**
@@ -258,7 +259,7 @@ export function addExpenseMutationOptions(
                         // same function — an in-flight write and a held one look
                         // identical to the list, and only one shape may exist.
                         draftExpenseRow(input, {
-                            id: `pending-${now}`,
+                            id: `${PENDING_ID_PREFIX}${now}`,
                             at: now,
                             members: previous.members,
                         }),

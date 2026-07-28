@@ -8,6 +8,7 @@ import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
+import { isPendingExpenseId } from '@/lib/pending'
 import { dayLabel, groupByDay } from '@/lib/dates'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
@@ -24,7 +25,7 @@ interface ExpenseListProps {
     onSelect: (expenseId: string) => void
 }
 
-const isPending = (expense: ApiExpense) => expense.id.startsWith('pending-')
+const isPending = (expense: ApiExpense) => isPendingExpenseId(expense.id)
 
 /** Long enough to strip the class again; the animation itself is 100ms. */
 const POP_MS = 260
@@ -55,7 +56,7 @@ function usePoppedExpenseId(expenses: readonly ApiExpense[]): string | null {
         // No previous render to diff against (first paint of a room full of
         // expenses) — nothing here is new, it is just arriving.
         if (!previous || !placeholderWasThere) return
-        const arrived = [...ids].find((id) => !previous.has(id) && !id.startsWith('pending-'))
+        const arrived = [...ids].find((id) => !previous.has(id) && !isPendingExpenseId(id))
         if (!arrived) return
 
         setPoppedId(arrived)
