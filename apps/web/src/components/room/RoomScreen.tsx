@@ -11,6 +11,7 @@ import type { MemberIdentity } from '@/lib/identity'
 import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { useRoomParams } from '@/lib/room-params'
+import { themeVars } from '@/lib/themes'
 import { useRoomIdentity } from '@/lib/use-identity'
 import { AllSettled } from './AllSettled'
 import { BalanceDrawer } from './BalanceDrawer'
@@ -106,7 +107,15 @@ export function RoomScreen({ slug }: { slug: string }) {
     const defaultPaidById = meId ?? state?.members[0]?.id ?? ''
 
     return (
-        <main className="relative mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background">
+        // The theme is a handful of CSS variables on the room container, not a
+        // class swap: every themed surface reads a `var(--split-theme-*, <the
+        // literal it used to have>)`, so an unthemed room renders byte-identical
+        // and a surface nobody has themed yet keeps working untouched.
+        <main
+            style={themeVars(state?.room.theme) as React.CSSProperties}
+            data-theme={state?.room.theme ?? 'classic'}
+            className="relative mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background"
+        >
             {state && (
                 <RoomHeader
                     room={state.room}
@@ -155,6 +164,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 state={state}
                                 currencies={currencies}
                                 meId={meId}
+                                slug={slug}
+                                token={identity?.token}
                                 onSelect={(expenseId) => setParams({ expense: expenseId })}
                             />
                         </motion.div>

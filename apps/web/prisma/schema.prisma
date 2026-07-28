@@ -25,6 +25,10 @@ model Room {
   emoji       String?
   currency    String // display/settle currency, ISO 4217
   coverUrl    String?
+  // A KEY into the code-side catalog in `lib/themes.ts`, never a colour. Null is
+  // the default palette, so a room written before themes existed and a room set
+  // back to default are the same row.
+  theme       String?
   createdAt   DateTime     @default(now())
   archivedAt  DateTime?
   members     Member[]
@@ -51,6 +55,7 @@ model Member {
   paidExpenses       Expense[]      @relation("ExpensePaidBy")
   createdExpenses    Expense[]      @relation("ExpenseCreatedBy")
   shares             ExpenseShare[]
+  reactions          ExpenseReaction[]
   settlementsFrom    Settlement[]   @relation("SettlementFrom")
   settlementsTo      Settlement[]   @relation("SettlementTo")
   createdSettlements Settlement[]   @relation("SettlementCreatedBy")
@@ -81,12 +86,38 @@ model Expense {
   createdAt   DateTime  @default(now())
   deletedAt   DateTime? // soft delete → 6s Undo
 
-  room      Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  paidBy    Member         @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Cascade)
-  createdBy Member?        @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  room      Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  paidBy    Member            @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Cascade)
+  createdBy Member?           @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   shares    ExpenseShare[]
+  reactions ExpenseReaction[]
 
   @@index([roomId])
+  @@schema("split")
+}
+
+/// One person's one emoji on one expense.
+///
+/// Unlike an expense — which anybody holding the link can write, because
+/// impersonation inside a room is visible and fixable — a reaction is social
+/// identity. "María laughed" has to be really María, so the write demands the
+/// server-issued member token, the same proof push subscriptions demand.
+///
+/// `emoji` is validated against the six-strong allowlist in `lib/reactions.ts`,
+/// never against Unicode. The unique key is what makes a repeated tap idempotent
+/// rather than a second row.
+model ExpenseReaction {
+  id        String   @id @default(uuid())
+  expenseId String
+  memberId  String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, memberId, emoji])
+  @@index([expenseId])
   @@schema("split")
 }
 

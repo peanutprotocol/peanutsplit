@@ -25,6 +25,8 @@ export interface ApiRoom {
     emoji: string | null
     currency: string
     coverUrl: string | null
+    /** A key into the catalog in `lib/themes.ts`. null = the default palette. */
+    theme: string | null
     createdAt: string
     archivedAt: string | null
 }
@@ -41,6 +43,13 @@ export interface ApiShare {
     amountMinor: string
     /** EXACT splits: as typed, in the expense currency. null for EQUAL. */
     enteredAmountMinor: string | null
+}
+
+/** One person's one emoji. Counts and "is one of these mine" are derived on the
+ *  client — see `groupReactions`. */
+export interface ApiReaction {
+    emoji: string
+    memberId: string
 }
 
 export interface ApiExpense {
@@ -61,6 +70,8 @@ export interface ApiExpense {
     category: string | null
     createdAt: string
     shares: ApiShare[]
+    /** Oldest first, id as tiebreaker. Empty for an expense nobody reacted to. */
+    reactions: ApiReaction[]
 }
 
 export interface ApiSettlement {
@@ -129,6 +140,19 @@ export interface ExpenseInput {
     exactShares?: { memberId: string; amountMinor: string }[]
     date?: string
     category?: string | null
+}
+
+/** PATCH /api/rooms/:slug. `null` puts the room back on the default palette. */
+export interface RoomThemeInput {
+    theme: string | null
+}
+
+/** POST and DELETE /api/expenses/:id/reactions. The token is proof, not
+ *  attribution, which is why it rides the body — see the route. */
+export interface ReactionInput {
+    emoji: string
+    memberId: string
+    memberToken: string
 }
 
 export interface SettlementInput {

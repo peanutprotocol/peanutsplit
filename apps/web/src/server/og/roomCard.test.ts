@@ -13,6 +13,7 @@ import {
     toRoomCard,
 } from '@/server/og/roomCard'
 import { ROOM_FALLBACK_TITLE, roomTitle } from '@/server/og/roomMeta'
+import { DEFAULT_THEME, themeFor } from '@/lib/themes'
 
 const drawableByDisplay = (value: string) => [...value].every((ch) => DISPLAY_CHARS.has(ch))
 const drawableByBody = (value: string) => [...value].every((ch) => BODY_CHARS.has(ch))
@@ -153,6 +154,51 @@ describe('toRoomCard', () => {
         expect(card.stat).toBe('No expenses yet')
         expect(card.avatars).toEqual([])
         expect(card.memberCount).toBe(0)
+    })
+
+    /**
+     * The unfurl following the palette IS the theme feature — a room repainted
+     * in the app and still yellow in the group chat is the version nobody
+     * would have asked for.
+     */
+    it('resolves the room’s theme into the colours the card draws', () => {
+        const card = toRoomCard({
+            name: 'Ski trip',
+            emoji: null,
+            currency: 'EUR',
+            theme: 'mint',
+            members: [{ name: 'Hugo' }],
+            expenses: [],
+        })
+        expect(card.theme).toBe(themeFor('mint'))
+        expect(card.theme.field).toBe('#98E9AB')
+        expect(card.theme.fieldTint).toBe('#B7F1C5')
+    })
+
+    it('draws an unthemed room in the palette it always had', () => {
+        const unset = toRoomCard({ name: 'Ski trip', emoji: null, currency: 'EUR', members: [], expenses: [] })
+        const explicitNull = toRoomCard({
+            name: 'Ski trip',
+            emoji: null,
+            currency: 'EUR',
+            theme: null,
+            members: [],
+            expenses: [],
+        })
+        expect(unset.theme).toBe(DEFAULT_THEME)
+        expect(explicitNull.theme).toBe(DEFAULT_THEME)
+    })
+
+    it('never 500s on a key the catalog no longer has', () => {
+        const card = toRoomCard({
+            name: 'Ski trip',
+            emoji: null,
+            currency: 'EUR',
+            theme: 'retired-in-a-later-build',
+            members: [],
+            expenses: [],
+        })
+        expect(card.theme).toBe(DEFAULT_THEME)
     })
 })
 

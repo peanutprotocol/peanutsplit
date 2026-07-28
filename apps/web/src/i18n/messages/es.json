@@ -296,6 +296,31 @@
                 "generic": "No se pudo leer esa cuenta.",
                 "hint": "Sacá la foto de frente, con toda la cuenta en cuadro y buena luz."
             }
+        },
+        "theme": {
+            "title": "Tema",
+            "hint": "Lo ve toda la sala, y también la vista previa del link.",
+            "pick": "Usar el tema {name}",
+            "failed": "no se pudo cambiar el tema — inténtalo de nuevo",
+            "names": {
+                "classic": "Clásico",
+                "bubblegum": "Chicle",
+                "lavender": "Lavanda",
+                "mint": "Menta",
+                "sky": "Cielo",
+                "coral": "Coral",
+                "sand": "Arena",
+                "graphite": "Grafito"
+            }
+        },
+        "reactions": {
+            "add": "Reaccionar",
+            "close": "Cerrar las reacciones",
+            "pick": "Reaccionar con {emoji}",
+            "remove": "Quitar tu {emoji}",
+            "reacted": "{emoji} — {count, plural, one {# persona} other {# personas}}",
+            "needsToken": "Para reaccionar necesitamos comprobar que eres tú — vuelve a entrar a la sala con tu nombre.",
+            "failed": "no se pudo guardar esa reacción — inténtalo de nuevo"
         }
     },
     "account": {
