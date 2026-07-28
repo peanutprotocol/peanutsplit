@@ -62,9 +62,20 @@ const postChunked = async (slug: string, payload: string) => {
     return { status: response.status, body: (await response.json()) as ApiError }
 }
 
-/** What the model would have answered. `parts` is the shape the REST API uses. */
+/** What the model would have answered. `parts` is the shape the REST API uses.
+ *  This file runs the Gemini-direct transport throughout — the gates in front of
+ *  the model are transport-blind, and proving that once is enough. The OpenRouter
+ *  wire has its own suite in `server/receiptTransport.test.ts`; the one case
+ *  below is here because reaching it goes through every gate above. */
 const modelAnswer = (payload: unknown) =>
     new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(payload) }] } }] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+    })
+
+/** The same answer, as OpenRouter's OpenAI-shaped chat completion. */
+const openRouterAnswer = (payload: unknown) =>
+    new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(payload) } }] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
     })
@@ -85,12 +96,16 @@ beforeEach(async () => {
     // One map holds every bucket, per-IP and per-room alike.
     resetRateLimits()
     process.env.SPLIT_GEMINI_API_KEY = API_KEY
+    // Explicitly absent, so a key in the developer's own shell cannot silently
+    // move this whole file onto the other transport.
+    delete process.env.SPLIT_OPENROUTER_API_KEY
     delete process.env.SPLIT_SCAN_PROXY_URL
 })
 
 afterEach(() => {
     vi.unstubAllGlobals()
     delete process.env.SPLIT_GEMINI_API_KEY
+    delete process.env.SPLIT_OPENROUTER_API_KEY
 })
 
 describe('capability probe', () => {
@@ -104,6 +119,12 @@ describe('capability probe', () => {
     it('reports disabled with no key — the UI hides the whole feature on this', async () => {
         delete process.env.SPLIT_GEMINI_API_KEY
         expect(await scanStatus().json()).toEqual({ enabled: false })
+    })
+
+    it('reports enabled on the OpenRouter key alone — the client never learns which wire', async () => {
+        delete process.env.SPLIT_GEMINI_API_KEY
+        process.env.SPLIT_OPENROUTER_API_KEY = 'test-openrouter-key'
+        expect(await scanStatus().json()).toEqual({ enabled: true })
     })
 })
 
@@ -306,6 +327,27 @@ describe('POST — the model boundary', () => {
         const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
         expect(status).toBe(502)
         expect(body.error.code).toBe('SCAN_FAILED')
+    })
+
+    it('returns the same body over OpenRouter, having passed every gate above', async () => {
+        // The route's only knowledge of a transport is `scanEnabled()`. This is
+        // the proof that the preferred wire reaches the same JSON envelope
+        // through the real rate limiters, the real room and the real schemas.
+        process.env.SPLIT_OPENROUTER_API_KEY = 'test-openrouter-key'
+        const slug = await newRoom()
+        const fetchMock = vi.fn(async () =>
+            openRouterAnswer({ items: [{ label: 'Beer', amountMinor: '500' }], currency: 'EUR' })
+        )
+        vi.stubGlobal('fetch', fetchMock)
+
+        const { status, body } = await post<ParsedReceipt>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        expect(status).toBe(200)
+        expect(body.items).toEqual([{ label: 'Beer', amountMinor: '500', quantity: null }])
+        expect(body.suggestedTotalMinor).toBe('500')
+        expect(body.currency).toBe('EUR')
+
+        const [url] = fetchMock.mock.calls[0] as unknown as [string]
+        expect(url).toContain('openrouter.ai')
     })
 
     it('reports "nothing readable" distinctly from "the call failed"', async () => {
