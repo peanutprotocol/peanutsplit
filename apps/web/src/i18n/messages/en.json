@@ -9,6 +9,22 @@
             "ctaHint": "Takes ten seconds. No email, no password, no download.",
             "mascotAlt": "Peanut waving hello"
         },
+        "gap": {
+            "title": "Where the other apps stop",
+            "intro": "They all get you to a number. The number is the easy part. The awkward part is the three weeks afterwards, when the number is still sitting there.",
+            "item1": {
+                "title": "Your group is in four countries",
+                "body": "A payment request only works if everyone banks in the same place. Split never assumes you do."
+            },
+            "item2": {
+                "title": "Nobody has the same app",
+                "body": "“Just send it to me” falls apart when one of you has Revolut, one has Venmo, and one has a bank that shuts at four."
+            },
+            "item3": {
+                "title": "You paid in one currency and owe in another",
+                "body": "Pick what the room counts in, add expenses in whatever you actually spent, and Split converts. No paid tier for the currency bit."
+            }
+        },
         "rooms": {
             "title": "Your rooms",
             "subtitle": "Saved on this device.",
@@ -28,7 +44,35 @@
             "step3": {
                 "title": "Everyone adds expenses",
                 "body": "Balances update live, and the maths reconciles to the cent — on screen, every time."
+            },
+            "step4": {
+                "title": "Settle up",
+                "body": "Split works out the fewest payments that clear the room. Pay in cash, by bank, or send it with Peanut when neither of those reaches."
             }
+        },
+        "uses": {
+            "title": "What people split here",
+            "item1": {
+                "title": "Group trips",
+                "body": "One room for the whole week, cleared before the flight home."
+            },
+            "item2": {
+                "title": "Flatmates",
+                "body": "Rent, bills, the shop. A new room each month keeps it readable."
+            },
+            "item3": {
+                "title": "Dinners and rounds",
+                "body": "Six people, one card, nobody doing arithmetic at the table."
+            },
+            "item4": {
+                "title": "Remote crews",
+                "body": "Different countries, different banks, still one set of numbers."
+            }
+        },
+        "finalCta": {
+            "title": "Try it on the next dinner",
+            "body": "One link, ten seconds, and nobody has to install anything.",
+            "button": "Start a split"
         },
         "honesty": {
             "title": "The honest bit",
