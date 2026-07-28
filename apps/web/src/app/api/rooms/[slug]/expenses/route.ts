@@ -1,6 +1,7 @@
 import { prisma } from '@/server/db'
 import { buildExpense } from '@/server/expenses'
 import { memberTokenOf, readJson, respond } from '@/server/http'
+import { notifyRoomWrite } from '@/server/push'
 import { loadRoom, memberIdForToken, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { expenseSchema } from '@/server/validation'
@@ -16,8 +17,9 @@ export const POST = (request: Request, ctx: Ctx) =>
         const room = await loadRoom(slug)
         assertWritable(room)
         const write = await buildExpense(room, body)
+        const actorMemberId = memberIdForToken(room, memberTokenOf(request))
 
-        await prisma.expense.create({
+        const expense = await prisma.expense.create({
             data: {
                 roomId: room.id,
                 description: write.description,
@@ -26,12 +28,24 @@ export const POST = (request: Request, ctx: Ctx) =>
                 baseAmountMinor: write.baseAmountMinor,
                 fxRate: write.fxRate,
                 paidById: write.paidById,
-                createdById: memberIdForToken(room, memberTokenOf(request)),
+                createdById: actorMemberId,
                 splitMode: write.splitMode,
                 date: write.date,
                 category: write.category,
                 shares: { createMany: { data: write.shares } },
             },
         })
-        return toRoomState(await loadRoom(slug))
+
+        const fresh = await loadRoom(slug)
+        const state = toRoomState(fresh)
+        // After the response value exists, never before it: a push service that
+        // times out must not turn a saved expense into a 500 for the person who
+        // saved it. `notifyRoomWrite` is void and swallows its own failures.
+        notifyRoomWrite({
+            room: fresh,
+            state,
+            actorMemberId,
+            event: { kind: 'expense_added', expenseId: expense.id },
+        })
+        return state
     }, 201)
