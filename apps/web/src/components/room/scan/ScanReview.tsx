@@ -95,6 +95,12 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                 ))}
             </ul>
 
+            {state.items.length === 0 && (
+                <p data-testid="scan-no-items" className="text-sm text-grey-1">
+                    {t('noItems')}
+                </p>
+            )}
+
             <button
                 type="button"
                 onClick={() => {

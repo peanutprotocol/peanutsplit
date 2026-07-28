@@ -14,9 +14,9 @@ import { emptyExpenseForm, type ExpenseFormValues } from '@/lib/expense-form'
 import { draftToFormValues, type NlDraft } from '@/lib/quick-add'
 
 const MEMBERS = [
-    { id: 'm-ana', name: 'Ana', createdAt: '2026-07-01T00:00:00.000Z' },
-    { id: 'm-bob', name: 'Bob', createdAt: '2026-07-01T00:00:00.000Z' },
-    { id: 'm-cleo', name: 'Cleo', createdAt: '2026-07-01T00:00:00.000Z' },
+    { id: 'm-ana', name: 'Ana', avatar: null, createdAt: '2026-07-01T00:00:00.000Z' },
+    { id: 'm-bob', name: 'Bob', avatar: null, createdAt: '2026-07-01T00:00:00.000Z' },
+    { id: 'm-cleo', name: 'Cleo', avatar: null, createdAt: '2026-07-01T00:00:00.000Z' },
 ]
 
 const base = (over: Partial<ExpenseFormValues> = {}): ExpenseFormValues => ({

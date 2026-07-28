@@ -13,6 +13,7 @@ import type {
     CurrencyInfo,
     ExpenseInput,
     ImportRoomInput,
+    MemberAvatarInput,
     MembershipClaim,
     ModelStatus,
     NlParseInput,
@@ -210,6 +211,14 @@ export const api = {
      *  other room write — see the route for why. */
     setTheme: (slug: string, theme: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { theme } }),
+
+    /** Your own avatar. The member is in the path and the token is in the body,
+     *  because here the token is proof rather than attribution — see the route. */
+    setMemberAvatar: (slug: string, memberId: string, input: MemberAvatarInput) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}`, {
+            method: 'PATCH',
+            body: input,
+        }),
 
     /** Slug-free, like restore: the expense id is all a row ever holds. The
      *  token is in the body because the server treats it as proof here. */

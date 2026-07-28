@@ -467,6 +467,7 @@
             "itemPlaceholder": "Item",
             "removeItem": "Remover este item",
             "addItem": "Adicionar um item que faltou",
+            "noItems": "Não sobrou nada nesta conta.",
             "itemsTotal": "Os itens somam",
             "receiptTotal": "A conta diz",
             "mismatch": "Isso dá {amount} de diferença do total impresso — veja se faltou alguma linha.",
@@ -512,6 +513,14 @@
                 "sand": "Areia",
                 "graphite": "Grafite"
             }
+        },
+        "avatar": {
+            "title": "Seu avatar",
+            "hint": "Só você pode mudar o seu. Todo mundo da sala vê.",
+            "open": "Mudar seu avatar",
+            "option": "Usar o avatar {name}",
+            "defaultOption": "Voltar ao que é desenhado com seu nome",
+            "failed": "não deu para mudar seu avatar — tente de novo"
         },
         "reactions": {
             "add": "Reagir a isto",

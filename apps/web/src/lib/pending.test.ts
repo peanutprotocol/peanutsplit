@@ -25,7 +25,12 @@ const expense = (id: string, overrides: Partial<ApiExpense> = {}): ApiExpense =>
     ...overrides,
 })
 
-const member = (id: string, name: string): ApiMember => ({ id, name, createdAt: '2026-07-01T00:00:00.000Z' })
+const member = (id: string, name: string): ApiMember => ({
+    id,
+    name,
+    avatar: null,
+    createdAt: '2026-07-01T00:00:00.000Z',
+})
 
 const room = (
     expenses: ApiExpense[],

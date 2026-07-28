@@ -121,7 +121,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                                                     data-member={member.name}
                                                     className="flex items-center gap-2 rounded-sm border border-n-1 bg-white py-1 pl-1 pr-3"
                                                 >
-                                                    <MemberAvatar name={member.name} size={24} />
+                                                    <MemberAvatar name={member.name} avatar={member.avatar} size={24} />
                                                     <span className="max-w-[10rem] truncate text-sm">
                                                         {member.name}
                                                     </span>

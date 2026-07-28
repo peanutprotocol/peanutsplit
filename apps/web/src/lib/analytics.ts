@@ -64,6 +64,11 @@ export type AnalyticsEvent =
     | 'theme_changed'
     | 'reaction_added'
     | 'reaction_removed'
+    // Avatars. The property is the FAMILY the pick came from (`face`, `doodle`,
+    // `default`) and never the key: "which of the twenty faces this person chose"
+    // is a description of a person, and the theme key is fair game only because
+    // it describes a room. Whose avatar changed is not sent at all.
+    | 'avatar_changed'
     // Latecomer catch-up. Two counts and nothing else — how many earlier
     // expenses the offer covered, and how many the confirm actually rewrote. Not
     // who joined, not who tapped, not what any of it was worth: this is the same
