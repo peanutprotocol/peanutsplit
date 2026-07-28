@@ -28,8 +28,8 @@ import { splitV2Enabled } from '@/lib/flags'
 import { currencyInfo, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
+    useAddMember,
     useDeleteExpense,
-    useJoinRoom,
     useModelStatus,
     useRestoreExpense,
     useUpdateExpense,
@@ -71,7 +71,7 @@ export function ExpenseDrawer({
     const locale = useLocale()
     const errorMessage = useErrorMessage()
     const addExpense = useAddExpense(slug, token)
-    const addMember = useJoinRoom(slug)
+    const addMember = useAddMember(slug)
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)

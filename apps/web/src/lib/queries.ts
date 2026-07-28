@@ -202,32 +202,51 @@ export function useJoinRoom(slug: string): UseMutationResult<RoomStateWithMember
  * are issued a token there. The organiser stays themselves throughout: nothing
  * here touches the stored identity.
  */
-export function useAddMember(slug: string): UseMutationResult<RoomState, Error, { name: string }> {
-    const queryClient = useQueryClient()
-    return useMutation({
-        mutationFn: async (input: { name: string }) => withoutMemberToken(await api.joinRoom(slug, input)),
-        onSuccess: (state) => seed(queryClient, slug, state),
-    })
+interface AddedMemberResult {
+    /** Needed only to select the new roster entry as the payer. */
+    memberId: string
+    /** The token-free room state that is safe to put in react-query. */
+    state: RoomState
 }
 
 /**
- * The envelope rebuilt field by field, so the token is not merely unread — it is
- * not in the value, and therefore cannot reach a cache, a devtools panel or a
- * replayed mutation.
+ * Build the add-member result field by field, so the token is not merely unread
+ * — it is absent before either the caller or the cache sees the response. The
+ * new id stays outside `state`: the organiser needs it to select a payer, but it
+ * is not room state and does not belong in react-query.
  *
- * Exported so the discarding is a thing a test can hold. Narrowing the return
- * TYPE would not have been enough on its own: `RoomStateWithMember` is
- * structurally a `RoomState`, so handing the whole response back under the
+ * Narrowing the return TYPE would not be enough: `RoomStateWithMember` is
+ * structurally a `RoomState`, so handing the whole response back under a
  * narrower annotation compiles cleanly and leaks the token anyway.
  */
-export const withoutMemberToken = (state: RoomStateWithMember): RoomState => ({
-    room: state.room,
-    members: state.members,
-    expenses: state.expenses,
-    settlements: state.settlements,
-    balances: state.balances,
-    suggestedTransfers: state.suggestedTransfers,
+const addedMemberResult = (response: RoomStateWithMember): AddedMemberResult => ({
+    memberId: response.memberId,
+    state: {
+        room: response.room,
+        members: response.members,
+        expenses: response.expenses,
+        settlements: response.settlements,
+        balances: response.balances,
+        suggestedTransfers: response.suggestedTransfers,
+    },
 })
+
+/** Exported as options so the token-discarding and cache contract can be tested
+ * against react-query's real mutation machinery without a component renderer. */
+export function addMemberMutationOptions(
+    queryClient: QueryClient,
+    slug: string
+): UseMutationOptions<AddedMemberResult, Error, { name: string }> {
+    return {
+        mutationFn: async (input) => addedMemberResult(await api.joinRoom(slug, input)),
+        onSuccess: ({ state }) => seed(queryClient, slug, state),
+    }
+}
+
+export function useAddMember(slug: string): UseMutationResult<AddedMemberResult, Error, { name: string }> {
+    const queryClient = useQueryClient()
+    return useMutation(addMemberMutationOptions(queryClient, slug))
+}
 
 /** What `onMutate` hands `onError` so a failed add can be rolled back. */
 interface AddExpenseContext {

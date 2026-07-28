@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
-import { addExpenseMutationOptions, roomKey, withoutMemberToken } from './queries'
+import { addExpenseMutationOptions, addMemberMutationOptions, roomKey } from './queries'
 
 const memoryStorage = (): Storage => {
     const map = new Map<string, string>()
@@ -85,6 +85,9 @@ const respondWith = (status: number, body: unknown) =>
 
 const addExpense = (queryClient: QueryClient) =>
     new MutationObserver(queryClient, addExpenseMutationOptions(queryClient, SLUG, 'token-1')).mutate(input)
+
+const addMember = (queryClient: QueryClient) =>
+    new MutationObserver(queryClient, addMemberMutationOptions(queryClient, SLUG)).mutate({ name: 'Carla' })
 
 let queryClient: QueryClient
 
@@ -175,14 +178,22 @@ describe('adding somebody who has not tapped the link yet', () => {
      * them may stay on the organiser's phone: a token is proof of BEING that
      * person, and holding it would let one device react and subscribe as another.
      */
-    it('drops the member token the server handed back', () => {
-        const served = { ...roomState(), memberId: 'cai', memberToken: 'secret-token-for-carla' }
+    it('returns the new id while keeping its token and identity envelope out of the cache', async () => {
+        const state = {
+            ...roomState(),
+            members: [...roomState().members, { id: 'cai', name: 'Carla', createdAt: '2026-07-02T00:00:00.000Z' }],
+        }
+        const served = { ...state, memberId: 'cai', memberToken: 'secret-token-for-carla' }
+        vi.stubGlobal('fetch', respondWith(201, served))
 
-        const kept = withoutMemberToken(served)
+        const kept = await addMember(queryClient)
+        const cached = queryClient.getQueryData<RoomState>(roomKey(SLUG))
 
-        expect(kept).toEqual(roomState())
+        expect(kept).toEqual({ memberId: 'cai', state })
+        expect(cached).toEqual(state)
         expect(JSON.stringify(kept)).not.toContain('secret-token-for-carla')
-        expect('memberToken' in kept).toBe(false)
-        expect('memberId' in kept).toBe(false)
+        expect(JSON.stringify(cached)).not.toContain('secret-token-for-carla')
+        expect(cached).not.toHaveProperty('memberId')
+        expect(cached).not.toHaveProperty('memberToken')
     })
 })
