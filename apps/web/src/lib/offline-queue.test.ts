@@ -3,6 +3,7 @@ import { ApiRequestError, NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import {
     MAX_QUEUED,
+    PENDING_ITEM_PREFIX,
     PENDING_KEY,
     appendQueued,
     drainPending,
@@ -13,7 +14,9 @@ import {
     isQueueable,
     mergeQueuedExpenses,
     parseQueue,
+    queueRetryDelay,
     queueSnapshot,
+    refreshQueueSnapshot,
     setQueuePerformer,
     setQueueStorage,
     subscribeToQueueNotices,
@@ -114,6 +117,7 @@ beforeEach(() => {
 afterEach(() => {
     setQueueStorage(null)
     setQueuePerformer(null)
+    vi.unstubAllGlobals()
 })
 
 describe('what may be queued', () => {
@@ -159,6 +163,24 @@ describe('reading a queue back off the device', () => {
         // replayed settlement just because it is sitting in storage.
         const smuggled = item({ endpoint: '/api/rooms/ski-trip-aaa/settlements' })
         expect(parseQueue(JSON.stringify([smuggled]))).toEqual([])
+    })
+
+    it('reads the legacy array and migrates it without losing the next append', () => {
+        const legacy = item({ clientKey: 'legacy', body: input({ description: 'Old build' }) })
+        storage.setItem(PENDING_KEY, JSON.stringify([legacy]))
+        expect(queueSnapshot()).toEqual([legacy])
+
+        const appended = enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input({ description: 'New build' }),
+        })!
+
+        expect(storage.getItem(PENDING_KEY)).toBeNull()
+        expect(storage.getItem(`${PENDING_ITEM_PREFIX}legacy`)).not.toBeNull()
+        expect(storage.getItem(`${PENDING_ITEM_PREFIX}${appended.clientKey}`)).not.toBeNull()
+        expect(queueSnapshot().map((queued) => queued.body.description)).toEqual(['Old build', 'New build'])
     })
 })
 
@@ -319,8 +341,29 @@ describe('the queue end to end', () => {
         expect(queued).not.toBeNull()
         expect(queueSnapshot()).toHaveLength(1)
         expect(queued?.body.clientKey).toBe(queued?.clientKey)
-        expect(parseQueue(storage.getItem(PENDING_KEY))).toHaveLength(1)
+        expect(storage.getItem(PENDING_KEY)).toBeNull()
+        expect(storage.getItem(`${PENDING_ITEM_PREFIX}${queued!.clientKey}`)).not.toBeNull()
         expect(notices).toEqual([{ kind: 'queued' }])
+    })
+
+    it('preserves an append from another tab even when this tab cached the old queue', () => {
+        expect(queueSnapshot()).toEqual([])
+        const other = item({
+            clientKey: 'other-tab-key',
+            body: input({ description: 'Other tab' }),
+            addedAt: Date.now() - 1,
+        })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${other.clientKey}`, JSON.stringify(other))
+
+        enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input({ description: 'This tab' }),
+        })
+        refreshQueueSnapshot()
+
+        expect(queueSnapshot().map((queued) => queued.body.description)).toEqual(['Other tab', 'This tab'])
     })
 
     it('refuses to hold anything but a create', () => {
@@ -391,6 +434,31 @@ describe('the queue end to end', () => {
 
         expect(queueSnapshot()).toHaveLength(1)
         expect(notices.some((n) => n.kind === 'sent')).toBe(false)
+    })
+
+    it('schedules one bounded backoff after a transient failure', async () => {
+        const setTimeout = vi.fn((_callback: () => void, _delay?: number) => 42)
+        const clearTimeout = vi.fn()
+        vi.stubGlobal('window', { setTimeout, clearTimeout })
+        enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input(),
+        })
+        setQueuePerformer(async () => {
+            throw networkError()
+        })
+
+        await drainPending()
+        await drainPending()
+
+        expect(setTimeout).toHaveBeenCalledOnce()
+        expect(setTimeout.mock.calls[0][1]).toBe(5_000)
+        expect(queueRetryDelay(0)).toBe(5_000)
+        expect(queueRetryDelay(1)).toBe(10_000)
+        expect(queueRetryDelay(6)).toBe(300_000)
+        expect(queueRetryDelay(20)).toBe(300_000)
     })
 
     it('drops an item the server refused and says why it disappeared', async () => {

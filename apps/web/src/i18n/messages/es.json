@@ -372,6 +372,8 @@
         "states": {
             "errorTitle": "No pudimos cargar esta sala",
             "errorBody": "Seguro es la conexión. No se perdió nada — intenta otra vez.",
+            "staleTitle": "Los saldos pueden estar desactualizados",
+            "staleBody": "Mostramos los últimos saldos cargados. Vuelve a conectarte y actualiza antes de saldar cuentas. Aún puedes agregar un gasto.",
             "retry": "Intentar de nuevo",
             "notFoundTitle": "Esta sala no existe",
             "notFoundBody": "Los links distinguen mayúsculas — revisa que copiaste todo, incluida la parte después del último guion.",

@@ -34,6 +34,20 @@ import { PENDING_ID_PREFIX } from './pending'
 import { TOAST_MS } from './toasts'
 
 export const PENDING_KEY = 'ps:pending'
+/** One storage key per write makes cross-tab appends atomic. The old array key
+ *  remains readable for upgrades, but new writes never share one overwrite
+ *  target. */
+export const PENDING_ITEM_PREFIX = `${PENDING_KEY}:`
+
+/** Web Locks is the atomic cross-tab owner where the browser supports it. The
+ *  localStorage lease is a fallback for older engines; clientKey idempotency on
+ *  the server remains the correctness backstop if a lease expires mid-request. */
+const DRAIN_LOCK_NAME = 'peanut-split:pending-expenses'
+const DRAIN_LEASE_KEY = 'ps:pending-owner'
+const DRAIN_LEASE_MS = 60_000
+
+export const RETRY_BASE_MS = 5_000
+export const RETRY_MAX_MS = 5 * 60_000
 
 /** Thirty is already a whole evening of receipts. Past that, the honest failure
  *  is to drop the oldest and say so — an unbounded queue is a localStorage quota
@@ -282,23 +296,75 @@ export function queueSnapshot(): QueuedWrite[] {
         return snapshot
     }
     try {
-        snapshot = parseQueue(store.getItem(PENDING_KEY))
+        snapshot = readStoredQueue(store)
     } catch {
         snapshot = []
     }
     return snapshot
 }
 
-function writeQueue(items: QueuedWrite[]): void {
-    snapshot = items
+function readStoredQueue(store: Storage): QueuedWrite[] {
+    const byKey = new Map(parseQueue(store.getItem(PENDING_KEY)).map((item) => [item.clientKey, item]))
+    for (let index = 0; index < store.length; index++) {
+        const key = store.key(index)
+        if (!key?.startsWith(PENDING_ITEM_PREFIX)) continue
+        const raw = store.getItem(key)
+        const parsed = parseQueue(raw === null ? null : `[${raw}]`)[0]
+        if (parsed) byKey.set(parsed.clientKey, parsed)
+    }
+    return [...byKey.values()].sort((a, b) => a.addedAt - b.addedAt || a.clientKey.localeCompare(b.clientKey))
+}
+
+function persistQueuedItem(item: QueuedWrite): { items: QueuedWrite[]; dropped: QueuedWrite[] } {
+    const store = storage()
+    if (!store) return appendQueued(snapshot ?? [], item)
+    try {
+        // Migrate legacy array records first. Independent item keys mean another
+        // tab can append between any two operations without either tab replacing
+        // the other's whole queue.
+        for (const queued of readStoredQueue(store)) {
+            store.setItem(`${PENDING_ITEM_PREFIX}${queued.clientKey}`, JSON.stringify(queued))
+        }
+        store.setItem(`${PENDING_ITEM_PREFIX}${item.clientKey}`, JSON.stringify(item))
+        store.removeItem(PENDING_KEY)
+
+        const all = readStoredQueue(store)
+        const overflow = Math.max(0, all.length - MAX_QUEUED)
+        const dropped = all.slice(0, overflow)
+        for (const queued of dropped) store.removeItem(`${PENDING_ITEM_PREFIX}${queued.clientKey}`)
+        return { items: all.slice(overflow), dropped }
+    } catch {
+        // Quota, or a private-mode Storage that accepts reads and refuses
+        // writes. The in-memory snapshot still drains this session.
+        return appendQueued(snapshot ?? [], item)
+    }
+}
+
+function removeQueuedItems(items: readonly QueuedWrite[]): QueuedWrite[] {
+    const removed = new Set(items.map((item) => item.clientKey))
+    const store = storage()
+    if (!store) return (snapshot ?? []).filter((item) => !removed.has(item.clientKey))
+    try {
+        for (const key of removed) store.removeItem(`${PENDING_ITEM_PREFIX}${key}`)
+        const legacy = parseQueue(store.getItem(PENDING_KEY)).filter((item) => !removed.has(item.clientKey))
+        if (legacy.length === 0) store.removeItem(PENDING_KEY)
+        else store.setItem(PENDING_KEY, JSON.stringify(legacy))
+        return readStoredQueue(store)
+    } catch {
+        return (snapshot ?? []).filter((item) => !removed.has(item.clientKey))
+    }
+}
+
+/** Refresh after another tab changes one of the per-write storage keys. With no
+ *  readable storage (private mode), preserve the in-memory queue rather than
+ *  erasing the only copy. */
+export function refreshQueueSnapshot(): void {
     const store = storage()
     if (store) {
         try {
-            if (items.length === 0) store.removeItem(PENDING_KEY)
-            else store.setItem(PENDING_KEY, JSON.stringify(items))
+            snapshot = readStoredQueue(store)
         } catch {
-            // Quota, or a private-mode Storage that accepts reads and refuses
-            // writes. The in-memory snapshot still drains this session.
+            // Keep the last in-memory snapshot.
         }
     }
     notifyChanged()
@@ -360,6 +426,16 @@ export function enqueueWrite(input: {
 }): QueuedWrite | null {
     if (!isQueueable(input.endpoint, input.method)) return null
 
+    const store = storage()
+    const current = (() => {
+        if (!store) return queueSnapshot()
+        try {
+            return readStoredQueue(store)
+        } catch {
+            return queueSnapshot()
+        }
+    })()
+    snapshot = current
     const clientKey = input.body.clientKey ?? createClientKey()
     const item: QueuedWrite = {
         clientKey,
@@ -371,11 +447,15 @@ export function enqueueWrite(input: {
         // first response was lost.
         body: { ...input.body, clientKey },
         token: input.token ?? null,
-        addedAt: Date.now(),
+        // Millisecond clocks tie under two quick saves. Preserve this tab's
+        // actual enqueue order; other tabs use the key as a deterministic
+        // tiebreaker when their clocks genuinely tie.
+        addedAt: Math.max(Date.now(), (current.at(-1)?.addedAt ?? 0) + 1),
     }
 
-    const { items, dropped } = appendQueued(queueSnapshot(), item)
-    writeQueue(items)
+    const { items, dropped } = persistQueuedItem(item)
+    snapshot = items
+    notifyChanged()
     notify({ kind: 'queued' })
     if (dropped.length > 0) notify({ kind: 'dropped-full', count: dropped.length })
     return item
@@ -390,12 +470,107 @@ export function enqueueWrite(input: {
 export type QueuePerformer = (item: QueuedWrite) => Promise<unknown>
 
 let performer: QueuePerformer | null = null
+let retryTimer: number | null = null
+let retryAttempt = 0
+
+/** Exponential retry with a hard five-minute ceiling. */
+export const queueRetryDelay = (attempt: number): number =>
+    Math.min(RETRY_BASE_MS * 2 ** Math.max(0, attempt), RETRY_MAX_MS)
+
+const cancelRetry = (): void => {
+    if (retryTimer !== null && typeof window !== 'undefined') window.clearTimeout(retryTimer)
+    retryTimer = null
+    retryAttempt = 0
+}
+
+const scheduleRetry = (): void => {
+    if (retryTimer !== null || typeof window === 'undefined') return
+    const delay = queueRetryDelay(retryAttempt)
+    retryAttempt += 1
+    retryTimer = window.setTimeout(() => {
+        retryTimer = null
+        requestDrain()
+    }, delay)
+}
 
 export function setQueuePerformer(next: QueuePerformer | null): void {
     performer = next
+    if (!next) cancelRetry()
 }
 
 let draining = false
+
+interface DrainLease {
+    ownerId: string
+    nonce: string
+    expiresAt: number
+}
+
+type Ownership<T> = { acquired: true; value: T } | { acquired: false }
+
+let ownerId: string | null = null
+const queueOwnerId = (): string => {
+    ownerId ??= createClientKey()
+    return ownerId
+}
+
+const parseLease = (raw: string | null): DrainLease | null => {
+    if (!raw) return null
+    try {
+        const parsed = JSON.parse(raw) as Partial<DrainLease>
+        if (
+            typeof parsed.ownerId === 'string' &&
+            typeof parsed.nonce === 'string' &&
+            typeof parsed.expiresAt === 'number'
+        ) {
+            return parsed as DrainLease
+        }
+    } catch {
+        // A malformed lease is an expired lease.
+    }
+    return null
+}
+
+async function withStorageLease<T>(run: () => Promise<T>): Promise<Ownership<T>> {
+    const store = storage()
+    if (!store) return { acquired: true, value: await run() }
+
+    const mine = queueOwnerId()
+    const now = Date.now()
+    try {
+        const current = parseLease(store.getItem(DRAIN_LEASE_KEY))
+        if (current && current.ownerId !== mine && current.expiresAt > now) return { acquired: false }
+
+        const lease: DrainLease = {
+            ownerId: mine,
+            nonce: createClientKey(),
+            expiresAt: now + DRAIN_LEASE_MS,
+        }
+        store.setItem(DRAIN_LEASE_KEY, JSON.stringify(lease))
+        if (parseLease(store.getItem(DRAIN_LEASE_KEY))?.nonce !== lease.nonce) return { acquired: false }
+
+        try {
+            return { acquired: true, value: await run() }
+        } finally {
+            if (parseLease(store.getItem(DRAIN_LEASE_KEY))?.nonce === lease.nonce) {
+                store.removeItem(DRAIN_LEASE_KEY)
+            }
+        }
+    } catch {
+        // If storage itself is unavailable, the tabs cannot share a queue
+        // either. The in-tab guard is sufficient for the in-memory fallback.
+        return { acquired: true, value: await run() }
+    }
+}
+
+async function withDrainOwnership<T>(run: () => Promise<T>): Promise<Ownership<T>> {
+    if (typeof navigator !== 'undefined' && navigator.locks) {
+        return navigator.locks.request(DRAIN_LOCK_NAME, { ifAvailable: true }, async (lock) =>
+            lock ? { acquired: true, value: await run() } : { acquired: false }
+        )
+    }
+    return withStorageLease(run)
+}
 
 /**
  * Drain now. Safe to call from anywhere and as often as you like: it is a no-op
@@ -405,26 +580,42 @@ let draining = false
  */
 export async function drainPending(): Promise<DrainSummary | null> {
     if (draining || !performer) return null
-    const items = queueSnapshot()
-    if (items.length === 0) return null
 
     draining = true
     try {
-        const summary = await drainQueue(items, performer)
-        // Merge, never overwrite. A drain awaits the network for as long as the
-        // network takes, and `enqueueWrite` is reachable throughout — every
-        // successful mutation calls `requestDrain`, so the window is the whole
-        // of any slow save. Writing `summary.remaining` blind erased anything
-        // added meanwhile, expense and row together, silently: the exact loss
-        // this module exists to prevent. Survivors first, then the newcomers,
-        // which is arrival order either way — everything drained was queued
-        // before anything that arrived during the drain.
-        const drained = new Set(items.map((item) => item.clientKey))
-        const arrivedDuringDrain = queueSnapshot().filter((item) => !drained.has(item.clientKey))
-        writeQueue([...summary.remaining, ...arrivedDuringDrain])
-        if (summary.sent.length > 0) notify({ kind: 'sent', count: summary.sent.length })
-        if (summary.dropped.length > 0) notify({ kind: 'dropped-rejected', count: summary.dropped.length })
-        return summary
+        const owned = await withDrainOwnership(async () => {
+            // The provider can unmount between requesting and receiving the
+            // cross-tab lock. Do not call through a performer it just removed.
+            const activePerformer = performer
+            if (!activePerformer) return null
+
+            refreshQueueSnapshot()
+            const items = queueSnapshot()
+            if (items.length === 0) {
+                cancelRetry()
+                return null
+            }
+
+            const summary = await drainQueue(items, activePerformer)
+            // Remove only writes this drain actually sent or rejected. Every
+            // record has its own storage key, so another tab can append while a
+            // network request is in flight without sharing an overwrite target.
+            snapshot = removeQueuedItems([...summary.sent, ...summary.dropped])
+            notifyChanged()
+            if (snapshot.length > 0) scheduleRetry()
+            else cancelRetry()
+            if (summary.sent.length > 0) notify({ kind: 'sent', count: summary.sent.length })
+            if (summary.dropped.length > 0) notify({ kind: 'dropped-rejected', count: summary.dropped.length })
+            return summary
+        })
+        if (!owned.acquired) {
+            // Another tab owns this pass. Try later in case that tab closes
+            // before it drains; if it succeeds, its storage removals cancel the
+            // practical need for this timer.
+            scheduleRetry()
+            return null
+        }
+        return owned.value
     } finally {
         draining = false
     }
