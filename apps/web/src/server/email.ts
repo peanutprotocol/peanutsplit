@@ -1,11 +1,19 @@
 /**
- * The one outbound email Split sends: a magic link. Resend's REST API over plain
- * `fetch` — a whole SDK for a single POST would be a dependency to audit, patch
- * and keep above the freshness floor for no reachable benefit.
+ * The one outbound email Split sends: a magic link. Two interchangeable
+ * transports over plain `fetch` — an SDK for a single POST would be a dependency
+ * to audit, patch and keep above the freshness floor for no reachable benefit:
  *
- * Unconfigured is a first-class outcome, not an error: with no key the module
- * reports `unconfigured`, the caller carries on, and in development it prints the
- * link to the server console so the flow is clickable end to end with zero setup.
+ * - **OneSignal** (`SPLIT_ONESIGNAL_APP_ID` + `SPLIT_ONESIGNAL_API_KEY`) — the
+ *   company account already exists, so this is the low-friction default. The
+ *   key MUST belong to a separate Split-only OneSignal app, never Peanut's:
+ *   this container is semi-trusted, and Peanut's key can reach Peanut's entire
+ *   audience. A Split-scoped key can only ever email Split's own recipients.
+ * - **Resend** (`RESEND_API_KEY`) — kept as the fallback transport.
+ *
+ * OneSignal wins when both are configured. Unconfigured is a first-class
+ * outcome, not an error: with no key the module reports `unconfigured`, the
+ * caller carries on, and in development it prints the link to the server
+ * console so the flow is clickable end to end with zero setup.
  *
  * The production container has no egress. When `SPLIT_EMAIL_PROXY_URL` is set the
  * request goes through that pinned proxy instead of straight out — see the deploy
@@ -13,6 +21,7 @@
  */
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails'
+const ONESIGNAL_ENDPOINT = 'https://api.onesignal.com/notifications'
 
 export interface SendResult {
     ok: boolean
@@ -30,17 +39,29 @@ export interface SendResult {
 /** Resend's error `name` values for "that address can never receive mail". */
 const HARD_BOUNCE_NAMES = new Set(['invalid_to_email', 'invalid_to_address'])
 
-interface EmailConfig {
-    apiKey: string
-    from: string
-}
+type EmailConfig =
+    | { provider: 'onesignal'; appId: string; apiKey: string; from: string }
+    | { provider: 'resend'; apiKey: string; from: string }
 
 /** Read per call, never at import: env arrives after the module graph in some
  *  runtimes, and a module-level snapshot would cache "unconfigured" forever. */
 function emailConfig(): EmailConfig | null {
-    const apiKey = process.env.RESEND_API_KEY
     const from = process.env.SPLIT_EMAIL_FROM
-    return apiKey && from ? { apiKey, from } : null
+    if (!from) return null
+    const appId = process.env.SPLIT_ONESIGNAL_APP_ID
+    const oneSignalKey = process.env.SPLIT_ONESIGNAL_API_KEY
+    if (appId && oneSignalKey) return { provider: 'onesignal', appId, apiKey: oneSignalKey, from }
+    const resendKey = process.env.RESEND_API_KEY
+    if (resendKey) return { provider: 'resend', apiKey: resendKey, from }
+    return null
+}
+
+/** `"Peanut Split <hi@x.com>"` → name/address, because OneSignal wants them as
+ *  two fields while Resend takes the combined form verbatim. */
+export function parseFrom(from: string): { name: string | null; address: string } {
+    const match = /^\s*(.*?)\s*<([^<>]+)>\s*$/.exec(from)
+    if (match) return { name: match[1] || null, address: match[2] }
+    return { name: null, address: from.trim() }
 }
 
 /** Undici's `ProxyAgent` is the only thing global `fetch` accepts as a route out,
@@ -119,12 +140,34 @@ export async function sendMagicLink(to: string, url: string): Promise<SendResult
     const { subject, html, text } = renderMagicLinkEmail(url)
     const dispatcher = await proxyDispatcher()
 
+    const request =
+        config.provider === 'onesignal'
+            ? {
+                  endpoint: ONESIGNAL_ENDPOINT,
+                  // include_email_tokens targets the address directly and creates
+                  // the (Split-app-scoped) email record if it doesn't exist —
+                  // exactly right for a transactional send to someone we've
+                  // never emailed before.
+                  body: {
+                      app_id: config.appId,
+                      include_email_tokens: [to],
+                      email_subject: subject,
+                      email_body: html,
+                      email_from_name: parseFrom(config.from).name ?? 'Peanut Split',
+                      email_from_address: parseFrom(config.from).address,
+                  },
+              }
+            : {
+                  endpoint: RESEND_ENDPOINT,
+                  body: { from: config.from, to: [to], subject, html, text },
+              }
+
     let response: Response
     try {
-        response = await fetch(RESEND_ENDPOINT, {
+        response = await fetch(request.endpoint, {
             method: 'POST',
             headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from: config.from, to: [to], subject, html, text }),
+            body: JSON.stringify(request.body),
             // `dispatcher` is undici's, not the fetch standard's — the cast is the
             // price of routing through the egress proxy without an http client.
             ...(dispatcher ? ({ dispatcher } as Record<string, unknown>) : {}),
@@ -134,12 +177,28 @@ export async function sendMagicLink(to: string, url: string): Promise<SendResult
         return { ok: false, reason: 'network' }
     }
 
-    const payload = (await response.json().catch(() => null)) as { id?: string; name?: string; message?: string } | null
+    const payload = (await response.json().catch(() => null)) as {
+        id?: string
+        name?: string
+        message?: string
+        errors?: unknown
+    } | null
 
-    if (!response.ok) {
+    // OneSignal answers 200 with an `errors` payload for a bad address rather
+    // than a non-2xx status — treat any errors object as a rejection.
+    const oneSignalErrors = config.provider === 'onesignal' ? payload?.errors : undefined
+    if (!response.ok || oneSignalErrors) {
         const name = payload?.name ?? 'unknown'
-        console.error(`[auth] magic link rejected (${response.status} ${name})`)
-        return { ok: false, reason: 'rejected', deadToken: HARD_BOUNCE_NAMES.has(name) }
+        const dead =
+            config.provider === 'onesignal'
+                ? JSON.stringify(oneSignalErrors ?? '').includes('invalid_email')
+                : HARD_BOUNCE_NAMES.has(name)
+        console.error(
+            `[auth] magic link rejected (${config.provider} ${response.status} ${
+                oneSignalErrors ? JSON.stringify(oneSignalErrors).slice(0, 200) : name
+            })`
+        )
+        return { ok: false, reason: 'rejected', deadToken: dead }
     }
     return { ok: true, id: payload?.id }
 }

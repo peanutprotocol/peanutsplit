@@ -66,11 +66,16 @@ silently; a rotation needs a dual-key window.
 
 Still gated:
 
-- **Email** [Hugo — the one hard external blocker]: a Resend account (or other
-  provider) + DKIM/SPF/DMARC on a peanutsplit.com sending subdomain →
-  `RESEND_API_KEY`, `SPLIT_EMAIL_FROM`, `SPLIT_EMAIL_PROXY_URL=http://split-egress:3128`.
-  Then flip `NEXT_PUBLIC_ACCOUNTS_ENABLED=1` (build arg) and the accounts UI
-  appears. Everything else is already wired and tested.
+- **Email** [Hugo — the one hard external blocker]: transport is chosen by env,
+  OneSignal preferred (`src/server/email.ts` speaks both). Path A, OneSignal:
+  create a **separate Split-only app** in the existing OneSignal account (never
+  reuse Peanut's key — this container is semi-trusted and Peanut's key reaches
+  Peanut's whole audience), verify a peanutsplit.com sending domain, then set
+  `SPLIT_ONESIGNAL_APP_ID` + `SPLIT_ONESIGNAL_API_KEY`. Path B, Resend: new
+  account + DKIM → `RESEND_API_KEY`. Either way: `SPLIT_EMAIL_FROM`,
+  `SPLIT_EMAIL_PROXY_URL=http://split-egress:3128` (api.onesignal.com is
+  already on the proxy allowlist), then flip `NEXT_PUBLIC_ACCOUNTS_ENABLED=1`
+  (build arg) and the accounts UI appears. Everything else is wired and tested.
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
   users about it.
