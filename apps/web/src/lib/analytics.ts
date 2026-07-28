@@ -25,6 +25,14 @@ export type AnalyticsEvent =
     | 'pwa_installed'
     | 'peanut_option_shown'
     | 'peanut_option_clicked'
+    // Push opt-in and accounts. Same discipline as everything above: the room is
+    // a hash, the count of recovered rooms is a number, and an email address
+    // never appears in a property bag.
+    | 'push_optin_shown'
+    | 'push_optin_accepted'
+    | 'push_optin_denied'
+    | 'account_link_requested'
+    | 'account_rooms_recovered'
 
 let ready = false
 

@@ -138,3 +138,60 @@ export interface SettlementInput {
     method?: SettlementMethod | string | null
     note?: string | null
 }
+
+// ─── accounts ───────────────────────────────────────────────────────────────
+// Mirrors of the types `server/accounts.ts` returns. Declared here rather than
+// imported from there because that module pulls in Prisma: a type-only import
+// erases at build, but it puts a server module on a client component's import
+// graph, which is one refactor away from being a real one.
+
+/** `GET /api/auth/me`. `null` is the normal answer — most people never sign in. */
+export interface AccountSummary {
+    userId: string
+    email: string | null
+}
+
+/** One room the account has proved it belongs to, with the member token that
+ *  reopens it on a device that has never seen the link. */
+export interface AccountRoom {
+    slug: string
+    name: string
+    emoji: string | null
+    memberId: string
+    memberName: string
+    memberToken: string
+}
+
+/** What this device is asking the account to adopt. The token is the only proof
+ *  the server accepts — see `attachMemberships`. */
+export interface MembershipClaim {
+    slug: string
+    memberId: string
+    token: string
+}
+
+export type AttachOutcome = 'linked' | 'already-linked' | 'token-mismatch'
+
+export interface AttachResult {
+    slug: string
+    memberId: string
+    outcome: AttachOutcome
+}
+
+// ─── push ───────────────────────────────────────────────────────────────────
+
+export interface PushSubscribeInput {
+    endpoint: string
+    keys: { p256dh: string; auth: string }
+    memberId: string
+    /** Proof of membership. Unlike every other write, push registration is not
+     *  satisfied by holding the room link. */
+    memberToken: string
+    userAgent?: string | null
+}
+
+export interface PushUnsubscribeInput {
+    endpoint: string
+    memberId: string
+    memberToken: string
+}
