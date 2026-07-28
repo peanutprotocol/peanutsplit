@@ -393,7 +393,16 @@
         },
         "share": {
             "title": "Invita al resto",
-            "subtitle": "Un link. Lo tocan, eligen su nombre y ya están adentro."
+            "subtitle": "Un link. Lo tocan, eligen su nombre y ya están adentro.",
+            "addPeople": {
+                "toggle": "Agrega sus nombres ahora",
+                "body": "Un gasto se divide en el momento en que lo guardas, así que quien siga en el chat queda fuera. Agrega sus nombres y el primer gasto ya se divide bien.",
+                "placeholder": "Su nombre",
+                "add": "Agregar",
+                "note": "Igual van a abrir el link y elegir su nombre — esto solo les guarda el lugar.",
+                "duplicate": "{name} ya está en esta sala.",
+                "failed": "no se pudo agregar — intenta de nuevo"
+            }
         },
         "link": {
             "subtitle": "tu sala para dividir",

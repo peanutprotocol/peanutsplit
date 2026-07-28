@@ -231,7 +231,12 @@ export function RoomScreen({ slug }: { slug: string }) {
                         currencies={currencies}
                         token={identity?.token}
                     />
-                    <ShareDrawer open={params.share} onClose={() => setParams({ share: null })} room={state.room} />
+                    <ShareDrawer
+                        open={params.share}
+                        onClose={() => setParams({ share: null })}
+                        room={state.room}
+                        members={state.members}
+                    />
                     <BalanceDrawer
                         open={!!params.balance && !needsJoin}
                         onClose={() => setParams({ balance: null })}

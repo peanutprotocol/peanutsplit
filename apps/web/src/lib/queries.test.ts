@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
-import { addExpenseMutationOptions, roomKey } from './queries'
+import { addExpenseMutationOptions, roomKey, withoutMemberToken } from './queries'
 
 const memoryStorage = (): Storage => {
     const map = new Map<string, string>()
@@ -165,5 +165,24 @@ describe('adding an expense with no network', () => {
 
         expect(failure.code).toBe(NETWORK_ERROR_CODE)
         expect(queueSnapshot()).toEqual([])
+    })
+})
+
+describe('adding somebody who has not tapped the link yet', () => {
+    /**
+     * The organiser types four names in from the share sheet. The server issues a
+     * token for each — the same one-time secret a real join gets — and none of
+     * them may stay on the organiser's phone: a token is proof of BEING that
+     * person, and holding it would let one device react and subscribe as another.
+     */
+    it('drops the member token the server handed back', () => {
+        const served = { ...roomState(), memberId: 'cai', memberToken: 'secret-token-for-carla' }
+
+        const kept = withoutMemberToken(served)
+
+        expect(kept).toEqual(roomState())
+        expect(JSON.stringify(kept)).not.toContain('secret-token-for-carla')
+        expect('memberToken' in kept).toBe(false)
+        expect('memberId' in kept).toBe(false)
     })
 })
