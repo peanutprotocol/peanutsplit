@@ -22,6 +22,7 @@
  */
 
 import type { ApiExpense, RoomState } from './api-types'
+import { isPendingExpenseId } from './pending'
 
 export type DerivationLineKind = 'paid' | 'share' | 'settlement-sent' | 'settlement-received'
 
@@ -76,7 +77,7 @@ const isLive = (row: { id: string; deletedAt?: string | null }): boolean => !row
  * sheet was opened from — the one failure this feature cannot survive. The placeholder waits
  * for its real row, and so does the derivation.
  */
-const isPending = (expense: ApiExpense): boolean => expense.id.startsWith('pending-')
+const isPending = (expense: ApiExpense): boolean => isPendingExpenseId(expense.id)
 
 const negate = (minor: string): string => (-BigInt(minor)).toString()
 

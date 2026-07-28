@@ -33,6 +33,7 @@ import {
     MAX_FILE_CHARS,
     SplitwiseParseError,
     parseSplitwiseCsv,
+    reconcileTotalBalance,
     roomNameFromFilename,
     type ImportWarning,
     type ParseErrorCode,
@@ -103,6 +104,12 @@ export function SplitwiseImport() {
                 return t('warnings.ROW_BAD_AMOUNT', { row })
             case 'ROW_BAD_DATE':
                 return t('warnings.ROW_BAD_DATE', { row })
+            case 'ROW_DESCRIPTION_TRUNCATED':
+                return t('warnings.ROW_DESCRIPTION_TRUNCATED', { row })
+            case 'ROW_CATEGORY_TRUNCATED':
+                return t('warnings.ROW_CATEGORY_TRUNCATED', { row })
+            case 'MEMBER_NAME_TRUNCATED':
+                return t('warnings.MEMBER_NAME_TRUNCATED', { detail })
             case 'MULTI_PAYER_SPLIT':
                 return t('warnings.MULTI_PAYER_SPLIT', { detail })
             case 'PAYMENT_ROWS':
@@ -171,6 +178,14 @@ export function SplitwiseImport() {
         }
         return [...sums.entries()].map(([code, minor]) => formatMoney(minor.toString(), code, currencies, locale))
     }, [parsed, currencies, locale])
+
+    /**
+     * The file's own arithmetic, checked against ours before anything is written. Meaningful only
+     * for a single-currency export with a summary row — see `reconcileTotalBalance` — so most
+     * files get nothing here, and the ones that do get either a quiet reassurance or the one
+     * warning in this screen that is about MONEY rather than about a row.
+     */
+    const drift = useMemo(() => (parsed ? reconcileTotalBalance(parsed) : null), [parsed])
 
     const nameProblem = useMemo(() => {
         const trimmed = names.map((name) => name.trim())
@@ -322,7 +337,23 @@ export function SplitwiseImport() {
                 {totals.length > 0 && (
                     <p className="mt-1 text-sm text-n-1">{t('preview.total', { total: totals.join(' · ') })}</p>
                 )}
+                {drift?.length === 0 && (
+                    <p className="mt-1 text-sm text-n-1" data-testid="import-balances-match">
+                        {t('preview.balancesMatch')}
+                    </p>
+                )}
             </div>
+
+            {/* Louder than the warnings box, and above it: every other warning is about a row, this
+                one is about the numbers people will argue over. */}
+            {drift && drift.length > 0 && (
+                <div className="rounded-sm border border-n-1 bg-yellow-1 p-4" data-testid="import-balances-differ">
+                    <h2 className="text-h7">{t('preview.balancesDifferTitle')}</h2>
+                    <p className="mt-2 text-sm leading-5 text-n-1">
+                        {t('preview.balancesDiffer', { count: drift.length })}
+                    </p>
+                </div>
+            )}
 
             <label className="flex flex-col gap-2">
                 <span className="text-h8 uppercase tracking-wide text-grey-1">{t('preview.roomName')}</span>

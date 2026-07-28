@@ -8,6 +8,7 @@ import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError } from '@/lib/api'
 import { roomProps, track } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
+import { isRoomSettled, savedExpenses } from '@/lib/pending'
 import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { useRoomParams } from '@/lib/room-params'
@@ -51,7 +52,16 @@ export function RoomScreen({ slug }: { slug: string }) {
         rememberRoom({ slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
     }, [slug, state])
 
-    const settledUp = !!state && state.expenses.length > 0 && state.suggestedTransfers.length === 0
+    /**
+     * `state` is the MERGED state — `useRoomState` prepends a row for anything
+     * still queued on this device — while `suggestedTransfers` is server truth.
+     * Counting the merged list against it made a brand-new room with one unsent
+     * expense claim it was all settled: confetti, the bell, the `all_settled`
+     * event and a share card reading "€0.00 · 0 expenses". So the count comes
+     * from the rows the server actually has.
+     */
+    const saved = useMemo(() => (state ? savedExpenses(state.expenses) : []), [state])
+    const settledUp = isRoomSettled(state)
 
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
@@ -155,7 +165,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                         slug={slug}
                                         summary={{
                                             people: state.members.length,
-                                            expenses: state.expenses.length,
+                                            expenses: saved.length,
                                         }}
                                     />
                                 )}

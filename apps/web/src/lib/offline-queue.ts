@@ -30,6 +30,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ApiRequestError, NETWORK_ERROR_CODE } from './api'
 import type { ApiExpense, ExpenseInput, RoomState } from './api-types'
+import { PENDING_ID_PREFIX } from './pending'
 import { TOAST_MS } from './toasts'
 
 export const PENDING_KEY = 'ps:pending'
@@ -190,7 +191,7 @@ export function mergeQueuedExpenses(state: RoomState, queued: readonly QueuedWri
 
 /** `pending-<clientKey>` — the prefix the expense list already treats as "not
  *  saved yet", the suffix so a row keeps its identity across renders. */
-export const queuedExpenseId = (clientKey: string): string => `pending-${clientKey}`
+export const queuedExpenseId = (clientKey: string): string => `${PENDING_ID_PREFIX}${clientKey}`
 
 /**
  * The row a not-yet-saved expense renders as — the one shape, for both paths
@@ -406,7 +407,17 @@ export async function drainPending(): Promise<DrainSummary | null> {
     draining = true
     try {
         const summary = await drainQueue(items, performer)
-        writeQueue(summary.remaining)
+        // Merge, never overwrite. A drain awaits the network for as long as the
+        // network takes, and `enqueueWrite` is reachable throughout — every
+        // successful mutation calls `requestDrain`, so the window is the whole
+        // of any slow save. Writing `summary.remaining` blind erased anything
+        // added meanwhile, expense and row together, silently: the exact loss
+        // this module exists to prevent. Survivors first, then the newcomers,
+        // which is arrival order either way — everything drained was queued
+        // before anything that arrived during the drain.
+        const drained = new Set(items.map((item) => item.clientKey))
+        const arrivedDuringDrain = queueSnapshot().filter((item) => !drained.has(item.clientKey))
+        writeQueue([...summary.remaining, ...arrivedDuringDrain])
         if (summary.sent.length > 0) notify({ kind: 'sent', count: summary.sent.length })
         if (summary.dropped.length > 0) notify({ kind: 'dropped-rejected', count: summary.dropped.length })
         return summary
