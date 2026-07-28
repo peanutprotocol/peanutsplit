@@ -185,7 +185,7 @@ export function ExpenseDrawer({
         if (raw.trim().length === 0) return
         const minor = parseAmountToMinor(raw, decimals)
         if (minor === null) return
-        patch({ exactInputs: { ...values.exactInputs, [memberId]: formatMinorPlain(minor, decimals) } })
+        editExact(memberId, formatMinorPlain(minor, decimals))
     }
 
     const putRemainderOn = (memberId: string) => {

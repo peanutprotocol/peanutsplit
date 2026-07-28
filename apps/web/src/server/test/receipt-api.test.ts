@@ -330,7 +330,7 @@ describe('POST — the model boundary', () => {
     })
 
     it('returns the same body over OpenRouter, having passed every gate above', async () => {
-        // The route's only knowledge of a transport is `scanEnabled()`. This is
+        // The route's only knowledge of a transport is `modelEnabled()`. This is
         // the proof that the preferred wire reaches the same JSON envelope
         // through the real rate limiters, the real room and the real schemas.
         process.env.SPLIT_OPENROUTER_API_KEY = 'test-openrouter-key'

@@ -157,6 +157,14 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
      * suggestion at the top: paying MORE than the debt is not a partial payment,
      * it is a different transaction the room has no way to represent, and it
      * would leave the payee owing the payer with no row explaining why.
+     *
+     * A UI ceiling, not a server invariant — worth being plain about, because the
+     * sentence above sounds like one. `POST /settlements` accepts any positive
+     * amount between two members, and the room link is the only credential there
+     * is, so anybody who can open this sheet can post past the ceiling with a
+     * fetch. Left that way on purpose: enforcing it would mean deriving the gross
+     * debt inside the route, and the thing being prevented is a typo among people
+     * who already trust each other with the link, not an attacker.
      */
     const enteredMinor = (): { minor: string } | { problem: string } => {
         if (!selected) return { problem: t('amountInvalid') }
