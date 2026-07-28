@@ -383,6 +383,7 @@
         "SETTLEMENT_PAYER_NOT_MEMBER": "Whoever paid is not in this room — refresh and try again.",
         "SETTLEMENT_PAYEE_NOT_MEMBER": "Whoever was paid is not in this room — refresh and try again.",
         "SETTLEMENT_SAME_MEMBER": "A payment needs two different people.",
+        "MEMBER_TOKEN_INVALID": "That wasn’t your member key — reopen the room from your own link.",
         "SCAN_UNAVAILABLE": "Bill scanning is not switched on here.",
         "SCAN_IMAGE_TOO_LARGE": "That image is too large — take a new photo.",
         "SCAN_BAD_IMAGE": "That image could not be sent — try taking it again.",
@@ -427,7 +428,6 @@
         "otherLanguages": "Also in"
     },
     "offline": {
-        "rowLabel": "Waiting to send",
         "rowHint": "Queued — sends itself when you’re back online",
         "queuedToast": "No connection. This expense is saved on your phone and sends itself when you’re back.",
         "fullToast": "{count, plural, one {Too many expenses waiting — the oldest one was dropped.} other {Too many expenses waiting — the # oldest were dropped.}}",
@@ -437,9 +437,9 @@
     "import": {
         "drop": {
             "title": "Drop your Splitwise export here",
-            "body": "The .csv file Splitwise gives you when you export a group. It is read right here on your device — nothing is uploaded.",
+            "body": "The .csv file Splitwise gives you when you export a group. Your browser reads it right here — the file itself never leaves your device.",
             "cta": "Choose a file",
-            "privacy": "Your own browser opens the file. We only ever receive the expenses inside it, and only when you press the button."
+            "privacy": "The file stays on your device. What we receive is the expenses your browser read out of it, and only when you press the button."
         },
         "howto": {
             "title": "Where to find the file",

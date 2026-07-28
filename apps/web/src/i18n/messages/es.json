@@ -266,13 +266,13 @@
         },
         "scan": {
             "cta": "Escanear una cuenta",
-            "step1": "Escanear una cuenta · revisá los ítems",
+            "step1": "Escanear una cuenta · revisa los ítems",
             "step2": "Escanear una cuenta · quién pidió qué",
             "reading": "Leyendo la cuenta…",
             "privacyNote": "La foto se lee una vez y no se guarda nunca.",
-            "reviewTitle": "Revisá los ítems",
-            "reviewBody": "Corregí lo que haya salido mal, borrá lo que no es tuyo y sumá lo que falte.",
-            "reviewFromMerchant": "De {merchant}. Corregí lo que haya salido mal y sumá lo que falte.",
+            "reviewTitle": "Revisa los ítems",
+            "reviewBody": "Corrige lo que haya salido mal, borra lo que no es tuyo y agrega lo que falte.",
+            "reviewFromMerchant": "De {merchant}. Corrige lo que haya salido mal y agrega lo que falte.",
             "itemLabel": "Ítem",
             "itemAmount": "Importe del ítem",
             "itemPlaceholder": "Ítem",
@@ -280,11 +280,11 @@
             "addItem": "Agregar un ítem que falta",
             "itemsTotal": "Los ítems suman",
             "receiptTotal": "La cuenta dice",
-            "mismatch": "Hay {amount} de diferencia con el total impreso — fijate si falta alguna línea.",
+            "mismatch": "Hay {amount} de diferencia con el total impreso — fíjate si falta alguna línea.",
             "continue": "Seguir: quién pidió qué",
             "cancel": "Cancelar",
             "assignTitle": "Quién pidió qué",
-            "assignBody": "Tocá a las personas de cada ítem. Con dos o más, ese ítem se divide en partes iguales.",
+            "assignBody": "Toca a las personas de cada ítem. Con dos o más, ese ítem se divide en partes iguales.",
             "everyone": "Todos",
             "unassigned": "{count, plural, one {# ítem todavía no es de nadie} other {# ítems todavía no son de nadie}}",
             "assignedTotal": "Total",
@@ -295,7 +295,7 @@
                 "tooLarge": "Esa foto es demasiado grande para enviar, incluso reducida.",
                 "unreadable": "No se pudo abrir ese archivo como imagen.",
                 "generic": "No se pudo leer esa cuenta.",
-                "hint": "Sacá la foto de frente, con toda la cuenta en cuadro y buena luz."
+                "hint": "Toma la foto de frente, con toda la cuenta en cuadro y buena luz."
             }
         },
         "theme": {
@@ -383,12 +383,13 @@
         "SETTLEMENT_PAYER_NOT_MEMBER": "Quien pagó no está en esta sala — recarga e intenta de nuevo.",
         "SETTLEMENT_PAYEE_NOT_MEMBER": "Quien recibió no está en esta sala — recarga e intenta de nuevo.",
         "SETTLEMENT_SAME_MEMBER": "Un pago necesita dos personas distintas.",
+        "MEMBER_TOKEN_INVALID": "Esa no era tu clave de miembro — vuelve a abrir la sala desde tu propio enlace.",
         "SCAN_UNAVAILABLE": "El escaneo de cuentas no está activado acá.",
-        "SCAN_IMAGE_TOO_LARGE": "Esa imagen es demasiado grande — sacá una foto nueva.",
-        "SCAN_BAD_IMAGE": "No se pudo enviar esa imagen — probá sacarla de nuevo.",
-        "SCAN_NO_ITEMS": "No se pudo leer ningún ítem en esa foto — probá una toma más derecha y con más luz.",
-        "SCAN_ROOM_LIMIT": "Esta sala escaneó muchas cuentas hoy — probá mañana.",
-        "SCAN_FAILED": "No se pudo leer esa cuenta — probá de nuevo.",
+        "SCAN_IMAGE_TOO_LARGE": "Esa imagen es demasiado grande — toma una foto nueva.",
+        "SCAN_BAD_IMAGE": "No se pudo enviar esa imagen — intenta tomarla de nuevo.",
+        "SCAN_NO_ITEMS": "No se pudo leer ningún ítem en esa foto — intenta una toma más derecha y con más luz.",
+        "SCAN_ROOM_LIMIT": "Esta sala escaneó muchas cuentas hoy — intenta mañana.",
+        "SCAN_FAILED": "No se pudo leer esa cuenta — intenta de nuevo.",
         "IMPORT_TOO_LARGE": "Esa importación es demasiado grande para enviarse. Prueba con un grupo con menos historial.",
         "RATE_LIMITED": "Fueron muchas solicitudes — espera un minuto e intenta de nuevo."
     },
@@ -427,19 +428,18 @@
         "otherLanguages": "También en"
     },
     "offline": {
-        "rowLabel": "Esperando para enviarse",
         "rowHint": "En espera — se envía solo cuando vuelvas a tener conexión",
         "queuedToast": "Sin conexión. El gasto queda guardado en tu teléfono y se envía solo cuando vuelvas.",
         "fullToast": "{count, plural, one {Hay demasiados gastos esperando — se descartó el más viejo.} other {Hay demasiados gastos esperando — se descartaron los # más viejos.}}",
-        "rejectedToast": "{count, plural, one {Un gasto en espera no se pudo guardar — cargalo de nuevo.} other {# gastos en espera no se pudieron guardar — cargalos de nuevo.}}",
+        "rejectedToast": "{count, plural, one {Un gasto en espera no se pudo guardar — agrégalo de nuevo.} other {# gastos en espera no se pudieron guardar — agrégalos de nuevo.}}",
         "sentToast": "{count, plural, one {Gasto enviado} other {# gastos enviados}}"
     },
     "import": {
         "drop": {
             "title": "Suelta aquí tu exportación de Splitwise",
-            "body": "El archivo .csv que te da Splitwise cuando exportas un grupo. Se lee aquí mismo, en tu dispositivo: no se sube nada.",
+            "body": "El archivo .csv que te da Splitwise cuando exportas un grupo. Tu navegador lo lee aquí mismo: el archivo nunca sale de tu dispositivo.",
             "cta": "Elegir un archivo",
-            "privacy": "Tu propio navegador abre el archivo. Nosotros solo recibimos los gastos que tiene adentro, y solo cuando tocas el botón."
+            "privacy": "El archivo se queda en tu dispositivo. Lo que recibimos son los gastos que tu navegador leyó de él, y solo cuando tocas el botón."
         },
         "howto": {
             "title": "Dónde encontrar el archivo",
@@ -457,7 +457,7 @@
             "currencyLabel": "Moneda de la sala",
             "currencyHint": "Los saldos se saldan en esta moneda. Cada gasto conserva la moneda en la que se pagó.",
             "members": "Todos los del grupo",
-            "whoAreYou": "Corrige los nombres que hayan quedado raros y elígete de la lista.",
+            "whoAreYou": "Corrige los nombres que hayan quedado raros y marca cuál eres tú en la lista.",
             "thatsMe": "Soy {name}",
             "submit": "Crear la sala",
             "startOver": "Usar otro archivo"
@@ -489,7 +489,7 @@
             "FILE_TOO_BIG": "Ese archivo es demasiado grande para ser una exportación de Splitwise. Revisa que hayas elegido el correcto.",
             "READ_FAILED": "No pudimos leer ese archivo. Prueba a elegirlo de nuevo.",
             "EMPTY_NAME": "Todos necesitan un nombre.",
-            "DUPLICATE_NAMES": "Hay dos personas con el mismo nombre — ponlos distintos para que cada gasto caiga en quien corresponde.",
+            "DUPLICATE_NAMES": "Hay dos personas con el mismo nombre — ponles nombres distintos para que cada gasto caiga en quien corresponde.",
             "failed": "no se pudo crear la sala — intenta de nuevo"
         },
         "ready": {

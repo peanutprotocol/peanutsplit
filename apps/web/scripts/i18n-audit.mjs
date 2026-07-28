@@ -71,9 +71,14 @@ function sourceFiles(dir) {
  * `const t = useTranslations('room.settle')` → the variable `t` resolves keys under
  * `room.settle`. `getTranslations` is the async server twin and binds identically. A namespace
  * argument is optional; without one the variable resolves against the catalog root.
+ *
+ * BOTH argument forms, and the second one is not cosmetic: the server twin is normally called as
+ * `getTranslations({ locale, namespace: 'content' })`, and while this only matched a bare string
+ * literal every one of those bound nothing — so every key under that namespace was invisible to
+ * check 1 and could be typo'd or renamed with no gate at all.
  */
 const BINDING =
-    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\(\s*(?:(['"])([\w.]+)\2)?\s*\)/g
+    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\(\s*(?:(['"])([\w.]+)\2|\{[^}]*namespace\s*:\s*(['"])([\w.]+)\4[^}]*\}|\{[^}]*\})?\s*\)/g
 
 /**
  * A call on one of those variables. The leading `(?<![\w.$])` is load-bearing: without it
@@ -102,7 +107,9 @@ for (const file of sourceFiles(srcRoot)) {
     const source = stripComments(readFileSync(file, 'utf8'))
 
     const namespaces = new Map()
-    for (const match of source.matchAll(BINDING)) namespaces.set(match[1], match[3] ?? '')
+    // Group 3 is the string form's namespace, group 5 the object form's; neither
+    // means the variable resolves against the catalog root.
+    for (const match of source.matchAll(BINDING)) namespaces.set(match[1], match[3] ?? match[5] ?? '')
     if (namespaces.size === 0) continue
 
     for (const match of source.matchAll(CALL)) {
