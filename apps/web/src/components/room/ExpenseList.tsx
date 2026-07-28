@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
+import { useLocale, useTranslations } from 'next-intl'
 import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { dayLabel, groupByDay } from '@/lib/dates'
@@ -18,6 +19,10 @@ interface ExpenseListProps {
 const isPending = (expense: ApiExpense) => expense.id.startsWith('pending-')
 
 export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListProps) {
+    const t = useTranslations('room.expenses')
+    const tDates = useTranslations('dates')
+    const locale = useLocale()
+
     if (state.expenses.length === 0) {
         return (
             <motion.section
@@ -33,22 +38,26 @@ export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListPr
                 >
                     <Image src={peanutThinking} alt="" unoptimized className="h-32 w-32 object-contain" />
                 </motion.div>
-                <p className="text-h6">No expenses yet</p>
-                <p className="max-w-[18rem] text-sm text-grey-1">
-                    Add the first one — who paid, how much, and who it was for.
-                </p>
+                <p className="text-h6">{t('emptyTitle')}</p>
+                <p className="max-w-[18rem] text-sm text-grey-1">{t('emptyBody')}</p>
             </motion.section>
         )
     }
 
-    const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? 'Someone'
+    const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
     const groups = groupByDay(state.expenses, (expense) => expense.date)
 
     return (
-        <section aria-label="Expenses" className="flex flex-col gap-5 px-4">
+        <section aria-label={t('title')} className="flex flex-col gap-5 px-4">
             {groups.map((group) => (
                 <div key={group.key} className="flex flex-col gap-2">
-                    <h3 className="text-h8 uppercase tracking-wide text-grey-1">{dayLabel(group.items[0].date)}</h3>
+                    <h3 className="text-h8 uppercase tracking-wide text-grey-1">
+                        {dayLabel(group.items[0].date, {
+                            locale,
+                            today: tDates('today'),
+                            yesterday: tDates('yesterday'),
+                        })}
+                    </h3>
                     <ul className="flex flex-col gap-2">
                         {/* Default (sync) mode, deliberately: an optimistic `pending-…`
                             row is replaced by the real one under a different key, and
@@ -96,9 +105,10 @@ export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListPr
                                             <span className="min-w-0 flex-1">
                                                 <span className="block truncate text-h7">{expense.description}</span>
                                                 <span className="block text-sm text-grey-1">
-                                                    {expense.paidById === meId ? 'You' : payer} paid ·{' '}
-                                                    {expense.shares.length}{' '}
-                                                    {expense.shares.length === 1 ? 'person' : 'people'}
+                                                    {t('paidBy', {
+                                                        payer: expense.paidById === meId ? t('you') : payer,
+                                                        count: expense.shares.length,
+                                                    })}
                                                 </span>
                                             </span>
                                             <span className="flex shrink-0 flex-col items-end">
@@ -116,7 +126,7 @@ export function ExpenseList({ state, currencies, meId, onSelect }: ExpenseListPr
                                                             currency={state.room.currency}
                                                             catalog={currencies}
                                                         />{' '}
-                                                        indicative
+                                                        {t('indicative')}
                                                     </span>
                                                 )}
                                             </span>

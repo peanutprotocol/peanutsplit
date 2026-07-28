@@ -22,8 +22,14 @@ export interface ExpenseWrite {
     shares: ShareDraft[]
 }
 
+/**
+ * `label` stays in the English message for whoever reads the log; the CODE is what the client
+ * translates, and it is the same one for payer, participant and share member on purpose — the
+ * user-facing sentence is identical and three codes would be three catalog entries saying it.
+ */
 const requireMember = (room: RoomWithRelations, id: string, label: string): string => {
-    if (!room.members.some((m) => m.id === id)) throw badRequest(`${label} is not a member of this room`)
+    if (!room.members.some((m) => m.id === id))
+        throw badRequest(`${label} is not a member of this room`, 'NOT_A_MEMBER')
     return id
 }
 
@@ -37,7 +43,7 @@ export async function buildExpense(
     existing?: ExistingExpense
 ): Promise<ExpenseWrite> {
     const total = parseMinor(body.amountMinor)
-    if (total <= 0n) throw badRequest('amount must be greater than zero')
+    if (total <= 0n) throw badRequest('amount must be greater than zero', 'AMOUNT_NOT_POSITIVE')
     requireMember(room, body.paidById, 'payer')
 
     // The rate is locked at creation (schema.prisma says so, and history depends
@@ -52,16 +58,17 @@ export async function buildExpense(
     let shares: ShareDraft[]
     if (body.splitMode === 'EXACT') {
         const entered = body.exactShares ?? []
-        if (entered.length === 0) throw badRequest('exactShares is required for an EXACT split')
+        if (entered.length === 0)
+            throw badRequest('exactShares is required for an EXACT split', 'EXACT_SHARES_REQUIRED')
         assertNoDuplicates(entered.map((s) => s.memberId))
         entered.forEach((s) => requireMember(room, s.memberId, 'share member'))
         const parsed = entered.map((s) => ({ memberId: s.memberId, amountMinor: parseMinor(s.amountMinor) }))
         const sum = parsed.reduce((a, s) => a + s.amountMinor, 0n)
-        if (sum !== total) throw badRequest('exact shares must add up to the expense total')
+        if (sum !== total) throw badRequest('exact shares must add up to the expense total', 'SHARES_DO_NOT_ADD_UP')
         shares = exactShares(parsed, body.currency, room.currency, baseAmountMinor, rate)
     } else {
         const ids = body.participantIds?.length ? body.participantIds : room.members.map((m) => m.id)
-        if (ids.length === 0) throw badRequest('an expense needs at least one participant')
+        if (ids.length === 0) throw badRequest('an expense needs at least one participant', 'NO_PARTICIPANTS')
         assertNoDuplicates(ids)
         ids.forEach((id) => requireMember(room, id, 'participant'))
         shares = equalShares(baseAmountMinor, ids)
@@ -85,5 +92,6 @@ export async function buildExpense(
 }
 
 function assertNoDuplicates(ids: readonly string[]): void {
-    if (new Set(ids).size !== ids.length) throw badRequest('a member can only appear once in a split')
+    if (new Set(ids).size !== ids.length)
+        throw badRequest('a member can only appear once in a split', 'DUPLICATE_PARTICIPANT')
 }

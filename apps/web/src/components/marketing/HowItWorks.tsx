@@ -1,13 +1,22 @@
-import { marketingCopy } from './copy'
-
-const { how } = marketingCopy
+import { useTranslations } from 'next-intl'
 
 /**
  * Three steps on a full-bleed textured band, so the page has one patterned stretch instead of
  * an unbroken run of cream. The peanut tile is knocked back to 20% — at full strength it reads
  * as leopard print rather than as peanuts.
+ *
+ * The steps are written out one key at a time rather than looped over a computed path. Three is
+ * not enough repetition to be worth `t(\`step${n}.title\`)`, and a literal key is a key
+ * `pnpm i18n:audit` can actually check — a computed one it can only skip.
  */
 export function HowItWorks() {
+    const t = useTranslations('marketing.how')
+    const steps = [
+        { n: '1', title: t('step1.title'), body: t('step1.body') },
+        { n: '2', title: t('step2.title'), body: t('step2.body') },
+        { n: '3', title: t('step3.title'), body: t('step3.body') },
+    ]
+
     return (
         <section className="relative border-y border-n-1 bg-white py-8">
             <div
@@ -16,9 +25,9 @@ export function HowItWorks() {
             />
             <div className="relative mx-auto w-full max-w-xl px-5">
                 <div className="shadow-4 rounded-sm border border-n-1 bg-white">
-                    <h2 className="border-b border-n-1 px-5 py-4 text-h5">{how.title}</h2>
+                    <h2 className="border-b border-n-1 px-5 py-4 text-h5">{t('title')}</h2>
                     <ol className="flex flex-col divide-y divide-n-1">
-                        {how.steps.map((step) => (
+                        {steps.map((step) => (
                             <li key={step.n} className="flex items-start gap-4 px-5 py-4">
                                 <span
                                     aria-hidden="true"

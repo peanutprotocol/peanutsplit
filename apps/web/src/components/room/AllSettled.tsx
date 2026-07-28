@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { motion, useReducedMotion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import { peanutCheering } from '@/assets/mascot'
 import { useFeedback } from '@/lib/use-settings'
 import { Confetti } from './Confetti'
@@ -25,6 +26,7 @@ interface AllSettledProps {
 }
 
 export function AllSettled({ compact = false, celebrate = false, summary }: AllSettledProps) {
+    const t = useTranslations('room.allSettled')
     const reduceMotion = useReducedMotion()
     const feedback = useFeedback()
     const rung = useRef(false)
@@ -72,28 +74,22 @@ export function AllSettled({ compact = false, celebrate = false, summary }: AllS
                 transition={{ type: 'spring', stiffness: 320, damping: 26, delay: celebrate ? 0.22 : 0 }}
                 className="flex flex-col items-center gap-2"
             >
-                <p className={compact ? 'text-h5' : 'text-h3'}>All settled up</p>
-                <p className="max-w-[20rem] text-sm font-medium text-n-1">
-                    Nobody owes anybody anything. Enjoy the rare feeling.
-                </p>
+                <p className={compact ? 'text-h5' : 'text-h3'}>{t('title')}</p>
+                <p className="max-w-[20rem] text-sm font-medium text-n-1">{t('body')}</p>
 
                 {/* The receipt: what actually got squared away. Without it the card
                     is a mood; with it, it is a result worth screenshotting. */}
                 {summary && (
                     <p className="mt-2 flex items-center gap-2 rounded-sm border border-n-1 bg-white px-3 py-1.5 text-h9 uppercase tracking-wide">
-                        <span>
-                            {summary.expenses} {summary.expenses === 1 ? 'expense' : 'expenses'}
-                        </span>
+                        <span>{t('expenseCount', { count: summary.expenses })}</span>
                         <span aria-hidden="true" className="text-grey-1">
                             ·
                         </span>
-                        <span>
-                            {summary.people} {summary.people === 1 ? 'person' : 'people'}
-                        </span>
+                        <span>{t('peopleCount', { count: summary.people })}</span>
                         <span aria-hidden="true" className="text-grey-1">
                             ·
                         </span>
-                        <span>all square</span>
+                        <span>{t('allSquare')}</span>
                     </p>
                 )}
             </motion.div>

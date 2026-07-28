@@ -3,19 +3,21 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
+import { useLocale, useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
 import { readRecentRooms, type RecentRoom } from '@/lib/recent-rooms'
-import { marketingCopy } from './copy'
-
-const { rooms: copy } = marketingCopy
 
 const VISIBLE = 5
 
-const relativeTime = (epochMs: number): string => {
+/**
+ * "3 hours ago" in whatever language the room list is being read in. Was pinned to 'en', which
+ * put an English timestamp under a Portuguese room name.
+ */
+const relativeTime = (epochMs: number, locale: string): string => {
     if (!epochMs) return ''
     const minutes = Math.round((epochMs - Date.now()) / 60_000)
     const abs = Math.abs(minutes)
-    const format = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+    const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
     if (abs < 60) return format.format(minutes, 'minute')
     if (abs < 60 * 24) return format.format(Math.round(minutes / 60), 'hour')
     if (abs < 60 * 24 * 30) return format.format(Math.round(minutes / (60 * 24)), 'day')
@@ -28,6 +30,8 @@ const relativeTime = (epochMs: number): string => {
  * renders nothing at all when the device has no history.
  */
 export function YourRooms() {
+    const t = useTranslations('marketing.rooms')
+    const locale = useLocale()
     const [recent, setRecent] = useState<RecentRoom[]>([])
 
     useEffect(() => {
@@ -50,8 +54,8 @@ export function YourRooms() {
             className="mx-auto w-full max-w-xl px-5"
         >
             <div className="flex items-baseline justify-between">
-                <h2 className="text-h5">{copy.title}</h2>
-                <span className="text-sm text-grey-1">{copy.subtitle}</span>
+                <h2 className="text-h5">{t('title')}</h2>
+                <span className="text-sm text-grey-1">{t('subtitle')}</span>
             </div>
 
             <ul className="mt-4 flex flex-col gap-3">
@@ -64,7 +68,7 @@ export function YourRooms() {
                     >
                         <Link
                             href={`/r/${room.slug}`}
-                            aria-label={`${copy.openLabel}: ${room.name}`}
+                            aria-label={`${t('openLabel')}: ${room.name}`}
                             className="shadow-4 flex items-center gap-3 rounded-sm border border-n-1 bg-white p-3 transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
                         >
                             <span
@@ -75,7 +79,9 @@ export function YourRooms() {
                             </span>
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate text-h7">{room.name}</span>
-                                <span className="block text-sm text-grey-1">{relativeTime(room.lastSeenAt)}</span>
+                                <span className="block text-sm text-grey-1">
+                                    {relativeTime(room.lastSeenAt, locale)}
+                                </span>
                             </span>
                             <Icon name="chevron-right" size={20} className="shrink-0 text-n-1" />
                         </Link>
@@ -83,9 +89,7 @@ export function YourRooms() {
                 ))}
             </ul>
 
-            {overflow > 0 && (
-                <p className="mt-3 text-sm text-grey-1">{copy.moreLabel.replace('{count}', String(overflow))}</p>
-            )}
+            {overflow > 0 && <p className="mt-3 text-sm text-grey-1">{t('more', { count: overflow })}</p>}
         </motion.section>
     )
 }

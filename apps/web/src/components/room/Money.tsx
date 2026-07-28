@@ -1,9 +1,10 @@
 'use client'
 
 import NumberFlow from '@number-flow/react'
+import { useLocale } from 'next-intl'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
-import { currencyInfo, formatMoney, minorToNumber } from '@/lib/money'
+import { currencyInfo, formatMoney, minorToNumber, moneyFormatOptions } from '@/lib/money'
 
 interface MoneyProps {
     /** Minor units, as a string, exactly as the API gave it. */
@@ -17,8 +18,9 @@ interface MoneyProps {
 
 /** Static amount. Everything money-shaped is tabular so columns never jitter. */
 export function Money({ minor, currency, catalog, className, absolute }: MoneyProps) {
+    const locale = useLocale()
     const value = absolute && minor.startsWith('-') ? minor.slice(1) : minor
-    return <span className={cn('tabular-nums', className)}>{formatMoney(value, currency, catalog)}</span>
+    return <span className={cn('tabular-nums', className)}>{formatMoney(value, currency, catalog, locale)}</span>
 }
 
 /**
@@ -39,14 +41,20 @@ const FADE_TIMING: EffectTiming = { duration: 380, easing: 'ease-out' }
  * float is allowed near money: this value is never written back anywhere.
  */
 export function AnimatedMoney({ minor, currency, catalog, className, absolute }: MoneyProps) {
+    const locale = useLocale()
     const info = currencyInfo(currency, catalog)
     const raw = minorToNumber(minor, info.decimals)
     const value = absolute ? Math.abs(raw) : raw
     return (
         <NumberFlow
             value={value}
-            prefix={info.symbol}
-            format={{ minimumFractionDigits: info.decimals, maximumFractionDigits: info.decimals }}
+            // `locales` and `format` together are what make this agree with <Money/>: left to
+            // itself NumberFlow formats in the *browser's* locale, which on a Spanish phone
+            // reading an English page put "12.34" and "12,34" on the same screen. The symbol
+            // now comes from the currency style rather than a manual prefix, so its placement
+            // (before in en, after in es) is localised too.
+            locales={locale}
+            format={moneyFormatOptions(info)}
             spinTiming={COUNT_TIMING}
             transformTiming={COUNT_TIMING}
             opacityTiming={FADE_TIMING}

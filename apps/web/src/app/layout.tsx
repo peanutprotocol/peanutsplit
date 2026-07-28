@@ -1,6 +1,8 @@
 import { type Metadata, type Viewport } from 'next'
 import { Roboto_Flex, Sniglet } from 'next/font/google'
 import localFont from 'next/font/local'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale } from 'next-intl/server'
 import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { siteSchema } from '@/lib/seo'
@@ -52,9 +54,17 @@ const knerdFilled = localFont({
     display: 'swap',
 })
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * The locale is a cookie, so this layout reads a dynamic API and every route under it renders
+ * per request rather than at build time. That is inherent to "one URL per room, in any
+ * language" — there is no static HTML that can be correct for three languages at once.
+ */
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+    // Resolved by src/i18n/request.ts: ps-locale cookie → Accept-Language → en.
+    const locale = await getLocale()
+
     return (
-        <html lang="en" style={{ colorScheme: 'light' }}>
+        <html lang={locale} style={{ colorScheme: 'light' }}>
             <body
                 className={`${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`}
             >
@@ -63,7 +73,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     re-declaring an unlinked copy. Room pages are noindex, so this costs them
                     nothing. */}
                 <JsonLd data={siteSchema()} />
-                <Providers>{children}</Providers>
+                {/* No `messages` prop: rendered from a Server Component, the provider inherits
+                    the request config, which serialises only the active catalog to the client.
+                    Passing `await getMessages()` here would do the same work twice. */}
+                <NextIntlClientProvider>
+                    <Providers>{children}</Providers>
+                </NextIntlClientProvider>
             </body>
         </html>
     )

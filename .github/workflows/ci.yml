@@ -5,56 +5,61 @@
 name: CI
 
 on:
-    push:
-        branches: [main]
-    pull_request:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
-    check:
-        runs-on: ubuntu-latest
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # apps/api's integration suite talks to this; apps/web's unit tests don't.
+      DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+    services:
+      postgres:
+        image: postgres:16-alpine
         env:
-            # apps/api's integration suite talks to this; apps/web's unit tests don't.
-            DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
-        services:
-            postgres:
-                image: postgres:16-alpine
-                env:
-                    POSTGRES_USER: peanut
-                    POSTGRES_PASSWORD: peanut
-                    POSTGRES_DB: peanut_split_dev
-                ports:
-                    - 5432:5432
-                options: >-
-                    --health-cmd "pg_isready -U peanut"
-                    --health-interval 5s
-                    --health-timeout 5s
-                    --health-retries 10
-        steps:
-            - uses: actions/checkout@v4
+          POSTGRES_USER: peanut
+          POSTGRES_PASSWORD: peanut
+          POSTGRES_DB: peanut_split_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U peanut"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 22
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-            # corepack rather than a pinned action: the two apps declare
-            # different pnpm versions in their own package.json, and corepack
-            # honours whichever directory it is invoked from — the same way the
-            # Docker builds resolve it. Pinning one version here breaks the other.
-            - run: corepack enable
+      # corepack rather than a pinned action: the two apps declare
+      # different pnpm versions in their own package.json, and corepack
+      # honours whichever directory it is invoked from — the same way the
+      # Docker builds resolve it. Pinning one version here breaks the other.
+      - run: corepack enable
 
-            # `pnpm bootstrap`, not `pnpm install`: apps/web is not a workspace
-            # member, and a plain install inside it resolves the workspace
-            # instead, leaving it with no node_modules. (`setup` is a reserved
-            # pnpm command, hence the name.)
-            - run: pnpm bootstrap
+      # `pnpm bootstrap`, not `pnpm install`: apps/web is not a workspace
+      # member, and a plain install inside it resolves the workspace
+      # instead, leaving it with no node_modules. (`setup` is a reserved
+      # pnpm command, hence the name.)
+      - run: pnpm bootstrap
 
-            - run: pnpm typecheck
+      - run: pnpm typecheck
 
-            # apps/api's 15 integration tests run against a real database and
-            # create the `app` schema through migrations, not a seed — without
-            # this they fail on missing relations while the unit tests pass.
-            - run: pnpm --filter @peanut-split/api exec prisma migrate deploy
+      # Right after typecheck, because it catches the same class of thing a compiler
+      # would if message keys were typed: a key that no longer exists renders as its own
+      # dotted path, which never throws and never fails a test.
+      - run: pnpm i18n:audit
 
-            - run: pnpm test
+      # apps/api's 15 integration tests run against a real database and
+      # create the `app` schema through migrations, not a seed — without
+      # this they fail on missing relations while the unit tests pass.
+      - run: pnpm --filter @peanut-split/api exec prisma migrate deploy
 
-            - run: pnpm build
+      - run: pnpm test
+
+      - run: pnpm build
