@@ -240,6 +240,31 @@
             "suggested": "Sugeridas",
             "all": "Todas as moedas",
             "useSuggestion": "Usar {name}"
+        },
+        "theme": {
+            "title": "Tema",
+            "hint": "Todo mundo da sala vê, e a prévia do link também.",
+            "pick": "Usar o tema {name}",
+            "failed": "não deu para mudar o tema — tente de novo",
+            "names": {
+                "classic": "Clássico",
+                "bubblegum": "Chiclete",
+                "lavender": "Lavanda",
+                "mint": "Menta",
+                "sky": "Céu",
+                "coral": "Coral",
+                "sand": "Areia",
+                "graphite": "Grafite"
+            }
+        },
+        "reactions": {
+            "add": "Reagir a isto",
+            "close": "Fechar as reações",
+            "pick": "Reagir com {emoji}",
+            "remove": "Tirar seu {emoji}",
+            "reacted": "{emoji} — {count, plural, one {# pessoa} other {# pessoas}}",
+            "needsToken": "Para reagir precisamos ter certeza de que é você — entre na sala de novo com o seu nome.",
+            "failed": "não deu para salvar essa reação — tente de novo"
         }
     },
     "account": {

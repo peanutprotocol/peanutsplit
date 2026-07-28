@@ -33,7 +33,10 @@ async function authorize(request: Request, ctx: Ctx) {
     const { id } = await ctx.params
     const body = reactionSchema.parse(await readJson(request))
 
-    const expense = await prisma.expense.findUnique({ where: { id }, select: { id: true, roomId: true, deletedAt: true } })
+    const expense = await prisma.expense.findUnique({
+        where: { id },
+        select: { id: true, roomId: true, deletedAt: true },
+    })
     if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
     // A deleted expense is off the wire entirely, so its reactions cannot be
     // seen — writing one would be writing into the dark.

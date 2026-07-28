@@ -3,16 +3,22 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
+import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { AccountPanel } from '@/components/account/AccountPanel'
+import { ThemePicker } from '@/components/room/ThemePicker'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { Icon } from '@/components/ui/Icon'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
+import { roomProps, track } from '@/lib/analytics'
 import type { ApiRoom } from '@/lib/api-types'
+import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
-import { triggerHaptic, useSettings } from '@/lib/use-settings'
+import { useSetTheme } from '@/lib/queries'
+import { TOAST_MS } from '@/lib/toasts'
+import { triggerHaptic, useFeedback, useSettings } from '@/lib/use-settings'
 
 interface RoomHeaderProps {
     room: ApiRoom
@@ -76,9 +82,28 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
     const [menuOpen, setMenuOpen] = useState(false)
     const { settings, setSoundEnabled, setHapticsEnabled, setAnimationsEnabled } = useSettings()
     const tSettings = useTranslations('settings')
+    const tTheme = useTranslations('room.theme')
+    const errorMessage = useErrorMessage()
+    const feedback = useFeedback()
+    const setTheme = useSetTheme(room.slug)
+
+    const chooseTheme = (theme: string | null) => {
+        if (theme === (room.theme ?? null)) return
+        feedback('tick')
+        track('theme_changed', roomProps(room.slug, { theme: theme ?? 'classic' }))
+        setTheme.mutate(theme, {
+            onError: (error) => {
+                feedback('error')
+                toast.error(errorMessage(error, tTheme('failed')), { duration: TOAST_MS.actionable })
+            },
+        })
+    }
 
     return (
-        <header className="sticky top-0 z-10 border-b border-n-1 bg-primary-1">
+        // The room's field colour, with the classic yellow as the literal
+        // fallback — a room with no theme renders the exact bytes it did before
+        // this variable existed.
+        <header className="sticky top-0 z-10 border-b border-n-1 bg-[var(--split-theme-field,#FFC900)]">
             <div className="flex items-center gap-3 px-4 py-3">
                 <Link
                     href="/"
@@ -177,6 +202,12 @@ export function RoomHeader({ room, identity, onShare, onForgetIdentity }: RoomHe
                                 onChange={setAnimationsEnabled}
                             />
                         </div>
+
+                        {/* The palette is a property of the ROOM, not of this device —
+                            unlike everything above it in this drawer. It sits here anyway
+                            because this is where a room's own settings live, and the copy
+                            says who else sees it. */}
+                        <ThemePicker value={room.theme} onChange={chooseTheme} disabled={setTheme.isPending} />
 
                         {/* Per room and per device, which is why it lives in the room's own
                             drawer rather than anywhere global. Renders nothing on a browser

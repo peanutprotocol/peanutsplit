@@ -15,6 +15,7 @@ import type {
     MembershipClaim,
     PushSubscribeInput,
     PushUnsubscribeInput,
+    ReactionInput,
     RoomState,
     RoomStateWithMember,
     SettlementInput,
@@ -151,6 +152,21 @@ export const api = {
 
         rooms: (signal?: AbortSignal) =>
             request<{ rooms: AccountRoom[] }>('/api/auth/rooms', { signal }).then((r) => r.rooms),
+    },
+
+    /** The room's palette. No token: the slug is the credential, same as every
+     *  other room write — see the route for why. */
+    setTheme: (slug: string, theme: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { theme } }),
+
+    /** Slug-free, like restore: the expense id is all a row ever holds. The
+     *  token is in the body because the server treats it as proof here. */
+    reactions: {
+        add: (expenseId: string, input: ReactionInput) =>
+            request<RoomState>(`/api/expenses/${encode(expenseId)}/reactions`, { method: 'POST', body: input }),
+
+        remove: (expenseId: string, input: ReactionInput) =>
+            request<RoomState>(`/api/expenses/${encode(expenseId)}/reactions`, { method: 'DELETE', body: input }),
     },
 
     /** Per room, per device. The member token travels in the body rather than

@@ -33,6 +33,13 @@ export type AnalyticsEvent =
     | 'push_optin_denied'
     | 'account_link_requested'
     | 'account_rooms_recovered'
+    // Delight. The theme KEY is fine as a property — it is a choice from a
+    // catalog of eight, not identity; which emoji somebody tapped is not sent
+    // at all, because "who reacted with what" is exactly the kind of social
+    // detail this file exists to keep out of a funnel.
+    | 'theme_changed'
+    | 'reaction_added'
+    | 'reaction_removed'
 
 let ready = false
 
