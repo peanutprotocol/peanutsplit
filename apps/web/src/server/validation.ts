@@ -2,6 +2,7 @@
  *  exact shares adding up) live in the domain modules, not here. */
 import { z } from 'zod'
 import { CURRENCY_CODES, MAX_SIGNED_MINOR } from '@/server/money'
+import { isAvatarKey } from '@/lib/avatars'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isThemeKey } from '@/lib/themes'
 import {
@@ -280,8 +281,31 @@ export const reactionSchema = z.object({
     memberToken: memberSecret,
 })
 
+/**
+ * A member's avatar: a key from `lib/avatars.ts`, or null for the portrait drawn
+ * from their name. Anything else is rejected rather than stored — the same
+ * argument the theme key gets, plus one more. This value renders next to a
+ * person's name on everybody else's phone, so a free-text column here would be
+ * a place to write something about somebody, on a surface with no moderation.
+ *
+ * The token rides in the body, like reactions and push subscriptions do, because
+ * here it is PROOF and not attribution: the member id is in the path, and the
+ * only caller who may change that member's face is the device holding its token.
+ */
+export const memberAvatarSchema = z.object({
+    // `nullable`, not `nullish`, for the reason `roomThemeSchema` gives: a
+    // dropped field must not silently reset somebody's avatar.
+    avatar: z
+        .string()
+        .max(40)
+        .nullable()
+        .refine((value) => value === null || isAvatarKey(value), { message: 'unknown avatar' }),
+    memberToken: memberSecret,
+})
+
 export type RoomThemeBody = z.infer<typeof roomThemeSchema>
 export type ReactionBody = z.infer<typeof reactionSchema>
+export type MemberAvatarBody = z.infer<typeof memberAvatarSchema>
 // ── splitwise import ─────────────────────────────────────────────────────────
 
 /**

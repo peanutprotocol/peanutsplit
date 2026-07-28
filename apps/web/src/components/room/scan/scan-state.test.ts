@@ -231,8 +231,8 @@ describe('initScanState', () => {
 
 describe('toExpenseFormValues — the handoff', () => {
     const members = [
-        { id: 'ana', name: 'Ana', createdAt: '' },
-        { id: 'bo', name: 'Bo', createdAt: '' },
+        { id: 'ana', name: 'Ana', avatar: null, createdAt: '' },
+        { id: 'bo', name: 'Bo', avatar: null, createdAt: '' },
     ]
     const base = emptyExpenseForm({ currency: 'EUR', members, paidById: 'ana' })
 
@@ -274,6 +274,49 @@ describe('toExpenseFormValues — the handoff', () => {
         const values = toExpenseFormValues(state, { base, decimals: CENTS, fallbackDescription: 'Scanned bill' })
         expect(values.amountInput).toBe('12.50')
         expect(values.exactInputs).toEqual({ ana: '12.50' })
+    })
+
+    /**
+     * Deleting a line the model invented is the whole point of the review and
+     * assign screens, and the thing that must survive it is the reconciliation:
+     * the draft's total is defined as the sum of what is left, never as the total
+     * printed on the receipt. `validateExpenseForm` demands the exact shares add
+     * up to the amount, so a total that outlived a deleted row would wedge the
+     * drawer on a form the user cannot fix.
+     */
+    it('re-totals from the surviving rows when a wrongly-read item is removed', () => {
+        const pizza = item('Pizza', '12.50')
+        const ghost = item('LOYALTY CARD 1234', '9.90')
+        const state = {
+            ...stateOf([pizza, ghost], { [pizza.id]: ['ana', 'bo'], [ghost.id]: ['bo'] }),
+            // The printed total still says 22.40. It is a hint, never a gate — the
+            // draft follows the rows that are left.
+            receiptTotalMinor: '2240',
+        }
+
+        const pruned = scanReducer(state, { type: 'remove-item', itemId: ghost.id })
+        const values = toExpenseFormValues(pruned, { base, decimals: CENTS, fallbackDescription: 'Scanned bill' })
+
+        expect(itemsTotalMinor(pruned, CENTS)).toBe('1250')
+        expect(values.amountInput).toBe('12.50')
+        expect(values.exactInputs).toEqual({ ana: '6.25', bo: '6.25' })
+        // Nobody is left holding a share of a row that no longer exists.
+        expect(values.participantIds.sort()).toEqual(['ana', 'bo'])
+        // And the mismatch is information, not an error state to recover from.
+        expect(totalMismatchMinor(pruned, CENTS)).toBe('990')
+    })
+
+    it('leaves an empty, unsubmittable draft when every row is deleted', () => {
+        const pizza = item('Pizza', '12.50')
+        let state: ScanState = stateOf([pizza], { [pizza.id]: ['ana'] })
+        state = scanReducer(state, { type: 'remove-item', itemId: pizza.id })
+
+        expect(state.items).toEqual([])
+        expect(assignedTotalMinor(state, CENTS)).toBe('0')
+        expect(unassignedItems(state, CENTS)).toEqual([])
+        const values = toExpenseFormValues(state, { base, decimals: CENTS, fallbackDescription: 'Scanned bill' })
+        expect(values.amountInput).toBe('0.00')
+        expect(values.exactInputs).toEqual({})
     })
 })
 
@@ -332,7 +375,7 @@ describe('the invariant: cents neither appear nor vanish', () => {
 
     const stateBase = emptyExpenseForm({
         currency: 'EUR',
-        members: MEMBERS.map((id) => ({ id, name: id, createdAt: '' })),
+        members: MEMBERS.map((id) => ({ id, name: id, avatar: null, createdAt: '' })),
         paidById: 'ana',
     })
 })

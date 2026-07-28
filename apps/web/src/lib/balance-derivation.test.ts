@@ -59,7 +59,7 @@ const state = (
         createdAt: iso(1),
         archivedAt: null,
     },
-    members: members.map((id) => ({ id, name: id.toUpperCase(), createdAt: iso(1) })),
+    members: members.map((id) => ({ id, name: id.toUpperCase(), avatar: null, createdAt: iso(1) })),
     expenses: expenses.map((expense, index) => ({
         id: expense.id,
         description: expense.description ?? expense.id,
