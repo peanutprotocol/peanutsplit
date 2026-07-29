@@ -98,9 +98,13 @@ export function ExpenseDrawer({
     const [addingPayer, setAddingPayer] = useState(false)
     const [newPayerName, setNewPayerName] = useState('')
     const [payerError, setPayerError] = useState<string | null>(null)
+    const [addingParticipant, setAddingParticipant] = useState(false)
+    const [newParticipantName, setNewParticipantName] = useState('')
+    const [participantError, setParticipantError] = useState<string | null>(null)
     const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
     const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
+    const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
     const descriptionRef = useRef<HTMLInputElement>(null)
     // React does not disable the button until the mutation state renders. A
@@ -125,6 +129,9 @@ export function ExpenseDrawer({
         setAddingPayer(false)
         setNewPayerName('')
         setPayerError(null)
+        setAddingParticipant(false)
+        setNewParticipantName('')
+        setParticipantError(null)
         setFieldRepairNotice(null)
         setEditor(null)
         setValues(
@@ -243,6 +250,55 @@ export function ExpenseDrawer({
             participantsTouched: true,
             participantIds: has ? current.filter((id) => id !== memberId) : [...current, memberId],
         })
+    }
+
+    /**
+     * Add a missing person without making someone abandon the expense they are
+     * already composing. The new roster row joins this split immediately:
+     * selected in EQUAL, and present with a blank amount ready to type in EXACT.
+     */
+    const createParticipant = async (event: React.FormEvent) => {
+        event.preventDefault()
+        const name = newParticipantName.trim()
+        if (!name || addMember.isPending) return
+
+        const select = (memberId: string) => {
+            if (values.splitMode === 'EQUAL') {
+                const current = values.participantsTouched
+                    ? values.participantIds
+                    : state.members.map((member) => member.id)
+                patch({
+                    participantsTouched: true,
+                    participantIds: current.includes(memberId) ? current : [...current, memberId],
+                })
+            } else if (values.exactInputs[memberId] === undefined) {
+                patch({ exactInputs: { ...values.exactInputs, [memberId]: '' } })
+            }
+            setAddingParticipant(false)
+            setNewParticipantName('')
+            setParticipantError(null)
+        }
+
+        const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
+        if (existing) {
+            select(existing.id)
+            feedback('tick')
+            return
+        }
+
+        setParticipantError(null)
+        try {
+            const next = await addMember.mutateAsync({ name })
+            select(next.memberId)
+            feedback('pop')
+        } catch (err) {
+            feedback('error', { haptic: 'error' })
+            if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
+                setParticipantError(t('payerDuplicate', { name }))
+                return
+            }
+            setParticipantError(errorMessage(err, t('payerAddFailed')))
+        }
     }
 
     /** Every write into an EXACT field goes through here, so `exactTouched` cannot
@@ -1048,6 +1104,65 @@ export function ExpenseDrawer({
                                             })}
                                         </p>
                                     </div>
+                                )}
+
+                                {!addingParticipant && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setAddingParticipant(true)
+                                            setParticipantError(null)
+                                            requestAnimationFrame(() => participantNameRef.current?.focus())
+                                        }}
+                                        className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-dashed border-n-1 bg-white px-3 py-2 text-h8"
+                                        data-testid="add-participant"
+                                    >
+                                        <Icon name="plus" size={18} />
+                                        {t('addPayer')}
+                                    </button>
+                                )}
+
+                                {addingParticipant && (
+                                    <form onSubmit={createParticipant} className="flex items-center gap-2">
+                                        <BaseInput
+                                            ref={participantNameRef}
+                                            value={newParticipantName}
+                                            onChange={(event) => setNewParticipantName(event.target.value)}
+                                            placeholder={t('payerNamePlaceholder')}
+                                            aria-label={t('payerNamePlaceholder')}
+                                            maxLength={80}
+                                            variant="sm"
+                                            data-testid="new-participant-name"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!newParticipantName.trim() || addMember.isPending}
+                                            aria-label={t('confirmPayer')}
+                                            aria-busy={addMember.isPending}
+                                            data-testid="add-participant-submit"
+                                            className="shadow-2 flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-primary-1 disabled:opacity-50"
+                                        >
+                                            <Icon name="check" size={19} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            aria-label={t('cancelPayer')}
+                                            onClick={() => {
+                                                setAddingParticipant(false)
+                                                setNewParticipantName('')
+                                                setParticipantError(null)
+                                            }}
+                                            className="flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-white"
+                                        >
+                                            <Icon name="x" size={19} />
+                                        </button>
+                                    </form>
+                                )}
+
+                                {participantError && (
+                                    <p role="alert" className="text-sm font-bold text-error">
+                                        {participantError}
+                                    </p>
                                 )}
                             </div>
                         </section>

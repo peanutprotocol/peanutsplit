@@ -52,6 +52,14 @@ const setTheme = (slug: string, theme: unknown, token?: string) =>
         token,
     })
 
+const renameRoom = (slug: string, name: unknown) =>
+    call<RoomState & ApiError>(patchRoom as Handler, {
+        path: `/api/rooms/${slug}`,
+        method: 'PATCH',
+        params: { slug },
+        body: { name },
+    })
+
 beforeEach(async () => {
     await truncateAll()
     resetRateLimits()
@@ -105,7 +113,7 @@ describe('PATCH /api/rooms/:slug', () => {
         expect(row?.theme).toBeNull()
     })
 
-    it('refuses a body with no theme in it rather than resetting the room', async () => {
+    it('refuses an empty settings body rather than resetting the room', async () => {
         const { body: created } = await newRoom()
         const slug = created.room.slug
         await setTheme(slug, 'mint')
@@ -120,6 +128,62 @@ describe('PATCH /api/rooms/:slug', () => {
         expect(body.error.code).toBe('VALIDATION_ERROR')
         const row = await prisma.room.findUnique({ where: { slug }, select: { theme: true } })
         expect(row?.theme).toBe('mint')
+    })
+
+    it('renames the display label without changing the permanent slug or palette', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        await setTheme(slug, 'mint')
+
+        const { status, body: renamed } = await renameRoom(slug, '  Summer escape  ')
+        expect(status).toBe(200)
+        expect(renamed.room.name).toBe('Summer escape')
+        expect(renamed.room.slug).toBe(slug)
+        expect(renamed.room.theme).toBe('mint')
+
+        const row = await prisma.room.findUnique({
+            where: { id: created.room.id },
+            select: { name: true, slug: true, theme: true },
+        })
+        expect(row).toEqual({ name: 'Summer escape', slug, theme: 'mint' })
+
+        const { body: fetched } = await call<RoomState>(getRoom as Handler, {
+            path: `/api/rooms/${slug}`,
+            params: { slug },
+        })
+        expect(fetched.room.name).toBe('Summer escape')
+        expect(fetched.room.slug).toBe(slug)
+    })
+
+    it('rejects blank or oversized display names and leaves the room alone', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+
+        for (const invalidName of ['', '   ', 'x'.repeat(81)]) {
+            const { status, body } = await renameRoom(slug, invalidName)
+            expect(status).toBe(400)
+            expect(body.error.code).toBe('VALIDATION_ERROR')
+        }
+
+        const row = await prisma.room.findUnique({ where: { slug }, select: { name: true } })
+        expect(row?.name).toBe('Ski Trip')
+    })
+
+    it('rejects unknown settings instead of accepting a hidden slug rename', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+
+        const { status, body } = await call<ApiError>(patchRoom as Handler, {
+            path: `/api/rooms/${slug}`,
+            method: 'PATCH',
+            params: { slug },
+            body: { slug: 'different-room' },
+        })
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('VALIDATION_ERROR')
+
+        const row = await prisma.room.findUnique({ where: { id: created.room.id }, select: { slug: true } })
+        expect(row?.slug).toBe(slug)
     })
 
     it('rejects anything outside the catalog and leaves the room alone', async () => {
