@@ -50,7 +50,7 @@ export function LandingPersona({
             style={{ ...dimensions, background: art.background, color: art.ink } as CSSProperties}
         >
             <span className="landing-persona-accent" style={{ background: art.accent }} />
-            <Doodle name={art.doodle} size={size ? Math.round(size * 0.78) : 24} weight={1.7} />
+            <Doodle name={art.doodle} size={size ? Math.round(size * 0.86) : 27} weight={1.7} />
         </span>
     )
 }

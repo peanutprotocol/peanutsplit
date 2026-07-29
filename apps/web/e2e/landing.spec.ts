@@ -150,6 +150,63 @@ test('the deployment-wide landing variant has an explicit observable value', asy
     )
 })
 
+test('a sixth recent room is shown instead of becoming orphaned footer copy', async ({ page }) => {
+    await page.addInitScript(() => {
+        const now = Date.now()
+        window.localStorage.setItem(
+            'ps:recent',
+            JSON.stringify(
+                Array.from({ length: 6 }, (_, index) => ({
+                    slug: `room-${index}`,
+                    name: `Room ${index + 1}`,
+                    emoji: index === 0 ? 'boat' : 'ski',
+                    lastSeenAt: now - index * 60_000,
+                }))
+            )
+        )
+    })
+    await openLanding(page)
+
+    const rooms = page.getByTestId('recent-rooms')
+    await expect(rooms.getByTestId('recent-room-list').locator('a')).toHaveCount(6)
+    await expect(rooms.getByRole('button', { name: /more room/i })).toHaveCount(0)
+    await expect(rooms.getByText(/and 1 more/i)).toHaveCount(0)
+    await expect(rooms.getByTestId('recent-room-list').locator('svg').first()).toHaveAttribute('width', '30')
+})
+
+test('a longer recent-room history has an explicit reversible reveal control', async ({ page }) => {
+    await page.addInitScript(() => {
+        const now = Date.now()
+        window.localStorage.setItem(
+            'ps:recent',
+            JSON.stringify(
+                Array.from({ length: 7 }, (_, index) => ({
+                    slug: `room-${index}`,
+                    name: `Room ${index + 1}`,
+                    emoji: 'peanut',
+                    lastSeenAt: now - index * 60_000,
+                }))
+            )
+        )
+    })
+    await openLanding(page)
+
+    const rooms = page.getByTestId('recent-rooms')
+    const list = rooms.getByTestId('recent-room-list')
+    const reveal = rooms.getByRole('button', { name: 'Show 2 more rooms' })
+    await expect(list.locator('a')).toHaveCount(5)
+    await expect(reveal).toHaveAttribute('aria-expanded', 'false')
+
+    await reveal.click()
+    await expect(list.locator('a')).toHaveCount(7)
+    const collapse = rooms.getByRole('button', { name: 'Show fewer rooms' })
+    await expect(collapse).toHaveAttribute('aria-expanded', 'true')
+
+    await collapse.click()
+    await expect(list.locator('a')).toHaveCount(5)
+    await expect(reveal).toHaveAttribute('aria-expanded', 'false')
+})
+
 test('the rollback build keeps the compact real form and removes the theater', async ({ page }) => {
     test.skip(!controlBuild, 'requires NEXT_PUBLIC_LANDING_VARIANT=control at server build/start')
     await openLanding(page)
@@ -193,6 +250,13 @@ test.describe('Pass-the-link default', () => {
             await expect(chatFrame).toBeVisible()
             await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
             await expect(chatFrame.locator('.pass-link-avatar svg')).toHaveCount(8)
+            const [avatarBox, avatarDoodleBox] = await Promise.all([
+                chatFrame.locator('.pass-link-avatar').first().boundingBox(),
+                chatFrame.locator('.pass-link-avatar svg').first().boundingBox(),
+            ])
+            expect(avatarBox).not.toBeNull()
+            expect(avatarDoodleBox).not.toBeNull()
+            expect(avatarDoodleBox!.width / avatarBox!.width).toBeGreaterThan(0.7)
             await expect(chatFrame).not.toContainText(/PEANUT SPLIT\s*[·-]\s*SHARED ROOM/i)
             await expect(page.getByTestId('pass-link-channel')).toHaveCount(0)
             await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
@@ -474,6 +538,13 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('room-examples')).toContainText(proof.examples.title)
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
         await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
+        const [personaBox, personaDoodleBox] = await Promise.all([
+            page.getByTestId('landing-proof').locator('.landing-persona').first().boundingBox(),
+            page.getByTestId('landing-proof').locator('.landing-persona svg').first().boundingBox(),
+        ])
+        expect(personaBox).not.toBeNull()
+        expect(personaDoodleBox).not.toBeNull()
+        expect(personaDoodleBox!.width / personaBox!.width).toBeGreaterThan(0.8)
 
         const features = page.locator('details').filter({
             has: page.getByText(catalogs.en.marketing.readMore.features.title, { exact: true }),

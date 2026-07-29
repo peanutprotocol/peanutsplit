@@ -232,8 +232,8 @@
 .landing-persona > svg {
     position: relative;
     z-index: 1;
-    width: 78%;
-    height: 78%;
+    width: 86%;
+    height: 86%;
 }
 
 .pass-link-hero {
@@ -429,8 +429,8 @@
 
 .pass-link-avatar svg,
 .pass-link-mini-avatar svg {
-    width: 68%;
-    height: 68%;
+    width: 80%;
+    height: 80%;
 }
 
 .pass-link-chat-body {
