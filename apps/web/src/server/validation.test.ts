@@ -111,6 +111,8 @@ describe('trust-ledger fields', () => {
         expect(settlementSchema.safeParse({ ...settlement('100'), receiptUrl: 'file:///tmp/receipt' }).success).toBe(
             false
         )
+        expect(() => settlementSchema.safeParse({ ...settlement('100'), receiptUrl: 'not a url' })).not.toThrow()
+        expect(settlementSchema.safeParse({ ...settlement('100'), receiptUrl: 'not a url' }).success).toBe(false)
     })
 })
 

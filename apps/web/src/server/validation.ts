@@ -88,11 +88,14 @@ export const expenseSchema = z
 const receiptUrl = z
     .string()
     .trim()
-    .url()
     .max(2048)
     .refine((value) => {
-        const protocol = new URL(value).protocol
-        return protocol === 'http:' || protocol === 'https:'
+        try {
+            const protocol = new URL(value).protocol
+            return protocol === 'http:' || protocol === 'https:'
+        } catch {
+            return false
+        }
     }, 'must be an http or https URL')
 
 export const settlementSchema = z.object({
