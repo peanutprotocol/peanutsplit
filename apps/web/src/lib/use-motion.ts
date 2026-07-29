@@ -13,12 +13,30 @@
  * lives.
  */
 
-import { useEffect } from 'react'
-import { useReducedMotion } from 'motion/react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { useSettings } from './use-settings'
 
 /** The class stamped on `<html>` so CSS-keyframe decoration obeys the same rule. */
 export const REDUCE_ANIMATIONS_CLASS = 'reduce-animations'
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+
+const reducedMotionSnapshot = (): boolean | null =>
+    typeof window === 'undefined' ? null : window.matchMedia(REDUCED_MOTION_QUERY).matches
+
+const reducedMotionServerSnapshot = (): null => null
+
+/**
+ * Motion's own hook keeps one module-level media-query snapshot. Separate Next
+ * client boundaries can initialise separate copies at different moments, which
+ * made the hero honour reduced motion while a lower proof section did not.
+ * Reading the platform query through React's external-store contract gives
+ * every boundary the same live answer and responds when the OS setting changes.
+ */
+const subscribeToReducedMotion = (onChange: () => void): (() => void) => {
+    const query = window.matchMedia(REDUCED_MOTION_QUERY)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+}
 
 /**
  * The whole decision, as a pure function so it can be tested without a DOM
@@ -36,7 +54,11 @@ export function motionAllowed(animationsEnabled: boolean, osReducedMotion: boole
 /** True when this render is allowed to move things. */
 export function useMotionAllowed(): boolean {
     const { settings } = useSettings()
-    const osReducedMotion = useReducedMotion()
+    const osReducedMotion = useSyncExternalStore(
+        subscribeToReducedMotion,
+        reducedMotionSnapshot,
+        reducedMotionServerSnapshot
+    )
     return motionAllowed(settings.animationsEnabled, osReducedMotion)
 }
 

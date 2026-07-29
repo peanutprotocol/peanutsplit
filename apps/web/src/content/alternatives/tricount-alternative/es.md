@@ -4,8 +4,8 @@ description: Tricount cobra a través de una cuenta bancaria y una tarjeta bunq.
 date: 2026-07-28
 tags: [alternativas, monedas]
 faqs:
-    - question: ¿Peanut Split es gratis?
-      answer: Sí, y no hay nada que pagar después. Split lo hace Peanut y existe para que la gente conozca Peanut, que es de donde sale la plata.
+    - question: ¿Peanut Split es gratis para siempre?
+      answer: Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.
     - question: ¿Hay que descargar algo?
       answer: 'No. Una sala es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin tienda de apps, sin cuenta, sin correo.'
     - question: ¿Podemos saldar por transferencia o en efectivo?
@@ -53,7 +53,7 @@ Cuatro personas en Berlín la van a pasar bien. Cuatro personas en Berlín, Buen
 
 |             | Peanut Split                                                                             | Tricount                                                     |
 | ----------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Precio      | Gratis, sin plan pago                                                                    | "100% free"                                                  |
+| Precio      | Gratis para siempre, sin plan pago                                                       | "100% free"                                                  |
 | Las cuentas | Los saldos cierran al centavo                                                            | "tricount does the math for you"                             |
 | Saldar      | Lo que las dos personas puedan usar de verdad: efectivo, transferencia local o un enlace | "get paid directly to your bank account", o una tarjeta bunq |
 | Mejor caso  | Grupo repartido entre países, bancos y monedas                                           | Grupo que comparte los mismos rieles bancarios               |
@@ -66,7 +66,7 @@ La fila que importa es la de saldar. El resto está lo bastante parejo como para
 
 <Checklist title="Dónde falla un split de verdad">
 <ChecklistItem title="Nadie tiene la misma app">"Mandámelo y listo" se cae cuando uno tiene Revolut, otro un banco que cierra a las cuatro y otro está en un país al que ninguno llega. Entonces no exijas una app en particular.</ChecklistItem>
-<ChecklistItem title="Pagaste en una moneda y debés en otra">Elegí en qué cuenta la sala, cargá los gastos en lo que gastaste de verdad y Split convierte. Gratis, y no detrás de un plan pago.</ChecklistItem>
+<ChecklistItem title="Pagaste en una moneda y debés en otra">Elegí en qué cuenta la sala, cargá los gastos en lo que gastaste de verdad y Split convierte. Gratis para siempre, y no detrás de un plan pago.</ChecklistItem>
 </Checklist>
 
 ## Cuándo Tricount es la mejor herramienta
@@ -83,7 +83,7 @@ Ese es el intercambio. Menos producto, menos suposiciones sobre dónde tenés la
   text="Crear un split" />
 
 <FAQ title="Preguntas">
-<FAQItem question="¿Peanut Split es gratis?">Sí, y no hay nada que pagar después. Split lo hace Peanut y existe para que la gente conozca Peanut, que es de donde sale la plata.</FAQItem>
+<FAQItem question="¿Peanut Split es gratis para siempre?">Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.</FAQItem>
 <FAQItem question="¿Hay que descargar algo?">No. Una sala es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin tienda de apps, sin cuenta, sin correo.</FAQItem>
 <FAQItem question="¿Podemos saldar por transferencia o en efectivo?">Sí. Split reduce las deudas para que hagas dos o tres transferencias en vez de veinte, y registra cada una como haya ocurrido. No exige un banco ni una app en particular.</FAQItem>
 <FAQItem question="¿En qué es malo Split?">En todo lo que necesite una cuenta. No hay login, ni recuperación de contraseña, ni historial que te siga entre dispositivos: el enlace es la llave, así que si el grupo lo pierde, la sala se pierde.</FAQItem>

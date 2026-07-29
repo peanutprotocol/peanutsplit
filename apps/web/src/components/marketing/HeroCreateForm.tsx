@@ -286,10 +286,11 @@ export function HeroCreateForm({
                 </p>
             )}
 
-            {/* Black, not the app's yellow — a yellow button on the yellow band disappears. */}
+            {/* Yellow carries the product's primary-action language and stands out cleanly
+                against the white composer card and pink landing background. */}
             <Button
                 type="submit"
-                variant="dark"
+                variant="primary"
                 shadowSize="4"
                 loading={pending}
                 className="justify-center text-h6"
