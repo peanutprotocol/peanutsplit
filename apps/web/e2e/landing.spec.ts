@@ -13,6 +13,9 @@ type LandingMessages = {
             stageSummary: string
             cta: string
             ctaTrust: string
+            chat: {
+                badge: string
+            }
             validation: {
                 roomRequired: string
                 creatorRequired: string
@@ -162,7 +165,9 @@ test.describe('Pass-the-link default', () => {
             await expect(headline).toBeVisible()
             await expect(stage).toBeVisible()
             await expect(form).toBeVisible()
-            await expect(page.getByTestId('pass-link-ticker')).toBeVisible()
+            await expect(page.getByTestId('pass-link-chat-frame')).toBeVisible()
+            await expect(page.getByTestId('pass-link-channel')).toHaveCount(4)
+            await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
 
             expect(
                 await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
@@ -356,6 +361,7 @@ test.describe('Pass-the-link default', () => {
 
             await expect(page.getByRole('heading', { level: 1 })).toHaveText(messages.hero.titleAccessible)
             await expect(page.getByTestId('pass-link-stage-summary')).toHaveText(messages.hero.stageSummary)
+            await expect(page.getByTestId('pass-link-no-signup')).toHaveText(messages.hero.chat.badge)
             await expect(page.getByTestId('hero-create-room')).toContainText(messages.hero.cta)
             await expect(page.getByText(messages.hero.ctaTrust, { exact: true })).toBeVisible()
 
