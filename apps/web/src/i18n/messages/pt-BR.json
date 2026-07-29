@@ -27,7 +27,8 @@
             "title": "Suas salas",
             "subtitle": "Salvas neste aparelho.",
             "openLabel": "Abrir sala",
-            "more": "e mais {count, plural, one {#} other {#}}"
+            "showMore": "Mostrar mais {count, plural, one {# sala} other {# salas}}",
+            "showLess": "Mostrar menos salas"
         },
         "proof": {
             "linkIdentity": {

@@ -27,7 +27,8 @@
             "title": "Your rooms",
             "subtitle": "Saved on this device.",
             "openLabel": "Open room",
-            "more": "and {count, plural, one {# more} other {# more}}"
+            "showMore": "Show {count, plural, one {# more room} other {# more rooms}}",
+            "showLess": "Show fewer rooms"
         },
         "proof": {
             "linkIdentity": {
