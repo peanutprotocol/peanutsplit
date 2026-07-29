@@ -1,7 +1,7 @@
 /**
  * The alter-ego catalog. These tests pin the product rule, not SVG pixels:
- * defaults are stable and non-human, the picker offers real breadth, old stored
- * keys remain readable, and the database allowlist stays an allowlist.
+ * defaults are persisted and non-human, the picker offers real breadth, old
+ * stored keys remain readable, and the database allowlist stays an allowlist.
  */
 import { describe, expect, it } from 'vitest'
 import { DOODLE } from '@/components/ui/doodles'
@@ -10,29 +10,24 @@ import {
     AVATAR_CATEGORIES,
     AVATAR_KEYS,
     CLASSIC_AVATARS,
+    FALLBACK_AVATAR,
     PERSONAS,
     PERSONA_KEYS,
     avatarArt,
     avatarFamily,
-    defaultAvatarArt,
-    defaultAvatarKey,
     isAvatarKey,
+    randomPersonaKey,
 } from './avatars'
 
 describe('the default alter ego', () => {
-    it.each(['Ana', 'Bruno', 'María', 'Kwame', '', '한', '👩‍🚀'])('is a stable, non-human persona for %j', (name) => {
-        const key = defaultAvatarKey(name)
-        expect(PERSONA_KEYS).toContain(key)
-        expect(defaultAvatarKey(name)).toBe(key)
-        expect(defaultAvatarArt(name)).toEqual(PERSONAS[key])
-        expect(defaultAvatarArt(name).kind).toBe('persona')
+    it('draws from the full non-human cast', () => {
+        expect(randomPersonaKey(null, () => 0)).toBe(PERSONA_KEYS[0])
+        expect(randomPersonaKey(null, () => 0.999999)).toBe(PERSONA_KEYS[PERSONA_KEYS.length - 1])
     })
 
-    it('spreads ordinary names across the cast instead of making one mascot the default', () => {
-        const defaults = new Set(
-            ['Ana', 'Bruno', 'Cleo', 'Davi', 'Eli', 'Fatima', 'Gus', 'Hana', 'Ivo', 'Jules'].map(defaultAvatarKey)
-        )
-        expect(defaults.size).toBeGreaterThanOrEqual(6)
+    it('excludes the current persona when somebody rolls again', () => {
+        expect(randomPersonaKey(PERSONA_KEYS[0], () => 0)).toBe(PERSONA_KEYS[1])
+        expect(randomPersonaKey(PERSONA_KEYS[29], () => 0.999999)).toBe(PERSONA_KEYS[28])
     })
 })
 
@@ -115,9 +110,9 @@ describe('compatibility and validation', () => {
     it('draws a known pick and safely defaults null, undefined and retired junk', () => {
         expect(avatarArt('vampire-penguin', 'Ana')).toEqual(PERSONAS['vampire-penguin'])
         expect(avatarArt('doodle-dog', 'Ana')).toEqual(AVATARS['doodle-dog'])
-        expect(avatarArt(null, 'Ana')).toEqual(defaultAvatarArt('Ana'))
-        expect(avatarArt(undefined, 'Ana')).toEqual(defaultAvatarArt('Ana'))
-        expect(avatarArt('retired-in-2027', 'Ana')).toEqual(defaultAvatarArt('Ana'))
+        expect(avatarArt(null, 'Ana')).toEqual(FALLBACK_AVATAR)
+        expect(avatarArt(undefined, 'Bruno')).toEqual(FALLBACK_AVATAR)
+        expect(avatarArt('retired-in-2027', 'Cleo')).toEqual(FALLBACK_AVATAR)
     })
 })
 

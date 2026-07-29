@@ -414,21 +414,28 @@ export const AVATAR_KEYS = [...PERSONA_KEYS, ...Object.keys(CLASSIC_AVATARS)] as
 export const isAvatarKey = (value: unknown): value is AvatarKey =>
     typeof value === 'string' && Object.prototype.hasOwnProperty.call(AVATARS, value)
 
-const seedOf = (name: string): number =>
-    [...name].reduce((total, character) => (total * 31 + (character.codePointAt(0) ?? 0)) >>> 0, 2166136261)
-
-export function defaultAvatarKey(name: string): PersonaKey {
-    return PERSONA_KEYS[seedOf(name) % PERSONA_KEYS.length]
+/**
+ * Draw one concrete key. New members store the result immediately, so "random"
+ * means random once — never a different character on each phone or render.
+ *
+ * The optional exclusion makes the picker's re-roll button visibly do
+ * something. Supplying the RNG keeps the boundary deterministic in tests.
+ */
+export function randomPersonaKey(exclude: string | null = null, random: () => number = Math.random): PersonaKey {
+    const candidates = PERSONA_KEYS.filter((key) => key !== exclude)
+    const index = Math.min(Math.floor(random() * candidates.length), candidates.length - 1)
+    return candidates[Math.max(0, index)]
 }
 
-/** No pick means a stable surprise persona, never a human portrait. */
-export function defaultAvatarArt(name: string): PersonaArt {
-    return PERSONAS[defaultAvatarKey(name)]
-}
+/**
+ * Null and retired values should be rare after the backfill. Their render
+ * fallback is deliberately fixed: choosing random during render would make two
+ * phones disagree. New randomness belongs at the write boundary above.
+ */
+export const FALLBACK_AVATAR = CLASSIC_AVATARS['doodle-peanut']
 
-/** Unknown/retired values degrade to the same safe, non-human default. */
-export const avatarArt = (avatar: string | null | undefined, name: string): AvatarArt =>
-    isAvatarKey(avatar) ? AVATARS[avatar] : defaultAvatarArt(name)
+export const avatarArt = (avatar: string | null | undefined, _name?: string): AvatarArt =>
+    isAvatarKey(avatar) ? AVATARS[avatar] : FALLBACK_AVATAR
 
 export const avatarFamily = (avatar: string | null): 'default' | 'persona' | 'doodle' => {
     if (!isAvatarKey(avatar)) return 'default'

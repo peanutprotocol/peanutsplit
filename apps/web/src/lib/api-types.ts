@@ -34,7 +34,7 @@ export interface ApiRoom {
 export interface ApiMember {
     id: string
     name: string
-    /** A key from `lib/avatars.ts`. Null = the stable persona derived from the name. */
+    /** A key from `lib/avatars.ts`. Null exists only for legacy/pre-migration rows. */
     avatar: string | null
     createdAt: string
 }

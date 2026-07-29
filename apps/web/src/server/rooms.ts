@@ -3,6 +3,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { conflict } from '@/server/http'
+import { randomPersonaKey } from '@/lib/avatars'
 import { memberToken, roomSlug } from '@/server/slug'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
 import type { CreateRoomBody } from '@/server/validation'
@@ -41,7 +42,7 @@ export async function createRoom(
                     emoji: body.emoji ?? null,
                     currency: body.currency,
                     locale,
-                    members: { create: { name: body.creatorName, token } },
+                    members: { create: { name: body.creatorName, token, avatar: randomPersonaKey() } },
                 },
                 include: { members: true },
             })
@@ -81,7 +82,7 @@ export async function addMember(room: RoomWithRelations, name: string): Promise<
         })
         if (duplicate) throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
 
-        const member = await tx.member.create({ data: { roomId: room.id, name, token } })
+        const member = await tx.member.create({ data: { roomId: room.id, name, token, avatar: randomPersonaKey() } })
         return { memberId: member.id, memberToken: token }
     })
 }
