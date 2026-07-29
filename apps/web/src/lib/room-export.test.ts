@@ -110,10 +110,12 @@ describe('room export', () => {
         const hostile: RoomState = {
             ...state,
             expenses: [{ ...state.expenses[0], description: '=HYPERLINK("https://example.com")' }],
+            settlements: [{ ...state.settlements[0], method: '\t@SUM(1+1)' }],
         }
         const csv = roomCsv(hostile)
 
         expect(csv).toContain(`"'=HYPERLINK(""https://example.com"")"`)
+        expect(csv).toContain(`'\t@SUM(1+1)`)
         // Numeric balances stay numeric so the spreadsheet remains useful.
         expect(csv).toContain('balance,,,bea,,-2283,EUR')
     })

@@ -47,7 +47,7 @@ const csvCell = (value: CsvCell): string => {
 /** Quoted CSV cells can still execute as spreadsheet formulas. Apply this only
  * to user-authored text; money cells must remain numeric and machine-readable. */
 const spreadsheetText = (value: string | null | undefined): string | null | undefined =>
-    value && /^[=+\-@]/.test(value) ? `'${value}` : value
+    value && /^[\u0000-\u0020]*[=+\-@]/.test(value) ? `'${value}` : value
 
 const CSV_HEADERS = [
     'record_type',
@@ -199,7 +199,7 @@ export function roomCsv(state: RoomState): string {
                 settlement.fromId,
                 settlement.toId,
                 settlement.createdById,
-                settlement.method,
+                spreadsheetText(settlement.method),
                 spreadsheetText(settlement.note),
                 settlement.createdAt,
                 settlement.createdAt
