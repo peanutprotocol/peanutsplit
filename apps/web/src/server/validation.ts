@@ -231,21 +231,31 @@ export type NlParseBody = z.infer<typeof nlParseSchema>
 // ── delight wave ─────────────────────────────────────────────────────────────
 
 /**
+ * Link-holder-editable room presentation. The slug is intentionally absent:
+ * the link is the room's credential and permanent address, while `name` is only
+ * the display label people see after opening it.
+ *
  * A theme is a key into `lib/themes.ts`, never a colour. Anything not in the
  * catalog is rejected outright rather than stored and ignored — a row holding a
  * key nothing can render is a bug that only shows up months later, on an unfurl.
  * `null` is the default palette and is always legal.
  */
-export const roomThemeSchema = z.object({
-    // `nullable`, not `nullish`: an absent key would silently mean "back to the
-    // default palette", and a PATCH that resets a room because a field got
-    // dropped somewhere in the client is the kind of bug nobody reproduces.
-    theme: z
-        .string()
-        .max(40)
-        .nullable()
-        .refine((value) => value === null || isThemeKey(value), { message: 'unknown theme' }),
-})
+export const roomSettingsSchema = z
+    .object({
+        name: z.string().trim().min(1, 'is required').max(80).optional(),
+        // `nullable`, not `nullish`: null deliberately resets the palette, while
+        // an absent key leaves it untouched during a name-only PATCH.
+        theme: z
+            .string()
+            .max(40)
+            .nullable()
+            .refine((value) => value === null || isThemeKey(value), { message: 'unknown theme' })
+            .optional(),
+    })
+    .strict()
+    .refine((value) => value.name !== undefined || value.theme !== undefined, {
+        message: 'at least one room setting is required',
+    })
 
 /**
  * `memberToken` sits in the body rather than the header for the same reason it
@@ -269,7 +279,7 @@ export const reactionSchema = z.object({
  * field would turn lighthearted casting into an unmoderated writing surface.
  */
 export const memberAvatarSchema = z.object({
-    // `nullable`, not `nullish`, for the reason `roomThemeSchema` gives: a
+    // `nullable`, not `nullish`, for the reason `roomSettingsSchema` gives: a
     // dropped field must not silently reset somebody's avatar.
     avatar: z
         .string()
@@ -278,7 +288,7 @@ export const memberAvatarSchema = z.object({
         .refine((value) => value === null || isAvatarKey(value), { message: 'unknown avatar' }),
 })
 
-export type RoomThemeBody = z.infer<typeof roomThemeSchema>
+export type RoomSettingsBody = z.infer<typeof roomSettingsSchema>
 export type ReactionBody = z.infer<typeof reactionSchema>
 export type MemberAvatarBody = z.infer<typeof memberAvatarSchema>
 // ── splitwise import ─────────────────────────────────────────────────────────
