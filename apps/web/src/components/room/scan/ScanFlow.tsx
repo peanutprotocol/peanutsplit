@@ -33,7 +33,7 @@
 
 import { useEffect, useReducer, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { api, isApiError } from '@/lib/api'
@@ -41,7 +41,7 @@ import type { ApiMember, CurrencyInfo, ParsedReceipt } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { ExpenseFormValues } from '@/lib/expense-form'
-import { decimalsOf, formatMinorPlain } from '@/lib/money'
+import { decimalsOf, formatAmountInput } from '@/lib/money'
 import { useFeedback } from '@/lib/use-settings'
 import { ScanAssign } from './ScanAssign'
 import { ScanReview } from './ScanReview'
@@ -88,6 +88,7 @@ export function ScanFlow({
     onApply,
 }: ScanFlowProps) {
     const t = useTranslations('room.scan')
+    const locale = useLocale()
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
 
@@ -175,7 +176,7 @@ export function ScanFlow({
                     type: 'reset',
                     state: initScanState(parsed, {
                         fallbackCurrency: roomCurrency,
-                        toInput: (minor) => formatMinorPlain(minor, decimals),
+                        toInput: (minor) => formatAmountInput(minor, decimals, locale),
                     }),
                 })
                 // Count only. What was on the receipt is between the user and
@@ -224,6 +225,7 @@ export function ScanFlow({
             base: baseValues,
             decimals,
             fallbackDescription: t('defaultDescription'),
+            locale,
         })
         track(
             'receipt_scan_applied',
