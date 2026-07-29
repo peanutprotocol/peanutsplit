@@ -77,12 +77,51 @@ describe('parseAmountToMinor', () => {
         it.each([
             ['en', '1,234', '123400'],
             ['en', '1,234.56', '123456'],
+            ['en', '1,023.45', '102345'],
             ['es', '1.234', '123400'],
             ['es', '1.234,56', '123456'],
+            ['es', '1.023,45', '102345'],
             ['pt-BR', '1.234', '123400'],
             ['pt-BR', '1.234,56', '123456'],
+            ['pt-BR', '1.023,45', '102345'],
         ])('reads locale grouping in %s without changing the intended units', (locale, input, expected) => {
             expect(parseAmountToMinor(input, 2, locale)).toBe(expected)
+        })
+
+        it.each([
+            ['en', '0.12'],
+            ['es', '0,12'],
+            ['pt-BR', '0,12'],
+        ])('preserves a canonical fractional value in %s', (locale, input) => {
+            expect(parseAmountToMinor(input, 2, locale)).toBe('12')
+        })
+
+        it.each([
+            ['en', '0,123', 2],
+            ['en', '00,123', 2],
+            ['es', '0.123', 2],
+            ['es', '00.123', 2],
+            ['pt-BR', '0.123', 2],
+            ['pt-BR', '00.123', 2],
+            ['en', '0,123', 0],
+            ['en', '00,123', 0],
+            ['es', '0.123', 0],
+            ['es', '00.123', 0],
+            ['pt-BR', '0.123', 0],
+            ['pt-BR', '00.123', 0],
+        ])('rejects noncanonical leading-zero grouping in %s at %idp', (locale, input, decimals) => {
+            expect(parseAmountToMinor(input, decimals, locale)).toBeNull()
+        })
+
+        it.each([
+            ['en', '0,123.45'],
+            ['en', '00,123.45'],
+            ['es', '0.123,45'],
+            ['es', '00.123,45'],
+            ['pt-BR', '0.123,45'],
+            ['pt-BR', '00.123,45'],
+        ])('rejects leading-zero grouping before a decimal mark in %s', (locale, input) => {
+            expect(parseAmountToMinor(input, 2, locale)).toBeNull()
         })
 
         it.each([

@@ -282,6 +282,13 @@ test('one person can add a payer and submit an expense on their behalf', async (
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
 
+    const expenseWrites: string[] = []
+    page.on('request', (request) => {
+        if (request.method() === 'POST' && /\/api\/rooms\/[^/]+\/expenses$/.test(request.url())) {
+            expenseWrites.push(request.postData() ?? '')
+        }
+    })
+
     await page.getByTestId('open-add-expense').click()
     await expect(page.getByTestId('expense-composer')).toBeVisible()
     await expect(page.getByTestId('close-expense')).toBeVisible()
@@ -290,7 +297,16 @@ test('one person can add a payer and submit an expense on their behalf', async (
 
     // Money punctuation becomes visible before it can touch the ledger.
     // English grouping is read as grouping and normalised in the editable
-    // field; excess precision is rejected instead of rounding on save.
+    // field; excess precision and leading-zero pseudo-grouping are rejected
+    // instead of rounding or multiplying on save.
+    await page.getByTestId('expense-description').fill('Leading zero guard')
+    await page.getByTestId('expense-amount').fill('0,123')
+    await page.getByTestId('save-expense').click()
+    await expect(page.locator('#expense-amount-error')).toContainText('separators and decimal places')
+    await expect(page.getByTestId('expense-amount')).toHaveValue('0,123')
+    await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
+    expect(expenseWrites).toHaveLength(0)
+
     await page.getByTestId('expense-amount').fill('1,234')
     await page.getByTestId('expense-amount').press('Tab')
     await expect(page.getByTestId('expense-amount')).toHaveValue('1234.00')
