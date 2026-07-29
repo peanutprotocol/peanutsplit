@@ -5,8 +5,11 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
+import { BaseInput } from '@/components/ui/BaseInput'
+import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
-import { readRecentRooms, type RecentRoom } from '@/lib/recent-rooms'
+import { api, isApiError } from '@/lib/api'
+import { forgetRoom, readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
@@ -30,8 +33,8 @@ const relativeTime = (epochMs: number, locale: string): string => {
 
 /**
  * "Your rooms" — the only personalisation the landing page has, since there are no accounts.
- * Reads localStorage after mount (never during render, so SSR and hydration agree) and
- * renders nothing at all when the device has no history.
+ * Reads localStorage after mount (never during render, so SSR and hydration agree). The
+ * paste-link recovery stays available even when the device has no history.
  */
 export function YourRooms() {
     const t = useTranslations('marketing.rooms')
@@ -39,15 +42,61 @@ export function YourRooms() {
     const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
     const [recent, setRecent] = useState<RecentRoom[]>([])
+    const [expanded, setExpanded] = useState(false)
+    const [pastedLink, setPastedLink] = useState('')
+    const [recovering, setRecovering] = useState(false)
+    const [recoveryError, setRecoveryError] = useState<string | null>(null)
+    const [notice, setNotice] = useState<string | null>(null)
 
     useEffect(() => {
         setRecent(readRecentRooms())
     }, [])
 
-    if (recent.length === 0) return null
+    const visible = expanded ? recent : recent.slice(0, VISIBLE)
+    const overflow = recent.length - Math.min(recent.length, VISIBLE)
 
-    const visible = recent.slice(0, VISIBLE)
-    const overflow = recent.length - visible.length
+    const forget = (room: RecentRoom) => {
+        forgetRoom(room.slug)
+        setRecent((current) => current.filter((candidate) => candidate.slug !== room.slug))
+        setNotice(t('forgotten', { room: room.name }))
+        feedback('tick')
+    }
+
+    const recover = async (event: React.FormEvent) => {
+        event.preventDefault()
+        setNotice(null)
+        setRecoveryError(null)
+
+        const slug = roomSlugFromLink(pastedLink, window.location.origin)
+        if (!slug) {
+            setRecoveryError(t('recovery.invalid'))
+            return
+        }
+
+        setRecovering(true)
+        try {
+            const state = await api.room(slug)
+            rememberRoom({
+                slug: state.room.slug,
+                name: state.room.name,
+                emoji: state.room.emoji ?? undefined,
+                theme: state.room.theme ?? undefined,
+            })
+            setRecent(readRecentRooms())
+            setPastedLink('')
+            setRecoveryError(null)
+            setNotice(t('recovery.added', { room: state.room.name }))
+            feedback('pop')
+        } catch (error) {
+            setRecoveryError(
+                isApiError(error, 'NOT_FOUND') || isApiError(error, 'ROOM_NOT_FOUND')
+                    ? t('recovery.notFound')
+                    : t('recovery.failed')
+            )
+        } finally {
+            setRecovering(false)
+        }
+    }
 
     return (
         // The list can only exist after a localStorage read, so it necessarily
@@ -58,61 +107,152 @@ export function YourRooms() {
             animate={{ opacity: 1, y: 0 }}
             transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
             data-motion={motionAllowed ? 'ready' : 'still'}
-            className="mx-auto w-full max-w-xl px-5 py-10"
+            className="mx-auto w-full max-w-xl px-5 py-8 sm:py-10"
+            data-testid="recent-rooms"
         >
-            <div className="flex items-baseline justify-between">
-                <h2 className="text-h5">{t('title')}</h2>
-                <span className="text-sm text-grey-1">{t('subtitle')}</span>
-            </div>
+            {recent.length > 0 && (
+                <>
+                    <div className="flex items-baseline justify-between gap-4">
+                        <h2 className="text-h5">{t('title')}</h2>
+                        <span className="text-right text-sm text-grey-1">{t('subtitle')}</span>
+                    </div>
 
-            <ul className="mt-4 flex flex-col gap-3">
-                {visible.map((room, index) => (
-                    <motion.li
-                        key={room.slug}
-                        initial={motionAllowed ? { opacity: 0, y: 8 } : false}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={
-                            motionAllowed
-                                ? {
-                                      type: 'spring',
-                                      stiffness: 340,
-                                      damping: 30,
-                                      delay: 0.05 + index * 0.05,
-                                  }
-                                : { duration: 0 }
-                        }
-                    >
-                        <Link
-                            href={`/r/${room.slug}`}
-                            onClick={() => feedback('whoosh')}
-                            aria-label={`${t('openLabel')}: ${room.name}`}
-                            className="shadow-4 flex items-center gap-3 rounded-sm border border-n-1 bg-white p-3 transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
-                        >
-                            {/* The tile wears the room's own palette. Eight rooms rendered in
-                                one lavender square are eight identical rows you have to READ;
-                                the colour is the thing you actually recognise, and it is the
-                                same colour the room's header will be a tap later. Lavender
-                                stays the literal fallback, so an unthemed room is unchanged. */}
-                            <span
-                                aria-hidden="true"
-                                style={room.theme ? { backgroundColor: themeFor(room.theme).field } : undefined}
-                                className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
+                    <ul id="recent-room-list" className="mt-4 flex flex-col gap-3">
+                        {visible.map((room, index) => (
+                            <motion.li
+                                key={room.slug}
+                                initial={motionAllowed ? { opacity: 0, y: 8 } : false}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={
+                                    motionAllowed
+                                        ? {
+                                              type: 'spring',
+                                              stiffness: 340,
+                                              damping: 30,
+                                              delay: 0.05 + index * 0.05,
+                                          }
+                                        : { duration: 0 }
+                                }
+                                className="shadow-4 flex overflow-hidden rounded-sm border border-n-1 bg-white"
                             >
-                                <RoomEmblem value={room.emoji} size={26} />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                                <span className="block truncate text-h7">{room.name}</span>
-                                <span className="block text-sm text-grey-1">
-                                    {relativeTime(room.lastSeenAt, locale)}
-                                </span>
-                            </span>
-                            <Icon name="chevron-right" size={20} className="shrink-0 text-n-1" />
-                        </Link>
-                    </motion.li>
-                ))}
-            </ul>
+                                <Link
+                                    href={`/r/${room.slug}`}
+                                    onClick={() => feedback('whoosh')}
+                                    aria-label={`${t('openLabel')}: ${room.name}`}
+                                    className="flex min-w-0 flex-1 items-center gap-3 p-3 transition-colors hover:bg-primary-4/20"
+                                >
+                                    {/* The tile wears the room's own palette. Eight rooms rendered in
+                                        one lavender square are eight identical rows you have to READ;
+                                        the colour is the thing you actually recognise, and it is the
+                                        same colour the room's header will be a tap later. Lavender
+                                        stays the literal fallback, so an unthemed room is unchanged. */}
+                                    <span
+                                        aria-hidden="true"
+                                        style={room.theme ? { backgroundColor: themeFor(room.theme).field } : undefined}
+                                        className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
+                                    >
+                                        <RoomEmblem value={room.emoji} size={26} />
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block truncate text-h7">{room.name}</span>
+                                        <span className="block text-sm text-grey-1">
+                                            {relativeTime(room.lastSeenAt, locale)}
+                                        </span>
+                                    </span>
+                                    <Icon name="chevron-right" size={20} className="shrink-0 text-n-1" />
+                                </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => forget(room)}
+                                    aria-label={t('forgetLabel', { room: room.name })}
+                                    data-testid="forget-room"
+                                    data-room={room.slug}
+                                    className="flex min-w-12 shrink-0 items-center justify-center border-l border-n-1 text-grey-1 transition-colors hover:bg-primary-4/30 hover:text-n-1"
+                                >
+                                    <Icon name="trash" size={19} aria-hidden="true" />
+                                </button>
+                            </motion.li>
+                        ))}
+                    </ul>
 
-            {overflow > 0 && <p className="mt-3 text-sm text-grey-1">{t('more', { count: overflow })}</p>}
+                    {overflow > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setExpanded((current) => !current)
+                                feedback('tick')
+                            }}
+                            aria-expanded={expanded}
+                            aria-controls="recent-room-list"
+                            data-testid="more-rooms"
+                            className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-sm text-sm font-bold text-n-1 underline underline-offset-2"
+                        >
+                            {expanded ? t('less') : t('more', { count: overflow })}
+                            <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={17} aria-hidden="true" />
+                        </button>
+                    )}
+                </>
+            )}
+
+            <details
+                className={`${recent.length > 0 ? 'mt-5' : ''} rounded-sm border border-n-1 bg-white px-4`}
+                data-testid="room-link-recovery"
+            >
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-h7 [&::-webkit-details-marker]:hidden">
+                    <span>{t('recovery.title')}</span>
+                    <Icon name="chevron-down" size={18} className="shrink-0" aria-hidden="true" />
+                </summary>
+                <form onSubmit={recover} className="flex flex-col gap-3 border-t border-dashed border-n-1 pb-4 pt-4">
+                    <label className="text-sm font-bold" htmlFor="recover-room-link">
+                        {t('recovery.label')}
+                    </label>
+                    <BaseInput
+                        id="recover-room-link"
+                        value={pastedLink}
+                        onChange={(event) => {
+                            setPastedLink(event.target.value)
+                            setRecoveryError(null)
+                        }}
+                        placeholder={t('recovery.placeholder')}
+                        inputMode="url"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        aria-invalid={recoveryError ? 'true' : undefined}
+                        aria-describedby={recoveryError ? 'recover-room-error' : 'recover-room-hint'}
+                        data-testid="recover-room-input"
+                    />
+                    <p id="recover-room-hint" className="text-sm leading-5 text-grey-1">
+                        {t('recovery.hint')}
+                    </p>
+                    {recoveryError && (
+                        <p id="recover-room-error" role="alert" className="text-sm font-bold text-error">
+                            {recoveryError}
+                        </p>
+                    )}
+                    <Button
+                        type="submit"
+                        variant="stroke"
+                        size="medium"
+                        loading={recovering}
+                        disabled={!pastedLink.trim() || recovering}
+                        className="justify-center"
+                        data-testid="recover-room-submit"
+                    >
+                        {t('recovery.submit')}
+                    </Button>
+                </form>
+            </details>
+
+            {notice && (
+                <p
+                    role="status"
+                    className="mt-3 rounded-sm border border-n-1 bg-green-1 px-3 py-2 text-sm leading-5 text-n-1"
+                    data-testid="recent-room-notice"
+                >
+                    {notice}
+                </p>
+            )}
         </motion.section>
     )
 }

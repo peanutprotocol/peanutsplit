@@ -8,9 +8,10 @@
  * in-app `animationsEnabled` toggle is a taste preference. So the OS signal always
  * wins: it can only ever *remove* motion, and no in-app setting can restore it.
  *
- * Everything that animates consults `useMotionAllowed()` rather than
- * `useReducedMotion()` directly, so there is exactly one place this composition
- * lives.
+ * Components that need a meaningful still first frame consult
+ * `useMotionAllowed()`. The root `MotionConfig` consumes the same answer as a
+ * backstop for every motion/react surface, so there is exactly one composition
+ * of the two preferences.
  */
 
 import { useEffect, useSyncExternalStore } from 'react'

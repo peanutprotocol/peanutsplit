@@ -127,14 +127,16 @@
     animation: ps-drawer-in 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Kill-list. Two triggers, and they are not symmetric: `.reduce-animations` is
-   the in-app taste toggle stamped on <html> by `useAnimationPreferenceClass`,
-   the media query is the OS accessibility declaration, which always wins and
-   cannot be switched back on from inside the app. */
-.reduce-animations .animate-pop,
-.reduce-animations .animate-shake,
-.reduce-animations .animate-drawer-in {
+/* One CSS motion policy rather than a selector list that every new component
+   has to remember to join. `.reduce-animations` is the in-app taste toggle;
+   the media query is the OS accessibility declaration and always wins. State
+   still changes immediately, but no CSS animation or transition runs. */
+.reduce-animations *,
+.reduce-animations *::before,
+.reduce-animations *::after {
     animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
 }
 
 /* Decorative particles get `opacity: 0` as well as `animation: none`. Stopping a
@@ -151,11 +153,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .animate-pop,
-    .animate-shake,
-    .animate-drawer-in,
-    .group\/fold[open] > .landing-fold-body {
+    *,
+    *::before,
+    *::after {
         animation: none !important;
+        scroll-behavior: auto !important;
+        transition: none !important;
     }
 
     [data-decorative],

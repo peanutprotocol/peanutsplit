@@ -113,6 +113,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                     default: { type: 'spring', stiffness: 300, damping: 17, mass: 0.9, delay: 0.06 },
                     rotate: { duration: 0.62, delay: 0.06, times: [0, 0.55, 1], ease: 'easeOut' },
                 }}
+                data-testid="room-share-card"
             >
                 <Card shadowSize="6" className="overflow-hidden">
                     <div className="flex items-center gap-3 border-b border-n-1 bg-primary-1 px-4 py-4">
@@ -120,6 +121,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                             initial={!motionAllowed ? false : { scale: 0.4, rotate: -20 }}
                             animate={{ scale: 1, rotate: 0 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }}
+                            data-testid="room-share-doodle"
                             className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"
                         >
                             <RoomEmblem value={emoji} size={30} />
@@ -170,7 +172,10 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                     a thing that happened rather than a label that changed. The text
                     swaps outright — a crossfaded label leaves the button momentarily
                     empty, which reads as a bug. */}
-                <motion.div animate={copied ? { scale: [1, 1.02, 1] } : { scale: 1 }} transition={{ duration: 0.26 }}>
+                <motion.div
+                    animate={motionAllowed && copied ? { scale: [1, 1.02, 1] } : { scale: 1 }}
+                    transition={motionAllowed ? { duration: 0.26 } : { duration: 0 }}
+                >
                     <Button
                         variant="primary"
                         shadowSize="4"
@@ -179,10 +184,16 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                             <AnimatePresence mode="popLayout" initial={false}>
                                 <motion.span
                                     key={copied ? 'check' : 'copy'}
-                                    initial={{ scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 }}
+                                    initial={
+                                        motionAllowed ? { scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 } : false
+                                    }
                                     animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                                    exit={{ scale: 0.3, opacity: 0 }}
-                                    transition={{ type: 'spring', stiffness: 520, damping: 20 }}
+                                    exit={motionAllowed ? { scale: 0.3, opacity: 0 } : undefined}
+                                    transition={
+                                        motionAllowed
+                                            ? { type: 'spring', stiffness: 520, damping: 20 }
+                                            : { duration: 0 }
+                                    }
                                     className="flex items-center justify-center"
                                 >
                                     <Icon name={copied ? 'check' : 'copy'} size={18} />
@@ -200,7 +211,13 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                     </Button>
                 </motion.div>
                 {canShare && (
-                    <Button variant="stroke" onClick={share} icon="share" className="justify-center">
+                    <Button
+                        variant="stroke"
+                        onClick={share}
+                        icon="share"
+                        className="justify-center"
+                        data-testid="share-room"
+                    >
                         {t('share')}
                     </Button>
                 )}
