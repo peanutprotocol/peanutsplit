@@ -22,7 +22,6 @@ export function LandingProof() {
         <div className="landing-proof">
             <section data-testid="proof-link-identity" className="landing-proof-scene landing-proof-scene-link">
                 <div className="landing-proof-copy">
-                    <p>{t('linkIdentity.eyebrow')}</p>
                     <h2>{t('linkIdentity.title')}</h2>
                     <span>{t('linkIdentity.body')}</span>
                 </div>
@@ -57,7 +56,6 @@ export function LandingProof() {
 
             <section data-testid="proof-everyone-adds" className="landing-proof-scene landing-proof-scene-expenses">
                 <div className="landing-proof-copy">
-                    <p>{t('everyoneAdds.eyebrow')}</p>
                     <h2>{t('everyoneAdds.title')}</h2>
                     <span>{t('everyoneAdds.body')}</span>
                 </div>
@@ -89,7 +87,6 @@ export function LandingProof() {
 
             <section data-testid="proof-suggested-plan" className="landing-proof-scene landing-proof-scene-plan">
                 <div className="landing-proof-copy">
-                    <p>{t('suggestedPlan.eyebrow')}</p>
                     <h2>{t('suggestedPlan.title')}</h2>
                     <span>{t('suggestedPlan.body')}</span>
                 </div>
@@ -133,7 +130,10 @@ export function LandingProof() {
             <section data-testid="room-examples" className="landing-room-examples">
                 <div className="landing-room-examples-heading">
                     <p>{t('examples.eyebrow')}</p>
-                    <h2>{t('examples.title')}</h2>
+                    <div className="landing-room-examples-copy">
+                        <h2>{t('examples.title')}</h2>
+                        <span>{t('examples.body')}</span>
+                    </div>
                 </div>
                 <ul>
                     {examples.map((example) => (
