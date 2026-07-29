@@ -85,6 +85,7 @@ export const POST = (request: Request, ctx: Ctx) =>
                         amountMinor,
                         method: body.method ?? null,
                         note: body.note ?? null,
+                        receiptUrl: body.receiptUrl ?? null,
                         createdById: actorMemberId,
                     },
                 })

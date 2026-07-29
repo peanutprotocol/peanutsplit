@@ -37,6 +37,8 @@ export interface ApiMember {
     /** A key from `lib/avatars.ts`. Null exists only for legacy/pre-migration rows. */
     avatar: string | null
     createdAt: string
+    /** Only untouched names added on somebody else's behalf can be removed. */
+    canRemove?: boolean
 }
 
 export interface ApiShare {
@@ -85,6 +87,8 @@ export interface ApiSettlement {
     amountMinor: string
     method: SettlementMethod | string | null
     note: string | null
+    /** User-pasted documentation; Split never fetches or verifies it. */
+    receiptUrl?: string | null
     createdAt: string
 }
 
@@ -144,7 +148,10 @@ export interface ExpenseInput {
     description: string
     amountMinor: string
     currency: string
-    paidById: string
+    paidById?: string
+    /** New-expense-only draft. The server creates this member in the same
+     *  transaction as the expense, so a cancelled or failed form leaves no row. */
+    newPaidByName?: string
     splitMode: SplitMode
     /** EQUAL: defaults to every member in the room. */
     participantIds?: string[]
@@ -176,6 +183,7 @@ export interface SettlementInput {
     amountMinor: string
     method?: SettlementMethod | string | null
     note?: string | null
+    receiptUrl?: string | null
 }
 
 // ─── push ───────────────────────────────────────────────────────────────────
