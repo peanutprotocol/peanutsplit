@@ -617,12 +617,30 @@
             }
         },
         "avatar": {
-            "title": "Your avatar",
-            "hint": "Only you can change yours. Everyone in the room sees it.",
-            "open": "Change your avatar",
+            "title": "Alter egos",
+            "titleFor": "{name}'s alter ego",
+            "intro": "Choose the energy, not the appearance.",
+            "hint": "Anyone in this room can recast anyone. Keep it playful.",
+            "open": "Open the cast of characters",
             "option": "Use the {name} avatar",
-            "defaultOption": "Back to the one drawn from your name",
-            "failed": "could not change your avatar — try again"
+            "defaultOption": "Use the surprise persona picked from the member's name",
+            "failed": "could not change that alter ego — try again",
+            "castTitle": "Cast of characters",
+            "castHint": "Pick a friend, then give them a role. They can always return the favor.",
+            "chooseMember": "Choose who to cast",
+            "filterLabel": "Filter alter egos by vibe",
+            "surprise": "Surprise me",
+            "surpriseResult": "The name lottery picked {name}",
+            "automatic": "AUTO",
+            "filters": {
+                "all": "All",
+                "mischief": "Mischief",
+                "cozy": "Cozy",
+                "brainy": "Brainy",
+                "party": "Party",
+                "adventure": "Adventure",
+                "classic": "Classics"
+            }
         },
         "reactions": {
             "add": "React to this",

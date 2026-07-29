@@ -617,12 +617,30 @@
             }
         },
         "avatar": {
-            "title": "Tu avatar",
-            "hint": "Solo tú puedes cambiar el tuyo. Lo ve toda la sala.",
-            "open": "Cambiar tu avatar",
+            "title": "Alter egos",
+            "titleFor": "El alter ego de {name}",
+            "intro": "Elige la energía, no la apariencia.",
+            "hint": "Cualquiera en la sala puede cambiar el papel de cualquiera. Que siga siendo divertido.",
+            "open": "Abrir el reparto de personajes",
             "option": "Usar el avatar {name}",
-            "defaultOption": "Volver al que se dibuja con tu nombre",
-            "failed": "no se pudo cambiar tu avatar — inténtalo de nuevo"
+            "defaultOption": "Usar el personaje sorpresa elegido a partir del nombre",
+            "failed": "no se pudo cambiar ese alter ego — inténtalo de nuevo",
+            "castTitle": "Reparto de personajes",
+            "castHint": "Elige a alguien y dale un papel. Siempre puede devolverte el favor.",
+            "chooseMember": "Elige a quién asignar",
+            "filterLabel": "Filtrar alter egos por estilo",
+            "surprise": "Sorpréndeme",
+            "surpriseResult": "La lotería del nombre eligió a {name}",
+            "automatic": "AUTO",
+            "filters": {
+                "all": "Todos",
+                "mischief": "Travesura",
+                "cozy": "Acogedor",
+                "brainy": "Ingenio",
+                "party": "Fiesta",
+                "adventure": "Aventura",
+                "classic": "Clásicos"
+            }
         },
         "reactions": {
             "add": "Reaccionar",

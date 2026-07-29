@@ -1,54 +1,88 @@
 /**
- * The avatar catalog.
- *
- * Two claims are load-bearing and neither is obvious from reading the file: a
- * member who never opens the picker must render exactly the portrait they
- * rendered before it existed, and the key allowlist has to be an allowlist —
- * `'toString' in AVATARS` is true for every object in JavaScript.
+ * The alter-ego catalog. These tests pin the product rule, not SVG pixels:
+ * defaults are stable and non-human, the picker offers real breadth, old stored
+ * keys remain readable, and the database allowlist stays an allowlist.
  */
 import { describe, expect, it } from 'vitest'
 import { DOODLE } from '@/components/ui/doodles'
-import { AVATARS, AVATAR_KEYS, avatarArt, avatarFamily, defaultAvatarArt, isAvatarKey } from './avatars'
+import {
+    AVATARS,
+    AVATAR_CATEGORIES,
+    AVATAR_KEYS,
+    CLASSIC_AVATARS,
+    PERSONAS,
+    PERSONA_KEYS,
+    avatarArt,
+    avatarFamily,
+    defaultAvatarArt,
+    defaultAvatarKey,
+    isAvatarKey,
+} from './avatars'
 
-describe('the default portrait', () => {
-    /** The exact arithmetic the shipped component used, restated here so a
-     *  refactor of `defaultAvatarArt` that changes anybody's face fails loudly. */
-    const HAIR = [
-        'M8 13C8.2 8.1 11.1 5.1 16.2 5.3C21.7 5.4 24 9 24 13C21.6 11.7 19.4 9.8 17.9 7.6C15.6 10.2 12.4 11.9 8 13Z',
-        'M8.4 13.2C8.6 8 11.2 5.4 16.1 5.4C20.6 5.4 23.5 7.9 23.8 12.7C21.8 10.4 19.4 9.2 16.7 9.1C13.8 9.1 11.5 10.4 8.4 13.2Z',
-        'M8.2 12.9C8.7 8 11.1 5.5 15.9 5.4C20.8 5.3 23.5 8.2 23.8 12.8C21.4 11.5 19.9 9 19.4 7.2C17.4 9.9 14.1 11.3 8.2 12.9Z',
-    ]
-    const BACKGROUNDS = ['#FAE184', '#FFF4CC', '#B8F0C5', '#C9D3F3', '#F6C7EC']
-    const seedOf = (name: string) => [...name].reduce((total, ch) => total + (ch.codePointAt(0) ?? 0), 0)
-
-    it.each(['Ana', 'Bruno', 'María', 'Kwame', '', '한', '👩‍🚀'])('is unchanged for %j', (name) => {
-        const seed = seedOf(name)
-        const art = defaultAvatarArt(name)
-        expect(art.hair).toBe(HAIR[seed % 3])
-        expect(art.background).toBe(BACKGROUNDS[seed % 5])
-        expect(art.smile).toBe(
-            seed % 2 === 0 ? 'M12.5 21.2C14.4 22.7 17.5 22.8 19.6 21' : 'M12.7 21C14.6 22 17.1 22.1 19.3 20.8'
-        )
+describe('the default alter ego', () => {
+    it.each(['Ana', 'Bruno', 'María', 'Kwame', '', '한', '👩‍🚀'])('is a stable, non-human persona for %j', (name) => {
+        const key = defaultAvatarKey(name)
+        expect(PERSONA_KEYS).toContain(key)
+        expect(defaultAvatarKey(name)).toBe(key)
+        expect(defaultAvatarArt(name)).toEqual(PERSONAS[key])
+        expect(defaultAvatarArt(name).kind).toBe('persona')
     })
 
-    it('is stable — the same name always draws the same face', () => {
-        expect(defaultAvatarArt('Ana')).toEqual(defaultAvatarArt('Ana'))
+    it('spreads ordinary names across the cast instead of making one mascot the default', () => {
+        const defaults = new Set(
+            ['Ana', 'Bruno', 'Cleo', 'Davi', 'Eli', 'Fatima', 'Gus', 'Hana', 'Ivo', 'Jules'].map(defaultAvatarKey)
+        )
+        expect(defaults.size).toBeGreaterThanOrEqual(6)
     })
 })
 
-describe('isAvatarKey', () => {
-    it('accepts every key in the catalog', () => {
-        for (const key of AVATAR_KEYS) expect(isAvatarKey(key)).toBe(true)
+describe('the catalog', () => {
+    it('offers thirty named personas across five social vibes', () => {
+        expect(PERSONA_KEYS).toHaveLength(30)
+        expect(AVATAR_CATEGORIES).toHaveLength(5)
+        for (const category of AVATAR_CATEGORIES) {
+            expect(
+                PERSONA_KEYS.filter((key) => PERSONAS[key].category === category),
+                category
+            ).toHaveLength(6)
+        }
     })
 
-    it('rejects inherited properties, near-misses and non-strings', () => {
+    it('includes the strange combinations promised by the interaction', () => {
+        expect(PERSONAS['vampire-penguin'].label).toBe('Vampire Penguin')
+        expect(PERSONAS['pirate-parrot'].label).toBe('Pirate Parrot')
+        expect(PERSONAS['astronaut-avocado'].label).toBe('Astronaut Avocado')
+        expect(PERSONAS['rockstar-strawberry'].creature).toBe('strawberry')
+        expect(PERSONAS['ninja-pear'].creature).toBe('pear')
+    })
+
+    it('has unique names, vibes and creature/costume combinations', () => {
+        expect(new Set(PERSONA_KEYS.map((key) => PERSONAS[key].label)).size).toBe(PERSONA_KEYS.length)
+        expect(new Set(PERSONA_KEYS.map((key) => PERSONAS[key].vibe)).size).toBe(PERSONA_KEYS.length)
+        expect(new Set(PERSONA_KEYS.map((key) => `${PERSONAS[key].creature}/${PERSONAS[key].costume}`)).size).toBe(
+            PERSONA_KEYS.length
+        )
+    })
+
+    it('keeps classic non-human doodles valid and points only at real drawings', () => {
+        for (const art of Object.values(CLASSIC_AVATARS)) expect(DOODLE[art.doodle]).toBeTruthy()
+    })
+
+    it('does not show the old human face keys in the picker', () => {
+        expect(AVATAR_KEYS.some((key) => key.startsWith('face-'))).toBe(false)
+    })
+})
+
+describe('compatibility and validation', () => {
+    it('accepts every picker key and rejects prototype keys and near misses', () => {
+        for (const key of AVATAR_KEYS) expect(isAvatarKey(key)).toBe(true)
         for (const value of [
             'constructor',
             'toString',
             '__proto__',
             'hasOwnProperty',
-            'FACE-BUN',
-            'face-bun ',
+            'vampire-penguin ',
+            'VAMPIRE-PENGUIN',
             'mountain',
             '',
             null,
@@ -59,46 +93,38 @@ describe('isAvatarKey', () => {
             expect(isAvatarKey(value), String(value)).toBe(false)
         }
     })
-})
 
-describe('avatarArt', () => {
-    it('draws the picked avatar when the key is known', () => {
-        expect(avatarArt('doodle-dog', 'Ana')).toEqual(AVATARS['doodle-dog'])
-    })
-
-    /** A key retired in a future commit must degrade to a face, never to a hole
-     *  in the roster. */
-    it('falls back to the name-derived portrait for null and for junk', () => {
-        expect(avatarArt(null, 'Ana')).toEqual(defaultAvatarArt('Ana'))
-        expect(avatarArt(undefined, 'Ana')).toEqual(defaultAvatarArt('Ana'))
-        expect(avatarArt('face-retired-in-2027', 'Ana')).toEqual(defaultAvatarArt('Ana'))
-    })
-})
-
-describe('the catalog itself', () => {
-    it('offers both families, with enough of each to find yourself in', () => {
-        const faces = AVATAR_KEYS.filter((key) => AVATARS[key].kind === 'face')
-        const doodles = AVATAR_KEYS.filter((key) => AVATARS[key].kind === 'doodle')
-        expect(faces.length).toBeGreaterThanOrEqual(8)
-        expect(doodles.length).toBeGreaterThanOrEqual(8)
-    })
-
-    it('names only drawings that exist', () => {
-        for (const key of AVATAR_KEYS) {
-            const art = AVATARS[key]
-            if (art.kind === 'doodle') expect(DOODLE[art.doodle], key).toBeTruthy()
+    it('redraws every legacy human-face key as a persona without reoffering it', () => {
+        for (const key of [
+            'face-swoop',
+            'face-bob',
+            'face-crop',
+            'face-long',
+            'face-bun',
+            'face-curls',
+            'face-cap',
+            'face-beard',
+            'face-bald',
+        ]) {
+            expect(isAvatarKey(key)).toBe(true)
+            expect(avatarArt(key, 'Ana').kind).toBe('persona')
+            expect(AVATAR_KEYS).not.toContain(key)
         }
     })
 
-    it('has no duplicate artwork — twenty tiles that render as twelve is a worse grid than twelve', () => {
-        const drawn = AVATAR_KEYS.map((key) => JSON.stringify(AVATARS[key]))
-        expect(new Set(drawn).size).toBe(drawn.length)
+    it('draws a known pick and safely defaults null, undefined and retired junk', () => {
+        expect(avatarArt('vampire-penguin', 'Ana')).toEqual(PERSONAS['vampire-penguin'])
+        expect(avatarArt('doodle-dog', 'Ana')).toEqual(AVATARS['doodle-dog'])
+        expect(avatarArt(null, 'Ana')).toEqual(defaultAvatarArt('Ana'))
+        expect(avatarArt(undefined, 'Ana')).toEqual(defaultAvatarArt('Ana'))
+        expect(avatarArt('retired-in-2027', 'Ana')).toEqual(defaultAvatarArt('Ana'))
     })
 })
 
 describe('avatarFamily — what analytics is allowed to know', () => {
-    it('reports the family and never the key', () => {
-        expect(avatarFamily('face-bun')).toBe('face')
+    it('reports only the broad family and never a key or target member', () => {
+        expect(avatarFamily('vampire-penguin')).toBe('persona')
+        expect(avatarFamily('face-bun')).toBe('persona')
         expect(avatarFamily('doodle-dog')).toBe('doodle')
         expect(avatarFamily(null)).toBe('default')
         expect(avatarFamily('something-else')).toBe('default')

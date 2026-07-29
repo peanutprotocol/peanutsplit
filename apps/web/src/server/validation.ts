@@ -259,15 +259,13 @@ export const reactionSchema = z.object({
 })
 
 /**
- * A member's avatar: a key from `lib/avatars.ts`, or null for the portrait drawn
- * from their name. Anything else is rejected rather than stored — the same
- * argument the theme key gets, plus one more. This value renders next to a
- * person's name on everybody else's phone, so a free-text column here would be
- * a place to write something about somebody, on a surface with no moderation.
+ * A member's alter ego: a key from `lib/avatars.ts`, or null for the stable
+ * surprise derived from their name. Anyone in the link-trusted room can cast
+ * anyone else, just as they can add an expense on somebody's behalf.
  *
- * The token rides in the body, like reactions and push subscriptions do, because
- * here it is PROOF and not attribution: the member id is in the path, and the
- * only caller who may change that member's face is the device holding its token.
+ * Anything outside the catalog is rejected rather than stored. This value
+ * renders beside a person's name on everybody else's phone, so a free-text
+ * field would turn lighthearted casting into an unmoderated writing surface.
  */
 export const memberAvatarSchema = z.object({
     // `nullable`, not `nullish`, for the reason `roomThemeSchema` gives: a
@@ -277,7 +275,6 @@ export const memberAvatarSchema = z.object({
         .max(40)
         .nullable()
         .refine((value) => value === null || isAvatarKey(value), { message: 'unknown avatar' }),
-    memberToken: memberSecret,
 })
 
 export type RoomThemeBody = z.infer<typeof roomThemeSchema>

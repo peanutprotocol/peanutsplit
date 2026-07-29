@@ -34,7 +34,7 @@ export interface ApiRoom {
 export interface ApiMember {
     id: string
     name: string
-    /** A key from `lib/avatars.ts`. Null = the portrait drawn from the name. */
+    /** A key from `lib/avatars.ts`. Null = the stable persona derived from the name. */
     avatar: string | null
     createdAt: string
 }
@@ -162,11 +162,10 @@ export interface ReactionInput {
     memberToken: string
 }
 
-/** The member is named in the path; the token in the body is proof it is you. */
+/** The member is named in the path; the room link is the shared-room credential. */
 export interface MemberAvatarInput {
-    /** A key from `lib/avatars.ts`, or null for the name-derived portrait. */
+    /** A key from `lib/avatars.ts`, or null for the name-derived persona. */
     avatar: string | null
-    memberToken: string
 }
 
 export interface SettlementInput {

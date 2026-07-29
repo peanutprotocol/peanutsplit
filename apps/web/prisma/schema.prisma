@@ -50,15 +50,15 @@ model Room {
 }
 
 model Member {
-  id     String @id @default(uuid())
-  roomId String
-  name   String
-  token  String @unique // stable server-issued secret, returned only to a device claiming this member
+  id        String    @id @default(uuid())
+  roomId    String
+  name      String
+  token     String    @unique // stable server-issued secret, returned only to a device claiming this member
   // A KEY into the code-side catalog in `lib/avatars.ts`, never artwork and never
-  // a URL. Null is the portrait drawn from the name, so a member written before
+  // a URL. Null is the persona derived from the name, so a member written before
   // the picker existed and a member who never opened it are the same row.
-  // Changing it needs the token above: an avatar is social identity, like a
-  // reaction, not a ledger row anyone with the link may write.
+  // Like the roster itself, this is shared table banter: any room link-holder
+  // may cast any room member, but only with an allowlisted key.
   avatar    String?
   userId    String? // claim hook — null until account linking ships
   createdAt DateTime  @default(now())
@@ -66,13 +66,13 @@ model Member {
   room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  paidExpenses       Expense[]      @relation("ExpensePaidBy")
-  createdExpenses    Expense[]      @relation("ExpenseCreatedBy")
+  paidExpenses       Expense[]         @relation("ExpensePaidBy")
+  createdExpenses    Expense[]         @relation("ExpenseCreatedBy")
   shares             ExpenseShare[]
   reactions          ExpenseReaction[]
-  settlementsFrom    Settlement[]   @relation("SettlementFrom")
-  settlementsTo      Settlement[]   @relation("SettlementTo")
-  createdSettlements Settlement[]   @relation("SettlementCreatedBy")
+  settlementsFrom    Settlement[]      @relation("SettlementFrom")
+  settlementsTo      Settlement[]      @relation("SettlementTo")
+  createdSettlements Settlement[]      @relation("SettlementCreatedBy")
 
   pushSubscriptions PushSubscription[]
 

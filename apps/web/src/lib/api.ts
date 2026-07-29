@@ -247,8 +247,8 @@ export const api = {
     setTheme: (slug: string, theme: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { theme } }),
 
-    /** Your own avatar. The member is in the path and the token is in the body,
-     *  because here the token is proof rather than attribution — see the route. */
+    /** One member's playful persona. Like the roster and ledger, this is a
+     *  shared-room edit: the room link is the credential. */
     setMemberAvatar: (slug: string, memberId: string, input: MemberAvatarInput) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}`, {
             method: 'PATCH',

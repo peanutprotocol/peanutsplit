@@ -484,23 +484,17 @@ export function useSetTheme(slug: string) {
 }
 
 /**
- * Your own face, painted on the tap.
+ * One member's alter ego, painted on the tap.
  *
- * Optimistic for the same reason the theme is: the grid is something you flick
- * through, and a round trip per tile turns picking into waiting. On failure the
- * snapshot goes back, so a rejected avatar never lingers as a face the room
- * cannot see.
+ * Optimistic for the same reason the theme is: the grid is something a group
+ * flicks through together, and a round trip per tile kills the joke. On failure
+ * the snapshot goes back, so a rejected pick never lingers as a persona the
+ * room cannot see.
  */
-export function useSetAvatar(slug: string, memberId: string, memberToken?: string | null) {
+export function useSetAvatar(slug: string, memberId: string) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (avatar: string | null) => {
-            // Unreachable from the UI — the picker only renders for a member this
-            // device can prove — but the client must not send a request the
-            // server is certain to refuse.
-            if (!memberToken) throw new Error('no member token on this device')
-            return api.setMemberAvatar(slug, memberId, { avatar, memberToken })
-        },
+        mutationFn: (avatar: string | null) => api.setMemberAvatar(slug, memberId, { avatar }),
         onMutate: async (avatar) => {
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
