@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
@@ -41,8 +42,8 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                 {t('stageSummary')}
             </p>
 
-            <div data-testid="pass-link-stage" data-state={state} className="pass-link-stage" aria-hidden="true">
-                <div data-testid="pass-link-channel-doodles" className="pass-link-channels">
+            <div data-testid="pass-link-stage" data-state={state} className="pass-link-stage">
+                <div data-testid="pass-link-channel-doodles" className="pass-link-channels" aria-hidden="true">
                     {CHANNELS.map((channel) => (
                         <span
                             key={channel}
@@ -54,102 +55,92 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                     ))}
                 </div>
 
-                <p data-testid="pass-link-no-signup" className="pass-link-stage-badge">
+                <p data-testid="pass-link-no-signup" className="pass-link-stage-badge" aria-hidden="true">
                     {t('chat.badge')}
                 </p>
 
-                <article data-testid="pass-link-chat-frame" className="pass-link-chat-frame">
-                    <header className="pass-link-chat-header">
-                        <span className="pass-link-chat-back">
-                            <Doodle name="iconarrowleft" size={18} weight={2.2} />
-                        </span>
-                        <span data-testid="pass-link-chat-app-mark" className="pass-link-chat-group-mark">
-                            <Doodle name="channelmessenger" size={24} weight={1.9} />
-                            <i />
-                        </span>
-                        <div className="pass-link-chat-title">
-                            <strong>{shownRoomName}</strong>
-                            <small>{t('chat.participants')}</small>
-                        </div>
-                        <div className="pass-link-chat-controls">
-                            <span>
-                                <Doodle name="iconcamera" size={19} weight={2} />
+                <Link
+                    href="/new"
+                    aria-label={t('cta')}
+                    data-testid="pass-link-chat-link"
+                    className="pass-link-chat-link"
+                >
+                    <article data-testid="pass-link-chat-frame" className="pass-link-chat-frame" aria-hidden="true">
+                        <header className="pass-link-chat-header">
+                            <span className="pass-link-chat-group-mark">
+                                <Doodle name="channelmessenger" size={24} weight={1.9} />
+                                <i />
                             </span>
-                            <span>
-                                <Doodle name="iconusers" size={19} weight={2} />
-                            </span>
-                        </div>
-                    </header>
-
-                    <div className="pass-link-chat-body">
-                        <div className="pass-link-message-row pass-link-chat-question">
-                            <span className="pass-link-mini-avatar">B</span>
-                            <div>
-                                <small>{t('chat.questionSender')}</small>
-                                <p className="pass-link-message">{t('chat.question')}</p>
+                            <div className="pass-link-chat-title">
+                                <strong>{shownRoomName}</strong>
+                                <small>{t('chat.participants')}</small>
                             </div>
-                        </div>
-
-                        <div className="pass-link-message-row pass-link-message-row-outgoing pass-link-chat-reply">
-                            <div>
-                                <small>{t('chat.you')}</small>
-                                <p className="pass-link-message">{t('chat.reply')}</p>
-                            </div>
-                        </div>
-
-                        <div className="pass-link-shared-wrap">
-                            <div className="pass-link-shared-card">
-                                <div className="pass-link-shared-brand">
-                                    <span>{t('chat.linkBrand')}</span>
-                                    <span className="pass-link-share-mark">
-                                        <Doodle name="iconshare" size={21} weight={2} />
+                            <div className="pass-link-avatar-stack">
+                                {PEOPLE.map((person) => (
+                                    <span key={person} className="pass-link-avatar">
+                                        {person === 'YOU' ? t('chat.youShort') : person}
                                     </span>
-                                </div>
-                                <div className="pass-link-shared-main">
-                                    <strong>{shownRoomName}</strong>
-                                    <b data-testid="pass-link-url">
-                                        peanutsplit.com/r/{stem}-<span>••••••</span>
-                                    </b>
-                                </div>
-                                <div className="pass-link-shared-footer">
-                                    <div className="pass-link-card-people">
-                                        {PEOPLE.map((person) => (
-                                            <span key={person} className="pass-link-avatar">
-                                                {person === 'YOU' ? t('chat.youShort') : person}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <strong>
-                                        {t('chat.linkPrompt')}
-                                        <span>
-                                            <Doodle name="iconarrowright" size={16} weight={2.2} />
-                                        </span>
-                                    </strong>
+                                ))}
+                            </div>
+                        </header>
+
+                        <div className="pass-link-chat-body">
+                            <div className="pass-link-message-row pass-link-chat-question">
+                                <span className="pass-link-mini-avatar">B</span>
+                                <div>
+                                    <small>{t('chat.questionSender')}</small>
+                                    <p className="pass-link-message">{t('chat.question')}</p>
                                 </div>
                             </div>
+
+                            <div className="pass-link-message-row pass-link-message-row-outgoing pass-link-chat-reply">
+                                <div>
+                                    <small>{t('chat.you')}</small>
+                                    <p className="pass-link-message">{t('chat.reply')}</p>
+                                </div>
+                            </div>
+
+                            <div className="pass-link-shared-wrap">
+                                <div className="pass-link-shared-card">
+                                    <div className="pass-link-shared-brand">
+                                        <span>{t('chat.linkBrand')}</span>
+                                        <span className="pass-link-share-mark">
+                                            <Doodle name="iconshare" size={21} weight={2} />
+                                        </span>
+                                    </div>
+                                    <div className="pass-link-shared-main">
+                                        <strong>{shownRoomName}</strong>
+                                        <b data-testid="pass-link-url">
+                                            peanutsplit.com/r/{stem}-<span>••••••</span>
+                                        </b>
+                                    </div>
+                                    <div className="pass-link-shared-footer">
+                                        <div className="pass-link-card-people">
+                                            {PEOPLE.map((person) => (
+                                                <span key={person} className="pass-link-avatar">
+                                                    {person === 'YOU' ? t('chat.youShort') : person}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <strong>
+                                            {t('chat.linkPrompt')}
+                                            <span>
+                                                <Doodle name="iconarrowright" size={16} weight={2.2} />
+                                            </span>
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p className="pass-link-joined">
+                                <span>
+                                    <Doodle name="iconcheck" size={14} weight={2.2} />
+                                </span>
+                                {t('chat.joined')}
+                            </p>
                         </div>
-
-                        <p className="pass-link-joined">
-                            <span>
-                                <Doodle name="iconcheck" size={14} weight={2.2} />
-                            </span>
-                            {t('chat.joined')}
-                        </p>
-                    </div>
-
-                    <footer data-testid="pass-link-chat-composer" className="pass-link-chat-composer">
-                        <span className="pass-link-composer-action">
-                            <Doodle name="iconplus" size={16} weight={2.2} />
-                        </span>
-                        <span className="pass-link-composer-field">
-                            <span>{t('chat.composer')}</span>
-                            <Doodle name="reactionlove" size={16} weight={1.9} />
-                        </span>
-                        <span className="pass-link-composer-send">
-                            <Doodle name="iconarrowright" size={16} weight={2.2} />
-                        </span>
-                    </footer>
-                </article>
+                    </article>
+                </Link>
             </div>
         </div>
     )
