@@ -28,6 +28,9 @@ rollback can move a capability back.
 - Public V2 gate: **off in the 2026-07-29 production audit**.
 - Push delivery: UI and delivery infrastructure exist; the required real
   subscribe → notify → open loop on two devices has **not** been recorded.
+- `ROADMAP.md` is intentionally unchanged while parallel roadmap work is in
+  progress. Its older “live” push wording is not release evidence; this file is
+  the release-truth source until that shared document can be reconciled safely.
 
 | Capability | State | Evidence / next gate |
 | --- | --- | --- |
@@ -39,8 +42,10 @@ rollback can move a capability back.
 | Splitwise import | deployed dark | V2 gate is off; integrity gate remains held |
 | Natural-language expense entry | deployed dark | V2 gate is off |
 | Receipt scanning | held | Consent and real-device gates remain open; do not expose |
-| Payer lifecycle, settlement correction and quiet provenance | in progress | Ledger-trust lane on this feature branch |
-| Bounded saves and unambiguous amount punctuation | in progress | Resilience lane on this feature branch |
+| Payer lifecycle, settlement correction and quiet provenance | code-complete | Atomic staged payer, narrow cleanup, documentary Peanut receipt and settlement undo are verified on this feature branch |
+| Bounded saves and unambiguous amount punctuation | code-complete | Timeout/idempotency and locale-aware normalization tests pass on this feature branch |
+| Rejected queued-draft repair | held | A durable review/edit/retry/discard state needs the larger V2 recovery UI approved in the audit ruling |
+| Concurrent expense-edit conflict protection | held | Two-client discovery and a bounded recovery design remain required before implementation |
 | Landing/accessibility/recent-room recovery | in progress | Continuity lane on this feature branch |
 | Room-link recovery by paste | in progress | Continuity lane on this feature branch |
 | CSV and JSON room export | code-complete | Feature-branch tests pass; deploy not implied |
@@ -57,4 +62,3 @@ Before changing any row to `production-verified`:
    `production-verified` separate in release notes.
 5. For push, record subscribe → notify → open on two real devices. Infrastructure
    configuration, a visible opt-in button or a successful unit test is not that evidence.
-
