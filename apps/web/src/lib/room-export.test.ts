@@ -105,4 +105,16 @@ describe('room export', () => {
         expect(exportFilename(state.room.name, 'json')).toBe('lisbon-weekend.json')
         expect(exportFilename('✨', 'csv')).toBe('split-room.csv')
     })
+
+    it('does not turn user-authored spreadsheet cells into executable formulas', () => {
+        const hostile: RoomState = {
+            ...state,
+            expenses: [{ ...state.expenses[0], description: '=HYPERLINK("https://example.com")' }],
+        }
+        const csv = roomCsv(hostile)
+
+        expect(csv).toContain(`"'=HYPERLINK(""https://example.com"")"`)
+        // Numeric balances stay numeric so the spreadsheet remains useful.
+        expect(csv).toContain('balance,,,bea,,-2283,EUR')
+    })
 })
