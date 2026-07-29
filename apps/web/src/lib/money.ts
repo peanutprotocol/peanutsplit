@@ -70,11 +70,13 @@ function normaliseDecimalInput(input: string, locale?: string): string | null {
         const fraction = raw.slice(cut + 1)
         /**
          * The remaining separators only get stripped if they are actually grouping: one to three
-         * digits, then groups of exactly three. Without this, "1.2.3,4" would quietly become
-         * 123.4 — the parser would have invented a number nobody typed rather than refusing one
-         * it cannot read.
+         * digits beginning with 1–9, then groups of exactly three. A leading group such as
+         * `0,123` is not canonical grouping: accepting it would turn a plausible fractional
+         * entry into a number one thousand times larger. Without these checks, "1.2.3,4"
+         * would quietly become 123.4 — the parser would have invented a number nobody typed
+         * rather than refusing one it cannot read.
          */
-        const grouped = decimalSeparator === '.' ? /^\d{1,3}(,\d{3})*$/ : /^\d{1,3}(\.\d{3})*$/
+        const grouped = decimalSeparator === '.' ? /^[1-9]\d{0,2}(,\d{3})+$/ : /^[1-9]\d{0,2}(\.\d{3})+$/
         if (!grouped.test(whole)) return null
         if (!/^\d*$/.test(fraction)) return null
         return `${whole.replace(/[.,]/g, '')}.${fraction}`
@@ -86,7 +88,7 @@ function normaliseDecimalInput(input: string, locale?: string): string | null {
         const localeUsesCommaDecimal = locale.toLowerCase().startsWith('es') || locale.toLowerCase().startsWith('pt')
         const decimalSeparator = localeUsesCommaDecimal ? ',' : '.'
         const groupingSeparator = localeUsesCommaDecimal ? '.' : ','
-        const grouped = new RegExp(`^\\d{1,3}(${escaped}\\d{3})+$`)
+        const grouped = new RegExp(`^[1-9]\\d{0,2}(${escaped}\\d{3})+$`)
 
         /**
          * The active locale resolves the `1,234` ambiguity without guessing:
