@@ -47,8 +47,6 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
 
-    const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-
     const revealFallback = useCallback(() => {
         setCopyFailed(true)
         // Give them the next best thing: the link, selected, ready for ⌘C.
@@ -75,6 +73,13 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
     }, [url, slug, revealFallback, feedback])
 
     const share = useCallback(async () => {
+        // Web Share is mostly a phone feature. Keep Share as the primary action
+        // everywhere: on browsers without a native sheet it copies the same link,
+        // ready to paste into whatever the group uses.
+        if (typeof navigator.share !== 'function') {
+            await copy()
+            return
+        }
         feedback('whoosh')
         track('share_opened', roomProps(slug))
         try {
@@ -89,7 +94,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
         } catch {
             // AbortError just means they closed the sheet. Nothing to say.
         }
-    }, [roomName, url, slug, feedback, t])
+    }, [copy, roomName, url, slug, feedback, t])
 
     return (
         <div className="flex flex-col gap-6">
@@ -153,57 +158,59 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                                 <p className="text-sm text-error">{t('copyBlocked')}</p>
                             </div>
                         ) : (
-                            <p
-                                data-testid="room-link"
-                                className="select-text break-all rounded-sm border border-dashed border-n-1 bg-grey-3 px-3 py-3 text-sm font-bold"
+                            <div
+                                className="flex min-h-12 items-center gap-2 rounded-sm border border-dashed border-n-1 bg-grey-3 py-1 pl-3 pr-1"
+                                data-testid="room-link-row"
                             >
-                                {url}
-                            </p>
+                                <p
+                                    data-testid="room-link"
+                                    className="min-w-0 flex-1 select-text break-all text-sm font-bold"
+                                >
+                                    {url}
+                                </p>
+                                <motion.button
+                                    type="button"
+                                    onClick={copy}
+                                    aria-label={copied ? t('copied') : t('copy')}
+                                    data-testid="copy-link"
+                                    animate={
+                                        copied
+                                            ? { scale: [1, 1.08, 1], backgroundColor: '#98E9AB' }
+                                            : { scale: 1, backgroundColor: 'rgba(255,255,255,0)' }
+                                    }
+                                    transition={{ duration: 0.22 }}
+                                    className="flex size-9 shrink-0 items-center justify-center rounded-sm transition-transform active:translate-y-px"
+                                >
+                                    <AnimatePresence mode="popLayout" initial={false}>
+                                        <motion.span
+                                            key={copied ? 'check' : 'copy'}
+                                            initial={{ scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 }}
+                                            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                                            exit={{ scale: 0.3, opacity: 0 }}
+                                            transition={{ type: 'spring', stiffness: 520, damping: 20 }}
+                                            className="flex items-center justify-center"
+                                        >
+                                            <Icon name={copied ? 'check' : 'copy'} size={15} />
+                                        </motion.span>
+                                    </AnimatePresence>
+                                </motion.button>
+                            </div>
                         )}
                     </div>
                 </Card>
             </motion.div>
 
             <div className="flex flex-col gap-3">
-                {/* The success state morphs rather than swaps: the icon spins into a
-                    check and the whole button flicks to green, so the confirmation is
-                    a thing that happened rather than a label that changed. The text
-                    swaps outright — a crossfaded label leaves the button momentarily
-                    empty, which reads as a bug. */}
-                <motion.div animate={copied ? { scale: [1, 1.02, 1] } : { scale: 1 }} transition={{ duration: 0.26 }}>
-                    <Button
-                        variant="primary"
-                        shadowSize="4"
-                        onClick={copy}
-                        icon={
-                            <AnimatePresence mode="popLayout" initial={false}>
-                                <motion.span
-                                    key={copied ? 'check' : 'copy'}
-                                    initial={{ scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 }}
-                                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                                    exit={{ scale: 0.3, opacity: 0 }}
-                                    transition={{ type: 'spring', stiffness: 520, damping: 20 }}
-                                    className="flex items-center justify-center"
-                                >
-                                    <Icon name={copied ? 'check' : 'copy'} size={18} />
-                                </motion.span>
-                            </AnimatePresence>
-                        }
-                        className={
-                            copied
-                                ? 'justify-center !bg-green-1 transition-colors duration-150'
-                                : 'justify-center transition-colors duration-150'
-                        }
-                        data-testid="copy-link"
-                    >
-                        {copied ? t('copied') : t('copy')}
-                    </Button>
-                </motion.div>
-                {canShare && (
-                    <Button variant="stroke" onClick={share} icon="share" className="justify-center">
-                        {t('share')}
-                    </Button>
-                )}
+                <Button
+                    variant="primary"
+                    shadowSize="4"
+                    onClick={share}
+                    icon="share"
+                    className="justify-center"
+                    data-testid="share-link"
+                >
+                    {t('share')}
+                </Button>
                 {footer}
             </div>
 
