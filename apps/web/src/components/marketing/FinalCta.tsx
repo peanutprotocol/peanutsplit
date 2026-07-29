@@ -10,9 +10,8 @@ import { Button } from '@/components/ui/Button'
  * Same button as the hero on purpose — a different-looking primary action at the bottom reads
  * as a different action.
  *
- * There is no body line. It read "One link, ten seconds, and nobody has to install anything",
- * three sections after the eyebrow said "free · no account · no download" and one section after
- * the honesty strip said it again at length. The heading and the button carry the ask.
+ * The supporting line names the next group expense without repeating the hero's trust claims.
+ * It gives the broad headline a concrete job while the shared button still carries the ask.
  */
 export function FinalCta() {
     const t = useTranslations('marketing.finalCta')
@@ -21,6 +20,7 @@ export function FinalCta() {
         <section className="mx-auto w-full max-w-xl px-5 py-10">
             <div className="shadow-4 rounded-sm border border-n-1 bg-white p-5">
                 <h2 className="text-h5">{t('title')}</h2>
+                <p className="mt-2 text-sm leading-5 text-grey-1">{t('subtitle')}</p>
                 <Link href="/new" className="mt-4 block">
                     <Button variant="primary" shadowSize="4" className="justify-center text-h6">
                         {t('button')}

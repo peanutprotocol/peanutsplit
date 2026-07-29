@@ -71,7 +71,8 @@ still outstanding** and is the remaining half of the written condition.
   id 234225) and Sentry project `peanut-split` exist; keys are Dokploy build
   args. `src/lib/analytics.ts` activates on `NEXT_PUBLIC_POSTHOG_KEY`;
   `src/instrumentation-client.ts` on `NEXT_PUBLIC_SENTRY_DSN`.
-- **Web-push backend (dark):** subscriptions bound to proven members
+- **Web-push backend (live since 2026-07-29 — VAPID + proxy are set in prod;
+  the two-device loop below is still unexercised):** subscriptions bound to proven members
   (`POST /api/rooms/[slug]/push-subscriptions`, endpoint host allowlist),
   SW push/click handlers, idempotency-ledger send pipeline
   (`src/server/push.ts`, `NotificationSend` claim rows), event triggers on
@@ -138,6 +139,18 @@ still outstanding** and is the remaining half of the written condition.
   Known limits, all surfaced in the UI before anything is written: historic FX
   uses today's rate (Splitwise does not export the rate it used on the day), and
   settle-up rows arrive as balance-identical expenses rather than settlements.
+
+## Shipped 2026-07-28/29 overnight (Konrad)
+
+- **Hardening wave** — request-body caps on all JSON routes, serialized
+  settlement decisions / joins / push caps, idempotent money retries,
+  non-negative exact-share reconciliation, offline-queue lease + bounded
+  retries, cross-tab offline recovery, stale-ledger mutation guards, payer
+  tokens kept off the organizer's device, analytics contract made literally
+  identifier-free, join gate given real dialog semantics.
+- **Landing rework** — the room link as the landing-page story, approved copy
+  pass, doodle-native design system, marker testimonial portraits.
+  `feat/pass-the-link-landing` remains open (group-chat handoff section, WIP).
 
 ## To light up (remaining gates)
 
