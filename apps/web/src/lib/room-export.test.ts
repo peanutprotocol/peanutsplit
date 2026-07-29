@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RoomState } from './api-types'
+import { deriveBalance } from './balance-derivation'
 import { exportFilename, portableRoom, roomCsv, roomJson } from './room-export'
 
 const state: RoomState = {
@@ -51,8 +52,8 @@ const state: RoomState = {
             createdAt: '2026-07-03T10:00:00.000Z',
         },
     ],
-    balances: { ana: '2283', bea: '-2283' },
-    suggestedTransfers: [{ fromId: 'bea', toId: 'ana', amountMinor: '2283' }],
+    balances: { ana: '2567', bea: '-2567' },
+    suggestedTransfers: [{ fromId: 'bea', toId: 'ana', amountMinor: '2567' }],
 }
 
 describe('room export', () => {
@@ -83,6 +84,9 @@ describe('room export', () => {
         expect(parsed.version).toBe(1)
         expect(parsed.expenses[0].shares).toHaveLength(2)
         expect(parsed.suggestedTransfers).toEqual(state.suggestedTransfers)
+        for (const member of parsed.members) {
+            expect(deriveBalance(parsed, member.id).totalMinor).toBe(parsed.balances[member.id])
+        }
     })
 
     it('normalizes CSV rows without losing exact shares, FX, settlements or punctuation', () => {
@@ -93,9 +97,9 @@ describe('room export', () => {
         expect(csv).toContain('expense,expense-1')
         expect(csv).toContain('share,,expense-1,ana,,7000,EUR,,5932,1.179991000000,EXACT')
         expect(csv).toContain('settlement,settlement-1,,,,5000,EUR')
-        expect(csv).toContain('balance,,,ana,,2283,EUR')
-        expect(csv).toContain('balance,,,bea,,-2283,EUR')
-        expect(csv).toContain('suggested_transfer,,,,,2283,EUR')
+        expect(csv).toContain('balance,,,ana,,2567,EUR')
+        expect(csv).toContain('balance,,,bea,,-2567,EUR')
+        expect(csv).toContain('suggested_transfer,,,,,2567,EUR')
         expect(csv).toContain('bea,ana')
         expect(csv).toContain('"Receipt: https://example.com/receipt, documented only"')
         expect(csv).not.toContain(state.room.slug)
@@ -117,6 +121,24 @@ describe('room export', () => {
         expect(csv).toContain(`"'=HYPERLINK(""https://example.com"")"`)
         expect(csv).toContain(`'\t@SUM(1+1)`)
         // Numeric balances stay numeric so the spreadsheet remains useful.
-        expect(csv).toContain('balance,,,bea,,-2283,EUR')
+        expect(csv).toContain('balance,,,bea,,-2567,EUR')
+    })
+
+    it('keeps a maximum-size room and Unicode names readable in both formats', () => {
+        const large: RoomState = {
+            ...state,
+            members: [{ ...state.members[0], name: 'María 東京' }, state.members[1]],
+            expenses: Array.from({ length: 500 }, (_, index) => ({
+                ...state.expenses[0],
+                id: `expense-${index}`,
+                description: `Café ${index}`,
+            })),
+        }
+
+        expect(JSON.parse(roomJson(large)).expenses).toHaveLength(500)
+        const csv = roomCsv(large)
+        expect(csv).toContain('María 東京')
+        expect(csv.match(/^expense,/gm)).toHaveLength(500)
+        expect(csv.match(/^share,/gm)).toHaveLength(1_000)
     })
 })
