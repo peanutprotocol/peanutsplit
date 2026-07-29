@@ -30,6 +30,7 @@ import { splitV2Enabled } from '@/lib/flags'
 import { currencyInfo, formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
+    useAddMember,
     useDeleteExpense,
     useModelStatus,
     useRestoreExpense,
@@ -80,6 +81,9 @@ export function ExpenseDrawer({
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
+    /** Adding a participant is a real roster write (`intent: 'add'`), unlike the
+     *  payer field, whose new name stays a draft until the expense commits. */
+    const addMember = useAddMember(slug)
     const feedback = useFeedback()
     const { ref: formRef, shake } = useShake<HTMLDivElement>()
     const hints = useCurrencyHints()
