@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
-import { AccountPanel } from '@/components/account/AccountPanel'
 import { AvatarPicker } from '@/components/room/AvatarPicker'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { ThemePicker } from '@/components/room/ThemePicker'
@@ -86,7 +85,6 @@ function SettingToggle({
 export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const tLocale = useTranslations('locale')
-    const tAccount = useTranslations('account')
     const [menuOpen, setMenuOpen] = useState(false)
     const { settings, setSoundEnabled, setHapticsEnabled, setAnimationsEnabled } = useSettings()
     const tSettings = useTranslations('settings')
@@ -267,11 +265,6 @@ export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: Ro
                             drawer rather than anywhere global. Renders nothing on a browser
                             that cannot do push at all. */}
                         <PushOptIn slug={room.slug} identity={identity} />
-
-                        {/* An account is optional, does nothing but carry your rooms to
-                            another device, and never gates anything in this drawer or
-                            outside it. Hidden entirely until the flag is on. */}
-                        <AccountPanel heading={tAccount('title')} />
 
                         {/* The room drawer is the only place a language can be changed inside
                             the product — the landing footer is the other, and a room is where

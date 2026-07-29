@@ -37,7 +37,6 @@
         "@tanstack/react-query": "^5.85.0",
         "gray-matter": "^4.0.3",
         "https-proxy-agent": "^9.1.0",
-        "jose": "^6.2.3",
         "motion": "^12.23.12",
         "next": "16.2.3",
         "next-intl": "^4.3.4",

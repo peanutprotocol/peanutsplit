@@ -93,22 +93,6 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
     }
 }
 
-/**
- * Fired when the list changes underneath a surface that has already read it.
- *
- * Only account recovery needs this: every other write happens on the room page,
- * which is a different screen from the list. Recovery writes a dozen rooms into
- * storage while "Your rooms" is mounted and showing what was there a second ago,
- * and a list that only updates on the next reload is the one moment the feature
- * exists for, missed.
- */
-export const ROOMS_CHANGED_EVENT = 'ps:rooms-changed'
-
-export function notifyRoomsChanged(): void {
-    if (!isBrowser()) return
-    window.dispatchEvent(new Event(ROOMS_CHANGED_EVENT))
-}
-
 /** Drop a room from the list (archived, or the user asked us to forget it). */
 export function forgetRoom(slug: string): void {
     if (!isBrowser()) return

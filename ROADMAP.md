@@ -106,16 +106,15 @@ still outstanding** and is the remaining half of the written condition.
   (paid/shares/settlements, chronological, signed, foreign originals), pair
   view that refuses to fake pairwise attribution and shows both sheets instead;
   proven by a 300-random-room property test against the server's own fold.
-- **Accounts + push UI** — gated dark behind `NEXT_PUBLIC_ACCOUNTS_ENABLED` /
-  VAPID build args: email save/recover panel, `?login=1` attach-and-merge
-  recovery, six-state push opt-in row (never burns iOS's permission one-shot),
-  token-proven subscribe with rollback on server failure.
+- **Push UI** — gated by VAPID build args: six-state push opt-in row (never
+  burns iOS's permission one-shot), token-proven subscribe with rollback on
+  server failure.
 - **Infra** — `split-egress` squid pinhole live on the box and verified
-  (push gateways + email API only, port 443 CONNECT, everything else 403);
-  VAPID keys + auth secret set as runtime env; all `NEXT_PUBLIC_*` build args
-  now have Dockerfile ARG/ENV pairs (the missing PostHog pair was found and
-  fixed — a configured build arg the Dockerfile doesn't declare is silently
-  dropped).
+  (push gateways and configured model providers only, port 443 CONNECT,
+  everything else 403); VAPID keys set as runtime env; all `NEXT_PUBLIC_*`
+  build args now have Dockerfile ARG/ENV pairs (the missing PostHog pair was
+  found and fixed — a configured build arg the Dockerfile doesn't declare is
+  silently dropped).
 
 ## Shipped 2026-07-28, third wave
 
@@ -155,28 +154,14 @@ still outstanding** and is the remaining half of the written condition.
 ## To light up (remaining gates)
 
 Done 2026-07-28 and verified live: the `split-egress` squid pinhole (allowed
-CONNECT-443 to push gateways + `api.resend.com`, everything else 403), VAPID
-keys + `SPLIT_AUTH_SECRET` + proxy URL as runtime env, all build-arg ARG/ENV
-pairs, and PostHog events confirmed arriving in project 234225 from a real
-prod session. NEVER rotate the VAPID pair in place — every subscription dies
-silently; a rotation needs a dual-key window.
+CONNECT-443 to push gateways and configured model providers, everything else
+403), VAPID keys + proxy URL as runtime env, all build-arg ARG/ENV pairs, and
+PostHog events confirmed arriving in project 234225 from a real prod session.
+NEVER rotate the VAPID pair in place — every subscription dies silently; a
+rotation needs a dual-key window.
 
 Still gated:
 
-- **Email** [Hugo, two small steps left]: OneSignal app **"Peanut Split"**
-  (`f2137b49-b2ef-4c39-baa4-0bff5a81ef4c`, Squirrel Labs org, email-only,
-  deliberately separate from Peanut's app) exists; key is on the box
-  (`/root/.split-onesignal-key`) and staged in Dokploy env with
-  `SPLIT_EMAIL_FROM="Peanut Split <hello@peanutsplit.com>"`, sending domain
-  `mail.peanutsplit.com`. Remaining: (1) add the 8 additive DNS records at
-  Namecheap (list in the 2026-07-28 session report / OneSignal email settings)
-  and pass its Check Records; (2) ask OneSignal Support to enable email
-  sending on the new app (new-app anti-abuse gate — a direct API send returns
-  "Email sending for this app has been disabled"). Then flip
-  `NEXT_PUBLIC_ACCOUNTS_ENABLED=1` (build arg) + redeploy, and re-run the
-  request-link test. Optional hygiene: rotate the app key in-dashboard once
-  live (its value transited an automation transcript during setup). Resend
-  stays wired as the fallback transport.
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
   users about it.
@@ -221,8 +206,7 @@ Remaining candidates, ordered by expected value per effort:
 2. **Bill photo → itemized split** — snap a receipt, a vision model itemizes,
    assign items to people. Splitwise paywalls OCR; this is the sharpest "all
    premium features free" attack. Needs: one more allowlisted egress host + an
-   API key + capture/itemize/assign UI. A real build — the size of the accounts
-   wave.
+   API key + capture/itemize/assign UI. A real build, not a button.
 3. **Room themes** — user-picked palette/motif (today hash-derived), which also
    themes the OG unfurl. Small.
 4. **Expense reactions** — tap-to-react emoji on expenses. Social warmth with
