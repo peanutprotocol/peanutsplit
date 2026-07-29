@@ -1,0 +1,1685 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light" />
+		<title>Peanut Split — alter-ego picker review</title>
+		<style>
+			:root {
+				--ink: #202027;
+				--paper: #fffaf0;
+				--white: #fffdf8;
+				--yellow: #ffc900;
+				--soft-yellow: #fae184;
+				--mint: #b8f0c5;
+				--blue: #c9d3f3;
+				--pink: #f6c7ec;
+				--sky: #bdecf5;
+				--muted: #6d6971;
+				--danger: #f06464;
+				--shadow: 5px 5px 0 var(--ink);
+				--shadow-small: 3px 3px 0 var(--ink);
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			body {
+				margin: 0;
+				color: var(--ink);
+				background:
+					radial-gradient(circle at 12% 12%, rgb(255 201 0 / 22%) 0 7%, transparent 7.2%),
+					radial-gradient(circle at 88% 22%, rgb(184 240 197 / 35%) 0 9%, transparent 9.2%), var(--paper);
+				font-family: ui-rounded, 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+			}
+
+			button {
+				color: inherit;
+				font: inherit;
+			}
+
+			button:focus-visible,
+			a:focus-visible {
+				outline: 3px solid #765ac8;
+				outline-offset: 3px;
+			}
+
+			.topbar {
+				position: sticky;
+				z-index: 50;
+				top: 0;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 20px;
+				min-height: 66px;
+				padding: 12px clamp(18px, 4vw, 56px);
+				border-bottom: 2px solid var(--ink);
+				background: rgb(255 250 240 / 94%);
+				backdrop-filter: blur(10px);
+			}
+
+			.brand {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				font-size: 18px;
+				font-weight: 950;
+				letter-spacing: -0.03em;
+			}
+
+			.brand-mark {
+				display: grid;
+				width: 36px;
+				height: 36px;
+				place-items: center;
+				border: 2px solid var(--ink);
+				border-radius: 50%;
+				background: var(--yellow);
+				box-shadow: 2px 2px 0 var(--ink);
+				transform: rotate(-8deg);
+			}
+
+			.status {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				color: var(--muted);
+				font-size: 12px;
+				font-weight: 800;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+			}
+
+			.status-dot {
+				width: 9px;
+				height: 9px;
+				border: 1px solid var(--ink);
+				border-radius: 50%;
+				background: var(--mint);
+			}
+
+			main {
+				width: min(1500px, 100%);
+				margin: 0 auto;
+				padding: clamp(28px, 5vw, 72px) clamp(18px, 4vw, 56px) 80px;
+			}
+
+			.hero {
+				display: grid;
+				grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+				gap: clamp(24px, 5vw, 80px);
+				align-items: end;
+				margin-bottom: 34px;
+			}
+
+			.eyebrow,
+			.section-label {
+				margin: 0 0 10px;
+				color: var(--muted);
+				font-size: 12px;
+				font-weight: 950;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+			}
+
+			h1 {
+				max-width: 900px;
+				margin: 0;
+				font-size: clamp(42px, 7vw, 96px);
+				line-height: 0.91;
+				letter-spacing: -0.07em;
+			}
+
+			h1 span {
+				display: inline-block;
+				transform: rotate(-2deg);
+				text-decoration: underline;
+				text-decoration-color: var(--yellow);
+				text-decoration-thickness: 0.16em;
+				text-underline-offset: 0.05em;
+			}
+
+			.hero-note {
+				margin: 0;
+				padding: 18px;
+				border: 2px solid var(--ink);
+				background: var(--white);
+				box-shadow: var(--shadow);
+				font-size: 15px;
+				line-height: 1.45;
+				transform: rotate(1deg);
+			}
+
+			.hero-note strong {
+				display: block;
+				margin-bottom: 6px;
+				font-size: 18px;
+			}
+
+			.placement-tabs {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 12px;
+				margin: 0 0 22px;
+			}
+
+			.placement-tab {
+				position: relative;
+				min-height: 116px;
+				padding: 15px;
+				border: 2px solid var(--ink);
+				border-radius: 8px;
+				background: var(--white);
+				text-align: left;
+				cursor: pointer;
+				transition:
+					transform 120ms ease,
+					box-shadow 120ms ease;
+			}
+
+			.placement-tab:hover {
+				transform: translateY(-2px);
+			}
+
+			.placement-tab[aria-selected='true'] {
+				background: var(--yellow);
+				box-shadow: var(--shadow-small);
+				transform: translate(-2px, -2px);
+			}
+
+			.placement-tab .number {
+				display: inline-grid;
+				width: 24px;
+				height: 24px;
+				margin-bottom: 9px;
+				place-items: center;
+				border: 1.5px solid var(--ink);
+				border-radius: 50%;
+				background: var(--white);
+				font-size: 12px;
+				font-weight: 950;
+			}
+
+			.placement-tab strong {
+				display: block;
+				font-size: 17px;
+				line-height: 1.05;
+			}
+
+			.placement-tab small {
+				display: block;
+				margin-top: 5px;
+				color: #524f55;
+				font-size: 12px;
+				line-height: 1.25;
+			}
+
+			.recommended {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+				padding: 4px 7px;
+				border: 1px solid var(--ink);
+				border-radius: 999px;
+				background: var(--mint);
+				font-size: 9px;
+				font-weight: 950;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				transform: rotate(3deg);
+			}
+
+			.review-grid {
+				display: grid;
+				grid-template-columns: minmax(360px, 0.88fr) minmax(520px, 1.12fr);
+				gap: clamp(22px, 4vw, 56px);
+				align-items: start;
+			}
+
+			.stage {
+				position: sticky;
+				top: 88px;
+				display: grid;
+				min-height: 760px;
+				place-items: center;
+				overflow: hidden;
+				border: 2px solid var(--ink);
+				border-radius: 16px;
+				background: linear-gradient(130deg, rgb(255 255 255 / 40%), transparent), var(--blue);
+				box-shadow: var(--shadow);
+			}
+
+			.stage::before,
+			.stage::after {
+				position: absolute;
+				width: 130px;
+				height: 130px;
+				border: 2px solid var(--ink);
+				border-radius: 50%;
+				background: var(--pink);
+				content: '';
+			}
+
+			.stage::before {
+				top: -60px;
+				right: -35px;
+			}
+
+			.stage::after {
+				bottom: -70px;
+				left: -30px;
+				background: var(--mint);
+			}
+
+			.phone {
+				position: relative;
+				z-index: 2;
+				width: min(388px, calc(100% - 34px));
+				height: 700px;
+				overflow: hidden;
+				border: 3px solid var(--ink);
+				border-radius: 30px;
+				background: var(--paper);
+				box-shadow: 10px 12px 0 rgb(32 32 39 / 92%);
+			}
+
+			.phone::before {
+				position: absolute;
+				z-index: 20;
+				top: 9px;
+				left: 50%;
+				width: 72px;
+				height: 18px;
+				border: 2px solid var(--ink);
+				border-radius: 999px;
+				background: var(--ink);
+				content: '';
+				transform: translateX(-50%);
+			}
+
+			.phone-screen {
+				height: 100%;
+				overflow: hidden;
+			}
+
+			.room-header {
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				min-height: 79px;
+				padding: 28px 12px 10px;
+				border-bottom: 2px solid var(--ink);
+				background: var(--yellow);
+			}
+
+			.room-logo,
+			.square-button {
+				display: grid;
+				width: 38px;
+				height: 38px;
+				flex: 0 0 auto;
+				place-items: center;
+				border: 1.5px solid var(--ink);
+				border-radius: 6px;
+				background: var(--white);
+				box-shadow: 2px 2px 0 var(--ink);
+			}
+
+			.room-title {
+				min-width: 0;
+				flex: 1;
+			}
+
+			.room-title strong {
+				display: block;
+				overflow: hidden;
+				font-size: 16px;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.you-row {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				margin-top: 2px;
+				color: rgb(32 32 39 / 70%);
+				font-size: 9px;
+				font-weight: 950;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+
+			.room-body {
+				padding: 16px;
+			}
+
+			.balance-card,
+			.expense-row,
+			.member-card {
+				border: 1.5px solid var(--ink);
+				border-radius: 7px;
+				background: var(--white);
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.balance-card {
+				padding: 15px;
+			}
+
+			.balance-card small {
+				color: var(--muted);
+				font-size: 10px;
+				font-weight: 900;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
+			.balance-card strong {
+				display: block;
+				margin-top: 3px;
+				font-size: 30px;
+			}
+
+			.expense-row {
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				margin-top: 12px;
+				padding: 10px;
+				box-shadow: none;
+			}
+
+			.expense-copy {
+				min-width: 0;
+				flex: 1;
+			}
+
+			.expense-copy strong,
+			.expense-copy small {
+				display: block;
+			}
+
+			.expense-copy small {
+				margin-top: 2px;
+				color: var(--muted);
+				font-size: 10px;
+			}
+
+			.amount {
+				font-size: 14px;
+				font-weight: 950;
+			}
+
+			.avatar {
+				position: relative;
+				display: inline-grid;
+				width: var(--avatar-size, 40px);
+				height: var(--avatar-size, 40px);
+				flex: 0 0 auto;
+				place-items: center;
+				overflow: hidden;
+				border: 1.5px solid var(--ink);
+				border-radius: 50%;
+				background: var(--avatar-color, var(--soft-yellow));
+			}
+
+			.avatar .base {
+				font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+				font-size: calc(var(--avatar-size, 40px) * 0.57);
+				line-height: 1;
+				transform: translateY(1px);
+			}
+
+			.avatar .prop {
+				position: absolute;
+				top: -1px;
+				right: -1px;
+				display: grid;
+				width: calc(var(--avatar-size, 40px) * 0.42);
+				height: calc(var(--avatar-size, 40px) * 0.42);
+				place-items: center;
+				border: 1px solid var(--ink);
+				border-radius: 50%;
+				background: var(--white);
+				font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+				font-size: calc(var(--avatar-size, 40px) * 0.25);
+				line-height: 1;
+			}
+
+			.avatar.tiny {
+				--avatar-size: 18px;
+			}
+
+			.avatar.medium {
+				--avatar-size: 34px;
+			}
+
+			.avatar.large {
+				--avatar-size: 48px;
+			}
+
+			.avatar.tiny .prop {
+				display: none;
+			}
+
+			.picker-sheet {
+				position: absolute;
+				z-index: 10;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				max-height: 590px;
+				overflow: hidden;
+				border-top: 2px solid var(--ink);
+				border-radius: 17px 17px 0 0;
+				background: var(--paper);
+				box-shadow: 0 -6px 0 rgb(32 32 39 / 15%);
+			}
+
+			.sheet-handle {
+				width: 42px;
+				height: 5px;
+				margin: 8px auto 3px;
+				border-radius: 999px;
+				background: var(--ink);
+				opacity: 0.25;
+			}
+
+			.sheet-content {
+				max-height: 570px;
+				overflow-y: auto;
+				padding: 10px 13px 25px;
+			}
+
+			.sheet-title {
+				margin: 0;
+				font-size: 19px;
+				letter-spacing: -0.03em;
+			}
+
+			.sheet-subtitle {
+				margin: 3px 0 10px;
+				color: var(--muted);
+				font-size: 11px;
+				line-height: 1.35;
+			}
+
+			.member-strip {
+				display: flex;
+				gap: 7px;
+				margin: 7px -3px 12px;
+				padding: 3px 3px 5px;
+				overflow-x: auto;
+			}
+
+			.member-chip {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				flex: 0 0 auto;
+				padding: 6px 8px;
+				border: 1.5px solid var(--ink);
+				border-radius: 6px;
+				background: var(--white);
+				font-size: 11px;
+				font-weight: 900;
+				cursor: pointer;
+			}
+
+			.member-chip.selected {
+				background: var(--yellow);
+				box-shadow: 2px 2px 0 var(--ink);
+				transform: translate(-1px, -1px);
+			}
+
+			.filters {
+				display: flex;
+				gap: 5px;
+				margin: 0 -2px 8px;
+				padding: 2px 2px 4px;
+				overflow-x: auto;
+			}
+
+			.filter {
+				flex: 0 0 auto;
+				padding: 5px 8px;
+				border: 1px solid var(--ink);
+				border-radius: 999px;
+				background: var(--white);
+				font-size: 9px;
+				font-weight: 950;
+				cursor: pointer;
+			}
+
+			.filter.selected {
+				color: var(--white);
+				background: var(--ink);
+			}
+
+			.surprise-tile {
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				width: 100%;
+				margin-bottom: 7px;
+				padding: 7px;
+				border: 1.5px solid var(--ink);
+				border-radius: 6px;
+				background: var(--white);
+				text-align: left;
+				cursor: pointer;
+			}
+
+			.surprise-tile strong,
+			.surprise-tile small {
+				display: block;
+			}
+
+			.surprise-tile small {
+				margin-top: 1px;
+				color: var(--muted);
+				font-size: 9px;
+			}
+
+			.auto {
+				margin-left: auto;
+				padding: 3px 6px;
+				border: 1px solid var(--ink);
+				border-radius: 999px;
+				font-size: 8px;
+				font-weight: 950;
+			}
+
+			.persona-grid {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 6px;
+			}
+
+			.persona-card {
+				display: flex;
+				min-width: 0;
+				min-height: 61px;
+				align-items: center;
+				gap: 7px;
+				padding: 6px;
+				border: 1.5px solid var(--ink);
+				border-radius: 6px;
+				background: var(--white);
+				text-align: left;
+				cursor: pointer;
+				transition: transform 100ms ease;
+			}
+
+			.persona-card:hover {
+				transform: translateY(-1px);
+			}
+
+			.persona-card.selected {
+				background: var(--yellow);
+				box-shadow: 2px 2px 0 var(--ink);
+				transform: translate(-1px, -1px);
+			}
+
+			.persona-card span:last-child {
+				min-width: 0;
+			}
+
+			.persona-card strong {
+				display: block;
+				overflow: hidden;
+				font-size: 10px;
+				line-height: 1.05;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.persona-card small {
+				display: block;
+				margin-top: 3px;
+				overflow: hidden;
+				color: var(--muted);
+				font-size: 8px;
+				line-height: 1.05;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.join-scrim {
+				position: absolute;
+				inset: 0;
+				z-index: 5;
+				display: flex;
+				align-items: flex-end;
+				padding: 10px;
+				background: rgb(255 250 240 / 68%);
+				backdrop-filter: blur(2px);
+			}
+
+			.join-card {
+				width: 100%;
+				max-height: 610px;
+				overflow-y: auto;
+				padding: 14px;
+				border: 2px solid var(--ink);
+				border-radius: 9px;
+				background: var(--paper);
+				box-shadow: 5px 5px 0 var(--ink);
+			}
+
+			.join-card h2 {
+				margin: 0;
+				font-size: 20px;
+			}
+
+			.join-card > p {
+				margin: 4px 0 12px;
+				color: var(--muted);
+				font-size: 11px;
+			}
+
+			.name-input {
+				width: 100%;
+				margin-bottom: 10px;
+				padding: 10px;
+				border: 1.5px solid var(--ink);
+				border-radius: 5px;
+				background: var(--white);
+				font: inherit;
+				font-size: 12px;
+			}
+
+			.continue {
+				width: 100%;
+				margin-top: 10px;
+				padding: 10px;
+				border: 1.5px solid var(--ink);
+				border-radius: 5px;
+				background: var(--yellow);
+				box-shadow: 3px 3px 0 var(--ink);
+				font-size: 12px;
+				font-weight: 950;
+			}
+
+			.inline-cast {
+				padding-top: 10px;
+			}
+
+			.inline-cast h3 {
+				margin: 0 0 4px;
+				font-size: 13px;
+			}
+
+			.inline-cast p {
+				margin: 0 0 8px;
+				color: var(--muted);
+				font-size: 10px;
+			}
+
+			.member-card {
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				margin-bottom: 8px;
+				padding: 9px;
+				box-shadow: none;
+				cursor: pointer;
+			}
+
+			.member-card.selected {
+				background: var(--yellow);
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.member-card span:last-child {
+				min-width: 0;
+				flex: 1;
+			}
+
+			.member-card strong,
+			.member-card small {
+				display: block;
+			}
+
+			.member-card small {
+				margin-top: 2px;
+				color: var(--muted);
+				font-size: 9px;
+			}
+
+			.inline-picker {
+				position: absolute;
+				z-index: 9;
+				right: 10px;
+				bottom: 12px;
+				left: 10px;
+				max-height: 370px;
+				overflow-y: auto;
+				padding: 10px;
+				border: 2px solid var(--ink);
+				border-radius: 9px;
+				background: var(--paper);
+				box-shadow: 6px 6px 0 var(--ink);
+			}
+
+			.inline-picker::before {
+				position: absolute;
+				top: -9px;
+				left: 31px;
+				width: 15px;
+				height: 15px;
+				border-top: 2px solid var(--ink);
+				border-left: 2px solid var(--ink);
+				background: var(--paper);
+				content: '';
+				transform: rotate(45deg);
+			}
+
+			.report {
+				min-width: 0;
+			}
+
+			.report-card {
+				margin-bottom: 16px;
+				padding: 20px;
+				border: 2px solid var(--ink);
+				border-radius: 10px;
+				background: var(--white);
+				box-shadow: var(--shadow-small);
+			}
+
+			.report-card h2,
+			.report-card h3 {
+				margin: 0;
+				letter-spacing: -0.035em;
+			}
+
+			.report-card h2 {
+				font-size: 28px;
+			}
+
+			.report-card h3 {
+				font-size: 19px;
+			}
+
+			.report-card p {
+				margin: 10px 0 0;
+				color: #504d53;
+				font-size: 14px;
+				line-height: 1.5;
+			}
+
+			.verdict {
+				background: var(--yellow);
+			}
+
+			.verdict-line {
+				display: flex;
+				align-items: center;
+				gap: 11px;
+			}
+
+			.verdict-number {
+				display: grid;
+				width: 46px;
+				height: 46px;
+				flex: 0 0 auto;
+				place-items: center;
+				border: 2px solid var(--ink);
+				border-radius: 50%;
+				background: var(--white);
+				font-size: 20px;
+				font-weight: 950;
+				transform: rotate(-7deg);
+			}
+
+			.principles {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 10px;
+				margin-top: 15px;
+			}
+
+			.principle {
+				padding: 11px;
+				border: 1.5px solid var(--ink);
+				border-radius: 7px;
+				background: var(--paper);
+			}
+
+			.principle strong {
+				display: block;
+				font-size: 12px;
+			}
+
+			.principle span {
+				display: block;
+				margin-top: 4px;
+				color: var(--muted);
+				font-size: 11px;
+				line-height: 1.35;
+			}
+
+			table {
+				width: 100%;
+				margin-top: 14px;
+				border-collapse: collapse;
+				font-size: 12px;
+			}
+
+			th,
+			td {
+				padding: 10px 8px;
+				border-bottom: 1px solid rgb(32 32 39 / 22%);
+				text-align: left;
+				vertical-align: top;
+			}
+
+			th {
+				color: var(--muted);
+				font-size: 9px;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
+			tr.winner td {
+				background: rgb(255 201 0 / 20%);
+				font-weight: 800;
+			}
+
+			.score {
+				white-space: nowrap;
+			}
+
+			.traits {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 7px;
+				margin-top: 14px;
+			}
+
+			.cast-preview {
+				display: block;
+				width: 100%;
+				height: auto;
+				margin-top: 14px;
+				border: 1.5px solid var(--ink);
+				border-radius: 7px;
+			}
+
+			.trait {
+				padding: 6px 8px;
+				border: 1px solid var(--ink);
+				border-radius: 999px;
+				background: var(--paper);
+				font-size: 10px;
+				font-weight: 900;
+			}
+
+			.toast {
+				position: fixed;
+				z-index: 100;
+				right: 22px;
+				bottom: 22px;
+				max-width: min(380px, calc(100vw - 44px));
+				padding: 12px 15px;
+				border: 2px solid var(--ink);
+				border-radius: 7px;
+				background: var(--mint);
+				box-shadow: var(--shadow-small);
+				font-size: 13px;
+				font-weight: 900;
+				opacity: 0;
+				pointer-events: none;
+				transform: translateY(12px) rotate(1deg);
+				transition:
+					opacity 140ms ease,
+					transform 140ms ease;
+			}
+
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0) rotate(1deg);
+			}
+
+			.footer-note {
+				margin-top: 20px;
+				color: var(--muted);
+				font-size: 11px;
+				line-height: 1.5;
+			}
+
+			@media (max-width: 980px) {
+				.hero,
+				.review-grid {
+					grid-template-columns: 1fr;
+				}
+
+				.stage {
+					position: relative;
+					top: auto;
+					min-height: 760px;
+				}
+			}
+
+			@media (max-width: 640px) {
+				.topbar {
+					min-height: 58px;
+				}
+
+				.status span:last-child {
+					display: none;
+				}
+
+				.hero {
+					margin-bottom: 24px;
+				}
+
+				h1 {
+					font-size: clamp(43px, 16vw, 68px);
+				}
+
+				.placement-tabs {
+					grid-template-columns: 1fr;
+				}
+
+				.placement-tab {
+					min-height: 84px;
+				}
+
+				.stage {
+					min-height: 730px;
+					border-right: 0;
+					border-left: 0;
+					border-radius: 0;
+					box-shadow: none;
+				}
+
+				.principles {
+					grid-template-columns: 1fr;
+				}
+
+				th:nth-child(3),
+				td:nth-child(3) {
+					display: none;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				*,
+				*::before,
+				*::after {
+					scroll-behavior: auto !important;
+					transition-duration: 0.01ms !important;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<header class="topbar">
+			<div class="brand">
+				<span class="brand-mark" aria-hidden="true">🥜</span>
+				<span>Peanut Split / alter egos</span>
+			</div>
+			<div class="status"><span class="status-dot"></span><span>interactive design review</span></div>
+		</header>
+
+		<main>
+			<section class="hero">
+				<div>
+					<p class="eyebrow">Identity without tiny humans</p>
+					<h1>Pick a <span>role</span>, not a face.</h1>
+				</div>
+				<p class="hero-note">
+					<strong>The social premise</strong>
+					Anyone with the room link can cast anyone as anything. The Vampire Penguin can dispute this with the
+					Disco Octopus at the table.
+				</p>
+			</section>
+
+			<p class="section-label">1. Choose a placement to try</p>
+			<div class="placement-tabs" role="tablist" aria-label="Picker placement concepts">
+				<button class="placement-tab" role="tab" data-placement="join" aria-selected="false">
+					<span class="number">A</span>
+					<strong>Join with a role</strong>
+					<small>Choose while entering the room. Strong discovery; extra first-run work.</small>
+				</button>
+				<button class="placement-tab" role="tab" data-placement="drawer" aria-selected="true">
+					<span class="recommended">Recommended</span>
+					<span class="number">B</span>
+					<strong>Cast drawer</strong>
+					<small>Tap your tiny avatar, pick any friend, then recast them. Playful and reversible.</small>
+				</button>
+				<button class="placement-tab" role="tab" data-placement="inline" aria-selected="false">
+					<span class="number">C</span>
+					<strong>Inline roster remix</strong>
+					<small>Every roster avatar is an edit button. Maximum banter; maximum accidental taps.</small>
+				</button>
+			</div>
+
+			<section class="review-grid">
+				<div class="stage" aria-label="Interactive phone mockup">
+					<div class="phone">
+						<div class="phone-screen" id="phone"></div>
+					</div>
+				</div>
+
+				<aside class="report">
+					<p class="section-label">2. Decision report</p>
+
+					<article class="report-card verdict">
+						<div class="verdict-line">
+							<span class="verdict-number">B</span>
+							<div>
+								<h2>Use the cast drawer.</h2>
+								<p>
+									It makes group casting explicit without taxing every join or turning every financial
+									row into an edit affordance.
+								</p>
+							</div>
+						</div>
+					</article>
+
+					<article class="report-card">
+						<h3>What changed in the concept</h3>
+						<div class="principles">
+							<div class="principle">
+								<strong>No demographic defaults</strong>
+								<span
+									>A stable name hash chooses among creatures and snacks, never human features.</span
+								>
+							</div>
+							<div class="principle">
+								<strong>Roles have names</strong>
+								<span>“Cozy Ghost” creates more banter than an anonymous icon tile.</span>
+							</div>
+							<div class="principle">
+								<strong>The room owns the joke</strong>
+								<span
+									>Any link-holder can recast any member, and the change appears live for
+									everyone.</span
+								>
+							</div>
+							<div class="principle">
+								<strong>Curated, not uploaded</strong>
+								<span
+									>No photos or text means no moderation surface, storage bill, or identity
+									inference.</span
+								>
+							</div>
+						</div>
+					</article>
+
+					<article class="report-card">
+						<h3>Placement trade-offs</h3>
+						<table>
+							<thead>
+								<tr>
+									<th>Option</th>
+									<th>Best at</th>
+									<th>Cost</th>
+									<th>Score</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>A · Join</td>
+									<td>Discovery</td>
+									<td>Slows the room-link handoff</td>
+									<td class="score">7 / 10</td>
+								</tr>
+								<tr class="winner">
+									<td>B · Drawer</td>
+									<td>Intent + safety</td>
+									<td>One tap deeper</td>
+									<td class="score">9 / 10</td>
+								</tr>
+								<tr>
+									<td>C · Inline</td>
+									<td>Spontaneity</td>
+									<td>Competes with money UI</td>
+									<td class="score">6 / 10</td>
+								</tr>
+							</tbody>
+						</table>
+					</article>
+
+					<article class="report-card">
+						<h3>Thirty personalities, not thirty hairstyles</h3>
+						<p>
+							The catalog is balanced across mischief, cozy, brainy, party and adventure. It covers social
+							energy without mapping any option to a kind of person.
+						</p>
+						<div class="traits">
+							<span class="trait">dramatic</span>
+							<span class="trait">quietly competitive</span>
+							<span class="trait">cozy</span>
+							<span class="trait">patient</span>
+							<span class="trait">bookish</span>
+							<span class="trait">organized</span>
+							<span class="trait">party starter</span>
+							<span class="trait">creative</span>
+							<span class="trait">adventurous</span>
+							<span class="trait">easygoing</span>
+							<span class="trait">chaotic</span>
+							<span class="trait">foodie</span>
+						</div>
+						<img
+							class="cast-preview"
+							src="./production-vector-cast.png"
+							alt="The thirty production vector alter egos in a labeled grid"
+						/>
+					</article>
+
+					<p class="footer-note">
+						The phone uses lightweight thumbnail emoji so all three interaction mockups stay in one portable
+						HTML file. The labeled grid above is rendered from the branch’s real in-house vector components.
+					</p>
+				</aside>
+			</section>
+		</main>
+
+		<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+		<script>
+			const personas = [
+				{
+					key: 'vampire-penguin',
+					name: 'Vampire Penguin',
+					vibe: 'dramatic after dark',
+					category: 'mischief',
+					base: '🐧',
+					prop: '🦇',
+					color: '#F6C7EC',
+				},
+				{
+					key: 'pirate-parrot',
+					name: 'Pirate Parrot',
+					vibe: 'finds the snacks',
+					category: 'mischief',
+					base: '🦜',
+					prop: '☠',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'ninja-pear',
+					name: 'Ninja Pear',
+					vibe: 'quietly competitive',
+					category: 'mischief',
+					base: '🍐',
+					prop: '✦',
+					color: '#FFF4CC',
+				},
+				{
+					key: 'lucky-alien',
+					name: 'Lucky Alien',
+					vibe: 'weirdly fortunate',
+					category: 'mischief',
+					base: '👽',
+					prop: '☘',
+					color: '#FAE184',
+				},
+				{
+					key: 'trickster-fox',
+					name: 'Trickster Fox',
+					vibe: 'has a side quest',
+					category: 'mischief',
+					base: '🦊',
+					prop: '⌕',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'punk-pineapple',
+					name: 'Punk Pineapple',
+					vibe: 'sweet with spikes',
+					category: 'mischief',
+					base: '🍍',
+					prop: '⚡',
+					color: '#F6C7EC',
+				},
+				{
+					key: 'cozy-ghost',
+					name: 'Cozy Ghost',
+					vibe: 'here for the blankets',
+					category: 'cozy',
+					base: '👻',
+					prop: '▰',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'garden-snail',
+					name: 'Garden Snail',
+					vibe: 'takes the scenic route',
+					category: 'cozy',
+					base: '🐌',
+					prop: '🌱',
+					color: '#B8F0C5',
+				},
+				{
+					key: 'sleepy-cloud',
+					name: 'Sleepy Cloud',
+					vibe: 'five more minutes',
+					category: 'cozy',
+					base: '☁️',
+					prop: '☾',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'explorer-bear',
+					name: 'Explorer Bear',
+					vibe: 'packs extra biscuits',
+					category: 'cozy',
+					base: '🐻',
+					prop: '⌖',
+					color: '#FAE184',
+				},
+				{
+					key: 'baker-moon',
+					name: 'Baker Moon',
+					vibe: 'midnight cinnamon rolls',
+					category: 'cozy',
+					base: '🌙',
+					prop: '⌁',
+					color: '#F6C7EC',
+				},
+				{
+					key: 'yoga-yeti',
+					name: 'Yoga Yeti',
+					vibe: 'unbothered, mostly',
+					category: 'cozy',
+					base: '❄️',
+					prop: '◡',
+					color: '#FFF4CC',
+				},
+				{
+					key: 'wizard-frog',
+					name: 'Wizard Frog',
+					vibe: 'knows a shortcut',
+					category: 'brainy',
+					base: '🐸',
+					prop: '✦',
+					color: '#F6C7EC',
+				},
+				{
+					key: 'detective-raccoon',
+					name: 'Detective Raccoon',
+					vibe: 'kept the receipt',
+					category: 'brainy',
+					base: '🦝',
+					prop: '⌕',
+					color: '#FAE184',
+				},
+				{
+					key: 'bookworm-bat',
+					name: 'Bookworm Bat',
+					vibe: 'read the fine print',
+					category: 'brainy',
+					base: '🦇',
+					prop: '▤',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'scientist-owl',
+					name: 'Scientist Owl',
+					vibe: 'has a spreadsheet',
+					category: 'brainy',
+					base: '🦉',
+					prop: '⚗',
+					color: '#B8F0C5',
+				},
+				{
+					key: 'mechanic-robot',
+					name: 'Mechanic Robot',
+					vibe: 'can probably fix it',
+					category: 'brainy',
+					base: '🤖',
+					prop: '⌕',
+					color: '#FAE184',
+				},
+				{
+					key: 'gamer-cat',
+					name: 'Gamer Cat',
+					vibe: 'one more round',
+					category: 'brainy',
+					base: '🐱',
+					prop: '✚',
+					color: '#FFF4CC',
+				},
+				{
+					key: 'disco-octopus',
+					name: 'Disco Octopus',
+					vibe: 'eight dance moves',
+					category: 'party',
+					base: '🐙',
+					prop: '✦',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'rockstar-strawberry',
+					name: 'Rockstar Strawberry',
+					vibe: 'headlines the kitchen',
+					category: 'party',
+					base: '🍓',
+					prop: '⚡',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'party-bee',
+					name: 'Party Bee',
+					vibe: 'knows everyone',
+					category: 'party',
+					base: '🐝',
+					prop: '★',
+					color: '#F6C7EC',
+				},
+				{
+					key: 'dj-dinosaur',
+					name: 'DJ Dinosaur',
+					vibe: 'prehistoric bangers',
+					category: 'party',
+					base: '🦖',
+					prop: '♫',
+					color: '#FAE184',
+				},
+				{
+					key: 'painter-panda',
+					name: 'Painter Panda',
+					vibe: 'makes a beautiful mess',
+					category: 'party',
+					base: '🐼',
+					prop: '◒',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'karaoke-kiwi',
+					name: 'Karaoke Kiwi',
+					vibe: 'already chose the duet',
+					category: 'party',
+					base: '🥝',
+					prop: '♪',
+					color: '#FAE184',
+				},
+				{
+					key: 'astronaut-avocado',
+					name: 'Astronaut Avocado',
+					vibe: 'dreams in zero gravity',
+					category: 'adventure',
+					base: '🥑',
+					prop: '◌',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'surfer-shark',
+					name: 'Surfer Shark',
+					vibe: 'goes with the flow',
+					category: 'adventure',
+					base: '🦈',
+					prop: '≈',
+					color: '#FAE184',
+				},
+				{
+					key: 'skater-cactus',
+					name: 'Skater Cactus',
+					vibe: 'lands it eventually',
+					category: 'adventure',
+					base: '🌵',
+					prop: '▬',
+					color: '#F6C7EC',
+				},
+				{
+					key: 'chef-dragon',
+					name: 'Chef Dragon',
+					vibe: 'adds a little fire',
+					category: 'adventure',
+					base: '🐉',
+					prop: '♨',
+					color: '#FFF4CC',
+				},
+				{
+					key: 'sailor-banana',
+					name: 'Sailor Banana',
+					vibe: 'peels out at dawn',
+					category: 'adventure',
+					base: '🍌',
+					prop: '⚓',
+					color: '#C9D3F3',
+				},
+				{
+					key: 'cosmic-llama',
+					name: 'Cosmic Llama',
+					vibe: 'emotionally in orbit',
+					category: 'adventure',
+					base: '🦙',
+					prop: '✧',
+					color: '#F6C7EC',
+				},
+			]
+
+			const members = [
+				{ id: 'ana', name: 'Ana' },
+				{ id: 'bea', name: 'Bea' },
+				{ id: 'luis', name: 'Luis' },
+				{ id: 'mika', name: 'Mika' },
+			]
+
+			const assignments = {
+				ana: 'astronaut-avocado',
+				bea: 'vampire-penguin',
+				luis: 'cozy-ghost',
+				mika: 'disco-octopus',
+			}
+
+			let placement = 'drawer'
+			let selectedMember = 'bea'
+			let filter = 'all'
+			let toastTimer = 0
+
+			const personaByKey = (key) => personas.find((persona) => persona.key === key) || personas[0]
+			const memberById = (id) => members.find((member) => member.id === id) || members[0]
+
+			function avatar(key, size = '') {
+				const persona = personaByKey(key)
+				return `<span class="avatar ${size}" style="--avatar-color:${persona.color}" aria-hidden="true">
+                    <span class="base">${persona.base}</span>
+                    <span class="prop">${persona.prop}</span>
+                </span>`
+			}
+
+			function roomChrome(content = '') {
+				return `
+                    <div class="room-header">
+                        <span class="room-logo">🍋</span>
+                        <div class="room-title">
+                            <strong>Weekend in Lisbon</strong>
+                            <span class="you-row">${avatar(assignments.ana, 'tiny')} EUR · YOU ARE ANA</span>
+                        </div>
+                        <span class="square-button">↗</span>
+                        <span class="square-button">⚙</span>
+                    </div>
+                    <div class="room-body">
+                        <div class="balance-card"><small>Your balance</small><strong>+ €42.80</strong></div>
+                        <div class="expense-row">
+                            ${avatar(assignments.bea, 'medium')}
+                            <span class="expense-copy"><strong>Dinner at Prado</strong><small>${personaByKey(assignments.bea).name} paid</small></span>
+                            <span class="amount">€128.40</span>
+                        </div>
+                        <div class="expense-row">
+                            ${avatar(assignments.luis, 'medium')}
+                            <span class="expense-copy"><strong>Airport taxi</strong><small>${personaByKey(assignments.luis).name} paid</small></span>
+                            <span class="amount">€36.00</span>
+                        </div>
+                        ${content}
+                    </div>`
+			}
+
+			function memberStrip() {
+				return `<div class="member-strip" aria-label="Choose who to cast">
+                    ${members
+						.map(
+							(
+								member
+							) => `<button class="member-chip ${selectedMember === member.id ? 'selected' : ''}" data-member="${member.id}">
+                                ${avatar(assignments[member.id], 'tiny')} ${member.name}
+                            </button>`
+						)
+						.join('')}
+                </div>`
+			}
+
+			function filters() {
+				const choices = [
+					['all', 'All'],
+					['mischief', 'Mischief'],
+					['cozy', 'Cozy'],
+					['brainy', 'Brainy'],
+					['party', 'Party'],
+					['adventure', 'Adventure'],
+				]
+				return `<div class="filters" aria-label="Filter alter egos">
+                    ${choices
+						.map(
+							([key, label]) =>
+								`<button class="filter ${filter === key ? 'selected' : ''}" data-filter="${key}">${label}</button>`
+						)
+						.join('')}
+                </div>`
+			}
+
+			function pickerGrid(compact = false) {
+				const member = memberById(selectedMember)
+				const visible = personas.filter((persona) => filter === 'all' || persona.category === filter)
+				return `
+                    <p class="sheet-title">${member.name}'s alter ego</p>
+                    <p class="sheet-subtitle">Choose the energy, not the appearance.</p>
+                    ${filters()}
+                    <button class="surprise-tile" data-persona="surprise">
+                        ${avatar(personas[(member.name.charCodeAt(0) * 7) % personas.length].key, 'medium')}
+                        <span><strong>Surprise me</strong><small>Stable pick from ${member.name}'s name</small></span>
+                        <span class="auto">AUTO</span>
+                    </button>
+                    <div class="persona-grid ${compact ? 'compact' : ''}">
+                        ${visible
+							.map(
+								(persona) => `<button
+                                    class="persona-card ${assignments[selectedMember] === persona.key ? 'selected' : ''}"
+                                    data-persona="${persona.key}"
+                                    aria-label="Cast ${member.name} as ${persona.name}">
+                                    ${avatar(persona.key, 'medium')}
+                                    <span><strong>${persona.name}</strong><small>${persona.vibe}</small></span>
+                                </button>`
+							)
+							.join('')}
+                    </div>`
+			}
+
+			function renderJoin() {
+				return (
+					roomChrome() +
+					`<div class="join-scrim">
+                        <div class="join-card">
+                            <h2>Join Weekend in Lisbon</h2>
+                            <p>First your name, then a role for the group chat.</p>
+                            <input class="name-input" value="Ana" aria-label="Your name" />
+                            ${pickerGrid(true)}
+                            <button class="continue">Join as ${personaByKey(assignments[selectedMember]).name} →</button>
+                        </div>
+                    </div>`
+				)
+			}
+
+			function renderDrawer() {
+				return (
+					roomChrome() +
+					`<div class="picker-sheet">
+                        <div class="sheet-handle"></div>
+                        <div class="sheet-content">
+                            <p class="sheet-title">Cast of characters</p>
+                            <p class="sheet-subtitle">Pick a friend, then give them a role. They can return the favor.</p>
+                            ${memberStrip()}
+                            ${pickerGrid()}
+                        </div>
+                    </div>`
+				)
+			}
+
+			function renderInline() {
+				const list = members
+					.map((member) => {
+						const persona = personaByKey(assignments[member.id])
+						return `<button class="member-card ${selectedMember === member.id ? 'selected' : ''}" data-member="${member.id}">
+                            ${avatar(persona.key, 'large')}
+                            <span><strong>${member.name}</strong><small>${persona.name} · tap to recast</small></span>
+                            <b>›</b>
+                        </button>`
+					})
+					.join('')
+				return (
+					roomChrome(
+						`<div class="inline-cast"><h3>Cast of characters</h3><p>Every avatar is an edit button.</p>${list}</div>`
+					) + `<div class="inline-picker">${memberStrip()}${pickerGrid(true)}</div>`
+				)
+			}
+
+			function render() {
+				const phone = document.querySelector('#phone')
+				phone.innerHTML =
+					placement === 'join' ? renderJoin() : placement === 'inline' ? renderInline() : renderDrawer()
+
+				document.querySelectorAll('.placement-tab').forEach((tab) => {
+					tab.setAttribute('aria-selected', String(tab.dataset.placement === placement))
+				})
+
+				document.querySelectorAll('[data-member]').forEach((button) => {
+					button.addEventListener('click', () => {
+						selectedMember = button.dataset.member
+						render()
+					})
+				})
+
+				document.querySelectorAll('[data-filter]').forEach((button) => {
+					button.addEventListener('click', () => {
+						filter = button.dataset.filter
+						render()
+					})
+				})
+
+				document.querySelectorAll('[data-persona]').forEach((button) => {
+					button.addEventListener('click', () => {
+						const member = memberById(selectedMember)
+						let key = button.dataset.persona
+						if (key === 'surprise') key = personas[(member.name.charCodeAt(0) * 7) % personas.length].key
+						assignments[selectedMember] = key
+						showToast(`${member.name} is now the ${personaByKey(key).name}. Retaliation is available.`)
+						render()
+					})
+				})
+			}
+
+			function showToast(message) {
+				const toast = document.querySelector('#toast')
+				toast.textContent = message
+				toast.classList.add('show')
+				window.clearTimeout(toastTimer)
+				toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2400)
+			}
+
+			document.querySelectorAll('.placement-tab').forEach((tab) => {
+				tab.addEventListener('click', () => {
+					placement = tab.dataset.placement
+					if (placement === 'join') selectedMember = 'ana'
+					render()
+				})
+			})
+
+			render()
+		</script>
+	</body>
+</html>

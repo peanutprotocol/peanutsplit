@@ -18,6 +18,7 @@ import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import { avatarFamily } from '@/lib/avatars'
+import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { useSetAvatar, useSetTheme } from '@/lib/queries'
@@ -26,6 +27,7 @@ import { triggerHaptic, useFeedback, useSettings } from '@/lib/use-settings'
 
 interface RoomHeaderProps {
     room: ApiRoom
+    members: ApiMember[]
     identity: MemberIdentity | null
     /** The roster row for `identity`, when this device is one of the members.
      *  Null while the room is still loading or when nobody has joined here. */
@@ -82,7 +84,7 @@ function SettingToggle({
     )
 }
 
-export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
+export function RoomHeader({ room, members, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const tLocale = useTranslations('locale')
     const [menuOpen, setMenuOpen] = useState(false)
@@ -93,21 +95,18 @@ export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: Ro
     const feedback = useFeedback()
     const setTheme = useSetTheme(room.slug)
     const tAvatar = useTranslations('room.avatar')
-    /**
-     * Only a device that can PROVE it is this member may change the face — the
-     * server demands the token and this is the same gate, one step earlier. A
-     * A member claimed through the join gate receives their stable token, so
-     * their picker is available on this device without rotating other devices
-     * out. Legacy tokenless claims keep the picker absent instead of failing.
-     */
-    const pickableMe = me && identity?.token ? me : null
-    const setAvatar = useSetAvatar(room.slug, me?.id ?? '', identity?.token)
+    const [avatarMemberId, setAvatarMemberId] = useState<string | null>(null)
+    // Start on the person holding the phone, then remember whoever the table is
+    // currently casting. The fallback also covers a member disappearing while
+    // this drawer is open.
+    const avatarMember = members.find((member) => member.id === avatarMemberId) ?? me ?? members[0] ?? null
+    const setAvatar = useSetAvatar(room.slug, avatarMember?.id ?? '')
 
     const chooseAvatar = (avatar: string | null) => {
-        if (!pickableMe || avatar === pickableMe.avatar) return
+        if (!avatarMember || avatar === avatarMember.avatar) return
         feedback('tick')
-        // The FAMILY, never the key: which avatar a particular person picked is
-        // exactly the social detail analytics.ts exists to keep out of a funnel.
+        // The FAMILY, never the key or target member: both are social detail that
+        // analytics.ts exists to keep out of a funnel.
         track('avatar_changed', roomProps(room.slug, { family: avatarFamily(avatar) }))
         setAvatar.mutate(avatar, {
             onError: (error) => {
@@ -145,14 +144,10 @@ export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: Ro
 
                 <div className="min-w-0 flex-1">
                     <h1 className="truncate text-h6">{room.name}</h1>
-                    {/* Your own face, and the way to change it.
-                        This is the one entry point: the thing you tap to change how
-                        you look is the picture of how you look. It opens the room
-                        drawer, where the picker is the first section — the drawer
-                        already owns every other preference, and a fourth 44px
-                        control in this row would crush the room name on a phone.
-                        Nobody else's avatar is tappable anywhere. */}
-                    {pickableMe ? (
+                    {/* Your own persona opens the shared cast drawer. It is a small
+                        social cue in the header without adding a fourth 44px action
+                        that would crush the room name on a phone. */}
+                    {me ? (
                         <button
                             type="button"
                             onClick={() => setMenuOpen(true)}
@@ -160,9 +155,9 @@ export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: Ro
                             data-testid="open-avatar"
                             className="-my-0.5 flex items-center gap-1.5 py-0.5"
                         >
-                            <MemberAvatar name={pickableMe.name} avatar={pickableMe.avatar} size={16} />
+                            <MemberAvatar name={me.name} avatar={me.avatar} size={16} />
                             <span className="truncate text-h10 uppercase tracking-wide text-n-1/70">
-                                {`${room.currency} · ${t('youAre', { name: pickableMe.name })}`}
+                                {`${room.currency} · ${t('youAre', { name: me.name })}`}
                             </span>
                         </button>
                     ) : (
@@ -210,18 +205,46 @@ export function RoomHeader({ room, identity, me, onShare, onForgetIdentity }: Ro
                         >
                             {t('shareTheRoomLink')}
                         </Button>
-                        {/* Under the share button, which is what most people open this
-                            drawer for, and above everything else — the header's avatar
-                            taps straight here. Unlike the theme below, this is a
-                            property of YOU rather than of the room, which is why it
-                            needs the token and the theme does not. */}
-                        {pickableMe && (
-                            <AvatarPicker
-                                name={pickableMe.name}
-                                value={pickableMe.avatar}
-                                onChange={chooseAvatar}
-                                disabled={setAvatar.isPending}
-                            />
+                        {/* A cast, not a profile editor. The room chooses a member,
+                            then flicks through their alter egos together. This is
+                            intentionally as permissive as the shared roster. */}
+                        {avatarMember && (
+                            <section className="flex flex-col gap-3">
+                                <div>
+                                    <span className="text-h8 uppercase tracking-wide text-grey-1">
+                                        {tAvatar('castTitle')}
+                                    </span>
+                                    <p className="mt-1 text-sm text-grey-1">{tAvatar('castHint')}</p>
+                                </div>
+                                <div
+                                    className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+                                    aria-label={tAvatar('chooseMember')}
+                                >
+                                    {members.map((member) => (
+                                        <button
+                                            key={member.id}
+                                            type="button"
+                                            aria-pressed={member.id === avatarMember.id}
+                                            onClick={() => setAvatarMemberId(member.id)}
+                                            data-testid="avatar-member"
+                                            data-member={member.name}
+                                            className={cn(
+                                                'flex shrink-0 items-center gap-2 rounded-sm border border-n-1 px-2.5 py-2 text-sm font-bold transition-transform active:translate-y-px',
+                                                member.id === avatarMember.id ? 'shadow-4 bg-primary-1' : 'bg-white'
+                                            )}
+                                        >
+                                            <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
+                                            {member.name}
+                                        </button>
+                                    ))}
+                                </div>
+                                <AvatarPicker
+                                    name={avatarMember.name}
+                                    value={avatarMember.avatar}
+                                    onChange={chooseAvatar}
+                                    disabled={setAvatar.isPending}
+                                />
+                            </section>
                         )}
 
                         <div className="flex flex-col gap-2">

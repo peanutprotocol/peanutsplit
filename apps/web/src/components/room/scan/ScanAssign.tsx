@@ -3,7 +3,7 @@
 /**
  * Step 3 of 3 — who had what.
  *
- * The whole feature earns its keep here. Tapping faces under a line item is the
+ * The whole feature earns its keep here. Tapping avatars under a line item is the
  * gesture the product is actually for; everything before this screen is
  * plumbing to get to it.
  *
@@ -22,7 +22,7 @@
  * duplication for its own sake. A line the model invented — the loyalty-card
  * footer read as a 9.90 item, the same round ordered twice — is not obvious
  * while you are reading a list of words and numbers; it becomes obvious the
- * moment nobody's face belongs on it. Making the user carry that discovery back
+ * moment nobody's avatar belongs on it. Making the user carry that discovery back
  * a screen is how "I can't delete the wrong item" happens, and the unassigned
  * counter then blocks the submit on a line they never wanted.
  */

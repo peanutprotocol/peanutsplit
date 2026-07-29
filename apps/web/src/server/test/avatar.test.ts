@@ -1,10 +1,9 @@
 /**
- * Member avatars against the real handler and the real database.
+ * Member alter egos against the real handler and database.
  *
- * One rule carries the feature and it is pinned three ways: the write needs a
- * token-PROVEN member (a room's ledger deliberately does not), the member is
- * named in the PATH so there is no request shape that reaches somebody else's
- * row, and the value is checked against the catalog rather than stored as text.
+ * The room link deliberately permits group casting, but the freedom is bounded
+ * twice: the target must belong to the room in the URL and the avatar must be a
+ * key from the curated catalog. There is no free text or cross-room repaint.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
@@ -37,15 +36,15 @@ const call = async <T>(
 interface Fixture {
     slug: string
     roomId: string
-    ana: { id: string; token: string }
-    bruno: { id: string; token: string }
+    anaId: string
+    brunoId: string
 }
 
-async function makeRoom(): Promise<Fixture> {
+async function makeRoom(name = 'Ski Trip'): Promise<Fixture> {
     const { body: created } = await call<RoomStateWithMember>(postRoom as Handler, {
         path: '/api/rooms',
         method: 'POST',
-        body: { name: 'Ski Trip', emoji: 'ski', currency: 'EUR', creatorName: 'Ana' },
+        body: { name, emoji: 'ski', currency: 'EUR', creatorName: 'Ana' },
     })
     const slug = created.room.slug
     const { body: joined } = await call<RoomStateWithMember>(postMember as Handler, {
@@ -54,15 +53,10 @@ async function makeRoom(): Promise<Fixture> {
         params: { slug },
         body: { name: 'Bruno' },
     })
-    return {
-        slug,
-        roomId: created.room.id,
-        ana: { id: created.memberId, token: created.memberToken },
-        bruno: { id: joined.memberId, token: joined.memberToken },
-    }
+    return { slug, roomId: created.room.id, anaId: created.memberId, brunoId: joined.memberId }
 }
 
-const setAvatar = (fixture: Fixture, memberId: string, body: { avatar: string | null; memberToken: string }) =>
+const setAvatar = (fixture: Fixture, memberId: string, body: { avatar: string | null } | Record<string, never>) =>
     call<RoomState & ApiError>(patchMember as Handler, {
         path: `/api/rooms/${fixture.slug}/members/${memberId}`,
         method: 'PATCH',
@@ -82,97 +76,58 @@ beforeEach(async () => {
 afterEach(() => resetEvents())
 
 describe('PATCH /api/rooms/:slug/members/:memberId', () => {
-    it('sets your own avatar and hands back the whole room', async () => {
+    it('lets the table cast any member and returns the whole room', async () => {
         const fixture = await makeRoom()
-        const { status, body } = await setAvatar(fixture, fixture.ana.id, {
-            avatar: 'face-bun',
-            memberToken: fixture.ana.token,
-        })
+        const { status, body } = await setAvatar(fixture, fixture.brunoId, { avatar: 'vampire-penguin' })
 
         expect(status).toBe(200)
-        expect(avatarOf(body, fixture.ana.id)).toBe('face-bun')
-        // Nobody else moved.
-        expect(avatarOf(body, fixture.bruno.id)).toBeNull()
+        expect(avatarOf(body, fixture.brunoId)).toBe('vampire-penguin')
+        expect(avatarOf(body, fixture.anaId)).toBeNull()
     })
 
-    /** Null is the name-derived portrait, and it is a real value to send — the
-     *  first tile in the picker stores it. */
-    it('clears back to the name-derived portrait', async () => {
+    it('clears a pick back to the stable name-derived surprise', async () => {
         const fixture = await makeRoom()
-        await setAvatar(fixture, fixture.ana.id, { avatar: 'doodle-dog', memberToken: fixture.ana.token })
-        const { status, body } = await setAvatar(fixture, fixture.ana.id, {
-            avatar: null,
-            memberToken: fixture.ana.token,
-        })
+        await setAvatar(fixture, fixture.anaId, { avatar: 'astronaut-avocado' })
+        const { status, body } = await setAvatar(fixture, fixture.anaId, { avatar: null })
 
         expect(status).toBe(200)
-        expect(avatarOf(body, fixture.ana.id)).toBeNull()
-        expect((await prisma.member.findUnique({ where: { id: fixture.ana.id } }))?.avatar).toBeNull()
+        expect(avatarOf(body, fixture.anaId)).toBeNull()
+        expect((await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar).toBeNull()
     })
 
-    /**
-     * THE identity decision. Anyone holding the room link can write an expense in
-     * Ana's name, because inside a room that is visible and fixable. Nobody can
-     * change what Ana looks like to her friends.
-     */
-    it('refuses a member the caller cannot prove they are', async () => {
+    it('will not repaint a made-up member or a member from another room', async () => {
         const fixture = await makeRoom()
-        const { status, body } = await setAvatar(fixture, fixture.ana.id, {
-            avatar: 'face-cap',
-            memberToken: fixture.bruno.token,
-        })
+        const other = await makeRoom('Beach Trip')
 
-        expect(status).toBe(403)
-        expect(body.error.code).toBe('MEMBER_TOKEN_INVALID')
-        expect((await prisma.member.findUnique({ where: { id: fixture.ana.id } }))?.avatar).toBeNull()
-    })
-
-    it('refuses a made-up token and a made-up member alike', async () => {
-        const fixture = await makeRoom()
-        for (const attempt of [
-            { memberId: fixture.ana.id, memberToken: 'not-a-token' },
-            { memberId: 'ghost', memberToken: fixture.ana.token },
-        ]) {
-            const { status } = await setAvatar(fixture, attempt.memberId, {
-                avatar: 'face-cap',
-                memberToken: attempt.memberToken,
-            })
-            expect(status).toBe(403)
+        for (const memberId of ['ghost', other.anaId]) {
+            const { status, body } = await setAvatar(fixture, memberId, { avatar: 'pirate-parrot' })
+            expect(status).toBe(404)
+            expect(body.error.code).toBe('NOT_FOUND')
         }
-        expect((await prisma.member.findUnique({ where: { id: fixture.ana.id } }))?.avatar).toBeNull()
+        expect((await prisma.member.findUnique({ where: { id: other.anaId } }))?.avatar).toBeNull()
     })
 
-    /** A key, never text. The column renders next to a person's name on everyone
-     *  else's phone, so anything outside the catalog is a 400 and not a row. */
-    it('rejects anything that is not in the catalog', async () => {
+    it('rejects anything outside the curated catalog', async () => {
         const fixture = await makeRoom()
         for (const avatar of [
             'face-nope',
-            'mountain', // a real doodle, but not an offered avatar
+            'mountain',
             '<script>alert(1)</script>',
             'https://example.com/me.png',
             '',
-            'FACE-BUN',
+            'VAMPIRE-PENGUIN',
         ]) {
-            const { status, body } = await setAvatar(fixture, fixture.ana.id, {
-                avatar,
-                memberToken: fixture.ana.token,
-            })
+            const { status, body } = await setAvatar(fixture, fixture.anaId, { avatar })
             expect(status, avatar).toBe(400)
             expect(body.error.code).toBe('VALIDATION_ERROR')
         }
-        expect((await prisma.member.findUnique({ where: { id: fixture.ana.id } }))?.avatar).toBeNull()
+        expect((await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar).toBeNull()
     })
 
-    /** Prototype keys are not catalog keys — `'constructor' in AVATARS` is true
-     *  for every object, which is why the guard uses `hasOwnProperty`. */
     it('rejects inherited object keys', async () => {
         const fixture = await makeRoom()
         for (const avatar of ['constructor', 'toString', '__proto__']) {
-            const { status } = await setAvatar(fixture, fixture.ana.id, {
-                avatar,
-                memberToken: fixture.ana.token,
-            })
+            const { status } = await setAvatar(fixture, fixture.anaId, { avatar })
             expect(status, avatar).toBe(400)
         }
     })
@@ -180,46 +135,33 @@ describe('PATCH /api/rooms/:slug/members/:memberId', () => {
     it('accepts every key the picker can produce', async () => {
         const fixture = await makeRoom()
         for (const avatar of AVATAR_KEYS) {
-            const { status } = await setAvatar(fixture, fixture.ana.id, {
-                avatar,
-                memberToken: fixture.ana.token,
-            })
+            const { status } = await setAvatar(fixture, fixture.anaId, { avatar })
             expect(status, avatar).toBe(200)
         }
-        expect((await prisma.member.findUnique({ where: { id: fixture.ana.id } }))?.avatar).toBe(
+        expect((await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar).toBe(
             AVATAR_KEYS[AVATAR_KEYS.length - 1]
         )
     })
 
-    /** A missing field must not silently reset a face — the same rule the theme
-     *  PATCH follows, for the same reason. */
-    it('refuses a body with no avatar field at all', async () => {
+    it('does not let a missing avatar field silently reset the row', async () => {
         const fixture = await makeRoom()
-        const { status } = await setAvatar(fixture, fixture.ana.id, { memberToken: fixture.ana.token } as {
-            avatar: string | null
-            memberToken: string
-        })
+        const { status } = await setAvatar(fixture, fixture.anaId, {})
         expect(status).toBe(400)
     })
 })
 
-/**
- * A face that only travels on the poll lands up to 45s late on a phone holding
- * an open stream — slower than the 8s it managed before the stream existed,
- * which is the shape of the regression this pins.
- */
-describe('an avatar reaches the other phones', () => {
-    it('pokes the room after the write, and not for a write it refused', async () => {
+describe('an alter ego reaches the other phones', () => {
+    it('pokes the room after a valid write and not after a rejected one', async () => {
         const fixture = await makeRoom()
         let pokes = 0
         subscribe(fixture.roomId, () => {
             pokes += 1
         })
 
-        await setAvatar(fixture, fixture.ana.id, { avatar: 'doodle-sun', memberToken: fixture.ana.token })
+        await setAvatar(fixture, fixture.anaId, { avatar: 'cosmic-llama' })
         expect(pokes).toBe(1)
 
-        await setAvatar(fixture, fixture.ana.id, { avatar: 'doodle-sun', memberToken: fixture.bruno.token })
+        await setAvatar(fixture, fixture.anaId, { avatar: 'not-in-the-cast' })
         expect(pokes).toBe(1)
     })
 })
