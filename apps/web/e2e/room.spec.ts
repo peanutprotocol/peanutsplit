@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
 
 /**
  * The whole product in one journey, against the real API and the real database:
@@ -285,4 +286,33 @@ test('one person can add a payer and submit an expense on their behalf', async (
 test('an unknown slug says so instead of spinning', async ({ page }) => {
     await page.goto('/r/definitely-not-a-room-zzz999')
     await expect(page.getByTestId('room-not-found')).toBeVisible({ timeout: 15_000 })
+})
+
+test('a link holder can export the room without exporting the room credential', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('Export room')
+    await page.getByTestId('room-currency').selectOption('EUR')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+
+    const roomLink = page.getByTestId('room-link')
+    await expect(roomLink).toBeVisible({ timeout: 15_000 })
+    const url = (await roomLink.innerText()).trim()
+    await page.getByTestId('go-to-room').click()
+
+    await page.getByRole('button', { name: 'Room menu' }).click()
+    await expect(page.getByText('The files include everyone’s names and the full money history.')).toBeVisible()
+
+    const jsonDownloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Download JSON' }).click()
+    const jsonDownload = await jsonDownloadPromise
+    expect(jsonDownload.suggestedFilename()).toBe('export-room.json')
+    const jsonPath = await jsonDownload.path()
+    expect(jsonPath).not.toBeNull()
+
+    const exported = JSON.parse(await readFile(jsonPath!, 'utf8'))
+    expect(exported.schema).toBe('peanut-split-room')
+    expect(exported.members).toHaveLength(1)
+    expect(JSON.stringify(exported)).not.toContain(new URL(url).pathname)
+    expect(exported.room).not.toHaveProperty('slug')
 })

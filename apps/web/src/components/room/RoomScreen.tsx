@@ -143,8 +143,7 @@ export function RoomScreen({ slug }: { slug: string }) {
         >
             {state && (
                 <RoomHeader
-                    room={state.room}
-                    members={state.members}
+                    state={state}
                     identity={identity}
                     me={me}
                     onShare={() => setParams({ share: true })}

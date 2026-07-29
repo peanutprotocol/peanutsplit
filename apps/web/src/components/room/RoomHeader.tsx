@@ -10,13 +10,14 @@ import { AvatarPicker } from '@/components/room/AvatarPicker'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { ThemePicker } from '@/components/room/ThemePicker'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
+import { RoomExport } from '@/components/room/RoomExport'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { roomProps, track } from '@/lib/analytics'
-import type { ApiMember, ApiRoom } from '@/lib/api-types'
+import type { ApiMember, RoomState } from '@/lib/api-types'
 import { avatarFamily } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -26,8 +27,7 @@ import { TOAST_MS } from '@/lib/toasts'
 import { triggerHaptic, useFeedback, useSettings } from '@/lib/use-settings'
 
 interface RoomHeaderProps {
-    room: ApiRoom
-    members: ApiMember[]
+    state: RoomState
     identity: MemberIdentity | null
     /** The roster row for `identity`, when this device is one of the members.
      *  Null while the room is still loading or when nobody has joined here. */
@@ -84,7 +84,8 @@ function SettingToggle({
     )
 }
 
-export function RoomHeader({ room, members, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
+export function RoomHeader({ state, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
+    const { room, members } = state
     const t = useTranslations('room.header')
     const tLocale = useTranslations('locale')
     const [menuOpen, setMenuOpen] = useState(false)
@@ -288,6 +289,8 @@ export function RoomHeader({ room, members, identity, me, onShare, onForgetIdent
                             drawer rather than anywhere global. Renders nothing on a browser
                             that cannot do push at all. */}
                         <PushOptIn slug={room.slug} identity={identity} />
+
+                        <RoomExport state={state} />
 
                         {/* The room drawer is the only place a language can be changed inside
                             the product — the landing footer is the other, and a room is where

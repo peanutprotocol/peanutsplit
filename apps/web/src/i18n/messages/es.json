@@ -330,6 +330,13 @@
             "hapticsHint": "Un toque que se siente",
             "privacyNote": "Gratis para siempre, sin registro. Los links de sala no aparecen en ningún lado — solo entra quien tú invites."
         },
+        "export": {
+            "title": "Llévate la sala",
+            "privacyWarning": "Los archivos incluyen los nombres y todo el historial de dinero. Cualquiera con el link de la sala puede exportarlos.",
+            "credentialNote": "El link de la sala nunca se incluye.",
+            "csv": "Descargar CSV",
+            "json": "Descargar JSON"
+        },
         "join": {
             "title": "¿Quién eres?",
             "roster": "{room} · {count, plural, one {# persona} other {# personas}} hasta ahora",

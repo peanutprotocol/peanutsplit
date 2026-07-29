@@ -12,7 +12,10 @@ Split is top-of-funnel for Peanut, not a feature inside it. It stays standalone 
 - its anonymous, unauthenticated routes never live inside the money API,
 - it can be killed by deleting a deploy, with nothing in the core app entangled.
 
-The only integration point is the settle screen: a "Settle with Peanut" CTA that hands off to an existing Peanut payment-request link, and a webhook that posts the verified receipt back into the room. No new money-path endpoints.
+The only integration point in the public web app is the settle screen: “Settle
+with Peanut” opens the existing Peanut payment-request flow, then the person
+records what happened in the trust-based room. A pasted receipt link is
+documentation, never provider verification. No new money-path endpoints.
 
 **Everything we don't yet know about Peanut's API lives in one file**, `apps/api/src/peanut/index.ts` — the pay-URL shape, the webhook payload and the signature scheme are all documented guesses. When the real docs arrive, that file's exported surface stays and its bodies change; nothing else needs to move.
 
@@ -85,6 +88,8 @@ Peanut's design system, with `primary-1` swapped off Peanut pink so Split reads 
 - `changelog-july-25.md` — what was built, and **why each design call went the way it did**. Read "Design choices" before changing the settle path or the analytics.
 - `CLAUDE.md` — working rules for this repo (it ships straight to main; money code still needs a test).
 - `docs-split-rooms-spike.md` — the original spike design doc and the 2026-07-06 review.
+- `docs/release-states.md` — the exact difference between code-complete,
+  deployed dark, user-visible and production-verified.
 
 ## Provenance
 

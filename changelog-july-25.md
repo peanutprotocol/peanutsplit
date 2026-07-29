@@ -1,5 +1,12 @@
 # Peanut Split — what happened, 24–25 July 2026
 
+> **HISTORICAL DELIVERY RECORD.** This is a dated account of what the team
+> believed and exercised on 25 July, not current release status or an
+> implementation plan. “Shipped” below means “landed in that historical work
+> stream”; it does not prove deployment, visibility or production verification.
+> Use [`docs/release-states.md`](docs/release-states.md) for the current state
+> vocabulary and evidence gates.
+
 Two days that took Peanut Split from "a spike on a branch nobody has run in weeks" to a standalone product with a working settle loop, its own repo and deploy, and a funnel instrumented well enough to decide whether it lives.
 
 **All of it is safe to throw away.** That is not a disclaimer, it's the design. Split is a growth bet with a one-month kill condition, and every decision below was made so that shutting it down costs an afternoon. See [Nuking this](#nuking-this) at the bottom for exactly what to delete and what — deliberately — you would not have to touch.
@@ -8,14 +15,14 @@ Two days that took Peanut Split from "a spike on a branch nobody has run in week
 
 ## The short version
 
-|                       |                                                                                                                                                         |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **New repo**          | `peanutprotocol/peanut-split`, private, registered as a mono submodule                                                                                  |
-| **Shipped**           | Extraction from the spike, ledger-integrity fixes, the settle-with-Peanut loop, verified receipts, per-room artwork and link previews, funnel analytics |
-| **Tests**             | 84 (65 API including 15 against a real Postgres, 19 UI)                                                                                                 |
-| **End-to-end checks** | 41 assertions against a live API + database, 13 driving a real browser, 12 walking the analytics funnel                                                 |
-| **Still mocked**      | Peanut's pay-URL shape, webhook payload and signature scheme — all isolated in one file                                                                 |
-| **Not done**          | peanutsplit.com landing page, the "Splitwise alternative" SEO page, deploys, a real PostHog project                                                     |
+|                                |                                                                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **New repo**                   | `peanutprotocol/peanut-split`, private, registered as a mono submodule                                                                            |
+| **Landed in this work stream** | Extraction from the spike, ledger-integrity fixes, the then-proposed settle-with-Peanut loop, per-room artwork/link previews and funnel analytics |
+| **Tests**                      | 84 (65 API including 15 against a real Postgres, 19 UI)                                                                                           |
+| **End-to-end checks**          | 41 assertions against a live API + database, 13 driving a real browser, 12 walking the analytics funnel                                           |
+| **Still mocked**               | Peanut's pay-URL shape, webhook payload and signature scheme — all isolated in one file                                                           |
+| **Not done**                   | peanutsplit.com landing page, the "Splitwise alternative" SEO page, deploys, a real PostHog project                                               |
 
 ---
 
