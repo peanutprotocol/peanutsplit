@@ -293,6 +293,36 @@ interface AddExpenseContext {
     previous?: RoomState
 }
 
+export interface ExpenseRequestState {
+    signature: string
+    clientKey: string
+}
+
+export interface ExpenseRequestRef {
+    current: ExpenseRequestState | null
+}
+
+/**
+ * One key describes one materially unchanged expense draft.
+ *
+ * The staged-payer path cannot move to the offline queue because it has no
+ * server-issued member id to paint into a pending row. Keeping this tiny
+ * request state in the drawer means a lost response can be retried directly
+ * without creating the same payer/expense twice.
+ */
+const expenseRequestSignature = (input: ExpenseInput): string =>
+    JSON.stringify([
+        input.description,
+        input.amountMinor,
+        input.currency,
+        input.newPaidByName ? ['new', input.newPaidByName] : ['member', input.paidById ?? null],
+        input.splitMode,
+        input.participantIds ?? null,
+        input.exactShares ?? null,
+        input.date ?? null,
+        input.category ?? null,
+    ])
+
 /**
  * The cached room with any in-flight optimistic rows stripped out.
  *
@@ -318,7 +348,8 @@ const authoritativeState = (queryClient: QueryClient, slug: string): RoomState |
 export function addExpenseMutationOptions(
     queryClient: QueryClient,
     slug: string,
-    token?: string | null
+    token?: string | null,
+    requestRef?: ExpenseRequestRef
 ): UseMutationOptions<RoomState, Error, ExpenseInput, AddExpenseContext> {
     return {
         /**
@@ -337,7 +368,12 @@ export function addExpenseMutationOptions(
             // Mint before the first network attempt. If the write commits but
             // its response is lost, the offline replay addresses that row
             // instead of creating a second expense.
-            const requestInput = { ...input, clientKey: input.clientKey ?? createClientKey() }
+            const signature = expenseRequestSignature(input)
+            const clientKey =
+                input.clientKey ??
+                (requestRef?.current?.signature === signature ? requestRef.current.clientKey : createClientKey())
+            const requestInput = { ...input, clientKey }
+            if (requestRef) requestRef.current = { signature, clientKey }
             try {
                 return await api.addExpense(slug, requestInput, token)
             } catch (error) {
@@ -386,13 +422,16 @@ export function addExpenseMutationOptions(
         onError: (_error, _input, context) => {
             if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
         },
-        onSuccess: (state) => seed(queryClient, slug, state),
+        onSuccess: (state) => {
+            if (requestRef) requestRef.current = null
+            seed(queryClient, slug, state)
+        },
     }
 }
 
-export function useAddExpense(slug: string, token?: string | null) {
+export function useAddExpense(slug: string, token?: string | null, requestRef?: ExpenseRequestRef) {
     const queryClient = useQueryClient()
-    return useMutation(addExpenseMutationOptions(queryClient, slug, token))
+    return useMutation(addExpenseMutationOptions(queryClient, slug, token, requestRef))
 }
 
 export function useUpdateExpense(slug: string, token?: string | null) {

@@ -28,7 +28,14 @@ import {
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
 import { currencyInfo, formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
-import { useAddExpense, useDeleteExpense, useModelStatus, useRestoreExpense, useUpdateExpense } from '@/lib/queries'
+import {
+    useAddExpense,
+    useDeleteExpense,
+    useModelStatus,
+    useRestoreExpense,
+    useUpdateExpense,
+    type ExpenseRequestState,
+} from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
 import { convertMinorForPreview, useRate } from '@/lib/use-rate'
@@ -68,7 +75,8 @@ export function ExpenseDrawer({
     const tDates = useTranslations('dates')
     const locale = useLocale()
     const errorMessage = useErrorMessage()
-    const addExpense = useAddExpense(slug, token)
+    const expenseRequestRef = useRef<ExpenseRequestState | null>(null)
+    const addExpense = useAddExpense(slug, token, expenseRequestRef)
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
@@ -119,6 +127,7 @@ export function ExpenseDrawer({
         setPayerError(null)
         setFieldRepairNotice(null)
         setEditor(null)
+        expenseRequestRef.current = null
         setValues(
             expense
                 ? expenseToFormValues(expense, currencies, locale)
