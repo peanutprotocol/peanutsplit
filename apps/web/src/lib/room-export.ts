@@ -44,6 +44,11 @@ const csvCell = (value: CsvCell): string => {
     return /[",\r\n]/.test(raw) ? `"${raw.replace(/"/g, '""')}"` : raw
 }
 
+/** Quoted CSV cells can still execute as spreadsheet formulas. Apply this only
+ * to user-authored text; money cells must remain numeric and machine-readable. */
+const spreadsheetText = (value: string | null | undefined): string | null | undefined =>
+    value && /^[=+\-@]/.test(value) ? `'${value}` : value
+
 const CSV_HEADERS = [
     'record_type',
     'id',
@@ -81,7 +86,7 @@ export function roomCsv(state: RoomState): string {
             '',
             '',
             '',
-            state.room.name,
+            spreadsheetText(state.room.name),
             '',
             state.room.currency,
             '',
@@ -106,7 +111,7 @@ export function roomCsv(state: RoomState): string {
                 member.id,
                 '',
                 member.id,
-                member.name,
+                spreadsheetText(member.name),
                 '',
                 '',
                 '',
@@ -132,7 +137,7 @@ export function roomCsv(state: RoomState): string {
                 expense.id,
                 '',
                 '',
-                expense.description,
+                spreadsheetText(expense.description),
                 expense.amountMinor,
                 expense.currency,
                 expense.baseAmountMinor,
@@ -195,7 +200,7 @@ export function roomCsv(state: RoomState): string {
                 settlement.toId,
                 settlement.createdById,
                 settlement.method,
-                settlement.note,
+                spreadsheetText(settlement.note),
                 settlement.createdAt,
                 settlement.createdAt
             )
