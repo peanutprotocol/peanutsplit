@@ -5,7 +5,6 @@ import { type RoomWithRelations } from '@/server/roomState'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
 import { MEMBER_FALLBACK } from '@/server/og/roomCard'
 import {
-    daySpan,
     isSettled,
     loadRecap,
     recapStatLine,
@@ -29,35 +28,6 @@ const drawableByBody = (value: string) => [...value].every((ch) => BODY_CHARS.ha
 const date = (iso: string) => new Date(iso)
 
 // ------------------------------------------------------------------ pure bits
-
-describe('daySpan', () => {
-    it('has no days without an expense', () => {
-        expect(daySpan([])).toBe(0)
-    })
-
-    it('counts one expense as one day, not zero', () => {
-        expect(daySpan([date('2026-07-04T09:00:00Z')])).toBe(1)
-    })
-
-    it('counts a same-day pair as one day', () => {
-        expect(daySpan([date('2026-07-04T09:00:00Z'), date('2026-07-04T23:30:00Z')])).toBe(1)
-    })
-
-    it('is inclusive of both ends', () => {
-        expect(daySpan([date('2026-07-01T12:00:00Z'), date('2026-07-09T12:00:00Z')])).toBe(9)
-    })
-
-    it('does not care what order the dates arrive in', () => {
-        const unordered = [date('2026-07-09T01:00:00Z'), date('2026-07-01T22:00:00Z'), date('2026-07-05T10:00:00Z')]
-        expect(daySpan(unordered)).toBe(9)
-    })
-
-    it('counts calendar days in UTC, so the answer is the same for every reader', () => {
-        // One minute apart, two UTC days. A zone-relative count would make the
-        // recap say "1 day" in São Paulo and "2 days" in Frankfurt.
-        expect(daySpan([date('2026-07-04T23:59:00Z'), date('2026-07-05T00:01:00Z')])).toBe(2)
-    })
-})
 
 describe('topPayerName', () => {
     const members = [
@@ -271,6 +241,21 @@ describe('toRecapCard', () => {
         const card = toRecapCard(recapOf({ name: 'Кипр 2026' }))
         expect(card.name).toBe('A split')
         expect(drawableByDisplay(card.name)).toBe(true)
+    })
+
+    it('carries a stored doodle name through as the emblem', () => {
+        const card = toRecapCard(recapOf({ emoji: 'pizza' }))
+        expect(card.emblem).toBe('pizza')
+    })
+
+    it('translates a legacy emoji emblem to its drawing', () => {
+        const card = toRecapCard(recapOf({ emoji: '🎿' }))
+        expect(card.emblem).toBe('ski')
+    })
+
+    it('falls back to the room name, then the peanut, for junk emblems', () => {
+        expect(toRecapCard(recapOf({ emoji: '🦖', name: 'Ski trip' })).emblem).toBe('ski')
+        expect(toRecapCard(recapOf({ emoji: null, name: 'zzz' })).emblem).toBe('peanut')
     })
 
     it('sanitizes a hostile member name inside the top-payer line', () => {

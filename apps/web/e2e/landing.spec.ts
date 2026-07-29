@@ -161,7 +161,7 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
     await expect(teamFold.getByText(/Hugo · built Split/)).toBeVisible()
     await expect(teamFold.getByText('Natalia', { exact: true })).toHaveCount(0)
     await expect(teamFold.getByText('Jakub', { exact: true })).toHaveCount(0)
-    await expect(teamFold.locator('img[src*="portraits"]')).toHaveCount(2)
+    await expect(teamFold.locator('.landing-persona svg')).toHaveCount(2)
 })
 
 test('the deployment-wide landing variant has an explicit observable value', async ({ page }) => {
@@ -170,6 +170,63 @@ test('the deployment-wide landing variant has an explicit observable value', asy
         'data-variant',
         controlBuild ? 'control' : 'pass_link'
     )
+})
+
+test('a sixth recent room is shown instead of becoming orphaned footer copy', async ({ page }) => {
+    await page.addInitScript(() => {
+        const now = Date.now()
+        window.localStorage.setItem(
+            'ps:recent',
+            JSON.stringify(
+                Array.from({ length: 6 }, (_, index) => ({
+                    slug: `room-${index}`,
+                    name: `Room ${index + 1}`,
+                    emoji: index === 0 ? 'boat' : 'ski',
+                    lastSeenAt: now - index * 60_000,
+                }))
+            )
+        )
+    })
+    await openLanding(page)
+
+    const rooms = page.getByTestId('recent-rooms')
+    await expect(rooms.getByTestId('recent-room-list').locator('a')).toHaveCount(6)
+    await expect(rooms.getByRole('button', { name: /more room/i })).toHaveCount(0)
+    await expect(rooms.getByText(/and 1 more/i)).toHaveCount(0)
+    await expect(rooms.getByTestId('recent-room-list').locator('svg').first()).toHaveAttribute('width', '30')
+})
+
+test('a longer recent-room history has an explicit reversible reveal control', async ({ page }) => {
+    await page.addInitScript(() => {
+        const now = Date.now()
+        window.localStorage.setItem(
+            'ps:recent',
+            JSON.stringify(
+                Array.from({ length: 7 }, (_, index) => ({
+                    slug: `room-${index}`,
+                    name: `Room ${index + 1}`,
+                    emoji: 'peanut',
+                    lastSeenAt: now - index * 60_000,
+                }))
+            )
+        )
+    })
+    await openLanding(page)
+
+    const rooms = page.getByTestId('recent-rooms')
+    const list = rooms.getByTestId('recent-room-list')
+    const reveal = rooms.getByRole('button', { name: 'Show 2 more rooms' })
+    await expect(list.locator('a')).toHaveCount(5)
+    await expect(reveal).toHaveAttribute('aria-expanded', 'false')
+
+    await reveal.click()
+    await expect(list.locator('a')).toHaveCount(7)
+    const collapse = rooms.getByRole('button', { name: 'Show fewer rooms' })
+    await expect(collapse).toHaveAttribute('aria-expanded', 'true')
+
+    await collapse.click()
+    await expect(list.locator('a')).toHaveCount(5)
+    await expect(reveal).toHaveAttribute('aria-expanded', 'false')
 })
 
 test('the rollback build keeps the compact real form and removes the theater', async ({ page }) => {
@@ -206,13 +263,23 @@ test.describe('Pass-the-link default', () => {
             const roomName = page.getByTestId('hero-room-name')
             const creatorName = page.getByTestId('hero-creator-name')
             const cta = page.getByTestId('hero-create-room')
+            const chatFrame = page.getByTestId('pass-link-chat-frame')
 
             await expect(hero).toBeVisible()
             await expect(headline).toBeVisible()
             await expect(stage).toBeVisible()
             await expect(form).toBeVisible()
-            await expect(page.getByTestId('pass-link-chat-frame')).toBeVisible()
+            await expect(chatFrame).toBeVisible()
             await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
+            await expect(chatFrame.locator('.pass-link-avatar svg')).toHaveCount(8)
+            const [avatarBox, avatarDoodleBox] = await Promise.all([
+                chatFrame.locator('.pass-link-avatar').first().boundingBox(),
+                chatFrame.locator('.pass-link-avatar svg').first().boundingBox(),
+            ])
+            expect(avatarBox).not.toBeNull()
+            expect(avatarDoodleBox).not.toBeNull()
+            expect(avatarDoodleBox!.width / avatarBox!.width).toBeGreaterThan(0.7)
+            await expect(chatFrame).not.toContainText(/PEANUT SPLIT\s*[·-]\s*SHARED ROOM/i)
             await expect(page.getByTestId('pass-link-channel')).toHaveCount(0)
             await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
             await expect(hero.locator('.pass-link-utility')).toHaveCount(0)
@@ -226,9 +293,14 @@ test.describe('Pass-the-link default', () => {
                 `${viewport.width}x${viewport.height} must not create horizontal page overflow`
             ).toBe(true)
 
-            if (viewport.width <= 390) {
-                const heroBox = await hero.boundingBox()
+            if (viewport.width <= 899) {
+                const [heroBox, chatBox] = await Promise.all([hero.boundingBox(), chatFrame.boundingBox()])
                 expect(heroBox).not.toBeNull()
+                expect(chatBox).not.toBeNull()
+                expect(
+                    chatBox!.height,
+                    `mobile messenger must stay portrait at ${viewport.width}x${viewport.height}`
+                ).toBeGreaterThan(chatBox!.width)
                 expect(
                     heroBox!.height,
                     `mobile hero must reveal the next section at ${viewport.width}x${viewport.height}`
@@ -513,6 +585,14 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(proof.suggestedPlan.title)
         await expect(page.getByTestId('room-examples')).toContainText(proof.examples.title)
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
+        await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
+        const [personaBox, personaDoodleBox] = await Promise.all([
+            page.getByTestId('landing-proof').locator('.landing-persona').first().boundingBox(),
+            page.getByTestId('landing-proof').locator('.landing-persona svg').first().boundingBox(),
+        ])
+        expect(personaBox).not.toBeNull()
+        expect(personaDoodleBox).not.toBeNull()
+        expect(personaDoodleBox!.width / personaBox!.width).toBeGreaterThan(0.8)
 
         const features = page.locator('details').filter({
             has: page.getByText(catalogs.en.marketing.readMore.features.title, { exact: true }),
@@ -785,7 +865,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
 
     await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('room-share-doodle')).toBeVisible()
-    await page.getByTestId('share-room').click()
+    await page.getByTestId('share-link').click()
     await expect
         .poll(() => page.evaluate(() => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload))
         .toMatchObject({
@@ -796,7 +876,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
     expect(payload?.url).toMatch(/\/r\/share-package-\d+-[0-9a-hjkmnp-tv-z]{6}$/)
-    await expect(page.getByTestId('copy-invite')).toBeVisible()
+    await expect(page.getByTestId('copy-link')).toBeVisible()
     await expect(page.getByTestId('download-share-card')).toBeVisible()
     await expect(page.getByTestId('download-share-text')).toBeVisible()
 
@@ -874,7 +954,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
             },
         })
     })
-    await page.getByTestId('share-room').click()
+    await page.getByTestId('share-link').click()
     await expect(page.getByTestId('share-status')).toHaveText(catalogs.en.room.link.shareFailed)
 
     // Removing Web Share cannot remove the independent copy/download package.
@@ -883,8 +963,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
     })
-    await page.getByTestId('copy-invite').click()
-    await expect(page.getByTestId('share-room')).toHaveCount(0)
+    await page.getByTestId('copy-link').click()
     const manualInvite = page.getByTestId('room-link-input')
     await expect(manualInvite).toBeFocused()
     await expect(manualInvite).toHaveValue(

@@ -4,6 +4,7 @@ import {
     currencyInfo,
     displaySymbol,
     equalSplitMinor,
+    formatAmountInput,
     formatMinorPlain,
     formatMoney,
     formatMoneyParts,
@@ -71,9 +72,100 @@ describe('parseAmountToMinor', () => {
         expect(parseAmountToMinor('1.234', 2)).toBe('123')
         expect(parseAmountToMinor('1,234', 2)).toBe('123')
     })
+
+    describe('interactive input with a known locale', () => {
+        it.each([
+            ['en', '1,234', '123400'],
+            ['en', '1,234.56', '123456'],
+            ['en', '1,023.45', '102345'],
+            ['es', '1.234', '123400'],
+            ['es', '1.234,56', '123456'],
+            ['es', '1.023,45', '102345'],
+            ['pt-BR', '1.234', '123400'],
+            ['pt-BR', '1.234,56', '123456'],
+            ['pt-BR', '1.023,45', '102345'],
+        ])('reads locale grouping in %s without changing the intended units', (locale, input, expected) => {
+            expect(parseAmountToMinor(input, 2, locale)).toBe(expected)
+        })
+
+        it.each([
+            ['en', '0.12'],
+            ['es', '0,12'],
+            ['pt-BR', '0,12'],
+        ])('preserves a canonical fractional value in %s', (locale, input) => {
+            expect(parseAmountToMinor(input, 2, locale)).toBe('12')
+        })
+
+        it.each([
+            ['en', '0,123', 2],
+            ['en', '00,123', 2],
+            ['es', '0.123', 2],
+            ['es', '00.123', 2],
+            ['pt-BR', '0.123', 2],
+            ['pt-BR', '00.123', 2],
+            ['en', '0,123', 0],
+            ['en', '00,123', 0],
+            ['es', '0.123', 0],
+            ['es', '00.123', 0],
+            ['pt-BR', '0.123', 0],
+            ['pt-BR', '00.123', 0],
+        ])('rejects noncanonical leading-zero grouping in %s at %idp', (locale, input, decimals) => {
+            expect(parseAmountToMinor(input, decimals, locale)).toBeNull()
+        })
+
+        it.each([
+            ['en', '0,123.45'],
+            ['en', '00,123.45'],
+            ['es', '0.123,45'],
+            ['es', '00.123,45'],
+            ['pt-BR', '0.123,45'],
+            ['pt-BR', '00.123,45'],
+        ])('rejects leading-zero grouping before a decimal mark in %s', (locale, input) => {
+            expect(parseAmountToMinor(input, 2, locale)).toBeNull()
+        })
+
+        it.each([
+            ['en', '12,34'],
+            ['es', '12.34'],
+            ['pt-BR', '12.34'],
+        ])('accepts the other phone-keyboard decimal mark in %s when it cannot be grouping', (locale, input) => {
+            expect(parseAmountToMinor(input, 2, locale)).toBe('1234')
+        })
+
+        it.each([
+            ['en', '12.345'],
+            ['es', '12,345'],
+            ['pt-BR', '12,345'],
+        ])('rejects excess precision in %s instead of rounding behind the typed value', (locale, input) => {
+            expect(parseAmountToMinor(input, 2, locale)).toBeNull()
+        })
+
+        it.each([
+            ['en', '4,500'],
+            ['es', '4.500'],
+            ['pt-BR', '4.500'],
+        ])('preserves grouped whole units for zero-decimal currencies in %s', (locale, input) => {
+            expect(parseAmountToMinor(input, 0, locale)).toBe('4500')
+        })
+
+        it.each([
+            ['en', '4500.4'],
+            ['es', '4500,4'],
+            ['pt-BR', '4500,4'],
+        ])('rejects fractional units for zero-decimal currencies in %s', (locale, input) => {
+            expect(parseAmountToMinor(input, 0, locale)).toBeNull()
+        })
+    })
 })
 
 describe('formatting', () => {
+    it('normalises editable amounts with the locale decimal mark and no grouping', () => {
+        expect(formatAmountInput('123456', 2, 'en')).toBe('1234.56')
+        expect(formatAmountInput('123456', 2, 'es')).toBe('1234,56')
+        expect(formatAmountInput('123456', 2, 'pt-BR')).toBe('1234,56')
+        expect(formatAmountInput('4500', 0, 'pt-BR')).toBe('4500')
+    })
+
     it('renders minor units with the right separator and symbol', () => {
         expect(formatMinorPlain('1234', 2)).toBe('12.34')
         expect(formatMinorPlain('4', 2)).toBe('0.04')

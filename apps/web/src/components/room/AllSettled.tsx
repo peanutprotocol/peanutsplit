@@ -6,7 +6,9 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { peanutCheering } from '@/assets/mascot'
+import { type DoodleName } from '@/components/ui/doodles'
 import { recapPath } from '@/lib/recap'
+import { storyBucketFor } from '@/lib/story'
 import { DUCK_LEAD_MS, duckMaster } from '@/lib/sounds'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback, useSettings } from '@/lib/use-settings'
@@ -27,7 +29,9 @@ interface AllSettledProps {
     compact?: boolean
     celebrate?: boolean
     /** The receipt line. Omitted in the drawer, where the room is right behind it. */
-    summary?: { people: number; expenses: number }
+    summary?: { people: number; expenses: number; days: number }
+    /** The room's own character — it rides the confetti. Omitted in the drawer. */
+    emblem?: DoodleName
     /**
      * Present only in the room, where the recap belongs. The settle drawer renders
      * this card too, and offering "share the story" from behind a sheet — before
@@ -62,9 +66,10 @@ const LAUNCH_S = BOUNCE_S * BOUNCE_TIMES[2]
  *  by the jump rather than as a second thing that happened at the same time. */
 const CONFETTI_DELAY_S = LAUNCH_S + 0.15
 
-export function AllSettled({ compact = false, celebrate = false, summary, slug }: AllSettledProps) {
+export function AllSettled({ compact = false, celebrate = false, summary, emblem, slug }: AllSettledProps) {
     const t = useTranslations('room.allSettled')
     const tRecap = useTranslations('room.recap')
+    const tStory = useTranslations('room.story')
     const motionAllowed = useMotionAllowed()
     const { settings } = useSettings()
     const feedback = useFeedback()
@@ -99,7 +104,7 @@ export function AllSettled({ compact = false, celebrate = false, summary, slug }
         >
             {/* Spilling past the card edge is the point — a burst contained by a
                 border is a progress bar, not a celebration. */}
-            {celebrate && <Confetti className="-inset-8" delay={CONFETTI_DELAY_S} />}
+            {celebrate && <Confetti className="-inset-8" delay={CONFETTI_DELAY_S} doodle={emblem} />}
 
             <motion.div
                 initial={
@@ -158,6 +163,28 @@ export function AllSettled({ compact = false, celebrate = false, summary, slug }
                             ·
                         </span>
                         <span>{t('allSquare')}</span>
+                    </p>
+                )}
+
+                {/* The epilogue: the receipt's numbers, told back as this room's
+                    story. Deterministic — same trip, same line, on every phone
+                    that screenshots it. It rides the block's existing spring,
+                    which is the whole trick: the story lands with the receipt,
+                    not as a second event. */}
+                {summary && (
+                    <p className="max-w-[20rem] text-sm font-medium text-n-1/70">
+                        {tStory(
+                            storyBucketFor({
+                                dayCount: summary.days,
+                                expenseCount: summary.expenses,
+                                memberCount: summary.people,
+                            }),
+                            {
+                                days: summary.days,
+                                count: summary.people,
+                                rounds: summary.expenses,
+                            }
+                        )}
                     </p>
                 )}
 

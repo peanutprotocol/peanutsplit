@@ -13,9 +13,7 @@
                 "questionSender": "Bea",
                 "question": "quem pagou o jantar?",
                 "you": "você",
-                "youShort": "VOCÊ",
                 "reply": "eu — vou lançar",
-                "linkBrand": "PEANUT SPLIT · SALA COMPARTILHADA",
                 "linkPrompt": "Cada um lança o seu",
                 "joined": "Bea, Jules e Mo abriram o link"
             },
@@ -29,8 +27,8 @@
             "title": "Suas salas",
             "subtitle": "Salvas neste aparelho.",
             "openLabel": "Abrir sala",
-            "more": "Mostrar {count, plural, one {mais # sala} other {mais # salas}}",
-            "less": "Mostrar menos salas",
+            "showMore": "Mostrar mais {count, plural, one {# sala} other {# salas}}",
+            "showLess": "Mostrar menos salas",
             "forgetLabel": "Remover {room} deste aparelho",
             "forgotten": "{room} foi removida deste aparelho. A sala compartilhada continua funcionando para quem tem o link.",
             "forgetFailed": "Não deu para remover {room} deste aparelho. Ela continua nesta lista.",
@@ -334,11 +332,27 @@
             "addExpense": "Lançar gasto"
         },
         "header": {
-            "allRooms": "Todas as salas",
             "shareRoomLink": "Compartilhar o link da sala",
-            "roomMenu": "Menu da sala",
+            "openSettings": "Abrir as configurações da sala",
+            "settingsTitle": "Configurações da sala",
             "youAre": "você é {name}",
+            "roomSection": "Sala",
+            "roomSectionHint": "Os dados que todas as pessoas desta sala veem.",
+            "displayName": "Nome de exibição",
+            "displayNameHint": "Mude o nome sem mudar o link.",
+            "saveName": "Salvar nome",
+            "nameFailed": "não foi possível renomear a sala — tente novamente",
+            "roomLink": "Link da sala",
+            "roomLinkHint": "Este endereço é permanente. Mudar o nome nunca mudará o link.",
             "shareTheRoomLink": "Compartilhar o link da sala",
+            "peopleSection": "Pessoas",
+            "peopleSectionHint": "Qualquer pessoa com o link pode adicionar pessoas e escolher seus personagens.",
+            "personNamePlaceholder": "Nome da pessoa",
+            "addPerson": "Adicionar pessoa",
+            "personDuplicate": "{name} já está na sala.",
+            "personFailed": "não foi possível adicionar essa pessoa — tente novamente",
+            "deviceSection": "Este dispositivo",
+            "deviceSectionHint": "Afeta apenas este celular ou navegador.",
             "notMe": "Outra pessoa está usando este celular?",
             "feedback": "Som e vibração",
             "sound": "Som",
@@ -377,6 +391,9 @@
             "paidBy": "{payer} pagou · {count, plural, one {# pessoa} other {# pessoas}}",
             "indicative": "indicativo",
             "paidByYou": "Você pagou · {count, plural, one {# pessoa} other {# pessoas}}",
+            "filedBy": "Lançado por {name}",
+            "filedByYou": "Lançado por você",
+            "filedByAnon": "Lançado por Anon",
             "emptyInvite": "Convide o resto"
         },
         "states": {
@@ -395,6 +412,13 @@
             "expenseCount": "{count, plural, one {# gasto} other {# gastos}}",
             "peopleCount": "{count, plural, one {# pessoa} other {# pessoas}}",
             "allSquare": "quites"
+        },
+        "story": {
+            "duo": "Só vocês dois, e nem um centavo pendente.",
+            "marathon": "{days} dias de “deixa que eu pago”. Tudo em paz.",
+            "blitz": "Um dia só, {rounds} rodadas de “deixa comigo”. Zero ressentimento.",
+            "bigGroup": "{count} pessoas e ninguém precisou cobrar ninguém.",
+            "default": "Ninguém ficou contando. Isso era trabalho nosso."
         },
         "recap": {
             "settledBadge": "Tudo acertado",
@@ -432,6 +456,7 @@
             "description": "Foi com o quê?",
             "descriptionPlaceholder": "Jantar, táxi, passe de esqui…",
             "fieldsSwapped": "Pronto: trocamos o valor e a descrição.",
+            "amountNormalised": "Lemos como {amount}. Confira antes de salvar.",
             "paidBy": "Pago por",
             "paid": "pagou",
             "paidBySummary": "{name} pagou",
@@ -481,8 +506,10 @@
             "validation": {
                 "DESCRIPTION_REQUIRED": "Dê um nome para todo mundo lembrar o que foi.",
                 "AMOUNT_REQUIRED": "Digite um valor maior que zero.",
+                "AMOUNT_INVALID": "Confira os separadores e as casas decimais do valor.",
                 "PAYER_REQUIRED": "Escolha quem pagou.",
                 "NO_PARTICIPANTS": "Escolha pelo menos uma pessoa para dividir.",
+                "SHARE_AMOUNT_INVALID": "Confira os separadores e as casas decimais dos valores exatos.",
                 "SHARES_DO_NOT_ADD_UP": "Os valores exatos precisam somar o total."
             },
             "equallyHint": "Igual para todo mundo",
@@ -504,6 +531,9 @@
             "peanutNote": "Abre o peanut.me em outra aba para enviar — e registra o pagamento aqui de qualquer jeito.",
             "note": "Observação (opcional)",
             "notePlaceholder": "Mandei na sexta",
+            "receiptLink": "Link do comprovante (opcional)",
+            "receiptLinkPlaceholder": "https://…",
+            "receiptLinkHint": "Guardado só como referência. O Split não abre nem verifica.",
             "record": "Registrar pagamento",
             "back": "Voltar",
             "recorded": "{from} pagou a {to}",
@@ -511,6 +541,7 @@
             "amountLabel": "Quanto foi pago?",
             "amountHint": "A dívida inteira é",
             "amountInvalid": "Coloque um valor maior que zero.",
+            "amountFormatInvalid": "Confira os separadores e as casas decimais do valor.",
             "amountTooHigh": "Isso é mais do que {name} deve.",
             "recordedTitle": "Registrado agora",
             "recordedHint": "Eles também ficam no histórico da sala, junto com o resto."
@@ -525,7 +556,9 @@
                 "add": "Adicionar",
                 "note": "Elas ainda vão abrir o link e escolher o próprio nome — isso só guarda o lugar.",
                 "duplicate": "{name} já está nesta sala.",
-                "failed": "não deu para adicionar — tente de novo"
+                "failed": "não deu para adicionar — tente de novo",
+                "remove": "Remover o nome não usado de {name}",
+                "removeFailed": "não foi possível remover esse nome — tente de novo"
             }
         },
         "link": {
@@ -584,6 +617,7 @@
             "reviewFromMerchant": "De {merchant}. Corrija o que saiu errado e acrescente o que faltou.",
             "itemLabel": "Item",
             "itemAmount": "Valor do item",
+            "amountInvalid": "Confira os separadores e as casas decimais de cada item.",
             "itemPlaceholder": "Item",
             "removeItem": "Remover este item",
             "addItem": "Adicionar um item que faltou",
@@ -677,11 +711,13 @@
             "paymentLabel": "Pagamento",
             "recordedBy": "registrado por {name}",
             "recordedByYou": "registrado por você",
-            "remove": "Excluir este pagamento",
-            "confirmRemove": "Excluir este pagamento? Não dá para desfazer — teria que registrar de novo.",
-            "confirmYes": "Excluir",
+            "recordedByAnon": "registrado por Anon",
+            "receiptLink": "Abrir link do comprovante · não verificado",
+            "remove": "Desfazer este registro de pagamento",
+            "confirmRemove": "Desfazer este registro? Isso muda o saldo da sala, não o dinheiro já enviado.",
+            "confirmYes": "Desfazer registro",
             "confirmNo": "Deixar",
-            "removed": "Pagamento excluído. Registre de novo se foi engano.",
+            "removed": "Registro desfeito. Os saldos foram atualizados.",
             "removeFailed": "Não deu para excluir esse pagamento — tente de novo."
         }
     },

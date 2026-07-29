@@ -40,14 +40,9 @@ interface SettlementRowProps {
  * the note, who recorded it — is on the row, because "did somebody put this in
  * twice?" is answered by exactly those three fields.
  *
- * DELETING IS A CONFIRM, NOT AN UNDO, and that is not a taste decision. Expenses
- * get a 6s undo toast because `POST /api/expenses/:id/restore` exists to make it
- * true. There is no such route for settlements: the DELETE soft-deletes for
- * audit, and nothing can bring the row back. Offering an Undo that the next tap
- * would fail is worse than asking first, so the row asks first and says plainly
- * that re-recording is the way back. (A restore route is the obvious other
- * answer; it is a new money-path endpoint, which this repo has frozen, so it is
- * a product decision rather than a TODO.)
+ * Removing is a confirm because it immediately re-opens the room debt. The row
+ * itself remains soft-deleted for audit; the UI calls this undoing the record,
+ * not undoing any real-world transfer.
  */
 export function SettlementRow({
     slug,
@@ -112,7 +107,7 @@ export function SettlementRow({
         ? settlement.createdById === meId
             ? t('recordedByYou')
             : t('recordedBy', { name: nameOf(settlement.createdById) })
-        : null
+        : t('recordedByAnon')
     // "· method · note · recorded by" with whichever of the three exist. Joined
     // rather than conditionally rendered so a missing middle never leaves a
     // dangling separator.
@@ -162,6 +157,18 @@ export function SettlementRow({
             <p className="text-h10 uppercase tracking-wide text-grey-1">
                 {details ? `${t('paymentLabel')} · ${details}` : t('paymentLabel')}
             </p>
+
+            {settlement.receiptUrl && (
+                <a
+                    href={settlement.receiptUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-fit text-sm font-bold underline underline-offset-2"
+                    data-testid="settlement-receipt-link"
+                >
+                    {t('receiptLink')}
+                </a>
+            )}
 
             {confirming && (
                 <div className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-2">

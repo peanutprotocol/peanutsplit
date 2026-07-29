@@ -21,10 +21,10 @@ import { fieldSizes } from '@/components/ui/field'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
-import { formatMoney } from '@/lib/money'
+import { formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useFeedback } from '@/lib/use-settings'
 import { Money } from '../Money'
-import { itemsTotalMinor, totalMismatchMinor, type ScanAction, type ScanState } from './scan-state'
+import { invalidAmountItems, itemsTotalMinor, totalMismatchMinor, type ScanAction, type ScanState } from './scan-state'
 
 interface ScanReviewProps {
     state: ScanState
@@ -40,10 +40,11 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
     const locale = useLocale()
     const feedback = useFeedback()
 
-    const total = itemsTotalMinor(state, decimals)
-    const mismatch = totalMismatchMinor(state, decimals)
+    const invalidAmounts = invalidAmountItems(state, decimals, locale)
+    const total = itemsTotalMinor(state, decimals, locale)
+    const mismatch = totalMismatchMinor(state, decimals, locale)
     const hasMismatch = mismatch !== null && mismatch !== '0'
-    const canContinue = BigInt(total) > 0n
+    const canContinue = BigInt(total) > 0n && invalidAmounts.length === 0
 
     return (
         <div className="flex flex-col gap-5">
@@ -55,46 +56,74 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
             </header>
 
             <ul className="flex flex-col gap-2">
-                {state.items.map((item) => (
-                    <li key={item.id} className="flex items-center gap-2">
-                        <input
-                            value={item.label}
-                            onChange={(event) =>
-                                dispatch({ type: 'edit-label', itemId: item.id, label: event.target.value })
-                            }
-                            placeholder={t('itemPlaceholder')}
-                            maxLength={80}
-                            aria-label={t('itemLabel')}
-                            data-testid="scan-item-label"
-                            className={cn('input min-w-0 flex-1', fieldSizes.sm)}
-                        />
-                        <input
-                            value={item.amountInput}
-                            onChange={(event) =>
-                                dispatch({ type: 'edit-amount', itemId: item.id, amountInput: event.target.value })
-                            }
-                            inputMode="decimal"
-                            autoComplete="off"
-                            placeholder={decimals === 0 ? '0' : '0.00'}
-                            aria-label={t('itemAmount')}
-                            data-testid="scan-item-amount"
-                            className={cn('input w-24 shrink-0 tabular-nums', fieldSizes.sm)}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                dispatch({ type: 'remove-item', itemId: item.id })
-                                feedback('tick')
-                            }}
-                            aria-label={t('removeItem')}
-                            data-testid="scan-remove-item"
-                            className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
-                        >
-                            <Icon name="trash" size={16} />
-                        </button>
-                    </li>
-                ))}
+                {state.items.map((item) => {
+                    const invalid = invalidAmounts.some((candidate) => candidate.id === item.id)
+                    return (
+                        <li key={item.id} className="flex items-center gap-2">
+                            <input
+                                value={item.label}
+                                onChange={(event) =>
+                                    dispatch({ type: 'edit-label', itemId: item.id, label: event.target.value })
+                                }
+                                placeholder={t('itemPlaceholder')}
+                                maxLength={80}
+                                aria-label={t('itemLabel')}
+                                data-testid="scan-item-label"
+                                className={cn('input min-w-0 flex-1', fieldSizes.sm)}
+                            />
+                            <input
+                                value={item.amountInput}
+                                onChange={(event) =>
+                                    dispatch({ type: 'edit-amount', itemId: item.id, amountInput: event.target.value })
+                                }
+                                onBlur={() => {
+                                    const minor = parseAmountToMinor(item.amountInput, decimals, locale)
+                                    if (minor === null) return
+                                    const amountInput = formatAmountInput(minor, decimals, locale)
+                                    if (amountInput !== item.amountInput) {
+                                        dispatch({ type: 'edit-amount', itemId: item.id, amountInput })
+                                    }
+                                }}
+                                inputMode="decimal"
+                                autoComplete="off"
+                                placeholder={decimals === 0 ? '0' : '0.00'}
+                                aria-label={t('itemAmount')}
+                                aria-invalid={invalid || undefined}
+                                aria-describedby={invalid ? 'scan-amount-error' : undefined}
+                                data-testid="scan-item-amount"
+                                className={cn(
+                                    'input w-24 shrink-0 tabular-nums',
+                                    fieldSizes.sm,
+                                    invalid && 'border-error'
+                                )}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    dispatch({ type: 'remove-item', itemId: item.id })
+                                    feedback('tick')
+                                }}
+                                aria-label={t('removeItem')}
+                                data-testid="scan-remove-item"
+                                className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
+                            >
+                                <Icon name="trash" size={16} />
+                            </button>
+                        </li>
+                    )
+                })}
             </ul>
+
+            {invalidAmounts.length > 0 && (
+                <p
+                    id="scan-amount-error"
+                    role="alert"
+                    data-testid="scan-amount-error"
+                    className="text-sm font-bold text-error"
+                >
+                    {t('amountInvalid')}
+                </p>
+            )}
 
             {state.items.length === 0 && (
                 <p data-testid="scan-no-items" className="text-sm text-grey-1">

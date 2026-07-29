@@ -8,6 +8,7 @@
  *  - text lives in a leaf element, never as a sibling of another element
  */
 import { DEFAULT_THEME, type RoomTheme } from '@/lib/themes'
+import { doodleDataUri } from '@/server/og/emblem'
 import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
 import { AVATAR_COLORS, ENGLISH_CARD_COPY, type OgAvatar, type RoomCardData } from '@/server/og/roomCard'
 
@@ -166,6 +167,27 @@ function AvatarRow({ avatars, overflow, people }: { avatars: OgAvatar[]; overflo
                     {`+${overflow}`}
                 </div>
             ) : null}
+            {/* The empty seat. This card renders in the group chat of everyone
+                who has not joined yet, so the roster ends with a chair held open
+                for the person looking at it — the invitation drawn rather than
+                written. Dashed on purpose: a seat, not a member. */}
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 80,
+                    height: 80,
+                    borderRadius: 9999,
+                    backgroundColor: '#FFFFFF',
+                    border: `4px dashed ${INK}`,
+                    marginLeft: -18,
+                    flexShrink: 0,
+                }}
+            >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={doodleDataUri('question')} width={44} height={44} alt="" />
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', marginLeft: 26, fontSize: 32, color: MUTED }}>
                 {people}
             </div>

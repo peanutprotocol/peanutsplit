@@ -1,12 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
+import { peanutWavingHello } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
-import { sharePackageMeasureProps, track } from '@/lib/analytics'
+import { roomProps, sharePackageMeasureProps, track } from '@/lib/analytics'
 import { roomSharePackage, roomShareVisual } from '@/lib/share-package'
 import { themeFor } from '@/lib/themes'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -79,11 +81,21 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
     const [status, setStatus] = useState<string | null>(null)
+    /**
+     * The wave-off: the mascot peeks over the ticket when the link actually
+     * leaves — copy succeeded or the share sheet resolved — never on mount.
+     * The whoosh already means "gone"; this is the same sentence, drawn.
+     * One wave at a time: a re-tap during the peek is ignored rather than
+     * restarted, and the `copied` label's own 2s reset never replays it.
+     */
+    const [waving, setWaving] = useState(false)
     const inputRef = useRef<HTMLTextAreaElement>(null)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
 
-    const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+    const wave = useCallback(() => {
+        if (motionAllowed) setWaving(true)
+    }, [motionAllowed])
 
     useEffect(() => {
         track('share_package_presented', sharePackageMeasureProps())
@@ -110,17 +122,28 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
             setCopyFailed(false)
             setStatus(t('copied'))
             feedback('whoosh')
-            track('link_copied')
+            wave()
+            track('link_copied', roomProps(slug))
             completed('clipboard')
             window.setTimeout(() => setCopied(false), 2_000)
         } catch {
             revealFallback()
         }
-    }, [completed, feedback, payload.fullText, revealFallback, t])
+    }, [completed, feedback, payload.fullText, revealFallback, slug, t, wave])
 
     const share = useCallback(async () => {
+        // Web Share is mostly a phone feature. Keep Share as the primary action
+        // everywhere: on browsers without a native sheet it copies the same link,
+        // ready to paste into whatever the group uses.
+        if (typeof navigator.share !== 'function') {
+            await copy()
+            return
+        }
         feedback('whoosh')
-        track('share_opened')
+        track('share_opened', roomProps(slug))
+        // Localised on purpose: `roomSharePackage` was built from `t(...)`, so this
+        // text is in the language the person sharing is already speaking when it
+        // gets pasted into the group chat.
         const textPayload = { title: payload.title, text: payload.text, url: payload.url }
         let nativePayload: ShareData = textPayload
         try {
@@ -135,13 +158,16 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
         try {
             await navigator.share(nativePayload)
             setStatus(t('shared'))
+            wave()
+            // `completed` is the one `share_completed` emitter — it carries the
+            // package variant and method, which the bare room props did not.
             completed('native')
         } catch (error) {
             if (error instanceof DOMException && error.name === 'AbortError') return
             setStatus(t('shareFailed'))
             feedback('error', { haptic: 'error' })
         }
-    }, [completed, feedback, payload, t, visual])
+    }, [completed, copy, feedback, payload, slug, t, visual, wave])
 
     const downloadCard = useCallback(() => {
         if (download(visual.svg, visual.mimeType, visual.filename)) {
@@ -179,6 +205,9 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
             </motion.div>
 
             <motion.div
+                // `relative` anchors the mascot's peek; it must stay even when
+                // nothing moves, or the absolute child escapes the ticket.
+                className="relative"
                 initial={motionAllowed ? { y: -56, opacity: 0, rotate: -4, scale: 0.94 } : false}
                 animate={{ y: 0, opacity: 1, rotate: motionAllowed ? [-4, 1.4, 0] : 0, scale: 1 }}
                 transition={
@@ -198,6 +227,21 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
                 data-motion-surface
                 data-testid="room-share-card"
             >
+                {/* Behind the opaque Card (negative z), so only what clears the top
+                    edge is ever visible: rises, waves, ducks back down. A genuine
+                    peek — zero layout shift, nothing to tap. */}
+                {waving && (
+                    <motion.div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute right-8 top-0 -z-10"
+                        initial={{ y: 48, rotate: 0 }}
+                        animate={{ y: [48, -26, -26, 48], rotate: [0, -5, 5, 0] }}
+                        transition={{ duration: 1.5, times: [0, 0.22, 0.78, 1], ease: 'easeInOut' }}
+                        onAnimationComplete={() => setWaving(false)}
+                    >
+                        <Image src={peanutWavingHello} alt="" unoptimized className="h-14 w-14 object-contain" />
+                    </motion.div>
+                )}
                 <Card shadowSize="6" className="overflow-hidden">
                     <div
                         className="flex items-center gap-3 border-b border-n-1 px-4 py-4"
@@ -245,71 +289,69 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
                                 />
                             </div>
                         ) : (
-                            <p
-                                data-testid="room-link"
-                                className="select-text break-all rounded-sm border border-dashed border-n-1 bg-grey-3 px-3 py-3 text-sm font-bold"
+                            <div
+                                className="flex min-h-12 items-center gap-2 rounded-sm border border-dashed border-n-1 bg-grey-3 py-1 pl-3 pr-1"
+                                data-testid="room-link-row"
                             >
-                                {url}
-                            </p>
+                                <p
+                                    data-testid="room-link"
+                                    className="min-w-0 flex-1 select-text break-all text-sm font-bold"
+                                >
+                                    {url}
+                                </p>
+                                <motion.button
+                                    type="button"
+                                    onClick={copy}
+                                    aria-label={copied ? t('copied') : t('copy')}
+                                    data-testid="copy-link"
+                                    animate={
+                                        copied
+                                            ? { scale: [1, 1.08, 1], backgroundColor: '#98E9AB' }
+                                            : { scale: 1, backgroundColor: 'rgba(255,255,255,0)' }
+                                    }
+                                    transition={{ duration: 0.22 }}
+                                    className="flex size-9 shrink-0 items-center justify-center rounded-sm transition-transform active:translate-y-px"
+                                >
+                                    <AnimatePresence mode="popLayout" initial={false}>
+                                        <motion.span
+                                            key={copied ? 'check' : 'copy'}
+                                            initial={{ scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 }}
+                                            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                                            exit={{ scale: 0.3, opacity: 0 }}
+                                            transition={{ type: 'spring', stiffness: 520, damping: 20 }}
+                                            className="flex items-center justify-center"
+                                        >
+                                            <Icon name={copied ? 'check' : 'copy'} size={15} />
+                                        </motion.span>
+                                    </AnimatePresence>
+                                </motion.button>
+                            </div>
                         )}
                     </div>
                 </Card>
             </motion.div>
 
             <div className="flex flex-col gap-3">
-                <motion.div
-                    animate={motionAllowed && copied ? { scale: [1, 1.02, 1] } : { scale: 1 }}
-                    transition={motionAllowed ? { duration: 0.26 } : { duration: 0 }}
-                    data-motion-surface
+                {/* Share stays the single primary action and is never hidden: on a
+                    browser with no native sheet `share()` copies instead, so the
+                    button always does the useful thing. That answers what an earlier
+                    version of this screen solved by promoting Copy and gating Share
+                    on `navigator.share` — copy now lives inline in the link row, and
+                    one primary action beats two competing ones. */}
+                <Button
+                    variant="primary"
+                    shadowSize="4"
+                    onClick={() => void share()}
+                    icon="share"
+                    className="justify-center"
+                    data-testid="share-link"
                 >
-                    <Button
-                        variant="primary"
-                        shadowSize="4"
-                        onClick={() => void copy()}
-                        icon={
-                            <AnimatePresence mode="popLayout" initial={false}>
-                                <motion.span
-                                    key={copied ? 'check' : 'copy'}
-                                    initial={
-                                        motionAllowed ? { scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 } : false
-                                    }
-                                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                                    exit={motionAllowed ? { scale: 0.3, opacity: 0 } : undefined}
-                                    transition={
-                                        motionAllowed
-                                            ? { type: 'spring', stiffness: 520, damping: 20 }
-                                            : { duration: 0 }
-                                    }
-                                    data-motion-surface
-                                    className="flex items-center justify-center"
-                                >
-                                    <Icon name={copied ? 'check' : 'copy'} size={18} />
-                                </motion.span>
-                            </AnimatePresence>
-                        }
-                        className={
-                            copied
-                                ? 'justify-center !bg-green-1 transition-colors duration-150'
-                                : 'justify-center transition-colors duration-150'
-                        }
-                        data-testid="copy-invite"
-                    >
-                        {copied ? t('copied') : t('copy')}
-                    </Button>
-                </motion.div>
+                    {t('share')}
+                </Button>
 
-                {canShare && (
-                    <Button
-                        variant="stroke"
-                        onClick={() => void share()}
-                        icon="share"
-                        className="justify-center"
-                        data-testid="share-room"
-                    >
-                        {t('share')}
-                    </Button>
-                )}
-
+                {/* The rest of the package. Neither needs a network, an account or a
+                    share sheet, which is the point: the room stays recoverable from
+                    a file when the group chat is not reachable from this device. */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Button
                         variant="stroke"

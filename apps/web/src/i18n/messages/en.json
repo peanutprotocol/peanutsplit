@@ -13,9 +13,7 @@
                 "questionSender": "Bea",
                 "question": "who paid for dinner?",
                 "you": "you",
-                "youShort": "YOU",
                 "reply": "me — adding it",
-                "linkBrand": "PEANUT SPLIT · SHARED ROOM",
                 "linkPrompt": "Everyone adds their own",
                 "joined": "Bea, Jules and Mo opened the link"
             },
@@ -29,8 +27,8 @@
             "title": "Your rooms",
             "subtitle": "Saved on this device.",
             "openLabel": "Open room",
-            "more": "Show {count, plural, one {# more room} other {# more rooms}}",
-            "less": "Show fewer rooms",
+            "showMore": "Show {count, plural, one {# more room} other {# more rooms}}",
+            "showLess": "Show fewer rooms",
             "forgetLabel": "Forget {room} on this device",
             "forgotten": "{room} was removed from this device. The shared room still works for anyone with its link.",
             "forgetFailed": "We could not remove {room} from this device. It is still in this list.",
@@ -334,11 +332,27 @@
             "addExpense": "Add expense"
         },
         "header": {
-            "allRooms": "All rooms",
             "shareRoomLink": "Share room link",
-            "roomMenu": "Room menu",
+            "openSettings": "Open room settings",
+            "settingsTitle": "Room settings",
             "youAre": "you are {name}",
+            "roomSection": "Room",
+            "roomSectionHint": "The details everyone in this room sees.",
+            "displayName": "Display name",
+            "displayNameHint": "Rename the room without changing its link.",
+            "saveName": "Save name",
+            "nameFailed": "could not rename the room — try again",
+            "roomLink": "Room link",
+            "roomLinkHint": "This address is permanent. Renaming the room will never change it.",
             "shareTheRoomLink": "Share the room link",
+            "peopleSection": "People",
+            "peopleSectionHint": "Anyone with the link can add people and choose their characters.",
+            "personNamePlaceholder": "Person’s name",
+            "addPerson": "Add person",
+            "personDuplicate": "{name} is already in the room.",
+            "personFailed": "could not add that person — try again",
+            "deviceSection": "This device",
+            "deviceSectionHint": "Only affects this phone or browser.",
             "notMe": "Someone else is using this phone?",
             "feedback": "Feedback",
             "sound": "Sound",
@@ -377,6 +391,9 @@
             "paidBy": "{payer} paid · {count, plural, one {# person} other {# people}}",
             "indicative": "indicative",
             "paidByYou": "You paid · {count, plural, one {# person} other {# people}}",
+            "filedBy": "Filed by {name}",
+            "filedByYou": "Filed by you",
+            "filedByAnon": "Filed by Anon",
             "emptyInvite": "Invite the rest"
         },
         "states": {
@@ -395,6 +412,13 @@
             "expenseCount": "{count, plural, one {# expense} other {# expenses}}",
             "peopleCount": "{count, plural, one {# person} other {# people}}",
             "allSquare": "all square"
+        },
+        "story": {
+            "duo": "Just the two of you, and not a cent between you.",
+            "marathon": "{days} days of “I’ll get this one.” All square.",
+            "blitz": "One day, {rounds} rounds of “I’ve got it.” Zero grudges.",
+            "bigGroup": "{count} people, and nobody had to chase anybody.",
+            "default": "Nobody kept score. That was our job."
         },
         "recap": {
             "settledBadge": "All settled",
@@ -432,6 +456,7 @@
             "description": "What for?",
             "descriptionPlaceholder": "Dinner, taxi, lift pass…",
             "fieldsSwapped": "Got it — amount and description swapped.",
+            "amountNormalised": "Read as {amount}. Check it before saving.",
             "paidBy": "Paid by",
             "paid": "paid",
             "paidBySummary": "{name} paid",
@@ -481,8 +506,10 @@
             "validation": {
                 "DESCRIPTION_REQUIRED": "Give it a name so everyone remembers what it was.",
                 "AMOUNT_REQUIRED": "Enter an amount greater than zero.",
+                "AMOUNT_INVALID": "Check the separators and decimal places in the amount.",
                 "PAYER_REQUIRED": "Pick who paid.",
                 "NO_PARTICIPANTS": "Pick at least one person to split this between.",
+                "SHARE_AMOUNT_INVALID": "Check the separators and decimal places in the exact amounts.",
                 "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total."
             },
             "equallyHint": "Same for everyone",
@@ -504,6 +531,9 @@
             "peanutNote": "Opens peanut.me in a new tab to send it — and records the payment here either way.",
             "note": "Note (optional)",
             "notePlaceholder": "Sent on Friday",
+            "receiptLink": "Receipt link (optional)",
+            "receiptLinkPlaceholder": "https://…",
+            "receiptLinkHint": "Saved as documentation only. Split does not open or verify it.",
             "record": "Record payment",
             "back": "Back",
             "recorded": "{from} paid {to}",
@@ -511,6 +541,7 @@
             "amountLabel": "How much moved?",
             "amountHint": "The whole debt is",
             "amountInvalid": "Enter an amount greater than zero.",
+            "amountFormatInvalid": "Check the separators and decimal places in the amount.",
             "amountTooHigh": "That is more than {name} owes.",
             "recordedTitle": "Recorded just now",
             "recordedHint": "These are in the room history too, with everything else."
@@ -525,7 +556,9 @@
                 "add": "Add",
                 "note": "They still open the link and pick their own name — this only holds their place.",
                 "duplicate": "{name} is already in this room.",
-                "failed": "could not add them — try again"
+                "failed": "could not add them — try again",
+                "remove": "Remove untouched placeholder for {name}",
+                "removeFailed": "could not remove that name — try again"
             }
         },
         "link": {
@@ -584,6 +617,7 @@
             "reviewFromMerchant": "From {merchant}. Fix anything that came out wrong, add what was missed.",
             "itemLabel": "Item",
             "itemAmount": "Item amount",
+            "amountInvalid": "Check each item’s separators and decimal places.",
             "itemPlaceholder": "Item",
             "removeItem": "Remove this item",
             "addItem": "Add a missed item",
@@ -677,11 +711,13 @@
             "paymentLabel": "Payment",
             "recordedBy": "recorded by {name}",
             "recordedByYou": "recorded by you",
-            "remove": "Remove this payment",
-            "confirmRemove": "Remove this payment? There is no undo — you would have to record it again.",
-            "confirmYes": "Remove it",
+            "recordedByAnon": "recorded by Anon",
+            "receiptLink": "Open receipt link · not verified",
+            "remove": "Undo this payment record",
+            "confirmRemove": "Undo this record? This changes the room balance, not any money already sent.",
+            "confirmYes": "Undo record",
             "confirmNo": "Keep it",
-            "removed": "Payment removed. Record it again if that was a mistake.",
+            "removed": "Payment record undone. Room balances updated.",
             "removeFailed": "Could not remove that payment — try again."
         }
     },
