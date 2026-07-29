@@ -1100,8 +1100,10 @@
     }
 
     .pass-link-chat-link {
-        inset: 0.35rem 0.35rem 0.2rem;
+        inset: 0.35rem auto 0.2rem 50%;
+        width: calc(100% - 1.25rem);
         border-radius: 0.8rem;
+        transform: translateX(-50%);
     }
 
     .pass-link-chat-frame {
