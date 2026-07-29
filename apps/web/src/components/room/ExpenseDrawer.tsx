@@ -27,7 +27,7 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
-import { currencyInfo, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
+import { currencyInfo, formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
     useDeleteExpense,
@@ -137,7 +137,7 @@ export function ExpenseDrawer({
         expenseRequestRef.current = null
         setValues(
             expense
-                ? expenseToFormValues(expense, currencies)
+                ? expenseToFormValues(expense, currencies, locale)
                 : emptyExpenseForm({
                       currency: state.room.currency,
                       members: state.members,
@@ -164,14 +164,14 @@ export function ExpenseDrawer({
     const suggestedCurrencies = [state.room.currency, ...hints.map((hint) => hint.currency)].filter(
         (code, index, all) => all.indexOf(code) === index
     )
-    const validation = validateExpenseForm(values, currencies)
-    const remaining = remainingMinor(values, currencies)
+    const validation = validateExpenseForm(values, currencies, locale)
+    const remaining = remainingMinor(values, currencies, locale)
     const remainingIsZero = remaining === '0'
     /** The green celebration. Zero left to allocate is NOT enough on its own —
      *  an untouched EXACT form is zero against zero, and cheering before the work
      *  starts spends the moment that was supposed to land at the end of it. */
     const allocationSettled = remainingIsZero && values.exactTouched
-    const totalMinor = parseAmountToMinor(values.amountInput, decimals)
+    const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
 
@@ -306,9 +306,25 @@ export function ExpenseDrawer({
     const normaliseExact = (memberId: string) => {
         const raw = values.exactInputs[memberId] ?? ''
         if (raw.trim().length === 0) return
-        const minor = parseAmountToMinor(raw, decimals)
+        const minor = parseAmountToMinor(raw, decimals, locale)
         if (minor === null) return
-        editExact(memberId, formatMinorPlain(minor, decimals))
+        editExact(memberId, formatAmountInput(minor, decimals, locale))
+    }
+
+    /** Make the interpretation visible before save. A grouped `1,234` in
+     * English becomes `1234.00`; in Spanish/Portuguese, `1.234` becomes
+     * `1234,00`. If that was not what the person meant, the field now says so
+     * while it is still editable. */
+    const normaliseAmount = () => {
+        const raw = values.amountInput.trim()
+        if (raw.length === 0) return
+        const minor = parseAmountToMinor(raw, decimals, locale)
+        if (minor === null) return
+        const normalised = formatAmountInput(minor, decimals, locale)
+        if (normalised === raw) return
+        patch({ amountInput: normalised })
+        setSubmitted(false)
+        setFieldRepairNotice(t('amountNormalised', { amount: normalised }))
     }
 
     const chooseRelativeDate = (daysAgo: number) => {
@@ -320,9 +336,9 @@ export function ExpenseDrawer({
     }
 
     const putRemainderOn = (memberId: string) => {
-        const current = parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals) ?? '0'
+        const current = parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals, locale) ?? '0'
         const next = BigInt(current) + BigInt(remaining)
-        editExact(memberId, formatMinorPlain((next < 0n ? 0n : next).toString(), decimals))
+        editExact(memberId, formatAmountInput((next < 0n ? 0n : next).toString(), decimals, locale))
     }
 
     const close = () => {
@@ -337,7 +353,7 @@ export function ExpenseDrawer({
      * safety net.
      */
     const repairFieldRoles = (candidate: ExpenseFormValues = values, clearSubmitted = true) => {
-        const repaired = repairMisplacedExpenseFields(candidate, currencies)
+        const repaired = repairMisplacedExpenseFields(candidate, currencies, locale)
         if (!repaired) return candidate
         setValues(repaired)
         if (clearSubmitted) setSubmitted(false)
@@ -350,13 +366,14 @@ export function ExpenseDrawer({
         if (savingRef.current) return
         setSubmitted(true)
         const valuesToSave = repairFieldRoles(values, false)
-        const validationToSave = validateExpenseForm(valuesToSave, currencies)
+        const validationToSave = validateExpenseForm(valuesToSave, currencies, locale)
         if (validationToSave) {
             // The message alone is easy to miss on a long form — the sheet moving
             // is what tells you the tap was received and refused.
             feedback('error', { haptic: 'error' })
             shake()
-            if (validationToSave === 'AMOUNT_REQUIRED') amountRef.current?.focus()
+            if (validationToSave === 'AMOUNT_REQUIRED' || validationToSave === 'AMOUNT_INVALID')
+                amountRef.current?.focus()
             else if (validationToSave === 'DESCRIPTION_REQUIRED') descriptionRef.current?.focus()
             else if (validationToSave === 'PAYER_REQUIRED') setEditor('payer')
             else setEditor('split')
@@ -364,7 +381,7 @@ export function ExpenseDrawer({
         }
         savingRef.current = true
         setError(null)
-        const body = buildExpenseBody(valuesToSave, currencies)
+        const body = buildExpenseBody(valuesToSave, currencies, locale)
         try {
             if (expense) {
                 await updateExpense.mutateAsync({ id: expense.id, input: body })
@@ -492,14 +509,18 @@ export function ExpenseDrawer({
             ? t('validation.DESCRIPTION_REQUIRED')
             : validation === 'AMOUNT_REQUIRED'
               ? t('validation.AMOUNT_REQUIRED')
-              : validation === 'PAYER_REQUIRED'
-                ? t('validation.PAYER_REQUIRED')
-                : validation === 'NO_PARTICIPANTS'
-                  ? t('validation.NO_PARTICIPANTS')
-                  : validation === 'SHARES_DO_NOT_ADD_UP'
-                    ? t('validation.SHARES_DO_NOT_ADD_UP')
-                    : null
-    const amountInvalid = submitted && validation === 'AMOUNT_REQUIRED'
+              : validation === 'AMOUNT_INVALID'
+                ? t('validation.AMOUNT_INVALID')
+                : validation === 'PAYER_REQUIRED'
+                  ? t('validation.PAYER_REQUIRED')
+                  : validation === 'NO_PARTICIPANTS'
+                    ? t('validation.NO_PARTICIPANTS')
+                    : validation === 'SHARE_AMOUNT_INVALID'
+                      ? t('validation.SHARE_AMOUNT_INVALID')
+                      : validation === 'SHARES_DO_NOT_ADD_UP'
+                        ? t('validation.SHARES_DO_NOT_ADD_UP')
+                        : null
+    const amountInvalid = submitted && (validation === 'AMOUNT_REQUIRED' || validation === 'AMOUNT_INVALID')
     const descriptionInvalid = submitted && validation === 'DESCRIPTION_REQUIRED'
     const positiveTotal = totalMinor !== null && BigInt(totalMinor) > 0n
     const primaryLabel =
@@ -574,7 +595,10 @@ export function ExpenseDrawer({
                                         setSubmitted(false)
                                         setFieldRepairNotice(null)
                                     }}
-                                    onBlur={() => repairFieldRoles()}
+                                    onBlur={() => {
+                                        repairFieldRoles()
+                                        normaliseAmount()
+                                    }}
                                     inputMode="decimal"
                                     autoComplete="off"
                                     placeholder={decimals === 0 ? '0' : '0.00'}
@@ -709,7 +733,7 @@ export function ExpenseDrawer({
                             className="flex items-center gap-2 text-sm font-bold text-error"
                         >
                             <Icon name="x" size={16} />
-                            {t('validation.AMOUNT_REQUIRED')}
+                            {validationCopy ?? t('validation.AMOUNT_REQUIRED')}
                         </p>
                     )}
                     {descriptionInvalid && (
@@ -1034,7 +1058,11 @@ export function ExpenseDrawer({
                                                             className="flex h-12 shrink-0 items-center justify-center rounded-sm border border-dashed border-n-1 bg-white px-2 text-h9 tabular-nums"
                                                         >
                                                             {remaining.startsWith('-') ? '−' : '+'}
-                                                            {formatMinorPlain(remaining.replace('-', ''), decimals)}
+                                                            {formatAmountInput(
+                                                                remaining.replace('-', ''),
+                                                                decimals,
+                                                                locale
+                                                            )}
                                                         </button>
                                                     )}
                                                 </li>
@@ -1102,7 +1130,7 @@ export function ExpenseDrawer({
                                                 })}
                                             {t('allocatedOf', {
                                                 allocated: formatMoney(
-                                                    allocatedMinor(values, currencies),
+                                                    allocatedMinor(values, currencies, locale),
                                                     values.currency,
                                                     currencies,
                                                     locale

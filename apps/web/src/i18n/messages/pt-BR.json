@@ -440,6 +440,7 @@
             "description": "Foi com o quê?",
             "descriptionPlaceholder": "Jantar, táxi, passe de esqui…",
             "fieldsSwapped": "Pronto: trocamos o valor e a descrição.",
+            "amountNormalised": "Lemos como {amount}. Confira antes de salvar.",
             "paidBy": "Pago por",
             "paid": "pagou",
             "paidBySummary": "{name} pagou",
@@ -489,8 +490,10 @@
             "validation": {
                 "DESCRIPTION_REQUIRED": "Dê um nome para todo mundo lembrar o que foi.",
                 "AMOUNT_REQUIRED": "Digite um valor maior que zero.",
+                "AMOUNT_INVALID": "Confira os separadores e as casas decimais do valor.",
                 "PAYER_REQUIRED": "Escolha quem pagou.",
                 "NO_PARTICIPANTS": "Escolha pelo menos uma pessoa para dividir.",
+                "SHARE_AMOUNT_INVALID": "Confira os separadores e as casas decimais dos valores exatos.",
                 "SHARES_DO_NOT_ADD_UP": "Os valores exatos precisam somar o total."
             },
             "equallyHint": "Igual para todo mundo",
@@ -522,6 +525,7 @@
             "amountLabel": "Quanto foi pago?",
             "amountHint": "A dívida inteira é",
             "amountInvalid": "Coloque um valor maior que zero.",
+            "amountFormatInvalid": "Confira os separadores e as casas decimais do valor.",
             "amountTooHigh": "Isso é mais do que {name} deve.",
             "recordedTitle": "Registrado agora",
             "recordedHint": "Eles também ficam no histórico da sala, junto com o resto."
@@ -589,6 +593,7 @@
             "reviewFromMerchant": "De {merchant}. Corrija o que saiu errado e acrescente o que faltou.",
             "itemLabel": "Item",
             "itemAmount": "Valor do item",
+            "amountInvalid": "Confira os separadores e as casas decimais de cada item.",
             "itemPlaceholder": "Item",
             "removeItem": "Remover este item",
             "addItem": "Adicionar um item que faltou",
