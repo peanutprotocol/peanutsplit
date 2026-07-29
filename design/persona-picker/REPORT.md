@@ -62,8 +62,11 @@ personas and are not offered by the picker.
 
 ## Doodle canaries
 
-[`canary-doodles.png`](./canary-doodles.png) contains six first-pass characters
-built through Peanut Split’s existing deterministic doodle pipeline:
+[`index.html`](./index.html) now includes an interactive picker for sixteen
+characters built through Peanut Split’s existing deterministic doodle pipeline.
+The first six were redrawn around round silhouettes, open expressions and
+friendly poses; ten more were added to test how far that visual language can
+stretch:
 
 - Vampire Penguin
 - Pirate Parrot
@@ -71,10 +74,27 @@ built through Peanut Split’s existing deterministic doodle pipeline:
 - Wizard Frog
 - Astronaut Avocado
 - Disco Octopus
+- Tea Dragon
+- Raincoat Duck
+- Skater Snail
+- Moon Bunny
+- Rockstar Berry
+- Baker Moon
+- Party Bee
+- Garden Yeti
+- Pancake Bear
+- Pocket Robot
 
-Each drawing is shown at 96px and at the 24px avatar stress-test size. They are
-canaries, not yet replacements for all 30 production glyphs; the sheet exists
-to approve the visual language before expanding the set.
+The picker shows a selected character at 108px, roomy 66px options, and a 30px
+avatar stress test on every tile. [`canary-doodles.png`](./canary-doodles.png)
+is the matching contact sheet. Color is deliberately structural rather than
+decorative detail: each stroke gets a character-specific ink, backed by a soft
+ground and a second accent shape. That keeps the doodle readable when the
+costume clue disappears at small sizes.
+
+These remain canaries, not yet replacements for all 30 production glyphs. The
+names are cheap to revise; approval should focus on whether the drawings
+themselves feel charming enough to live with.
 
 ## Implementation notes
 
