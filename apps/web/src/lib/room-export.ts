@@ -202,6 +202,58 @@ export function roomCsv(state: RoomState): string {
         )
     }
 
+    for (const [memberId, amountMinor] of Object.entries(state.balances)) {
+        rows.push(
+            row(
+                'balance',
+                '',
+                '',
+                memberId,
+                '',
+                amountMinor,
+                state.room.currency,
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ''
+            )
+        )
+    }
+
+    for (const transfer of state.suggestedTransfers) {
+        rows.push(
+            row(
+                'suggested_transfer',
+                '',
+                '',
+                '',
+                '',
+                transfer.amountMinor,
+                state.room.currency,
+                '',
+                '',
+                '',
+                '',
+                '',
+                transfer.fromId,
+                transfer.toId,
+                '',
+                '',
+                '',
+                '',
+                ''
+            )
+        )
+    }
+
     return `${rows.join('\r\n')}\r\n`
 }
 
