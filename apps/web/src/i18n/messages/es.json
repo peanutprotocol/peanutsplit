@@ -335,6 +335,7 @@
             "shareRoomLink": "Compartir el link de la sala",
             "openSettings": "Abrir los ajustes de la sala",
             "settingsTitle": "Ajustes de la sala",
+            "close": "Cerrar los ajustes de la sala",
             "youAre": "eres {name}",
             "roomSection": "Sala",
             "roomSectionHint": "Los datos que ven todas las personas de esta sala.",

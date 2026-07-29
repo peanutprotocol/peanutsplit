@@ -335,6 +335,7 @@
             "shareRoomLink": "Share room link",
             "openSettings": "Open room settings",
             "settingsTitle": "Room settings",
+            "close": "Close room settings",
             "youAre": "you are {name}",
             "roomSection": "Room",
             "roomSectionHint": "The details everyone in this room sees.",
