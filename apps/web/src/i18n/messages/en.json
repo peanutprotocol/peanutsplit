@@ -333,7 +333,7 @@
         "export": {
             "title": "Take the room with you",
             "privacyWarning": "The files include everyone’s names and the current money history. Anyone with the room link can export them.",
-            "scopeNote": "This is the room as it stands now; deleted records and the room link are never included.",
+            "scopeNote": "This is the room as it stands now. Deleted records stay out, and Split doesn’t add the room link.",
             "csv": "Download CSV",
             "json": "Download JSON"
         },
