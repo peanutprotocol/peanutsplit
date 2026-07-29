@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { Icon } from '@/components/ui/Icon'
 import { AVATARS, AVATAR_KEYS, randomPersonaKey, type AvatarKey } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { MemberAvatar } from './MemberAvatar'
@@ -72,9 +73,7 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                     <span className="block text-h8">{t('random')}</span>
                     <span className="block text-sm text-grey-1">{t('randomHint')}</span>
                 </span>
-                <span className="text-h6" aria-hidden="true">
-                    ↻
-                </span>
+                <Icon name="sparkles" size={24} aria-hidden="true" />
             </button>
 
             <div role="radiogroup" aria-label={t('titleFor', { name })} data-testid="avatar-picker">
