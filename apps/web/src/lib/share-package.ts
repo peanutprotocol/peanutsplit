@@ -56,7 +56,12 @@ const filenameStem = (roomName: string): string =>
         .replace(/^-|-$/g, '')
         .slice(0, 48) || 'split-room'
 
-export const SHARE_CARD_TITLE_MAX_GRAPHEMES = 14
+/**
+ * The title starts at x=92 and the doodle's rendered ink begins around x=850.
+ * At 72px bold Arial, ten adversarial wide glyphs stay left of x=780 in
+ * Chromium, leaving a real buffer before the illustration.
+ */
+export const SHARE_CARD_TITLE_MAX_GRAPHEMES = 10
 
 const segmentGraphemes = (value: string): string[] => {
     if (typeof Intl.Segmenter === 'function') {
