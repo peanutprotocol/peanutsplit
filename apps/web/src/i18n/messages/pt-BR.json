@@ -37,7 +37,6 @@
         },
         "proof": {
             "linkIdentity": {
-                "eyebrow": "01 · ABRA O LINK",
                 "title": "ESCOLHA QUEM É VOCÊ.",
                 "body": "A sala já está ali. Escolha seu nome no grupo ou adicione um. Sem precisar de conta, convite ou aprovação de dono.",
                 "linkLabel": "LINK DA SALA",
@@ -47,7 +46,6 @@
                 "friendTwo": "Jules"
             },
             "everyoneAdds": {
-                "eyebrow": "02 · TODO MUNDO LANÇA",
                 "title": "A BEA PAGOU. VOCÊ LANÇOU.",
                 "body": "A sala confia no grupo. Lance a sua despesa ou registre uma por outra pessoa, depois escolha exatamente quem participou.",
                 "expenseOne": "Bea · trem",
@@ -58,7 +56,6 @@
                 "expenseThreeMeta": "pela Bea"
             },
             "suggestedPlan": {
-                "eyebrow": "03 · ACERTE A SALA",
                 "title": "UM PLANO SUGERIDO. ZERO CONTA NO GRUPO.",
                 "body": "Os saldos fecham no centavo e o Split sugere uma lista curta de quem paga quem. Paguem como o grupo já paga.",
                 "planLabel": "PLANO DE PAGAMENTOS SUGERIDO",

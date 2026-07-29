@@ -37,7 +37,6 @@
         },
         "proof": {
             "linkIdentity": {
-                "eyebrow": "01 · OPEN THE LINK",
                 "title": "PICK WHO YOU ARE.",
                 "body": "The room is already there. Choose your name from the group—or add it. No account needed, no invite flow, no owner approval.",
                 "linkLabel": "ROOM LINK",
@@ -47,7 +46,6 @@
                 "friendTwo": "Jules"
             },
             "everyoneAdds": {
-                "eyebrow": "02 · EVERYONE ADDS",
                 "title": "PAID BY BEA. ADDED BY YOU.",
                 "body": "The room trusts the group. Log your own expense or enter one for someone else, then include exactly who shared it.",
                 "expenseOne": "Bea · train",
@@ -58,7 +56,6 @@
                 "expenseThreeMeta": "on Bea’s behalf"
             },
             "suggestedPlan": {
-                "eyebrow": "03 · SETTLE THE ROOM",
                 "title": "ONE SUGGESTED PLAN. ZERO GROUP MATH.",
                 "body": "Balances reconcile to the cent, then Split suggests a short list of who should pay whom. Pay however your group already pays.",
                 "planLabel": "SUGGESTED PAYMENT PLAN",
