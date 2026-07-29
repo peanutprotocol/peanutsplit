@@ -145,13 +145,14 @@ export function QuickAdd({ slug, roomCurrency, currencies, values, onApply }: Qu
                             <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-grey-4">
                                 <motion.span
                                     className="block h-full w-1/3 rounded-full bg-primary-1"
-                                    initial={{ x: '-100%' }}
+                                    initial={motionAllowed ? { x: '-100%' } : false}
                                     animate={motionAllowed ? { x: ['-100%', '300%'] } : { x: '0%' }}
                                     transition={
                                         motionAllowed
                                             ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
                                             : { duration: 0 }
                                     }
+                                    data-motion-surface
                                 />
                             </span>
                             <span className="text-sm text-grey-1">{t('reading')}</span>

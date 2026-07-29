@@ -88,8 +88,9 @@ export function AllSettled({ compact = false, celebrate = false, summary, slug }
             data-testid="all-settled"
             initial={motionAllowed ? { scale: 0.92, opacity: 0, y: 8 } : false}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.94, opacity: 0, transition: { duration: 0.18 } }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20, mass: 0.9 }}
+            exit={motionAllowed ? { scale: 0.94, opacity: 0, transition: { duration: 0.18 } } : undefined}
+            transition={motionAllowed ? { type: 'spring', stiffness: 260, damping: 20, mass: 0.9 } : { duration: 0 }}
+            data-motion-surface
             className={
                 compact
                     ? 'shadow-4 relative mx-4 flex flex-col items-center gap-2 rounded-sm border border-n-1 bg-green-1 px-6 py-5 text-center'
@@ -113,10 +114,13 @@ export function AllSettled({ compact = false, celebrate = false, summary, slug }
                 }
                 animate={bouncing ? BOUNCE : { scale: 1, rotate: 0, opacity: 1 }}
                 transition={
-                    bouncing
-                        ? { duration: BOUNCE_S, times: BOUNCE_TIMES, ease: 'easeOut', opacity: { duration: 0.14 } }
-                        : { type: 'spring', stiffness: 300, damping: 13, mass: 1.1 }
+                    !motionAllowed
+                        ? { duration: 0 }
+                        : bouncing
+                          ? { duration: BOUNCE_S, times: BOUNCE_TIMES, ease: 'easeOut', opacity: { duration: 0.14 } }
+                          : { type: 'spring', stiffness: 300, damping: 13, mass: 1.1 }
                 }
+                data-motion-surface
                 className="relative"
             >
                 <Image
@@ -130,7 +134,12 @@ export function AllSettled({ compact = false, celebrate = false, summary, slug }
             <motion.div
                 initial={motionAllowed ? { opacity: 0, y: 10 } : false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 320, damping: 26, delay: bouncing ? LAUNCH_S : 0 }}
+                transition={
+                    motionAllowed
+                        ? { type: 'spring', stiffness: 320, damping: 26, delay: bouncing ? LAUNCH_S : 0 }
+                        : { duration: 0 }
+                }
+                data-motion-surface
                 className="flex flex-col items-center gap-2"
             >
                 <p className={compact ? 'text-h5' : 'text-h3'}>{t('title')}</p>

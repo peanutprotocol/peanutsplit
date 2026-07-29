@@ -83,11 +83,12 @@ export function ReadMore() {
         <motion.section
             data-testid="read-more"
             data-motion={motionAllowed ? 'ready' : 'still'}
+            data-motion-surface
             initial={motionAllowed ? { opacity: 0, y: 24 } : false}
             animate={motionAllowed ? undefined : { opacity: 1, y: 0 }}
             whileInView={motionAllowed ? { opacity: 1, y: 0 } : undefined}
             viewport={{ once: true, amount: 0.08 }}
-            transition={{ type: 'spring', stiffness: 190, damping: 24 }}
+            transition={motionAllowed ? { type: 'spring', stiffness: 190, damping: 24 } : { duration: 0 }}
             className="w-full border-y-2 border-n-1 bg-primary-3"
         >
             <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:py-20">

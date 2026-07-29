@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { BTN_MEDIUM } from '@/components/ui/control'
 import { cn } from '@/lib/cn'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { IosInstallSteps } from './IosInstallSteps'
@@ -81,6 +82,7 @@ export interface InstallPromptProps {
  */
 export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallPromptProps) {
     const t = useTranslations('marketing.install')
+    const motionAllowed = useMotionAllowed()
     const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
     const [iosEligible, setIosEligible] = useState(false)
     const [visible, setVisible] = useState(false)
@@ -181,13 +183,14 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
 
     return (
         <>
-            <AnimatePresence>
+            <AnimatePresence initial={motionAllowed}>
                 {visible && (
                     <motion.div
-                        initial={{ y: 120, opacity: 0 }}
+                        initial={motionAllowed ? { y: 120, opacity: 0 } : false}
                         animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 120, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+                        exit={motionAllowed ? { y: 120, opacity: 0 } : { y: 0, opacity: 1 }}
+                        transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
+                        data-motion-surface
                         className="fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
                         role="dialog"
                         aria-label={t('title')}

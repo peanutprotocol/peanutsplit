@@ -10,6 +10,9 @@
 
 export const RECENT_ROOMS_KEY = 'ps:recent'
 export const RECENT_ROOMS_LIMIT = 12
+const CANONICAL_ROOM_HOSTS = new Set(['peanutsplit.com', 'www.peanutsplit.com'])
+const ROOM_PATH = /^\/r\/([^/]+)\/?$/
+const ROOM_SLUG = /^[a-z0-9](?:[a-z0-9-]{0,39})-[0-9a-hjkmnp-tv-z]{6}$/
 
 export interface RecentRoom {
     /** Room slug — the credential. e.g. "ski-trip-x7k2m9" */
@@ -30,6 +33,51 @@ export interface RecentRoom {
 }
 
 const isBrowser = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+
+/**
+ * Pull a room credential out of a pasted Peanut Split link.
+ *
+ * Accepts the canonical production host, the host currently serving the app
+ * (so localhost and preview deployments work), a bare `peanutsplit.com/r/...`
+ * link, or a same-site `/r/...` path. Query strings and fragments are harmless
+ * chat-client decoration and are discarded. Everything else is rejected before
+ * a request is made.
+ */
+export function roomSlugFromLink(value: string, currentOrigin: string): string | null {
+    const trimmed = value.trim()
+    if (!trimmed) return null
+
+    let current: URL
+    let candidate: URL
+    try {
+        current = new URL(currentOrigin)
+        if (trimmed.startsWith('/')) {
+            candidate = new URL(trimmed, current)
+        } else {
+            candidate = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`)
+        }
+    } catch {
+        return null
+    }
+
+    if (!['http:', 'https:'].includes(candidate.protocol)) return null
+    if (candidate.username || candidate.password) return null
+
+    const allowedHosts = new Set(CANONICAL_ROOM_HOSTS)
+    allowedHosts.add(current.hostname.toLowerCase())
+    if (!allowedHosts.has(candidate.hostname.toLowerCase())) return null
+
+    const match = candidate.pathname.match(ROOM_PATH)
+    if (!match) return null
+
+    let slug: string
+    try {
+        slug = decodeURIComponent(match[1])
+    } catch {
+        return null
+    }
+    return ROOM_SLUG.test(slug) ? slug : null
+}
 
 const toEpochMs = (value: unknown): number => {
     if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -72,9 +120,14 @@ export function readRecentRooms(): RecentRoom[] {
     }
 }
 
-/** Upsert a room to the top of the list. Safe to call on every room render. */
-export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt?: number }): void {
-    if (!isBrowser()) return
+/**
+ * Upsert a room to the top of the list. Safe to call on every room render.
+ *
+ * The boolean is intentional: flows that promise "saved on this device" must
+ * distinguish a successful write from private-mode/quota failures.
+ */
+export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt?: number }): boolean {
+    if (!isBrowser()) return false
     const entry: RecentRoom = {
         slug: room.slug,
         name: room.name,
@@ -88,17 +141,19 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
     )
     try {
         window.localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(next))
+        return true
     } catch {
-        // Private-mode / quota failures are not worth surfacing.
+        return false
     }
 }
 
 /** Drop a room from the list (archived, or the user asked us to forget it). */
-export function forgetRoom(slug: string): void {
-    if (!isBrowser()) return
+export function forgetRoom(slug: string): boolean {
+    if (!isBrowser()) return false
     try {
         window.localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(readRecentRooms().filter((r) => r.slug !== slug)))
+        return true
     } catch {
-        // ignore
+        return false
     }
 }

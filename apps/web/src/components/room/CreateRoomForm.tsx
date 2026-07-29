@@ -13,6 +13,7 @@ import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/
 import { useCurrencies } from '@/lib/queries'
 import { roomDoodleFor } from '@/lib/room-doodle'
 import { useCreateRoomFlow } from '@/lib/use-create-room'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
 import { DoodlePicker } from './DoodlePicker'
@@ -35,6 +36,7 @@ export function CreateRoomForm() {
     const hints = useCurrencyHints()
 
     const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
 
     const [name, setName] = useState('')
     // null means "follow the name" — see the same state in HeroCreateForm. The emblem used to
@@ -86,6 +88,7 @@ export function CreateRoomForm() {
                     slug={created.room.slug}
                     roomName={created.room.name}
                     emoji={created.room.emoji}
+                    theme={created.room.theme}
                     title={t('readyTitle')}
                     subtitle={t('readySubtitle')}
                     footer={
@@ -118,9 +121,10 @@ export function CreateRoomForm() {
             </div>
 
             <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={motionAllowed ? { opacity: 0, y: 12 } : false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                transition={motionAllowed ? { type: 'spring', stiffness: 300, damping: 30 } : { duration: 0 }}
+                data-motion-surface
                 className="flex flex-col gap-3 px-4 pb-6 pt-2"
             >
                 {/* Same receipt-like object as add expense: the primary value and
@@ -200,10 +204,12 @@ export function CreateRoomForm() {
                             id="room-drawing-editor"
                             data-testid="room-drawing-editor"
                             aria-label={t('emojiGroup')}
-                            initial={{ opacity: 0, height: 0 }}
+                            initial={motionAllowed ? { opacity: 0, height: 0 } : false}
                             animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.18, ease: 'easeOut' }}
+                            exit={motionAllowed ? { opacity: 0, height: 0 } : undefined}
+                            transition={motionAllowed ? { duration: 0.18, ease: 'easeOut' } : { duration: 0 }}
+                            data-motion-surface
+                            data-motion-collapse
                             className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
                         >
                             <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">

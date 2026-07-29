@@ -101,7 +101,10 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                         initial={motionAllowed ? { scale: 0.6, opacity: 0 } : false}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={motionAllowed ? { scale: 0.6, opacity: 0 } : undefined}
-                        transition={{ type: 'spring', stiffness: 420, damping: 22, mass: 0.6 }}
+                        transition={
+                            motionAllowed ? { type: 'spring', stiffness: 420, damping: 22, mass: 0.6 } : { duration: 0 }
+                        }
+                        data-motion-surface
                         disabled={!canReact}
                         onClick={() => react(group.emoji, group.mine)}
                         aria-pressed={group.mine}
@@ -165,7 +168,8 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                         initial={motionAllowed ? { opacity: 0, y: -4 } : false}
                         animate={{ opacity: 1, y: 0 }}
                         exit={motionAllowed ? { opacity: 0, y: -4 } : undefined}
-                        transition={{ duration: 0.14, ease: 'easeOut' }}
+                        transition={motionAllowed ? { duration: 0.14, ease: 'easeOut' } : { duration: 0 }}
+                        data-motion-surface
                         data-testid="reaction-strip"
                         className="shadow-2 flex items-center gap-1 rounded-sm border border-n-1 bg-white px-1.5 py-1"
                     >

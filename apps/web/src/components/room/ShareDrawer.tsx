@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
-import { Drawer, DrawerContent } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerBody, drawerContentClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { BTN_MEDIUM } from '@/components/ui/control'
 import { cn } from '@/lib/cn'
@@ -14,6 +14,7 @@ import { isApiError } from '@/lib/api'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useAddMember, useDeleteMember } from '@/lib/queries'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { LinkMoment } from './LinkMoment'
 import { MemberAvatar } from './MemberAvatar'
@@ -31,6 +32,7 @@ interface ShareDrawerProps {
 export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) {
     const t = useTranslations('room.share')
     const errorMessage = useErrorMessage()
+    const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
     const addMember = useAddMember(room.slug)
     const deleteMember = useDeleteMember(room.slug)
@@ -94,11 +96,13 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
             <DrawerContent className={drawerContentClass}>
+                <DrawerTitle className="sr-only">{t('title')}</DrawerTitle>
                 <DrawerBody>
                     <LinkMoment
                         slug={room.slug}
                         roomName={room.name}
                         emoji={room.emoji}
+                        theme={room.theme}
                         title={t('title')}
                         subtitle={t('subtitle')}
                     />
@@ -124,10 +128,16 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                             {expanded && (
                                 <motion.div
                                     key="add-people"
-                                    initial={{ height: 0, opacity: 0 }}
+                                    initial={motionAllowed ? { height: 0, opacity: 0 } : false}
                                     animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ type: 'spring', stiffness: 320, damping: 34 }}
+                                    exit={motionAllowed ? { height: 0, opacity: 0 } : undefined}
+                                    transition={
+                                        motionAllowed
+                                            ? { type: 'spring', stiffness: 320, damping: 34 }
+                                            : { duration: 0 }
+                                    }
+                                    data-motion-surface
+                                    data-motion-collapse
                                     className="overflow-hidden"
                                 >
                                     <div className="flex flex-col gap-3 pt-3">
