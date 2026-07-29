@@ -27,6 +27,13 @@ type LandingMessages = {
             suggestedPlan: { title: string }
             examples: { title: string }
         }
+        readMore: {
+            toggle: string
+            features: {
+                title: string
+                currency: { title: string }
+            }
+        }
     }
     room: {
         create: {
@@ -101,7 +108,7 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
     await expect(selectedCurrency).toHaveValue(nextCurrency!)
 
     const readMore = page.locator('section').filter({
-        has: page.getByRole('heading', { name: 'Not convinced yet? Read more' }),
+        has: page.getByRole('heading', { name: catalogs.en.marketing.readMore.toggle }),
     })
     const folds = readMore.locator('details')
     await expect(folds).toHaveCount(9)
@@ -351,7 +358,16 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(proof.suggestedPlan.title)
         await expect(page.getByTestId('room-examples')).toContainText(proof.examples.title)
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
-        await expect(page.getByText(/12 supported currencies/i).first()).toBeVisible()
+
+        const features = page.locator('details').filter({
+            has: page.getByText(catalogs.en.marketing.readMore.features.title, { exact: true }),
+        })
+        const supportedCurrencies = features.getByText(catalogs.en.marketing.readMore.features.currency.title, {
+            exact: true,
+        })
+        await expect(supportedCurrencies).toBeHidden()
+        await features.locator('summary').click()
+        await expect(supportedCurrencies).toBeVisible()
     })
 
     for (const locale of ['en', 'es', 'pt-BR'] as const) {
