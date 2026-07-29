@@ -42,23 +42,11 @@ appear in either the production component or the review artifact.
 
 ## Catalog
 
-Thirty named personas cover five broad kinds of energy:
-
-The exact in-app vector render is captured in
-[`production-vector-cast.png`](./production-vector-cast.png).
-
-| Mischief        | Cozy          | Brainy            | Party               | Adventure         |
-| --------------- | ------------- | ----------------- | ------------------- | ----------------- |
-| Vampire Penguin | Cozy Ghost    | Wizard Frog       | Disco Octopus       | Astronaut Avocado |
-| Pirate Parrot   | Garden Snail  | Detective Raccoon | Rockstar Strawberry | Surfer Shark      |
-| Ninja Pear      | Sleepy Cloud  | Bookworm Bat      | Party Bee           | Skater Cactus     |
-| Lucky Alien     | Explorer Bear | Scientist Owl     | DJ Dinosaur         | Chef Dragon       |
-| Trickster Fox   | Baker Moon    | Mechanic Robot    | Painter Panda       | Sailor Banana     |
-| Punk Pineapple  | Yoga Yeti     | Gamer Cat         | Karaoke Kiwi        | Cosmic Llama      |
-
-Twelve existing, non-human doodles remain available as classics. The nine
-previous `face-*` storage keys remain accepted for compatibility but redraw as
-personas and are not offered by the picker.
+The sixteen approved colorful characters are now the live named cast. Twelve
+existing non-human doodles remain available as classics, for twenty-eight
+visible choices in total. The first release's thirty persona keys and the nine
+older `face-*` keys remain accepted for storage compatibility, but retired keys
+redraw through approved doodles and are not offered by the picker.
 
 ## Doodle canaries
 
@@ -92,15 +80,14 @@ decorative detail: each stroke gets a character-specific ink, backed by a soft
 ground and a second accent shape. That keeps the doodle readable when the
 costume clue disappears at small sizes.
 
-These remain canaries, not yet replacements for all 30 production glyphs. The
-names are cheap to revise; approval should focus on whether the drawings
-themselves feel charming enough to live with.
+These drawings are now the production personas. The app uses the same generated
+paths, colored ink, soft backgrounds and accent blobs as this review artifact.
 
 ## Implementation notes
 
 - `lib/avatars.ts` is the catalog and validation allowlist.
-- `PersonaGlyph.tsx` draws the current catalog with in-house outlined SVG
-  primitives.
+- `MemberAvatar.tsx` draws every catalog entry through the shared deterministic
+  doodle component and adds the reviewed color treatment.
 - New room creators, joined members and imported members store a random key.
 - A migration assigns one random key to existing null rows.
 - Null writes from an older client are converted to a fresh persisted random

@@ -3,20 +3,17 @@
 import { Doodle } from '@/components/ui/Doodle'
 import { avatarArt } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
-import { PersonaGlyph } from './PersonaGlyph'
 
 /**
  * A member's little alter ego.
  *
- * Two sources, one component. A stored key draws the chosen alter ego or one
- * of the older doodles. Null and unknown values use one neutral peanut while
- * legacy rows are backfilled; randomness happens once when a member is written,
- * never during rendering.
+ * Every identity now uses the approved Peanut doodle language: colored ink,
+ * a soft ground and one deliberately wonky accent blob. Null and unknown values
+ * use one neutral peanut while legacy rows are backfilled; randomness happens
+ * once when a member is written, never during rendering.
  *
- * This deliberately lives in our own stroke language instead of delegating to an
- * avatar package: generated human faces turn a name into an accidental claim
- * about the person. These creatures stay in the same hand-drawn language as
- * the room emblems without resembling a particular human.
+ * No generated human face can turn a name into an accidental claim about the
+ * person. The result stays legible down to the tiny header treatment.
  */
 export function MemberAvatar({
     name,
@@ -35,19 +32,22 @@ export function MemberAvatar({
     return (
         <span
             className={cn(
-                'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-n-1 bg-white',
+                'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-n-1 bg-white',
                 className
             )}
-            style={{ width: size, height: size, background: art.background }}
+            style={{ width: size, height: size, background: art.background, color: art.ink }}
             aria-hidden="true"
         >
-            {art.kind === 'doodle' ? (
-                // Inset, because a doodle is drawn to fill its 32-box edge to edge
-                // and the circle would clip it. Personas own their internal inset.
-                <Doodle name={art.doodle} size={Math.round(size * 0.62)} weight={2.2} />
-            ) : (
-                <PersonaGlyph art={art} size={size} />
-            )}
+            <span
+                className="absolute bottom-[5%] right-[4%] h-[46%] w-[46%] rotate-12 rounded-[44%_56%_60%_40%]"
+                style={{ background: art.accent }}
+            />
+            <Doodle
+                name={art.doodle}
+                size={Math.round(size * (art.kind === 'persona' ? 0.82 : 0.66))}
+                weight={art.kind === 'persona' ? 1.7 : 2.1}
+                className="relative z-[1]"
+            />
         </span>
     )
 }
