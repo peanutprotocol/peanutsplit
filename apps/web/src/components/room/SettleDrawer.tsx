@@ -195,7 +195,10 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         const partial = entered.minor !== selected.amountMinor
         const key = transferKey(selected)
         const trimmedNote = note.trim()
-        const trimmedReceiptUrl = receiptUrl.trim()
+        // A receipt is proof of the Peanut handoff, not generic settlement
+        // metadata. Keep a stale value out of both retry identity and the wire
+        // body if the person changes their mind and chooses cash or bank.
+        const trimmedReceiptUrl = method === 'peanut' ? receiptUrl.trim() : ''
         const signature = [selected.fromId, selected.toId, entered.minor, method, trimmedNote, trimmedReceiptUrl].join(
             '\u0000'
         )
@@ -217,7 +220,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                 amountMinor: entered.minor,
                 method,
                 note: trimmedNote || null,
-                receiptUrl: trimmedReceiptUrl || null,
+                ...(method === 'peanut' ? { receiptUrl: trimmedReceiptUrl || null } : {}),
             })
             const created =
                 next.settlements.find((settlement) => settlement.id === clientKey) ??
@@ -553,6 +556,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                                 type="button"
                                                 onClick={() => {
                                                     setMethod(option.id)
+                                                    if (!isPeanut) setReceiptUrl('')
                                                     feedback('tick')
                                                     if (isPeanut) track('peanut_option_clicked', roomProps(slug))
                                                 }}
@@ -590,19 +594,23 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                 />
                             </label>
 
-                            <label className="flex flex-col gap-2">
-                                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('receiptLink')}</span>
-                                <BaseInput
-                                    value={receiptUrl}
-                                    onChange={(event) => setReceiptUrl(event.target.value)}
-                                    placeholder={t('receiptLinkPlaceholder')}
-                                    inputMode="url"
-                                    autoComplete="url"
-                                    maxLength={2048}
-                                    data-testid="settle-receipt-url"
-                                />
-                                <span className="text-sm text-grey-1">{t('receiptLinkHint')}</span>
-                            </label>
+                            {method === 'peanut' && (
+                                <label className="flex flex-col gap-2">
+                                    <span className="text-h8 uppercase tracking-wide text-grey-1">
+                                        {t('receiptLink')}
+                                    </span>
+                                    <BaseInput
+                                        value={receiptUrl}
+                                        onChange={(event) => setReceiptUrl(event.target.value)}
+                                        placeholder={t('receiptLinkPlaceholder')}
+                                        inputMode="url"
+                                        autoComplete="url"
+                                        maxLength={2048}
+                                        data-testid="settle-receipt-url"
+                                    />
+                                    <span className="text-sm text-grey-1">{t('receiptLinkHint')}</span>
+                                </label>
+                            )}
 
                             {error && (
                                 <p role="alert" className="text-sm font-bold text-error">
