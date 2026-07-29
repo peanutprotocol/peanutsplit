@@ -29,7 +29,21 @@
             "title": "Suas salas",
             "subtitle": "Salvas neste aparelho.",
             "openLabel": "Abrir sala",
-            "more": "e mais {count, plural, one {#} other {#}}"
+            "more": "Mostrar {count, plural, one {mais # sala} other {mais # salas}}",
+            "less": "Mostrar menos salas",
+            "forgetLabel": "Remover {room} deste aparelho",
+            "forgotten": "{room} foi removida deste aparelho. A sala compartilhada continua funcionando para quem tem o link.",
+            "recovery": {
+                "title": "Já tem o link de uma sala?",
+                "label": "Cole o link da sala",
+                "placeholder": "peanutsplit.com/r/sua-sala-…",
+                "hint": "A gente confere o link e salva a sala neste aparelho. Não cria uma conta nem muda quem pode entrar.",
+                "submit": "Adicionar esta sala",
+                "invalid": "Cole o link completo de uma sala do Peanut Split.",
+                "notFound": "Não encontramos essa sala. Confira se você colou o link inteiro.",
+                "failed": "Não deu para conferir essa sala agora. Nada foi salvo; tente de novo.",
+                "added": "{room} foi salva neste aparelho."
+            }
         },
         "proof": {
             "linkIdentity": {
@@ -145,6 +159,7 @@
         },
         "footer": {
             "logoAlt": "Peanut",
+            "logoLinkLabel": "Visitar a Peanut",
             "colSplit": "Split",
             "createSplit": "Criar uma sala",
             "importLink": "Importar do Splitwise",
@@ -284,8 +299,8 @@
                     "a": "Quem tiver o link. Ele fica fora dos buscadores e não dá para adivinhar, mas é uma chave — deixe no grupo, não em lugar público."
                 },
                 "lost": {
-                    "q": "E se a gente perder o link?",
-                    "a": "As salas que você abriu ficam salvas no seu aparelho e listadas na página inicial. Se ninguém do grupo tiver mais o link, a sala se perdeu."
+                    "q": "Como a gente volta para a sala?",
+                    "a": "Deixe o link no grupo para todo mundo encontrar por lá. O Split também salva neste aparelho as salas que você abre, e você pode colar o link na página inicial para adicionar a sala de novo."
                 },
                 "limits": {
                     "q": "Tem limite de despesas?",

@@ -29,7 +29,21 @@
             "title": "Tus salas",
             "subtitle": "Guardadas en este dispositivo.",
             "openLabel": "Abrir sala",
-            "more": "y {count, plural, one {# más} other {# más}}"
+            "more": "Mostrar {count, plural, one {# sala más} other {# salas más}}",
+            "less": "Mostrar menos salas",
+            "forgetLabel": "Quitar {room} de este dispositivo",
+            "forgotten": "Quitamos {room} de este dispositivo. La sala compartida sigue funcionando para quien tenga el link.",
+            "recovery": {
+                "title": "¿Ya tenés el link de una sala?",
+                "label": "Pegá el link de la sala",
+                "placeholder": "peanutsplit.com/r/tu-sala-…",
+                "hint": "Revisamos el link y guardamos esa sala en este dispositivo. No crea una cuenta ni cambia quién puede entrar.",
+                "submit": "Agregar esta sala",
+                "invalid": "Pegá el link completo de una sala de Peanut Split.",
+                "notFound": "No encontramos esa sala. Revisá que hayas pegado el link entero.",
+                "failed": "Ahora no pudimos revisar esa sala. No se guardó nada; probá de nuevo.",
+                "added": "{room} quedó guardada en este dispositivo."
+            }
         },
         "proof": {
             "linkIdentity": {
@@ -145,6 +159,7 @@
         },
         "footer": {
             "logoAlt": "Peanut",
+            "logoLinkLabel": "Visitar Peanut",
             "colSplit": "Split",
             "createSplit": "Crear una sala",
             "importLink": "Importar de Splitwise",
@@ -284,8 +299,8 @@
                     "a": "Cualquiera que tenga el link. Queda fuera de los buscadores y no se puede adivinar, pero es una llave: dejalo en el chat del grupo y no en un lugar público."
                 },
                 "lost": {
-                    "q": "¿Qué pasa si perdemos el link?",
-                    "a": "Las salas que abriste quedan guardadas en tu dispositivo y listadas en la página de inicio. Si ya nadie del grupo lo tiene, la sala se perdió."
+                    "q": "¿Cómo volvemos a la sala?",
+                    "a": "Dejá el link en el chat del grupo para que todos lo encuentren ahí. Split también guarda en este dispositivo las salas que abrís, y podés pegar el link en la página de inicio para volver a agregarla."
                 },
                 "limits": {
                     "q": "¿Hay un límite de gastos?",
