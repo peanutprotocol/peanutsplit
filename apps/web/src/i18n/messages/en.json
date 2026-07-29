@@ -330,6 +330,13 @@
             "hapticsHint": "A tap you can feel",
             "privacyNote": "Free forever, no signup. Room links are unlisted — only people you send it to can open it."
         },
+        "export": {
+            "title": "Take the room with you",
+            "privacyWarning": "The files include everyone’s names and the full money history. Anyone with the room link can export them.",
+            "credentialNote": "The room link itself is never included.",
+            "csv": "Download CSV",
+            "json": "Download JSON"
+        },
         "join": {
             "title": "Who are you?",
             "roster": "{room} · {count, plural, one {# person} other {# people}} so far",

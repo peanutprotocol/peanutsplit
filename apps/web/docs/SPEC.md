@@ -1,8 +1,16 @@
-# Peanut Split — build spec
+# Peanut Split — historical build spec
 
-The single source of architectural truth for the overnight build (2026-07-25). Implementer agents:
-follow this exactly; where this doc is silent, match the referenced code; where both are silent,
-choose the simplest thing and note it in your report.
+> **HISTORICAL BUILD SPEC — 2026-07-25. DO NOT IMPLEMENT VERBATIM.**
+>
+> This file preserves the overnight build brief and its reasoning. The current
+> source, working rules, reviewed product decisions and
+> [`docs/release-states.md`](../../../docs/release-states.md) supersede its
+> imperative language. In particular:
+>
+> - room previews may contain the accepted member/expense/total context;
+> - analytics are identifier-free — never send a slug or slug hash;
+> - rooms remain accountless, trust-based bearer links;
+> - user-uploaded room media and account claiming are not approved follow-ups.
 
 ## Mission
 
@@ -24,10 +32,8 @@ untrustworthy.
 2. **Legible maths:** every balance derivable on screen. Cents reconcile visibly. Never "trust us".
 3. **The link is the product:** invite links, OG previews, and the share moment get first-class
    design.
-4. **Anonymous, with dormant claim hooks:** identity lives in localStorage; the schema retains
-   generic `User` / `AuthAccount` hooks so a future identity decision does not require rewriting
-   member history. V1 ships without account endpoints; adding any login system is a new product
-   decision.
+4. **Anonymous:** identity lives in localStorage. Adding any login, ownership or
+   account recovery system is a new product decision, not an implementation follow-up.
 5. **Mobile-first PWA:** 390×844 is the design target; installable from day one; Capacitor-ready
    structure (no Node APIs in client code).
 
@@ -91,7 +97,7 @@ model Room {
   name       String
   emoji      String?                     // room emoji, default 🥜-adjacent fun set
   currency   String                      // display/settle currency, ISO 4217
-  coverUrl   String?                     // uploaded cover (follow-up wave)
+  coverUrl   String?                     // legacy dormant field; uploads are not approved
   createdAt  DateTime @default(now())
   archivedAt DateTime?
   members    Member[]
@@ -154,7 +160,7 @@ model FxRate {
   @@unique([base, quote])
 }
 
-// Dormant claim hooks — tables exist now; no account endpoints ship:
+// Historical claim-hook sketch. Current room behavior has no account endpoints:
 model User { id String @id @default(uuid()); createdAt DateTime @default(now()); accounts AuthAccount[] }
 model AuthAccount { id String @id @default(uuid()); userId String; provider String; providerId String; @@unique([provider, providerId]) }
 ```
@@ -214,12 +220,9 @@ Rate limiting (deploy wave): per-IP token bucket on room/member creation — 20/
 
 ## Frontend architecture
 
-- **Identity:** `src/lib/identity.ts` — localStorage `ps:member:<slug>` = `{memberId, token, name}`;
-  `ps:recent` = list of visited rooms (drives "your rooms" on the landing page). Also mint a
-  device UUID (`ps:device`, `crypto.randomUUID()`) and mirror it into a `device-id` cookie
-  (`path=/; SameSite=Lax`) — a claim-flow lesson: OAuth redirect flows have no
-  request body, so account-claiming later needs the device identity server-visible. Costs one
-  line now, saves a migration later.
+- **Identity:** `src/lib/identity.ts` — localStorage `ps:member:<slug>` =
+  `{memberId, token, name}`; `ps:recent` is the device-local room list. The
+  shared room link, not an account or device cookie, is the recovery mechanism.
 - **Join gate:** first visit to `/r/[slug]` with no stored identity → join UI _over a live preview
   of the room_ (see the balances behind a soft scrim — you know what you're joining). Pick an
   existing unclaimed member ("I'm Bea") or add yourself. This is the room page, not a separate route.
@@ -284,7 +287,10 @@ settings, both default ON, persisted in localStorage.
 - **Landing:** one screen — what it does, create CTA, "your rooms" if localStorage has any,
   quiet "powered by Peanut" footer.
 
-## Analytics events (PostHog, all with room slug hash — never names/amount details)
+## Historical analytics event list
+
+The event names below are historical context. Current analytics are literally
+identifier-free: no room slug, slug hash, member name or amount.
 
 `room_created, room_joined, expense_added, expense_edited, settlement_recorded, settle_sheet_opened,
 share_opened, share_completed, link_copied, pwa_prompt_shown, pwa_installed, peanut_option_shown,
