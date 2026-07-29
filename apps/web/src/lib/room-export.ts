@@ -69,6 +69,7 @@ const CSV_HEADERS = [
     'note',
     'date',
     'created_at',
+    'receipt_url',
 ] as const
 
 const row = (...cells: CsvCell[]): string => cells.map(csvCell).join(',')
@@ -100,7 +101,8 @@ export function roomCsv(state: RoomState): string {
             '',
             '',
             '',
-            state.room.createdAt
+            state.room.createdAt,
+            ''
         )
     )
 
@@ -125,7 +127,8 @@ export function roomCsv(state: RoomState): string {
                 '',
                 '',
                 '',
-                member.createdAt
+                member.createdAt,
+                ''
             )
         )
     }
@@ -151,7 +154,8 @@ export function roomCsv(state: RoomState): string {
                 '',
                 '',
                 expense.date,
-                expense.createdAt
+                expense.createdAt,
+                ''
             )
         )
         for (const share of expense.shares) {
@@ -175,7 +179,8 @@ export function roomCsv(state: RoomState): string {
                     '',
                     '',
                     expense.date,
-                    expense.createdAt
+                    expense.createdAt,
+                    ''
                 )
             )
         }
@@ -202,7 +207,8 @@ export function roomCsv(state: RoomState): string {
                 spreadsheetText(settlement.method),
                 spreadsheetText(settlement.note),
                 settlement.createdAt,
-                settlement.createdAt
+                settlement.createdAt,
+                spreadsheetText(settlement.receiptUrl)
             )
         )
     }
@@ -217,6 +223,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 amountMinor,
                 state.room.currency,
+                '',
                 '',
                 '',
                 '',
@@ -250,6 +257,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 transfer.fromId,
                 transfer.toId,
+                '',
                 '',
                 '',
                 '',

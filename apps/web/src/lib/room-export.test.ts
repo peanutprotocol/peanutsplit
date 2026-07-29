@@ -49,11 +49,26 @@ const state: RoomState = {
             amountMinor: '5000',
             method: 'peanut',
             note: 'Receipt: https://example.com/receipt, documented only',
+            receiptUrl: 'https://receipts.example/settlement-1',
             createdAt: '2026-07-03T10:00:00.000Z',
         },
     ],
     balances: { ana: '2567', bea: '-2567' },
     suggestedTransfers: [{ fromId: 'bea', toId: 'ana', amountMinor: '2567' }],
+}
+
+const csvWidth = (line: string): number => {
+    let width = 1
+    let quoted = false
+    for (let index = 0; index < line.length; index += 1) {
+        if (line[index] === '"') {
+            if (quoted && line[index + 1] === '"') index += 1
+            else quoted = !quoted
+        } else if (line[index] === ',' && !quoted) {
+            width += 1
+        }
+    }
+    return width
 }
 
 describe('room export', () => {
@@ -102,6 +117,10 @@ describe('room export', () => {
         expect(csv).toContain('suggested_transfer,,,,,2567,EUR')
         expect(csv).toContain('bea,ana')
         expect(csv).toContain('"Receipt: https://example.com/receipt, documented only"')
+        expect(csv).toContain('https://receipts.example/settlement-1')
+        const lines = csv.trimEnd().split('\r\n')
+        const columnCount = csvWidth(lines[0])
+        expect(lines.every((line) => csvWidth(line) === columnCount)).toBe(true)
         expect(csv).not.toContain(state.room.slug)
     })
 
