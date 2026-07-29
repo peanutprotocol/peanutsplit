@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { peanutPointing } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
-import { Icon } from '@/components/ui/Icon'
+import { CloseButton } from '@/components/ui/CloseButton'
 import { BTN_MEDIUM } from '@/components/ui/control'
 import { cn } from '@/lib/cn'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -232,14 +232,11 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
                                     </Button>
                                 </div>
                             </div>
-                            <button
-                                type="button"
+                            <CloseButton
                                 onClick={dismiss}
-                                aria-label={t('dismiss')}
-                                className="-mr-2 -mt-2 flex size-11 shrink-0 items-center justify-center self-start rounded-sm text-grey-1"
-                            >
-                                <Icon name="x" size={18} />
-                            </button>
+                                label={t('dismiss')}
+                                className="-mr-2 -mt-2 self-start text-grey-1"
+                            />
                         </div>
                     </motion.div>
                 )}

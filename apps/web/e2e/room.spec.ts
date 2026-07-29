@@ -139,7 +139,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(roomLink).toBeVisible({ timeout: 15_000 })
     const url = (await roomLink.innerText()).trim()
     expect(url).toContain('/r/ski-trip-')
-    await expect(page.getByTestId('copy-invite')).toBeVisible()
+    await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.getByTestId('go-to-room').click()
     await expectBalance(page, 'Ana', '0')
