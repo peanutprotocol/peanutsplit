@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
+import { BTN_SMALL } from '@/components/ui/control'
 import type { RoomState } from '@/lib/api-types'
 import { exportFilename, roomCsv, roomJson } from '@/lib/room-export'
 
@@ -27,14 +28,14 @@ export function RoomExport({ state }: { state: RoomState }) {
                     {t('title')}
                 </h2>
                 <p className="mt-1 text-sm text-grey-1">{t('privacyWarning')}</p>
-                <p className="mt-1 text-sm text-grey-1">{t('credentialNote')}</p>
+                <p className="mt-1 text-sm text-grey-1">{t('scopeNote')}</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
                 <Button
                     type="button"
                     variant="stroke"
                     size="small"
-                    className="justify-center"
+                    className={`${BTN_SMALL} justify-center`}
                     onClick={() =>
                         download(roomCsv(state), exportFilename(state.room.name, 'csv'), 'text/csv;charset=utf-8')
                     }
@@ -45,7 +46,7 @@ export function RoomExport({ state }: { state: RoomState }) {
                     type="button"
                     variant="stroke"
                     size="small"
-                    className="justify-center"
+                    className={`${BTN_SMALL} justify-center`}
                     onClick={() =>
                         download(
                             roomJson(state),
