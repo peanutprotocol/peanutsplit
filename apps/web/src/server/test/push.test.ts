@@ -458,6 +458,34 @@ describe('expense route wiring', () => {
             template: 'expense_added',
         })
     })
+
+    it('never invents the payer as actor for a tokenless on-behalf expense', async () => {
+        const fixture = await makeRoom()
+        await seedSubscription(fixture.roomId, fixture.friend.id, FCM('friend-phone'))
+
+        const request = new Request(`${BASE}/api/rooms/${fixture.slug}/expenses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                description: 'Dinner',
+                amountMinor: '12000',
+                currency: 'EUR',
+                paidById: fixture.owner.id,
+                splitMode: 'EQUAL',
+            }),
+        })
+        const res = await (postExpense as Handler)(request, { params: Promise.resolve({ slug: fixture.slug }) })
+        expect(res.status).toBe(201)
+
+        await waitFor(async () => (await prisma.notificationSend.count()) === 1)
+        expect(sendNotification).toHaveBeenCalledTimes(1)
+        const payload = JSON.parse(sendNotification.mock.calls[0][1])
+        expect(payload).toMatchObject({
+            body: 'Someone added Dinner — €120.00',
+            template: 'expense_added',
+        })
+        expect(payload.body).not.toContain('Ana added')
+    })
 })
 
 describe('feedback beacons', () => {

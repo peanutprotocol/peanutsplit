@@ -268,7 +268,7 @@ export function notifyRoomWrite(input: {
                             room: roomRef,
                             roomId: room.id,
                             sendId,
-                            actorName: nameOf(expense.createdById ?? expense.paidById),
+                            actorName: nameOf(expense.createdById),
                             description: expense.description,
                             amountMinor: expense.amountMinor.toString(),
                             currency: expense.currency,

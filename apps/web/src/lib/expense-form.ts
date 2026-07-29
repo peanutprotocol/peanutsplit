@@ -201,9 +201,7 @@ export function buildExpenseBody(values: ExpenseFormValues, catalog?: readonly C
         amountMinor,
         currency: values.currency,
         date: values.date,
-        ...(values.newPaidByName
-            ? { newPaidByName: values.newPaidByName }
-            : { paidById: values.paidById }),
+        ...(values.newPaidByName ? { newPaidByName: values.newPaidByName } : { paidById: values.paidById }),
     }
 
     if (values.splitMode === 'EXACT') {

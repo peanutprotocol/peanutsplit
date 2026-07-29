@@ -157,7 +157,9 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                                                                 name="x"
                                                                 size={14}
                                                                 className={
-                                                                    removingId === member.id ? 'animate-pulse' : undefined
+                                                                    removingId === member.id
+                                                                        ? 'animate-pulse'
+                                                                        : undefined
                                                                 }
                                                             />
                                                         </button>

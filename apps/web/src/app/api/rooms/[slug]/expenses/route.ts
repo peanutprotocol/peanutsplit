@@ -36,11 +36,11 @@ export const POST = (request: Request, ctx: Ctx) =>
         }
         try {
             result = await prisma.$transaction(async (tx) => {
-                // Only the inline new-payer path needs the room name lock.
-                // Ordinary expense creates keep their existing concurrency.
-                if (body.newPaidByName) {
-                    await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
-                }
+                // Member removal checks every payer/share reference under this
+                // same room lock. Every expense create must join that order, or
+                // an ordinary write can add a reference after the check and
+                // have PostgreSQL cascade it away with the member.
+                await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
                 let lockedRoom = await loadRoom(slug, tx)
                 assertWritable(lockedRoom)
                 const actorMemberId = memberIdForToken(lockedRoom, token)
