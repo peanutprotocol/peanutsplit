@@ -27,6 +27,14 @@ type LandingMessages = {
             suggestedPlan: { title: string }
             examples: { title: string }
         }
+        linkExplainer: {
+            title: string
+            access: { title: string }
+            chat: { title: string }
+            remembered: { title: string }
+            money: { title: string }
+            done: string
+        }
         readMore: {
             toggle: string
             features: {
@@ -107,6 +115,17 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
     await page.getByRole('option', { name: nextCurrency, exact: true }).click()
     await expect(selectedCurrency).toHaveValue(nextCurrency!)
 
+    await page.getByTestId('hero-link-explainer').click()
+    const linkExplainer = page.getByRole('dialog')
+    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.title)
+    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.access.title)
+    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.chat.title)
+    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.remembered.title)
+    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.money.title)
+    await expect(linkExplainer.getByText(/loses it|room is gone/i)).toHaveCount(0)
+    await linkExplainer.getByRole('button', { name: catalogs.en.marketing.linkExplainer.done }).click()
+    await expect(linkExplainer).toBeHidden()
+
     const readMore = page.locator('section').filter({
         has: page.getByRole('heading', { name: catalogs.en.marketing.readMore.toggle }),
     })
@@ -175,8 +194,11 @@ test.describe('Pass-the-link default', () => {
             await expect(stage).toBeVisible()
             await expect(form).toBeVisible()
             await expect(page.getByTestId('pass-link-chat-frame')).toBeVisible()
+            await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
             await expect(page.getByTestId('pass-link-channel')).toHaveCount(4)
             await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
+            await expect(hero.locator('.pass-link-utility')).toHaveCount(0)
+            await expect(hero.getByText(/^4 FRIENDS · 1 LINK$/)).toHaveCount(0)
 
             expect(
                 await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
@@ -213,6 +235,13 @@ test.describe('Pass-the-link default', () => {
                 }
             }
         }
+    })
+
+    test('the right-hand messenger mockup opens the room creator', async ({ page }) => {
+        await openLanding(page)
+        await page.getByTestId('pass-link-chat-link').click()
+        await expect(page).toHaveURL('/new')
+        await expect(page.getByTestId('room-composer')).toBeVisible()
     })
 
     test('the room draft drives both honest URL previews without writing anything', async ({ page }) => {
@@ -323,8 +352,78 @@ test.describe('Pass-the-link default', () => {
         const stage = page.getByTestId('pass-link-stage')
         await expect(stage).toHaveAttribute('data-state', 'complete')
         await expect(page.getByTestId('pass-link-stage-summary')).toHaveText(catalogs.en.marketing.hero.stageSummary)
+        await expect(page.getByTestId('landing-proof')).toHaveAttribute('data-motion', 'still')
+        await expect(page.getByTestId('read-more')).toHaveAttribute('data-motion', 'still')
+        await expect(page.getByTestId('final-cta')).toHaveAttribute('data-motion', 'still')
         expect(
-            await stage.evaluate((element) =>
+            await page.locator('main').evaluate((element) =>
+                element
+                    .getAnimations({ subtree: true })
+                    .filter((animation) => animation.playState === 'running')
+                    .map((animation) => animation.animationName)
+            )
+        ).toEqual([])
+    })
+
+    test('in-app quiet settings keep the landing usable without motion, sound, or vibration', async ({ page }) => {
+        await page.addInitScript(() => {
+            window.localStorage.setItem(
+                'ps:settings',
+                JSON.stringify({
+                    animationsEnabled: false,
+                    soundEnabled: false,
+                    hapticsEnabled: false,
+                })
+            )
+
+            const probe = { audioContexts: 0, vibrations: 0 }
+            Object.defineProperty(window, '__landingFeedbackProbe', { value: probe })
+
+            const NativeAudioContext = window.AudioContext
+            if (NativeAudioContext) {
+                Object.defineProperty(window, 'AudioContext', {
+                    configurable: true,
+                    value: new Proxy(NativeAudioContext, {
+                        construct(target, args, newTarget) {
+                            probe.audioContexts += 1
+                            return Reflect.construct(target, args, newTarget)
+                        },
+                    }),
+                })
+            }
+
+            Object.defineProperty(navigator, 'vibrate', {
+                configurable: true,
+                value: () => {
+                    probe.vibrations += 1
+                    return true
+                },
+            })
+        })
+        await openLanding(page)
+
+        await expect(page.locator('html')).toHaveClass(/reduce-animations/)
+        await expect(page.getByTestId('pass-link-stage')).toHaveAttribute('data-state', 'complete')
+        await expect(page.getByTestId('landing-proof')).toHaveAttribute('data-motion', 'still')
+        await expect(page.getByTestId('read-more')).toHaveAttribute('data-motion', 'still')
+        await expect(page.getByTestId('final-cta')).toHaveAttribute('data-motion', 'still')
+
+        const firstFold = page.getByTestId('read-more').locator('details').first()
+        await firstFold.locator('summary').click()
+        await expect(firstFold).toHaveAttribute('open', '')
+
+        expect(
+            await page.evaluate(
+                () =>
+                    (
+                        window as Window & {
+                            __landingFeedbackProbe: { audioContexts: number; vibrations: number }
+                        }
+                    ).__landingFeedbackProbe
+            )
+        ).toEqual({ audioContexts: 0, vibrations: 0 })
+        expect(
+            await page.locator('main').evaluate((element) =>
                 element
                     .getAnimations({ subtree: true })
                     .filter((animation) => animation.playState === 'running')

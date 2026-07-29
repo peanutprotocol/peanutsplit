@@ -63,7 +63,7 @@ Se o grupo compartilha país, vocês já têm a resposta: um app de transferênc
 
 Em ordem de preferência:
 
-- **Dinheiro, se vocês ainda estiverem no mesmo lugar.** Grátis, na hora, e acontece antes de cada um ir embora. Acertem no aeroporto se der.
+- **Dinheiro, se vocês ainda estiverem no mesmo lugar.** Sem taxa, na hora, e acontece antes de cada um ir embora. Acertem no aeroporto se der.
 - **Uma transferência local entre as duas pessoas que compartilham país.** Compensem as dívidas para que o máximo possível de pagamentos seja local.
 - **Um link de pagamento para o resto.** Um manda o link, o outro paga com o que tiver. Isso contorna o problema do "qual app você tem", que é o que realmente trava tudo.
 

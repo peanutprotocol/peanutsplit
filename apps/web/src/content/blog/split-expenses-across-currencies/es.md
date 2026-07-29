@@ -9,7 +9,7 @@ faqs:
     - question: ¿Cargo lo que pagué o lo que me terminó costando?
       answer: Cargá lo que pagaste, en la moneda en que lo pagaste. Ese es el número del ticket y el único que podés demostrar.
     - question: ¿Split cobra por convertir monedas?
-      answer: No. Las salas en varias monedas son gratis y no hay ningún plan pago al que subir.
+      answer: No. Las salas en varias monedas son gratis para siempre y no hay ningún plan pago al que subir.
 ---
 
 <Hero
@@ -17,7 +17,7 @@ faqs:
   title="Dividir entre monedas sin perder plata en el camino"
   subtitle="A una misma cena se le pueden aplicar tres tipos de cambio distintos. Solo uno debería terminar en las cuentas del grupo."
   cta="Crear un split"
-  ctaHint="Las salas en varias monedas son gratis. Sin plan pago." />
+  ctaHint="Las salas en varias monedas son gratis para siempre. Sin plan pago." />
 
 Una cena en Bangkok, pagada por una persona, dividida entre cuatro.
 
@@ -58,7 +58,7 @@ El único arreglo es otra tarjeta, o ser el que paga en efectivo.
 
 Los grupos que comparten moneda tienen opciones más fáciles. Los que realmente necesitan un divisor de gastos son los que están repartidos entre países, y cobrarles justo por la conversión es cobrarles por la única parte por la que vinieron.
 
-Así que es gratis, y no hay ningún plan por encima.
+Así que es gratis para siempre, y no hay ningún plan por encima.
 
 <CTA
   title="Elegí la moneda una vez y olvidate"
@@ -68,7 +68,7 @@ Así que es gratis, y no hay ningún plan por encima.
 <FAQ title="Preguntas">
 <FAQItem question="¿Qué tipo de cambio deberíamos usar?">Acordá la moneda de la sala una vez y dejá que Split convierta cada gasto al cargarlo. Los tipos son de referencia, no los de tu banco, así que tratá los totales como exactos y la conversión como suficientemente cerca para dividir.</FAQItem>
 <FAQItem question="¿Cargo lo que pagué o lo que me terminó costando?">Cargá lo que pagaste, en la moneda en que lo pagaste. Ese es el número del ticket y el único que podés demostrar.</FAQItem>
-<FAQItem question="¿Split cobra por convertir monedas?">No. Las salas en varias monedas son gratis y no hay ningún plan pago al que subir.</FAQItem>
+<FAQItem question="¿Split cobra por convertir monedas?">No. Las salas en varias monedas son gratis para siempre y no hay ningún plan pago al que subir.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Seguí leyendo">

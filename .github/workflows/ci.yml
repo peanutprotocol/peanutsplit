@@ -59,6 +59,14 @@ jobs:
       # dotted path, which never throws and never fails a test.
       - run: pnpm i18n:audit
 
+      # "Free forever" is the product promise. Bare "free" is allowed only for
+      # recorded competitor quotes and competitor-tier descriptions.
+      - run: pnpm marketing-copy:audit
+
+      # The product has one generated doodle system. Keep library icons, raw UI
+      # SVGs, and platform-dependent emoji controls from quietly creating a second.
+      - run: pnpm ui-icons:audit
+
       # apps/api's 15 integration tests run against a real database and
       # create the `app` schema through migrations, not a seed — without
       # this they fail on missing relations while the unit tests pass.

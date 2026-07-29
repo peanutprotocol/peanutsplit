@@ -1,15 +1,13 @@
 {
     "marketing": {
         "hero": {
-            "utilityBrand": "PEANUT SPLIT",
-            "utilityTag": "4 AMIGOS · 1 LINK",
             "eyebrow": "SEM APP PARA OS AMIGOS.",
             "title": "MANDA AI",
             "controlTitleAccessible": "MANDA AÍ",
             "titleAccessible": "LINK. DIVIDE. PRONTO.",
             "subtitle": "porque contas mais claras fazem amizades melhores",
             "cta": "Criar o link",
-            "ctaTrust": "Grátis · sem conta obrigatória · sem instalar nada",
+            "ctaTrust": "Grátis para sempre · sem conta obrigatória · sem instalar nada",
             "linkExplainerTrigger": "Como o link funciona",
             "chat": {
                 "defaultRoom": "Fim de semana em Lisboa",
@@ -182,28 +180,28 @@
             }
         },
         "linkExplainer": {
-            "title": "Como o link funciona",
-            "bearer": {
-                "title": "O link é a chave",
-                "body": "Não existem contas, então não há onde fazer login. Qualquer pessoa com o link abre a sala e adiciona despesas — deixe ele no grupo e ele fica com o grupo."
+            "title": "O que o link da sala faz",
+            "access": {
+                "title": "Qualquer pessoa com o link abre a sala",
+                "body": "A sala não aparece em listas públicas. Compartilhe o link só com as pessoas do grupo."
             },
-            "private": {
-                "title": "Ninguém acha por acaso",
-                "body": "As salas ficam fora dos buscadores e o endereço termina numa sequência aleatória, então não dá para adivinhar. Ele só chega a quem você mandar."
+            "chat": {
+                "title": "O link acompanha o grupo",
+                "body": "Deixe ele no chat do grupo para todo mundo voltar à mesma sala."
             },
-            "lost": {
-                "title": "Se todo mundo perder o link, a sala some",
-                "body": "As salas que você abriu ficam listadas nesta página, salvas no seu aparelho. Esse é o preço de não pedir conta a ninguém."
+            "remembered": {
+                "title": "Salas abertas ficam neste aparelho",
+                "body": "O Split guarda essas salas na lista desta página para você voltar por aqui."
             },
-            "nothingElse": {
-                "title": "O Split nunca toca no seu dinheiro",
-                "body": "Ele registra quem pagou o quê e quem deve a quem. Os pagamentos acontecem onde você já faz."
+            "money": {
+                "title": "O Split guarda as contas, não o dinheiro",
+                "body": "Ele registra quem pagou e quem deve. Vocês acertam onde já fazem seus pagamentos."
             },
             "done": "Entendi"
         },
         "readMore": {
             "toggle": "QUER SABER MAIS?",
-            "toggleHint": "Quem fez o Split, por que é grátis e como os links das salas funcionam.",
+            "toggleHint": "Quem fez o Split, por que é grátis para sempre e como os links das salas funcionam.",
             "join": {
                 "title": "O que seus amigos veem",
                 "roomName": "Viagem de esqui",
@@ -265,13 +263,13 @@
                 }
             },
             "who": {
-                "title": "Quem fez isso, e por que é grátis",
+                "title": "Quem fez isso, e por que é grátis para sempre",
                 "built": {
                     "title": "A Peanut fez o Split",
                     "body": "A Peanut é um app de pagamentos e uma empresa de verdade com produto de verdade — não um projeto de fim de semana que some."
                 },
                 "free": {
-                    "title": "É grátis porque apresenta a Peanut para as pessoas",
+                    "title": "É grátis para sempre porque apresenta a Peanut para as pessoas",
                     "body": "Sem plano premium, sem venda vindo depois, sem nada para comprar."
                 },
                 "data": {

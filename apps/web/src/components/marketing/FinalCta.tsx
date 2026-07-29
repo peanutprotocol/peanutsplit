@@ -1,6 +1,11 @@
+'use client'
+
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { motion } from 'motion/react'
 import { Button } from '@/components/ui/Button'
+import { useMotionAllowed } from '@/lib/use-motion'
+import { useFeedback } from '@/lib/use-settings'
 
 /**
  * The second and last ask on the page. The hero's CTA catches people who already knew what they
@@ -15,19 +20,30 @@ import { Button } from '@/components/ui/Button'
  */
 export function FinalCta() {
     const t = useTranslations('marketing.finalCta')
+    const motionAllowed = useMotionAllowed()
+    const feedback = useFeedback()
 
     return (
-        <section className="mx-auto w-full max-w-xl px-5 py-10">
+        <motion.section
+            data-testid="final-cta"
+            data-motion={motionAllowed ? 'ready' : 'still'}
+            initial={motionAllowed ? { opacity: 0, y: 24 } : false}
+            animate={motionAllowed ? undefined : { opacity: 1, y: 0 }}
+            whileInView={motionAllowed ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true, amount: 0.45 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 22 }}
+            className="mx-auto w-full max-w-xl px-5 py-10"
+        >
             <div className="shadow-4 rounded-sm border border-n-1 bg-white p-5">
                 <h2 className="text-h5">{t('title')}</h2>
                 <p className="mt-2 text-sm leading-5 text-grey-1">{t('subtitle')}</p>
-                <Link href="/new" className="mt-4 block">
-                    <Button variant="primary" shadowSize="4" className="justify-center text-h6">
+                <Link href="/new" className="mt-4 block" onClick={() => feedback('whoosh')}>
+                    <Button variant="primary" shadowSize="4" className="justify-center text-h6" disableHaptics>
                         {t('button')}
                     </Button>
                 </Link>
             </div>
-        </section>
+        </motion.section>
     )
 }
 

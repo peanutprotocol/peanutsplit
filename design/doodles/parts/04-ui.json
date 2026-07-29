@@ -156,6 +156,27 @@
     "d": "M11 11L5 7L4 14L10 17 M21 11L27 7L28 14L22 17 M10 11C12 8 20 8 22 11V21C20 24 12 24 10 21Z",
     "note": "a wrapped sweet — the bubblegum palette"
   },
+  "channelwhatsapp": {
+    "d": "M16 5C9.8 5 5 9.7 5 15.6C5 17.7 5.6 19.7 6.7 21.3L5.5 27L11.2 25.4C12.7 26.2 14.4 26.6 16.2 26.6C22.4 26.6 27.2 22 27.2 16C27.2 10 22.3 5 16 5Z M11.8 10.8C12.2 10.3 12.7 10.4 13 10.9L14.2 13.3C14.4 13.8 14.1 14.2 13.5 14.7C14.3 16.6 15.9 18.1 17.9 19C18.5 18.2 19 17.8 19.5 18L21.9 19.2C22.5 19.5 22.5 20 22.2 20.6C21.6 21.7 20.6 22.3 19.3 22.2C16.5 22 13.5 20.2 11.6 17.8C10.1 15.9 9.3 13.7 9.8 12.3C10.1 11.6 11.1 11.1 11.8 10.8Z",
+    "note": "a loose WhatsApp chat bubble with a telephone stroke"
+  },
+  "channeltelegram": {
+    "d": "M4 15L27 5.5L23.6 26L15.6 20.2L11.7 24.2L10.8 18.2Z M10.8 18.2L23.7 9.4L15.6 20.2",
+    "note": "a loose Telegram paper plane with its folded wing"
+  },
+  "channelmessenger": {
+    "d": "M16 5C9.5 5 4.5 9.5 4.5 15.4C4.5 18.8 6.2 21.8 9 23.7L8.7 28L12.8 25.6C13.9 26 15 26.2 16.2 26.2C22.6 26.2 27.5 21.7 27.5 15.5C27.5 9.5 22.5 5 16 5Z M9.7 18.8L14 14.2L17.2 16.7L22.2 11.8L17.8 18.2L14.6 15.7Z",
+    "note": "a loose Messenger bubble with its zig-zag spark"
+  },
+  "channelmessages": {
+    "d": "M16 5C9.3 5 4.3 9.3 4.3 15.2C4.3 18.3 5.8 21 8.4 22.8L7.6 27.2L12.2 25.1C13.4 25.5 14.7 25.7 16 25.7C22.7 25.7 27.7 21.4 27.7 15.4C27.7 9.5 22.7 5 16 5Z",
+    "dots": [
+      [10.8, 15.5, 1.25],
+      [16, 15.5, 1.25],
+      [21.2, 15.5, 1.25]
+    ],
+    "note": "a loose Messages bubble with three conversational dots"
+  },
   "crystal": {
     "d": "M9 7L16 4L24 8L27 17L16 28L5 17Z M9 7L12 17L16 28 M24 8L20 17L16 28 M5 17H27 M9 7L20 17 M24 8L12 17",
     "note": "a faceted crystal — the lavender palette"

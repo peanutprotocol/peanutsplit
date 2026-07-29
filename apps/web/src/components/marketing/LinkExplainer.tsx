@@ -20,7 +20,7 @@ import { Icon } from '@/components/ui/Icon'
  */
 export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () => void }) {
     const t = useTranslations('marketing.linkExplainer')
-    const points = ['bearer', 'private', 'lost', 'nothingElse'] as const
+    const points = ['access', 'chat', 'remembered', 'money'] as const
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
