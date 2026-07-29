@@ -100,10 +100,14 @@ test('the deferred install prompt is still when the OS requests reduced motion',
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
     await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    const roomUrl = (await page.getByTestId('room-link').innerText()).trim()
+
+    // Install before the room navigation: InstallPrompt does not exist on /new,
+    // so every timer in its mounted lifecycle belongs to the controlled clock.
+    await page.clock.install()
+    await page.goto(roomUrl)
     await expectBalance(page, 'Ana', '0')
 
-    await page.clock.install()
     await page.evaluate(() => {
         const event = new Event('beforeinstallprompt', { cancelable: true })
         Object.assign(event, {
