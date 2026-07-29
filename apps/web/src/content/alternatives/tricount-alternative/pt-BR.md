@@ -4,8 +4,8 @@ description: O Tricount recebe por conta bancária e cartão bunq. Se o seu grup
 date: 2026-07-28
 tags: [alternativas, moedas]
 faqs:
-    - question: O Peanut Split é grátis?
-      answer: É, e não existe nada para assinar depois. O Split é feito pela Peanut e existe para apresentar a Peanut às pessoas — é daí que sai o dinheiro.
+    - question: O Peanut Split é grátis para sempre?
+      answer: É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas — é daí que sai o dinheiro.
     - question: Preciso baixar alguma coisa?
       answer: 'Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail.'
     - question: Dá para acertar por transferência ou em dinheiro?
@@ -53,7 +53,7 @@ Quatro pessoas em Berlim vão se dar bem. Quatro pessoas em Berlim, Buenos Aires
 
 |             | Peanut Split                                                                          | Tricount                                                    |
 | ----------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Preço       | Grátis, sem plano pago                                                                | "100% free"                                                 |
+| Preço       | Grátis para sempre, sem plano pago                                                    | "100% free"                                                 |
 | A conta     | Os saldos fecham no centavo                                                           | "tricount does the math for you"                            |
 | Acertar     | O que as duas pessoas realmente conseguem usar: dinheiro, transferência local ou link | "get paid directly to your bank account", ou um cartão bunq |
 | Melhor caso | Grupo espalhado por países, bancos e moedas                                           | Grupo que compartilha os mesmos trilhos bancários           |
@@ -66,7 +66,7 @@ A linha que importa é a de acertar. O resto está perto o bastante para não de
 
 <Checklist title="Onde um split falha de verdade">
 <ChecklistItem title="Ninguém tem o mesmo app">"Me manda por aí" desmorona quando um tem Revolut, outro tem um banco que fecha às quatro e outro está num país que nenhum dos dois alcança. Então não exija um app específico.</ChecklistItem>
-<ChecklistItem title="Você pagou numa moeda e deve em outra">Escolha em que a sala conta, lance as despesas no que você gastou de verdade, e o Split converte. Grátis, e não atrás de um plano pago.</ChecklistItem>
+<ChecklistItem title="Você pagou numa moeda e deve em outra">Escolha em que a sala conta, lance as despesas no que você gastou de verdade, e o Split converte. Grátis para sempre, e não atrás de um plano pago.</ChecklistItem>
 </Checklist>
 
 ## Quando o Tricount é a ferramenta melhor
@@ -83,7 +83,7 @@ Não existe conta, o que significa nenhum login, nenhuma recuperação de senha 
   text="Criar um split" />
 
 <FAQ title="Perguntas">
-<FAQItem question="O Peanut Split é grátis?">É, e não existe nada para assinar depois. O Split é feito pela Peanut e existe para apresentar a Peanut às pessoas — é daí que sai o dinheiro.</FAQItem>
+<FAQItem question="O Peanut Split é grátis para sempre?">É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas — é daí que sai o dinheiro.</FAQItem>
 <FAQItem question="Preciso baixar alguma coisa?">Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail.</FAQItem>
 <FAQItem question="Dá para acertar por transferência ou em dinheiro?">Dá. O Split reduz as dívidas para você fazer duas ou três transferências em vez de vinte, e registra cada uma do jeito que ela aconteceu. Não exige nenhum banco nem app específico.</FAQItem>
 <FAQItem question="No que o Split é ruim?">Em tudo que precisa de conta. Não tem login, nem recuperação de senha, nem histórico que te siga entre aparelhos — o link é a chave, então se o grupo perder o link, a sala se perde.</FAQItem>

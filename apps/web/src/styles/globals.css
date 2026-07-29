@@ -153,7 +153,8 @@
 @media (prefers-reduced-motion: reduce) {
     .animate-pop,
     .animate-shake,
-    .animate-drawer-in {
+    .animate-drawer-in,
+    .group\/fold[open] > .landing-fold-body {
         animation: none !important;
     }
 
@@ -163,6 +164,42 @@
         animation: none !important;
         opacity: 0 !important;
     }
+
+    .landing-proof-scene,
+    .landing-proof-copy,
+    .landing-proof-visual,
+    .landing-proof-rail,
+    .landing-proof-rail li,
+    .landing-room-examples,
+    .landing-room-examples-heading,
+    .landing-room-examples ul,
+    .landing-room-examples li,
+    [data-testid='read-more'],
+    [data-testid='final-cta'] {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+.reduce-animations .group\/fold[open] > .landing-fold-body {
+    animation: none !important;
+}
+
+.reduce-animations .landing-proof-scene,
+.reduce-animations .landing-proof-copy,
+.reduce-animations .landing-proof-visual,
+.reduce-animations .landing-proof-rail,
+.reduce-animations .landing-proof-rail li,
+.reduce-animations .landing-room-examples,
+.reduce-animations .landing-room-examples-heading,
+.reduce-animations .landing-room-examples ul,
+.reduce-animations .landing-room-examples li,
+.reduce-animations [data-testid='read-more'],
+.reduce-animations [data-testid='final-cta'] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 /* ---------------------------------------------------------- pass the link
@@ -184,23 +221,6 @@
     flex-direction: column;
     margin-inline: auto;
     padding-inline: clamp(1.5rem, 3.4vw, 3.25rem);
-}
-
-.pass-link-utility {
-    display: flex;
-    min-height: 3.5rem;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex: 0 0 auto;
-    font-size: 0.6875rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.pass-link-utility span:last-child {
-    text-align: right;
 }
 
 .pass-link-layout {
@@ -771,6 +791,22 @@
     }
 }
 
+.group\/fold[open] > .landing-fold-body {
+    animation: landing-fold-open 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes landing-fold-open {
+    from {
+        opacity: 0;
+        transform: translateY(-0.35rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
 /* -------------------------------------------------------------- proof scenes */
 
 .landing-proof {
@@ -830,6 +866,12 @@
     background: white;
     box-shadow: 0.5rem 0.5rem 0 #211c17;
     transform: rotate(1deg);
+}
+
+.landing-proof-visual {
+    display: grid;
+    min-width: 0;
+    justify-items: end;
 }
 
 .landing-proof-ticket {
@@ -1091,11 +1133,6 @@
     .pass-link-hero-inner {
         min-height: 100svh;
         padding-inline: 1rem;
-    }
-
-    .pass-link-utility {
-        min-height: 2.35rem;
-        font-size: 0.58rem;
     }
 
     .pass-link-layout {
@@ -1419,10 +1456,6 @@
 @media (max-width: 359px) {
     .pass-link-hero-inner {
         padding-inline: 0.75rem;
-    }
-
-    .pass-link-utility span:last-child {
-        max-width: 9.5rem;
     }
 
     .pass-link-layout {

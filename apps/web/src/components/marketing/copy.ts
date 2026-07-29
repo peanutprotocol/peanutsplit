@@ -23,9 +23,9 @@ export const marketingCopy = {
      */
     compare: {
         meta: {
-            title: 'Free Splitwise alternative — no signup, no daily limit',
+            title: 'Splitwise alternative, free forever — no signup, no daily limit',
             description:
-                'A free Splitwise alternative with no account and no app: share one link, everyone adds what they paid, and nothing is capped or held back for a paid tier.',
+                'A Splitwise alternative that is free forever, with no account and no app: share one link, everyone adds what they paid, and nothing is capped or held back for a paid tier.',
         },
         hero: {
             eyebrow: 'splitwise alternative',
@@ -52,7 +52,7 @@ export const marketingCopy = {
                 {
                     title: 'Splitting across currencies is a paid feature',
                     quote: 'Splitwise can convert all your bills to any currency you’d like, using today’s foreign exchange rates.',
-                    body: 'Also Pro. If the group is in Lisbon paying in euros and settling in pounds, that is the whole job. In Split it is free and built in.',
+                    body: 'Also Pro. If the group is in Lisbon paying in euros and settling in pounds, that is the whole job. In Split it is built in and free forever.',
                 },
                 {
                     title: 'The free app shows you ads',
@@ -83,12 +83,12 @@ export const marketingCopy = {
                 },
                 {
                     feature: 'Other currencies',
-                    split: 'Built in and free.',
+                    split: 'Built in and free forever.',
                     other: 'Currency conversion is sold as a Pro feature.',
                 },
                 {
                     feature: 'Cost',
-                    split: 'Free, with no paid tier to upgrade to.',
+                    split: 'Free forever, with no paid tier to upgrade to.',
                     other: 'Free with ads, or Splitwise Pro.',
                 },
             ],
@@ -143,8 +143,8 @@ export const marketingCopy = {
                     a: 'No, and neither does anyone you send the link to. There is no email, no password and no ID check anywhere in Split.',
                 },
                 {
-                    q: 'Is it really free?',
-                    a: 'Yes, and there is nothing to upgrade to. Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.',
+                    q: 'Is it free forever?',
+                    a: 'Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.',
                 },
                 {
                     q: 'Is there a limit on how many expenses we can add?',
@@ -197,7 +197,7 @@ export const marketingCopy = {
      */
     importPage: {
         meta: {
-            title: 'Import your Splitwise group — free, no account',
+            title: 'Import your Splitwise group — free forever, no account',
             description:
                 'Move a Splitwise group to Peanut Split in one step: export the group as a spreadsheet, drop the file in, and get a shareable room with the expenses and balances already in it.',
         },

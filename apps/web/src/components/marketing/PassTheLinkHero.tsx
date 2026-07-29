@@ -57,11 +57,6 @@ export function PassTheLinkHero() {
     return (
         <section data-testid="pass-link-hero" className="pass-link-hero border-b border-n-1 bg-secondary-1 text-n-1">
             <div className="pass-link-hero-inner">
-                <div className="pass-link-utility" aria-label={t('utilityBrand')}>
-                    <span>{t('utilityBrand')}</span>
-                    <span>{t('utilityTag')}</span>
-                </div>
-
                 <div className="pass-link-layout">
                     <div className="pass-link-copy">
                         <p className="pass-link-kicker">{t('eyebrow')}</p>

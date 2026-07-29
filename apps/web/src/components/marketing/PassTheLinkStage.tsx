@@ -2,8 +2,8 @@
 
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
+import type { DoodleName } from '@/components/ui/doodles'
 import { slugStem } from '@/lib/slugify'
-import { MessagingDoodle, type MessagingDoodleName } from './MessagingDoodle'
 
 export type PassTheLinkStageState = 'question' | 'reply' | 'link' | 'complete'
 
@@ -12,7 +12,12 @@ export interface PassTheLinkStageProps {
     state: PassTheLinkStageState
 }
 
-const CHANNELS: MessagingDoodleName[] = ['whatsapp', 'telegram', 'messenger', 'messages']
+const CHANNELS = [
+    'channelwhatsapp',
+    'channeltelegram',
+    'channelmessenger',
+    'channelmessages',
+] as const satisfies readonly DoodleName[]
 const PEOPLE = ['B', 'J', 'M', 'YOU'] as const
 
 /**
@@ -44,7 +49,7 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                             data-testid="pass-link-channel"
                             className={`pass-link-channel pass-link-channel-${channel}`}
                         >
-                            <MessagingDoodle name={channel} />
+                            <Doodle name={channel} size={32} weight={1.9} />
                         </span>
                     ))}
                 </div>

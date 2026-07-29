@@ -63,7 +63,7 @@ If the group shares a country you already have an answer — one domestic transf
 
 In order of preference:
 
-- **Cash, if you are still in the same place.** Free, instant, and it happens before people go home. Settle at the airport if you can.
+- **Cash, if you are still in the same place.** No fee, instant, and it happens before people go home. Settle at the airport if you can.
 - **A domestic transfer between whichever two people share a country.** Net the debts so that as many payments as possible are local.
 - **A payment link for the rest.** One person sends a link, the other pays it from whatever they have. It sidesteps the "which app do you have" problem, which is the problem that actually stalls things.
 

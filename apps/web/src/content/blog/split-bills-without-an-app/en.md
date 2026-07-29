@@ -45,7 +45,7 @@ The link. A room's address ends in six random characters, and search engines are
 A link that is the key can be forwarded, and it can be lost. Keep it in the group chat rather than only in your own browser, and treat "anyone with this link can see the room" as literally true. Link-preview bots are allowed to read room pages so the unfurl works in a group chat — that is deliberate, and it means the room name and totals travel with the link. In exchange, nobody in your group has to make an account.
 </Callout>
 
-## Where signup-free stops being enough
+## Where skipping signup stops being enough
 
 Getting people in is not the hard part of splitting expenses. Getting them to pay is.
 
@@ -53,7 +53,7 @@ A group with no accounts and no shared app still has to move real money at the e
 
 <Checklist title="What to look for beyond the signup screen">
 <ChecklistItem title="Does it net the debts down?">Twenty small IOUs never get paid. Two or three transfers do. The tool should be doing that arithmetic, not you.</ChecklistItem>
-<ChecklistItem title="Can it handle more than one currency for free?">If the group spans countries, conversion is not a nice-to-have, and it should not be the thing you are charged for.</ChecklistItem>
+<ChecklistItem title="Can it handle more than one currency without charging for it?">If the group spans countries, conversion is not a nice-to-have, and it should not be the thing you are charged for.</ChecklistItem>
 <ChecklistItem title="Does it offer a way to actually pay, or just a number?">A number in a group chat is where most splits go to die. Some route to moving the money — a link the other person can just pay — is the difference between settled and forgotten.</ChecklistItem>
 <ChecklistItem title="Do you know what a settled row means?">In Split it means the person who owed it tapped to say they paid. No expense splitter is watching your bank, so it is worth knowing which of the two you are looking at.</ChecklistItem>
 </Checklist>
