@@ -5,16 +5,12 @@
  */
 
 import type {
-    AccountRoom,
-    AccountSummary,
-    AttachResult,
     CreateMemberInput,
     CreateRoomInput,
     CurrencyInfo,
     ExpenseInput,
     ImportRoomInput,
     MemberAvatarInput,
-    MembershipClaim,
     ModelStatus,
     NlParseInput,
     NlParseResult,
@@ -217,31 +213,6 @@ export const api = {
             token: write.token,
             timeoutMs: EXPENSE_WRITE_TIMEOUT_MS,
         }),
-
-    /**
-     * The account endpoints. Authentication is the sealed `ps-session` cookie,
-     * so nothing here takes a credential argument — `fetch` sends it because
-     * every call is same-origin.
-     */
-    account: {
-        me: (signal?: AbortSignal) => request<AccountSummary | null>('/api/auth/me', { signal }),
-
-        /** Always resolves the same way whether or not the address is known —
-         *  the answer carries no information, on purpose. */
-        requestLink: (email: string) =>
-            request<{ ok: true }>('/api/auth/request-link', { method: 'POST', body: { email } }),
-
-        logout: () => request<{ ok: true }>('/api/auth/logout', { method: 'POST' }),
-
-        attach: (memberships: MembershipClaim[]) =>
-            request<{ results: AttachResult[] }>('/api/auth/attach', {
-                method: 'POST',
-                body: { memberships },
-            }).then((r) => r.results),
-
-        rooms: (signal?: AbortSignal) =>
-            request<{ rooms: AccountRoom[] }>('/api/auth/rooms', { signal }).then((r) => r.rooms),
-    },
 
     /**
      * Whether this deployment can read a bill photo OR a typed line. A capability

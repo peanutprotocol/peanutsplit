@@ -661,29 +661,6 @@
             "removeFailed": "No se pudo eliminar ese pago — intenta de nuevo."
         }
     },
-    "account": {
-        "title": "Tus salas en cualquier dispositivo",
-        "blurb": "Guarda tus salas — escribe tu correo y ábrelas desde cualquier dispositivo. Sin contraseña y sin registro.",
-        "emailLabel": "Correo",
-        "emailPlaceholder": "tu@ejemplo.com",
-        "submit": "Guardar mis salas",
-        "sentTitle": "Revisa tu correo",
-        "sentBody": "Si esa dirección recibe correos, ya va en camino un link a tus salas. Ábrelo en el dispositivo donde las quieras.",
-        "sentAgain": "Usar otra dirección",
-        "signedInAs": "Sesión iniciada como {email}",
-        "signedInHint": "Abre ese link en cualquier dispositivo y estas salas te siguen.",
-        "signOut": "Cerrar sesión",
-        "failed": "no se pudo enviar el link — inténtalo de nuevo",
-        "newPhone": "¿Algún día cambias de teléfono? Guarda tus salas",
-        "synced": "Guardadas en tu cuenta.",
-        "roomsAreBack": "Tus salas volvieron",
-        "signedIn": "Ya iniciaste sesión",
-        "soon": {
-            "title": "Guarda tus salas en cualquier dispositivo",
-            "description": "Ingresa tu correo y vuelve a abrir tus salas donde sea. Ya casi está listo. Por ahora tus salas se guardan en este dispositivo y aparecen en la página de inicio de Split.",
-            "badge": "Pronto"
-        }
-    },
     "push": {
         "title": "Notificaciones",
         "notifyMe": "Avísame de esta sala",

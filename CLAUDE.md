@@ -32,7 +32,7 @@ two is the remaining merge.
 ## What still holds
 
 - **Money code needs a test before it ships.** Balances, splits, FX, settlements: if it can produce a wrong number, it has a test. The pure math in `apps/api/src/split/math.ts` is where that logic belongs — testable without a database.
-- **The money surface is frozen.** Split settles through an existing Peanut payment-request link. No new money-path endpoints. Identity is bounded by decision (Hugo, 2026-07-28): an account is an **optional email for device portability only** — magic link in, your rooms follow you. No passwords, no OAuth, no profile, no room ownership; the room link stays the credential. Push notifications are opt-in per device per room. Anything past that is the wrong change.
+- **The money surface is frozen.** Split settles through an existing Peanut payment-request link. No new money-path endpoints. Split is accountless: recent rooms and member tokens stay on the device, and the room link stays the credential. No email login, passwords, OAuth, profiles, or room ownership. Push notifications are opt-in per device per room. Anything past that is a product decision, not an implementation gap.
 - **No identity in analytics either** — no room slug, no member name, no amount. The slug is the room's access control; a name is what someone chose to show their friends.
 - Dependencies must be ≥14 days old (`.npmrc` enforces it).
 - Run `pnpm typecheck && pnpm test && pnpm format` before pushing.

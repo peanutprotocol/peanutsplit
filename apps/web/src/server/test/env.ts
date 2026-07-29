@@ -7,7 +7,4 @@ export const TEST_DATABASE_URL =
 process.env.DATABASE_URL = TEST_DATABASE_URL
 process.env.SPLIT_FX_MODE = 'static'
 
-// Accounts are inert without a secret, so the auth suites supply one. Fixed
-// rather than random: a token issued in one test must still verify in the next.
-process.env.SPLIT_AUTH_SECRET = 'test-auth-secret'
 process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
