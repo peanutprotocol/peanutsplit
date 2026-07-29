@@ -1,13 +1,11 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "NO APP FOR YOUR FRIENDS.",
             "title": "PASS IT",
             "controlTitleAccessible": "PASS IT",
             "titleAccessible": "LINK. SPLIT. DONE.",
             "subtitle": "because better accounting makes better friends",
             "cta": "Make the link",
-            "ctaTrust": "Free forever · no account needed · nothing to install",
             "linkExplainerTrigger": "How the link works",
             "chat": {
                 "defaultRoom": "Lisbon weekend",
@@ -19,8 +17,7 @@
                 "reply": "me — adding it",
                 "linkBrand": "PEANUT SPLIT · SHARED ROOM",
                 "linkPrompt": "Everyone adds their own",
-                "joined": "Bea, Jules and Mo opened the link",
-                "badge": "NO SIGNUP. JUST A LINK."
+                "joined": "Bea, Jules and Mo opened the link"
             },
             "stageSummary": "A Peanut Split room link moves through a group chat so every friend can open the same room and add expenses.",
             "validation": {
@@ -68,7 +65,6 @@
                 "roomEven": "EVERYONE EVEN"
             },
             "examples": {
-                "eyebrow": "BUILT FOR THE GROUP CHAT",
                 "title": "SPLIT ANYTHING.",
                 "body": "Trips, dinners, flat bills, and whatever comes next.",
                 "lisbon": {

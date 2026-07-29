@@ -300,8 +300,6 @@ export function HeroCreateForm({
                 <Doodle name="iconarrowright" size={22} weight={2.2} />
             </Button>
 
-            <p className="text-center text-h10 uppercase tracking-[0.08em] text-grey-1">{t('ctaTrust')}</p>
-
             <LinkExplainer open={explainerOpen} onClose={() => setExplainerOpen(false)} />
         </form>
     )
