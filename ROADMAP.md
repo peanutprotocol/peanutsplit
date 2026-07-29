@@ -5,7 +5,7 @@ Product status/milestones/decision log stay in the Notion project (linked from
 `mono/projects/peanut-split/`); this file is what's built, building, queued, and
 deliberately not built — with enough context to pick any item up cold.
 
-Owner of record for each open item is in brackets. Last full update: 2026-07-28.
+Owner of record for each open item is in brackets. Last full update: 2026-07-29.
 
 ## V1 hold — receipt scanning
 
@@ -332,6 +332,91 @@ Order below is execution order, not importance. Status per item.
     Drop the yellow pitch band above the form and give the form the yellow
     instead, with enough weight that it reads as the subject of the page rather
     than a widget under a headline.
+
+## Landing-page follow-up backlog (opened 2026-07-29)
+
+Follow-up to the pass-the-link hero on `feat/pass-the-link-landing`. These are
+queued improvements, not descriptions of the current shipped page. The bar is
+the energy and responsiveness of peanut.me: Split should feel playful before
+anyone has made a room, without turning the first fold into another product
+mockup or pushing the real creation form out of reach.
+
+1. **Remove the decorative utility header.** — _status: queued_ — **[Konrad]**
+   Delete the entire `PEANUT SPLIT` / `4 FRIENDS · 1 LINK` strip from the hero.
+   Do not replace it with another slogan, navigation bar, or spacer. The
+   headline, real room form, and group-chat handoff already identify and explain
+   the product; the extra strip is visual housekeeping masquerading as content.
+
+   **Done when:** the utility row and both strings are absent in every locale;
+   its height is reclaimed rather than left blank; the headline, handoff, form,
+   and primary CTA still fit the agreed desktop and mobile folds; the footer,
+   document title, and metadata continue to identify Peanut Split.
+
+2. **Run every UI icon through the doodle engine.** — _status: queued_ —
+   **[Konrad]** Inventory the whole product, not only the landing page. Replace
+   remaining library icons, emoji used as controls, hand-authored one-off SVGs,
+   Unicode arrows/checks, and other interface glyphs with named drawings from
+   the generated `design/doodles` → `doodles.ts` pipeline. The WhatsApp,
+   Telegram, Messenger, and Messages marks around the new hero are included:
+   move their geometry into the engine and render them through `<Doodle>`
+   instead of keeping a parallel `MessagingDoodle` component. Third-party marks
+   should remain recognisable but inherit Split's loose line and stroke weight.
+   Photos, content illustrations, flags, and the Peanut wordmark are not UI
+   icons and are outside this conversion.
+
+   **Done when:** every route has been swept at mobile and desktop sizes; all UI
+   icon call-sites share the typed doodle set and inherit `currentColor`; there
+   is no second icon system left for new code to copy; tap targets remain at
+   least 44px even when the drawing is visually smaller; a source-level audit
+   catches new emoji, raw icon SVGs, or legacy icon-component imports.
+
+3. **Rewrite “How the link works” and make “free forever” consistent.** —
+   _status: queued_ — **[Konrad]** Rewrite `LinkExplainer` in plain, human
+   language: short concrete sentences, one fact at a time, no synthetic
+   reassurance, no repeated setup, and no copy shaped like an objection the
+   page invented so it could answer it. Remove negative loss framing such as
+   `If everyone loses it, the room is gone` (and the Spanish/Portuguese
+   equivalents). Explain the positive behaviour instead: opened rooms stay
+   listed on this device, the room travels through its group link, and Split
+   records the maths without touching the money. Keep the access model honest:
+   anyone with the room link can open the room.
+
+   Audit every user-facing `free` / `gratis` / `grátis` claim across the product,
+   landing copy, FAQ/read-more copy, metadata, alternatives, and editorial
+   content. Whenever the claim is about Peanut Split, say **free forever** (with
+   a natural equivalent in each locale), not merely “free.” Do not rewrite
+   unrelated uses such as cash being fee-free or quoted competitor copy; record
+   those deliberate exceptions so the audit stays enforceable.
+
+   **Done when:** the explainer reads naturally aloud in en / es-419 / pt-BR;
+   none of its headings lead with losing, failure, or a hypothetical worst case;
+   the privacy and trust model remain factually exact; every Peanut Split price
+   promise says “free forever”; catalog parity, content rendering, and the
+   user-facing copy audit pass.
+
+4. **Give the landing page the app's motion, sound, and haptic vocabulary.** —
+   _status: queued_ — **[Konrad]** Start with a motion map rather than sprinkling
+   unrelated loops over the page. Choreograph the room-link handoff, people
+   joining, channel doodles arriving, proof scenes entering the viewport,
+   doodles reacting, button press/squash states, FAQ opening, room examples, and
+   the final CTA as one playful sequence. Benchmark the implemented feel
+   directly against peanut.me on phone and desktop before sign-off.
+
+   Reuse the product primitives: `useMotionAllowed()` and the
+   `.reduce-animations` path for motion, and `useFeedback()` for sound/haptics.
+   Haptics belong to real taps and successful actions, never passive scroll or
+   autoplay; sound must begin only after a user gesture and continue to respect
+   the existing sound setting. Prefer one-shot, causal motion with a readable
+   final frame over perpetual background movement.
+
+   **Done when:** the full page has intentional motion and feedback beats rather
+   than only an animated hero; touch interactions feel alive on iOS and Android;
+   hover/focus interactions have an equivalent desktop response; reduced-motion,
+   animations-off, sound-off, and haptics-off modes all remain complete and
+   quiet; there is no layout shift, horizontal overflow, blocked control, or
+   below-fold primary CTA at the supported viewports; Playwright covers the
+   reduced-motion and final-state contracts and a real-device pass covers feel
+   and performance.
 
 ## Deliberately not building
 
