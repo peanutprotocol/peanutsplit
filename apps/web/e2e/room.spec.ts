@@ -138,8 +138,8 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(transfer).toHaveCount(1)
     await expect(transfer).toContainText('€11.48')
     await transfer.click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveCount(0)
     await page.getByTestId('method-cash').click()
-    await page.getByTestId('settle-receipt-url').fill('https://receipts.example/ana-to-bea')
     await page.getByTestId('record-settlement').click()
 
     await expectBalance(page, 'Ana', '0')
@@ -147,10 +147,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(allSettled(page)).toBeVisible({ timeout: 15_000 })
     const payment = page.getByTestId('settlement-row')
     await expect(payment).toContainText('recorded by you')
-    await expect(payment.getByTestId('settlement-receipt-link')).toHaveAttribute(
-        'href',
-        'https://receipts.example/ana-to-bea'
-    )
+    await expect(payment.getByTestId('settlement-receipt-link')).toHaveCount(0)
 
     // Undo changes only Split's record. The server returns recomputed balances
     // in the same response, so the debt re-opens without a refresh.
@@ -179,6 +176,86 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(allSettled(page)).toBeVisible()
 
     await second.close()
+})
+
+test('receipt links belong only to Peanut settlements', async ({ page }) => {
+    const roomResponse = await page.request.post('/api/rooms', {
+        data: { name: 'Receipt rule', currency: 'EUR', creatorName: 'Ana' },
+    })
+    expect(roomResponse.ok()).toBe(true)
+    const room = (await roomResponse.json()) as {
+        room: { slug: string }
+        memberId: string
+        memberToken: string
+    }
+
+    const memberResponse = await page.request.post(`/api/rooms/${room.room.slug}/members`, {
+        data: { name: 'Bea', intent: 'add' },
+    })
+    expect(memberResponse.ok()).toBe(true)
+    const bea = (await memberResponse.json()) as { memberId: string }
+
+    const expenseResponse = await page.request.post(`/api/rooms/${room.room.slug}/expenses`, {
+        headers: { 'x-member-token': room.memberToken },
+        data: {
+            description: 'Dinner',
+            amountMinor: '1000',
+            currency: 'EUR',
+            paidById: bea.memberId,
+            splitMode: 'EQUAL',
+            participantIds: [room.memberId, bea.memberId],
+        },
+    })
+    expect(expenseResponse.ok()).toBe(true)
+
+    await page.addInitScript(
+        ({ slug, memberId, token }) =>
+            window.localStorage.setItem(`ps:member:${slug}`, JSON.stringify({ memberId, name: 'Ana', token })),
+        { slug: room.room.slug, memberId: room.memberId, token: room.memberToken }
+    )
+    await page.goto(`/r/${room.room.slug}`)
+    await expectBalance(page, 'Ana', '-500')
+
+    await page.getByTestId('open-settle').click()
+    await page.getByTestId('transfer-row').click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveCount(0)
+
+    await page.getByTestId('method-peanut').click()
+    await expect(page.getByTestId('settle-receipt-url')).toBeVisible()
+    await page.getByTestId('settle-receipt-url').fill('https://receipts.example/stale')
+    await page.getByTestId('method-bank').click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveCount(0)
+
+    const bankRequest = page.waitForRequest(
+        (request) => request.method() === 'POST' && /\/api\/rooms\/[^/]+\/settlements$/.test(request.url())
+    )
+    await page.getByTestId('record-settlement').click()
+    expect((await bankRequest).postDataJSON()).not.toHaveProperty('receiptUrl')
+    await expectBalance(page, 'Ana', '0')
+
+    const payment = page.getByTestId('settlement-row')
+    await payment.getByTestId('remove-settlement').click()
+    await payment.getByTestId('confirm-remove-settlement').click()
+    await expectBalance(page, 'Ana', '-500')
+
+    await page.getByTestId('open-settle').click()
+    await page.getByTestId('transfer-row').click()
+    await page.getByTestId('method-peanut').click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveValue('')
+    await page.getByTestId('settle-receipt-url').fill('https://receipts.example/ana-to-bea')
+    const peanutRequest = page.waitForRequest(
+        (request) => request.method() === 'POST' && /\/api\/rooms\/[^/]+\/settlements$/.test(request.url())
+    )
+    await page.getByTestId('record-settlement').click()
+    expect((await peanutRequest).postDataJSON()).toMatchObject({
+        method: 'peanut',
+        receiptUrl: 'https://receipts.example/ana-to-bea',
+    })
+    await expect(page.getByTestId('settlement-row')).toContainText('Peanut')
+    await expect(page.getByTestId('settlement-row').getByTestId('settlement-receipt-link')).toHaveAttribute(
+        'href',
+        'https://receipts.example/ana-to-bea'
+    )
 })
 
 test('one person can add a payer and submit an expense on their behalf', async ({ page, browser }) => {
