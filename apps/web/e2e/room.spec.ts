@@ -301,7 +301,7 @@ test('a link holder can export the room without exporting the room credential', 
     await page.getByTestId('go-to-room').click()
 
     await page.getByRole('button', { name: 'Room menu' }).click()
-    await expect(page.getByText('The files include everyone’s names and the full money history.')).toBeVisible()
+    await expect(page.getByText('The files include everyone’s names and the current money history.')).toBeVisible()
 
     const jsonDownloadPromise = page.waitForEvent('download')
     await page.getByRole('button', { name: 'Download JSON' }).click()

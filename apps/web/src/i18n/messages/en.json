@@ -332,7 +332,7 @@
         },
         "export": {
             "title": "Take the room with you",
-            "privacyWarning": "The files include everyone’s names and the full money history. Anyone with the room link can export them.",
+            "privacyWarning": "The files include everyone’s names and the current money history. Anyone with the room link can export them.",
             "scopeNote": "This is the room as it stands now; deleted records and the room link are never included.",
             "csv": "Download CSV",
             "json": "Download JSON"
