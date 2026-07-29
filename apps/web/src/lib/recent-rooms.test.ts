@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { roomSlugFromLink } from './recent-rooms'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { forgetRoom, readRecentRooms, RECENT_ROOMS_KEY, rememberRoom, roomSlugFromLink } from './recent-rooms'
 
 const ORIGIN = 'http://localhost:3000'
 const SLUG = 'lisbon-weekend-x7k2m9'
@@ -26,5 +26,40 @@ describe('roomSlugFromLink', () => {
         `https://peanutsplit.com/r/${SLUG}/extra`,
     ])('rejects invalid or non-Peanut credentials: %s', (value) => {
         expect(roomSlugFromLink(value, ORIGIN)).toBeNull()
+    })
+})
+
+describe('recent-room persistence results', () => {
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('reports successful writes and removals', () => {
+        const values = new Map<string, string>()
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: (key: string) => values.get(key) ?? null,
+                setItem: (key: string, value: string) => values.set(key, value),
+            },
+        })
+
+        expect(rememberRoom({ slug: SLUG, name: 'Lisbon weekend', lastSeenAt: 1 })).toBe(true)
+        expect(readRecentRooms()).toEqual([
+            { slug: SLUG, name: 'Lisbon weekend', emoji: undefined, theme: undefined, lastSeenAt: 1 },
+        ])
+        expect(forgetRoom(SLUG)).toBe(true)
+        expect(JSON.parse(values.get(RECENT_ROOMS_KEY) ?? '[]')).toEqual([])
+    })
+
+    it('reports storage failures instead of claiming a credential was saved or removed', () => {
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: () => null,
+                setItem: () => {
+                    throw new DOMException('blocked', 'SecurityError')
+                },
+            },
+        })
+
+        expect(rememberRoom({ slug: SLUG, name: 'Lisbon weekend' })).toBe(false)
+        expect(forgetRoom(SLUG)).toBe(false)
     })
 })

@@ -1,20 +1,23 @@
 'use client'
-import { RoomEmblem } from './RoomEmblem'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
-import { track, roomProps } from '@/lib/analytics'
+import { sharePackageMeasureProps, track } from '@/lib/analytics'
+import { roomSharePackage, roomShareVisual } from '@/lib/share-package'
+import { themeFor } from '@/lib/themes'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { RoomEmblem } from './RoomEmblem'
 
 interface LinkMomentProps {
     slug: string
     roomName: string
     emoji: string | null
+    theme?: string | null
     /** Rendered under the buttons — "Go to room" after creation, nothing in the share drawer. */
     footer?: React.ReactNode
     /** Headline. The creation screen and the share drawer say different things. */
@@ -27,100 +30,180 @@ export const roomUrl = (slug: string): string =>
         ? `${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/r/${slug}`
         : `${window.location.origin}/r/${slug}`
 
+const download = (contents: BlobPart, type: string, filename: string): boolean => {
+    try {
+        const objectUrl = URL.createObjectURL(new Blob([contents], { type }))
+        const anchor = document.createElement('a')
+        anchor.href = objectUrl
+        anchor.download = filename
+        anchor.click()
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1_000)
+        return true
+    } catch {
+        return false
+    }
+}
+
 /**
- * Signature moment #1 — being handed something.
+ * The group-chat handoff.
  *
- * The link is the product, so it gets the ticket treatment: a punched card with
- * the room's face on it, the URL big enough to read across a table, one-tap copy
- * and native share.
+ * The bearer link appears only in user-directed text (native share, clipboard
+ * and the text download). The visual attachment is made locally from the room
+ * title, palette and doodle; it contains no URL, roster or ledger data.
  *
- * Clipboard failures are NEVER swallowed (the known bug in the reference UI):
- * if `navigator.clipboard` is missing or rejects, the link switches to a
- * pre-selected input with an explicit "select and copy" instruction.
+ * Native share is an enhancement. Clipboard, manual copy, a credential-free
+ * card download and a plain-text download remain available independently.
  */
-export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: LinkMomentProps) {
+export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtitle }: LinkMomentProps) {
     const t = useTranslations('room.link')
     const url = roomUrl(slug)
+    const payload = useMemo(
+        () =>
+            roomSharePackage({
+                title: t('shareTitle', { room: roomName }),
+                nextAction: t('shareText'),
+                url,
+            }),
+        [roomName, t, url]
+    )
+    const visual = useMemo(() => roomShareVisual({ roomName, theme, emblem: emoji }), [emoji, roomName, theme])
+    const palette = themeFor(theme)
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
-    const inputRef = useRef<HTMLInputElement>(null)
+    const [status, setStatus] = useState<string | null>(null)
+    const inputRef = useRef<HTMLTextAreaElement>(null)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
 
     const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
+    useEffect(() => {
+        track('share_package_presented', sharePackageMeasureProps())
+    }, [])
+
+    const completed = useCallback((method: 'native' | 'clipboard' | 'card_download' | 'text_download') => {
+        track('share_completed', sharePackageMeasureProps(method))
+    }, [])
+
     const revealFallback = useCallback(() => {
         setCopyFailed(true)
-        // Give them the next best thing: the link, selected, ready for ⌘C.
+        setStatus(t('copyBlocked'))
         requestAnimationFrame(() => {
             inputRef.current?.focus()
             inputRef.current?.select()
         })
-    }, [])
+    }, [t])
 
     const copy = useCallback(async () => {
         try {
             if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable')
-            await navigator.clipboard.writeText(url)
+            await navigator.clipboard.writeText(payload.fullText)
             setCopied(true)
             setCopyFailed(false)
-            // Whoosh, not tick: the link just left the card and went somewhere.
-            // A tick would say "registered"; this has to say "gone".
+            setStatus(t('copied'))
             feedback('whoosh')
-            track('link_copied', roomProps(slug))
+            track('link_copied')
+            completed('clipboard')
             window.setTimeout(() => setCopied(false), 2_000)
         } catch {
             revealFallback()
         }
-    }, [url, slug, revealFallback, feedback])
+    }, [completed, feedback, payload.fullText, revealFallback, t])
 
     const share = useCallback(async () => {
         feedback('whoosh')
-        track('share_opened', roomProps(slug))
+        track('share_opened')
+        const textPayload = { title: payload.title, text: payload.text, url: payload.url }
+        let nativePayload: ShareData = textPayload
         try {
-            await navigator.share({
-                // Localised on purpose: this text is pasted straight into the group chat by the
-                // person sharing, so it should be in the language they are already speaking.
-                title: t('shareTitle', { room: roomName }),
-                text: t('shareText', { room: roomName }),
-                url,
-            })
-            track('share_completed', roomProps(slug))
+            const file = new File([visual.svg], visual.filename, { type: visual.mimeType })
+            const richPayload = { ...textPayload, files: [file] }
+            if (navigator.canShare?.(richPayload)) nativePayload = richPayload
         } catch {
-            // AbortError just means they closed the sheet. Nothing to say.
+            // File construction and `canShare` are both optional enhancements.
+            // The directed text package remains valid on its own.
         }
-    }, [roomName, url, slug, feedback, t])
+
+        try {
+            await navigator.share(nativePayload)
+            setStatus(t('shared'))
+            completed('native')
+        } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') return
+            setStatus(t('shareFailed'))
+            feedback('error', { haptic: 'error' })
+        }
+    }, [completed, feedback, payload, t, visual])
+
+    const downloadCard = useCallback(() => {
+        if (download(visual.svg, visual.mimeType, visual.filename)) {
+            setStatus(t('downloadedCard'))
+            feedback('whoosh')
+            completed('card_download')
+        } else {
+            setStatus(t('downloadFailed'))
+            feedback('error', { haptic: 'error' })
+        }
+    }, [completed, feedback, t, visual])
+
+    const downloadText = useCallback(() => {
+        if (download(payload.fullText, 'text/plain;charset=utf-8', visual.filename.replace(/\.svg$/, '.txt'))) {
+            setStatus(t('downloadedText'))
+            feedback('whoosh')
+            completed('text_download')
+        } else {
+            setStatus(t('downloadFailed'))
+            feedback('error', { haptic: 'error' })
+        }
+    }, [completed, feedback, payload.fullText, t, visual.filename])
 
     return (
         <div className="flex flex-col gap-6">
             <motion.div
-                initial={!motionAllowed ? false : { opacity: 0, y: -8 }}
+                initial={motionAllowed ? { opacity: 0, y: -8 } : false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                transition={motionAllowed ? { type: 'spring', stiffness: 340, damping: 30 } : { duration: 0 }}
+                data-motion-surface
                 className="flex flex-col gap-2 text-center"
             >
                 <h1 className="text-h4">{title}</h1>
                 <p className="text-sm text-grey-1">{subtitle}</p>
             </motion.div>
 
-            {/* Being handed something: the ticket drops in from above, overshoots,
-                and settles a hair off-square before straightening — the way a card
-                actually lands on a table. */}
             <motion.div
-                initial={!motionAllowed ? false : { y: -56, opacity: 0, rotate: -4, scale: 0.94 }}
-                animate={{ y: 0, opacity: 1, rotate: [-4, 1.4, 0], scale: 1 }}
-                transition={{
-                    default: { type: 'spring', stiffness: 300, damping: 17, mass: 0.9, delay: 0.06 },
-                    rotate: { duration: 0.62, delay: 0.06, times: [0, 0.55, 1], ease: 'easeOut' },
-                }}
+                initial={motionAllowed ? { y: -56, opacity: 0, rotate: -4, scale: 0.94 } : false}
+                animate={{ y: 0, opacity: 1, rotate: motionAllowed ? [-4, 1.4, 0] : 0, scale: 1 }}
+                transition={
+                    motionAllowed
+                        ? {
+                              default: {
+                                  type: 'spring',
+                                  stiffness: 300,
+                                  damping: 17,
+                                  mass: 0.9,
+                                  delay: 0.06,
+                              },
+                              rotate: { duration: 0.62, delay: 0.06, times: [0, 0.55, 1], ease: 'easeOut' },
+                          }
+                        : { duration: 0 }
+                }
+                data-motion-surface
                 data-testid="room-share-card"
             >
                 <Card shadowSize="6" className="overflow-hidden">
-                    <div className="flex items-center gap-3 border-b border-n-1 bg-primary-1 px-4 py-4">
+                    <div
+                        className="flex items-center gap-3 border-b border-n-1 px-4 py-4"
+                        style={{ backgroundColor: palette.field }}
+                    >
                         <motion.span
-                            initial={!motionAllowed ? false : { scale: 0.4, rotate: -20 }}
+                            initial={motionAllowed ? { scale: 0.4, rotate: -20 } : false}
                             animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }}
+                            transition={
+                                motionAllowed
+                                    ? { type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }
+                                    : { duration: 0 }
+                            }
+                            data-motion-surface
                             data-testid="room-share-doodle"
                             className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"
                         >
@@ -132,7 +215,6 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                         </div>
                     </div>
 
-                    {/* The perforation — this is a ticket, and it should read like one. */}
                     <div className="relative h-0">
                         <span className="absolute -left-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
                         <span className="absolute -right-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
@@ -143,16 +225,16 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                         <p className="text-h10 uppercase tracking-wide text-grey-1">{t('roomLink')}</p>
                         {copyFailed ? (
                             <div className="flex flex-col gap-2">
-                                <input
+                                <textarea
                                     ref={inputRef}
                                     readOnly
-                                    value={url}
+                                    value={payload.fullText}
                                     onFocus={(event) => event.currentTarget.select()}
-                                    aria-label={t('roomLink')}
+                                    aria-label={t('inviteText')}
                                     data-testid="room-link-input"
-                                    className="input h-12 select-text px-3 text-sm"
+                                    rows={3}
+                                    className="input min-h-24 select-text px-3 py-3 text-sm"
                                 />
-                                <p className="text-sm text-error">{t('copyBlocked')}</p>
                             </div>
                         ) : (
                             <p
@@ -167,19 +249,15 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
             </motion.div>
 
             <div className="flex flex-col gap-3">
-                {/* The success state morphs rather than swaps: the icon spins into a
-                    check and the whole button flicks to green, so the confirmation is
-                    a thing that happened rather than a label that changed. The text
-                    swaps outright — a crossfaded label leaves the button momentarily
-                    empty, which reads as a bug. */}
                 <motion.div
                     animate={motionAllowed && copied ? { scale: [1, 1.02, 1] } : { scale: 1 }}
                     transition={motionAllowed ? { duration: 0.26 } : { duration: 0 }}
+                    data-motion-surface
                 >
                     <Button
                         variant="primary"
                         shadowSize="4"
-                        onClick={copy}
+                        onClick={() => void copy()}
                         icon={
                             <AnimatePresence mode="popLayout" initial={false}>
                                 <motion.span
@@ -194,6 +272,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                                             ? { type: 'spring', stiffness: 520, damping: 20 }
                                             : { duration: 0 }
                                     }
+                                    data-motion-surface
                                     className="flex items-center justify-center"
                                 >
                                     <Icon name={copied ? 'check' : 'copy'} size={18} />
@@ -205,15 +284,16 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                                 ? 'justify-center !bg-green-1 transition-colors duration-150'
                                 : 'justify-center transition-colors duration-150'
                         }
-                        data-testid="copy-link"
+                        data-testid="copy-invite"
                     >
                         {copied ? t('copied') : t('copy')}
                     </Button>
                 </motion.div>
+
                 {canShare && (
                     <Button
                         variant="stroke"
-                        onClick={share}
+                        onClick={() => void share()}
                         icon="share"
                         className="justify-center"
                         data-testid="share-room"
@@ -221,8 +301,35 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                         {t('share')}
                     </Button>
                 )}
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Button
+                        variant="stroke"
+                        size="small"
+                        onClick={downloadCard}
+                        className="justify-center"
+                        data-testid="download-share-card"
+                    >
+                        {t('downloadCard')}
+                    </Button>
+                    <Button
+                        variant="stroke"
+                        size="small"
+                        onClick={downloadText}
+                        className="justify-center"
+                        data-testid="download-share-text"
+                    >
+                        {t('downloadText')}
+                    </Button>
+                </div>
                 {footer}
             </div>
+
+            {status && (
+                <p role="status" className="text-center text-sm font-bold text-grey-1" data-testid="share-status">
+                    {status}
+                </p>
+            )}
 
             <p className="flex items-center justify-center gap-1.5 text-center text-sm text-grey-1">
                 <Icon name="users" size={16} />

@@ -27,11 +27,12 @@ export function FinalCta() {
         <motion.section
             data-testid="final-cta"
             data-motion={motionAllowed ? 'ready' : 'still'}
+            data-motion-surface
             initial={motionAllowed ? { opacity: 0, y: 24 } : false}
             animate={motionAllowed ? undefined : { opacity: 1, y: 0 }}
             whileInView={motionAllowed ? { opacity: 1, y: 0 } : undefined}
             viewport={{ once: true, amount: 0.45 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 22 }}
+            transition={motionAllowed ? { type: 'spring', stiffness: 220, damping: 22 } : { duration: 0 }}
             className="mx-auto w-full max-w-xl px-5 py-10"
         >
             <div className="shadow-4 rounded-sm border border-n-1 bg-white p-5">

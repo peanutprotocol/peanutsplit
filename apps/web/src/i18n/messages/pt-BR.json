@@ -33,6 +33,7 @@
             "less": "Mostrar menos salas",
             "forgetLabel": "Remover {room} deste aparelho",
             "forgotten": "{room} foi removida deste aparelho. A sala compartilhada continua funcionando para quem tem o link.",
+            "forgetFailed": "Não deu para remover {room} deste aparelho. Ela continua nesta lista.",
             "recovery": {
                 "title": "Já tem o link de uma sala?",
                 "label": "Cole o link da sala",
@@ -42,7 +43,8 @@
                 "invalid": "Cole o link completo de uma sala do Peanut Split.",
                 "notFound": "Não encontramos essa sala. Confira se você colou o link inteiro.",
                 "failed": "Não deu para conferir essa sala agora. Nada foi salvo; tente de novo.",
-                "added": "{room} foi salva neste aparelho."
+                "openingSaved": "Abrindo {room}. Ela foi salva neste aparelho.",
+                "openingUnsaved": "Abrindo {room}. Este navegador não conseguiu salvá-la para depois."
             }
         },
         "proof": {
@@ -529,13 +531,21 @@
         "link": {
             "subtitle": "sua sala de divisão",
             "roomLink": "Link da sala",
-            "copyBlocked": "Seu navegador bloqueou a cópia — selecione o link acima e copie na mão.",
-            "copy": "Copiar link",
+            "inviteText": "Texto do convite",
+            "copyBlocked": "Seu navegador bloqueou a cópia. O convite completo está selecionado acima — copie na mão.",
+            "copy": "Copiar convite",
             "copied": "Copiado!",
             "share": "Compartilhar",
+            "shared": "Convite enviado.",
+            "shareFailed": "O menu de compartilhamento não abriu. Copie ou baixe o convite.",
+            "downloadCard": "Baixar cartão da sala",
+            "downloadText": "Baixar texto do convite",
+            "downloadedCard": "Cartão da sala baixado.",
+            "downloadedText": "Texto do convite baixado.",
+            "downloadFailed": "O download não começou. Copie o convite.",
             "anyoneCanJoin": "Qualquer pessoa com este link pode entrar e lançar gastos.",
             "shareTitle": "{room} · Peanut Split",
-            "shareText": "Entra em “{room}” e vamos dividir isso direito."
+            "shareText": "Abra o link, escolha seu nome e adicione o que você pagou."
         },
         "create": {
             "back": "Voltar",

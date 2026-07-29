@@ -25,11 +25,10 @@ describe('motionAllowed', () => {
         expect(motionAllowed(false, true)).toBe(false)
     })
 
-    it('treats an unread media query as no preference', () => {
-        // motion/react reports null before it has read `prefers-reduced-motion`.
-        // Unknown must not mean "reduce" — that would kill every animation on the
-        // first frame of every page for everyone.
-        expect(motionAllowed(true, null)).toBe(true)
+    it('keeps the server frame still while the media query is unresolved', () => {
+        // SSR cannot read `prefers-reduced-motion`. Motion starts only after the
+        // browser has returned a real "no preference".
+        expect(motionAllowed(true, null)).toBe(false)
         expect(motionAllowed(false, null)).toBe(false)
     })
 })

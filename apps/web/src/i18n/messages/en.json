@@ -33,6 +33,7 @@
             "less": "Show fewer rooms",
             "forgetLabel": "Forget {room} on this device",
             "forgotten": "{room} was removed from this device. The shared room still works for anyone with its link.",
+            "forgetFailed": "We could not remove {room} from this device. It is still in this list.",
             "recovery": {
                 "title": "Already have a room link?",
                 "label": "Paste the room link",
@@ -42,7 +43,8 @@
                 "invalid": "Paste a complete Peanut Split room link.",
                 "notFound": "We could not find that room. Check that the whole link was pasted.",
                 "failed": "We could not check that room just now. Nothing was saved — try again.",
-                "added": "{room} is now saved on this device."
+                "openingSaved": "Opening {room}. It is saved on this device.",
+                "openingUnsaved": "Opening {room}. This browser could not save it for later."
             }
         },
         "proof": {
@@ -529,13 +531,21 @@
         "link": {
             "subtitle": "your split room",
             "roomLink": "Room link",
-            "copyBlocked": "Your browser blocked the copy — select the link above and copy it manually.",
-            "copy": "Copy link",
+            "inviteText": "Invite text",
+            "copyBlocked": "Your browser blocked the copy. The full invite is selected above — copy it manually.",
+            "copy": "Copy invite",
             "copied": "Copied!",
             "share": "Share",
+            "shared": "Share package sent.",
+            "shareFailed": "The share sheet did not open. Copy or download the invite instead.",
+            "downloadCard": "Download room card",
+            "downloadText": "Download invite text",
+            "downloadedCard": "Room card downloaded.",
+            "downloadedText": "Invite text downloaded.",
+            "downloadFailed": "That download did not start. Copy the invite instead.",
             "anyoneCanJoin": "Anyone with this link can join and add expenses.",
             "shareTitle": "{room} · Peanut Split",
-            "shareText": "Join “{room}” and let’s split this properly."
+            "shareText": "Open the link, pick your name, then add what you paid."
         },
         "create": {
             "back": "Back",

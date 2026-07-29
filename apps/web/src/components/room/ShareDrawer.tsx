@@ -84,6 +84,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                         slug={room.slug}
                         roomName={room.name}
                         emoji={room.emoji}
+                        theme={room.theme}
                         title={t('title')}
                         subtitle={t('subtitle')}
                     />
@@ -117,6 +118,8 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                                             ? { type: 'spring', stiffness: 320, damping: 34 }
                                             : { duration: 0 }
                                     }
+                                    data-motion-surface
+                                    data-motion-collapse
                                     className="overflow-hidden"
                                 >
                                     <div className="flex flex-col gap-3 pt-3">

@@ -53,6 +53,7 @@ export function LandingProof() {
         <div className="landing-proof" data-testid="landing-proof" data-motion={motionAllowed ? 'ready' : 'still'}>
             <motion.section
                 data-testid="proof-link-identity"
+                data-motion-surface
                 className="landing-proof-scene landing-proof-scene-link"
                 variants={sceneVariants}
                 initial={motionAllowed ? 'hidden' : false}
@@ -60,12 +61,12 @@ export function LandingProof() {
                 whileInView={motionAllowed ? 'shown' : undefined}
                 viewport={{ once: true, amount: 0.28 }}
             >
-                <motion.div className="landing-proof-copy" variants={riseVariants}>
+                <motion.div className="landing-proof-copy" variants={riseVariants} data-motion-surface>
                     <h2>{t('linkIdentity.title')}</h2>
                     <span>{t('linkIdentity.body')}</span>
                 </motion.div>
 
-                <motion.div className="landing-proof-visual" variants={popVariants}>
+                <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
                     <div className="landing-proof-link-card" aria-hidden="true">
                         <div className="landing-proof-ticket">
                             <Doodle name="link" size={34} weight={1.7} />
@@ -97,6 +98,7 @@ export function LandingProof() {
 
             <motion.section
                 data-testid="proof-everyone-adds"
+                data-motion-surface
                 className="landing-proof-scene landing-proof-scene-expenses"
                 variants={sceneVariants}
                 initial={motionAllowed ? 'hidden' : false}
@@ -104,12 +106,12 @@ export function LandingProof() {
                 whileInView={motionAllowed ? 'shown' : undefined}
                 viewport={{ once: true, amount: 0.28 }}
             >
-                <motion.div className="landing-proof-copy" variants={riseVariants}>
+                <motion.div className="landing-proof-copy" variants={riseVariants} data-motion-surface>
                     <h2>{t('everyoneAdds.title')}</h2>
                     <span>{t('everyoneAdds.body')}</span>
                 </motion.div>
 
-                <motion.div className="landing-proof-visual" variants={popVariants}>
+                <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
                     <ul className="landing-proof-expenses" aria-hidden="true">
                         <li>
                             <Doodle name="train" size={30} weight={1.7} />
@@ -138,6 +140,7 @@ export function LandingProof() {
 
             <motion.section
                 data-testid="proof-suggested-plan"
+                data-motion-surface
                 className="landing-proof-scene landing-proof-scene-plan"
                 variants={sceneVariants}
                 initial={motionAllowed ? 'hidden' : false}
@@ -145,12 +148,12 @@ export function LandingProof() {
                 whileInView={motionAllowed ? 'shown' : undefined}
                 viewport={{ once: true, amount: 0.28 }}
             >
-                <motion.div className="landing-proof-copy" variants={riseVariants}>
+                <motion.div className="landing-proof-copy" variants={riseVariants} data-motion-surface>
                     <h2>{t('suggestedPlan.title')}</h2>
                     <span>{t('suggestedPlan.body')}</span>
                 </motion.div>
 
-                <motion.div className="landing-proof-visual" variants={popVariants}>
+                <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
                     <div className="landing-proof-plan" aria-hidden="true">
                         <span>{t('suggestedPlan.planLabel')}</span>
                         <p>
@@ -171,6 +174,7 @@ export function LandingProof() {
 
             <motion.ul
                 className="landing-proof-rail"
+                data-motion-surface
                 aria-label={t('suggestedPlan.planLabel')}
                 variants={sceneVariants}
                 initial={motionAllowed ? 'hidden' : false}
@@ -178,19 +182,19 @@ export function LandingProof() {
                 whileInView={motionAllowed ? 'shown' : undefined}
                 viewport={{ once: true, amount: 0.7 }}
             >
-                <motion.li variants={riseVariants}>
+                <motion.li variants={riseVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.roomCreated')}
                 </motion.li>
-                <motion.li variants={riseVariants}>
+                <motion.li variants={riseVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.linkShared')}
                 </motion.li>
-                <motion.li variants={riseVariants}>
+                <motion.li variants={riseVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.friendJoined')}
                 </motion.li>
-                <motion.li variants={riseVariants}>
+                <motion.li variants={riseVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.roomEven')}
                 </motion.li>
@@ -198,6 +202,7 @@ export function LandingProof() {
 
             <motion.section
                 data-testid="room-examples"
+                data-motion-surface
                 className="landing-room-examples"
                 variants={sceneVariants}
                 initial={motionAllowed ? 'hidden' : false}
@@ -205,15 +210,15 @@ export function LandingProof() {
                 whileInView={motionAllowed ? 'shown' : undefined}
                 viewport={{ once: true, amount: 0.2 }}
             >
-                <motion.div className="landing-room-examples-heading" variants={riseVariants}>
+                <motion.div className="landing-room-examples-heading" variants={riseVariants} data-motion-surface>
                     <div className="landing-room-examples-copy">
                         <h2>{t('examples.title')}</h2>
                         <span>{t('examples.body')}</span>
                     </div>
                 </motion.div>
-                <motion.ul variants={sceneVariants}>
+                <motion.ul variants={sceneVariants} data-motion-surface>
                     {examples.map((example) => (
-                        <motion.li key={example.name} variants={popVariants}>
+                        <motion.li key={example.name} variants={popVariants} data-motion-surface>
                             <Doodle name={example.doodle} size={38} weight={1.6} />
                             <span>
                                 <b>{example.name}</b>

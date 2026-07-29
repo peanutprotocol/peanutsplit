@@ -39,9 +39,14 @@ export function PassTheLinkHero() {
 
     useEffect(() => {
         if (!motionAllowed) {
-            settleStory()
+            // SSR starts still while the browser's media preference is unknown.
+            // Show the complete meaning in that safe frame without marking it
+            // as a user-settled story: a no-preference browser may progressively
+            // enhance into the one-shot sequence after hydration.
+            setStageState('complete')
             return
         }
+        if (!settledEarlyRef.current) setStageState('question')
         const timeouts = STORY_STEPS.map(({ state, after }) =>
             window.setTimeout(() => {
                 if (state === 'complete') {

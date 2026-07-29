@@ -318,38 +318,59 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                         return (
                                             <motion.li
                                                 key={key}
-                                                layout
-                                                initial={{ opacity: 0, y: 10 }}
+                                                layout={motionAllowed}
+                                                initial={motionAllowed ? { opacity: 0, y: 10 } : false}
                                                 animate={
-                                                    settled
-                                                        ? // The stamp: a short overshoot as the debt lands.
-                                                          { opacity: 1, y: 0, scale: [1, 1.035, 1] }
-                                                        : {
-                                                              opacity: 1,
-                                                              y: 0,
-                                                              scale: 1,
+                                                    !motionAllowed
+                                                        ? { opacity: 1, y: 0, scale: 1 }
+                                                        : settled
+                                                          ? // The stamp: a short overshoot as the debt lands.
+                                                            { opacity: 1, y: 0, scale: [1, 1.035, 1] }
+                                                          : {
+                                                                opacity: 1,
+                                                                y: 0,
+                                                                scale: 1,
+                                                                transition: {
+                                                                    type: 'spring',
+                                                                    stiffness: 380,
+                                                                    damping: 30,
+                                                                    delay: revealDelay,
+                                                                },
+                                                            }
+                                                }
+                                                exit={
+                                                    motionAllowed
+                                                        ? {
+                                                              opacity: 0,
+                                                              scale: 0.82,
+                                                              y: 14,
+                                                              x: 10,
                                                               transition: {
+                                                                  duration: 0.26,
+                                                                  ease: [0.4, 0, 1, 1],
+                                                              },
+                                                          }
+                                                        : undefined
+                                                }
+                                                transition={
+                                                    motionAllowed
+                                                        ? {
+                                                              layout: {
+                                                                  type: 'spring',
+                                                                  stiffness: 420,
+                                                                  damping: 32,
+                                                                  mass: 0.7,
+                                                              },
+                                                              scale: { duration: 0.28, ease: 'easeOut' },
+                                                              default: {
                                                                   type: 'spring',
                                                                   stiffness: 380,
                                                                   damping: 30,
-                                                                  delay: revealDelay,
                                                               },
                                                           }
+                                                        : { duration: 0 }
                                                 }
-                                                exit={{
-                                                    opacity: 0,
-                                                    scale: 0.82,
-                                                    // Down and to the right, into the shadow it was casting —
-                                                    // the row falls out of the stack rather than fading.
-                                                    y: 14,
-                                                    x: 10,
-                                                    transition: { duration: 0.26, ease: [0.4, 0, 1, 1] },
-                                                }}
-                                                transition={{
-                                                    layout: { type: 'spring', stiffness: 420, damping: 32, mass: 0.7 },
-                                                    scale: { duration: 0.28, ease: 'easeOut' },
-                                                    default: { type: 'spring', stiffness: 380, damping: 30 },
-                                                }}
+                                                data-motion-surface
                                                 // The row on its way out passes over the ones
                                                 // rising to fill the gap, not under them.
                                                 style={{ zIndex: settled ? 2 : 1 }}
@@ -408,7 +429,8 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                             {/* The other half of moment #5: as the row collapses, the
                                 outstanding total counts down to its new value. */}
                             <motion.div
-                                layout
+                                layout={motionAllowed}
+                                data-motion-surface
                                 className="flex items-center justify-between rounded-sm border border-dashed border-n-1 p-3"
                             >
                                 <span className="text-h8 uppercase tracking-wide text-grey-1">
@@ -471,9 +493,12 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
 
                     {selected && (
                         <motion.div
-                            initial={{ opacity: 0, y: 14 }}
+                            initial={motionAllowed ? { opacity: 0, y: 14 } : false}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                            transition={
+                                motionAllowed ? { type: 'spring', stiffness: 400, damping: 32 } : { duration: 0 }
+                            }
+                            data-motion-surface
                             className="flex flex-col gap-5"
                         >
                             <div className="shadow-4 flex items-center justify-center gap-3 rounded-sm border border-n-1 bg-white p-4">
@@ -500,9 +525,14 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                 was half paid can be recorded as half paid instead
                                 of as a lie or as nothing at all. */}
                             <motion.label
-                                initial={{ scale: 0.86, opacity: 0 }}
+                                initial={motionAllowed ? { scale: 0.86, opacity: 0 } : false}
                                 animate={{ scale: 1, opacity: 1 }}
-                                transition={{ type: 'spring', stiffness: 320, damping: 17, delay: 0.06 }}
+                                transition={
+                                    motionAllowed
+                                        ? { type: 'spring', stiffness: 320, damping: 17, delay: 0.06 }
+                                        : { duration: 0 }
+                                }
+                                data-motion-surface
                                 className="flex flex-col gap-2"
                             >
                                 <span className="text-h8 uppercase tracking-wide text-grey-1">{t('amountLabel')}</span>

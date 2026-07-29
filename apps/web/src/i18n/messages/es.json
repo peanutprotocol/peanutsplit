@@ -33,6 +33,7 @@
             "less": "Mostrar menos salas",
             "forgetLabel": "Quitar {room} de este dispositivo",
             "forgotten": "Quitamos {room} de este dispositivo. La sala compartida sigue funcionando para quien tenga el link.",
+            "forgetFailed": "No pudimos quitar {room} de este dispositivo. Sigue en esta lista.",
             "recovery": {
                 "title": "¿Ya tenés el link de una sala?",
                 "label": "Pegá el link de la sala",
@@ -42,7 +43,8 @@
                 "invalid": "Pegá el link completo de una sala de Peanut Split.",
                 "notFound": "No encontramos esa sala. Revisá que hayas pegado el link entero.",
                 "failed": "Ahora no pudimos revisar esa sala. No se guardó nada; probá de nuevo.",
-                "added": "{room} quedó guardada en este dispositivo."
+                "openingSaved": "Abriendo {room}. Quedó guardada en este dispositivo.",
+                "openingUnsaved": "Abriendo {room}. Este navegador no pudo guardarla para después."
             }
         },
         "proof": {
@@ -529,13 +531,21 @@
         "link": {
             "subtitle": "tu sala para dividir",
             "roomLink": "Link de la sala",
-            "copyBlocked": "Tu navegador bloqueó la copia — selecciona el link de arriba y cópialo a mano.",
-            "copy": "Copiar link",
+            "inviteText": "Texto de la invitación",
+            "copyBlocked": "Tu navegador bloqueó la copia. La invitación completa está seleccionada arriba — cópiala a mano.",
+            "copy": "Copiar invitación",
             "copied": "¡Copiado!",
             "share": "Compartir",
+            "shared": "Invitación enviada.",
+            "shareFailed": "No se abrió el menú para compartir. Copia o descarga la invitación.",
+            "downloadCard": "Descargar tarjeta",
+            "downloadText": "Descargar texto",
+            "downloadedCard": "Tarjeta descargada.",
+            "downloadedText": "Texto de la invitación descargado.",
+            "downloadFailed": "La descarga no empezó. Copia la invitación.",
             "anyoneCanJoin": "Cualquiera con este link puede entrar y agregar gastos.",
             "shareTitle": "{room} · Peanut Split",
-            "shareText": "Entra a «{room}» y dividamos esto bien."
+            "shareText": "Abre el link, elige tu nombre y agrega lo que pagaste."
         },
         "create": {
             "back": "Volver",
