@@ -195,11 +195,23 @@ test.describe('Pass-the-link default', () => {
             await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
             await expect(hero.locator('.pass-link-utility')).toHaveCount(0)
             await expect(hero.getByText(/^4 FRIENDS · 1 LINK$/)).toHaveCount(0)
+            await expect(
+                hero.getByText(/NO APP FOR YOUR FRIENDS|BUILT FOR THE GROUP CHAT|NO SIGNUP\. JUST A LINK\./i)
+            ).toHaveCount(0)
 
             expect(
                 await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
                 `${viewport.width}x${viewport.height} must not create horizontal page overflow`
             ).toBe(true)
+
+            if (viewport.width <= 390) {
+                const heroBox = await hero.boundingBox()
+                expect(heroBox).not.toBeNull()
+                expect(
+                    heroBox!.height,
+                    `mobile hero must reveal the next section at ${viewport.width}x${viewport.height}`
+                ).toBeLessThan(viewport.height)
+            }
 
             await expectNoOverlap(headline, stage)
             await expectNoOverlap(stage, form)
