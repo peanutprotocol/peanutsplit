@@ -199,6 +199,89 @@ manifest `share_target` (share a receipt photo from the OS share sheet straight
 into the scan flow), manifest shortcuts, apple-touch-icon + iOS splash, app
 badge wiring.
 
+## Achievement and shareable moments (proposed 2026-07-29)
+
+Goal: maximize organic sharing without turning money into a leaderboard or
+leaking a room credential. There are two distinct loops:
+
+- **Private acquisition:** a useful room-link share into the group chat recruits
+  the people who belong in that room.
+- **Public expression:** a redacted image card lets somebody celebrate the trip,
+  their crew or their alter ego without granting access to the ledger.
+
+The existing pieces are enough for a focused first pass: persisted member
+personas, expense and settlement attribution, reactions, currencies and dates,
+the all-settled celebration, the recap renderer, native file sharing and push.
+Do not build a separate global profile while Split remains accountless.
+
+Every achievement should have the same three surfaces:
+
+1. **Immediate:** one short in-room celebration when the threshold is crossed.
+2. **Persistent:** an achievement shelf in the existing ongoing/final recap.
+3. **Shareable:** a branded image handed to the native share sheet. Public
+   variants hide money and names by default.
+
+Ranked moments, by expected share desire, recipient conversion, eligibility and
+social safety:
+
+1. **`WRAPPED` — end-of-trip story deck.** Expand the settled recap into three
+   to five individually shareable cards: result, group stats, currency passport,
+   alter-ego cast/personal award, and the clean landing. Reuses the strongest
+   emotional moment and the existing recap pipeline. Recommended first.
+2. **`CREW` — crew assembled.** Celebrate meaningful roster thresholds (3, 5,
+   8, 12), show the persona lineup, and offer the existing invite link with copy
+   such as “The crew is five strong. Who is missing?” This is the strongest
+   direct acquisition loop; do not fire on every join.
+3. **`ALTER-EGO` — positive personal awards.** One signature role per member
+   and trip, starring their persona: Trip Starter, Ledger Legend, Currency
+   Hopper, Hype Crew, The Closer, or First Mover. Award contribution and
+   coordination, never debt, spending power or payment speed.
+4. **`PASSPORT` — multi-currency milestones.** Celebrate 2, 3 and 5 currencies
+   with a stamp-style card: “Three currencies. One clean split.” Strong for
+   travel identity and safe to share without amounts.
+5. **`RESCUED` — Splitwise import victory.** On successful import, celebrate
+   the number of expenses and people brought over with balances intact. This is
+   narrow but a sharp switching/acquisition story.
+6. **`TAMED` — expense-count milestones.** Mark 10, 25, 50 and 100 saved
+   expenses with “25 receipts tamed.” Celebrate bookkeeping completed rather
+   than money spent; no push for routine thresholds.
+7. **`CLEAN-LANDING` — settlement result.** Share a factual coordination card
+   such as “Seven people. Three payments. All square.” Do not claim transfers
+   were “saved” without a defensible counterfactual.
+8. **`GROUP-LORE` — crowd-favourite expense.** A row that earns at least five
+   reactions becomes group lore. Its description stays group-only unless the
+   sharer explicitly includes it in the external card.
+9. **`UP-TO-DATE` — prompt logging.** A quiet badge for several days of expenses
+   entered close to their expense dates. Lower priority: useful habit, but the
+   definition must not reward spending every day or punish a quiet trip.
+10. **`FIRST-SPLIT` — first successful room handoff.** A creator-only onboarding
+    moment once another person joins their first locally remembered room. Cheap,
+    but less expressive than the group achievements above.
+
+Recommended first package: **`WRAPPED + CREW + ALTER-EGO + PASSPORT`**. Build
+these on one reusable achievement-card system, then add the remaining moments
+only when share telemetry demonstrates demand.
+
+The current file-share path is privacy-safe but not clickable. A later
+**`CAPSULE`** phase can mint an optional, revocable, immutable and read-only
+public achievement URL under a second random token. It must have no route back
+to the writable room, must never contain the room slug, and must default to no
+names or amounts. Its only action is “Start your own split.” This is the
+external conversion multiplier, but it is a separate privacy/product decision,
+not something to smuggle into the card implementation.
+
+Guardrails:
+
+- No daily spending streaks, biggest-spender badges, debtor rankings, fastest-
+  payer awards, or public descriptions by default.
+- Never share `/r/<slug>` outside the intentional private invite flow; the slug
+  remains the room credential.
+- One share prompt per meaningful milestone/session. Unlocks may accumulate in
+  the recap shelf without interrupting the ledger.
+- Track `achievement_seen`, `achievement_share_opened` and
+  `achievement_shared` with achievement type and delivery tier only. Preserve
+  the existing analytics rule: no slug, member, description, amount or currency.
+
 Remaining candidates, ordered by expected value per effort:
 
 1. ~~**Trip recap share card**~~ — shipped 2026-07-28, see above. Numbering
