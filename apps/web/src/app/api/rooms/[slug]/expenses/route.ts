@@ -2,11 +2,12 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
 import { buildExpense } from '@/server/expenses'
+import { getRateTable } from '@/server/fx'
 import { conflict, memberTokenOf, readJson, respond } from '@/server/http'
 import { notifyRoomWrite } from '@/server/push'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, memberIdForToken, toRoomState } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
+import { addMemberInLockedTransaction, assertWritable } from '@/server/rooms'
 import { expenseSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -20,38 +21,92 @@ export const POST = (request: Request, ctx: Ctx) =>
         const body = expenseSchema.parse(await readJson(request))
         const room = await loadRoom(slug)
         assertWritable(room)
-        if (body.clientKey) {
-            const existing = await prisma.expense.findUnique({
-                where: { id: body.clientKey },
-                select: { roomId: true },
-            })
-            if (existing) {
-                if (existing.roomId !== room.id)
-                    throw conflict('request key is already in use', 'IDEMPOTENCY_KEY_REUSED')
-                return toRoomState(await loadRoom(slug))
-            }
-        }
-        const write = await buildExpense(room, body)
-        const actorMemberId = memberIdForToken(room, memberTokenOf(request))
+        const token = memberTokenOf(request)
+        // Read once before entering the transaction. New-payer creation and the
+        // expense still commit together; this only avoids holding a room lock
+        // while the FX table is read.
+        const rateTable = await getRateTable()
 
-        let expense: Awaited<ReturnType<typeof prisma.expense.create>>
+        let result: {
+            created: boolean
+            expenseId: string
+            actorMemberId: string | null
+            fresh: Awaited<ReturnType<typeof loadRoom>>
+            state: ReturnType<typeof toRoomState>
+        }
         try {
-            expense = await prisma.expense.create({
-                data: {
-                    ...(body.clientKey ? { id: body.clientKey } : {}),
-                    roomId: room.id,
-                    description: write.description,
-                    amountMinor: write.amountMinor,
-                    currency: write.currency,
-                    baseAmountMinor: write.baseAmountMinor,
-                    fxRate: write.fxRate,
-                    paidById: write.paidById,
-                    createdById: actorMemberId,
-                    splitMode: write.splitMode,
-                    date: write.date,
-                    category: write.category,
-                    shares: { createMany: { data: write.shares } },
-                },
+            result = await prisma.$transaction(async (tx) => {
+                // Only the inline new-payer path needs the room name lock.
+                // Ordinary expense creates keep their existing concurrency.
+                if (body.newPaidByName) {
+                    await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+                }
+                let lockedRoom = await loadRoom(slug, tx)
+                assertWritable(lockedRoom)
+                const actorMemberId = memberIdForToken(lockedRoom, token)
+
+                // A lost-response retry must return before creating another
+                // provisional payer.
+                if (body.clientKey) {
+                    const existing = await tx.expense.findUnique({
+                        where: { id: body.clientKey },
+                        select: { id: true, roomId: true },
+                    })
+                    if (existing) {
+                        if (existing.roomId !== lockedRoom.id)
+                            throw conflict('request key is already in use', 'IDEMPOTENCY_KEY_REUSED')
+                        return {
+                            created: false,
+                            expenseId: existing.id,
+                            actorMemberId,
+                            fresh: lockedRoom,
+                            state: toRoomState(lockedRoom),
+                        }
+                    }
+                }
+
+                let paidById = body.paidById
+                if (body.newPaidByName) {
+                    const added = await addMemberInLockedTransaction(
+                        tx,
+                        lockedRoom.id,
+                        body.newPaidByName,
+                        undefined,
+                        true
+                    )
+                    paidById = added.memberId
+                    // The default equal split is “everyone at commit time”, so
+                    // reload before building it and include the new payer.
+                    lockedRoom = await loadRoom(slug, tx)
+                }
+                if (!paidById) throw new Error('validated expense did not have a payer')
+
+                const write = await buildExpense(lockedRoom, { ...body, paidById }, undefined, rateTable)
+                const expense = await tx.expense.create({
+                    data: {
+                        ...(body.clientKey ? { id: body.clientKey } : {}),
+                        roomId: lockedRoom.id,
+                        description: write.description,
+                        amountMinor: write.amountMinor,
+                        currency: write.currency,
+                        baseAmountMinor: write.baseAmountMinor,
+                        fxRate: write.fxRate,
+                        paidById: write.paidById,
+                        createdById: actorMemberId,
+                        splitMode: write.splitMode,
+                        date: write.date,
+                        category: write.category,
+                        shares: { createMany: { data: write.shares } },
+                    },
+                })
+                const fresh = await loadRoom(slug, tx)
+                return {
+                    created: true,
+                    expenseId: expense.id,
+                    actorMemberId,
+                    fresh,
+                    state: toRoomState(fresh),
+                }
             })
         } catch (error) {
             // Two deliveries can both pass the read above. The primary key
@@ -62,14 +117,23 @@ export const POST = (request: Request, ctx: Ctx) =>
                     where: { id: body.clientKey },
                     select: { roomId: true },
                 })
-                if (existing?.roomId === room.id) return toRoomState(await loadRoom(slug))
-                if (existing) throw conflict('request key is already in use', 'IDEMPOTENCY_KEY_REUSED')
+                if (existing?.roomId === room.id) {
+                    const fresh = await loadRoom(slug)
+                    result = {
+                        created: false,
+                        expenseId: body.clientKey,
+                        actorMemberId: memberIdForToken(fresh, token),
+                        fresh,
+                        state: toRoomState(fresh),
+                    }
+                } else if (existing) throw conflict('request key is already in use', 'IDEMPOTENCY_KEY_REUSED')
+                else throw error
+            } else {
+                throw error
             }
-            throw error
         }
 
-        const fresh = await loadRoom(slug)
-        const state = toRoomState(fresh)
+        if (!result.created) return result.state
         // Everyone with the room open refetches now instead of up to 8s from now.
         // Same placement rule as the push below: after the write committed.
         publish(room.id)
@@ -77,10 +141,10 @@ export const POST = (request: Request, ctx: Ctx) =>
         // times out must not turn a saved expense into a 500 for the person who
         // saved it. `notifyRoomWrite` is void and swallows its own failures.
         notifyRoomWrite({
-            room: fresh,
-            state,
-            actorMemberId,
-            event: { kind: 'expense_added', expenseId: expense.id },
+            room: result.fresh,
+            state: result.state,
+            actorMemberId: result.actorMemberId,
+            event: { kind: 'expense_added', expenseId: result.expenseId },
         })
-        return state
+        return result.state
     }, 201)

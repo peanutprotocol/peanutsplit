@@ -60,31 +60,45 @@ export async function createRoom(
     throw conflict('could not allocate a room link, please try again', 'SLUG_EXHAUSTED')
 }
 
-export async function addMember(room: RoomWithRelations, name: string): Promise<CreatedMember> {
+export async function addMember(room: RoomWithRelations, name: string, provisional = false): Promise<CreatedMember> {
     if (room.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
     const token = memberToken()
 
     return prisma.$transaction(async (tx) => {
-        // The name rule is case-insensitive but PostgreSQL cannot express that
-        // invariant with the existing schema. Serialize joins per room so two
-        // requests for Ana/ana cannot both pass the lookup before either inserts.
         await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
-
-        const current = await tx.room.findUnique({ where: { id: room.id }, select: { archivedAt: true } })
-        if (current?.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
-
-        // The join gate offers existing members by name — a duplicate is nearly
-        // always someone who meant to pick themselves, so say so instead of
-        // silently forking.
-        const duplicate = await tx.member.findFirst({
-            where: { roomId: room.id, name: { equals: name, mode: 'insensitive' } },
-            select: { id: true },
-        })
-        if (duplicate) throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
-
-        const member = await tx.member.create({ data: { roomId: room.id, name, token, avatar: randomPersonaKey() } })
-        return { memberId: member.id, memberToken: token }
+        return addMemberInLockedTransaction(tx, room.id, name, token, provisional)
     })
+}
+
+/**
+ * Create a member after the caller has taken the room advisory lock.
+ *
+ * Kept public for the expense route, whose new-payer member and expense have to
+ * be one transaction. It intentionally does not return room state or publish:
+ * those are responsibilities of the outer write.
+ */
+export async function addMemberInLockedTransaction(
+    tx: Prisma.TransactionClient,
+    roomId: string,
+    name: string,
+    token = memberToken(),
+    provisional = false
+): Promise<CreatedMember> {
+    const current = await tx.room.findUnique({ where: { id: roomId }, select: { archivedAt: true } })
+    if (current?.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
+
+    // The name rule is case-insensitive but PostgreSQL cannot express that
+    // invariant with the existing schema. Every caller holds the room lock.
+    const duplicate = await tx.member.findFirst({
+        where: { roomId, name: { equals: name, mode: 'insensitive' } },
+        select: { id: true },
+    })
+    if (duplicate) throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
+
+    const member = await tx.member.create({
+        data: { roomId, name, token, avatar: randomPersonaKey(), provisional },
+    })
+    return { memberId: member.id, memberToken: token }
 }
 
 export function assertWritable(room: RoomWithRelations): void {

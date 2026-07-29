@@ -1,3 +1,5 @@
+import { prisma } from '@/server/db'
+import { publish } from '@/server/events'
 import { notFound, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState } from '@/server/roomState'
@@ -19,9 +21,23 @@ export const POST = (request: Request, ctx: Ctx) =>
     respond(async (): Promise<RoomStateWithMember> => {
         enforceRateLimit(request, WRITE_LIMIT, 'member-claim')
         const { slug, memberId } = await ctx.params
-        const room = await loadRoom(slug)
-        const member = room.members.find((candidate) => candidate.id === memberId)
-        if (!member) throw notFound('member not found')
+        const result = await prisma.$transaction(async (tx) => {
+            const room = await loadRoom(slug, tx)
+            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+            const lockedRoom = await loadRoom(slug, tx)
+            const member = lockedRoom.members.find((candidate) => candidate.id === memberId)
+            if (!member) throw notFound('member not found')
 
-        return { ...toRoomState(room), memberId: member.id, memberToken: member.token }
+            if (member.provisional) {
+                await tx.member.update({ where: { id: member.id }, data: { provisional: false } })
+            }
+            const fresh = member.provisional ? await loadRoom(slug, tx) : lockedRoom
+            return {
+                response: { ...toRoomState(fresh), memberId: member.id, memberToken: member.token },
+                claimed: member.provisional,
+                roomId: room.id,
+            }
+        })
+        if (result.claimed) publish(result.roomId)
+        return result.response
     })

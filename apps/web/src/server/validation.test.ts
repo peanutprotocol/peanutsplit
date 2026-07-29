@@ -89,6 +89,31 @@ describe('money-write request keys', () => {
     })
 })
 
+describe('trust-ledger fields', () => {
+    it('requires exactly one existing or staged payer', () => {
+        expect(expenseSchema.safeParse({ ...expense('100'), paidById: undefined, newPaidByName: 'Bea' }).success).toBe(
+            true
+        )
+        expect(expenseSchema.safeParse({ ...expense('100'), newPaidByName: 'Bea' }).success).toBe(false)
+        expect(expenseSchema.safeParse({ ...expense('100'), paidById: undefined }).success).toBe(false)
+    })
+
+    it('accepts only http(s) receipt links', () => {
+        expect(
+            settlementSchema.safeParse({
+                ...settlement('100'),
+                receiptUrl: 'https://receipts.example/payment/abc',
+            }).success
+        ).toBe(true)
+        expect(settlementSchema.safeParse({ ...settlement('100'), receiptUrl: 'javascript:alert(1)' }).success).toBe(
+            false
+        )
+        expect(settlementSchema.safeParse({ ...settlement('100'), receiptUrl: 'file:///tmp/receipt' }).success).toBe(
+            false
+        )
+    })
+})
+
 describe('model money normalization', () => {
     it('keeps bounded safe numeric output working for receipt scan and quick add', () => {
         expect(receiptItemSchema.parse({ label: 'Coffee', amountMinor: 1250 }).amountMinor).toBe('1250')

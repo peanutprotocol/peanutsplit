@@ -13,7 +13,7 @@ import { cn } from '@/lib/cn'
 import { isApiError } from '@/lib/api'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
-import { useAddMember } from '@/lib/queries'
+import { useAddMember, useDeleteMember } from '@/lib/queries'
 import { useFeedback } from '@/lib/use-settings'
 import { LinkMoment } from './LinkMoment'
 import { MemberAvatar } from './MemberAvatar'
@@ -33,6 +33,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const addMember = useAddMember(room.slug)
+    const deleteMember = useDeleteMember(room.slug)
     /**
      * Collapsed until asked for. The link is the hero of this sheet and the thing
      * that actually gets the room populated; typing four names is the fallback
@@ -42,6 +43,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
     const [expanded, setExpanded] = useState(false)
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
+    const [removingId, setRemovingId] = useState<string | null>(null)
 
     // The sheet opening gets the blip; the link leaving gets the whoosh, inside
     // LinkMoment. Two different events, two different cues.
@@ -71,6 +73,21 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                 return
             }
             setError(errorMessage(err, t('addPeople.failed')))
+        }
+    }
+
+    const remove = async (member: ApiMember) => {
+        if (!member.canRemove || deleteMember.isPending) return
+        setError(null)
+        setRemovingId(member.id)
+        try {
+            await deleteMember.mutateAsync(member.id)
+            feedback('thunk')
+        } catch (err) {
+            feedback('error', { haptic: 'error' })
+            setError(errorMessage(err, t('addPeople.removeFailed')))
+        } finally {
+            setRemovingId(null)
         }
     }
 
@@ -122,12 +139,29 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                                                     key={member.id}
                                                     data-testid="roster-chip"
                                                     data-member={member.name}
-                                                    className="flex items-center gap-2 rounded-sm border border-n-1 bg-white py-1 pl-1 pr-3"
+                                                    className="flex items-center gap-2 rounded-sm border border-n-1 bg-white p-1"
                                                 >
                                                     <MemberAvatar name={member.name} avatar={member.avatar} size={24} />
                                                     <span className="max-w-[10rem] truncate text-sm">
                                                         {member.name}
                                                     </span>
+                                                    {member.canRemove && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => remove(member)}
+                                                            disabled={deleteMember.isPending}
+                                                            aria-label={t('addPeople.remove', { name: member.name })}
+                                                            className="flex size-7 items-center justify-center rounded-sm text-grey-1 disabled:opacity-45"
+                                                        >
+                                                            <Icon
+                                                                name="x"
+                                                                size={14}
+                                                                className={
+                                                                    removingId === member.id ? 'animate-pulse' : undefined
+                                                                }
+                                                            />
+                                                        </button>
+                                                    )}
                                                 </li>
                                             ))}
                                         </ul>

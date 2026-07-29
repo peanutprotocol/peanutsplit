@@ -280,6 +280,14 @@ export function useAddMember(slug: string): UseMutationResult<AddedMemberResult,
     return useMutation(addMemberMutationOptions(queryClient, slug))
 }
 
+export function useDeleteMember(slug: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (memberId: string) => api.deleteMember(slug, memberId),
+        onSuccess: (state) => seed(queryClient, slug, state),
+    })
+}
+
 /** What `onMutate` hands `onError` so a failed add can be rolled back. */
 interface AddExpenseContext {
     previous?: RoomState
@@ -333,6 +341,10 @@ export function addExpenseMutationOptions(
             try {
                 return await api.addExpense(slug, requestInput, token)
             } catch (error) {
+                // A staged payer has no roster id for an honest pending row.
+                // Keep the form open on transport failure; replaying ordinary
+                // expenses remains available.
+                if (input.newPaidByName) throw error
                 if (!isOfflineFailure(error)) throw error
                 // No cached room to hand back (a save before the first GET
                 // landed) — there is nothing honest to resolve with.
@@ -352,7 +364,7 @@ export function addExpenseMutationOptions(
         onMutate: async (input: ExpenseInput) => {
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
-            if (previous) {
+            if (previous && !input.newPaidByName) {
                 const now = Date.now()
                 queryClient.setQueryData<RoomState>(roomKey(slug), {
                     ...previous,

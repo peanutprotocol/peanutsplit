@@ -39,7 +39,7 @@ export type ExistingExpense = Pick<Expense, 'date' | 'currency' | 'fxRate'>
 
 export async function buildExpense(
     room: RoomWithRelations,
-    body: ExpenseBody,
+    body: ExpenseBody & { paidById: string },
     existing?: ExistingExpense,
     /** A table the caller already holds. The importer builds hundreds of expenses in one pass and
      *  must not re-read FX per row — one query per import, not one per expense. Omitted everywhere
