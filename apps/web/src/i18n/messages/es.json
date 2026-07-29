@@ -2,7 +2,7 @@
     "marketing": {
         "hero": {
             "utilityBrand": "PEANUT SPLIT",
-            "utilityTag": "EL NUEVO +1 DEL CHAT",
+            "utilityTag": "4 AMIGOS · 1 LINK",
             "eyebrow": "SIN APP PARA TUS AMIGOS.",
             "title": "PASALO",
             "controlTitleAccessible": "PÁSALO",
@@ -12,18 +12,19 @@
             "ctaTrust": "Gratis · sin cuenta obligatoria · sin instalar nada",
             "linkExplainerTrigger": "Cómo funciona el link",
             "chat": {
+                "defaultRoom": "Fin de semana en Lisboa",
+                "participants": "Bea, Jules, Mo y vos",
+                "questionSender": "Bea",
                 "question": "¿quién pagó la cena?",
-                "reply": "yo pagué",
+                "you": "vos",
+                "youShort": "VOS",
+                "reply": "yo — lo agrego",
+                "linkBrand": "PEANUT SPLIT · SALA COMPARTIDA",
                 "linkPrompt": "Cada uno agrega lo suyo",
-                "reaction": "pará… ¿eso era todo?"
+                "joined": "Bea, Jules y Mo abrieron el link",
+                "badge": "SIN REGISTRO. SOLO UN LINK."
             },
             "stageSummary": "Un link de Peanut Split pasa por el chat del grupo para que cada amigo abra la misma sala y agregue gastos.",
-            "ticker": {
-                "noSignup": "SIN REGISTRO",
-                "noDownload": "SIN DESCARGAR",
-                "currencies": "12 MONEDAS DISPONIBLES",
-                "linkKey": "EL LINK ES LA LLAVE"
-            },
             "validation": {
                 "roomRequired": "Poné un nombre a la sala.",
                 "creatorRequired": "Decinos quién sos."
