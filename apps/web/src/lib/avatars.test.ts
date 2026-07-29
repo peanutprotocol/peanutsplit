@@ -7,7 +7,6 @@ import { describe, expect, it } from 'vitest'
 import { DOODLE } from '@/components/ui/doodles'
 import {
     AVATARS,
-    AVATAR_CATEGORIES,
     AVATAR_KEYS,
     CLASSIC_AVATARS,
     FALLBACK_AVATAR,
@@ -27,40 +26,40 @@ describe('the default alter ego', () => {
 
     it('excludes the current persona when somebody rolls again', () => {
         expect(randomPersonaKey(PERSONA_KEYS[0], () => 0)).toBe(PERSONA_KEYS[1])
-        expect(randomPersonaKey(PERSONA_KEYS[29], () => 0.999999)).toBe(PERSONA_KEYS[28])
+        expect(randomPersonaKey(PERSONA_KEYS[15], () => 0.999999)).toBe(PERSONA_KEYS[14])
     })
 })
 
 describe('the catalog', () => {
-    it('offers thirty named personas across five social vibes', () => {
-        expect(PERSONA_KEYS).toHaveLength(30)
-        expect(AVATAR_CATEGORIES).toHaveLength(5)
-        for (const category of AVATAR_CATEGORIES) {
-            expect(
-                PERSONA_KEYS.filter((key) => PERSONAS[key].category === category),
-                category
-            ).toHaveLength(6)
-        }
+    it('offers the sixteen approved personas and more than twenty choices overall', () => {
+        expect(PERSONA_KEYS).toHaveLength(16)
+        expect(AVATAR_KEYS).toHaveLength(28)
     })
 
     it('includes the strange combinations promised by the interaction', () => {
         expect(PERSONAS['vampire-penguin'].label).toBe('Vampire Penguin')
         expect(PERSONAS['pirate-parrot'].label).toBe('Pirate Parrot')
         expect(PERSONAS['astronaut-avocado'].label).toBe('Astronaut Avocado')
-        expect(PERSONAS['rockstar-strawberry'].creature).toBe('strawberry')
-        expect(PERSONAS['ninja-pear'].creature).toBe('pear')
+        expect(PERSONAS['rockstar-strawberry'].label).toBe('Rockstar Berry')
+        expect(PERSONAS['tea-dragon'].label).toBe('Tea Dragon')
+        expect(PERSONAS['pocket-robot'].label).toBe('Pocket Robot')
     })
 
-    it('has unique names, vibes and creature/costume combinations', () => {
+    it('has unique names, vibes and production drawings', () => {
         expect(new Set(PERSONA_KEYS.map((key) => PERSONAS[key].label)).size).toBe(PERSONA_KEYS.length)
         expect(new Set(PERSONA_KEYS.map((key) => PERSONAS[key].vibe)).size).toBe(PERSONA_KEYS.length)
-        expect(new Set(PERSONA_KEYS.map((key) => `${PERSONAS[key].creature}/${PERSONAS[key].costume}`)).size).toBe(
-            PERSONA_KEYS.length
-        )
+        expect(new Set(PERSONA_KEYS.map((key) => PERSONAS[key].doodle)).size).toBe(PERSONA_KEYS.length)
     })
 
-    it('keeps classic non-human doodles valid and points only at real drawings', () => {
-        for (const art of Object.values(CLASSIC_AVATARS)) expect(DOODLE[art.doodle]).toBeTruthy()
+    it('points every visible option at a real drawing and a complete color palette', () => {
+        for (const key of AVATAR_KEYS) {
+            const art = AVATARS[key]
+            expect(DOODLE[art.doodle], key).toBeTruthy()
+            for (const color of [art.background, art.accent, art.ink]) {
+                expect(color, `${key}: ${color}`).toMatch(/^#[0-9A-F]{6}$/i)
+            }
+        }
+        expect(Object.keys(CLASSIC_AVATARS)).toHaveLength(12)
     })
 
     it('does not show the old human face keys in the picker', () => {
@@ -101,6 +100,14 @@ describe('compatibility and validation', () => {
             'face-beard',
             'face-bald',
         ]) {
+            expect(isAvatarKey(key)).toBe(true)
+            expect(avatarArt(key, 'Ana').kind).toBe('persona')
+            expect(AVATAR_KEYS).not.toContain(key)
+        }
+    })
+
+    it('redraws first-release persona keys without reoffering the less charming glyphs', () => {
+        for (const key of ['ninja-pear', 'detective-raccoon', 'dj-dinosaur', 'cosmic-llama']) {
             expect(isAvatarKey(key)).toBe(true)
             expect(avatarArt(key, 'Ana').kind).toBe('persona')
             expect(AVATAR_KEYS).not.toContain(key)

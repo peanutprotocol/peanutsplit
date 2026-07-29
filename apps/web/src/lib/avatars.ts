@@ -2,100 +2,24 @@
  * The member-avatar catalog.
  *
  * Split has no profiles, so an avatar should feel like a table nickname rather
- * than a miniature biometric. The selectable set is deliberately made of
- * animals, snacks, monsters and objects in costume. Nothing asks the person's
- * gender, age, skin colour or appearance, and nothing tries to infer those
- * things from their name.
+ * than a miniature biometric. Every selectable identity is an animal, snack,
+ * monster or object with a joke attached. Nothing asks the person's gender,
+ * age, skin colour or appearance, and nothing is inferred from their name.
  *
- * Member rows store only a key. Artwork and copy stay code-side so a drawing can
- * be improved everywhere without migrating data, and the server can reject
- * arbitrary strings instead of accepting an unmoderated profile surface.
+ * Member rows store only an allowlisted key. Artwork and copy stay code-side so
+ * a drawing can be improved everywhere without migrating data.
  */
 
 import type { DoodleName } from '@/components/ui/doodles'
 
-export const AVATAR_BACKGROUNDS = ['#FAE184', '#FFF4CC', '#B8F0C5', '#C9D3F3', '#F6C7EC', '#BDECF5'] as const
-
-export const AVATAR_CATEGORIES = ['mischief', 'cozy', 'brainy', 'party', 'adventure'] as const
-export type AvatarCategory = (typeof AVATAR_CATEGORIES)[number]
-
-export type PersonaCreature =
-    | 'penguin'
-    | 'parrot'
-    | 'octopus'
-    | 'frog'
-    | 'avocado'
-    | 'raccoon'
-    | 'strawberry'
-    | 'ghost'
-    | 'cactus'
-    | 'bat'
-    | 'shark'
-    | 'pear'
-    | 'snail'
-    | 'bee'
-    | 'cloud'
-    | 'peanut'
-    | 'fox'
-    | 'mushroom'
-    | 'cat'
-    | 'bear'
-    | 'robot'
-    | 'alien'
-    | 'banana'
-    | 'panda'
-    | 'dinosaur'
-    | 'owl'
-    | 'moon'
-    | 'kiwi'
-    | 'llama'
-    | 'pineapple'
-    | 'yeti'
-
-export type PersonaCostume =
-    | 'vampire'
-    | 'pirate'
-    | 'disco'
-    | 'wizard'
-    | 'astronaut'
-    | 'detective'
-    | 'rockstar'
-    | 'cozy'
-    | 'skater'
-    | 'bookworm'
-    | 'surfer'
-    | 'ninja'
-    | 'gardener'
-    | 'party'
-    | 'sleepy'
-    | 'royal'
-    | 'scientist'
-    | 'cowboy'
-    | 'gamer'
-    | 'explorer'
-    | 'mechanic'
-    | 'lucky'
-    | 'sailor'
-    | 'painter'
-    | 'dj'
-    | 'baker'
-    | 'karaoke'
-    | 'cosmic'
-    | 'punk'
-    | 'yoga'
-
 export interface PersonaArt {
     kind: 'persona'
-    creature: PersonaCreature
-    costume: PersonaCostume
-    /** The nickname is part of the joke and is shown in the picker. */
+    doodle: DoodleName
     label: string
-    /** A short social cue, never a demographic. */
     vibe: string
-    category: AvatarCategory
-    primary: string
-    secondary: string
     background: string
+    accent: string
+    ink: string
 }
 
 export interface DoodleArt {
@@ -104,258 +28,133 @@ export interface DoodleArt {
     label: string
     vibe: string
     background: string
+    accent: string
+    ink: string
 }
 
 export type AvatarArt = PersonaArt | DoodleArt
 
 const persona = (
-    creature: PersonaCreature,
-    costume: PersonaCostume,
+    doodle: DoodleName,
     label: string,
     vibe: string,
-    category: AvatarCategory,
-    primary: string,
-    secondary: string,
-    background: number
-): PersonaArt => ({
-    kind: 'persona',
-    creature,
-    costume,
-    label,
-    vibe,
-    category,
-    primary,
-    secondary,
-    background: AVATAR_BACKGROUNDS[background],
-})
+    background: string,
+    accent: string,
+    ink: string
+): PersonaArt => ({ kind: 'persona', doodle, label, vibe, background, accent, ink })
 
-const doodle = (name: DoodleName, label: string, vibe: string, background: number): DoodleArt => ({
-    kind: 'doodle',
-    doodle: name,
-    label,
-    vibe,
-    background: AVATAR_BACKGROUNDS[background],
-})
+const classic = (
+    doodle: DoodleName,
+    label: string,
+    vibe: string,
+    background: string,
+    accent: string,
+    ink = '#282832'
+): DoodleArt => ({ kind: 'doodle', doodle, label, vibe, background, accent, ink })
 
 /**
- * Thirty alter egos, six per vibe. The labels are intentionally vivid enough
- * to become table talk: "the Vampire Penguin owes the Cosmic Llama" is the
- * product moment, not a settings chore.
+ * The approved colorful cast.
+ *
+ * These are the exact deterministic paths and palettes reviewed in the doodle
+ * canary picker. Sixteen named personas plus twelve classics keep the live
+ * picker above the promised twenty-option floor without shipping any of the
+ * less charming procedural glyphs.
  */
 export const PERSONAS = {
     'vampire-penguin': persona(
-        'penguin',
-        'vampire',
+        'personavampirepenguin',
         'Vampire Penguin',
-        'dramatic after dark',
-        'mischief',
-        '#202027',
-        '#F04F4F',
-        4
+        'tiny, dramatic, mostly harmless',
+        '#F8D8ED',
+        '#C9B8F4',
+        '#50355F'
     ),
     'pirate-parrot': persona(
-        'parrot',
-        'pirate',
+        'personapirateparrot',
         'Pirate Parrot',
-        'finds the snacks',
-        'mischief',
-        '#53B96F',
-        '#FFC900',
-        3
+        'confidently lost',
+        '#CDEDF2',
+        '#FFD78A',
+        '#185A67'
     ),
-    'ninja-pear': persona('pear', 'ninja', 'Ninja Pear', 'quietly competitive', 'mischief', '#9ED66F', '#282832', 1),
-    'lucky-alien': persona('alien', 'lucky', 'Lucky Alien', 'weirdly fortunate', 'mischief', '#8EDB9C', '#6D5BD0', 0),
-    'trickster-fox': persona(
-        'fox',
-        'detective',
-        'Trickster Fox',
-        'has a side quest',
-        'mischief',
-        '#F08A4B',
-        '#FFF4CC',
-        2
+    'cozy-ghost': persona(
+        'personacozyghost',
+        'Cozy Ghost',
+        'brought the good blanket',
+        '#DDE2FF',
+        '#FFDBA6',
+        '#4A4D83'
     ),
-    'punk-pineapple': persona(
-        'pineapple',
-        'punk',
-        'Punk Pineapple',
-        'sweet with spikes',
-        'mischief',
-        '#F4C84C',
-        '#4EAF67',
-        4
-    ),
-
-    'cozy-ghost': persona('ghost', 'cozy', 'Cozy Ghost', 'here for the blankets', 'cozy', '#FFFDF8', '#E95A84', 3),
-    'garden-snail': persona(
-        'snail',
-        'gardener',
-        'Garden Snail',
-        'takes the scenic route',
-        'cozy',
-        '#E39B63',
-        '#7FCB76',
-        2
-    ),
-    'sleepy-cloud': persona('cloud', 'sleepy', 'Sleepy Cloud', 'five more minutes', 'cozy', '#FFFDF8', '#7589CB', 3),
-    'explorer-bear': persona(
-        'bear',
-        'explorer',
-        'Explorer Bear',
-        'packs extra biscuits',
-        'cozy',
-        '#B8784E',
-        '#E8B86B',
-        0
-    ),
-    'baker-moon': persona('moon', 'baker', 'Baker Moon', 'midnight cinnamon rolls', 'cozy', '#FFE27A', '#FFFDF8', 4),
-    'yoga-yeti': persona('yeti', 'yoga', 'Yoga Yeti', 'unbothered, mostly', 'cozy', '#DDF4F6', '#77B8C8', 1),
-
-    'wizard-frog': persona('frog', 'wizard', 'Wizard Frog', 'knows a shortcut', 'brainy', '#78C96B', '#725AC1', 4),
-    'detective-raccoon': persona(
-        'raccoon',
-        'detective',
-        'Detective Raccoon',
-        'kept the receipt',
-        'brainy',
-        '#9FA4AF',
-        '#30313A',
-        0
-    ),
-    'bookworm-bat': persona(
-        'bat',
-        'bookworm',
-        'Bookworm Bat',
-        'read the fine print',
-        'brainy',
-        '#57506E',
-        '#FFC900',
-        3
-    ),
-    'scientist-owl': persona(
-        'owl',
-        'scientist',
-        'Scientist Owl',
-        'has a spreadsheet',
-        'brainy',
-        '#8B674A',
-        '#BDECF5',
-        2
-    ),
-    'mechanic-robot': persona(
-        'robot',
-        'mechanic',
-        'Mechanic Robot',
-        'can probably fix it',
-        'brainy',
-        '#AAB4C2',
-        '#F38B5B',
-        0
-    ),
-    'gamer-cat': persona('cat', 'gamer', 'Gamer Cat', 'one more round', 'brainy', '#8C8FC7', '#98E9AB', 1),
-
-    'disco-octopus': persona(
-        'octopus',
-        'disco',
-        'Disco Octopus',
-        'eight dance moves',
-        'party',
-        '#9A6BC7',
-        '#FFC900',
-        2
-    ),
-    'rockstar-strawberry': persona(
-        'strawberry',
-        'rockstar',
-        'Rockstar Strawberry',
-        'headlines the kitchen',
-        'party',
-        '#EB5B65',
-        '#4BAE69',
-        3
-    ),
-    'party-bee': persona('bee', 'party', 'Party Bee', 'knows everyone', 'party', '#FFC900', '#292832', 4),
-    'dj-dinosaur': persona('dinosaur', 'dj', 'DJ Dinosaur', 'prehistoric bangers', 'party', '#70C989', '#6B5BC0', 0),
-    'painter-panda': persona(
-        'panda',
-        'painter',
-        'Painter Panda',
-        'makes a beautiful mess',
-        'party',
-        '#FFFDF8',
-        '#F0648D',
-        2
-    ),
-    'karaoke-kiwi': persona(
-        'kiwi',
-        'karaoke',
-        'Karaoke Kiwi',
-        'already chose the duet',
-        'party',
-        '#8CBE58',
-        '#7A5535',
-        0
-    ),
-
+    'wizard-frog': persona('personawizardfrog', 'Wizard Frog', 'one spell ahead', '#D6F1D4', '#CDBCF5', '#315E42'),
     'astronaut-avocado': persona(
-        'avocado',
-        'astronaut',
+        'personaastronautavocado',
         'Astronaut Avocado',
-        'dreams in zero gravity',
-        'adventure',
-        '#8FCB5A',
-        '#7B5538',
-        3
+        'waves at every planet',
+        '#CDEBF8',
+        '#C8EDB5',
+        '#27506B'
     ),
-    'surfer-shark': persona(
-        'shark',
-        'surfer',
-        'Surfer Shark',
-        'goes with the flow',
-        'adventure',
-        '#68B7D8',
-        '#F07068',
-        0
+    'disco-octopus': persona(
+        'personadiscooctopus',
+        'Disco Octopus',
+        'has eight good moves',
+        '#F8D2E5',
+        '#BDEBF2',
+        '#713D68'
     ),
-    'skater-cactus': persona(
-        'cactus',
-        'skater',
-        'Skater Cactus',
-        'lands it eventually',
-        'adventure',
-        '#62B96C',
-        '#E95A84',
-        4
+    'tea-dragon': persona(
+        'personateadragon',
+        'Tea Dragon',
+        'breathes steam, politely',
+        '#FFE4BB',
+        '#F5B9B3',
+        '#7B4532'
     ),
-    'chef-dragon': persona(
-        'dinosaur',
-        'baker',
-        'Chef Dragon',
-        'adds a little fire',
-        'adventure',
-        '#70C989',
-        '#F06D4F',
-        1
+    'raincoat-duck': persona('personaraincoatduck', 'Raincoat Duck', 'hopes it rains', '#BFE3F2', '#FFE487', '#225D77'),
+    'skater-snail': persona(
+        'personaskatersnail',
+        'Skater Snail',
+        'slow, but with flair',
+        '#D9F2CF',
+        '#F7C5E6',
+        '#365D42'
     ),
-    'sailor-banana': persona(
-        'banana',
-        'sailor',
-        'Sailor Banana',
-        'peels out at dawn',
-        'adventure',
-        '#F6D257',
-        '#5B78B7',
-        2
+    'moon-bunny': persona('personamoonbunny', 'Moon Bunny', 'quietly over the moon', '#E6DEFA', '#F9D3DC', '#514875'),
+    // Keep the already-shipped storage key while adopting the approved name
+    // and drawing. Existing rooms upgrade visually without a data migration.
+    'rockstar-strawberry': persona(
+        'personarockstarberry',
+        'Rockstar Berry',
+        'tiny fruit, huge encore',
+        '#F9C9D4',
+        '#C7E8C1',
+        '#7A304A'
     ),
-    'cosmic-llama': persona(
-        'llama',
-        'cosmic',
-        'Cosmic Llama',
-        'emotionally in orbit',
-        'adventure',
-        '#E9CBAE',
-        '#765AC8',
-        4
+    'baker-moon': persona('personabakermoon', 'Baker Moon', 'proofs dough after dark', '#FFF0B8', '#D6C5F4', '#6D5730'),
+    'party-bee': persona('personapartybee', 'Party Bee', 'arrived with confetti', '#FFE69A', '#F6C5E3', '#665020'),
+    'garden-yeti': persona(
+        'personagardenyeti',
+        'Garden Yeti',
+        'grows enormous daisies',
+        '#D5EDC6',
+        '#F9D38D',
+        '#3F6040'
+    ),
+    'pancake-bear': persona(
+        'personapancakebear',
+        'Pancake Bear',
+        'believes in second breakfast',
+        '#FFE0B8',
+        '#C7E8D0',
+        '#714A33'
+    ),
+    'pocket-robot': persona(
+        'personapocketrobot',
+        'Pocket Robot',
+        'helpful, with one loose screw',
+        '#CBE7ED',
+        '#FFD28E',
+        '#315B64'
     ),
 } as const satisfies Record<string, PersonaArt>
 
@@ -363,39 +162,66 @@ export type PersonaKey = keyof typeof PERSONAS
 export const PERSONA_KEYS = Object.keys(PERSONAS) as PersonaKey[]
 
 /**
- * Existing non-human doodle picks remain valid and available under "Classics".
- * They are intentionally secondary to the named personas, which carry more
- * banter and make the picker feel like choosing an alter ego.
+ * Existing non-human doodle picks remain available as classics. Together with
+ * the named cast they make twenty-eight visible options.
  */
 export const CLASSIC_AVATARS = {
-    'doodle-dog': doodle('dog', 'Good Dog', 'reliably delighted', 1),
-    'doodle-peanut': doodle('peanut', 'Classic Peanut', 'keeps it simple', 0),
-    'doodle-sun': doodle('sun', 'Little Sun', 'morning energy', 0),
-    'doodle-wave': doodle('wave', 'Big Wave', 'brings momentum', 3),
-    'doodle-leaf': doodle('leaf', 'Fresh Leaf', 'touches grass', 2),
-    'doodle-crystal': doodle('crystal', 'Lucky Crystal', 'good vibrations', 4),
-    'doodle-guitar': doodle('guitar', 'Tiny Guitar', 'has a playlist', 1),
-    'doodle-football': doodle('football', 'Match Ball', 'keeps score', 2),
-    'doodle-pizza': doodle('pizza', 'Pizza Slice', 'orders for the table', 4),
-    'doodle-coffee': doodle('coffee', 'Coffee Cup', 'first one awake', 1),
-    'doodle-cake': doodle('cake', 'Cake Slice', 'celebrates everything', 4),
-    'doodle-boat': doodle('boat', 'Little Boat', 'gets everyone home', 3),
+    'doodle-dog': classic('dog', 'Good Dog', 'reliably delighted', '#FFF4CC', '#B8F0C5'),
+    'doodle-peanut': classic('peanut', 'Classic Peanut', 'keeps it simple', '#FAE184', '#F6C7EC'),
+    'doodle-sun': classic('sun', 'Little Sun', 'morning energy', '#FAE184', '#BDECF5'),
+    'doodle-wave': classic('wave', 'Big Wave', 'brings momentum', '#BDECF5', '#FFF4CC'),
+    'doodle-leaf': classic('leaf', 'Fresh Leaf', 'touches grass', '#B8F0C5', '#FFF4CC'),
+    'doodle-crystal': classic('crystal', 'Lucky Crystal', 'good vibrations', '#F6C7EC', '#C9D3F3'),
+    'doodle-guitar': classic('guitar', 'Tiny Guitar', 'has a playlist', '#FFF4CC', '#F6C7EC'),
+    'doodle-football': classic('football', 'Match Ball', 'keeps score', '#B8F0C5', '#C9D3F3'),
+    'doodle-pizza': classic('pizza', 'Pizza Slice', 'orders for the table', '#F6C7EC', '#FAE184'),
+    'doodle-coffee': classic('coffee', 'Coffee Cup', 'first one awake', '#FFF4CC', '#C9D3F3'),
+    'doodle-cake': classic('cake', 'Cake Slice', 'celebrates everything', '#F6C7EC', '#FFF4CC'),
+    'doodle-boat': classic('boat', 'Little Boat', 'gets everyone home', '#BDECF5', '#FAE184'),
 } as const satisfies Record<string, DoodleArt>
 
 /**
- * The nine face keys may already exist in production rows. Keep accepting them
- * forever, but redraw them as non-human personas and do not offer them in the
- * picker. This is a visual compatibility shim, not a second catalog.
+ * Keys from the first alter-ego release can already be stored in production.
+ * Keep accepting all of them, but redraw each through an approved doodle and
+ * omit it from the picker. This is a compatibility shim, not a second catalog.
+ */
+const RETIRED_PERSONAS = {
+    'ninja-pear': PERSONAS['skater-snail'],
+    'lucky-alien': PERSONAS['pocket-robot'],
+    'trickster-fox': PERSONAS['pirate-parrot'],
+    'punk-pineapple': PERSONAS['rockstar-strawberry'],
+    'garden-snail': PERSONAS['skater-snail'],
+    'sleepy-cloud': PERSONAS['moon-bunny'],
+    'explorer-bear': PERSONAS['pancake-bear'],
+    'yoga-yeti': PERSONAS['garden-yeti'],
+    'detective-raccoon': PERSONAS['pocket-robot'],
+    'bookworm-bat': PERSONAS['vampire-penguin'],
+    'scientist-owl': PERSONAS['wizard-frog'],
+    'mechanic-robot': PERSONAS['pocket-robot'],
+    'gamer-cat': PERSONAS['disco-octopus'],
+    'dj-dinosaur': PERSONAS['disco-octopus'],
+    'painter-panda': PERSONAS['garden-yeti'],
+    'karaoke-kiwi': PERSONAS['rockstar-strawberry'],
+    'surfer-shark': PERSONAS['raincoat-duck'],
+    'skater-cactus': PERSONAS['skater-snail'],
+    'chef-dragon': PERSONAS['tea-dragon'],
+    'sailor-banana': PERSONAS['pirate-parrot'],
+    'cosmic-llama': PERSONAS['astronaut-avocado'],
+} as const satisfies Record<string, PersonaArt>
+
+/**
+ * The nine older face keys also remain readable forever. They are never
+ * reoffered and no longer render a human face.
  */
 const LEGACY_FACE_AVATARS = {
     'face-swoop': PERSONAS['vampire-penguin'],
     'face-bob': PERSONAS['cozy-ghost'],
-    'face-crop': PERSONAS['detective-raccoon'],
+    'face-crop': PERSONAS['pocket-robot'],
     'face-long': PERSONAS['astronaut-avocado'],
     'face-bun': PERSONAS['rockstar-strawberry'],
     'face-curls': PERSONAS['disco-octopus'],
-    'face-cap': PERSONAS['skater-cactus'],
-    'face-beard': PERSONAS['explorer-bear'],
+    'face-cap': PERSONAS['skater-snail'],
+    'face-beard': PERSONAS['pancake-bear'],
     'face-bald': PERSONAS['wizard-frog'],
 } as const satisfies Record<string, PersonaArt>
 
@@ -403,23 +229,21 @@ const LEGACY_FACE_AVATARS = {
 export const AVATARS = {
     ...PERSONAS,
     ...CLASSIC_AVATARS,
+    ...RETIRED_PERSONAS,
     ...LEGACY_FACE_AVATARS,
 } as const satisfies Record<string, AvatarArt>
 
 export type AvatarKey = keyof typeof AVATARS
 
-/** The actual picker order; legacy face aliases are deliberately absent. */
+/** The live picker order. Compatibility aliases are deliberately absent. */
 export const AVATAR_KEYS = [...PERSONA_KEYS, ...Object.keys(CLASSIC_AVATARS)] as AvatarKey[]
 
 export const isAvatarKey = (value: unknown): value is AvatarKey =>
     typeof value === 'string' && Object.prototype.hasOwnProperty.call(AVATARS, value)
 
 /**
- * Draw one concrete key. New members store the result immediately, so "random"
- * means random once — never a different character on each phone or render.
- *
- * The optional exclusion makes the picker's re-roll button visibly do
- * something. Supplying the RNG keeps the boundary deterministic in tests.
+ * Draw and persist one concrete key. The optional exclusion makes the re-roll
+ * button visibly do something; injecting the RNG keeps tests deterministic.
  */
 export function randomPersonaKey(exclude: string | null = null, random: () => number = Math.random): PersonaKey {
     const candidates = PERSONA_KEYS.filter((key) => key !== exclude)
@@ -427,11 +251,7 @@ export function randomPersonaKey(exclude: string | null = null, random: () => nu
     return candidates[Math.max(0, index)]
 }
 
-/**
- * Null and retired values should be rare after the backfill. Their render
- * fallback is deliberately fixed: choosing random during render would make two
- * phones disagree. New randomness belongs at the write boundary above.
- */
+/** A neutral defensive render fallback for null or unknown legacy values. */
 export const FALLBACK_AVATAR = CLASSIC_AVATARS['doodle-peanut']
 
 export const avatarArt = (avatar: string | null | undefined, _name?: string): AvatarArt =>
