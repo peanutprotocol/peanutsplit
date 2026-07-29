@@ -56,18 +56,49 @@ const filenameStem = (roomName: string): string =>
         .replace(/^-|-$/g, '')
         .slice(0, 48) || 'split-room'
 
-const titleLines = (title: string): string[] => {
-    const words = title.trim().replace(/\s+/g, ' ').split(' ')
-    const lines: string[] = []
-    for (const word of words) {
-        const current = lines.at(-1)
-        if (!current || (current.length + word.length + 1 > 24 && lines.length < 3)) lines.push(word)
-        else lines[lines.length - 1] = `${current} ${word}`
+export const SHARE_CARD_TITLE_MAX_GRAPHEMES = 14
+
+const segmentGraphemes = (value: string): string[] => {
+    if (typeof Intl.Segmenter === 'function') {
+        return Array.from(
+            new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(value),
+            ({ segment }) => segment
+        )
     }
-    if (lines.length === 0) return ['Split room']
-    const visible = lines.slice(0, 3)
-    if (lines.length > 3 || visible[2]?.length > 24) visible[2] = `${visible[2].slice(0, 21).trimEnd()}...`
-    return visible
+    // Old engines still avoid splitting surrogate pairs. Current supported
+    // browsers take the Segmenter branch, which also preserves ZWJ emoji and
+    // combining-mark clusters.
+    return Array.from(value)
+}
+
+const titleLines = (title: string): string[] => {
+    const remaining = segmentGraphemes(title.trim().replace(/\s+/g, ' '))
+    if (remaining.length === 0) return ['Split room']
+
+    const lines: string[] = []
+    while (remaining.length > 0 && lines.length < 3) {
+        const isLastLine = lines.length === 2
+        if (remaining.length <= SHARE_CARD_TITLE_MAX_GRAPHEMES) {
+            lines.push(remaining.join(''))
+            break
+        }
+        if (isLastLine) {
+            lines.push(
+                `${remaining
+                    .slice(0, SHARE_CARD_TITLE_MAX_GRAPHEMES - 1)
+                    .join('')
+                    .trimEnd()}…`
+            )
+            break
+        }
+
+        const candidate = remaining.slice(0, SHARE_CARD_TITLE_MAX_GRAPHEMES)
+        const lastSpace = candidate.findLastIndex((grapheme) => /^\s$/u.test(grapheme))
+        const take = lastSpace > 0 ? lastSpace : SHARE_CARD_TITLE_MAX_GRAPHEMES
+        lines.push(remaining.splice(0, take).join('').trimEnd())
+        while (remaining[0] && /^\s$/u.test(remaining[0])) remaining.shift()
+    }
+    return lines
 }
 
 /**

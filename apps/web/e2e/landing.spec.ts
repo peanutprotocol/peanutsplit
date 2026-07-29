@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es.json'
@@ -798,6 +799,65 @@ test('the room handoff shares a localized message, the link, and the room drawin
     await expect(page.getByTestId('copy-invite')).toBeVisible()
     await expect(page.getByTestId('download-share-card')).toBeVisible()
     await expect(page.getByTestId('download-share-text')).toBeVisible()
+
+    await page.evaluate(() => {
+        const downloadUrls = { created: [] as string[], revoked: [] as string[] }
+        const originalCreateObjectURL = URL.createObjectURL.bind(URL)
+        const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL)
+        ;(window as Window & { __downloadUrls?: typeof downloadUrls }).__downloadUrls = downloadUrls
+        URL.createObjectURL = (object: Blob | MediaSource) => {
+            const objectUrl = originalCreateObjectURL(object)
+            downloadUrls.created.push(objectUrl)
+            return objectUrl
+        }
+        URL.revokeObjectURL = (objectUrl: string) => {
+            downloadUrls.revoked.push(objectUrl)
+            originalRevokeObjectURL(objectUrl)
+        }
+    })
+
+    const [cardDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('download-share-card').click(),
+    ])
+    expect(cardDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.svg$/)
+    const cardPath = await cardDownload.path()
+    expect(cardPath).not.toBeNull()
+    const cardContents = await readFile(cardPath!, 'utf8')
+    expect(cardContents).toContain('<svg')
+    expect(cardContents).toContain('Share')
+    expect(cardContents).toContain('package')
+    expect(cardContents).toContain(roomName.match(/\d+$/)?.[0])
+    expect(cardContents).not.toContain('/r/')
+    expect(cardContents).not.toContain('Ana')
+
+    const [textDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('download-share-text').click(),
+    ])
+    expect(textDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.txt$/)
+    const textPath = await textDownload.path()
+    expect(textPath).not.toBeNull()
+    const textContents = await readFile(textPath!, 'utf8')
+    expect(textContents).toBe(`Open the link, pick your name, then add what you paid.\n${payload?.url}`)
+    await expect(page.locator('a[download]')).toHaveCount(0)
+    await expect
+        .poll(
+            () =>
+                page.evaluate(() => {
+                    const urls = (
+                        window as Window & {
+                            __downloadUrls?: { created: string[]; revoked: string[] }
+                        }
+                    ).__downloadUrls
+                    return {
+                        created: urls?.created.length ?? 0,
+                        allRevoked: urls?.created.every((url) => urls.revoked.includes(url)) ?? false,
+                    }
+                }),
+            { timeout: 3_000 }
+        )
+        .toEqual({ created: 2, allRevoked: true })
 
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', {

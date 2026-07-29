@@ -31,16 +31,24 @@ export const roomUrl = (slug: string): string =>
         : `${window.location.origin}/r/${slug}`
 
 const download = (contents: BlobPart, type: string, filename: string): boolean => {
+    let objectUrl: string | null = null
+    let anchor: HTMLAnchorElement | null = null
     try {
-        const objectUrl = URL.createObjectURL(new Blob([contents], { type }))
-        const anchor = document.createElement('a')
+        objectUrl = URL.createObjectURL(new Blob([contents], { type }))
+        anchor = document.createElement('a')
         anchor.href = objectUrl
         anchor.download = filename
+        document.body.append(anchor)
         anchor.click()
-        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1_000)
         return true
     } catch {
         return false
+    } finally {
+        anchor?.remove()
+        if (objectUrl) {
+            const urlToRevoke = objectUrl
+            window.setTimeout(() => URL.revokeObjectURL(urlToRevoke), 1_000)
+        }
     }
 }
 
