@@ -5,12 +5,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
-import { SaveRoomsDrawer } from '@/components/account/SaveRoomsDrawer'
 import { Icon } from '@/components/ui/Icon'
-import { accountsEnabled } from '@/lib/flags'
-import { readRecentRooms, ROOMS_CHANGED_EVENT, type RecentRoom } from '@/lib/recent-rooms'
+import { readRecentRooms, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
-import { useAccount } from '@/lib/use-account'
 
 const VISIBLE = 5
 
@@ -36,29 +33,14 @@ const relativeTime = (epochMs: number, locale: string): string => {
  */
 export function YourRooms() {
     const t = useTranslations('marketing.rooms')
-    const tAccount = useTranslations('account')
     const locale = useLocale()
     const [recent, setRecent] = useState<RecentRoom[]>([])
-    const [saveOpen, setSaveOpen] = useState(false)
-    const { data: account, isPending: accountPending } = useAccount()
 
     useEffect(() => {
-        const read = () => setRecent(readRecentRooms())
-        read()
-        // Account recovery writes a dozen rooms into storage while this list is
-        // already mounted. Without the subscription the rooms someone just
-        // signed in to get back only appear on the next reload.
-        window.addEventListener(ROOMS_CHANGED_EVENT, read)
-        return () => window.removeEventListener(ROOMS_CHANGED_EVENT, read)
+        setRecent(readRecentRooms())
     }, [])
 
     if (recent.length === 0) return null
-
-    const signedIn = accountsEnabled() && !!account
-    // Only once we know the answer: offering to save rooms that are already
-    // saved, for the half-second the session query takes, is the one way this
-    // quiet line could read as nagging.
-    const offerToSave = accountsEnabled() && !accountPending && !account
 
     const visible = recent.slice(0, VISIBLE)
     const overflow = recent.length - visible.length
@@ -75,10 +57,7 @@ export function YourRooms() {
         >
             <div className="flex items-baseline justify-between">
                 <h2 className="text-h5">{t('title')}</h2>
-                {/* The whole "synced" affordance: one word swapped in the line
-                    that was already there. An account changes nothing about
-                    these rooms except where else they can be opened. */}
-                <span className="text-sm text-grey-1">{signedIn ? tAccount('synced') : t('subtitle')}</span>
+                <span className="text-sm text-grey-1">{t('subtitle')}</span>
             </div>
 
             <ul className="mt-4 flex flex-col gap-3">
@@ -119,23 +98,6 @@ export function YourRooms() {
             </ul>
 
             {overflow > 0 && <p className="mt-3 text-sm text-grey-1">{t('more', { count: overflow })}</p>}
-
-            {/* A static line under a list somebody is already looking at — no
-                modal, no timer, no dismiss state to remember. The pitch only
-                makes sense once there is something to lose, which is why it
-                lives here and not on an empty landing page. */}
-            {offerToSave && (
-                <button
-                    type="button"
-                    onClick={() => setSaveOpen(true)}
-                    className="mt-3 text-left text-sm text-black underline"
-                    data-testid="save-rooms"
-                >
-                    {tAccount('newPhone')}
-                </button>
-            )}
-
-            {accountsEnabled() && <SaveRoomsDrawer open={saveOpen} onOpenChange={setSaveOpen} />}
         </motion.section>
     )
 }

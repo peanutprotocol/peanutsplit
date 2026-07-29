@@ -24,9 +24,10 @@ untrustworthy.
 2. **Legible maths:** every balance derivable on screen. Cents reconcile visibly. Never "trust us".
 3. **The link is the product:** invite links, OG previews, and the share moment get first-class
    design.
-4. **Anonymous-first, claimable later:** identity lives in localStorage; the schema supports
-   claiming your member into a real account (Google/Apple/Passkey)
-   without migration pain. v1 ships anonymous; claim endpoints come right after.
+4. **Anonymous, with dormant claim hooks:** identity lives in localStorage; the schema retains
+   generic `User` / `AuthAccount` hooks so a future identity decision does not require rewriting
+   member history. V1 ships without account endpoints; adding any login system is a new product
+   decision.
 5. **Mobile-first PWA:** 390×844 is the design target; installable from day one; Capacitor-ready
    structure (no Node APIs in client code).
 
@@ -153,7 +154,7 @@ model FxRate {
   @@unique([base, quote])
 }
 
-// Claim hooks — tables exist now, endpoints ship in the auth wave:
+// Dormant claim hooks — tables exist now; no account endpoints ship:
 model User { id String @id @default(uuid()); createdAt DateTime @default(now()); accounts AuthAccount[] }
 model AuthAccount { id String @id @default(uuid()); userId String; provider String; providerId String; @@unique([provider, providerId]) }
 ```
@@ -304,9 +305,12 @@ backup job. Health check → `/readiness`. **The live topology, the isolation mo
 build-time gotchas live in [`README.md`](../../../README.md) — not here**, so there is one
 description of the deploy rather than two that drift.
 
-## Appendix — the auth/claim wave (first follow-up after the demo)
+## Historical appendix — unshipped auth/claim proposal
 
-Methodology already proven in production on another Next app — port the _decisions_:
+This is not the current roadmap and is not approved for implementation. The
+dormant schema hooks above remain only to avoid rewriting member history if
+identity is reconsidered. These notes preserve the earlier proposal's known
+hazards:
 
 - Sealed-cookie session (no DB session table), maxAge 10y (default session cookies die when iOS
   kills the pinned PWA → forced re-login).
