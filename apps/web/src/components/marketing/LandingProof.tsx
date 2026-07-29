@@ -130,7 +130,10 @@ export function LandingProof() {
             <section data-testid="room-examples" className="landing-room-examples">
                 <div className="landing-room-examples-heading">
                     <p>{t('examples.eyebrow')}</p>
-                    <h2>{t('examples.title')}</h2>
+                    <div className="landing-room-examples-copy">
+                        <h2>{t('examples.title')}</h2>
+                        <span>{t('examples.body')}</span>
+                    </div>
                 </div>
                 <ul>
                     {examples.map((example) => (

@@ -503,11 +503,8 @@
     line-height: 0.92;
 }
 
-.landing-room-examples-heading h2 {
-    margin-top: 0.65rem;
-}
-
-.landing-proof-copy > span {
+.landing-proof-copy > span,
+.landing-room-examples-copy > span {
     display: block;
     max-width: 33rem;
     margin-top: 1.15rem;
@@ -727,6 +724,10 @@
     align-items: end;
     justify-content: space-between;
     gap: 2rem;
+}
+
+.landing-room-examples-copy {
+    min-width: 0;
 }
 
 .landing-room-examples ul {
@@ -953,6 +954,10 @@
 
     .landing-room-examples-heading {
         display: block;
+    }
+
+    .landing-room-examples-copy {
+        margin-top: 0.65rem;
     }
 
     .landing-room-examples ul {

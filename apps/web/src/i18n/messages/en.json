@@ -6,8 +6,8 @@
             "eyebrow": "NO APP FOR YOUR FRIENDS.",
             "title": "PASS IT",
             "controlTitleAccessible": "PASS IT",
-            "titleAccessible": "PASS THE LINK.\nNOT THE SPREADSHEET.",
-            "subtitle": "One room. Every expense. Nobody chasing screenshots.",
+            "titleAccessible": "LINK. SPLIT. DONE.",
+            "subtitle": "Make a room, drop the link, and let everyone add their own.",
             "cta": "Make the link",
             "ctaTrust": "Free · no account needed · nothing to install",
             "linkExplainerTrigger": "How the link works",
@@ -37,8 +37,8 @@
         },
         "proof": {
             "linkIdentity": {
-                "title": "PICK WHO YOU ARE.",
-                "body": "The room is already there. Choose your name from the group—or add it. No account needed, no invite flow, no owner approval.",
+                "title": "WHO ARE YOU?",
+                "body": "Tap your name and you’re in.",
                 "linkLabel": "ROOM LINK",
                 "identityLabel": "Who are you in Lisbon weekend?",
                 "you": "You",
@@ -46,8 +46,8 @@
                 "friendTwo": "Jules"
             },
             "everyoneAdds": {
-                "title": "PAID BY BEA. ADDED BY YOU.",
-                "body": "The room trusts the group. Log your own expense or enter one for someone else, then include exactly who shared it.",
+                "title": "ZERO GROUP MATH.",
+                "body": "Anyone can add. Just pick who actually paid.",
                 "expenseOne": "Bea · train",
                 "expenseOneMeta": "€60 · paid by Bea",
                 "expenseTwo": "Jules · dinner",
@@ -56,8 +56,8 @@
                 "expenseThreeMeta": "on Bea’s behalf"
             },
             "suggestedPlan": {
-                "title": "ONE SUGGESTED PLAN. ZERO GROUP MATH.",
-                "body": "Balances reconcile to the cent, then Split suggests a short list of who should pay whom. Pay however your group already pays.",
+                "title": "WHO PAYS WHO. SORTED.",
+                "body": "Split suggests a simple way to settle.",
                 "planLabel": "SUGGESTED PAYMENT PLAN",
                 "paymentOne": "You pay Bea · €10",
                 "paymentTwo": "You pay Jules · €40"
@@ -70,7 +70,8 @@
             },
             "examples": {
                 "eyebrow": "BUILT FOR THE GROUP CHAT",
-                "title": "ONE LINK FOR WHATEVER YOU’RE SPLITTING.",
+                "title": "SPLIT ANYTHING.",
+                "body": "Trips, dinners, flat bills, and whatever comes next.",
                 "lisbon": {
                     "name": "Lisbon weekend",
                     "meta": "4 friends · EUR · 8 expenses"
@@ -128,7 +129,8 @@
             }
         },
         "finalCta": {
-            "title": "Try it on the next dinner",
+            "title": "YOUR TURN TO SPLIT.",
+            "subtitle": "Make a room for the next thing your group pays for.",
             "button": "Start a split"
         },
         "honesty": {
@@ -199,8 +201,8 @@
             "done": "Got it"
         },
         "readMore": {
-            "toggle": "Not convinced yet? Read more",
-            "toggleHint": "Who made it, why it is free, and the awkward questions.",
+            "toggle": "STILL CURIOUS?",
+            "toggleHint": "Who made Split, why it’s free, and how room links work.",
             "join": {
                 "title": "What your friends see",
                 "roomName": "Ski trip",

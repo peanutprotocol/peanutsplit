@@ -6,8 +6,8 @@
             "eyebrow": "SIN APP PARA TUS AMIGOS.",
             "title": "PASALO",
             "controlTitleAccessible": "PÁSALO",
-            "titleAccessible": "PASÁ EL LINK.\nNO LA PLANILLA.",
-            "subtitle": "Una sala. Todos los gastos. Nadie pidiendo capturas de pantalla.",
+            "titleAccessible": "LINK. DIVIDÍ. LISTO.",
+            "subtitle": "Creá una sala, mandá el link y que cada uno agregue lo suyo.",
             "cta": "Crear el link",
             "ctaTrust": "Gratis · sin cuenta obligatoria · sin instalar nada",
             "linkExplainerTrigger": "Cómo funciona el link",
@@ -37,8 +37,8 @@
         },
         "proof": {
             "linkIdentity": {
-                "title": "ELEGÍ QUIÉN SOS.",
-                "body": "La sala ya está ahí. Elegí tu nombre en el grupo o agregalo. No necesitás una cuenta, invitaciones ni permiso de un dueño.",
+                "title": "¿QUIÉN SOS?",
+                "body": "Tocá tu nombre y ya estás adentro.",
                 "linkLabel": "LINK DE LA SALA",
                 "identityLabel": "¿Quién sos en Finde en Lisboa?",
                 "you": "Vos",
@@ -46,8 +46,8 @@
                 "friendTwo": "Jules"
             },
             "everyoneAdds": {
-                "title": "PAGÓ BEA. LO CARGASTE VOS.",
-                "body": "La sala confía en el grupo. Cargá un gasto tuyo o uno por otra persona, y elegí exactamente quiénes lo comparten.",
+                "title": "CERO CUENTAS EN EL GRUPO.",
+                "body": "Cualquiera puede agregar. Solo elegí quién pagó de verdad.",
                 "expenseOne": "Bea · tren",
                 "expenseOneMeta": "€60 · pagó Bea",
                 "expenseTwo": "Jules · cena",
@@ -56,8 +56,8 @@
                 "expenseThreeMeta": "por Bea"
             },
             "suggestedPlan": {
-                "title": "UN PLAN SUGERIDO. CERO CUENTAS EN EL CHAT.",
-                "body": "Los saldos cierran al centavo y Split sugiere una lista corta de quién le paga a quién. Paguen como ya paga el grupo.",
+                "title": "QUIÉN PAGA A QUIÉN. RESUELTO.",
+                "body": "Split sugiere una forma simple de saldar.",
                 "planLabel": "PLAN DE PAGOS SUGERIDO",
                 "paymentOne": "Le pagás a Bea · €10",
                 "paymentTwo": "Le pagás a Jules · €40"
@@ -70,7 +70,8 @@
             },
             "examples": {
                 "eyebrow": "HECHO PARA EL CHAT DEL GRUPO",
-                "title": "UN LINK PARA LO QUE SEA QUE ESTÉN DIVIDIENDO.",
+                "title": "DIVIDÍ LO QUE SEA.",
+                "body": "Viajes, cenas, cuentas de casa y lo que venga.",
                 "lisbon": {
                     "name": "Finde en Lisboa",
                     "meta": "4 amigos · EUR · 8 gastos"
@@ -128,7 +129,8 @@
             }
         },
         "finalCta": {
-            "title": "Pruébalo en la próxima cena",
+            "title": "AHORA TE TOCA DIVIDIR.",
+            "subtitle": "Creá una sala para lo próximo que pague el grupo.",
             "button": "Empezar a dividir"
         },
         "honesty": {
@@ -199,8 +201,8 @@
             "done": "Listo"
         },
         "readMore": {
-            "toggle": "¿Todavía no te convence? Leé más",
-            "toggleHint": "Quién lo hizo, por qué es gratis y las preguntas incómodas.",
+            "toggle": "¿QUERÉS SABER MÁS?",
+            "toggleHint": "Quién hizo Split, por qué es gratis y cómo funcionan los links de sala.",
             "join": {
                 "title": "Qué ven tus amigos",
                 "roomName": "Viaje a la nieve",
