@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl'
 import { motion, type Variants } from 'motion/react'
 import { Doodle } from '@/components/ui/Doodle'
-import type { DoodleName } from '@/components/ui/doodles'
 import { useMotionAllowed } from '@/lib/use-motion'
+import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 const sceneVariants: Variants = {
     hidden: { opacity: 0 },
@@ -42,11 +42,11 @@ const popVariants: Variants = {
 export function LandingProof() {
     const t = useTranslations('marketing.proof')
     const motionAllowed = useMotionAllowed()
-    const examples: Array<{ doodle: DoodleName; name: string; meta: string }> = [
-        { doodle: 'train', name: t('examples.lisbon.name'), meta: t('examples.lisbon.meta') },
-        { doodle: 'house', name: t('examples.flat.name'), meta: t('examples.flat.meta') },
-        { doodle: 'noodles', name: t('examples.dinner.name'), meta: t('examples.dinner.meta') },
-        { doodle: 'globe', name: t('examples.retreat.name'), meta: t('examples.retreat.meta') },
+    const examples = [
+        { persona: LANDING_CAST.lisbon, name: t('examples.lisbon.name'), meta: t('examples.lisbon.meta') },
+        { persona: LANDING_CAST.flat, name: t('examples.flat.name'), meta: t('examples.flat.meta') },
+        { persona: LANDING_CAST.dinner, name: t('examples.dinner.name'), meta: t('examples.dinner.meta') },
+        { persona: LANDING_CAST.retreat, name: t('examples.retreat.name'), meta: t('examples.retreat.meta') },
     ]
 
     return (
@@ -78,15 +78,15 @@ export function LandingProof() {
                             <small>{t('linkIdentity.identityLabel')}</small>
                             <ul>
                                 <li>
-                                    <i>Y</i>
+                                    <LandingPersona persona={LANDING_CAST.you} size={32} />
                                     {t('linkIdentity.you')}
                                 </li>
                                 <li>
-                                    <i>B</i>
+                                    <LandingPersona persona={LANDING_CAST.bea} size={32} />
                                     {t('linkIdentity.friendOne')}
                                 </li>
                                 <li>
-                                    <i>J</i>
+                                    <LandingPersona persona={LANDING_CAST.jules} size={32} />
                                     {t('linkIdentity.friendTwo')}
                                 </li>
                             </ul>
@@ -112,21 +112,21 @@ export function LandingProof() {
                 <motion.div className="landing-proof-visual" variants={popVariants}>
                     <ul className="landing-proof-expenses" aria-hidden="true">
                         <li>
-                            <Doodle name="train" size={30} weight={1.7} />
+                            <LandingPersona persona={LANDING_CAST.bea} size={42} />
                             <span>
                                 <b>{t('everyoneAdds.expenseOne')}</b>
                                 <small>{t('everyoneAdds.expenseOneMeta')}</small>
                             </span>
                         </li>
                         <li>
-                            <Doodle name="noodles" size={30} weight={1.7} />
+                            <LandingPersona persona={LANDING_CAST.jules} size={42} />
                             <span>
                                 <b>{t('everyoneAdds.expenseTwo')}</b>
                                 <small>{t('everyoneAdds.expenseTwoMeta')}</small>
                             </span>
                         </li>
                         <li>
-                            <Doodle name="taxi" size={30} weight={1.7} />
+                            <LandingPersona persona={LANDING_CAST.ana} size={42} />
                             <span>
                                 <b>{t('everyoneAdds.expenseThree')}</b>
                                 <small>{t('everyoneAdds.expenseThreeMeta')}</small>
@@ -154,16 +154,16 @@ export function LandingProof() {
                     <div className="landing-proof-plan" aria-hidden="true">
                         <span>{t('suggestedPlan.planLabel')}</span>
                         <p>
-                            <i>Y</i>
+                            <LandingPersona persona={LANDING_CAST.you} size={32} />
                             <b>{t('suggestedPlan.paymentOne')}</b>
                             <Doodle name="iconarrowright" size={25} weight={2.2} />
-                            <i>B</i>
+                            <LandingPersona persona={LANDING_CAST.bea} size={32} />
                         </p>
                         <p>
-                            <i>Y</i>
+                            <LandingPersona persona={LANDING_CAST.you} size={32} />
                             <b>{t('suggestedPlan.paymentTwo')}</b>
                             <Doodle name="iconarrowright" size={25} weight={2.2} />
-                            <i>J</i>
+                            <LandingPersona persona={LANDING_CAST.jules} size={32} />
                         </p>
                     </div>
                 </motion.div>
@@ -214,7 +214,7 @@ export function LandingProof() {
                 <motion.ul variants={sceneVariants}>
                     {examples.map((example) => (
                         <motion.li key={example.name} variants={popVariants}>
-                            <Doodle name={example.doodle} size={38} weight={1.6} />
+                            <LandingPersona persona={example.persona} size={46} />
                             <span>
                                 <b>{example.name}</b>
                                 <small>{example.meta}</small>

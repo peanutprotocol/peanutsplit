@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode, SyntheticEvent } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { motion } from 'motion/react'
@@ -11,6 +10,7 @@ import { Icon } from '@/components/ui/Icon'
 import { splitV2Enabled } from '@/lib/flags'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 function Fold({
     title,
@@ -73,8 +73,8 @@ export function ReadMore() {
         { key: 'peanut', doodle: 'peanut' },
     ]
     const team = [
-        { key: 'konrad', portrait: '/doodles/portraits/konrad.webp' },
-        { key: 'hugo', portrait: '/doodles/portraits/hugo.webp' },
+        { key: 'konrad', persona: LANDING_CAST.konrad },
+        { key: 'hugo', persona: LANDING_CAST.hugo },
     ] as const
     const points = ['built', 'free', 'data'] as const
     const questions = ['retype', 'access', 'lost', 'limits'] as const
@@ -147,18 +147,12 @@ export function ReadMore() {
                     <Fold title={t('team.title')} onToggle={onToggle}>
                         <p className="max-w-xl text-sm leading-5 text-grey-1">{t('team.intro')}</p>
                         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                            {team.map(({ key, portrait }) => (
+                            {team.map(({ key, persona }) => (
                                 <li
                                     key={key}
                                     className="flex items-start gap-4 rounded-sm border border-n-1 bg-white p-4"
                                 >
-                                    <Image
-                                        src={portrait}
-                                        alt=""
-                                        width={80}
-                                        height={80}
-                                        className="size-20 shrink-0 rounded-sm border border-n-1 object-cover"
-                                    />
+                                    <LandingPersona persona={persona} size={80} className="shrink-0" />
                                     <div className="min-w-0">
                                         <p className="text-sm leading-5 text-n-1">“{t(`team.${key}.quote`)}”</p>
                                         <p className="mt-2 text-h8">
