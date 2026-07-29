@@ -12,6 +12,10 @@
  * date span, the top-payer tie-break, the settled fold — are testable without a
  * rasterizer or a database.
  */
+import { type DoodleName } from '@/components/ui/doodles'
+import { FALLBACK_DOODLE } from '@/lib/room-doodle'
+import { emblemDoodle } from '@/lib/room-emblem'
+import { daySpan } from '@/lib/story'
 import { prisma } from '@/server/db'
 import { balancesOf, type BalanceInput } from '@/server/roomState'
 import { avatarsFor, safeAmount, sanitizeDisplayName, sanitizeMemberName, type OgAvatar } from '@/server/og/roomCard'
@@ -56,6 +60,8 @@ export interface RecapCardData {
     name: string
     /** Raw emoji as stored — the renderer resolves it to an image, not a glyph. */
     emoji: string | null
+    /** The room's character, for the story strip — always a drawable doodle. */
+    emblem: DoodleName
     /** The hero number: "€2340.00". */
     total: string
     /** "9 days · 14 expenses · 6 people" */
@@ -65,28 +71,6 @@ export interface RecapCardData {
     avatars: OgAvatar[]
     overflow: number
     settled: boolean
-}
-
-const DAY_MS = 86_400_000
-
-/**
- * Days elapsed, counted in UTC calendar days and inclusive of both ends: one
- * expense is one day, not zero.
- *
- * UTC rather than a reader's zone because the recap has to say the same thing to
- * everyone in the group — a card rendered for a crawler in Frankfurt and a page
- * read in São Paulo must not disagree about whether the trip was 9 days or 10.
- */
-export function daySpan(dates: readonly Date[]): number {
-    if (dates.length === 0) return 0
-    let min = Infinity
-    let max = -Infinity
-    for (const date of dates) {
-        const day = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / DAY_MS)
-        if (day < min) min = day
-        if (day > max) max = day
-    }
-    return max - min + 1
 }
 
 /**
@@ -175,6 +159,9 @@ export function toRecapCard(recap: RoomRecap): RecapCardData {
     return {
         name: sanitizeDisplayName(recap.name),
         emoji: recap.emoji,
+        // The story strip's lead character — RoomEmblem's exact chain, so the
+        // strip can never disagree with the emblem drawn beside the room name.
+        emblem: emblemDoodle(recap.emoji) ?? FALLBACK_DOODLE,
         total: safeAmount(BigInt(recap.totalMinor), recap.currency),
         stat: recapStatLine(recap),
         topPayer,

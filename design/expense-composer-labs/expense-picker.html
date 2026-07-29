@@ -1,0 +1,1877 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>PeanutSplit · Add expense lab</title>
+		<style>
+			@font-face {
+				font-family: Sniglet;
+				src: url('../../apps/web/public/fonts/sniglet-regular.ttf') format('truetype');
+				font-weight: 400;
+			}
+			@font-face {
+				font-family: Sniglet;
+				src: url('../../apps/web/public/fonts/sniglet-extrabold.ttf') format('truetype');
+				font-weight: 800;
+			}
+			@font-face {
+				font-family: Knerd;
+				src: url('../../apps/web/public/fonts/knerd-filled.ttf') format('truetype');
+				font-weight: 900;
+			}
+			:root {
+				--ink: #211c17;
+				--paper: #fffdfa;
+				--cream: #f7f0ea;
+				--yellow: #ffc900;
+				--pink: #ff90e8;
+				--mint: #a9f7c7;
+				--blue: #a8d8ff;
+				--muted: #706b68;
+				--line: 2px solid var(--ink);
+				--shadow: 4px 5px 0 var(--ink);
+				--r: 16px;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html {
+				background: var(--cream);
+			}
+			body {
+				margin: 0;
+				color: var(--ink);
+				font-family: Sniglet, system-ui, sans-serif;
+				font-size: 16px;
+			}
+			button,
+			input {
+				font: inherit;
+				color: inherit;
+			}
+			button {
+				cursor: pointer;
+			}
+			button:focus-visible,
+			input:focus-visible {
+				outline: 3px solid var(--pink);
+				outline-offset: 2px;
+			}
+			.dicon {
+				width: 22px;
+				height: 22px;
+				display: block;
+				fill: none;
+				stroke: currentColor;
+				stroke-width: 2.2;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+			.topbar {
+				min-height: 70px;
+				padding: 12px 18px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 18px;
+				border-bottom: var(--line);
+				background: var(--yellow);
+				position: sticky;
+				top: 0;
+				z-index: 100;
+			}
+			.brand {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				min-width: 0;
+			}
+			.brand-mark {
+				width: 43px;
+				height: 43px;
+				display: grid;
+				place-items: center;
+				border: var(--line);
+				border-radius: 48% 52% 45% 55%;
+				background: var(--paper);
+				transform: rotate(-2deg);
+				box-shadow: 2px 2px 0 var(--ink);
+			}
+			.brand-mark svg {
+				width: 29px;
+				height: 29px;
+			}
+			.brand h1 {
+				font:
+					900 clamp(20px, 3vw, 31px)/0.96 Knerd,
+					Sniglet,
+					sans-serif;
+				margin: 0;
+				letter-spacing: 0.02em;
+			}
+			.brand p {
+				margin: 3px 0 0;
+				font-size: 12px;
+				font-weight: 800;
+				letter-spacing: 0.04em;
+			}
+			.top-actions {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.pill-button,
+			.select-button {
+				min-height: 42px;
+				border: var(--line);
+				border-radius: 999px;
+				background: var(--paper);
+				padding: 8px 13px;
+				font-weight: 800;
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				box-shadow: 2px 3px 0 var(--ink);
+			}
+			.select-button[aria-pressed='true'] {
+				background: var(--mint);
+			}
+			.lab {
+				display: grid;
+				grid-template-columns: 280px minmax(0, 1fr);
+				min-height: calc(100vh - 70px);
+			}
+			.rail {
+				padding: 20px 14px 32px;
+				border-right: var(--line);
+				background: #f5eee8;
+				position: sticky;
+				top: 70px;
+				height: calc(100vh - 70px);
+				overflow: auto;
+			}
+			.rail::-webkit-scrollbar {
+				width: 7px;
+			}
+			.rail::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			.rail::-webkit-scrollbar-thumb {
+				background: var(--ink);
+				border: 2px solid #f5eee8;
+				border-radius: 99px;
+			}
+			.rail-head {
+				padding: 0 7px 13px;
+			}
+			.rail-head strong {
+				display: block;
+				font-size: 13px;
+				text-transform: uppercase;
+				letter-spacing: 0.09em;
+			}
+			.rail-head span {
+				display: block;
+				color: var(--muted);
+				font-size: 12px;
+				margin-top: 4px;
+			}
+			.concept-nav {
+				display: grid;
+				gap: 8px;
+			}
+			.concept-tab {
+				width: 100%;
+				min-height: 68px;
+				text-align: left;
+				border: 2px solid transparent;
+				border-radius: 13px;
+				background: transparent;
+				padding: 10px 11px;
+				display: grid;
+				grid-template-columns: 32px 1fr;
+				align-items: start;
+				gap: 8px;
+			}
+			.concept-tab:hover {
+				background: #fff8da;
+			}
+			.concept-tab[aria-current='true'] {
+				border-color: var(--ink);
+				background: var(--paper);
+				box-shadow: 3px 4px 0 var(--ink);
+				transform: translate(-1px, -1px);
+			}
+			.concept-num {
+				width: 29px;
+				height: 29px;
+				border: var(--line);
+				border-radius: 50% 45% 52% 48%;
+				display: grid;
+				place-items: center;
+				background: var(--yellow);
+				font-weight: 800;
+				transform: rotate(-3deg);
+			}
+			.concept-tab:nth-child(3n + 2) .concept-num {
+				background: var(--pink);
+				transform: rotate(2deg);
+			}
+			.concept-tab:nth-child(3n) .concept-num {
+				background: var(--blue);
+				transform: rotate(-1deg);
+			}
+			.concept-copy strong {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				font-size: 14px;
+				line-height: 1.05;
+			}
+			.concept-copy small {
+				display: block;
+				color: var(--muted);
+				font-size: 11px;
+				line-height: 1.25;
+				margin-top: 5px;
+			}
+			.mini-star {
+				font-size: 9px;
+				border: 1.5px solid var(--ink);
+				border-radius: 99px;
+				background: var(--yellow);
+				padding: 2px 5px;
+				text-transform: uppercase;
+			}
+			.workspace {
+				min-width: 0;
+				padding: 22px;
+				display: grid;
+				grid-template-columns: minmax(410px, 1fr) minmax(260px, 340px);
+				gap: 22px;
+				align-items: start;
+			}
+			.preview-panel {
+				min-width: 0;
+			}
+			.preview-toolbar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+				margin: 0 auto 12px;
+				max-width: 520px;
+			}
+			.preview-title strong {
+				display: block;
+				font-size: 17px;
+			}
+			.preview-title span {
+				display: block;
+				color: var(--muted);
+				font-size: 12px;
+				margin-top: 2px;
+			}
+			.viewport-switch {
+				display: flex;
+				padding: 3px;
+				border: var(--line);
+				border-radius: 99px;
+				background: var(--paper);
+			}
+			.viewport-switch button {
+				border: 0;
+				border-radius: 99px;
+				background: transparent;
+				padding: 6px 9px;
+				font-size: 11px;
+				font-weight: 800;
+			}
+			.viewport-switch button.active {
+				background: var(--ink);
+				color: white;
+			}
+			.stage {
+				min-height: calc(100vh - 138px);
+				border: var(--line);
+				border-radius: 22px;
+				background-color: #eadfd5;
+				background-image: radial-gradient(#cdbbae 1.1px, transparent 1.1px);
+				background-size: 18px 18px;
+				display: grid;
+				place-items: center;
+				padding: 20px;
+				overflow: hidden;
+				position: relative;
+			}
+			.stage:before,
+			.stage:after {
+				content: '';
+				position: absolute;
+				width: 65px;
+				height: 25px;
+				border: 2px solid var(--ink);
+				opacity: 0.15;
+				border-radius: 50%;
+				transform: rotate(-12deg);
+			}
+			.stage:before {
+				left: 6%;
+				top: 9%;
+				border-bottom-color: transparent;
+			}
+			.stage:after {
+				right: 5%;
+				bottom: 8%;
+				transform: rotate(15deg);
+				border-top-color: transparent;
+			}
+			.phone {
+				--phone-w: 390px;
+				width: min(var(--phone-w), 100%);
+				height: min(750px, calc(100vh - 178px));
+				min-height: 610px;
+				border: 3px solid var(--ink);
+				border-radius: 28px;
+				background: var(--cream);
+				box-shadow: 8px 10px 0 var(--ink);
+				overflow: hidden;
+				position: relative;
+				transition: width 0.2s ease;
+				z-index: 1;
+			}
+			.phone.wide {
+				--phone-w: 430px;
+			}
+			.sheet-head {
+				height: 56px;
+				position: relative;
+				z-index: 5;
+				background: rgba(247, 240, 234, 0.95);
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 8px 15px;
+				border-bottom: 2px solid transparent;
+			}
+			.sheet-title {
+				font-size: 18px;
+				font-weight: 800;
+			}
+			.drag {
+				position: absolute;
+				width: 38px;
+				height: 5px;
+				border-radius: 99px;
+				background: var(--ink);
+				left: 50%;
+				top: 8px;
+				transform: translateX(-50%);
+			}
+			.sheet-title {
+				padding-top: 8px;
+			}
+			.x-button {
+				width: 38px;
+				height: 38px;
+				padding: 7px;
+				border: var(--line);
+				border-radius: 50% 44% 52% 46%;
+				background: var(--paper);
+				display: grid;
+				place-items: center;
+				transform: rotate(2deg);
+			}
+			.x-button:hover {
+				background: var(--pink);
+				transform: rotate(-3deg);
+			}
+			.screen-scroll {
+				height: calc(100% - 56px);
+				overflow-y: auto;
+				overflow-x: hidden;
+				padding: 12px 16px 96px;
+				scrollbar-width: thin;
+				scrollbar-color: var(--ink) transparent;
+			}
+			.screen-scroll::-webkit-scrollbar {
+				width: 7px;
+			}
+			.screen-scroll::-webkit-scrollbar-track {
+				background: transparent;
+				margin: 6px 0 90px;
+			}
+			.screen-scroll::-webkit-scrollbar-thumb {
+				background: var(--ink);
+				border: 2px solid var(--cream);
+				border-radius: 99px;
+			}
+			.screen-scroll.no-native-scrollbar {
+				scrollbar-width: none;
+			}
+			.screen-scroll.no-native-scrollbar::-webkit-scrollbar {
+				display: none;
+			}
+			.form-stack {
+				display: grid;
+				gap: 13px;
+			}
+			.marker-box {
+				border: var(--line);
+				border-radius: var(--r);
+				background: var(--paper);
+			}
+			.amount-row {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 125px;
+				gap: 9px;
+			}
+			.amount-input {
+				width: 100%;
+				height: 68px;
+				border: var(--line);
+				border-radius: var(--r);
+				background: var(--paper);
+				padding: 6px 15px;
+				font-size: 32px;
+				font-weight: 800;
+				font-variant-numeric: tabular-nums;
+			}
+			.currency-trigger {
+				height: 68px;
+				width: 100%;
+				border: var(--line);
+				border-radius: var(--r);
+				background: var(--paper);
+				padding: 7px 11px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 7px;
+				font-weight: 800;
+			}
+			.currency-value {
+				display: flex;
+				align-items: center;
+				gap: 7px;
+			}
+			.currency-doodle {
+				width: 30px;
+				height: 30px;
+				border: 2px solid var(--ink);
+				border-radius: 53% 47% 44% 56%;
+				display: grid;
+				place-items: center;
+				background: var(--yellow);
+				font-size: 14px;
+				font-weight: 800;
+				transform: rotate(-4deg);
+			}
+			.currency-trigger:hover .currency-doodle {
+				transform: rotate(3deg);
+			}
+			.text-input {
+				width: 100%;
+				height: 58px;
+				border: var(--line);
+				border-radius: var(--r);
+				background: var(--paper);
+				padding: 8px 14px;
+				font-weight: 800;
+			}
+			.text-input::placeholder {
+				color: #686461;
+				opacity: 1;
+			}
+			.underline-input {
+				width: 100%;
+				height: 48px;
+				border: 0;
+				border-bottom: 3px solid var(--ink);
+				background: transparent;
+				padding: 6px 4px;
+				font-size: 18px;
+				font-weight: 800;
+			}
+			.chip-row {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				align-items: center;
+			}
+			.control-chip {
+				min-height: 44px;
+				border: var(--line);
+				border-radius: 99px;
+				background: var(--paper);
+				padding: 6px 10px;
+				display: inline-flex;
+				align-items: center;
+				gap: 7px;
+				font-weight: 800;
+				white-space: nowrap;
+			}
+			.control-chip.active,
+			.control-chip:hover {
+				background: #fff3b5;
+			}
+			.control-chip.pink {
+				background: #ffd0f1;
+			}
+			.control-chip.mint {
+				background: #d3f9df;
+			}
+			.avatar {
+				width: 28px;
+				height: 28px;
+				flex: 0 0 28px;
+				border: 2px solid var(--ink);
+				border-radius: 48% 52% 45% 55%;
+				background: var(--avatar, #ffb8e9);
+				overflow: hidden;
+				display: grid;
+				place-items: end center;
+				transform: rotate(var(--tilt, -2deg));
+			}
+			.avatar svg {
+				width: 25px;
+				height: 25px;
+				fill: none;
+				stroke: var(--ink);
+				stroke-width: 1.7;
+				stroke-linecap: round;
+			}
+			.avatar-stack {
+				display: flex;
+				align-items: center;
+				padding-left: 4px;
+			}
+			.avatar-stack .avatar {
+				margin-left: -7px;
+			}
+			.avatar-stack .avatar:first-child {
+				margin-left: 0;
+			}
+			.avatar[data-off='true'] {
+				opacity: 0.35;
+				filter: grayscale(1);
+			}
+			.sentence-line {
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+				gap: 7px;
+				font-size: 19px;
+				font-weight: 800;
+				line-height: 1.55;
+			}
+			.sentence-line + .sentence-line {
+				margin-top: 9px;
+			}
+			.word-control {
+				border: 0;
+				border-bottom: 3px solid var(--ink);
+				background: #fff4af;
+				padding: 2px 5px;
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				font-weight: 800;
+				border-radius: 8px 8px 3px 3px;
+			}
+			.word-control:hover {
+				background: var(--pink);
+			}
+			.hint {
+				margin: 0;
+				color: var(--muted);
+				font-size: 12px;
+				line-height: 1.35;
+			}
+			.semantic-line {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+			}
+			.semantic-line > strong {
+				font-size: 14px;
+			}
+			.divider {
+				height: 2px;
+				background: var(--ink);
+				opacity: 0.12;
+				margin: 2px 0;
+			}
+			.cta {
+				min-height: 56px;
+				width: 100%;
+				border: var(--line);
+				border-radius: 16px 14px 18px 13px;
+				background: var(--yellow);
+				font-size: 18px;
+				font-weight: 800;
+				box-shadow: 4px 5px 0 var(--ink);
+			}
+			.cta:hover {
+				transform: translate(2px, 2px);
+				box-shadow: 2px 3px 0 var(--ink);
+			}
+			.sticky-cta {
+				position: absolute;
+				z-index: 8;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				padding: 12px 16px 17px;
+				background: linear-gradient(transparent, var(--cream) 22%);
+			}
+			.composer {
+				border: 3px solid var(--ink);
+				border-radius: 21px 16px 23px 18px;
+				background: var(--paper);
+				box-shadow: 4px 5px 0 #d2b64e;
+				overflow: visible;
+			}
+			.composer-main {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto;
+				align-items: center;
+				padding: 11px 11px 9px 15px;
+			}
+			.composer-main input {
+				width: 100%;
+				border: 0;
+				outline: 0;
+				background: transparent;
+				font-size: 36px;
+				font-weight: 800;
+				font-variant-numeric: tabular-nums;
+			}
+			.composer .currency-trigger {
+				height: 50px;
+				width: auto;
+				border-radius: 14px;
+			}
+			.composer-desc {
+				border: 0;
+				border-top: 2px dashed #a49d96;
+				border-bottom: 2px dashed #a49d96;
+				width: 100%;
+				height: 58px;
+				padding: 8px 15px;
+				background: transparent;
+				font-weight: 800;
+			}
+			.composer-tools {
+				display: grid;
+				grid-template-columns: 1.2fr 1.5fr 0.85fr;
+				gap: 0;
+				padding: 7px;
+			}
+			.composer-tools .tool {
+				min-height: 47px;
+				border: 0;
+				background: transparent;
+				border-right: 2px solid #ddd2c8;
+				padding: 5px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				font-size: 12px;
+				font-weight: 800;
+			}
+			.composer-tools .tool:last-child {
+				border-right: 0;
+			}
+			.hero-amount {
+				text-align: center;
+				padding: 12px 0 5px;
+			}
+			.hero-number {
+				font-size: 64px;
+				font-weight: 800;
+				line-height: 0.95;
+				font-variant-numeric: tabular-nums;
+				display: block;
+			}
+			.hero-currency {
+				margin: 8px auto 0;
+			}
+			.marker-underline {
+				position: relative;
+				padding-bottom: 5px;
+			}
+			.marker-underline:after {
+				content: '';
+				position: absolute;
+				height: 5px;
+				left: 3%;
+				right: 1%;
+				bottom: 0;
+				background: var(--yellow);
+				border-radius: 50%;
+				transform: rotate(-1deg);
+				z-index: -1;
+			}
+			.people-map {
+				display: grid;
+				grid-template-columns: 1fr 55px 1fr;
+				align-items: center;
+				gap: 7px;
+				padding: 15px 8px;
+			}
+			.map-person,
+			.map-group {
+				display: grid;
+				justify-items: center;
+				gap: 7px;
+			}
+			.map-person .avatar {
+				width: 55px;
+				height: 55px;
+			}
+			.map-person .avatar svg {
+				width: 48px;
+				height: 48px;
+			}
+			.map-label {
+				font-size: 12px;
+				font-weight: 800;
+				text-align: center;
+			}
+			.sketch-arrow svg {
+				width: 54px;
+				height: 36px;
+				fill: none;
+				stroke: var(--ink);
+				stroke-width: 2.5;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+			.segmented {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				border: var(--line);
+				border-radius: 99px;
+				padding: 3px;
+				background: var(--paper);
+			}
+			.segmented button {
+				border: 0;
+				border-radius: 99px;
+				min-height: 38px;
+				background: transparent;
+				font-weight: 800;
+				font-size: 12px;
+			}
+			.segmented button.active {
+				background: var(--ink);
+				color: white;
+			}
+			.defaults-strip {
+				border: 2px dashed var(--ink);
+				border-radius: 14px;
+				padding: 10px 11px;
+				background: #fff8d9;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 8px;
+				font-size: 13px;
+				font-weight: 800;
+			}
+			.edit-dot {
+				width: 32px;
+				height: 32px;
+				border: var(--line);
+				border-radius: 50%;
+				background: var(--paper);
+				display: grid;
+				place-items: center;
+				flex: 0 0 32px;
+			}
+			details.more {
+				border: var(--line);
+				border-radius: 14px;
+				background: var(--paper);
+				overflow: hidden;
+			}
+			details.more summary {
+				list-style: none;
+				padding: 12px;
+				font-weight: 800;
+				cursor: pointer;
+				display: flex;
+				justify-content: space-between;
+			}
+			details.more summary::-webkit-details-marker {
+				display: none;
+			}
+			details.more[open] summary {
+				border-bottom: 2px dashed #aaa;
+			}
+			.more-body {
+				padding: 12px;
+				display: grid;
+				gap: 9px;
+			}
+			.receipt {
+				position: relative;
+				background: var(--paper);
+				border: 3px solid var(--ink);
+				border-radius: 8px 8px 17px 13px;
+				padding: 16px 14px 24px;
+				box-shadow: 4px 5px 0 #d3c5ba;
+			}
+			.receipt:after {
+				content: '';
+				position: absolute;
+				left: 5px;
+				right: 5px;
+				bottom: -2px;
+				height: 10px;
+				background: linear-gradient(135deg, transparent 6px, var(--cream) 0) 0 0/12px 12px repeat-x;
+			}
+			.receipt-amount {
+				display: grid;
+				grid-template-columns: 1fr auto;
+				align-items: center;
+				border-bottom: 2px dashed #aaa;
+				padding-bottom: 9px;
+			}
+			.receipt-amount input {
+				min-width: 0;
+				border: 0;
+				background: transparent;
+				font-size: 42px;
+				font-weight: 800;
+				width: 100%;
+			}
+			.receipt-line {
+				display: grid;
+				grid-template-columns: 35px 1fr auto;
+				align-items: center;
+				gap: 8px;
+				padding: 10px 0;
+				border-bottom: 2px dashed #d9d0ca;
+				font-weight: 800;
+			}
+			.receipt-line:last-child {
+				border-bottom: 0;
+			}
+			.line-doodle {
+				width: 31px;
+				height: 31px;
+				border: var(--line);
+				border-radius: 45% 55% 48% 52%;
+				display: grid;
+				place-items: center;
+				background: #fff1a8;
+			}
+			.thumb-space {
+				min-height: 210px;
+				display: grid;
+				align-content: start;
+				gap: 8px;
+			}
+			.thumb-dock {
+				border: 3px solid var(--ink);
+				border-radius: 24px 18px 0 0;
+				background: var(--paper);
+				padding: 12px 12px 8px;
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: 6;
+				box-shadow: 0 -4px 0 #f3d45a;
+			}
+			.dock-handle {
+				width: 38px;
+				height: 5px;
+				border-radius: 99px;
+				background: var(--ink);
+				margin: 0 auto 11px;
+			}
+			.dock-tools {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 7px;
+				margin-bottom: 10px;
+			}
+			.dock-tool {
+				min-height: 54px;
+				border: var(--line);
+				border-radius: 13px;
+				background: var(--cream);
+				display: grid;
+				place-items: center;
+				gap: 1px;
+				padding: 5px;
+				font-size: 10px;
+				font-weight: 800;
+			}
+			.dock-tool .dicon {
+				width: 19px;
+				height: 19px;
+			}
+			.panel {
+				position: absolute;
+				z-index: 30;
+				display: none;
+			}
+			.panel.open {
+				display: block;
+				animation: pop 0.14s ease-out;
+			}
+			@keyframes pop {
+				from {
+					transform: translateY(-3px) scale(0.98);
+					opacity: 0;
+				}
+				to {
+					transform: none;
+					opacity: 1;
+				}
+			}
+			.currency-pop {
+				width: 174px;
+				border: 3px solid var(--ink);
+				border-radius: 17px 13px 18px 14px;
+				background: var(--paper);
+				box-shadow: 5px 6px 0 var(--ink);
+				padding: 6px;
+			}
+			.currency-option {
+				width: 100%;
+				min-height: 47px;
+				border: 0;
+				border-radius: 11px;
+				background: transparent;
+				padding: 5px 7px;
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				font-weight: 800;
+			}
+			.currency-option:hover,
+			.currency-option[aria-selected='true'] {
+				background: #fff0a2;
+			}
+			.currency-option .currency-doodle {
+				width: 29px;
+				height: 29px;
+			}
+			.currency-tray {
+				left: 8px;
+				right: 8px;
+				bottom: 8px !important;
+				top: auto !important;
+				border: 3px solid var(--ink);
+				border-radius: 24px 19px 20px 18px;
+				background: var(--paper);
+				box-shadow: 0 -6px 0 rgba(33, 28, 23, 0.16);
+				padding: 13px;
+			}
+			.tray-head {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 10px;
+			}
+			.tray-head strong {
+				font-size: 18px;
+			}
+			.tray-search {
+				width: 100%;
+				min-height: 46px;
+				border: var(--line);
+				border-radius: 13px;
+				padding: 7px 11px;
+				background: var(--cream);
+				margin-bottom: 9px;
+			}
+			.currency-grid {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 7px;
+			}
+			.currency-grid .currency-option {
+				border: var(--line);
+				display: grid;
+				justify-items: center;
+				gap: 2px;
+				padding: 7px 3px;
+			}
+			.backdrop {
+				position: absolute;
+				inset: 0;
+				background: rgba(33, 28, 23, 0.27);
+				z-index: 25;
+				display: none;
+			}
+			.backdrop.open {
+				display: block;
+			}
+			.notes {
+				position: sticky;
+				top: 92px;
+			}
+			.note-card {
+				border: var(--line);
+				border-radius: 18px 14px 20px 16px;
+				background: var(--paper);
+				box-shadow: var(--shadow);
+				padding: 17px;
+			}
+			.note-kicker {
+				text-transform: uppercase;
+				font-size: 11px;
+				letter-spacing: 0.1em;
+				font-weight: 800;
+				color: var(--muted);
+			}
+			.note-card h2 {
+				font:
+					900 26px/1 Knerd,
+					Sniglet,
+					sans-serif;
+				margin: 7px 0 8px;
+			}
+			.note-card > p {
+				margin: 0;
+				color: var(--muted);
+				font-size: 13px;
+				line-height: 1.45;
+			}
+			.score-row {
+				display: flex;
+				gap: 7px;
+				flex-wrap: wrap;
+				margin: 14px 0;
+			}
+			.score {
+				border: 1.5px solid var(--ink);
+				border-radius: 99px;
+				padding: 4px 7px;
+				font-size: 10px;
+				font-weight: 800;
+				background: #fff8da;
+			}
+			.note-block {
+				border-top: 2px dashed #d2c9c1;
+				padding-top: 12px;
+				margin-top: 12px;
+			}
+			.note-block strong {
+				display: block;
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+				margin-bottom: 6px;
+			}
+			.note-block p {
+				font-size: 12px;
+				line-height: 1.45;
+				margin: 0;
+			}
+			.pick-card {
+				margin-top: 12px;
+				border: var(--line);
+				border-radius: 14px;
+				background: var(--yellow);
+				padding: 12px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+			}
+			.pick-card span {
+				font-size: 12px;
+				font-weight: 800;
+			}
+			.pick-card button {
+				min-height: 38px;
+				border: var(--line);
+				border-radius: 99px;
+				background: var(--paper);
+				font-weight: 800;
+				padding: 6px 10px;
+			}
+			.picked-list {
+				margin-top: 12px;
+				padding: 12px;
+				border: 2px dashed var(--ink);
+				border-radius: 14px;
+				font-size: 12px;
+				background: #fff8da;
+			}
+			.picked-list strong {
+				display: block;
+				margin-bottom: 4px;
+			}
+			.picked-list span {
+				color: var(--muted);
+			}
+			.audit-card {
+				margin-top: 15px;
+				border: var(--line);
+				border-radius: 17px;
+				background: #dff6ff;
+				box-shadow: 3px 4px 0 var(--ink);
+				overflow: hidden;
+			}
+			.audit-card.labels {
+				background: #ffd6f3;
+			}
+			.audit-card summary {
+				list-style: none;
+				cursor: pointer;
+				padding: 13px 14px;
+				font-weight: 800;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 8px;
+			}
+			.audit-card summary::-webkit-details-marker {
+				display: none;
+			}
+			.audit-card[open] summary {
+				border-bottom: 2px dashed var(--ink);
+			}
+			.audit-body {
+				padding: 13px 14px;
+				background: var(--paper);
+			}
+			.audit-body p {
+				margin: 0 0 9px;
+				font-size: 12px;
+				line-height: 1.4;
+			}
+			.audit-body ol {
+				margin: 0;
+				padding-left: 18px;
+			}
+			.audit-body li {
+				font-size: 11px;
+				line-height: 1.4;
+				margin: 6px 0;
+			}
+			.audit-count {
+				border: 1.5px solid var(--ink);
+				border-radius: 99px;
+				background: var(--yellow);
+				padding: 3px 7px;
+				font-size: 10px;
+			}
+			.microcopy {
+				font-size: 11px;
+				color: var(--muted);
+				text-align: center;
+				margin: 7px 0 0;
+			}
+			.sr-only {
+				position: absolute !important;
+				width: 1px !important;
+				height: 1px !important;
+				padding: 0 !important;
+				margin: -1px !important;
+				overflow: hidden !important;
+				clip: rect(0, 0, 0, 0) !important;
+				white-space: nowrap !important;
+				border: 0 !important;
+			}
+			.shake-line {
+				display: block;
+				width: 70%;
+				height: 5px;
+				border-radius: 50%;
+				background: var(--ink);
+				opacity: 0.15;
+				margin: 7px auto;
+				transform: rotate(-1deg);
+			}
+			@media (max-width: 980px) {
+				.lab {
+					grid-template-columns: 1fr;
+				}
+				.rail {
+					position: sticky;
+					top: 70px;
+					z-index: 90;
+					width: 100%;
+					height: auto;
+					border-right: 0;
+					border-bottom: var(--line);
+					padding: 9px 10px;
+					overflow-x: auto;
+				}
+				.rail-head {
+					display: none;
+				}
+				.concept-nav {
+					display: flex;
+					width: max-content;
+					gap: 7px;
+				}
+				.concept-tab {
+					width: 180px;
+					min-height: 55px;
+					padding: 7px;
+				}
+				.concept-copy small {
+					display: none;
+				}
+				.workspace {
+					grid-template-columns: 1fr;
+					max-width: 760px;
+					margin: auto;
+				}
+				.notes {
+					position: static;
+				}
+				.stage {
+					min-height: 680px;
+				}
+			}
+			@media (max-width: 560px) {
+				.topbar {
+					min-height: 62px;
+					padding: 8px 10px;
+				}
+				.brand-mark {
+					width: 38px;
+					height: 38px;
+				}
+				.brand h1 {
+					font-size: 20px;
+				}
+				.brand p {
+					display: none;
+				}
+				.pill-button {
+					display: none;
+				}
+				.lab {
+					min-height: calc(100vh - 62px);
+				}
+				.rail {
+					top: 62px;
+				}
+				.workspace {
+					padding: 12px;
+				}
+				.preview-toolbar {
+					padding: 0 2px;
+				}
+				.stage {
+					padding: 8px;
+					border-radius: 16px;
+					min-height: 650px;
+				}
+				.phone {
+					height: 650px;
+					min-height: 0;
+					border-radius: 23px;
+					box-shadow: 5px 6px 0 var(--ink);
+				}
+				.notes {
+					padding-bottom: 20px;
+				}
+				.amount-row {
+					grid-template-columns: minmax(0, 1fr) 118px;
+				}
+			}
+			@media (prefers-reduced-motion: reduce) {
+				* {
+					scroll-behavior: auto !important;
+					animation: none !important;
+					transition: none !important;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<header class="topbar">
+			<div class="brand">
+				<span class="brand-mark" aria-hidden="true">
+					<svg
+						viewBox="0 0 40 40"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.4"
+						stroke-linecap="round"
+					>
+						<path
+							d="M14 5c-5 2-8 8-7 14 1 8 8 16 16 16 6 0 11-5 11-11 0-5-4-8-8-10-4-2-4-8-7-9-1-1-3-1-5 0Z"
+							fill="#ffc900"
+						/>
+						<path d="M12 20c4-1 7 0 10 3M24 15c-2 4-1 7 2 10" />
+					</svg>
+				</span>
+				<div>
+					<h1>ADD EXPENSE LAB</h1>
+					<p>Eight ways to make the common split feel obvious.</p>
+				</div>
+			</div>
+			<div class="top-actions">
+				<button class="pill-button" id="overviewButton" type="button">
+					Next direction <span aria-hidden="true">→</span>
+				</button>
+				<button class="select-button" id="headerPick" type="button" aria-pressed="false"></button>
+			</div>
+		</header>
+
+		<main class="lab">
+			<aside class="rail" aria-label="Mockup directions">
+				<div class="rail-head">
+					<strong>Pick a direction</strong
+					><span>Every screen is clickable. Try currency, people and split controls.</span>
+				</div>
+				<nav class="concept-nav" id="conceptNav"></nav>
+			</aside>
+
+			<section class="workspace">
+				<div class="preview-panel">
+					<div class="preview-toolbar">
+						<div class="preview-title"><strong id="previewName"></strong><span id="previewTag"></span></div>
+						<div class="viewport-switch" aria-label="Preview width">
+							<button class="active" data-width="390" type="button">390</button>
+							<button data-width="430" type="button">430</button>
+						</div>
+					</div>
+					<div class="stage">
+						<div class="phone" id="phone">
+							<div id="mockup"></div>
+							<div class="backdrop" id="backdrop"></div>
+							<div class="panel" id="currencyPanel"></div>
+						</div>
+					</div>
+				</div>
+
+				<aside class="notes">
+					<article class="note-card">
+						<div class="note-kicker" id="noteKicker"></div>
+						<h2 id="noteTitle"></h2>
+						<p id="noteIntro"></p>
+						<div class="score-row" id="scores"></div>
+						<div class="note-block">
+							<strong>Why it works</strong>
+							<p id="noteWhy"></p>
+						</div>
+						<div class="note-block">
+							<strong>Currency behavior</strong>
+							<p id="noteCurrency"></p>
+						</div>
+						<div class="note-block">
+							<strong>Scroll strategy</strong>
+							<p id="noteScroll"></p>
+						</div>
+						<div class="note-block">
+							<strong>Watch out for</strong>
+							<p id="noteRisk"></p>
+						</div>
+						<div class="pick-card">
+							<span>Worth taking forward?</span><button id="pickButton" type="button"></button>
+						</div>
+						<div class="picked-list">
+							<strong>Your shortlist</strong><span id="pickedNames">Nothing picked yet.</span>
+						</div>
+					</article>
+					<details class="audit-card">
+						<summary>
+							<span>Codebase scrollbar sweep</span><span class="audit-count">8 surfaces</span>
+						</summary>
+						<div class="audit-body">
+							<p>
+								<strong>The shared drawer is the root.</strong> Its nested
+								<code>80vh + overflow-auto</code> wrapper creates the visible inner bar, clips popovers
+								and gets fragile above a mobile keyboard.
+							</p>
+							<ol>
+								<li>
+									Give every drawer three zones: sticky header, one
+									<code>minmax(0,1fr)</code> scrolling body, sticky action footer.
+								</li>
+								<li>
+									Use <code>dvh</code>, safe-area padding and one explicit scroll owner. Remove the
+									global touch-move interception.
+								</li>
+								<li>
+									Portal floating pickers; place down first, collision-flip only when measured space
+									requires it.
+								</li>
+								<li>
+									Never stack drawers or body locks. Replace settings → notification and scan flows as
+									phases.
+								</li>
+								<li>Scope overscroll suppression to the room/PWA—not marketing pages.</li>
+								<li>
+									Standardize page, modal and horizontal-rail primitives; do not globally hide
+									vertical bars.
+								</li>
+								<li>
+									Keep scan backlog-gated until it is a single modal phase with a proven escape path.
+								</li>
+								<li>
+									QA 320×568, 390×844 and landscape with keyboard, long groups, focus restore and
+									edge-positioned pickers.
+								</li>
+							</ol>
+						</div>
+					</details>
+					<details class="audit-card labels">
+						<summary><span>Label-removal rules</span><span class="audit-count">semantic</span></summary>
+						<div class="audit-body">
+							<p>
+								<strong>Remove the headings, not the meaning.</strong> The selected controls still need
+								to read as a plain-language receipt.
+							</p>
+							<ol>
+								<li>
+									Keep real Amount and Description labels as visually hidden text; a placeholder is
+									not a label.
+								</li>
+								<li>
+									Say <strong>“Asdf2 paid”</strong>. A naked avatar can mean payer, participant or
+									current user.
+								</li>
+								<li>
+									Keep <strong>Equally / Exact</strong>; those words name a real decision. Lose only
+									the redundant “Split” heading.
+								</li>
+								<li>
+									Use <strong>Today / 29 Jul</strong> in the chip while its accessible name remains
+									“Expense date, today”.
+								</li>
+								<li>
+									Attach errors to the field, focus the first invalid control and announce the Exact
+									remainder as status.
+								</li>
+								<li>
+									Localize sentence controls as one rich message; never concatenate English fragments
+									in code.
+								</li>
+							</ol>
+						</div>
+					</details>
+				</aside>
+			</section>
+		</main>
+
+		<script>
+			const svg = {
+				x: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5c4 4.2 8.8 8.9 14 13M19 5c-4.6 4-8.7 8.7-14 14"/></svg>`,
+				chevron: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 8 6.5 7L19 8.5"/></svg>`,
+				calendar: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5c4-.6 10-.4 14 .2l.5 15c-4 .6-11 .7-15-.1Z"/><path d="M8 2.5v4M16 2.5v4M5 9c4 .7 10 .7 14 0M8 13h2M14 13h2M8 16h2"/></svg>`,
+				people: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11c-3-.3-5-2-5-4.3S6.3 3 9 3s4.5 1.7 4.4 4-1.7 3.8-4.4 4Z"/><path d="M3 20c.2-5 2.5-7 6-7 3.7 0 6 2.4 6 7M15 11c2.8-.4 4-2 4-4 0-1.5-.8-2.7-2.3-3.3M16 13c3 .5 4.4 2.5 4.4 6"/></svg>`,
+				edit: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 18 1-5L16.5 3.4c1-1 4 1.5 3 2.7L9 17Z"/><path d="m6 13 3 4M4 20c4 .4 9-.2 16-.4"/></svg>`,
+				check: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 5 6L20 5"/></svg>`,
+				search: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 18c4.2 0 7.5-3 7.5-7S15 4 10.8 4 4 7.2 4 11s2.6 7 6.5 7Z"/><path d="m16 16 5 5"/></svg>`,
+				plus: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c-.3 5-.2 11 .1 16M4 12c5 .3 11 .1 16-.1"/></svg>`,
+				clock: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c5 0 9 3.6 9 9.2S17 21 11.8 21 3 17.2 3 12 6.8 3 12 3Z"/><path d="M12 6.5V12l4 2"/></svg>`,
+				dots: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.1M12 12h.1M19 12h.1"/></svg>`,
+			}
+			function avatar(name = 'Asdf2', color = '#ffb8e9', tilt = '-2deg') {
+				return `<span class="avatar" style="--avatar:${color};--tilt:${tilt}" data-person="${name}" role="img" aria-label="${name}">
+        <svg viewBox="0 0 30 30" aria-hidden="true"><path d="M7 27c.5-7 4-10 8-10s7.3 3 8 10"/><path d="M9 11c0-5 2.5-8 6.2-8 4 0 6 3.2 5.8 7.6-.2 4.5-2.6 7-6.3 6.8C11 17.2 9 14.6 9 11Z" fill="#fff"/><path d="M9 9c2-1 3-3 3.5-5 3 3 5.8 2 8 5M12 11h.1M18 11h.1M13 14c1.4.8 2.7.8 4 0"/></svg>
+      </span>`
+			}
+			const avatarStack = () =>
+				`<span class="avatar-stack">${avatar('Asdf2', '#ffb8e9', '-3deg')}${avatar('Mia', '#a9f7c7', '2deg')}${avatar('Jo', '#a8d8ff', '-1deg')}</span>`
+			const currencyButton = (
+				mode = 'popover',
+				extra = ''
+			) => `<button class="currency-trigger ${extra}" type="button" data-currency data-mode="${mode}" aria-label="Expense currency, GBP" aria-haspopup="listbox" aria-expanded="false">
+      <span class="currency-value"><span class="currency-doodle" aria-hidden="true">£</span><span data-code>GBP</span></span>${svg.chevron}</button>`
+			const closeButton = () =>
+				`<button class="x-button" type="button" aria-label="Close add expense">${svg.x}</button>`
+			const header = (title = 'Add expense') =>
+				`<div class="sheet-head"><span class="drag" aria-hidden="true"></span><span class="sheet-title">${title}</span>${closeButton()}</div>`
+			const cta = (label = 'Add expense') =>
+				`<div class="sticky-cta"><button class="cta" type="button">${label}</button><p class="microcopy">Nothing moves until you tap this.</p></div>`
+			const peopleChips = () => `<div class="chip-row people-chips">
+      <button class="control-chip active" type="button" aria-pressed="true">${avatar('Asdf2')} Asdf2</button>
+      <button class="control-chip" type="button" aria-pressed="false">${avatar('Mia', '#a9f7c7', '2deg')} Mia</button>
+      <button class="control-chip" type="button" aria-pressed="false">${avatar('Jo', '#a8d8ff', '-1deg')} Jo</button>
+      <button class="control-chip" type="button" aria-label="Add another person">${svg.plus}</button>
+    </div>`
+			const splitChips = () =>
+				`<div class="segmented split-toggle"><button class="active" type="button">Everyone equally</button><button type="button">Exact amounts</button></div>`
+
+			const concepts = [
+				{
+					id: 'joined',
+					name: 'Joined controls',
+					tag: 'Low-risk cleanup',
+					badge: 'baseline',
+					intro: 'The current form, disciplined: matched heights, one alignment grid, no decorative headings.',
+					scores: ['Fast to ship', 'Clear', '1 viewport'],
+					why: 'Every control stays familiar, but amount and currency finally behave as one unit. “Asdf2 paid” keeps payer meaning without a PAID BY heading.',
+					currency:
+						'Anchored popover opens down from the trigger and flips only after measuring available space. Doodle + ticker everywhere.',
+					scroll: 'One sheet scroller; the common path fits without scrolling at 390 × 750. Sticky action remains reachable for Exact mode.',
+					risk: 'Still feels like a form. It fixes hierarchy more than it creates a memorable interaction.',
+					html: () => `${header()}<div class="screen-scroll"><div class="form-stack">
+          <div class="amount-row"><label><span class="sr-only">Amount</span><input class="amount-input" inputmode="decimal" placeholder="0.00"></label>${currencyButton('popover')}</div>
+          <label><span class="sr-only">What for?</span><input class="text-input" placeholder="Dinner, taxi, lift pass…"></label>
+          <div class="semantic-line"><strong>Asdf2 paid</strong><button class="control-chip" type="button">${avatar('Asdf2')} Change</button></div>
+          <div class="marker-box" style="padding:10px"><div class="semantic-line"><span>${avatarStack()}</span><strong>Everyone equally</strong><button class="edit-dot" type="button" aria-label="Change people">${svg.edit}</button></div></div>
+          <div class="chip-row"><button class="control-chip" type="button">${svg.calendar} Today</button><span class="hint">Defaults stay quiet until changed.</span></div>
+          ${splitChips()}
+        </div></div>${cta()}`,
+				},
+				{
+					id: 'composer',
+					name: 'One composer card',
+					tag: 'Recommended',
+					badge: 'best',
+					intro: 'A single object instead of a stack of unrelated fields. The whole expense reads at a glance.',
+					scores: ['Most cohesive', 'Fast repeat use', 'Distinctive'],
+					why: 'Amount, note and defaults become one compact “expense object.” Internal dividers establish hierarchy while the outside marker shape makes it feel doodly and friendly.',
+					currency:
+						'Compact popover anchors below the integrated 50px currency control. The popover is portalled above the scroller in production.',
+					scroll: 'Common case has no scroll at all. Only expanded people or Exact amounts create one middle scrolling surface.',
+					risk: 'Internal controls need excellent focus styling so the single card does not blur their boundaries for keyboard users.',
+					html: () => `${header()}<div class="screen-scroll no-native-scrollbar"><div class="form-stack">
+          <div class="composer">
+            <div class="composer-main"><label><span class="sr-only">Amount</span><input inputmode="decimal" placeholder="0.00"></label>${currencyButton('popover')}</div>
+            <label><span class="sr-only">What for?</span><input class="composer-desc" placeholder="Dinner, taxi, lift pass…"></label>
+            <div class="composer-tools">
+              <button class="tool" type="button">${avatar('Asdf2')} <span>Asdf2 paid</span></button>
+              <button class="tool" type="button">${avatarStack()} <span>All equally</span></button>
+              <button class="tool" type="button">${svg.calendar}<span>Today</span></button>
+            </div>
+          </div>
+          <p class="hint" style="text-align:center">Tap a detail only when the default is wrong.</p>
+          <div class="marker-box" style="padding:12px;background:#fff7cc">
+            <div class="semantic-line"><strong>3 people · £0.00 each</strong><span class="currency-doodle" style="background:var(--mint)">${svg.check}</span></div>
+          </div>
+        </div></div>${cta()}`,
+				},
+				{
+					id: 'sentence',
+					name: 'Fill-in sentence',
+					tag: 'Most human',
+					badge: 'bold',
+					intro: 'The labels disappear into a sentence that says exactly what will be recorded.',
+					scores: ['Human', 'Self-explaining', 'Playful'],
+					why: 'Connective words carry the semantics that section labels used to carry. The user reads the form as a plain-language receipt before saving it.',
+					currency:
+						'Amount and currency open together in a mobile tray. Currency search is available without making the closed control verbose.',
+					scroll: 'Sentence lines wrap naturally at small widths. The tray is a sibling modal layer, never a nested scroller.',
+					risk: 'Localization can change line lengths and grammar. It needs language-specific composition, not word-for-word token substitution.',
+					html: () => `${header()}<div class="screen-scroll no-native-scrollbar"><div class="marker-box" style="padding:18px 15px;background:#fffdfa">
+          <div class="sentence-line">${avatar('Asdf2')} <button class="word-control" type="button">Asdf2</button> paid</div>
+          <div class="sentence-line"><button class="word-control" type="button" data-currency data-mode="tray" aria-label="Amount and currency, GBP" aria-expanded="false"><span class="currency-doodle">£</span><span data-code>GBP</span>&nbsp; 0.00</button> for</div>
+          <div class="sentence-line"><label style="flex:1"><span class="sr-only">What for?</span><input class="underline-input" placeholder="dinner, taxi, lift pass…"></label></div>
+          <div class="sentence-line">with <button class="word-control" type="button">${avatarStack()} everyone equally</button></div>
+          <div class="sentence-line">on <button class="word-control" type="button">${svg.calendar} today</button>.</div>
+        </div><p class="hint" style="margin:13px 5px">Reads like a receipt. Taps like a sentence.</p></div>${cta('Add it')}`,
+				},
+				{
+					id: 'hero',
+					name: 'Hero amount',
+					tag: 'Fastest common path',
+					badge: 'best',
+					intro: 'Money gets the stage. Everything else becomes a small, editable fact below it.',
+					scores: ['Thumb-friendly', 'Calm', '1 viewport'],
+					why: 'The first tap target is impossible to miss, and the three chips explain their own state: who paid, who shares, and when.',
+					currency:
+						'A bottom tray is used on mobile; the small closed pill stays beside the hero number. Desktop can use a collision-aware popover.',
+					scroll: 'No visible scrollbar in the default flow because there is nothing to scroll. Expanded editors replace the lower region rather than nesting.',
+					risk: 'The oversized amount may be too theatrical when editing many expenses in quick succession.',
+					html: () => `${header()}<div class="screen-scroll no-native-scrollbar"><div class="form-stack">
+          <div class="hero-amount"><label><span class="sr-only">Amount</span><input class="sr-only" inputmode="decimal"><span class="hero-number">0.00</span></label><div style="display:flex;justify-content:center">${currencyButton('tray', 'hero-currency')}</div></div>
+          <label class="marker-underline"><span class="sr-only">What for?</span><input class="underline-input" style="text-align:center" placeholder="Dinner, taxi, lift pass…"></label>
+          <div class="chip-row" style="justify-content:center;margin-top:10px">
+            <button class="control-chip pink" type="button">${avatar('Asdf2')} Asdf2 paid</button>
+            <button class="control-chip mint" type="button">${avatarStack()} All equally</button>
+            <button class="control-chip" type="button">${svg.calendar} Today</button>
+          </div>
+          <span class="shake-line"></span>
+          <p class="hint" style="text-align:center">That’s the whole expense. Change only what’s unusual.</p>
+        </div></div>${cta()}`,
+				},
+				{
+					id: 'map',
+					name: 'Payer → people map',
+					tag: 'Clearest mental model',
+					badge: 'clear',
+					intro: 'A tiny doodle diagram replaces the word “split” and makes the money relationship visible.',
+					scores: ['Comprehension', 'Visual', 'Good for groups'],
+					why: 'The arrow distinguishes payer from participants without repetitive headings. Tapping either side edits that side of the relationship.',
+					currency:
+						'An inline currency rail expands directly below the amount. No overlay, no clipping, and ticker options stay visually compact.',
+					scroll: 'The compact map keeps the default flow within one screen. Exact allocations replace the map and use the sheet’s single scroller.',
+					risk: 'An arrow can imply money is being sent now. Supporting copy or usability testing should confirm it reads as “paid for.”',
+					html: () => `${header()}<div class="screen-scroll"><div class="form-stack">
+          <div class="amount-row"><label><span class="sr-only">Amount</span><input class="amount-input" inputmode="decimal" placeholder="0.00"></label>${currencyButton('rail')}</div>
+          <div class="currency-rail" hidden></div>
+          <label><span class="sr-only">What for?</span><input class="text-input" placeholder="Dinner, taxi, lift pass…"></label>
+          <div class="marker-box">
+            <div class="people-map">
+              <button class="map-person" type="button" style="border:0;background:transparent">${avatar('Asdf2')}<span class="map-label">Asdf2 paid</span></button>
+              <span class="sketch-arrow" aria-hidden="true"><svg viewBox="0 0 60 40"><path d="M3 22c16-6 31-7 50-3"/><path d="m46 12 9 7-9 8"/></svg></span>
+              <button class="map-group" type="button" style="border:0;background:transparent"><span style="transform:scale(1.25)">${avatarStack()}</span><span class="map-label">All 3 share</span></button>
+            </div>
+            <div style="padding:0 11px 11px">${splitChips()}</div>
+          </div>
+          <button class="control-chip" type="button" style="justify-self:start">${svg.calendar} Today</button>
+        </div></div>${cta()}`,
+				},
+				{
+					id: 'defaults',
+					name: 'Defaults strip',
+					tag: 'Aggressively compact',
+					badge: 'bold',
+					intro: 'Show only what is normally typed. Summarize every default in one editable strip.',
+					scores: ['Quickest', 'Progressive', 'Repeat users'],
+					why: 'Most expenses only need an amount and a name. Payer, equal sharing and today remain legible, but they stop dominating the common path.',
+					currency:
+						'A command tray combines search, recent currencies, and the complete list. It is designed for keyboard typeahead and mobile thumbs.',
+					scroll: 'Two inputs and one summary fit easily. Expansions use the same content column; sticky header and action stay still.',
+					risk: 'The strip may look like passive text. Its edit affordance and focus behavior need to make the whole row unmistakably interactive.',
+					html: () => `${header()}<div class="screen-scroll no-native-scrollbar"><div class="form-stack">
+          <div class="amount-row"><label><span class="sr-only">Amount</span><input class="amount-input" inputmode="decimal" placeholder="0.00"></label>${currencyButton('command')}</div>
+          <label><span class="sr-only">What for?</span><input class="text-input" placeholder="Dinner, taxi, lift pass…"></label>
+          <button class="defaults-strip" type="button"><span>Asdf2 paid · all 3 equally · today</span><span class="edit-dot">${svg.edit}</span></button>
+          <details class="more"><summary>Something unusual? <span>${svg.chevron}</span></summary><div class="more-body">
+            <button class="control-chip" type="button">${svg.people} Exact amounts</button>
+            <button class="control-chip" type="button">${svg.calendar} Pick another day</button>
+          </div></details>
+          <p class="hint">The details are there. They just wait until you need them.</p>
+        </div></div>${cta()}`,
+				},
+				{
+					id: 'receipt',
+					name: 'Pocket receipt',
+					tag: 'Doodliest',
+					badge: 'playful',
+					intro: 'The expense looks like the small receipt it will become in the room timeline.',
+					scores: ['Doodly', 'Memorable', 'Scannable'],
+					why: 'The repeating receipt rows provide a consistent layout without uppercase labels. Each doodle establishes the row’s meaning.',
+					currency:
+						'A small ticker wheel expands in place; swiping or arrow keys moves between recent currencies, with “All” opening search.',
+					scroll: 'Receipt stays shorter than the viewport. A single sheet scrollbar appears only for Exact allocations and uses the same marker thumb.',
+					risk: 'The metaphor can become ornamental. Keep the torn edge quiet and never sacrifice input size or contrast.',
+					html: () => `${header()}<div class="screen-scroll"><div class="receipt">
+          <div class="receipt-amount"><label><span class="sr-only">Amount</span><input inputmode="decimal" placeholder="0.00"></label>${currencyButton('wheel')}</div>
+          <div class="currency-rail" hidden style="padding:9px 0;border-bottom:2px dashed #aaa"></div>
+          <div class="receipt-line"><span class="line-doodle">${svg.edit}</span><label><span class="sr-only">What for?</span><input style="border:0;background:transparent;width:100%;font-weight:800" placeholder="Dinner, taxi, lift pass…"></label><span></span></div>
+          <button class="receipt-line" type="button" style="width:100%;border-left:0;border-right:0;background:transparent;text-align:left"><span class="line-doodle">${avatar('Asdf2')}</span><span>Asdf2 paid</span><span>${svg.chevron}</span></button>
+          <button class="receipt-line" type="button" style="width:100%;border-left:0;border-right:0;background:transparent;text-align:left"><span class="line-doodle">${svg.people}</span><span>Everyone equally</span><span>${svg.chevron}</span></button>
+          <button class="receipt-line" type="button" style="width:100%;border:0;background:transparent;text-align:left"><span class="line-doodle">${svg.calendar}</span><span>Today</span><span>${svg.chevron}</span></button>
+        </div><p class="hint" style="text-align:center;margin-top:13px">Looks like what you’re making.</p></div>${cta('Pin this expense')}`,
+				},
+				{
+					id: 'dock',
+					name: 'Thumb dock',
+					tag: 'One-handed',
+					badge: 'bold',
+					intro: 'Typing lives high; every secondary choice and the final action live in the thumb zone.',
+					scores: ['One-handed', 'Stable CTA', 'Mobile-first'],
+					why: 'The dock never makes the user chase payer, people, date or save. It solves long-form reachability without adding visible headings.',
+					currency:
+						'The amount’s inline picker opens downward when possible; near a boundary it flips automatically. The dock never contains overlays.',
+					scroll: 'Only the upper content scrolls. The bottom dock is not inside that scroller, eliminating the nested-scrollbar and hidden-CTA failure.',
+					risk: 'A permanent dock consumes vertical space and needs careful handling above the virtual keyboard and safe-area inset.',
+					html: () => `${header()}<div class="screen-scroll no-native-scrollbar"><div class="thumb-space">
+          <div class="amount-row"><label><span class="sr-only">Amount</span><input class="amount-input" inputmode="decimal" placeholder="0.00"></label>${currencyButton('popover')}</div>
+          <label><span class="sr-only">What for?</span><input class="text-input" placeholder="Dinner, taxi, lift pass…"></label>
+          <p class="hint">The essentials stay clear of the thumb controls.</p>
+        </div></div>
+        <div class="thumb-dock"><div class="dock-handle"></div><div class="dock-tools">
+          <button class="dock-tool" type="button">${avatar('Asdf2')}<span>Asdf2 paid</span></button>
+          <button class="dock-tool" type="button">${svg.people}<span>All equally</span></button>
+          <button class="dock-tool" type="button">${svg.calendar}<span>Today</span></button>
+        </div><button class="cta" type="button">Add expense</button></div>`,
+				},
+			]
+
+			let active = 1
+			let picked = new Set(JSON.parse(localStorage.getItem('peanutsplit-expense-picks') || '[]'))
+			const nav = document.getElementById('conceptNav')
+			const mockup = document.getElementById('mockup')
+			const phone = document.getElementById('phone')
+			const panel = document.getElementById('currencyPanel')
+			const backdrop = document.getElementById('backdrop')
+			const currencyOptions = [
+				['£', 'GBP'],
+				['€', 'EUR'],
+				['$', 'USD'],
+				['R$', 'BRL'],
+				['¥', 'JPY'],
+				['Fr', 'CHF'],
+			]
+			function renderNav() {
+				nav.innerHTML = concepts
+					.map(
+						(
+							c,
+							i
+						) => `<button class="concept-tab" type="button" data-index="${i}" aria-current="${i === active}">
+        <span class="concept-num">${i + 1}</span><span class="concept-copy"><strong>${c.name}${c.badge === 'best' ? '<span class="mini-star">pick</span>' : ''}</strong><small>${c.tag}</small></span>
+      </button>`
+					)
+					.join('')
+				nav.querySelectorAll('button').forEach((b) =>
+					b.addEventListener('click', () => {
+						active = +b.dataset.index
+						render()
+					})
+				)
+			}
+			function updateNotes(c) {
+				document.getElementById('previewName').textContent = `${active + 1}. ${c.name}`
+				document.getElementById('previewTag').textContent = c.tag
+				document.getElementById('noteKicker').textContent = `Direction ${active + 1} · ${c.tag}`
+				document.getElementById('noteTitle').textContent = c.name
+				document.getElementById('noteIntro').textContent = c.intro
+				document.getElementById('scores').innerHTML = c.scores
+					.map((x) => `<span class="score">${x}</span>`)
+					.join('')
+				document.getElementById('noteWhy').textContent = c.why
+				document.getElementById('noteCurrency').textContent = c.currency
+				document.getElementById('noteScroll').textContent = c.scroll
+				document.getElementById('noteRisk').textContent = c.risk
+				const selected = picked.has(c.id)
+				document.getElementById('pickButton').textContent = selected ? 'Remove' : 'Shortlist'
+				document.getElementById('headerPick').innerHTML = selected
+					? `${svg.check} Shortlisted`
+					: `${svg.plus} Shortlist`
+				document.getElementById('headerPick').setAttribute('aria-pressed', selected)
+				const names = concepts.filter((x) => picked.has(x.id)).map((x) => x.name)
+				document.getElementById('pickedNames').textContent = names.length
+					? names.join(' · ')
+					: 'Nothing picked yet.'
+			}
+			function render() {
+				closeCurrency()
+				const c = concepts[active]
+				renderNav()
+				mockup.innerHTML = c.html()
+				updateNotes(c)
+				bindMockup()
+			}
+			function choosePick() {
+				const id = concepts[active].id
+				picked.has(id) ? picked.delete(id) : picked.add(id)
+				localStorage.setItem('peanutsplit-expense-picks', JSON.stringify([...picked]))
+				updateNotes(concepts[active])
+			}
+			function optionMarkup() {
+				return currencyOptions
+					.map(
+						(
+							[symbol, code],
+							i
+						) => `<button class="currency-option" type="button" role="option" aria-selected="${i === 0}" data-symbol="${symbol}" data-option="${code}">
+        <span class="currency-doodle" aria-hidden="true">${symbol}</span><span>${code}</span></button>`
+					)
+					.join('')
+			}
+			function openCurrency(trigger) {
+				const mode = trigger.dataset.mode || 'popover'
+				if (mode === 'rail' || mode === 'wheel') {
+					const rail = mockup.querySelector('.currency-rail') || document.createElement('div')
+					if (!rail.classList.contains('currency-rail')) return
+					rail.hidden = !rail.hidden
+					rail.innerHTML = `<div class="chip-row">${currencyOptions.map(([s, c]) => `<button class="control-chip" type="button" data-symbol="${s}" data-option="${c}"><span class="currency-doodle">${s}</span>${c}</button>`).join('')}</div>`
+					trigger.setAttribute('aria-expanded', String(!rail.hidden))
+					rail.querySelectorAll('[data-option]').forEach((x) =>
+						x.addEventListener('click', () => selectCurrency(x.dataset.option, x.dataset.symbol))
+					)
+					return
+				}
+				const isTray = mode === 'tray' || mode === 'command'
+				panel.className = `panel open ${isTray ? 'currency-tray' : 'currency-pop'}`
+				panel.innerHTML = isTray
+					? `<div class="tray-head"><strong>Pick currency</strong><button class="x-button" type="button" aria-label="Close currency picker">${svg.x}</button></div>
+          ${mode === 'command' ? `<label><span class="sr-only">Search currencies</span><input class="tray-search" placeholder="Type a ticker…"></label>` : ''}
+          <div class="currency-grid" role="listbox" aria-label="Currencies">${optionMarkup()}</div>`
+					: `<div role="listbox" aria-label="Currencies">${optionMarkup()}</div>`
+				backdrop.classList.add('open')
+				if (!isTray) {
+					const pr = phone.getBoundingClientRect(),
+						tr = trigger.getBoundingClientRect()
+					const left = Math.min(phone.clientWidth - 184, Math.max(10, tr.left - pr.left))
+					const below = phone.clientHeight - (tr.bottom - pr.top)
+					const openDown = below > 310
+					panel.style.left = `${left}px`
+					panel.style.top = openDown ? `${tr.bottom - pr.top + 7}px` : 'auto'
+					panel.style.bottom = openDown ? 'auto' : `${pr.bottom - tr.top + 7}px`
+				} else {
+					panel.removeAttribute('style')
+				}
+				trigger.setAttribute('aria-expanded', 'true')
+				panel.querySelector('.x-button')?.addEventListener('click', closeCurrency)
+				panel
+					.querySelectorAll('[data-option]')
+					.forEach((x) =>
+						x.addEventListener('click', () => selectCurrency(x.dataset.option, x.dataset.symbol))
+					)
+				const search = panel.querySelector('.tray-search')
+				search?.addEventListener('input', () =>
+					panel
+						.querySelectorAll('[data-option]')
+						.forEach((x) => (x.hidden = !x.dataset.option.includes(search.value.toUpperCase())))
+				)
+			}
+			function selectCurrency(code, symbol) {
+				mockup.querySelectorAll('[data-code]').forEach((x) => (x.textContent = code))
+				mockup.querySelectorAll('[data-currency] .currency-doodle').forEach((x) => (x.textContent = symbol))
+				mockup.querySelectorAll('.currency-rail').forEach((x) => (x.hidden = true))
+				closeCurrency()
+			}
+			function closeCurrency() {
+				panel.className = 'panel'
+				panel.innerHTML = ''
+				panel.removeAttribute('style')
+				backdrop.classList.remove('open')
+				document.querySelectorAll('[data-currency]').forEach((x) => x.setAttribute('aria-expanded', 'false'))
+			}
+			function bindMockup() {
+				mockup
+					.querySelectorAll('[data-currency]')
+					.forEach((x) => x.addEventListener('click', () => openCurrency(x)))
+				mockup.querySelectorAll('.people-chips .control-chip').forEach((x) =>
+					x.addEventListener('click', () => {
+						const on = x.getAttribute('aria-pressed') === 'true'
+						x.setAttribute('aria-pressed', String(!on))
+						x.classList.toggle('active', !on)
+					})
+				)
+				mockup.querySelectorAll('.split-toggle button').forEach((x) =>
+					x.addEventListener('click', () => {
+						x.parentElement.querySelectorAll('button').forEach((y) => y.classList.toggle('active', x === y))
+					})
+				)
+			}
+			backdrop.addEventListener('click', closeCurrency)
+			document.getElementById('pickButton').addEventListener('click', choosePick)
+			document.getElementById('headerPick').addEventListener('click', choosePick)
+			document.querySelectorAll('.viewport-switch button').forEach((x) =>
+				x.addEventListener('click', () => {
+					document
+						.querySelectorAll('.viewport-switch button')
+						.forEach((y) => y.classList.toggle('active', x === y))
+					phone.classList.toggle('wide', x.dataset.width === '430')
+				})
+			)
+			document.getElementById('overviewButton').addEventListener('click', () => {
+				const next = (active + 1) % concepts.length
+				active = next
+				render()
+				document.querySelector('.workspace').scrollIntoView({
+					behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth',
+				})
+			})
+			render()
+		</script>
+	</body>
+</html>

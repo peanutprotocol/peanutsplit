@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
 import { slugStem } from '@/lib/slugify'
+import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 export type PassTheLinkStageState = 'question' | 'reply' | 'link' | 'complete'
 
@@ -12,7 +13,12 @@ export interface PassTheLinkStageProps {
     state: PassTheLinkStageState
 }
 
-const PEOPLE = ['B', 'J', 'M', 'YOU'] as const
+const PEOPLE = [
+    { key: 'bea', persona: LANDING_CAST.bea },
+    { key: 'jules', persona: LANDING_CAST.jules },
+    { key: 'mo', persona: LANDING_CAST.mo },
+    { key: 'you', persona: LANDING_CAST.you },
+] as const
 
 /**
  * A non-writing illustration of the handoff the real form creates.
@@ -54,16 +60,18 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                             </div>
                             <div className="pass-link-avatar-stack">
                                 {PEOPLE.map((person) => (
-                                    <span key={person} className="pass-link-avatar">
-                                        {person === 'YOU' ? t('chat.youShort') : person}
-                                    </span>
+                                    <LandingPersona
+                                        key={person.key}
+                                        persona={person.persona}
+                                        className="pass-link-avatar"
+                                    />
                                 ))}
                             </div>
                         </header>
 
                         <div className="pass-link-chat-body">
                             <div className="pass-link-message-row pass-link-chat-question">
-                                <span className="pass-link-mini-avatar">B</span>
+                                <LandingPersona persona={LANDING_CAST.bea} className="pass-link-mini-avatar" />
                                 <div>
                                     <small>{t('chat.questionSender')}</small>
                                     <p className="pass-link-message">{t('chat.question')}</p>
@@ -79,12 +87,9 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
 
                             <div className="pass-link-shared-wrap">
                                 <div className="pass-link-shared-card">
-                                    <div className="pass-link-shared-brand">
-                                        <span>{t('chat.linkBrand')}</span>
-                                        <span className="pass-link-share-mark">
-                                            <Doodle name="iconshare" size={21} weight={2} />
-                                        </span>
-                                    </div>
+                                    <span className="pass-link-share-mark">
+                                        <Doodle name="iconshare" size={21} weight={2} />
+                                    </span>
                                     <div className="pass-link-shared-main">
                                         <strong>{shownRoomName}</strong>
                                         <b data-testid="pass-link-url">
@@ -94,9 +99,11 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                                     <div className="pass-link-shared-footer">
                                         <div className="pass-link-card-people">
                                             {PEOPLE.map((person) => (
-                                                <span key={person} className="pass-link-avatar">
-                                                    {person === 'YOU' ? t('chat.youShort') : person}
-                                                </span>
+                                                <LandingPersona
+                                                    key={person.key}
+                                                    persona={person.persona}
+                                                    className="pass-link-avatar"
+                                                />
                                             ))}
                                         </div>
                                         <strong>

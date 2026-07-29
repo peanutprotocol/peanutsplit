@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es.json'
@@ -161,7 +160,7 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
     await expect(teamFold.getByText(/Hugo · built Split/)).toBeVisible()
     await expect(teamFold.getByText('Natalia', { exact: true })).toHaveCount(0)
     await expect(teamFold.getByText('Jakub', { exact: true })).toHaveCount(0)
-    await expect(teamFold.locator('img[src*="portraits"]')).toHaveCount(2)
+    await expect(teamFold.locator('.landing-persona svg')).toHaveCount(2)
 })
 
 test('the deployment-wide landing variant has an explicit observable value', async ({ page }) => {
@@ -170,6 +169,63 @@ test('the deployment-wide landing variant has an explicit observable value', asy
         'data-variant',
         controlBuild ? 'control' : 'pass_link'
     )
+})
+
+test('a sixth recent room is shown instead of becoming orphaned footer copy', async ({ page }) => {
+    await page.addInitScript(() => {
+        const now = Date.now()
+        window.localStorage.setItem(
+            'ps:recent',
+            JSON.stringify(
+                Array.from({ length: 6 }, (_, index) => ({
+                    slug: `room-${index}`,
+                    name: `Room ${index + 1}`,
+                    emoji: index === 0 ? 'boat' : 'ski',
+                    lastSeenAt: now - index * 60_000,
+                }))
+            )
+        )
+    })
+    await openLanding(page)
+
+    const rooms = page.getByTestId('recent-rooms')
+    await expect(rooms.getByTestId('recent-room-list').locator('a')).toHaveCount(6)
+    await expect(rooms.getByRole('button', { name: /more room/i })).toHaveCount(0)
+    await expect(rooms.getByText(/and 1 more/i)).toHaveCount(0)
+    await expect(rooms.getByTestId('recent-room-list').locator('svg').first()).toHaveAttribute('width', '30')
+})
+
+test('a longer recent-room history has an explicit reversible reveal control', async ({ page }) => {
+    await page.addInitScript(() => {
+        const now = Date.now()
+        window.localStorage.setItem(
+            'ps:recent',
+            JSON.stringify(
+                Array.from({ length: 7 }, (_, index) => ({
+                    slug: `room-${index}`,
+                    name: `Room ${index + 1}`,
+                    emoji: 'peanut',
+                    lastSeenAt: now - index * 60_000,
+                }))
+            )
+        )
+    })
+    await openLanding(page)
+
+    const rooms = page.getByTestId('recent-rooms')
+    const list = rooms.getByTestId('recent-room-list')
+    const reveal = rooms.getByRole('button', { name: 'Show 2 more rooms' })
+    await expect(list.locator('a')).toHaveCount(5)
+    await expect(reveal).toHaveAttribute('aria-expanded', 'false')
+
+    await reveal.click()
+    await expect(list.locator('a')).toHaveCount(7)
+    const collapse = rooms.getByRole('button', { name: 'Show fewer rooms' })
+    await expect(collapse).toHaveAttribute('aria-expanded', 'true')
+
+    await collapse.click()
+    await expect(list.locator('a')).toHaveCount(5)
+    await expect(reveal).toHaveAttribute('aria-expanded', 'false')
 })
 
 test('the rollback build keeps the compact real form and removes the theater', async ({ page }) => {
@@ -206,13 +262,23 @@ test.describe('Pass-the-link default', () => {
             const roomName = page.getByTestId('hero-room-name')
             const creatorName = page.getByTestId('hero-creator-name')
             const cta = page.getByTestId('hero-create-room')
+            const chatFrame = page.getByTestId('pass-link-chat-frame')
 
             await expect(hero).toBeVisible()
             await expect(headline).toBeVisible()
             await expect(stage).toBeVisible()
             await expect(form).toBeVisible()
-            await expect(page.getByTestId('pass-link-chat-frame')).toBeVisible()
+            await expect(chatFrame).toBeVisible()
             await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
+            await expect(chatFrame.locator('.pass-link-avatar svg')).toHaveCount(8)
+            const [avatarBox, avatarDoodleBox] = await Promise.all([
+                chatFrame.locator('.pass-link-avatar').first().boundingBox(),
+                chatFrame.locator('.pass-link-avatar svg').first().boundingBox(),
+            ])
+            expect(avatarBox).not.toBeNull()
+            expect(avatarDoodleBox).not.toBeNull()
+            expect(avatarDoodleBox!.width / avatarBox!.width).toBeGreaterThan(0.7)
+            await expect(chatFrame).not.toContainText(/PEANUT SPLIT\s*[·-]\s*SHARED ROOM/i)
             await expect(page.getByTestId('pass-link-channel')).toHaveCount(0)
             await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
             await expect(hero.locator('.pass-link-utility')).toHaveCount(0)
@@ -226,9 +292,14 @@ test.describe('Pass-the-link default', () => {
                 `${viewport.width}x${viewport.height} must not create horizontal page overflow`
             ).toBe(true)
 
-            if (viewport.width <= 390) {
-                const heroBox = await hero.boundingBox()
+            if (viewport.width <= 899) {
+                const [heroBox, chatBox] = await Promise.all([hero.boundingBox(), chatFrame.boundingBox()])
                 expect(heroBox).not.toBeNull()
+                expect(chatBox).not.toBeNull()
+                expect(
+                    chatBox!.height,
+                    `mobile messenger must stay portrait at ${viewport.width}x${viewport.height}`
+                ).toBeGreaterThan(chatBox!.width)
                 expect(
                     heroBox!.height,
                     `mobile hero must reveal the next section at ${viewport.width}x${viewport.height}`
@@ -513,6 +584,14 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(proof.suggestedPlan.title)
         await expect(page.getByTestId('room-examples')).toContainText(proof.examples.title)
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
+        await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
+        const [personaBox, personaDoodleBox] = await Promise.all([
+            page.getByTestId('landing-proof').locator('.landing-persona').first().boundingBox(),
+            page.getByTestId('landing-proof').locator('.landing-persona svg').first().boundingBox(),
+        ])
+        expect(personaBox).not.toBeNull()
+        expect(personaDoodleBox).not.toBeNull()
+        expect(personaDoodleBox!.width / personaBox!.width).toBeGreaterThan(0.8)
 
         const features = page.locator('details').filter({
             has: page.getByText(catalogs.en.marketing.readMore.features.title, { exact: true }),
@@ -785,7 +864,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
 
     await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('room-share-doodle')).toBeVisible()
-    await page.getByTestId('share-room').click()
+    await page.getByTestId('share-link').click()
     await expect
         .poll(() => page.evaluate(() => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload))
         .toMatchObject({
@@ -796,67 +875,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
     expect(payload?.url).toMatch(/\/r\/share-package-\d+-[0-9a-hjkmnp-tv-z]{6}$/)
-    await expect(page.getByTestId('copy-invite')).toBeVisible()
-    await expect(page.getByTestId('download-share-card')).toBeVisible()
-    await expect(page.getByTestId('download-share-text')).toBeVisible()
-
-    await page.evaluate(() => {
-        const downloadUrls = { created: [] as string[], revoked: [] as string[] }
-        const originalCreateObjectURL = URL.createObjectURL.bind(URL)
-        const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL)
-        ;(window as Window & { __downloadUrls?: typeof downloadUrls }).__downloadUrls = downloadUrls
-        URL.createObjectURL = (object: Blob | MediaSource) => {
-            const objectUrl = originalCreateObjectURL(object)
-            downloadUrls.created.push(objectUrl)
-            return objectUrl
-        }
-        URL.revokeObjectURL = (objectUrl: string) => {
-            downloadUrls.revoked.push(objectUrl)
-            originalRevokeObjectURL(objectUrl)
-        }
-    })
-
-    const [cardDownload] = await Promise.all([
-        page.waitForEvent('download'),
-        page.getByTestId('download-share-card').click(),
-    ])
-    expect(cardDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.svg$/)
-    const cardPath = await cardDownload.path()
-    expect(cardPath).not.toBeNull()
-    const cardContents = await readFile(cardPath!, 'utf8')
-    expect(cardContents).toContain('<svg')
-    expect(cardContents).toContain('Share')
-    expect(cardContents).toContain('package')
-    expect(cardContents).not.toContain('/r/')
-    expect(cardContents).not.toContain('Ana')
-
-    const [textDownload] = await Promise.all([
-        page.waitForEvent('download'),
-        page.getByTestId('download-share-text').click(),
-    ])
-    expect(textDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.txt$/)
-    const textPath = await textDownload.path()
-    expect(textPath).not.toBeNull()
-    const textContents = await readFile(textPath!, 'utf8')
-    expect(textContents).toBe(`Open the link, pick your name, then add what you paid.\n${payload?.url}`)
-    await expect(page.locator('a[download]')).toHaveCount(0)
-    await expect
-        .poll(
-            () =>
-                page.evaluate(() => {
-                    const urls = (
-                        window as Window & {
-                            __downloadUrls?: { created: string[]; revoked: string[] }
-                        }
-                    ).__downloadUrls
-                    return {
-                        created: urls?.created.length ?? 0,
-                        allRevoked: urls?.created.every((url) => urls.revoked.includes(url)) ?? false,
-                    }
-                }),
-            { timeout: 3_000 }
-        )
-        .toEqual({ created: 2, allRevoked: true })
+    await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', {
@@ -874,17 +893,16 @@ test('the room handoff shares a localized message, the link, and the room drawin
             },
         })
     })
-    await page.getByTestId('share-room').click()
+    await page.getByTestId('share-link').click()
     await expect(page.getByTestId('share-status')).toHaveText(catalogs.en.room.link.shareFailed)
 
-    // Removing Web Share cannot remove the independent copy/download package.
-    // The rejected clipboard path re-renders the component and reveals the
-    // selected manual-copy fallback.
+    // Removing Web Share cannot remove the independent copy path. The rejected
+    // clipboard path re-renders the component and reveals the selected
+    // manual-copy fallback.
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
     })
-    await page.getByTestId('copy-invite').click()
-    await expect(page.getByTestId('share-room')).toHaveCount(0)
+    await page.getByTestId('copy-link').click()
     const manualInvite = page.getByTestId('room-link-input')
     await expect(manualInvite).toBeFocused()
     await expect(manualInvite).toHaveValue(
@@ -892,69 +910,6 @@ test('the room handoff shares a localized message, the link, and the room drawin
             '^Open the link, pick your name, then add what you paid\\.\\nhttp://(?:localhost|127\\.0\\.0\\.1):\\d+/r/share-package-'
         )
     )
-    await expect(page.getByTestId('download-share-card')).toBeVisible()
-    await expect(page.getByTestId('download-share-text')).toBeVisible()
-})
-
-test('the downloaded room drawing keeps a maximum-width title clear of its doodle', async ({ page }) => {
-    await page.goto('/new')
-    await page.getByTestId('room-name').fill('W'.repeat(80))
-    await page.getByTestId('creator-name').fill('Ana')
-    await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-
-    const [download] = await Promise.all([
-        page.waitForEvent('download'),
-        page.getByTestId('download-share-card').click(),
-    ])
-    const downloadPath = await download.path()
-    expect(downloadPath).not.toBeNull()
-    const svgMarkup = await readFile(downloadPath!, 'utf8')
-
-    const geometry = await page.evaluate(async (markup) => {
-        const host = document.createElement('div')
-        host.style.cssText = 'position:absolute;left:-5000px;top:0;width:1200px;height:630px;opacity:0'
-        host.innerHTML = markup
-        document.body.append(host)
-        await document.fonts.ready
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-
-        const svg = host.querySelector('svg')
-        const titleElements = [...(svg?.querySelectorAll<SVGGraphicsElement>('text[font-size="72"]') ?? [])]
-        const doodleElement = svg?.querySelector<SVGGraphicsElement>('g')
-        if (!svg || !doodleElement) throw new Error('share SVG geometry is incomplete')
-
-        const transformedBox = (element: SVGGraphicsElement) => {
-            const box = element.getBBox()
-            const matrix = element.getCTM()
-            if (!matrix) throw new Error('share SVG has no transform matrix')
-            const points = [
-                new DOMPoint(box.x, box.y),
-                new DOMPoint(box.x + box.width, box.y),
-                new DOMPoint(box.x, box.y + box.height),
-                new DOMPoint(box.x + box.width, box.y + box.height),
-            ].map((point) => point.matrixTransform(matrix))
-            return {
-                left: Math.min(...points.map(({ x }) => x)),
-                right: Math.max(...points.map(({ x }) => x)),
-            }
-        }
-
-        const result = {
-            canvasRight: svg.viewBox.baseVal.x + svg.viewBox.baseVal.width,
-            titles: titleElements.map(transformedBox),
-            doodle: transformedBox(doodleElement),
-        }
-        host.remove()
-        return result
-    }, svgMarkup)
-
-    expect(geometry.titles).toHaveLength(3)
-    for (const title of geometry.titles) {
-        expect(title.right).toBeLessThan(geometry.doodle.left)
-        expect(geometry.doodle.left - title.right).toBeGreaterThan(24)
-        expect(title.right).toBeLessThanOrEqual(geometry.canvasRight)
-    }
 })
 
 test('v1 does not expose AI or migration tooling in either landing variant', async ({ page }) => {

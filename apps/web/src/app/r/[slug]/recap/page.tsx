@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { asLocale } from '@/i18n/locales'
 import { formatMoney } from '@/lib/money'
+import { storyBucketFor } from '@/lib/story'
 import { loadRecap } from '@/server/og/recapCard'
 import { recapMetadata } from '@/server/og/roomMeta'
 
@@ -49,6 +50,7 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
     if (!recap) return <RoomNotFound />
 
     const t = await getTranslations('room.recap')
+    const tStory = await getTranslations('room.story')
     const locale = asLocale(await getLocale())
     const faces = recap.memberNames.slice(0, MAX_FACES)
     const overflow = recap.memberNames.length - faces.length
@@ -91,6 +93,21 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
                     </span>
                     <span>{t('people', { count: recap.memberCount })}</span>
                 </p>
+                {/* The epilogue — same line the settled card shows in the room, so
+                    the screen and the screenshot tell one story. Settled only: a
+                    trip still running has not earned its last sentence. */}
+                {recap.settled && (
+                    <p className="mt-1 text-sm font-medium text-n-1/70">
+                        {tStory(
+                            storyBucketFor({
+                                dayCount: recap.dayCount,
+                                expenseCount: recap.expenseCount,
+                                memberCount: recap.memberCount,
+                            }),
+                            { days: recap.dayCount, count: recap.memberCount, rounds: recap.expenseCount }
+                        )}
+                    </p>
+                )}
             </Card>
 
             <div className="flex flex-col gap-3">

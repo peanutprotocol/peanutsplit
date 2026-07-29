@@ -44,7 +44,7 @@ export function MemberAvatar({
             />
             <Doodle
                 name={art.doodle}
-                size={Math.round(size * (art.kind === 'persona' ? 0.82 : 0.66))}
+                size={Math.round(size * (art.kind === 'persona' ? 0.88 : 0.72))}
                 weight={art.kind === 'persona' ? 1.7 : 2.1}
                 className="relative z-[1]"
             />

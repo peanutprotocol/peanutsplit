@@ -17,7 +17,7 @@ import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 
-const VISIBLE = 5
+const COLLAPSED_LIMIT = 5
 
 /**
  * "3 hours ago" in whatever language the room list is being read in. Was pinned to 'en', which
@@ -56,8 +56,13 @@ export function YourRooms() {
         setRecent(readRecentRooms())
     }, [])
 
-    const visible = expanded ? recent : recent.slice(0, VISIBLE)
-    const overflow = recent.length - Math.min(recent.length, VISIBLE)
+    // Hiding a single sixth room behind a passive "and 1 more" footer made the
+    // list look truncated by accident. Six is still a compact history, so show
+    // it outright; larger histories get an explicit reveal control.
+    const collapsedLimit = recent.length === COLLAPSED_LIMIT + 1 ? recent.length : COLLAPSED_LIMIT
+    const visible = expanded ? recent : recent.slice(0, collapsedLimit)
+    const overflow = recent.length - visible.length
+    const canCollapse = recent.length > collapsedLimit
 
     const forget = (room: RecentRoom) => {
         if (!forgetRoom(room.slug)) {
@@ -124,8 +129,8 @@ export function YourRooms() {
             transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
             data-motion={motionAllowed ? 'ready' : 'still'}
             data-motion-surface
-            className="mx-auto w-full max-w-xl px-5 py-8 sm:py-10"
             data-testid="recent-rooms"
+            className="mx-auto w-full max-w-xl px-5 py-8 sm:py-10"
         >
             {recent.length > 0 && (
                 <>
@@ -134,7 +139,7 @@ export function YourRooms() {
                         <span className="text-right text-sm text-grey-1">{t('subtitle')}</span>
                     </div>
 
-                    <ul id="recent-room-list" className="mt-4 flex flex-col gap-3">
+                    <ul id="recent-room-list" data-testid="recent-room-list" className="mt-4 flex flex-col gap-3">
                         {visible.map((room, index) => (
                             <motion.li
                                 key={room.slug}
@@ -169,7 +174,7 @@ export function YourRooms() {
                                         style={room.theme ? { backgroundColor: themeFor(room.theme).field } : undefined}
                                         className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
                                     >
-                                        <RoomEmblem value={room.emoji} size={26} />
+                                        <RoomEmblem value={room.emoji} size={30} />
                                     </span>
                                     <span className="min-w-0 flex-1">
                                         <span className="block truncate text-h7">{room.name}</span>
@@ -193,19 +198,19 @@ export function YourRooms() {
                         ))}
                     </ul>
 
-                    {overflow > 0 && (
+                    {canCollapse && (
                         <button
                             type="button"
                             onClick={() => {
                                 setExpanded((current) => !current)
-                                feedback('tick')
+                                feedback('blip')
                             }}
                             aria-expanded={expanded}
                             aria-controls="recent-room-list"
                             data-testid="more-rooms"
-                            className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-sm text-sm font-bold text-n-1 underline underline-offset-2"
+                            className="rounded-xs mt-4 inline-flex min-h-11 items-center gap-1.5 px-1 py-1 text-sm font-bold text-n-1 underline decoration-2 underline-offset-4 transition-transform active:translate-y-px"
                         >
-                            {expanded ? t('less') : t('more', { count: overflow })}
+                            {expanded ? t('showLess') : t('showMore', { count: overflow })}
                             <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={17} aria-hidden="true" />
                         </button>
                     )}

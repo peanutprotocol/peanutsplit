@@ -147,10 +147,10 @@ describe('share-package measurement', () => {
             variant: 'group_chat_package_v1',
             method: 'native',
         })
-        expect(SHARE_PACKAGE_METHODS).toEqual(['native', 'clipboard', 'card_download', 'text_download'])
+        expect(SHARE_PACKAGE_METHODS).toEqual(['native', 'clipboard'])
         expect(sharePackageMeasureProps('whatsapp' as never)).toEqual({ variant: 'group_chat_package_v1' })
 
-        for (const method of ['native', 'clipboard', 'card_download', 'text_download'] as const) {
+        for (const method of ['native', 'clipboard'] as const) {
             const properties = sharePackageMeasureProps(method)
             expect(Object.keys(properties)).toEqual(['variant', 'method'])
             expect(properties).not.toHaveProperty('room')

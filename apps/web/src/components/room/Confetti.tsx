@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { motion } from 'motion/react'
+import { DOODLE, type DoodleName } from '@/components/ui/doodles'
 import { cn } from '@/lib/cn'
 import { useMotionAllowed } from '@/lib/use-motion'
 
@@ -30,8 +31,21 @@ interface Piece {
  * so the whole burst stays on the compositor. It is `pointer-events-none` and
  * `aria-hidden` — decoration that must never intercept a tap or reach a screen
  * reader.
+ *
+ * `doodle` casts the room's own character into the burst: every fifth piece is
+ * drawn as a tiny line-art copy of it instead of a rect. A minority on purpose —
+ * the burst has to stay brand confetti with a character in it, not become a
+ * shower of clip-art (the party-supplies failure, again).
  */
-export function Confetti({ className, delay = 0 }: { className?: string; delay?: number }) {
+export function Confetti({
+    className,
+    delay = 0,
+    doodle,
+}: {
+    className?: string
+    delay?: number
+    doodle?: DoodleName
+}) {
     const motionAllowed = useMotionAllowed()
 
     const pieces = useMemo<Piece[]>(
@@ -65,28 +79,58 @@ export function Confetti({ className, delay = 0 }: { className?: string; delay?:
         // data-decorative: if the preference flips while a burst is in the air, CSS
         // takes it to opacity 0 rather than leaving pieces frozen mid-flight.
         <div aria-hidden="true" data-decorative className={cn('pointer-events-none absolute inset-0', className)}>
-            {pieces.map((piece, index) => (
-                <motion.span
-                    key={index}
-                    className="absolute left-1/2 top-1/2 block rounded-full border border-n-1"
-                    style={{ width: piece.width, height: piece.height, backgroundColor: piece.color }}
-                    initial={{ x: 0, y: 0, scale: 0.4, opacity: 0, rotate: 0 }}
-                    animate={{
-                        x: piece.x,
-                        // Two-stop y: up on the launch, then gravity takes it.
-                        y: [0, piece.y, piece.y + 130],
-                        scale: [0.4, 1, 0.9],
-                        opacity: [0, 1, 0],
-                        rotate: piece.rotate,
-                    }}
-                    transition={{
-                        duration: piece.duration,
-                        delay: piece.delay,
-                        ease: [0.16, 0.72, 0.34, 1],
-                        times: [0, 0.45, 1],
-                    }}
-                />
-            ))}
+            {pieces.map((piece, index) => {
+                // Same trajectory either way — the character rides the burst,
+                // it does not get its own choreography.
+                const pieceDoodle = index % 5 === 2 ? doodle : undefined
+                const isDoodle = pieceDoodle !== undefined
+                return (
+                    <motion.span
+                        key={index}
+                        className={
+                            isDoodle
+                                ? 'absolute left-1/2 top-1/2 block'
+                                : 'absolute left-1/2 top-1/2 block rounded-full border border-n-1'
+                        }
+                        style={
+                            isDoodle
+                                ? undefined
+                                : { width: piece.width, height: piece.height, backgroundColor: piece.color }
+                        }
+                        initial={{ x: 0, y: 0, scale: 0.4, opacity: 0, rotate: 0 }}
+                        animate={{
+                            x: piece.x,
+                            // Two-stop y: up on the launch, then gravity takes it.
+                            y: [0, piece.y, piece.y + 130],
+                            scale: [0.4, 1, 0.9],
+                            opacity: [0, 1, 0],
+                            rotate: piece.rotate,
+                        }}
+                        transition={{
+                            duration: piece.duration,
+                            delay: piece.delay,
+                            ease: [0.16, 0.72, 0.34, 1],
+                            times: [0, 0.45, 1],
+                        }}
+                    >
+                        {pieceDoodle && (
+                            // Inline rather than <Doodle>: a falling piece needs a heavy
+                            // 3-unit line or it reads as a squiggle at 14px, and black ink
+                            // rather than currentColor — confetti is not text.
+                            <svg width={14} height={14} viewBox="0 0 32 32" aria-hidden="true">
+                                <path
+                                    d={DOODLE[pieceDoodle]}
+                                    fill="none"
+                                    stroke="#211C17"
+                                    strokeWidth={3}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        )}
+                    </motion.span>
+                )
+            })}
         </div>
     )
 }

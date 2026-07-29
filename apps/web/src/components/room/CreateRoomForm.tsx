@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
+import { CloseButton } from '@/components/ui/CloseButton'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
@@ -110,14 +110,7 @@ export function CreateRoomForm() {
         <form onSubmit={submit} className="flex min-h-dvh flex-col pb-[max(2.5rem,env(safe-area-inset-bottom))]">
             <div className="flex items-end justify-between gap-3 px-4 pb-2 pt-6">
                 <h1 className="text-h5">{t('title')}</h1>
-                <Link
-                    href="/"
-                    aria-label={t('back')}
-                    data-testid="close-create-room"
-                    className="flex size-11 items-center justify-center rounded-full border-2 border-n-1 bg-white transition-transform active:rotate-3"
-                >
-                    <Icon name="x" size={21} />
-                </Link>
+                <CloseButton href="/" label={t('back')} data-testid="close-create-room" />
             </div>
 
             <motion.div
