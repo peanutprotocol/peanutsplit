@@ -8,9 +8,10 @@
  * in-app `animationsEnabled` toggle is a taste preference. So the OS signal always
  * wins: it can only ever *remove* motion, and no in-app setting can restore it.
  *
- * Everything that animates consults `useMotionAllowed()` rather than
- * `useReducedMotion()` directly, so there is exactly one place this composition
- * lives.
+ * Components that need a meaningful still first frame consult
+ * `useMotionAllowed()`. The root `MotionConfig` consumes the same answer as a
+ * backstop for every motion/react surface, so there is exactly one composition
+ * of the two preferences.
  */
 
 import { useEffect, useSyncExternalStore } from 'react'
@@ -42,12 +43,13 @@ const subscribeToReducedMotion = (onChange: () => void): (() => void) => {
  * The whole decision, as a pure function so it can be tested without a DOM
  * (vitest runs in `node` here — there is no jsdom to render a hook into).
  *
- * `osReducedMotion` is `boolean | null` because motion/react reports `null` until
- * it has read the media query; unknown is treated as "no preference expressed",
- * which is what the browser default is anyway.
+ * `osReducedMotion` is `boolean | null` because SSR cannot read the media query.
+ * Unknown is deliberately still: meaningful surfaces are progressively
+ * enhanced after hydration, rather than hidden/animated while accessibility
+ * policy is unresolved.
  */
 export function motionAllowed(animationsEnabled: boolean, osReducedMotion: boolean | null): boolean {
-    if (osReducedMotion === true) return false
+    if (osReducedMotion !== false) return false
     return animationsEnabled
 }
 
@@ -66,10 +68,9 @@ export function useMotionAllowed(): boolean {
  * Mirrors the in-app setting onto `<html>` for the CSS-keyframe animations, which
  * cannot consult a React hook.
  *
- * No cookie and no server pass, unlike the locale: this preference does not change
- * the DOM *shape*, only whether transforms run, so a one-frame delay before the
- * class lands costs nothing visible — and a cookie would make every page dynamic
- * for the sake of a decoration toggle.
+ * RootLayout performs the same localStorage read in a pre-hydration script so a
+ * returning animations-off user never sees an animated first frame. This hook
+ * keeps the class live when the switch changes during the session.
  *
  * Only the in-app setting is mirrored. The OS preference is already handled in CSS
  * by a `prefers-reduced-motion` media query in `globals.css`, and duplicating it

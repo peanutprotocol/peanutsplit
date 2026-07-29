@@ -19,6 +19,105 @@ const allSettled = (page: Page) => page.locator('main [data-testid="all-settled"
 const expectBalance = async (page: Page, member: string, netMinor: string) =>
     expect(balance(page, member)).toHaveAttribute('data-net', netMinor, { timeout: 15_000 })
 
+const expectStill = async (page: Page) => {
+    await expect(page.locator('[data-motion-surface]').first()).toHaveCSS('opacity', '1')
+    expect(
+        await page.locator('body').evaluate((element) => ({
+            running: element
+                .getAnimations({ subtree: true })
+                .filter((animation) => animation.playState === 'running')
+                .map((animation) => ({
+                    name: animation.animationName,
+                    target:
+                        animation.effect instanceof KeyframeEffect
+                            ? (animation.effect.target as HTMLElement | null)?.outerHTML.slice(0, 180)
+                            : null,
+                })),
+            moving: [...element.querySelectorAll<HTMLElement>('[data-motion-surface]')].filter((surface) => {
+                const style = getComputedStyle(surface)
+                return style.transform !== 'none' || Number(style.opacity) < 1
+            }).length,
+        }))
+    ).toEqual({ running: [], moving: 0 })
+}
+
+const runStillRouteMatrix = async (page: Page) => {
+    await page.goto('/new')
+    await expectStill(page)
+    await page.getByTestId('room-name').fill(`Still room ${Date.now()}`)
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+    await expectStill(page)
+
+    await page.getByTestId('go-to-room').click()
+    await expectBalance(page, 'Ana', '0')
+    await expectStill(page)
+
+    await page.getByTestId('share-room').click()
+    await expectStill(page)
+    await page.getByTestId('add-people-toggle').click()
+    await expectStill(page)
+    await page.getByTestId('add-person-name').fill('Bea')
+    await page.getByTestId('add-person').click()
+    await expect(page.locator('[data-testid="roster-chip"][data-member="Bea"]')).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    await page.getByTestId('open-add-expense').click()
+    await expectStill(page)
+    await page.getByTestId('expense-amount').fill('20')
+    await page.getByTestId('expense-description').fill('Dinner')
+    await page.getByTestId('save-expense').click()
+    await expect(page.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
+    await expectStill(page)
+
+    await page.getByTestId('open-settle').click()
+    await expect(page.getByTestId('transfer-row')).toBeVisible()
+    await expectStill(page)
+}
+
+test('OS reduced motion stays still through new, room, share, add, and settle', async ({ page }) => {
+    test.setTimeout(60_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await runStillRouteMatrix(page)
+})
+
+test('the in-app animations-off setting stays still through new, room, share, add, and settle', async ({ page }) => {
+    test.setTimeout(60_000)
+    await page.addInitScript(() => {
+        window.localStorage.setItem(
+            'ps:settings',
+            JSON.stringify({ animationsEnabled: false, soundEnabled: false, hapticsEnabled: false })
+        )
+    })
+    await runStillRouteMatrix(page)
+})
+
+test('the deferred install prompt is still when the OS requests reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill(`Still install ${Date.now()}`)
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('go-to-room').click()
+    await expectBalance(page, 'Ana', '0')
+
+    await page.clock.install()
+    await page.evaluate(() => {
+        const event = new Event('beforeinstallprompt', { cancelable: true })
+        Object.assign(event, {
+            prompt: async () => undefined,
+            userChoice: Promise.resolve({ outcome: 'dismissed' }),
+        })
+        window.dispatchEvent(event)
+    })
+    await page.clock.runFor(21_000)
+
+    await expect(page.locator('[data-motion-surface][role="dialog"]')).toBeVisible()
+    await expectStill(page)
+})
+
 test('create → share → join → split → settle → undo', async ({ page, browser }) => {
     test.setTimeout(60_000)
 

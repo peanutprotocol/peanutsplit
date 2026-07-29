@@ -67,6 +67,7 @@ export function SiteFooter({
                     href="https://peanut.me?utm_source=split&utm_medium=footer"
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={t('logoLinkLabel')}
                     className="inline-flex transition-opacity hover:opacity-80"
                 >
                     <Image src={peanutLogo} alt={t('logoAlt')} width={104} height={26} unoptimized />
@@ -77,7 +78,7 @@ export function SiteFooter({
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colSplit')}</h2>
                         <ul className="mt-2 flex flex-col gap-1.5">
                             <li>
-                                <Link href="/" className={linkClass}>
+                                <Link href="/new" className={linkClass}>
                                     {t('createSplit')}
                                 </Link>
                             </li>

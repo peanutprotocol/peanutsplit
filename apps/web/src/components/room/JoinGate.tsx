@@ -169,6 +169,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                 initial={motionAllowed ? { y: 40, opacity: 0 } : false}
                 animate={{ y: 0, opacity: 1 }}
                 transition={motionAllowed ? { type: 'spring', stiffness: 280, damping: 26 } : { duration: 0 }}
+                data-motion-surface
                 className="relative mx-auto w-full max-w-xl p-4"
             >
                 {/* A plain wrapper for the shake rather than the motion.div above it:
