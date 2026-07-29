@@ -253,8 +253,8 @@ describe('toRecapCard', () => {
         expect(card.emblem).toBe('ski')
     })
 
-    it('falls back to the room name, then the peanut, for junk emblems', () => {
-        expect(toRecapCard(recapOf({ emoji: '🦖', name: 'Ski trip' })).emblem).toBe('ski')
+    it('falls back to the peanut for junk emblems, exactly like RoomEmblem does', () => {
+        expect(toRecapCard(recapOf({ emoji: '🦖', name: 'Ski trip' })).emblem).toBe('peanut')
         expect(toRecapCard(recapOf({ emoji: null, name: 'zzz' })).emblem).toBe('peanut')
     })
 

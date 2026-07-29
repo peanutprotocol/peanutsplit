@@ -303,13 +303,21 @@ export function RecapCard({ card, emojiSrc }: { card: RecapCardData; emojiSrc: s
                         )}
                         <div
                             style={{
-                                display: 'flex',
+                                // `block`, not the file's usual flex: satori only honours
+                                // `lineClamp` on block text, and this leaf holds nothing
+                                // but the name.
+                                display: 'block',
                                 marginLeft: 22,
                                 maxWidth: 620,
                                 fontFamily: DISPLAY_FONT,
                                 fontSize: nameFontSize(card.name),
                                 lineHeight: 1.1,
                                 color: INK,
+                                // Two lines, hard stop. A three-line name plus the story
+                                // strip pushes the sheet over the wordmark — and the
+                                // printed domain is the one thing a stranger holding
+                                // this image can act on, so the name yields, not it.
+                                lineClamp: 2,
                             }}
                         >
                             {card.name}

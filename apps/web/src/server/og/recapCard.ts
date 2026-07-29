@@ -13,7 +13,7 @@
  * rasterizer or a database.
  */
 import { type DoodleName } from '@/components/ui/doodles'
-import { roomDoodleFor } from '@/lib/room-doodle'
+import { FALLBACK_DOODLE } from '@/lib/room-doodle'
 import { emblemDoodle } from '@/lib/room-emblem'
 import { daySpan } from '@/lib/story'
 import { prisma } from '@/server/db'
@@ -159,9 +159,9 @@ export function toRecapCard(recap: RoomRecap): RecapCardData {
     return {
         name: sanitizeDisplayName(recap.name),
         emoji: recap.emoji,
-        // The story strip's lead character. Same resolution as every other room
-        // surface, and pure — a cache fill on another box draws the same trip.
-        emblem: emblemDoodle(recap.emoji) ?? roomDoodleFor(recap.name),
+        // The story strip's lead character — RoomEmblem's exact chain, so the
+        // strip can never disagree with the emblem drawn beside the room name.
+        emblem: emblemDoodle(recap.emoji) ?? FALLBACK_DOODLE,
         total: safeAmount(BigInt(recap.totalMinor), recap.currency),
         stat: recapStatLine(recap),
         topPayer,
