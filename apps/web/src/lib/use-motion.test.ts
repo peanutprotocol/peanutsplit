@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { motionAllowed } from './use-motion'
 
@@ -30,5 +31,24 @@ describe('motionAllowed', () => {
         // browser has returned a real "no preference".
         expect(motionAllowed(true, null)).toBe(false)
         expect(motionAllowed(false, null)).toBe(false)
+    })
+})
+
+describe('meaningful motion surface coverage', () => {
+    it.each([
+        ['the deferred install prompt', '../components/pwa/InstallPrompt.tsx'],
+        ['the Splitwise import preview', '../components/import/SplitwiseImport.tsx'],
+    ])('%s resolves the shared policy and exposes its surface to the CSS safety net', (_label, relativePath) => {
+        const source = readFileSync(new URL(relativePath, import.meta.url), 'utf8')
+        expect(source).toContain('useMotionAllowed()')
+        expect(source).toContain('initial={motionAllowed ?')
+        expect(source).toContain('transition={motionAllowed ?')
+        expect(source).toContain('data-motion-surface')
+    })
+
+    it('does not emit Quick Add’s hidden progress-bar frame when policy is still', () => {
+        const source = readFileSync(new URL('../components/room/QuickAdd.tsx', import.meta.url), 'utf8')
+        expect(source).toContain("initial={motionAllowed ? { x: '-100%' } : false}")
+        expect(source).toContain('data-motion-surface')
     })
 })
