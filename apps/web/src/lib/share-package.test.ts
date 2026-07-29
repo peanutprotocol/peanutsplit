@@ -3,6 +3,7 @@ import {
     renderShareChannelFixture,
     roomSharePackage,
     roomShareVisual,
+    SHARE_CARD_TITLE_MAX_GRAPHEMES,
     SHARE_PACKAGE_VARIANT,
     type ShareChannelFixture,
 } from './share-package'
@@ -15,6 +16,12 @@ const payload = roomSharePackage({
     nextAction,
     url,
 })
+
+const renderedTitleLines = (svg: string): string[] =>
+    Array.from(svg.matchAll(/<text x="92" y="\d+"[^>]*font-size="72"[^>]*>(.*?)<\/text>/g), (match) => match[1])
+
+const graphemeCount = (value: string): number =>
+    Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(value)).length
 
 describe('room share package', () => {
     it('keeps the exact next action and bearer link together in the directed payload', () => {
@@ -60,7 +67,7 @@ describe('room share package', () => {
 
         expect(visual.filename).toBe('lisbon-friends-invite.svg')
         expect(visual.mimeType).toBe('image/svg+xml')
-        expect(visual.svg).toContain('Lisbon &amp; friends')
+        expect(renderedTitleLines(visual.svg).join(' ')).toBe('Lisbon &amp; friends')
         expect(visual.svg).toContain('#98E9AB')
         expect(visual.svg).toContain('<path')
         expect(visual.svg).not.toContain(slug)
@@ -89,5 +96,38 @@ describe('room share package', () => {
 
         expect(visual.svg).not.toContain('<script>')
         expect(visual.svg).toContain('&lt;script&gt;')
+    })
+
+    it('bounds an 80-character unbroken room name and ellipsizes only the final line', () => {
+        const visual = roomShareVisual({
+            roomName: 'W'.repeat(80),
+            theme: null,
+            emblem: null,
+        })
+        const lines = renderedTitleLines(visual.svg)
+
+        expect(lines).toHaveLength(3)
+        expect(lines[0]).toBe('W'.repeat(SHARE_CARD_TITLE_MAX_GRAPHEMES))
+        expect(lines[1]).toBe('W'.repeat(SHARE_CARD_TITLE_MAX_GRAPHEMES))
+        expect(lines[2]).toBe(`${'W'.repeat(SHARE_CARD_TITLE_MAX_GRAPHEMES - 1)}…`)
+        expect(lines.slice(0, -1).every((line) => !line.includes('…'))).toBe(true)
+        expect(lines.every((line) => graphemeCount(line) <= SHARE_CARD_TITLE_MAX_GRAPHEMES)).toBe(true)
+    })
+
+    it('keeps Unicode graphemes intact while bounding and escaping a no-space title', () => {
+        const family = '👨‍👩‍👧‍👦'
+        const visual = roomShareVisual({
+            roomName: `${family.repeat(10)}&${family.repeat(40)}`,
+            theme: null,
+            emblem: null,
+        })
+        const escapedLines = renderedTitleLines(visual.svg)
+        const decodedLines = escapedLines.map((line) => line.replaceAll('&amp;', '&'))
+
+        expect(escapedLines.join('')).toContain('&amp;')
+        expect(decodedLines).toHaveLength(3)
+        expect(decodedLines.every((line) => graphemeCount(line) <= SHARE_CARD_TITLE_MAX_GRAPHEMES)).toBe(true)
+        expect(decodedLines.every((line) => !line.startsWith('\u200d') && !line.endsWith('\u200d'))).toBe(true)
+        expect(decodedLines[2]).toBe(`${family.repeat(SHARE_CARD_TITLE_MAX_GRAPHEMES - 1)}…`)
     })
 })
