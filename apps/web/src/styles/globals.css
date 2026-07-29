@@ -223,7 +223,6 @@
 }
 
 .pass-link-kicker,
-.landing-proof-copy > p,
 .landing-room-examples-heading > p {
     margin: 0;
     font-size: 0.6875rem;
@@ -497,11 +496,15 @@
 .landing-proof-copy h2,
 .landing-room-examples-heading h2 {
     max-width: 38rem;
-    margin: 0.65rem 0 0;
+    margin: 0;
     font-size: clamp(2.5rem, 4.7vw, 4.75rem);
     font-weight: 900;
     letter-spacing: -0.055em;
     line-height: 0.92;
+}
+
+.landing-room-examples-heading h2 {
+    margin-top: 0.65rem;
 }
 
 .landing-proof-copy > span {
