@@ -39,6 +39,7 @@ import {
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
 import { convertMinorForPreview, useRate } from '@/lib/use-rate'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { useShake } from '@/hooks/useShake'
 import { CurrencySelect } from './CurrencySelect'
@@ -81,6 +82,7 @@ export function ExpenseDrawer({
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
     const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
     const { ref: formRef, shake } = useShake<HTMLDivElement>()
     const hints = useCurrencyHints()
 
@@ -659,9 +661,11 @@ export function ExpenseDrawer({
                                 key={fieldRepairNotice}
                                 role="status"
                                 aria-live="polite"
-                                initial={{ opacity: 0, y: -4 }}
+                                initial={motionAllowed ? { opacity: 0, y: -4 } : false}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -4 }}
+                                exit={motionAllowed ? { opacity: 0, y: -4 } : undefined}
+                                transition={motionAllowed ? undefined : { duration: 0 }}
+                                data-motion-surface
                                 className="px-1 text-xs font-bold text-grey-1"
                                 data-testid="expense-fields-repaired"
                             >
@@ -945,14 +949,27 @@ export function ExpenseDrawer({
                                                             <AnimatePresence initial={false}>
                                                                 {checked && (
                                                                     <motion.span
-                                                                        initial={{ scale: 0.2, opacity: 0 }}
+                                                                        initial={
+                                                                            motionAllowed
+                                                                                ? { scale: 0.2, opacity: 0 }
+                                                                                : false
+                                                                        }
                                                                         animate={{ scale: 1, opacity: 1 }}
-                                                                        exit={{ scale: 0.2, opacity: 0 }}
-                                                                        transition={{
-                                                                            type: 'spring',
-                                                                            stiffness: 600,
-                                                                            damping: 24,
-                                                                        }}
+                                                                        exit={
+                                                                            motionAllowed
+                                                                                ? { scale: 0.2, opacity: 0 }
+                                                                                : undefined
+                                                                        }
+                                                                        transition={
+                                                                            motionAllowed
+                                                                                ? {
+                                                                                      type: 'spring',
+                                                                                      stiffness: 600,
+                                                                                      damping: 24,
+                                                                                  }
+                                                                                : { duration: 0 }
+                                                                        }
+                                                                        data-motion-surface
                                                                         className="flex"
                                                                     >
                                                                         <Icon name="check" size={15} />
@@ -1039,8 +1056,15 @@ export function ExpenseDrawer({
                                             data-testid="remaining-readout"
                                             role="status"
                                             aria-live="polite"
-                                            animate={allocationSettled ? { scale: [1, 1.03, 1] } : { scale: 1 }}
-                                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                                            animate={
+                                                motionAllowed && allocationSettled
+                                                    ? { scale: [1, 1.03, 1] }
+                                                    : { scale: 1 }
+                                            }
+                                            transition={
+                                                motionAllowed ? { duration: 0.3, ease: 'easeOut' } : { duration: 0 }
+                                            }
+                                            data-motion-surface
                                             className={cn(
                                                 'flex items-center justify-between rounded-md border border-n-1 px-3 py-3 text-h8 transition-colors duration-200',
                                                 allocationSettled ? 'bg-green-1' : 'bg-primary-3'

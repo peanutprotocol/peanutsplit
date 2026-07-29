@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { motionAllowed } from './use-motion'
 
@@ -25,11 +26,29 @@ describe('motionAllowed', () => {
         expect(motionAllowed(false, true)).toBe(false)
     })
 
-    it('treats an unread media query as no preference', () => {
-        // motion/react reports null before it has read `prefers-reduced-motion`.
-        // Unknown must not mean "reduce" — that would kill every animation on the
-        // first frame of every page for everyone.
-        expect(motionAllowed(true, null)).toBe(true)
+    it('keeps the server frame still while the media query is unresolved', () => {
+        // SSR cannot read `prefers-reduced-motion`. Motion starts only after the
+        // browser has returned a real "no preference".
+        expect(motionAllowed(true, null)).toBe(false)
         expect(motionAllowed(false, null)).toBe(false)
+    })
+})
+
+describe('meaningful motion surface coverage', () => {
+    it.each([
+        ['the deferred install prompt', '../components/pwa/InstallPrompt.tsx'],
+        ['the Splitwise import preview', '../components/import/SplitwiseImport.tsx'],
+    ])('%s resolves the shared policy and exposes its surface to the CSS safety net', (_label, relativePath) => {
+        const source = readFileSync(new URL(relativePath, import.meta.url), 'utf8')
+        expect(source).toContain('useMotionAllowed()')
+        expect(source).toContain('initial={motionAllowed ?')
+        expect(source).toContain('transition={motionAllowed ?')
+        expect(source).toContain('data-motion-surface')
+    })
+
+    it('does not emit Quick Add’s hidden progress-bar frame when policy is still', () => {
+        const source = readFileSync(new URL('../components/room/QuickAdd.tsx', import.meta.url), 'utf8')
+        expect(source).toContain("initial={motionAllowed ? { x: '-100%' } : false}")
+        expect(source).toContain('data-motion-surface')
     })
 })

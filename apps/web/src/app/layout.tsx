@@ -2,6 +2,7 @@ import { type Metadata, type Viewport } from 'next'
 import { Roboto_Flex, Sniglet } from 'next/font/google'
 import localFont from 'next/font/local'
 import { NextIntlClientProvider } from 'next-intl'
+import Script from 'next/script'
 import { getLocale } from 'next-intl/server'
 import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
@@ -53,6 +54,21 @@ const knerdFilled = localFont({
 })
 
 /**
+ * The app preference has to exist before React and Motion mount. Otherwise an
+ * animations-off user receives the animated SSR first frame and only gets the
+ * still class in an effect. The OS preference is handled even earlier by CSS's
+ * media query; this tiny local-only read covers the in-app switch.
+ */
+const motionPreferencePreflight = `
+try {
+  var splitSettings = JSON.parse(localStorage.getItem('ps:settings') || '{}');
+  if (splitSettings.animationsEnabled === false) {
+    document.documentElement.classList.add('reduce-animations');
+  }
+} catch (_) {}
+`
+
+/**
  * The locale is a cookie, so this layout reads a dynamic API and every route under it renders
  * per request rather than at build time. That is inherent to "one URL per room, in any
  * language" — there is no static HTML that can be correct for three languages at once.
@@ -62,7 +78,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const locale = await getLocale()
 
     return (
-        <html lang={locale} style={{ colorScheme: 'light' }}>
+        <html lang={locale} style={{ colorScheme: 'light' }} suppressHydrationWarning>
+            <head>
+                <Script id="split-motion-preflight" strategy="beforeInteractive">
+                    {motionPreferencePreflight}
+                </Script>
+            </head>
             <body
                 className={`${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`}
             >

@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 const PORT = Number(process.env.E2E_PORT ?? 3100)
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`
+const browserName = process.env.E2E_BROWSER === 'firefox' ? 'firefox' : 'chromium'
 
 /**
  * Mobile-first: 390x844 is the design target.
@@ -37,15 +38,15 @@ export default defineConfig({
               },
           },
     projects: [
-        // iPhone 14 geometry on Chromium: WebKit needs host libraries (libwoff1,
-        // libavif16, …) that neither this box nor a plain CI image ships, and the
-        // journey asserts layout-independent backend truth. Swap `browserName`
-        // back to webkit once those deps are part of the image.
+        // iPhone 14 geometry on Chromium by default. `E2E_BROWSER=firefox`
+        // enables the focused cross-engine matrix without duplicating projects.
+        // WebKit needs host GTK/GStreamer/image libraries that this VM and a
+        // plain CI image do not ship; add it once those deps are provisioned.
         {
             name: 'mobile',
             use: {
                 ...devices['iPhone 14'],
-                browserName: 'chromium',
+                browserName,
                 // The two projects model independent visitors. Keeping their
                 // TEST-NET addresses distinct prevents one project's room/member
                 // creation budget from making the other project's QA order-dependent.
@@ -56,6 +57,7 @@ export default defineConfig({
             name: 'desktop',
             use: {
                 ...devices['Desktop Chrome'],
+                browserName,
                 extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.11' },
             },
         },

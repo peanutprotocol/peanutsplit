@@ -29,7 +29,23 @@
             "title": "Your rooms",
             "subtitle": "Saved on this device.",
             "openLabel": "Open room",
-            "more": "and {count, plural, one {# more} other {# more}}"
+            "more": "Show {count, plural, one {# more room} other {# more rooms}}",
+            "less": "Show fewer rooms",
+            "forgetLabel": "Forget {room} on this device",
+            "forgotten": "{room} was removed from this device. The shared room still works for anyone with its link.",
+            "forgetFailed": "We could not remove {room} from this device. It is still in this list.",
+            "recovery": {
+                "title": "Already have a room link?",
+                "label": "Paste the room link",
+                "placeholder": "peanutsplit.com/r/your-room-…",
+                "hint": "We check the link, then save that room on this device. No account or ownership change.",
+                "submit": "Add this room",
+                "invalid": "Paste a complete Peanut Split room link.",
+                "notFound": "We could not find that room. Check that the whole link was pasted.",
+                "failed": "We could not check that room just now. Nothing was saved — try again.",
+                "openingSaved": "Opening {room}. It is saved on this device.",
+                "openingUnsaved": "Opening {room}. This browser could not save it for later."
+            }
         },
         "proof": {
             "linkIdentity": {
@@ -145,6 +161,7 @@
         },
         "footer": {
             "logoAlt": "Peanut",
+            "logoLinkLabel": "Visit Peanut",
             "colSplit": "Split",
             "createSplit": "Start a split",
             "importLink": "Import from Splitwise",
@@ -284,8 +301,8 @@
                     "a": "Anyone with the link. It is kept out of search engines and cannot be guessed, but it is a key — keep it in the group chat rather than anywhere public."
                 },
                 "lost": {
-                    "q": "What happens if we lose the link?",
-                    "a": "Rooms you have opened are saved on your device and listed on the home page. If nobody in the group still has it, the room is gone."
+                    "q": "How do we get back to the room?",
+                    "a": "Leave the link in the group chat so everyone can find it there. Split also saves rooms you open on this device, and you can paste the link on the home page to add it back."
                 },
                 "limits": {
                     "q": "Is there a limit on how many expenses we can add?",
@@ -533,13 +550,21 @@
         "link": {
             "subtitle": "your split room",
             "roomLink": "Room link",
-            "copyBlocked": "Your browser blocked the copy — select the link above and copy it manually.",
-            "copy": "Copy link",
+            "inviteText": "Invite text",
+            "copyBlocked": "Your browser blocked the copy. The full invite is selected above — copy it manually.",
+            "copy": "Copy invite",
             "copied": "Copied!",
             "share": "Share",
+            "shared": "Share package sent.",
+            "shareFailed": "The share sheet did not open. Copy or download the invite instead.",
+            "downloadCard": "Download room card",
+            "downloadText": "Download invite text",
+            "downloadedCard": "Room card downloaded.",
+            "downloadedText": "Invite text downloaded.",
+            "downloadFailed": "That download did not start. Copy the invite instead.",
             "anyoneCanJoin": "Anyone with this link can join and add expenses.",
             "shareTitle": "{room} · Peanut Split",
-            "shareText": "Join “{room}” and let’s split this properly."
+            "shareText": "Open the link, pick your name, then add what you paid."
         },
         "create": {
             "back": "Back",

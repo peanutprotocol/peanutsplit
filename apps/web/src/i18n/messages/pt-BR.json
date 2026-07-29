@@ -29,7 +29,23 @@
             "title": "Suas salas",
             "subtitle": "Salvas neste aparelho.",
             "openLabel": "Abrir sala",
-            "more": "e mais {count, plural, one {#} other {#}}"
+            "more": "Mostrar {count, plural, one {mais # sala} other {mais # salas}}",
+            "less": "Mostrar menos salas",
+            "forgetLabel": "Remover {room} deste aparelho",
+            "forgotten": "{room} foi removida deste aparelho. A sala compartilhada continua funcionando para quem tem o link.",
+            "forgetFailed": "Não deu para remover {room} deste aparelho. Ela continua nesta lista.",
+            "recovery": {
+                "title": "Já tem o link de uma sala?",
+                "label": "Cole o link da sala",
+                "placeholder": "peanutsplit.com/r/sua-sala-…",
+                "hint": "A gente confere o link e salva a sala neste aparelho. Não cria uma conta nem muda quem pode entrar.",
+                "submit": "Adicionar esta sala",
+                "invalid": "Cole o link completo de uma sala do Peanut Split.",
+                "notFound": "Não encontramos essa sala. Confira se você colou o link inteiro.",
+                "failed": "Não deu para conferir essa sala agora. Nada foi salvo; tente de novo.",
+                "openingSaved": "Abrindo {room}. Ela foi salva neste aparelho.",
+                "openingUnsaved": "Abrindo {room}. Este navegador não conseguiu salvá-la para depois."
+            }
         },
         "proof": {
             "linkIdentity": {
@@ -145,6 +161,7 @@
         },
         "footer": {
             "logoAlt": "Peanut",
+            "logoLinkLabel": "Visitar a Peanut",
             "colSplit": "Split",
             "createSplit": "Criar uma sala",
             "importLink": "Importar do Splitwise",
@@ -284,8 +301,8 @@
                     "a": "Quem tiver o link. Ele fica fora dos buscadores e não dá para adivinhar, mas é uma chave — deixe no grupo, não em lugar público."
                 },
                 "lost": {
-                    "q": "E se a gente perder o link?",
-                    "a": "As salas que você abriu ficam salvas no seu aparelho e listadas na página inicial. Se ninguém do grupo tiver mais o link, a sala se perdeu."
+                    "q": "Como a gente volta para a sala?",
+                    "a": "Deixe o link no grupo para todo mundo encontrar por lá. O Split também salva neste aparelho as salas que você abre, e você pode colar o link na página inicial para adicionar a sala de novo."
                 },
                 "limits": {
                     "q": "Tem limite de despesas?",
@@ -533,13 +550,21 @@
         "link": {
             "subtitle": "sua sala de divisão",
             "roomLink": "Link da sala",
-            "copyBlocked": "Seu navegador bloqueou a cópia — selecione o link acima e copie na mão.",
-            "copy": "Copiar link",
+            "inviteText": "Texto do convite",
+            "copyBlocked": "Seu navegador bloqueou a cópia. O convite completo está selecionado acima — copie na mão.",
+            "copy": "Copiar convite",
             "copied": "Copiado!",
             "share": "Compartilhar",
+            "shared": "Convite enviado.",
+            "shareFailed": "O menu de compartilhamento não abriu. Copie ou baixe o convite.",
+            "downloadCard": "Baixar cartão da sala",
+            "downloadText": "Baixar texto do convite",
+            "downloadedCard": "Cartão da sala baixado.",
+            "downloadedText": "Texto do convite baixado.",
+            "downloadFailed": "O download não começou. Copie o convite.",
             "anyoneCanJoin": "Qualquer pessoa com este link pode entrar e lançar gastos.",
             "shareTitle": "{room} · Peanut Split",
-            "shareText": "Entra em “{room}” e vamos dividir isso direito."
+            "shareText": "Abra o link, escolha seu nome e adicione o que você pagou."
         },
         "create": {
             "back": "Voltar",

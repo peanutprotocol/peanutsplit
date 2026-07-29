@@ -46,10 +46,10 @@ rollback can move a capability back.
 | Bounded saves and unambiguous amount punctuation | code-complete | Timeout/idempotency and locale-aware normalization tests pass on this feature branch |
 | Rejected queued-draft repair | held | A durable review/edit/retry/discard state needs the larger V2 recovery UI approved in the audit ruling |
 | Concurrent expense-edit conflict protection | held | Two-client discovery and a bounded recovery design remain required before implementation |
-| Landing/accessibility/recent-room recovery | in progress | Continuity lane on this feature branch |
-| Room-link recovery by paste | in progress | Continuity lane on this feature branch |
+| Landing/accessibility/recent-room recovery | code-complete | Mobile/desktop continuity and reduced-motion checks pass on this feature branch |
+| Room-link recovery by paste | code-complete | Valid links are verified before local save; invalid, unreachable and storage-denied paths are covered |
 | CSV and JSON room export | code-complete | Feature-branch tests pass; deploy not implied |
-| Group-chat-ready room share package | in progress | Continuity lane audits existing surface before changing it |
+| Group-chat-ready room share package | code-complete | Chromium and Firefox verify private SVG/text handoff, fallbacks, cleanup and bounded rendered geometry |
 
 ## Release reconciliation checklist
 

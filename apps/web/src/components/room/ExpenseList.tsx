@@ -10,6 +10,7 @@ import { cn } from '@/lib/cn'
 import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { dayLabel, groupByDay } from '@/lib/dates'
 import { Button } from '@/components/ui/Button'
 import { Money } from './Money'
@@ -90,6 +91,7 @@ export function ExpenseList({
     const tDates = useTranslations('dates')
     const tOffline = useTranslations('offline')
     const locale = useLocale()
+    const motionAllowed = useMotionAllowed()
     const poppedId = usePoppedExpenseId(state.expenses)
     const queued = useQueuedWrites(slug)
     /** Expenses and payments in one list, newest first — see `lib/timeline.ts`
@@ -101,15 +103,19 @@ export function ExpenseList({
     if (timeline.length === 0) {
         return (
             <motion.section
-                initial={{ opacity: 0, y: 12 }}
+                initial={motionAllowed ? { opacity: 0, y: 12 } : false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+                transition={motionAllowed ? { type: 'spring', stiffness: 300, damping: 28 } : { duration: 0 }}
+                data-motion-surface
                 className="flex flex-col items-center gap-4 px-4 py-12 text-center"
             >
                 <motion.div
-                    initial={{ scale: 0.7, rotate: -8, opacity: 0 }}
+                    initial={motionAllowed ? { scale: 0.7, rotate: -8, opacity: 0 } : false}
                     animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.08 }}
+                    transition={
+                        motionAllowed ? { type: 'spring', stiffness: 300, damping: 15, delay: 0.08 } : { duration: 0 }
+                    }
+                    data-motion-surface
                 >
                     <Image src={peanutThinking} alt="" unoptimized className="h-32 w-32 object-contain" />
                 </motion.div>
@@ -150,19 +156,38 @@ export function ExpenseList({
                                     return (
                                         <motion.li
                                             key={entry.id}
-                                            layout
-                                            initial={{ opacity: 0, y: -14, scale: 0.96 }}
+                                            layout={motionAllowed}
+                                            initial={motionAllowed ? { opacity: 0, y: -14, scale: 0.96 } : false}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{
-                                                opacity: 0,
-                                                scale: 0.92,
-                                                x: 12,
-                                                transition: { duration: 0.2, ease: 'easeIn' },
-                                            }}
-                                            transition={{
-                                                layout: { type: 'spring', stiffness: 420, damping: 34, mass: 0.7 },
-                                                default: { type: 'spring', stiffness: 380, damping: 24, mass: 0.8 },
-                                            }}
+                                            exit={
+                                                motionAllowed
+                                                    ? {
+                                                          opacity: 0,
+                                                          scale: 0.92,
+                                                          x: 12,
+                                                          transition: { duration: 0.2, ease: 'easeIn' },
+                                                      }
+                                                    : undefined
+                                            }
+                                            transition={
+                                                motionAllowed
+                                                    ? {
+                                                          layout: {
+                                                              type: 'spring',
+                                                              stiffness: 420,
+                                                              damping: 34,
+                                                              mass: 0.7,
+                                                          },
+                                                          default: {
+                                                              type: 'spring',
+                                                              stiffness: 380,
+                                                              damping: 24,
+                                                              mass: 0.8,
+                                                          },
+                                                      }
+                                                    : { duration: 0 }
+                                            }
+                                            data-motion-surface
                                         >
                                             <SettlementRow
                                                 slug={slug}
@@ -188,16 +213,16 @@ export function ExpenseList({
                                 return (
                                     <motion.li
                                         key={expense.id}
-                                        layout
+                                        layout={motionAllowed}
                                         // Moment #3: a new row does not fade in, it drops in
                                         // and settles — the same weight as the balances counting.
-                                        initial={{ opacity: 0, y: -14, scale: 0.96 }}
+                                        initial={motionAllowed ? { opacity: 0, y: -14, scale: 0.96 } : false}
                                         animate={{ opacity: isPending(expense) ? 0.55 : 1, y: 0, scale: 1 }}
                                         // No exit for the placeholder: it is not leaving,
                                         // it is being swapped for the real row, and an
                                         // animated departure would briefly double it up.
                                         exit={
-                                            isPending(expense)
+                                            !motionAllowed || isPending(expense)
                                                 ? undefined
                                                 : {
                                                       opacity: 0,
@@ -206,10 +231,25 @@ export function ExpenseList({
                                                       transition: { duration: 0.2, ease: 'easeIn' },
                                                   }
                                         }
-                                        transition={{
-                                            layout: { type: 'spring', stiffness: 420, damping: 34, mass: 0.7 },
-                                            default: { type: 'spring', stiffness: 380, damping: 24, mass: 0.8 },
-                                        }}
+                                        transition={
+                                            motionAllowed
+                                                ? {
+                                                      layout: {
+                                                          type: 'spring',
+                                                          stiffness: 420,
+                                                          damping: 34,
+                                                          mass: 0.7,
+                                                      },
+                                                      default: {
+                                                          type: 'spring',
+                                                          stiffness: 380,
+                                                          damping: 24,
+                                                          mass: 0.8,
+                                                      },
+                                                  }
+                                                : { duration: 0 }
+                                        }
+                                        data-motion-surface
                                     >
                                         <button
                                             type="button"

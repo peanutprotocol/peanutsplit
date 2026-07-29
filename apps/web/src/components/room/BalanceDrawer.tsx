@@ -10,6 +10,7 @@ import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { deriveBalance, derivePair } from '@/lib/balance-derivation'
 import { cn } from '@/lib/cn'
 import { isZeroMinor } from '@/lib/money'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { DerivationSheet } from './DerivationSheet'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
@@ -44,6 +45,7 @@ const toneFor = (net: string) => (isZeroMinor(net) ? 'bg-white' : net.startsWith
 export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId }: BalanceDrawerProps) {
     const t = useTranslations('derivation')
     const tBalances = useTranslations('room.balances')
+    const motionAllowed = useMotionAllowed()
     // Which suggested payment has the other side's balance unfolded under it. Ephemeral —
     // it does not survive closing the sheet, and has no business in the URL.
     const [expanded, setExpanded] = useState<string | null>(null)
@@ -92,9 +94,10 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
 
                 <DrawerBody>
                     <motion.div
-                        initial={{ scale: 0.94, opacity: 0 }}
+                        initial={motionAllowed ? { scale: 0.94, opacity: 0 } : false}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                        transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 24 } : { duration: 0 }}
+                        data-motion-surface
                         className={cn(
                             'shadow-4 flex flex-col items-center gap-1 rounded-sm border border-n-1 px-4 py-5',
                             toneFor(net)

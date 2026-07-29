@@ -127,3 +127,38 @@ describe('landing analytics', () => {
         }
     })
 })
+
+describe('share-package measurement', () => {
+    it('defines an honest completed-over-presented measure with an exact identifier-free allowlist', async () => {
+        const { SHARE_PACKAGE_MEASURE, SHARE_PACKAGE_METHODS, sharePackageMeasureProps } = await import('./analytics')
+
+        expect(SHARE_PACKAGE_MEASURE).toEqual({
+            exposure: 'share_package_presented',
+            success: 'share_completed',
+            definition: 'completed user-directed share actions / presented share packages',
+            allowedProperties: {
+                share_package_presented: ['variant'],
+                share_completed: ['variant', 'method'],
+            },
+        })
+
+        expect(sharePackageMeasureProps()).toEqual({ variant: 'group_chat_package_v1' })
+        expect(sharePackageMeasureProps('native')).toEqual({
+            variant: 'group_chat_package_v1',
+            method: 'native',
+        })
+        expect(SHARE_PACKAGE_METHODS).toEqual(['native', 'clipboard', 'card_download', 'text_download'])
+        expect(sharePackageMeasureProps('whatsapp' as never)).toEqual({ variant: 'group_chat_package_v1' })
+
+        for (const method of ['native', 'clipboard', 'card_download', 'text_download'] as const) {
+            const properties = sharePackageMeasureProps(method)
+            expect(Object.keys(properties)).toEqual(['variant', 'method'])
+            expect(properties).not.toHaveProperty('room')
+            expect(properties).not.toHaveProperty('slug')
+            expect(properties).not.toHaveProperty('name')
+            expect(properties).not.toHaveProperty('member')
+            expect(properties).not.toHaveProperty('amount')
+            expect(properties).not.toHaveProperty('channel')
+        }
+    })
+})
