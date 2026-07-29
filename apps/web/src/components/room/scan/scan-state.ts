@@ -18,7 +18,7 @@
 
 import { fromDateInputValue } from '@/lib/dates'
 import type { ExpenseFormValues } from '@/lib/expense-form'
-import { addMinor, equalSplitMinor, formatMinorPlain, parseAmountToMinor } from '@/lib/money'
+import { addMinor, equalSplitMinor, formatAmountInput, formatMinorPlain, parseAmountToMinor } from '@/lib/money'
 
 export interface ScanItem {
     /** Client-minted and stable for the life of the flow — the wire carries no
@@ -120,20 +120,30 @@ const mapItem = (state: ScanState, itemId: string, fn: (item: ScanItem) => ScanI
     items: state.items.map((item) => (item.id === itemId ? fn(item) : item)),
 })
 
-/** An item's amount in minor units. An unparseable or blank field is zero —
- *  the review screen shows the field as typed and the totals simply ignore it. */
-export const itemMinor = (item: ScanItem, decimals: number): string =>
-    parseAmountToMinor(item.amountInput, decimals) ?? '0'
+/** An item's amount in minor units. Blank input contributes zero. Invalid
+ * non-empty input also returns zero for arithmetic, but `invalidAmountItems`
+ * blocks the review handoff so that row can never disappear from the expense. */
+export const itemMinor = (item: ScanItem, decimals: number, locale?: string): string =>
+    parseAmountToMinor(item.amountInput, decimals, locale) ?? '0'
+
+/** Non-empty amounts that cannot be represented in this currency. They must
+ * block the handoff: treating them as zero would silently remove a receipt row. */
+export const invalidAmountItems = (state: ScanState, decimals: number, locale?: string): ScanItem[] =>
+    state.items.filter(
+        (item) => item.amountInput.trim().length > 0 && parseAmountToMinor(item.amountInput, decimals, locale) === null
+    )
 
 /** Sum of every item, assigned or not. This is what the expense will be worth. */
-export const itemsTotalMinor = (state: ScanState, decimals: number): string =>
-    addMinor(state.items.map((item) => itemMinor(item, decimals)))
+export const itemsTotalMinor = (state: ScanState, decimals: number, locale?: string): string =>
+    addMinor(state.items.map((item) => parseAmountToMinor(item.amountInput, decimals, locale) ?? '0'))
 
 /** Items with a positive amount and nobody on them. Non-zero blocks the submit —
  *  an unassigned item is money that would silently leave the split. */
-export const unassignedItems = (state: ScanState, decimals: number): ScanItem[] =>
+export const unassignedItems = (state: ScanState, decimals: number, locale?: string): ScanItem[] =>
     state.items.filter(
-        (item) => BigInt(itemMinor(item, decimals)) > 0n && (state.assignments[item.id] ?? []).length === 0
+        (item) =>
+            BigInt(parseAmountToMinor(item.amountInput, decimals, locale) ?? '0') > 0n &&
+            (state.assignments[item.id] ?? []).length === 0
     )
 
 /**
@@ -143,12 +153,12 @@ export const unassignedItems = (state: ScanState, decimals: number): ScanItem[] 
  * contribute nothing (the caller blocks on `unassignedItems` before this
  * matters), and a zero-amount item contributes zero to everyone on it.
  */
-export function memberTotals(state: ScanState, decimals: number): Record<string, string> {
+export function memberTotals(state: ScanState, decimals: number, locale?: string): Record<string, string> {
     const totals = new Map<string, bigint>()
     for (const item of state.items) {
         const assignees = state.assignments[item.id] ?? []
         if (assignees.length === 0) continue
-        const shares = equalSplitMinor(itemMinor(item, decimals), assignees.length)
+        const shares = equalSplitMinor(parseAmountToMinor(item.amountInput, decimals, locale) ?? '0', assignees.length)
         assignees.forEach((memberId, index) => {
             totals.set(memberId, (totals.get(memberId) ?? 0n) + BigInt(shares[index]))
         })
@@ -159,19 +169,19 @@ export function memberTotals(state: ScanState, decimals: number): Record<string,
 }
 
 /** Sum of the assigned items only — the number `memberTotals` must add up to. */
-export const assignedTotalMinor = (state: ScanState, decimals: number): string =>
+export const assignedTotalMinor = (state: ScanState, decimals: number, locale?: string): string =>
     addMinor(
         state.items
             .filter((item) => (state.assignments[item.id] ?? []).length > 0)
-            .map((item) => itemMinor(item, decimals))
+            .map((item) => parseAmountToMinor(item.amountInput, decimals, locale) ?? '0')
     )
 
 /** Signed difference between what the receipt says and what the items add up to.
  *  Negative means the items overshoot the printed total. Null when the receipt
  *  carried no total to disagree with. */
-export function totalMismatchMinor(state: ScanState, decimals: number): string | null {
+export function totalMismatchMinor(state: ScanState, decimals: number, locale?: string): string | null {
     if (state.receiptTotalMinor === null) return null
-    return (BigInt(state.receiptTotalMinor) - BigInt(itemsTotalMinor(state, decimals))).toString()
+    return (BigInt(state.receiptTotalMinor) - BigInt(itemsTotalMinor(state, decimals, locale))).toString()
 }
 
 /** Build the initial state from what the server parsed. */
@@ -218,18 +228,22 @@ export function initScanState(
  */
 export function toExpenseFormValues(
     state: ScanState,
-    opts: { base: ExpenseFormValues; decimals: number; fallbackDescription: string }
+    opts: { base: ExpenseFormValues; decimals: number; fallbackDescription: string; locale?: string }
 ): ExpenseFormValues {
-    const totals = memberTotals(state, opts.decimals)
+    const totals = memberTotals(state, opts.decimals, opts.locale)
     const exactInputs: Record<string, string> = {}
     for (const [memberId, minor] of Object.entries(totals)) {
-        exactInputs[memberId] = formatMinorPlain(minor, opts.decimals)
+        exactInputs[memberId] = opts.locale
+            ? formatAmountInput(minor, opts.decimals, opts.locale)
+            : formatMinorPlain(minor, opts.decimals)
     }
 
     return {
         ...opts.base,
         description: state.merchant ?? opts.fallbackDescription,
-        amountInput: formatMinorPlain(assignedTotalMinor(state, opts.decimals), opts.decimals),
+        amountInput: opts.locale
+            ? formatAmountInput(assignedTotalMinor(state, opts.decimals, opts.locale), opts.decimals, opts.locale)
+            : formatMinorPlain(assignedTotalMinor(state, opts.decimals), opts.decimals),
         currency: state.currency,
         splitMode: 'EXACT',
         participantIds: Object.keys(exactInputs),

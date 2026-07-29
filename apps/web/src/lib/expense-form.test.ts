@@ -108,6 +108,13 @@ describe('expenseToFormValues — the no-drift path', () => {
         ])
     })
 
+    it('prefills editable amounts with the active locale separator', () => {
+        const values = expenseToFormValues(foreignExactExpense, undefined, 'pt-BR')
+        expect(values.amountInput).toBe('100,00')
+        expect(values.exactInputs).toEqual({ m1: '65,00', m2: '35,00' })
+        expect(buildExpenseBody(values, undefined, 'pt-BR').amountMinor).toBe('10000')
+    })
+
     it('prefills EQUAL participants from the share list', () => {
         const values = expenseToFormValues({
             ...foreignExactExpense,
@@ -223,6 +230,52 @@ describe('validateExpenseForm / remainingMinor', () => {
             { memberId: 'm2', amountMinor: '3000' },
         ])
     })
+
+    it.each([
+        ['en', '1,234', '123400'],
+        ['es', '1.234', '123400'],
+        ['pt-BR', '1.234', '123400'],
+    ])('builds the grouped amount intended in %s', (locale, amountInput, amountMinor) => {
+        const values = baseForm({ amountInput })
+        expect(validateExpenseForm(values, undefined, locale)).toBeNull()
+        expect(buildExpenseBody(values, undefined, locale).amountMinor).toBe(amountMinor)
+    })
+
+    it.each([
+        ['en', '12.345'],
+        ['es', '12,345'],
+        ['pt-BR', '12,345'],
+    ])('rejects an over-precise amount in %s rather than silently rounding it', (locale, amountInput) => {
+        const values = baseForm({ amountInput })
+        expect(validateExpenseForm(values, undefined, locale)).toBe('AMOUNT_INVALID')
+        expect(() => buildExpenseBody(values, undefined, locale)).toThrow(/AMOUNT_INVALID/)
+    })
+
+    it.each([
+        ['en', '0.001'],
+        ['es', '0,001'],
+        ['pt-BR', '0,001'],
+    ])('rejects an invalid exact share in %s rather than silently dropping it', (locale, invalidShare) => {
+        const values = baseForm({
+            splitMode: 'EXACT',
+            exactInputs: { m1: '30', m2: '30', m3: invalidShare },
+        })
+        expect(validateExpenseForm(values, undefined, locale)).toBe('SHARE_AMOUNT_INVALID')
+        expect(() => buildExpenseBody(values, undefined, locale)).toThrow(/SHARE_AMOUNT_INVALID/)
+    })
+
+    it.each([
+        ['JPY', 'en', '4,500'],
+        ['JPY', 'es', '4.500'],
+        ['JPY', 'pt-BR', '4.500'],
+        ['COP', 'en', '4,500'],
+        ['COP', 'es', '4.500'],
+        ['COP', 'pt-BR', '4.500'],
+    ])('preserves grouped %s units in %s', (currency, locale, amountInput) => {
+        const values = baseForm({ currency, amountInput })
+        expect(validateExpenseForm(values, undefined, locale)).toBeNull()
+        expect(buildExpenseBody(values, undefined, locale).amountMinor).toBe('4500')
+    })
 })
 
 describe('repairMisplacedExpenseFields', () => {
@@ -231,6 +284,12 @@ describe('repairMisplacedExpenseFields', () => {
             amountInput: '123',
             description: 'Taxi',
         })
+    })
+
+    it('does not disguise invalid numeric punctuation as a swapped description', () => {
+        expect(
+            repairMisplacedExpenseFields(baseForm({ amountInput: '12.345', description: '60' }), undefined, 'en')
+        ).toBeNull()
     })
 
     it('recognises the same decimal formats as the real amount field', () => {

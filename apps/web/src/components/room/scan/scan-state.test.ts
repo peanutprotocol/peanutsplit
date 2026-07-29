@@ -13,6 +13,7 @@ import { addMinor } from '@/lib/money'
 import {
     assignedTotalMinor,
     initScanState,
+    invalidAmountItems,
     itemsTotalMinor,
     memberTotals,
     mintItemId,
@@ -56,6 +57,26 @@ describe('item totals', () => {
     it('honours a zero-decimal currency', () => {
         const state = stateOf([item('Ramen', '980'), item('Gyoza', '450')])
         expect(itemsTotalMinor(state, 0)).toBe('1430')
+    })
+
+    it.each([
+        ['en', '1,234'],
+        ['es', '1.234'],
+        ['pt-BR', '1.234'],
+    ])('preserves locale grouping in receipt rows for %s', (locale, amountInput) => {
+        const state = stateOf([item('Group dinner', amountInput)])
+        expect(itemsTotalMinor(state, CENTS, locale)).toBe('123400')
+        expect(invalidAmountItems(state, CENTS, locale)).toEqual([])
+    })
+
+    it.each([
+        ['en', '12.345'],
+        ['es', '12,345'],
+        ['pt-BR', '12,345'],
+    ])('flags excess precision in %s instead of dropping or rounding the row', (locale, amountInput) => {
+        const bad = item('Unreadable total', amountInput)
+        const state = stateOf([bad])
+        expect(invalidAmountItems(state, CENTS, locale)).toEqual([bad])
     })
 })
 
@@ -257,6 +278,19 @@ describe('toExpenseFormValues — the handoff', () => {
         expect(values.date.slice(0, 10)).toBe('2026-07-15')
         // The payer the user already picked survives the scan.
         expect(values.paidById).toBe('ana')
+    })
+
+    it('hands a Brazilian Portuguese draft back with comma-decimal editable values', () => {
+        const pizza = item('Pizza', '12,50')
+        const state = stateOf([pizza], { [pizza.id]: ['ana', 'bo'] })
+        const values = toExpenseFormValues(state, {
+            base,
+            decimals: CENTS,
+            fallbackDescription: 'Conta escaneada',
+            locale: 'pt-BR',
+        })
+        expect(values.amountInput).toBe('12,50')
+        expect(values.exactInputs).toEqual({ ana: '6,25', bo: '6,25' })
     })
 
     it('falls back to a generic description and today when the receipt said neither', () => {
