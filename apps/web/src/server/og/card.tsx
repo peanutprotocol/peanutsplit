@@ -171,20 +171,7 @@ function AvatarRow({ avatars, overflow, people }: { avatars: OgAvatar[]; overflo
                 who has not joined yet, so the roster ends with a chair held open
                 for the person looking at it — the invitation drawn rather than
                 written. Dashed on purpose: a seat, not a member. */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 80,
-                    height: 80,
-                    borderRadius: 9999,
-                    backgroundColor: '#FFFFFF',
-                    border: `4px dashed ${INK}`,
-                    marginLeft: -18,
-                    flexShrink: 0,
-                }}
-            >
+            <div style={{ ...disc(80, '#FFFFFF'), border: `4px dashed ${INK}`, marginLeft: -18 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={doodleDataUri('question')} width={44} height={44} alt="" />
             </div>

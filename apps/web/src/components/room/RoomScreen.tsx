@@ -12,7 +12,7 @@ import type { MemberIdentity } from '@/lib/identity'
 import { isRoomSettled, savedExpenses } from '@/lib/pending'
 import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
-import { roomDoodleFor } from '@/lib/room-doodle'
+import { FALLBACK_DOODLE } from '@/lib/room-doodle'
 import { emblemDoodle } from '@/lib/room-emblem'
 import { useRoomParams } from '@/lib/room-params'
 import { daySpan } from '@/lib/story'
@@ -225,7 +225,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                             expenses: saved.length,
                                             days: daySpan(saved.map((expense) => new Date(expense.date))),
                                         }}
-                                        emblem={emblemDoodle(state.room.emoji) ?? roomDoodleFor(state.room.name)}
+                                        emblem={emblemDoodle(state.room.emoji) ?? FALLBACK_DOODLE}
                                     />
                                 )}
                             </AnimatePresence>

@@ -233,6 +233,7 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
                 {waving && (
                     <motion.div
                         aria-hidden="true"
+                        data-decorative
                         className="pointer-events-none absolute right-8 top-0 -z-10"
                         initial={{ y: 48, rotate: 0 }}
                         animate={{ y: [48, -26, -26, 48], rotate: [0, -5, 5, 0] }}
