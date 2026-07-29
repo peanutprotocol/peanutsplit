@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
+import type { DoodleName } from '@/components/ui/doodles'
 import { slugStem } from '@/lib/slugify'
 
 export type PassTheLinkStageState = 'question' | 'reply' | 'link' | 'complete'
@@ -12,7 +13,12 @@ export interface PassTheLinkStageProps {
     state: PassTheLinkStageState
 }
 
-const PEOPLE = ['B', 'J', 'M', 'YOU'] as const
+const PEOPLE = [
+    { key: 'bea', doodle: 'personapartybee' },
+    { key: 'jules', doodle: 'personawizardfrog' },
+    { key: 'mo', doodle: 'personamoonbunny' },
+    { key: 'you', doodle: 'personapocketrobot' },
+] as const satisfies readonly { key: string; doodle: DoodleName }[]
 
 /**
  * A non-writing illustration of the handoff the real form creates.
@@ -54,8 +60,8 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                             </div>
                             <div className="pass-link-avatar-stack">
                                 {PEOPLE.map((person) => (
-                                    <span key={person} className="pass-link-avatar">
-                                        {person === 'YOU' ? t('chat.youShort') : person}
+                                    <span key={person.key} className="pass-link-avatar">
+                                        <Doodle name={person.doodle} size={20} weight={1.7} />
                                     </span>
                                 ))}
                             </div>
@@ -63,7 +69,9 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
 
                         <div className="pass-link-chat-body">
                             <div className="pass-link-message-row pass-link-chat-question">
-                                <span className="pass-link-mini-avatar">B</span>
+                                <span className="pass-link-mini-avatar">
+                                    <Doodle name="personapartybee" size={17} weight={1.7} />
+                                </span>
                                 <div>
                                     <small>{t('chat.questionSender')}</small>
                                     <p className="pass-link-message">{t('chat.question')}</p>
@@ -79,12 +87,9 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
 
                             <div className="pass-link-shared-wrap">
                                 <div className="pass-link-shared-card">
-                                    <div className="pass-link-shared-brand">
-                                        <span>{t('chat.linkBrand')}</span>
-                                        <span className="pass-link-share-mark">
-                                            <Doodle name="iconshare" size={21} weight={2} />
-                                        </span>
-                                    </div>
+                                    <span className="pass-link-share-mark">
+                                        <Doodle name="iconshare" size={21} weight={2} />
+                                    </span>
                                     <div className="pass-link-shared-main">
                                         <strong>{shownRoomName}</strong>
                                         <b data-testid="pass-link-url">
@@ -94,8 +99,8 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                                     <div className="pass-link-shared-footer">
                                         <div className="pass-link-card-people">
                                             {PEOPLE.map((person) => (
-                                                <span key={person} className="pass-link-avatar">
-                                                    {person === 'YOU' ? t('chat.youShort') : person}
+                                                <span key={person.key} className="pass-link-avatar">
+                                                    <Doodle name={person.doodle} size={20} weight={1.7} />
                                                 </span>
                                             ))}
                                         </div>
