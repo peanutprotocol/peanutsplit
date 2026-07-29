@@ -394,6 +394,13 @@
             "peopleCount": "{count, plural, one {# pessoa} other {# pessoas}}",
             "allSquare": "quites"
         },
+        "story": {
+            "duo": "Só vocês dois, e nem um centavo pendente.",
+            "marathon": "{days} dias de “deixa que eu pago”. Tudo em paz.",
+            "blitz": "Um dia só, {rounds} rodadas de “deixa comigo”. Zero ressentimento.",
+            "bigGroup": "{count} pessoas e ninguém precisou cobrar ninguém.",
+            "default": "Ninguém ficou contando. Isso era trabalho nosso."
+        },
         "recap": {
             "settledBadge": "Tudo acertado",
             "ongoingBadge": "Até agora",
@@ -535,7 +542,7 @@
             "share": "Compartilhar",
             "anyoneCanJoin": "Qualquer pessoa com este link pode entrar e lançar gastos.",
             "shareTitle": "{room} · Peanut Split",
-            "shareText": "Entra em “{room}” e vamos dividir isso direito."
+            "shareText": "Entra em “{room}” — tem um lugar com o seu nome."
         },
         "create": {
             "back": "Voltar",

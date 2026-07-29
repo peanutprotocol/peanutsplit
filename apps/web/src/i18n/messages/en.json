@@ -394,6 +394,13 @@
             "peopleCount": "{count, plural, one {# person} other {# people}}",
             "allSquare": "all square"
         },
+        "story": {
+            "duo": "Just the two of you, and not a cent between you.",
+            "marathon": "{days} days of “I’ll get this one.” All square.",
+            "blitz": "One day, {rounds} rounds of “I’ve got it.” Zero grudges.",
+            "bigGroup": "{count} people, and nobody had to chase anybody.",
+            "default": "Nobody kept score. That was our job."
+        },
         "recap": {
             "settledBadge": "All settled",
             "ongoingBadge": "So far",
@@ -535,7 +542,7 @@
             "share": "Share",
             "anyoneCanJoin": "Anyone with this link can join and add expenses.",
             "shareTitle": "{room} · Peanut Split",
-            "shareText": "Join “{room}” and let’s split this properly."
+            "shareText": "Join “{room}” — there’s a seat with your name on it."
         },
         "create": {
             "back": "Back",
