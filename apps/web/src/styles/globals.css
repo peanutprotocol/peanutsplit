@@ -173,14 +173,14 @@
     position: relative;
     display: grid;
     min-height: min(47.5rem, 100svh);
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
     overflow: hidden;
 }
 
 .pass-link-hero-inner {
     display: flex;
     width: min(100%, 90rem);
-    min-height: calc(min(47.5rem, 100svh) - 2rem);
+    min-height: min(47.5rem, 100svh);
     flex-direction: column;
     margin-inline: auto;
     padding-inline: clamp(1.5rem, 3.4vw, 3.25rem);
@@ -280,7 +280,7 @@
 
 .pass-link-stage-shell {
     min-width: 0;
-    min-height: 30rem;
+    min-height: 32rem;
     grid-area: stage;
     align-self: stretch;
 }
@@ -288,178 +288,486 @@
 .pass-link-stage {
     position: relative;
     height: 100%;
-    min-height: 30rem;
+    min-height: 32rem;
 }
 
-.pass-link-bubble {
+.pass-link-channels {
     position: absolute;
-    z-index: 3;
-    max-width: min(78%, 21rem);
-    margin: 0;
-    padding: 0.65rem 0.8rem;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.pass-link-channel {
+    position: absolute;
+    display: grid;
+    width: clamp(3rem, 4.4vw, 3.7rem);
+    aspect-ratio: 1;
+    place-items: center;
     border: 2px solid #211c17;
-    border-radius: 0.75rem;
+    border-radius: 999px;
     background: white;
     box-shadow: 0.25rem 0.25rem 0 #211c17;
-    font-size: clamp(0.75rem, 1vw, 0.9rem);
-    font-weight: 800;
-    line-height: 1.25;
     opacity: 0;
-    transform: translateY(0.75rem) scale(0.96);
-    animation: pass-link-bubble-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: pass-link-channel-in 430ms cubic-bezier(0.2, 1.35, 0.3, 1) both;
 }
 
-.pass-link-bubble-question {
-    top: 7%;
-    left: 0;
-    animation-delay: 100ms;
+.pass-link-channel svg {
+    width: 66%;
+    height: 66%;
 }
 
-.pass-link-bubble-reply {
-    top: 27%;
-    right: 1%;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
+.pass-link-channel-whatsapp {
+    top: 20%;
+    left: -1%;
     background: #98e9ab;
-    animation-delay: 850ms;
+    animation-delay: 2.35s;
 }
 
-.pass-link-bubble-url {
-    top: 48%;
-    left: 8%;
-    display: grid;
-    max-width: 88%;
-    gap: 0.3rem;
-    background: #fff4cc;
-    animation-delay: 1.55s;
+.pass-link-channel-telegram {
+    top: 31%;
+    right: -1%;
+    background: #a9d9ff;
+    animation-delay: 2.55s;
 }
 
-.pass-link-bubble-url b {
+.pass-link-channel-messenger {
+    bottom: 13%;
+    left: -2%;
+    background: #c7a6ff;
+    animation-delay: 2.75s;
+}
+
+.pass-link-channel-messages {
+    right: -2%;
+    bottom: 9%;
+    background: #ffc900;
+    animation-delay: 2.95s;
+}
+
+.pass-link-stage-badge {
+    position: absolute;
+    z-index: 6;
+    top: 0.2rem;
+    right: 1.2rem;
+    margin: 0;
+    padding: 0.55rem 0.75rem;
+    border: 2px solid #211c17;
+    border-radius: 999px;
+    background: #ffc900;
+    box-shadow: 0.22rem 0.22rem 0 #211c17;
+    font-size: clamp(0.58rem, 0.78vw, 0.72rem);
+    font-weight: 950;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(-0.4rem) rotate(3deg) scale(0.94);
+    animation: pass-link-badge-in 430ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both;
+}
+
+.pass-link-chat-frame {
+    position: absolute;
+    z-index: 2;
+    inset: 1.85rem 1.4rem 0.5rem;
+    display: flex;
     overflow: hidden;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: clamp(0.6rem, 0.78vw, 0.75rem);
+    flex-direction: column;
+    border: 2.5px solid #211c17;
+    border-radius: 1.25rem;
+    background: #fffdf8;
+    box-shadow: 0.65rem 0.65rem 0 #211c17;
+    transform: rotate(-1deg);
+}
+
+.pass-link-chat-header {
+    display: flex;
+    min-height: 4.65rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 2px solid #211c17;
+    background: #fff9ed;
+}
+
+.pass-link-chat-title {
+    min-width: 0;
+}
+
+.pass-link-chat-title strong {
+    display: block;
+    overflow: hidden;
+    font-size: clamp(0.9rem, 1.35vw, 1.15rem);
+    font-weight: 950;
+    letter-spacing: -0.025em;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.pass-link-bubble-url b span {
+.pass-link-chat-title small {
+    display: block;
+    margin-top: 0.2rem;
+    color: #5f646d;
+    font-size: clamp(0.53rem, 0.7vw, 0.65rem);
+    font-weight: 800;
+}
+
+.pass-link-avatar-stack,
+.pass-link-card-people {
+    display: flex;
+    flex: 0 0 auto;
+    padding-right: 0.25rem;
+}
+
+.pass-link-avatar {
+    display: grid;
+    width: clamp(1.75rem, 2.5vw, 2.15rem);
+    aspect-ratio: 1;
+    place-items: center;
+    margin-right: -0.48rem;
+    border: 2px solid #211c17;
+    border-radius: 999px;
+    background: #a9bfff;
+    box-shadow: 0.08rem 0.08rem 0 #211c17;
+    font-size: clamp(0.42rem, 0.55vw, 0.58rem);
+    font-weight: 950;
+}
+
+.pass-link-avatar:nth-child(2) {
+    background: #ff9f92;
+}
+
+.pass-link-avatar:nth-child(3) {
+    background: #c7a6ff;
+}
+
+.pass-link-avatar:nth-child(4) {
+    background: #98e9ab;
+}
+
+.pass-link-chat-body {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    padding: 1.15rem 1.1rem 0.9rem;
+}
+
+.pass-link-message-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0;
+}
+
+.pass-link-chat-question {
+    animation: pass-link-bubble-in 420ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+}
+
+.pass-link-chat-reply {
+    animation: pass-link-bubble-in 420ms cubic-bezier(0.22, 1, 0.36, 1) 850ms both;
+}
+
+.pass-link-message-row-outgoing {
+    justify-content: flex-end;
+    margin-bottom: 0.95rem;
+}
+
+.pass-link-message-row > div {
+    min-width: 0;
+}
+
+.pass-link-message-row small {
+    display: block;
+    margin: 0 0 0.2rem 0.25rem;
+    color: #6a625b;
+    font-size: clamp(0.48rem, 0.62vw, 0.58rem);
+    font-weight: 850;
+}
+
+.pass-link-message-row-outgoing small {
+    margin-right: 0.25rem;
+    text-align: right;
+}
+
+.pass-link-mini-avatar {
+    display: grid;
+    width: 1.75rem;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1.7px solid #211c17;
+    border-radius: 999px;
+    background: #a9bfff;
+    font-size: 0.5rem;
+    font-weight: 950;
+}
+
+.pass-link-message {
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    border: 2px solid #211c17;
+    border-radius: 0.78rem 0.78rem 0.78rem 0.25rem;
+    background: white;
+    box-shadow: 0.2rem 0.2rem 0 #211c17;
+    font-size: clamp(0.68rem, 0.95vw, 0.84rem);
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.pass-link-message-row-outgoing .pass-link-message {
+    border-radius: 0.78rem 0.78rem 0.25rem 0.78rem;
+    background: #98e9ab;
+}
+
+.pass-link-shared-wrap {
+    width: min(92%, 24rem);
+    align-self: flex-end;
+    margin-bottom: 0.85rem;
+    opacity: 0;
+    transform-origin: 85% 0;
+    animation: pass-link-card-in 580ms cubic-bezier(0.2, 1.25, 0.3, 1) 1.55s both;
+}
+
+.pass-link-shared-card {
+    position: relative;
+    overflow: hidden;
+    border: 2.5px solid #211c17;
+    border-radius: 1rem 1rem 0.3rem;
+    background: #ffc900;
+    box-shadow: 0.38rem 0.38rem 0 #211c17;
+}
+
+.pass-link-shared-card::before {
+    position: absolute;
+    top: -2.8rem;
+    right: -2.35rem;
+    width: 7rem;
+    aspect-ratio: 1;
+    border: 2px solid #211c17;
+    border-radius: 999px;
+    background: #ff90e8;
+    content: '';
+}
+
+.pass-link-shared-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.7rem 0.8rem 0.25rem;
+    font-size: clamp(0.42rem, 0.56vw, 0.54rem);
+    font-weight: 950;
+    letter-spacing: 0.065em;
+    text-transform: uppercase;
+}
+
+.pass-link-share-mark {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 2rem;
+    aspect-ratio: 1;
+    place-items: center;
+    margin: -0.25rem -0.2rem 0 0;
+    border: 2px solid #211c17;
+    border-radius: 999px;
+    background: #fff9ed;
+    box-shadow: 0.12rem 0.12rem 0 #211c17;
+}
+
+.pass-link-shared-main {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    min-width: 0;
+    gap: 0.35rem;
+    padding: 0.1rem 0.85rem 0.75rem;
+}
+
+.pass-link-shared-main > strong {
+    overflow: hidden;
+    font-size: clamp(1.25rem, 2.55vw, 2.15rem);
+    font-weight: 950;
+    letter-spacing: -0.055em;
+    line-height: 0.95;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pass-link-shared-main > b {
+    overflow: hidden;
+    color: #514a42;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: clamp(0.42rem, 0.6vw, 0.56rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pass-link-shared-main > b span {
     color: #5f646d;
     letter-spacing: 0.08em;
 }
 
-.pass-link-bubble-url small {
+.pass-link-shared-footer {
+    position: relative;
+    z-index: 1;
     display: flex;
+    min-height: 3.25rem;
     align-items: center;
-    gap: 0.25rem;
-    color: #5f646d;
-    font-size: 0.68rem;
+    justify-content: space-between;
+    gap: 0.55rem;
+    padding: 0.5rem 0.7rem;
+    border-top: 2px solid #211c17;
+    background: #fff9ed;
 }
 
-.pass-link-bubble-reaction {
-    right: 8%;
-    bottom: 8%;
-    animation-delay: 3.55s;
+.pass-link-card-people .pass-link-avatar {
+    width: clamp(1.45rem, 2.1vw, 1.8rem);
+    font-size: clamp(0.35rem, 0.45vw, 0.46rem);
+    opacity: 0;
+    animation: pass-link-avatar-in 340ms cubic-bezier(0.2, 1.5, 0.3, 1) both;
 }
 
-.pass-link-token {
-    position: absolute;
-    z-index: 5;
-    bottom: 17%;
-    left: 21%;
+.pass-link-card-people .pass-link-avatar:nth-child(1) {
+    animation-delay: 2.25s;
+}
+
+.pass-link-card-people .pass-link-avatar:nth-child(2) {
+    animation-delay: 2.4s;
+}
+
+.pass-link-card-people .pass-link-avatar:nth-child(3) {
+    animation-delay: 2.55s;
+}
+
+.pass-link-card-people .pass-link-avatar:nth-child(4) {
+    animation-delay: 2.7s;
+}
+
+.pass-link-shared-footer > strong {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    font-size: clamp(0.52rem, 0.7vw, 0.66rem);
+    font-weight: 950;
+    text-align: right;
+}
+
+.pass-link-shared-footer > strong > span {
     display: grid;
-    width: 2.8rem;
-    height: 2.8rem;
+    width: 1.75rem;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
     place-items: center;
     border: 2px solid #211c17;
     border-radius: 999px;
-    background: #ffc900;
-    box-shadow: 0.2rem 0.2rem 0 #211c17;
-    font-size: 1.25rem;
-    font-weight: 900;
-    opacity: 0;
-    transform: translate(0, 0) rotate(-12deg);
-    animation: pass-link-token-travel 900ms cubic-bezier(0.22, 1, 0.36, 1) 2.1s both;
+    background: #98e9ab;
+    box-shadow: 0.12rem 0.12rem 0 #211c17;
 }
 
-.pass-link-peanut {
-    position: absolute;
-    z-index: 2;
-    bottom: -0.35rem;
-    left: -1.25rem;
-    display: block;
-    width: clamp(5.5rem, 8.5vw, 7.5rem);
+.pass-link-joined {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: auto 0 0;
+    color: #5f5851;
+    font-size: clamp(0.48rem, 0.66vw, 0.61rem);
+    font-weight: 850;
+    line-height: 1.1;
+    opacity: 0;
+    animation: pass-link-joined-in 350ms ease 3.25s both;
+}
+
+.pass-link-joined > span {
+    display: grid;
+    width: 1.25rem;
     aspect-ratio: 1;
-    pointer-events: none;
-    user-select: none;
-    opacity: 0;
-    transform: translateY(0.6rem) rotate(-3deg);
-    animation: pass-link-peanut-in 450ms cubic-bezier(0.22, 1, 0.36, 1) 1.7s both;
+    place-items: center;
+    border: 1.5px solid #211c17;
+    border-radius: 999px;
+    background: #98e9ab;
 }
 
-.pass-link-stage[data-state='complete'] .pass-link-bubble,
-.pass-link-stage[data-state='complete'] .pass-link-token,
-.pass-link-stage[data-state='complete'] .pass-link-peanut {
+.pass-link-stage[data-state='complete'] .pass-link-stage-badge,
+.pass-link-stage[data-state='complete'] .pass-link-message-row,
+.pass-link-stage[data-state='complete'] .pass-link-shared-wrap,
+.pass-link-stage[data-state='complete'] .pass-link-card-people .pass-link-avatar,
+.pass-link-stage[data-state='complete'] .pass-link-joined,
+.pass-link-stage[data-state='complete'] .pass-link-channel {
     opacity: 1;
     transform: none;
     animation: none;
 }
 
-.pass-link-ticker {
-    position: relative;
-    z-index: 10;
-    display: grid;
-    min-height: 2rem;
-    grid-template-columns: repeat(4, 1fr);
-    align-items: center;
-    margin: 0;
-    padding: 0 1rem;
-    border-top: 2px solid #211c17;
-    background: #ff90e8;
-    font-size: 0.625rem;
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    list-style: none;
-    text-align: center;
-    text-transform: uppercase;
-}
-
-.pass-link-ticker li,
-.landing-proof-rail li {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-}
-
 @keyframes pass-link-bubble-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.6rem) scale(0.96);
+    }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
 }
 
-@keyframes pass-link-token-travel {
-    0% {
+@keyframes pass-link-card-in {
+    from {
         opacity: 0;
-        transform: translate(0, 0) rotate(-12deg) scale(0.85);
+        transform: translate(2rem, 0.75rem) rotate(4deg) scale(0.82);
     }
-    22% {
+
+    to {
         opacity: 1;
-    }
-    72% {
-        transform: translate(7.8rem, -5.8rem) rotate(10deg) scale(1.06);
-    }
-    100% {
-        opacity: 1;
-        transform: translate(8.6rem, -6.4rem) rotate(0) scale(1);
+        transform: none;
     }
 }
 
-@keyframes pass-link-peanut-in {
+@keyframes pass-link-avatar-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.7rem) rotate(14deg) scale(0.5);
+    }
+
     to {
         opacity: 1;
-        transform: translateY(0) rotate(-3deg);
+        transform: none;
+    }
+}
+
+@keyframes pass-link-channel-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.4rem) rotate(-12deg) scale(0.55);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes pass-link-badge-in {
+    to {
+        opacity: 1;
+        transform: rotate(3deg);
+    }
+}
+
+@keyframes pass-link-joined-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.3rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
     }
 }
 
@@ -781,7 +1089,7 @@
     }
 
     .pass-link-hero-inner {
-        min-height: calc(100svh - 1.75rem);
+        min-height: 100svh;
         padding-inline: 1rem;
     }
 
@@ -797,7 +1105,7 @@
             'stage'
             'form';
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto clamp(7.5rem, 19svh, 9.5rem) auto;
+        grid-template-rows: auto clamp(15.75rem, 36svh, 17rem) auto;
         gap: 0.45rem;
         align-content: center;
         padding-block: 0.35rem 0.65rem;
@@ -837,71 +1145,213 @@
         margin-top: 0;
     }
 
-    .pass-link-bubble {
-        max-width: 72%;
-        padding: 0.42rem 0.55rem;
+    .pass-link-chat-frame {
+        inset: 0.55rem 1.15rem 0.25rem;
+        border-width: 1.7px;
+        border-radius: 0.8rem;
+        box-shadow: 0.35rem 0.35rem 0 #211c17;
+        transform: rotate(-0.6deg);
+    }
+
+    .pass-link-stage-badge {
+        top: 0;
+        right: 1rem;
+        padding: 0.34rem 0.48rem;
         border-width: 1.5px;
-        border-radius: 0.65rem;
-        box-shadow: 0.18rem 0.18rem 0 #211c17;
-        font-size: 0.63rem;
+        box-shadow: 0.14rem 0.14rem 0 #211c17;
+        font-size: clamp(0.38rem, 1.55vw, 0.5rem);
     }
 
-    .pass-link-bubble-question {
-        top: 5%;
-        left: 0;
+    .pass-link-channel {
+        width: clamp(1.9rem, 10vw, 2.35rem);
+        border-width: 1.5px;
+        box-shadow: 0.15rem 0.15rem 0 #211c17;
     }
 
-    .pass-link-bubble-reply {
-        top: 28%;
-        right: 0;
+    .pass-link-channel-whatsapp {
+        top: 20%;
+        left: -0.1rem;
     }
 
-    .pass-link-bubble-url {
-        top: auto;
-        bottom: 2%;
-        left: 4%;
-        max-width: 70%;
-        gap: 0.16rem;
+    .pass-link-channel-telegram {
+        top: 30%;
+        right: -0.05rem;
     }
 
-    .pass-link-bubble-url b {
-        font-size: 0.5rem;
-    }
-
-    .pass-link-bubble-url small {
-        font-size: 0.48rem;
-    }
-
-    .pass-link-bubble-reaction {
-        display: none;
-    }
-
-    .pass-link-token {
+    .pass-link-channel-messenger {
         bottom: 7%;
-        left: 55%;
-        width: 2.25rem;
-        height: 2.25rem;
-        font-size: 1rem;
-        animation-name: pass-link-token-travel-mobile;
+        left: -0.15rem;
     }
 
-    .pass-link-peanut {
-        top: -0.5rem;
-        right: 12%;
-        bottom: auto;
-        left: auto;
-        width: clamp(4rem, 18vw, 5rem);
+    .pass-link-channel-messages {
+        right: -0.1rem;
+        bottom: 5%;
     }
 
-    .pass-link-ticker {
-        min-height: 1.75rem;
-        padding-inline: 0.35rem;
-        font-size: clamp(0.42rem, 1.8vw, 0.55rem);
-        letter-spacing: 0;
+    .pass-link-chat-header {
+        min-height: 2.3rem;
+        gap: 0.35rem;
+        padding: 0.34rem 0.55rem;
+        border-bottom-width: 1.5px;
     }
 
-    .pass-link-ticker li svg {
-        display: none;
+    .pass-link-chat-title strong {
+        font-size: clamp(0.58rem, 2.6vw, 0.75rem);
+    }
+
+    .pass-link-chat-title small {
+        margin-top: 0.05rem;
+        font-size: clamp(0.35rem, 1.35vw, 0.42rem);
+    }
+
+    .pass-link-avatar {
+        width: clamp(1.15rem, 5.4vw, 1.45rem);
+        margin-right: -0.3rem;
+        border-width: 1.25px;
+        font-size: clamp(0.26rem, 1.15vw, 0.34rem);
+    }
+
+    .pass-link-chat-body {
+        display: grid;
+        grid-template-areas:
+            'question reply'
+            'card card'
+            'joined joined';
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr auto;
+        gap: 0.22rem 0.35rem;
+        padding: 0.38rem 0.48rem 0.3rem;
+    }
+
+    .pass-link-message-row {
+        grid-area: question;
+        gap: 0.22rem;
+        margin: 0;
+    }
+
+    .pass-link-message-row-outgoing {
+        grid-area: reply;
+        justify-self: end;
+    }
+
+    .pass-link-mini-avatar {
+        width: 1.05rem;
+        border-width: 1.2px;
+        font-size: 0.28rem;
+    }
+
+    .pass-link-message-row small {
+        margin: 0 0 0.08rem 0.15rem;
+        font-size: clamp(0.3rem, 1.15vw, 0.36rem);
+    }
+
+    .pass-link-message {
+        padding: 0.3rem 0.42rem;
+        border-width: 1.25px;
+        border-radius: 0.45rem 0.45rem 0.45rem 0.16rem;
+        box-shadow: 0.12rem 0.12rem 0 #211c17;
+        font-size: clamp(0.43rem, 1.85vw, 0.54rem);
+    }
+
+    .pass-link-message-row-outgoing .pass-link-message {
+        border-radius: 0.45rem 0.45rem 0.16rem 0.45rem;
+    }
+
+    .pass-link-shared-wrap {
+        width: min(88%, 20rem);
+        grid-area: card;
+        align-self: center;
+        justify-self: center;
+        margin: 0;
+    }
+
+    .pass-link-shared-card {
+        border-width: 1.5px;
+        border-radius: 0.55rem 0.55rem 0.16rem;
+        box-shadow: 0.22rem 0.22rem 0 #211c17;
+    }
+
+    .pass-link-shared-card::before {
+        top: -1.75rem;
+        right: -1.45rem;
+        width: 4.25rem;
+        border-width: 1.25px;
+    }
+
+    .pass-link-shared-brand {
+        padding: 0.3rem 0.42rem 0.05rem;
+        font-size: clamp(0.26rem, 1.05vw, 0.33rem);
+    }
+
+    .pass-link-share-mark {
+        width: 1.2rem;
+        margin: -0.1rem -0.1rem 0 0;
+        border-width: 1.25px;
+        box-shadow: 0.07rem 0.07rem 0 #211c17;
+    }
+
+    .pass-link-share-mark svg {
+        width: 0.78rem;
+        height: 0.78rem;
+    }
+
+    .pass-link-shared-main {
+        gap: 0.12rem;
+        padding: 0.05rem 0.45rem 0.3rem;
+    }
+
+    .pass-link-shared-main > strong {
+        font-size: clamp(0.82rem, 4.2vw, 1.05rem);
+    }
+
+    .pass-link-shared-main > b {
+        font-size: clamp(0.28rem, 1.1vw, 0.35rem);
+    }
+
+    .pass-link-shared-footer {
+        min-height: 1.7rem;
+        gap: 0.3rem;
+        padding: 0.22rem 0.35rem;
+        border-top-width: 1.25px;
+    }
+
+    .pass-link-card-people .pass-link-avatar {
+        width: clamp(0.92rem, 4.3vw, 1.12rem);
+        font-size: clamp(0.2rem, 0.82vw, 0.27rem);
+    }
+
+    .pass-link-shared-footer > strong {
+        gap: 0.2rem;
+        font-size: clamp(0.32rem, 1.25vw, 0.4rem);
+    }
+
+    .pass-link-shared-footer > strong > span {
+        width: 1.05rem;
+        border-width: 1.2px;
+        box-shadow: 0.07rem 0.07rem 0 #211c17;
+    }
+
+    .pass-link-shared-footer > strong svg {
+        width: 0.65rem;
+        height: 0.65rem;
+    }
+
+    .pass-link-joined {
+        grid-area: joined;
+        gap: 0.2rem;
+        margin: 0;
+        font-size: clamp(0.28rem, 1.1vw, 0.35rem);
+        line-height: 1.1;
+    }
+
+    .pass-link-joined > span {
+        width: 0.8rem;
+        border-width: 1px;
+    }
+
+    .pass-link-joined svg {
+        width: 0.55rem;
+        height: 0.55rem;
     }
 
     .landing-proof-scene {
@@ -966,20 +1416,6 @@
     }
 }
 
-@keyframes pass-link-token-travel-mobile {
-    0% {
-        opacity: 0;
-        transform: translate(0, 0) rotate(-12deg) scale(0.85);
-    }
-    22% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 1;
-        transform: translate(1.6rem, -2.2rem) rotate(0) scale(1);
-    }
-}
-
 @media (max-width: 359px) {
     .pass-link-hero-inner {
         padding-inline: 0.75rem;
@@ -990,7 +1426,7 @@
     }
 
     .pass-link-layout {
-        grid-template-rows: auto 7.1rem auto;
+        grid-template-rows: auto 16.5rem auto;
         gap: 0.35rem;
     }
 
@@ -1015,14 +1451,6 @@
         width: 6.5rem;
     }
 
-    .pass-link-ticker li:nth-child(4) {
-        display: none;
-    }
-
-    .pass-link-ticker {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
     .landing-proof-expenses li:nth-child(n) {
         margin-inline: 0;
     }
@@ -1032,18 +1460,24 @@
     }
 }
 
-.reduce-animations .pass-link-bubble,
-.reduce-animations .pass-link-token,
-.reduce-animations .pass-link-peanut {
+.reduce-animations .pass-link-stage-badge,
+.reduce-animations .pass-link-message-row,
+.reduce-animations .pass-link-shared-wrap,
+.reduce-animations .pass-link-card-people .pass-link-avatar,
+.reduce-animations .pass-link-joined,
+.reduce-animations .pass-link-channel {
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .pass-link-bubble,
-    .pass-link-token,
-    .pass-link-peanut {
+    .pass-link-stage-badge,
+    .pass-link-message-row,
+    .pass-link-shared-wrap,
+    .pass-link-card-people .pass-link-avatar,
+    .pass-link-joined,
+    .pass-link-channel {
         opacity: 1 !important;
         transform: none !important;
         animation: none !important;

@@ -2,7 +2,7 @@
     "marketing": {
         "hero": {
             "utilityBrand": "PEANUT SPLIT",
-            "utilityTag": "THE GROUP CHAT’S NEW +1",
+            "utilityTag": "4 FRIENDS · 1 LINK",
             "eyebrow": "NO APP FOR YOUR FRIENDS.",
             "title": "PASS IT",
             "controlTitleAccessible": "PASS IT",
@@ -12,18 +12,19 @@
             "ctaTrust": "Free · no account needed · nothing to install",
             "linkExplainerTrigger": "How the link works",
             "chat": {
-                "question": "who paid dinner?",
-                "reply": "I got it",
+                "defaultRoom": "Lisbon weekend",
+                "participants": "Bea, Jules, Mo & you",
+                "questionSender": "Bea",
+                "question": "who paid for dinner?",
+                "you": "you",
+                "youShort": "YOU",
+                "reply": "me — adding it",
+                "linkBrand": "PEANUT SPLIT · SHARED ROOM",
                 "linkPrompt": "Everyone adds their own",
-                "reaction": "wait… that’s it?"
+                "joined": "Bea, Jules and Mo opened the link",
+                "badge": "NO SIGNUP. JUST A LINK."
             },
             "stageSummary": "A Peanut Split room link moves through a group chat so every friend can open the same room and add expenses.",
-            "ticker": {
-                "noSignup": "NO SIGNUP",
-                "noDownload": "NO DOWNLOAD",
-                "currencies": "12 SUPPORTED CURRENCIES",
-                "linkKey": "THE LINK IS THE KEY"
-            },
             "validation": {
                 "roomRequired": "Name the room first.",
                 "creatorRequired": "Tell us who you are."

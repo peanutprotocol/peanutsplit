@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Doodle } from '@/components/ui/Doodle'
 import { trackLanding } from '@/lib/analytics'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { HeroCreateForm } from './HeroCreateForm'
@@ -83,25 +82,6 @@ export function PassTheLinkHero() {
                     </div>
                 </div>
             </div>
-
-            <ul data-testid="pass-link-ticker" className="pass-link-ticker" aria-label={t('stageSummary')}>
-                <li>
-                    <Doodle name="iconsparkles" size={14} weight={1.8} />
-                    {t('ticker.noSignup')}
-                </li>
-                <li>
-                    <Doodle name="iconsparkles" size={14} weight={1.8} />
-                    {t('ticker.noDownload')}
-                </li>
-                <li>
-                    <Doodle name="iconsparkles" size={14} weight={1.8} />
-                    {t('ticker.currencies')}
-                </li>
-                <li>
-                    <Doodle name="iconsparkles" size={14} weight={1.8} />
-                    {t('ticker.linkKey')}
-                </li>
-            </ul>
         </section>
     )
 }
