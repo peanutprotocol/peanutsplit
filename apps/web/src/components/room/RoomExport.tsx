@@ -10,8 +10,11 @@ function download(contents: string, filename: string, type: string) {
     const anchor = document.createElement('a')
     anchor.href = href
     anchor.download = filename
+    document.body.append(anchor)
     anchor.click()
-    URL.revokeObjectURL(href)
+    anchor.remove()
+    // Firefox may still be consuming the object URL when click() returns.
+    window.setTimeout(() => URL.revokeObjectURL(href), 0)
 }
 
 export function RoomExport({ state }: { state: RoomState }) {
