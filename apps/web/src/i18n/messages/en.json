@@ -20,7 +20,8 @@
                 "linkBrand": "PEANUT SPLIT · SHARED ROOM",
                 "linkPrompt": "Everyone adds their own",
                 "joined": "Bea, Jules and Mo opened the link",
-                "badge": "NO SIGNUP. JUST A LINK."
+                "badge": "NO SIGNUP. JUST A LINK.",
+                "composer": "Message the group…"
             },
             "stageSummary": "A Peanut Split room link moves through a group chat so every friend can open the same room and add expenses.",
             "validation": {

@@ -78,7 +78,10 @@ async function expectNoOverlap(first: Locator, second: Locator) {
     const [firstBox, secondBox] = await Promise.all([first.boundingBox(), second.boundingBox()])
     expect(firstBox).not.toBeNull()
     expect(secondBox).not.toBeNull()
-    expect(overlaps(firstBox!, secondBox!)).toBe(false)
+    expect(
+        overlaps(firstBox!, secondBox!),
+        `elements overlap: ${JSON.stringify({ first: firstBox, second: secondBox })}`
+    ).toBe(false)
 }
 
 async function openLanding(page: Page, locale: Locale = 'en') {
@@ -188,16 +191,22 @@ test.describe('Pass-the-link default', () => {
             const roomName = page.getByTestId('hero-room-name')
             const creatorName = page.getByTestId('hero-creator-name')
             const cta = page.getByTestId('hero-create-room')
+            const sharedCard = stage.locator('.pass-link-shared-card')
+            const composer = page.getByTestId('pass-link-chat-composer')
 
             await expect(hero).toBeVisible()
             await expect(headline).toBeVisible()
             await expect(stage).toBeVisible()
             await expect(form).toBeVisible()
             await expect(page.getByTestId('pass-link-chat-frame')).toBeVisible()
+            await expect(page.getByTestId('pass-link-chat-app-mark')).toBeVisible()
+            await expect(composer).toBeVisible()
             await expect(page.getByTestId('pass-link-channel')).toHaveCount(4)
             await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
             await expect(hero.locator('.pass-link-utility')).toHaveCount(0)
             await expect(hero.getByText(/^4 FRIENDS · 1 LINK$/)).toHaveCount(0)
+            await roomName.focus()
+            await expect(stage).toHaveAttribute('data-state', 'complete')
 
             expect(
                 await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
@@ -207,6 +216,7 @@ test.describe('Pass-the-link default', () => {
             await expectNoOverlap(headline, stage)
             await expectNoOverlap(stage, form)
             await expectNoOverlap(headline, form)
+            await expectNoOverlap(sharedCard, composer)
 
             if (
                 (viewport.width === 360 && viewport.height === 740) ||
