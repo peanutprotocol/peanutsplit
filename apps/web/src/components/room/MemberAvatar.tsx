@@ -8,9 +8,10 @@ import { PersonaGlyph } from './PersonaGlyph'
 /**
  * A member's little alter ego.
  *
- * Two sources, one component. With no `avatar` a playful persona is derived
- * from the name — same name, same creature, every device. A stored key draws
- * the chosen alter ego or one of the older doodles.
+ * Two sources, one component. A stored key draws the chosen alter ego or one
+ * of the older doodles. Null and unknown values use one neutral peanut while
+ * legacy rows are backfilled; randomness happens once when a member is written,
+ * never during rendering.
  *
  * This deliberately lives in our own stroke language instead of delegating to an
  * avatar package: generated human faces turn a name into an accidental claim
@@ -24,7 +25,7 @@ export function MemberAvatar({
     className,
 }: {
     name: string
-    /** The member's stored key. Null/undefined/unknown → name-derived persona. */
+    /** Null/undefined/unknown → neutral compatibility fallback. */
     avatar?: string | null
     size?: number
     className?: string

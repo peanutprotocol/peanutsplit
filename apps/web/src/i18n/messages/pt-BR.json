@@ -619,28 +619,15 @@
         "avatar": {
             "title": "Alter egos",
             "titleFor": "Alter ego de {name}",
-            "intro": "Escolha a energia, não a aparência.",
             "hint": "Qualquer pessoa na sala pode trocar o papel de qualquer outra. Mantenha a brincadeira leve.",
             "open": "Abrir o elenco de personagens",
             "option": "Usar o avatar {name}",
-            "defaultOption": "Usar o personagem surpresa escolhido a partir do nome",
             "failed": "não deu para mudar esse alter ego — tente de novo",
             "castTitle": "Elenco de personagens",
             "castHint": "Escolha alguém e dê um papel. Essa pessoa sempre pode devolver a brincadeira.",
             "chooseMember": "Escolha quem vai ganhar um papel",
-            "filterLabel": "Filtrar alter egos por estilo",
-            "surprise": "Me surpreenda",
-            "surpriseResult": "A loteria do nome escolheu {name}",
-            "automatic": "AUTO",
-            "filters": {
-                "all": "Todos",
-                "mischief": "Travessura",
-                "cozy": "Aconchego",
-                "brainy": "Cabeça",
-                "party": "Festa",
-                "adventure": "Aventura",
-                "classic": "Clássicos"
-            }
+            "random": "Aleatório",
+            "randomHint": "Sortear um novo personagem"
         },
         "reactions": {
             "add": "Reagir a isto",

@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetEvents, subscribe } from '@/server/events'
 import { resetRateLimits } from '@/server/rateLimit'
-import { AVATAR_KEYS } from '@/lib/avatars'
+import { AVATAR_KEYS, PERSONA_KEYS } from '@/lib/avatars'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
 import { PATCH as patchMember } from '@/app/api/rooms/[slug]/members/[memberId]/route'
@@ -75,6 +75,19 @@ beforeEach(async () => {
 
 afterEach(() => resetEvents())
 
+describe('new member defaults', () => {
+    it('persists random personas for both room creators and joiners', async () => {
+        const fixture = await makeRoom()
+        const members = await prisma.member.findMany({
+            where: { id: { in: [fixture.anaId, fixture.brunoId] } },
+            select: { avatar: true },
+        })
+
+        expect(members).toHaveLength(2)
+        for (const member of members) expect(PERSONA_KEYS).toContain(member.avatar)
+    })
+})
+
 describe('PATCH /api/rooms/:slug/members/:memberId', () => {
     it('lets the table cast any member and returns the whole room', async () => {
         const fixture = await makeRoom()
@@ -82,33 +95,37 @@ describe('PATCH /api/rooms/:slug/members/:memberId', () => {
 
         expect(status).toBe(200)
         expect(avatarOf(body, fixture.brunoId)).toBe('vampire-penguin')
-        expect(avatarOf(body, fixture.anaId)).toBeNull()
+        expect(PERSONA_KEYS).toContain(avatarOf(body, fixture.anaId))
     })
 
-    it('clears a pick back to the stable name-derived surprise', async () => {
+    it('turns a legacy null reset into a fresh persisted random pick', async () => {
         const fixture = await makeRoom()
         await setAvatar(fixture, fixture.anaId, { avatar: 'astronaut-avocado' })
         const { status, body } = await setAvatar(fixture, fixture.anaId, { avatar: null })
+        const nextAvatar = avatarOf(body, fixture.anaId)
 
         expect(status).toBe(200)
-        expect(avatarOf(body, fixture.anaId)).toBeNull()
-        expect((await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar).toBeNull()
+        expect(PERSONA_KEYS).toContain(nextAvatar)
+        expect(nextAvatar).not.toBe('astronaut-avocado')
+        expect((await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar).toBe(nextAvatar)
     })
 
     it('will not repaint a made-up member or a member from another room', async () => {
         const fixture = await makeRoom()
         const other = await makeRoom('Beach Trip')
+        const otherAvatar = (await prisma.member.findUnique({ where: { id: other.anaId } }))?.avatar
 
         for (const memberId of ['ghost', other.anaId]) {
             const { status, body } = await setAvatar(fixture, memberId, { avatar: 'pirate-parrot' })
             expect(status).toBe(404)
             expect(body.error.code).toBe('NOT_FOUND')
         }
-        expect((await prisma.member.findUnique({ where: { id: other.anaId } }))?.avatar).toBeNull()
+        expect((await prisma.member.findUnique({ where: { id: other.anaId } }))?.avatar).toBe(otherAvatar)
     })
 
     it('rejects anything outside the curated catalog', async () => {
         const fixture = await makeRoom()
+        const originalAvatar = (await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar
         for (const avatar of [
             'face-nope',
             'mountain',
@@ -121,7 +138,7 @@ describe('PATCH /api/rooms/:slug/members/:memberId', () => {
             expect(status, avatar).toBe(400)
             expect(body.error.code).toBe('VALIDATION_ERROR')
         }
-        expect((await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar).toBeNull()
+        expect((await prisma.member.findUnique({ where: { id: fixture.anaId } }))?.avatar).toBe(originalAvatar)
     })
 
     it('rejects inherited object keys', async () => {

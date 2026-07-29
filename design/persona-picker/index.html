@@ -1045,25 +1045,7 @@
 				</p>
 			</section>
 
-			<p class="section-label">1. Choose a placement to try</p>
-			<div class="placement-tabs" role="tablist" aria-label="Picker placement concepts">
-				<button class="placement-tab" role="tab" data-placement="join" aria-selected="false">
-					<span class="number">A</span>
-					<strong>Join with a role</strong>
-					<small>Choose while entering the room. Strong discovery; extra first-run work.</small>
-				</button>
-				<button class="placement-tab" role="tab" data-placement="drawer" aria-selected="true">
-					<span class="recommended">Recommended</span>
-					<span class="number">B</span>
-					<strong>Cast drawer</strong>
-					<small>Tap your tiny avatar, pick any friend, then recast them. Playful and reversible.</small>
-				</button>
-				<button class="placement-tab" role="tab" data-placement="inline" aria-selected="false">
-					<span class="number">C</span>
-					<strong>Inline roster remix</strong>
-					<small>Every roster avatar is an edit button. Maximum banter; maximum accidental taps.</small>
-				</button>
-			</div>
+			<p class="section-label">Approved direction · B · Cast drawer</p>
 
 			<section class="review-grid">
 				<div class="stage" aria-label="Interactive phone mockup">
@@ -1073,7 +1055,7 @@
 				</div>
 
 				<aside class="report">
-					<p class="section-label">2. Decision report</p>
+					<p class="section-label">Implementation review</p>
 
 					<article class="report-card verdict">
 						<div class="verdict-line">
@@ -1092,9 +1074,10 @@
 						<h3>What changed in the concept</h3>
 						<div class="principles">
 							<div class="principle">
-								<strong>No demographic defaults</strong>
+								<strong>Random once, shared everywhere</strong>
 								<span
-									>A stable name hash chooses among creatures and snacks, never human features.</span
+									>A random character is stored on the member, so every phone sees the same
+									result.</span
 								>
 							</div>
 							<div class="principle">
@@ -1116,40 +1099,6 @@
 								>
 							</div>
 						</div>
-					</article>
-
-					<article class="report-card">
-						<h3>Placement trade-offs</h3>
-						<table>
-							<thead>
-								<tr>
-									<th>Option</th>
-									<th>Best at</th>
-									<th>Cost</th>
-									<th>Score</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>A · Join</td>
-									<td>Discovery</td>
-									<td>Slows the room-link handoff</td>
-									<td class="score">7 / 10</td>
-								</tr>
-								<tr class="winner">
-									<td>B · Drawer</td>
-									<td>Intent + safety</td>
-									<td>One tap deeper</td>
-									<td class="score">9 / 10</td>
-								</tr>
-								<tr>
-									<td>C · Inline</td>
-									<td>Spontaneity</td>
-									<td>Competes with money UI</td>
-									<td class="score">6 / 10</td>
-								</tr>
-							</tbody>
-						</table>
 					</article>
 
 					<article class="report-card">
@@ -1179,9 +1128,22 @@
 						/>
 					</article>
 
+					<article class="report-card">
+						<h3>Six doodle canaries</h3>
+						<p>
+							These use Peanut Split’s real rough-line pipeline. Each appears at 96px and 24px so the
+							tiny-avatar test is visible beside the expressive version.
+						</p>
+						<img
+							class="cast-preview"
+							src="./canary-doodles.png"
+							alt="Six hand-drawn character canaries, each shown large and at tiny avatar size"
+						/>
+					</article>
+
 					<p class="footer-note">
-						The phone uses lightweight thumbnail emoji so all three interaction mockups stay in one portable
-						HTML file. The labeled grid above is rendered from the branch’s real in-house vector components.
+						The phone uses lightweight thumbnail emoji to keep this review portable. The two labeled sheets
+						above are rendered from the branch’s real in-house vector and doodle systems.
 					</p>
 				</aside>
 			</section>
@@ -1477,9 +1439,7 @@
 				mika: 'disco-octopus',
 			}
 
-			let placement = 'drawer'
 			let selectedMember = 'bea'
-			let filter = 'all'
 			let toastTimer = 0
 
 			const personaByKey = (key) => personas.find((persona) => persona.key === key) || personas[0]
@@ -1534,39 +1494,16 @@
                 </div>`
 			}
 
-			function filters() {
-				const choices = [
-					['all', 'All'],
-					['mischief', 'Mischief'],
-					['cozy', 'Cozy'],
-					['brainy', 'Brainy'],
-					['party', 'Party'],
-					['adventure', 'Adventure'],
-				]
-				return `<div class="filters" aria-label="Filter alter egos">
-                    ${choices
-						.map(
-							([key, label]) =>
-								`<button class="filter ${filter === key ? 'selected' : ''}" data-filter="${key}">${label}</button>`
-						)
-						.join('')}
-                </div>`
-			}
-
 			function pickerGrid(compact = false) {
 				const member = memberById(selectedMember)
-				const visible = personas.filter((persona) => filter === 'all' || persona.category === filter)
 				return `
                     <p class="sheet-title">${member.name}'s alter ego</p>
-                    <p class="sheet-subtitle">Choose the energy, not the appearance.</p>
-                    ${filters()}
-                    <button class="surprise-tile" data-persona="surprise">
-                        ${avatar(personas[(member.name.charCodeAt(0) * 7) % personas.length].key, 'medium')}
-                        <span><strong>Surprise me</strong><small>Stable pick from ${member.name}'s name</small></span>
-                        <span class="auto">AUTO</span>
+                    <button class="surprise-tile" data-persona="random">
+                        <span><strong>Random</strong><small>Roll a new character</small></span>
+                        <span class="auto">↻</span>
                     </button>
                     <div class="persona-grid ${compact ? 'compact' : ''}">
-                        ${visible
+                        ${personas
 							.map(
 								(persona) => `<button
                                     class="persona-card ${assignments[selectedMember] === persona.key ? 'selected' : ''}"
@@ -1578,21 +1515,6 @@
 							)
 							.join('')}
                     </div>`
-			}
-
-			function renderJoin() {
-				return (
-					roomChrome() +
-					`<div class="join-scrim">
-                        <div class="join-card">
-                            <h2>Join Weekend in Lisbon</h2>
-                            <p>First your name, then a role for the group chat.</p>
-                            <input class="name-input" value="Ana" aria-label="Your name" />
-                            ${pickerGrid(true)}
-                            <button class="continue">Join as ${personaByKey(assignments[selectedMember]).name} →</button>
-                        </div>
-                    </div>`
-				)
 			}
 
 			function renderDrawer() {
@@ -1610,32 +1532,9 @@
 				)
 			}
 
-			function renderInline() {
-				const list = members
-					.map((member) => {
-						const persona = personaByKey(assignments[member.id])
-						return `<button class="member-card ${selectedMember === member.id ? 'selected' : ''}" data-member="${member.id}">
-                            ${avatar(persona.key, 'large')}
-                            <span><strong>${member.name}</strong><small>${persona.name} · tap to recast</small></span>
-                            <b>›</b>
-                        </button>`
-					})
-					.join('')
-				return (
-					roomChrome(
-						`<div class="inline-cast"><h3>Cast of characters</h3><p>Every avatar is an edit button.</p>${list}</div>`
-					) + `<div class="inline-picker">${memberStrip()}${pickerGrid(true)}</div>`
-				)
-			}
-
 			function render() {
 				const phone = document.querySelector('#phone')
-				phone.innerHTML =
-					placement === 'join' ? renderJoin() : placement === 'inline' ? renderInline() : renderDrawer()
-
-				document.querySelectorAll('.placement-tab').forEach((tab) => {
-					tab.setAttribute('aria-selected', String(tab.dataset.placement === placement))
-				})
+				phone.innerHTML = renderDrawer()
 
 				document.querySelectorAll('[data-member]').forEach((button) => {
 					button.addEventListener('click', () => {
@@ -1644,18 +1543,14 @@
 					})
 				})
 
-				document.querySelectorAll('[data-filter]').forEach((button) => {
-					button.addEventListener('click', () => {
-						filter = button.dataset.filter
-						render()
-					})
-				})
-
 				document.querySelectorAll('[data-persona]').forEach((button) => {
 					button.addEventListener('click', () => {
 						const member = memberById(selectedMember)
 						let key = button.dataset.persona
-						if (key === 'surprise') key = personas[(member.name.charCodeAt(0) * 7) % personas.length].key
+						if (key === 'random') {
+							const choices = personas.filter((persona) => persona.key !== assignments[selectedMember])
+							key = choices[Math.floor(Math.random() * choices.length)].key
+						}
 						assignments[selectedMember] = key
 						showToast(`${member.name} is now the ${personaByKey(key).name}. Retaliation is available.`)
 						render()
@@ -1670,14 +1565,6 @@
 				window.clearTimeout(toastTimer)
 				toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2400)
 			}
-
-			document.querySelectorAll('.placement-tab').forEach((tab) => {
-				tab.addEventListener('click', () => {
-					placement = tab.dataset.placement
-					if (placement === 'join') selectedMember = 'ana'
-					render()
-				})
-			})
 
 			render()
 		</script>

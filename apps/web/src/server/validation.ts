@@ -259,9 +259,10 @@ export const reactionSchema = z.object({
 })
 
 /**
- * A member's alter ego: a key from `lib/avatars.ts`, or null for the stable
- * surprise derived from their name. Anyone in the link-trusted room can cast
- * anyone else, just as they can add an expense on somebody's behalf.
+ * A member's alter ego: a key from `lib/avatars.ts`. Null remains accepted from
+ * older clients and is converted to a fresh random key by the route. Anyone in
+ * the link-trusted room can cast anyone else, just as they can add an expense
+ * on somebody's behalf.
  *
  * Anything outside the catalog is rejected rather than stored. This value
  * renders beside a person's name on everybody else's phone, so a free-text

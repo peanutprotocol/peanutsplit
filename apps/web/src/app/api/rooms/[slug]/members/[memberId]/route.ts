@@ -12,6 +12,7 @@
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
 import { notFound, readJson, respond } from '@/server/http'
+import { randomPersonaKey } from '@/lib/avatars'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, loadRoomById, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -32,9 +33,13 @@ export const PATCH = (request: Request, ctx: Ctx) =>
 
         const room = await loadRoom(slug)
         assertWritable(room)
-        if (!room.members.some((member) => member.id === memberId)) throw notFound('member not found')
+        const member = room.members.find((candidate) => candidate.id === memberId)
+        if (!member) throw notFound('member not found')
 
-        await prisma.member.update({ where: { id: memberId }, data: { avatar: body.avatar } })
+        // Older clients used null for "automatic". Preserve compatibility, but
+        // make it a concrete random pick so every phone sees the same character.
+        const avatar = body.avatar ?? randomPersonaKey(member.avatar)
+        await prisma.member.update({ where: { id: memberId }, data: { avatar } })
         const state = toRoomState(await loadRoomById(room.id))
         // After the commit, like every other write — a persona that only travelled
         // on the poll would arrive up to 45s late on a phone holding an open
