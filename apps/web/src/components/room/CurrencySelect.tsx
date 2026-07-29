@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Icon } from '@/components/ui/Icon'
+import { fieldSizes, type FieldSize } from '@/components/ui/field'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { CurrencyTag } from './CurrencyTag'
@@ -13,9 +15,58 @@ interface CurrencySelectProps {
     /** Inferred (or contextually obvious) codes, pinned above the alphabetical list. */
     suggested?: readonly string[]
     className?: string
+    variant?: FieldSize
     id?: string
     'aria-label'?: string
     'data-testid'?: string
+}
+
+const MENU_GAP = 8
+const VIEWPORT_GUTTER = 12
+const MENU_WIDTH = 176
+const MENU_MAX_HEIGHT = 256
+const OPTION_HEIGHT = 48
+
+export interface CurrencyMenuPlacement {
+    direction: 'down' | 'up'
+    left: number
+    top: number
+    width: number
+    maxHeight: number
+}
+
+/**
+ * Places the portalled list inside the *visible* viewport.
+ *
+ * Down is the default: the add-expense trigger is near the top of the sheet,
+ * so opening upward was both surprising and the easiest way to collide with
+ * the title/drag handle. Up only wins when the menu genuinely fits better
+ * there. Keeping this pure makes the keyboard/visual-viewport edge cases
+ * testable without mounting a drawer.
+ */
+export function currencyMenuPlacement(
+    trigger: Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width'>,
+    viewport: { width: number; height: number; offsetTop?: number; offsetLeft?: number },
+    itemCount: number
+): CurrencyMenuPlacement {
+    const offsetTop = viewport.offsetTop ?? 0
+    const offsetLeft = viewport.offsetLeft ?? 0
+    const wantedHeight = Math.min(MENU_MAX_HEIGHT, itemCount * OPTION_HEIGHT + 8)
+    const viewportBottom = offsetTop + viewport.height
+    const viewportRight = offsetLeft + viewport.width
+    const below = viewportBottom - trigger.bottom - MENU_GAP - VIEWPORT_GUTTER
+    const above = trigger.top - offsetTop - MENU_GAP - VIEWPORT_GUTTER
+    const direction = below < Math.min(wantedHeight, 192) && above > below ? 'up' : 'down'
+    const available = direction === 'up' ? above : below
+    const maxHeight = Math.min(wantedHeight, Math.max(0, available))
+    const width = Math.min(Math.max(MENU_WIDTH, trigger.width), viewport.width - VIEWPORT_GUTTER * 2)
+    const left = Math.min(Math.max(trigger.left, offsetLeft + VIEWPORT_GUTTER), viewportRight - VIEWPORT_GUTTER - width)
+    const top =
+        direction === 'down'
+            ? trigger.bottom + MENU_GAP
+            : Math.max(offsetTop + VIEWPORT_GUTTER, trigger.top - MENU_GAP - maxHeight)
+
+    return { direction, left, top, width, maxHeight }
 }
 
 /**
@@ -33,6 +84,7 @@ export function CurrencySelect({
     currencies,
     suggested,
     className,
+    variant = 'md',
     id,
     'aria-label': ariaLabel = 'Currency',
     'data-testid': testId,
@@ -41,8 +93,12 @@ export function CurrencySelect({
     const listboxId = `${id ?? generatedId}-options`
     const rootRef = useRef<HTMLDivElement>(null)
     const triggerRef = useRef<HTMLButtonElement>(null)
+    const listboxRef = useRef<HTMLDivElement>(null)
     const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
+    const typeaheadRef = useRef('')
+    const typeaheadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const [open, setOpen] = useState(false)
+    const [placement, setPlacement] = useState<CurrencyMenuPlacement | null>(null)
 
     const ordered = useMemo(() => {
         const byCode = new Map(currencies.map((info) => [info.code, info]))
@@ -63,21 +119,113 @@ export function CurrencySelect({
     )
     const [activeIndex, setActiveIndex] = useState(selectedIndex)
 
+    const updatePlacement = useCallback(() => {
+        const trigger = triggerRef.current
+        if (!trigger) return
+        const visual = window.visualViewport
+        setPlacement(
+            currencyMenuPlacement(
+                trigger.getBoundingClientRect(),
+                {
+                    width: visual?.width ?? window.innerWidth,
+                    height: visual?.height ?? window.innerHeight,
+                    offsetTop: visual?.offsetTop ?? 0,
+                    offsetLeft: visual?.offsetLeft ?? 0,
+                },
+                ordered.length
+            )
+        )
+    }, [ordered.length])
+
+    const keepOptionVisible = (option: HTMLButtonElement | null) => {
+        const listbox = listboxRef.current
+        if (!option || !listbox) return
+        const top = option.offsetTop
+        const bottom = top + option.offsetHeight
+        if (top < listbox.scrollTop) listbox.scrollTop = top
+        else if (bottom > listbox.scrollTop + listbox.clientHeight) listbox.scrollTop = bottom - listbox.clientHeight
+    }
+
+    useLayoutEffect(() => {
+        if (!open) return
+        updatePlacement()
+    }, [open, updatePlacement])
+
     useEffect(() => {
         if (!open) return
-        requestAnimationFrame(() => optionRefs.current[activeIndex]?.focus())
+        requestAnimationFrame(() => {
+            const option = optionRefs.current[activeIndex]
+            // A Radix/Vaul modal traps focus inside the sheet. The list is
+            // portalled outside it so it can escape the scroll viewport; trying
+            // to focus an option there makes the trap bounce focus back on every
+            // arrow key. In a drawer the trigger keeps focus and the nearby live
+            // region announces the active ticker. Everywhere else the options
+            // use ordinary roving focus.
+            if (!triggerRef.current?.closest('[data-vaul-drawer]')) {
+                option?.focus({ preventScroll: true })
+            }
+            keepOptionVisible(option)
+        })
     }, [activeIndex, open])
 
     useEffect(() => {
         const closeOnOutsidePress = (event: PointerEvent) => {
-            if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+            const target = event.target as Node
+            if (!rootRef.current?.contains(target) && !listboxRef.current?.contains(target)) setOpen(false)
         }
         document.addEventListener('pointerdown', closeOnOutsidePress)
         return () => document.removeEventListener('pointerdown', closeOnOutsidePress)
     }, [])
 
+    useEffect(() => {
+        if (!open) return
+        const visual = window.visualViewport
+        window.addEventListener('resize', updatePlacement)
+        window.addEventListener('scroll', updatePlacement, true)
+        visual?.addEventListener('resize', updatePlacement)
+        visual?.addEventListener('scroll', updatePlacement)
+        return () => {
+            window.removeEventListener('resize', updatePlacement)
+            window.removeEventListener('scroll', updatePlacement, true)
+            visual?.removeEventListener('resize', updatePlacement)
+            visual?.removeEventListener('scroll', updatePlacement)
+        }
+    }, [open, updatePlacement])
+
+    // Radix drawers listen for Escape during document capture, before the
+    // focused option's React handler runs. The drawer vetoes that Escape while
+    // this menu exists; this bubble listener then closes the menu even in the
+    // one-frame window before focus has moved from the trigger to an option.
+    useEffect(() => {
+        if (!open) return
+        const closeOnEscape = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') return
+            event.preventDefault()
+            event.stopPropagation()
+            setOpen(false)
+            setPlacement(null)
+            typeaheadRef.current = ''
+            requestAnimationFrame(() => triggerRef.current?.focus())
+        }
+        document.addEventListener('keydown', closeOnEscape)
+        return () => document.removeEventListener('keydown', closeOnEscape)
+    }, [open])
+
+    useEffect(
+        () => () => {
+            if (typeaheadTimerRef.current) clearTimeout(typeaheadTimerRef.current)
+        },
+        []
+    )
+
+    useEffect(() => {
+        if (!open) setActiveIndex(selectedIndex)
+    }, [open, selectedIndex])
+
     const close = (restoreFocus = true) => {
         setOpen(false)
+        setPlacement(null)
+        typeaheadRef.current = ''
         if (restoreFocus) requestAnimationFrame(() => triggerRef.current?.focus())
     }
 
@@ -89,9 +237,98 @@ export function CurrencySelect({
     const focusOption = (index: number) => {
         const next = (index + ordered.length) % ordered.length
         setActiveIndex(next)
-        optionRefs.current[next]?.focus()
-        optionRefs.current[next]?.scrollIntoView({ block: 'nearest' })
+        const option = optionRefs.current[next]
+        if (!triggerRef.current?.closest('[data-vaul-drawer]')) {
+            option?.focus({ preventScroll: true })
+        }
+        keepOptionVisible(option)
     }
+
+    const typeahead = (key: string) => {
+        if (key.length !== 1 || !/^[a-z]$/i.test(key)) return false
+        typeaheadRef.current += key.toUpperCase()
+        if (typeaheadTimerRef.current) clearTimeout(typeaheadTimerRef.current)
+        typeaheadTimerRef.current = setTimeout(() => {
+            typeaheadRef.current = ''
+        }, 650)
+        const match = ordered.findIndex((info) => info.code.startsWith(typeaheadRef.current))
+        if (match >= 0) focusOption(match)
+        return true
+    }
+
+    const listbox =
+        open &&
+        placement &&
+        typeof document !== 'undefined' &&
+        createPortal(
+            <div
+                ref={listboxRef}
+                id={listboxId}
+                role="listbox"
+                aria-label={ariaLabel}
+                data-direction={placement.direction}
+                data-currency-menu
+                className="shadow-4 pointer-events-auto fixed z-[70] overflow-y-auto overscroll-contain rounded-md border-2 border-n-1 bg-white p-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-n-1"
+                style={{
+                    left: placement.left,
+                    top: placement.top,
+                    width: placement.width,
+                    maxHeight: placement.maxHeight,
+                }}
+            >
+                {ordered.map((info, index) => {
+                    const selected = info.code === value
+                    const divider =
+                        index > 0 &&
+                        (suggested ?? []).includes(ordered[index - 1]?.code) &&
+                        !(suggested ?? []).includes(info.code)
+                    return (
+                        <button
+                            key={info.code}
+                            id={`${listboxId}-${info.code}`}
+                            ref={(node) => {
+                                optionRefs.current[index] = node
+                            }}
+                            type="button"
+                            role="option"
+                            aria-selected={selected}
+                            data-active={index === activeIndex ? 'true' : undefined}
+                            tabIndex={index === activeIndex ? 0 : -1}
+                            onClick={() => choose(info.code)}
+                            onFocus={() => setActiveIndex(index)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                                    event.preventDefault()
+                                    focusOption(activeIndex + (event.key === 'ArrowDown' ? 1 : -1))
+                                } else if (event.key === 'Home') {
+                                    event.preventDefault()
+                                    focusOption(0)
+                                } else if (event.key === 'End') {
+                                    event.preventDefault()
+                                    focusOption(ordered.length - 1)
+                                } else if (event.key === 'Escape') {
+                                    event.preventDefault()
+                                    event.stopPropagation()
+                                    close()
+                                } else if (event.key === 'Tab') {
+                                    close(false)
+                                } else if (typeahead(event.key)) {
+                                    event.preventDefault()
+                                }
+                            }}
+                            className={cn(
+                                'flex min-h-12 w-full items-center rounded-sm px-3 text-left outline-none hover:bg-primary-3 focus-visible:bg-primary-3',
+                                divider && 'mt-1 border-t border-dashed border-n-1 pt-1',
+                                selected && 'bg-primary-1'
+                            )}
+                        >
+                            <CurrencyTag code={info.code} catalog={currencies} />
+                        </button>
+                    )
+                })}
+            </div>,
+            document.body
+        )
 
     return (
         <div ref={rootRef} className={cn('relative w-full', className)}>
@@ -116,7 +353,7 @@ export function CurrencySelect({
             <button
                 ref={triggerRef}
                 type="button"
-                aria-label={ariaLabel}
+                aria-label={`${ariaLabel}, ${value}`}
                 aria-haspopup="listbox"
                 aria-expanded={open}
                 aria-controls={listboxId}
@@ -131,15 +368,38 @@ export function CurrencySelect({
                 onKeyDown={(event) => {
                     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
                         event.preventDefault()
-                        setOpen(true)
-                        setActiveIndex(
-                            event.key === 'ArrowDown'
-                                ? selectedIndex
-                                : (selectedIndex - 1 + ordered.length) % ordered.length
-                        )
+                        if (open) {
+                            focusOption(activeIndex + (event.key === 'ArrowDown' ? 1 : -1))
+                        } else {
+                            setOpen(true)
+                            setActiveIndex(
+                                event.key === 'ArrowDown'
+                                    ? selectedIndex
+                                    : (selectedIndex - 1 + ordered.length) % ordered.length
+                            )
+                        }
+                    } else if (open && event.key === 'Home') {
+                        event.preventDefault()
+                        focusOption(0)
+                    } else if (open && event.key === 'End') {
+                        event.preventDefault()
+                        focusOption(ordered.length - 1)
+                    } else if (open && (event.key === 'Enter' || event.key === ' ')) {
+                        event.preventDefault()
+                        choose(ordered[activeIndex].code)
+                    } else if (open && event.key === 'Escape') {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        close()
+                    } else if (open && typeahead(event.key)) {
+                        event.preventDefault()
                     }
                 }}
-                className="input flex h-16 w-full items-center justify-between gap-1 pl-4 pr-3 text-left focus-visible:border-primary-1 focus-visible:ring-2 focus-visible:ring-primary-1"
+                className={cn(
+                    'input flex w-full items-center justify-between gap-1 text-left focus-visible:border-primary-1 focus-visible:ring-2 focus-visible:ring-primary-1',
+                    fieldSizes[variant],
+                    'pr-3'
+                )}
             >
                 <span key={value} aria-hidden>
                     <CurrencyTag code={value} catalog={currencies} />
@@ -154,61 +414,10 @@ export function CurrencySelect({
                     )}
                 />
             </button>
-
-            {open && (
-                <div
-                    id={listboxId}
-                    role="listbox"
-                    aria-label={ariaLabel}
-                    className="shadow-4 absolute bottom-[calc(100%+0.5rem)] left-0 z-50 max-h-[min(16rem,45vh)] w-full min-w-[8.5rem] overflow-y-auto rounded-sm border border-n-1 bg-white p-1"
-                >
-                    {ordered.map((info, index) => {
-                        const selected = info.code === value
-                        const divider =
-                            index > 0 &&
-                            (suggested ?? []).includes(ordered[index - 1]?.code) &&
-                            !(suggested ?? []).includes(info.code)
-                        return (
-                            <button
-                                key={info.code}
-                                ref={(node) => {
-                                    optionRefs.current[index] = node
-                                }}
-                                type="button"
-                                role="option"
-                                aria-selected={selected}
-                                tabIndex={index === activeIndex ? 0 : -1}
-                                onClick={() => choose(info.code)}
-                                onFocus={() => setActiveIndex(index)}
-                                onKeyDown={(event) => {
-                                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-                                        event.preventDefault()
-                                        focusOption(activeIndex + (event.key === 'ArrowDown' ? 1 : -1))
-                                    } else if (event.key === 'Home') {
-                                        event.preventDefault()
-                                        focusOption(0)
-                                    } else if (event.key === 'End') {
-                                        event.preventDefault()
-                                        focusOption(ordered.length - 1)
-                                    } else if (event.key === 'Escape') {
-                                        event.preventDefault()
-                                        close()
-                                    } else if (event.key === 'Tab') {
-                                        close(false)
-                                    }
-                                }}
-                                className={cn(
-                                    'flex min-h-11 w-full items-center rounded-sm px-3 text-left outline-none hover:bg-primary-3 focus-visible:bg-primary-3',
-                                    divider && 'mt-1 border-t border-n-1 pt-1',
-                                    selected && 'bg-primary-1'
-                                )}
-                            >
-                                <CurrencyTag code={info.code} catalog={currencies} />
-                            </button>
-                        )
-                    })}
-                </div>
-            )}
+            <span className="sr-only" aria-live="polite">
+                {open ? `${ariaLabel}: ${ordered[activeIndex]?.code}` : ''}
+            </span>
+            {listbox}
         </div>
     )
 }

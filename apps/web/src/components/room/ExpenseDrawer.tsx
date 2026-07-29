@@ -8,18 +8,20 @@ import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
-import { fromDateInputValue, toDateInputValue } from '@/lib/dates'
+import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
     allocatedMinor,
     buildExpenseBody,
     emptyExpenseForm,
     expenseToFormValues,
     remainingMinor,
+    repairMisplacedExpenseFields,
     validateExpenseForm,
     type ExpenseFormValues,
 } from '@/lib/expense-form'
@@ -70,6 +72,7 @@ export function ExpenseDrawer({
     defaultPaidById,
 }: ExpenseDrawerProps) {
     const t = useTranslations('room.expenseDrawer')
+    const tDates = useTranslations('dates')
     const locale = useLocale()
     const errorMessage = useErrorMessage()
     const addExpense = useAddExpense(slug, token)
@@ -95,7 +98,11 @@ export function ExpenseDrawer({
     const [addingPayer, setAddingPayer] = useState(false)
     const [newPayerName, setNewPayerName] = useState('')
     const [payerError, setPayerError] = useState<string | null>(null)
+    const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
+    const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
+    const amountRef = useRef<HTMLInputElement>(null)
+    const descriptionRef = useRef<HTMLInputElement>(null)
     // React does not disable the button until the mutation state renders. A
     // second tap in that gap would mint a second clientKey and create a second
     // expense, so the synchronous guard owns the save attempt.
@@ -118,6 +125,8 @@ export function ExpenseDrawer({
         setAddingPayer(false)
         setNewPayerName('')
         setPayerError(null)
+        setFieldRepairNotice(null)
+        setEditor(null)
         setValues(
             expense
                 ? expenseToFormValues(expense, currencies)
@@ -163,6 +172,7 @@ export function ExpenseDrawer({
         setAddingPayer(false)
         setNewPayerName('')
         setPayerError(null)
+        setEditor(null)
         feedback('tick')
     }
 
@@ -188,6 +198,7 @@ export function ExpenseDrawer({
             patch({ paidById: next.memberId })
             setAddingPayer(false)
             setNewPayerName('')
+            setEditor(null)
             feedback('pop')
         } catch (err) {
             feedback('error', { haptic: 'error' })
@@ -251,6 +262,14 @@ export function ExpenseDrawer({
         editExact(memberId, formatMinorPlain(minor, decimals))
     }
 
+    const chooseRelativeDate = (daysAgo: number) => {
+        const date = new Date()
+        date.setDate(date.getDate() - daysAgo)
+        patch({ date: fromDateInputValue(toDateInputValue(date.toISOString()), values.date) })
+        setEditor(null)
+        feedback('tick')
+    }
+
     const putRemainderOn = (memberId: string) => {
         const current = parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals) ?? '0'
         const next = BigInt(current) + BigInt(remaining)
@@ -261,19 +280,42 @@ export function ExpenseDrawer({
         onClose()
     }
 
+    /**
+     * Wait until focus leaves a field before moving anything. Swapping on the
+     * first numeric character would make the active input jump underneath the
+     * person's fingers; blur gives us the complete pair and still repairs it
+     * before they can submit. `save()` repeats this check as a keyboard/paste
+     * safety net.
+     */
+    const repairFieldRoles = (candidate: ExpenseFormValues = values, clearSubmitted = true) => {
+        const repaired = repairMisplacedExpenseFields(candidate, currencies)
+        if (!repaired) return candidate
+        setValues(repaired)
+        if (clearSubmitted) setSubmitted(false)
+        setFieldRepairNotice(t('fieldsSwapped'))
+        feedback('tick')
+        return repaired
+    }
+
     const save = async () => {
         if (savingRef.current) return
         setSubmitted(true)
-        if (validation) {
+        const valuesToSave = repairFieldRoles(values, false)
+        const validationToSave = validateExpenseForm(valuesToSave, currencies)
+        if (validationToSave) {
             // The message alone is easy to miss on a long form — the sheet moving
             // is what tells you the tap was received and refused.
             feedback('error', { haptic: 'error' })
             shake()
+            if (validationToSave === 'AMOUNT_REQUIRED') amountRef.current?.focus()
+            else if (validationToSave === 'DESCRIPTION_REQUIRED') descriptionRef.current?.focus()
+            else if (validationToSave === 'PAYER_REQUIRED') setEditor('payer')
+            else setEditor('split')
             return
         }
         savingRef.current = true
         setError(null)
-        const body = buildExpenseBody(values, currencies)
+        const body = buildExpenseBody(valuesToSave, currencies)
         try {
             if (expense) {
                 await updateExpense.mutateAsync({ id: expense.id, input: body })
@@ -363,11 +405,62 @@ export function ExpenseDrawer({
     )
     const membersNotInExact = state.members.filter((member) => values.exactInputs[member.id] === undefined)
 
+    const payer = state.members.find((member) => member.id === values.paidById)
+    const participantIds =
+        values.splitMode === 'EQUAL'
+            ? values.participantsTouched
+                ? values.participantIds
+                : state.members.map((member) => member.id)
+            : participantsForExact.map((member) => member.id)
+    const participants = state.members.filter((member) => participantIds.includes(member.id))
+    const participantSummary =
+        participants.length === state.members.length
+            ? t('everyone')
+            : participants.length === 0
+              ? t('choosePeople')
+              : participants.length === 1
+                ? participants[0].name
+                : t('peopleSummary', { name: participants[0].name, count: participants.length - 1 })
+    const splitModeSummary = values.splitMode === 'EQUAL' ? t('equally') : t('exactAmounts')
+    const dateSummary = dayLabel(values.date, {
+        locale,
+        today: tDates('today'),
+        yesterday: tDates('yesterday'),
+    })
+    const todayInput = toDateInputValue(new Date().toISOString())
+    const yesterdayDate = new Date()
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1)
+    const yesterdayInput = toDateInputValue(yesterdayDate.toISOString())
+    const selectedDateInput = toDateInputValue(values.date)
+    const validationCopy =
+        validation === 'DESCRIPTION_REQUIRED'
+            ? t('validation.DESCRIPTION_REQUIRED')
+            : validation === 'AMOUNT_REQUIRED'
+              ? t('validation.AMOUNT_REQUIRED')
+              : validation === 'PAYER_REQUIRED'
+                ? t('validation.PAYER_REQUIRED')
+                : validation === 'NO_PARTICIPANTS'
+                  ? t('validation.NO_PARTICIPANTS')
+                  : validation === 'SHARES_DO_NOT_ADD_UP'
+                    ? t('validation.SHARES_DO_NOT_ADD_UP')
+                    : null
+    const amountInvalid = submitted && validation === 'AMOUNT_REQUIRED'
+    const descriptionInvalid = submitted && validation === 'DESCRIPTION_REQUIRED'
+    const positiveTotal = totalMinor !== null && BigInt(totalMinor) > 0n
+    const primaryLabel =
+        expense || !positiveTotal
+            ? expense
+                ? t('save')
+                : t('add')
+            : t('addWithAmount', {
+                  amount: formatMoney(totalMinor!, values.currency, currencies, locale),
+              })
     const pending = addExpense.isPending || updateExpense.isPending
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && close()}>
             <DrawerContent
+                data-testid="expense-drawer"
                 className="bg-background"
                 /**
                  * The scan overlay is portalled to `document.body`, and Radix decides
@@ -382,58 +475,208 @@ export function ExpenseDrawer({
                  */
                 onPointerDownOutside={(event) => {
                     const target = event.detail.originalEvent.target
-                    if (target instanceof Element && target.closest('[data-testid="scan-flow"]')) {
+                    if (
+                        target instanceof Element &&
+                        target.closest('[data-testid="scan-flow"], [data-currency-menu]')
+                    ) {
                         event.preventDefault()
                     }
                 }}
+                onEscapeKeyDown={(event) => {
+                    if (document.querySelector('[data-currency-menu]')) event.preventDefault()
+                }}
             >
-                <DrawerHeader className="pb-0">
+                <DrawerHeader className="flex shrink-0 flex-row items-end justify-between px-4 pb-2 pt-0 text-left">
                     <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
+                    <button
+                        type="button"
+                        onClick={close}
+                        aria-label={t('close')}
+                        data-testid="close-expense"
+                        className="flex size-11 items-center justify-center rounded-full border-2 border-n-1 bg-white transition-transform active:rotate-3"
+                    >
+                        <Icon name="x" size={21} />
+                    </button>
                 </DrawerHeader>
 
-                <div
-                    ref={formRef}
-                    className="flex flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4"
-                >
-                    {/* Amount first: it's the thing you came to type. */}
-                    <div className="flex items-end gap-3">
-                        <label className="flex flex-1 flex-col gap-2">
-                            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('amount')}</span>
+                <DrawerBody ref={formRef} className="gap-3 pb-6 pt-2" data-testid="expense-scroll">
+                    {/* One object, not four labelled sections: the receipt being created. */}
+                    <div
+                        data-testid="expense-composer"
+                        className={cn(
+                            'shadow-4 overflow-hidden rounded-lg border-2 bg-white transition-colors',
+                            amountInvalid || descriptionInvalid ? 'border-error' : 'border-n-1'
+                        )}
+                    >
+                        <div className="flex min-w-0 items-center gap-2 px-3 py-2">
+                            <label className="min-w-0 flex-1">
+                                <span className="sr-only">{t('amount')}</span>
+                                <input
+                                    ref={amountRef}
+                                    value={values.amountInput}
+                                    onChange={(event) => {
+                                        patch({ amountInput: event.target.value })
+                                        setSubmitted(false)
+                                        setFieldRepairNotice(null)
+                                    }}
+                                    onBlur={() => repairFieldRoles()}
+                                    inputMode="decimal"
+                                    autoComplete="off"
+                                    placeholder={decimals === 0 ? '0' : '0.00'}
+                                    aria-invalid={amountInvalid || undefined}
+                                    aria-describedby={amountInvalid ? 'expense-amount-error' : undefined}
+                                    data-testid="expense-amount"
+                                    className="h-16 w-full min-w-0 border-0 bg-transparent px-1 text-h3 font-extrabold tabular-nums outline-none placeholder:text-grey-2"
+                                />
+                            </label>
+                            <div className="w-[7.25rem] shrink-0">
+                                <CurrencySelect
+                                    value={values.currency}
+                                    onChange={(code) => patch({ currency: code })}
+                                    currencies={currencies}
+                                    suggested={suggestedCurrencies}
+                                    variant="sm"
+                                    aria-label={t('currency')}
+                                    data-testid="expense-currency"
+                                />
+                            </div>
+                        </div>
+
+                        <label className="block border-t border-dashed border-grey-1">
+                            <span className="sr-only">{t('description')}</span>
                             <input
-                                value={values.amountInput}
-                                onChange={(event) => patch({ amountInput: event.target.value })}
-                                inputMode="decimal"
-                                autoComplete="off"
-                                placeholder={decimals === 0 ? '0' : '0.00'}
-                                aria-label={t('amount')}
-                                data-testid="expense-amount"
-                                className="input h-20 px-4 text-h3 tabular-nums"
+                                ref={descriptionRef}
+                                value={values.description}
+                                onChange={(event) => {
+                                    patch({ description: event.target.value })
+                                    setSubmitted(false)
+                                    setFieldRepairNotice(null)
+                                }}
+                                onBlur={() => repairFieldRoles()}
+                                placeholder={t('descriptionPlaceholder')}
+                                maxLength={255}
+                                aria-invalid={descriptionInvalid || undefined}
+                                aria-describedby={descriptionInvalid ? 'expense-description-error' : undefined}
+                                data-testid="expense-description"
+                                className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
                             />
                         </label>
-                        {/* Wider than it was: the trigger now carries a flag and a symbol as
-                            well as the code, and 7.5rem clipped "THB" to "T…" on a 390px screen. */}
-                        <div className="w-[8.5rem] shrink-0">
-                            <CurrencySelect
-                                value={values.currency}
-                                onChange={(code) => patch({ currency: code })}
-                                currencies={currencies}
-                                suggested={suggestedCurrencies}
-                                aria-label={t('currency')}
-                                data-testid="expense-currency"
-                            />
+
+                        <div className="grid grid-cols-[1.1fr_1.45fr_.85fr] border-t border-dashed border-grey-1 p-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setEditor((current) => (current === 'payer' ? null : 'payer'))}
+                                aria-pressed={editor === 'payer'}
+                                aria-label={payer ? t('paidBySummary', { name: payer.name }) : t('paidBy')}
+                                data-testid="expense-payer-summary"
+                                className={cn(
+                                    'flex min-h-12 min-w-0 items-center justify-center gap-1.5 rounded-sm border-r border-dashed border-grey-2 px-1 text-left',
+                                    editor === 'payer' && 'bg-primary-3'
+                                )}
+                            >
+                                {payer && <MemberAvatar name={payer.name} avatar={payer.avatar} size={25} />}
+                                <span className="min-w-0">
+                                    <span className="block truncate text-h9">{payer?.name ?? t('choosePayer')}</span>
+                                    <span className="block text-h10 text-grey-1">{t('paid')}</span>
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setEditor((current) => (current === 'split' ? null : 'split'))}
+                                aria-pressed={editor === 'split'}
+                                aria-label={t('splitSummary', {
+                                    people: participantSummary,
+                                    mode: splitModeSummary,
+                                })}
+                                data-testid="expense-split-summary"
+                                className={cn(
+                                    'flex min-h-12 min-w-0 items-center justify-center gap-1 rounded-sm border-r border-dashed border-grey-2 px-1 text-left',
+                                    editor === 'split' && 'bg-primary-3'
+                                )}
+                            >
+                                <span className="flex shrink-0 pl-1.5">
+                                    {participants.slice(0, 3).map((member, index) => (
+                                        <MemberAvatar
+                                            key={member.id}
+                                            name={member.name}
+                                            avatar={member.avatar}
+                                            size={23}
+                                            className={index > 0 ? '-ml-2' : ''}
+                                        />
+                                    ))}
+                                </span>
+                                <span className="min-w-0">
+                                    <span className="block truncate text-h9">{participantSummary}</span>
+                                    <span className="block truncate text-h10 text-grey-1">{splitModeSummary}</span>
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setEditor((current) => (current === 'date' ? null : 'date'))}
+                                aria-pressed={editor === 'date'}
+                                aria-label={t('dateSummary', { date: dateSummary })}
+                                data-testid="expense-date-summary"
+                                className={cn(
+                                    'flex min-h-12 min-w-0 items-center justify-center gap-1 rounded-sm px-1',
+                                    editor === 'date' && 'bg-primary-3'
+                                )}
+                            >
+                                <Doodle name="iconcalendar" size={19} weight={1.8} className="shrink-0" />
+                                <span className="min-w-0">
+                                    <span className="block truncate text-h9">{dateSummary}</span>
+                                    <span className="block text-h10 text-grey-1">{t('dateShort')}</span>
+                                </span>
+                            </button>
                         </div>
                     </div>
 
-                    {/* Right under the amount, and only when adding: quick add
-                        rewrites the description, currency, total and split. That
-                        is useful on an empty form and hostile on an edit. The
-                        probe is a network hop, so its placeholder keeps the form
-                        below from jumping as a thumb reaches the description. */}
+                    <AnimatePresence initial={false}>
+                        {fieldRepairNotice && (
+                            <motion.p
+                                key={fieldRepairNotice}
+                                role="status"
+                                aria-live="polite"
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                className="px-1 text-xs font-bold text-grey-1"
+                                data-testid="expense-fields-repaired"
+                            >
+                                {fieldRepairNotice}
+                            </motion.p>
+                        )}
+                    </AnimatePresence>
+
+                    {amountInvalid && (
+                        <p
+                            id="expense-amount-error"
+                            role="alert"
+                            className="flex items-center gap-2 text-sm font-bold text-error"
+                        >
+                            <Icon name="x" size={16} />
+                            {t('validation.AMOUNT_REQUIRED')}
+                        </p>
+                    )}
+                    {descriptionInvalid && (
+                        <p
+                            id="expense-description-error"
+                            role="alert"
+                            className="flex items-center gap-2 text-sm font-bold text-error"
+                        >
+                            <Icon name="x" size={16} />
+                            {t('validation.DESCRIPTION_REQUIRED')}
+                        </p>
+                    )}
+
+                    {/* Right under the composer, and only when adding: quick add
+                        rewrites the receipt and its split. It remains progressive
+                        enhancement; the card never depends on the model probe. */}
                     {!expense && !modelResolved && (
-                        <div aria-hidden="true" className="flex flex-wrap items-start gap-2">
-                            {/* The scan chip's own placeholder, so the row reserves the
-                                width it will actually take. Flag-off this is exactly the
-                                one-chip placeholder v1 ships. */}
+                        <div
+                            data-testid="expense-tools-loading"
+                            aria-hidden="true"
+                            className="flex flex-wrap items-start gap-2"
+                        >
                             {splitV2Enabled() && (
                                 <span className="min-h-11 w-32 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
                             )}
@@ -442,9 +685,6 @@ export function ExpenseDrawer({
                     )}
                     {!expense && modelResolved && modelEnabled && (
                         <div className="flex flex-wrap items-start gap-2">
-                            {/* Already behind the flag: `modelEnabled` is
-                                `splitV2Enabled() && the server has a key`, so a v1 build
-                                renders this row with quick-add alone, exactly as before. */}
                             <ScanButton onFile={setScanFile} />
                             <QuickAdd
                                 slug={slug}
@@ -453,23 +693,18 @@ export function ExpenseDrawer({
                                 values={values}
                                 onApply={(next) => {
                                     setValues(next)
-                                    // The form has just been rewritten, so an error
-                                    // left over from before it is stale by definition.
                                     setSubmitted(false)
                                     setError(null)
+                                    setEditor(null)
                                 }}
                             />
                         </div>
                     )}
 
-                    {/* Foreign money, said once and in both split modes. The old copy only
-                        mentioned the conversion inside the EXACT branch, so an EQUAL split in
-                        another currency converted silently — the row it produces is the single
-                        most surprising thing in the room. */}
                     {isForeign && (
                         <div
                             data-testid="expense-foreign-note"
-                            className="flex flex-wrap items-center gap-2 rounded-sm border border-dashed border-n-1 bg-primary-3 px-3 py-2 text-sm"
+                            className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-n-1 bg-primary-3 px-3 py-2 text-sm"
                         >
                             <CurrencyTag code={values.currency} catalog={currencies} />
                             <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
@@ -483,345 +718,418 @@ export function ExpenseDrawer({
                         </div>
                     )}
 
-                    <label className="flex flex-col gap-2">
-                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('description')}</span>
-                        <BaseInput
-                            value={values.description}
-                            onChange={(event) => patch({ description: event.target.value })}
-                            placeholder={t('descriptionPlaceholder')}
-                            maxLength={255}
-                            data-testid="expense-description"
-                        />
-                    </label>
-
-                    <div className="flex flex-col gap-2">
-                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('paidBy')}</span>
-                        <div className="flex flex-wrap gap-2">
-                            {state.members.map((member) => (
-                                <button
-                                    key={member.id}
-                                    type="button"
-                                    onClick={() => choosePayer(member.id)}
-                                    aria-pressed={values.paidById === member.id}
-                                    data-testid="payer-chip"
-                                    data-member={member.name}
-                                    className={cn(
-                                        'flex min-h-11 items-center gap-2 rounded-sm border border-n-1 py-2 pl-2 pr-3 text-h8 transition-all duration-100',
-                                        values.paidById === member.id
-                                            ? 'shadow-4 bg-primary-1'
-                                            : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
-                                    )}
-                                >
-                                    <MemberAvatar name={member.name} avatar={member.avatar} size={24} />
-                                    {member.name}
-                                </button>
-                            ))}
-                            {!addingPayer && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setAddingPayer(true)
-                                        setPayerError(null)
-                                        requestAnimationFrame(() => payerNameRef.current?.focus())
-                                    }}
-                                    aria-label={t('addPayer')}
-                                    title={t('addPayer')}
-                                    className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-n-1 bg-white px-3 py-2 text-h8 transition-colors hover:bg-grey-3"
-                                    data-testid="add-payer"
-                                >
-                                    <Icon name="plus" size={18} />
-                                    {t('addPayer')}
-                                </button>
-                            )}
-                        </div>
-
-                        {addingPayer && (
-                            <form
-                                onSubmit={createPayer}
-                                className="flex flex-col gap-2 rounded-sm border border-dashed border-n-1 bg-white p-3"
-                            >
-                                <BaseInput
-                                    ref={payerNameRef}
-                                    value={newPayerName}
-                                    onChange={(event) => setNewPayerName(event.target.value)}
-                                    placeholder={t('payerNamePlaceholder')}
-                                    aria-label={t('payerNamePlaceholder')}
-                                    maxLength={80}
-                                    variant="sm"
-                                    data-testid="new-payer-name"
-                                />
-                                <div className="flex gap-2">
-                                    <Button
-                                        type="submit"
-                                        size="small"
-                                        shadowSize="3"
-                                        loading={addMember.isPending}
-                                        disabled={!newPayerName.trim()}
-                                        className="flex-1 justify-center"
-                                        data-testid="add-payer-submit"
-                                    >
-                                        {t('confirmPayer')}
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="stroke"
-                                        size="small"
-                                        className="w-auto justify-center"
-                                        onClick={() => {
-                                            setAddingPayer(false)
-                                            setNewPayerName('')
-                                            setPayerError(null)
-                                        }}
-                                    >
-                                        {t('cancelPayer')}
-                                    </Button>
+                    {editor === 'payer' && (
+                        <section
+                            data-testid="payer-editor"
+                            aria-label={t('whoPaid')}
+                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                        >
+                            <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
+                                <div>
+                                    <h3 className="text-h8">{t('whoPaid')}</h3>
+                                    <p className="mt-1 text-xs text-grey-1">{t('whoPaidHint')}</p>
                                 </div>
-                            </form>
-                        )}
-
-                        {payerError && (
-                            <p role="alert" className="text-sm font-bold text-error">
-                                {payerError}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('split')}</span>
-                            <div className="flex overflow-hidden rounded-sm border border-n-1">
-                                {(['EQUAL', 'EXACT'] as const).map((mode) => (
-                                    <button
-                                        key={mode}
-                                        type="button"
-                                        onClick={() => {
-                                            setSplitMode(mode)
-                                            feedback('tick')
-                                        }}
-                                        aria-pressed={values.splitMode === mode}
-                                        data-testid={`split-${mode.toLowerCase()}`}
-                                        className={cn(
-                                            'min-h-11 px-4 py-2 text-h8 transition-colors duration-150',
-                                            values.splitMode === mode ? 'bg-n-1 text-white' : 'bg-white text-n-1'
-                                        )}
-                                    >
-                                        {mode === 'EQUAL' ? t('equally') : t('exactAmounts')}
-                                    </button>
-                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setEditor(null)}
+                                    aria-label={t('collapseSection')}
+                                    data-testid="collapse-payer-editor"
+                                    className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
+                                >
+                                    <Icon name="chevron-up" size={24} />
+                                </button>
                             </div>
-                        </div>
-
-                        {/* "Equally" and "Exact amounts" name the modes; they do not say
-                            what picking one DOES, and the difference is the whole decision.
-                            One line for whichever is active — a hint under each button
-                            would double the height of a control that is two words wide. */}
-                        <p className="-mt-1 text-right text-sm text-grey-1" data-testid="split-hint">
-                            {values.splitMode === 'EQUAL' ? t('equallyHint') : t('exactAmountsHint')}
-                        </p>
-
-                        {values.splitMode === 'EQUAL' ? (
-                            <ul className="flex flex-col gap-2">
-                                {state.members.map((member) => {
-                                    const checked =
-                                        !values.participantsTouched || values.participantIds.includes(member.id)
-                                    return (
-                                        <li key={member.id}>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    toggleParticipant(member.id)
-                                                    feedback('tick')
-                                                }}
-                                                aria-pressed={checked}
-                                                data-testid="participant-toggle"
-                                                data-member={member.name}
-                                                className={cn(
-                                                    'flex min-h-11 w-full items-center gap-3 rounded-sm border border-n-1 p-3 text-left transition-all duration-150 active:translate-y-[2px]',
-                                                    checked ? 'bg-white' : 'bg-grey-4 opacity-60'
-                                                )}
-                                            >
-                                                <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
-                                                <span className="flex-1 truncate text-h8">{member.name}</span>
-                                                <span
-                                                    className={cn(
-                                                        'flex size-6 items-center justify-center rounded-sm border border-n-1 transition-colors duration-150',
-                                                        checked ? 'bg-primary-1' : 'bg-white'
-                                                    )}
-                                                >
-                                                    <AnimatePresence initial={false}>
-                                                        {checked && (
-                                                            <motion.span
-                                                                initial={{ scale: 0.2, opacity: 0 }}
-                                                                animate={{ scale: 1, opacity: 1 }}
-                                                                exit={{ scale: 0.2, opacity: 0 }}
-                                                                transition={{
-                                                                    type: 'spring',
-                                                                    stiffness: 600,
-                                                                    damping: 24,
-                                                                }}
-                                                                className="flex"
-                                                            >
-                                                                <Icon name="check" size={16} />
-                                                            </motion.span>
-                                                        )}
-                                                    </AnimatePresence>
-                                                </span>
-                                            </button>
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-                        ) : (
-                            <div className="flex flex-col gap-2">
-                                <ul className="flex flex-col gap-2">
-                                    {participantsForExact.map((member) => (
-                                        <li key={member.id} className="flex items-center gap-2">
-                                            <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
-                                            <span className="w-20 shrink-0 truncate text-h8">{member.name}</span>
-                                            <input
-                                                value={values.exactInputs[member.id] ?? ''}
-                                                onChange={(event) => editExact(member.id, event.target.value)}
-                                                // Tap-and-type replaces. These fields arrive
-                                                // holding a number often enough (the remainder
-                                                // button, a reopened expense) that landing the
-                                                // caret mid-digits and appending is the default
-                                                // outcome — and "50" becoming "5060" is a wrong
-                                                // number nobody reads back.
-                                                onFocus={(event) => event.target.select()}
-                                                onBlur={() => normaliseExact(member.id)}
-                                                inputMode="decimal"
-                                                aria-label={t('exactAmountFor', { name: member.name })}
-                                                data-testid="exact-input"
-                                                data-member={member.name}
-                                                className="input h-12 flex-1 px-3 text-base tabular-nums"
-                                            />
-                                            {!remainingIsZero && (
-                                                /* The chip says what it will do. A bare "+"
-                                                   next to five names is five identical
-                                                   buttons with five different effects, and the
-                                                   one that SUBTRACTS is the one wearing a plus
-                                                   sign. Printing the signed delta makes the
-                                                   outcome readable before the tap. */
-                                                <button
-                                                    type="button"
-                                                    onClick={() => putRemainderOn(member.id)}
-                                                    aria-label={t('putRemainderOn', { name: member.name })}
-                                                    data-testid="put-remainder"
-                                                    data-member={member.name}
-                                                    className="flex h-12 shrink-0 items-center justify-center rounded-sm border border-dashed border-n-1 bg-white px-2 text-h9 tabular-nums"
-                                                >
-                                                    {remaining.startsWith('-') ? '−' : '+'}
-                                                    {formatMinorPlain(remaining.replace('-', ''), decimals)}
-                                                </button>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                {membersNotInExact.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {membersNotInExact.map((member) => (
+                            <div className="flex flex-col gap-2 p-3">
+                                <div role="radiogroup" aria-label={t('paidBy')} className="grid grid-cols-2 gap-2">
+                                    {state.members.map((member) => {
+                                        const selected = values.paidById === member.id
+                                        return (
                                             <button
                                                 key={member.id}
                                                 type="button"
-                                                onClick={() =>
-                                                    patch({
-                                                        exactInputs: { ...values.exactInputs, [member.id]: '' },
-                                                    })
-                                                }
-                                                className="rounded-sm border border-dashed border-n-1 px-3 py-2 text-h9"
+                                                role="radio"
+                                                aria-checked={selected}
+                                                onClick={() => choosePayer(member.id)}
+                                                data-testid="payer-chip"
+                                                data-member={member.name}
+                                                className={cn(
+                                                    'flex min-h-12 min-w-0 items-center gap-2 rounded-md border border-n-1 px-2 text-left transition-all',
+                                                    selected ? 'shadow-2 bg-primary-3' : 'bg-white'
+                                                )}
                                             >
-                                                {t('addToSplit', { name: member.name })}
+                                                <MemberAvatar name={member.name} avatar={member.avatar} size={27} />
+                                                <span className="flex-1 truncate text-h8">{member.name}</span>
+                                                {selected && <Icon name="check" size={16} />}
                                             </button>
-                                        ))}
-                                    </div>
+                                        )
+                                    })}
+                                </div>
+
+                                {!addingPayer && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setAddingPayer(true)
+                                            setPayerError(null)
+                                            requestAnimationFrame(() => payerNameRef.current?.focus())
+                                        }}
+                                        className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-dashed border-n-1 bg-white px-3 py-2 text-h8"
+                                        data-testid="add-payer"
+                                    >
+                                        <Icon name="plus" size={18} />
+                                        {t('addPayer')}
+                                    </button>
                                 )}
 
-                                {/* Moment #4 — the cents reconcile in front of you. The
-                                    readout pops the instant it balances, so hitting zero
-                                    is something that happened rather than something you
-                                    have to go and read. */}
-                                <motion.div
-                                    data-testid="remaining-readout"
-                                    animate={allocationSettled ? { scale: [1, 1.03, 1] } : { scale: 1 }}
-                                    transition={{ duration: 0.3, ease: 'easeOut' }}
-                                    className={cn(
-                                        'flex items-center justify-between rounded-sm border border-n-1 px-3 py-3 text-h8 transition-colors duration-200',
-                                        allocationSettled ? 'bg-green-1' : 'bg-primary-3'
-                                    )}
-                                >
-                                    <span>
-                                        {allocationSettled
-                                            ? t('allocated')
-                                            : remaining.startsWith('-')
-                                              ? t('overBy')
-                                              : t('leftToAllocate')}
-                                    </span>
-                                    <span className="flex items-center gap-2">
-                                        {allocationSettled ? (
-                                            <Icon name="check" size={18} />
-                                        ) : (
-                                            <Money
-                                                minor={remaining}
-                                                currency={values.currency}
-                                                catalog={currencies}
-                                                absolute
-                                            />
-                                        )}
-                                    </span>
-                                </motion.div>
-                                {/* Three fragments rather than one message: the middle clause
-                                    only exists for a foreign-currency expense, and folding it
-                                    into an ICU `select` would make the common case unreadable in
-                                    every catalog. */}
-                                <p className="text-sm text-grey-1">
-                                    {t('amountsAreIn', { currency: values.currency })}
-                                    {values.currency !== state.room.currency &&
-                                        t('convertedAt', { roomCurrency: state.room.currency })}
-                                    {t('allocatedOf', {
-                                        allocated: formatMoney(
-                                            allocatedMinor(values, currencies),
-                                            values.currency,
-                                            currencies,
-                                            locale
-                                        ),
-                                        total: formatMoney(totalMinor ?? '0', values.currency, currencies, locale),
-                                    })}
-                                </p>
+                                {addingPayer && (
+                                    <form onSubmit={createPayer} className="flex items-center gap-2">
+                                        <BaseInput
+                                            ref={payerNameRef}
+                                            value={newPayerName}
+                                            onChange={(event) => setNewPayerName(event.target.value)}
+                                            placeholder={t('payerNamePlaceholder')}
+                                            aria-label={t('payerNamePlaceholder')}
+                                            maxLength={80}
+                                            variant="sm"
+                                            data-testid="new-payer-name"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!newPayerName.trim() || addMember.isPending}
+                                            aria-label={t('confirmPayer')}
+                                            aria-busy={addMember.isPending}
+                                            data-testid="add-payer-submit"
+                                            className="shadow-2 flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-primary-1 disabled:opacity-50"
+                                        >
+                                            <Icon name="check" size={19} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            aria-label={t('cancelPayer')}
+                                            onClick={() => {
+                                                setAddingPayer(false)
+                                                setNewPayerName('')
+                                                setPayerError(null)
+                                            }}
+                                            className="flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-white"
+                                        >
+                                            <Icon name="x" size={19} />
+                                        </button>
+                                    </form>
+                                )}
+
+                                {payerError && (
+                                    <p role="alert" className="text-sm font-bold text-error">
+                                        {payerError}
+                                    </p>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </section>
+                    )}
 
-                    <label className="flex flex-col gap-2">
-                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('when')}</span>
-                        <span className="relative">
-                            <input
-                                type="date"
-                                value={toDateInputValue(values.date)}
-                                onChange={(event) =>
-                                    patch({ date: fromDateInputValue(event.target.value, values.date) })
-                                }
-                                aria-label={t('date')}
-                                data-testid="expense-date"
-                                data-doodle-date
-                                className="input h-14 appearance-none px-4 pr-12"
-                            />
-                            <Doodle
-                                name="iconcalendar"
-                                size={21}
-                                weight={1.7}
-                                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2"
-                            />
-                        </span>
-                    </label>
+                    {editor === 'split' && (
+                        <section
+                            data-testid="split-editor"
+                            aria-label={t('whoShares')}
+                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                        >
+                            <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
+                                <div>
+                                    <h3 className="text-h8">{t('whoShares')}</h3>
+                                    <p className="mt-1 text-xs text-grey-1">
+                                        {values.splitMode === 'EQUAL' ? t('equallyHint') : t('exactAmountsHint')}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditor(null)}
+                                    aria-label={t('collapseSection')}
+                                    data-testid="collapse-split-editor"
+                                    className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
+                                >
+                                    <Icon name="chevron-up" size={24} />
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-3 p-3">
+                                <div className="grid grid-cols-2 rounded-full border border-n-1 bg-white p-1">
+                                    {(['EQUAL', 'EXACT'] as const).map((mode) => (
+                                        <button
+                                            key={mode}
+                                            type="button"
+                                            onClick={() => {
+                                                setSplitMode(mode)
+                                                feedback('tick')
+                                            }}
+                                            aria-pressed={values.splitMode === mode}
+                                            data-testid={`split-${mode.toLowerCase()}`}
+                                            className={cn(
+                                                'min-h-10 rounded-full px-3 py-2 text-h9 transition-colors duration-150',
+                                                values.splitMode === mode ? 'bg-n-1 text-white' : 'bg-white text-n-1'
+                                            )}
+                                        >
+                                            {mode === 'EQUAL' ? t('equally') : t('exactAmounts')}
+                                        </button>
+                                    ))}
+                                </div>
 
-                    {submitted && validation && (
-                        <p role="alert" className="text-sm font-bold text-error">
-                            {validation === 'DESCRIPTION_REQUIRED' && t('validation.DESCRIPTION_REQUIRED')}
-                            {validation === 'AMOUNT_REQUIRED' && t('validation.AMOUNT_REQUIRED')}
-                            {validation === 'PAYER_REQUIRED' && t('validation.PAYER_REQUIRED')}
-                            {validation === 'NO_PARTICIPANTS' && t('validation.NO_PARTICIPANTS')}
-                            {validation === 'SHARES_DO_NOT_ADD_UP' && t('validation.SHARES_DO_NOT_ADD_UP')}
+                                {values.splitMode === 'EQUAL' ? (
+                                    <ul aria-label={t('whoShares')} className="grid grid-cols-2 gap-2">
+                                        {state.members.map((member) => {
+                                            const checked =
+                                                !values.participantsTouched || values.participantIds.includes(member.id)
+                                            return (
+                                                <li key={member.id}>
+                                                    <button
+                                                        type="button"
+                                                        role="checkbox"
+                                                        aria-checked={checked}
+                                                        onClick={() => {
+                                                            toggleParticipant(member.id)
+                                                            feedback('tick')
+                                                        }}
+                                                        data-testid="participant-toggle"
+                                                        data-member={member.name}
+                                                        className={cn(
+                                                            'flex min-h-12 w-full min-w-0 items-center gap-2 rounded-md border border-n-1 px-2 text-left transition-all',
+                                                            checked ? 'bg-white' : 'bg-grey-4 opacity-60'
+                                                        )}
+                                                    >
+                                                        <MemberAvatar
+                                                            name={member.name}
+                                                            avatar={member.avatar}
+                                                            size={27}
+                                                        />
+                                                        <span className="flex-1 truncate text-h8">{member.name}</span>
+                                                        <span
+                                                            className={cn(
+                                                                'flex size-6 shrink-0 items-center justify-center rounded-full border border-n-1',
+                                                                checked ? 'bg-green-1' : 'bg-white'
+                                                            )}
+                                                        >
+                                                            <AnimatePresence initial={false}>
+                                                                {checked && (
+                                                                    <motion.span
+                                                                        initial={{ scale: 0.2, opacity: 0 }}
+                                                                        animate={{ scale: 1, opacity: 1 }}
+                                                                        exit={{ scale: 0.2, opacity: 0 }}
+                                                                        transition={{
+                                                                            type: 'spring',
+                                                                            stiffness: 600,
+                                                                            damping: 24,
+                                                                        }}
+                                                                        className="flex"
+                                                                    >
+                                                                        <Icon name="check" size={15} />
+                                                                    </motion.span>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </span>
+                                                    </button>
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        <ul className="flex flex-col gap-2">
+                                            {participantsForExact.map((member) => (
+                                                <li
+                                                    key={member.id}
+                                                    className="flex items-center gap-2 rounded-md border border-n-1 bg-white p-2"
+                                                >
+                                                    <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
+                                                    <span className="w-20 shrink-0 truncate text-h8">
+                                                        {member.name}
+                                                    </span>
+                                                    <input
+                                                        value={values.exactInputs[member.id] ?? ''}
+                                                        onChange={(event) => editExact(member.id, event.target.value)}
+                                                        onFocus={(event) => event.target.select()}
+                                                        onBlur={() => normaliseExact(member.id)}
+                                                        inputMode="decimal"
+                                                        aria-label={t('exactAmountFor', {
+                                                            name: member.name,
+                                                        })}
+                                                        data-testid="exact-input"
+                                                        data-member={member.name}
+                                                        className="input h-12 min-w-0 flex-1 px-3 text-base tabular-nums"
+                                                    />
+                                                    {!remainingIsZero && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => putRemainderOn(member.id)}
+                                                            aria-label={t('putRemainderOn', {
+                                                                name: member.name,
+                                                            })}
+                                                            data-testid="put-remainder"
+                                                            data-member={member.name}
+                                                            className="flex h-12 shrink-0 items-center justify-center rounded-sm border border-dashed border-n-1 bg-white px-2 text-h9 tabular-nums"
+                                                        >
+                                                            {remaining.startsWith('-') ? '−' : '+'}
+                                                            {formatMinorPlain(remaining.replace('-', ''), decimals)}
+                                                        </button>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+
+                                        {membersNotInExact.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {membersNotInExact.map((member) => (
+                                                    <button
+                                                        key={member.id}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            patch({
+                                                                exactInputs: {
+                                                                    ...values.exactInputs,
+                                                                    [member.id]: '',
+                                                                },
+                                                            })
+                                                        }
+                                                        className="rounded-sm border border-dashed border-n-1 px-3 py-2 text-h9"
+                                                    >
+                                                        {t('addToSplit', { name: member.name })}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <motion.div
+                                            data-testid="remaining-readout"
+                                            role="status"
+                                            aria-live="polite"
+                                            animate={allocationSettled ? { scale: [1, 1.03, 1] } : { scale: 1 }}
+                                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                                            className={cn(
+                                                'flex items-center justify-between rounded-md border border-n-1 px-3 py-3 text-h8 transition-colors duration-200',
+                                                allocationSettled ? 'bg-green-1' : 'bg-primary-3'
+                                            )}
+                                        >
+                                            <span>
+                                                {allocationSettled
+                                                    ? t('allocated')
+                                                    : remaining.startsWith('-')
+                                                      ? t('overBy')
+                                                      : t('leftToAllocate')}
+                                            </span>
+                                            <span className="flex items-center gap-2">
+                                                {allocationSettled ? (
+                                                    <Icon name="check" size={18} />
+                                                ) : (
+                                                    <Money
+                                                        minor={remaining}
+                                                        currency={values.currency}
+                                                        catalog={currencies}
+                                                        absolute
+                                                    />
+                                                )}
+                                            </span>
+                                        </motion.div>
+                                        <p className="text-sm text-grey-1">
+                                            {t('amountsAreIn', { currency: values.currency })}
+                                            {values.currency !== state.room.currency &&
+                                                t('convertedAt', {
+                                                    roomCurrency: state.room.currency,
+                                                })}
+                                            {t('allocatedOf', {
+                                                allocated: formatMoney(
+                                                    allocatedMinor(values, currencies),
+                                                    values.currency,
+                                                    currencies,
+                                                    locale
+                                                ),
+                                                total: formatMoney(
+                                                    totalMinor ?? '0',
+                                                    values.currency,
+                                                    currencies,
+                                                    locale
+                                                ),
+                                            })}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+
+                    {editor === 'date' && (
+                        <section
+                            data-testid="date-editor"
+                            aria-label={t('date')}
+                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                        >
+                            <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
+                                <div>
+                                    <h3 className="text-h8">{t('whenWasIt')}</h3>
+                                    <p className="mt-1 text-xs text-grey-1">{dateSummary}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditor(null)}
+                                    aria-label={t('collapseSection')}
+                                    data-testid="collapse-date-editor"
+                                    className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
+                                >
+                                    <Icon name="chevron-up" size={24} />
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-2 p-3">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => chooseRelativeDate(0)}
+                                        aria-pressed={selectedDateInput === todayInput}
+                                        className={cn(
+                                            'min-h-11 rounded-md border border-n-1 text-h8',
+                                            selectedDateInput === todayInput ? 'shadow-2 bg-primary-3' : 'bg-white'
+                                        )}
+                                    >
+                                        {tDates('today')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => chooseRelativeDate(1)}
+                                        aria-pressed={selectedDateInput === yesterdayInput}
+                                        className={cn(
+                                            'min-h-11 rounded-md border border-n-1 text-h8',
+                                            selectedDateInput === yesterdayInput ? 'shadow-2 bg-primary-3' : 'bg-white'
+                                        )}
+                                    >
+                                        {tDates('yesterday')}
+                                    </button>
+                                </div>
+                                <label className="relative">
+                                    <span className="sr-only">{t('date')}</span>
+                                    <input
+                                        type="date"
+                                        value={selectedDateInput}
+                                        onChange={(event) => {
+                                            patch({
+                                                date: fromDateInputValue(event.target.value, values.date),
+                                            })
+                                            setEditor(null)
+                                        }}
+                                        aria-label={t('date')}
+                                        data-testid="expense-date"
+                                        data-doodle-date
+                                        className="input h-14 appearance-none px-4 pr-12"
+                                    />
+                                    <Doodle
+                                        name="iconcalendar"
+                                        size={21}
+                                        weight={1.7}
+                                        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2"
+                                    />
+                                </label>
+                            </div>
+                        </section>
+                    )}
+
+                    {submitted && validationCopy && !amountInvalid && !descriptionInvalid && (
+                        <p role="alert" className="flex items-center gap-2 text-sm font-bold text-error">
+                            <Icon name="x" size={16} />
+                            {validationCopy}
                         </p>
                     )}
 
@@ -830,32 +1138,32 @@ export function ExpenseDrawer({
                             {error}
                         </p>
                     )}
+                </DrawerBody>
 
-                    <div className="flex flex-col gap-3">
+                <DrawerActions className="border-t border-n-1 bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+                    <Button
+                        variant="primary"
+                        shadowSize="4"
+                        onClick={save}
+                        loading={pending}
+                        className="justify-center text-h6"
+                        data-testid="save-expense"
+                    >
+                        {primaryLabel}
+                    </Button>
+                    {expense && (
                         <Button
-                            variant="primary"
-                            shadowSize="4"
-                            onClick={save}
-                            loading={pending}
-                            className="justify-center text-h6"
-                            data-testid="save-expense"
+                            variant="stroke"
+                            icon="trash"
+                            onClick={remove}
+                            loading={deleteExpense.isPending}
+                            className="justify-center"
+                            data-testid="delete-expense"
                         >
-                            {expense ? t('save') : t('add')}
+                            {t('delete')}
                         </Button>
-                        {expense && (
-                            <Button
-                                variant="stroke"
-                                icon="trash"
-                                onClick={remove}
-                                loading={deleteExpense.isPending}
-                                className="justify-center"
-                                data-testid="delete-expense"
-                            >
-                                {t('delete')}
-                            </Button>
-                        )}
-                    </div>
-                </div>
+                    )}
+                </DrawerActions>
             </DrawerContent>
 
             {/* The scan overlay writes back into this sheet and creates nothing:

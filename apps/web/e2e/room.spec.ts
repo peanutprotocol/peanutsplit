@@ -70,6 +70,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await bea.getByTestId('open-add-expense').click()
     await bea.getByTestId('expense-amount').fill('60')
     await bea.getByTestId('expense-description').fill('Dinner')
+    await bea.getByTestId('expense-payer-summary').click()
     await bea.locator('[data-testid="payer-chip"][data-member="Bea"]').click()
     await bea.getByTestId('save-expense').click()
 
@@ -87,7 +88,9 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await page.getByTestId('expense-amount').fill('100')
     await page.getByTestId('expense-currency').selectOption('CHF')
     await page.getByTestId('expense-description').fill('Lift passes')
+    await page.getByTestId('expense-payer-summary').click()
     await page.locator('[data-testid="payer-chip"][data-member="Ana"]').click()
+    await page.getByTestId('expense-split-summary').click()
     await page.getByTestId('split-exact').click()
 
     // Switching to EXACT opens EMPTY: the whole amount is still to allocate, and
@@ -121,6 +124,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
 
     // ── 6. Re-opening the EXACT expense must not drift the balances ───────
     await page.locator('[data-testid="expense-row"][data-description="Lift passes"]').click()
+    await page.getByTestId('expense-split-summary').click()
     await expect(page.locator('[data-testid="exact-input"][data-member="Ana"]')).toHaveValue('60.00')
     await expect(page.getByTestId('remaining-readout')).toContainText('Every cent allocated')
     await page.getByTestId('save-expense').click()
@@ -155,6 +159,17 @@ test('create → share → join → split → settle → undo', async ({ page, b
 
 test('one person can add a payer and submit an expense on their behalf', async ({ page, browser }) => {
     await page.goto('/new')
+    await expect(page.getByTestId('room-composer')).toBeVisible()
+    const roomCurrencyTrigger = page.getByRole('button', { name: /Room currency,/ })
+    const [roomNameBox, roomCurrencyBox] = await Promise.all([
+        page.getByTestId('room-name').boundingBox(),
+        roomCurrencyTrigger.boundingBox(),
+    ])
+    expect(roomNameBox).not.toBeNull()
+    expect(roomCurrencyBox).not.toBeNull()
+    expect(
+        Math.abs(roomNameBox!.y + roomNameBox!.height / 2 - (roomCurrencyBox!.y + roomCurrencyBox!.height / 2))
+    ).toBeLessThan(2)
     await page.getByTestId('room-name').fill('Trust room')
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
@@ -166,19 +181,70 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await page.getByTestId('go-to-room').click()
 
     await page.getByTestId('open-add-expense').click()
+    await expect(page.getByTestId('expense-composer')).toBeVisible()
+    await expect(page.getByTestId('close-expense')).toBeVisible()
+    await expect(page.getByTestId('expense-scroll')).toHaveCSS('overflow-y', 'auto')
+    await expect(page.getByTestId('expense-tools-loading')).toHaveCount(0)
+    const currencyTrigger = page.getByRole('button', { name: /Expense currency, EUR/ })
+    await currencyTrigger.click()
+    const currencyList = page.getByRole('listbox', { name: 'Expense currency' })
+    await expect(currencyList).toHaveAttribute('data-direction', 'down')
+    const [triggerBox, listBox] = await Promise.all([currencyTrigger.boundingBox(), currencyList.boundingBox()])
+    expect(triggerBox).not.toBeNull()
+    expect(listBox).not.toBeNull()
+    expect(listBox!.y).toBeGreaterThan(triggerBox!.y)
+    await expect(currencyTrigger).toBeFocused()
+    const activeCurrency = currencyList.locator('[data-active="true"]')
+    const firstActiveCurrency = await activeCurrency.getAttribute('id')
+    await page.keyboard.press('ArrowDown')
+    await expect.poll(() => activeCurrency.getAttribute('id')).not.toBe(firstActiveCurrency)
+    await expect(currencyTrigger).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
+    await expect(page.getByTestId('expense-composer')).toBeVisible()
+    await expect(currencyTrigger).toHaveAttribute('aria-expanded', 'false')
+    await currencyTrigger.click()
+    await page.getByRole('option', { name: 'EUR', exact: true }).click()
+    await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
+    await page.getByTestId('expense-scroll').evaluate((element) => {
+        element.scrollTop = element.scrollHeight
+    })
+    await expect(page.getByTestId('save-expense')).toBeVisible()
     await expect(page.getByTestId('quick-add')).toHaveCount(0)
+    await page.getByTestId('expense-scroll').evaluate((element) => {
+        element.scrollTop = 0
+    })
+    await page.getByTestId('expense-payer-summary').click()
+    await expect(page.getByTestId('collapse-payer-editor')).toBeVisible()
+    await expect(page.getByTestId('collapse-payer-editor')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    await expect(page.getByTestId('collapse-payer-editor')).toHaveCSS('border-top-width', '0px')
     await expect(page.getByTestId('payer-chip')).toHaveCount(1)
     await page.getByTestId('add-payer').click()
     await page.getByTestId('new-payer-name').fill('Bea')
     await page.getByTestId('add-payer-submit').click()
 
-    const beaPayer = page.locator('[data-testid="payer-chip"][data-member="Bea"]')
-    await expect(beaPayer).toBeVisible({ timeout: 15_000 })
-    await expect(beaPayer).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByTestId('expense-payer-summary')).toHaveAccessibleName('Bea paid', { timeout: 15_000 })
+    await expect(page.getByTestId('payer-editor')).toHaveCount(0)
+    await page.getByTestId('expense-split-summary').click()
     await expect(page.locator('[data-testid="participant-toggle"][data-member="Bea"]')).toBeVisible()
+    await expect(page.getByTestId('collapse-split-editor')).toBeVisible()
+    await page.getByTestId('collapse-split-editor').click()
+    await expect(page.getByTestId('split-editor')).toHaveCount(0)
 
-    await page.getByTestId('expense-amount').fill('60')
-    await page.getByTestId('expense-description').fill('Dinner Bea covered')
+    await page.getByTestId('expense-date-summary').click()
+    await expect(page.getByTestId('collapse-date-editor')).toBeVisible()
+    await page.getByRole('button', { name: 'Today', exact: true }).click()
+    await expect(page.getByTestId('date-editor')).toHaveCount(0)
+
+    // The fields are forgiving when a person types the right values into the
+    // wrong lines. Repair happens after the pair is complete, not after the
+    // first digit, and the original text is preserved verbatim.
+    await page.getByTestId('expense-amount').fill('Dinner Bea covered')
+    await page.getByTestId('expense-description').fill('60')
+    await page.getByTestId('expense-description').press('Tab')
+    await expect(page.getByTestId('expense-amount')).toHaveValue('60')
+    await expect(page.getByTestId('expense-description')).toHaveValue('Dinner Bea covered')
+    await expect(page.getByTestId('expense-fields-repaired')).toBeVisible()
     await page.getByTestId('save-expense').click()
 
     await expect(
@@ -194,7 +260,7 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await bea.goto(url)
     await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
     await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
-    await expect(bea.getByTestId('join-gate')).toHaveCount(0)
+    await expect(bea.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
     await expectBalance(bea, 'Bea', '3000')
 
     const slug = new URL(url).pathname.split('/').filter(Boolean).at(-1)

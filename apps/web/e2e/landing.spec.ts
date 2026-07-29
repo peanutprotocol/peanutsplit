@@ -77,7 +77,9 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
 
     const selectedCurrency = page.getByTestId('hero-currency')
     await expect(selectedCurrency.locator('option')).toHaveCount(12)
-    const currencyTrigger = page.getByRole('button', { name: catalogs.en.room.create.currencyLabel })
+    const currencyTrigger = page.getByRole('button', {
+        name: new RegExp(`^${catalogs.en.room.create.currencyLabel}, [A-Z]{3}$`),
+    })
     await currencyTrigger.focus()
     if (!controlBuild) await expect(page.getByTestId('pass-link-stage')).toHaveAttribute('data-state', 'complete')
     await currencyTrigger.click()
@@ -259,19 +261,18 @@ test.describe('Pass-the-link default', () => {
         await page.keyboard.press('Tab')
         await expect(page.getByTestId('hero-creator-name')).toBeFocused()
         await page.keyboard.press('Tab')
-        await expect(page.getByRole('button', { name: catalogs.en.room.create.currencyLabel })).toBeFocused()
+        const currencyTrigger = page.getByRole('button', {
+            name: new RegExp(`^${catalogs.en.room.create.currencyLabel}, [A-Z]{3}$`),
+        })
+        await expect(currencyTrigger).toBeFocused()
 
         await page.keyboard.press('ArrowDown')
         await expect(page.getByRole('listbox', { name: catalogs.en.room.create.currencyLabel })).toBeVisible()
         await expect(page.locator('[role="option"]:focus')).toHaveCount(1)
         await page.keyboard.press('Escape')
-        await expect(page.getByRole('button', { name: catalogs.en.room.create.currencyLabel })).toBeFocused()
+        await expect(currencyTrigger).toBeFocused()
 
-        for (const locator of [
-            drawingPicker,
-            page.getByRole('button', { name: catalogs.en.room.create.currencyLabel }),
-            page.getByTestId('hero-create-room'),
-        ]) {
+        for (const locator of [drawingPicker, currencyTrigger, page.getByTestId('hero-create-room')]) {
             const box = await locator.boundingBox()
             expect(box).not.toBeNull()
             expect(box!.height).toBeGreaterThanOrEqual(44)

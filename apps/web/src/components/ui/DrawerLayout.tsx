@@ -17,15 +17,19 @@ import { cn } from '@/lib/cn'
 /**
  * The body of a sheet: one section gap, one inset, one safe-area allowance.
  *
- * `pb` clears the home indicator on a phone and still leaves a comfortable
- * margin on a device that has none — the sheet's last control must never sit
- * flush against the bottom edge.
+ * This is the drawer's single vertical scroll owner. The old anonymous
+ * `overflow-auto` wrapper sat around the whole drawer, so its scrollbar ran
+ * beside the title and clipped floating pickers. Headers and dedicated action
+ * bars now stay outside this viewport.
  */
 export const DrawerBody = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, ...props }, ref) => (
         <div
             ref={ref}
-            className={cn('flex flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4', className)}
+            className={cn(
+                'flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-n-1',
+                className
+            )}
             {...props}
         />
     )
@@ -36,11 +40,12 @@ DrawerBody.displayName = 'DrawerBody'
  * The action stack, last thing in the body: full width, primary first, the
  * secondary (`variant="stroke"`) under it.
  *
- * Deliberately not a pinned footer. These sheets are short, and a bar fixed to
- * the bottom of an 80vh sheet on a 667px phone covers the row you are reading.
+ * When it is a sibling of `DrawerBody`, this is the stable action zone. Existing
+ * drawers may still render it inside a body while they migrate; in that case it
+ * remains an ordinary in-flow stack.
  */
 export const DrawerActions = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className={cn('flex flex-col gap-3', className)} {...props} />
+    <div className={cn('flex shrink-0 flex-col gap-3', className)} {...props} />
 )
 DrawerActions.displayName = 'DrawerActions'
 

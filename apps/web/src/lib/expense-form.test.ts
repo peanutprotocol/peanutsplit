@@ -5,6 +5,7 @@ import {
     emptyExpenseForm,
     expenseToFormValues,
     remainingMinor,
+    repairMisplacedExpenseFields,
     validateExpenseForm,
     type ExpenseFormValues,
 } from './expense-form'
@@ -171,6 +172,9 @@ describe('validateExpenseForm / remainingMinor', () => {
         expect(validateExpenseForm(baseForm({ description: '  ' }))).toBe('DESCRIPTION_REQUIRED')
         expect(validateExpenseForm(baseForm({ amountInput: '0' }))).toBe('AMOUNT_REQUIRED')
         expect(validateExpenseForm(baseForm({ amountInput: '' }))).toBe('AMOUNT_REQUIRED')
+        // The composer reads top-to-bottom: an entirely fresh form points at
+        // the hero amount before asking for the receipt line beneath it.
+        expect(validateExpenseForm(baseForm({ amountInput: '', description: '' }))).toBe('AMOUNT_REQUIRED')
         expect(validateExpenseForm(baseForm({ participantIds: [] }))).toBe('NO_PARTICIPANTS')
     })
 
@@ -203,5 +207,34 @@ describe('validateExpenseForm / remainingMinor', () => {
             { memberId: 'm1', amountMinor: '3000' },
             { memberId: 'm2', amountMinor: '3000' },
         ])
+    })
+})
+
+describe('repairMisplacedExpenseFields', () => {
+    it('preserves an inverted amount and description by swapping their roles', () => {
+        expect(repairMisplacedExpenseFields(baseForm({ amountInput: 'Taxi', description: '123' }))).toMatchObject({
+            amountInput: '123',
+            description: 'Taxi',
+        })
+    })
+
+    it('recognises the same decimal formats as the real amount field', () => {
+        expect(
+            repairMisplacedExpenseFields(baseForm({ amountInput: 'Dinner', description: '1.234,56' }))
+        ).toMatchObject({
+            amountInput: '1.234,56',
+            description: 'Dinner',
+        })
+    })
+
+    it('does not guess when the pair is incomplete or the current amount is already valid', () => {
+        expect(repairMisplacedExpenseFields(baseForm({ amountInput: '', description: '123' }))).toBeNull()
+        expect(repairMisplacedExpenseFields(baseForm({ amountInput: '12', description: '123' }))).toBeNull()
+        expect(repairMisplacedExpenseFields(baseForm({ amountInput: 'Taxi', description: '' }))).toBeNull()
+        expect(repairMisplacedExpenseFields(baseForm({ amountInput: 'Taxi', description: 'Room 123' }))).toBeNull()
+    })
+
+    it('does not move zero into the amount field', () => {
+        expect(repairMisplacedExpenseFields(baseForm({ amountInput: 'Taxi', description: '0' }))).toBeNull()
     })
 })
