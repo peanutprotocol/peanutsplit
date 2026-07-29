@@ -11,7 +11,7 @@
  */
 
 import type { ApiExpense, ApiMember, CurrencyInfo, ExpenseInput, SplitMode } from './api-types'
-import { addMinor, decimalsOf, formatMinorPlain, parseAmountToMinor } from './money'
+import { addMinor, decimalsOf, formatAmountInput, formatMinorPlain, parseAmountToMinor } from './money'
 
 export interface ExpenseFormValues {
     description: string
@@ -71,18 +71,26 @@ export const emptyExpenseForm = (opts: {
  * typed in (`enteredAmountMinor`); `amountMinor` is post-FX and must never be
  * shown in an expense-currency field.
  */
-export function expenseToFormValues(expense: ApiExpense, catalog?: readonly CurrencyInfo[]): ExpenseFormValues {
+export function expenseToFormValues(
+    expense: ApiExpense,
+    catalog?: readonly CurrencyInfo[],
+    locale?: string
+): ExpenseFormValues {
     const decimals = decimalsOf(expense.currency, catalog)
     const exactInputs: Record<string, string> = {}
     if (expense.splitMode === 'EXACT') {
         for (const share of expense.shares) {
             const entered = share.enteredAmountMinor ?? share.amountMinor
-            exactInputs[share.memberId] = formatMinorPlain(entered, decimals)
+            exactInputs[share.memberId] = locale
+                ? formatAmountInput(entered, decimals, locale)
+                : formatMinorPlain(entered, decimals)
         }
     }
     return {
         description: expense.description,
-        amountInput: formatMinorPlain(expense.amountMinor, decimals),
+        amountInput: locale
+            ? formatAmountInput(expense.amountMinor, decimals, locale)
+            : formatMinorPlain(expense.amountMinor, decimals),
         currency: expense.currency,
         paidById: expense.paidById,
         splitMode: expense.splitMode,
@@ -98,17 +106,17 @@ export function expenseToFormValues(expense: ApiExpense, catalog?: readonly Curr
 }
 
 /** Sum of the EXACT inputs, in expense-currency minor units. Blank fields are 0. */
-export function allocatedMinor(values: ExpenseFormValues, catalog?: readonly CurrencyInfo[]): string {
+export function allocatedMinor(values: ExpenseFormValues, catalog?: readonly CurrencyInfo[], locale?: string): string {
     const decimals = decimalsOf(values.currency, catalog)
-    const parts = Object.values(values.exactInputs).map((input) => parseAmountToMinor(input, decimals) ?? '0')
+    const parts = Object.values(values.exactInputs).map((input) => parseAmountToMinor(input, decimals, locale) ?? '0')
     return addMinor(parts)
 }
 
 /** total − allocated, in expense-currency minor units. Must reach "0" to save. */
-export function remainingMinor(values: ExpenseFormValues, catalog?: readonly CurrencyInfo[]): string {
+export function remainingMinor(values: ExpenseFormValues, catalog?: readonly CurrencyInfo[], locale?: string): string {
     const decimals = decimalsOf(values.currency, catalog)
-    const total = BigInt(parseAmountToMinor(values.amountInput, decimals) ?? '0')
-    return (total - BigInt(allocatedMinor(values, catalog))).toString()
+    const total = BigInt(parseAmountToMinor(values.amountInput, decimals, locale) ?? '0')
+    return (total - BigInt(allocatedMinor(values, catalog, locale))).toString()
 }
 
 /**
@@ -127,18 +135,23 @@ export function remainingMinor(values: ExpenseFormValues, catalog?: readonly Cur
  */
 export function repairMisplacedExpenseFields(
     values: ExpenseFormValues,
-    catalog?: readonly CurrencyInfo[]
+    catalog?: readonly CurrencyInfo[],
+    locale?: string
 ): ExpenseFormValues | null {
     const amountText = values.amountInput.trim()
     const descriptionText = values.description.trim()
     if (!amountText || !descriptionText) return null
 
     const decimals = decimalsOf(values.currency, catalog)
-    const amountMinor = parseAmountToMinor(amountText, decimals)
-    const descriptionMinor = parseAmountToMinor(descriptionText, decimals)
+    const amountMinor = parseAmountToMinor(amountText, decimals, locale)
+    const descriptionMinor = parseAmountToMinor(descriptionText, decimals, locale)
     const descriptionIsPositiveAmount = descriptionMinor !== null && BigInt(descriptionMinor) > 0n
 
-    if (amountMinor !== null || !descriptionIsPositiveAmount) return null
+    // A punctuation-only value may be an invalid amount (for example excess
+    // precision), not a description accidentally typed on the wrong line.
+    // Keep it in the amount field so validation can explain the real problem.
+    const amountLooksLikeDescription = /\p{L}/u.test(amountText)
+    if (amountMinor !== null || !amountLooksLikeDescription || !descriptionIsPositiveAmount) return null
     return {
         ...values,
         amountInput: descriptionText,
@@ -147,24 +160,40 @@ export function repairMisplacedExpenseFields(
 }
 
 export type ExpenseFormError =
-    'DESCRIPTION_REQUIRED' | 'AMOUNT_REQUIRED' | 'PAYER_REQUIRED' | 'NO_PARTICIPANTS' | 'SHARES_DO_NOT_ADD_UP'
+    | 'DESCRIPTION_REQUIRED'
+    | 'AMOUNT_REQUIRED'
+    | 'AMOUNT_INVALID'
+    | 'PAYER_REQUIRED'
+    | 'NO_PARTICIPANTS'
+    | 'SHARE_AMOUNT_INVALID'
+    | 'SHARES_DO_NOT_ADD_UP'
 
 /** The one validator — the drawer's save button and `buildExpenseBody` agree by
  *  construction because both read this. */
 export function validateExpenseForm(
     values: ExpenseFormValues,
-    catalog?: readonly CurrencyInfo[]
+    catalog?: readonly CurrencyInfo[],
+    locale?: string
 ): ExpenseFormError | null {
     const decimals = decimalsOf(values.currency, catalog)
-    const total = parseAmountToMinor(values.amountInput, decimals)
-    if (total === null || BigInt(total) <= 0n) return 'AMOUNT_REQUIRED'
+    const amountText = values.amountInput.trim()
+    if (amountText.length === 0) return 'AMOUNT_REQUIRED'
+    const total = parseAmountToMinor(amountText, decimals, locale)
+    if (total === null) return 'AMOUNT_INVALID'
+    if (BigInt(total) <= 0n) return 'AMOUNT_REQUIRED'
     if (values.description.trim().length === 0) return 'DESCRIPTION_REQUIRED'
     if (!values.paidById) return 'PAYER_REQUIRED'
     if (values.splitMode === 'EQUAL') {
         if (values.participantsTouched && values.participantIds.length === 0) return 'NO_PARTICIPANTS'
         return null
     }
-    const shares = exactShareEntries(values, catalog)
+    if (
+        Object.values(values.exactInputs).some(
+            (input) => input.trim().length > 0 && parseAmountToMinor(input, decimals, locale) === null
+        )
+    )
+        return 'SHARE_AMOUNT_INVALID'
+    const shares = exactShareEntries(values, catalog, locale)
     if (shares.length === 0) return 'NO_PARTICIPANTS'
     if (addMinor(shares.map((s) => s.amountMinor)) !== total) return 'SHARES_DO_NOT_ADD_UP'
     return null
@@ -173,11 +202,15 @@ export function validateExpenseForm(
 /** EXACT rows with a non-empty, non-zero amount, in expense-currency minor units. */
 export function exactShareEntries(
     values: ExpenseFormValues,
-    catalog?: readonly CurrencyInfo[]
+    catalog?: readonly CurrencyInfo[],
+    locale?: string
 ): { memberId: string; amountMinor: string }[] {
     const decimals = decimalsOf(values.currency, catalog)
     return Object.entries(values.exactInputs)
-        .map(([memberId, input]) => ({ memberId, amountMinor: parseAmountToMinor(input, decimals) ?? '0' }))
+        .map(([memberId, input]) => ({
+            memberId,
+            amountMinor: parseAmountToMinor(input, decimals, locale) ?? '0',
+        }))
         .filter((share) => BigInt(share.amountMinor) > 0n)
 }
 
@@ -185,12 +218,16 @@ export function exactShareEntries(
  * Form values → the POST/PATCH body. Throws on an invalid form: callers gate on
  * `validateExpenseForm` first, so reaching here with bad values is a bug.
  */
-export function buildExpenseBody(values: ExpenseFormValues, catalog?: readonly CurrencyInfo[]): ExpenseInput {
-    const error = validateExpenseForm(values, catalog)
+export function buildExpenseBody(
+    values: ExpenseFormValues,
+    catalog?: readonly CurrencyInfo[],
+    locale?: string
+): ExpenseInput {
+    const error = validateExpenseForm(values, catalog, locale)
     if (error) throw new Error(`cannot build an expense body from an invalid form: ${error}`)
 
     const decimals = decimalsOf(values.currency, catalog)
-    const amountMinor = parseAmountToMinor(values.amountInput, decimals) as string
+    const amountMinor = parseAmountToMinor(values.amountInput, decimals, locale) as string
 
     const base = {
         description: values.description.trim(),
@@ -201,7 +238,7 @@ export function buildExpenseBody(values: ExpenseFormValues, catalog?: readonly C
     }
 
     if (values.splitMode === 'EXACT') {
-        return { ...base, splitMode: 'EXACT', exactShares: exactShareEntries(values, catalog) }
+        return { ...base, splitMode: 'EXACT', exactShares: exactShareEntries(values, catalog, locale) }
     }
     if (!values.participantsTouched) return { ...base, splitMode: 'EQUAL' }
     return { ...base, splitMode: 'EQUAL', participantIds: values.participantIds }

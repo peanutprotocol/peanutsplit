@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
@@ -13,7 +13,7 @@ import type { ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/l
 import { roomProps, track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
-import { decimalsOf, formatMinorPlain, parseAmountToMinor } from '@/lib/money'
+import { decimalsOf, formatAmountInput, parseAmountToMinor } from '@/lib/money'
 import { createClientKey } from '@/lib/offline-queue'
 import { useAddSettlement } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
@@ -70,6 +70,7 @@ const REVEAL_STAGGER_MAX = 6
 export function SettleDrawer({ open, onClose, slug, state, currencies, token }: SettleDrawerProps) {
     const t = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
+    const locale = useLocale()
     const errorMessage = useErrorMessage()
     const addSettlement = useAddSettlement(slug, token)
     const feedback = useFeedback()
@@ -155,7 +156,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
      *  suggestion, in the room's own decimal places. */
     const pick = (transfer: ApiTransfer) => {
         setSelected(transfer)
-        setAmount(formatMinorPlain(transfer.amountMinor, decimals))
+        setAmount(formatAmountInput(transfer.amountMinor, decimals, locale))
         setError(null)
     }
 
@@ -171,8 +172,9 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
      */
     const enteredMinor = (): { minor: string } | { problem: string } => {
         if (!selected) return { problem: t('amountInvalid') }
-        const parsed = parseAmountToMinor(amount, decimals)
-        if (parsed === null || BigInt(parsed) <= 0n) return { problem: t('amountInvalid') }
+        const parsed = parseAmountToMinor(amount, decimals, locale)
+        if (parsed === null) return { problem: t('amountFormatInvalid') }
+        if (BigInt(parsed) <= 0n) return { problem: t('amountInvalid') }
         if (BigInt(parsed) > BigInt(selected.amountMinor))
             return { problem: t('amountTooHigh', { name: nameOf(selected.fromId) }) }
         return { minor: parsed }
@@ -511,6 +513,10 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                     onChange={(event) => {
                                         setAmount(event.target.value)
                                         setError(null)
+                                    }}
+                                    onBlur={() => {
+                                        const parsed = parseAmountToMinor(amount, decimals, locale)
+                                        if (parsed !== null) setAmount(formatAmountInput(parsed, decimals, locale))
                                     }}
                                     inputMode="decimal"
                                     autoComplete="off"

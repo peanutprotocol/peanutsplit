@@ -422,6 +422,7 @@
             "description": "What for?",
             "descriptionPlaceholder": "Dinner, taxi, lift pass…",
             "fieldsSwapped": "Got it — amount and description swapped.",
+            "amountNormalised": "Read as {amount}. Check it before saving.",
             "paidBy": "Paid by",
             "paid": "paid",
             "paidBySummary": "{name} paid",
@@ -471,8 +472,10 @@
             "validation": {
                 "DESCRIPTION_REQUIRED": "Give it a name so everyone remembers what it was.",
                 "AMOUNT_REQUIRED": "Enter an amount greater than zero.",
+                "AMOUNT_INVALID": "Check the separators and decimal places in the amount.",
                 "PAYER_REQUIRED": "Pick who paid.",
                 "NO_PARTICIPANTS": "Pick at least one person to split this between.",
+                "SHARE_AMOUNT_INVALID": "Check the separators and decimal places in the exact amounts.",
                 "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total."
             },
             "equallyHint": "Same for everyone",
@@ -501,6 +504,7 @@
             "amountLabel": "How much moved?",
             "amountHint": "The whole debt is",
             "amountInvalid": "Enter an amount greater than zero.",
+            "amountFormatInvalid": "Check the separators and decimal places in the amount.",
             "amountTooHigh": "That is more than {name} owes.",
             "recordedTitle": "Recorded just now",
             "recordedHint": "These are in the room history too, with everything else."
@@ -566,6 +570,7 @@
             "reviewFromMerchant": "From {merchant}. Fix anything that came out wrong, add what was missed.",
             "itemLabel": "Item",
             "itemAmount": "Item amount",
+            "amountInvalid": "Check each item’s separators and decimal places.",
             "itemPlaceholder": "Item",
             "removeItem": "Remove this item",
             "addItem": "Add a missed item",
