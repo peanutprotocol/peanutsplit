@@ -185,6 +185,20 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(page.getByTestId('close-expense')).toBeVisible()
     await expect(page.getByTestId('expense-scroll')).toHaveCSS('overflow-y', 'auto')
     await expect(page.getByTestId('expense-tools-loading')).toHaveCount(0)
+
+    // Money punctuation becomes visible before it can touch the ledger.
+    // English grouping is read as grouping and normalised in the editable
+    // field; excess precision is rejected instead of rounding on save.
+    await page.getByTestId('expense-amount').fill('1,234')
+    await page.getByTestId('expense-amount').press('Tab')
+    await expect(page.getByTestId('expense-amount')).toHaveValue('1234.00')
+    await expect(page.getByTestId('expense-fields-repaired')).toContainText('Read as 1234.00')
+    await page.getByTestId('expense-amount').fill('12.345')
+    await page.getByTestId('expense-description').fill('Precision check')
+    await page.getByTestId('save-expense').click()
+    await expect(page.locator('#expense-amount-error')).toContainText('separators and decimal places')
+    await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
+
     const currencyTrigger = page.getByRole('button', { name: /Expense currency, EUR/ })
     await currencyTrigger.click()
     const currencyList = page.getByRole('listbox', { name: 'Expense currency' })
