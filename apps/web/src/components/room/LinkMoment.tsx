@@ -2,8 +2,10 @@
 import { RoomEmblem } from './RoomEmblem'
 
 import { useCallback, useRef, useState } from 'react'
+import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
+import { peanutWavingHello } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
@@ -43,9 +45,21 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
     const url = roomUrl(slug)
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
+    /**
+     * The wave-off: the mascot peeks over the ticket when the link actually
+     * leaves — copy succeeded or the share sheet resolved — never on mount.
+     * The whoosh already means "gone"; this is the same sentence, drawn.
+     * One wave at a time: a re-tap during the peek is ignored rather than
+     * restarted, and the `copied` label's own 2s reset never replays it.
+     */
+    const [waving, setWaving] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
+
+    const wave = useCallback(() => {
+        if (motionAllowed) setWaving(true)
+    }, [motionAllowed])
 
     const revealFallback = useCallback(() => {
         setCopyFailed(true)
@@ -65,12 +79,13 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
             // Whoosh, not tick: the link just left the card and went somewhere.
             // A tick would say "registered"; this has to say "gone".
             feedback('whoosh')
+            wave()
             track('link_copied', roomProps(slug))
             window.setTimeout(() => setCopied(false), 2_000)
         } catch {
             revealFallback()
         }
-    }, [url, slug, revealFallback, feedback])
+    }, [url, slug, revealFallback, feedback, wave])
 
     const share = useCallback(async () => {
         // Web Share is mostly a phone feature. Keep Share as the primary action
@@ -90,11 +105,12 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                 text: t('shareText', { room: roomName }),
                 url,
             })
+            wave()
             track('share_completed', roomProps(slug))
         } catch {
             // AbortError just means they closed the sheet. Nothing to say.
         }
-    }, [copy, roomName, url, slug, feedback, t])
+    }, [copy, roomName, url, slug, feedback, t, wave])
 
     return (
         <div className="flex flex-col gap-6">
@@ -112,6 +128,7 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                 and settles a hair off-square before straightening — the way a card
                 actually lands on a table. */}
             <motion.div
+                className="relative"
                 initial={!motionAllowed ? false : { y: -56, opacity: 0, rotate: -4, scale: 0.94 }}
                 animate={{ y: 0, opacity: 1, rotate: [-4, 1.4, 0], scale: 1 }}
                 transition={{
@@ -119,6 +136,21 @@ export function LinkMoment({ slug, roomName, emoji, footer, title, subtitle }: L
                     rotate: { duration: 0.62, delay: 0.06, times: [0, 0.55, 1], ease: 'easeOut' },
                 }}
             >
+                {/* Behind the opaque Card (negative z), so only what clears the top
+                    edge is ever visible: rises, waves, ducks back down. A genuine
+                    peek — zero layout shift, nothing to tap. */}
+                {waving && (
+                    <motion.div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute right-8 top-0 -z-10"
+                        initial={{ y: 48, rotate: 0 }}
+                        animate={{ y: [48, -26, -26, 48], rotate: [0, -5, 5, 0] }}
+                        transition={{ duration: 1.5, times: [0, 0.22, 0.78, 1], ease: 'easeInOut' }}
+                        onAnimationComplete={() => setWaving(false)}
+                    >
+                        <Image src={peanutWavingHello} alt="" unoptimized className="h-14 w-14 object-contain" />
+                    </motion.div>
+                )}
                 <Card shadowSize="6" className="overflow-hidden">
                     <div className="flex items-center gap-3 border-b border-n-1 bg-primary-1 px-4 py-4">
                         <motion.span
