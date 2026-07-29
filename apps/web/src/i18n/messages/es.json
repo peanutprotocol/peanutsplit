@@ -145,7 +145,6 @@
         },
         "footer": {
             "logoAlt": "Peanut",
-            "tagline": "Dividí cualquier cuenta con un link. Peanut Split lo hace el equipo de Peanut.",
             "colSplit": "Split",
             "createSplit": "Crear una sala",
             "importLink": "Importar de Splitwise",
