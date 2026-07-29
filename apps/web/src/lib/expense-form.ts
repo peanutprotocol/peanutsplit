@@ -19,6 +19,8 @@ export interface ExpenseFormValues {
     amountInput: string
     currency: string
     paidById: string
+    /** A payer typed in this drawer, not yet a roster row. */
+    newPaidByName?: string
     splitMode: SplitMode
     /** EQUAL mode: who the bill is shared between. */
     participantIds: string[]
@@ -58,6 +60,7 @@ export const emptyExpenseForm = (opts: {
     amountInput: '',
     currency: opts.currency,
     paidById: opts.paidById,
+    newPaidByName: '',
     splitMode: 'EQUAL',
     participantIds: opts.members.map((m) => m.id),
     participantsTouched: false,
@@ -85,6 +88,7 @@ export function expenseToFormValues(expense: ApiExpense, catalog?: readonly Curr
         amountInput: formatMinorPlain(expense.amountMinor, decimals),
         currency: expense.currency,
         paidById: expense.paidById,
+        newPaidByName: '',
         splitMode: expense.splitMode,
         participantIds: expense.shares.map((s) => s.memberId),
         // Editing must preserve the saved participant set exactly.
@@ -159,7 +163,7 @@ export function validateExpenseForm(
     const total = parseAmountToMinor(values.amountInput, decimals)
     if (total === null || BigInt(total) <= 0n) return 'AMOUNT_REQUIRED'
     if (values.description.trim().length === 0) return 'DESCRIPTION_REQUIRED'
-    if (!values.paidById) return 'PAYER_REQUIRED'
+    if (!values.paidById && !values.newPaidByName) return 'PAYER_REQUIRED'
     if (values.splitMode === 'EQUAL') {
         if (values.participantsTouched && values.participantIds.length === 0) return 'NO_PARTICIPANTS'
         return null
@@ -196,8 +200,8 @@ export function buildExpenseBody(values: ExpenseFormValues, catalog?: readonly C
         description: values.description.trim(),
         amountMinor,
         currency: values.currency,
-        paidById: values.paidById,
         date: values.date,
+        ...(values.newPaidByName ? { newPaidByName: values.newPaidByName } : { paidById: values.paidById }),
     }
 
     if (values.splitMode === 'EXACT') {

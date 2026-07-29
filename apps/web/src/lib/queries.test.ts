@@ -10,7 +10,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EXPENSE_WRITE_TIMEOUT_MS, NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
-import { addExpenseMutationOptions, addMemberMutationOptions, claimMemberMutationOptions, roomKey } from './queries'
+import {
+    addExpenseMutationOptions,
+    addMemberMutationOptions,
+    claimMemberMutationOptions,
+    roomKey,
+    type ExpenseRequestRef,
+} from './queries'
 
 const memoryStorage = (): Storage => {
     const map = new Map<string, string>()
@@ -147,6 +153,79 @@ describe('adding an expense', () => {
 
         expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(before)
         expect(queueSnapshot()).toEqual([])
+    })
+
+    it('reuses one key when a staged-payer write committed but its first response was lost', async () => {
+        const requestRef: ExpenseRequestRef = { current: null }
+        const staged: ExpenseInput = {
+            description: 'Dinner',
+            amountMinor: '4000',
+            currency: 'EUR',
+            newPaidByName: 'Carla',
+            splitMode: 'EQUAL',
+        }
+        const sent: Array<ExpenseInput & { clientKey: string }> = []
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+                const body = JSON.parse(init?.body as string) as ExpenseInput & { clientKey: string }
+                sent.push(body)
+                if (sent.length === 1) {
+                    // The server committed this key, but the phone never saw
+                    // the response. A staged payer cannot be queued, so the
+                    // drawer stays open and sends the same draft again.
+                    throw new TypeError('response lost after commit')
+                }
+                const served = roomState([body.clientKey])
+                return {
+                    ok: true,
+                    status: 201,
+                    text: () => Promise.resolve(JSON.stringify(served)),
+                } as Response
+            })
+        )
+        const observer = new MutationObserver(
+            queryClient,
+            addExpenseMutationOptions(queryClient, SLUG, 'token-1', requestRef)
+        )
+
+        await expect(observer.mutate(staged)).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
+        await expect(observer.mutate(staged)).resolves.toEqual(roomState([sent[0].clientKey]))
+
+        expect(sent).toHaveLength(2)
+        expect(sent[1].clientKey).toBe(sent[0].clientKey)
+        expect(requestRef.current).toBeNull()
+        expect(queueSnapshot()).toEqual([])
+    })
+
+    it('mints a new key after the draft materially changes', async () => {
+        const requestRef: ExpenseRequestRef = { current: null }
+        const sent: Array<ExpenseInput & { clientKey: string }> = []
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+                sent.push(JSON.parse(init?.body as string) as ExpenseInput & { clientKey: string })
+                throw new TypeError('offline')
+            })
+        )
+        const observer = new MutationObserver(
+            queryClient,
+            addExpenseMutationOptions(queryClient, SLUG, 'token-1', requestRef)
+        )
+        const staged: ExpenseInput = {
+            description: 'Dinner',
+            amountMinor: '4000',
+            currency: 'EUR',
+            newPaidByName: 'Carla',
+            splitMode: 'EQUAL',
+        }
+
+        await expect(observer.mutate(staged)).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
+        await expect(observer.mutate({ ...staged, amountMinor: '5000' })).rejects.toMatchObject({
+            code: NETWORK_ERROR_CODE,
+        })
+
+        expect(sent[1].clientKey).not.toBe(sent[0].clientKey)
     })
 })
 

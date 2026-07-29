@@ -238,7 +238,7 @@ export function draftExpenseRow(
         baseAmountMinor: input.amountMinor,
         fxRate: '1',
         splitMode: input.splitMode,
-        paidById: input.paidById,
+        paidById: input.paidById ?? '',
         createdById: null,
         date: input.date ?? new Date(context.at).toISOString(),
         category: input.category ?? null,
