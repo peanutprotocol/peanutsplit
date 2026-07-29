@@ -1,6 +1,6 @@
 # Peanut Split — SEO plan v2 (engine-first)
 
-*2026-07-29. v2 after Konrad's direction: think engine + content types first, concrete pages second. Research basis (v1): live SERP sweeps EN/ES + full audit of the content engine in `apps/web`.*
+_2026-07-29. v2 after Konrad's direction: think engine + content types first, concrete pages second. Research basis (v1): live SERP sweeps EN/ES + full audit of the content engine in `apps/web`._
 
 ## The frame
 
@@ -39,7 +39,7 @@ One page per query, template-driven: structured frontmatter (intent, answer, pro
 
 ### 4. Editorial — conceptions of fairness
 
-High-register essays (and later interviews) about the *social* problem, not the app. This earns links and defines the brand's territory. Topic bank:
+High-register essays (and later interviews) about the _social_ problem, not the app. This earns links and defines the brand's territory. Topic bank:
 
 - **Uneven consumption** — the non-drinker at a boozy table; the €9-salad vegetarian vs the steaks; arriving late / leaving early on a pooled bill; shared bottles ordered by half the table; "just had a bite of everything".
 - **Uneven ability to pay** — student and banker at the same dinner; visitors from a cheaper country for whom the meal is a week's budget; the friend between jobs who's too embarrassed to say.
@@ -56,7 +56,7 @@ Each essay cross-links the matching microtool (the salad/steak essay → uneven-
 
 ## Localization engine
 
-Own engine, like peanut-ui's — not shared code (standing ruling: Split never inherits a content change it didn't ask for). The multi-locale routing/hreflang layer already shipped 28 Jul; what's missing is the **production pipeline**: a translate step that takes `{slug}/en.md` → draft `es.md`/`pt-br.md` for review, plus localized strings/data for tools (mileage rates *are* the localization for the mileage tool — a DE visitor gets €/km defaults). No-English-fallback rule stands: untranslated = absent, not duplicated.
+Own engine, like peanut-ui's — not shared code (standing ruling: Split never inherits a content change it didn't ask for). The multi-locale routing/hreflang layer already shipped 28 Jul; what's missing is the **production pipeline**: a translate step that takes `{slug}/en.md` → draft `es.md`/`pt-br.md` for review, plus localized strings/data for tools (mileage rates _are_ the localization for the mileage tool — a DE visitor gets €/km defaults). No-English-fallback rule stands: untranslated = absent, not duplicated.
 
 ## Roadmap
 
@@ -72,4 +72,4 @@ Own engine, like peanut-ui's — not shared code (standing ruling: Split never i
 2. Localize comparison pages to es/pt-BR (still formally reverses ROADMAP's "English by design")? The localization-engine directive implies yes — confirm.
 3. Cadence: Claude drafts 2/wk (1 editorial + 1 guide/capture) + translations, Konrad reviews before push?
 
-*(v1's "calculators in scope?" and "peanut.me backlink?" are answered by this revision: yes-and-bigger, and superseded by the subdomain move.)*
+_(v1's "calculators in scope?" and "peanut.me backlink?" are answered by this revision: yes-and-bigger, and superseded by the subdomain move.)_
