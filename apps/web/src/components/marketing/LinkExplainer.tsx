@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 
 /**
@@ -28,7 +29,7 @@ export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () =>
                     <DrawerTitle className="text-h5">{t('title')}</DrawerTitle>
                 </DrawerHeader>
 
-                <div className="flex flex-col gap-4 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
+                <DrawerBody className="gap-4">
                     <ul className="flex flex-col gap-3">
                         {points.map((point) => (
                             <li
@@ -54,7 +55,7 @@ export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () =>
                     <Button variant="stroke" className="justify-center" onClick={onClose}>
                         {t('done')}
                     </Button>
-                </div>
+                </DrawerBody>
             </DrawerContent>
         </Drawer>
     )

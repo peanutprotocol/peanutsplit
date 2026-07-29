@@ -1,24 +1,20 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'motion/react'
-import { useLocale, useTranslations } from 'next-intl'
+import { AnimatePresence, motion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
-import { cn } from '@/lib/cn'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
-import { currencyDisplayName } from '@/lib/money'
 import { useCurrencies } from '@/lib/queries'
 import { roomDoodleFor } from '@/lib/room-doodle'
 import { useCreateRoomFlow } from '@/lib/use-create-room'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
-import { CurrencyTag } from './CurrencyTag'
 import { DoodlePicker } from './DoodlePicker'
 import { LinkMoment } from './LinkMoment'
 
@@ -33,8 +29,6 @@ const DEFAULT_CURRENCY = 'EUR'
  */
 export function CreateRoomForm() {
     const t = useTranslations('room.create')
-    const tCurrency = useTranslations('room.currency')
-    const locale = useLocale()
     const router = useRouter()
     const { data: currencies } = useCurrencies()
     const { submit: createRoom, created, error, pending } = useCreateRoomFlow(t('failed'))
@@ -53,6 +47,7 @@ export function CreateRoomForm() {
     // not smart, it is broken.
     const [currencyChosen, setCurrencyChosen] = useState(false)
     const [creatorName, setCreatorName] = useState('')
+    const [drawingOpen, setDrawingOpen] = useState(false)
 
     /** Seeded after mount, not during render: `Intl` and `navigator` do not exist on the server,
      *  and a currency that differs across hydration is a mismatch React will not patch up. */
@@ -109,110 +104,133 @@ export function CreateRoomForm() {
     }
 
     return (
-        <form
-            onSubmit={submit}
-            className="flex min-h-dvh flex-col gap-8 px-5 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-6"
-        >
-            <div className="flex items-center gap-3">
+        <form onSubmit={submit} className="flex min-h-dvh flex-col pb-[max(2.5rem,env(safe-area-inset-bottom))]">
+            <div className="flex items-end justify-between gap-3 px-4 pb-2 pt-6">
+                <h1 className="text-h5">{t('title')}</h1>
                 <Link
                     href="/"
                     aria-label={t('back')}
-                    className="flex size-11 items-center justify-center rounded-sm border border-n-1 bg-white transition-transform active:translate-y-[2px]"
+                    data-testid="close-create-room"
+                    className="flex size-11 items-center justify-center rounded-full border-2 border-n-1 bg-white transition-transform active:rotate-3"
                 >
-                    <Icon name="arrow-left" size={20} />
+                    <Icon name="x" size={21} />
                 </Link>
-                <h1 className="text-h5">{t('title')}</h1>
             </div>
 
             <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="my-auto flex flex-col gap-6"
+                className="flex flex-col gap-3 px-4 pb-6 pt-2"
             >
-                {/* The question lives in the placeholder, not in a caption above the box. A
-                    label that only restates what the empty field already asks costs a line of
-                    vertical space per field, and four of those is what used to push the submit
-                    button off a 390px screen. It survives as `aria-label`, so a screen reader
-                    hears the same question a sighted user reads inside the box. */}
-                <BaseInput
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder={t('namePlaceholder')}
-                    aria-label={t('name')}
-                    maxLength={80}
-                    autoFocus
-                    data-testid="room-name"
-                />
-
-                {/* The one label that stays above its control: this is a grid of sixteen tiles,
-                    not a text field, and it has nowhere to put a placeholder. */}
-                <div className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('emoji')}</span>
-                    <DoodlePicker
-                        value={shownEmblem}
-                        onChange={(next) => {
-                            setEmblem(next)
-                            feedback('tick')
-                        }}
-                    />
-                </div>
-
-                {/* A div rather than a label, like the emoji block: the suggestion chips are
-                    interactive content, and burying buttons inside a label is asking for a click
-                    to be forwarded to the select instead. The select carries its own aria-label. */}
-                <div className="flex flex-col gap-2">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('currency')}</span>
-                    {/* The guess, offered rather than applied silently. One tap is cheaper than
-                        opening the picker, and seeing the alternatives is how you notice the top
-                        one is wrong for this particular trip. */}
-                    {hints.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-h9 uppercase tracking-wide text-grey-1">
-                                {tCurrency('suggested')}
-                            </span>
-                            {hints.map((hint) => (
-                                <button
-                                    key={hint.currency}
-                                    type="button"
-                                    onClick={() => chooseCurrency(hint.currency)}
-                                    aria-pressed={currency === hint.currency}
-                                    aria-label={tCurrency('useSuggestion', {
-                                        name: currencyDisplayName(hint.currency, locale, currencies),
-                                    })}
-                                    data-testid="currency-suggestion"
-                                    data-currency={hint.currency}
-                                    className={cn(
-                                        'flex min-h-11 items-center rounded-sm border border-n-1 px-3 py-2 transition-all duration-100',
-                                        currency === hint.currency
-                                            ? 'shadow-4 bg-primary-1'
-                                            : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
-                                    )}
-                                >
-                                    <CurrencyTag code={hint.currency} catalog={currencies} />
-                                </button>
-                            ))}
+                {/* Same receipt-like object as add expense: the primary value and
+                    currency share the first line, supporting information lives
+                    beneath it, and optional detail expands outside the card. */}
+                <div
+                    data-testid="room-composer"
+                    className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                >
+                    <div className="flex min-w-0 items-center gap-2 px-3 py-2">
+                        <label className="min-w-0 flex-1">
+                            <span className="sr-only">{t('name')}</span>
+                            <input
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                placeholder={t('namePlaceholder')}
+                                aria-label={t('name')}
+                                maxLength={80}
+                                autoFocus
+                                data-testid="room-name"
+                                className="h-16 w-full min-w-0 border-0 bg-transparent px-1 text-h5 font-extrabold outline-none placeholder:text-grey-2"
+                            />
+                        </label>
+                        <div className="w-[7.25rem] shrink-0">
+                            <CurrencySelect
+                                value={currency}
+                                onChange={chooseCurrency}
+                                currencies={currencies}
+                                suggested={hints.map((hint) => hint.currency)}
+                                variant="sm"
+                                aria-label={t('currencyLabel')}
+                                data-testid="room-currency"
+                            />
                         </div>
-                    )}
-                    <CurrencySelect
-                        value={currency}
-                        onChange={chooseCurrency}
-                        currencies={currencies}
-                        suggested={hints.map((hint) => hint.currency)}
-                        aria-label={t('currencyLabel')}
-                        data-testid="room-currency"
-                    />
-                    <span className="text-sm text-grey-1">{t('currencyHint')}</span>
+                    </div>
+
+                    <label className="block border-t border-dashed border-grey-1">
+                        <span className="sr-only">{t('creatorName')}</span>
+                        <input
+                            value={creatorName}
+                            onChange={(event) => setCreatorName(event.target.value)}
+                            placeholder={t('creatorNamePlaceholder')}
+                            aria-label={t('creatorName')}
+                            maxLength={80}
+                            data-testid="creator-name"
+                            className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
+                        />
+                    </label>
+
+                    <button
+                        type="button"
+                        onClick={() => setDrawingOpen((current) => !current)}
+                        aria-expanded={drawingOpen}
+                        aria-controls="room-drawing-editor"
+                        aria-label={t('emojiGroup')}
+                        data-testid="room-drawing-summary"
+                        className="flex min-h-14 w-full items-center gap-3 border-t border-dashed border-grey-1 px-4 text-left"
+                    >
+                        <Doodle name={shownEmblem} size={30} weight={1.8} />
+                        <span className="min-w-0 flex-1">
+                            <span className="block text-h8">{t('emojiGroup')}</span>
+                            <span className="block truncate text-xs text-grey-1">{t('emoji')}</span>
+                        </span>
+                        <Icon
+                            name="chevron-down"
+                            size={22}
+                            className={drawingOpen ? 'rotate-180 transition-transform' : 'transition-transform'}
+                        />
+                    </button>
                 </div>
 
-                <BaseInput
-                    value={creatorName}
-                    onChange={(event) => setCreatorName(event.target.value)}
-                    placeholder={t('creatorNamePlaceholder')}
-                    aria-label={t('creatorName')}
-                    maxLength={80}
-                    data-testid="creator-name"
-                />
+                <p className="px-1 text-xs text-grey-1">{t('currencyHint')}</p>
+
+                <AnimatePresence initial={false}>
+                    {drawingOpen && (
+                        <motion.section
+                            id="room-drawing-editor"
+                            data-testid="room-drawing-editor"
+                            aria-label={t('emojiGroup')}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.18, ease: 'easeOut' }}
+                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                        >
+                            <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
+                                <h2 className="text-h8">{t('emoji')}</h2>
+                                <button
+                                    type="button"
+                                    onClick={() => setDrawingOpen(false)}
+                                    aria-label={t('collapseDrawing')}
+                                    data-testid="collapse-room-drawing"
+                                    className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
+                                >
+                                    <Icon name="chevron-up" size={24} />
+                                </button>
+                            </div>
+                            <div className="p-3">
+                                <DoodlePicker
+                                    value={shownEmblem}
+                                    onChange={(next) => {
+                                        setEmblem(next)
+                                        setDrawingOpen(false)
+                                        feedback('tick')
+                                    }}
+                                />
+                            </div>
+                        </motion.section>
+                    )}
+                </AnimatePresence>
 
                 {error && (
                     <p role="alert" className="text-sm font-bold text-error">

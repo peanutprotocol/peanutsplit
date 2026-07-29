@@ -61,6 +61,7 @@ test('an expense on one device lands on the other without a refresh', async ({ p
     await bea.getByTestId('open-add-expense').click()
     await bea.getByTestId('expense-amount').fill('60')
     await bea.getByTestId('expense-description').fill('Dinner')
+    await bea.getByTestId('expense-payer-summary').click()
     await bea.locator('[data-testid="payer-chip"][data-member="Bea"]').click()
     await bea.getByTestId('save-expense').click()
     await expect(bea.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })

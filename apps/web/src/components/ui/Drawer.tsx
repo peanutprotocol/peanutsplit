@@ -32,20 +32,21 @@ const DrawerContent = React.forwardRef<
         <DrawerPrimitive.Content
             ref={ref}
             className={twMerge(
-                'fixed inset-x-0 bottom-0 z-50 mt-24 flex flex-col rounded-t-2xl border bg-background',
+                'fixed inset-x-0 bottom-0 z-50 mt-6 flex max-h-dvh flex-col overflow-hidden rounded-t-2xl border bg-background',
                 className
             )}
             aria-describedby={undefined}
             {...props}
-            onTouchMove={(e) => e.stopPropagation()}
         >
-            <div className="mx-auto my-4 h-1.5 w-10 rounded-full bg-black" />
-            <div className="flex w-full justify-center">
+            <div className="mx-auto my-3 h-1.5 w-10 shrink-0 rounded-full bg-black" />
+            <div className="flex min-h-0 w-full justify-center">
                 {/* vaul animates the sheet; this is the content settling inside it.
                     A mount-time CSS animation rather than a transition, because the
                     content is portalled in on open — there is no "before" state for
                     a transition to run from. */}
-                <div className="animate-drawer-in max-h-[80vh] w-full overflow-auto md:max-w-xl">{children}</div>
+                <div className="animate-drawer-in flex min-h-0 w-full flex-col md:max-h-[min(92dvh,52rem)] md:max-w-xl">
+                    {children}
+                </div>
             </div>
         </DrawerPrimitive.Content>
     </DrawerPortal>

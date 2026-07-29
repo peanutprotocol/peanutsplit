@@ -46,6 +46,7 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await page.getByTestId('open-add-expense').click()
     await page.getByTestId('expense-amount').fill('60')
     await page.getByTestId('expense-description').fill('Dinner')
+    await page.getByTestId('expense-payer-summary').click()
     await page.locator('[data-testid="payer-chip"][data-member="Ana"]').click()
     await page.getByTestId('save-expense').click()
     await expectBalance(page, 'Ana', '3000')

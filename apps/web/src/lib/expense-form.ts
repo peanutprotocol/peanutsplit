@@ -111,6 +111,41 @@ export function remainingMinor(values: ExpenseFormValues, catalog?: readonly Cur
     return (total - BigInt(allocatedMinor(values, catalog))).toString()
 }
 
+/**
+ * Repair the one field-role mix-up we can identify without guessing.
+ *
+ * Mobile keyboards are hints, not gates: the amount input can still receive
+ * "taxi", and the description can still receive "123". Once both values are
+ * present that pair is unambiguous — the current amount is not money while the
+ * current description is a positive amount — so preserving the words means
+ * swapping them, not showing two validation errors.
+ *
+ * We deliberately do nothing when either side is blank or both sides could be
+ * amounts. A description such as "101" may be a room number, and silently
+ * moving plausible data without the complementary invalid value would be a
+ * guess rather than a repair.
+ */
+export function repairMisplacedExpenseFields(
+    values: ExpenseFormValues,
+    catalog?: readonly CurrencyInfo[]
+): ExpenseFormValues | null {
+    const amountText = values.amountInput.trim()
+    const descriptionText = values.description.trim()
+    if (!amountText || !descriptionText) return null
+
+    const decimals = decimalsOf(values.currency, catalog)
+    const amountMinor = parseAmountToMinor(amountText, decimals)
+    const descriptionMinor = parseAmountToMinor(descriptionText, decimals)
+    const descriptionIsPositiveAmount = descriptionMinor !== null && BigInt(descriptionMinor) > 0n
+
+    if (amountMinor !== null || !descriptionIsPositiveAmount) return null
+    return {
+        ...values,
+        amountInput: descriptionText,
+        description: amountText,
+    }
+}
+
 export type ExpenseFormError =
     'DESCRIPTION_REQUIRED' | 'AMOUNT_REQUIRED' | 'PAYER_REQUIRED' | 'NO_PARTICIPANTS' | 'SHARES_DO_NOT_ADD_UP'
 
@@ -121,9 +156,9 @@ export function validateExpenseForm(
     catalog?: readonly CurrencyInfo[]
 ): ExpenseFormError | null {
     const decimals = decimalsOf(values.currency, catalog)
-    if (values.description.trim().length === 0) return 'DESCRIPTION_REQUIRED'
     const total = parseAmountToMinor(values.amountInput, decimals)
     if (total === null || BigInt(total) <= 0n) return 'AMOUNT_REQUIRED'
+    if (values.description.trim().length === 0) return 'DESCRIPTION_REQUIRED'
     if (!values.paidById) return 'PAYER_REQUIRED'
     if (values.splitMode === 'EQUAL') {
         if (values.participantsTouched && values.participantIds.length === 0) return 'NO_PARTICIPANTS'
