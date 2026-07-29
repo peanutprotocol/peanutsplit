@@ -3,14 +3,17 @@ import { RoomEmblem } from '@/components/room/RoomEmblem'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { api, isApiError } from '@/lib/api'
 import { forgetRoom, readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
+import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 
@@ -37,6 +40,7 @@ const relativeTime = (epochMs: number, locale: string): string => {
  * paste-link recovery stays available even when the device has no history.
  */
 export function YourRooms() {
+    const router = useRouter()
     const t = useTranslations('marketing.rooms')
     const locale = useLocale()
     const motionAllowed = useMotionAllowed()
@@ -56,7 +60,11 @@ export function YourRooms() {
     const overflow = recent.length - Math.min(recent.length, VISIBLE)
 
     const forget = (room: RecentRoom) => {
-        forgetRoom(room.slug)
+        if (!forgetRoom(room.slug)) {
+            setNotice(t('forgetFailed', { room: room.name }))
+            feedback('error', { haptic: 'error' })
+            return
+        }
         setRecent((current) => current.filter((candidate) => candidate.slug !== room.slug))
         setNotice(t('forgotten', { room: room.name }))
         feedback('tick')
@@ -76,7 +84,7 @@ export function YourRooms() {
         setRecovering(true)
         try {
             const state = await api.room(slug)
-            rememberRoom({
+            const saved = rememberRoom({
                 slug: state.room.slug,
                 name: state.room.name,
                 emoji: state.room.emoji ?? undefined,
@@ -85,8 +93,16 @@ export function YourRooms() {
             setRecent(readRecentRooms())
             setPastedLink('')
             setRecoveryError(null)
-            setNotice(t('recovery.added', { room: state.room.name }))
+            const recoveryNotice = t(saved ? 'recovery.openingSaved' : 'recovery.openingUnsaved', {
+                room: state.room.name,
+            })
+            setNotice(recoveryNotice)
+            // The room opens immediately, so the status must survive that client
+            // navigation. A root toast does; a paragraph on the landing page does
+            // not. This is especially important when localStorage was denied.
+            toast(recoveryNotice, { duration: TOAST_MS.actionable })
             feedback('pop')
+            router.push(`/r/${state.room.slug}`)
         } catch (error) {
             setRecoveryError(
                 isApiError(error, 'NOT_FOUND') || isApiError(error, 'ROOM_NOT_FOUND')
@@ -107,6 +123,7 @@ export function YourRooms() {
             animate={{ opacity: 1, y: 0 }}
             transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
             data-motion={motionAllowed ? 'ready' : 'still'}
+            data-motion-surface
             className="mx-auto w-full max-w-xl px-5 py-8 sm:py-10"
             data-testid="recent-rooms"
         >
@@ -133,6 +150,7 @@ export function YourRooms() {
                                           }
                                         : { duration: 0 }
                                 }
+                                data-motion-surface
                                 className="shadow-4 flex overflow-hidden rounded-sm border border-n-1 bg-white"
                             >
                                 <Link

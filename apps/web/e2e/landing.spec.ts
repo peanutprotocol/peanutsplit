@@ -398,6 +398,28 @@ test.describe('Pass-the-link default', () => {
         ).toEqual([])
     })
 
+    test('reduced-motion CSS keeps server-rendered landing and creation surfaces visible without JavaScript', async ({
+        browser,
+    }, testInfo) => {
+        const baseURL = testInfo.project.use.baseURL
+        if (typeof baseURL !== 'string') throw new Error('Playwright baseURL is required')
+        const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' })
+        const noJs = await context.newPage()
+
+        await noJs.goto(new URL('/', baseURL).href)
+        await expect(noJs.getByTestId('proof-link-identity')).toBeVisible()
+        await expect(noJs.getByTestId('proof-link-identity')).toHaveCSS('opacity', '1')
+        await expect(noJs.getByTestId('proof-link-identity')).toHaveCSS('transform', 'none')
+
+        await noJs.goto(new URL('/new', baseURL).href)
+        const creationSurface = noJs.locator('[data-motion-surface]').first()
+        await expect(noJs.getByTestId('room-composer')).toBeVisible()
+        await expect(creationSurface).toHaveCSS('opacity', '1')
+        await expect(creationSurface).toHaveCSS('transform', 'none')
+
+        await context.close()
+    })
+
     test('in-app quiet settings keep the landing usable without motion, sound, or vibration', async ({ page }) => {
         await page.addInitScript(() => {
             window.localStorage.setItem(
@@ -624,6 +646,10 @@ test('pasting a valid room link verifies and saves it while invalid links leave 
         const path = new URL(route.request().url()).pathname
         requested.push(path)
         if (path.endsWith('/recovered-room-abc123')) {
+            // A real verification is asynchronous. Holding the 200 briefly lets
+            // the test prove that neither persistence nor navigation happens
+            // merely because the pasted string looked like a room URL.
+            await new Promise((resolve) => setTimeout(resolve, 250))
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -667,30 +693,72 @@ test('pasting a valid room link verifies and saves it while invalid links leave 
     expect(requested).toEqual([])
     expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
 
-    await input.fill('peanutsplit.com/r/recovered-room-abc123?from=group-chat#split')
-    await submit.click()
-    await expect(page.getByRole('link', { name: 'Open room: Recovered room' })).toHaveAttribute(
-        'href',
-        '/r/recovered-room-abc123'
-    )
-    await expect(page.getByTestId('recent-room-notice')).toHaveText(
-        catalogs.en.marketing.rooms.recovery.added.replace('{room}', 'Recovered room')
-    )
-    expect(requested).toEqual(['/api/rooms/recovered-room-abc123'])
-    expect(
-        await page.evaluate(() =>
-            JSON.parse(window.localStorage.getItem('ps:recent') ?? '[]').map((room: { slug: string }) => room.slug)
-        )
-    ).toEqual(['recovered-room-abc123'])
-
     await input.fill('https://peanutsplit.com/r/missing-room-def456')
     await submit.click()
     await expect(recovery.getByRole('alert')).toHaveText(catalogs.en.marketing.rooms.recovery.notFound)
+    expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
+
+    await input.fill('peanutsplit.com/r/recovered-room-abc123?from=group-chat#split')
+    await submit.click()
+    await expect.poll(() => requested.includes('/api/rooms/recovered-room-abc123')).toBe(true)
+    await expect(page).not.toHaveURL(/\/r\/recovered-room-abc123$/)
+    expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
+    await expect(page).toHaveURL(/\/r\/recovered-room-abc123$/)
+    expect(requested[0]).toBe('/api/rooms/missing-room-def456')
+    expect(requested.filter((path) => path === '/api/rooms/recovered-room-abc123').length).toBeGreaterThanOrEqual(1)
     expect(
         await page.evaluate(() =>
             JSON.parse(window.localStorage.getItem('ps:recent') ?? '[]').map((room: { slug: string }) => room.slug)
         )
     ).toEqual(['recovered-room-abc123'])
+})
+
+test('a verified pasted link still opens when localStorage is denied and says it was not saved', async ({ page }) => {
+    await page.addInitScript(() => {
+        const nativeSetItem = Storage.prototype.setItem
+        Storage.prototype.setItem = function (key: string, value: string) {
+            if (key === 'ps:recent') throw new DOMException('storage denied', 'SecurityError')
+            return nativeSetItem.call(this, key, value)
+        }
+    })
+    await page.route('**/api/rooms/recovered-room-abc123', async (route) => {
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                room: {
+                    id: 'room-recovered',
+                    slug: 'recovered-room-abc123',
+                    name: 'Recovered room',
+                    emoji: 'peanut',
+                    currency: 'EUR',
+                    coverUrl: null,
+                    theme: 'mint',
+                    createdAt: new Date().toISOString(),
+                    archivedAt: null,
+                },
+                members: [],
+                expenses: [],
+                settlements: [],
+                balances: {},
+                suggestedTransfers: [],
+            }),
+        })
+    })
+    await openLanding(page)
+
+    const recovery = page.getByTestId('room-link-recovery')
+    await recovery.locator('summary').click()
+    await page.getByTestId('recover-room-input').fill('https://peanutsplit.com/r/recovered-room-abc123')
+    await page.getByTestId('recover-room-submit').click()
+
+    await expect(page).toHaveURL(/\/r\/recovered-room-abc123$/)
+    await expect(
+        page.getByText(catalogs.en.marketing.rooms.recovery.openingUnsaved.replace('{room}', 'Recovered room'), {
+            exact: true,
+        })
+    ).toBeVisible()
+    expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
 })
 
 test('the room handoff shares a localized message, the link, and the room drawing', async ({ page }) => {
@@ -699,6 +767,12 @@ test('the room handoff shares a localized message, the link, and the room drawin
             configurable: true,
             value: async (payload: ShareData) => {
                 ;(window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload = payload
+            },
+        })
+        Object.defineProperty(navigator, 'canShare', {
+            configurable: true,
+            value: () => {
+                throw new DOMException('file sharing probe rejected', 'NotAllowedError')
             },
         })
     })
@@ -715,12 +789,50 @@ test('the room handoff shares a localized message, the link, and the room drawin
         .poll(() => page.evaluate(() => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload))
         .toMatchObject({
             title: `${roomName} · Peanut Split`,
-            text: `Join “${roomName}” and let’s split this properly.`,
+            text: 'Open the link, pick your name, then add what you paid.',
         })
     const payload = await page.evaluate(
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
     expect(payload?.url).toMatch(/\/r\/share-package-\d+-[0-9a-hjkmnp-tv-z]{6}$/)
+    await expect(page.getByTestId('copy-invite')).toBeVisible()
+    await expect(page.getByTestId('download-share-card')).toBeVisible()
+    await expect(page.getByTestId('download-share-text')).toBeVisible()
+
+    await page.evaluate(() => {
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async () => {
+                throw new DOMException('share failed', 'NotAllowedError')
+            },
+        })
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: {
+                writeText: async () => {
+                    throw new DOMException('clipboard failed', 'NotAllowedError')
+                },
+            },
+        })
+    })
+    await page.getByTestId('share-room').click()
+    await expect(page.getByTestId('share-status')).toHaveText(catalogs.en.room.link.shareFailed)
+
+    // Removing Web Share cannot remove the independent copy/download package.
+    // The rejected clipboard path re-renders the component and reveals the
+    // selected manual-copy fallback.
+    await page.evaluate(() => {
+        Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
+    })
+    await page.getByTestId('copy-invite').click()
+    await expect(page.getByTestId('share-room')).toHaveCount(0)
+    const manualInvite = page.getByTestId('room-link-input')
+    await expect(manualInvite).toBeFocused()
+    await expect(manualInvite).toHaveValue(
+        new RegExp(`^Open the link, pick your name, then add what you paid\\.\\nhttp://localhost:\\d+/r/share-package-`)
+    )
+    await expect(page.getByTestId('download-share-card')).toBeVisible()
+    await expect(page.getByTestId('download-share-text')).toBeVisible()
 })
 
 test('v1 does not expose AI or migration tooling in either landing variant', async ({ page }) => {

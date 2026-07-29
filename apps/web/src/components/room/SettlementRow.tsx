@@ -12,6 +12,7 @@ import type { ApiSettlement, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useDeleteSettlement } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
@@ -57,6 +58,7 @@ export function SettlementRow({
     token,
     actionsDisabled = false,
 }: SettlementRowProps) {
+    const motionAllowed = useMotionAllowed()
     const t = useTranslations('room.timeline')
     const tSettle = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
@@ -118,7 +120,8 @@ export function SettlementRow({
 
     return (
         <motion.div
-            layout
+            layout={motionAllowed}
+            data-motion-surface
             className="flex flex-col gap-2 rounded-sm border border-dashed border-n-1 bg-background/60 p-3"
             data-testid="settlement-row"
             data-settlement={settlement.id}

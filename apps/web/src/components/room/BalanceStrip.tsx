@@ -7,6 +7,7 @@ import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { isZeroMinor } from '@/lib/money'
 import { savedExpenses } from '@/lib/pending'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { AnimatedMoney } from './Money'
 import { MemberAvatar } from './MemberAvatar'
@@ -74,6 +75,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
     const t = useTranslations('room.balances')
     const tDerivation = useTranslations('derivation')
     const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
     // Server truth, not the merged list: a queued expense has moved no balance
     // yet, so it cannot be the reason a zero stops meaning "nothing yet".
     const anySavedExpenses = savedExpenses(state.expenses).length > 0
@@ -109,11 +111,16 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                             return (
                                 <motion.li
                                     key={member.id}
-                                    layout
-                                    initial={{ scale: 0.6, opacity: 0, y: 10 }}
+                                    layout={motionAllowed}
+                                    initial={motionAllowed ? { scale: 0.6, opacity: 0, y: 10 } : false}
                                     animate={{ scale: 1, opacity: 1, y: 0 }}
-                                    exit={{ scale: 0.6, opacity: 0 }}
-                                    transition={{ type: 'spring', stiffness: 340, damping: 18, mass: 0.8 }}
+                                    exit={motionAllowed ? { scale: 0.6, opacity: 0 } : undefined}
+                                    transition={
+                                        motionAllowed
+                                            ? { type: 'spring', stiffness: 340, damping: 18, mass: 0.8 }
+                                            : { duration: 0 }
+                                    }
+                                    data-motion-surface
                                     data-testid="balance-card"
                                     data-member={member.name}
                                     // Raw server truth, so e2e asserts the balance and not

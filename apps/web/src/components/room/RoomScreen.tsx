@@ -15,6 +15,7 @@ import { rememberRoom } from '@/lib/recent-rooms'
 import { useRoomParams } from '@/lib/room-params'
 import { themeVars } from '@/lib/themes'
 import { useRoomIdentity } from '@/lib/use-identity'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { AllSettled } from './AllSettled'
 import { BalanceDrawer } from './BalanceDrawer'
 import { BalanceStrip } from './BalanceStrip'
@@ -41,6 +42,7 @@ export function RoomScreen({ slug }: { slug: string }) {
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
     const [params, setParams] = useRoomParams()
+    const motionAllowed = useMotionAllowed()
     const celebrated = useRef(false)
     /**
      * Moment #6 fires once per *arrival* at zero, not on every render of a
@@ -180,15 +182,21 @@ export function RoomScreen({ slug }: { slug: string }) {
                     already in the right place, so anything harder reads as a flash. */}
                 <AnimatePresence mode="wait" initial={false}>
                     {isPending && !state ? (
-                        <motion.div key="skeleton" exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+                        <motion.div
+                            key="skeleton"
+                            exit={motionAllowed ? { opacity: 0 } : undefined}
+                            transition={motionAllowed ? { duration: 0.18 } : { duration: 0 }}
+                            data-motion-surface
+                        >
                             <RoomSkeleton />
                         </motion.div>
                     ) : state ? (
                         <motion.div
                             key="content"
-                            initial={{ opacity: 0 }}
+                            initial={motionAllowed ? { opacity: 0 } : false}
                             animate={{ opacity: 1 }}
-                            transition={{ duration: 0.24, ease: 'easeOut' }}
+                            transition={motionAllowed ? { duration: 0.24, ease: 'easeOut' } : { duration: 0 }}
+                            data-motion-surface
                             className="flex flex-col gap-6"
                         >
                             <BalanceStrip

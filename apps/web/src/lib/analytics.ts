@@ -9,6 +9,7 @@
 import posthog from 'posthog-js'
 import type { CaptureResult } from 'posthog-js'
 import type { LandingVariant } from './flags'
+import { SHARE_PACKAGE_VARIANT } from './share-package-contract'
 
 export type LandingEvent =
     | 'landing_hero_exposed'
@@ -28,6 +29,7 @@ export type AnalyticsEvent =
     | 'settlement_recorded'
     | 'settle_sheet_opened'
     | 'share_opened'
+    | 'share_package_presented'
     | 'share_completed'
     | 'link_copied'
     | 'all_settled'
@@ -173,6 +175,35 @@ export function track(event: AnalyticsEvent, properties: Record<string, unknown>
  */
 export function trackLanding(event: LandingEvent, variant: LandingVariant): void {
     track(event, { variant })
+}
+
+export const SHARE_PACKAGE_METHODS = ['native', 'clipboard', 'card_download', 'text_download'] as const
+export type SharePackageMethod = (typeof SHARE_PACKAGE_METHODS)[number]
+
+/**
+ * The invite experiment's complete measurement contract.
+ *
+ * Success is a completed user-directed share action divided by presented
+ * packages. It is NOT an invite-conversion rate: accountless bearer links do
+ * not expose which chat app was chosen, who received one or whether a receiver
+ * later opened it. Inventing any of those facts would make the metric both
+ * dishonest and less private.
+ */
+export const SHARE_PACKAGE_MEASURE = {
+    exposure: 'share_package_presented',
+    success: 'share_completed',
+    definition: 'completed user-directed share actions / presented share packages',
+    allowedProperties: {
+        share_package_presented: ['variant'],
+        share_completed: ['variant', 'method'],
+    },
+} as const
+
+/** Exact allowlisted properties for the package metric — no identifiers. */
+export function sharePackageMeasureProps(method?: SharePackageMethod): Record<string, string> {
+    return method && (SHARE_PACKAGE_METHODS as readonly string[]).includes(method)
+        ? { variant: SHARE_PACKAGE_VARIANT, method }
+        : { variant: SHARE_PACKAGE_VARIANT }
 }
 
 /** Keeps the room call sites ergonomic without attaching any room identifier. */

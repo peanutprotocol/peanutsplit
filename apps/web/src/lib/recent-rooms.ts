@@ -120,9 +120,14 @@ export function readRecentRooms(): RecentRoom[] {
     }
 }
 
-/** Upsert a room to the top of the list. Safe to call on every room render. */
-export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt?: number }): void {
-    if (!isBrowser()) return
+/**
+ * Upsert a room to the top of the list. Safe to call on every room render.
+ *
+ * The boolean is intentional: flows that promise "saved on this device" must
+ * distinguish a successful write from private-mode/quota failures.
+ */
+export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt?: number }): boolean {
+    if (!isBrowser()) return false
     const entry: RecentRoom = {
         slug: room.slug,
         name: room.name,
@@ -136,17 +141,19 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
     )
     try {
         window.localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(next))
+        return true
     } catch {
-        // Private-mode / quota failures are not worth surfacing.
+        return false
     }
 }
 
 /** Drop a room from the list (archived, or the user asked us to forget it). */
-export function forgetRoom(slug: string): void {
-    if (!isBrowser()) return
+export function forgetRoom(slug: string): boolean {
+    if (!isBrowser()) return false
     try {
         window.localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(readRecentRooms().filter((r) => r.slug !== slug)))
+        return true
     } catch {
-        // ignore
+        return false
     }
 }

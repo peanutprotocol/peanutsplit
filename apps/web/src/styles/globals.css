@@ -152,6 +152,23 @@
     opacity: 0 !important;
 }
 
+/*
+ * motion/react 12 still interpolates opacity when `reducedMotion="always"` and
+ * SSR can emit the component's `initial={{ opacity: 0 }}` before the hook knows
+ * the media query. Every meaningful motion surface opts into this policy. It is
+ * visible and untransformed in the very first CSS pass, with or without JS.
+ */
+.reduce-animations [data-motion-surface] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.reduce-animations [data-motion-collapse] {
+    height: auto !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -166,6 +183,17 @@
     [data-decorative]::after {
         animation: none !important;
         opacity: 0 !important;
+    }
+
+    [data-motion-surface] {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    [data-motion-collapse] {
+        height: auto !important;
     }
 
     .landing-proof-scene,
