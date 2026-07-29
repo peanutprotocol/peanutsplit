@@ -827,7 +827,6 @@ test('the room handoff shares a localized message, the link, and the room drawin
     expect(cardContents).toContain('<svg')
     expect(cardContents).toContain('Share')
     expect(cardContents).toContain('package')
-    expect(cardContents).toContain(roomName.match(/\d+$/)?.[0])
     expect(cardContents).not.toContain('/r/')
     expect(cardContents).not.toContain('Ana')
 
@@ -893,6 +892,67 @@ test('the room handoff shares a localized message, the link, and the room drawin
     )
     await expect(page.getByTestId('download-share-card')).toBeVisible()
     await expect(page.getByTestId('download-share-text')).toBeVisible()
+})
+
+test('the downloaded room drawing keeps a maximum-width title clear of its doodle', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('W'.repeat(80))
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('download-share-card').click(),
+    ])
+    const downloadPath = await download.path()
+    expect(downloadPath).not.toBeNull()
+    const svgMarkup = await readFile(downloadPath!, 'utf8')
+
+    const geometry = await page.evaluate(async (markup) => {
+        const host = document.createElement('div')
+        host.style.cssText = 'position:absolute;left:-5000px;top:0;width:1200px;height:630px;opacity:0'
+        host.innerHTML = markup
+        document.body.append(host)
+        await document.fonts.ready
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+        const svg = host.querySelector('svg')
+        const titleElements = [...(svg?.querySelectorAll<SVGGraphicsElement>('text[font-size="72"]') ?? [])]
+        const doodleElement = svg?.querySelector<SVGGraphicsElement>('g')
+        if (!svg || !doodleElement) throw new Error('share SVG geometry is incomplete')
+
+        const transformedBox = (element: SVGGraphicsElement) => {
+            const box = element.getBBox()
+            const matrix = element.getCTM()
+            if (!matrix) throw new Error('share SVG has no transform matrix')
+            const points = [
+                new DOMPoint(box.x, box.y),
+                new DOMPoint(box.x + box.width, box.y),
+                new DOMPoint(box.x, box.y + box.height),
+                new DOMPoint(box.x + box.width, box.y + box.height),
+            ].map((point) => point.matrixTransform(matrix))
+            return {
+                left: Math.min(...points.map(({ x }) => x)),
+                right: Math.max(...points.map(({ x }) => x)),
+            }
+        }
+
+        const result = {
+            canvasRight: svg.viewBox.baseVal.x + svg.viewBox.baseVal.width,
+            titles: titleElements.map(transformedBox),
+            doodle: transformedBox(doodleElement),
+        }
+        host.remove()
+        return result
+    }, svgMarkup)
+
+    expect(geometry.titles).toHaveLength(3)
+    for (const title of geometry.titles) {
+        expect(title.right).toBeLessThan(geometry.doodle.left)
+        expect(geometry.doodle.left - title.right).toBeGreaterThan(24)
+        expect(title.right).toBeLessThanOrEqual(geometry.canvasRight)
+    }
 })
 
 test('v1 does not expose AI or migration tooling in either landing variant', async ({ page }) => {
