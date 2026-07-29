@@ -35,14 +35,11 @@ export type AnalyticsEvent =
     | 'pwa_installed'
     | 'peanut_option_shown'
     | 'peanut_option_clicked'
-    // Push opt-in and accounts. Same discipline as everything above: the count
-    // of recovered rooms is a number, and neither a room identifier nor an
-    // email address ever appears in a property bag.
+    // Push opt-in. Same discipline as everything above: neither a room
+    // identifier nor a member identity ever appears in a property bag.
     | 'push_optin_shown'
     | 'push_optin_accepted'
     | 'push_optin_denied'
-    | 'account_link_requested'
-    | 'account_rooms_recovered'
     // Bill scanning. A receipt is the most identifying thing anyone hands this
     // app, so the funnel is deliberately blind: `receipt_scan_parsed` carries a
     // COUNT of items and nothing else. No labels, no amounts, no merchant, no

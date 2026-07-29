@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { AccountRecovery } from '@/components/account/AccountRecovery'
 import { FinalCta } from '@/components/marketing/FinalCta'
 import { Hero } from '@/components/marketing/Hero'
 import { LandingProof } from '@/components/marketing/LandingProof'
@@ -37,10 +36,6 @@ export const metadata: Metadata = {
 export default function LandingPage() {
     return (
         <main className="flex min-h-dvh flex-col bg-background">
-            {/* Renders nothing. `/api/auth/verify` redirects here with `?login=1`
-                after a magic link is spent, and this is what turns that into
-                "your rooms are back". */}
-            <AccountRecovery />
             <Hero />
             <YourRooms />
             <LandingProof />
