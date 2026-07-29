@@ -1,15 +1,31 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, SyntheticEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { motion } from 'motion/react'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
 import { splitV2Enabled } from '@/lib/flags'
+import { useMotionAllowed } from '@/lib/use-motion'
+import { useFeedback } from '@/lib/use-settings'
 
-function Fold({ title, children }: { title: string; children: ReactNode }) {
+function Fold({
+    title,
+    children,
+    onToggle,
+}: {
+    title: string
+    children: ReactNode
+    onToggle: (event: SyntheticEvent<HTMLDetailsElement>) => void
+}) {
     return (
-        <details className="group/fold rounded-sm border border-n-1 bg-white px-4 transition-colors open:bg-primary-4/20 sm:px-5">
+        <details
+            onToggle={onToggle}
+            className="group/fold rounded-sm border border-n-1 bg-white px-4 transition-colors open:bg-primary-4/20 sm:px-5"
+        >
             <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-h6 outline-none transition-colors focus-visible:text-n-1 sm:text-h5 [&::-webkit-details-marker]:hidden">
                 <span>{title}</span>
                 <Icon
@@ -19,7 +35,7 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
                     className="shrink-0 transition-transform duration-200 group-open/fold:rotate-45 motion-reduce:transition-none"
                 />
             </summary>
-            <div className="pb-5 pr-0 sm:pr-10">{children}</div>
+            <div className="landing-fold-body pb-5 pr-0 sm:pr-10">{children}</div>
         </details>
     )
 }
@@ -34,6 +50,11 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
  */
 export function ReadMore() {
     const t = useTranslations('marketing.readMore')
+    const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
+    const onToggle = (event: SyntheticEvent<HTMLDetailsElement>) => {
+        feedback(event.currentTarget.open ? 'blip' : 'tick', { throttleKey: 'landing-fold' })
+    }
     const features: Array<{
         key: 'currency' | 'splits' | 'exact' | 'live' | 'offline' | 'home' | 'transfers'
         doodle: DoodleName
@@ -59,7 +80,16 @@ export function ReadMore() {
     const questions = ['retype', 'access', 'lost', 'limits'] as const
 
     return (
-        <section className="w-full border-y-2 border-n-1 bg-primary-3">
+        <motion.section
+            data-testid="read-more"
+            data-motion={motionAllowed ? 'ready' : 'still'}
+            initial={motionAllowed ? { opacity: 0, y: 24 } : false}
+            animate={motionAllowed ? undefined : { opacity: 1, y: 0 }}
+            whileInView={motionAllowed ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true, amount: 0.08 }}
+            transition={{ type: 'spring', stiffness: 190, damping: 24 }}
+            className="w-full border-y-2 border-n-1 bg-primary-3"
+        >
             <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:py-20">
                 <div className="flex items-start justify-between gap-6">
                     <div>
@@ -70,7 +100,7 @@ export function ReadMore() {
                 </div>
 
                 <div className="mt-10 flex flex-col gap-3">
-                    <Fold title={t('join.title')}>
+                    <Fold title={t('join.title')} onToggle={onToggle}>
                         <div className="rounded-sm border border-n-1 bg-white p-4 sm:max-w-xl">
                             <p className="flex items-center gap-2 text-h8">
                                 <Doodle name="mountain" size={22} weight={1.8} />
@@ -85,7 +115,7 @@ export function ReadMore() {
                         <p className="mt-4 max-w-xl text-sm leading-5 text-n-1">{t('join.body')}</p>
                     </Fold>
 
-                    <Fold title={t('features.title')}>
+                    <Fold title={t('features.title')} onToggle={onToggle}>
                         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             {features.map(({ key, doodle }) => (
                                 <li key={key} className="rounded-sm border border-n-1 bg-white p-4">
@@ -99,7 +129,7 @@ export function ReadMore() {
                         </ul>
                     </Fold>
 
-                    <Fold title={t('settle.title')}>
+                    <Fold title={t('settle.title')} onToggle={onToggle}>
                         <p className="max-w-xl text-sm leading-5 text-grey-1">{t('settle.body')}</p>
                         <ul className="mt-4 grid grid-cols-3 gap-2">
                             {methods.map(({ key, doodle }) => (
@@ -114,7 +144,7 @@ export function ReadMore() {
                         </ul>
                     </Fold>
 
-                    <Fold title={t('team.title')}>
+                    <Fold title={t('team.title')} onToggle={onToggle}>
                         <p className="max-w-xl text-sm leading-5 text-grey-1">{t('team.intro')}</p>
                         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                             {team.map(({ key, portrait }) => (
@@ -141,7 +171,7 @@ export function ReadMore() {
                         </ul>
                     </Fold>
 
-                    <Fold title={t('who.title')}>
+                    <Fold title={t('who.title')} onToggle={onToggle}>
                         <ul className="flex flex-col gap-3">
                             {points.map((point) => (
                                 <li
@@ -166,7 +196,7 @@ export function ReadMore() {
                     </Fold>
 
                     {questions.map((question) => (
-                        <Fold key={question} title={t(`faq.${question}.q`)}>
+                        <Fold key={question} title={t(`faq.${question}.q`)} onToggle={onToggle}>
                             <p className="max-w-xl text-sm leading-6 text-grey-1">
                                 {t(`faq.${question}.a`)}
                                 {/* The importer is v2-only surface: /import 404s in a v1 build,
@@ -185,7 +215,7 @@ export function ReadMore() {
                     </Link>
                 </p>
             </div>
-        </section>
+        </motion.section>
     )
 }
 

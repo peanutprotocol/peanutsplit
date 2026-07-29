@@ -4,8 +4,8 @@ description: Tricount settles up through a bank account and a bunq card. If your
 date: 2026-07-28
 tags: [alternatives, currencies]
 faqs:
-    - question: Is Peanut Split free?
-      answer: Yes, and there is nothing to upgrade to. Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.
+    - question: Is Peanut Split free forever?
+      answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
     - question: Do I have to download anything?
       answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.
     - question: Can we still settle by bank transfer or cash?
@@ -53,7 +53,7 @@ A group of four in Berlin will have a fine time. A group of four in Berlin, Buen
 
 |                 | Peanut Split                                                                         | Tricount                                                 |
 | --------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| Cost            | Free, no paid tier                                                                   | "100% free"                                              |
+| Cost            | Free forever, no paid tier                                                           | "100% free"                                              |
 | Doing the maths | Balances reconcile to the cent                                                       | "tricount does the math for you"                         |
 | Settling up     | Whatever the two people can actually use — cash, a local transfer, or a payment link | "get paid directly to your bank account", or a bunq card |
 | Best case       | Group spread across countries, banks and currencies                                  | Group that shares banking rails                          |
@@ -66,7 +66,7 @@ Settling up is the row that matters. The rest is close enough that it should not
 
 <Checklist title="Where a split actually fails">
 <ChecklistItem title="Nobody has the same app">"Just send it to me" collapses when one person has Revolut, one has a bank that shuts at four, and one is in a country neither reaches. So don't require a particular one.</ChecklistItem>
-<ChecklistItem title="You paid in one currency and owe in another">Pick what the room counts in, add expenses in whatever you actually spent, and Split converts. Free, and not a feature behind a tier.</ChecklistItem>
+<ChecklistItem title="You paid in one currency and owe in another">Pick what the room counts in, add expenses in whatever you actually spent, and Split converts. Free forever, and not a feature behind a tier.</ChecklistItem>
 </Checklist>
 
 ## When Tricount is the better tool
@@ -83,7 +83,7 @@ That is the trade. Less product, fewer assumptions about who you bank with.
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is Peanut Split free?">Yes, and there is nothing to upgrade to. Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.</FAQItem>
+<FAQItem question="Is Peanut Split free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
 <FAQItem question="Do I have to download anything?">No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.</FAQItem>
 <FAQItem question="Can we still settle by bank transfer or cash?">Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.</FAQItem>
 <FAQItem question="What is Split not good at?">Anything that needs an account. There is no login, no password recovery and no history that follows you across devices — the link is the key, so if the group loses it, the room is gone.</FAQItem>

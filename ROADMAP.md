@@ -148,8 +148,8 @@ still outstanding** and is the remaining half of the written condition.
   tokens kept off the organizer's device, analytics contract made literally
   identifier-free, join gate given real dialog semantics.
 - **Landing rework** — the room link as the landing-page story, approved copy
-  pass, doodle-native design system, marker testimonial portraits.
-  `feat/pass-the-link-landing` remains open (group-chat handoff section, WIP).
+  pass, doodle-native design system, marker testimonial portraits, and the
+  group-chat handoff shipped from `feat/pass-the-link-landing`.
 
 ## To light up (remaining gates)
 
@@ -341,7 +341,8 @@ the energy and responsiveness of peanut.me: Split should feel playful before
 anyone has made a room, without turning the first fold into another product
 mockup or pushing the real creation form out of reach.
 
-1. **Remove the decorative utility header.** — _status: queued_ — **[Konrad]**
+1. **Remove the decorative utility header.** — _status: implemented on
+   `feat/landing-follow-up` 2026-07-29_ — **[Konrad]**
    Delete the entire `PEANUT SPLIT` / `4 FRIENDS · 1 LINK` strip from the hero.
    Do not replace it with another slogan, navigation bar, or spacer. The
    headline, real room form, and group-chat handoff already identify and explain
@@ -352,8 +353,10 @@ mockup or pushing the real creation form out of reach.
    and primary CTA still fit the agreed desktop and mobile folds; the footer,
    document title, and metadata continue to identify Peanut Split.
 
-2. **Run every UI icon through the doodle engine.** — _status: queued_ —
-   **[Konrad]** Inventory the whole product, not only the landing page. Replace
+2. **Run every UI icon through the doodle engine.** — _status: engine
+   consolidated and source audit added on `feat/landing-follow-up` 2026-07-29;
+   final real-device route sweep pending_ — **[Konrad]** Inventory the whole
+   product, not only the landing page. Replace
    remaining library icons, emoji used as controls, hand-authored one-off SVGs,
    Unicode arrows/checks, and other interface glyphs with named drawings from
    the generated `design/doodles` → `doodles.ts` pipeline. The WhatsApp,
@@ -371,7 +374,8 @@ mockup or pushing the real creation form out of reach.
    catches new emoji, raw icon SVGs, or legacy icon-component imports.
 
 3. **Rewrite “How the link works” and make “free forever” consistent.** —
-   _status: queued_ — **[Konrad]** Rewrite `LinkExplainer` in plain, human
+   _status: implemented with an enforceable copy audit on
+   `feat/landing-follow-up` 2026-07-29_ — **[Konrad]** Rewrite `LinkExplainer` in plain, human
    language: short concrete sentences, one fact at a time, no synthetic
    reassurance, no repeated setup, and no copy shaped like an objection the
    page invented so it could answer it. Remove negative loss framing such as
@@ -395,7 +399,9 @@ mockup or pushing the real creation form out of reach.
    user-facing copy audit pass.
 
 4. **Give the landing page the app's motion, sound, and haptic vocabulary.** —
-   _status: queued_ — **[Konrad]** Start with a motion map rather than sprinkling
+   _status: first motion map and implementation complete on
+   `feat/landing-follow-up` 2026-07-29; peanut.me comparison and real-device feel
+   pass pending_ — **[Konrad]** Start with a motion map rather than sprinkling
    unrelated loops over the page. Choreograph the room-link handoff, people
    joining, channel doodles arriving, proof scenes entering the viewport,
    doodles reacting, button press/squash states, FAQ opening, room examples, and
@@ -417,6 +423,8 @@ mockup or pushing the real creation form out of reach.
    below-fold primary CTA at the supported viewports; Playwright covers the
    reduced-motion and final-state contracts and a real-device pass covers feel
    and performance.
+
+   Implementation map: `docs/landing-motion-map.md`.
 
 ## Deliberately not building
 

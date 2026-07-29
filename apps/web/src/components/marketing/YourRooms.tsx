@@ -8,6 +8,8 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
 import { readRecentRooms, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
+import { useMotionAllowed } from '@/lib/use-motion'
+import { useFeedback } from '@/lib/use-settings'
 
 const VISIBLE = 5
 
@@ -34,6 +36,8 @@ const relativeTime = (epochMs: number, locale: string): string => {
 export function YourRooms() {
     const t = useTranslations('marketing.rooms')
     const locale = useLocale()
+    const motionAllowed = useMotionAllowed()
+    const feedback = useFeedback()
     const [recent, setRecent] = useState<RecentRoom[]>([])
 
     useEffect(() => {
@@ -50,9 +54,10 @@ export function YourRooms() {
         // arrives one frame late. Staggering it in turns that unavoidable pop
         // into something that looks intended.
         <motion.section
-            initial={{ opacity: 0, y: 10 }}
+            initial={motionAllowed ? { opacity: 0, y: 10 } : false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
+            data-motion={motionAllowed ? 'ready' : 'still'}
             className="mx-auto w-full max-w-xl px-5 py-10"
         >
             <div className="flex items-baseline justify-between">
@@ -64,12 +69,22 @@ export function YourRooms() {
                 {visible.map((room, index) => (
                     <motion.li
                         key={room.slug}
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={motionAllowed ? { opacity: 0, y: 8 } : false}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ type: 'spring', stiffness: 340, damping: 30, delay: 0.05 + index * 0.05 }}
+                        transition={
+                            motionAllowed
+                                ? {
+                                      type: 'spring',
+                                      stiffness: 340,
+                                      damping: 30,
+                                      delay: 0.05 + index * 0.05,
+                                  }
+                                : { duration: 0 }
+                        }
                     >
                         <Link
                             href={`/r/${room.slug}`}
+                            onClick={() => feedback('whoosh')}
                             aria-label={`${t('openLabel')}: ${room.name}`}
                             className="shadow-4 flex items-center gap-3 rounded-sm border border-n-1 bg-white p-3 transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
                         >

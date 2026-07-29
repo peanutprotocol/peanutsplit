@@ -12,6 +12,8 @@
         "format": "prettier --write .",
         "test": "vitest run",
         "i18n:audit": "node scripts/i18n-audit.mjs",
+        "marketing-copy:audit": "node scripts/marketing-copy-audit.mjs",
+        "ui-icons:audit": "node scripts/ui-icon-audit.mjs",
         "test:watch": "vitest",
         "e2e": "playwright test",
         "e2e:v2": "playwright test --config playwright.v2.config.ts",

@@ -9,7 +9,7 @@ faqs:
     - question: Should I enter the amount I paid or what it cost me?
       answer: Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.
     - question: Does Split charge for converting currencies?
-      answer: No. Multi-currency rooms are free, and there is no paid tier to upgrade to.
+      answer: No. Multi-currency rooms are free forever, with no paid tier to upgrade to.
 ---
 
 <Hero
@@ -17,7 +17,7 @@ faqs:
   title="Splitting across currencies without losing money in the gap"
   subtitle="Three different rates can apply to the same dinner. Only one of them should end up in the group's maths."
   cta="Start a split"
-  ctaHint="Multi-currency rooms are free. No paid tier." />
+  ctaHint="Multi-currency rooms are free forever. No paid tier." />
 
 Here is a dinner in Bangkok, paid by one person, split four ways.
 
@@ -58,7 +58,7 @@ The only fix is a different card — or being the person who pays in cash.
 
 Groups that share a currency have easier options. The groups that genuinely need a splitter are the ones spread across countries — and charging those groups for the conversion is charging for the only part they came for.
 
-So it is free, and there is no tier above it.
+So it is free forever, and there is no tier above it.
 
 <CTA
   title="Set the currency once, forget about it"
@@ -68,7 +68,7 @@ So it is free, and there is no tier above it.
 <FAQ>
 <FAQItem question="Which exchange rate should the group use?">Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative — a daily reference rate, not your bank's — so treat the totals as exact and the conversion as close enough to split by.</FAQItem>
 <FAQItem question="Should I enter the amount I paid or what it cost me?">Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.</FAQItem>
-<FAQItem question="Does Split charge for converting currencies?">No. Multi-currency rooms are free, and there is no paid tier to upgrade to.</FAQItem>
+<FAQItem question="Does Split charge for converting currencies?">No. Multi-currency rooms are free forever, with no paid tier to upgrade to.</FAQItem>
 </FAQ>
 
 <RelatedPages>

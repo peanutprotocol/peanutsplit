@@ -1,12 +1,12 @@
 ---
 title: Scan a receipt to split a bill by item
-description: Photograph the bill, check the lines it read, tap who had what. Free receipt splitting with no per-scan limit, no premium tier and no account to make first.
+description: Photograph the bill, check the lines it read, tap who had what. Receipt splitting is free forever, with no per-scan limit, premium tier or account to make first.
 date: 2026-07-28
 v2Only: true
 tags: [receipts, dinners]
 faqs:
-    - question: Is receipt scanning free?
-      answer: Yes. There is no scan counter, no premium tier and nothing to upgrade to. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.
+    - question: Is receipt scanning free forever?
+      answer: Yes. Receipt scanning is free forever, with no scan counter, premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.
     - question: Do you keep my receipt photo?
       answer: No. The photo is sent once, read once, and never written down — not the image, not the merchant, not the lines. What is saved is the expense you approve at the end, the same row you would have typed by hand.
     - question: What if it reads a line wrong?
@@ -54,7 +54,7 @@ That is also why scanning is not a login-gated feature dressed up as a premium o
 
 If the "Scan a bill" button is not in your room yet, it has not been switched on for that deployment. Nothing else changes: you can type the items in yourself and assign them exactly the same way, and the expense that comes out the other end is the same one.
 
-## Free, and what "free" means here
+## Free forever, and what that means here
 
 Splitwise puts itemised receipt scanning behind Pro. This does not, and there is no tier to move you onto later — Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.
 
@@ -66,7 +66,7 @@ There is one number worth knowing: a room can scan 30 bills a day. That is a cei
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is receipt scanning free?">Yes. There is no scan counter, no premium tier and nothing to upgrade to. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.</FAQItem>
+<FAQItem question="Is receipt scanning free forever?">Yes. Receipt scanning is free forever, with no scan counter, premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.</FAQItem>
 <FAQItem question="Do you keep my receipt photo?">No. The photo is sent once, read once, and never written down — not the image, not the merchant, not the lines. What is saved is the expense you approve at the end, the same row you would have typed by hand.</FAQItem>
 <FAQItem question="What if it reads a line wrong?">You see every line before anything is saved. Fix the text, fix the amount, delete what is not yours, add what it missed. If the lines do not add up to the printed total, it says so and shows the gap.</FAQItem>
 <FAQItem question="Do I have to scan to split by item?">No. Scanning is a faster way into the same split. You can type the items yourself and assign them the same way, and the expense that lands is identical.</FAQItem>

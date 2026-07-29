@@ -1,15 +1,13 @@
 {
     "marketing": {
         "hero": {
-            "utilityBrand": "PEANUT SPLIT",
-            "utilityTag": "4 FRIENDS · 1 LINK",
             "eyebrow": "NO APP FOR YOUR FRIENDS.",
             "title": "PASS IT",
             "controlTitleAccessible": "PASS IT",
             "titleAccessible": "LINK. SPLIT. DONE.",
             "subtitle": "because better accounting makes better friends",
             "cta": "Make the link",
-            "ctaTrust": "Free · no account needed · nothing to install",
+            "ctaTrust": "Free forever · no account needed · nothing to install",
             "linkExplainerTrigger": "How the link works",
             "chat": {
                 "defaultRoom": "Lisbon weekend",
@@ -182,28 +180,28 @@
             }
         },
         "linkExplainer": {
-            "title": "How the link works",
-            "bearer": {
-                "title": "The link is the key",
-                "body": "There are no accounts, so there is nothing to log into. Anyone holding the link can open the room and add expenses — keep it in the group chat and it stays with the group."
+            "title": "What the room link does",
+            "access": {
+                "title": "Anyone with the link can open the room",
+                "body": "The room is not listed publicly. Share the link only with people who should be in the group."
             },
-            "private": {
-                "title": "Nobody finds it by accident",
-                "body": "Room pages are kept out of search engines and the address ends in a random tail, so it cannot be guessed. It only reaches the people you send it to."
+            "chat": {
+                "title": "The link travels with the group",
+                "body": "Keep it in the group chat so everyone can return to the same room."
             },
-            "lost": {
-                "title": "If everyone loses it, the room is gone",
-                "body": "Rooms you have opened are listed on this page, saved on your device. That is the trade for not asking anyone to make an account."
+            "remembered": {
+                "title": "Opened rooms stay on this device",
+                "body": "Split keeps them in the list on this page so you can return from here."
             },
-            "nothingElse": {
-                "title": "Split never touches your money",
-                "body": "It records who paid what and who owes whom. The payments themselves happen wherever you already make them."
+            "money": {
+                "title": "Split keeps the maths, not the money",
+                "body": "It records who paid and who owes. You settle wherever you already pay."
             },
             "done": "Got it"
         },
         "readMore": {
             "toggle": "STILL CURIOUS?",
-            "toggleHint": "Who made Split, why it’s free, and how room links work.",
+            "toggleHint": "Who made Split, why it’s free forever, and how room links work.",
             "join": {
                 "title": "What your friends see",
                 "roomName": "Ski trip",
@@ -265,13 +263,13 @@
                 }
             },
             "who": {
-                "title": "Who made this, and why it is free",
+                "title": "Who made this, and why it is free forever",
                 "built": {
                     "title": "Peanut built Split",
                     "body": "Peanut is a payments app and a real company with a real product — not a weekend project that disappears."
                 },
                 "free": {
-                    "title": "It is free because it introduces people to Peanut",
+                    "title": "It is free forever because it introduces people to Peanut",
                     "body": "No premium tier, no upsell coming, nothing to buy."
                 },
                 "data": {
