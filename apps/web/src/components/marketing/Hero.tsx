@@ -15,11 +15,7 @@ function CompactHero() {
     return (
         <section className="relative overflow-hidden border-b border-n-1 bg-primary-1">
             <div className="mx-auto w-full max-w-2xl px-5 pb-9 pt-8 lg:py-12">
-                <span className="inline-flex items-center rounded-sm border border-n-1 bg-white px-3 py-1 text-h9 uppercase tracking-wide text-n-1">
-                    {t('eyebrow')}
-                </span>
-
-                <div className="mt-4">
+                <div>
                     {/* Title renders <p>s, which may not live inside an <h1> — the real
                         heading is the visually-hidden one beside it. */}
                     <div aria-hidden="true">

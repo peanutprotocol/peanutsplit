@@ -59,9 +59,7 @@ export function PassTheLinkHero() {
             <div className="pass-link-hero-inner">
                 <div className="pass-link-layout">
                     <div className="pass-link-copy">
-                        <p className="pass-link-kicker">{t('eyebrow')}</p>
                         <h1 data-testid="pass-link-headline">{t('titleAccessible')}</h1>
-                        <p className="pass-link-subtitle">{t('subtitle')}</p>
                     </div>
 
                     <PassTheLinkStage roomName={roomName} state={stageState} />

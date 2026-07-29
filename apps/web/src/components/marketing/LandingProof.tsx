@@ -206,7 +206,6 @@ export function LandingProof() {
                 viewport={{ once: true, amount: 0.2 }}
             >
                 <motion.div className="landing-room-examples-heading" variants={riseVariants}>
-                    <p>{t('examples.eyebrow')}</p>
                     <div className="landing-room-examples-copy">
                         <h2>{t('examples.title')}</h2>
                         <span>{t('examples.body')}</span>
