@@ -415,6 +415,7 @@
             "description": "¿De qué fue?",
             "descriptionPlaceholder": "Cena, taxi, pase de esquí…",
             "fieldsSwapped": "Listo: intercambiamos el importe y la descripción.",
+            "amountNormalised": "Lo leímos como {amount}. Revísalo antes de guardar.",
             "paidBy": "Pagado por",
             "paid": "pagó",
             "paidBySummary": "{name} pagó",
@@ -464,8 +465,10 @@
             "validation": {
                 "DESCRIPTION_REQUIRED": "Ponle un nombre para que todos recuerden qué fue.",
                 "AMOUNT_REQUIRED": "Escribe un monto mayor que cero.",
+                "AMOUNT_INVALID": "Revisa los separadores y decimales del monto.",
                 "PAYER_REQUIRED": "Elige quién pagó.",
                 "NO_PARTICIPANTS": "Elige al menos a una persona para dividir esto.",
+                "SHARE_AMOUNT_INVALID": "Revisa los separadores y decimales de los montos exactos.",
                 "SHARES_DO_NOT_ADD_UP": "Los montos exactos tienen que sumar el total."
             },
             "equallyHint": "Lo mismo para todos",
@@ -494,6 +497,7 @@
             "amountLabel": "¿Cuánto se pagó?",
             "amountHint": "La deuda completa es",
             "amountInvalid": "Ingresa un monto mayor que cero.",
+            "amountFormatInvalid": "Revisa los separadores y decimales del monto.",
             "amountTooHigh": "Es más de lo que debe {name}.",
             "recordedTitle": "Registrado recién",
             "recordedHint": "También quedan en el historial de la sala, junto con todo lo demás."
@@ -559,6 +563,7 @@
             "reviewFromMerchant": "De {merchant}. Corrige lo que haya salido mal y agrega lo que falte.",
             "itemLabel": "Ítem",
             "itemAmount": "Importe del ítem",
+            "amountInvalid": "Revisa los separadores y decimales de cada ítem.",
             "itemPlaceholder": "Ítem",
             "removeItem": "Quitar este ítem",
             "addItem": "Agregar un ítem que falta",
