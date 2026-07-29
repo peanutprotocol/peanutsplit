@@ -455,6 +455,30 @@ export function useModelStatus(slug: string, enabled = true): { enabled: boolean
 
 // ── delight wave ─────────────────────────────────────────────────────────────
 
+/** A room rename is presentation only: update the shared cache immediately and
+ * keep the slug (and therefore every saved room link) exactly as it was. */
+export function useSetRoomName(slug: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (name: string) => api.setRoomName(slug, name),
+        onMutate: async (name) => {
+            await queryClient.cancelQueries({ queryKey: roomKey(slug) })
+            const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
+            if (previous) {
+                queryClient.setQueryData<RoomState>(roomKey(slug), {
+                    ...previous,
+                    room: { ...previous.room, name },
+                })
+            }
+            return { previous }
+        },
+        onError: (_error, _name, context) => {
+            if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
+        },
+        onSuccess: (state) => seed(queryClient, slug, state),
+    })
+}
+
 /**
  * Repainting the room has to be instant: the whole point of a palette is that
  * you flick through them, and a 300ms round trip per swatch turns browsing into

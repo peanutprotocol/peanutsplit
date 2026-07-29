@@ -2,7 +2,6 @@
 import { RoomEmblem } from './RoomEmblem'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
@@ -10,18 +9,20 @@ import { AvatarPicker } from '@/components/room/AvatarPicker'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { ThemePicker } from '@/components/room/ThemePicker'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
+import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { roomProps, track } from '@/lib/analytics'
+import { isApiError } from '@/lib/api'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import { avatarFamily } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
-import { useSetAvatar, useSetTheme } from '@/lib/queries'
+import { useAddMember, useSetAvatar, useSetRoomName, useSetTheme } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { triggerHaptic, useFeedback, useSettings } from '@/lib/use-settings'
 
@@ -93,14 +94,67 @@ export function RoomHeader({ room, members, identity, me, onShare, onForgetIdent
     const tTheme = useTranslations('room.theme')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
+    const addMember = useAddMember(room.slug)
+    const setRoomName = useSetRoomName(room.slug)
     const setTheme = useSetTheme(room.slug)
     const tAvatar = useTranslations('room.avatar')
     const [avatarMemberId, setAvatarMemberId] = useState<string | null>(null)
+    const [roomName, setRoomNameDraft] = useState(room.name)
+    const [roomNameError, setRoomNameError] = useState<string | null>(null)
+    const [personName, setPersonName] = useState('')
+    const [personError, setPersonError] = useState<string | null>(null)
     // Start on the person holding the phone, then remember whoever the table is
     // currently casting. The fallback also covers a member disappearing while
     // this drawer is open.
     const avatarMember = members.find((member) => member.id === avatarMemberId) ?? me ?? members[0] ?? null
     const setAvatar = useSetAvatar(room.slug, avatarMember?.id ?? '')
+
+    const openSettings = () => {
+        setRoomNameDraft(room.name)
+        setRoomNameError(null)
+        setPersonError(null)
+        setMenuOpen(true)
+    }
+
+    const renameRoom = async (event: React.FormEvent) => {
+        event.preventDefault()
+        const name = roomName.trim()
+        if (!name || name === room.name || setRoomName.isPending) return
+        setRoomNameError(null)
+        try {
+            await setRoomName.mutateAsync(name)
+            setRoomNameDraft(name)
+            feedback('pop')
+        } catch (error) {
+            feedback('error', { haptic: 'error' })
+            setRoomNameError(errorMessage(error, t('nameFailed')))
+        }
+    }
+
+    const addPerson = async (event: React.FormEvent) => {
+        event.preventDefault()
+        const name = personName.trim()
+        if (!name || addMember.isPending) return
+        const existing = members.find((member) => member.name.toLowerCase() === name.toLowerCase())
+        if (existing) {
+            setPersonError(t('personDuplicate', { name }))
+            return
+        }
+        setPersonError(null)
+        try {
+            const next = await addMember.mutateAsync({ name })
+            setAvatarMemberId(next.memberId)
+            setPersonName('')
+            feedback('pop')
+        } catch (error) {
+            feedback('error', { haptic: 'error' })
+            if (isApiError(error, 'DUPLICATE_MEMBER_NAME')) {
+                setPersonError(t('personDuplicate', { name }))
+                return
+            }
+            setPersonError(errorMessage(error, t('personFailed')))
+        }
+    }
 
     const chooseAvatar = (avatar: string | null) => {
         if (!avatarMember || avatar === avatarMember.avatar) return
@@ -134,13 +188,15 @@ export function RoomHeader({ room, members, identity, me, onShare, onForgetIdent
         // this variable existed.
         <header className="sticky top-0 z-10 border-b border-n-1 bg-[var(--split-theme-field,#FFC900)]">
             <div className="flex items-center gap-3 px-4 py-3">
-                <Link
-                    href="/"
-                    aria-label={t('allRooms')}
+                <button
+                    type="button"
+                    onClick={openSettings}
+                    aria-label={t('openSettings')}
+                    data-testid="open-room-settings"
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
                 >
                     <RoomEmblem value={room.emoji} size={26} />
-                </Link>
+                </button>
 
                 <div className="min-w-0 flex-1">
                     <h1 className="truncate text-h6">{room.name}</h1>
@@ -150,7 +206,10 @@ export function RoomHeader({ room, members, identity, me, onShare, onForgetIdent
                     {me ? (
                         <button
                             type="button"
-                            onClick={() => setMenuOpen(true)}
+                            onClick={() => {
+                                setAvatarMemberId(me.id)
+                                openSettings()
+                            }}
                             aria-label={tAvatar('open')}
                             data-testid="open-avatar"
                             className="-my-0.5 flex items-center gap-1.5 py-0.5"
@@ -177,144 +236,230 @@ export function RoomHeader({ room, members, identity, me, onShare, onForgetIdent
                 >
                     <Icon name="share" size={18} />
                 </button>
-
-                <button
-                    type="button"
-                    onClick={() => setMenuOpen(true)}
-                    aria-label={t('roomMenu')}
-                    className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white transition-transform active:translate-y-[2px]"
-                >
-                    <Icon name="settings" size={18} />
-                </button>
             </div>
 
             <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
-                <DrawerContent className={drawerContentClass}>
+                <DrawerContent className={drawerContentClass} data-testid="room-settings">
                     <DrawerHeader className={drawerHeaderClass}>
-                        <DrawerTitle className="text-h5">{room.name}</DrawerTitle>
+                        <DrawerTitle className="text-h5">{t('settingsTitle')}</DrawerTitle>
                     </DrawerHeader>
                     <DrawerBody>
-                        <Button
-                            variant="stroke"
-                            className="justify-center"
-                            icon="link"
-                            onClick={() => {
-                                setMenuOpen(false)
-                                onShare()
-                            }}
+                        <section
+                            className="shadow-4 shrink-0 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                            data-testid="room-settings-room-section"
                         >
-                            {t('shareTheRoomLink')}
-                        </Button>
-                        {/* A cast, not a profile editor. The room chooses a member,
-                            then flicks through their alter egos together. This is
-                            intentionally as permissive as the shared roster. */}
-                        {avatarMember && (
-                            <section className="flex flex-col gap-3">
-                                <div>
-                                    <span className="text-h8 uppercase tracking-wide text-grey-1">
-                                        {tAvatar('castTitle')}
-                                    </span>
-                                    <p className="mt-1 text-sm text-grey-1">{tAvatar('castHint')}</p>
+                            <div className="border-b border-dashed border-grey-1 px-3 py-3">
+                                <h2 className="text-h7">{t('roomSection')}</h2>
+                                <p className="mt-1 text-sm text-grey-1">{t('roomSectionHint')}</p>
+                            </div>
+                            <div className="flex flex-col gap-4 p-3">
+                                <form onSubmit={renameRoom} className="flex flex-col gap-2">
+                                    <label htmlFor="room-display-name" className="text-h8">
+                                        {t('displayName')}
+                                    </label>
+                                    <BaseInput
+                                        id="room-display-name"
+                                        value={roomName}
+                                        onChange={(event) => {
+                                            setRoomNameDraft(event.target.value)
+                                            setRoomNameError(null)
+                                        }}
+                                        maxLength={80}
+                                        aria-invalid={roomNameError ? true : undefined}
+                                        data-testid="room-display-name"
+                                    />
+                                    <p className="text-sm text-grey-1">{t('displayNameHint')}</p>
+                                    {roomNameError && (
+                                        <p role="alert" className="text-sm font-bold text-error">
+                                            {roomNameError}
+                                        </p>
+                                    )}
+                                    <Button
+                                        type="submit"
+                                        size="medium"
+                                        disabled={!roomName.trim() || roomName.trim() === room.name}
+                                        loading={setRoomName.isPending}
+                                        className="justify-center"
+                                        data-testid="save-room-name"
+                                    >
+                                        {t('saveName')}
+                                    </Button>
+                                </form>
+
+                                <div className="border-t border-dashed border-grey-1 pt-4">
+                                    <p className="text-h8">{t('roomLink')}</p>
+                                    <p className="mt-1 break-all font-mono text-sm text-grey-1">{`/r/${room.slug}`}</p>
+                                    <p className="mt-1 text-sm text-grey-1">{t('roomLinkHint')}</p>
+                                    <Button
+                                        variant="stroke"
+                                        size="medium"
+                                        className="mt-3 justify-center"
+                                        icon="link"
+                                        onClick={() => {
+                                            setMenuOpen(false)
+                                            onShare()
+                                        }}
+                                    >
+                                        {t('shareTheRoomLink')}
+                                    </Button>
                                 </div>
-                                <div
-                                    className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
-                                    aria-label={tAvatar('chooseMember')}
-                                >
+
+                                <div className="border-t border-dashed border-grey-1 pt-4">
+                                    <ThemePicker
+                                        value={room.theme}
+                                        onChange={chooseTheme}
+                                        disabled={setTheme.isPending}
+                                    />
+                                </div>
+                            </div>
+                        </section>
+
+                        <section
+                            className="shadow-4 shrink-0 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                            data-testid="room-settings-people-section"
+                        >
+                            <div className="border-b border-dashed border-grey-1 px-3 py-3">
+                                <h2 className="text-h7">{t('peopleSection')}</h2>
+                                <p className="mt-1 text-sm text-grey-1">{t('peopleSectionHint')}</p>
+                            </div>
+                            <div className="flex flex-col gap-4 p-3">
+                                <ul className="flex flex-wrap gap-2" data-testid="room-settings-roster">
                                     {members.map((member) => (
-                                        <button
+                                        <li
                                             key={member.id}
-                                            type="button"
-                                            aria-pressed={member.id === avatarMember.id}
-                                            onClick={() => setAvatarMemberId(member.id)}
-                                            data-testid="avatar-member"
-                                            data-member={member.name}
-                                            className={cn(
-                                                'flex shrink-0 items-center gap-2 rounded-sm border border-n-1 px-2.5 py-2 text-sm font-bold transition-transform active:translate-y-px',
-                                                member.id === avatarMember.id ? 'shadow-4 bg-primary-1' : 'bg-white'
-                                            )}
+                                            className="flex items-center gap-2 rounded-sm border border-n-1 bg-white py-1 pl-1 pr-3"
                                         >
-                                            <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
-                                            {member.name}
-                                        </button>
+                                            <MemberAvatar name={member.name} avatar={member.avatar} size={24} />
+                                            <span className="max-w-[10rem] truncate text-sm">{member.name}</span>
+                                        </li>
                                     ))}
-                                </div>
-                                <AvatarPicker
-                                    name={avatarMember.name}
-                                    value={avatarMember.avatar}
-                                    onChange={chooseAvatar}
-                                    disabled={setAvatar.isPending}
+                                </ul>
+
+                                <form onSubmit={addPerson} className="flex items-start gap-2">
+                                    <BaseInput
+                                        variant="sm"
+                                        value={personName}
+                                        onChange={(event) => {
+                                            setPersonName(event.target.value)
+                                            setPersonError(null)
+                                        }}
+                                        placeholder={t('personNamePlaceholder')}
+                                        maxLength={80}
+                                        aria-label={t('personNamePlaceholder')}
+                                        data-testid="settings-person-name"
+                                    />
+                                    <Button
+                                        type="submit"
+                                        variant="stroke"
+                                        size="medium"
+                                        icon="plus"
+                                        disabled={!personName.trim()}
+                                        loading={addMember.isPending}
+                                        className="w-auto shrink-0 justify-center"
+                                        data-testid="settings-add-person"
+                                    >
+                                        {t('addPerson')}
+                                    </Button>
+                                </form>
+                                {personError && (
+                                    <p role="alert" className="text-sm font-bold text-error">
+                                        {personError}
+                                    </p>
+                                )}
+
+                                {/* A cast, not a profile editor. The room chooses a member,
+                                    then flicks through their alter egos together. */}
+                                {avatarMember && (
+                                    <div className="flex flex-col gap-3 border-t border-dashed border-grey-1 pt-4">
+                                        <div>
+                                            <span className="text-h8 uppercase tracking-wide text-grey-1">
+                                                {tAvatar('castTitle')}
+                                            </span>
+                                            <p className="mt-1 text-sm text-grey-1">{tAvatar('castHint')}</p>
+                                        </div>
+                                        <div
+                                            className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+                                            aria-label={tAvatar('chooseMember')}
+                                        >
+                                            {members.map((member) => (
+                                                <button
+                                                    key={member.id}
+                                                    type="button"
+                                                    aria-pressed={member.id === avatarMember.id}
+                                                    onClick={() => setAvatarMemberId(member.id)}
+                                                    data-testid="avatar-member"
+                                                    data-member={member.name}
+                                                    className={cn(
+                                                        'flex shrink-0 items-center gap-2 rounded-sm border border-n-1 px-2.5 py-2 text-sm font-bold transition-transform active:translate-y-px',
+                                                        member.id === avatarMember.id
+                                                            ? 'shadow-4 bg-primary-1'
+                                                            : 'bg-white'
+                                                    )}
+                                                >
+                                                    <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
+                                                    {member.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <AvatarPicker
+                                            name={avatarMember.name}
+                                            value={avatarMember.avatar}
+                                            onChange={chooseAvatar}
+                                            disabled={setAvatar.isPending}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
+                        <section className="flex shrink-0 flex-col gap-3" data-testid="room-settings-device-section">
+                            <div>
+                                <h2 className="text-h7">{t('deviceSection')}</h2>
+                                <p className="mt-1 text-sm text-grey-1">{t('deviceSectionHint')}</p>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('feedback')}</span>
+                                <SettingToggle
+                                    label={t('sound')}
+                                    hint={t('soundHint')}
+                                    testId="setting-sound"
+                                    checked={settings.soundEnabled}
+                                    onChange={setSoundEnabled}
                                 />
-                            </section>
-                        )}
-
-                        <div className="flex flex-col gap-2">
-                            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('feedback')}</span>
-                            <SettingToggle
-                                label={t('sound')}
-                                hint={t('soundHint')}
-                                testId="setting-sound"
-                                checked={settings.soundEnabled}
-                                onChange={setSoundEnabled}
-                            />
-                            <SettingToggle
-                                label={t('haptics')}
-                                hint={t('hapticsHint')}
-                                testId="setting-haptics"
-                                checked={settings.hapticsEnabled}
-                                onChange={(next) => {
-                                    setHapticsEnabled(next)
-                                    // Confirm in the medium being switched on. Fired
-                                    // directly rather than through `useFeedback`, whose
-                                    // gate still holds the pre-toggle value this render.
-                                    if (next) triggerHaptic(16)
-                                }}
-                            />
-                            <SettingToggle
-                                label={tSettings('animations.title')}
-                                hint={tSettings('animations.description')}
-                                testId="setting-animations"
-                                checked={settings.animationsEnabled}
-                                onChange={setAnimationsEnabled}
-                            />
-                        </div>
-
-                        {/* The palette is a property of the ROOM, not of this device —
-                            unlike everything above it in this drawer. It sits here anyway
-                            because this is where a room's own settings live, and the copy
-                            says who else sees it. */}
-                        <ThemePicker value={room.theme} onChange={chooseTheme} disabled={setTheme.isPending} />
-
-                        {/* Per room and per device, which is why it lives in the room's own
-                            drawer rather than anywhere global. Renders nothing on a browser
-                            that cannot do push at all. */}
-                        <PushOptIn slug={room.slug} identity={identity} />
-
-                        {/* The room drawer is the only place a language can be changed inside
-                            the product — the landing footer is the other, and a room is where
-                            someone actually notices they are reading the wrong one. */}
-                        <LocaleSwitcher label={tLocale('label')} />
-
-                        {/* Last, under everything.
-                            This drops the identity this device is holding — the single
-                            most destructive thing in the drawer — and it used to sit
-                            second from the top, one row under "share the link", where a
-                            thumb reaching for share finds it. It is also not a setting:
-                            it answers a question ("someone else is using this phone?")
-                            that occurs to about one person in a hundred, so it belongs
-                            where you look when nothing above it was what you wanted. */}
-                        {identity && (
-                            <Button
-                                variant="stroke"
-                                className="justify-center"
-                                icon="users"
-                                onClick={() => {
-                                    setMenuOpen(false)
-                                    onForgetIdentity()
-                                }}
-                            >
-                                {t('notMe')}
-                            </Button>
-                        )}
+                                <SettingToggle
+                                    label={t('haptics')}
+                                    hint={t('hapticsHint')}
+                                    testId="setting-haptics"
+                                    checked={settings.hapticsEnabled}
+                                    onChange={(next) => {
+                                        setHapticsEnabled(next)
+                                        if (next) triggerHaptic(16)
+                                    }}
+                                />
+                                <SettingToggle
+                                    label={tSettings('animations.title')}
+                                    hint={tSettings('animations.description')}
+                                    testId="setting-animations"
+                                    checked={settings.animationsEnabled}
+                                    onChange={setAnimationsEnabled}
+                                />
+                            </div>
+                            <PushOptIn slug={room.slug} identity={identity} />
+                            <LocaleSwitcher label={tLocale('label')} />
+                            {identity && (
+                                <Button
+                                    variant="stroke"
+                                    className="justify-center"
+                                    icon="users"
+                                    onClick={() => {
+                                        setMenuOpen(false)
+                                        onForgetIdentity()
+                                    }}
+                                >
+                                    {t('notMe')}
+                                </Button>
+                            )}
+                        </section>
 
                         <p className="text-center text-sm text-grey-1">{t('privacyNote')}</p>
                     </DrawerBody>

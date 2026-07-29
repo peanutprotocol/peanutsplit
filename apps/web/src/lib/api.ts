@@ -242,8 +242,12 @@ export const api = {
     parseExpenseText: (slug: string, input: NlParseInput) =>
         request<NlParseResult>(`/api/rooms/${encode(slug)}/parse-expense`, { method: 'POST', body: input }),
 
-    /** The room's palette. No token: the slug is the credential, same as every
-     *  other room write — see the route for why. */
+    /** Room presentation. No token: the slug is the credential, same as every
+     *  other room write — see the route for why. The display name changes
+     *  without changing that slug. */
+    setRoomName: (slug: string, name: string) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { name } }),
+
     setTheme: (slug: string, theme: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { theme } }),
 
