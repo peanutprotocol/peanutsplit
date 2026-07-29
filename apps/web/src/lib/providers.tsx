@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'motion/react'
 import { useLocale } from 'next-intl'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from 'sonner'
@@ -12,7 +13,7 @@ import { ensureDeviceId } from './identity'
 import { writeLocaleCookie } from './locale-cookie'
 import { useOfflineQueueRunner } from './queries'
 import { TOAST_MS } from './toasts'
-import { useAnimationPreferenceClass } from './use-motion'
+import { useAnimationPreferenceClass, useMotionAllowed } from './use-motion'
 
 /** The offline queue's engine, mounted once. A component only because it needs
  *  to be inside the QueryClientProvider — it renders nothing. */
@@ -28,6 +29,7 @@ function OfflineQueueRunner() {
  */
 export function Providers({ children }: { children: React.ReactNode }) {
     const locale = useLocale()
+    const motionAllowed = useMotionAllowed()
     const [queryClient] = useState(
         () =>
             new QueryClient({
@@ -64,21 +66,27 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }, [locale])
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <NuqsAdapter>
-                {children}
-                <OfflineQueueRunner />
-                <PushNavigation />
-                <Toaster
-                    position="top-center"
-                    // The floor, not the rule: anything that asks for an action
-                    // passes its own duration from TOAST_MS at the call site.
-                    duration={TOAST_MS.default}
-                    toastOptions={{
-                        className: 'rounded-sm border border-n-1 bg-white text-n-1 font-sans',
-                    }}
-                />
-            </NuqsAdapter>
-        </QueryClientProvider>
+        // The root policy catches every motion/react surface, including a new
+        // component that forgets to call `useMotionAllowed()` itself. Explicit
+        // component guards still prevent hidden first frames; this is the
+        // accessibility backstop and the in-app quiet-mode switch.
+        <MotionConfig reducedMotion={motionAllowed ? 'never' : 'always'}>
+            <QueryClientProvider client={queryClient}>
+                <NuqsAdapter>
+                    {children}
+                    <OfflineQueueRunner />
+                    <PushNavigation />
+                    <Toaster
+                        position="top-center"
+                        // The floor, not the rule: anything that asks for an action
+                        // passes its own duration from TOAST_MS at the call site.
+                        duration={TOAST_MS.default}
+                        toastOptions={{
+                            className: 'rounded-sm border border-n-1 bg-white text-n-1 font-sans',
+                        }}
+                    />
+                </NuqsAdapter>
+            </QueryClientProvider>
+        </MotionConfig>
     )
 }

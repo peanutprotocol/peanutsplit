@@ -168,8 +168,8 @@ export const marketingCopy = {
                     v2Only: true,
                 },
                 {
-                    q: 'What happens if we lose the link?',
-                    a: 'Rooms you have opened are saved on your device and listed on the home page. If nobody in the group still has the link, the room is gone — that is the trade for not having accounts.',
+                    q: 'How do we get back to a room?',
+                    a: 'Keep the link in the group chat so everyone can find it there. Split also saves opened rooms on this device, and you can paste a room link on the home page to add it back.',
                 },
                 {
                     q: 'Does it work on my phone?',

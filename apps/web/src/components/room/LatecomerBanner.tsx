@@ -12,6 +12,7 @@ import type { RoomState } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
 import { dismiss, dismissedMemberIds, latecomerOffer, runBackfill, type LatecomerOffer } from '@/lib/latecomer'
 import { roomKey, useUpdateExpense } from '@/lib/queries'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -43,6 +44,7 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
     const t = useTranslations('room.latecomer')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
     const queryClient = useQueryClient()
     const updateExpense = useUpdateExpense(slug, token)
 
@@ -128,9 +130,10 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
 
     return (
         <motion.section
-            initial={{ opacity: 0, y: -8 }}
+            initial={motionAllowed ? { opacity: 0, y: -8 } : false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
+            data-motion-surface
             data-testid="latecomer-banner"
             className="mx-4 flex flex-col gap-3 rounded-sm border border-n-1 bg-primary-3 p-4"
         >

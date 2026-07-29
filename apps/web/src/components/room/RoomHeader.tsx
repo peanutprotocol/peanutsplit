@@ -24,6 +24,7 @@ import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { useAddMember, useSetAvatar, useSetRoomName, useSetTheme } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { triggerHaptic, useFeedback, useSettings } from '@/lib/use-settings'
 
 interface RoomHeaderProps {
@@ -61,6 +62,8 @@ function SettingToggle({
      */
     testId: string
 }) {
+    const motionAllowed = useMotionAllowed()
+
     return (
         <button
             type="button"
@@ -76,7 +79,8 @@ function SettingToggle({
             </span>
             <motion.span
                 animate={{ backgroundColor: checked ? '#FFC900' : '#FFFFFF' }}
-                transition={{ duration: 0.15 }}
+                transition={motionAllowed ? { duration: 0.15 } : { duration: 0 }}
+                data-motion-surface
                 className="flex size-6 shrink-0 items-center justify-center rounded-sm border border-n-1"
             >
                 {checked && <Icon name="check" size={16} />}

@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es.json'
@@ -31,8 +32,28 @@ type LandingMessages = {
             money: { title: string }
             done: string
         }
+        rooms: {
+            title: string
+            openLabel: string
+            more: string
+            less: string
+            forgotten: string
+            recovery: {
+                title: string
+                invalid: string
+                notFound: string
+                added: string
+            }
+        }
+        footer: {
+            createSplit: string
+            logoLinkLabel: string
+        }
         readMore: {
             toggle: string
+            faq: {
+                lost: { q: string; a: string }
+            }
             features: {
                 title: string
                 currency: { title: string }
@@ -56,6 +77,7 @@ const catalogs: Record<Locale, LandingMessages> = {
 const viewports = [
     { width: 320, height: 740 },
     { width: 360, height: 740 },
+    { width: 390, height: 720 },
     { width: 390, height: 844 },
     { width: 768, height: 1024 },
     { width: 1440, height: 900 },
@@ -290,7 +312,7 @@ test.describe('Pass-the-link default', () => {
             await expectNoOverlap(headline, form)
 
             if (
-                (viewport.width === 360 && viewport.height === 740) ||
+                (viewport.width === 390 && [720, 844].includes(viewport.height)) ||
                 (viewport.width === 1440 && viewport.height === 900)
             ) {
                 for (const [label, locator] of [
@@ -435,6 +457,10 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('landing-proof')).toHaveAttribute('data-motion', 'still')
         await expect(page.getByTestId('read-more')).toHaveAttribute('data-motion', 'still')
         await expect(page.getByTestId('final-cta')).toHaveAttribute('data-motion', 'still')
+        const firstFold = page.getByTestId('read-more').locator('details').first()
+        await firstFold.locator('summary').click()
+        await expect(firstFold).toHaveAttribute('open', '')
+        await expect(firstFold.locator('summary')).toHaveCSS('transition-duration', '0s')
         expect(
             await page.locator('main').evaluate((element) =>
                 element
@@ -443,6 +469,28 @@ test.describe('Pass-the-link default', () => {
                     .map((animation) => animation.animationName)
             )
         ).toEqual([])
+    })
+
+    test('reduced-motion CSS keeps server-rendered landing and creation surfaces visible without JavaScript', async ({
+        browser,
+    }, testInfo) => {
+        const baseURL = testInfo.project.use.baseURL
+        if (typeof baseURL !== 'string') throw new Error('Playwright baseURL is required')
+        const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' })
+        const noJs = await context.newPage()
+
+        await noJs.goto(new URL('/', baseURL).href)
+        await expect(noJs.getByTestId('proof-link-identity')).toBeVisible()
+        await expect(noJs.getByTestId('proof-link-identity')).toHaveCSS('opacity', '1')
+        await expect(noJs.getByTestId('proof-link-identity')).toHaveCSS('transform', 'none')
+
+        await noJs.goto(new URL('/new', baseURL).href)
+        const creationSurface = noJs.locator('[data-motion-surface]').first()
+        await expect(noJs.getByTestId('room-composer')).toBeVisible()
+        await expect(creationSurface).toHaveCSS('opacity', '1')
+        await expect(creationSurface).toHaveCSS('transform', 'none')
+
+        await context.close()
     })
 
     test('in-app quiet settings keep the landing usable without motion, sound, or vibration', async ({ page }) => {
@@ -574,6 +622,22 @@ test.describe('Pass-the-link default', () => {
             await expect(page.getByTestId('proof-link-identity')).toContainText(messages.proof.linkIdentity.title)
             await expect(page.getByTestId('proof-everyone-adds')).toContainText(messages.proof.everyoneAdds.title)
             await expect(page.getByTestId('proof-suggested-plan')).toContainText(messages.proof.suggestedPlan.title)
+
+            const returnFold = page.locator('details').filter({
+                has: page.getByText(messages.readMore.faq.lost.q, { exact: true }),
+            })
+            await expect(returnFold).toHaveCount(1)
+            await returnFold.locator('summary').focus()
+            await page.keyboard.press('Enter')
+            await expect(returnFold).toHaveAttribute('open', '')
+            await expect(returnFold).toContainText(messages.readMore.faq.lost.a)
+
+            const footer = page.locator('footer')
+            await expect(footer.getByRole('link', { name: messages.footer.createSplit })).toHaveAttribute(
+                'href',
+                '/new'
+            )
+            await expect(footer.getByRole('link', { name: messages.footer.logoLinkLabel })).toBeVisible()
         })
     }
 
@@ -605,6 +669,369 @@ test.describe('Pass-the-link default', () => {
             await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
         ).toBe(true)
     })
+})
+
+test('every retained room is reachable and can be forgotten only on this device', async ({ page }) => {
+    const rooms = [
+        ['room-one-abc123', 'Room one'],
+        ['room-two-def456', 'Room two'],
+        ['room-three-ghj789', 'Room three'],
+        ['room-four-jkm234', 'Room four'],
+        ['room-five-npq567', 'Room five'],
+        ['room-six-rst890', 'Room six'],
+        ['room-seven-vwx345', 'Room seven'],
+    ].map(([slug, name], index) => ({
+        slug,
+        name,
+        emoji: 'peanut',
+        lastSeenAt: Date.now() - index * 1_000,
+    }))
+    await page.addInitScript((seed) => {
+        window.localStorage.setItem('ps:recent', JSON.stringify(seed))
+    }, rooms)
+    await openLanding(page)
+
+    const list = page.locator('#recent-room-list')
+    await expect(list.getByRole('link')).toHaveCount(5)
+    const more = page.getByTestId('more-rooms')
+    await expect(more).toHaveAttribute('aria-expanded', 'false')
+    await more.click()
+    await expect(more).toHaveAttribute('aria-expanded', 'true')
+    await expect(list.getByRole('link')).toHaveCount(7)
+    await expect(page.getByRole('link', { name: 'Open room: Room seven' })).toHaveAttribute(
+        'href',
+        '/r/room-seven-vwx345'
+    )
+
+    await page.locator('[data-testid="forget-room"][data-room="room-seven-vwx345"]').click()
+    await expect(list.getByRole('link')).toHaveCount(6)
+    await expect(page.getByTestId('recent-room-notice')).toContainText('shared room still works')
+    expect(
+        await page.evaluate(() =>
+            JSON.parse(window.localStorage.getItem('ps:recent') ?? '[]').some(
+                (room: { slug: string }) => room.slug === 'room-seven-vwx345'
+            )
+        )
+    ).toBe(false)
+
+    await more.click()
+    await expect(more).toHaveAttribute('aria-expanded', 'false')
+    await expect(list.getByRole('link')).toHaveCount(5)
+})
+
+test('pasting a valid room link verifies and saves it while invalid links leave no credential behind', async ({
+    page,
+}) => {
+    const requested: string[] = []
+    await page.route('**/api/rooms/*', async (route) => {
+        const path = new URL(route.request().url()).pathname
+        requested.push(path)
+        if (path.endsWith('/recovered-room-abc123')) {
+            // A real verification is asynchronous. Holding the 200 briefly lets
+            // the test prove that neither persistence nor navigation happens
+            // merely because the pasted string looked like a room URL.
+            await new Promise((resolve) => setTimeout(resolve, 250))
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    room: {
+                        id: 'room-recovered',
+                        slug: 'recovered-room-abc123',
+                        name: 'Recovered room',
+                        emoji: 'peanut',
+                        currency: 'EUR',
+                        coverUrl: null,
+                        theme: 'mint',
+                        createdAt: new Date().toISOString(),
+                        archivedAt: null,
+                    },
+                    members: [],
+                    expenses: [],
+                    settlements: [],
+                    balances: {},
+                    suggestedTransfers: [],
+                }),
+            })
+            return
+        }
+        await route.fulfill({
+            status: 404,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'room not found' } }),
+        })
+    })
+    await openLanding(page)
+
+    const recovery = page.getByTestId('room-link-recovery')
+    await recovery.locator('summary').click()
+    const input = page.getByTestId('recover-room-input')
+    const submit = page.getByTestId('recover-room-submit')
+
+    await input.fill('https://example.com/r/recovered-room-abc123')
+    await submit.click()
+    await expect(recovery.getByRole('alert')).toHaveText(catalogs.en.marketing.rooms.recovery.invalid)
+    expect(requested).toEqual([])
+    expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
+
+    await input.fill('https://peanutsplit.com/r/missing-room-def456')
+    await submit.click()
+    await expect(recovery.getByRole('alert')).toHaveText(catalogs.en.marketing.rooms.recovery.notFound)
+    expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
+
+    await input.fill('peanutsplit.com/r/recovered-room-abc123?from=group-chat#split')
+    await submit.click()
+    await expect.poll(() => requested.includes('/api/rooms/recovered-room-abc123')).toBe(true)
+    await expect(page).not.toHaveURL(/\/r\/recovered-room-abc123$/)
+    expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
+    await expect(page).toHaveURL(/\/r\/recovered-room-abc123$/)
+    expect(requested[0]).toBe('/api/rooms/missing-room-def456')
+    expect(requested.filter((path) => path === '/api/rooms/recovered-room-abc123').length).toBeGreaterThanOrEqual(1)
+    expect(
+        await page.evaluate(() =>
+            JSON.parse(window.localStorage.getItem('ps:recent') ?? '[]').map((room: { slug: string }) => room.slug)
+        )
+    ).toEqual(['recovered-room-abc123'])
+})
+
+test('a verified pasted link still opens when localStorage is denied and says it was not saved', async ({ page }) => {
+    await page.addInitScript(() => {
+        const nativeSetItem = Storage.prototype.setItem
+        Storage.prototype.setItem = function (key: string, value: string) {
+            if (key === 'ps:recent') throw new DOMException('storage denied', 'SecurityError')
+            return nativeSetItem.call(this, key, value)
+        }
+    })
+    await page.route('**/api/rooms/recovered-room-abc123', async (route) => {
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                room: {
+                    id: 'room-recovered',
+                    slug: 'recovered-room-abc123',
+                    name: 'Recovered room',
+                    emoji: 'peanut',
+                    currency: 'EUR',
+                    coverUrl: null,
+                    theme: 'mint',
+                    createdAt: new Date().toISOString(),
+                    archivedAt: null,
+                },
+                members: [],
+                expenses: [],
+                settlements: [],
+                balances: {},
+                suggestedTransfers: [],
+            }),
+        })
+    })
+    await openLanding(page)
+
+    const recovery = page.getByTestId('room-link-recovery')
+    await recovery.locator('summary').click()
+    await page.getByTestId('recover-room-input').fill('https://peanutsplit.com/r/recovered-room-abc123')
+    await page.getByTestId('recover-room-submit').click()
+
+    await expect(page).toHaveURL(/\/r\/recovered-room-abc123$/)
+    await expect(
+        page.getByText(catalogs.en.marketing.rooms.recovery.openingUnsaved.replace('{room}', 'Recovered room'), {
+            exact: true,
+        })
+    ).toBeVisible()
+    expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
+})
+
+test('the room handoff shares a localized message, the link, and the room drawing', async ({ page }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async (payload: ShareData) => {
+                ;(window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload = payload
+            },
+        })
+        Object.defineProperty(navigator, 'canShare', {
+            configurable: true,
+            value: () => {
+                throw new DOMException('file sharing probe rejected', 'NotAllowedError')
+            },
+        })
+    })
+    await page.goto('/new')
+    const roomName = `Share package ${Date.now()}`
+    await page.getByTestId('room-name').fill(roomName)
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('room-share-doodle')).toBeVisible()
+    await page.getByTestId('share-link').click()
+    await expect
+        .poll(() => page.evaluate(() => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload))
+        .toMatchObject({
+            title: `${roomName} · Peanut Split`,
+            text: 'Open the link, pick your name, then add what you paid.',
+        })
+    const payload = await page.evaluate(
+        () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
+    )
+    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[0-9a-hjkmnp-tv-z]{6}$/)
+    await expect(page.getByTestId('copy-link')).toBeVisible()
+    await expect(page.getByTestId('download-share-card')).toBeVisible()
+    await expect(page.getByTestId('download-share-text')).toBeVisible()
+
+    await page.evaluate(() => {
+        const downloadUrls = { created: [] as string[], revoked: [] as string[] }
+        const originalCreateObjectURL = URL.createObjectURL.bind(URL)
+        const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL)
+        ;(window as Window & { __downloadUrls?: typeof downloadUrls }).__downloadUrls = downloadUrls
+        URL.createObjectURL = (object: Blob | MediaSource) => {
+            const objectUrl = originalCreateObjectURL(object)
+            downloadUrls.created.push(objectUrl)
+            return objectUrl
+        }
+        URL.revokeObjectURL = (objectUrl: string) => {
+            downloadUrls.revoked.push(objectUrl)
+            originalRevokeObjectURL(objectUrl)
+        }
+    })
+
+    const [cardDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('download-share-card').click(),
+    ])
+    expect(cardDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.svg$/)
+    const cardPath = await cardDownload.path()
+    expect(cardPath).not.toBeNull()
+    const cardContents = await readFile(cardPath!, 'utf8')
+    expect(cardContents).toContain('<svg')
+    expect(cardContents).toContain('Share')
+    expect(cardContents).toContain('package')
+    expect(cardContents).not.toContain('/r/')
+    expect(cardContents).not.toContain('Ana')
+
+    const [textDownload] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('download-share-text').click(),
+    ])
+    expect(textDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.txt$/)
+    const textPath = await textDownload.path()
+    expect(textPath).not.toBeNull()
+    const textContents = await readFile(textPath!, 'utf8')
+    expect(textContents).toBe(`Open the link, pick your name, then add what you paid.\n${payload?.url}`)
+    await expect(page.locator('a[download]')).toHaveCount(0)
+    await expect
+        .poll(
+            () =>
+                page.evaluate(() => {
+                    const urls = (
+                        window as Window & {
+                            __downloadUrls?: { created: string[]; revoked: string[] }
+                        }
+                    ).__downloadUrls
+                    return {
+                        created: urls?.created.length ?? 0,
+                        allRevoked: urls?.created.every((url) => urls.revoked.includes(url)) ?? false,
+                    }
+                }),
+            { timeout: 3_000 }
+        )
+        .toEqual({ created: 2, allRevoked: true })
+
+    await page.evaluate(() => {
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async () => {
+                throw new DOMException('share failed', 'NotAllowedError')
+            },
+        })
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: {
+                writeText: async () => {
+                    throw new DOMException('clipboard failed', 'NotAllowedError')
+                },
+            },
+        })
+    })
+    await page.getByTestId('share-link').click()
+    await expect(page.getByTestId('share-status')).toHaveText(catalogs.en.room.link.shareFailed)
+
+    // Removing Web Share cannot remove the independent copy/download package.
+    // The rejected clipboard path re-renders the component and reveals the
+    // selected manual-copy fallback.
+    await page.evaluate(() => {
+        Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
+    })
+    await page.getByTestId('copy-link').click()
+    const manualInvite = page.getByTestId('room-link-input')
+    await expect(manualInvite).toBeFocused()
+    await expect(manualInvite).toHaveValue(
+        new RegExp(`^Open the link, pick your name, then add what you paid\\.\\nhttp://localhost:\\d+/r/share-package-`)
+    )
+    await expect(page.getByTestId('download-share-card')).toBeVisible()
+    await expect(page.getByTestId('download-share-text')).toBeVisible()
+})
+
+test('the downloaded room drawing keeps a maximum-width title clear of its doodle', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('W'.repeat(80))
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('download-share-card').click(),
+    ])
+    const downloadPath = await download.path()
+    expect(downloadPath).not.toBeNull()
+    const svgMarkup = await readFile(downloadPath!, 'utf8')
+
+    const geometry = await page.evaluate(async (markup) => {
+        const host = document.createElement('div')
+        host.style.cssText = 'position:absolute;left:-5000px;top:0;width:1200px;height:630px;opacity:0'
+        host.innerHTML = markup
+        document.body.append(host)
+        await document.fonts.ready
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+        const svg = host.querySelector('svg')
+        const titleElements = [...(svg?.querySelectorAll<SVGGraphicsElement>('text[font-size="72"]') ?? [])]
+        const doodleElement = svg?.querySelector<SVGGraphicsElement>('g')
+        if (!svg || !doodleElement) throw new Error('share SVG geometry is incomplete')
+
+        const transformedBox = (element: SVGGraphicsElement) => {
+            const box = element.getBBox()
+            const matrix = element.getCTM()
+            if (!matrix) throw new Error('share SVG has no transform matrix')
+            const points = [
+                new DOMPoint(box.x, box.y),
+                new DOMPoint(box.x + box.width, box.y),
+                new DOMPoint(box.x, box.y + box.height),
+                new DOMPoint(box.x + box.width, box.y + box.height),
+            ].map((point) => point.matrixTransform(matrix))
+            return {
+                left: Math.min(...points.map(({ x }) => x)),
+                right: Math.max(...points.map(({ x }) => x)),
+            }
+        }
+
+        const result = {
+            canvasRight: svg.viewBox.baseVal.x + svg.viewBox.baseVal.width,
+            titles: titleElements.map(transformedBox),
+            doodle: transformedBox(doodleElement),
+        }
+        host.remove()
+        return result
+    }, svgMarkup)
+
+    expect(geometry.titles).toHaveLength(3)
+    for (const title of geometry.titles) {
+        expect(title.right).toBeLessThan(geometry.doodle.left)
+        expect(geometry.doodle.left - title.right).toBeGreaterThan(24)
+        expect(title.right).toBeLessThanOrEqual(geometry.canvasRight)
+    }
 })
 
 test('v1 does not expose AI or migration tooling in either landing variant', async ({ page }) => {

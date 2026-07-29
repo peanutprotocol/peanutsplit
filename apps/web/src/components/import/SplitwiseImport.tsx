@@ -30,6 +30,7 @@ import { writeIdentity } from '@/lib/identity'
 import { formatMoney } from '@/lib/money'
 import { useCurrencies, useImportRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
+import { useMotionAllowed } from '@/lib/use-motion'
 import {
     MAX_FILE_CHARS,
     SplitwiseParseError,
@@ -50,6 +51,7 @@ export function SplitwiseImport() {
     const locale = useLocale()
     const router = useRouter()
     const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
     const errorMessage = useErrorMessage()
     const { data: currencies } = useCurrencies()
     const importRoom = useImportRoom()
@@ -258,6 +260,7 @@ export function SplitwiseImport() {
                 slug={created.room.slug}
                 roomName={created.room.name}
                 emoji={created.room.emoji}
+                theme={created.room.theme}
                 title={t('ready.title')}
                 subtitle={t('ready.subtitle')}
                 footer={
@@ -341,9 +344,10 @@ export function SplitwiseImport() {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={motionAllowed ? { opacity: 0, y: 12 } : false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            transition={motionAllowed ? { type: 'spring', stiffness: 300, damping: 30 } : { duration: 0 }}
+            data-motion-surface
             className="flex flex-col gap-6"
         >
             <div className="rounded-sm border border-n-1 bg-green-1 p-4">

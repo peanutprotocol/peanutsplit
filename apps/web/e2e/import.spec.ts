@@ -67,3 +67,26 @@ test('a file that is not a Splitwise export says so, and writes nothing', async 
     await expect(page.getByTestId('import-error')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('import-room-name')).toHaveCount(0)
 })
+
+test('the import preview is fully visible and still with reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/import')
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'Still trip.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(SIMPLE_GROUP, 'utf8'),
+    })
+
+    const preview = page.locator('[data-motion-surface]').first()
+    await expect(preview).toBeVisible({ timeout: 15_000 })
+    await expect(preview).toHaveCSS('opacity', '1')
+    await expect(preview).toHaveCSS('transform', 'none')
+    expect(
+        await preview.evaluate((element) =>
+            element
+                .getAnimations({ subtree: true })
+                .filter((animation) => animation.playState === 'running')
+                .map((animation) => animation.animationName)
+        )
+    ).toEqual([])
+})
