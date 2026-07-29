@@ -209,7 +209,7 @@
 .pass-link-hero {
     position: relative;
     display: grid;
-    min-height: min(47.5rem, 100svh);
+    min-height: min(44rem, 100svh);
     grid-template-rows: minmax(0, 1fr);
     overflow: hidden;
 }
@@ -217,7 +217,7 @@
 .pass-link-hero-inner {
     display: flex;
     width: min(100%, 90rem);
-    min-height: min(47.5rem, 100svh);
+    min-height: min(44rem, 100svh);
     flex-direction: column;
     margin-inline: auto;
     padding-inline: clamp(1.5rem, 3.4vw, 3.25rem);
@@ -234,7 +234,7 @@
     grid-template-rows: auto auto;
     column-gap: clamp(1.75rem, 4vw, 5rem);
     align-content: center;
-    padding-block: 1rem 1.5rem;
+    padding-block: clamp(1.75rem, 4svh, 2.75rem);
 }
 
 .pass-link-copy {
@@ -300,7 +300,7 @@
 
 .pass-link-stage-shell {
     min-width: 0;
-    min-height: 32rem;
+    min-height: 35rem;
     grid-area: stage;
     align-self: stretch;
 }
@@ -308,7 +308,7 @@
 .pass-link-stage {
     position: relative;
     height: 100%;
-    min-height: 32rem;
+    min-height: 35rem;
 }
 
 .pass-link-channels {
@@ -338,14 +338,14 @@
 }
 
 .pass-link-channel-whatsapp {
-    top: 20%;
+    top: 29%;
     left: -1%;
     background: #98e9ab;
     animation-delay: 2.35s;
 }
 
 .pass-link-channel-telegram {
-    top: 31%;
+    top: 36%;
     right: -1%;
     background: #a9d9ff;
     animation-delay: 2.55s;
@@ -388,7 +388,7 @@
 .pass-link-chat-frame {
     position: absolute;
     z-index: 2;
-    inset: 1.85rem 1.4rem 0.5rem;
+    inset: 1.85rem 1.25rem 0.5rem;
     display: flex;
     overflow: hidden;
     flex-direction: column;
@@ -403,15 +403,51 @@
     display: flex;
     min-height: 4.65rem;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.85rem 1rem;
+    gap: 0.55rem;
+    padding: 0.7rem 0.8rem;
     border-bottom: 2px solid #211c17;
     background: #fff9ed;
 }
 
+.pass-link-chat-back,
+.pass-link-chat-group-mark,
+.pass-link-chat-controls > span,
+.pass-link-composer-action,
+.pass-link-composer-send {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1.5px solid #211c17;
+    border-radius: 999px;
+}
+
+.pass-link-chat-back {
+    width: 2rem;
+    aspect-ratio: 1;
+    background: white;
+}
+
+.pass-link-chat-group-mark {
+    position: relative;
+    width: 2.55rem;
+    aspect-ratio: 1;
+    background: #c7a6ff;
+}
+
+.pass-link-chat-group-mark > i {
+    position: absolute;
+    right: -0.05rem;
+    bottom: 0;
+    width: 0.62rem;
+    aspect-ratio: 1;
+    border: 1.5px solid #211c17;
+    border-radius: 999px;
+    background: #4fd276;
+}
+
 .pass-link-chat-title {
     min-width: 0;
+    flex: 1;
 }
 
 .pass-link-chat-title strong {
@@ -432,11 +468,22 @@
     font-weight: 800;
 }
 
-.pass-link-avatar-stack,
 .pass-link-card-people {
     display: flex;
     flex: 0 0 auto;
     padding-right: 0.25rem;
+}
+
+.pass-link-chat-controls {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.35rem;
+}
+
+.pass-link-chat-controls > span {
+    width: 2rem;
+    aspect-ratio: 1;
+    background: white;
 }
 
 .pass-link-avatar {
@@ -470,7 +517,10 @@
     min-height: 0;
     flex: 1;
     flex-direction: column;
-    padding: 1.15rem 1.1rem 0.9rem;
+    padding: 1rem 1rem 0.7rem;
+    background-color: #fffdf8;
+    background-image: radial-gradient(rgb(33 28 23 / 8%) 0.7px, transparent 0.7px);
+    background-size: 0.7rem 0.7rem;
 }
 
 .pass-link-message-row {
@@ -711,6 +761,50 @@
     border: 1.5px solid #211c17;
     border-radius: 999px;
     background: #98e9ab;
+}
+
+.pass-link-chat-composer {
+    display: flex;
+    min-height: 3.6rem;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.7rem;
+    border-top: 1.5px solid #211c17;
+    background: #fff9ed;
+}
+
+.pass-link-composer-action,
+.pass-link-composer-send {
+    width: 2rem;
+    aspect-ratio: 1;
+    background: white;
+}
+
+.pass-link-composer-field {
+    display: flex;
+    min-width: 0;
+    min-height: 2rem;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    padding: 0.3rem 0.45rem 0.3rem 0.65rem;
+    border: 1.5px solid #211c17;
+    border-radius: 999px;
+    background: white;
+    color: #6a625b;
+    font-size: clamp(0.5rem, 0.68vw, 0.62rem);
+    font-weight: 800;
+}
+
+.pass-link-composer-field > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pass-link-composer-send {
+    background: #c7a6ff;
 }
 
 .pass-link-stage[data-state='complete'] .pass-link-stage-badge,
@@ -1127,12 +1221,12 @@
 
 @media (max-width: 899px) {
     .pass-link-hero {
-        min-height: 100svh;
+        min-height: 0;
     }
 
     .pass-link-hero-inner {
-        min-height: 100svh;
-        padding-inline: 1rem;
+        min-height: 0;
+        padding-inline: 1.25rem;
     }
 
     .pass-link-layout {
@@ -1142,10 +1236,10 @@
             'stage'
             'form';
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto clamp(15.75rem, 36svh, 17rem) auto;
-        gap: 0.45rem;
-        align-content: center;
-        padding-block: 0.35rem 0.65rem;
+        grid-template-rows: auto clamp(19rem, 40svh, 21rem) auto;
+        gap: 0.65rem;
+        align-content: start;
+        padding-block: clamp(1.25rem, 4svh, 2rem) 1.25rem;
     }
 
     .pass-link-copy {
@@ -1183,7 +1277,7 @@
     }
 
     .pass-link-chat-frame {
-        inset: 0.55rem 1.15rem 0.25rem;
+        inset: 1.25rem 0.95rem 0.25rem;
         border-width: 1.7px;
         border-radius: 0.8rem;
         box-shadow: 0.35rem 0.35rem 0 #211c17;
@@ -1192,7 +1286,7 @@
 
     .pass-link-stage-badge {
         top: 0;
-        right: 1rem;
+        right: 0.45rem;
         padding: 0.34rem 0.48rem;
         border-width: 1.5px;
         box-shadow: 0.14rem 0.14rem 0 #211c17;
@@ -1206,13 +1300,13 @@
     }
 
     .pass-link-channel-whatsapp {
-        top: 20%;
-        left: -0.1rem;
+        top: 32%;
+        left: -0.2rem;
     }
 
     .pass-link-channel-telegram {
-        top: 30%;
-        right: -0.05rem;
+        top: 38%;
+        right: -0.2rem;
     }
 
     .pass-link-channel-messenger {
@@ -1226,10 +1320,35 @@
     }
 
     .pass-link-chat-header {
-        min-height: 2.3rem;
-        gap: 0.35rem;
-        padding: 0.34rem 0.55rem;
+        min-height: 2.65rem;
+        gap: 0.28rem;
+        padding: 0.3rem 0.42rem;
         border-bottom-width: 1.5px;
+    }
+
+    .pass-link-chat-back {
+        width: 1.35rem;
+        border-width: 1px;
+    }
+
+    .pass-link-chat-back svg {
+        width: 0.78rem;
+        height: 0.78rem;
+    }
+
+    .pass-link-chat-group-mark {
+        width: 1.65rem;
+        border-width: 1px;
+    }
+
+    .pass-link-chat-group-mark svg {
+        width: 1.05rem;
+        height: 1.05rem;
+    }
+
+    .pass-link-chat-group-mark > i {
+        width: 0.42rem;
+        border-width: 1px;
     }
 
     .pass-link-chat-title strong {
@@ -1239,6 +1358,20 @@
     .pass-link-chat-title small {
         margin-top: 0.05rem;
         font-size: clamp(0.35rem, 1.35vw, 0.42rem);
+    }
+
+    .pass-link-chat-controls {
+        gap: 0.2rem;
+    }
+
+    .pass-link-chat-controls > span {
+        width: 1.35rem;
+        border-width: 1px;
+    }
+
+    .pass-link-chat-controls svg {
+        width: 0.78rem;
+        height: 0.78rem;
     }
 
     .pass-link-avatar {
@@ -1257,7 +1390,8 @@
         grid-template-columns: 1fr 1fr;
         grid-template-rows: auto 1fr auto;
         gap: 0.22rem 0.35rem;
-        padding: 0.38rem 0.48rem 0.3rem;
+        padding: 0.35rem 0.45rem 0.25rem;
+        background-size: 0.55rem 0.55rem;
     }
 
     .pass-link-message-row {
@@ -1391,6 +1525,37 @@
         height: 0.55rem;
     }
 
+    .pass-link-chat-composer {
+        min-height: 2.05rem;
+        gap: 0.22rem;
+        padding: 0.22rem 0.3rem;
+        border-top-width: 1px;
+    }
+
+    .pass-link-composer-action,
+    .pass-link-composer-send {
+        width: 1.25rem;
+        border-width: 1px;
+    }
+
+    .pass-link-composer-action svg,
+    .pass-link-composer-send svg {
+        width: 0.72rem;
+        height: 0.72rem;
+    }
+
+    .pass-link-composer-field {
+        min-height: 1.25rem;
+        padding: 0.1rem 0.2rem 0.1rem 0.4rem;
+        border-width: 1px;
+        font-size: clamp(0.3rem, 1.15vw, 0.36rem);
+    }
+
+    .pass-link-composer-field svg {
+        width: 0.75rem;
+        height: 0.75rem;
+    }
+
     .landing-proof-scene {
         min-height: 0;
         grid-template-columns: 1fr;
@@ -1455,12 +1620,13 @@
 
 @media (max-width: 359px) {
     .pass-link-hero-inner {
-        padding-inline: 0.75rem;
+        padding-inline: 1rem;
     }
 
     .pass-link-layout {
-        grid-template-rows: auto 16.5rem auto;
-        gap: 0.35rem;
+        grid-template-rows: auto 20.5rem auto;
+        gap: 0.5rem;
+        padding-block: 1rem;
     }
 
     .pass-link-copy h1 {

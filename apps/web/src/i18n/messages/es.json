@@ -20,7 +20,8 @@
                 "linkBrand": "PEANUT SPLIT · SALA COMPARTIDA",
                 "linkPrompt": "Cada uno agrega lo suyo",
                 "joined": "Bea, Jules y Mo abrieron el link",
-                "badge": "SIN REGISTRO. SOLO UN LINK."
+                "badge": "SIN REGISTRO. SOLO UN LINK.",
+                "composer": "Escribí al grupo…"
             },
             "stageSummary": "Un link de Peanut Split pasa por el chat del grupo para que cada amigo abra la misma sala y agregue gastos.",
             "validation": {

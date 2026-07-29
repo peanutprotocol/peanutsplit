@@ -60,16 +60,24 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
 
                 <article data-testid="pass-link-chat-frame" className="pass-link-chat-frame">
                     <header className="pass-link-chat-header">
+                        <span className="pass-link-chat-back">
+                            <Doodle name="iconarrowleft" size={18} weight={2.2} />
+                        </span>
+                        <span data-testid="pass-link-chat-app-mark" className="pass-link-chat-group-mark">
+                            <Doodle name="channelmessenger" size={24} weight={1.9} />
+                            <i />
+                        </span>
                         <div className="pass-link-chat-title">
                             <strong>{shownRoomName}</strong>
                             <small>{t('chat.participants')}</small>
                         </div>
-                        <div className="pass-link-avatar-stack">
-                            {PEOPLE.map((person) => (
-                                <span key={person} className="pass-link-avatar">
-                                    {person === 'YOU' ? t('chat.youShort') : person}
-                                </span>
-                            ))}
+                        <div className="pass-link-chat-controls">
+                            <span>
+                                <Doodle name="iconcamera" size={19} weight={2} />
+                            </span>
+                            <span>
+                                <Doodle name="iconusers" size={19} weight={2} />
+                            </span>
                         </div>
                     </header>
 
@@ -128,6 +136,19 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                             {t('chat.joined')}
                         </p>
                     </div>
+
+                    <footer data-testid="pass-link-chat-composer" className="pass-link-chat-composer">
+                        <span className="pass-link-composer-action">
+                            <Doodle name="iconplus" size={16} weight={2.2} />
+                        </span>
+                        <span className="pass-link-composer-field">
+                            <span>{t('chat.composer')}</span>
+                            <Doodle name="reactionlove" size={16} weight={1.9} />
+                        </span>
+                        <span className="pass-link-composer-send">
+                            <Doodle name="iconarrowright" size={16} weight={2.2} />
+                        </span>
+                    </footer>
                 </article>
             </div>
         </div>
