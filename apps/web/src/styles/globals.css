@@ -415,6 +415,12 @@
     background: #98e9ab;
 }
 
+.pass-link-avatar svg,
+.pass-link-mini-avatar svg {
+    width: 68%;
+    height: 68%;
+}
+
 .pass-link-chat-body {
     display: flex;
     min-height: 0;
@@ -521,26 +527,15 @@
     content: '';
 }
 
-.pass-link-shared-brand {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.7rem 0.8rem 0.25rem;
-    font-size: clamp(0.42rem, 0.56vw, 0.54rem);
-    font-weight: 950;
-    letter-spacing: 0.065em;
-    text-transform: uppercase;
-}
-
 .pass-link-share-mark {
-    position: relative;
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
     z-index: 1;
     display: grid;
     width: 2rem;
     aspect-ratio: 1;
     place-items: center;
-    margin: -0.25rem -0.2rem 0 0;
     border: 2px solid #211c17;
     border-radius: 999px;
     background: #fff9ed;
@@ -553,7 +548,7 @@
     display: grid;
     min-width: 0;
     gap: 0.35rem;
-    padding: 0.1rem 0.85rem 0.75rem;
+    padding: 1rem 3.25rem 0.75rem 0.85rem;
 }
 
 .pass-link-shared-main > strong {
@@ -1071,7 +1066,7 @@
             'stage'
             'form';
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto clamp(15.75rem, 36svh, 17rem) auto;
+        grid-template-rows: auto 18rem auto;
         gap: 0.65rem;
         align-content: start;
         padding-block: 1.25rem;
@@ -1101,7 +1096,7 @@
 
     .pass-link-chat-link {
         inset: 0.35rem auto 0.2rem 50%;
-        width: calc(100% - 1.25rem);
+        width: min(calc(100% - 2rem), 14.25rem);
         border-radius: 0.8rem;
         transform: translateX(-50%);
     }
@@ -1154,12 +1149,13 @@
     .pass-link-chat-body {
         display: grid;
         grid-template-areas:
-            'question reply'
-            'card card'
-            'joined joined';
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto 1fr auto;
-        gap: 0.22rem 0.35rem;
+            'question'
+            'reply'
+            'card'
+            'joined';
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 0.22rem;
         padding: 0.38rem 0.48rem 0.3rem;
     }
 
@@ -1218,14 +1214,10 @@
         border-width: 1.25px;
     }
 
-    .pass-link-shared-brand {
-        padding: 0.3rem 0.42rem 0.05rem;
-        font-size: clamp(0.26rem, 1.05vw, 0.33rem);
-    }
-
     .pass-link-share-mark {
+        top: 0.3rem;
+        right: 0.3rem;
         width: 1.2rem;
-        margin: -0.1rem -0.1rem 0 0;
         border-width: 1.25px;
         box-shadow: 0.07rem 0.07rem 0 #211c17;
     }
@@ -1237,7 +1229,7 @@
 
     .pass-link-shared-main {
         gap: 0.12rem;
-        padding: 0.05rem 0.45rem 0.3rem;
+        padding: 0.55rem 1.8rem 0.35rem 0.45rem;
     }
 
     .pass-link-shared-main > strong {
@@ -1358,7 +1350,7 @@
     }
 
     .pass-link-layout {
-        grid-template-rows: auto 16.5rem auto;
+        grid-template-rows: auto 18rem auto;
         gap: 0.5rem;
         padding-block: 1rem;
     }

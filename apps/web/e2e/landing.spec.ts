@@ -184,13 +184,16 @@ test.describe('Pass-the-link default', () => {
             const roomName = page.getByTestId('hero-room-name')
             const creatorName = page.getByTestId('hero-creator-name')
             const cta = page.getByTestId('hero-create-room')
+            const chatFrame = page.getByTestId('pass-link-chat-frame')
 
             await expect(hero).toBeVisible()
             await expect(headline).toBeVisible()
             await expect(stage).toBeVisible()
             await expect(form).toBeVisible()
-            await expect(page.getByTestId('pass-link-chat-frame')).toBeVisible()
+            await expect(chatFrame).toBeVisible()
             await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
+            await expect(chatFrame.locator('.pass-link-avatar svg')).toHaveCount(8)
+            await expect(chatFrame).not.toContainText(/PEANUT SPLIT\s*[·-]\s*SHARED ROOM/i)
             await expect(page.getByTestId('pass-link-channel')).toHaveCount(0)
             await expect(page.getByTestId('pass-link-ticker')).toHaveCount(0)
             await expect(hero.locator('.pass-link-utility')).toHaveCount(0)
@@ -204,9 +207,14 @@ test.describe('Pass-the-link default', () => {
                 `${viewport.width}x${viewport.height} must not create horizontal page overflow`
             ).toBe(true)
 
-            if (viewport.width <= 390) {
-                const heroBox = await hero.boundingBox()
+            if (viewport.width <= 899) {
+                const [heroBox, chatBox] = await Promise.all([hero.boundingBox(), chatFrame.boundingBox()])
                 expect(heroBox).not.toBeNull()
+                expect(chatBox).not.toBeNull()
+                expect(
+                    chatBox!.height,
+                    `mobile messenger must stay portrait at ${viewport.width}x${viewport.height}`
+                ).toBeGreaterThan(chatBox!.width)
                 expect(
                     heroBox!.height,
                     `mobile hero must reveal the next section at ${viewport.width}x${viewport.height}`
