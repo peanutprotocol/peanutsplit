@@ -1,13 +1,11 @@
 {
     "marketing": {
         "hero": {
-            "eyebrow": "SEM APP PARA OS AMIGOS.",
             "title": "MANDA AI",
             "controlTitleAccessible": "MANDA AÍ",
             "titleAccessible": "LINK. DIVIDE. PRONTO.",
             "subtitle": "porque contas mais claras fazem amizades melhores",
             "cta": "Criar o link",
-            "ctaTrust": "Grátis para sempre · sem conta obrigatória · sem instalar nada",
             "linkExplainerTrigger": "Como o link funciona",
             "chat": {
                 "defaultRoom": "Fim de semana em Lisboa",
@@ -19,8 +17,7 @@
                 "reply": "eu — vou lançar",
                 "linkBrand": "PEANUT SPLIT · SALA COMPARTILHADA",
                 "linkPrompt": "Cada um lança o seu",
-                "joined": "Bea, Jules e Mo abriram o link",
-                "badge": "SEM CADASTRO. SÓ UM LINK."
+                "joined": "Bea, Jules e Mo abriram o link"
             },
             "stageSummary": "Um link do Peanut Split passa pelo grupo para que cada amigo abra a mesma sala e lance despesas.",
             "validation": {
@@ -68,7 +65,6 @@
                 "roomEven": "TODO MUNDO QUITE"
             },
             "examples": {
-                "eyebrow": "FEITO PARA O GRUPO",
                 "title": "DIVIDA QUALQUER COISA.",
                 "body": "Viagens, jantares, contas de casa e o que vier.",
                 "lisbon": {
