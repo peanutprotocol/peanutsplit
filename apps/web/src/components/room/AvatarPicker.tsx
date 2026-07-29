@@ -39,12 +39,12 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                 data-testid="avatar-option"
                 data-avatar={key}
                 className={cn(
-                    'flex min-h-[74px] min-w-0 items-center gap-2 rounded-sm border border-n-1 p-2 text-left transition-transform duration-100',
+                    'flex min-h-[88px] min-w-0 items-center gap-2.5 rounded-sm border border-n-1 p-2 text-left transition-transform duration-100',
                     selected ? 'shadow-4 bg-primary-1' : 'bg-white active:translate-y-[2px]',
                     disabled && 'opacity-50'
                 )}
             >
-                <MemberAvatar name={name} avatar={key} size={38} />
+                <MemberAvatar name={name} avatar={key} size={54} />
                 <span className="min-w-0">
                     <span className="block text-h9 leading-tight">{art.label}</span>
                     <span className="mt-0.5 block text-xs leading-tight text-grey-1">{art.vibe}</span>
