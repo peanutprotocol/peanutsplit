@@ -12,6 +12,7 @@ import { POST as postRoom } from '@/app/api/rooms/route'
 import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
 import { POST as claimMember } from '@/app/api/rooms/[slug]/members/[memberId]/claim/route'
+import { DELETE as deleteMember } from '@/app/api/rooms/[slug]/members/[memberId]/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense, PATCH as patchExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
 import { POST as restoreExpense } from '@/app/api/expenses/[id]/restore/route'
@@ -72,6 +73,57 @@ const claim = (slug: string, memberId: string) =>
         method: 'POST',
         params: { slug, memberId },
     })
+
+const removeMember = (slug: string, memberId: string) =>
+    call<RoomState | ApiError>(deleteMember as Handler, {
+        path: `/api/rooms/${slug}/members/${memberId}`,
+        method: 'DELETE',
+        params: { slug, memberId },
+    })
+
+const waitForAdvisoryWaiters = async (minimum: number): Promise<void> => {
+    for (let attempt = 0; attempt < 100; attempt++) {
+        const [row] = await prisma.$queryRaw<[{ count: bigint }]>`
+            SELECT count(*)::bigint AS count
+            FROM pg_locks
+            WHERE locktype = 'advisory' AND granted = false
+        `
+        if (Number(row.count) >= minimum) return
+        await new Promise<void>((resolve) => setImmediate(resolve))
+    }
+    throw new Error(`expected ${minimum} advisory lock waiter(s)`)
+}
+
+/**
+ * Hold the room's advisory lock so a test can prove a route actually queues
+ * behind it. The release is explicit: starting the writer first, observing its
+ * waiter, then starting member deletion gives PostgreSQL a deterministic order.
+ */
+const holdRoomWriteLock = async (roomId: string): Promise<{ release: () => Promise<void> }> => {
+    let unlock!: () => void
+    let acquired!: () => void
+    const gate = new Promise<void>((resolve) => {
+        unlock = resolve
+    })
+    const entered = new Promise<void>((resolve) => {
+        acquired = resolve
+    })
+    const transaction = prisma.$transaction(
+        async (tx) => {
+            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${roomId}, 0))`
+            acquired()
+            await gate
+        },
+        { timeout: 10_000 }
+    )
+    await entered
+    return {
+        release: async () => {
+            unlock()
+            await transaction
+        },
+    }
+}
 
 /** Balances must always net to zero — the whole model rests on it. */
 const netsToZero = (state: RoomState) => Object.values(state.balances).reduce((a, b) => a + BigInt(b), 0n) === 0n
@@ -204,6 +256,197 @@ describe('rooms and members', () => {
         const stored = await prisma.member.findUnique({ where: { id: body.memberId }, select: { token: true } })
         expect(stored?.token).toBeTruthy()
         expect(JSON.stringify(body)).not.toContain(stored?.token)
+        expect(body.members.find((member) => member.id === body.memberId)?.canRemove).toBe(true)
+    })
+
+    it('removes only an untouched on-behalf placeholder', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+
+        const removed = await removeMember(created.room.slug, added.memberId)
+        expect(removed.status).toBe(200)
+        expect((removed.body as RoomState).members.map((member) => member.name)).toEqual(['Ana'])
+        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).toBeNull()
+    })
+
+    it('permanently protects a placeholder as soon as that person claims it', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        await claim(created.room.slug, added.memberId)
+
+        const removal = await removeMember(created.room.slug, added.memberId)
+        expect(removal.status).toBe(409)
+        expect((removal.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).not.toBeNull()
+    })
+
+    it('protects a placeholder when even soft-deleted expense history references it', async () => {
+        const createdResult = await newRoom()
+        expect(createdResult.status).toBe(201)
+        const created = createdResult.body
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const { body: afterExpense } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Taxi',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: added.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '1000' }],
+            },
+        })
+        await call<RoomState>(deleteExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses/${afterExpense.expenses[0].id}`,
+            method: 'DELETE',
+            params: { slug: created.room.slug, id: afterExpense.expenses[0].id },
+        })
+
+        const fresh = await call<RoomState>(getRoom as Handler, {
+            path: `/api/rooms/${created.room.slug}`,
+            params: { slug: created.room.slug },
+        })
+        expect(fresh.body.members.find((member) => member.id === added.memberId)?.canRemove).toBe(false)
+        const removal = await removeMember(created.room.slug, added.memberId)
+        expect(removal.status).toBe(409)
+        expect((removal.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+    })
+
+    it('serializes ordinary expense creation before placeholder removal', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const blocker = await holdRoomWriteLock(created.room.id)
+
+        const write = call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Bea paid the taxi',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: added.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '1000' }],
+            },
+        })
+        await waitForAdvisoryWaiters(1)
+        const removal = removeMember(created.room.slug, added.memberId)
+        await waitForAdvisoryWaiters(2)
+        await blocker.release()
+
+        expect((await write).status).toBe(201)
+        const removed = await removal
+        expect(removed.status).toBe(409)
+        expect((removed.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).not.toBeNull()
+        expect(await prisma.expense.count({ where: { roomId: created.room.id, paidById: added.memberId } })).toBe(1)
+    })
+
+    it('serializes expense edits before placeholder removal', async () => {
+        const { body: created } = await newRoom()
+        const { body: original } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Taxi',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        const expenseId = original.expenses[0].id
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const blocker = await holdRoomWriteLock(created.room.id)
+
+        const write = call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses/${expenseId}`,
+            method: 'PATCH',
+            params: { slug: created.room.slug, id: expenseId },
+            body: {
+                description: 'Taxi, paid by Bea',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: added.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '1000' }],
+            },
+        })
+        await waitForAdvisoryWaiters(1)
+        const removal = removeMember(created.room.slug, added.memberId)
+        await waitForAdvisoryWaiters(2)
+        await blocker.release()
+
+        expect((await write).status).toBe(200)
+        const removed = await removal
+        expect(removed.status).toBe(409)
+        expect((removed.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).not.toBeNull()
+        expect(
+            await prisma.expense.count({ where: { id: expenseId, roomId: created.room.id, paidById: added.memberId } })
+        ).toBe(1)
+    })
+
+    it('protects attribution, reaction, settlement and device history independently', async () => {
+        const createdResult = await newRoom()
+        expect(createdResult.status).toBe(201)
+        const created = createdResult.body
+        const slug = created.room.slug
+        const attributed = (await addPayer(slug, 'Bea')).body.memberId
+        const reacted = (await addPayer(slug, 'Caro')).body.memberId
+        const settled = (await addPayer(slug, 'Dani')).body.memberId
+        const subscribed = (await addPayer(slug, 'Eli')).body.memberId
+        const attributedToken = await prisma.member.findUniqueOrThrow({
+            where: { id: attributed },
+            select: { token: true },
+        })
+
+        const { body: afterExpense } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            token: attributedToken.token,
+            body: {
+                description: 'Ana only',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '1000' }],
+            },
+        })
+        const expenseId = afterExpense.expenses[0].id
+        await prisma.expenseReaction.create({
+            data: { expenseId, memberId: reacted, emoji: 'heart' },
+        })
+        await prisma.settlement.create({
+            data: {
+                roomId: created.room.id,
+                fromId: settled,
+                toId: created.memberId,
+                amountMinor: 1n,
+                deletedAt: new Date(),
+            },
+        })
+        await prisma.pushSubscription.create({
+            data: {
+                roomId: created.room.id,
+                memberId: subscribed,
+                endpoint: `https://updates.push.services.mozilla.com/wpush/v2/${subscribed}`,
+                p256dh: 'p256dh',
+                auth: 'auth',
+            },
+        })
+
+        for (const memberId of [attributed, reacted, settled, subscribed]) {
+            const removal = await removeMember(slug, memberId)
+            expect(removal.status).toBe(409)
+            expect((removal.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+        }
     })
 
     it('claims an existing roster entry with its stable token instead of rotating it', async () => {
@@ -267,6 +510,69 @@ describe('rooms and members', () => {
 })
 
 describe('the full room lifecycle', () => {
+    it('creates a staged payer and expense atomically, and rolls both back when the expense fails', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+
+        const successful = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            token: created.memberToken,
+            body: {
+                description: 'Dinner',
+                amountMinor: '1800',
+                currency: 'EUR',
+                newPaidByName: 'Bea',
+                splitMode: 'EQUAL',
+            },
+        })
+        expect(successful.status).toBe(201)
+        const bea = successful.body.members.find((member) => member.name === 'Bea')
+        expect(bea).toBeTruthy()
+        expect(successful.body.expenses[0].paidById).toBe(bea?.id)
+        expect(successful.body.expenses[0].shares.map((share) => share.memberId)).toEqual([created.memberId, bea?.id])
+        expect(successful.body.expenses[0].createdById).toBe(created.memberId)
+
+        const failed = await call<ApiError>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Broken exact split',
+                amountMinor: '1000',
+                currency: 'EUR',
+                newPaidByName: 'Caro',
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '999' }],
+            },
+        })
+        expect(failed.status).toBe(400)
+        expect(failed.body.error.code).toBe('SHARES_DO_NOT_ADD_UP')
+        expect(await prisma.member.count({ where: { roomId: created.room.id, name: 'Caro' } })).toBe(0)
+        expect(
+            await prisma.expense.count({ where: { roomId: created.room.id, description: 'Broken exact split' } })
+        ).toBe(0)
+
+        const anonymous = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Filed without a member token',
+                amountMinor: '200',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '200' }],
+            },
+        })
+        expect(
+            anonymous.body.expenses.find((expense) => expense.description === 'Filed without a member token')
+                ?.createdById
+        ).toBeNull()
+    })
+
     it('goes create → join → split → settle → all square', async () => {
         const { body: created } = await newRoom()
         const slug = created.room.slug
@@ -350,7 +656,12 @@ describe('the full room lifecycle', () => {
                 method: 'POST',
                 params: { slug },
                 token: created.memberToken,
-                body: { ...transfer, method: 'peanut', note: 'via the settle sheet' },
+                body: {
+                    ...transfer,
+                    method: 'peanut',
+                    note: 'via the settle sheet',
+                    receiptUrl: 'https://receipts.example/payment/abc',
+                },
             })
             expect(status).toBe(201)
             state = body
@@ -358,6 +669,7 @@ describe('the full room lifecycle', () => {
         expect(state.suggestedTransfers).toEqual([])
         expect(Object.values(state.balances).every((b) => b === '0')).toBe(true)
         expect(state.settlements[0].method).toBe('peanut')
+        expect(state.settlements[0].receiptUrl).toBe('https://receipts.example/payment/abc')
         expect(state.settlements[0].createdById).toBe(ana)
 
         // Undoing a settlement re-opens the debt.
@@ -370,6 +682,13 @@ describe('the full room lifecycle', () => {
         expect(afterUndo.settlements.some((s) => s.id === settlementId)).toBe(false)
         expect(afterUndo.suggestedTransfers.length).toBeGreaterThan(0)
         expect(netsToZero(afterUndo)).toBe(true)
+        const auditRow = await prisma.settlement.findUniqueOrThrow({ where: { id: settlementId } })
+        expect(auditRow.deletedAt).not.toBeNull()
+        expect(auditRow.method).toBe('peanut')
+        expect(auditRow.receiptUrl).toBe('https://receipts.example/payment/abc')
+        expect(auditRow.createdById).toBe(ana)
+        expect(auditRow.amountMinor).toBeGreaterThan(0n)
+        expect(auditRow.createdAt).toBeInstanceOf(Date)
     })
 
     it('recomputes EQUAL shares when the expense is edited', async () => {
@@ -545,6 +864,15 @@ describe('write validation', () => {
         expect((await post({ fromId: ana, toId: bea, amountMinor: 100 })).status).toBe(400)
         expect((await post({ fromId: ana, toId: bea, amountMinor: '9223372036854775808' })).status).toBe(400)
         expect((await post({ fromId: ana, toId: 'ghost', amountMinor: '100' })).status).toBe(400)
+        const malformedReceipt = await post({
+            fromId: ana,
+            toId: bea,
+            amountMinor: '100',
+            receiptUrl: 'not a url',
+        })
+        expect(malformedReceipt.status).toBe(400)
+        expect(malformedReceipt.body.error.code).toBe('VALIDATION_ERROR')
+        expect(await prisma.settlement.count({ where: { roomId: created.room.id } })).toBe(0)
     })
 
     it('404s on an expense that belongs to another room', async () => {

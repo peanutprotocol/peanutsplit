@@ -59,18 +59,44 @@ export const createMemberSchema = z.object({
     intent: z.enum(['join', 'add']).default('join'),
 })
 
-export const expenseSchema = z.object({
-    clientKey: clientKey.optional(),
-    description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
-    amountMinor: minorAmount,
-    currency: currencyCode,
-    paidById: id,
-    splitMode: z.enum(['EQUAL', 'EXACT']),
-    participantIds: z.array(id).optional(),
-    exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
-    date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
-    category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
-})
+export const expenseSchema = z
+    .object({
+        clientKey: clientKey.optional(),
+        description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
+        amountMinor: minorAmount,
+        currency: currencyCode,
+        paidById: id.optional(),
+        /** A payer typed inside a new expense stays a draft until the expense
+         *  transaction commits. It is mutually exclusive with an existing id. */
+        newPaidByName: personName.optional(),
+        splitMode: z.enum(['EQUAL', 'EXACT']),
+        participantIds: z.array(id).optional(),
+        exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
+        date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
+        category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
+    })
+    .superRefine((body, ctx) => {
+        if (!!body.paidById === !!body.newPaidByName) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['paidById'],
+                message: 'provide either paidById or newPaidByName',
+            })
+        }
+    })
+
+const receiptUrl = z
+    .string()
+    .trim()
+    .max(2048)
+    .refine((value) => {
+        try {
+            const protocol = new URL(value).protocol
+            return protocol === 'http:' || protocol === 'https:'
+        } catch {
+            return false
+        }
+    }, 'must be an http or https URL')
 
 export const settlementSchema = z.object({
     clientKey: clientKey.optional(),
@@ -79,6 +105,7 @@ export const settlementSchema = z.object({
     amountMinor: minorAmount,
     method: z.string().trim().max(20).nullish(),
     note: z.string().trim().max(280).nullish(),
+    receiptUrl: receiptUrl.nullish(),
 })
 
 export const rateQuerySchema = z.object({ from: currencyCode, to: currencyCode })

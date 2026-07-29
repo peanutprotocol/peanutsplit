@@ -30,11 +30,11 @@ import { splitV2Enabled } from '@/lib/flags'
 import { currencyInfo, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
-    useAddMember,
     useDeleteExpense,
     useModelStatus,
     useRestoreExpense,
     useUpdateExpense,
+    type ExpenseRequestState,
 } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
@@ -75,8 +75,8 @@ export function ExpenseDrawer({
     const tDates = useTranslations('dates')
     const locale = useLocale()
     const errorMessage = useErrorMessage()
-    const addExpense = useAddExpense(slug, token)
-    const addMember = useAddMember(slug)
+    const expenseRequestRef = useRef<ExpenseRequestState | null>(null)
+    const addExpense = useAddExpense(slug, token, expenseRequestRef)
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
@@ -134,6 +134,7 @@ export function ExpenseDrawer({
         setParticipantError(null)
         setFieldRepairNotice(null)
         setEditor(null)
+        expenseRequestRef.current = null
         setValues(
             expense
                 ? expenseToFormValues(expense, currencies)
@@ -175,7 +176,7 @@ export function ExpenseDrawer({
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
 
     const choosePayer = (memberId: string) => {
-        patch({ paidById: memberId })
+        patch({ paidById: memberId, newPaidByName: '' })
         setAddingPayer(false)
         setNewPayerName('')
         setPayerError(null)
@@ -188,10 +189,10 @@ export function ExpenseDrawer({
      * link is the credential and writes are trust-based, so the person holding
      * the phone may add Bea and record an expense Bea paid while remaining Ana.
      */
-    const createPayer = async (event: React.FormEvent) => {
+    const createPayer = (event: React.FormEvent) => {
         event.preventDefault()
         const name = newPayerName.trim()
-        if (!name || addMember.isPending) return
+        if (!name) return
 
         const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
         if (existing) {
@@ -199,22 +200,14 @@ export function ExpenseDrawer({
             return
         }
 
+        // Draft only. The server creates this member in the same transaction as
+        // the expense, so cancelling or a rejected save cannot alter the roster.
+        patch({ paidById: '', newPaidByName: name })
         setPayerError(null)
-        try {
-            const next = await addMember.mutateAsync({ name })
-            patch({ paidById: next.memberId })
-            setAddingPayer(false)
-            setNewPayerName('')
-            setEditor(null)
-            feedback('pop')
-        } catch (err) {
-            feedback('error', { haptic: 'error' })
-            if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
-                setPayerError(t('payerDuplicate', { name }))
-                return
-            }
-            setPayerError(errorMessage(err, t('payerAddFailed')))
-        }
+        setAddingPayer(false)
+        setNewPayerName('')
+        setEditor(null)
+        feedback('pop')
     }
 
     /**
@@ -395,6 +388,11 @@ export function ExpenseDrawer({
         } catch (err) {
             feedback('error', { haptic: 'error' })
             shake()
+            if (isApiError(err, 'DUPLICATE_MEMBER_NAME') && valuesToSave.newPaidByName) {
+                setError(t('payerDuplicate', { name: valuesToSave.newPaidByName }))
+                setEditor('payer')
+                return
+            }
             if (isApiError(err, 'EXPENSE_DELETED')) {
                 setError(t('wasDeleted'))
                 return
@@ -462,6 +460,7 @@ export function ExpenseDrawer({
     const membersNotInExact = state.members.filter((member) => values.exactInputs[member.id] === undefined)
 
     const payer = state.members.find((member) => member.id === values.paidById)
+    const payerName = values.newPaidByName || payer?.name
     const participantIds =
         values.splitMode === 'EQUAL'
             ? values.participantsTouched
@@ -623,7 +622,7 @@ export function ExpenseDrawer({
                                 type="button"
                                 onClick={() => setEditor((current) => (current === 'payer' ? null : 'payer'))}
                                 aria-pressed={editor === 'payer'}
-                                aria-label={payer ? t('paidBySummary', { name: payer.name }) : t('paidBy')}
+                                aria-label={payerName ? t('paidBySummary', { name: payerName }) : t('paidBy')}
                                 data-testid="expense-payer-summary"
                                 className={cn(
                                     'flex min-h-12 min-w-0 items-center justify-center gap-1.5 rounded-sm border-r border-dashed border-grey-2 px-1 text-left',
@@ -632,7 +631,7 @@ export function ExpenseDrawer({
                             >
                                 {payer && <MemberAvatar name={payer.name} avatar={payer.avatar} size={25} />}
                                 <span className="min-w-0">
-                                    <span className="block truncate text-h9">{payer?.name ?? t('choosePayer')}</span>
+                                    <span className="block truncate text-h9">{payerName ?? t('choosePayer')}</span>
                                     <span className="block text-h10 text-grey-1">{t('paid')}</span>
                                 </span>
                             </button>
@@ -797,6 +796,20 @@ export function ExpenseDrawer({
                             </div>
                             <div className="flex flex-col gap-2 p-3">
                                 <div role="radiogroup" aria-label={t('paidBy')} className="grid grid-cols-2 gap-2">
+                                    {values.newPaidByName && (
+                                        <button
+                                            type="button"
+                                            role="radio"
+                                            aria-checked="true"
+                                            data-testid="payer-chip"
+                                            data-member={values.newPaidByName}
+                                            className="shadow-2 flex min-h-12 min-w-0 items-center gap-2 rounded-md border border-n-1 bg-primary-3 px-2 text-left"
+                                        >
+                                            <MemberAvatar name={values.newPaidByName} avatar={null} size={27} />
+                                            <span className="flex-1 truncate text-h8">{values.newPaidByName}</span>
+                                            <Icon name="check" size={16} />
+                                        </button>
+                                    )}
                                     {state.members.map((member) => {
                                         const selected = values.paidById === member.id
                                         return (
@@ -821,7 +834,7 @@ export function ExpenseDrawer({
                                     })}
                                 </div>
 
-                                {!addingPayer && (
+                                {!expense && !addingPayer && (
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -837,7 +850,7 @@ export function ExpenseDrawer({
                                     </button>
                                 )}
 
-                                {addingPayer && (
+                                {!expense && addingPayer && (
                                     <form onSubmit={createPayer} className="flex items-center gap-2">
                                         <BaseInput
                                             ref={payerNameRef}
@@ -851,9 +864,8 @@ export function ExpenseDrawer({
                                         />
                                         <button
                                             type="submit"
-                                            disabled={!newPayerName.trim() || addMember.isPending}
+                                            disabled={!newPayerName.trim()}
                                             aria-label={t('confirmPayer')}
-                                            aria-busy={addMember.isPending}
                                             data-testid="add-payer-submit"
                                             className="shadow-2 flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-primary-1 disabled:opacity-50"
                                         >

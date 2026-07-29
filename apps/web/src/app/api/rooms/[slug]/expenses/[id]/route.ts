@@ -1,7 +1,9 @@
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
 import { buildExpense } from '@/server/expenses'
-import { conflict, notFound, readJson, respond } from '@/server/http'
+import { getRateTable } from '@/server/fx'
+import { badRequest, conflict, notFound, readJson, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState, type RoomWithRelations } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -11,8 +13,10 @@ export const dynamic = 'force-dynamic'
 
 type Ctx = { params: Promise<{ slug: string; id: string }> }
 
-const findExpense = async (room: RoomWithRelations, id: string) => {
-    const expense = await prisma.expense.findFirst({ where: { id, roomId: room.id } })
+type ExpenseReader = Pick<Prisma.TransactionClient, 'expense'>
+
+const findExpense = async (room: RoomWithRelations, id: string, db: ExpenseReader = prisma) => {
+    const expense = await db.expense.findFirst({ where: { id, roomId: room.id } })
     if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
     return expense
 }
@@ -22,17 +26,29 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, id } = await ctx.params
         const body = expenseSchema.parse(await readJson(request))
-        const room = await loadRoom(slug)
-        assertWritable(room)
-        const existing = await findExpense(room, id)
-        if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+        if (!body.paidById || body.newPaidByName)
+            throw badRequest('a new payer can only be added with a new expense', 'NEW_PAYER_ON_EDIT')
+        const editBody = { ...body, paidById: body.paidById }
+        const initial = await loadRoom(slug)
+        assertWritable(initial)
+        const initialExpense = await findExpense(initial, id)
+        if (initialExpense.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+        // Resolve FX before the transaction so a slow rate source never holds
+        // the room's write lock.
+        const rateTable = await getRateTable()
 
-        const write = await buildExpense(room, body, existing)
-        // Shares are rebuilt wholesale: an edit must behave exactly like a fresh
-        // write, or EQUAL splits would keep stale per-member amounts.
-        await prisma.$transaction([
-            prisma.expenseShare.deleteMany({ where: { expenseId: id } }),
-            prisma.expense.update({
+        const state = await prisma.$transaction(async (tx) => {
+            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${initial.id}, 0))`
+            const room = await loadRoom(slug, tx)
+            assertWritable(room)
+            const existing = await findExpense(room, id, tx)
+            if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+
+            const write = await buildExpense(room, editBody, existing, rateTable)
+            // Shares are rebuilt wholesale: an edit must behave exactly like a
+            // fresh write, or EQUAL splits keep stale per-member amounts.
+            await tx.expenseShare.deleteMany({ where: { expenseId: id } })
+            await tx.expense.update({
                 where: { id },
                 data: {
                     description: write.description,
@@ -46,10 +62,11 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                     category: write.category,
                     shares: { createMany: { data: write.shares } },
                 },
-            }),
-        ])
-        publish(room.id)
-        return toRoomState(await loadRoom(slug))
+            })
+            return toRoomState(await loadRoom(slug, tx))
+        })
+        publish(initial.id)
+        return state
     })
 
 /** Soft delete — the client shows a 6s Undo that calls /api/expenses/:id/restore.
