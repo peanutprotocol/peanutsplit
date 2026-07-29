@@ -332,7 +332,7 @@
         },
         "export": {
             "title": "Leve a sala com você",
-            "privacyWarning": "Os arquivos incluem os nomes e todo o histórico financeiro. Qualquer pessoa com o link da sala pode exportá-los.",
+            "privacyWarning": "Os arquivos incluem os nomes e o histórico financeiro atual. Qualquer pessoa com o link da sala pode exportá-los.",
             "scopeNote": "É a sala como está agora; registros excluídos e o link da sala nunca são incluídos.",
             "csv": "Baixar CSV",
             "json": "Baixar JSON"
