@@ -177,7 +177,7 @@ export function trackLanding(event: LandingEvent, variant: LandingVariant): void
     track(event, { variant })
 }
 
-export const SHARE_PACKAGE_METHODS = ['native', 'clipboard', 'card_download', 'text_download'] as const
+export const SHARE_PACKAGE_METHODS = ['native', 'clipboard'] as const
 export type SharePackageMethod = (typeof SHARE_PACKAGE_METHODS)[number]
 
 /**

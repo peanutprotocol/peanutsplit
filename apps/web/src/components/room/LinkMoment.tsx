@@ -32,37 +32,15 @@ export const roomUrl = (slug: string): string =>
         ? `${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/r/${slug}`
         : `${window.location.origin}/r/${slug}`
 
-const download = (contents: BlobPart, type: string, filename: string): boolean => {
-    let objectUrl: string | null = null
-    let anchor: HTMLAnchorElement | null = null
-    try {
-        objectUrl = URL.createObjectURL(new Blob([contents], { type }))
-        anchor = document.createElement('a')
-        anchor.href = objectUrl
-        anchor.download = filename
-        document.body.append(anchor)
-        anchor.click()
-        return true
-    } catch {
-        return false
-    } finally {
-        anchor?.remove()
-        if (objectUrl) {
-            const urlToRevoke = objectUrl
-            window.setTimeout(() => URL.revokeObjectURL(urlToRevoke), 1_000)
-        }
-    }
-}
-
 /**
  * The group-chat handoff.
  *
- * The bearer link appears only in user-directed text (native share, clipboard
- * and the text download). The visual attachment is made locally from the room
- * title, palette and doodle; it contains no URL, roster or ledger data.
+ * The bearer link appears only in user-directed text (native share and
+ * clipboard). The visual attachment is made locally from the room title,
+ * palette and doodle; it contains no URL, roster or ledger data.
  *
- * Native share is an enhancement. Clipboard, manual copy, a credential-free
- * card download and a plain-text download remain available independently.
+ * Native share is an enhancement. Clipboard and manual copy remain available
+ * independently.
  */
 export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtitle }: LinkMomentProps) {
     const t = useTranslations('room.link')
@@ -101,7 +79,7 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
         track('share_package_presented', sharePackageMeasureProps())
     }, [])
 
-    const completed = useCallback((method: 'native' | 'clipboard' | 'card_download' | 'text_download') => {
+    const completed = useCallback((method: 'native' | 'clipboard') => {
         track('share_completed', sharePackageMeasureProps(method))
     }, [])
 
@@ -168,28 +146,6 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
             feedback('error', { haptic: 'error' })
         }
     }, [completed, copy, feedback, payload, slug, t, visual, wave])
-
-    const downloadCard = useCallback(() => {
-        if (download(visual.svg, visual.mimeType, visual.filename)) {
-            setStatus(t('downloadedCard'))
-            feedback('whoosh')
-            completed('card_download')
-        } else {
-            setStatus(t('downloadFailed'))
-            feedback('error', { haptic: 'error' })
-        }
-    }, [completed, feedback, t, visual])
-
-    const downloadText = useCallback(() => {
-        if (download(payload.fullText, 'text/plain;charset=utf-8', visual.filename.replace(/\.svg$/, '.txt'))) {
-            setStatus(t('downloadedText'))
-            feedback('whoosh')
-            completed('text_download')
-        } else {
-            setStatus(t('downloadFailed'))
-            feedback('error', { haptic: 'error' })
-        }
-    }, [completed, feedback, payload.fullText, t, visual.filename])
 
     return (
         <div className="flex flex-col gap-6">
@@ -349,30 +305,6 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
                 >
                     {t('share')}
                 </Button>
-
-                {/* The rest of the package. Neither needs a network, an account or a
-                    share sheet, which is the point: the room stays recoverable from
-                    a file when the group chat is not reachable from this device. */}
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <Button
-                        variant="stroke"
-                        size="small"
-                        onClick={downloadCard}
-                        className="justify-center"
-                        data-testid="download-share-card"
-                    >
-                        {t('downloadCard')}
-                    </Button>
-                    <Button
-                        variant="stroke"
-                        size="small"
-                        onClick={downloadText}
-                        className="justify-center"
-                        data-testid="download-share-text"
-                    >
-                        {t('downloadText')}
-                    </Button>
-                </div>
                 {footer}
             </div>
 

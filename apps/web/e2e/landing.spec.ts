@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es.json'
@@ -877,66 +876,6 @@ test('the room handoff shares a localized message, the link, and the room drawin
     )
     expect(payload?.url).toMatch(/\/r\/share-package-\d+-[0-9a-hjkmnp-tv-z]{6}$/)
     await expect(page.getByTestId('copy-link')).toBeVisible()
-    await expect(page.getByTestId('download-share-card')).toBeVisible()
-    await expect(page.getByTestId('download-share-text')).toBeVisible()
-
-    await page.evaluate(() => {
-        const downloadUrls = { created: [] as string[], revoked: [] as string[] }
-        const originalCreateObjectURL = URL.createObjectURL.bind(URL)
-        const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL)
-        ;(window as Window & { __downloadUrls?: typeof downloadUrls }).__downloadUrls = downloadUrls
-        URL.createObjectURL = (object: Blob | MediaSource) => {
-            const objectUrl = originalCreateObjectURL(object)
-            downloadUrls.created.push(objectUrl)
-            return objectUrl
-        }
-        URL.revokeObjectURL = (objectUrl: string) => {
-            downloadUrls.revoked.push(objectUrl)
-            originalRevokeObjectURL(objectUrl)
-        }
-    })
-
-    const [cardDownload] = await Promise.all([
-        page.waitForEvent('download'),
-        page.getByTestId('download-share-card').click(),
-    ])
-    expect(cardDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.svg$/)
-    const cardPath = await cardDownload.path()
-    expect(cardPath).not.toBeNull()
-    const cardContents = await readFile(cardPath!, 'utf8')
-    expect(cardContents).toContain('<svg')
-    expect(cardContents).toContain('Share')
-    expect(cardContents).toContain('package')
-    expect(cardContents).not.toContain('/r/')
-    expect(cardContents).not.toContain('Ana')
-
-    const [textDownload] = await Promise.all([
-        page.waitForEvent('download'),
-        page.getByTestId('download-share-text').click(),
-    ])
-    expect(textDownload.suggestedFilename()).toMatch(/^share-package-\d+-invite\.txt$/)
-    const textPath = await textDownload.path()
-    expect(textPath).not.toBeNull()
-    const textContents = await readFile(textPath!, 'utf8')
-    expect(textContents).toBe(`Open the link, pick your name, then add what you paid.\n${payload?.url}`)
-    await expect(page.locator('a[download]')).toHaveCount(0)
-    await expect
-        .poll(
-            () =>
-                page.evaluate(() => {
-                    const urls = (
-                        window as Window & {
-                            __downloadUrls?: { created: string[]; revoked: string[] }
-                        }
-                    ).__downloadUrls
-                    return {
-                        created: urls?.created.length ?? 0,
-                        allRevoked: urls?.created.every((url) => urls.revoked.includes(url)) ?? false,
-                    }
-                }),
-            { timeout: 3_000 }
-        )
-        .toEqual({ created: 2, allRevoked: true })
 
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', {
@@ -957,9 +896,9 @@ test('the room handoff shares a localized message, the link, and the room drawin
     await page.getByTestId('share-link').click()
     await expect(page.getByTestId('share-status')).toHaveText(catalogs.en.room.link.shareFailed)
 
-    // Removing Web Share cannot remove the independent copy/download package.
-    // The rejected clipboard path re-renders the component and reveals the
-    // selected manual-copy fallback.
+    // Removing Web Share cannot remove the independent copy path. The rejected
+    // clipboard path re-renders the component and reveals the selected
+    // manual-copy fallback.
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
     })
@@ -969,69 +908,6 @@ test('the room handoff shares a localized message, the link, and the room drawin
     await expect(manualInvite).toHaveValue(
         new RegExp(`^Open the link, pick your name, then add what you paid\\.\\nhttp://localhost:\\d+/r/share-package-`)
     )
-    await expect(page.getByTestId('download-share-card')).toBeVisible()
-    await expect(page.getByTestId('download-share-text')).toBeVisible()
-})
-
-test('the downloaded room drawing keeps a maximum-width title clear of its doodle', async ({ page }) => {
-    await page.goto('/new')
-    await page.getByTestId('room-name').fill('W'.repeat(80))
-    await page.getByTestId('creator-name').fill('Ana')
-    await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-
-    const [download] = await Promise.all([
-        page.waitForEvent('download'),
-        page.getByTestId('download-share-card').click(),
-    ])
-    const downloadPath = await download.path()
-    expect(downloadPath).not.toBeNull()
-    const svgMarkup = await readFile(downloadPath!, 'utf8')
-
-    const geometry = await page.evaluate(async (markup) => {
-        const host = document.createElement('div')
-        host.style.cssText = 'position:absolute;left:-5000px;top:0;width:1200px;height:630px;opacity:0'
-        host.innerHTML = markup
-        document.body.append(host)
-        await document.fonts.ready
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-
-        const svg = host.querySelector('svg')
-        const titleElements = [...(svg?.querySelectorAll<SVGGraphicsElement>('text[font-size="72"]') ?? [])]
-        const doodleElement = svg?.querySelector<SVGGraphicsElement>('g')
-        if (!svg || !doodleElement) throw new Error('share SVG geometry is incomplete')
-
-        const transformedBox = (element: SVGGraphicsElement) => {
-            const box = element.getBBox()
-            const matrix = element.getCTM()
-            if (!matrix) throw new Error('share SVG has no transform matrix')
-            const points = [
-                new DOMPoint(box.x, box.y),
-                new DOMPoint(box.x + box.width, box.y),
-                new DOMPoint(box.x, box.y + box.height),
-                new DOMPoint(box.x + box.width, box.y + box.height),
-            ].map((point) => point.matrixTransform(matrix))
-            return {
-                left: Math.min(...points.map(({ x }) => x)),
-                right: Math.max(...points.map(({ x }) => x)),
-            }
-        }
-
-        const result = {
-            canvasRight: svg.viewBox.baseVal.x + svg.viewBox.baseVal.width,
-            titles: titleElements.map(transformedBox),
-            doodle: transformedBox(doodleElement),
-        }
-        host.remove()
-        return result
-    }, svgMarkup)
-
-    expect(geometry.titles).toHaveLength(3)
-    for (const title of geometry.titles) {
-        expect(title.right).toBeLessThan(geometry.doodle.left)
-        expect(geometry.doodle.left - title.right).toBeGreaterThan(24)
-        expect(title.right).toBeLessThanOrEqual(geometry.canvasRight)
-    }
 })
 
 test('v1 does not expose AI or migration tooling in either landing variant', async ({ page }) => {
