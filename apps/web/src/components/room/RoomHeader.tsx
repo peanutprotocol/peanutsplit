@@ -11,6 +11,7 @@ import { ThemePicker } from '@/components/room/ThemePicker'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
@@ -244,8 +245,17 @@ export function RoomHeader({ room, members, identity, me, onShare, onForgetIdent
 
             <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
                 <DrawerContent className={drawerContentClass} data-testid="room-settings">
-                    <DrawerHeader className={drawerHeaderClass}>
+                    {/* Laid out like the expense drawer's header — title left, close
+                        right. This sheet had no X at all; a swipe-down was the only
+                        way out, which is invisible on desktop and unreliable once the
+                        body scrolls. */}
+                    <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
                         <DrawerTitle className="text-h5">{t('settingsTitle')}</DrawerTitle>
+                        <CloseButton
+                            onClick={() => setMenuOpen(false)}
+                            label={t('close')}
+                            data-testid="close-room-settings"
+                        />
                     </DrawerHeader>
                     <DrawerBody>
                         <section

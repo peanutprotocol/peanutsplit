@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { CloseButton } from '@/components/ui/CloseButton'
 import { Doodle } from '@/components/ui/Doodle'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
@@ -570,15 +571,7 @@ export function ExpenseDrawer({
             >
                 <DrawerHeader className="flex shrink-0 flex-row items-end justify-between px-4 pb-2 pt-0 text-left">
                     <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
-                    <button
-                        type="button"
-                        onClick={close}
-                        aria-label={t('close')}
-                        data-testid="close-expense"
-                        className="flex size-11 items-center justify-center rounded-full border-2 border-n-1 bg-white transition-transform active:rotate-3"
-                    >
-                        <Icon name="x" size={21} />
-                    </button>
+                    <CloseButton onClick={close} label={t('close')} data-testid="close-expense" />
                 </DrawerHeader>
 
                 <DrawerBody ref={formRef} className="gap-3 pb-6 pt-2" data-testid="expense-scroll">

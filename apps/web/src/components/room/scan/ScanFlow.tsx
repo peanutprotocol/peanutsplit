@@ -35,7 +35,7 @@ import { useEffect, useReducer, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
-import { Icon } from '@/components/ui/Icon'
+import { CloseButton } from '@/components/ui/CloseButton'
 import { api, isApiError } from '@/lib/api'
 import type { ApiMember, CurrencyInfo, ParsedReceipt } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
@@ -254,15 +254,7 @@ export function ScanFlow({
                     <span className="text-h8 uppercase tracking-wide text-grey-1">
                         {phase === 'assign' ? t('step2') : t('step1')}
                     </span>
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        aria-label={t('cancel')}
-                        data-testid="scan-close"
-                        className="flex size-11 items-center justify-center rounded-sm border border-n-1 bg-white"
-                    >
-                        <Icon name="x" size={18} />
-                    </button>
+                    <CloseButton onClick={onCancel} label={t('cancel')} data-testid="scan-close" />
                 </div>
 
                 {phase === 'scanning' && <ScanningAnimation />}
