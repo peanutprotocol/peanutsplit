@@ -71,9 +71,8 @@ export function SiteFooter({
                 >
                     <Image src={peanutLogo} alt={t('logoAlt')} width={104} height={26} unoptimized />
                 </a>
-                <p className="mt-2 text-sm text-white/70">{t('tagline')}</p>
 
-                <nav className="mt-7 grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
+                <nav className="mt-6 grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
                     <div>
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colSplit')}</h2>
                         <ul className="mt-2 flex flex-col gap-1.5">

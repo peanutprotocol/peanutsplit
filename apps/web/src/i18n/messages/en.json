@@ -145,7 +145,6 @@
         },
         "footer": {
             "logoAlt": "Peanut",
-            "tagline": "Split any bill with a link. Peanut Split is made by the team behind Peanut.",
             "colSplit": "Split",
             "createSplit": "Start a split",
             "importLink": "Import from Splitwise",

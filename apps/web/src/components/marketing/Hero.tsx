@@ -24,10 +24,7 @@ function CompactHero() {
                             className="text-[3.25rem] leading-[0.9] tracking-tight lg:text-[4.5rem]"
                         />
                     </div>
-                    <h1 className="sr-only">{`${t('controlTitleAccessible')} — ${t('subtitle')}`}</h1>
-                    <p className="mt-3 max-w-xl text-base font-medium leading-6 text-n-1 lg:text-lg lg:leading-7">
-                        {t('subtitle')}
-                    </p>
+                    <h1 className="sr-only">{t('controlTitleAccessible')}</h1>
                 </div>
 
                 <HeroCreateForm analyticsVariant="control" />
