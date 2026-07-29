@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
-import type { DoodleName } from '@/components/ui/doodles'
 import { slugStem } from '@/lib/slugify'
 
 export type PassTheLinkStageState = 'question' | 'reply' | 'link' | 'complete'
@@ -13,12 +12,6 @@ export interface PassTheLinkStageProps {
     state: PassTheLinkStageState
 }
 
-const CHANNELS = [
-    'channelwhatsapp',
-    'channeltelegram',
-    'channelmessenger',
-    'channelmessages',
-] as const satisfies readonly DoodleName[]
 const PEOPLE = ['B', 'J', 'M', 'YOU'] as const
 
 /**
@@ -43,22 +36,6 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
             </p>
 
             <div data-testid="pass-link-stage" data-state={state} className="pass-link-stage">
-                <div data-testid="pass-link-channel-doodles" className="pass-link-channels" aria-hidden="true">
-                    {CHANNELS.map((channel) => (
-                        <span
-                            key={channel}
-                            data-testid="pass-link-channel"
-                            className={`pass-link-channel pass-link-channel-${channel}`}
-                        >
-                            <Doodle name={channel} size={32} weight={1.9} />
-                        </span>
-                    ))}
-                </div>
-
-                <p data-testid="pass-link-no-signup" className="pass-link-stage-badge" aria-hidden="true">
-                    {t('chat.badge')}
-                </p>
-
                 <Link
                     href="/new"
                     aria-label={t('cta')}
