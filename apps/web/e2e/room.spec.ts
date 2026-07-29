@@ -93,6 +93,31 @@ test('the in-app animations-off setting stays still through new, room, share, ad
     await runStillRouteMatrix(page)
 })
 
+test('the deferred install prompt is still when the OS requests reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill(`Still install ${Date.now()}`)
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('go-to-room').click()
+    await expectBalance(page, 'Ana', '0')
+
+    await page.clock.install()
+    await page.evaluate(() => {
+        const event = new Event('beforeinstallprompt', { cancelable: true })
+        Object.assign(event, {
+            prompt: async () => undefined,
+            userChoice: Promise.resolve({ outcome: 'dismissed' }),
+        })
+        window.dispatchEvent(event)
+    })
+    await page.clock.runFor(21_000)
+
+    await expect(page.locator('[data-motion-surface][role="dialog"]')).toBeVisible()
+    await expectStill(page)
+})
+
 test('create → share → join → split → settle → undo', async ({ page, browser }) => {
     test.setTimeout(60_000)
 
