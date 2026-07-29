@@ -23,6 +23,8 @@
  * and the file has another owner this week. Worth folding into one set of shared
  * primitives once the OG module has a single owner.
  */
+import type { DoodleName } from '@/components/ui/doodles'
+import { doodleDataUri } from '@/server/og/emblem'
 import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
 import type { RecapCardData } from '@/server/og/recapCard'
 import { OG_SIZE } from '@/server/og/card'
@@ -210,6 +212,41 @@ function Wordmark() {
     )
 }
 
+function Panel({ name, size, first = false }: { name: DoodleName; size: number; first?: boolean }) {
+    return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+            src={doodleDataUri(name)}
+            width={size}
+            height={size}
+            alt=""
+            style={{ flexShrink: 0, marginLeft: first ? 0 : 18 }}
+        />
+    )
+}
+
+/**
+ * The trip in three drawings: we went → we spent → we're square. Wordless on
+ * purpose — the strip has to read in a chat in any language, and drawings are
+ * the one vocabulary this card can use without opening the font-coverage
+ * question. The room's own character leads, so a ski trip's story starts with
+ * the skis and a pizza night's with the pizza.
+ */
+function StoryStrip({ emblem }: { emblem: DoodleName }) {
+    // 52px panels: present enough to read next to the 64px avatar discs, small
+    // enough that the sheet's 146px hero number stays the headline and the
+    // tallest card (long name + top payer + avatars) stays inside 630px.
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: 22 }}>
+            <Panel name={emblem} size={52} first />
+            <Panel name="iconarrowright" size={32} />
+            <Panel name="tally" size={52} />
+            <Panel name="iconarrowright" size={32} />
+            <Panel name="iconcheck" size={52} />
+        </div>
+    )
+}
+
 function AvatarRow({ card }: { card: RecapCardData }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -301,6 +338,11 @@ export function RecapCard({ card, emojiSrc }: { card: RecapCardData; emojiSrc: s
                 <div style={{ display: 'flex', marginTop: 26 }}>
                     <AvatarRow card={card} />
                 </div>
+
+                {/* Only a settled room has earned the tick at the end of the
+                    strip — mid-trip, the third panel would be a lie, so the
+                    strip waits with the stamp. */}
+                {card.settled ? <StoryStrip emblem={card.emblem} /> : null}
             </Sheet>
             <Wordmark />
         </Field>

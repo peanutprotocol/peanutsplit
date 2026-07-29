@@ -133,7 +133,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(roomLink).toBeVisible({ timeout: 15_000 })
     const url = (await roomLink.innerText()).trim()
     expect(url).toContain('/r/ski-trip-')
-    await expect(page.getByTestId('copy-invite')).toBeVisible()
+    await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.getByTestId('go-to-room').click()
     await expectBalance(page, 'Ana', '0')
@@ -236,9 +236,29 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(transfer).toHaveCount(1)
     await expect(transfer).toContainText('€11.48')
     await transfer.click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveCount(0)
     await page.getByTestId('method-cash').click()
     await page.getByTestId('record-settlement').click()
 
+    await expectBalance(page, 'Ana', '0')
+    await expectBalance(page, 'Bea', '0')
+    await expect(allSettled(page)).toBeVisible({ timeout: 15_000 })
+    const payment = page.getByTestId('settlement-row')
+    await expect(payment).toContainText('recorded by you')
+    await expect(payment.getByTestId('settlement-receipt-link')).toHaveCount(0)
+
+    // Undo changes only Split's record. The server returns recomputed balances
+    // in the same response, so the debt re-opens without a refresh.
+    await payment.getByTestId('remove-settlement').click()
+    await payment.getByTestId('confirm-remove-settlement').click()
+    await expect(page.getByTestId('settlement-row')).toHaveCount(0)
+    await expectBalance(page, 'Ana', '1148')
+    await expectBalance(page, 'Bea', '-1148')
+
+    // Record it again so the rest of this journey continues from all square.
+    await page.getByTestId('open-settle').click()
+    await page.getByTestId('transfer-row').click()
+    await page.getByTestId('record-settlement').click()
     await expectBalance(page, 'Ana', '0')
     await expectBalance(page, 'Bea', '0')
     await expect(allSettled(page)).toBeVisible({ timeout: 15_000 })
@@ -248,7 +268,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await page.getByTestId('delete-expense').click()
     await expect(page.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
 
-    await page.getByRole('button', { name: 'Undo' }).click()
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(page.getByTestId('expense-row')).toHaveCount(2, { timeout: 15_000 })
     await expectBalance(page, 'Ana', '0')
     await expect(allSettled(page)).toBeVisible()
@@ -256,7 +276,88 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await second.close()
 })
 
+test('receipt links belong only to Peanut settlements', async ({ page }) => {
+    const roomResponse = await page.request.post('/api/rooms', {
+        data: { name: 'Receipt rule', currency: 'EUR', creatorName: 'Ana' },
+    })
+    expect(roomResponse.ok()).toBe(true)
+    const room = (await roomResponse.json()) as {
+        room: { slug: string }
+        memberId: string
+        memberToken: string
+    }
+
+    const memberResponse = await page.request.post(`/api/rooms/${room.room.slug}/members`, {
+        data: { name: 'Bea', intent: 'add' },
+    })
+    expect(memberResponse.ok()).toBe(true)
+    const bea = (await memberResponse.json()) as { memberId: string }
+
+    const expenseResponse = await page.request.post(`/api/rooms/${room.room.slug}/expenses`, {
+        headers: { 'x-member-token': room.memberToken },
+        data: {
+            description: 'Dinner',
+            amountMinor: '1000',
+            currency: 'EUR',
+            paidById: bea.memberId,
+            splitMode: 'EQUAL',
+            participantIds: [room.memberId, bea.memberId],
+        },
+    })
+    expect(expenseResponse.ok()).toBe(true)
+
+    await page.addInitScript(
+        ({ slug, memberId, token }) =>
+            window.localStorage.setItem(`ps:member:${slug}`, JSON.stringify({ memberId, name: 'Ana', token })),
+        { slug: room.room.slug, memberId: room.memberId, token: room.memberToken }
+    )
+    await page.goto(`/r/${room.room.slug}`)
+    await expectBalance(page, 'Ana', '-500')
+
+    await page.getByTestId('open-settle').click()
+    await page.getByTestId('transfer-row').click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveCount(0)
+
+    await page.getByTestId('method-peanut').click()
+    await expect(page.getByTestId('settle-receipt-url')).toBeVisible()
+    await page.getByTestId('settle-receipt-url').fill('https://receipts.example/stale')
+    await page.getByTestId('method-bank').click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveCount(0)
+
+    const bankRequest = page.waitForRequest(
+        (request) => request.method() === 'POST' && /\/api\/rooms\/[^/]+\/settlements$/.test(request.url())
+    )
+    await page.getByTestId('record-settlement').click()
+    expect((await bankRequest).postDataJSON()).not.toHaveProperty('receiptUrl')
+    await expectBalance(page, 'Ana', '0')
+
+    const payment = page.getByTestId('settlement-row')
+    await payment.getByTestId('remove-settlement').click()
+    await payment.getByTestId('confirm-remove-settlement').click()
+    await expectBalance(page, 'Ana', '-500')
+
+    await page.getByTestId('open-settle').click()
+    await page.getByTestId('transfer-row').click()
+    await page.getByTestId('method-peanut').click()
+    await expect(page.getByTestId('settle-receipt-url')).toHaveValue('')
+    await page.getByTestId('settle-receipt-url').fill('https://receipts.example/ana-to-bea')
+    const peanutRequest = page.waitForRequest(
+        (request) => request.method() === 'POST' && /\/api\/rooms\/[^/]+\/settlements$/.test(request.url())
+    )
+    await page.getByTestId('record-settlement').click()
+    expect((await peanutRequest).postDataJSON()).toMatchObject({
+        method: 'peanut',
+        receiptUrl: 'https://receipts.example/ana-to-bea',
+    })
+    await expect(page.getByTestId('settlement-row')).toContainText('Peanut')
+    await expect(page.getByTestId('settlement-row').getByTestId('settlement-receipt-link')).toHaveAttribute(
+        'href',
+        'https://receipts.example/ana-to-bea'
+    )
+})
+
 test('one person can add a payer and submit an expense on their behalf', async ({ page, browser }) => {
+    test.setTimeout(60_000)
     await page.goto('/new')
     await expect(page.getByTestId('room-composer')).toBeVisible()
     const roomCurrencyTrigger = page.getByRole('button', { name: /Room currency,/ })
@@ -279,11 +380,41 @@ test('one person can add a payer and submit an expense on their behalf', async (
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
 
+    const expenseWrites: string[] = []
+    page.on('request', (request) => {
+        if (request.method() === 'POST' && /\/api\/rooms\/[^/]+\/expenses$/.test(request.url())) {
+            expenseWrites.push(request.postData() ?? '')
+        }
+    })
+
     await page.getByTestId('open-add-expense').click()
     await expect(page.getByTestId('expense-composer')).toBeVisible()
     await expect(page.getByTestId('close-expense')).toBeVisible()
     await expect(page.getByTestId('expense-scroll')).toHaveCSS('overflow-y', 'auto')
     await expect(page.getByTestId('expense-tools-loading')).toHaveCount(0)
+
+    // Money punctuation becomes visible before it can touch the ledger.
+    // English grouping is read as grouping and normalised in the editable
+    // field; excess precision and leading-zero pseudo-grouping are rejected
+    // instead of rounding or multiplying on save.
+    await page.getByTestId('expense-description').fill('Leading zero guard')
+    await page.getByTestId('expense-amount').fill('0,123')
+    await page.getByTestId('save-expense').click()
+    await expect(page.locator('#expense-amount-error')).toContainText('separators and decimal places')
+    await expect(page.getByTestId('expense-amount')).toHaveValue('0,123')
+    await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
+    expect(expenseWrites).toHaveLength(0)
+
+    await page.getByTestId('expense-amount').fill('1,234')
+    await page.getByTestId('expense-amount').press('Tab')
+    await expect(page.getByTestId('expense-amount')).toHaveValue('1234.00')
+    await expect(page.getByTestId('expense-fields-repaired')).toContainText('Read as 1234.00')
+    await page.getByTestId('expense-amount').fill('12.345')
+    await page.getByTestId('expense-description').fill('Precision check')
+    await page.getByTestId('save-expense').click()
+    await expect(page.locator('#expense-amount-error')).toContainText('separators and decimal places')
+    await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
+
     const currencyTrigger = page.getByRole('button', { name: /Expense currency, EUR/ })
     await currencyTrigger.click()
     const currencyList = page.getByRole('listbox', { name: 'Expense currency' })
@@ -318,6 +449,19 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(page.getByTestId('collapse-payer-editor')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
     await expect(page.getByTestId('collapse-payer-editor')).toHaveCSS('border-top-width', '0px')
     await expect(page.getByTestId('payer-chip')).toHaveCount(1)
+
+    // A name typed here is only a draft. Closing the expense must leave no
+    // member behind and therefore cannot affect a later default split.
+    await page.getByTestId('add-payer').click()
+    await page.getByTestId('new-payer-name').fill('Cancelled person')
+    await page.getByTestId('add-payer-submit').click()
+    await expect(page.getByTestId('expense-payer-summary')).toHaveAccessibleName('Cancelled person paid')
+    await page.getByTestId('close-expense').click()
+    await page.getByTestId('open-add-expense').click()
+    await page.getByTestId('expense-payer-summary').click()
+    await expect(page.getByTestId('payer-chip')).toHaveCount(1)
+    await expect(page.locator('[data-testid="payer-chip"][data-member="Cancelled person"]')).toHaveCount(0)
+
     await page.getByTestId('add-payer').click()
     await page.getByTestId('new-payer-name').fill('Bea')
     await page.getByTestId('add-payer-submit').click()
@@ -325,7 +469,9 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(page.getByTestId('expense-payer-summary')).toHaveAccessibleName('Bea paid', { timeout: 15_000 })
     await expect(page.getByTestId('payer-editor')).toHaveCount(0)
     await page.getByTestId('expense-split-summary').click()
-    await expect(page.locator('[data-testid="participant-toggle"][data-member="Bea"]')).toBeVisible()
+    // Bea is not a roster row yet. Untouched EQUAL means “everyone at server
+    // commit time”, so the atomic save below still includes her.
+    await expect(page.locator('[data-testid="participant-toggle"][data-member="Bea"]')).toHaveCount(0)
     await expect(page.getByTestId('collapse-split-editor')).toBeVisible()
     await page.getByTestId('collapse-split-editor').click()
     await expect(page.getByTestId('split-editor')).toHaveCount(0)
@@ -349,6 +495,9 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(
         page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]:not([disabled])')
     ).toContainText('Bea paid', { timeout: 15_000 })
+    await expect(page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]')).toContainText(
+        'Filed by you'
+    )
     await expectBalance(page, 'Ana', '-3000')
     await expectBalance(page, 'Bea', '3000')
 

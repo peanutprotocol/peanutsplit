@@ -61,6 +61,10 @@ model Member {
   // may cast any room member, but only with an allowlisted key.
   avatar    String?
   userId    String? // claim hook — null until account linking ships
+  // True only for a name somebody added on another person's behalf. It flips
+  // false the first time that person claims the name, permanently protecting
+  // their access even if they have not entered money yet.
+  provisional Boolean @default(false)
   createdAt DateTime  @default(now())
   removedAt DateTime?
   room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
@@ -159,6 +163,7 @@ model Settlement {
   amountMinor BigInt // room currency
   method      String? // "cash" | "bank" | "peanut" | null
   note        String?
+  receiptUrl  String? // pasted documentation only; never fetched or verified
   createdAt   DateTime  @default(now())
   deletedAt   DateTime?
 

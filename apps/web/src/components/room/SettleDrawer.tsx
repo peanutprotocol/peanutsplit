@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
@@ -13,7 +13,7 @@ import type { ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/l
 import { roomProps, track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
-import { decimalsOf, formatMinorPlain, parseAmountToMinor } from '@/lib/money'
+import { decimalsOf, formatAmountInput, parseAmountToMinor } from '@/lib/money'
 import { createClientKey } from '@/lib/offline-queue'
 import { useAddSettlement } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
@@ -70,6 +70,7 @@ const REVEAL_STAGGER_MAX = 6
 export function SettleDrawer({ open, onClose, slug, state, currencies, token }: SettleDrawerProps) {
     const t = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
+    const locale = useLocale()
     const errorMessage = useErrorMessage()
     const addSettlement = useAddSettlement(slug, token)
     const feedback = useFeedback()
@@ -77,6 +78,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
     const [selected, setSelected] = useState<ApiTransfer | null>(null)
     const [method, setMethod] = useState<SettlementMethod>('cash')
     const [note, setNote] = useState('')
+    const [receiptUrl, setReceiptUrl] = useState('')
     const [error, setError] = useState<string | null>(null)
     /**
      * The amount, as typed. Pre-filled with the suggestion, because the suggestion
@@ -127,6 +129,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         setSelected(null)
         setMethod('cash')
         setNote('')
+        setReceiptUrl('')
         setAmount('')
         setError(null)
         setFrozen(null)
@@ -155,7 +158,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
      *  suggestion, in the room's own decimal places. */
     const pick = (transfer: ApiTransfer) => {
         setSelected(transfer)
-        setAmount(formatMinorPlain(transfer.amountMinor, decimals))
+        setAmount(formatAmountInput(transfer.amountMinor, decimals, locale))
         setError(null)
     }
 
@@ -171,8 +174,9 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
      */
     const enteredMinor = (): { minor: string } | { problem: string } => {
         if (!selected) return { problem: t('amountInvalid') }
-        const parsed = parseAmountToMinor(amount, decimals)
-        if (parsed === null || BigInt(parsed) <= 0n) return { problem: t('amountInvalid') }
+        const parsed = parseAmountToMinor(amount, decimals, locale)
+        if (parsed === null) return { problem: t('amountFormatInvalid') }
+        if (BigInt(parsed) <= 0n) return { problem: t('amountInvalid') }
         if (BigInt(parsed) > BigInt(selected.amountMinor))
             return { problem: t('amountTooHigh', { name: nameOf(selected.fromId) }) }
         return { minor: parsed }
@@ -191,7 +195,13 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         const partial = entered.minor !== selected.amountMinor
         const key = transferKey(selected)
         const trimmedNote = note.trim()
-        const signature = [selected.fromId, selected.toId, entered.minor, method, trimmedNote].join('\u0000')
+        // A receipt is proof of the Peanut handoff, not generic settlement
+        // metadata. Keep a stale value out of both retry identity and the wire
+        // body if the person changes their mind and chooses cash or bank.
+        const trimmedReceiptUrl = method === 'peanut' ? receiptUrl.trim() : ''
+        const signature = [selected.fromId, selected.toId, entered.minor, method, trimmedNote, trimmedReceiptUrl].join(
+            '\u0000'
+        )
         const clientKey = requestRef.current?.signature === signature ? requestRef.current.clientKey : createClientKey()
         requestRef.current = { signature, clientKey }
         // Hold the list we are looking at *before* the mutation lands, so the row
@@ -210,6 +220,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                 amountMinor: entered.minor,
                 method,
                 note: trimmedNote || null,
+                ...(method === 'peanut' ? { receiptUrl: trimmedReceiptUrl || null } : {}),
             })
             const created =
                 next.settlements.find((settlement) => settlement.id === clientKey) ??
@@ -542,6 +553,10 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                         setAmount(event.target.value)
                                         setError(null)
                                     }}
+                                    onBlur={() => {
+                                        const parsed = parseAmountToMinor(amount, decimals, locale)
+                                        if (parsed !== null) setAmount(formatAmountInput(parsed, decimals, locale))
+                                    }}
                                     inputMode="decimal"
                                     autoComplete="off"
                                     maxLength={20}
@@ -571,6 +586,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                                 type="button"
                                                 onClick={() => {
                                                     setMethod(option.id)
+                                                    if (!isPeanut) setReceiptUrl('')
                                                     feedback('tick')
                                                     if (isPeanut) track('peanut_option_clicked', roomProps(slug))
                                                 }}
@@ -607,6 +623,24 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                                     data-testid="settle-note"
                                 />
                             </label>
+
+                            {method === 'peanut' && (
+                                <label className="flex flex-col gap-2">
+                                    <span className="text-h8 uppercase tracking-wide text-grey-1">
+                                        {t('receiptLink')}
+                                    </span>
+                                    <BaseInput
+                                        value={receiptUrl}
+                                        onChange={(event) => setReceiptUrl(event.target.value)}
+                                        placeholder={t('receiptLinkPlaceholder')}
+                                        inputMode="url"
+                                        autoComplete="url"
+                                        maxLength={2048}
+                                        data-testid="settle-receipt-url"
+                                    />
+                                    <span className="text-sm text-grey-1">{t('receiptLinkHint')}</span>
+                                </label>
+                            )}
 
                             {error && (
                                 <p role="alert" className="text-sm font-bold text-error">

@@ -27,7 +27,7 @@
  * counter then blocks the submit on a line they never wanted.
  */
 
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiMember, CurrencyInfo } from '@/lib/api-types'
@@ -56,12 +56,13 @@ interface ScanAssignProps {
 
 export function ScanAssign({ state, dispatch, members, decimals, currencies, onBack, onApply }: ScanAssignProps) {
     const t = useTranslations('room.scan')
+    const locale = useLocale()
     const feedback = useFeedback()
 
     const memberIds = members.map((member) => member.id)
-    const unassigned = unassignedItems(state, decimals)
-    const totals = memberTotals(state, decimals)
-    const assignedTotal = assignedTotalMinor(state, decimals)
+    const unassigned = unassignedItems(state, decimals, locale)
+    const totals = memberTotals(state, decimals, locale)
+    const assignedTotal = assignedTotalMinor(state, decimals, locale)
     const canApply = unassigned.length === 0 && BigInt(assignedTotal) > 0n
 
     return (
@@ -75,7 +76,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                 {state.items.map((item) => {
                     const assignees = state.assignments[item.id] ?? []
                     const isEveryone = memberIds.length > 0 && assignees.length === memberIds.length
-                    const needsSomeone = assignees.length === 0 && BigInt(itemMinor(item, decimals)) > 0n
+                    const needsSomeone = assignees.length === 0 && BigInt(itemMinor(item, decimals, locale)) > 0n
                     return (
                         <li
                             key={item.id}
@@ -93,7 +94,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                     )}
                                 </span>
                                 <Money
-                                    minor={itemMinor(item, decimals)}
+                                    minor={itemMinor(item, decimals, locale)}
                                     currency={state.currency}
                                     catalog={currencies}
                                     className="shrink-0 text-h8"

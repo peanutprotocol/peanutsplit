@@ -27,7 +27,7 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
-import { currencyInfo, formatMinorPlain, formatMoney, parseAmountToMinor } from '@/lib/money'
+import { currencyInfo, formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
     useAddMember,
@@ -35,6 +35,7 @@ import {
     useModelStatus,
     useRestoreExpense,
     useUpdateExpense,
+    type ExpenseRequestState,
 } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useCurrencyHints } from '@/lib/use-currency-hint'
@@ -76,11 +77,14 @@ export function ExpenseDrawer({
     const tDates = useTranslations('dates')
     const locale = useLocale()
     const errorMessage = useErrorMessage()
-    const addExpense = useAddExpense(slug, token)
-    const addMember = useAddMember(slug)
+    const expenseRequestRef = useRef<ExpenseRequestState | null>(null)
+    const addExpense = useAddExpense(slug, token, expenseRequestRef)
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
     const restoreExpense = useRestoreExpense(slug, token)
+    /** Adding a participant is a real roster write (`intent: 'add'`), unlike the
+     *  payer field, whose new name stays a draft until the expense commits. */
+    const addMember = useAddMember(slug)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
     const { ref: formRef, shake } = useShake<HTMLDivElement>()
@@ -100,9 +104,13 @@ export function ExpenseDrawer({
     const [addingPayer, setAddingPayer] = useState(false)
     const [newPayerName, setNewPayerName] = useState('')
     const [payerError, setPayerError] = useState<string | null>(null)
+    const [addingParticipant, setAddingParticipant] = useState(false)
+    const [newParticipantName, setNewParticipantName] = useState('')
+    const [participantError, setParticipantError] = useState<string | null>(null)
     const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
     const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
+    const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
     const descriptionRef = useRef<HTMLInputElement>(null)
     // React does not disable the button until the mutation state renders. A
@@ -127,11 +135,15 @@ export function ExpenseDrawer({
         setAddingPayer(false)
         setNewPayerName('')
         setPayerError(null)
+        setAddingParticipant(false)
+        setNewParticipantName('')
+        setParticipantError(null)
         setFieldRepairNotice(null)
         setEditor(null)
+        expenseRequestRef.current = null
         setValues(
             expense
-                ? expenseToFormValues(expense, currencies)
+                ? expenseToFormValues(expense, currencies, locale)
                 : emptyExpenseForm({
                       currency: state.room.currency,
                       members: state.members,
@@ -158,19 +170,19 @@ export function ExpenseDrawer({
     const suggestedCurrencies = [state.room.currency, ...hints.map((hint) => hint.currency)].filter(
         (code, index, all) => all.indexOf(code) === index
     )
-    const validation = validateExpenseForm(values, currencies)
-    const remaining = remainingMinor(values, currencies)
+    const validation = validateExpenseForm(values, currencies, locale)
+    const remaining = remainingMinor(values, currencies, locale)
     const remainingIsZero = remaining === '0'
     /** The green celebration. Zero left to allocate is NOT enough on its own —
      *  an untouched EXACT form is zero against zero, and cheering before the work
      *  starts spends the moment that was supposed to land at the end of it. */
     const allocationSettled = remainingIsZero && values.exactTouched
-    const totalMinor = parseAmountToMinor(values.amountInput, decimals)
+    const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
 
     const choosePayer = (memberId: string) => {
-        patch({ paidById: memberId })
+        patch({ paidById: memberId, newPaidByName: '' })
         setAddingPayer(false)
         setNewPayerName('')
         setPayerError(null)
@@ -183,10 +195,10 @@ export function ExpenseDrawer({
      * link is the credential and writes are trust-based, so the person holding
      * the phone may add Bea and record an expense Bea paid while remaining Ana.
      */
-    const createPayer = async (event: React.FormEvent) => {
+    const createPayer = (event: React.FormEvent) => {
         event.preventDefault()
         const name = newPayerName.trim()
-        if (!name || addMember.isPending) return
+        if (!name) return
 
         const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
         if (existing) {
@@ -194,22 +206,14 @@ export function ExpenseDrawer({
             return
         }
 
+        // Draft only. The server creates this member in the same transaction as
+        // the expense, so cancelling or a rejected save cannot alter the roster.
+        patch({ paidById: '', newPaidByName: name })
         setPayerError(null)
-        try {
-            const next = await addMember.mutateAsync({ name })
-            patch({ paidById: next.memberId })
-            setAddingPayer(false)
-            setNewPayerName('')
-            setEditor(null)
-            feedback('pop')
-        } catch (err) {
-            feedback('error', { haptic: 'error' })
-            if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
-                setPayerError(t('payerDuplicate', { name }))
-                return
-            }
-            setPayerError(errorMessage(err, t('payerAddFailed')))
-        }
+        setAddingPayer(false)
+        setNewPayerName('')
+        setEditor(null)
+        feedback('pop')
     }
 
     /**
@@ -247,6 +251,55 @@ export function ExpenseDrawer({
         })
     }
 
+    /**
+     * Add a missing person without making someone abandon the expense they are
+     * already composing. The new roster row joins this split immediately:
+     * selected in EQUAL, and present with a blank amount ready to type in EXACT.
+     */
+    const createParticipant = async (event: React.FormEvent) => {
+        event.preventDefault()
+        const name = newParticipantName.trim()
+        if (!name || addMember.isPending) return
+
+        const select = (memberId: string) => {
+            if (values.splitMode === 'EQUAL') {
+                const current = values.participantsTouched
+                    ? values.participantIds
+                    : state.members.map((member) => member.id)
+                patch({
+                    participantsTouched: true,
+                    participantIds: current.includes(memberId) ? current : [...current, memberId],
+                })
+            } else if (values.exactInputs[memberId] === undefined) {
+                patch({ exactInputs: { ...values.exactInputs, [memberId]: '' } })
+            }
+            setAddingParticipant(false)
+            setNewParticipantName('')
+            setParticipantError(null)
+        }
+
+        const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
+        if (existing) {
+            select(existing.id)
+            feedback('tick')
+            return
+        }
+
+        setParticipantError(null)
+        try {
+            const next = await addMember.mutateAsync({ name })
+            select(next.memberId)
+            feedback('pop')
+        } catch (err) {
+            feedback('error', { haptic: 'error' })
+            if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
+                setParticipantError(t('payerDuplicate', { name }))
+                return
+            }
+            setParticipantError(errorMessage(err, t('payerAddFailed')))
+        }
+    }
+
     /** Every write into an EXACT field goes through here, so `exactTouched` cannot
      *  be set in one path and forgotten in another. */
     const editExact = (memberId: string, input: string) =>
@@ -259,9 +312,25 @@ export function ExpenseDrawer({
     const normaliseExact = (memberId: string) => {
         const raw = values.exactInputs[memberId] ?? ''
         if (raw.trim().length === 0) return
-        const minor = parseAmountToMinor(raw, decimals)
+        const minor = parseAmountToMinor(raw, decimals, locale)
         if (minor === null) return
-        editExact(memberId, formatMinorPlain(minor, decimals))
+        editExact(memberId, formatAmountInput(minor, decimals, locale))
+    }
+
+    /** Make the interpretation visible before save. A grouped `1,234` in
+     * English becomes `1234.00`; in Spanish/Portuguese, `1.234` becomes
+     * `1234,00`. If that was not what the person meant, the field now says so
+     * while it is still editable. */
+    const normaliseAmount = () => {
+        const raw = values.amountInput.trim()
+        if (raw.length === 0) return
+        const minor = parseAmountToMinor(raw, decimals, locale)
+        if (minor === null) return
+        const normalised = formatAmountInput(minor, decimals, locale)
+        if (normalised === raw) return
+        patch({ amountInput: normalised })
+        setSubmitted(false)
+        setFieldRepairNotice(t('amountNormalised', { amount: normalised }))
     }
 
     const chooseRelativeDate = (daysAgo: number) => {
@@ -273,9 +342,9 @@ export function ExpenseDrawer({
     }
 
     const putRemainderOn = (memberId: string) => {
-        const current = parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals) ?? '0'
+        const current = parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals, locale) ?? '0'
         const next = BigInt(current) + BigInt(remaining)
-        editExact(memberId, formatMinorPlain((next < 0n ? 0n : next).toString(), decimals))
+        editExact(memberId, formatAmountInput((next < 0n ? 0n : next).toString(), decimals, locale))
     }
 
     const close = () => {
@@ -290,7 +359,7 @@ export function ExpenseDrawer({
      * safety net.
      */
     const repairFieldRoles = (candidate: ExpenseFormValues = values, clearSubmitted = true) => {
-        const repaired = repairMisplacedExpenseFields(candidate, currencies)
+        const repaired = repairMisplacedExpenseFields(candidate, currencies, locale)
         if (!repaired) return candidate
         setValues(repaired)
         if (clearSubmitted) setSubmitted(false)
@@ -303,13 +372,14 @@ export function ExpenseDrawer({
         if (savingRef.current) return
         setSubmitted(true)
         const valuesToSave = repairFieldRoles(values, false)
-        const validationToSave = validateExpenseForm(valuesToSave, currencies)
+        const validationToSave = validateExpenseForm(valuesToSave, currencies, locale)
         if (validationToSave) {
             // The message alone is easy to miss on a long form — the sheet moving
             // is what tells you the tap was received and refused.
             feedback('error', { haptic: 'error' })
             shake()
-            if (validationToSave === 'AMOUNT_REQUIRED') amountRef.current?.focus()
+            if (validationToSave === 'AMOUNT_REQUIRED' || validationToSave === 'AMOUNT_INVALID')
+                amountRef.current?.focus()
             else if (validationToSave === 'DESCRIPTION_REQUIRED') descriptionRef.current?.focus()
             else if (validationToSave === 'PAYER_REQUIRED') setEditor('payer')
             else setEditor('split')
@@ -317,7 +387,7 @@ export function ExpenseDrawer({
         }
         savingRef.current = true
         setError(null)
-        const body = buildExpenseBody(valuesToSave, currencies)
+        const body = buildExpenseBody(valuesToSave, currencies, locale)
         try {
             if (expense) {
                 await updateExpense.mutateAsync({ id: expense.id, input: body })
@@ -341,6 +411,11 @@ export function ExpenseDrawer({
         } catch (err) {
             feedback('error', { haptic: 'error' })
             shake()
+            if (isApiError(err, 'DUPLICATE_MEMBER_NAME') && valuesToSave.newPaidByName) {
+                setError(t('payerDuplicate', { name: valuesToSave.newPaidByName }))
+                setEditor('payer')
+                return
+            }
             if (isApiError(err, 'EXPENSE_DELETED')) {
                 setError(t('wasDeleted'))
                 return
@@ -408,6 +483,7 @@ export function ExpenseDrawer({
     const membersNotInExact = state.members.filter((member) => values.exactInputs[member.id] === undefined)
 
     const payer = state.members.find((member) => member.id === values.paidById)
+    const payerName = values.newPaidByName || payer?.name
     const participantIds =
         values.splitMode === 'EQUAL'
             ? values.participantsTouched
@@ -439,14 +515,18 @@ export function ExpenseDrawer({
             ? t('validation.DESCRIPTION_REQUIRED')
             : validation === 'AMOUNT_REQUIRED'
               ? t('validation.AMOUNT_REQUIRED')
-              : validation === 'PAYER_REQUIRED'
-                ? t('validation.PAYER_REQUIRED')
-                : validation === 'NO_PARTICIPANTS'
-                  ? t('validation.NO_PARTICIPANTS')
-                  : validation === 'SHARES_DO_NOT_ADD_UP'
-                    ? t('validation.SHARES_DO_NOT_ADD_UP')
-                    : null
-    const amountInvalid = submitted && validation === 'AMOUNT_REQUIRED'
+              : validation === 'AMOUNT_INVALID'
+                ? t('validation.AMOUNT_INVALID')
+                : validation === 'PAYER_REQUIRED'
+                  ? t('validation.PAYER_REQUIRED')
+                  : validation === 'NO_PARTICIPANTS'
+                    ? t('validation.NO_PARTICIPANTS')
+                    : validation === 'SHARE_AMOUNT_INVALID'
+                      ? t('validation.SHARE_AMOUNT_INVALID')
+                      : validation === 'SHARES_DO_NOT_ADD_UP'
+                        ? t('validation.SHARES_DO_NOT_ADD_UP')
+                        : null
+    const amountInvalid = submitted && (validation === 'AMOUNT_REQUIRED' || validation === 'AMOUNT_INVALID')
     const descriptionInvalid = submitted && validation === 'DESCRIPTION_REQUIRED'
     const positiveTotal = totalMinor !== null && BigInt(totalMinor) > 0n
     const primaryLabel =
@@ -521,7 +601,10 @@ export function ExpenseDrawer({
                                         setSubmitted(false)
                                         setFieldRepairNotice(null)
                                     }}
-                                    onBlur={() => repairFieldRoles()}
+                                    onBlur={() => {
+                                        repairFieldRoles()
+                                        normaliseAmount()
+                                    }}
                                     inputMode="decimal"
                                     autoComplete="off"
                                     placeholder={decimals === 0 ? '0' : '0.00'}
@@ -569,7 +652,7 @@ export function ExpenseDrawer({
                                 type="button"
                                 onClick={() => setEditor((current) => (current === 'payer' ? null : 'payer'))}
                                 aria-pressed={editor === 'payer'}
-                                aria-label={payer ? t('paidBySummary', { name: payer.name }) : t('paidBy')}
+                                aria-label={payerName ? t('paidBySummary', { name: payerName }) : t('paidBy')}
                                 data-testid="expense-payer-summary"
                                 className={cn(
                                     'flex min-h-12 min-w-0 items-center justify-center gap-1.5 rounded-sm border-r border-dashed border-grey-2 px-1 text-left',
@@ -578,7 +661,7 @@ export function ExpenseDrawer({
                             >
                                 {payer && <MemberAvatar name={payer.name} avatar={payer.avatar} size={25} />}
                                 <span className="min-w-0">
-                                    <span className="block truncate text-h9">{payer?.name ?? t('choosePayer')}</span>
+                                    <span className="block truncate text-h9">{payerName ?? t('choosePayer')}</span>
                                     <span className="block text-h10 text-grey-1">{t('paid')}</span>
                                 </span>
                             </button>
@@ -658,7 +741,7 @@ export function ExpenseDrawer({
                             className="flex items-center gap-2 text-sm font-bold text-error"
                         >
                             <Icon name="x" size={16} />
-                            {t('validation.AMOUNT_REQUIRED')}
+                            {validationCopy ?? t('validation.AMOUNT_REQUIRED')}
                         </p>
                     )}
                     {descriptionInvalid && (
@@ -745,6 +828,20 @@ export function ExpenseDrawer({
                             </div>
                             <div className="flex flex-col gap-2 p-3">
                                 <div role="radiogroup" aria-label={t('paidBy')} className="grid grid-cols-2 gap-2">
+                                    {values.newPaidByName && (
+                                        <button
+                                            type="button"
+                                            role="radio"
+                                            aria-checked="true"
+                                            data-testid="payer-chip"
+                                            data-member={values.newPaidByName}
+                                            className="shadow-2 flex min-h-12 min-w-0 items-center gap-2 rounded-md border border-n-1 bg-primary-3 px-2 text-left"
+                                        >
+                                            <MemberAvatar name={values.newPaidByName} avatar={null} size={27} />
+                                            <span className="flex-1 truncate text-h8">{values.newPaidByName}</span>
+                                            <Icon name="check" size={16} />
+                                        </button>
+                                    )}
                                     {state.members.map((member) => {
                                         const selected = values.paidById === member.id
                                         return (
@@ -769,7 +866,7 @@ export function ExpenseDrawer({
                                     })}
                                 </div>
 
-                                {!addingPayer && (
+                                {!expense && !addingPayer && (
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -785,7 +882,7 @@ export function ExpenseDrawer({
                                     </button>
                                 )}
 
-                                {addingPayer && (
+                                {!expense && addingPayer && (
                                     <form onSubmit={createPayer} className="flex items-center gap-2">
                                         <BaseInput
                                             ref={payerNameRef}
@@ -799,9 +896,8 @@ export function ExpenseDrawer({
                                         />
                                         <button
                                             type="submit"
-                                            disabled={!newPayerName.trim() || addMember.isPending}
+                                            disabled={!newPayerName.trim()}
                                             aria-label={t('confirmPayer')}
-                                            aria-busy={addMember.isPending}
                                             data-testid="add-payer-submit"
                                             className="shadow-2 flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-primary-1 disabled:opacity-50"
                                         >
@@ -983,7 +1079,11 @@ export function ExpenseDrawer({
                                                             className="flex h-12 shrink-0 items-center justify-center rounded-sm border border-dashed border-n-1 bg-white px-2 text-h9 tabular-nums"
                                                         >
                                                             {remaining.startsWith('-') ? '−' : '+'}
-                                                            {formatMinorPlain(remaining.replace('-', ''), decimals)}
+                                                            {formatAmountInput(
+                                                                remaining.replace('-', ''),
+                                                                decimals,
+                                                                locale
+                                                            )}
                                                         </button>
                                                     )}
                                                 </li>
@@ -1058,7 +1158,7 @@ export function ExpenseDrawer({
                                                 })}
                                             {t('allocatedOf', {
                                                 allocated: formatMoney(
-                                                    allocatedMinor(values, currencies),
+                                                    allocatedMinor(values, currencies, locale),
                                                     values.currency,
                                                     currencies,
                                                     locale
@@ -1072,6 +1172,65 @@ export function ExpenseDrawer({
                                             })}
                                         </p>
                                     </div>
+                                )}
+
+                                {!addingParticipant && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setAddingParticipant(true)
+                                            setParticipantError(null)
+                                            requestAnimationFrame(() => participantNameRef.current?.focus())
+                                        }}
+                                        className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-dashed border-n-1 bg-white px-3 py-2 text-h8"
+                                        data-testid="add-participant"
+                                    >
+                                        <Icon name="plus" size={18} />
+                                        {t('addPayer')}
+                                    </button>
+                                )}
+
+                                {addingParticipant && (
+                                    <form onSubmit={createParticipant} className="flex items-center gap-2">
+                                        <BaseInput
+                                            ref={participantNameRef}
+                                            value={newParticipantName}
+                                            onChange={(event) => setNewParticipantName(event.target.value)}
+                                            placeholder={t('payerNamePlaceholder')}
+                                            aria-label={t('payerNamePlaceholder')}
+                                            maxLength={80}
+                                            variant="sm"
+                                            data-testid="new-participant-name"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!newParticipantName.trim() || addMember.isPending}
+                                            aria-label={t('confirmPayer')}
+                                            aria-busy={addMember.isPending}
+                                            data-testid="add-participant-submit"
+                                            className="shadow-2 flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-primary-1 disabled:opacity-50"
+                                        >
+                                            <Icon name="check" size={19} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            aria-label={t('cancelPayer')}
+                                            onClick={() => {
+                                                setAddingParticipant(false)
+                                                setNewParticipantName('')
+                                                setParticipantError(null)
+                                            }}
+                                            className="flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-white"
+                                        >
+                                            <Icon name="x" size={19} />
+                                        </button>
+                                    </form>
+                                )}
+
+                                {participantError && (
+                                    <p role="alert" className="text-sm font-bold text-error">
+                                        {participantError}
+                                    </p>
                                 )}
                             </div>
                         </section>

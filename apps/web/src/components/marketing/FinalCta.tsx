@@ -6,6 +6,7 @@ import { motion } from 'motion/react'
 import { Button } from '@/components/ui/Button'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 /**
  * The second and last ask on the page. The hero's CTA catches people who already knew what they
@@ -36,6 +37,11 @@ export function FinalCta() {
             className="mx-auto w-full max-w-xl px-5 py-10"
         >
             <div className="shadow-4 rounded-sm border border-n-1 bg-white p-5">
+                <div className="mb-4 flex -space-x-2" aria-hidden="true">
+                    <LandingPersona persona={LANDING_CAST.bea} size={40} />
+                    <LandingPersona persona={LANDING_CAST.jules} size={40} />
+                    <LandingPersona persona={LANDING_CAST.you} size={40} />
+                </div>
                 <h2 className="text-h5">{t('title')}</h2>
                 <p className="mt-2 text-sm leading-5 text-grey-1">{t('subtitle')}</p>
                 <Link href="/new" className="mt-4 block" onClick={() => feedback('whoosh')}>

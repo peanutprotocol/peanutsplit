@@ -50,13 +50,15 @@ export const decimalsOf = (code: string, catalog?: readonly CurrencyInfo[]): num
  * - **Both separators present** — the LAST one is the decimal point and the other is grouping.
  *   `1.234,56` (pt-BR/es) and `1,234.56` (en) both mean the same amount, and there is no
  *   ambiguity left to guess about, so both are accepted.
- * - **One separator only** — it is a decimal point, always. `1.234` is one-point-two-three-four,
- *   never one thousand two hundred and thirty-four. Guessing "grouping" here is how a bill
- *   silently becomes a thousand times bigger, and the field shows exactly what was typed.
- * - **The same separator more than once** (`1.234.567`) — no decimal point can be identified
- *   without guessing which convention is in play, so it is refused outright.
+ * - **One separator with a UI locale** — locale-conventional three-digit grouping is accepted;
+ *   other single-separator input is treated as a decimal-keyboard fallback. The caller then
+ *   rewrites accepted grouping to ungrouped text on blur so the interpretation is visible.
+ * - **One separator without a UI locale** — it remains a decimal point for backwards-compatible
+ *   import parsing.
+ * - **The same separator more than once** (`1.234.567`) — accepted only when it is valid grouping
+ *   for the active UI locale; otherwise refused.
  */
-function normaliseDecimalInput(input: string): string | null {
+function normaliseDecimalInput(input: string, locale?: string): string | null {
     const raw = input.trim().replace(/\s/g, '')
     const hasDot = raw.includes('.')
     const hasComma = raw.includes(',')
@@ -68,14 +70,40 @@ function normaliseDecimalInput(input: string): string | null {
         const fraction = raw.slice(cut + 1)
         /**
          * The remaining separators only get stripped if they are actually grouping: one to three
-         * digits, then groups of exactly three. Without this, "1.2.3,4" would quietly become
-         * 123.4 — the parser would have invented a number nobody typed rather than refusing one
-         * it cannot read.
+         * digits beginning with 1–9, then groups of exactly three. A leading group such as
+         * `0,123` is not canonical grouping: accepting it would turn a plausible fractional
+         * entry into a number one thousand times larger. Without these checks, "1.2.3,4"
+         * would quietly become 123.4 — the parser would have invented a number nobody typed
+         * rather than refusing one it cannot read.
          */
-        const grouped = decimalSeparator === '.' ? /^\d{1,3}(,\d{3})*$/ : /^\d{1,3}(\.\d{3})*$/
+        const grouped = decimalSeparator === '.' ? /^[1-9]\d{0,2}(,\d{3})+$/ : /^[1-9]\d{0,2}(\.\d{3})+$/
         if (!grouped.test(whole)) return null
         if (!/^\d*$/.test(fraction)) return null
         return `${whole.replace(/[.,]/g, '')}.${fraction}`
+    }
+
+    if (locale && (hasDot || hasComma)) {
+        const separator = hasDot ? '.' : ','
+        const escaped = separator === '.' ? '\\.' : ','
+        const localeUsesCommaDecimal = locale.toLowerCase().startsWith('es') || locale.toLowerCase().startsWith('pt')
+        const decimalSeparator = localeUsesCommaDecimal ? ',' : '.'
+        const groupingSeparator = localeUsesCommaDecimal ? '.' : ','
+        const grouped = new RegExp(`^[1-9]\\d{0,2}(${escaped}\\d{3})+$`)
+
+        /**
+         * The active locale resolves the `1,234` ambiguity without guessing:
+         * English reads it as a grouped whole, Spanish and Portuguese read the
+         * matching `1.234` shape the same way. A separator that cannot be valid
+         * grouping (`12,34` in English) remains a decimal-keyboard fallback.
+         */
+        if (separator === groupingSeparator && grouped.test(raw)) return raw.replace(/[.,]/g, '')
+
+        // More than one identical separator is only valid as locale grouping.
+        if (raw.indexOf(separator) !== raw.lastIndexOf(separator)) return null
+
+        if (separator === decimalSeparator || separator === groupingSeparator) {
+            return raw.replace(separator, '.')
+        }
     }
 
     return raw.replace(',', '.')
@@ -85,11 +113,12 @@ function normaliseDecimalInput(input: string): string | null {
  * "12.34" → "1234" (2dp). Accepts `.` or `,` as the decimal separator, and a mixed
  * grouping+decimal pair in either convention (see `normaliseDecimalInput`).
  *
- * Returns null for anything that isn't a non-negative amount.
- * Extra fraction digits round half-up.
+ * Returns null for anything that isn't a non-negative amount. Interactive callers
+ * pass a locale and reject extra fraction digits; legacy import callers omit it
+ * and keep deterministic half-up rounding.
  */
-export function parseAmountToMinor(input: string, decimals: number): string | null {
-    const raw = normaliseDecimalInput(input)
+export function parseAmountToMinor(input: string, decimals: number, locale?: string): string | null {
+    const raw = normaliseDecimalInput(input, locale)
     if (raw === null) return null
     if (raw.length === 0) return null
     if (!/^\d*\.?\d*$/.test(raw)) return null
@@ -97,6 +126,11 @@ export function parseAmountToMinor(input: string, decimals: number): string | nu
 
     const [whole, fraction = ''] = raw.split('.')
     const wholePart = whole === '' ? '0' : whole
+
+    // Interactive input must never round behind the value still visible in the
+    // field. Batch/import callers omit locale and retain the historical
+    // deterministic half-up rule for source data with extra precision.
+    if (locale && fraction.length > decimals) return null
 
     if (decimals === 0) {
         // Round half-up on the first fraction digit.
@@ -121,6 +155,15 @@ export function formatMinorPlain(minor: string, decimals: number): string {
     const whole = (abs / factor).toString()
     const fraction = (abs % factor).toString().padStart(decimals, '0')
     return `${negative ? '-' : ''}${whole}.${fraction}`
+}
+
+/** Canonical text for an interactive amount field in the active locale. This is
+ * deliberately ungrouped: a value normalised on blur must become easier to
+ * inspect, not return with the same punctuation that needed interpretation. */
+export function formatAmountInput(minor: string, decimals: number, locale: string): string {
+    const plain = formatMinorPlain(minor, decimals)
+    const usesCommaDecimal = locale.toLowerCase().startsWith('es') || locale.toLowerCase().startsWith('pt')
+    return usesCommaDecimal ? plain.replace('.', ',') : plain
 }
 
 /** ISO-4217 shape. `Intl.NumberFormat` throws a RangeError on anything else. */
