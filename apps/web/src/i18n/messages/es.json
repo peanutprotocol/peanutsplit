@@ -572,11 +572,6 @@
             "share": "Compartir",
             "shared": "Invitación enviada.",
             "shareFailed": "No se abrió el menú para compartir. Copia o descarga la invitación.",
-            "downloadCard": "Descargar tarjeta",
-            "downloadText": "Descargar texto",
-            "downloadedCard": "Tarjeta descargada.",
-            "downloadedText": "Texto de la invitación descargado.",
-            "downloadFailed": "La descarga no empezó. Copia la invitación.",
             "anyoneCanJoin": "Cualquiera con este link puede entrar y agregar gastos.",
             "shareTitle": "{room} · Peanut Split",
             "shareText": "Abre el link, elige tu nombre y agrega lo que pagaste."

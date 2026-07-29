@@ -509,6 +509,38 @@ mockup or pushing the real creation form out of reach.
 
    Implementation map: `docs/landing-motion-map.md`.
 
+## Share package cleanup (2026-07-29)
+
+**Shipped:** the "Download room card" and "Download invite text" buttons are
+gone from `LinkMoment`. Both were nonsense as shipped — a raw 1200×630 `.svg`
+file and a two-line `.txt` file, verified with Playwright download interception.
+No messenger accepts a pasted SVG, so the download dead-ended the handoff it
+was supposed to help. The share drawer now has one primary action (native
+share, which falls back to clipboard) plus the inline copy row and the
+manual-copy textarea fallback. `SHARE_PACKAGE_METHODS` shrank to
+`native | clipboard`; the five `room.link.download*` keys left all three
+locales.
+
+**Queued (finish the visual, don't resurrect the download):** [Konrad]
+
+- The room-card SVG (`roomShareVisual`) still rides along in native share as an
+  attached file where `canShare` accepts it. If the card should survive as a
+  visual, render it to PNG (offscreen canvas) so messengers accept it, and
+  re-add the e2e geometry test that was deleted with the download path
+  (title-vs-doodle clearance; it lived in `e2e/landing.spec.ts`, use the share
+  payload file instead of a download to capture the markup).
+- Decide whether `share_completed` needs a `card` method once the PNG path
+  exists.
+
+**Queued — semi-done feature audit, remaining surfaces:** [Konrad]
+A 2026-07-29 Playwright walk covered landing, room view, and the share drawer
+before it was cut short. Not yet audited for label-vs-behavior gaps:
+settle/balance drawers, member management, join flow on a fresh device, and
+the PWA install surface. (`RecapShareButton` was checked in code and is
+healthy — it shares a PNG; its download is a last-tier fallback, not a labeled
+button.) Method that worked: drive each control headless, intercept
+downloads/clipboard, and compare against the label's promise.
+
 ## Deliberately not building
 
 Each of these either breaks "a room is a link" or adds a maintenance surface

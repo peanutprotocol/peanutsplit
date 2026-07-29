@@ -572,11 +572,6 @@
             "share": "Share",
             "shared": "Share package sent.",
             "shareFailed": "The share sheet did not open. Copy or download the invite instead.",
-            "downloadCard": "Download room card",
-            "downloadText": "Download invite text",
-            "downloadedCard": "Room card downloaded.",
-            "downloadedText": "Invite text downloaded.",
-            "downloadFailed": "That download did not start. Copy the invite instead.",
             "anyoneCanJoin": "Anyone with this link can join and add expenses.",
             "shareTitle": "{room} · Peanut Split",
             "shareText": "Open the link, pick your name, then add what you paid."
