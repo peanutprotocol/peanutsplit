@@ -455,15 +455,15 @@
 			}
 
 			.avatar.tiny {
-				--avatar-size: 18px;
+				--avatar-size: 22px;
 			}
 
 			.avatar.medium {
-				--avatar-size: 34px;
+				--avatar-size: 40px;
 			}
 
 			.avatar.large {
-				--avatar-size: 48px;
+				--avatar-size: 54px;
 			}
 
 			.avatar.tiny .prop {
@@ -607,7 +607,7 @@
 			.persona-card {
 				display: flex;
 				min-width: 0;
-				min-height: 61px;
+				min-height: 69px;
 				align-items: center;
 				gap: 7px;
 				padding: 6px;
@@ -915,6 +915,170 @@
 				border-radius: 7px;
 			}
 
+			.canary-picker {
+				margin-top: 16px;
+			}
+
+			.canary-feature {
+				display: grid;
+				grid-template-columns: 118px minmax(0, 1fr) auto;
+				gap: 15px;
+				align-items: center;
+				margin-bottom: 12px;
+				padding: 13px;
+				border: 1.5px solid var(--ink);
+				border-radius: 10px;
+				background: var(--canary-bg);
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.canary-feature-copy {
+				min-width: 0;
+			}
+
+			.canary-feature-copy strong,
+			.canary-feature-copy span {
+				display: block;
+			}
+
+			.canary-feature-copy strong {
+				font-size: 19px;
+				letter-spacing: -0.025em;
+			}
+
+			.canary-feature-copy span {
+				margin-top: 4px;
+				color: rgb(32 32 39 / 68%);
+				font-size: 12px;
+				font-weight: 800;
+			}
+
+			.canary-random {
+				padding: 9px 11px;
+				border: 1.5px solid var(--ink);
+				border-radius: 7px;
+				background: var(--white);
+				box-shadow: 2px 2px 0 var(--ink);
+				font-size: 11px;
+				font-weight: 950;
+				cursor: pointer;
+			}
+
+			.canary-avatar {
+				--canary-size: 66px;
+				position: relative;
+				display: grid;
+				width: var(--canary-size);
+				height: var(--canary-size);
+				flex: 0 0 auto;
+				place-items: center;
+				overflow: hidden;
+				border: 1.5px solid var(--ink);
+				border-radius: 50%;
+				background: var(--canary-bg);
+				color: var(--canary-ink);
+			}
+
+			.canary-avatar::before {
+				position: absolute;
+				right: -8%;
+				bottom: 5%;
+				width: 62%;
+				height: 38%;
+				border-radius: 50%;
+				background: var(--canary-accent);
+				content: '';
+				transform: rotate(-14deg);
+			}
+
+			.canary-avatar svg {
+				position: relative;
+				z-index: 1;
+				width: 78%;
+				height: 78%;
+				overflow: visible;
+				fill: none;
+				stroke: currentColor;
+				stroke-width: 1.75;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+
+			.canary-avatar.featured {
+				--canary-size: 108px;
+				justify-self: center;
+			}
+
+			.canary-avatar.featured svg {
+				stroke-width: 1.5;
+			}
+
+			.canary-avatar.stress {
+				--canary-size: 30px;
+				position: absolute;
+				right: 7px;
+				bottom: 30px;
+				border-width: 1px;
+			}
+
+			.canary-avatar.stress svg {
+				stroke-width: 2.1;
+			}
+
+			.canary-grid {
+				display: grid;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+				gap: 8px;
+			}
+
+			.canary-option {
+				position: relative;
+				display: grid;
+				min-width: 0;
+				min-height: 106px;
+				place-items: center;
+				align-content: center;
+				gap: 7px;
+				padding: 8px 5px;
+				border: 1.5px solid var(--ink);
+				border-radius: 9px;
+				background: var(--white);
+				text-align: center;
+				cursor: pointer;
+				transition:
+					transform 100ms ease,
+					box-shadow 100ms ease;
+			}
+
+			.canary-option:hover {
+				transform: translateY(-2px);
+			}
+
+			.canary-option.selected {
+				background: var(--yellow);
+				box-shadow: 3px 3px 0 var(--ink);
+				transform: translate(-1px, -1px);
+			}
+
+			.canary-option strong {
+				display: block;
+				overflow: hidden;
+				width: 100%;
+				font-size: 10px;
+				line-height: 1.1;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.canary-sheet-label {
+				margin: 17px 0 0;
+				color: var(--muted);
+				font-size: 10px;
+				font-weight: 900;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
 			.trait {
 				padding: 6px 8px;
 				border: 1px solid var(--ink);
@@ -1005,6 +1169,22 @@
 
 				.principles {
 					grid-template-columns: 1fr;
+				}
+
+				.canary-feature {
+					grid-template-columns: 96px minmax(0, 1fr);
+				}
+
+				.canary-avatar.featured {
+					--canary-size: 88px;
+				}
+
+				.canary-random {
+					grid-column: 1 / -1;
+				}
+
+				.canary-grid {
+					grid-template-columns: repeat(3, minmax(0, 1fr));
 				}
 
 				th:nth-child(3),
@@ -1129,21 +1309,23 @@
 					</article>
 
 					<article class="report-card">
-						<h3>Six doodle canaries</h3>
+						<h3>Sixteen charming doodle canaries</h3>
 						<p>
-							These use Peanut Split’s real rough-line pipeline. Each appears at 96px and 24px so the
-							tiny-avatar test is visible beside the expressive version.
+							The original six have been redrawn and ten new shapes join them. Pick one below to inspect it
+							at a roomier 108px; every tile also carries the 30px avatar stress test.
 						</p>
+						<div id="canary-picker" class="canary-picker" aria-label="Doodle canary picker"></div>
+						<p class="canary-sheet-label">All sixteen · large and avatar scale</p>
 						<img
 							class="cast-preview"
 							src="./canary-doodles.png"
-							alt="Six hand-drawn character canaries, each shown large and at tiny avatar size"
+							alt="Sixteen colorful hand-drawn character canaries, each shown large and at tiny avatar size"
 						/>
 					</article>
 
 					<p class="footer-note">
-						The phone uses lightweight thumbnail emoji to keep this review portable. The two labeled sheets
-						above are rendered from the branch’s real in-house vector and doodle systems.
+						The interactive canary picker and its labeled sheet both use the exact deterministic paths
+						generated by Peanut Split’s in-house rough-line system.
 					</p>
 				</aside>
 			</section>
@@ -1151,6 +1333,7 @@
 
 		<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+		<script src="./canary-doodles.js"></script>
 		<script>
 			const personas = [
 				{
@@ -1441,9 +1624,68 @@
 
 			let selectedMember = 'bea'
 			let toastTimer = 0
+			const canaries = window.PERSONA_CANARIES || []
+			let selectedCanary = canaries[0]?.key
 
 			const personaByKey = (key) => personas.find((persona) => persona.key === key) || personas[0]
 			const memberById = (id) => members.find((member) => member.id === id) || members[0]
+			const canaryByKey = (key) => canaries.find((canary) => canary.key === key) || canaries[0]
+
+			function canaryAvatar(canary, size = '') {
+				if (!canary) return ''
+				return `<span
+					class="canary-avatar ${size}"
+					style="--canary-bg:${canary.bg};--canary-accent:${canary.accent};--canary-ink:${canary.ink}"
+					aria-hidden="true">
+					<svg viewBox="0 0 32 32"><path d="${canary.path}"></path></svg>
+				</span>`
+			}
+
+			function renderCanaryPicker() {
+				const picker = document.querySelector('#canary-picker')
+				const selected = canaryByKey(selectedCanary)
+				if (!picker || !selected) return
+
+				picker.innerHTML = `
+					<div class="canary-feature" style="--canary-bg:${selected.bg}">
+						${canaryAvatar(selected, 'featured')}
+						<span class="canary-feature-copy">
+							<strong>${selected.name}</strong>
+							<span>${selected.vibe}</span>
+						</span>
+						<button class="canary-random" type="button" data-canary-random>↻ Random</button>
+					</div>
+					<div class="canary-grid" role="listbox" aria-label="Choose a doodle to inspect">
+						${canaries
+							.map(
+								(canary) => `<button
+									type="button"
+									class="canary-option ${canary.key === selected.key ? 'selected' : ''}"
+									data-canary="${canary.key}"
+									role="option"
+									aria-selected="${canary.key === selected.key}"
+									aria-label="${canary.name}: ${canary.vibe}">
+									${canaryAvatar(canary)}
+									${canaryAvatar(canary, 'stress')}
+									<strong>${canary.name}</strong>
+								</button>`
+							)
+							.join('')}
+					</div>`
+
+				picker.querySelectorAll('[data-canary]').forEach((button) => {
+					button.addEventListener('click', () => {
+						selectedCanary = button.dataset.canary
+						renderCanaryPicker()
+					})
+				})
+
+				picker.querySelector('[data-canary-random]').addEventListener('click', () => {
+					const choices = canaries.filter((canary) => canary.key !== selectedCanary)
+					selectedCanary = choices[Math.floor(Math.random() * choices.length)].key
+					renderCanaryPicker()
+				})
+			}
 
 			function avatar(key, size = '') {
 				const persona = personaByKey(key)
@@ -1567,6 +1809,7 @@
 			}
 
 			render()
+			renderCanaryPicker()
 		</script>
 	</body>
 </html>

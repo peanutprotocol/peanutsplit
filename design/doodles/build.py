@@ -5,6 +5,7 @@
     python3 design/doodles/build.py --write             # write the shipped TS module
     python3 design/doodles/build.py --png sheet.png     # contact sheet of every drawing
     python3 design/doodles/build.py --png a.png --only pizza,beer
+    python3 design/doodles/build.py --manifest cast.js --only personaghost,personabear
 
 Lifted whole from `munin/design/raven-doodles/build.py`, including `rough.py`
 itself, so Split's line is the same line. Read that file's header for why the
@@ -30,6 +31,10 @@ Each entry is `{"d": …, "dots": [[cx, cy, r], …], "note": …}` in a 32-unit
          round belongs here: run through the path resampler a circle comes out
          a wobbly polygon.
   note   one line, what it is meant to read as. Kept in the shipped file.
+  name, vibe, bg, accent, ink
+         optional design-review metadata. These never add runtime weight to the
+         shipped module; the manifest and contact-sheet outputs use them to test
+         colored backplates and labels around the same single-color path.
 
 LEGIBILITY, the floor Munin found the hard way: these are stroked at ~1.6–2px in
 a 32-unit box and shown as small as 20px. Below about r2.5 a loop fills in and
@@ -112,28 +117,61 @@ def module(source, paths):
 
 
 def sheet(source, paths):
-    """A contact sheet at the two sizes that matter: 96px to see what you drew,
-    and 24px to see whether it survives being small, which is the real test."""
+    """A contact sheet at the two sizes that matter: large enough to judge the
+    expression, and small enough to expose avatar-scale tangles."""
     cells = "".join(
-        '<figure><svg class=big viewBox="0 0 32 32"><path d="%s"/></svg>'
-        '<svg class=small viewBox="0 0 32 32"><path d="%s"/></svg>'
-        "<figcaption>%s<em>%s</em></figcaption></figure>"
-        % (d, d, n, source[n].get("note", ""))
+        '<figure style="--bg:%s;--accent:%s;--ink:%s">'
+        '<div class="art big"><i></i><svg viewBox="0 0 32 32"><path d="%s"/></svg></div>'
+        '<div class="art small"><i></i><svg viewBox="0 0 32 32"><path d="%s"/></svg></div>'
+        "<figcaption><strong>%s</strong><em>%s</em></figcaption></figure>"
+        % (
+            source[n].get("bg", "#fff"),
+            source[n].get("accent", "#ffc900"),
+            source[n].get("ink", "#202027"),
+            d,
+            d,
+            source[n].get("name", n),
+            source[n].get("vibe", source[n].get("note", "")),
+        )
         for n, d in paths.items()
     )
     return (
         "<!doctype html><meta charset=utf-8><style>"
-        "body{margin:0;background:#FAF4F0;color:#000;"
-        "font:11px ui-monospace,monospace;display:flex;flex-wrap:wrap;gap:6px;padding:10px}"
-        "figure{margin:0;width:132px;background:#fff;border:1px solid #000;padding:6px;"
-        "display:flex;flex-direction:column;align-items:center;gap:2px}"
-        "svg{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;overflow:visible}"
-        ".big{width:96px;height:96px;stroke-width:1.6}"
-        ".small{width:24px;height:24px;stroke-width:1.9}"
-        "figcaption{text-align:center;line-height:1.3}"
-        "em{display:block;font-style:normal;color:#5F646D}"
+        "body{margin:0;background:#FAF4F0;color:#202027;"
+        "font:11px ui-rounded,'Arial Rounded MT Bold',system-ui,sans-serif;display:flex;flex-wrap:wrap;gap:6px;padding:10px}"
+        "figure{margin:0;width:132px;min-height:178px;background:#fff;border:1.5px solid #202027;"
+        "border-radius:10px;padding:6px;display:grid;grid-template-columns:1fr 34px;"
+        "grid-template-rows:112px auto;align-items:end;gap:4px}"
+        ".art{position:relative;display:grid;place-items:center;overflow:hidden;border:1.5px solid #202027;"
+        "border-radius:50%;background:var(--bg);color:var(--ink)}"
+        ".art i{position:absolute;width:62%;height:38%;right:-8%;bottom:4%;border-radius:50%;"
+        "background:var(--accent);transform:rotate(-14deg)}"
+        "svg{position:relative;z-index:1;width:78%;height:78%;fill:none;stroke:currentColor;"
+        "stroke-linecap:round;stroke-linejoin:round;overflow:visible}"
+        ".big{width:112px;height:112px;stroke-width:1.55}"
+        ".small{width:30px;height:30px;margin-bottom:6px;stroke-width:2}"
+        "figcaption{text-align:left;line-height:1.25;grid-column:1/-1}"
+        "figcaption strong{display:block;font-size:12px}"
+        "em{display:block;margin-top:2px;font-style:normal;color:#5F646D}"
         "</style>" + cells
     )
+
+
+def browser_manifest(source, paths):
+    """Generate a data bridge for static design reviews from the shipped paths."""
+    canaries = [
+        {
+            "key": name,
+            "name": source[name].get("name", name),
+            "vibe": source[name].get("vibe", ""),
+            "bg": source[name].get("bg", "#fff"),
+            "accent": source[name].get("accent", "#ffc900"),
+            "ink": source[name].get("ink", "#202027"),
+            "path": paths[name],
+        }
+        for name in paths
+    ]
+    return "window.PERSONA_CANARIES = %s;\n" % json.dumps(canaries, ensure_ascii=False)
 
 
 CHROME = os.path.expanduser(
@@ -143,14 +181,15 @@ CHROME = os.path.expanduser(
 
 
 def png(html, out, count):
+    out = os.path.abspath(out)
     tmp = out + ".html"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(html)
-    rows = (count + 6) // 7
+    rows = (count + 5) // 6
     # Capped so the screenshot never breaks the 1000px house limit.
     subprocess.run(
         [CHROME, "--headless", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
-         "--screenshot=" + out, "--window-size=980,%d" % min(1000, 40 + rows * 176),
+         "--screenshot=" + out, "--window-size=980,%d" % min(1000, 28 + rows * 194),
          "file://" + tmp],
         check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
@@ -161,6 +200,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--png")
+    ap.add_argument("--manifest", help="write browser-ready JS for a static design review")
     ap.add_argument("--only", help="comma-separated names, for the sheet")
     args = ap.parse_args()
 
@@ -177,11 +217,16 @@ if __name__ == "__main__":
         png(sheet(source, paths), args.png, len(paths))
         print("sheet :", args.png, "(%d drawings)" % len(paths))
 
+    if args.manifest:
+        with open(args.manifest, "w", encoding="utf-8") as f:
+            f.write(browser_manifest(source, paths))
+        print("manifest :", args.manifest, "(%d drawings)" % len(paths))
+
     if args.write:
         with open(OUT, "w", encoding="utf-8") as f:
             f.write(module(source, paths))
         print("wrote :", OUT, "(%d drawings)" % len(paths))
-    elif not args.png:
+    elif not args.png and not args.manifest:
         shipped = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
         same = [n for n, d in paths.items() if "'%s'," % d in shipped]
         print("drawings:", len(paths), " already shipped byte-identical:", len(same))
