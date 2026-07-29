@@ -585,9 +585,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
                             </label>
 
                             <label className="flex flex-col gap-2">
-                                <span className="text-h8 uppercase tracking-wide text-grey-1">
-                                    {t('receiptLink')}
-                                </span>
+                                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('receiptLink')}</span>
                                 <BaseInput
                                     value={receiptUrl}
                                     onChange={(event) => setReceiptUrl(event.target.value)}
