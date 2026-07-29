@@ -206,6 +206,36 @@
    One causal story around the real creator. The chat is decorative and settles
    permanently after its first run; none of these keyframes loop. */
 
+.landing-persona {
+    position: relative;
+    display: inline-grid;
+    width: 2rem;
+    height: 2rem;
+    overflow: hidden;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1.5px solid #211c17;
+    border-radius: 999px;
+    box-shadow: 0.08rem 0.08rem 0 #211c17;
+}
+
+.landing-persona-accent {
+    position: absolute;
+    right: 4%;
+    bottom: 5%;
+    width: 46%;
+    height: 46%;
+    border-radius: 44% 56% 60% 40%;
+    transform: rotate(12deg);
+}
+
+.landing-persona > svg {
+    position: relative;
+    z-index: 1;
+    width: 78%;
+    height: 78%;
+}
+
 .pass-link-hero {
     position: relative;
     display: grid;
@@ -390,29 +420,11 @@
 }
 
 .pass-link-avatar {
-    display: grid;
     width: clamp(1.75rem, 2.5vw, 2.15rem);
+    height: auto;
     aspect-ratio: 1;
-    place-items: center;
     margin-right: -0.48rem;
     border: 2px solid #211c17;
-    border-radius: 999px;
-    background: #a9bfff;
-    box-shadow: 0.08rem 0.08rem 0 #211c17;
-    font-size: clamp(0.42rem, 0.55vw, 0.58rem);
-    font-weight: 950;
-}
-
-.pass-link-avatar:nth-child(2) {
-    background: #ff9f92;
-}
-
-.pass-link-avatar:nth-child(3) {
-    background: #c7a6ff;
-}
-
-.pass-link-avatar:nth-child(4) {
-    background: #98e9ab;
 }
 
 .pass-link-avatar svg,
@@ -468,16 +480,10 @@
 }
 
 .pass-link-mini-avatar {
-    display: grid;
     width: 1.75rem;
+    height: auto;
     aspect-ratio: 1;
-    flex: 0 0 auto;
-    place-items: center;
     border: 1.7px solid #211c17;
-    border-radius: 999px;
-    background: #a9bfff;
-    font-size: 0.5rem;
-    font-weight: 950;
 }
 
 .pass-link-message {
@@ -863,30 +869,6 @@
     border-radius: 999px;
     font-size: 0.82rem;
     font-weight: 800;
-}
-
-.landing-proof-identity i,
-.landing-proof-plan i {
-    display: grid;
-    width: 2rem;
-    height: 2rem;
-    place-items: center;
-    border: 1.5px solid #211c17;
-    border-radius: 999px;
-    background: #ffc900;
-    font-size: 0.75rem;
-    font-style: normal;
-    font-weight: 900;
-}
-
-.landing-proof-identity li:nth-child(2) i,
-.landing-proof-plan p:first-of-type i:last-child {
-    background: #ff90e8;
-}
-
-.landing-proof-identity li:nth-child(3) i,
-.landing-proof-plan p:last-child i:last-child {
-    background: #98e9ab;
 }
 
 .landing-proof-expenses {

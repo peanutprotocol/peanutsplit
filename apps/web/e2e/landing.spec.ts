@@ -139,7 +139,7 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
     await expect(teamFold.getByText(/Hugo · built Split/)).toBeVisible()
     await expect(teamFold.getByText('Natalia', { exact: true })).toHaveCount(0)
     await expect(teamFold.getByText('Jakub', { exact: true })).toHaveCount(0)
-    await expect(teamFold.locator('img[src*="portraits"]')).toHaveCount(2)
+    await expect(teamFold.locator('.landing-persona svg')).toHaveCount(2)
 })
 
 test('the deployment-wide landing variant has an explicit observable value', async ({ page }) => {
@@ -473,6 +473,7 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(proof.suggestedPlan.title)
         await expect(page.getByTestId('room-examples')).toContainText(proof.examples.title)
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
+        await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
 
         const features = page.locator('details').filter({
             has: page.getByText(catalogs.en.marketing.readMore.features.title, { exact: true }),

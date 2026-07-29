@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
-import type { DoodleName } from '@/components/ui/doodles'
 import { slugStem } from '@/lib/slugify'
+import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 export type PassTheLinkStageState = 'question' | 'reply' | 'link' | 'complete'
 
@@ -14,11 +14,11 @@ export interface PassTheLinkStageProps {
 }
 
 const PEOPLE = [
-    { key: 'bea', doodle: 'personapartybee' },
-    { key: 'jules', doodle: 'personawizardfrog' },
-    { key: 'mo', doodle: 'personamoonbunny' },
-    { key: 'you', doodle: 'personapocketrobot' },
-] as const satisfies readonly { key: string; doodle: DoodleName }[]
+    { key: 'bea', persona: LANDING_CAST.bea },
+    { key: 'jules', persona: LANDING_CAST.jules },
+    { key: 'mo', persona: LANDING_CAST.mo },
+    { key: 'you', persona: LANDING_CAST.you },
+] as const
 
 /**
  * A non-writing illustration of the handoff the real form creates.
@@ -60,18 +60,18 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                             </div>
                             <div className="pass-link-avatar-stack">
                                 {PEOPLE.map((person) => (
-                                    <span key={person.key} className="pass-link-avatar">
-                                        <Doodle name={person.doodle} size={20} weight={1.7} />
-                                    </span>
+                                    <LandingPersona
+                                        key={person.key}
+                                        persona={person.persona}
+                                        className="pass-link-avatar"
+                                    />
                                 ))}
                             </div>
                         </header>
 
                         <div className="pass-link-chat-body">
                             <div className="pass-link-message-row pass-link-chat-question">
-                                <span className="pass-link-mini-avatar">
-                                    <Doodle name="personapartybee" size={17} weight={1.7} />
-                                </span>
+                                <LandingPersona persona={LANDING_CAST.bea} className="pass-link-mini-avatar" />
                                 <div>
                                     <small>{t('chat.questionSender')}</small>
                                     <p className="pass-link-message">{t('chat.question')}</p>
@@ -99,9 +99,11 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                                     <div className="pass-link-shared-footer">
                                         <div className="pass-link-card-people">
                                             {PEOPLE.map((person) => (
-                                                <span key={person.key} className="pass-link-avatar">
-                                                    <Doodle name={person.doodle} size={20} weight={1.7} />
-                                                </span>
+                                                <LandingPersona
+                                                    key={person.key}
+                                                    persona={person.persona}
+                                                    className="pass-link-avatar"
+                                                />
                                             ))}
                                         </div>
                                         <strong>
