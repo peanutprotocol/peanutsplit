@@ -1,0 +1,1637 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+		<title>PeanutSplit · Composer card hi-fi</title>
+		<style>
+			@font-face {
+				font-family: Sniglet;
+				src: url('../../apps/web/public/fonts/sniglet-regular.ttf') format('truetype');
+				font-weight: 400;
+			}
+			@font-face {
+				font-family: Sniglet;
+				src: url('../../apps/web/public/fonts/sniglet-extrabold.ttf') format('truetype');
+				font-weight: 800;
+			}
+			@font-face {
+				font-family: Knerd;
+				src: url('../../apps/web/public/fonts/knerd-filled.ttf') format('truetype');
+				font-weight: 900;
+			}
+			:root {
+				--ink: #211c17;
+				--paper: #fffdfa;
+				--cream: #f8f1eb;
+				--yellow: #ffc900;
+				--pink: #ff90e8;
+				--mint: #b7f7ce;
+				--blue: #b9ddff;
+				--muted: #6e6966;
+				--error: #c5322b;
+				--line: 2px solid var(--ink);
+				--shadow: 4px 5px 0 var(--ink);
+				--radius: 17px;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				margin: 0;
+				min-height: 100%;
+				background: #eadfd5;
+				color: var(--ink);
+				font-family: Sniglet, system-ui, sans-serif;
+			}
+			button,
+			input {
+				font: inherit;
+				color: inherit;
+			}
+			button {
+				cursor: pointer;
+			}
+			button:focus-visible,
+			input:focus-visible {
+				outline: 3px solid var(--pink);
+				outline-offset: 2px;
+			}
+			input::placeholder {
+				color: #787370;
+				opacity: 1;
+			}
+			.dicon {
+				display: block;
+				width: 21px;
+				height: 21px;
+				fill: none;
+				stroke: currentColor;
+				stroke-width: 2.2;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+			.sr-only {
+				position: absolute !important;
+				width: 1px !important;
+				height: 1px !important;
+				padding: 0 !important;
+				margin: -1px !important;
+				overflow: hidden !important;
+				clip: rect(0, 0, 0, 0) !important;
+				white-space: nowrap !important;
+				border: 0 !important;
+			}
+
+			.labbar {
+				min-height: 66px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 14px;
+				padding: 10px 17px;
+				border-bottom: var(--line);
+				background: var(--yellow);
+				position: sticky;
+				top: 0;
+				z-index: 100;
+			}
+			.labbrand {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				min-width: 0;
+			}
+			.nut {
+				width: 41px;
+				height: 41px;
+				display: grid;
+				place-items: center;
+				border: var(--line);
+				border-radius: 53% 47% 45% 55%;
+				background: var(--paper);
+				box-shadow: 2px 2px 0 var(--ink);
+				transform: rotate(-3deg);
+			}
+			.nut svg {
+				width: 29px;
+				height: 29px;
+				fill: var(--yellow);
+				stroke: var(--ink);
+				stroke-width: 2;
+				stroke-linecap: round;
+			}
+			.labbrand strong {
+				display: block;
+				font:
+					900 23px/0.9 Knerd,
+					Sniglet,
+					sans-serif;
+			}
+			.labbrand small {
+				display: block;
+				font-size: 11px;
+				font-weight: 800;
+				margin-top: 4px;
+				letter-spacing: 0.03em;
+			}
+			.presets {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				overflow-x: auto;
+				scrollbar-width: none;
+			}
+			.presets::-webkit-scrollbar {
+				display: none;
+			}
+			.preset {
+				min-height: 39px;
+				padding: 7px 11px;
+				border: var(--line);
+				border-radius: 999px;
+				background: var(--paper);
+				font-size: 12px;
+				font-weight: 800;
+				white-space: nowrap;
+			}
+			.preset.active {
+				background: var(--ink);
+				color: white;
+				box-shadow: 2px 2px 0 var(--paper);
+			}
+
+			.workspace {
+				min-height: calc(100vh - 66px);
+				display: grid;
+				grid-template-columns: minmax(430px, 1fr) 320px;
+				gap: 24px;
+				align-items: center;
+				max-width: 1120px;
+				margin: auto;
+				padding: 22px;
+			}
+			.stage {
+				min-height: calc(100vh - 110px);
+				display: grid;
+				place-items: center;
+				border: var(--line);
+				border-radius: 24px;
+				overflow: hidden;
+				position: relative;
+				background-color: #f1e9e3;
+				background-image: radial-gradient(#cab8aa 1.1px, transparent 1.1px);
+				background-size: 18px 18px;
+			}
+			.stage:before,
+			.stage:after {
+				content: '';
+				position: absolute;
+				width: 90px;
+				height: 35px;
+				border: 3px solid var(--ink);
+				border-color: var(--ink) transparent transparent;
+				border-radius: 50%;
+				opacity: 0.11;
+			}
+			.stage:before {
+				left: 7%;
+				top: 10%;
+				transform: rotate(-16deg);
+			}
+			.stage:after {
+				right: 7%;
+				bottom: 10%;
+				transform: rotate(165deg);
+			}
+			.phone {
+				width: min(393px, calc(100% - 24px));
+				height: min(852px, calc(100vh - 126px));
+				min-height: 650px;
+				position: relative;
+				overflow: hidden;
+				border: 3px solid var(--ink);
+				border-radius: 31px;
+				background: #f6eee8;
+				box-shadow: 8px 10px 0 var(--ink);
+				z-index: 1;
+			}
+			.room-behind {
+				position: absolute;
+				inset: 0;
+				padding: 21px 17px;
+				background: #fff6d8;
+			}
+			.room-top {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.room-top strong {
+				font-size: 17px;
+			}
+			.room-top span {
+				font-size: 11px;
+				color: var(--muted);
+			}
+			.room-balance {
+				margin-top: 20px;
+				border: var(--line);
+				border-radius: 17px;
+				background: white;
+				padding: 15px;
+				box-shadow: 3px 4px 0 var(--ink);
+			}
+			.room-balance small {
+				font-size: 11px;
+				color: var(--muted);
+			}
+			.room-balance b {
+				display: block;
+				font-size: 31px;
+				margin-top: 4px;
+			}
+			.ghost-row {
+				height: 59px;
+				margin-top: 12px;
+				border: var(--line);
+				border-radius: 14px;
+				background: white;
+				opacity: 0.65;
+			}
+			.sheet-scrim {
+				position: absolute;
+				inset: 0;
+				background: rgba(33, 28, 23, 0.43);
+				transition: opacity 0.2s;
+			}
+			.sheet {
+				position: absolute;
+				inset: 38px 0 0;
+				display: grid;
+				grid-template-rows: auto minmax(0, 1fr) auto;
+				background: var(--cream);
+				border-top: 3px solid var(--ink);
+				border-radius: 25px 25px 0 0;
+				transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+				overflow: hidden;
+			}
+			.phone.closed .sheet {
+				transform: translateY(105%);
+			}
+			.phone.closed .sheet-scrim {
+				opacity: 0;
+				pointer-events: none;
+			}
+			.sheet-head {
+				min-height: 64px;
+				display: flex;
+				align-items: end;
+				justify-content: space-between;
+				gap: 12px;
+				padding: 12px 15px 9px;
+				position: relative;
+				background: rgba(248, 241, 235, 0.98);
+				z-index: 8;
+			}
+			.drag {
+				position: absolute;
+				top: 9px;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 39px;
+				height: 5px;
+				border-radius: 99px;
+				background: var(--ink);
+			}
+			.sheet-title {
+				font-size: 19px;
+				font-weight: 800;
+			}
+			.xbtn {
+				width: 39px;
+				height: 39px;
+				padding: 7px;
+				border: var(--line);
+				border-radius: 50% 46% 53% 47%;
+				background: var(--paper);
+				display: grid;
+				place-items: center;
+				transform: rotate(2deg);
+			}
+			.xbtn:hover {
+				background: var(--pink);
+				transform: rotate(-3deg);
+			}
+			.scroll {
+				min-height: 0;
+				overflow-y: auto;
+				overscroll-behavior: contain;
+				padding: 7px 15px 30px;
+				scrollbar-width: thin;
+				scrollbar-color: var(--ink) transparent;
+				scrollbar-gutter: stable;
+			}
+			.scroll::-webkit-scrollbar {
+				width: 7px;
+			}
+			.scroll::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			.scroll::-webkit-scrollbar-thumb {
+				background: var(--ink);
+				border: 2px solid var(--cream);
+				border-radius: 99px;
+			}
+			.composer {
+				border: 3px solid var(--ink);
+				border-radius: 22px 17px 24px 18px;
+				background: var(--paper);
+				box-shadow: 4px 5px 0 #d7ba48;
+				position: relative;
+				z-index: 4;
+			}
+			.composer.invalid {
+				border-color: var(--error);
+				box-shadow: 4px 5px 0 #efaaa6;
+			}
+			.money-line {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto;
+				align-items: center;
+				padding: 10px 10px 8px 14px;
+				gap: 7px;
+			}
+			.amount {
+				width: 100%;
+				min-width: 0;
+				height: 56px;
+				border: 0;
+				background: transparent;
+				outline: 0;
+				font-size: 39px;
+				font-weight: 800;
+				font-variant-numeric: tabular-nums;
+			}
+			.currency-trigger {
+				min-width: 105px;
+				height: 50px;
+				border: var(--line);
+				border-radius: 15px 13px 16px 12px;
+				background: #fff9dd;
+				padding: 6px 9px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 5px;
+				font-weight: 800;
+			}
+			.currency-value {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+			.currency-doodle {
+				width: 31px;
+				height: 31px;
+				border: var(--line);
+				border-radius: 53% 47% 44% 56%;
+				display: grid;
+				place-items: center;
+				background: var(--yellow);
+				font-size: 14px;
+				font-weight: 800;
+				transform: rotate(-4deg);
+			}
+			.description {
+				display: block;
+				border-top: 2px dashed #aaa099;
+			}
+			.description input {
+				width: 100%;
+				height: 59px;
+				border: 0;
+				background: transparent;
+				padding: 8px 14px;
+				font-size: 16px;
+				font-weight: 800;
+				outline: 0;
+			}
+			.tool-row {
+				display: grid;
+				grid-template-columns: 1.15fr 1.45fr 0.85fr;
+				border-top: 2px dashed #aaa099;
+				padding: 7px;
+			}
+			.tool {
+				min-height: 49px;
+				border: 0;
+				border-right: 2px solid #ded4cb;
+				background: transparent;
+				padding: 4px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 5px;
+				font-size: 11px;
+				font-weight: 800;
+				line-height: 1.05;
+			}
+			.tool:last-child {
+				border-right: 0;
+			}
+			.tool.active {
+				background: #fff1ae;
+				border-radius: 11px;
+			}
+			.tool:hover {
+				background: #fff7d4;
+				border-radius: 11px;
+			}
+			.tool-stack {
+				display: flex;
+				flex-direction: column;
+				text-align: left;
+				gap: 2px;
+			}
+			.tool-stack small {
+				font-size: 9px;
+				color: var(--muted);
+			}
+			.avatar {
+				width: 29px;
+				height: 29px;
+				flex: 0 0 29px;
+				border: var(--line);
+				border-radius: 48% 52% 45% 55%;
+				background: var(--avatar, #ffb8e9);
+				overflow: hidden;
+				display: grid;
+				place-items: end center;
+				transform: rotate(var(--tilt, -2deg));
+			}
+			.avatar svg {
+				width: 26px;
+				height: 26px;
+				fill: none;
+				stroke: var(--ink);
+				stroke-width: 1.7;
+				stroke-linecap: round;
+			}
+			.avatar-stack {
+				display: flex;
+				padding-left: 4px;
+			}
+			.avatar-stack .avatar {
+				margin-left: -10px;
+			}
+			.avatar-stack .avatar:first-child {
+				margin-left: 0;
+			}
+			.error {
+				display: none;
+				margin: 9px 3px 0;
+				color: var(--error);
+				font-size: 12px;
+				font-weight: 800;
+				align-items: center;
+				gap: 6px;
+			}
+			.error.show {
+				display: flex;
+			}
+			.error .scribble {
+				width: 20px;
+				height: 20px;
+				border: 2px solid var(--error);
+				border-radius: 50%;
+				display: grid;
+				place-items: center;
+			}
+			.editor {
+				margin-top: 13px;
+				border: var(--line);
+				border-radius: 18px 15px 20px 16px;
+				background: var(--paper);
+				box-shadow: 3px 4px 0 var(--ink);
+				overflow: hidden;
+				animation: editor-in 0.16s ease-out;
+			}
+			@keyframes editor-in {
+				from {
+					opacity: 0;
+					transform: translateY(-5px);
+				}
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+			.editor-head {
+				min-height: 50px;
+				padding: 9px 11px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				border-bottom: 2px dashed #cfc5bd;
+			}
+			.editor-head strong {
+				font-size: 14px;
+			}
+			.editor-head small {
+				font-size: 10px;
+				color: var(--muted);
+			}
+			.done {
+				min-height: 34px;
+				border: var(--line);
+				border-radius: 99px;
+				background: var(--yellow);
+				padding: 4px 10px;
+				font-size: 11px;
+				font-weight: 800;
+			}
+			.editor-body {
+				padding: 11px;
+				display: grid;
+				gap: 9px;
+			}
+			.chip-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 8px;
+			}
+			.chip {
+				min-height: 48px;
+				border: var(--line);
+				border-radius: 14px 12px 15px 11px;
+				background: var(--paper);
+				padding: 7px 9px;
+				display: flex;
+				align-items: center;
+				gap: 7px;
+				font-size: 12px;
+				font-weight: 800;
+				text-align: left;
+			}
+			.chip[aria-pressed='true'] {
+				background: #fff0a2;
+				box-shadow: 2px 2px 0 var(--ink);
+			}
+			.chip .check {
+				margin-left: auto;
+				width: 23px;
+				height: 23px;
+				border: var(--line);
+				border-radius: 48% 52%;
+				display: grid;
+				place-items: center;
+				background: white;
+			}
+			.chip[aria-pressed='true'] .check {
+				background: var(--mint);
+			}
+			.add-person {
+				min-height: 46px;
+				border: 2px dashed var(--ink);
+				border-radius: 13px;
+				background: white;
+				padding: 7px 10px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 6px;
+				font-size: 12px;
+				font-weight: 800;
+			}
+			.new-person {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 43px 43px;
+				gap: 7px;
+			}
+			.new-person input {
+				min-width: 0;
+				height: 44px;
+				border: var(--line);
+				border-radius: 13px;
+				padding: 7px 10px;
+				background: white;
+				font-weight: 800;
+			}
+			.square-action {
+				height: 44px;
+				border: var(--line);
+				border-radius: 13px;
+				background: var(--mint);
+				display: grid;
+				place-items: center;
+				padding: 8px;
+			}
+			.square-action.cancel {
+				background: white;
+			}
+			.segmented {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				border: var(--line);
+				border-radius: 99px;
+				background: white;
+				padding: 3px;
+			}
+			.segmented button {
+				min-height: 39px;
+				border: 0;
+				border-radius: 99px;
+				background: transparent;
+				font-size: 12px;
+				font-weight: 800;
+			}
+			.segmented button.active {
+				background: var(--ink);
+				color: white;
+			}
+			.participant {
+				min-height: 50px;
+				border: var(--line);
+				border-radius: 13px;
+				background: white;
+				padding: 7px 9px;
+				display: grid;
+				grid-template-columns: auto 1fr auto;
+				gap: 8px;
+				align-items: center;
+			}
+			.participant.off {
+				opacity: 0.45;
+				background: #eee9e5;
+			}
+			.participant-name {
+				font-size: 12px;
+				font-weight: 800;
+				min-width: 0;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.toggle {
+				width: 27px;
+				height: 27px;
+				border: var(--line);
+				border-radius: 50% 45% 54% 46%;
+				background: var(--mint);
+				display: grid;
+				place-items: center;
+				padding: 4px;
+			}
+			.participant.off .toggle {
+				background: white;
+			}
+			.exact-input {
+				width: 83px;
+				height: 38px;
+				border: var(--line);
+				border-radius: 11px;
+				background: white;
+				padding: 5px 8px;
+				text-align: right;
+				font-weight: 800;
+				font-variant-numeric: tabular-nums;
+			}
+			.remainder {
+				padding: 9px 10px;
+				border: 2px dashed var(--ink);
+				border-radius: 12px;
+				background: #fff7cd;
+				display: flex;
+				justify-content: space-between;
+				gap: 8px;
+				font-size: 11px;
+				font-weight: 800;
+			}
+			.remainder.done {
+				background: var(--mint);
+			}
+			.date-grid {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 8px;
+			}
+			.date-option {
+				min-height: 52px;
+				border: var(--line);
+				border-radius: 14px;
+				background: white;
+				display: grid;
+				place-items: center;
+				padding: 5px;
+				font-size: 11px;
+				font-weight: 800;
+			}
+			.date-option.active {
+				background: #fff0a2;
+				box-shadow: 2px 2px 0 var(--ink);
+			}
+			.date-input-wrap {
+				position: relative;
+			}
+			.date-input {
+				width: 100%;
+				height: 47px;
+				border: var(--line);
+				border-radius: 13px;
+				background: white;
+				padding: 7px 42px 7px 10px;
+				font-weight: 800;
+			}
+			.date-input::-webkit-calendar-picker-indicator {
+				opacity: 0;
+			}
+			.date-icon {
+				pointer-events: none;
+				position: absolute;
+				right: 10px;
+				top: 12px;
+			}
+
+			.currency-panel {
+				position: absolute;
+				z-index: 20;
+				width: 175px;
+				display: none;
+				border: 3px solid var(--ink);
+				border-radius: 17px 13px 18px 14px;
+				background: var(--paper);
+				box-shadow: 5px 6px 0 var(--ink);
+				padding: 6px;
+			}
+			.currency-panel.open {
+				display: block;
+				animation: editor-in 0.14s ease-out;
+			}
+			.currency-option {
+				width: 100%;
+				min-height: 47px;
+				border: 0;
+				border-radius: 11px;
+				background: transparent;
+				padding: 5px 7px;
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				font-weight: 800;
+			}
+			.currency-option:hover,
+			.currency-option[aria-selected='true'] {
+				background: #fff0a2;
+			}
+			.currency-option .currency-doodle {
+				width: 29px;
+				height: 29px;
+			}
+			.currency-backdrop {
+				position: absolute;
+				inset: 0;
+				z-index: 19;
+				background: rgba(33, 28, 23, 0.2);
+				display: none;
+			}
+			.currency-backdrop.open {
+				display: block;
+			}
+
+			.summary {
+				margin-top: 13px;
+				padding: 10px 11px;
+				border: 2px dashed var(--ink);
+				border-radius: 14px;
+				background: #fff8d4;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+			}
+			.summary span {
+				font-size: 11px;
+				font-weight: 800;
+			}
+			.summary b {
+				font-size: 13px;
+			}
+			.sheet-foot {
+				position: relative;
+				z-index: 7;
+				padding: 11px 15px max(17px, env(safe-area-inset-bottom));
+				background: linear-gradient(transparent, var(--cream) 17%);
+				display: grid;
+				gap: 7px;
+			}
+			.cta {
+				min-height: 57px;
+				border: var(--line);
+				border-radius: 17px 14px 19px 13px;
+				background: var(--yellow);
+				box-shadow: 4px 5px 0 var(--ink);
+				font-size: 18px;
+				font-weight: 800;
+			}
+			.cta:hover {
+				transform: translate(2px, 2px);
+				box-shadow: 2px 3px 0 var(--ink);
+			}
+			.cta:disabled {
+				opacity: 0.55;
+				cursor: not-allowed;
+			}
+			.foot-note {
+				text-align: center;
+				font-size: 10px;
+				color: var(--muted);
+				margin: 0;
+			}
+
+			.toast {
+				position: absolute;
+				left: 15px;
+				right: 15px;
+				top: 16px;
+				z-index: 40;
+				border: var(--line);
+				border-radius: 14px;
+				background: var(--mint);
+				box-shadow: 3px 4px 0 var(--ink);
+				padding: 10px 12px;
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				font-size: 12px;
+				font-weight: 800;
+				transform: translateY(-150%);
+				transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+			}
+			.toast.show {
+				transform: none;
+			}
+			.toast .currency-doodle {
+				background: white;
+			}
+			.reopen {
+				position: absolute;
+				left: 50%;
+				bottom: 24px;
+				transform: translateX(-50%);
+				min-height: 52px;
+				border: var(--line);
+				border-radius: 16px;
+				background: var(--yellow);
+				box-shadow: var(--shadow);
+				padding: 8px 16px;
+				font-weight: 800;
+			}
+			.saved-row {
+				display: none;
+				margin-top: 12px;
+				border: var(--line);
+				border-radius: 14px;
+				background: white;
+				padding: 12px;
+				box-shadow: 3px 4px 0 var(--ink);
+			}
+			.saved-row.show {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+			.saved-row strong,
+			.saved-row span {
+				font-size: 12px;
+			}
+			.saved-row b {
+				font-size: 15px;
+			}
+
+			.notes {
+				align-self: center;
+			}
+			.note-card {
+				border: var(--line);
+				border-radius: 19px 15px 21px 17px;
+				background: var(--paper);
+				box-shadow: var(--shadow);
+				padding: 17px;
+			}
+			.note-kicker {
+				font-size: 10px;
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				color: var(--muted);
+				font-weight: 800;
+			}
+			.note-card h1 {
+				font:
+					900 28px/0.95 Knerd,
+					Sniglet,
+					sans-serif;
+				margin: 8px 0 10px;
+			}
+			.note-card > p {
+				font-size: 13px;
+				line-height: 1.45;
+				margin: 0;
+				color: var(--muted);
+			}
+			.note-list {
+				display: grid;
+				gap: 9px;
+				margin-top: 15px;
+			}
+			.note-item {
+				border-top: 2px dashed #d4cac2;
+				padding-top: 9px;
+				display: grid;
+				grid-template-columns: 28px 1fr;
+				gap: 8px;
+			}
+			.note-num {
+				width: 27px;
+				height: 27px;
+				border: var(--line);
+				border-radius: 50%;
+				background: var(--yellow);
+				display: grid;
+				place-items: center;
+				font-size: 11px;
+				font-weight: 800;
+				transform: rotate(-3deg);
+			}
+			.note-item:nth-child(2) .note-num {
+				background: var(--pink);
+				transform: rotate(2deg);
+			}
+			.note-item:nth-child(3) .note-num {
+				background: var(--blue);
+			}
+			.note-item strong {
+				display: block;
+				font-size: 12px;
+			}
+			.note-item span {
+				display: block;
+				font-size: 11px;
+				line-height: 1.35;
+				color: var(--muted);
+				margin-top: 2px;
+			}
+			.state-note {
+				margin-top: 14px;
+				border: 2px dashed var(--ink);
+				border-radius: 14px;
+				background: #fff8d1;
+				padding: 11px;
+				font-size: 11px;
+				line-height: 1.4;
+			}
+			.state-note strong {
+				display: block;
+				margin-bottom: 3px;
+			}
+
+			@media (max-width: 850px) {
+				.workspace {
+					grid-template-columns: 1fr;
+					max-width: 620px;
+				}
+				.notes {
+					display: none;
+				}
+				.stage {
+					min-height: calc(100vh - 94px);
+				}
+			}
+			@media (max-width: 520px) {
+				.labbar {
+					min-height: 59px;
+					padding: 8px 9px;
+				}
+				.nut {
+					width: 36px;
+					height: 36px;
+				}
+				.labbrand strong {
+					font-size: 18px;
+				}
+				.labbrand small {
+					display: none;
+				}
+				.workspace {
+					padding: 0;
+					min-height: calc(100vh - 59px);
+				}
+				.stage {
+					border: 0;
+					border-radius: 0;
+					min-height: calc(100vh - 59px);
+					background: var(--cream);
+				}
+				.phone {
+					width: 100%;
+					height: calc(100vh - 59px);
+					min-height: 580px;
+					border: 0;
+					border-radius: 0;
+					box-shadow: none;
+				}
+				.sheet {
+					inset: 18px 0 0;
+				}
+				.presets {
+					max-width: 200px;
+				}
+				.preset {
+					min-height: 36px;
+					padding: 6px 9px;
+				}
+				.scroll {
+					scrollbar-width: none;
+					scrollbar-gutter: auto;
+				}
+				.scroll::-webkit-scrollbar {
+					display: none;
+				}
+			}
+			@media (prefers-reduced-motion: reduce) {
+				* {
+					animation: none !important;
+					transition: none !important;
+					scroll-behavior: auto !important;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<header class="labbar">
+			<div class="labbrand">
+				<span class="nut" aria-hidden="true"
+					><svg viewBox="0 0 40 40">
+						<path
+							d="M14 5c-5 2-8 8-7 14 1 8 8 16 16 16 6 0 11-5 11-11 0-5-4-8-8-10-4-2-4-8-7-9-1-1-3-1-5 0Z"
+						/>
+						<path d="M12 20c4-1 7 0 10 3M24 15c-2 4-1 7 2 10" fill="none" /></svg
+				></span>
+				<div><strong>COMPOSER HI-FI</strong><small>Working add-expense prototype</small></div>
+			</div>
+			<nav class="presets" aria-label="Prototype states">
+				<button class="preset active" type="button" data-preset="fresh">Fresh</button>
+				<button class="preset" type="button" data-preset="filled">Filled</button>
+				<button class="preset" type="button" data-preset="exact">Exact</button>
+				<button class="preset" type="button" data-preset="error">Error</button>
+			</nav>
+		</header>
+
+		<main class="workspace">
+			<section class="stage" aria-label="Interactive mobile prototype">
+				<div class="phone" id="phone">
+					<div class="room-behind">
+						<div class="room-top"><strong>Lisbon weekend</strong><span>4 friends · GBP</span></div>
+						<div class="room-balance"><small>Your balance</small><b>£18.40</b></div>
+						<div class="saved-row" id="savedRow">
+							<span id="savedDesc">Dinner</span><b id="savedAmount">£42.00</b>
+						</div>
+						<div class="ghost-row"></div>
+						<div class="ghost-row"></div>
+						<button class="reopen" id="reopen" type="button" hidden>Add another expense</button>
+					</div>
+					<div class="sheet-scrim"></div>
+					<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+						<header class="sheet-head">
+							<span class="drag" aria-hidden="true"></span>
+							<span class="sheet-title" id="sheetTitle">Add expense</span>
+							<button class="xbtn" id="closeSheet" type="button" aria-label="Close add expense"></button>
+						</header>
+
+						<div class="scroll" id="scrollArea">
+							<div class="composer" id="composer">
+								<div class="money-line">
+									<label>
+										<span class="sr-only">Amount</span>
+										<input
+											class="amount"
+											id="amount"
+											inputmode="decimal"
+											autocomplete="off"
+											placeholder="0.00"
+										/>
+									</label>
+									<button
+										class="currency-trigger"
+										id="currencyTrigger"
+										type="button"
+										aria-haspopup="listbox"
+										aria-expanded="false"
+										aria-label="Currency, GBP"
+									>
+										<span class="currency-value"
+											><span class="currency-doodle" id="currencySymbol" aria-hidden="true"
+												>£</span
+											><span id="currencyCode">GBP</span></span
+										>
+										<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true">
+											<path d="m5 8 6.5 7L19 8.5" />
+										</svg>
+									</button>
+								</div>
+								<label class="description">
+									<span class="sr-only">What for?</span>
+									<input id="description" maxlength="255" placeholder="Dinner, taxi, lift pass…" />
+								</label>
+								<div class="tool-row">
+									<button
+										class="tool"
+										type="button"
+										data-editor="payer"
+										aria-expanded="false"
+										aria-label="Paid by Asdf2"
+									>
+										<span id="payerAvatar"></span
+										><span class="tool-stack"
+											><span id="payerTool">Asdf2</span><small>paid</small></span
+										>
+									</button>
+									<button
+										class="tool"
+										type="button"
+										data-editor="people"
+										aria-expanded="false"
+										aria-label="Split equally between everyone"
+									>
+										<span class="avatar-stack" id="peopleAvatars"></span
+										><span class="tool-stack"
+											><span id="peopleTool">Everyone</span
+											><small id="modeTool">equally</small></span
+										>
+									</button>
+									<button
+										class="tool"
+										type="button"
+										data-editor="date"
+										aria-expanded="false"
+										aria-label="Expense date, today"
+									>
+										<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true">
+											<path d="M5 4.5c4-.6 10-.4 14 .2l.5 15c-4 .6-11 .7-15-.1Z" />
+											<path d="M8 2.5v4M16 2.5v4M5 9c4 .7 10 .7 14 0M8 13h2M14 13h2M8 16h2" />
+										</svg>
+										<span class="tool-stack"
+											><span id="dateTool">Today</span><small>date</small></span
+										>
+									</button>
+								</div>
+							</div>
+							<p class="error" id="amountError" role="alert">
+								<span class="scribble">!</span><span>Enter an amount greater than zero.</span>
+							</p>
+							<p class="error" id="descriptionError" role="alert">
+								<span class="scribble">!</span><span>Name the expense so everyone recognizes it.</span>
+							</p>
+
+							<div id="editorHost"></div>
+
+							<div class="summary" aria-live="polite">
+								<span id="summaryText">Everyone shares equally</span>
+								<b id="eachAmount">£0.00 each</b>
+							</div>
+						</div>
+
+						<footer class="sheet-foot">
+							<button class="cta" id="submit" type="button">Add expense</button>
+							<p class="foot-note" id="footNote">Nothing is saved until you tap this.</p>
+						</footer>
+					</section>
+					<div class="currency-backdrop" id="currencyBackdrop"></div>
+					<div class="currency-panel" id="currencyPanel" role="listbox" aria-label="Currencies"></div>
+					<div class="toast" id="toast" role="status">
+						<span class="currency-doodle" aria-hidden="true">
+							<svg class="dicon" viewBox="0 0 24 24"><path d="m4 12 5 6L20 5" /></svg> </span
+						><span>Expense added. Everyone’s balance is up to date.</span>
+					</div>
+				</div>
+			</section>
+
+			<aside class="notes">
+				<article class="note-card">
+					<div class="note-kicker">Chosen direction · high fidelity</div>
+					<h1>ONE COMPOSER CARD</h1>
+					<p>
+						The expense is one readable object. Only the detail being changed expands, while the common path
+						stays inside one viewport.
+					</p>
+					<div class="note-list">
+						<div class="note-item">
+							<span class="note-num">1</span>
+							<div>
+								<strong>One hierarchy</strong
+								><span
+									>Amount, ticker and description form the receipt. Payer, people and date read as its
+									metadata.</span
+								>
+							</div>
+						</div>
+						<div class="note-item">
+							<span class="note-num">2</span>
+							<div>
+								<strong>One scroll owner</strong
+								><span
+									>Header and action stay put. Expanded editors use the sheet’s only scrolling
+									body.</span
+								>
+							</div>
+						</div>
+						<div class="note-item">
+							<span class="note-num">3</span>
+							<div>
+								<strong>Meaning without headings</strong
+								><span
+									>“Asdf2 paid”, “Everyone · equally” and “Today” replace PAID BY, SPLIT and
+									WHEN.</span
+								>
+							</div>
+						</div>
+					</div>
+					<div class="state-note">
+						<strong>Try the whole flow</strong>Type an expense, switch currency, change payer, exclude
+						somebody, try Exact amounts, pick another date, then add it. The four presets cover key states.
+					</div>
+				</article>
+			</aside>
+		</main>
+
+		<script>
+			const icons = {
+				x: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5c4 4.2 8.8 8.9 14 13M19 5c-4.6 4-8.7 8.7-14 14"/></svg>`,
+				check: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 5 6L20 5"/></svg>`,
+				plus: `<svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c-.3 5-.2 11 .1 16M4 12c5 .3 11 .1 16-.1"/></svg>`,
+			}
+			const people = [
+				{ id: 'asdf2', name: 'Asdf2', color: '#ffb8e9', tilt: '-3deg' },
+				{ id: 'mia', name: 'Mia', color: '#b7f7ce', tilt: '2deg' },
+				{ id: 'jo', name: 'Jo', color: '#b9ddff', tilt: '-1deg' },
+				{ id: 'bea', name: 'Bea', color: '#ffd99c', tilt: '3deg' },
+			]
+			const currencies = [
+				['£', 'GBP'],
+				['€', 'EUR'],
+				['$', 'USD'],
+				['R$', 'BRL'],
+				['¥', 'JPY'],
+				['Fr', 'CHF'],
+			]
+			const state = {
+				amount: '',
+				description: '',
+				currency: 'GBP',
+				symbol: '£',
+				payer: 'asdf2',
+				participants: new Set(people.map((p) => p.id)),
+				mode: 'EQUAL',
+				date: 'today',
+				customDate: '',
+				editor: null,
+				submitted: false,
+				exact: { asdf2: '', mia: '', jo: '', bea: '' },
+			}
+			const $ = (id) => document.getElementById(id)
+			function avatar(person, size = 'normal') {
+				return `<span class="avatar" data-avatar="${person.id}" style="--avatar:${person.color};--tilt:${person.tilt}" role="img" aria-label="${person.name}">
+        <svg viewBox="0 0 30 30" aria-hidden="true"><path d="M7 27c.5-7 4-10 8-10s7.3 3 8 10"/><path d="M9 11c0-5 2.5-8 6.2-8 4 0 6 3.2 5.8 7.6-.2 4.5-2.6 7-6.3 6.8C11 17.2 9 14.6 9 11Z" fill="#fff"/><path d="M9 9c2-1 3-3 3.5-5 3 3 5.8 2 8 5M12 11h.1M18 11h.1M13 14c1.4.8 2.7.8 4 0"/></svg>
+      </span>`
+			}
+			function moneyNumber() {
+				const n = Number.parseFloat(state.amount)
+				return Number.isFinite(n) && n > 0 ? n : 0
+			}
+			function format(n) {
+				return `${state.symbol}${n.toFixed(2)}`
+			}
+			function selectedPeople() {
+				return people.filter((p) => state.participants.has(p.id))
+			}
+			function participantSummary() {
+				const list = selectedPeople()
+				if (list.length === people.length) return 'Everyone'
+				if (list.length === 0) return 'Choose people'
+				if (list.length === 1) return `Only ${list[0].name}`
+				return `${list[0].name} + ${list.length - 1}`
+			}
+			function dateSummary() {
+				if (state.date === 'today') return 'Today'
+				if (state.date === 'yesterday') return 'Yesterday'
+				if (state.customDate) {
+					const d = new Date(`${state.customDate}T12:00:00`)
+					if (!Number.isNaN(d.valueOf()))
+						return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+				}
+				return 'Pick date'
+			}
+			function exactTotal() {
+				return Object.entries(state.exact)
+					.filter(([id]) => state.participants.has(id))
+					.reduce((sum, [, v]) => sum + (Number.parseFloat(v) || 0), 0)
+			}
+			function renderBase() {
+				$('payerAvatar').innerHTML = avatar(people.find((p) => p.id === state.payer))
+				$('payerTool').textContent = people.find((p) => p.id === state.payer).name
+				$('peopleAvatars').innerHTML = selectedPeople()
+					.slice(0, 3)
+					.map((p) => avatar(p))
+					.join('')
+				$('peopleTool').textContent = participantSummary()
+				$('modeTool').textContent = state.mode === 'EQUAL' ? 'equally' : 'exact'
+				$('dateTool').textContent = dateSummary()
+				$('currencyCode').textContent = state.currency
+				$('currencySymbol').textContent = state.symbol
+				$('currencyTrigger').setAttribute('aria-label', `Currency, ${state.currency}`)
+				const total = moneyNumber(),
+					count = selectedPeople().length
+				if (state.mode === 'EQUAL') {
+					$('summaryText').textContent =
+						count === people.length ? 'Everyone shares equally' : `${participantSummary()} share equally`
+					$('eachAmount').textContent = count ? `${format(total / count)} each` : 'Choose people'
+				} else {
+					const left = total - exactTotal()
+					$('summaryText').textContent = 'Exact amounts'
+					$('eachAmount').textContent =
+						Math.abs(left) < 0.005 ? 'Adds up' : `${format(Math.abs(left))} ${left >= 0 ? 'left' : 'over'}`
+				}
+				const validAmount = total > 0
+				$('submit').textContent = validAmount ? `Add ${format(total)} expense` : 'Add expense'
+				$('footNote').textContent =
+					state.mode === 'EXACT'
+						? 'Exact amounts must add up before saving.'
+						: 'Nothing is saved until you tap this.'
+				$('composer').classList.toggle(
+					'invalid',
+					state.submitted && (!validAmount || !state.description.trim())
+				)
+				$('amountError').classList.toggle('show', state.submitted && !validAmount)
+				$('descriptionError').classList.toggle('show', state.submitted && !state.description.trim())
+				document.querySelectorAll('.tool').forEach((x) => {
+					const active = x.dataset.editor === state.editor
+					x.classList.toggle('active', active)
+					x.setAttribute('aria-expanded', String(active))
+				})
+			}
+			function renderEditor() {
+				const host = $('editorHost')
+				if (!state.editor) {
+					host.innerHTML = ''
+					return
+				}
+				if (state.editor === 'payer') {
+					host.innerHTML = `<section class="editor" aria-label="Who paid?">
+          <div class="editor-head"><div><strong>Who paid?</strong><small>One person fronted the money.</small></div><button class="done" type="button">Done</button></div>
+          <div class="editor-body"><div class="chip-grid">${people.map((p) => `<button class="chip" type="button" data-payer="${p.id}" aria-pressed="${state.payer === p.id}">${avatar(p)}<span>${p.name}</span><span class="check">${state.payer === p.id ? icons.check : ''}</span></button>`).join('')}</div>
+          <button class="add-person" id="addPerson" type="button">${icons.plus} Add somebody</button><div id="newPersonHost"></div></div></section>`
+					host.querySelectorAll('[data-payer]').forEach((x) =>
+						x.addEventListener('click', () => {
+							state.payer = x.dataset.payer
+							render()
+						})
+					)
+					$('addPerson').addEventListener('click', showNewPerson)
+				}
+				if (state.editor === 'people') {
+					host.innerHTML = `<section class="editor" aria-label="Who shares this expense?">
+          <div class="editor-head"><div><strong>Who shares this?</strong><small>Turn off anyone who sat this one out.</small></div><button class="done" type="button">Done</button></div>
+          <div class="editor-body"><div class="segmented"><button class="${state.mode === 'EQUAL' ? 'active' : ''}" data-mode="EQUAL" type="button">Equally</button><button class="${state.mode === 'EXACT' ? 'active' : ''}" data-mode="EXACT" type="button">Exact amounts</button></div>
+          <div>${people.map((p) => participantMarkup(p)).join('')}</div>${state.mode === 'EXACT' ? remainderMarkup() : ''}</div></section>`
+					host.querySelectorAll('[data-mode]').forEach((x) =>
+						x.addEventListener('click', () => {
+							state.mode = x.dataset.mode
+							render()
+						})
+					)
+					host.querySelectorAll('[data-participant]').forEach((x) =>
+						x.addEventListener('click', (e) => {
+							if (e.target.closest('input')) return
+							const id = x.dataset.participant
+							state.participants.has(id) ? state.participants.delete(id) : state.participants.add(id)
+							render()
+						})
+					)
+					host.querySelectorAll('[data-exact]').forEach((x) =>
+						x.addEventListener('input', () => {
+							state.exact[x.dataset.exact] = x.value
+							renderBase()
+							updateRemainder()
+						})
+					)
+				}
+				if (state.editor === 'date') {
+					host.innerHTML = `<section class="editor" aria-label="Expense date">
+          <div class="editor-head"><div><strong>When was it?</strong><small>Today is already selected.</small></div><button class="done" type="button">Done</button></div>
+          <div class="editor-body"><div class="date-grid">
+            <button class="date-option ${state.date === 'today' ? 'active' : ''}" data-date="today" type="button">Today</button>
+            <button class="date-option ${state.date === 'yesterday' ? 'active' : ''}" data-date="yesterday" type="button">Yesterday</button>
+            <button class="date-option ${state.date === 'custom' ? 'active' : ''}" data-date="custom" type="button">Another day</button>
+          </div>${state.date === 'custom' ? `<label class="date-input-wrap"><span class="sr-only">Expense date</span><input class="date-input" id="customDate" type="date" value="${state.customDate}"><span class="date-icon"><svg class="dicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5c4-.6 10-.4 14 .2l.5 15c-4 .6-11 .7-15-.1Z"/><path d="M8 2.5v4M16 2.5v4M5 9c4 .7 10 .7 14 0"/></svg></span></label>` : ''}</div></section>`
+					host.querySelectorAll('[data-date]').forEach((x) =>
+						x.addEventListener('click', () => {
+							state.date = x.dataset.date
+							render()
+						})
+					)
+					$('customDate')?.addEventListener('input', (e) => {
+						state.customDate = e.target.value
+						renderBase()
+					})
+				}
+				host.querySelector('.done')?.addEventListener('click', () => {
+					state.editor = null
+					render()
+				})
+			}
+			function participantMarkup(p) {
+				const on = state.participants.has(p.id)
+				return `<div class="participant ${on ? '' : 'off'}" data-participant="${p.id}">
+        ${avatar(p)}<span class="participant-name">${p.name}</span>
+        ${state.mode === 'EXACT' && on ? `<input class="exact-input" data-exact="${p.id}" value="${state.exact[p.id]}" inputmode="decimal" aria-label="${p.name}'s exact amount" placeholder="0.00">` : `<button class="toggle" type="button" aria-label="${on ? `Remove ${p.name}` : `Include ${p.name}`}">${on ? icons.check : ''}</button>`}
+      </div>`
+			}
+			function remainderMarkup() {
+				const left = moneyNumber() - exactTotal(),
+					done = Math.abs(left) < 0.005 && moneyNumber() > 0
+				return `<div class="remainder ${done ? 'done' : ''}" id="remainder" role="status"><span>${done ? 'Ready to add' : 'Left to allocate'}</span><b>${done ? icons.check : format(left)}</b></div>`
+			}
+			function updateRemainder() {
+				const r = $('remainder')
+				if (r) r.outerHTML = remainderMarkup()
+			}
+			function showNewPerson() {
+				$('newPersonHost').innerHTML =
+					`<div class="new-person"><label><span class="sr-only">New person’s name</span><input id="newPersonName" maxlength="30" placeholder="Their name"></label><button class="square-action" id="confirmPerson" type="button" aria-label="Add person">${icons.check}</button><button class="square-action cancel" id="cancelPerson" type="button" aria-label="Cancel adding person">${icons.x}</button></div>`
+				$('newPersonName').focus()
+				$('cancelPerson').addEventListener('click', () => {
+					$('newPersonHost').innerHTML = ''
+				})
+				$('confirmPerson').addEventListener('click', () => {
+					const name = $('newPersonName').value.trim()
+					if (!name) return
+					const id = `p${Date.now()}`
+					people.push({ id, name, color: '#d9c7ff', tilt: '-2deg' })
+					state.participants.add(id)
+					state.exact[id] = ''
+					state.payer = id
+					render()
+				})
+			}
+			function render() {
+				renderBase()
+				renderEditor()
+			}
+			function openCurrency() {
+				const p = $('currencyPanel'),
+					trigger = $('currencyTrigger'),
+					phone = $('phone')
+				p.innerHTML = currencies
+					.map(
+						([symbol, code]) =>
+							`<button class="currency-option" type="button" role="option" aria-selected="${code === state.currency}" data-symbol="${symbol}" data-code="${code}"><span class="currency-doodle" aria-hidden="true">${symbol}</span><span>${code}</span></button>`
+					)
+					.join('')
+				const pr = phone.getBoundingClientRect(),
+					tr = trigger.getBoundingClientRect()
+				p.style.left = `${Math.min(phone.clientWidth - 185, Math.max(10, tr.left - pr.left))}px`
+				p.style.top = `${tr.bottom - pr.top + 8}px`
+				p.classList.add('open')
+				$('currencyBackdrop').classList.add('open')
+				trigger.setAttribute('aria-expanded', 'true')
+				p.querySelectorAll('[data-code]').forEach((x) =>
+					x.addEventListener('click', () => {
+						state.currency = x.dataset.code
+						state.symbol = x.dataset.symbol
+						closeCurrency()
+						render()
+					})
+				)
+				p.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true })
+			}
+			function closeCurrency() {
+				$('currencyPanel').classList.remove('open')
+				$('currencyBackdrop').classList.remove('open')
+				$('currencyTrigger').setAttribute('aria-expanded', 'false')
+			}
+			function submit() {
+				state.submitted = true
+				renderBase()
+				if (moneyNumber() <= 0) {
+					$('amount').focus()
+					return
+				}
+				if (!state.description.trim()) {
+					$('description').focus()
+					return
+				}
+				if (!state.participants.size) {
+					state.editor = 'people'
+					render()
+					return
+				}
+				if (state.mode === 'EXACT' && Math.abs(moneyNumber() - exactTotal()) >= 0.005) {
+					state.editor = 'people'
+					render()
+					return
+				}
+				$('savedDesc').textContent = state.description
+				$('savedAmount').textContent = format(moneyNumber())
+				$('savedRow').classList.add('show')
+				$('toast').classList.add('show')
+				setTimeout(() => {
+					$('phone').classList.add('closed')
+					$('reopen').hidden = false
+					$('toast').classList.remove('show')
+				}, 850)
+			}
+			function reset(preset = 'fresh') {
+				state.amount = ''
+				state.description = ''
+				state.currency = 'GBP'
+				state.symbol = '£'
+				state.payer = 'asdf2'
+				state.participants = new Set(people.map((p) => p.id))
+				state.mode = 'EQUAL'
+				state.date = 'today'
+				state.customDate = ''
+				state.editor = null
+				state.submitted = false
+				Object.keys(state.exact).forEach((k) => (state.exact[k] = ''))
+				if (preset === 'filled') {
+					state.amount = '42'
+					state.description = 'Dinner at Ramiro'
+					state.payer = 'mia'
+					state.participants = new Set(['asdf2', 'mia', 'jo'])
+					state.editor = null
+				}
+				if (preset === 'exact') {
+					state.amount = '96'
+					state.description = 'Groceries'
+					state.mode = 'EXACT'
+					state.editor = 'people'
+					state.exact = { ...state.exact, asdf2: '24', mia: '24', jo: '16', bea: '32' }
+				}
+				if (preset === 'error') {
+					state.amount = '0'
+					state.description = ''
+					state.submitted = true
+				}
+				$('amount').value = state.amount
+				$('description').value = state.description
+				$('phone').classList.remove('closed')
+				$('reopen').hidden = true
+				closeCurrency()
+				render()
+			}
+			$('closeSheet').innerHTML = icons.x
+			$('amount').addEventListener('input', (e) => {
+				state.amount = e.target.value
+				state.submitted = false
+				renderBase()
+				updateRemainder()
+			})
+			$('description').addEventListener('input', (e) => {
+				state.description = e.target.value
+				state.submitted = false
+				renderBase()
+			})
+			$('currencyTrigger').addEventListener('click', () =>
+				$('currencyPanel').classList.contains('open') ? closeCurrency() : openCurrency()
+			)
+			$('currencyBackdrop').addEventListener('click', closeCurrency)
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape' && $('currencyPanel').classList.contains('open')) {
+					closeCurrency()
+					$('currencyTrigger').focus()
+				}
+			})
+			document.querySelectorAll('.tool').forEach((x) =>
+				x.addEventListener('click', () => {
+					state.editor = state.editor === x.dataset.editor ? null : x.dataset.editor
+					render()
+				})
+			)
+			$('submit').addEventListener('click', submit)
+			$('closeSheet').addEventListener('click', () => {
+				$('phone').classList.add('closed')
+				$('reopen').hidden = false
+			})
+			$('reopen').addEventListener('click', () => reset('fresh'))
+			document.querySelectorAll('.preset').forEach((x) =>
+				x.addEventListener('click', () => {
+					document.querySelectorAll('.preset').forEach((y) => y.classList.toggle('active', x === y))
+					reset(x.dataset.preset)
+				})
+			)
+			reset()
+		</script>
+	</body>
+</html>
