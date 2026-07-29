@@ -167,6 +167,21 @@ describe('untouched participants mean "everyone at save time"', () => {
     })
 })
 
+describe('staged new payer', () => {
+    it('posts a name instead of inventing a roster id before the expense is saved', () => {
+        const values = baseForm({ paidById: '', newPaidByName: 'Bea', participantsTouched: false })
+        expect(validateExpenseForm(values)).toBeNull()
+        expect(buildExpenseBody(values)).toEqual({
+            description: 'Dinner',
+            amountMinor: '6000',
+            currency: 'EUR',
+            newPaidByName: 'Bea',
+            date: '2026-07-25T12:00:00.000Z',
+            splitMode: 'EQUAL',
+        })
+    })
+})
+
 describe('validateExpenseForm / remainingMinor', () => {
     it('rejects an empty description, a zero amount and an empty participant list', () => {
         expect(validateExpenseForm(baseForm({ description: '  ' }))).toBe('DESCRIPTION_REQUIRED')

@@ -178,6 +178,12 @@ export function ExpenseList({
                                 }
                                 const expense = entry.expense
                                 const payer = memberName(expense.paidById)
+                                const filedBy =
+                                    expense.createdById === null
+                                        ? t('filedByAnon')
+                                        : expense.createdById === meId
+                                          ? t('filedByYou')
+                                          : t('filedBy', { name: memberName(expense.createdById) })
                                 const foreign = expense.currency !== state.room.currency
                                 return (
                                     <motion.li
@@ -243,6 +249,11 @@ export function ExpenseList({
                                                         ? t('paidByYou', { count: expense.shares.length })
                                                         : t('paidBy', { payer, count: expense.shares.length })}
                                                 </span>
+                                                {!isPending(expense) && (
+                                                    <span className="block text-h10 uppercase tracking-wide text-grey-1">
+                                                        {filedBy}
+                                                    </span>
+                                                )}
                                             </span>
                                             <span className="flex shrink-0 flex-col items-end">
                                                 <Money

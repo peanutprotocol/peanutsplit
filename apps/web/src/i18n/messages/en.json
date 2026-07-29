@@ -360,6 +360,9 @@
             "paidBy": "{payer} paid · {count, plural, one {# person} other {# people}}",
             "indicative": "indicative",
             "paidByYou": "You paid · {count, plural, one {# person} other {# people}}",
+            "filedBy": "Filed by {name}",
+            "filedByYou": "Filed by you",
+            "filedByAnon": "Filed by Anon",
             "emptyInvite": "Invite the rest"
         },
         "states": {
@@ -487,6 +490,9 @@
             "peanutNote": "Opens peanut.me in a new tab to send it — and records the payment here either way.",
             "note": "Note (optional)",
             "notePlaceholder": "Sent on Friday",
+            "receiptLink": "Receipt link (optional)",
+            "receiptLinkPlaceholder": "https://…",
+            "receiptLinkHint": "Saved as documentation only. Split does not open or verify it.",
             "record": "Record payment",
             "back": "Back",
             "recorded": "{from} paid {to}",
@@ -508,7 +514,9 @@
                 "add": "Add",
                 "note": "They still open the link and pick their own name — this only holds their place.",
                 "duplicate": "{name} is already in this room.",
-                "failed": "could not add them — try again"
+                "failed": "could not add them — try again",
+                "remove": "Remove untouched placeholder for {name}",
+                "removeFailed": "could not remove that name — try again"
             }
         },
         "link": {
@@ -652,11 +660,13 @@
             "paymentLabel": "Payment",
             "recordedBy": "recorded by {name}",
             "recordedByYou": "recorded by you",
-            "remove": "Remove this payment",
-            "confirmRemove": "Remove this payment? There is no undo — you would have to record it again.",
-            "confirmYes": "Remove it",
+            "recordedByAnon": "recorded by Anon",
+            "receiptLink": "Open receipt link · not verified",
+            "remove": "Undo this payment record",
+            "confirmRemove": "Undo this record? This changes the room balance, not any money already sent.",
+            "confirmYes": "Undo record",
             "confirmNo": "Keep it",
-            "removed": "Payment removed. Record it again if that was a mistake.",
+            "removed": "Payment record undone. Room balances updated.",
             "removeFailed": "Could not remove that payment — try again."
         }
     },

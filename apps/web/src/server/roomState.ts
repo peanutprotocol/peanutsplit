@@ -33,7 +33,15 @@ const roomArgs = {
     },
 } satisfies Prisma.RoomDefaultArgs
 
-export type RoomWithRelations = Prisma.RoomGetPayload<typeof roomArgs>
+type BaseRoomWithRelations = Prisma.RoomGetPayload<typeof roomArgs>
+type MemberWithRemovalState = BaseRoomWithRelations['members'][number] & { canRemove: boolean }
+
+export type RoomWithRelations = Omit<BaseRoomWithRelations, 'members'> & {
+    members: MemberWithRemovalState[]
+}
+
+/** True only for an unclaimed on-behalf placeholder with no durable reference. */
+export const canRemoveMember = (member: MemberWithRemovalState): boolean => member.provisional && member.canRemove
 
 /**
  * The columns a balance is folded from, and nothing else.
@@ -125,6 +133,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             name: m.name,
             avatar: m.avatar,
             createdAt: m.createdAt.toISOString(),
+            canRemove: m.canRemove,
         })),
         expenses: room.expenses.map((e) => ({
             id: e.id,
@@ -156,6 +165,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             amountMinor: s.amountMinor.toString(),
             method: s.method,
             note: s.note,
+            receiptUrl: s.receiptUrl,
             createdAt: s.createdAt.toISOString(),
         })),
         balances: Object.fromEntries([...balances.entries()].map(([id, net]) => [id, net.toString()])),
@@ -163,18 +173,61 @@ export function toRoomState(room: RoomWithRelations): RoomState {
     }
 }
 
-type RoomReader = Pick<Prisma.TransactionClient, 'room'>
+type RoomReader = Pick<Prisma.TransactionClient, 'room' | 'member'>
+
+/**
+ * Count history separately from the room read. Adding `_count` to the ordered
+ * member relation changes PostgreSQL's query plan and made equal-timestamp
+ * imported rosters reorder themselves. A second query only for provisional
+ * names keeps roster order stable and still counts soft-deleted history.
+ */
+async function withRemovalState(room: BaseRoomWithRelations, db: RoomReader): Promise<RoomWithRelations> {
+    const provisionalIds = room.members.filter((member) => member.provisional).map((member) => member.id)
+    if (provisionalIds.length === 0) {
+        return {
+            ...room,
+            members: room.members.map((member) => ({ ...member, canRemove: false })),
+        }
+    }
+
+    const histories = await db.member.findMany({
+        where: { id: { in: provisionalIds } },
+        select: { id: true, _count: true },
+    })
+    const removable = new Set(
+        histories
+            .filter(
+                ({ _count }) =>
+                    _count.paidExpenses === 0 &&
+                    _count.createdExpenses === 0 &&
+                    _count.shares === 0 &&
+                    _count.reactions === 0 &&
+                    _count.settlementsFrom === 0 &&
+                    _count.settlementsTo === 0 &&
+                    _count.createdSettlements === 0 &&
+                    _count.pushSubscriptions === 0
+            )
+            .map(({ id }) => id)
+    )
+    return {
+        ...room,
+        members: room.members.map((member) => ({
+            ...member,
+            canRemove: removable.has(member.id),
+        })),
+    }
+}
 
 export async function loadRoom(slug: string, db: RoomReader = prisma): Promise<RoomWithRelations> {
     const room = await db.room.findUnique({ where: { slug }, ...roomArgs })
     if (!room) throw notFound('room not found')
-    return room
+    return withRemovalState(room, db)
 }
 
 export async function loadRoomById(id: string): Promise<RoomWithRelations> {
     const room = await prisma.room.findUnique({ where: { id }, ...roomArgs })
     if (!room) throw notFound('room not found')
-    return room
+    return withRemovalState(room, prisma)
 }
 
 export const roomStateBySlug = async (slug: string): Promise<RoomState> => toRoomState(await loadRoom(slug))

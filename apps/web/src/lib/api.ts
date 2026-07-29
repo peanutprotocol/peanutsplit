@@ -159,6 +159,9 @@ export const api = {
             body: { ...input, intent: 'add' },
         }),
 
+    deleteMember: (slug: string, memberId: string) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}`, { method: 'DELETE' }),
+
     claimMember: (slug: string, memberId: string) =>
         request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}/claim`, {
             method: 'POST',

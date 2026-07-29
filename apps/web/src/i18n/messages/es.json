@@ -360,6 +360,9 @@
             "paidBy": "{payer} pagó · {count, plural, one {# persona} other {# personas}}",
             "indicative": "indicativo",
             "paidByYou": "Pagaste tú · {count, plural, one {# persona} other {# personas}}",
+            "filedBy": "Anotado por {name}",
+            "filedByYou": "Anotado por ti",
+            "filedByAnon": "Anotado por Anon",
             "emptyInvite": "Invita al resto"
         },
         "states": {
@@ -487,6 +490,9 @@
             "peanutNote": "Abre peanut.me en otra pestaña para enviarlo — y registra el pago aquí de todos modos.",
             "note": "Nota (opcional)",
             "notePlaceholder": "Enviado el viernes",
+            "receiptLink": "Link del recibo (opcional)",
+            "receiptLinkPlaceholder": "https://…",
+            "receiptLinkHint": "Se guarda solo como referencia. Split no lo abre ni lo verifica.",
             "record": "Registrar pago",
             "back": "Volver",
             "recorded": "{from} pagó a {to}",
@@ -508,7 +514,9 @@
                 "add": "Agregar",
                 "note": "Igual van a abrir el link y elegir su nombre — esto solo les guarda el lugar.",
                 "duplicate": "{name} ya está en esta sala.",
-                "failed": "no se pudo agregar — intenta de nuevo"
+                "failed": "no se pudo agregar — intenta de nuevo",
+                "remove": "Quitar el nombre sin usar de {name}",
+                "removeFailed": "no se pudo quitar ese nombre — intenta de nuevo"
             }
         },
         "link": {
@@ -652,11 +660,13 @@
             "paymentLabel": "Pago",
             "recordedBy": "registrado por {name}",
             "recordedByYou": "registrado por ti",
-            "remove": "Eliminar este pago",
-            "confirmRemove": "¿Eliminar este pago? No hay forma de deshacerlo — habría que registrarlo de nuevo.",
-            "confirmYes": "Eliminar",
+            "recordedByAnon": "registrado por Anon",
+            "receiptLink": "Abrir link del recibo · sin verificar",
+            "remove": "Deshacer este registro de pago",
+            "confirmRemove": "¿Deshacer este registro? Cambia el saldo de la sala, no el dinero que ya se envió.",
+            "confirmYes": "Deshacer registro",
             "confirmNo": "Dejarlo",
-            "removed": "Pago eliminado. Regístralo de nuevo si fue un error.",
+            "removed": "Registro deshecho. Los saldos ya se actualizaron.",
             "removeFailed": "No se pudo eliminar ese pago — intenta de nuevo."
         }
     },

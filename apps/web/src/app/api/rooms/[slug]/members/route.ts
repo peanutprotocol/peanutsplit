@@ -16,7 +16,7 @@ export const POST = (request: Request, ctx: Ctx) =>
         const { slug } = await ctx.params
         const body = createMemberSchema.parse(await readJson(request))
         const room = await loadRoom(slug)
-        const { memberId, memberToken } = await addMember(room, body.name)
+        const { memberId, memberToken } = await addMember(room, body.name, body.intent === 'add')
         publish(room.id)
         // Reload: the roster the client renders must already contain the joiner.
         const state = toRoomState(await loadRoom(slug))

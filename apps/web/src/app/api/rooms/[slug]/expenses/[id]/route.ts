@@ -1,7 +1,7 @@
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
 import { buildExpense } from '@/server/expenses'
-import { conflict, notFound, readJson, respond } from '@/server/http'
+import { badRequest, conflict, notFound, readJson, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState, type RoomWithRelations } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -22,12 +22,15 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, id } = await ctx.params
         const body = expenseSchema.parse(await readJson(request))
+        if (!body.paidById || body.newPaidByName)
+            throw badRequest('a new payer can only be added with a new expense', 'NEW_PAYER_ON_EDIT')
+        const editBody = { ...body, paidById: body.paidById }
         const room = await loadRoom(slug)
         assertWritable(room)
         const existing = await findExpense(room, id)
         if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
 
-        const write = await buildExpense(room, body, existing)
+        const write = await buildExpense(room, editBody, existing)
         // Shares are rebuilt wholesale: an edit must behave exactly like a fresh
         // write, or EQUAL splits would keep stale per-member amounts.
         await prisma.$transaction([
