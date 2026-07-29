@@ -888,7 +888,9 @@ test('the room handoff shares a localized message, the link, and the room drawin
     const manualInvite = page.getByTestId('room-link-input')
     await expect(manualInvite).toBeFocused()
     await expect(manualInvite).toHaveValue(
-        new RegExp(`^Open the link, pick your name, then add what you paid\\.\\nhttp://localhost:\\d+/r/share-package-`)
+        new RegExp(
+            '^Open the link, pick your name, then add what you paid\\.\\nhttp://(?:localhost|127\\.0\\.0\\.1):\\d+/r/share-package-'
+        )
     )
     await expect(page.getByTestId('download-share-card')).toBeVisible()
     await expect(page.getByTestId('download-share-text')).toBeVisible()
