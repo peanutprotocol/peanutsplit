@@ -15,6 +15,8 @@ faqs:
       answer: Work out what each person paid and what each person owes, then net the two against each other. A group of six usually collapses to two or three transfers instead of twenty, which is the difference between a bill that gets settled and one that gets forgotten.
 ---
 
+# Who pays for the wine
+
 Somebody at the table did not drink. They had the tap water, they had one course, and they have spent the last hour listening to a discussion of a second bottle they did not order. The bill arrives face down. Someone turns it over, looks at the total, and says the line that closes the subject before it can open. "Shall we do it evenly."
 
 An even split gets treated as the absence of a decision, which is why it is so hard to argue with. It is a decision. It moves the cost of the group's most expensive appetites onto everybody at the table, and what it buys in return is a table where nobody has to price their own evening out loud. Most of the time that is a good trade. Sometimes it is not, and the reason those dinners end quietly is that nobody present has the language to say which of the two they are in.
