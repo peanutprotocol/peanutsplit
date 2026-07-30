@@ -2,6 +2,7 @@ import type { AnchorHTMLAttributes, HTMLAttributes } from 'react'
 import Link from 'next/link'
 import {
     Callout,
+    Cast,
     Checklist,
     ChecklistItem,
     CTA,
@@ -42,6 +43,7 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     FAQItem,
     Callout,
     Quote,
+    Cast,
     Checklist,
     ChecklistItem,
     RelatedPages,
