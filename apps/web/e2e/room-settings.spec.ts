@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('the room emblem opens settings, rename keeps the link, and people can be added in context', async ({ page }) => {
+test('the room emblem opens Settings, rename keeps the link, and people can be added in context', async ({ page }) => {
     test.setTimeout(60_000)
 
     await page.goto('/new')
@@ -21,41 +21,59 @@ test('the room emblem opens settings, rename keeps the link, and people can be a
     // The emblem is the settings entry point. The old home link and separate
     // sun-shaped menu control no longer compete with it in the top bar.
     await expect(page.getByTestId('open-room-settings')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'All rooms' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Room menu' })).toHaveCount(0)
     await page.getByTestId('open-room-settings').click()
 
-    await expect(page.getByTestId('room-settings')).toBeVisible()
-    await expect(page.getByTestId('room-settings-room-section')).toContainText('Room')
-    await expect(page.getByTestId('room-settings-people-section')).toContainText('People')
+    await expect(page.getByTestId('settings-sheet')).toBeVisible()
+    // The current room is the card, never also a tile in the dock — and with no
+    // other room on this device the dock does not render at all.
+    await expect(page.getByTestId('room-card')).toBeVisible()
+    await expect(page.getByTestId('room-switcher')).toHaveCount(0)
+    await expect(page.getByTestId('room-display-name')).toHaveValue('Weekend away')
+    await expect(page.getByTestId('people-list')).toContainText('Ana')
     await expect(page.getByText('Dark mode', { exact: true })).toHaveCount(0)
+
+    // A live field: no Save button, and the one surviving line only while dirty.
+    await expect(page.getByTestId('save-room-name')).toHaveCount(0)
+    await page.getByTestId('room-display-name').fill('The great escape')
+    await expect(page.getByTestId('room-card')).toContainText('The link stays the same.')
 
     const rename = page.waitForResponse(
         (response) =>
             response.request().method() === 'PATCH' && new URL(response.url()).pathname === `/api/rooms/${slug}`
     )
-    await page.getByTestId('room-display-name').fill('The great escape')
-    await page.getByTestId('save-room-name').click()
+    await page.getByTestId('room-display-name').press('Enter')
     expect((await rename).ok()).toBe(true)
     await expect(page.locator('header h1')).toHaveText('The great escape')
     expect(page.url()).toBe(permanentUrl)
-    await expect(page.getByTestId('room-settings-room-section')).toContainText(
-        'Renaming the room will never change it.'
-    )
+    await expect(page.getByTestId('room-card')).not.toContainText('The link stays the same.')
 
     const addFromSettings = page.waitForResponse(
         (response) =>
             response.request().method() === 'POST' &&
             /\/api\/rooms\/[^/]+\/members$/.test(new URL(response.url()).pathname)
     )
-    await page.getByTestId('settings-person-name').fill('Bea')
-    await page.getByTestId('settings-add-person').click()
+    await page.getByTestId('add-person').click()
+    await page.getByTestId('add-person-name').fill('Bea')
+    await page.getByTestId('add-person-submit').click()
     expect((await addFromSettings).ok()).toBe(true)
-    await expect(page.getByTestId('room-settings-roster')).toContainText('Bea')
-    await expect(page.locator('[data-testid="avatar-member"][data-member="Bea"]')).toBeVisible()
+    // One roster, and every row of it is the tap that opens that person's
+    // character sheet. The second inert copy is gone.
+    await expect(page.getByTestId('people-list')).toContainText('Bea')
+    await expect(page.locator('[data-testid="person-row"][data-member="Bea"]')).toBeVisible()
 
-    await page.keyboard.press('Escape')
-    await expect(page.getByTestId('room-settings')).toHaveAttribute('data-state', 'closed')
+    // The device preferences are one row and a nested sheet, and nothing per
+    // room is inside it any more.
+    await page.getByTestId('device-row').click()
+    await expect(page.getByTestId('device-sheet')).toBeVisible()
+    await expect(page.getByTestId('setting-sound')).toBeVisible()
+    await expect(page.getByTestId('setting-haptics')).toBeVisible()
+    await expect(page.getByTestId('setting-animations')).toBeVisible()
+    await page.getByTestId('close-device-sheet').click()
+    await expect(page.getByTestId('device-sheet')).toHaveAttribute('data-state', 'closed')
+
+    await page.getByTestId('close-room-settings').click()
+    await expect(page.getByTestId('settings-sheet')).toHaveAttribute('data-state', 'closed')
 
     // Adding somebody while deciding who shares an expense keeps the current
     // expense open and selects the new person in that split immediately.
