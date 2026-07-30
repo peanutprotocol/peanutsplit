@@ -110,6 +110,9 @@ export function ExpenseDrawer({
     const [participantError, setParticipantError] = useState<string | null>(null)
     const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
     const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
+    /** Delete asks first, like undoing a payment record does. The row is the
+     *  room's shared history, so a mis-tap costs everyone a balance. */
+    const [confirmingDelete, setConfirmingDelete] = useState(false)
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
@@ -141,6 +144,7 @@ export function ExpenseDrawer({
         setParticipantError(null)
         setFieldRepairNotice(null)
         setEditor(null)
+        setConfirmingDelete(false)
         expenseRequestRef.current = null
         setValues(
             expense
@@ -455,6 +459,7 @@ export function ExpenseDrawer({
             })
         } catch (err) {
             feedback('error', { haptic: 'error' })
+            setConfirmingDelete(false)
             setError(errorMessage(err, t('deleteFailed')))
         }
     }
@@ -1327,18 +1332,45 @@ export function ExpenseDrawer({
                     >
                         {primaryLabel}
                     </Button>
-                    {expense && (
-                        <Button
-                            variant="stroke"
-                            icon="trash"
-                            onClick={remove}
-                            loading={deleteExpense.isPending}
-                            className="justify-center"
-                            data-testid="delete-expense"
-                        >
-                            {t('delete')}
-                        </Button>
-                    )}
+                    {expense &&
+                        (confirmingDelete ? (
+                            <div
+                                className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-3"
+                                data-testid="delete-expense-confirm"
+                            >
+                                <p className="text-sm text-n-1">{t('confirmDelete')}</p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="stroke"
+                                        icon="trash"
+                                        onClick={remove}
+                                        loading={deleteExpense.isPending}
+                                        className="flex-1 justify-center"
+                                        data-testid="confirm-delete-expense"
+                                    >
+                                        {t('confirmDeleteYes')}
+                                    </Button>
+                                    <Button
+                                        variant="stroke"
+                                        onClick={() => setConfirmingDelete(false)}
+                                        className="w-auto shrink-0 justify-center"
+                                        data-testid="cancel-delete-expense"
+                                    >
+                                        {t('confirmDeleteNo')}
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <Button
+                                variant="stroke"
+                                icon="trash"
+                                onClick={() => setConfirmingDelete(true)}
+                                className="justify-center"
+                                data-testid="delete-expense"
+                            >
+                                {t('delete')}
+                            </Button>
+                        ))}
                 </DrawerActions>
             </DrawerContent>
 
