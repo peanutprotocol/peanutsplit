@@ -316,14 +316,7 @@ export const PERSONAS = {
         '#F6C7EC',
         '#3C6033'
     ),
-    'gamer-cat': persona(
-        'personagamercat',
-        'Gamer Cat',
-        'negotiating one more round',
-        '#FFE69A',
-        '#C9D3F3',
-        '#66501C'
-    ),
+    'gamer-cat': persona('personagamercat', 'Gamer Cat', 'negotiating one more round', '#FFE69A', '#C9D3F3', '#66501C'),
     'bookworm-bat': persona(
         'personabookwormbat',
         'Bookworm Bat',
