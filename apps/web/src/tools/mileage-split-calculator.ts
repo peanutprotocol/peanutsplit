@@ -174,7 +174,7 @@ export const mileageSplitCalculator: Tool = {
         method: {
             title: 'What the rate leaves for the receipts',
             body: [
-                'It prices distance and nothing else. Tolls, ferries, parking and the coffee at the services sit outside it, and they have receipts of their own — those belong in the room with the rest of the trip.',
+                'It prices distance and nothing else. Tolls, ferries, parking and the coffee at the services sit outside it, and they have receipts of their own. Those belong in the room with the rest of the trip.',
                 'It does not pay anybody for driving, either. Four hours at the wheel is a real thing to have done and no per-kilometre figure prices it. Groups tend to settle that with the front seat and the choice of music, and the ones that try to settle it with money rarely enjoy the conversation.',
             ],
         },
@@ -321,7 +321,7 @@ export const mileageSplitCalculator: Tool = {
         },
         {
             question: 'What should a per-kilometre rate include besides petrol?',
-            answer: 'Everything the distance uses up rather than everything the day costs. Fuel is the part with a receipt, and it is the smaller part: tyres wear, the service interval arrives sooner, and a car with more miles on it is worth less than the same car without them. That is why the builder here shows the fuel on its own line and then asks what goes on top — a rate left at the fuel floor is a rate that charges the driver for the petrol and hands them the rest.',
+            answer: 'Everything the distance uses up rather than everything the day costs. Fuel is the part with a receipt, and it is the smaller part: tyres wear, the service interval arrives sooner, and a car with more miles on it is worth less than the same car without them. That is why the builder here shows the fuel on its own line and then asks what goes on top. A rate left at the fuel floor charges the driver for the petrol and hands them the rest.',
         },
         {
             question: 'Should the driver pay a share of the mileage too?',
