@@ -141,7 +141,7 @@ export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
                 <MemberAvatar name={offer.member.name} avatar={offer.member.avatar} size={32} />
                 <p className="min-w-0 flex-1 text-h8">{t('title', { name: offer.member.name, count: total })}</p>
             </div>
-            <p className="text-sm leading-5 text-n-1">{t('body')}</p>
+            <p className="text-sm leading-5 text-n-1">{t('body', { name: offer.member.name })}</p>
 
             {error && (
                 <p role="alert" className="text-sm font-bold text-error">
