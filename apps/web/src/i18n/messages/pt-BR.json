@@ -506,7 +506,7 @@
             "addWithAmount": "Lançar gasto de {amount}",
             "delete": "Excluir",
             "deletedToast": "“{description}” excluído",
-            "deletedToastUnnamed": "Despesa excluída",
+            "deletedToastUnnamed": "Gasto excluído",
             "undo": "Desfazer",
             "restored": "De volta",
             "restoreFailed": "Não deu para desfazer — recarregue e tente de novo",

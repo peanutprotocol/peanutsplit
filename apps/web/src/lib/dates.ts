@@ -170,7 +170,9 @@ export function relativeTime(iso: string, options: RelativeTimeOptions, now: Dat
     if (ago < HOUR) return format(Math.floor(ago / MINUTE), 'minute')
     if (ago < DAY) return format(Math.floor(ago / HOUR), 'hour')
 
-    const days = Math.abs(Math.round((startOfDay(now) - startOfDay(then)) / 86_400_000))
+    // Never below 1: on a DST fall-back day, 24+ elapsed hours can still land on
+    // the same calendar day, and "0d ago" is not a thing to render.
+    const days = Math.max(1, Math.abs(Math.round((startOfDay(now) - startOfDay(then)) / 86_400_000)))
     if (days === 1) return formatterFor(options.locale, 'auto', 'narrow').format(elapsed > 0 ? -1 : 1, 'day')
     if (days < DAYS_PER_WEEK) return format(days, 'day')
     if (days < DAYS_PER_MONTH) return format(Math.floor(days / DAYS_PER_WEEK), 'week')
