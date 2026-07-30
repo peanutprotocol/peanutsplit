@@ -47,10 +47,18 @@ const exceptions = [
     },
 ]
 
+/**
+ * `_system` is the drafting agent's input layer, not a publishing surface — `COLLECTIONS` in
+ * `lib/content.ts` never scans it and no URL serves it. It is also where the rules about the word
+ * "free" are written down, quoted phrasing and all, so auditing it would fail on the file that
+ * explains the audit.
+ */
+const isInputLayer = (name) => name.startsWith('_')
+
 function filesBelow(directory, extensions) {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const path = join(directory, entry.name)
-        if (entry.isDirectory()) return filesBelow(path, extensions)
+        if (entry.isDirectory()) return isInputLayer(entry.name) ? [] : filesBelow(path, extensions)
         return extensions.has(extname(entry.name)) ? [path] : []
     })
 }
