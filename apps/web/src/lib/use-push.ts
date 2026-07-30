@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from './api'
 import { vapidPublicKey } from './flags'
+import { readIdentity } from './identity'
 import {
     derivePushStatus,
     isIOSDevice,
@@ -14,11 +15,17 @@ import {
 } from './push-status'
 
 /**
- * Notification opt-in for one device, across every room it is in.
+ * Notification opt-in for one device in ONE room.
+ *
+ * The browser gives this device a single `PushSubscription` per origin, which
+ * every room shares. The per-room fact — is this room registered against that
+ * endpoint — only exists on the server, so both the read and the off path have
+ * to ask it. Trusting the browser's subscription instead is what made a second
+ * room render "on", and turning it off in one room silence all the others.
  *
  * The decision logic lives in `push-status.ts`; everything here is the part that
  * has to touch the browser — reading the permission, finding the service worker,
- * and the two calls that must stay in lock-step with the server.
+ * and the calls that must stay in lock-step with the server.
  */
 
 /** What a subscribe attempt produced. Mapped straight onto analytics by the
@@ -31,13 +38,13 @@ export interface PushControls {
     /** Last failure, untranslated. The surface turns it into a sentence with
      *  `useErrorMessage`; a lib module has no business holding UI copy. */
     error: unknown
-    subscribe: (slug: string, memberId: string, memberToken: string) => Promise<SubscribeOutcome>
-    unsubscribe: (slug: string, memberId: string, memberToken: string) => Promise<boolean>
+    subscribe: (memberId: string, memberToken: string) => Promise<SubscribeOutcome>
+    unsubscribe: (memberId: string, memberToken: string) => Promise<boolean>
 }
 
-/** The synchronous half of the environment. `hasSubscription` needs the service
- *  worker, so it is passed in by whoever already asked. */
-function deviceEnvironment(hasSubscription: boolean): PushEnvironment {
+/** The synchronous half of the environment. `hasRoomSubscription` is the
+ *  server's answer, so it is passed in by whoever already asked. */
+function deviceEnvironment(hasRoomSubscription: boolean): PushEnvironment {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
         return {
             hasNotification: false,
@@ -47,7 +54,7 @@ function deviceEnvironment(hasSubscription: boolean): PushEnvironment {
             isIOS: false,
             isStandalone: false,
             permission: 'default',
-            hasSubscription: false,
+            hasRoomSubscription: false,
         }
     }
 
@@ -68,7 +75,7 @@ function deviceEnvironment(hasSubscription: boolean): PushEnvironment {
         ),
         // Reading it is free and prompts nothing; only requestPermission() asks.
         permission: hasNotification ? Notification.permission : 'default',
-        hasSubscription,
+        hasRoomSubscription,
     }
 }
 
@@ -104,7 +111,65 @@ function readKeys(subscription: PushSubscription): SubscriptionKeys | null {
     return { endpoint: json.endpoint, p256dh, auth }
 }
 
-export function usePush(): PushControls {
+/**
+ * Ask the server whether this endpoint is registered for `slug`.
+ *
+ * The credentials come from localStorage rather than from the caller because
+ * this runs on mount, with no tap behind it — the same record the room's join
+ * gate wrote, and the same one the surface passes back into `subscribe`. A
+ * legacy tokenless identity cannot prove membership, so it answers "off"; that
+ * device has to pick its name again before it can turn anything on anyway.
+ */
+async function roomSubscribed(slug: string, subscription: PushSubscription): Promise<boolean> {
+    const keys = readKeys(subscription)
+    const identity = readIdentity(slug)
+    if (!keys || !identity?.token) return false
+    try {
+        const { subscribed } = await api.push.status(slug, {
+            endpoint: keys.endpoint,
+            memberId: identity.memberId,
+            memberToken: identity.token,
+        })
+        return subscribed
+    } catch {
+        // Offline, or a token this room no longer honours. "Off" is the safe
+        // answer: the row it offers to create is an upsert, so a person who was
+        // already on and taps again ends up exactly where they started.
+        return false
+    }
+}
+
+/**
+ * Drop this device's channel for one room.
+ *
+ * Exported for `forget()` in `use-identity.ts`, which has to do this before it
+ * deletes the token that authorises it. Throws when the server refuses, so the
+ * browser subscription is only ever touched after the row is really gone.
+ */
+export async function dropRoomSubscription(slug: string, memberId: string, memberToken: string): Promise<void> {
+    const subscription = await currentSubscription()
+    if (!subscription) return
+
+    const keys = readKeys(subscription)
+    if (!keys) {
+        // A keyless subscription can never have reached the server (subscribe
+        // rolls it back), and there is no endpoint to name in a delete. Only the
+        // local half exists, so only the local half goes.
+        await subscription.unsubscribe().catch(() => {})
+        return
+    }
+
+    // Server first, then the browser: the reverse order can drop the endpoint we
+    // would have needed to name in the delete, leaving a row that keeps being
+    // sent to until the push service 410s it.
+    const { endpointStillUsed } = await api.push.unsubscribe(slug, { endpoint: keys.endpoint, memberId, memberToken })
+    // The endpoint is the device's, not the room's. Revoking it while another
+    // room's row still points at it takes that room dark with nothing to show
+    // for it — its toggle would keep reading "on" and never deliver again.
+    if (!endpointStillUsed) await subscription.unsubscribe()
+}
+
+export function usePush(slug: string): PushControls {
     const [settled, setSettled] = useState<SettledPushStatus | null>(null)
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<unknown>(null)
@@ -124,21 +189,32 @@ export function usePush(): PushControls {
             // Anything but 'default' is already final — an unsupported browser,
             // an iOS tab or a blocked origin has no subscription to look up, and
             // touching navigator.serviceWorker on the first of those throws.
+            // These are also the states that must cost no request: they are
+            // decided entirely by this device, and every room open would pay.
             if (preliminary !== 'default') {
                 if (!cancelled) setSettled(preliminary)
                 return
             }
             const subscription = await currentSubscription().catch(() => null)
             if (cancelled) return
-            setSettled(derivePushStatus(deviceEnvironment(subscription !== null)))
+            // No browser subscription means no row can name it. Still local.
+            if (!subscription) {
+                setSettled('default')
+                return
+            }
+            // Only here — permission granted and a live endpoint — is the
+            // per-room answer something only the server can give.
+            const subscribedHere = await roomSubscribed(slug, subscription)
+            if (cancelled) return
+            setSettled(derivePushStatus(deviceEnvironment(subscribedHere)))
         })()
         return () => {
             cancelled = true
         }
-    }, [])
+    }, [slug])
 
     const subscribe = useCallback(
-        async (slug: string, memberId: string, memberToken: string): Promise<SubscribeOutcome> => {
+        async (memberId: string, memberToken: string): Promise<SubscribeOutcome> => {
             const key = vapidPublicKey()
             if (!key) return 'failed'
 
@@ -198,33 +274,28 @@ export function usePush(): PushControls {
                 if (mounted.current) setBusy(false)
             }
         },
-        []
+        [slug]
     )
 
-    const unsubscribe = useCallback(async (slug: string, memberId: string, memberToken: string): Promise<boolean> => {
-        setBusy(true)
-        setError(null)
-        try {
-            const subscription = await currentSubscription()
-            if (!subscription) {
+    const unsubscribe = useCallback(
+        async (memberId: string, memberToken: string): Promise<boolean> => {
+            setBusy(true)
+            setError(null)
+            try {
+                await dropRoomSubscription(slug, memberId, memberToken)
                 if (mounted.current) setSettled('default')
                 return true
+            } catch (err) {
+                // The row may still be there, so the browser subscription stays
+                // exactly as it was — reported off is worse than a retry.
+                if (mounted.current) setError(err)
+                return false
+            } finally {
+                if (mounted.current) setBusy(false)
             }
-            const keys = readKeys(subscription)
-            // Server first, then the browser: the reverse order can drop the
-            // endpoint we would have needed to name in the delete, leaving a row
-            // that keeps being sent to until the push service 410s it.
-            if (keys) await api.push.unsubscribe(slug, { endpoint: keys.endpoint, memberId, memberToken })
-            await subscription.unsubscribe()
-            if (mounted.current) setSettled('default')
-            return true
-        } catch (err) {
-            if (mounted.current) setError(err)
-            return false
-        } finally {
-            if (mounted.current) setBusy(false)
-        }
-    }, [])
+        },
+        [slug]
+    )
 
     return { status: busy || settled === null ? 'pending' : settled, error, subscribe, unsubscribe }
 }

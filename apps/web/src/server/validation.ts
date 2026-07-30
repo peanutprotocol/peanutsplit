@@ -136,6 +136,15 @@ export const pushUnsubscribeSchema = z.object({
     memberToken: memberSecret,
 })
 
+/** Asking whether THIS room is on for this endpoint. Same three fields as the
+ *  unsubscribe, and deliberately its own schema: the question is a read, and it
+ *  must stay free to gain a field without widening what a delete accepts. */
+export const pushStatusSchema = z.object({
+    endpoint: pushEndpoint,
+    memberId: id,
+    memberToken: memberSecret,
+})
+
 /** What the service worker beacons back on a tap or a swipe-away. Every field is
  *  optional-ish because the worker is fire-and-forget and must never be the
  *  reason a notification misbehaves. */
