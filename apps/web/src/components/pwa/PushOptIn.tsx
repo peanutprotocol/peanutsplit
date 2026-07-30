@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { SettingToggle } from '@/components/ui/SettingToggle'
+import { StateRow } from '@/components/ui/StateRow'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { roomProps, track } from '@/lib/analytics'
@@ -23,24 +24,6 @@ interface PushOptInProps {
     identity: MemberIdentity | null
     /** A tokenless identity can only be repaired by picking a name again. */
     onSwitchPerson: () => void
-}
-
-/**
- * A row that carries its own label but no switch — the shape every state that
- * cannot be toggled takes.
- *
- * The label is the whole point. "Blocked in your browser settings." on its own,
- * sitting between "Add someone" and "You", is a sentence with no subject:
- * blocked WHAT. The toggle's label was the only thing naming what these lines
- * are about, so when the line replaces the toggle it has to keep the name.
- */
-function PushStateRow({ label, line }: { label: string; line: string }) {
-    return (
-        <div className="min-h-11 rounded-sm border border-n-1 bg-white p-3">
-            <span className="block text-h8">{label}</span>
-            <span className="block text-sm text-grey-1">{line}</span>
-        </div>
-    )
 }
 
 /**
@@ -100,7 +83,7 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
     if (displayed === 'ios-needs-pwa') {
         return (
             <div className="flex flex-col gap-2">
-                <PushStateRow label={t('label')} line={t('iosNeedsPwa')} />
+                <StateRow label={t('label')} line={t('iosNeedsPwa')} />
                 <button
                     type="button"
                     onClick={() => setIosSheetOpen(true)}
@@ -135,13 +118,13 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
     // No toggle: an origin-level block can only be lifted in browser settings,
     // and requestPermission() from here would resolve 'denied' without showing
     // anything. A labelled line is the entire honest answer.
-    if (displayed === 'denied') return <PushStateRow label={t('label')} line={t('denied')} />
+    if (displayed === 'denied') return <StateRow label={t('label')} line={t('denied')} />
 
     // No toggle either: the per-room row lives on the server and the check for it
     // did not come back. A switch has to sit somewhere, and both positions would
     // be a claim — "off" is the one that contradicts a phone that is still
     // buzzing. Say what happened; the next sheet open asks again.
-    if (displayed === 'unknown') return <PushStateRow label={t('label')} line={t('unknown')} />
+    if (displayed === 'unknown') return <StateRow label={t('label')} line={t('unknown')} />
 
     /**
      * Legacy tokenless identities can still read the room, but the push endpoint

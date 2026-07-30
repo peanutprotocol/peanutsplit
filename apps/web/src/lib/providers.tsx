@@ -10,6 +10,7 @@ import { PushNavigation } from '@/components/pwa/PushNavigation'
 import { asLocale } from '@/i18n/locales'
 import { initAnalytics } from './analytics'
 import { ensureDeviceId } from './identity'
+import { captureInstallPrompt } from './install'
 import { writeLocaleCookie } from './locale-cookie'
 import { useOfflineQueueRunner } from './queries'
 import { TOAST_MS } from './toasts'
@@ -49,6 +50,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         ensureDeviceId()
         initAnalytics()
+        // `beforeinstallprompt` fires once per page load and is gone if nobody is listening — long
+        // before anyone opens a settings sheet. See `lib/install.ts`.
+        captureInstallPrompt()
     }, [])
 
     // Mirrors `animationsEnabled` onto <html> for the CSS-keyframe half of the

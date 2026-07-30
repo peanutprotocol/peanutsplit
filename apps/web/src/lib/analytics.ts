@@ -35,6 +35,12 @@ export type AnalyticsEvent =
     | 'all_settled'
     | 'pwa_prompt_shown'
     | 'pwa_installed'
+    // Installing. Every property is a fact about a browser — which of five states the settings row
+    // found this device in, and which of two answers the browser's own dialog got. Never a room,
+    // never a device id. `pwa_installed` is Chromium-only, because `appinstalled` is: iOS install
+    // conversion is unmeasurable and no number here should pretend otherwise.
+    | 'install_row_shown'
+    | 'install_prompted'
     | 'peanut_option_shown'
     | 'peanut_option_clicked'
     // Push opt-in. Same discipline as everything above: neither a room
