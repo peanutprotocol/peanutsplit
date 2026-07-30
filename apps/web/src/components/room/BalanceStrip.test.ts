@@ -19,12 +19,11 @@ describe('pairCard', () => {
 
         expect(card.label).toBe('pair.owesYou {"name":"Bea"}')
         expect(card.card).toBe('bg-green-1')
+        expect(card.labelClass).toBe('text-n-1')
         // The sentence is about Bea, so the card publishes Bea's net — the negation of the
         // viewer's own. This is the rule an e2e reader trips on.
         expect(card.about).toBe(bea)
         expect(card.net).toBe('-1100')
-        // Tapping explains the balance being read, which is the viewer's.
-        expect(card.open).toBe(ana)
     })
 
     it('says you owe the other person when your own balance is down', () => {
@@ -32,9 +31,9 @@ describe('pairCard', () => {
 
         expect(card.label).toBe('pair.youOwe {"name":"Bea"}')
         expect(card.card).toBe('bg-error-1')
+        expect(card.labelClass).toBe('text-n-1')
         expect(card.about).toBe(bea)
         expect(card.net).toBe('1100')
-        expect(card.open).toBe(ana)
     })
 
     it('reads from whichever device is looking', () => {
@@ -49,16 +48,35 @@ describe('pairCard', () => {
     it('calls a zero with expenses behind it settled up, in the room tint', () => {
         const card = pairCard(pair, { ana: '0', bea: '0' }, 'ana', true, t)
 
-        expect(card.label).toBe('settled')
+        expect(card.label).toBe('Bea · settled')
         expect(card.card).toBe('bg-[var(--split-theme-tint,#FFFFFF)]')
+        expect(card.labelClass).toBe('text-n-3')
         expect(card.net).toBe('0')
     })
 
     it('refuses to congratulate a room that has never held an expense', () => {
         const card = pairCard(pair, { ana: '0', bea: '0' }, 'ana', false, t)
 
-        expect(card.label).toBe('nothingYet')
+        expect(card.label).toBe('Bea · nothingYet')
         expect(card.card).toBe('bg-[var(--split-theme-tint,#FFFFFF)]')
+        expect(card.labelClass).toBe('text-n-3')
+    })
+
+    /**
+     * The state every brand-new two-person room opens in, and the one that used to be
+     * anonymous: an avatar, "nothing yet" and a zero, with no name anywhere on the card. The
+     * tap has to land on the same person the card is about, zero or not.
+     */
+    it('names its subject in the zero state, and that subject is what the tap opens', () => {
+        const settled = pairCard(pair, { ana: '0', bea: '0' }, 'ana', true, t)
+        const fresh = pairCard(pair, { ana: '0', bea: '0' }, 'ana', false, t)
+
+        expect(settled.label).toContain('Bea')
+        expect(fresh.label).toContain('Bea')
+        // `about` is the whole card — avatar, name, net and the derivation the tap opens — so
+        // the zero branch has to reach the counterparty exactly like the others do.
+        expect(settled.about).toBe(bea)
+        expect(fresh.about).toBe(bea)
     })
 
     it('names both people when nobody on this device is in the room', () => {
@@ -70,7 +88,6 @@ describe('pairCard', () => {
         // opens the working of the person with something to answer for.
         expect(card.about).toBe(bea)
         expect(card.net).toBe('-1100')
-        expect(card.open).toBe(bea)
     })
 
     it('treats a member id the roster does not hold as no viewer at all', () => {
@@ -90,7 +107,16 @@ describe('pairCard', () => {
     it('reads a balance the server never sent as zero rather than crashing', () => {
         const card = pairCard(pair, {}, 'ana', false, t)
 
-        expect(card.label).toBe('nothingYet')
+        expect(card.label).toBe('Bea · nothingYet')
         expect(card.net).toBe('0')
+    })
+
+    /**
+     * Only a two-person room has one independent number to state, so only a two-person room
+     * gets this card. A shorter roster used to reach the first property read and die there.
+     */
+    it('refuses a roster that is not a pair', () => {
+        expect(() => pairCard([ana], { ana: '0' }, 'ana', false, t)).toThrow(/exactly two members/)
+        expect(() => pairCard([], {}, undefined, false, t)).toThrow(/exactly two members/)
     })
 })
