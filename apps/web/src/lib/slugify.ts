@@ -24,3 +24,18 @@ export function kebab(name: string): string {
  *  script with no latin transliteration — fall back to "room", so the slug still reads as a
  *  link rather than as a bare tail. */
 export const slugStem = (name: string): string => kebab(name) || 'room'
+
+/**
+ * The shape the tail will take, for previews that must show one before it exists.
+ *
+ * Three dash-separated runs because the tail is three words now, not six base32
+ * characters — a preview that shows one run teaches the wrong shape, and the
+ * whole point of the word tail is that it is legible before you can read it.
+ * The run lengths are mid-list (the words are 3-7 letters); this is a hint, not
+ * a measurement, and it stays short enough to sit on one line at 375px in the
+ * hero's `font-mono text-xs`, which has no wrap rule.
+ *
+ * One constant with three consumers: the hero, the pass-the-link stage, and the
+ * proof rail all promise the same URL and must not drift apart.
+ */
+export const SLUG_TAIL_HINT = '-••••-•••••-••••'

@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es.json'
 import ptBRMessages from '../src/i18n/messages/pt-BR.json'
+import { SLUG_TAIL_HINT } from '../src/lib/slugify'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
 
@@ -359,9 +360,15 @@ test.describe('Pass-the-link default', () => {
             ['🎿🎿', 'room'],
         ] as const) {
             await page.getByTestId('hero-room-name').fill(name)
-            await expect(page.getByTestId('pass-link-url')).toContainText(`peanutsplit.com/r/${stem}-••••••`)
-            await expect(page.getByTestId('hero-slug-preview')).toContainText(`peanutsplit.com/r/${stem}-••••••`)
+            await expect(page.getByTestId('pass-link-url')).toContainText(`peanutsplit.com/r/${stem}${SLUG_TAIL_HINT}`)
+            await expect(page.getByTestId('hero-slug-preview')).toContainText(
+                `peanutsplit.com/r/${stem}${SLUG_TAIL_HINT}`
+            )
         }
+
+        // The hint is imported so the two previews cannot drift, so pin its SHAPE here:
+        // the tail is three words, and a preview showing one run teaches the wrong URL.
+        expect(SLUG_TAIL_HINT.split('-').filter(Boolean)).toHaveLength(3)
 
         expect(roomWrites).toEqual([])
     })
