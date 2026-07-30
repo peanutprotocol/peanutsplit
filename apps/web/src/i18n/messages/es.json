@@ -185,6 +185,12 @@
             "body": "Abre al instante y funciona como app. Sin tienda, sin cuenta.",
             "cta": "Agregar a pantalla de inicio",
             "dismiss": "Ahora no",
+            "row": {
+                "label": "Agregar a pantalla de inicio",
+                "installed": "Ya está en este dispositivo.",
+                "dismissed": "No se agregó. Abre Split otra vez para intentarlo.",
+                "unsupported": "Este navegador no lo ofrece."
+            },
             "ios": {
                 "title": "Agrega Split a tu pantalla de inicio",
                 "step1": "Toca el botón Compartir en la barra de Safari.",
@@ -912,5 +918,13 @@
         "peopleMany": "{count} personas",
         "emptyRoster": "Todavía no entró nadie",
         "tagline": "sin registro · gratis para siempre"
+    },
+    "shareTarget": {
+        "pick": "¿Para qué sala es esta cuenta?",
+        "empty": "Todavía no hay salas en este dispositivo. Crea una y comparte la foto de nuevo.",
+        "start": "Crear una sala",
+        "expired": "Esa foto no llegó. Compártela de nuevo.",
+        "unavailable": "Escanear cuentas todavía no está activo.",
+        "open": "Abrir Split"
     }
 }

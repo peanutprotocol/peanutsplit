@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { makeRoom, stubTheModel, TINY_JPEG, type Posted } from './helpers'
 
 /**
  * The receipt scan, end to end on a phone-sized viewport: decode → review →
@@ -37,53 +38,6 @@ import { expect, test, type Page } from '@playwright/test'
  * runs.
  */
 
-/** 8×12 white JPEG. Small enough to inline, real enough for `createImageBitmap`
- *  and the canvas downscale in `scan-image.ts` to be exercised for real. */
-const TINY_JPEG = Buffer.from(
-    '/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAMAAgDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AKcAD//Z',
-    'base64'
-)
-
-/** What the model "read": two real lines and one hallucinated footer. The third
- *  is the row this whole feature request was about. */
-const PARSED = {
-    items: [
-        { label: 'Pizza', amountMinor: '1250', quantity: 1 },
-        { label: 'Wine', amountMinor: '2000', quantity: 1 },
-        { label: 'LOYALTY CARD 4417', amountMinor: '990', quantity: null },
-    ],
-    receiptTotalMinor: '4240',
-    currency: 'EUR',
-    merchant: 'Da Nino',
-    date: null,
-}
-
-interface Posted {
-    imageBase64?: string
-    mimeType?: string
-}
-
-/**
- * Intercept both verbs and REMEMBER what was posted. Nothing is asserted inside
- * the handler on purpose: a throw in there never fulfils the route, so the app
- * sits on a request that will never answer and every later failure is a timeout
- * pointing at the wrong line.
- */
-async function stubTheModel(page: Page, posted: Posted) {
-    await page.route('**/api/rooms/*/receipt-parse', async (route) => {
-        if (route.request().method() === 'GET') {
-            await route.fulfill({ json: { enabled: true } })
-            return
-        }
-        try {
-            Object.assign(posted, JSON.parse(route.request().postData() ?? '{}') as Posted)
-        } catch {
-            // Recorded as "nothing was posted" and asserted on in the test.
-        }
-        await route.fulfill({ json: PARSED })
-    })
-}
-
 /**
  * Hit-test a grid over the whole viewport: what is drawn is what receives the
  * tap, everywhere, not only in the middle. This is the assertion the tap trap
@@ -105,33 +59,6 @@ const everythingOnScreenIsTheOverlay = (page: Page) =>
         }
         return misses
     })
-
-/**
- * Snooze the install prompt for the run.
- *
- * On an iPhone user agent it arms a 20s idle timer and then opens a sheet over
- * whatever is on screen. This suite is deliberately slow — it waits on a decode,
- * a round trip and three screens — so it is the one place that timer reliably
- * fires, and a second modal appearing mid-assertion is noise, not signal.
- */
-async function snoozeInstallPrompt(page: Page) {
-    await page.addInitScript(() => {
-        window.localStorage.setItem('ps:pwa-dismiss-count', '3')
-        window.localStorage.setItem('ps:pwa-dismissed-at', String(Date.now()))
-    })
-}
-
-async function makeRoom(page: Page, name: string) {
-    await snoozeInstallPrompt(page)
-    await page.goto('/new')
-    await page.getByTestId('room-name').fill(name)
-    await page.getByTestId('room-currency').selectOption('EUR')
-    await page.getByTestId('creator-name').fill('Ana')
-    await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-    await expect(page.locator('[data-testid="balance-card"][data-member="Ana"]')).toBeVisible({ timeout: 15_000 })
-}
 
 const pickPhoto = (page: Page) =>
     page.locator('input[type="file"]').setInputFiles({

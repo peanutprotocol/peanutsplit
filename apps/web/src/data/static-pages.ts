@@ -63,6 +63,7 @@ export const STATIC_PAGES: StaticPage[] = [
 const RESERVED_ROOT_SEGMENTS = [
     'new',
     'r',
+    'share-target',
     'blog',
     'api',
     'healthcheck',
