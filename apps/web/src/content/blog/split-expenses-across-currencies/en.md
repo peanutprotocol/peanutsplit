@@ -50,7 +50,7 @@ The only fix is a different card — or being the person who pays in cash.
 <Checklist title="Keeping a multi-currency room clean">
 <ChecklistItem title="Pick the room currency before the first expense">Choose whatever most of the spending is actually in, not whatever your own bank uses.</ChecklistItem>
 <ChecklistItem title="Log local amounts, always">The currency on the receipt is the currency you enter. Converting at entry throws away the provable number.</ChecklistItem>
-<ChecklistItem title="Settle in the room's currency">If the room counts in euros, the transfers at the end are in euros. Converting again on the way out reintroduces the gap you just avoided.</ChecklistItem>
+<ChecklistItem title="Settle in the room's currency">If the room counts in euros, the transfers at the end are in euros. Converting again on the way out reintroduces the gap you avoided.</ChecklistItem>
 <ChecklistItem title="Expect the balances to reconcile to the cent">Shares are rounded so the room always nets to zero. If a number looks wrong, check the expense, not the arithmetic.</ChecklistItem>
 </Checklist>
 

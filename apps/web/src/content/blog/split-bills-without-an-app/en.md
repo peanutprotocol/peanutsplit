@@ -28,7 +28,7 @@ Some people will make the account. In a group of six, two of them will not, and 
 ## What "no signup" has to mean to be worth anything
 
 <Steps title="Three levels of no-signup, only one useful">
-<Step title="Sign up later">You can look around, but you cannot add anything until you make an account. This is a signup with the wall moved back a screen. The person still drops out, just later.</Step>
+<Step title="Sign up later">You can look around, but you cannot add anything until you make an account. This is a signup with the wall moved back a screen. The person still drops out, only later.</Step>
 <Step title="Guest mode">You can add expenses, but check before you rely on it — can you see the totals, and is your entry still there tomorrow?</Step>
 <Step title="No account at all">Open the link, type a name, add expenses, see everything. There is no account to make because the room does not have users — it has a link and some names. This is the version where the sixth person actually joins.</Step>
 </Steps>
@@ -54,7 +54,7 @@ A group with no accounts and no shared app still has to move real money at the e
 <Checklist title="What to look for beyond the signup screen">
 <ChecklistItem title="Does it net the debts down?">Twenty small IOUs never get paid. Two or three transfers do. The tool should be doing that arithmetic, not you.</ChecklistItem>
 <ChecklistItem title="Can it handle more than one currency without charging for it?">If the group spans countries, conversion is not a nice-to-have, and it should not be the thing you are charged for.</ChecklistItem>
-<ChecklistItem title="Does it offer a way to actually pay, or just a number?">A number in a group chat is where most splits go to die. Some route to moving the money — a link the other person can just pay — is the difference between settled and forgotten.</ChecklistItem>
+<ChecklistItem title="Does it offer a way to actually pay, or only a number?">A number in a group chat is where most splits go to die. Some route to moving the money — a link the other person can pay — is the difference between settled and forgotten.</ChecklistItem>
 <ChecklistItem title="Do you know what a settled row means?">In Split it means the person who owed it tapped to say they paid. No expense splitter is watching your bank, so it is worth knowing which of the two you are looking at.</ChecklistItem>
 </Checklist>
 

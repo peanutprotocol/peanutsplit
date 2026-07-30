@@ -4,7 +4,11 @@ import ts from 'typescript'
 
 const root = resolve(import.meta.dirname, '..')
 const claimPattern = /\bfree\b|gratis|grátis/giu
-const commitmentPattern = /free forever|gratis para siempre|grátis para sempre/iu
+/**
+ * The hyphen is not cosmetic: `free-forever` is how the commitment appears as a claim ID in
+ * frontmatter, and matching only the spaced prose form failed every page that cited the claim.
+ */
+const commitmentPattern = /free[\s-]forever|gratis para siempre|grátis para sempre/iu
 const failures = []
 const seenExceptions = new Set()
 
@@ -47,10 +51,18 @@ const exceptions = [
     },
 ]
 
+/**
+ * `_system` is the drafting agent's input layer, not a publishing surface — `COLLECTIONS` in
+ * `lib/content.ts` never scans it and no URL serves it. It is also where the rules about the word
+ * "free" are written down, quoted phrasing and all, so auditing it would fail on the file that
+ * explains the audit.
+ */
+const isInputLayer = (name) => name.startsWith('_')
+
 function filesBelow(directory, extensions) {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const path = join(directory, entry.name)
-        if (entry.isDirectory()) return filesBelow(path, extensions)
+        if (entry.isDirectory()) return isInputLayer(entry.name) ? [] : filesBelow(path, extensions)
         return extensions.has(extname(entry.name)) ? [path] : []
     })
 }
@@ -102,7 +114,9 @@ function auditMarkdown(path) {
 function auditTypescript(path) {
     const local = relative(root, path)
     const source = readFileSync(path, 'utf8')
-    const sourceFile = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+    // A .tsx parsed as .ts loses every string inside JSX, which is where a page's copy lives.
+    const kind = extname(path) === '.tsx' ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    const sourceFile = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, kind)
     const visit = (node) => {
         if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
             const line = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1
@@ -118,11 +132,22 @@ for (const path of filesBelow(resolve(root, 'src/content'), new Set(['.md', '.md
 
 for (const local of [
     'src/components/marketing/copy.ts',
+    'src/app/(marketing)/tools/page.tsx',
     'src/lib/seo.ts',
     'src/server/og/roomCard.ts',
     'src/server/og/roomMeta.ts',
 ]) {
     auditTypescript(resolve(root, local))
+}
+
+/**
+ * The tool registry is a publishing surface written in TypeScript: every string in it is copy on a
+ * page. Walked rather than listed, because the promise the registry makes is that adding a tool is
+ * adding one file — a hand-kept list here would be the one place that promise leaked.
+ */
+for (const path of filesBelow(resolve(root, 'src/tools'), new Set(['.ts']))) {
+    if (path.endsWith('.test.ts')) continue
+    auditTypescript(path)
 }
 
 for (const exception of exceptions) {

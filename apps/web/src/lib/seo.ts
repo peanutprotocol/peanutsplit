@@ -189,6 +189,34 @@ export function articleSchema(doc: Doc) {
 }
 
 /**
+ * WebApplication for a calculator page.
+ *
+ * `WebApplication` rather than the site-level `SoftwareApplication`: a tool is a thing you use in
+ * the browser on that URL, and giving it the same type as the product would put two competing
+ * application entities in one graph. It is attached to the site node instead, so the page reads as
+ * part of Split rather than as a second product with the same publisher.
+ *
+ * The free assertion is the same commitment `siteSchema()` makes, from the same source (§7.3,
+ * _price_). If that ever changes, both change together.
+ */
+export function toolSchema({ path, title, description }: { path: string; title: string; description: string }) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        '@id': `${absoluteUrl(path)}#tool`,
+        name: title,
+        description,
+        url: absoluteUrl(path),
+        applicationCategory: 'FinanceApplication',
+        operatingSystem: 'Web',
+        inLanguage: DEFAULT_LOCALE,
+        isPartOf: { '@id': `${siteUrl}/#website` },
+        publisher: { '@id': ORGANIZATION_ID },
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    }
+}
+
+/**
  * WebSite + SoftwareApplication for the LP. The price assertion is the one claim here that
  * could rot: free forever is a stated commitment on the site (HonestyStrip), so the markup is
  * allowed to say it. If that commitment ever changes, this changes with it.

@@ -2,20 +2,33 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { ArticleLayout } from '@/components/marketing/ArticleLayout'
-import { getDoc, isDocAvailable, listSlugs, localesForSlug, type Collection } from '@/lib/content'
+import {
+    basePathFor,
+    getDoc,
+    isDocAvailable,
+    listSlugs,
+    localesForSlug,
+    type Collection,
+    type Doc,
+} from '@/lib/content'
 import { renderArticle } from '@/lib/mdx'
 import { pageMetadata, pageTitle } from '@/lib/seo'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { LOCALES, type Locale } from '@/i18n/locales'
 
 /**
- * One implementation of the article page, bound to a locale by the route that imports it.
+ * One implementation of the article page, bound to a locale and a set of collections by the route
+ * that imports it.
  *
- * The alternative was a `[locale]` segment, and it is not available: `[alternative]` already
- * occupies the root dynamic slot, and Next rejects two differently-named dynamic segments at the
- * same path position. So each language gets a real folder (`es/`, `pt-br/`) holding six-line
- * files that call these builders. The folders are the only thing duplicated per locale, and a
- * folder that exists is easier to reason about than a segment that has to be told what it is.
+ * The alternative was a `[locale]` segment, and it is not available: `[page]` already occupies the
+ * root dynamic slot, and Next rejects two differently-named dynamic segments at the same path
+ * position. So each language gets a real folder (`es/`, `pt-br/`) holding six-line files that call
+ * these builders. The folders are the only thing duplicated per locale, and a folder that exists is
+ * easier to reason about than a segment that has to be told what it is.
+ *
+ * That same one-dynamic-name-per-position rule is why a route is handed a LIST of collections
+ * rather than one. Every root-level collection has to be served by `/[page]`, so the route cannot
+ * know which collection a slug belongs to — it asks the tree.
  *
  * The shared chrome — footer, switcher, anything on `useTranslations` — follows the URL's language
  * because `middleware.ts` puts it in a header that `i18n/request.ts` reads. Nothing here has to
@@ -24,13 +37,33 @@ import { LOCALES, type Locale } from '@/i18n/locales'
  */
 
 /**
- * The route's own param name. `/blog/[slug]` calls it `slug`; the root-level `/[alternative]`
- * calls it `alternative`, and reading the wrong one hands the loader `undefined`.
+ * The route's own param name. `/blog/[slug]` calls it `slug`; the root-level `/[page]` calls it
+ * `page`, and reading the wrong one hands the loader `undefined` — which used to be a 500 where a
+ * 404 belonged (see the typeof guard in `content.ts`). Every builder takes it explicitly so the
+ * folder name and the read are edited in the same line.
  */
-type ParamName = 'slug' | 'alternative'
+export type ParamName = 'slug' | 'page'
+
+/**
+ * The collections one route serves. `/blog/[slug]` serves exactly one; `/[page]` serves every
+ * root-level collection. Non-empty by type so a route cannot be wired to nothing.
+ */
+export type RouteCollections = readonly [Collection, ...Collection[]]
 
 interface ArticleParams {
     params: Promise<Record<string, string>>
+}
+
+/**
+ * First collection that has this slug in this language, or null. Availability is folded in here
+ * so a v2-only page in one collection cannot mask a live page of the same slug in another.
+ */
+function resolveDoc(collections: RouteCollections, slug: string, locale: Locale): Doc | null {
+    for (const collection of collections) {
+        const doc = getDoc(collection, slug, locale)
+        if (doc && isDocAvailable(doc)) return doc
+    }
+    return null
 }
 
 /** Crumb labels come from the catalog so the trail is not English inside a Spanish page. */
@@ -52,15 +85,14 @@ async function crumbsFor(locale: Locale, collection: Collection, title: string, 
  * advertises two. `pageMetadata` writes the canonical; these are the alternates beside it.
  */
 function alternatesFor(collection: Collection, slug: string, locale: Locale) {
-    const base = collection === 'blog' ? `/blog/${slug}` : `/${slug}`
-    return hreflangAlternates(base, localesForSlug(collection, slug))
+    return hreflangAlternates(basePathFor(collection, slug), localesForSlug(collection, slug))
 }
 
-export function articleMetadata(collection: Collection, locale: Locale, paramName: ParamName) {
+export function articleMetadata(collections: RouteCollections, locale: Locale, paramName: ParamName) {
     return async function generateMetadata({ params }: ArticleParams): Promise<Metadata> {
         const slug = (await params)[paramName]
-        const doc = getDoc(collection, slug, locale)
-        if (!doc || !isDocAvailable(doc)) return {}
+        const doc = resolveDoc(collections, slug, locale)
+        if (!doc) return {}
 
         const meta = pageMetadata({
             title: pageTitle(doc.frontmatter.title),
@@ -73,7 +105,7 @@ export function articleMetadata(collection: Collection, locale: Locale, paramNam
         })
         return {
             ...meta,
-            alternates: { ...meta.alternates, languages: alternatesFor(collection, slug, locale) },
+            alternates: { ...meta.alternates, languages: alternatesFor(doc.collection, slug, locale) },
         }
     }
 }
@@ -100,25 +132,25 @@ export function hubMetadata(locale: Locale) {
     }
 }
 
-export function articleStaticParams(collection: Collection, locale: Locale, paramName: ParamName) {
+export function articleStaticParams(collections: RouteCollections, locale: Locale, paramName: ParamName) {
     return function generateStaticParams() {
-        return listSlugs(collection, locale).map((slug) => ({ [paramName]: slug }))
+        return collections.flatMap((collection) => listSlugs(collection, locale).map((slug) => ({ [paramName]: slug })))
     }
 }
 
-export function articlePage(collection: Collection, locale: Locale, paramName: ParamName) {
+export function articlePage(collections: RouteCollections, locale: Locale, paramName: ParamName) {
     return async function ArticlePage({ params }: ArticleParams) {
         const slug = (await params)[paramName]
-        const doc = getDoc(collection, slug, locale)
+        const doc = resolveDoc(collections, slug, locale)
         // Untranslated is indistinguishable from missing on purpose: no English body ever renders
         // at a Spanish URL, so there is no duplicate content to disambiguate later.
-        if (!doc || !isDocAvailable(doc)) notFound()
+        if (!doc) notFound()
 
         const body = await renderArticle(doc.body)
-        const crumbs = await crumbsFor(locale, collection, doc.frontmatter.title, doc.href)
+        const crumbs = await crumbsFor(locale, doc.collection, doc.frontmatter.title, doc.href)
 
         return (
-            <ArticleLayout doc={doc} crumbs={crumbs} translations={localesForSlug(collection, slug)}>
+            <ArticleLayout doc={doc} crumbs={crumbs} translations={localesForSlug(doc.collection, slug)}>
                 {body}
             </ArticleLayout>
         )
