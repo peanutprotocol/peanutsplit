@@ -28,21 +28,21 @@ faqs:
 
 "Send me the photo, I'll put it in tonight," they say. Nobody puts it in tonight. Your sheet was lovely on day one — colour-coded tabs, a column for the currency, a total that worked out the per-person share on its own. By day three you are the only one who has opened it, the receipts are photographs in three different phones, and you have typed in 19 of them from a sun lounger, which is unpaid bookkeeping in a swimming costume for a company that does not exist. Enough of that!
 
-Whether the sheet gets finished matters more than it sounds. When it doesn't, somebody is ninety euros down and says nothing about it, and some people never bring it up at all and carry a quiet resentment that outlasts the friendship. Let Peanut Split do that bit instead. One link in the group chat, everyone adds what they paid themselves, in the currency they paid it in, no accounts and nothing to download; the room adds it up and nets it to a short list of who pays whom. Just send the link and get back in the sea.
+Whether the sheet gets finished matters more than it sounds. When it doesn't, somebody is ninety euros down and says nothing about it, and some people never bring it up at all and carry a quiet resentment that outlasts the friendship. Let Split by Peanut do that bit instead. One link in the group chat, everyone adds what they paid themselves, in the currency they paid it in, no accounts and nothing to download; the room adds it up and nets it to a short list of who pays whom. Just send the link and get back in the sea.
 
 ## When a spreadsheet still wins
 
 Some groups want the formulas, and a sheet gives you them. You can put a column in for anything: who slept in the room with the balcony, the deposit one person paid in March and got back in August. The file is still on your drive in two years.
 
-A room does none of that. There is no login and no password recovery, the link is the key, so if the group loses it the room is gone, and it holds up to twenty people. If somebody in the group likes keeping the sheet, keep the sheet.
+A room does none of that. It counts what people paid, it nets the total down to who pays whom, and it holds up to twenty people. If somebody in the group likes keeping the sheet, keep the sheet.
 
 <Steps title="Setting one up">
 <Step title="Start a room">Name it after the trip and pick the currency most of the money goes out in.</Step>
-<Step title="Paste the link into the group chat">Whoever opens it types a name and is in. Nobody makes an account.</Step>
+<Step title="Paste the link into the group chat">Whoever opens it types a name and is in. Nobody makes an account, and the link is the key, so the chat is where it wants to live rather than your own browser.</Step>
 <Step title="Everyone adds their own as they pay">The food shop and the museum tickets one person bought for everybody, entered by whoever was holding the card. The totals move while you are still at the table. <Cast name="mo" size="sm" caption="Mo adds the ferry tickets on the ferry." /></Step>
 </Steps>
 
-## What Split is not good at
+## Good to know
 
 Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier and nothing to move behind one later.
 
