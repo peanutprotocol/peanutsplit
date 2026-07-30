@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
     createRoomSchema,
     expenseSchema,
+    expenseUpdateSchema,
     importRoomSchema,
     modelAmountMinor,
     receiptItemSchema,
@@ -38,6 +39,31 @@ const imported = (costMinor: unknown, shareMinor: unknown = costMinor) => ({
             shares: [{ member: 'Ana', amountMinor: shareMinor }],
         },
     ],
+})
+
+describe('the expense name is optional', () => {
+    it('takes an absent, blank or whitespace name and stores the empty string', () => {
+        for (const description of [undefined, '', '   ']) {
+            const parsed = expenseSchema.safeParse({ ...expense('1200'), description })
+            expect(parsed.success).toBe(true)
+            expect(parsed.success && parsed.data.description).toBe('')
+        }
+    })
+
+    it('still bounds a name that is there', () => {
+        expect(expenseSchema.safeParse({ ...expense('1200'), description: 'x'.repeat(256) }).success).toBe(false)
+    })
+
+    it('leaves an edit that never mentions the name undefined, so the PATCH can skip the column', () => {
+        const body = { ...expense('1200') }
+        delete (body as { description?: string }).description
+        const parsed = expenseUpdateSchema.safeParse(body)
+        expect(parsed.success).toBe(true)
+        expect(parsed.success && 'description' in parsed.data).toBe(false)
+        // An explicit empty string is still a request to clear the name.
+        const cleared = expenseUpdateSchema.safeParse({ ...expense('1200'), description: '  ' })
+        expect(cleared.success && cleared.data.description).toBe('')
+    })
 })
 
 describe('public wire money', () => {

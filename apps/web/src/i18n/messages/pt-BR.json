@@ -328,7 +328,8 @@
     },
     "dates": {
         "today": "Hoje",
-        "yesterday": "Ontem"
+        "yesterday": "Ontem",
+        "justNow": "agora mesmo"
     },
     "room": {
         "actions": {
@@ -472,8 +473,8 @@
             "amount": "Valor",
             "currency": "Moeda do gasto",
             "foreignHint": "convertido a uma taxa indicativa",
-            "description": "Foi com o quê?",
-            "descriptionPlaceholder": "Jantar, táxi, passe de esqui…",
+            "description": "Foi com o quê? (opcional)",
+            "descriptionPlaceholder": "Jantar, táxi, passe de esqui… (opcional)",
             "fieldsSwapped": "Pronto: trocamos o valor e a descrição.",
             "amountNormalised": "Lemos como {amount}. Confira antes de salvar.",
             "paidBy": "Pago por",
@@ -519,6 +520,7 @@
             "confirmDeleteYes": "Excluir",
             "confirmDeleteNo": "Deixar",
             "deletedToast": "“{description}” excluído",
+            "deletedToastUnnamed": "Gasto excluído",
             "undo": "Desfazer",
             "restored": "De volta",
             "restoreFailed": "Não deu para desfazer — recarregue e tente de novo",
@@ -526,7 +528,6 @@
             "saveFailed": "não deu para salvar o gasto — tente de novo",
             "deleteFailed": "não deu para excluir o gasto",
             "validation": {
-                "DESCRIPTION_REQUIRED": "Dê um nome para todo mundo lembrar o que foi.",
                 "AMOUNT_REQUIRED": "Digite um valor maior que zero.",
                 "AMOUNT_INVALID": "Confira os separadores e as casas decimais do valor.",
                 "PAYER_REQUIRED": "Escolha quem pagou.",

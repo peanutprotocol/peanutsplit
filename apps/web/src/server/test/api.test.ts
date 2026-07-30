@@ -724,6 +724,42 @@ describe('the full room lifecycle', () => {
         expect(netsToZero(afterEdit)).toBe(true)
     })
 
+    it('keeps the name on a PATCH that does not mention it, and clears it on an empty one', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const ana = created.memberId
+
+        const { body: afterAdd } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Lift passes',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: ana,
+                splitMode: 'EQUAL',
+            },
+        })
+        const expenseId = afterAdd.expenses[0].id
+        const edit = (body: Record<string, unknown>) =>
+            call<RoomState>(patchExpense as Handler, {
+                path: `/api/rooms/${slug}/expenses/${expenseId}`,
+                method: 'PATCH',
+                params: { slug, id: expenseId },
+                body: { amountMinor: '1000', currency: 'EUR', paidById: ana, splitMode: 'EQUAL', ...body },
+            })
+
+        // No `description` key: the client moved the amount, not the name. The
+        // create schema's `.default('')` used to blank it here.
+        const { body: untouched } = await edit({ amountMinor: '1500' })
+        expect(untouched.expenses[0].description).toBe('Lift passes')
+
+        // An explicit empty string still means "take the name off".
+        const { body: cleared } = await edit({ description: '' })
+        expect(cleared.expenses[0].description).toBe('')
+    })
+
     it('soft-deletes an expense and restores it unchanged', async () => {
         const { body: created } = await newRoom()
         const slug = created.room.slug
@@ -818,7 +854,8 @@ describe('write validation', () => {
         expect((await post(expenseBody(ana, { participantIds: [ana, 'ghost'] }))).status).toBe(400)
         expect((await post(expenseBody(ana, { participantIds: [ana, ana] }))).status).toBe(400)
         expect((await post(expenseBody(ana, { currency: 'XYZ' }))).status).toBe(400)
-        expect((await post(expenseBody(ana, { description: '' }))).status).toBe(400)
+        // A blank name is NOT a validation failure — the row is labelled by its day.
+        expect((await post(expenseBody(ana, { description: '' }))).status).toBe(201)
         expect((await post(expenseBody(ana, { amountMinor: '10.00' }))).status).toBe(400)
         expect((await post(expenseBody(ana, { amountMinor: 1000 }))).status).toBe(400)
         expect((await post(expenseBody(ana, { amountMinor: '9223372036854775808' }))).status).toBe(400)

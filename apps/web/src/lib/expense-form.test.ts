@@ -191,14 +191,19 @@ describe('staged new payer', () => {
 })
 
 describe('validateExpenseForm / remainingMinor', () => {
-    it('rejects an empty description, a zero amount and an empty participant list', () => {
-        expect(validateExpenseForm(baseForm({ description: '  ' }))).toBe('DESCRIPTION_REQUIRED')
+    it('rejects a zero amount and an empty participant list', () => {
         expect(validateExpenseForm(baseForm({ amountInput: '0' }))).toBe('AMOUNT_REQUIRED')
         expect(validateExpenseForm(baseForm({ amountInput: '' }))).toBe('AMOUNT_REQUIRED')
         // The composer reads top-to-bottom: an entirely fresh form points at
-        // the hero amount before asking for the receipt line beneath it.
+        // the hero amount, which is the only field it still insists on.
         expect(validateExpenseForm(baseForm({ amountInput: '', description: '' }))).toBe('AMOUNT_REQUIRED')
         expect(validateExpenseForm(baseForm({ participantIds: [] }))).toBe('NO_PARTICIPANTS')
+    })
+
+    it('accepts a nameless expense — the row is labelled by its day instead', () => {
+        expect(validateExpenseForm(baseForm({ description: '' }))).toBeNull()
+        expect(validateExpenseForm(baseForm({ description: '  ' }))).toBeNull()
+        expect(buildExpenseBody(baseForm({ description: '  ' })).description).toBe('')
     })
 
     it('holds an EXACT split to the exact total', () => {

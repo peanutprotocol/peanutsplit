@@ -328,7 +328,8 @@
     },
     "dates": {
         "today": "Today",
-        "yesterday": "Yesterday"
+        "yesterday": "Yesterday",
+        "justNow": "just now"
     },
     "room": {
         "actions": {
@@ -472,8 +473,8 @@
             "amount": "Amount",
             "currency": "Expense currency",
             "foreignHint": "converted at an indicative rate",
-            "description": "What for?",
-            "descriptionPlaceholder": "Dinner, taxi, lift pass…",
+            "description": "What for? (optional)",
+            "descriptionPlaceholder": "Dinner, taxi, lift pass… (optional)",
             "fieldsSwapped": "Got it — amount and description swapped.",
             "amountNormalised": "Read as {amount}. Check it before saving.",
             "paidBy": "Paid by",
@@ -519,6 +520,7 @@
             "confirmDeleteYes": "Delete it",
             "confirmDeleteNo": "Keep it",
             "deletedToast": "“{description}” deleted",
+            "deletedToastUnnamed": "Expense deleted",
             "undo": "Undo",
             "restored": "Put back",
             "restoreFailed": "Could not undo — refresh and try again",
@@ -526,7 +528,6 @@
             "saveFailed": "could not save the expense — try again",
             "deleteFailed": "could not delete the expense",
             "validation": {
-                "DESCRIPTION_REQUIRED": "Give it a name so everyone remembers what it was.",
                 "AMOUNT_REQUIRED": "Enter an amount greater than zero.",
                 "AMOUNT_INVALID": "Check the separators and decimal places in the amount.",
                 "PAYER_REQUIRED": "Pick who paid.",

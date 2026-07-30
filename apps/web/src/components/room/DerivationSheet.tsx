@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Divider } from '@/components/ui/Divider'
 import type { CurrencyInfo } from '@/lib/api-types'
 import type { DerivationLine, DerivationLineKind, MemberDerivation } from '@/lib/balance-derivation'
-import { dayLabel } from '@/lib/dates'
+import { dayLabel, expenseLabel, relativeTime } from '@/lib/dates'
 import { Money } from './Money'
 
 interface DerivationSheetProps {
@@ -48,8 +48,17 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
     const tDates = useTranslations('dates')
     const locale = useLocale()
 
-    const when = (line: DerivationLine) =>
-        dayLabel(line.date, { locale, today: tDates('today'), yesterday: tDates('yesterday') })
+    const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
+    /**
+     * When it happened AND how long ago it was filed — the two are not the same
+     * question and a sheet read to settle an argument needs both.
+     *
+     * The stamp comes off `createdAt`, never `date`: the expense date is
+     * user-editable, so a dinner booked for next Saturday made a line explaining
+     * a balance that has *already* moved read "in 6d". The day comes off `date`,
+     * which is the day on the receipt.
+     */
+    const filed = (line: DerivationLine) => relativeTime(line.createdAt, { locale, justNow: tDates('justNow') })
 
     return (
         <div className="flex flex-col gap-2">
@@ -72,12 +81,31 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
                             <ul className="flex flex-col">
                                 {lines.map((line) => {
                                     const party = line.partyName ?? t('someone')
+                                    const day = dayLabel(line.date, dayOptions)
                                     const primary =
                                         line.kind === 'settlement-sent'
                                             ? t('sentTo', { name: party })
                                             : line.kind === 'settlement-received'
                                               ? t('receivedFrom', { name: party })
-                                              : (line.title ?? t('someone'))
+                                              : // An expense saved without a name is named by its
+                                                // day. The plain day, not the list row's day-plus-
+                                                // clock: there is no day heading in this sheet, so
+                                                // nothing here to be a duplicate of.
+                                                expenseLabel(line.title, line.date, dayOptions)
+                                    // The day, unless it is already the name above it: an unnamed
+                                    // line printing "Sat, Jul 25" twice is the field said twice,
+                                    // not a second fact.
+                                    const detail = [
+                                        line.kind === 'share'
+                                            ? line.partyId === meId
+                                                ? t('paidByYou')
+                                                : t('paidBy', { name: party })
+                                            : null,
+                                        primary === day ? null : day,
+                                        filed(line),
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' · ')
                                     const positive = !line.amountMinor.startsWith('-')
                                     return (
                                         <li
@@ -91,11 +119,7 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
                                         >
                                             <span className="min-w-0 flex-1">
                                                 <span className="block truncate text-h8">{primary}</span>
-                                                <span className="block text-h10 text-grey-1">
-                                                    {line.kind === 'share'
-                                                        ? `${line.partyId === meId ? t('paidByYou') : t('paidBy', { name: party })} · ${when(line)}`
-                                                        : when(line)}
-                                                </span>
+                                                <span className="block text-h10 text-grey-1">{detail}</span>
                                             </span>
                                             <span className="flex shrink-0 flex-col items-end">
                                                 {/* The minus sign comes out of the locale's own number

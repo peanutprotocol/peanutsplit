@@ -69,31 +69,58 @@ export const createMemberSchema = z.object({
     intent: z.enum(['join', 'add']).default('join'),
 })
 
+const expenseName = z.string().trim().max(MAX_DESCRIPTION_CHARS)
+
+/** Everything an expense request carries except its name, which is the one field
+ *  a create and an edit have to treat differently — see the two schemas below. */
+const expenseFields = {
+    clientKey: clientKey.optional(),
+    amountMinor: minorAmount,
+    currency: currencyCode,
+    paidById: id.optional(),
+    /** A payer typed inside a new expense stays a draft until the expense
+     *  transaction commits. It is mutually exclusive with an existing id. */
+    newPaidByName: personName.optional(),
+    splitMode: z.enum(['EQUAL', 'EXACT']),
+    participantIds: z.array(id).optional(),
+    exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
+    date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
+    category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
+}
+
+const onePayer = (body: { paidById?: string; newPaidByName?: string }, ctx: z.RefinementCtx): void => {
+    if (!!body.paidById === !!body.newPaidByName) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['paidById'],
+            message: 'provide either paidById or newPaidByName',
+        })
+    }
+}
+
 export const expenseSchema = z
     .object({
-        clientKey: clientKey.optional(),
-        description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
-        amountMinor: minorAmount,
-        currency: currencyCode,
-        paidById: id.optional(),
-        /** A payer typed inside a new expense stays a draft until the expense
-         *  transaction commits. It is mutually exclusive with an existing id. */
-        newPaidByName: personName.optional(),
-        splitMode: z.enum(['EQUAL', 'EXACT']),
-        participantIds: z.array(id).optional(),
-        exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
-        date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
-        category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
+        ...expenseFields,
+        /** Optional. A row with no name is labelled by its day on every surface
+         *  that shows it, so an absent or blank one stores as the empty string
+         *  rather than being refused. */
+        description: expenseName.default(''),
     })
-    .superRefine((body, ctx) => {
-        if (!!body.paidById === !!body.newPaidByName) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['paidById'],
-                message: 'provide either paidById or newPaidByName',
-            })
-        }
-    })
+    .superRefine(onePayer)
+
+/**
+ * The same request, for a PATCH.
+ *
+ * `description` is `.optional()` here and NOT defaulted, because the two verbs
+ * mean opposite things by an absent key. On a create, "no name given" is the
+ * empty string. On an edit, the PATCH handler replaces every column it is given,
+ * so a default turned "I did not send that field" into "blank the name" — a
+ * client that sent only a new amount silently lost the row's name. Absent now
+ * means untouched, and `''` still means clear it.
+ */
+export const expenseUpdateSchema = z
+    .object({ ...expenseFields, description: expenseName.optional() })
+    .superRefine(onePayer)
 
 const receiptUrl = z
     .string()
@@ -169,6 +196,7 @@ export type PushSubscribeBody = z.infer<typeof pushSubscribeSchema>
 export type CreateRoomBody = z.infer<typeof createRoomSchema>
 export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
+export type ExpenseUpdateBody = z.infer<typeof expenseUpdateSchema>
 export type SettlementBody = z.infer<typeof settlementSchema>
 
 // ── what a model says ────────────────────────────────────────────────────────

@@ -58,6 +58,8 @@ export interface ApiReaction {
 
 export interface ApiExpense {
     id: string
+    /** Empty when the expense was saved without a name. Render it through
+     *  `expenseLabel` (`lib/dates.ts`), never on its own. */
     description: string
     /** In `currency`. */
     amountMinor: string
@@ -145,7 +147,8 @@ export interface CreateMemberInput {
 export interface ExpenseInput {
     /** Stable for one save attempt so a lost response can be replayed safely. */
     clientKey?: string
-    description: string
+    /** Optional — a row saved without a name is labelled by its day instead. */
+    description?: string
     amountMinor: string
     currency: string
     paidById?: string
