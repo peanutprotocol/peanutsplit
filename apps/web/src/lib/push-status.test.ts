@@ -17,7 +17,7 @@ const capable: PushEnvironment = {
     isIOS: false,
     isStandalone: false,
     permission: 'default',
-    hasSubscription: false,
+    hasRoomSubscription: false,
 }
 
 const status = (overrides: Partial<PushEnvironment>) => derivePushStatus({ ...capable, ...overrides })
@@ -37,7 +37,7 @@ describe('derivePushStatus', () => {
     })
 
     it('is unsupported even on a granted, subscribed device when the build has no key', () => {
-        expect(status({ hasVapidKey: false, permission: 'granted', hasSubscription: true })).toBe('unsupported')
+        expect(status({ hasVapidKey: false, permission: 'granted', hasRoomSubscription: true })).toBe('unsupported')
     })
 
     it('is ios-needs-pwa in an iOS browser tab', () => {
@@ -52,7 +52,7 @@ describe('derivePushStatus', () => {
      *  and asking there spends the origin's single prompt on a silent denial. */
     it('answers ios-needs-pwa before it ever looks at the permission', () => {
         expect(status({ isIOS: true, isStandalone: false, permission: 'default' })).toBe('ios-needs-pwa')
-        expect(status({ isIOS: true, isStandalone: false, permission: 'granted', hasSubscription: true })).toBe(
+        expect(status({ isIOS: true, isStandalone: false, permission: 'granted', hasRoomSubscription: true })).toBe(
             'ios-needs-pwa'
         )
     })
@@ -61,16 +61,21 @@ describe('derivePushStatus', () => {
         expect(status({ permission: 'denied' })).toBe('denied')
     })
 
-    it('stays denied even if a stale subscription is still around', () => {
-        expect(status({ permission: 'denied', hasSubscription: true })).toBe('denied')
+    it('stays denied even if a stale row is still around', () => {
+        expect(status({ permission: 'denied', hasRoomSubscription: true })).toBe('denied')
     })
 
-    it('is subscribed with a live subscription', () => {
-        expect(status({ permission: 'granted', hasSubscription: true })).toBe('subscribed')
+    it('is subscribed when the server has a row for this room', () => {
+        expect(status({ permission: 'granted', hasRoomSubscription: true })).toBe('subscribed')
     })
 
-    it('is default when permission is granted but the subscription is gone', () => {
-        expect(status({ permission: 'granted', hasSubscription: false })).toBe('default')
+    /**
+     * Also the case this field exists for: the device holds a live browser
+     * subscription because another room was turned on, and this room has no row.
+     * Reading the browser's answer here rendered a toggle that lied.
+     */
+    it('is default when there is no row for this room', () => {
+        expect(status({ permission: 'granted', hasRoomSubscription: false })).toBe('default')
     })
 })
 

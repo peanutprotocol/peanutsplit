@@ -42,11 +42,21 @@ const clientKey = z
     .regex(/^[A-Za-z0-9-]+$/, 'must be an opaque request key')
 const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
 
+/**
+ * The room's emblem. 8 was sized for an emoji grapheme cluster; the column now also takes a
+ * doodle name (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a
+ * text field.
+ *
+ * One definition for all three ways a room gets an emblem — create, import, and the settings
+ * PATCH — so a room cannot be renamed into holding a value it could never have been created
+ * with. Deliberately NOT an enum of the drawing names: rooms made before the drawings still
+ * hold an emoji character, and `lib/room-emblem.ts` is where that reading happens.
+ */
+const roomEmblem = z.string().max(24)
+
 export const createRoomSchema = z.object({
     name: z.string().trim().min(1, 'is required').max(80),
-    // 8 was sized for an emoji grapheme cluster; the column now also takes a doodle name
-    // (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a text field.
-    emoji: z.string().max(24).nullish(),
+    emoji: roomEmblem.nullish(),
     currency: currencyCode,
     creatorName: personName,
 })
@@ -131,6 +141,15 @@ export const pushSubscribeSchema = z.object({
 })
 
 export const pushUnsubscribeSchema = z.object({
+    endpoint: pushEndpoint,
+    memberId: id,
+    memberToken: memberSecret,
+})
+
+/** Asking whether THIS room is on for this endpoint. Same three fields as the
+ *  unsubscribe, and deliberately its own schema: the question is a read, and it
+ *  must stay free to gain a field without widening what a delete accepts. */
+export const pushStatusSchema = z.object({
     endpoint: pushEndpoint,
     memberId: id,
     memberToken: memberSecret,
@@ -266,6 +285,10 @@ export type NlParseBody = z.infer<typeof nlParseSchema>
  * catalog is rejected outright rather than stored and ignored — a row holding a
  * key nothing can render is a bug that only shows up months later, on an unfurl.
  * `null` is the default palette and is always legal.
+ *
+ * The emblem is the SAME `roomEmblem` the create and import paths use, on
+ * purpose: an edit must not be able to write a value a new room could not hold.
+ * `null` means "follow the room name" — the state a room is born in.
  */
 export const roomSettingsSchema = z
     .object({
@@ -278,9 +301,11 @@ export const roomSettingsSchema = z
             .nullable()
             .refine((value) => value === null || isThemeKey(value), { message: 'unknown theme' })
             .optional(),
+        // `nullable`, not `nullish`, for the reason the theme gives above.
+        emoji: roomEmblem.nullable().optional(),
     })
     .strict()
-    .refine((value) => value.name !== undefined || value.theme !== undefined, {
+    .refine((value) => value.name !== undefined || value.theme !== undefined || value.emoji !== undefined, {
         message: 'at least one room setting is required',
     })
 
@@ -367,9 +392,7 @@ const importedExpenseSchema = z.object({
 export const importRoomSchema = z
     .object({
         roomName: z.string().trim().min(1, 'is required').max(80),
-        // 8 was sized for an emoji grapheme cluster; the column now also takes a doodle name
-        // (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a text field.
-        emoji: z.string().max(24).nullish(),
+        emoji: roomEmblem.nullish(),
         currency: currencyCode,
         creatorName: personName,
         members: z.array(personName).min(1).max(MAX_MEMBERS),

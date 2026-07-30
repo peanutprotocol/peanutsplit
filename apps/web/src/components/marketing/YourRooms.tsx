@@ -9,8 +9,12 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { CloseButton } from '@/components/ui/CloseButton'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { api, isApiError } from '@/lib/api'
+import { cn } from '@/lib/cn'
 import { forgetRoom, readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
@@ -51,6 +55,9 @@ export function YourRooms() {
     const [recovering, setRecovering] = useState(false)
     const [recoveryError, setRecoveryError] = useState<string | null>(null)
     const [notice, setNotice] = useState<string | null>(null)
+    /** The room waiting on a confirm. This list is the only copy of the link this
+     *  device holds, so dropping a room is not something a mis-tap should do. */
+    const [pendingForget, setPendingForget] = useState<RecentRoom | null>(null)
 
     useEffect(() => {
         setRecent(readRecentRooms())
@@ -65,6 +72,7 @@ export function YourRooms() {
     const canCollapse = recent.length > collapsedLimit
 
     const forget = (room: RecentRoom) => {
+        setPendingForget(null)
         if (!forgetRoom(room.slug)) {
             setNotice(t('forgetFailed', { room: room.name }))
             feedback('error', { haptic: 'error' })
@@ -186,7 +194,7 @@ export function YourRooms() {
                                 </Link>
                                 <button
                                     type="button"
-                                    onClick={() => forget(room)}
+                                    onClick={() => setPendingForget(room)}
                                     aria-label={t('forgetLabel', { room: room.name })}
                                     data-testid="forget-room"
                                     data-room={room.slug}
@@ -266,6 +274,49 @@ export function YourRooms() {
                     </Button>
                 </form>
             </details>
+
+            {/* Removing a room is the one irreversible thing this page can do:
+                without the link, a room dropped here cannot be reached again from
+                this device. So it asks, and it says what the cost is. */}
+            <Drawer open={pendingForget !== null} onOpenChange={(next) => !next && setPendingForget(null)}>
+                {pendingForget && (
+                    <DrawerContent className={drawerContentClass} data-testid="forget-room-confirm">
+                        <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+                            <DrawerTitle className="text-h5">
+                                {t('confirmForgetTitle', { room: pendingForget.name })}
+                            </DrawerTitle>
+                            <CloseButton
+                                onClick={() => setPendingForget(null)}
+                                label={t('confirmForgetClose')}
+                                data-testid="close-forget-room"
+                            />
+                        </DrawerHeader>
+                        <DrawerBody>
+                            <p className="text-sm leading-5 text-grey-1">{t('confirmForgetBody')}</p>
+                            <DrawerActions>
+                                <Button
+                                    variant="primary"
+                                    shadowSize="4"
+                                    icon="trash"
+                                    className="justify-center"
+                                    onClick={() => forget(pendingForget)}
+                                    data-testid="confirm-forget-room"
+                                >
+                                    {t('confirmForget')}
+                                </Button>
+                                <Button
+                                    variant="stroke"
+                                    className="justify-center"
+                                    onClick={() => setPendingForget(null)}
+                                    data-testid="cancel-forget-room"
+                                >
+                                    {t('confirmForgetKeep')}
+                                </Button>
+                            </DrawerActions>
+                        </DrawerBody>
+                    </DrawerContent>
+                )}
+            </Drawer>
 
             {notice && (
                 <p

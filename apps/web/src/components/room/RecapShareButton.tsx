@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { roomProps, track } from '@/lib/analytics'
+import { copyImage } from '@/lib/clipboard'
 import { RECAP_FILE_NAME, recapImagePath, type RecapShareTier } from '@/lib/recap'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
@@ -66,15 +67,11 @@ export function RecapShareButton({ slug, variant = 'primary' }: { slug: string; 
                 }
             }
 
-            try {
-                if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
-                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-                    toast(t('copied'), { duration: TOAST_MS.default })
-                    done('clipboard')
-                    return
-                }
-            } catch {
-                // Firefox and every non-secure context land here. Next tier.
+            // `file` rather than `blob`, because it carries the settled MIME type.
+            if (await copyImage(file)) {
+                toast(t('copied'), { duration: TOAST_MS.default })
+                done('clipboard')
+                return
             }
 
             const objectUrl = URL.createObjectURL(blob)

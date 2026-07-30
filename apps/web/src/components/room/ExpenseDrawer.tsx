@@ -28,7 +28,7 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
-import { currencyInfo, formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
+import { currencyInfo, formatAmountInput, formatMoney, isAmountInputAcceptable, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
     useAddMember,
@@ -110,6 +110,9 @@ export function ExpenseDrawer({
     const [participantError, setParticipantError] = useState<string | null>(null)
     const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
     const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
+    /** Delete asks first, like undoing a payment record does. The row is the
+     *  room's shared history, so a mis-tap costs everyone a balance. */
+    const [confirmingDelete, setConfirmingDelete] = useState(false)
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
@@ -141,6 +144,7 @@ export function ExpenseDrawer({
         setParticipantError(null)
         setFieldRepairNotice(null)
         setEditor(null)
+        setConfirmingDelete(false)
         expenseRequestRef.current = null
         setValues(
             expense
@@ -306,6 +310,21 @@ export function ExpenseDrawer({
     const editExact = (memberId: string, input: string) =>
         patch({ exactInputs: { ...values.exactInputs, [memberId]: input }, exactTouched: true })
 
+    /**
+     * A keystroke the amount parser could never read is dropped rather than
+     * stored. Unlike the total above — which keeps "taxi" so `repairFieldRoles`
+     * can spot a swapped pair and validation can say what is wrong — a share has
+     * nowhere to put a word, and holding one desynchronises the readout under
+     * it from the save button: `allocatedMinor` counts anything it cannot parse
+     * as zero, so a field of letters beside shares that already sum to the total
+     * left the sheet cheering "every cent allocated" while saving refused with
+     * SHARE_AMOUNT_INVALID.
+     */
+    const typeExact = (memberId: string, input: string) => {
+        if (!isAmountInputAcceptable(input, decimals, locale)) return
+        editExact(memberId, input)
+    }
+
     /** On blur, what was typed becomes what the currency actually looks like —
      *  "12" in a EUR room is 12.00, and a field that keeps saying "12" next to a
      *  neighbour saying "8.50" invites the reader to add them up wrong. A field
@@ -455,6 +474,7 @@ export function ExpenseDrawer({
             })
         } catch (err) {
             feedback('error', { haptic: 'error' })
+            setConfirmingDelete(false)
             setError(errorMessage(err, t('deleteFailed')))
         }
     }
@@ -1049,7 +1069,7 @@ export function ExpenseDrawer({
                                                     </span>
                                                     <input
                                                         value={values.exactInputs[member.id] ?? ''}
-                                                        onChange={(event) => editExact(member.id, event.target.value)}
+                                                        onChange={(event) => typeExact(member.id, event.target.value)}
                                                         onFocus={(event) => event.target.select()}
                                                         onBlur={() => normaliseExact(member.id)}
                                                         inputMode="decimal"
@@ -1327,18 +1347,45 @@ export function ExpenseDrawer({
                     >
                         {primaryLabel}
                     </Button>
-                    {expense && (
-                        <Button
-                            variant="stroke"
-                            icon="trash"
-                            onClick={remove}
-                            loading={deleteExpense.isPending}
-                            className="justify-center"
-                            data-testid="delete-expense"
-                        >
-                            {t('delete')}
-                        </Button>
-                    )}
+                    {expense &&
+                        (confirmingDelete ? (
+                            <div
+                                className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-3"
+                                data-testid="delete-expense-confirm"
+                            >
+                                <p className="text-sm text-n-1">{t('confirmDelete')}</p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="stroke"
+                                        icon="trash"
+                                        onClick={remove}
+                                        loading={deleteExpense.isPending}
+                                        className="flex-1 justify-center"
+                                        data-testid="confirm-delete-expense"
+                                    >
+                                        {t('confirmDeleteYes')}
+                                    </Button>
+                                    <Button
+                                        variant="stroke"
+                                        onClick={() => setConfirmingDelete(false)}
+                                        className="w-auto shrink-0 justify-center"
+                                        data-testid="cancel-delete-expense"
+                                    >
+                                        {t('confirmDeleteNo')}
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <Button
+                                variant="stroke"
+                                icon="trash"
+                                onClick={() => setConfirmingDelete(true)}
+                                className="justify-center"
+                                data-testid="delete-expense"
+                            >
+                                {t('delete')}
+                            </Button>
+                        ))}
                 </DrawerActions>
             </DrawerContent>
 
