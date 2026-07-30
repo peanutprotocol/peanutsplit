@@ -14,6 +14,11 @@ import { expect, test, type Page } from '@playwright/test'
 // assertion.
 test.setTimeout(120_000)
 
+/**
+ * `data-member` names the member the card is ABOUT. In a room of one or three-plus that is one
+ * card per person. In a two-person room the strip collapses to a single sentence card about the
+ * OTHER person, so the viewer's own net is read off the counterparty's card, negated.
+ */
 const balance = (page: Page, member: string) => page.locator(`[data-testid="balance-card"][data-member="${member}"]`)
 
 const expectBalance = async (page: Page, member: string, netMinor: string) =>
@@ -39,7 +44,8 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await bea.getByTestId('im-new').click()
     await bea.getByTestId('join-name').fill('Bea')
     await bea.getByTestId('join-room').click()
-    await expectBalance(bea, 'Bea', '0')
+    // Two people now, so Bea's device shows the one card about Ana.
+    await expectBalance(bea, 'Ana', '0')
 
     // Ana fronts €60, split equally: +6000 paid, −3000 her share, +3000 net.
     await page.reload()
@@ -49,10 +55,12 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await page.getByTestId('expense-payer-summary').click()
     await page.locator('[data-testid="payer-chip"][data-member="Ana"]').click()
     await page.getByTestId('save-expense').click()
-    await expectBalance(page, 'Ana', '3000')
+    // Ana's own +3000, stated as Bea's −3000 on the single pair card.
+    await expectBalance(page, 'Bea', '-3000')
 
     // ── The sheet ─────────────────────────────────────────────────────────
-    await balance(page, 'Ana').click()
+    // The card names Bea, but the tap opens the reader's own working — Ana's.
+    await balance(page, 'Bea').click()
     const drawer = page.getByTestId('balance-drawer')
     await expect(drawer).toBeVisible()
     // The URL carries it, so the sheet survives a refresh and back closes it.
