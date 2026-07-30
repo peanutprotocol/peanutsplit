@@ -16,14 +16,14 @@
 
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
-import { achievementCardPath, type AlterEgoCardParams, type CardKind } from '@/lib/achievements-contract'
+import { achievementCardPath, shelfKinds, type AlterEgoCardParams, type CardKind } from '@/lib/achievements-contract'
 import { unlocksFor } from '@/lib/achievements'
 import { api } from '@/lib/api'
 import { roomKey } from '@/lib/queries'
 import { useRoomIdentity } from '@/lib/use-identity'
 import { CardShareButton, type ShareableCardKind } from './CardShareButton'
 
-export function AchievementShelf({ slug }: { slug: string }) {
+export function AchievementShelf({ slug, deckShown = false }: { slug: string; deckShown?: boolean }) {
     const t = useTranslations('room.achievements')
     const { identity, loaded } = useRoomIdentity(slug)
 
@@ -50,12 +50,22 @@ export function AchievementShelf({ slug }: { slug: string }) {
                     : undefined,
         }))
 
-    if (tiles.length === 0) return null
+    // On a settled room the deck above is the wrapped surface and already draws these — see
+    // `shelfKinds` for why the deck wins.
+    const keep = new Set<CardKind>(
+        shelfKinds(
+            tiles.map((tile) => tile.kind),
+            deckShown
+        )
+    )
+    const shown = tiles.filter((tile) => keep.has(tile.kind))
+
+    if (shown.length === 0) return null
 
     return (
         <section className="flex flex-col gap-3" data-testid="achievement-shelf">
             <h2 className="text-h10 uppercase tracking-wide text-grey-1">{t('shelfTitle')}</h2>
-            {tiles.map((tile) => (
+            {shown.map((tile) => (
                 <div key={tile.key} className="flex flex-col gap-2">
                     {/* Empty alt: the card is decoration for the button beneath it, and its
                         content is already the heading and the copy on this page. */}
