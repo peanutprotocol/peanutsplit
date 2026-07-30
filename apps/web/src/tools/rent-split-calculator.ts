@@ -143,6 +143,10 @@ export const rentSplitCalculator: Tool = {
             },
         ],
     },
+    related: [
+        { href: '/splitwise-alternative', label: 'How Split compares to Splitwise' },
+        { href: '/tools', label: 'The other calculators' },
+    ],
     faqs: [
         {
             question: 'How do you split rent by room size?',

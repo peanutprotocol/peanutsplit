@@ -41,6 +41,17 @@ export const STATIC_PAGES: StaticPage[] = [
         inHub: true,
     },
     {
+        // The calculators' one hub. It carries no calculator of its own, so it is a listing rather
+        // than a tool, and it lives here beside the other hand-built pages for the same reason the
+        // tools do not: the registry knows what to list, and this file is what gets it a URL, a
+        // sitemap row and a reserved slug.
+        href: '/tools',
+        title: 'Calculators',
+        description: 'One sum each, with the working shown: a bill, a room, a shared car.',
+        priority: 0.7,
+        inHub: true,
+    },
+    {
         // A tool, not a guide, so it stays off the /blog hub — but it answers a real query
         // ("import splitwise") and is the page a switching group lands on, so it is sitemapped
         // high. Registering it here is also what stops a `src/content/import.md` from ever

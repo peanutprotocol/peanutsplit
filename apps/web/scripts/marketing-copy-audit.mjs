@@ -114,7 +114,9 @@ function auditMarkdown(path) {
 function auditTypescript(path) {
     const local = relative(root, path)
     const source = readFileSync(path, 'utf8')
-    const sourceFile = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+    // A .tsx parsed as .ts loses every string inside JSX, which is where a page's copy lives.
+    const kind = extname(path) === '.tsx' ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    const sourceFile = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, kind)
     const visit = (node) => {
         if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
             const line = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1
@@ -130,6 +132,7 @@ for (const path of filesBelow(resolve(root, 'src/content'), new Set(['.md', '.md
 
 for (const local of [
     'src/components/marketing/copy.ts',
+    'src/app/(marketing)/tools/page.tsx',
     'src/lib/seo.ts',
     'src/server/og/roomCard.ts',
     'src/server/og/roomMeta.ts',

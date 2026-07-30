@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
-import { CTA, FAQ, FAQItem } from '@/components/marketing/mdx/blocks'
+import { CTA, FAQ, FAQItem, RelatedLink, RelatedPages } from '@/components/marketing/mdx/blocks'
 import { ToolCalculator } from '@/components/tools/ToolCalculator'
 import { breadcrumbSchema, faqSchema, toolSchema } from '@/lib/seo'
 import { toolPath } from '@/tools/registry'
@@ -98,6 +98,18 @@ export async function ToolPage({ tool }: { tool: Tool }) {
                     </FAQItem>
                 ))}
             </FAQ>
+
+            {/* Same block an article ends on, for the same reason: a page nothing links onward from
+                is where a reader's session ends and where a crawler turns round. */}
+            {tool.related && tool.related.length > 0 && (
+                <RelatedPages>
+                    {tool.related.map((link) => (
+                        <RelatedLink key={link.href} href={link.href}>
+                            {link.label}
+                        </RelatedLink>
+                    ))}
+                </RelatedPages>
+            )}
 
             <SiteFooter showLocaleSwitcher={false} />
         </main>

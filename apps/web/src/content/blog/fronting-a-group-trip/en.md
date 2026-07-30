@@ -104,4 +104,5 @@ Four facts about the room, worth having in March rather than in August.
 <RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip when nobody shares a bank</RelatedLink>
 <RelatedLink href="/blog/end-of-trip-expense-recap">The card that says what the trip cost</RelatedLink>
 <RelatedLink href="/blog/split-expenses-across-currencies">Splitting when you paid in one currency and owe in another</RelatedLink>
+<RelatedLink href="/mileage-split-calculator">What the driving cost, split between the passengers</RelatedLink>
 </RelatedPages>
