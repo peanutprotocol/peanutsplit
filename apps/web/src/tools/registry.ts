@@ -1,4 +1,5 @@
 import { billSplitCalculator } from './bill-split-calculator'
+import { mileageSplitCalculator } from './mileage-split-calculator'
 import { rentSplitCalculator } from './rent-split-calculator'
 import type { Tool } from './types'
 
@@ -15,9 +16,9 @@ import type { Tool } from './types'
  * TypeScript with a compute function in it, so the import graph is already the registration and a
  * `readdirSync` here would only be able to find files the bundler already had to know about.
  *
- * Ordered by search volume, which is the order the tools hub would list them in if there were one.
+ * Ordered by search volume, which is the order `/tools` lists them in.
  */
-export const TOOLS: readonly Tool[] = [billSplitCalculator, rentSplitCalculator]
+export const TOOLS: readonly Tool[] = [billSplitCalculator, rentSplitCalculator, mileageSplitCalculator]
 
 export const TOOL_SLUGS: readonly string[] = TOOLS.map((tool) => tool.slug)
 
