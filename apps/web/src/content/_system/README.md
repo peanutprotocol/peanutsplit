@@ -53,5 +53,7 @@ Which of those keys, and which blocks, each `type` uses is in `stylebook.md`, no
 ## What is not here yet
 
 `templates/` and `workflows/` (one file per content type, one per drafting pass) and `AUDITS.md`
-(dated cold-read findings, each landing as a stylebook line). `stylebook.md` is a stub — the written
-version lives in mono at `projects/peanut-split/seo/stylebook.md` and gets copied in.
+(dated cold-read findings, each landing as a stylebook line).
+
+`stylebook.md` here is the operative copy — read it, draft against it. It is synced from mono at
+`projects/peanut-split/seo/stylebook.md`, which is where an edit to the rules goes.
