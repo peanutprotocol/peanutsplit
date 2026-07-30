@@ -218,7 +218,7 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
                             data-testid="room-share-doodle"
                             className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"
                         >
-                            <RoomEmblem value={emoji} size={30} />
+                            <RoomEmblem value={emoji} name={roomName} size={30} />
                         </motion.span>
                         <div className="min-w-0">
                             <p className="truncate text-h6">{roomName}</p>

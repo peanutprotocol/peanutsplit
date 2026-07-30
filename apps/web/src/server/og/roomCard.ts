@@ -11,6 +11,8 @@ import { prisma } from '@/server/db'
 import { formatMinor } from '@/server/money'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
 import { themeFor, type RoomTheme } from '@/lib/themes'
+import { type DoodleName } from '@/components/ui/doodles'
+import { roomEmblemDoodle } from '@/lib/room-emblem'
 
 /** Shown instead of a name we cannot draw. Better than a row of blank boxes. */
 export const NAME_FALLBACK = 'A split'
@@ -99,8 +101,8 @@ export async function cardCopy(locale: string | null | undefined): Promise<CardC
 export interface RoomCardData {
     /** Display-font-safe, already truncated. */
     name: string
-    /** Raw emoji as stored — the renderer resolves it to an image, not a glyph. */
-    emoji: string | null
+    /** The room's drawing, already resolved — a stored emblem, or the one its name gives. */
+    emblem: DoodleName
     avatars: OgAvatar[]
     /** Members not shown in the row; 0 when everyone fits. */
     overflow: number
@@ -291,7 +293,7 @@ export function toRoomCard(
     const { avatars, overflow } = avatarsFor(room.members.map((m) => m.name))
     return {
         name: sanitizeDisplayName(room.name),
-        emoji: room.emoji,
+        emblem: roomEmblemDoodle(room.emoji, room.name),
         avatars,
         overflow,
         memberCount: room.members.length,
