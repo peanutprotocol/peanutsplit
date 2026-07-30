@@ -604,10 +604,17 @@ describe('page style gate', () => {
      * §3.17/§10: the product enters by name once, and is "Split" everywhere after that. Scoped to
      * the body because the title, the description and the FAQ schema are not the page's prose —
      * `pageTitle()` appends " | Peanut Split" to every title on the site as it is.
+     *
+     * Table rows are dropped first. §3.17 governs an entrance, and an entrance is a sentence; a
+     * comparison table is reference furniture, and its column header carries the full name because
+     * it sits beside "Splitwise" and "Tricount", where a bare "Split" reads as the row label rather
+     * than the product. Counting the header would force the one page whose job is that comparison
+     * to name itself less clearly than it names its competitor.
      */
     it('names "Peanut Split" in full once, then calls it Split', () => {
         for (const doc of ALL) {
-            const count = (bodyProse(doc).match(/Peanut Split/g) ?? []).length
+            const prose = bodyProse(doc).replace(/^\s*\|.*$/gm, ' ')
+            const count = (prose.match(/Peanut Split/g) ?? []).length
             expect(
                 count,
                 `${doc.collection}/${doc.slug}/${doc.locale}.md: the product enters by name once (§3.17) — every later mention is "Split"`

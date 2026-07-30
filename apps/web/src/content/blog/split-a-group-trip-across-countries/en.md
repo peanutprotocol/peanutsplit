@@ -30,7 +30,7 @@ Three things to agree on before the first expense.
 <Steps title="Before the first expense">
 <Step title="Pick the currency you will argue in">Choose whatever most of the trip is being paid in, not whatever your own bank uses. If the villa, the car and the restaurants are all in euros, the room is in euros. Everyone enters what they actually paid and Split converts it, so nobody is doing arithmetic in the taxi queue.</Step>
 <Step title="Get everyone in before the first expense">Paste the link in the group chat on day one, while people are still excited about the trip. The single biggest reason trip splits fall apart is that two people never joined, so their spending lives in a WhatsApp scroll instead.</Step>
-<Step title="Agree what counts">Say out loud whether the shared pot covers alcohol, tips and taxis, or just the big-ticket items. It takes thirty seconds and it is the only rule you will need later.</Step>
+<Step title="Agree what counts">Say out loud whether the shared pot covers alcohol, tips and taxis, or only the big-ticket items. It takes thirty seconds and it is the only rule you will need later.</Step>
 </Steps>
 
 ## Log the thing while you are holding the receipt
@@ -59,7 +59,7 @@ Split nets the debts against each other so you make two or three transfers inste
 
 This is where most trip-splitting advice stops.
 
-If the group shares a country you already have an answer — one domestic transfer app that everyone has. If the group does not, "just send it to me" turns into a week of back-and-forth about which app someone has, what a SWIFT transfer costs, and whether a €4 fee on a €40 debt is worth arguing about.
+If the group shares a country you already have an answer — one domestic transfer app that everyone has. If the group does not, "send it to me" turns into a week of back-and-forth about which app someone has, what a SWIFT transfer costs, and whether a €4 fee on a €40 debt is worth arguing about.
 
 In order of preference:
 
