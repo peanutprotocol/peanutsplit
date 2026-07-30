@@ -572,6 +572,20 @@ comments say the date.
 - **§8.4 Present the method, not a verdict.** Never write "punished for earning more" in our own
   voice — it provokes fury when used. Never imply a usage-weighted split is _obviously_ correct.
 - **§8.5 Give them a paste-able sentence** for the group chat, as copy, not as advice.
+- **§8.6 A tool never rebuilds the app's core loop.** Splitting a bill between people _is_ the
+  product, and a calculator for it hands back a number one person then retypes into a group chat.
+  Wherever that intent lands — a hub row, a related link, an FAQ — the link goes to the app and the
+  copy says why. What survives as a tool is arithmetic the app deliberately does not do.
+- **§8.7 Tools are built from the app's own components** — the composer card, the currency picker,
+  the drawn avatars, the counting amounts, the button, the chevron fold. A calculator styled as a
+  marketing form teaches an interface the reader is about to leave. Optional inputs fold away; the
+  happy path is the only thing visible first.
+- **§8.8 Playful control, clinical never.** A labelled slider ("how rich") beats a box asking for a
+  salary ("income"), because nobody types their pay into a webpage. The FAQ then states what the
+  control does to the arithmetic — a playful control that hides its weighting is a dishonest one.
+- **§8.9 A car costs more than its fuel.** Per-distance rates stand in for wear, upkeep and the
+  value a car loses, which is why official figures run well above a pump-only sum. Say that
+  generically; a breakdown attributed to a named authority needs the research to back it.
 
 ---
 
