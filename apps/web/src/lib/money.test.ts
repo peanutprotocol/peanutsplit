@@ -8,6 +8,7 @@ import {
     formatMinorPlain,
     formatMoney,
     formatMoneyParts,
+    isAmountInputAcceptable,
     parseAmountToMinor,
 } from './money'
 
@@ -155,6 +156,47 @@ describe('parseAmountToMinor', () => {
         ])('rejects fractional units for zero-decimal currencies in %s', (locale, input) => {
             expect(parseAmountToMinor(input, 0, locale)).toBeNull()
         })
+    })
+})
+
+describe('isAmountInputAcceptable', () => {
+    it('lets an amount be typed one character at a time', () => {
+        for (const partial of ['', '1', '12', '12.', '12.3', '12.34']) {
+            expect(isAmountInputAcceptable(partial, 2, 'en')).toBe(true)
+        }
+    })
+
+    it('allows a field to be emptied, and a decimal mark before its digits', () => {
+        expect(isAmountInputAcceptable('   ', 2, 'en')).toBe(true)
+        expect(isAmountInputAcceptable('.', 2, 'en')).toBe(true)
+        expect(isAmountInputAcceptable(',', 2, 'es')).toBe(true)
+    })
+
+    it('refuses what the parser could never read as money', () => {
+        expect(isAmountInputAcceptable('taxi', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('12e5', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('-5', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('12.3.4', 2, 'en')).toBe(false)
+    })
+
+    it('stops at the precision the currency actually has', () => {
+        expect(isAmountInputAcceptable('12.345', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('4500.4', 0, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('4500', 0, 'en')).toBe(true)
+    })
+
+    it.each([
+        ['en', '1,234'],
+        ['es', '1.234'],
+        ['pt-BR', '1.234'],
+    ])('accepts locale grouping in %s, the same as the parser does', (locale, input) => {
+        expect(isAmountInputAcceptable(input, 2, locale)).toBe(true)
+    })
+
+    it('accepts exactly what the parser accepts once the value is complete', () => {
+        for (const input of ['0', '0.5', '1234.56', '1,234.56']) {
+            expect(isAmountInputAcceptable(input, 2, 'en')).toBe(parseAmountToMinor(input, 2, 'en') !== null)
+        }
     })
 })
 
