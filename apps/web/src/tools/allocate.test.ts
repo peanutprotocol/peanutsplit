@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allocateByWeights, formatFigure, formatShareOfWhole } from './allocate'
+import { allocateByWeights, formatFigure, formatShareOfWhole, MAX_SAFE_MINOR } from './allocate'
 
 const sum = (values: readonly number[]) => values.reduce((running, value) => running + value, 0)
 
@@ -32,6 +32,34 @@ describe('allocateByWeights', () => {
                 expect(shares.length).toBe(weights.length)
             }
         }
+    })
+
+    /**
+     * The ceiling is real arithmetic, not a round number. At MAX_SAFE_MINOR the shares still add
+     * back up; above it a double's step exceeds one minor unit, the floored share can come out one
+     * too high, and the function INVENTS a unit nobody owes. Both facts are pinned, because a
+     * ceiling that is only asserted against itself would move silently with the constant.
+     */
+    it('reconciles at the largest total it claims to be exact for', () => {
+        for (const weights of [
+            [1, 1, 1],
+            [7, 3],
+            [1, 1e9],
+        ]) {
+            for (const total of [MAX_SAFE_MINOR, MAX_SAFE_MINOR - 1, MAX_SAFE_MINOR - 7]) {
+                const shares = allocateByWeights(total, weights)
+                expect(sum(shares), `${total} across ${weights.join('/')}`).toBe(total)
+            }
+        }
+    })
+
+    it('sits below MAX_SAFE_INTEGER, where the arithmetic provably drifts', () => {
+        expect(MAX_SAFE_MINOR).toBeLessThan(Number.MAX_SAFE_INTEGER)
+        // A total a double cannot divide into whole units: the shares come back one over.
+        const drifting = 9007199254740847
+        expect(Number.isSafeInteger(drifting)).toBe(true)
+        expect(sum(allocateByWeights(drifting, [7.332447289954871e-7]))).not.toBe(drifting)
+        expect(drifting).toBeGreaterThan(MAX_SAFE_MINOR)
     })
 
     it('splits a total nobody weighted equally rather than refusing it', () => {
