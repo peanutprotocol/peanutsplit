@@ -3,11 +3,14 @@ import { extname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
 
 const root = resolve(import.meta.dirname, '..')
-const sourceRoots = [resolve(root, 'src/components'), resolve(root, 'src/app')]
+// The whole product, not the two folders the landing pass happened to touch: a
+// second icon system is most likely to appear in the corner nobody is auditing.
+const sourceRoots = [resolve(root, 'src')]
 const codeExtensions = new Set(['.ts', '.tsx'])
 const rawSvgExceptions = new Map([
     ['src/components/ui/Doodle.tsx', 'the single generated doodle renderer'],
-    ['src/components/room/MemberAvatar.tsx', 'a content portrait renderer, not an interface icon'],
+    ['src/lib/share-package.ts', 'builds a share image file, not an interface icon'],
+    ['src/server/og/emblem.ts', 'wraps a generated doodle path as a link-preview image'],
 ])
 const forbiddenImports = [
     { pattern: /from\s+['"]lucide(?:-react)?['"]/, label: 'Lucide' },
@@ -17,6 +20,7 @@ const forbiddenImports = [
 const interfaceGlyph = /[\u2190-\u21ff✓✔✕✖❌✅➕]/u
 const pictograph = /\p{Extended_Pictographic}/u
 const failures = []
+const usedExceptions = new Set()
 
 function filesBelow(directory) {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -63,8 +67,9 @@ for (const file of sourceRoots.flatMap(filesBelow)) {
         failures.push(`${local}: revives the retired parallel messaging-icon component`)
     }
 
-    if (source.includes('<svg') && !rawSvgExceptions.has(local)) {
-        failures.push(`${local}: contains a raw SVG; add its geometry to design/doodles instead`)
+    if (source.includes('<svg')) {
+        if (rawSvgExceptions.has(local)) usedExceptions.add(local)
+        else failures.push(`${local}: contains a raw SVG; add its geometry to design/doodles instead`)
     }
 
     const sourceFile = ts.createSourceFile(
@@ -75,6 +80,13 @@ for (const file of sourceRoots.flatMap(filesBelow)) {
         file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
     )
     visitVisibleLiterals(sourceFile, sourceFile)
+}
+
+// An allowance nobody needs is a hole with a label on it: the file it named can be
+// rewritten through <Doodle> and the exception survives, ready to wave a real raw
+// SVG through later. Retire it the moment it stops applying.
+for (const file of rawSvgExceptions.keys()) {
+    if (!usedExceptions.has(file)) failures.push(`${file}: no longer holds a raw SVG; drop its audit exception`)
 }
 
 if (failures.length) {
