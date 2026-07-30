@@ -31,11 +31,15 @@ export const slugStem = (name: string): string => kebab(name) || 'room'
  * Three dash-separated runs because the tail is three words now, not six base32
  * characters — a preview that shows one run teaches the wrong shape, and the
  * whole point of the word tail is that it is legible before you can read it.
- * The run lengths are mid-list (the words are 3-7 letters); this is a hint, not
- * a measurement, and it stays short enough to sit on one line at 375px in the
- * hero's `font-mono text-xs`, which has no wrap rule.
+ *
+ * THREE dots per run, not the average word length. The hero line is a shrinking
+ * flex item with an ellipsis, and it does not wrap: measured against a
+ * production build at 375px, four-and-five-dot runs overflow and the ellipsis
+ * eats the third run — which loses the one thing the hint exists to show. Three
+ * is also the shortest real word in `slugWords.ts`, so it understates the tail
+ * rather than inventing one. Do not grow it without re-measuring.
  *
  * One constant with three consumers: the hero, the pass-the-link stage, and the
  * proof rail all promise the same URL and must not drift apart.
  */
-export const SLUG_TAIL_HINT = '-••••-•••••-••••'
+export const SLUG_TAIL_HINT = '-•••-•••-•••'
