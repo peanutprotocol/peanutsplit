@@ -11,7 +11,7 @@ import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
 import { useMotionAllowed } from '@/lib/use-motion'
-import { dayLabel, expenseLabel, groupByDay, relativeTime } from '@/lib/dates'
+import { dayLabel, expenseRowLabel, groupByDay, relativeTime } from '@/lib/dates'
 import { Button } from '@/components/ui/Button'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
@@ -279,7 +279,11 @@ export function ExpenseList({
                                             />
                                             <span className="min-w-0 flex-1">
                                                 <span className="block truncate text-h8">
-                                                    {expenseLabel(expense.description, expense.date, dayOptions)}
+                                                    {/* Row label, not plain `expenseLabel`: these rows
+                                                        sit under a day heading, so an unnamed one takes
+                                                        the day AND its time — otherwise it reprints the
+                                                        heading and two unnamed rows read identically. */}
+                                                    {expenseRowLabel(expense.description, expense.date, dayOptions)}
                                                 </span>
                                                 {isQueuedExpenseId(expense.id, queued) && (
                                                     <span className="block text-sm text-grey-1">

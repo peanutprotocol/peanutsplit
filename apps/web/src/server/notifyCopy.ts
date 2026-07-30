@@ -11,7 +11,6 @@
  * access control, so it appears only in the click-through `url`, never in a log
  * line or an analytics property.
  */
-import { expenseLabel } from '@/lib/dates'
 import { formatMoney } from '@/lib/money'
 
 export type NotificationTemplate = 'expense_added' | 'settlement_recorded' | 'all_settled'
@@ -59,20 +58,22 @@ export function expenseAddedPayload(input: {
     sendId: string
     actorName: string | null
     description: string
-    /** The expense date, which names the row when the description is blank. */
-    date: Date
     amountMinor: string
     currency: string
 }): PushPayload {
     // English words, like the rest of this module — see the file comment.
-    const label = expenseLabel(input.description, input.date.toISOString(), {
-        locale: 'en',
-        today: 'Today',
-        yesterday: 'Yesterday',
-    })
+    const amount = formatMoney(input.amountMinor, input.currency)
+    const name = input.description.trim()
+    // A day is not a name. The in-app row can label an unnamed expense with its
+    // day, because the day is a heading there and the row is a thing you can
+    // look at; a lock screen has one sentence, and "Ana added Today — €40.00"
+    // is not one. So the nameless shape drops the label rather than inventing
+    // one: "Ana added €40.00" says everything the notification knows.
     return {
         title: titleOf(input.room),
-        body: `${nameOf(input.actorName)} added ${label} — ${formatMoney(input.amountMinor, input.currency)}`,
+        body: name
+            ? `${nameOf(input.actorName)} added ${name} — ${amount}`
+            : `${nameOf(input.actorName)} added ${amount}`,
         url: roomUrl(input.room),
         template: 'expense_added',
         tag: roomTag(input.roomId),

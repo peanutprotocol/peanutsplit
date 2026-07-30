@@ -269,7 +269,6 @@ describe('send pipeline', () => {
                     sendId,
                     actorName: 'Ana',
                     description: 'Lift passes',
-                    date: new Date(),
                     amountMinor: '12000',
                     currency: 'EUR',
                 }),
@@ -486,6 +485,30 @@ describe('expense route wiring', () => {
             template: 'expense_added',
         })
         expect(payload.body).not.toContain('Ana added')
+    })
+
+    it('drops the label rather than naming an unnamed expense after a day', async () => {
+        const fixture = await makeRoom()
+        await seedSubscription(fixture.roomId, fixture.friend.id, FCM('friend-phone'))
+
+        const request = new Request(`${BASE}/api/rooms/${fixture.slug}/expenses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Member-Token': fixture.owner.token },
+            body: JSON.stringify({
+                amountMinor: '4000',
+                currency: 'EUR',
+                paidById: fixture.owner.id,
+                splitMode: 'EQUAL',
+            }),
+        })
+        expect(
+            (await (postExpense as Handler)(request, { params: Promise.resolve({ slug: fixture.slug }) })).status
+        ).toBe(201)
+
+        await waitFor(async () => (await prisma.notificationSend.count()) === 1)
+        const payload = JSON.parse(sendNotification.mock.calls[0][1])
+        // Not "Ana added Today — €40.00", which is not a sentence.
+        expect(payload.body).toBe('Ana added €40.00')
     })
 })
 

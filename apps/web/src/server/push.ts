@@ -270,7 +270,6 @@ export function notifyRoomWrite(input: {
                             sendId,
                             actorName: nameOf(expense.createdById),
                             description: expense.description,
-                            date: expense.date,
                             amountMinor: expense.amountMinor.toString(),
                             currency: expense.currency,
                         }),
