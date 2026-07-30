@@ -12,7 +12,7 @@
 import { prisma } from '@/server/db'
 import { readJson, respond } from '@/server/http'
 import { assertProvenMember, loadRoom } from '@/server/roomState'
-import { enforceRateLimit, WRITE_LIMIT } from '@/server/rateLimit'
+import { enforceRateLimit, meterRoomLookup, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushStatusSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,10 @@ export const POST = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'push-status')
         const { slug } = await ctx.params
         const body = pushStatusSchema.parse(await readJson(request))
-        const room = await loadRoom(slug)
+        // A guessed slug 404s here and a real slug with a bad token 403s, which is
+        // a room-existence oracle. Its own 120/hour bucket would have widened the
+        // 30/hour the miss limiter exists to enforce, so the miss goes there.
+        const room = await meterRoomLookup(request, () => loadRoom(slug))
         // Proof of membership as the delete does, but no `assertWritable`:
         // reading your own notification state has to work in an archived room,
         // where turning it off is the one thing left to do.

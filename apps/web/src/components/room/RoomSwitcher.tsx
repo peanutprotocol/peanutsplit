@@ -49,7 +49,7 @@ export function RoomSwitcher({ currentSlug, onNavigate }: { currentSlug: string;
                             style={{ backgroundColor: themeFor(room.theme).field }}
                             className="flex w-24 shrink-0 flex-col items-center gap-1 rounded-sm border border-n-1 p-2 transition-transform duration-100 active:translate-y-[2px]"
                         >
-                            <RoomEmblem value={room.emoji} size={26} />
+                            <RoomEmblem value={room.emoji} name={room.name} size={26} />
                             <span className="w-full truncate text-center text-xs">{room.name}</span>
                         </Link>
                     </li>

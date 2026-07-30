@@ -61,7 +61,7 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
 
             <div className="flex items-center gap-3">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4">
-                    <RoomEmblem value={recap.emoji} size={30} />
+                    <RoomEmblem value={recap.emoji} name={recap.name} size={30} />
                 </span>
                 <div className="min-w-0">
                     <p className="truncate text-h5">{recap.name}</p>
