@@ -99,5 +99,5 @@ Agreeing a convention takes about eleven seconds while the menus are still on th
 <RelatedLink href="/blog/split-expenses-in-real-time">Adding the expense at the table, not a week later</RelatedLink>
 <RelatedLink href="/blog/end-of-trip-expense-recap">What a group's expenses read like at the end</RelatedLink>
 <RelatedLink href="/blog/split-bills-without-an-app">Splitting a bill without making anyone sign up</RelatedLink>
-<RelatedLink href="/bill-split-calculator">The bill split calculator, with uneven shares</RelatedLink>
+<RelatedLink href="/new">Put the bill somewhere everyone can see it</RelatedLink>
 </RelatedPages>

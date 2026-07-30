@@ -57,18 +57,6 @@ export function allocateByWeights(totalMinor: number, weights: readonly number[]
     return shares
 }
 
-/**
- * A percentage of an amount, in whole minor units, rounded half up.
- *
- * Half up rather than banker's rounding because a tip is a number the reader can check against the
- * card machine, and "10% of 47.85 is 4.79" is the answer they will get there.
- */
-export function percentageOfMinor(amountMinor: number, percent: number): number {
-    if (!Number.isFinite(percent) || percent === 0) return 0
-    const exact = (Math.trunc(amountMinor) * percent) / 100
-    return Math.sign(exact) * Math.round(Math.abs(exact))
-}
-
 /** Trims a proportion to one decimal place of a percentage — "24.5%". Never money. */
 export function formatShareOfWhole(part: number, whole: number): string {
     if (!(whole > 0)) return '0%'
