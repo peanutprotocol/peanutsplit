@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { roomProps, sharePackageMeasureProps, track } from '@/lib/analytics'
+import { copyText } from '@/lib/clipboard'
 import { roomSharePackage, roomShareVisual } from '@/lib/share-package'
 import { themeFor } from '@/lib/themes'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -93,20 +94,21 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
     }, [t])
 
     const copy = useCallback(async () => {
-        try {
-            if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable')
-            await navigator.clipboard.writeText(payload.fullText)
-            setCopied(true)
-            setCopyFailed(false)
-            setStatus(t('copied'))
-            feedback('whoosh')
-            wave()
-            track('link_copied', roomProps(slug))
-            completed('clipboard')
-            window.setTimeout(() => setCopied(false), 2_000)
-        } catch {
+        // `copyText` answers with a boolean rather than throwing, so the check
+        // mark below cannot appear for a copy that never happened.
+        if (!(await copyText(payload.fullText))) {
+            feedback('error', { haptic: 'error' })
             revealFallback()
+            return
         }
+        setCopied(true)
+        setCopyFailed(false)
+        setStatus(t('copied'))
+        feedback('whoosh')
+        wave()
+        track('link_copied', roomProps(slug))
+        completed('clipboard')
+        window.setTimeout(() => setCopied(false), 2_000)
     }, [completed, feedback, payload.fullText, revealFallback, slug, t, wave])
 
     const share = useCallback(async () => {
