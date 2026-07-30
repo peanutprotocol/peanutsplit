@@ -45,7 +45,7 @@ What it costs is that the evening becomes a reconciliation, and everyone's choic
 
 The fourth convention is the most common and the least discussed, because it is never proposed. It is defaulted into. One person notices the asymmetry, works out that raising it would cost more than absorbing it, and absorbs it. Nothing is said. The dinner ends well, once.
 
-Starling Bank's survey of two thousand UK adults found that 46% of people owed money by friends or family were too embarrassed to ask for it, that getting it back took more than two months on average, and that 17% had begun to resent the person who owed them. CNBC's reporting on the etiquette of asking names the mechanism: the memory of being owed is elephant-like, and the memory of owing is not. Some people never bring it up at all, and carry a resentment that outlasts the friendship.
+[Starling Bank's 2023 survey](https://www.starlingbank.com/news/one-third-of-uk-adults-owed-money-by-friends-and-family/) of two thousand UK adults found that 46% of people owed money by friends or family were too embarrassed to ask for it, that getting it back took more than two months on average, and that 17% had begun to resent the person who owed them. The mechanism is asymmetry of memory: being owed is remembered, owing is not. Some people never bring it up at all, and carry a resentment that outlasts the friendship.
 
 ## Three harder cases
 
@@ -57,11 +57,7 @@ Arriving at nine to a table that sat down at seven is the clean case, and still 
 
 ## Is everyone going to split the loo roll
 
-This is the objection every fairness argument runs into. It turns up in close to these words wherever people argue about splitting a household:
-
-<Quote source="forums.moneysavingexpert.com">
-So is everyone going to also split how many times they use the loo/ put the lights on / spend time in the kitchen?
-</Quote>
+This is the objection every fairness argument runs into, in one form or another: if the wine gets its own line, then so does the loo roll, the lights, and the time each person spent in the kitchen.
 
 Fairness has a granularity floor, and everything worth doing happens above it. Three tests put an asymmetry above the line. It is large. It is visible on the bill. It is attributable to named people without anyone having to reconstruct the evening from memory. Wine clears all three. The loo roll clears none, and the only way to lift it above the line is a turnstile on the bathroom door.
 

@@ -1,4 +1,4 @@
-import { allocateByWeights, formatFigure, formatShareOfWhole } from './allocate'
+import { allocateByWeights, formatFigure, formatShareOfWhole, MAX_SAFE_MINOR } from './allocate'
 import type { Tool, ToolInput, ToolOutcome, ToolWorking } from './types'
 
 /**
@@ -30,7 +30,8 @@ function computeRentSplit({ values, rows }: ToolInput): ToolOutcome {
 
     if (rows.length === 0) return { ...empty, problem: 'Say how many people are on the rent.' }
     if (rent < 0) return { ...empty, problem: 'Rent cannot be less than nothing.' }
-    if (!Number.isSafeInteger(rent)) return { ...empty, problem: 'That is a bigger rent than this page divides.' }
+    if (!Number.isSafeInteger(rent) || rent > MAX_SAFE_MINOR)
+        return { ...empty, problem: 'That is a bigger rent than this page divides.' }
 
     const sizes = rows.map((row) => Math.max(0, row.values.size ?? 0))
     const notches = rows.map((row) => notchOf(row.values.rich ?? 1))
