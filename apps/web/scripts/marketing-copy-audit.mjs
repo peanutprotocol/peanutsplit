@@ -137,6 +137,16 @@ for (const local of [
     auditTypescript(resolve(root, local))
 }
 
+/**
+ * The tool registry is a publishing surface written in TypeScript: every string in it is copy on a
+ * page. Walked rather than listed, because the promise the registry makes is that adding a tool is
+ * adding one file — a hand-kept list here would be the one place that promise leaked.
+ */
+for (const path of filesBelow(resolve(root, 'src/tools'), new Set(['.ts']))) {
+    if (path.endsWith('.test.ts')) continue
+    auditTypescript(path)
+}
+
 for (const exception of exceptions) {
     if (!seenExceptions.has(exception.id)) {
         failures.push(`stale audit exception ${exception.id}; remove or update it`)

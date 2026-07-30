@@ -20,6 +20,8 @@ import { staticPageSlugs } from '@/data/static-pages'
 import { LOCALES } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { pageTitle } from './seo'
+import { TOOLS } from '@/tools/registry'
+import type { Tool, ToolField } from '@/tools/types'
 
 /**
  * These run against the real src/content/ tree rather than fixtures. That is deliberate: the
@@ -638,6 +640,240 @@ describe('page style gate', () => {
                 quoted.length,
                 `${doc.collection}/${doc.slug}/${doc.locale}.md: one quoted opening per page (§3.12) — the second line is the flat sentence that tests it`
             ).toBeLessThanOrEqual(1)
+        }
+    })
+})
+
+/**
+ * The tool registry, held to the same rules as the content tree.
+ *
+ * A calculator is a page like any other: it has a title Google truncates, an intro somebody wrote
+ * on a Friday, and an FAQ that can quietly overstate what the product does. The difference is that
+ * its copy lives in a `.ts` file, which is exactly why it needs this — markdown gets re-read by a
+ * human before it ships, and a string literal three levels inside a config does not.
+ *
+ * Every rule here is one the content pages already pass. Where a tool is held to MORE than an
+ * article (no exclamation mark at all), the reason is in the test.
+ */
+
+/** Every string a reader can see, including the ones `compute` produces. */
+function toolStrings(tool: Tool): string[] {
+    const { copy } = tool
+    const fields: ToolField[] = [...tool.fields, ...(tool.rows?.columns ?? [])]
+    return [
+        tool.meta.title,
+        tool.meta.description,
+        copy.h1,
+        ...copy.intro,
+        copy.formTitle,
+        copy.resultTitle,
+        copy.resultHint,
+        copy.roundingNote,
+        copy.copyLabel,
+        copy.copyDone,
+        ...(copy.method ? [copy.method.title, ...copy.method.body] : []),
+        copy.concession.title,
+        copy.concession.body,
+        copy.goodToKnow.title,
+        ...copy.goodToKnow.body,
+        copy.cta.title,
+        copy.cta.body,
+        copy.cta.label,
+        copy.faqTitle,
+        ...(tool.rows ? [tool.rows.nameLabel, tool.rows.namePrefix] : []),
+        ...fields.flatMap((field) => [field.label, field.help ?? '', field.unit ?? '']),
+        ...tool.faqs.flatMap((faq) => [faq.question, faq.answer]),
+        ...computedStrings(tool),
+    ].filter(Boolean)
+}
+
+/**
+ * What the calculator prints once it has run. `detail` and the working labels are copy — they are
+ * the derivation §8.3 asks for — and they are the copy least likely to be re-read, because they
+ * only exist at runtime. Both toggle states are exercised: on this registry, one of them is the
+ * income-weighted wording that no default render would reach.
+ */
+function computedStrings(tool: Tool): string[] {
+    const toggleNames = tool.fields.filter((field) => field.kind === 'toggle').map((field) => field.name)
+    return [false, true].flatMap((on) => {
+        const outcome = tool.compute({
+            values: Object.fromEntries(tool.fields.map((field) => [field.name, field.defaultValue * 100])),
+            toggles: Object.fromEntries(toggleNames.map((name) => [name, on])),
+            rows: Array.from({ length: 3 }, (_, index) => ({
+                name: `Row ${index + 1}`,
+                values: Object.fromEntries(
+                    (tool.rows?.columns ?? []).map((column) => [column.name, column.defaultValue * 100])
+                ),
+            })),
+            decimals: 2,
+        })
+        return [
+            outcome.problem ?? '',
+            ...outcome.shares.map((share) => share.detail),
+            ...outcome.workings.map((working) => working.label),
+        ].filter(Boolean)
+    })
+}
+
+/** §4.1 — the only approved shapes for the one concession section a page carries. */
+const CONCESSION_TITLE = /^When .+ (?:is the better tool|still wins)$/
+
+describe('tool registry', () => {
+    it('gives every tool a slug that a route can serve', () => {
+        for (const tool of TOOLS) {
+            expect(tool.slug, `${tool.slug} is not a slug`).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+            expect(tool.updated, `${tool.slug} updated`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+        }
+        expect(new Set(TOOLS.map((tool) => tool.slug)).size).toBe(TOOLS.length)
+    })
+
+    /**
+     * Tools and root-level articles share the `/[page]` segment, so a slug in both is two pages
+     * fighting over one URL. `static-pages.ts` reserves the tool slugs, which is what makes the
+     * loader hide a colliding markdown file — this is the assertion that the reservation happened,
+     * because a tool added without it would take a URL an article is already listed at.
+     */
+    it('reserves every tool slug against the content tree', () => {
+        for (const tool of TOOLS) {
+            expect(staticPageSlugs.has(tool.slug), `${tool.slug} is not reserved`).toBe(true)
+            for (const collection of ROOT_COLLECTIONS) {
+                for (const locale of LOCALES) {
+                    expect(listSlugs(collection, locale), `${tool.slug} collides with ${collection}`).not.toContain(
+                        tool.slug
+                    )
+                }
+            }
+        }
+    })
+
+    it('keeps titles and descriptions inside what Google renders', () => {
+        for (const tool of TOOLS) {
+            expect(pageTitle(tool.meta.title).length, `${tool.slug} title too long`).toBeLessThanOrEqual(60)
+            expect(tool.meta.description.length, `${tool.slug} description too long`).toBeLessThanOrEqual(160)
+        }
+    })
+
+    it('asks for every field once, and only for fields it uses', () => {
+        for (const tool of TOOLS) {
+            const names = [...tool.fields, ...(tool.rows?.columns ?? [])].map((field) => field.name)
+            expect(new Set(names).size, `${tool.slug} declares a field name twice`).toBe(names.length)
+
+            if (!tool.rows) continue
+            const count = tool.fields.find((field) => field.name === tool.rows?.countField)
+            expect(count?.kind, `${tool.slug}: rows.countField must name a count field`).toBe('count')
+            // A room holds up to twenty people (product-truths.md#room-size-20), and a table of a
+            // hundred rows is a page promising something the product does not do.
+            expect(count?.max, `${tool.slug}: the row count must be capped at twenty`).toBeLessThanOrEqual(20)
+
+            const toggles = new Set(tool.fields.filter((f) => f.kind === 'toggle').map((f) => f.name))
+            for (const column of tool.rows.columns) {
+                if (!column.requiresToggle) continue
+                expect(toggles.has(column.requiresToggle), `${tool.slug}: ${column.name} needs a toggle that exists`) //
+                    .toBe(true)
+            }
+        }
+    })
+
+    it('carries the provenance of any data it reads', () => {
+        for (const tool of TOOLS) {
+            if (!tool.data) continue
+            expect(tool.data.sourceUrl, `${tool.slug} data source`).toMatch(/^https:\/\//)
+            expect(tool.data.retrievedAt, `${tool.slug} data retrievedAt`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+            expect(tool.data.version, `${tool.slug} data version`).toBeTruthy()
+            expect(tool.data.rows.length, `${tool.slug} declares data with no rows`).toBeGreaterThan(0)
+        }
+    })
+
+    it('answers real questions, once each', () => {
+        for (const tool of TOOLS) {
+            expect(tool.faqs.length, `${tool.slug} has no FAQ`).toBeGreaterThanOrEqual(2)
+            const questions = tool.faqs.map((faq) => faq.question)
+            expect(new Set(questions).size, `${tool.slug} asks the same question twice`).toBe(questions.length)
+            for (const faq of tool.faqs) expect(faq.answer.length, `${tool.slug}: ${faq.question}`).toBeGreaterThan(20)
+        }
+    })
+})
+
+describe('tool style gate', () => {
+    it.each(NEVER_STRINGS.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
+        for (const tool of TOOLS) {
+            const subject =
+                rule.target === 'meta' ? `${tool.meta.title} ${tool.meta.description}` : toolStrings(tool).join('\n')
+            expect(subject.match(rule.pattern)?.[0], `${tool.slug}: ${rule.why}`).toBeUndefined()
+        }
+    })
+
+    /**
+     * Stricter than an article, and the reason is arithmetic. §3.13 allows one interjection per
+     * page and §11.2 forbids an exclamation mark anywhere near a number, in metadata, in a
+     * heading, in a table cell, in a CTA or in an FAQ. A calculator page is numbers, headings,
+     * table cells, a CTA and an FAQ — there is nowhere left for the interjection to stand.
+     */
+    it('spends no exclamation mark at all', () => {
+        for (const tool of TOOLS) {
+            for (const line of toolStrings(tool)) {
+                expect(line.includes('!'), `${tool.slug}: "${line}" — a tool page has nowhere to put one (§11.2)`) //
+                    .toBe(false)
+            }
+        }
+    })
+
+    it('only uses "just" as the first word of a sentence', () => {
+        for (const tool of TOOLS) {
+            for (const line of toolStrings(tool)) {
+                expect(
+                    line.match(MID_SENTENCE_JUST)?.[0],
+                    `${tool.slug}: mid-sentence "just" minimises what it describes (§3.18)`
+                ).toBeUndefined()
+            }
+        }
+    })
+
+    /** §3.18 is off in the flat families (§3.10), and capped at one everywhere else. */
+    it('opens at most one sentence with "Just", and none on a flat page', () => {
+        for (const tool of TOOLS) {
+            const count = (toolStrings(tool).join('\n').match(SENTENCE_INITIAL_JUST) ?? []).length
+            expect(count, `${tool.slug}: "Just …" is the closing beat of relief (§3.18) — a page gets one`) //
+                .toBeLessThanOrEqual(tool.register === 'flat' ? 0 : 1)
+        }
+    })
+
+    /**
+     * §3.17/§10.1: the product enters by name once and is "Split" everywhere after. Both approved
+     * full names count against the one allowance — a page that said "Peanut Split" in the intro
+     * and "Split by Peanut" in the CTA has entered twice.
+     */
+    it('names the product in full once, then calls it Split', () => {
+        for (const tool of TOOLS) {
+            const count = (
+                toolStrings(tool)
+                    .join('\n')
+                    .match(/Peanut Split|Split by Peanut/g) ?? []
+            ).length
+            expect(count, `${tool.slug}: the product enters by name once (§3.17)`).toBeLessThanOrEqual(1)
+        }
+    })
+
+    /** §4.1: one concession, and its title names the tool that wins rather than what we lack. */
+    it('concedes to something named, in the approved words', () => {
+        for (const tool of TOOLS) {
+            expect(tool.copy.concession.title, `${tool.slug}: see §4.1 for the approved titles`).toMatch(
+                CONCESSION_TITLE
+            )
+            expect(tool.copy.concession.body.length, `${tool.slug}: the concession is empty`).toBeGreaterThan(40)
+        }
+    })
+
+    /**
+     * §8.1: a usage-weighted tool that ignores the communal-space objection reads as absurd to the
+     * exact reader it is for. Same slug family as the cast-absence row in §11.2.
+     */
+    it('pre-empts the communal-space objection on a fairness page', () => {
+        for (const tool of TOOLS) {
+            if (!/rent-split|utilities|fair-split|alquiler|habitaciones/.test(tool.slug)) continue
+            const prose = toolStrings(tool).join('\n')
+            expect(/loo|lights|kitchen/i.test(prose), `${tool.slug}: name the objection and give the boundary (§8.1)`) //
+                .toBe(true)
         }
     })
 })
