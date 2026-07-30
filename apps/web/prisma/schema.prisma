@@ -20,7 +20,10 @@ enum SplitMode {
 
 model Room {
   id          String       @id @default(uuid())
-  slug        String       @unique // "ski-trip-x7k2m9" — kebab name + 6 rand base32
+  // "ski-trip-brave-otter-lamp" — kebab name + 3 random words. Rooms minted
+  // before the word list carry a 6-character base32 tail and keep it; nothing
+  // reads the tail's shape, so both are valid forever.
+  slug        String       @unique
   name        String
   emoji       String?
   currency    String // display/settle currency, ISO 4217

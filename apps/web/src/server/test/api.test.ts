@@ -182,7 +182,7 @@ describe('rooms and members', () => {
     it('creates a room with a shareable slug and a creator token', async () => {
         const { status, body } = await newRoom()
         expect(status).toBe(201)
-        expect(body.room.slug).toMatch(/^ski-trip-[0-9a-hjkmnp-tv-z]{6}$/)
+        expect(body.room.slug).toMatch(/^ski-trip-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
         expect(body.room.emoji).toBe('🎿')
         expect(body.members).toHaveLength(1)
         expect(body.memberId).toBe(body.members[0].id)

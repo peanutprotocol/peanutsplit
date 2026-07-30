@@ -152,7 +152,7 @@ describe('importing a group', () => {
         const { status, body } = await post<RoomStateWithMember>(bodyFor(parsed, { roomName: 'Ski trip' }))
 
         expect(status).toBe(201)
-        expect(body.room.slug).toMatch(/^ski-trip-[0-9a-hjkmnp-tv-z]{6}$/)
+        expect(body.room.slug).toMatch(/^ski-trip-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
         expect(body.room.emoji).toBe('🧾')
         expect(body.members.map((m) => m.name)).toEqual(['Ana', 'Bruno', 'Carla'])
         expect(body.expenses).toHaveLength(3)
