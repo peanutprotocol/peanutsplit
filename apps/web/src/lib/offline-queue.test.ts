@@ -409,7 +409,7 @@ describe('the queue end to end', () => {
             })
         }
         const sent: string[] = []
-        setQueuePerformer(async (queued) => void sent.push((queued.body as ExpenseInput).description))
+        setQueuePerformer(async (queued) => void sent.push((queued.body as ExpenseInput).description ?? ''))
 
         const summary = await drainPending()
 

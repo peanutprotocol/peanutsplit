@@ -62,7 +62,10 @@ export const createMemberSchema = z.object({
 export const expenseSchema = z
     .object({
         clientKey: clientKey.optional(),
-        description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
+        /** Optional. A row with no name is labelled by its day on every surface
+         *  that shows it, so an absent or blank one stores as the empty string
+         *  rather than being refused. */
+        description: z.string().trim().max(MAX_DESCRIPTION_CHARS).default(''),
         amountMinor: minorAmount,
         currency: currencyCode,
         paidById: id.optional(),

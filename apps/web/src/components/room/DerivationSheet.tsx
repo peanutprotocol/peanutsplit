@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Divider } from '@/components/ui/Divider'
 import type { CurrencyInfo } from '@/lib/api-types'
 import type { DerivationLine, DerivationLineKind, MemberDerivation } from '@/lib/balance-derivation'
-import { dayLabel } from '@/lib/dates'
+import { dayLabel, relativeTime } from '@/lib/dates'
 import { Money } from './Money'
 
 interface DerivationSheetProps {
@@ -48,8 +48,10 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
     const tDates = useTranslations('dates')
     const locale = useLocale()
 
-    const when = (line: DerivationLine) =>
-        dayLabel(line.date, { locale, today: tDates('today'), yesterday: tDates('yesterday') })
+    const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
+    /** How long ago, not which day: these lines are read to settle an argument
+     *  about a balance that moved, and "3h ago" is the answer to that. */
+    const when = (line: DerivationLine) => relativeTime(line.date, { locale, justNow: tDates('justNow') })
 
     return (
         <div className="flex flex-col gap-2">
@@ -77,7 +79,9 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
                                             ? t('sentTo', { name: party })
                                             : line.kind === 'settlement-received'
                                               ? t('receivedFrom', { name: party })
-                                              : (line.title ?? t('someone'))
+                                              : // An expense saved without a name is named by its
+                                                // day — the same fallback the list row uses.
+                                                line.title?.trim() || dayLabel(line.date, dayOptions)
                                     const positive = !line.amountMinor.startsWith('-')
                                     return (
                                         <li

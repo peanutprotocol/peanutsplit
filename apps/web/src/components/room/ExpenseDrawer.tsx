@@ -15,7 +15,7 @@ import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
-import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
+import { dayLabel, expenseLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
     allocatedMinor,
     buildExpenseBody,
@@ -113,7 +113,6 @@ export function ExpenseDrawer({
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
-    const descriptionRef = useRef<HTMLInputElement>(null)
     // React does not disable the button until the mutation state renders. A
     // second tap in that gap would mint a second clientKey and create a second
     // expense, so the synchronous guard owns the save attempt.
@@ -381,7 +380,6 @@ export function ExpenseDrawer({
             shake()
             if (validationToSave === 'AMOUNT_REQUIRED' || validationToSave === 'AMOUNT_INVALID')
                 amountRef.current?.focus()
-            else if (validationToSave === 'DESCRIPTION_REQUIRED') descriptionRef.current?.focus()
             else if (validationToSave === 'PAYER_REQUIRED') setEditor('payer')
             else setEditor('split')
             return
@@ -430,7 +428,13 @@ export function ExpenseDrawer({
     const remove = async () => {
         if (!expense) return
         const id = expense.id
-        const description = expense.description
+        // The toast has to name the row that just left the list, and an unnamed
+        // one is named by its day everywhere else too.
+        const description = expenseLabel(expense.description, expense.date, {
+            locale,
+            today: tDates('today'),
+            yesterday: tDates('yesterday'),
+        })
         try {
             await deleteExpense.mutateAsync(id)
             close()
@@ -512,23 +516,20 @@ export function ExpenseDrawer({
     const yesterdayInput = toDateInputValue(yesterdayDate.toISOString())
     const selectedDateInput = toDateInputValue(values.date)
     const validationCopy =
-        validation === 'DESCRIPTION_REQUIRED'
-            ? t('validation.DESCRIPTION_REQUIRED')
-            : validation === 'AMOUNT_REQUIRED'
-              ? t('validation.AMOUNT_REQUIRED')
-              : validation === 'AMOUNT_INVALID'
-                ? t('validation.AMOUNT_INVALID')
-                : validation === 'PAYER_REQUIRED'
-                  ? t('validation.PAYER_REQUIRED')
-                  : validation === 'NO_PARTICIPANTS'
-                    ? t('validation.NO_PARTICIPANTS')
-                    : validation === 'SHARE_AMOUNT_INVALID'
-                      ? t('validation.SHARE_AMOUNT_INVALID')
-                      : validation === 'SHARES_DO_NOT_ADD_UP'
-                        ? t('validation.SHARES_DO_NOT_ADD_UP')
-                        : null
+        validation === 'AMOUNT_REQUIRED'
+            ? t('validation.AMOUNT_REQUIRED')
+            : validation === 'AMOUNT_INVALID'
+              ? t('validation.AMOUNT_INVALID')
+              : validation === 'PAYER_REQUIRED'
+                ? t('validation.PAYER_REQUIRED')
+                : validation === 'NO_PARTICIPANTS'
+                  ? t('validation.NO_PARTICIPANTS')
+                  : validation === 'SHARE_AMOUNT_INVALID'
+                    ? t('validation.SHARE_AMOUNT_INVALID')
+                    : validation === 'SHARES_DO_NOT_ADD_UP'
+                      ? t('validation.SHARES_DO_NOT_ADD_UP')
+                      : null
     const amountInvalid = submitted && (validation === 'AMOUNT_REQUIRED' || validation === 'AMOUNT_INVALID')
-    const descriptionInvalid = submitted && validation === 'DESCRIPTION_REQUIRED'
     const positiveTotal = totalMinor !== null && BigInt(totalMinor) > 0n
     const primaryLabel =
         expense || !positiveTotal
@@ -580,7 +581,7 @@ export function ExpenseDrawer({
                         data-testid="expense-composer"
                         className={cn(
                             'shadow-4 overflow-hidden rounded-lg border-2 bg-white transition-colors',
-                            amountInvalid || descriptionInvalid ? 'border-error' : 'border-n-1'
+                            amountInvalid ? 'border-error' : 'border-n-1'
                         )}
                     >
                         <div className="flex min-w-0 items-center gap-2 px-3 py-2">
@@ -623,7 +624,6 @@ export function ExpenseDrawer({
                         <label className="block border-t border-dashed border-grey-1">
                             <span className="sr-only">{t('description')}</span>
                             <input
-                                ref={descriptionRef}
                                 value={values.description}
                                 onChange={(event) => {
                                     patch({ description: event.target.value })
@@ -633,8 +633,6 @@ export function ExpenseDrawer({
                                 onBlur={() => repairFieldRoles()}
                                 placeholder={t('descriptionPlaceholder')}
                                 maxLength={255}
-                                aria-invalid={descriptionInvalid || undefined}
-                                aria-describedby={descriptionInvalid ? 'expense-description-error' : undefined}
                                 data-testid="expense-description"
                                 className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
                             />
@@ -735,16 +733,6 @@ export function ExpenseDrawer({
                         >
                             <Icon name="x" size={16} />
                             {validationCopy ?? t('validation.AMOUNT_REQUIRED')}
-                        </p>
-                    )}
-                    {descriptionInvalid && (
-                        <p
-                            id="expense-description-error"
-                            role="alert"
-                            className="flex items-center gap-2 text-sm font-bold text-error"
-                        >
-                            <Icon name="x" size={16} />
-                            {t('validation.DESCRIPTION_REQUIRED')}
                         </p>
                     )}
 
@@ -1302,7 +1290,7 @@ export function ExpenseDrawer({
                         </section>
                     )}
 
-                    {submitted && validationCopy && !amountInvalid && !descriptionInvalid && (
+                    {submitted && validationCopy && !amountInvalid && (
                         <p role="alert" className="flex items-center gap-2 text-sm font-bold text-error">
                             <Icon name="x" size={16} />
                             {validationCopy}
