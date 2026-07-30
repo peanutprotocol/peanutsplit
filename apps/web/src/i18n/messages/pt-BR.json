@@ -31,7 +31,7 @@
             "showLess": "Mostrar menos salas",
             "forgetLabel": "Remover {room} deste aparelho",
             "confirmForgetTitle": "Remover {room} deste aparelho?",
-            "confirmForgetBody": "Esta lista é o único lugar onde este aparelho guarda a sala. O Split funciona sem contas, então guarde o link da sala para voltar quando quiser. As outras pessoas continuam com a sala, os gastos e os saldos.",
+            "confirmForgetBody": "Esta lista é o único lugar onde este aparelho guarda a sala. O Split funciona sem contas, então o link da sala é o que leva você de volta. Guarde ele antes de remover. As outras pessoas continuam com a sala, os gastos e os saldos.",
             "confirmForget": "Remover deste aparelho",
             "confirmForgetKeep": "Deixar aqui",
             "confirmForgetClose": "Fechar sem remover",

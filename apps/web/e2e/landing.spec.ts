@@ -705,6 +705,12 @@ test('every retained room is reachable and can be forgotten only on this device'
     await page.locator('[data-testid="forget-room"][data-room="room-seven-vwx345"]').click()
     // Dropping a room asks first: the list is this device's only copy of the link.
     await expect(page.getByTestId('forget-room-confirm')).toBeVisible()
+    // Saying no costs nothing: the room, and its link, are still here.
+    await page.getByTestId('cancel-forget-room').click()
+    await expect(page.getByTestId('forget-room-confirm')).toBeHidden()
+    await expect(list.getByRole('link')).toHaveCount(7)
+
+    await page.locator('[data-testid="forget-room"][data-room="room-seven-vwx345"]').click()
     await page.getByTestId('confirm-forget-room').click()
     await expect(list.getByRole('link')).toHaveCount(6)
     await expect(page.getByTestId('recent-room-notice')).toContainText('shared room still works')
