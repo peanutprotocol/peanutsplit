@@ -356,6 +356,115 @@ describe('article bodies', () => {
     })
 })
 
+/**
+ * The mechanical half of the stylebook.
+ *
+ * Split has no CI in front of `main` and a push is production in about five minutes, so a tone rule
+ * that lives only in a document is a tone rule that gets broken on a Friday. Every rule that CAN be
+ * a regex is one, and it lives here because `pnpm test` is the gate a human actually runs.
+ *
+ * Each rule is one entry. Adding the next one is a line, and the `why` is the message the failure
+ * prints — a rule whose failure does not say what to write instead gets worked around.
+ *
+ * The rules are deliberately narrow. A blanket ban on "real-time" would fail
+ * `blog/split-expenses-in-real-time`, whose subject is a shipped feature; what is actually banned is
+ * "real-time" applied to an FX RATE, which is the claim `fx.ts` cannot support. Same shape for the
+ * money-amount rule: a guide teaches with "the €47 taxi" and should, while a comparison page with a
+ * number in it is a competitor price that rots. Narrow rules survive; broad ones get suppressed.
+ */
+
+const RATE_WORD = 'rates?|exchange|conversion|fx|tasas?|tipo de cambio|cotizaci[óo]n|taxas?|c[âa]mbio'
+const LIVE_WORD = 'live|real[-\\s]?time|en vivo|ao vivo|(?:en|em) tiempo real|(?:en|em) tempo real'
+
+interface StyleRule {
+    id: string
+    /**
+     * `prose` is everything we wrote in our own voice: the title, the description and the body with
+     * attributed `<Quote>` blocks and MDX comments removed. The metadata is in there because it is
+     * the most-read prose on the page and the least often re-read by us.
+     *
+     * `meta` is the title and description alone, for rules about how a search result renders.
+     */
+    target: 'prose' | 'meta'
+    pattern: RegExp
+    /** Printed on failure. Say what to write instead, not just what is wrong. */
+    why: string
+    /** Collections the rule applies to. Omitted means all of them. */
+    collections?: readonly Collection[]
+}
+
+export const NEVER_STRINGS: readonly StyleRule[] = [
+    {
+        id: 'unguessable-link',
+        target: 'prose',
+        pattern: /\bunguessable\b|\binadivinable\b/i,
+        why: 'we make no claim about room-slug entropy — see product-truths.md#link-is-the-key',
+    },
+    {
+        id: 'minimal-transfers',
+        target: 'prose',
+        pattern:
+            /\b(?:fewest|smallest|minimum|minimal|optimal|m[íi]nim\w+|menor n[úu]mero)\b[^.\n]{0,24}\b(?:transfers?|payments?|transferencias?|transfer[êe]ncias?|pagos?|pagamentos?)\b/i,
+        why: 'the netting walk is greedy — say "two or three transfers instead of twenty" (product-truths.md#netting-is-greedy)',
+    },
+    {
+        id: 'live-fx-rate',
+        target: 'prose',
+        pattern: new RegExp(`\\b(?:${LIVE_WORD})\\b[\\s-]*(?:${RATE_WORD})\\b`, 'i'),
+        why: 'the FX ceiling is "converted at the day\'s rate" — never live or real-time (product-truths.md#twelve-currencies)',
+    },
+    {
+        id: 'live-fx-rate-reversed',
+        target: 'prose',
+        pattern: new RegExp(`\\b(?:${RATE_WORD})\\b[^.\\n]{0,16}\\b(?:${LIVE_WORD})\\b`, 'i'),
+        why: 'same rule, other word order: a rate is never described as live or in real time',
+    },
+    {
+        id: 'unlimited',
+        target: 'prose',
+        pattern: /\bunlimited\b|\bilimitad\w+\b/i,
+        why: 'nothing here is unlimited — "up to twenty people" (product-truths.md#room-size-20)',
+    },
+    {
+        id: 'money-amount-on-a-root-page',
+        target: 'prose',
+        collections: ROOT_COLLECTIONS,
+        // Both orders, because "€140" and "140 €" are the same claim in different languages and a
+        // one-sided regex would gate English and wave Spanish through.
+        pattern: /[$€£¥]\s?\d|\d[\d.,]*\s?[$€£¥]/,
+        why: 'a comparison or capture page states no prices — the paid-tier fact without the number (competitor-claims.md rule 3)',
+    },
+    {
+        id: 'emoji-in-metadata',
+        target: 'meta',
+        pattern: /\p{Extended_Pictographic}/u,
+        why: 'Google renders the title and description as plain text; an emoji there is a truncated character',
+    },
+]
+
+/**
+ * What a prose rule is matched against. A `<Quote>` is somebody else's words, attributed and dated,
+ * and it is the one place a phrase we would not write ourselves is allowed to appear — stripping it
+ * is what lets the rules be absolute everywhere else. MDX comments go too: the check-date note at the
+ * top of a comparison page is instructions to the next editor, not copy.
+ */
+function ownProse(doc: (typeof ALL)[number]): string {
+    const body = doc.body.replace(/<Quote[\s\S]*?<\/Quote>/g, ' ').replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
+    return `${doc.frontmatter.title}\n${doc.frontmatter.description}\n${body}`
+}
+
+describe('style gate', () => {
+    it.each(NEVER_STRINGS.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
+        for (const doc of ALL) {
+            if (rule.collections && !rule.collections.includes(doc.collection)) continue
+            const subject =
+                rule.target === 'meta' ? `${doc.frontmatter.title} ${doc.frontmatter.description}` : ownProse(doc)
+            const hit = subject.match(rule.pattern)
+            expect(hit?.[0], `${doc.collection}/${doc.slug}/${doc.locale}.md: ${rule.why}`).toBeUndefined()
+        }
+    })
+})
+
 describe('cast references', () => {
     /**
      * A mistyped character name would render the caption with no drawing beside it — a gap nothing
