@@ -4,6 +4,7 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { CTA, FAQ, FAQItem, RelatedLink, RelatedPages } from '@/components/marketing/mdx/blocks'
 import { ToolCalculator } from '@/components/tools/ToolCalculator'
+import { Doodle } from '@/components/ui/Doodle'
 import { breadcrumbSchema, faqSchema, toolSchema } from '@/lib/seo'
 import { toolPath } from '@/tools/registry'
 import type { Tool } from '@/tools/types'
@@ -23,7 +24,8 @@ import type { Tool } from '@/tools/types'
  *
  * Blocks are reused from the MDX set rather than re-styled here. A tool page and an article are
  * the same column at the same width on purpose — a calculator that looked like a different site
- * would be a second design system to keep in step.
+ * would be a second design system to keep in step. The calculator inside it is built from the
+ * app's own components for the same reason, one step further in — see `ToolCalculator`.
  */
 export async function ToolPage({ tool }: { tool: Tool }) {
     const t = await getTranslations({ locale: 'en', namespace: 'content' })
@@ -42,7 +44,12 @@ export async function ToolPage({ tool }: { tool: Tool }) {
             <Breadcrumbs crumbs={crumbs} />
 
             <header className="mx-auto w-full max-w-xl px-5 pb-2 pt-4">
-                <h1 className="text-h4 leading-tight text-n-1">{tool.copy.h1}</h1>
+                {/* One drawing, the same one the calculator and the hub row carry. Cast art, never
+                    a character with a line — see §5 of the stylebook. */}
+                <div className="flex items-center gap-3">
+                    <Doodle name={tool.doodle} size={38} weight={1.5} />
+                    <h1 className="text-h4 leading-tight text-n-1">{tool.copy.h1}</h1>
+                </div>
                 {tool.copy.intro.map((paragraph) => (
                     <p key={paragraph} className="mt-4 text-base leading-6 text-n-1">
                         {paragraph}

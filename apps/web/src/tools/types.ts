@@ -17,13 +17,20 @@
  * set in `content.test.ts`. Copy written inline in a component is copy nothing checks.
  */
 
+import type { DoodleName } from '@/components/ui/doodles'
+
 /**
  * What kind of number a field holds, which is also how it is parsed and rendered.
  *
  * `amount` is the only one that goes through the money parser: it is typed in major units in the
  * reader's own punctuation ("1.234,56" or "1,234.56") and reaches `compute` as minor units.
+ *
+ * `scale` is a number the reader answers by dragging rather than typing. It exists because one
+ * question on this site is not a quantity anybody actually knows — "how much money are you on" —
+ * and a box asking for a monthly figure gets a lie or a blank. A notch on a labelled slider is
+ * the honest instrument for it, and what the notches mean is stated in the tool's own FAQ.
  */
-export type ToolFieldKind = 'amount' | 'count' | 'percent' | 'number' | 'toggle'
+export type ToolFieldKind = 'amount' | 'count' | 'number' | 'toggle' | 'scale'
 
 export interface ToolField {
     /** Key in `ToolInput.values` (or `ToolInput.toggles`). Unique within a tool. */
@@ -39,15 +46,12 @@ export interface ToolField {
     step?: number
     /** Printed after the input — "sqm", "%". Never a currency symbol; the currency is the shell's. */
     unit?: string
-}
-
-/**
- * A column in the per-person table. `requiresToggle` is what lets a method be optional without a
- * second tool: the income column exists in the schema always and is asked for only when the reader
- * turns income weighting on.
- */
-export interface ToolRowColumn extends ToolField {
-    requiresToggle?: string
+    /**
+     * `scale` only: one label per notch, lowest first. The field's value is the 1-based notch, so
+     * `notches.length` is the top of the scale and the labels are what the reader is choosing
+     * between. Copy, and gated as copy.
+     */
+    notches?: readonly string[]
 }
 
 /** The per-person table. Its length follows a scalar field, so "how many people" is asked once. */
@@ -58,7 +62,7 @@ export interface ToolRows {
     nameLabel: string
     /** Default row names: `${namePrefix} 1`, `${namePrefix} 2`. Overwritable by the reader. */
     namePrefix: string
-    columns: ToolRowColumn[]
+    columns: ToolField[]
 }
 
 export interface ToolRowInput {
@@ -88,6 +92,43 @@ export interface ToolChoiceOption {
     note?: string
     /** The page the number was read off, named so the reader can go and check it. */
     source?: { label: string; href: string }
+}
+
+/**
+ * The optional way to answer one field, folded away behind a summary until it is asked for.
+ *
+ * It exists for the reader who rejects the pre-filled default and would otherwise type a guess.
+ * Rather than argue with the guess, the builder asks for the two or three things that guess is
+ * made of and does the arithmetic in front of them.
+ *
+ * **Nothing here reaches `compute`.** The builder writes one number into one ordinary field when
+ * the reader presses the button, and the field is ordinary state afterwards. That is what keeps it
+ * genuinely optional: a builder left closed, or opened and abandoned, changes no result.
+ */
+export interface ToolBuilder {
+    /** Field name this writes its answer into. Must be a `number` field on the same tool. */
+    target: string
+    /** The closed state: what the fold offers, in one clause. */
+    summary: string
+    /** The open state's heading. */
+    title: string
+    /** One flat line under the heading: what this is for. */
+    intro: string
+    fields: ToolField[]
+    /** The floor line — what the answer would be if the only cost were fuel. */
+    floorLabel: string
+    /** The line the button will write into `target`. */
+    totalLabel: string
+    applyLabel: string
+    appliedLabel: string
+    /**
+     * Pure: the builder's own fields, in major units, to the two figures it prints.
+     *
+     * Major units throughout, deliberately. `target` holds a per-distance rate that carries more
+     * decimals than any currency does, so putting this through the minor-unit boundary would round
+     * a real rate into an unreal one before it ever reached the arithmetic.
+     */
+    derive: (values: Record<string, number>) => { floor: number; total: number }
 }
 
 export interface ToolChoiceField {
@@ -177,7 +218,6 @@ export interface ToolCopy {
     h1: string
     /** Server-rendered intro. The answer arrives in the first two sentences. */
     intro: string[]
-    formTitle: string
     resultTitle: string
     /** Stands in for the result while the inputs cannot be divided. */
     resultHint: string
@@ -202,6 +242,13 @@ export interface ToolCopy {
 export interface Tool {
     /** Root-level path, no leading slash. Reserved against the content tree by `static-pages.ts`. */
     slug: string
+    /**
+     * The drawing this tool is stood next to, on its own page and in the `/tools` list.
+     *
+     * From the app's own set, because the point of it is that a calculator looks like the thing
+     * the CTA opens. Art only — the cast never speaks on a tool page and no character is named.
+     */
+    doodle: DoodleName
     /** ISO date of the last meaningful edit. The sitemap's `lastModified`. */
     updated: string
     /**
@@ -220,6 +267,8 @@ export interface Tool {
     /** Pickers, rendered above the numeric fields they pre-fill. */
     choices?: readonly ToolChoiceField[]
     rows?: ToolRows
+    /** The optional way to answer one field. At most one, because two folds is a form again. */
+    builder?: ToolBuilder
     faqs: ToolFaq[]
     data?: ToolData
     /**
