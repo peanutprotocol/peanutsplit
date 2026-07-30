@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MILEAGE_RATES } from './mileage-rates'
-import { mileageSplitCalculator } from './mileage-split-calculator'
+import { buildCustomRate, mileageSplitCalculator } from './mileage-split-calculator'
 import type { ToolOutcome } from './types'
 
 const { compute } = mileageSplitCalculator
@@ -122,6 +122,53 @@ describe('mileage split', () => {
                         expect(total(outcome), `${distance} at ${rate} across ${shares.join('/')}`) //
                             .toBe(outcome.totalMinor)
                     }
+                }
+            }
+        }
+    })
+})
+
+describe('the custom-rate builder', () => {
+    it('turns what the car drinks into a rate for each unit of distance', () => {
+        // Seven litres every hundred at 1.60 the litre is 11.2 cents of fuel a kilometre.
+        expect(buildCustomRate({ fuelPer100: 7, fuelPrice: 1.6, wear: 0 })).toEqual({ floor: 0.112, total: 0.112 })
+    })
+
+    /** The whole point of the fold: the fuel is the floor, and what goes on top is visible. */
+    it('adds the wear on top of the fuel without hiding it', () => {
+        expect(buildCustomRate({ fuelPer100: 7, fuelPrice: 1.6, wear: 0.25 })).toEqual({ floor: 0.112, total: 0.362 })
+    })
+
+    it('keeps four decimals, the way a published rate does', () => {
+        // 7.7 × 1.539 ÷ 100 is 0.11850300 exactly, and Belgium publishes 0.4440 — two places is
+        // not enough precision to write either of them down.
+        expect(buildCustomRate({ fuelPer100: 7.7, fuelPrice: 1.539, wear: 0 }).floor).toBe(0.1185)
+        expect(buildCustomRate({ fuelPer100: 10, fuelPrice: 1.5, wear: 0.294 }).total).toBe(0.444)
+    })
+
+    it('reads an empty fold, and a nonsense one, as nothing rather than as NaN', () => {
+        expect(buildCustomRate({})).toEqual({ floor: 0, total: 0 })
+        expect(buildCustomRate({ fuelPer100: -7, fuelPrice: 1.6, wear: -1 })).toEqual({ floor: 0, total: 0 })
+        expect(buildCustomRate({ fuelPer100: Number.NaN, fuelPrice: 1.6, wear: 0 })).toEqual({ floor: 0, total: 0 })
+    })
+
+    /**
+     * The builder feeds an input, so the only thing that matters downstream is that the split it
+     * causes still adds up. A four-decimal rate is exactly the shape that would not, if the cost
+     * were rounded per person rather than allocated by largest remainder.
+     */
+    it('produces a rate the split still reconciles to the cent at', () => {
+        for (const wear of [0, 0.07, 0.2345]) {
+            const { total: rate } = buildCustomRate({ fuelPer100: 7.4, fuelPrice: 1.679, wear })
+            for (const distance of [1, 137, 903.5]) {
+                for (const shares of [
+                    [1, 1, 1],
+                    [1, 0.5, 1],
+                ]) {
+                    // prettier-ignore
+                    const outcome = drive(distance, shares.length, { rate, shares, country: 'DE' })
+                    expect(total(outcome), `${distance} km at ${rate}`).toBe(outcome.totalMinor)
+                    expect(outcome.totalMinor).toBe(Math.round(distance * rate * 100))
                 }
             }
         }
