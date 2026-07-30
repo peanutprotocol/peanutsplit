@@ -86,6 +86,13 @@ function InviteCard(card: Extract<AchievementCardData, { kind: 'invite' }>): Rea
                             lineHeight: 1.1,
                             color: INK,
                             lineClamp: 2,
+                            // A room name is one user-supplied string and it does not have to
+                            // contain a space. Without this, `maxWidth` and `lineClamp` both do
+                            // nothing to a single long word — it draws as one line straight off
+                            // the right edge of the sheet. That is the exact failure the deleted
+                            // SVG geometry test existed to catch, and neither the character cap
+                            // nor the font step reaches it.
+                            wordBreak: 'break-word',
                         }}
                     >
                         {card.name}

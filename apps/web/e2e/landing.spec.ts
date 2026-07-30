@@ -993,10 +993,32 @@ test('the invite share attaches a real 1200\u00d7630 PNG', async ({ page, reques
     // 80 W's \u2014 the adversarial name the deleted test used, and the field's own maxLength.
     await page.getByTestId('room-name').fill('W'.repeat(80))
     await page.getByTestId('creator-name').fill('Ana')
+    /**
+     * Armed BEFORE the room exists, because `useSharePng` fires the moment `LinkMoment` mounts \u2014
+     * which is the same paint that reveals the link. Measured: the prefetch response landed 8ms
+     * AFTER an immediate tap, so without this wait the test taps a button that is legitimately
+     * still holding null, gets the correct text-only degradation, and fails on the decode below.
+     * The `expect.poll` further down cannot save it: `__roomSharePayload` is written once, by the
+     * `share` call, so polling it re-reads a snapshot taken at tap time and can never change.
+     *
+     * A phone is not this fast \u2014 both screens that render `LinkMoment` sit on display for seconds
+     * before anyone taps, which is the whole reason the fetch was moved to mount. The wait models
+     * that, rather than papering over a race that only a test harness can win.
+     */
+    const cardPrefetched = page
+        .waitForResponse((response) => response.url().includes('/card/invite'), { timeout: 20_000 })
+        // Any answer, including a 404: the degradation branch below owns that case and must still
+        // be reachable when the route is not there.
+        .catch(() => null)
     await page.getByTestId('create-room').click()
     const link = page.getByTestId('room-link')
     await expect(link).toBeVisible({ timeout: 15_000 })
     const slug = new URL((await link.innerText()).trim()).pathname.split('/')[2]
+    await cardPrefetched
+    // Two frames: the response is decoded and `setFile` has committed before the gesture.
+    await page.evaluate(
+        () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+    )
 
     await page.getByTestId('share-link').click()
     await expect
