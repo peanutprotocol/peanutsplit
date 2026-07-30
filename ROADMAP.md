@@ -166,6 +166,42 @@ still outstanding** and is the remaining half of the written condition.
   link to re-add it, manageable recent rooms), one reduced-motion policy,
   release-state vocabulary in `docs/release-states.md`.
 
+## App icon — DONE 2026-07-30, on `feat-logo`, waiting to merge
+
+**This work is finished. Nothing about the icon is open.** It sits on branch
+`feat-logo` because Konrad has not merged it yet, not because anything is left
+to do. A merge to `main` deploys it; no other step is needed.
+
+Split used to run the Peanut mascot on brand yellow, inside a white disc, inside
+a bordered rounded square. The mascot's own colour was 4.0% of the 512px file, so
+it was a smudge at launcher size and gone at 16px — and it was Peanut's mark, on
+a home screen that holds both apps.
+
+Konrad drew the replacement: a thumbs-up on a black-ringed pink disc
+(`primary-1` `#FF90E8`). Shipped with it:
+
+- `apps/web/src/assets/logos/split-mark.svg` — the artwork. Two ids the
+  generator depends on: `ground` (the disc) and `mark` (the thumb).
+- `apps/web/scripts/generate-icons.mjs` (`pnpm icons`) draws it two ways.
+  **disc** — the mark as designed, ring against the frame, transparent outside —
+  for everything that takes a transparent PNG: launcher, install prompt, tab.
+  **flat** — disc dropped, its pink filling the tile, thumb inside the safe zone
+  — for everything a platform masks into a square: Android maskable, iOS
+  apple-touch. A mask eats an edge ring first, which is why those two differ.
+- `src/app/favicon.ico`, which never existed. Disc at 32 and 48, flat at 16,
+  every size rendered rather than downscaled. The old `src/app/icon.png` was a
+  byte copy of the 192 launcher icon; it now has its own art.
+
+Two decisions, both Konrad's, both closed:
+
+- **The theme colour stays Peanut yellow** (`#FFC900` in `manifest.ts` and in
+  `layout.tsx`'s viewport). The icon carries the distinction from Peanut on its
+  own. Do not follow the icon to pink.
+- The five drawn peanut candidates that preceded the logo are deleted. They were
+  exploration, and the logo answered the question.
+
+Gate at `a6c5479`: typecheck clean, prettier clean, 1118/1118 tests pass.
+
 ## To light up (remaining gates)
 
 Done 2026-07-28 and verified live: the `split-egress` squid pinhole (allowed
@@ -603,8 +639,6 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   before any multi-currency settlement work.
 - In-memory rate limiter shares one bucket for header-less clients ('unknown'
   key) — unreachable behind Traefik, but wrong if the proxy ever changes.
-- `/favicon.ico` 404s (browsers probe it regardless of the manifest icons) —
-  drop a real .ico in `public/`.
 - SSE fan-out and the per-room scan quota are per-container (in-memory); a
   second replica halves poke delivery and doubles the quota. Single-replica by
   assumption; the fix is Postgres LISTEN/NOTIFY + a shared store, not caps.
