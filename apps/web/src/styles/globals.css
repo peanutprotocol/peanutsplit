@@ -1016,6 +1016,13 @@
     text-transform: uppercase;
 }
 
+.landing-proof-rail li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
 .landing-proof-rail li svg {
     color: #ff90e8;
 }
@@ -1346,11 +1353,7 @@
     }
 
     .landing-proof-rail li {
-        display: flex;
         min-height: 2.75rem;
-        align-items: center;
-        justify-content: center;
-        gap: 0.35rem;
         padding: 0.5rem;
         border-bottom: 1px solid rgb(255 255 255 / 20%);
     }
