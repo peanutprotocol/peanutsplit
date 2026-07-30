@@ -145,12 +145,12 @@ self.addEventListener('push', (event) => {
     const options: NotificationOptions = {
         body: payload.body ?? '',
         icon: '/icons/icon-192.png',
-        // No `badge`. Android renders the badge as a monochrome mask — every
-        // opaque pixel becomes solid white — so pointing it at the colour icon
-        // ships a white blob. It goes in the day there is a real
-        // monochrome-with-alpha asset, and not before.
-        //
-        // No `image` and no `actions` either: both are set only when they have a
+        // The status-bar mask. Android keeps the alpha and paints every opaque
+        // pixel one colour, so this can only ever be the asset drawn for that:
+        // `badge-96.png`, the thumb as a white silhouette on nothing. Pointing
+        // it at the colour icon would ship a white blob instead.
+        badge: '/icons/badge-96.png',
+        // No `image` and no `actions`: both are set only when they have a
         // value, because some browsers warn on an explicit undefined.
         data: { url: payload.url ?? '/', template: payload.template, sendId: payload.sendId },
         requireInteraction: false,
