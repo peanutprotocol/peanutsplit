@@ -953,5 +953,33 @@
         "peopleMany": "{count} personas",
         "emptyRoster": "Todavía no entró nadie",
         "tagline": "sin registro · gratis para siempre"
+    },
+    "card": {
+        "crew": {
+            "title": "EL GRUPO",
+            "line": "Un solo link, y estamos todos."
+        },
+        "passport": {
+            "title": "PASAPORTE",
+            "line": "{count} monedas. Una cuenta limpia."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Un viaje, un sello propio."
+        },
+        "stats": {
+            "title": "EL VIAJE"
+        },
+        "landing": {
+            "title": "A MANO"
+        },
+        "award": {
+            "tripStarter": "Quien lo empezó",
+            "firstMover": "Primer movimiento",
+            "ledgerLegend": "Leyenda de la cuenta",
+            "currencyHopper": "Saltamonedas",
+            "theCloser": "Quien cierra",
+            "hypeCrew": "La hinchada"
+        }
     }
 }

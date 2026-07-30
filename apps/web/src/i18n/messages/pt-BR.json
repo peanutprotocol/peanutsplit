@@ -953,5 +953,33 @@
         "peopleMany": "{count} pessoas",
         "emptyRoster": "Ninguém entrou ainda",
         "tagline": "sem cadastro · grátis para sempre"
+    },
+    "card": {
+        "crew": {
+            "title": "A TURMA",
+            "line": "Um link só, e todo mundo dentro."
+        },
+        "passport": {
+            "title": "PASSAPORTE",
+            "line": "{count} moedas. Uma divisão limpa."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Uma viagem, uma marca própria."
+        },
+        "stats": {
+            "title": "A VIAGEM"
+        },
+        "landing": {
+            "title": "QUITES"
+        },
+        "award": {
+            "tripStarter": "Quem começou",
+            "firstMover": "Primeiro a lançar",
+            "ledgerLegend": "Lenda do caderno",
+            "currencyHopper": "Pula-moedas",
+            "theCloser": "Quem fecha",
+            "hypeCrew": "A torcida"
+        }
     }
 }

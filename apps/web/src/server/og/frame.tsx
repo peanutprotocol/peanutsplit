@@ -141,12 +141,17 @@ export function Sheet({
     outerPadding = '36px 62px 0 46px',
     innerPadding = '44px 46px',
     torn = false,
+    tornOffset = 128,
     notchColor,
     children,
 }: {
     outerPadding?: string
     innerPadding?: string
     torn?: boolean
+    /** Where the perforation sits, measured up from the sheet's bottom edge. It
+     *  has to fall BETWEEN two rows: a ticket torn through its own subject is a
+     *  printing fault, not a ticket. */
+    tornOffset?: number
     /** The field colour behind the notches — they are holes, not dots. */
     notchColor?: string
     children: React.ReactNode
@@ -168,7 +173,7 @@ export function Sheet({
                     ...(torn ? { position: 'relative' as const } : {}),
                 }}
             >
-                {torn ? <TornEdge notchColor={notchColor ?? YELLOW} /> : null}
+                {torn ? <TornEdge notchColor={notchColor ?? YELLOW} offset={tornOffset} /> : null}
                 {children}
             </div>
         </div>
@@ -176,7 +181,7 @@ export function Sheet({
 }
 
 /** Two bitten-out circles and a perforation, three quarters of the way down. */
-function TornEdge({ notchColor }: { notchColor: string }) {
+function TornEdge({ notchColor, offset }: { notchColor: string; offset: number }) {
     const notch = (side: 'left' | 'right') =>
         ({
             display: 'flex',
@@ -190,7 +195,7 @@ function TornEdge({ notchColor }: { notchColor: string }) {
             border: `5px solid ${INK}`,
         }) as const
     return (
-        <div style={{ display: 'flex', position: 'absolute', left: 0, right: 0, bottom: 128, height: 0 }}>
+        <div style={{ display: 'flex', position: 'absolute', left: 0, right: 0, bottom: offset, height: 0 }}>
             <div style={notch('left')} />
             <div style={notch('right')} />
             <div
@@ -361,10 +366,22 @@ export function PersonaDisc({
  * argument `lib/story.ts` makes for the recap — "a story that changes between
  * two phones is a bug report, not a delight."
  */
-export function ConfettiScatter({ seed, count = 18 }: { seed: number; count?: number }) {
+export function ConfettiScatter({
+    seed,
+    width,
+    height,
+    count = 18,
+}: {
+    seed: number
+    width: number
+    height: number
+    count?: number
+}) {
     const colors = [YELLOW, PINK, INK]
     return (
-        <div style={{ display: 'flex', position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}>
+        // Absolute pixel offsets rather than percentages: the box this fills is
+        // sized by its content, and a percentage of an auto width is nothing.
+        <div style={{ display: 'flex', position: 'absolute', left: 0, top: 0, width, height }}>
             {Array.from({ length: count }, (_, i) => {
                 // Three cheap decorrelated draws off one seed. Nothing here is a
                 // secret; it only has to look unplanned and stay put.
@@ -377,8 +394,8 @@ export function ConfettiScatter({ seed, count = 18 }: { seed: number; count?: nu
                         style={{
                             display: 'flex',
                             position: 'absolute',
-                            left: `${4 + (a % 92)}%`,
-                            top: `${4 + (b % 88)}%`,
+                            left: Math.round((a % 1000) * (width / 1000)),
+                            top: Math.round((b % 1000) * (height / 1000)),
                             width: 14 + (c % 12),
                             height: 8 + (a % 7),
                             borderRadius: 4,
@@ -403,25 +420,17 @@ export function ConfettiScatter({ seed, count = 18 }: { seed: number; count?: nu
  * strip: drawings are the one vocabulary a card can use without opening the
  * font-coverage question.
  */
-export function NumeralColumn({
-    value,
-    doodle,
-    marginLeft = 0,
-}: {
-    value: number
-    doodle: DoodleName
-    marginLeft?: number
-}) {
+export function NumeralColumn({ value, doodle }: { value: number; doodle: DoodleName }) {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft, flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={doodleDataUri(doodle)} width={72} height={72} alt="" />
+            <img src={doodleDataUri(doodle)} width={96} height={96} alt="" />
             <div
                 style={{
                     display: 'flex',
-                    marginTop: 10,
+                    marginTop: 8,
                     fontFamily: DISPLAY_FONT,
-                    fontSize: 96,
+                    fontSize: 116,
                     lineHeight: 1.05,
                     color: INK,
                 }}
@@ -429,5 +438,14 @@ export function NumeralColumn({
                 {String(value)}
             </div>
         </div>
+    )
+}
+
+/** The WRAPPED cards' one row, spread rather than stacked left: two or three
+ *  columns with the whole sheet to sit in read as a summary, and the same row
+ *  hugging one edge reads as a list that ran out. */
+export function NumeralRow({ children }: { children: React.ReactNode }) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', marginTop: 26 }}>{children}</div>
     )
 }
