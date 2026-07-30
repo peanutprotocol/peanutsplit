@@ -73,7 +73,7 @@ Three sentences do nearly all of this work, and none of them name anybody. Befor
 
 All three are logistics when they are said early and accusations when they are said over the bill. The words do not change. The clock does.
 
-## The honest bit
+## Good to know
 
 None of this is enforceable, and none of it survives being introduced late. If nothing was agreed before ordering, the cheapest option left is to split evenly and set the convention next time.
 

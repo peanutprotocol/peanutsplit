@@ -36,14 +36,14 @@ faqs:
 
 Whether that money comes back matters more than the amount involved. When it does not, the person who fronted it usually says nothing about it, and stops being the one who organises anything, and the trips end without anybody deciding to end them.
 
-Let Peanut Split keep the ledger from the first booking instead. The room opens in about ten seconds, there is no account to make and nothing to download, and what anybody adds is on everybody's screen as they add it. By August the total is old news, and the last message in the group chat is a payment plan rather than a request.
+Let Split by Peanut keep the ledger from the first booking instead. The room opens in about ten seconds, there is no account to make and nothing to download, and what anybody adds is on everybody's screen as they add it. By August the total is old news, and the last message in the group chat is a payment plan rather than a request.
 
 ## The room goes in before the deposit does
 
 Every booking landing on one card is a decision nobody actually made. It happened because you were the one with the tab open in March, and by June it means one person is carrying a holiday and the other three are carrying nothing.
 
 <Steps title="Three things to settle before the first booking">
-<Step title="Start the room, then pay the deposit">Paste the link in the group chat while everyone is still arguing about dates. A room that opens on the second day of the trip has already missed the flights and the deposit, which are the two biggest numbers in it.</Step>
+<Step title="Start the room, then pay the deposit">Paste the link in the group chat while everyone is still arguing about dates, and pin it there. The link is the key, so a room nobody else can find is a room only you are keeping. A room that opens on the second day of the trip has already missed the flights and the deposit, which are the two biggest numbers in it.</Step>
 <Step title="Hand the bookings out">You do not have to be the only card. Give the car hire to one person and the ferry to another. Three people fronting a third each is a trip. One person fronting all of it is a loan.</Step>
 <Step title="Say what happens if somebody drops out">Deposits are rarely refundable, and this is the argument that actually ruins trips. Agree it in March, while it is hypothetical and has nobody's name on it.</Step>
 </Steps>
@@ -80,14 +80,13 @@ There is a card at the end of it too — what the trip cost and who fronted the 
 <ChecklistItem title="Recording it is one tap">Settle however the two of you settle, with cash at the airport, a bank transfer or a Peanut link, and one of you taps to say it happened. Split records the payment, it does not make it.</ChecklistItem>
 </Checklist>
 
-## The honest bit
+## Good to know
 
-A few things Split will not do for you, and it is better to know them in March than in August.
+Four facts about the room, worth having in March rather than in August.
 
 - **It is free forever, with nothing to upgrade to.** Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier waiting to be sold to you halfway through a trip.
 - **It does not move the money.** A settled row means somebody tapped to say they paid, not that a payment cleared. Split does not check with a bank and cannot, which is fine among friends and worth knowing about your own ledger.
 - **It will not chase anyone.** No reminder emails, no nudges into the group chat. If somebody goes quiet, that part is still yours.
-- **The link is the key.** There is no login and no password recovery, so if the group loses the link, the room is gone. Keep it in the group chat rather than only in your own browser.
 - **It holds up to twenty people.** A group, not a conference.
 
 <CTA
