@@ -659,13 +659,12 @@ describe('page style gate', () => {
 /** Every string a reader can see, including the ones `compute` produces. */
 function toolStrings(tool: Tool): string[] {
     const { copy } = tool
-    const fields: ToolField[] = [...tool.fields, ...(tool.rows?.columns ?? [])]
+    const fields: ToolField[] = [...tool.fields, ...(tool.rows?.columns ?? []), ...(tool.builder?.fields ?? [])]
     return [
         tool.meta.title,
         tool.meta.description,
         copy.h1,
         ...copy.intro,
-        copy.formTitle,
         copy.resultTitle,
         copy.resultHint,
         copy.roundingNote,
@@ -681,7 +680,18 @@ function toolStrings(tool: Tool): string[] {
         copy.cta.label,
         copy.faqTitle,
         ...(tool.rows ? [tool.rows.nameLabel, tool.rows.namePrefix] : []),
-        ...fields.flatMap((field) => [field.label, field.help ?? '', field.unit ?? '']),
+        ...fields.flatMap((field) => [field.label, field.help ?? '', field.unit ?? '', ...(field.notches ?? [])]),
+        ...(tool.builder
+            ? [
+                  tool.builder.summary,
+                  tool.builder.title,
+                  tool.builder.intro,
+                  tool.builder.floorLabel,
+                  tool.builder.totalLabel,
+                  tool.builder.applyLabel,
+                  tool.builder.appliedLabel,
+              ]
+            : []),
         ...(tool.choices ?? []).flatMap((choice) => [
             choice.label,
             choice.help ?? '',
@@ -702,6 +712,10 @@ function toolStrings(tool: Tool): string[] {
  * Every picker option is run too, one at a time. A working label can be written by the option a
  * reader picks — "rate for each mile" against "rate for each kilometre" — and an option nobody
  * renders in the default state is exactly the copy that ships unread.
+ *
+ * Slider columns are run level and then apart. A tool whose scale does nothing while every notch
+ * matches writes its second set of row details only once somebody has moved one, and that wording
+ * would otherwise never be rendered by this file.
  */
 function computedStrings(tool: Tool): string[] {
     const toggleNames = tool.fields.filter((field) => field.kind === 'toggle').map((field) => field.name)
@@ -713,26 +727,37 @@ function computedStrings(tool: Tool): string[] {
         ),
     ]
 
+    /** Level, then apart — the second pass moves every slider column to a different notch per row. */
+    const rowsAt = (spread: boolean) =>
+        Array.from({ length: 3 }, (_, index) => ({
+            name: `Row ${index + 1}`,
+            values: Object.fromEntries(
+                (tool.rows?.columns ?? []).map((column) => [
+                    column.name,
+                    column.kind === 'scale'
+                        ? (spread ? index + 1 : column.defaultValue)
+                        : column.defaultValue * 100, // prettier-ignore
+                ])
+            ),
+        }))
+
     return [false, true].flatMap((on) =>
-        pickings.flatMap((choices) => {
-            const outcome = tool.compute({
-                values: Object.fromEntries(tool.fields.map((field) => [field.name, field.defaultValue * 100])),
-                toggles: Object.fromEntries(toggleNames.map((name) => [name, on])),
-                choices,
-                rows: Array.from({ length: 3 }, (_, index) => ({
-                    name: `Row ${index + 1}`,
-                    values: Object.fromEntries(
-                        (tool.rows?.columns ?? []).map((column) => [column.name, column.defaultValue * 100])
-                    ),
-                })),
-                decimals: 2,
+        pickings.flatMap((choices) =>
+            [false, true].flatMap((spread) => {
+                const outcome = tool.compute({
+                    values: Object.fromEntries(tool.fields.map((field) => [field.name, field.defaultValue * 100])),
+                    toggles: Object.fromEntries(toggleNames.map((name) => [name, on])),
+                    choices,
+                    rows: rowsAt(spread),
+                    decimals: 2,
+                })
+                return [
+                    outcome.problem ?? '',
+                    ...outcome.shares.map((share) => share.detail),
+                    ...outcome.workings.map((working) => working.label),
+                ].filter(Boolean)
             })
-            return [
-                outcome.problem ?? '',
-                ...outcome.shares.map((share) => share.detail),
-                ...outcome.workings.map((working) => working.label),
-            ].filter(Boolean)
-        })
+        )
     )
 }
 
@@ -776,7 +801,10 @@ describe('tool registry', () => {
 
     it('asks for every field once, and only for fields it uses', () => {
         for (const tool of TOOLS) {
-            const names = [...tool.fields, ...(tool.rows?.columns ?? [])].map((field) => field.name)
+            // The builder shares the field namespace because the calculator holds every typed
+            // value in one record — two fields called `rate` would be one box wearing two labels.
+            const names = [...tool.fields, ...(tool.rows?.columns ?? []), ...(tool.builder?.fields ?? [])] //
+                .map((field) => field.name)
             expect(new Set(names).size, `${tool.slug} declares a field name twice`).toBe(names.length)
 
             if (!tool.rows) continue
@@ -785,13 +813,45 @@ describe('tool registry', () => {
             // A room holds up to twenty people (product-truths.md#room-size-20), and a table of a
             // hundred rows is a page promising something the product does not do.
             expect(count?.max, `${tool.slug}: the row count must be capped at twenty`).toBeLessThanOrEqual(20)
+        }
+    })
 
-            const toggles = new Set(tool.fields.filter((f) => f.kind === 'toggle').map((f) => f.name))
-            for (const column of tool.rows.columns) {
-                if (!column.requiresToggle) continue
-                expect(toggles.has(column.requiresToggle), `${tool.slug}: ${column.name} needs a toggle that exists`) //
-                    .toBe(true)
+    /**
+     * A slider with no labels is a number from one to five with no units, which is worse than a
+     * box. The labels are the control, so they are required and the default has to be one of them.
+     */
+    it('labels every notch of a slider it offers', () => {
+        for (const tool of TOOLS) {
+            const scales = [...tool.fields, ...(tool.rows?.columns ?? [])].filter((f) => f.kind === 'scale')
+            for (const field of scales) {
+                const notches = field.notches ?? []
+                expect(notches.length, `${tool.slug}: ${field.name} is a slider with no labels`).toBeGreaterThanOrEqual(2) // prettier-ignore
+                expect(new Set(notches).size, `${tool.slug}: ${field.name} labels a notch twice`).toBe(notches.length)
+                expect(field.defaultValue, `${tool.slug}: ${field.name} starts off its own scale`) //
+                    .toBeGreaterThanOrEqual(1)
+                expect(field.defaultValue, `${tool.slug}: ${field.name} starts off its own scale`) //
+                    .toBeLessThanOrEqual(notches.length)
             }
+        }
+    })
+
+    /**
+     * The builder writes into an existing field rather than into `compute`, so the one thing that
+     * can silently break it is a renamed target: the button would then write a key nothing reads
+     * and the reader would watch their own arithmetic be ignored.
+     */
+    it('builds into a field the tool actually asks for', () => {
+        for (const tool of TOOLS) {
+            if (!tool.builder) continue
+            const target = tool.fields.find((field) => field.name === tool.builder?.target)
+            expect(target?.kind, `${tool.slug}: the builder writes into a number field or nowhere`).toBe('number')
+            expect(tool.builder.fields.length, `${tool.slug}: a builder with no fields`).toBeGreaterThan(0)
+
+            // Every input empty is the state a reader who opened the fold and stopped is in, and
+            // it has to produce a number rather than NaN — the fold prints it live.
+            const empty = tool.builder.derive({})
+            expect(Number.isFinite(empty.floor), `${tool.slug}: an empty builder floor`).toBe(true)
+            expect(Number.isFinite(empty.total), `${tool.slug}: an empty builder total`).toBe(true)
         }
     })
 
