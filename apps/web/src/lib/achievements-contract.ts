@@ -102,3 +102,20 @@ export const CARD_TYPE: Partial<Record<CardKind, AchievementType>> = {
     stats: 'wrapped',
     landing: 'wrapped',
 }
+
+/**
+ * Which kinds the shelf draws, given whether the deck is on the same page.
+ *
+ * The recap page has two card surfaces and they were built from opposite ends: the deck is "the
+ * trip, wrapped" and the shelf is "what this trip unlocked". On a settled room both were true at
+ * once, so PASSPORT and ALTER EGO were drawn twice on one screen. The deck wins there — it is the
+ * wrapped surface, it is horizontal and scrollable, and it leads with the recap card. CREW is
+ * never in the deck, so the shelf keeps it and still has something of its own.
+ *
+ * Lives here rather than in the component because it is the rule that keeps the two surfaces from
+ * colliding, and both of them read this file already.
+ */
+export function shelfKinds<T extends CardKind>(kinds: readonly T[], deckShown: boolean): T[] {
+    if (!deckShown) return [...kinds]
+    return kinds.filter((kind) => !(WRAPPED_DECK as readonly string[]).includes(kind))
+}
