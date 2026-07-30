@@ -14,9 +14,11 @@ interface ThemePickerProps {
 
 /**
  * Eight swatches in a row you scroll. A grid of named cards would be more
- * explicit and would also be the biggest thing in the settings drawer, for a
+ * explicit and would also be the biggest thing in the settings sheet, for a
  * decision that is pure taste — swatches let you flick through the palette and
- * watch the room repaint behind the sheet, which is the actual feedback.
+ * watch the room repaint behind the sheet, which is the actual feedback. That
+ * repaint is also why there is no sentence under them saying the room can see
+ * it: the room is visibly seeing it.
  *
  * The default palette is stored as null, so tapping `classic` clears the column
  * rather than writing the string. One row per room, one meaning per value.
@@ -63,7 +65,6 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
                     )
                 })}
             </ul>
-            <span className="text-sm text-grey-1">{t('hint')}</span>
         </div>
     )
 }

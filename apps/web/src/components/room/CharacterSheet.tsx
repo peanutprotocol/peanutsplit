@@ -1,0 +1,101 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
+import { AvatarPicker } from '@/components/room/AvatarPicker'
+import { CloseButton } from '@/components/ui/CloseButton'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { roomProps, track } from '@/lib/analytics'
+import type { ApiMember } from '@/lib/api-types'
+import { avatarFamily } from '@/lib/avatars'
+import { cn } from '@/lib/cn'
+import { useErrorMessage } from '@/lib/error-messages'
+import { useSetAvatar } from '@/lib/queries'
+import { TOAST_MS } from '@/lib/toasts'
+import { useFeedback } from '@/lib/use-settings'
+
+const HINT_KEY = 'ps:character-hint'
+
+/**
+ * True the first time this device opens a character sheet, and never again.
+ * "Anyone can change anyone's character" is a rule of the room, so it has to be
+ * said once — and it stops being news the moment somebody has done it.
+ */
+function claimFirstOpen(): boolean {
+    try {
+        if (window.localStorage.getItem(HINT_KEY)) return false
+        window.localStorage.setItem(HINT_KEY, '1')
+        return true
+    } catch {
+        // Blocked storage cannot remember. One line every time beats never.
+        return true
+    }
+}
+
+/**
+ * One member's character, in its own sheet titled with their name.
+ *
+ * Two ways in, and both land here directly: your own avatar chip in the room
+ * header, and any person row in the settings sheet. Neither goes through a
+ * member-selector strip — the roster you tapped IS the selector.
+ */
+export function CharacterSheet({
+    open,
+    onClose,
+    slug,
+    member,
+}: {
+    open: boolean
+    onClose: () => void
+    slug: string
+    /** Null while the room reloads under an open sheet. */
+    member: ApiMember | null
+}) {
+    const t = useTranslations('room.avatar')
+    const errorMessage = useErrorMessage()
+    const feedback = useFeedback()
+    const setAvatar = useSetAvatar(slug, member?.id ?? '')
+    const [firstOpen, setFirstOpen] = useState(false)
+
+    useEffect(() => {
+        if (open) setFirstOpen(claimFirstOpen())
+    }, [open])
+
+    const chooseAvatar = (avatar: string | null) => {
+        if (!member || avatar === member.avatar) return
+        feedback('tick')
+        // The FAMILY, never the key or target member: both are social detail that
+        // analytics.ts exists to keep out of a funnel.
+        track('avatar_changed', roomProps(slug, { family: avatarFamily(avatar) }))
+        setAvatar.mutate(avatar, {
+            onError: (error) => {
+                feedback('error')
+                toast.error(errorMessage(error, t('failed')), { duration: TOAST_MS.actionable })
+            },
+        })
+    }
+
+    return (
+        <Drawer open={open && !!member} onOpenChange={(next) => !next && onClose()}>
+            <DrawerContent className={drawerContentClass} data-testid="character-sheet">
+                <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+                    <DrawerTitle className="text-h5">{member?.name ?? ''}</DrawerTitle>
+                    <CloseButton onClick={onClose} label={t('close')} data-testid="close-character-sheet" />
+                </DrawerHeader>
+                <DrawerBody>
+                    {firstOpen && <p className="text-sm text-grey-1">{t('firstOpen')}</p>}
+                    {member && (
+                        <AvatarPicker
+                            name={member.name}
+                            value={member.avatar}
+                            onChange={chooseAvatar}
+                            disabled={setAvatar.isPending}
+                        />
+                    )}
+                </DrawerBody>
+            </DrawerContent>
+        </Drawer>
+    )
+}
