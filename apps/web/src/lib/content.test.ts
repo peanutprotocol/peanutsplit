@@ -458,6 +458,183 @@ describe('style gate', () => {
     })
 })
 
+/**
+ * The other half of §11: the rules that count rather than ban.
+ *
+ * A never-string is a phrase we never write; these are phrases we write ONCE. One exclamation
+ * mark is the voice's interjection, two is a sales floor; one "Peanut Split" is the product
+ * entering by name, two is a brochure. A cap cannot be a `NEVER_STRINGS` row because a row is
+ * matched against the page as a blob and has no idea it is the second hit — so they live here,
+ * one `it` per rule, each iterating every published translation.
+ *
+ * They run in `pnpm test` rather than in `scripts/marketing-copy-audit.mjs` for the same reason
+ * the style gate above does: the audit script is the "free" claim checker, it walks raw files and
+ * knows nothing about frontmatter, drafts or locales, and the gate a human actually runs before
+ * pushing to `main` is `pnpm test`.
+ */
+
+/**
+ * Body copy only: no frontmatter, no attributed `<Quote>` (§7.1 — somebody else's words), no MDX
+ * comments (instructions to the next editor), and no `![` image marker, which is a markdown
+ * token rather than an exclamation mark.
+ */
+function bodyProse(doc: (typeof ALL)[number]): string {
+    return doc.body
+        .replace(/<Quote[\s\S]*?<\/Quote>/g, ' ')
+        .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
+        .replace(/!\[/g, '[')
+}
+
+/**
+ * The body chopped into the units a sentence rule can be applied to.
+ *
+ * MDX is not one stream of prose. A `<Step title="…">` holds a line of copy, a `|` divides two
+ * table cells, and the tag syntax between them is not text — so every attribute value and every
+ * cell becomes its own segment, and markdown scaffolding (bullets, blockquote and heading
+ * markers, emphasis) is stripped off the front. Opening quotation marks go too: a line of quoted
+ * dialogue (§3.12) still starts a sentence, and treating `"Just send it to me"` as mid-sentence
+ * would fail approved copy.
+ */
+function proseSegments(doc: (typeof ALL)[number]): string[] {
+    return bodyProse(doc)
+        .replace(/<\/?[A-Za-z][\w.]*/g, '\n')
+        .replace(/\/?>/g, '\n')
+        .replace(/\b[a-zA-Z]+="/g, '\n')
+        .replace(/\|/g, '\n')
+        .split('\n')
+        .map((line) =>
+            line
+                .replace(/^[\s>#*+-]+/, '')
+                .replace(/["“”'‘’*_`]/g, '')
+                .trim()
+        )
+        .filter(Boolean)
+}
+
+/** The places §11.2 allows no exclamation mark at all, labelled so the failure says which one. */
+function noExclamationZones(doc: (typeof ALL)[number]): [string, string][] {
+    const body = bodyProse(doc)
+    const zones: [string, string][] = [
+        ['the title', doc.frontmatter.title],
+        ['the description', doc.frontmatter.description],
+    ]
+    for (const faq of doc.frontmatter.faqs ?? []) zones.push(['a frontmatter FAQ', `${faq.question} ${faq.answer}`])
+    for (const [heading] of body.matchAll(/^#{1,6} .*/gm)) zones.push(['a heading', heading])
+    for (const [row] of body.matchAll(/^\s*\|.*/gm)) zones.push(['a table row', row])
+    for (const [, label] of body.matchAll(/\b(?:text|cta)="([^"]*)"/g)) zones.push(['a CTA label', label])
+    for (const [item] of body.matchAll(/<FAQItem[\s\S]*?<\/FAQItem>/g)) zones.push(['an FAQ item', item])
+    return zones
+}
+
+/**
+ * §11.1 verbatim. Every banned minimising use of "just" sits mid-sentence — "it's just easy",
+ * "just a few taps", "it's just a link" — and the one approved use (§3.18, the imperative of
+ * relief) is always the first word of a sentence, so the check follows the grammar and leaves the
+ * judgement to the cold read.
+ */
+const MID_SENTENCE_JUST = /(?:[^\s.!?\n][^.!?\n]*)\bjust\b/i
+/** §11.2's cap on the approved use: one sentence may open on "Just", not three. */
+const SENTENCE_INITIAL_JUST = /(?:^|[.!?]\s+)Just\s/gm
+
+describe('page style gate', () => {
+    /** §3.13: one interjection per page, and it is the only exclamation mark the page gets. */
+    it('spends at most one exclamation mark per page', () => {
+        for (const doc of ALL) {
+            const count = (bodyProse(doc).match(/!/g) ?? []).length
+            expect(
+                count,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: one interjection per page (§3.13) — the rest of the page is deadpan`
+            ).toBeLessThanOrEqual(1)
+        }
+    })
+
+    it('keeps exclamation marks out of metadata, headings, tables, CTAs and FAQs', () => {
+        for (const doc of ALL) {
+            for (const [where, text] of noExclamationZones(doc)) {
+                expect(
+                    text.includes('!'),
+                    `${doc.collection}/${doc.slug}/${doc.locale}.md: no exclamation mark in ${where} (§11.2) — the interjection lives in body copy`
+                ).toBe(false)
+            }
+        }
+    })
+
+    /**
+     * §3.13/§3.7.4: an exclamation mark next to money reads as a sales floor. Clauses are split on
+     * `.` and `?` only, so the text either side of the `!` counts as its sentence — which is the
+     * point, because "…! You are ninety euros down" is the same sales floor in two sentences.
+     */
+    it('never puts an exclamation mark near a number', () => {
+        for (const doc of ALL) {
+            for (const segment of proseSegments(doc)) {
+                for (const clause of segment.split(/[.?]+/)) {
+                    if (!clause.includes('!')) continue
+                    expect(
+                        /[\d$€£¥]/.test(clause),
+                        `${doc.collection}/${doc.slug}/${doc.locale}.md: "${clause.trim()}" — no exclamation mark in a sentence with a number in it (§3.13)`
+                    ).toBe(false)
+                }
+            }
+        }
+    })
+
+    it('only uses "just" as the first word of a sentence', () => {
+        for (const doc of ALL) {
+            for (const segment of proseSegments(doc)) {
+                const hit = segment.match(MID_SENTENCE_JUST)
+                expect(
+                    hit?.[0],
+                    `${doc.collection}/${doc.slug}/${doc.locale}.md: mid-sentence "just" minimises what it describes (§3.18) — cut the word, or open the sentence with it`
+                ).toBeUndefined()
+            }
+        }
+    })
+
+    it('opens at most one sentence with "Just"', () => {
+        for (const doc of ALL) {
+            const count = (proseSegments(doc).join('\n').match(SENTENCE_INITIAL_JUST) ?? []).length
+            expect(
+                count,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: "Just …" is the closing beat of relief (§3.18) — a page gets one`
+            ).toBeLessThanOrEqual(1)
+        }
+    })
+
+    /**
+     * §3.17/§10: the product enters by name once, and is "Split" everywhere after that. Scoped to
+     * the body because the title, the description and the FAQ schema are not the page's prose —
+     * `pageTitle()` appends " | Peanut Split" to every title on the site as it is.
+     */
+    it('names "Peanut Split" in full once, then calls it Split', () => {
+        for (const doc of ALL) {
+            const count = (bodyProse(doc).match(/Peanut Split/g) ?? []).length
+            expect(
+                count,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: the product enters by name once (§3.17) — every later mention is "Split"`
+            ).toBeLessThanOrEqual(1)
+        }
+    })
+
+    /**
+     * §3.12: a page may open on one line of quoted dialogue, and it is the first line or it is
+     * nothing. Whether the next sentence falsifies it is a judgement no regex makes, so this
+     * checks the countable half — one quoted line at the top of the page, not two.
+     */
+    it('opens on at most one quoted line', () => {
+        for (const doc of ALL) {
+            const opening = bodyProse(doc)
+                .split('\n')
+                .filter((line) => line.trim())
+                .slice(0, 4)
+            const quoted = opening.filter((line) => /^["“]/.test(line.trim()))
+            expect(
+                quoted.length,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: one quoted opening per page (§3.12) — the second line is the flat sentence that tests it`
+            ).toBeLessThanOrEqual(1)
+        }
+    })
+})
+
 describe('cast references', () => {
     /**
      * A mistyped character name would render the caption with no drawing beside it — a gap nothing
