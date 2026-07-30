@@ -115,7 +115,10 @@ export const MAX_SENTENCE_NAME_CHARS = 20
 const forSentence = (name: string) => {
     const chars = [...name]
     if (chars.length <= MAX_SENTENCE_NAME_CHARS) return name
-    return `${chars.slice(0, MAX_SENTENCE_NAME_CHARS - 1).join('').trimEnd()}…`
+    return `${chars
+        .slice(0, MAX_SENTENCE_NAME_CHARS - 1)
+        .join('')
+        .trimEnd()}…`
 }
 
 /**
