@@ -452,7 +452,10 @@ mockup or pushing the real creation form out of reach.
 
 2. **Run every UI icon through the doodle engine.** — _status: engine
    consolidated and source audit added on `feat/landing-follow-up` 2026-07-29;
-   final real-device route sweep pending_ — **[Konrad]** Inventory the whole
+   audit widened to all of `src` and every route swept in a browser at 375×667
+   and 1280×800 on `feat/landing-sweep` 2026-07-30 — no stray icon found. Two
+   items stay open: the 44px tap floor (below) and the real-device pass_ —
+   **[Konrad]** Inventory the whole
    product, not only the landing page. Replace
    remaining library icons, emoji used as controls, hand-authored one-off SVGs,
    Unicode arrows/checks, and other interface glyphs with named drawings from
@@ -469,6 +472,15 @@ mockup or pushing the real creation form out of reach.
    is no second icon system left for new code to copy; tap targets remain at
    least 44px even when the drawing is visually smaller; a source-level audit
    catches new emoji, raw icon SVGs, or legacy icon-component imports.
+
+   **Open — the 44px tap floor.** Six drawn controls measure under it: the
+   reaction opener (28px) and each reaction option (32px) in `ReactionBar`, the
+   copy-invite button (36px) in `ShareDrawer`, the character opener (20px tall)
+   in `RoomHeader`, and the two full-width rows that are 20px and 33px tall. The
+   obvious fix — an invisible hit area around each drawing — makes adjacent
+   reaction targets overlap, so the wrong reaction gets picked. Growing the
+   drawn control instead changes the density of the expense list. Konrad picks
+   which trade the reaction row takes; the other four are safe to grow.
 
 3. **Rewrite “How the link works” and make “free forever” consistent.** —
    _status: implemented with an enforceable copy audit on
@@ -497,7 +509,11 @@ mockup or pushing the real creation form out of reach.
 
 4. **Give the landing page the app's motion, sound, and haptic vocabulary.** —
    _status: first motion map and implementation complete on
-   `feat/landing-follow-up` 2026-07-29; peanut.me comparison and real-device feel
+   `feat/landing-follow-up` 2026-07-29; every automated contract re-verified
+   against a production build on `feat/landing-sweep` 2026-07-30 — quiet on
+   passive scroll, sound only after a gesture, complete final frame in both
+   reduced-motion paths, no overflow, CTA in the fold at 375×667 and 390×844.
+   peanut.me comparison and real-device feel
    pass pending_ — **[Konrad]** Start with a motion map rather than sprinkling
    unrelated loops over the page. Choreograph the room-link handoff, people
    joining, channel doodles arriving, proof scenes entering the viewport,
