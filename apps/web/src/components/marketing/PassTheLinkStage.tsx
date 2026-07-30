@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
-import { slugStem } from '@/lib/slugify'
+import { SLUG_TAIL_HINT, slugStem } from '@/lib/slugify'
 import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 export type PassTheLinkStageState = 'question' | 'reply' | 'link' | 'complete'
@@ -93,7 +93,8 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
                                     <div className="pass-link-shared-main">
                                         <strong>{shownRoomName}</strong>
                                         <b data-testid="pass-link-url">
-                                            peanutsplit.com/r/{stem}-<span>••••••</span>
+                                            peanutsplit.com/r/{stem}
+                                            <span>{SLUG_TAIL_HINT}</span>
                                         </b>
                                     </div>
                                     <div className="pass-link-shared-footer">
