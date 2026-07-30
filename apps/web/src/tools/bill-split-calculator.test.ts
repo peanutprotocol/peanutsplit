@@ -10,6 +10,7 @@ function split(bill: number, people: number, options: { tip?: number; shares?: n
     return compute({
         values: { bill, people, tip: options.tip ?? 0 },
         toggles: {},
+        choices: {},
         rows: shares.map((share, index) => ({ name: `Person ${index + 1}`, values: { share } })),
         decimals: 2,
     })

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { FALLBACK_CURRENCIES, decimalsOf, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { getTool } from '@/tools/registry'
-import type { Tool, ToolField, ToolInput, ToolRowColumn } from '@/tools/types'
+import type { Tool, ToolChoiceField, ToolChoiceOption, ToolField, ToolInput, ToolRowColumn } from '@/tools/types'
 
 /**
  * The one interactive part of a tool page.
@@ -35,6 +35,10 @@ interface RowState {
     values: Record<string, string>
 }
 
+/** The option a picker starts on, which is also the option whose pre-fills the fields load with. */
+const initialOption = (choice: ToolChoiceField): ToolChoiceOption =>
+    choice.options.find((option) => option.value === choice.defaultValue) ?? choice.options[0]
+
 export function ToolCalculator({ slug }: { slug: string }) {
     const tool = getTool(slug)
     if (!tool) return null
@@ -42,15 +46,37 @@ export function ToolCalculator({ slug }: { slug: string }) {
 }
 
 function Calculator({ tool }: { tool: Tool }) {
-    const [currency, setCurrency] = useState('EUR')
-    const [text, setText] = useState<Record<string, string>>(() =>
-        Object.fromEntries(tool.fields.map((field) => [field.name, initialText(field)]))
+    const choiceFields = tool.choices ?? []
+    const startingOptions = choiceFields.map(initialOption)
+
+    const [currency, setCurrency] = useState(
+        () => startingOptions.find((option) => option?.currency)?.currency ?? 'EUR'
+    )
+    const [text, setText] = useState<Record<string, string>>(() => ({
+        ...Object.fromEntries(tool.fields.map((field) => [field.name, initialText(field)])),
+        ...Object.assign({}, ...startingOptions.map((option) => option?.sets ?? {})),
+    }))
+    const [choices, setChoices] = useState<Record<string, string>>(() =>
+        Object.fromEntries(choiceFields.map((choice) => [choice.name, initialOption(choice)?.value ?? '']))
     )
     const [toggles, setToggles] = useState<Record<string, boolean>>(() =>
         Object.fromEntries(tool.fields.filter((f) => f.kind === 'toggle').map((f) => [f.name, f.defaultValue === 1]))
     )
     const [rows, setRows] = useState<RowState[]>([])
     const [copied, setCopied] = useState(false)
+
+    /**
+     * Picking an option writes its numbers into the fields below it and moves the currency with
+     * them, because a rate published in one country's money is wrong under another's sign. Both
+     * are ordinary state afterwards — the reader types over either without the picker objecting.
+     */
+    const pick = (choice: ToolChoiceField, value: string) => {
+        const option = choice.options.find((entry) => entry.value === value)
+        setChoices((current) => ({ ...current, [choice.name]: value }))
+        if (option?.sets) setText((current) => ({ ...current, ...option.sets }))
+        if (option?.currency) setCurrency(option.currency)
+        setCopied(false)
+    }
 
     const decimals = decimalsOf(currency)
     const scalars = tool.fields.filter((field) => field.kind !== 'toggle')
@@ -98,6 +124,7 @@ function Calculator({ tool }: { tool: Tool }) {
         const input: ToolInput = {
             values: Object.fromEntries(scalars.map((field) => [field.name, zeroed(parse(field, text[field.name], decimals))])), // prettier-ignore
             toggles,
+            choices,
             rows: visibleRows.map((row) => ({
                 name: row.name.trim() || 'Someone',
                 values: Object.fromEntries(
@@ -110,7 +137,7 @@ function Calculator({ tool }: { tool: Tool }) {
             decimals,
         }
         return tool.compute(input)
-    }, [incomplete, text, toggles, visibleRows, decimals, tool])
+    }, [incomplete, text, toggles, choices, visibleRows, decimals, tool])
 
     const money = (minor: number) => formatMoney(String(minor), currency, FALLBACK_CURRENCIES, 'en')
 
@@ -139,6 +166,10 @@ function Calculator({ tool }: { tool: Tool }) {
                 </div>
 
                 <div className="mt-4 flex flex-col gap-4">
+                    {choiceFields.map((choice) => (
+                        <Picker key={choice.name} choice={choice} value={choices[choice.name]} onPick={pick} />
+                    ))}
+
                     {tool.fields.map((field) =>
                         field.kind === 'toggle' ? (
                             <label key={field.name} className="flex items-start gap-3">
@@ -266,6 +297,58 @@ function Calculator({ tool }: { tool: Tool }) {
                 )}
             </div>
         </section>
+    )
+}
+
+/**
+ * A picker, and underneath it whatever the chosen option has to declare about itself.
+ *
+ * The note and the source live here rather than in a block further down the page because they are
+ * about the number in the box above them: a rate is only worth pre-filling if the reader can see
+ * what it covers and open the page it was read off.
+ */
+function Picker({
+    choice,
+    value,
+    onPick,
+}: {
+    choice: ToolChoiceField
+    value: string | undefined
+    onPick: (choice: ToolChoiceField, value: string) => void
+}) {
+    const chosen = choice.options.find((option) => option.value === value)
+    return (
+        <div>
+            <label className="block">
+                <span className="block text-h8">{choice.label}</span>
+                <select
+                    value={value ?? ''}
+                    onChange={(event) => onPick(choice, event.target.value)}
+                    data-testid={`tool-choice-${choice.name}`}
+                    className={`${INPUT} mt-1`}
+                >
+                    {choice.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </label>
+            {choice.help && <p className="mt-1 text-xs text-grey-1">{choice.help}</p>}
+            {chosen?.note && <p className="mt-2 text-xs leading-4 text-n-1">{chosen.note}</p>}
+            {chosen?.source && (
+                <p className="mt-1 text-xs leading-4 text-grey-1">
+                    <a
+                        href={chosen.source.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-n-1 underline"
+                    >
+                        {chosen.source.label}
+                    </a>
+                </p>
+            )}
+        </div>
     )
 }
 
