@@ -157,7 +157,7 @@ export const mileageSplitCalculator: Tool = {
     meta: {
         title: 'Mileage split calculator for a shared car',
         description:
-            'Cost a drive at the official mileage rate, which covers the whole car and not the petrol, and split it between everyone who was in it.',
+            'Cost a drive at the official mileage rate, which prices the whole car rather than the petrol, and split it between everyone who was in it.',
     },
     copy: {
         h1: 'Mileage split calculator',
@@ -287,8 +287,8 @@ export const mileageSplitCalculator: Tool = {
             {
                 name: 'wear',
                 kind: 'number',
-                label: 'Wear and lost value, each one',
-                help: 'The part no fuel receipt shows: tyres, the service that comes round sooner, the car being worth less than it was. Left at nothing, this prices the petrol and calls it a day.',
+                label: 'Wear and lost value on top',
+                help: 'For each mile or kilometre. The part no fuel receipt shows: tyres, the service that comes round sooner, the car being worth less than it was. Left at nothing, this prices the petrol and calls it a day.',
                 defaultValue: 0,
                 min: 0,
                 step: 0.01,
