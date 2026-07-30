@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import { LandingPersona } from '@/components/marketing/LandingPersona'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { castPersona } from '@/lib/cast'
 
 /**
  * The blocks an article can use. Split's article surface is one column at max-w-xl, the same
@@ -150,6 +152,44 @@ export function Quote({ children, source }: { children: ReactNode; source: strin
         <figure className={`${COLUMN} my-8`}>
             <blockquote className="border-l-2 border-n-1 pl-3 text-sm italic leading-5 text-n-1">{children}</blockquote>
             <figcaption className="mt-2 pl-3 text-h9 uppercase tracking-wide text-grey-1">{source}</figcaption>
+        </figure>
+    )
+}
+
+/** Drawn sizes in px. `md` is the reading-column default; `lg` is a section opener. */
+const CAST_SIZES = { sm: 40, md: 64, lg: 96 } as const
+
+/**
+ * One of the cast, drawn beside the prose.
+ *
+ * A figure, not a speaker. The characters have no dialogue anywhere in the product and they get
+ * none here: `caption` is the article's own voice describing the drawing, and there is deliberately
+ * no prop that would put words in a character's mouth. That division of labour — names carry the
+ * whimsy, prose stays dry — is what keeps the tone off the register Konrad ruled out.
+ *
+ * `name` takes a character (`raincoat-duck`) or a landing role (`ana`); see `lib/cast.ts`. It is a
+ * string because next-mdx-remote strips anything that is not, and it is validated by
+ * `content.test.ts` rather than here — an unknown name renders the caption alone rather than
+ * failing the build, because a bad article must never be able to break `next build`.
+ *
+ * The English display name is never rendered. The labels in `avatars.ts` are English literals
+ * outside the i18n catalogs, so a Spanish page naming the character would ship an untranslated
+ * string; the caption is the page's own words and translates with the page.
+ */
+export function Cast({
+    name,
+    size = 'md',
+    caption,
+}: {
+    name: string
+    size?: keyof typeof CAST_SIZES
+    caption?: string
+}) {
+    const persona = castPersona(name)
+    return (
+        <figure className={`${COLUMN} my-8 flex items-center gap-4`}>
+            {persona && <LandingPersona persona={persona} size={CAST_SIZES[size]} />}
+            {caption && <figcaption className="flex-1 text-sm leading-5 text-grey-1">{caption}</figcaption>}
         </figure>
     )
 }

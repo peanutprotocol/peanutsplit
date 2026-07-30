@@ -15,6 +15,7 @@ import {
     localesForSlug,
     type Collection,
 } from './content'
+import { CAST_NAMES, isCastName } from './cast'
 import { staticPageSlugs } from '@/data/static-pages'
 import { LOCALES } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
@@ -350,6 +351,32 @@ describe('article bodies', () => {
                 const selfClosing = (doc.body.match(new RegExp(`<${tag}[^>]*/>`, 'gs')) ?? []).length
                 const closes = (doc.body.match(new RegExp(`</${tag}>`, 'g')) ?? []).length
                 expect(opens - selfClosing, `${doc.slug}: <${tag}> is unbalanced`).toBe(closes)
+            }
+        }
+    })
+})
+
+describe('cast references', () => {
+    /**
+     * A mistyped character name would render the caption with no drawing beside it — a gap nothing
+     * reports, because `<Cast>` deliberately does not throw. This is the gate.
+     */
+    it('only names characters that exist', () => {
+        for (const doc of ALL) {
+            for (const [, name] of doc.body.matchAll(/<Cast[^>]*\bname="([^"]*)"/g)) {
+                expect(
+                    isCastName(name),
+                    `${doc.slug} names "${name}", which is not in the cast — pick one of: ${CAST_NAMES.join(', ')}`
+                ).toBe(true)
+            }
+        }
+    })
+
+    /** An unknown size falls back to the CSS default, which is the picker's 32px — too small to read. */
+    it('draws the cast at a size the component knows', () => {
+        for (const doc of ALL) {
+            for (const [, size] of doc.body.matchAll(/<Cast[^>]*\bsize="([^"]*)"/g)) {
+                expect(['sm', 'md', 'lg'], `${doc.slug} draws a cast member at size="${size}"`).toContain(size)
             }
         }
     })
