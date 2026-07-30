@@ -591,7 +591,7 @@ test.describe('Pass-the-link default', () => {
         await page.getByTestId('hero-creator-name').fill('Ana')
         await page.getByTestId('hero-create-room').click()
 
-        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[0-9a-hjkmnp-tv-z]{6}$`), {
+        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$`), {
             timeout: 20_000,
         })
         await expect(page.getByTestId('join-gate')).toHaveCount(0)
@@ -984,7 +984,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
     const payload = await page.evaluate(
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
-    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[0-9a-hjkmnp-tv-z]{6}$/)
+    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
     await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.evaluate(() => {
