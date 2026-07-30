@@ -1,3 +1,5 @@
+import { TOOL_SLUGS } from '@/tools/registry'
+
 /**
  * The hand-built pages, registered so the sitemap and the /blog hub don't have to special-case
  * them. Two implementations of a marketing page coexist on purpose: the flagship pages are
@@ -75,8 +77,17 @@ const RESERVED_ROOT_SEGMENTS = [
     'manifest.webmanifest',
 ]
 
-/** Slugs owned by a hand-built route or by Next itself — the content engine must not shadow these. */
+/**
+ * Slugs owned by a hand-built route, by a registered tool, or by Next itself — the content engine
+ * must not shadow these.
+ *
+ * The tools are in here rather than in `STATIC_PAGES` because they are not hand-built pages: they
+ * are one registry that `/[page]` resolves before the content tree, and the sitemap reads that
+ * registry directly. What they share with a static route is the only thing this set is about — the
+ * slug is taken, so a markdown file that claimed it would be listed and unreachable.
+ */
 export const staticPageSlugs = new Set([
     ...STATIC_PAGES.map((page) => page.href.replace(/^\//, '')).filter(Boolean),
     ...RESERVED_ROOT_SEGMENTS,
+    ...TOOL_SLUGS,
 ])
