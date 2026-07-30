@@ -139,6 +139,72 @@ async function roomSubscribed(slug: string, subscription: PushSubscription): Pro
     }
 }
 
+/** What asking for permission settled on. A refusal is an answer, not a
+ *  failure, so it comes back as a value; everything that actually broke throws. */
+export type AddOutcome = { status: 'subscribed' } | { status: 'denied'; permission: NotificationPermission }
+
+/**
+ * Turn one room on: ask permission, get the device's channel, register it.
+ *
+ * Everything the browser has to be told is here rather than in the hook, so the
+ * rollback rule below can be tested without rendering anything.
+ */
+export async function addRoomSubscription(slug: string, memberId: string, memberToken: string): Promise<AddOutcome> {
+    const key = vapidPublicKey()
+    if (!key) throw new Error('this build has no VAPID key')
+
+    // THE only requestPermission() call site in the app. It is reachable only
+    // from a tap, and only in a state where derivePushStatus said 'default' — on
+    // iOS outside standalone this resolves 'denied' with no prompt shown and
+    // burns the origin's one ask forever, with no way back but a reinstall.
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') return { status: 'denied', permission }
+
+    const registration = await activeRegistration()
+    // Did THIS call create the channel? `pushManager.subscribe()` hands back the
+    // subscription the origin already has rather than minting a second one, so
+    // without asking first there is no way to tell a channel we just made from
+    // one another room has been delivering on for a week.
+    const created = (await registration.pushManager.getSubscription()) === null
+    const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(key),
+    })
+
+    const keys = readKeys(subscription)
+    if (!keys) {
+        if (created) await subscription.unsubscribe().catch(() => {})
+        throw new Error('push subscription came back without keys')
+    }
+
+    try {
+        await api.push.subscribe(slug, {
+            endpoint: keys.endpoint,
+            keys: { p256dh: keys.p256dh, auth: keys.auth },
+            memberId,
+            memberToken,
+            // The server bounds this at 512; sending more is a 400 for a field
+            // that is only ever read by a human.
+            userAgent: navigator.userAgent.slice(0, 512),
+        })
+    } catch (err) {
+        // The browser is now subscribed to a channel the server does not know
+        // about — a rejected member token, an endpoint host we refuse, a room at
+        // its device cap. Left in place it is a permanently silent "on" that
+        // nothing can clear, so we take back what we made.
+        //
+        // Only what we made. If the channel was already there, another room is
+        // delivering on it, and revoking it to tidy up a failure in this room
+        // would take that one dark. Nothing is left behind on the server either:
+        // the route writes the row in one transaction, so a call that came back
+        // an error wrote nothing to undo.
+        if (created) await subscription.unsubscribe().catch(() => {})
+        throw err
+    }
+
+    return { status: 'subscribed' }
+}
+
 /**
  * Drop this device's channel for one room.
  *
@@ -215,58 +281,15 @@ export function usePush(slug: string): PushControls {
 
     const subscribe = useCallback(
         async (memberId: string, memberToken: string): Promise<SubscribeOutcome> => {
-            const key = vapidPublicKey()
-            if (!key) return 'failed'
-
             setBusy(true)
             setError(null)
             try {
-                // THE only requestPermission() call site in the app. It is
-                // reachable only from a tap, and only in a state where
-                // derivePushStatus said 'default' — on iOS outside standalone
-                // this resolves 'denied' with no prompt shown and burns the
-                // origin's one ask forever, with no way back but a reinstall.
-                const permission = await Notification.requestPermission()
-                if (permission !== 'granted') {
-                    if (mounted.current) setSettled(permission === 'denied' ? 'denied' : 'default')
-                    return 'denied'
+                const outcome = await addRoomSubscription(slug, memberId, memberToken)
+                if (mounted.current) {
+                    if (outcome.status === 'subscribed') setSettled('subscribed')
+                    else setSettled(outcome.permission === 'denied' ? 'denied' : 'default')
                 }
-
-                const registration = await activeRegistration()
-                const subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(key),
-                })
-
-                const keys = readKeys(subscription)
-                if (!keys) {
-                    await subscription.unsubscribe().catch(() => {})
-                    throw new Error('push subscription came back without keys')
-                }
-
-                try {
-                    await api.push.subscribe(slug, {
-                        endpoint: keys.endpoint,
-                        keys: { p256dh: keys.p256dh, auth: keys.auth },
-                        memberId,
-                        memberToken,
-                        // The server bounds this at 512; sending more is a 400
-                        // for a field that is only ever read by a human.
-                        userAgent: navigator.userAgent.slice(0, 512),
-                    })
-                } catch (err) {
-                    // The browser is now subscribed to a channel the server does
-                    // not know about — a rejected member token, an endpoint host
-                    // we refuse, a room at its device cap. Leaving it in place
-                    // means a permanently silent "on" state that nothing can
-                    // ever clear, so the local half is rolled back before the
-                    // error is shown.
-                    await subscription.unsubscribe().catch(() => {})
-                    throw err
-                }
-
-                if (mounted.current) setSettled('subscribed')
-                return 'subscribed'
+                return outcome.status
             } catch (err) {
                 if (mounted.current) setError(err)
                 return 'failed'
