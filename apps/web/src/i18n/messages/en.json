@@ -393,7 +393,12 @@
             "getsBack": "gets back",
             "nothingYet": "nothing yet",
             "youOwe": "you owe",
-            "youGetBack": "you get back"
+            "youGetBack": "you get back",
+            "pair": {
+                "owesYou": "{name} owes you",
+                "youOwe": "You owe {name}",
+                "owes": "{debtor} owes {creditor}"
+            }
         },
         "expenses": {
             "title": "Expenses",

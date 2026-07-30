@@ -393,7 +393,12 @@
             "getsBack": "le deben",
             "nothingYet": "nada aún",
             "youOwe": "debes",
-            "youGetBack": "te deben"
+            "youGetBack": "te deben",
+            "pair": {
+                "owesYou": "{name} te debe",
+                "youOwe": "Le debes a {name}",
+                "owes": "{debtor} le debe a {creditor}"
+            }
         },
         "expenses": {
             "title": "Gastos",
