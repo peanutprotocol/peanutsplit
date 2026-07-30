@@ -11,6 +11,7 @@ import { asLocale } from '@/i18n/locales'
 import { initAnalytics } from './analytics'
 import { ensureDeviceId } from './identity'
 import { captureInstallPrompt } from './install'
+import { sweepSharedReceipt } from './shared-receipt'
 import { writeLocaleCookie } from './locale-cookie'
 import { useOfflineQueueRunner } from './queries'
 import { TOAST_MS } from './toasts'
@@ -69,6 +70,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         // `beforeinstallprompt` fires once per page load and is gone if nobody is listening — long
         // before anyone opens a settings sheet. See `lib/install.ts`.
         captureInstallPrompt()
+        // A shared receipt nobody came back for. Every normal exit discards it; this covers the
+        // ones nobody takes, so a photo cannot outlive the share that parked it.
+        void sweepSharedReceipt(caches)
     }, [])
 
     // On mount and on every return to the app. Both events: `visibilitychange` covers a phone

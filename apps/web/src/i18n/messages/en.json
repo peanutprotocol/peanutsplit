@@ -918,5 +918,13 @@
         "peopleMany": "{count} people",
         "emptyRoster": "Nobody has joined yet",
         "tagline": "no signup · free forever"
+    },
+    "shareTarget": {
+        "pick": "Which room is this bill for?",
+        "empty": "No rooms on this device yet. Start one, then share the photo again.",
+        "start": "Start a room",
+        "expired": "That photo didn’t make it. Share it again.",
+        "unavailable": "Scanning bills isn’t on yet.",
+        "open": "Open Split"
     }
 }

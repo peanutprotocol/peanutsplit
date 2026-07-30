@@ -220,3 +220,18 @@ test('the app returning to view clears the badge, and the page never sets one', 
     // from the app they are looking at.
     expect((await counts()).set).toBe(0)
 })
+
+/**
+ * The share target's landing screen, on a build whose scan flow is off.
+ *
+ * It ships unconditionally on purpose: an app installed while the flag was on keeps its manifest
+ * until the browser refreshes it, so the POST can still arrive. Never a 404, never a 405, never a
+ * dead end.
+ */
+test('the share landing says scanning is off and offers the way back', async ({ page }) => {
+    const response = await page.goto('/share-target')
+
+    expect(response?.status()).toBe(200)
+    await expect(page.getByText('Scanning bills isn’t on yet.')).toBeVisible()
+    await expect(page.getByTestId('share-target-open')).toHaveAttribute('href', '/')
+})

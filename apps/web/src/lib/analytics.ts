@@ -41,6 +41,9 @@ export type AnalyticsEvent =
     // conversion is unmeasurable and no number here should pretend otherwise.
     | 'install_row_shown'
     | 'install_prompted'
+    // A photo handed in from the OS share sheet. One enum, five buckets, and never a room count:
+    // "this device has 7 rooms" is a weak fingerprint and buys nothing the buckets do not.
+    | 'share_target_opened'
     | 'peanut_option_shown'
     | 'peanut_option_clicked'
     // Push opt-in. Same discipline as everything above: neither a room

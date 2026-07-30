@@ -918,5 +918,13 @@
         "peopleMany": "{count} pessoas",
         "emptyRoster": "Ninguém entrou ainda",
         "tagline": "sem cadastro · grátis para sempre"
+    },
+    "shareTarget": {
+        "pick": "Para qual sala é esta conta?",
+        "empty": "Ainda não há salas neste aparelho. Crie uma e compartilhe a foto de novo.",
+        "start": "Criar uma sala",
+        "expired": "Essa foto não chegou. Compartilhe de novo.",
+        "unavailable": "Escanear contas ainda não está ativo.",
+        "open": "Abrir o Split"
     }
 }
