@@ -1,17 +1,26 @@
 /**
- * The two calls that must stay in lock-step with the server, tested against a
+ * The three calls that must stay in lock-step with the server, tested against a
  * fake browser rather than a rendered hook — the rules worth pinning are about
- * when the device's push channel may be revoked, and none of them are React.
+ * when the device's push channel may be revoked, and what the row is allowed to
+ * claim about it. None of them are React.
  *
  * The fake models the one fact that makes those rules necessary: a browser has
  * a SINGLE PushSubscription per origin, which every room shares.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { addRoomSubscription, dropRoomSubscription } from './use-push'
+import { addRoomSubscription, dropRoomSubscription, roomSubscribed } from './use-push'
 
-const { subscribe, unsubscribe } = vi.hoisted(() => ({ subscribe: vi.fn(), unsubscribe: vi.fn() }))
+const { subscribe, unsubscribe, status } = vi.hoisted(() => ({
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+    status: vi.fn(),
+}))
 
-vi.mock('./api', () => ({ api: { push: { subscribe, unsubscribe } } }))
+vi.mock('./api', () => ({ api: { push: { subscribe, unsubscribe, status } } }))
+
+const { readIdentity } = vi.hoisted(() => ({ readIdentity: vi.fn() }))
+
+vi.mock('./identity', () => ({ readIdentity }))
 
 const ENDPOINT = 'https://fcm.googleapis.com/fcm/send/this-device'
 
@@ -27,6 +36,9 @@ class FakeSubscription {
         return true
     }
 }
+
+/** For the calls that take a subscription rather than finding one themselves. */
+const fakeSubscription = () => new FakeSubscription(ENDPOINT) as unknown as PushSubscription
 
 /** The origin's one channel. */
 const browser: { subscription: FakeSubscription | null } = { subscription: null }
@@ -45,6 +57,8 @@ beforeEach(() => {
     browser.subscription = null
     subscribe.mockReset().mockResolvedValue({ subscribed: true })
     unsubscribe.mockReset().mockResolvedValue({ subscribed: false, endpointStillUsed: false })
+    status.mockReset().mockResolvedValue({ subscribed: true })
+    readIdentity.mockReset().mockReturnValue({ memberId: 'm1', name: 'Ana', token: 't1' })
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'aGkh'
     vi.stubGlobal('Notification', { permission: 'granted', requestPermission: async () => 'granted' })
     vi.stubGlobal('navigator', {
@@ -119,5 +133,41 @@ describe('dropRoomSubscription', () => {
 
         await expect(dropRoomSubscription('ski-trip', 'm1', 't1')).rejects.toThrow('offline')
         expect(live.revoked).toBe(false)
+    })
+})
+
+describe('roomSubscribed', () => {
+    it('passes the server’s answer through, either way', async () => {
+        const live = fakeSubscription()
+
+        expect(await roomSubscribed('ski-trip', live)).toBe(true)
+        expect(status).toHaveBeenCalledWith('ski-trip', {
+            endpoint: ENDPOINT,
+            memberId: 'm1',
+            memberToken: 't1',
+        })
+
+        status.mockResolvedValue({ subscribed: false })
+        expect(await roomSubscribed('ski-trip', live)).toBe(false)
+    })
+
+    /**
+     * The dishonesty this replaces: the check failed, so the row said "off" while
+     * the server row was still there and the phone was still buzzing. "Off" is
+     * safe for the server and a lie to the person holding the phone, and the
+     * surface renders `unknown` as "couldn't check" instead of a switch.
+     */
+    it('says it could not check rather than "off" when the request fails', async () => {
+        status.mockRejectedValue(new Error('offline'))
+        expect(await roomSubscribed('ski-trip', fakeSubscription())).toBe('unknown')
+    })
+
+    it('answers off without asking when the identity has no token', async () => {
+        readIdentity.mockReturnValue({ memberId: 'm1', name: 'Ana' })
+
+        // Nothing to check: that device cannot prove membership, and the surface
+        // sends it to pick a name again before it can turn anything on.
+        expect(await roomSubscribed('ski-trip', fakeSubscription())).toBe(false)
+        expect(status).not.toHaveBeenCalled()
     })
 })

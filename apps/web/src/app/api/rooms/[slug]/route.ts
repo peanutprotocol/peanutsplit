@@ -1,7 +1,7 @@
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { ApiError, readJson, respond } from '@/server/http'
-import { LOOKUP_MISS_LIMIT, WRITE_LIMIT, enforceRateLimit, enforceRateLimitPreflight } from '@/server/rateLimit'
+import { readJson, respond } from '@/server/http'
+import { WRITE_LIMIT, enforceRateLimit, meterRoomLookup } from '@/server/rateLimit'
 import { loadRoom, loadRoomById, roomStateBySlug, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { roomSettingsSchema } from '@/server/validation'
@@ -12,15 +12,8 @@ type Ctx = { params: Promise<{ slug: string }> }
 
 export const GET = (request: Request, ctx: Ctx) =>
     respond(async () => {
-        enforceRateLimitPreflight(request, LOOKUP_MISS_LIMIT, 'room-lookup-miss')
-        try {
-            return await roomStateBySlug((await ctx.params).slug)
-        } catch (error) {
-            if (error instanceof ApiError && error.status === 404) {
-                enforceRateLimit(request, LOOKUP_MISS_LIMIT, 'room-lookup-miss')
-            }
-            throw error
-        }
+        const { slug } = await ctx.params
+        return await meterRoomLookup(request, () => roomStateBySlug(slug))
     })
 
 /**

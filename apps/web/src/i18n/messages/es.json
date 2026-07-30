@@ -730,11 +730,13 @@
         }
     },
     "push": {
+        "label": "Notificaciones",
         "notifyMe": "Avísame de {room}",
         "on": "Activadas en este dispositivo",
         "iosNeedsPwa": "Agrega Split a tu pantalla de inicio.",
         "iosHow": "¿Cómo?",
         "denied": "Bloqueadas en los ajustes de tu navegador.",
+        "unknown": "No se pudo comprobar ahora — este dispositivo puede seguir recibiéndolas.",
         "needsToken": "Elige tu nombre otra vez para activarlas.",
         "failed": "no se pudieron cambiar las notificaciones — inténtalo de nuevo"
     },

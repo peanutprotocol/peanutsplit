@@ -12,7 +12,7 @@ import { ApiError, readJson, respond } from '@/server/http'
 import { isAllowedPushEndpoint } from '@/server/pushHosts'
 import { assertProvenMember, loadRoom } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
-import { enforceRateLimit, WRITE_LIMIT } from '@/server/rateLimit'
+import { enforceRateLimit, meterRoomLookup, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushSubscribeSchema, pushUnsubscribeSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -86,7 +86,9 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'push-subscribe')
         const { slug } = await ctx.params
         const body = pushUnsubscribeSchema.parse(await readJson(request))
-        const room = await loadRoom(slug)
+        // Same 404-versus-403 oracle as the status route: metered on the shared
+        // miss budget rather than this route's own write bucket.
+        const room = await meterRoomLookup(request, () => loadRoom(slug))
         assertProvenMember(room, body.memberId, body.memberToken)
 
         // One endpoint can hold a channel in several rooms, so the caller has to

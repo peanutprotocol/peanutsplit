@@ -111,6 +111,9 @@ function readKeys(subscription: PushSubscription): SubscriptionKeys | null {
     return { endpoint: json.endpoint, p256dh, auth }
 }
 
+/** The server's answer, or the absence of one. */
+export type RoomAnswer = boolean | 'unknown'
+
 /**
  * Ask the server whether this endpoint is registered for `slug`.
  *
@@ -119,8 +122,10 @@ function readKeys(subscription: PushSubscription): SubscriptionKeys | null {
  * gate wrote, and the same one the surface passes back into `subscribe`. A
  * legacy tokenless identity cannot prove membership, so it answers "off"; that
  * device has to pick its name again before it can turn anything on anyway.
+ *
+ * Exported for the test: this is the one place the honesty of the row is decided.
  */
-async function roomSubscribed(slug: string, subscription: PushSubscription): Promise<boolean> {
+export async function roomSubscribed(slug: string, subscription: PushSubscription): Promise<RoomAnswer> {
     const keys = readKeys(subscription)
     const identity = readIdentity(slug)
     if (!keys || !identity?.token) return false
@@ -132,10 +137,12 @@ async function roomSubscribed(slug: string, subscription: PushSubscription): Pro
         })
         return subscribed
     } catch {
-        // Offline, or a token this room no longer honours. "Off" is the safe
-        // answer: the row it offers to create is an upsert, so a person who was
-        // already on and taps again ends up exactly where they started.
-        return false
+        // Offline, or a token this room no longer honours. "Off" would be the
+        // convenient answer and it is not a true one: the row is on the server
+        // and the phone is still receiving on it, so a switch reading "off"
+        // contradicts the notification the person is looking at. Say we could
+        // not check and let the surface say so too.
+        return 'unknown'
     }
 }
 
@@ -270,9 +277,12 @@ export function usePush(slug: string): PushControls {
             }
             // Only here — permission granted and a live endpoint — is the
             // per-room answer something only the server can give.
-            const subscribedHere = await roomSubscribed(slug, subscription)
+            const answer = await roomSubscribed(slug, subscription)
             if (cancelled) return
-            setSettled(derivePushStatus(deviceEnvironment(subscribedHere)))
+            // A failed check is its own state, and deliberately not routed
+            // through `derivePushStatus`: that function decides from facts about
+            // the device, and "the server did not answer" is not one of them.
+            setSettled(answer === 'unknown' ? 'unknown' : derivePushStatus(deviceEnvironment(answer)))
         })()
         return () => {
             cancelled = true

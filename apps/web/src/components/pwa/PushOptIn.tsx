@@ -26,15 +26,35 @@ interface PushOptInProps {
 }
 
 /**
+ * A row that carries its own label but no switch — the shape every state that
+ * cannot be toggled takes.
+ *
+ * The label is the whole point. "Blocked in your browser settings." on its own,
+ * sitting between "Add someone" and "You", is a sentence with no subject:
+ * blocked WHAT. The toggle's label was the only thing naming what these lines
+ * are about, so when the line replaces the toggle it has to keep the name.
+ */
+function PushStateRow({ label, line }: { label: string; line: string }) {
+    return (
+        <div className="min-h-11 rounded-sm border border-n-1 bg-white p-3">
+            <span className="block text-h8">{label}</span>
+            <span className="block text-sm text-grey-1">{line}</span>
+        </div>
+    )
+}
+
+/**
  * Notifications for THIS room, as one toggle row inside the room card.
  *
  * Opt-in per room AND per device, which is what the shape of the backend already
  * says: a subscription row is (room, endpoint, member). Nothing here ever asks on
  * its own — the row sits in a sheet somebody deliberately opened.
  *
- * At most one line ever renders under the toggle, and in the two states the
- * toggle cannot work — iOS in a tab, and an origin-level block — that line
- * REPLACES it. A live switch that does nothing is worse than no switch.
+ * At most one line ever renders under the toggle, and in the three states the
+ * toggle cannot honestly work — iOS in a tab, an origin-level block, and a check
+ * that could not reach the server — that line REPLACES it, inside a labelled row.
+ * A live switch that does nothing, or that claims a position nobody verified, is
+ * worse than no switch.
  */
 export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptInProps) {
     const t = useTranslations('push')
@@ -80,7 +100,7 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
     if (displayed === 'ios-needs-pwa') {
         return (
             <div className="flex flex-col gap-2">
-                <p className="text-sm text-grey-1">{t('iosNeedsPwa')}</p>
+                <PushStateRow label={t('label')} line={t('iosNeedsPwa')} />
                 <button
                     type="button"
                     onClick={() => setIosSheetOpen(true)}
@@ -114,8 +134,14 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
 
     // No toggle: an origin-level block can only be lifted in browser settings,
     // and requestPermission() from here would resolve 'denied' without showing
-    // anything. A line of text is the entire honest answer.
-    if (displayed === 'denied') return <p className="text-sm text-grey-1">{t('denied')}</p>
+    // anything. A labelled line is the entire honest answer.
+    if (displayed === 'denied') return <PushStateRow label={t('label')} line={t('denied')} />
+
+    // No toggle either: the per-room row lives on the server and the check for it
+    // did not come back. A switch has to sit somewhere, and both positions would
+    // be a claim — "off" is the one that contradicts a phone that is still
+    // buzzing. Say what happened; the next sheet open asks again.
+    if (displayed === 'unknown') return <PushStateRow label={t('label')} line={t('unknown')} />
 
     /**
      * Legacy tokenless identities can still read the room, but the push endpoint

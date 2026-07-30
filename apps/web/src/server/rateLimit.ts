@@ -124,6 +124,31 @@ export function enforceRateLimitPreflight(request: Request, limit: Limit, scope:
     }
 }
 
+/** The one bucket name every room lookup shares. It only hides room existence
+ *  while every path that can 404 on a slug spends from the SAME budget. */
+const LOOKUP_MISS_SCOPE = 'room-lookup-miss'
+
+/**
+ * Run a room lookup with its misses metered on the shared miss budget.
+ *
+ * A guessed slug answers 404 and a real slug with a bad token answers 403, so any
+ * route that loads a room by slug is a room-existence oracle unless the misses
+ * are budgeted — 30 an hour, not the 120 of whatever write limiter the route also
+ * carries. Preflight first, because an exhausted budget has to reject hits and
+ * misses alike; a token is spent only when the lookup actually missed.
+ */
+export async function meterRoomLookup<T>(request: Request, lookup: () => Promise<T>): Promise<T> {
+    enforceRateLimitPreflight(request, LOOKUP_MISS_LIMIT, LOOKUP_MISS_SCOPE)
+    try {
+        return await lookup()
+    } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+            enforceRateLimit(request, LOOKUP_MISS_LIMIT, LOOKUP_MISS_SCOPE)
+        }
+        throw error
+    }
+}
+
 /** Tests share one process, and a leaked bucket would fail a later test for a
  *  reason that has nothing to do with it. */
 export function resetRateLimits(): void {
