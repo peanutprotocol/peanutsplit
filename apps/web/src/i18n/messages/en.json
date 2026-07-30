@@ -689,7 +689,8 @@
             "open": "Open your character",
             "option": "Use the {name} character",
             "failed": "could not change that character — try again",
-            "random": "Surprise me",
+            "shuffle": "Shuffle",
+            "shuffleLabel": "Shuffle the characters on offer",
             "caption": "{label} — {vibe}",
             "firstOpen": "Anyone can change anyone’s character.",
             "close": "Close characters"

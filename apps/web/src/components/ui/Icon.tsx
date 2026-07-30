@@ -28,6 +28,7 @@ const iconDoodles = {
     banknote: 'cash',
     'hand-coins': 'iconhandcoins',
     sparkles: 'iconsparkles',
+    dice: 'icondice',
     camera: 'iconcamera',
     calendar: 'iconcalendar',
     link: 'link',

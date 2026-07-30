@@ -102,6 +102,18 @@
     }
 }
 
+@keyframes ps-tile-settle {
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.06);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
 @keyframes ps-drawer-in {
     from {
         opacity: 0;
@@ -119,6 +131,14 @@
 
 .animate-shake {
     animation: ps-shake 500ms ease-in-out;
+}
+
+/* A slot-machine reel landing, in the avatar picker. Eight of these play in
+   sequence within half a second, which is why the amplitude is half of
+   `.animate-pop`'s: one celebratory pop can afford 1.12, eight of them at tile
+   size read as popcorn. Same family, different job. */
+.animate-tile-settle {
+    animation: ps-tile-settle 120ms ease-out;
 }
 
 /* vaul animates the sheet itself; this is the content settling inside it a beat
