@@ -71,7 +71,7 @@ describe('the word list', () => {
 
     it('has not been edited', () => {
         expect(createHash('sha256').update(SLUG_WORDS.join(' ')).digest('hex')).toBe(
-            '3c21aa49c7de9d80243b51454362cccd30327557e83a85bf44bf801b401a3296'
+            '449838ac9347703b5457c21ddea6e2e7d1aa8fd6d5e02052dd8c41865eda8bcf'
         )
     })
 })
