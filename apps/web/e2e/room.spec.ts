@@ -564,7 +564,9 @@ test('a link holder can export the room without exporting the room credential', 
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
 
-    await page.getByRole('button', { name: 'Room menu' }).click()
+    // The header button is the room settings button since 6fa16a4; "Room menu" is not a string
+    // the app holds any more, so the role locator matched nothing and timed out.
+    await page.getByTestId('open-room-settings').click()
     await expect(page.getByText('The files include everyone’s names and the current money history.')).toBeVisible()
 
     const jsonDownloadPromise = page.waitForEvent('download')

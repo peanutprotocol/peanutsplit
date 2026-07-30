@@ -91,6 +91,34 @@ export interface PairCard {
 }
 
 /**
+ * The longest name the pair sentence may carry.
+ *
+ * The sentence gets two lines. Wrapping it was not enough: "{name} owes you" puts the verb
+ * LAST, so a first name plus a long surname spends line 1 on the first name, breaks the surname
+ * across line 2, and the clamp eats the relationship words — which is the whole message. Only
+ * the background tint was then left to say which way the money ran, and the name field takes 80
+ * characters.
+ *
+ * So the name is capped where the sentence is built, and the wrap is only the backstop. 20 is
+ * the largest cap that survives the worst shape — a two-letter first name and one unbreakable
+ * surname, which strands the surname alone on line 2 — measured at 375px in Roboto Flex 800 at
+ * 14px, the 265px the label column gets, across all three locales and both directions. A line
+ * holds 20 of the widest capital (W) there, so a capped name plus its phrase always fits.
+ *
+ * This is a character count standing in for a width, so it is sized on Latin metrics. Only the
+ * sentence is capped: the avatar, the roster, the people list, the derivation sheet, the
+ * accessible name and `data-member` all keep the name in full.
+ */
+export const MAX_SENTENCE_NAME_CHARS = 20
+
+/** Code points, not UTF-16 units, so an emoji in a name is never cut into half a character. */
+const forSentence = (name: string) => {
+    const chars = [...name]
+    if (chars.length <= MAX_SENTENCE_NAME_CHARS) return name
+    return `${chars.slice(0, MAX_SENTENCE_NAME_CHARS - 1).join('').trimEnd()}…`
+}
+
+/**
  * The copy, the colour and the subject of the pair card, as data.
  *
  * Balances always sum to zero, so n people carry n−1 independent numbers. At n = 2 the second
@@ -136,7 +164,7 @@ export function pairCard(
         return {
             about,
             net,
-            label: `${about.name} · ${anySavedExpenses ? t('settled') : t('nothingYet')}`,
+            label: `${forSentence(about.name)} · ${anySavedExpenses ? t('settled') : t('nothingYet')}`,
             card: 'bg-[var(--split-theme-tint,#FFFFFF)]',
             labelClass: 'text-n-3',
         }
@@ -147,7 +175,9 @@ export function pairCard(
         return {
             about,
             net,
-            label: t('pair.owes', { debtor: debtor.name, creditor: creditor.name }),
+            // Both names are capped. Two long ones can still reach a third line, but the verb
+            // sits right after the debtor in all three locales, so the clamp never removes it.
+            label: t('pair.owes', { debtor: forSentence(debtor.name), creditor: forSentence(creditor.name) }),
             card: 'bg-error-1',
             labelClass: 'text-n-1',
         }
@@ -156,7 +186,7 @@ export function pairCard(
         return {
             about,
             net,
-            label: t('pair.owesYou', { name: about.name }),
+            label: t('pair.owesYou', { name: forSentence(about.name) }),
             card: 'bg-green-1',
             labelClass: 'text-n-1',
         }
@@ -164,7 +194,7 @@ export function pairCard(
     return {
         about,
         net,
-        label: t('pair.youOwe', { name: about.name }),
+        label: t('pair.youOwe', { name: forSentence(about.name) }),
         card: 'bg-error-1',
         labelClass: 'text-n-1',
     }
@@ -246,10 +276,13 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                 LAST, so an ellipsis eats the whole relationship and leaves a
                                 clipped name over an amount, with only the green tint saying
                                 which way the money runs — it started at about 23 characters at
-                                375px. Two lines is the cap; splitting the string into a name
-                                element and a phrase element is not an option, because Spanish
-                                puts the name last in the other direction ("Le debes a {name}")
-                                and the order is the translator's to choose. */}
+                                375px. Two lines is the cap. The name is already cut to
+                                MAX_SENTENCE_NAME_CHARS where the sentence is built, so those two
+                                lines hold it at any name length; this clamp is the backstop, not
+                                the fix. Splitting the string into a name element and a phrase
+                                element is not an option, because Spanish puts the name last in
+                                the other direction ("Le debes a {name}") and the order is the
+                                translator's to choose. */}
                             <span className={cn('line-clamp-2 break-words text-h8 leading-snug', pair.labelClass)}>
                                 {pair.label}
                             </span>

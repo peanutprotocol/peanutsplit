@@ -48,9 +48,11 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await bea.getByTestId('join-room').click()
     // Two people now, so Bea's device shows the one card about Ana.
     await expectBalance(bea, 'Ana', '0')
-    // One fact, one card — the whole point of the pair shape.
-    await expect(bea.locator('[data-testid="balance-card"]')).toHaveCount(1)
-    await expect(bea.locator('[data-testid="balance-card"][data-pair="true"]')).toHaveCount(1)
+    // One fact, one card — the whole point of the pair shape. The join is a POST from a second
+    // context and the room route is compiled on first hit, so the strip can still be showing the
+    // one-member shape here. Same 15s every other assertion in this file waits.
+    await expect(bea.locator('[data-testid="balance-card"]')).toHaveCount(1, { timeout: 15_000 })
+    await expect(bea.locator('[data-testid="balance-card"][data-pair="true"]')).toHaveCount(1, { timeout: 15_000 })
 
     // Ana fronts €60, split equally: +6000 paid, −3000 her share, +3000 net.
     await page.reload()
