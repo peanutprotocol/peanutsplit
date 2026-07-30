@@ -15,7 +15,7 @@ import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
-import { dayLabel, expenseLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
+import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
     allocatedMinor,
     buildExpenseBody,
@@ -428,20 +428,18 @@ export function ExpenseDrawer({
     const remove = async () => {
         if (!expense) return
         const id = expense.id
-        // The toast has to name the row that just left the list, and an unnamed
-        // one is named by its day everywhere else too.
-        const description = expenseLabel(expense.description, expense.date, {
-            locale,
-            today: tDates('today'),
-            yesterday: tDates('yesterday'),
-        })
+        // The toast quotes the row that just left the list, so it can only quote a
+        // real name. Quoting the day fallback made "“Today” deleted", which reads
+        // like somebody had called the expense that; an unnamed row gets the
+        // sentence with no quotation instead.
+        const description = expense.description.trim()
         try {
             await deleteExpense.mutateAsync(id)
             close()
             track('expense_deleted', roomProps(slug))
             // The toast IS the undo window — it has to outlive "wait, did I mean
             // to do that?", which is why it takes the actionable duration.
-            toast(t('deletedToast', { description }), {
+            toast(description ? t('deletedToast', { description }) : t('deletedToastUnnamed'), {
                 duration: TOAST_MS.actionable,
                 action: {
                     label: t('undo'),
