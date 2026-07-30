@@ -10,8 +10,8 @@ faqs:
       answer: 'Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail.'
     - question: Dá para acertar por transferência ou em dinheiro?
       answer: Dá. O Split reduz as dívidas para você fazer duas ou três transferências em vez de vinte, e registra cada uma do jeito que ela aconteceu. Não exige nenhum banco nem app específico.
-    - question: No que o Split é ruim?
-      answer: Em tudo que precisa de conta. Não tem login, nem recuperação de senha, nem histórico que te siga entre aparelhos — o link é a chave, então se o grupo perder o link, a sala se perde.
+    - question: Como eu volto para uma sala?
+      answer: Abra o link de novo. Não tem login para recuperar nem senha para redefinir, então o link é a chave. Deixe ele fixado no grupo, onde qualquer um que precisar encontra.
 ---
 
 {/* Toda afirmação sobre o Tricount nesta página é uma citação literal de tricount.com/en,
@@ -73,7 +73,7 @@ A linha que importa é a de acertar. O resto está perto o bastante para não de
 
 Se o seu grupo compartilha banco — ou se vários de vocês têm cartão bunq — o Tricount vai ser mais confortável do que isto. O Split é menor e faz menos.
 
-Não existe conta, o que significa nenhum login, nenhuma recuperação de senha e nenhum histórico que te acompanhe até um celular novo. O link é a chave: se o grupo perder o link, a sala se perde. Não há cartão registrando seus gastos sozinho, e não há banco por trás fazendo a transferência. Duas pessoas acertam do jeito que der e uma delas toca para registrar. O Split não confere com banco nenhum, e não tem como conferir.
+Não há cartão registrando seus gastos sozinho, e não há banco por trás fazendo a transferência. Duas pessoas acertam do jeito que der e uma delas toca para registrar. O Split não confere com banco nenhum, e não tem como conferir.
 
 É essa a troca. Menos produto, menos suposições sobre onde você guarda o dinheiro.
 
@@ -86,7 +86,7 @@ Não existe conta, o que significa nenhum login, nenhuma recuperação de senha 
 <FAQItem question="O Split é grátis para sempre?">É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas — é daí que sai o dinheiro.</FAQItem>
 <FAQItem question="Preciso baixar alguma coisa?">Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail.</FAQItem>
 <FAQItem question="Dá para acertar por transferência ou em dinheiro?">Dá. O Split reduz as dívidas para você fazer duas ou três transferências em vez de vinte, e registra cada uma do jeito que ela aconteceu. Não exige nenhum banco nem app específico.</FAQItem>
-<FAQItem question="No que o Split é ruim?">Em tudo que precisa de conta. Não tem login, nem recuperação de senha, nem histórico que te siga entre aparelhos — o link é a chave, então se o grupo perder o link, a sala se perde.</FAQItem>
+<FAQItem question="Como eu volto para uma sala?">Abra o link de novo. Não tem login para recuperar nem senha para redefinir, então o link é a chave. Deixe ele fixado no grupo, onde qualquer um que precisar encontra.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Continue lendo">
