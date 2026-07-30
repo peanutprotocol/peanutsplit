@@ -49,13 +49,23 @@ function drawable(text: string): string {
  * the catalog rather than a second string to keep in step, and it goes through `drawable` because
  * the accented Spanish and Portuguese lines are only safe up to Latin-1.
  */
+/**
+ * One brand card, sanitized and with the fonts loaded. Every unfurl on the site goes through it so
+ * "which lines, which tagline" is the only thing a caller decides — the font load and the
+ * `drawable()` pass are not decisions, and a route that skipped either would ship a card with a
+ * blank rectangle in the middle of a word.
+ */
+export async function brandCardResponse(lines: readonly [string, string], tagline: string) {
+    return new ImageResponse(<BrandCard lines={lines} tagline={drawable(tagline)} />, {
+        ...OG_SIZE,
+        fonts: await ogFonts(),
+    })
+}
+
 export function hubOgImage(locale: Locale) {
     return async function HubOgImage() {
         const t = await getTranslations({ locale, namespace: 'content' })
-        return new ImageResponse(<BrandCard lines={['SPLIT', 'GUIDES']} tagline={drawable(t('hubDescription'))} />, {
-            ...OG_SIZE,
-            fonts: await ogFonts(),
-        })
+        return brandCardResponse(['SPLIT', 'GUIDES'], t('hubDescription'))
     }
 }
 
@@ -74,9 +84,6 @@ export function contentOgImage(collections: RouteCollections, locale: Locale, pa
         const doc = collections.map((collection) => getDoc(collection, slug, locale)).find((found) => found !== null)
         const lines: readonly [string, string] = doc?.collection === 'blog' ? ['SPLIT', 'GUIDES'] : ['SPLIT', 'IT']
 
-        return new ImageResponse(
-            <BrandCard lines={lines} tagline={drawable(doc?.frontmatter.title ?? 'Peanut Split')} />,
-            { ...OG_SIZE, fonts: await ogFonts() }
-        )
+        return brandCardResponse(lines, doc?.frontmatter.title ?? 'Peanut Split')
     }
 }
