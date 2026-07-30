@@ -382,6 +382,8 @@
     border-radius: 1.25rem;
     color: inherit;
     text-decoration: none;
+    transform: none;
+    transition: transform 170ms ease-out;
 }
 
 .pass-link-chat-frame {
@@ -689,6 +691,8 @@
     border-radius: 999px;
     background: #98e9ab;
     box-shadow: 0.12rem 0.12rem 0 #211c17;
+    transform: none;
+    transition: transform 160ms ease-out;
 }
 
 .pass-link-joined {
@@ -853,6 +857,37 @@
     display: grid;
     min-width: 0;
     justify-items: end;
+}
+
+.landing-proof-object-link {
+    display: grid;
+    width: min(100%, 34rem);
+    border-radius: 0.75rem;
+    color: inherit;
+    justify-self: end;
+    text-decoration: none;
+    transform: rotate(var(--landing-link-tilt, 0deg));
+    transition: transform 170ms ease-out;
+}
+
+.landing-proof-object-link-identity {
+    --landing-link-hover-tilt: -1deg;
+}
+
+.landing-proof-object-link-expenses {
+    --landing-link-tilt: 0.35deg;
+    --landing-link-hover-tilt: 0deg;
+}
+
+.landing-proof-object-link-plan {
+    --landing-link-hover-tilt: 1deg;
+}
+
+.landing-proof-object-link:focus-visible,
+.landing-room-example-link:focus-visible,
+.final-cta-link:focus-visible {
+    outline: 3px solid #211c17;
+    outline-offset: 0.35rem;
 }
 
 .landing-proof-ticket {
@@ -1054,8 +1089,14 @@
 }
 
 .landing-room-examples li {
+    min-width: 0;
+}
+
+.landing-room-example-link {
     display: flex;
+    width: 100%;
     min-height: 8rem;
+    height: 100%;
     flex-direction: column;
     justify-content: space-between;
     padding: 1rem;
@@ -1063,18 +1104,25 @@
     border-radius: 0.75rem;
     background: white;
     box-shadow: 0.25rem 0.25rem 0 #211c17;
+    color: inherit;
+    text-decoration: none;
+    transform: rotate(-0.35deg);
+    transition: transform 170ms ease-out;
 }
 
-.landing-room-examples li:nth-child(2) {
+.landing-room-examples li:nth-child(2) .landing-room-example-link {
     background: #fff4cc;
+    transform: rotate(0.45deg);
 }
 
-.landing-room-examples li:nth-child(3) {
+.landing-room-examples li:nth-child(3) .landing-room-example-link {
     background: #fbeaea;
+    transform: rotate(-0.25deg);
 }
 
-.landing-room-examples li:nth-child(4) {
+.landing-room-examples li:nth-child(4) .landing-room-example-link {
     background: #e9eefb;
+    transform: rotate(0.35deg);
 }
 
 .landing-room-examples b {
@@ -1087,6 +1135,45 @@
     color: #5f646d;
     font-size: 0.75rem;
     line-height: 1.35;
+}
+
+.final-cta-link {
+    transform: none;
+    transition: transform 170ms ease-out;
+}
+
+.final-cta-button {
+    pointer-events: none;
+}
+
+.pass-link-chat-link:active,
+.landing-proof-object-link:active,
+.landing-room-examples li .landing-room-example-link:active,
+.final-cta-link:active {
+    transform: translateY(0.1rem) rotate(0) scale(0.985);
+    transition-duration: 90ms;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .pass-link-chat-link:hover {
+        transform: translateY(-0.25rem) rotate(1deg);
+    }
+
+    .pass-link-chat-link:hover .pass-link-shared-footer > strong > span {
+        transform: translateX(0.18rem);
+    }
+
+    .landing-proof-object-link:hover {
+        transform: translateY(-0.3rem) rotate(var(--landing-link-hover-tilt, 0deg));
+    }
+
+    .landing-room-examples li .landing-room-example-link:hover {
+        transform: translateY(-0.25rem) rotate(0);
+    }
+
+    .final-cta-link:hover {
+        transform: translateY(-0.25rem) rotate(-0.2deg);
+    }
 }
 
 @media (max-width: 899px) {
@@ -1135,10 +1222,10 @@
     }
 
     .pass-link-chat-link {
-        inset: 0.35rem auto 0.2rem 50%;
+        inset: 0.35rem 0 0.2rem;
         width: min(calc(100% - 2rem), 14.25rem);
+        margin-inline: auto;
         border-radius: 0.8rem;
-        transform: translateX(-50%);
     }
 
     .pass-link-chat-frame {
@@ -1434,5 +1521,25 @@
         opacity: 1 !important;
         transform: none !important;
         animation: none !important;
+    }
+}
+
+.reduce-animations .pass-link-chat-link,
+.reduce-animations .pass-link-shared-footer > strong > span,
+.reduce-animations .landing-proof-object-link,
+.reduce-animations .landing-room-example-link,
+.reduce-animations .final-cta-link {
+    transform: none !important;
+    transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pass-link-chat-link,
+    .pass-link-shared-footer > strong > span,
+    .landing-proof-object-link,
+    .landing-room-example-link,
+    .final-cta-link {
+        transform: none !important;
+        transition: none !important;
     }
 }
