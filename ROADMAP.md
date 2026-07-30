@@ -660,6 +660,26 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   assumption; the fix is Postgres LISTEN/NOTIFY + a shared store, not caps.
 - `useDeleteSettlement` (lib/queries.ts) is an exported mutation hook with no
   caller (pre-dates wave 3).
+- **The content stylebook describes more gates than it has.** Found in review
+  2026-07-30. `content.test.ts` really does enforce the counting rules and about
+  six of §11.1's ~40 never-strings — a page saying `unlimited`, `fewest
+transfers` or `live exchange rate` fails. The rest do not exist: a page can
+  ship `truly seamless`, `world-class`, `split bills not friendships`, `any
+currency`, `150+` or any es/pt-BR never-string and pass clean, and the
+  em-dash cap, the co-presentation rule and the banned-concession-title rule
+  are unenforced (the Tricount page carries 6 em-dashes against a cap of 3).
+  Worse, `content.ts`'s `Frontmatter` has no `type`, `claims`, `cast` or
+  `competitorClaims`, and `parseDoc` builds from an explicit key list — so
+  those keys are silently DISCARDED and every §11.2/§11.3 rule keyed on them
+  is unrunnable. Either implement them or mark those rows human-review-only; a
+  rulebook that names a gate it does not have stops the next reviewer looking.
+  The `_system/stylebook.md` header also links six files that do not exist in
+  this repo, including the `intent-queries` list §6.15 says every FAQ question
+  must come from — so no FAQ on the new pages is checked against anything.
+- The competitor-claims register calls itself exhaustive but is missing a row
+  for the `"tricount does the math for you"` quote the comparison page uses.
+  The quote is verbatim (confirmed on tricount.com 2026-07-30); the register
+  is what is incomplete.
 - `equalSplitMinor` (lib/money.ts) and `equalShares` (server/split.ts) are
   documented as "the same rule" with nothing pinning them — a two-line
   agreement test would close it.
