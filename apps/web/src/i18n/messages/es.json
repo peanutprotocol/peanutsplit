@@ -740,6 +740,47 @@
             "confirmNo": "Dejarlo",
             "removed": "Registro deshecho. Los saldos ya se actualizaron.",
             "removeFailed": "No se pudo eliminar ese pago — intenta de nuevo."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, other {Ya son # en el grupo}}",
+                "body": "¿Quién falta?",
+                "invite": "Enviar el link"
+            },
+            "passport": {
+                "title": "{count, plural, other {# monedas}}",
+                "body": "Una cuenta limpia, pagáramos en lo que pagáramos."
+            },
+            "alterego": {
+                "title": "Tu papel en este viaje",
+                "body": "Salió de lo que realmente hiciste."
+            },
+            "wrapped": {
+                "title": "El viaje, resumido",
+                "body": "{count, plural, other {# tarjetas. Comparte las que quieras.}}"
+            },
+            "share": "Compartir",
+            "sharing": "Preparándola…",
+            "dismiss": "Ahora no",
+            "shelfTitle": "Desbloqueado en este viaje",
+            "copied": "Tarjeta copiada — pégala donde quieras.",
+            "downloaded": "Tarjeta guardada en tus descargas.",
+            "shareFailed": "No pudimos armar esa tarjeta. Intenta otra vez.",
+            "award": {
+                "tripStarter": "Quien lo empezó",
+                "firstMover": "Primer movimiento",
+                "ledgerLegend": "Leyenda de la cuenta",
+                "currencyHopper": "Saltamonedas",
+                "theCloser": "Quien cierra",
+                "hypeCrew": "La hinchada"
+            },
+            "shareText": {
+                "crew": "El grupo, completo.",
+                "passport": "Monedas distintas, una cuenta limpia.",
+                "alterego": "Este fui yo en este viaje.",
+                "stats": "El viaje, en números.",
+                "landing": "Todo a mano, y nadie tuvo que perseguir a nadie."
+            }
         }
     },
     "push": {
@@ -926,5 +967,33 @@
         "expired": "Esa foto no llegó. Compártela de nuevo.",
         "unavailable": "Escanear cuentas todavía no está activo.",
         "open": "Abrir Split"
+    },
+    "card": {
+        "crew": {
+            "title": "EL GRUPO",
+            "line": "Un solo link, y estamos todos."
+        },
+        "passport": {
+            "title": "PASAPORTE",
+            "line": "{count} monedas. Una cuenta limpia."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Un viaje, un sello propio."
+        },
+        "stats": {
+            "title": "EL VIAJE"
+        },
+        "landing": {
+            "title": "A MANO"
+        },
+        "award": {
+            "tripStarter": "Quien lo empezó",
+            "firstMover": "Primer movimiento",
+            "ledgerLegend": "Leyenda de la cuenta",
+            "currencyHopper": "Saltamonedas",
+            "theCloser": "Quien cierra",
+            "hypeCrew": "La hinchada"
+        }
     }
 }

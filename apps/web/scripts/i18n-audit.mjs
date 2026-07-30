@@ -88,6 +88,24 @@ const BINDING =
     /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\(\s*(?:(['"])([\w.]+)\2|\{[^}]*namespace\s*:\s*(['"])([\w.]+)\4[^}]*\}|\{[^}]*\})?\s*\)/g
 
 /**
+ * The THIRD binder, and the one this script could not see at all until it was added.
+ *
+ * `getTranslator` (`src/i18n/t.ts`) is how code that is not a component resolves a message — the
+ * OG card builders, which draw a whole subtree (`card.*`, `preview.*`) onto an image that goes
+ * into a group chat. Its argument is a LOCALE, not a namespace, so the variable resolves against
+ * the catalog root and the two patterns above never matched it. Every key drawn on a card was
+ * therefore invisible to check 1: it could be typo'd or renamed with no gate, and the failure
+ * mode is a card printing the literal text `card.crew.title`.
+ *
+ * Check 3 does not apply to these sites and they are reported rather than failed. The translator
+ * returns the MESSAGE, and a caller is free to interpolate it later — `roomCard.ts` does exactly
+ * that, holding `preview.statOne` as a template and substituting `{amount}` inside `statLine`. A
+ * value missing at the `t()` call is normal there, not a bug. What still guards the drawn strings
+ * is `achievementCard.test.ts`, which asserts no `{` or `}` survives into any card in any locale.
+ */
+const TRANSLATOR_BINDING = /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\(?\s*await\s+getTranslator\(/g
+
+/**
  * A call on one of those variables. The leading `(?<![\w.$])` is load-bearing: without it
  * `foo.t('x')` and — the case that actually bit — `someString.test('x')` both match, and the
  * audit starts demanding catalog entries for regex fixtures.
@@ -215,6 +233,8 @@ const skipped = []
  *  the "computed (skipped)" number on the summary line with sites that have no computed key at
  *  all. */
 const opaqueValues = []
+/** Call sites on a `getTranslator` variable: the key is checked, the values are not. */
+const templateSites = []
 
 for (const file of sourceFiles(srcRoot)) {
     const source = stripComments(readFileSync(file, 'utf8'))
@@ -223,6 +243,11 @@ for (const file of sourceFiles(srcRoot)) {
     // Group 3 is the string form's namespace, group 5 the object form's; neither
     // means the variable resolves against the catalog root.
     for (const match of source.matchAll(BINDING)) namespaces.set(match[1], match[3] ?? match[5] ?? '')
+    const templates = new Set()
+    for (const match of source.matchAll(TRANSLATOR_BINDING)) {
+        namespaces.set(match[1], '')
+        templates.add(match[1])
+    }
     if (namespaces.size === 0) continue
 
     for (const match of source.matchAll(CALL)) {
@@ -231,6 +256,10 @@ for (const file of sourceFiles(srcRoot)) {
         const key = namespace ? `${namespace}.${match[4]}` : match[4]
         if (!referenced.has(key)) referenced.set(key, relative(appRoot, file))
         if (match[2] === 'raw' || match[2] === 'has') continue
+        if (templates.has(match[1])) {
+            templateSites.push(`${relative(appRoot, file)} — ${key}`)
+            continue
+        }
         const openParen = source.indexOf('(', match.index)
         valueSites.push({ key, file: relative(appRoot, file), values: passedValues(callArguments(source, openParen)) })
     }
@@ -307,6 +336,11 @@ if (skipped.length > 0) {
 if (opaqueValues.length > 0) {
     console.log('\nplaceholders unchecked (values are not a literal object):')
     for (const entry of [...new Set(opaqueValues)]) console.log(`  ${entry}`)
+}
+
+if (templateSites.length > 0) {
+    console.log('\nplaceholders unchecked (getTranslator returns the template; the caller may interpolate later):')
+    for (const entry of [...new Set(templateSites)]) console.log(`  ${entry}`)
 }
 
 let failed = false

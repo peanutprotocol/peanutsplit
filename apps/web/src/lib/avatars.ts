@@ -436,6 +436,10 @@ export function randomPersonaKey(exclude: string | null = null, random: () => nu
 /** A neutral defensive render fallback for null or unknown legacy values. */
 export const FALLBACK_AVATAR = CLASSIC_AVATARS['doodle-peanut']
 
+/** The same fallback as a key, for the callers that pass a persona across a boundary rather than
+ *  render it — `avatar` is null on legacy rows, and the card route 404s on a null. */
+export const FALLBACK_AVATAR_KEY = 'doodle-peanut' satisfies AvatarKey
+
 export const avatarArt = (avatar: string | null | undefined, _name?: string): AvatarArt =>
     isAvatarKey(avatar) ? AVATARS[avatar] : FALLBACK_AVATAR
 

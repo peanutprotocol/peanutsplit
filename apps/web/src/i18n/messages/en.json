@@ -740,6 +740,47 @@
             "confirmNo": "Keep it",
             "removed": "Payment record undone. Room balances updated.",
             "removeFailed": "Could not remove that payment — try again."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, other {The crew is # strong}}",
+                "body": "Who's missing?",
+                "invite": "Send the link"
+            },
+            "passport": {
+                "title": "{count, plural, other {# currencies}}",
+                "body": "One clean split, whatever we paid in."
+            },
+            "alterego": {
+                "title": "Your role this trip",
+                "body": "Picked from what you actually did."
+            },
+            "wrapped": {
+                "title": "The trip, wrapped",
+                "body": "{count, plural, other {# cards. Share the ones you like.}}"
+            },
+            "share": "Share",
+            "sharing": "Getting it ready…",
+            "dismiss": "Not now",
+            "shelfTitle": "Unlocked on this trip",
+            "copied": "Card copied — paste it anywhere.",
+            "downloaded": "Card saved to your downloads.",
+            "shareFailed": "We could not build that card. Try again.",
+            "award": {
+                "tripStarter": "Trip Starter",
+                "firstMover": "First Mover",
+                "ledgerLegend": "Ledger Legend",
+                "currencyHopper": "Currency Hopper",
+                "theCloser": "The Closer",
+                "hypeCrew": "Hype Crew"
+            },
+            "shareText": {
+                "crew": "Our split crew, assembled.",
+                "passport": "Different currencies, one clean split.",
+                "alterego": "This is who I was on this trip.",
+                "stats": "The trip, in numbers.",
+                "landing": "All square, and nobody had to chase anybody."
+            }
         }
     },
     "push": {
@@ -926,5 +967,33 @@
         "expired": "That photo didn’t make it. Share it again.",
         "unavailable": "Scanning bills isn’t on yet.",
         "open": "Open Split"
+    },
+    "card": {
+        "crew": {
+            "title": "CREW",
+            "line": "One link, everybody in."
+        },
+        "passport": {
+            "title": "PASSPORT",
+            "line": "{count} currencies. One clean split."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "One trip, one signature move."
+        },
+        "stats": {
+            "title": "OUR TRIP"
+        },
+        "landing": {
+            "title": "ALL SQUARE"
+        },
+        "award": {
+            "tripStarter": "Trip Starter",
+            "firstMover": "First Mover",
+            "ledgerLegend": "Ledger Legend",
+            "currencyHopper": "Currency Hopper",
+            "theCloser": "The Closer",
+            "hypeCrew": "Hype Crew"
+        }
     }
 }
