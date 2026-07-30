@@ -46,7 +46,9 @@ Frontmatter `type:` picks the register. No third register, no blending inside on
 | `editorial`  | Editorial                 | The 5 fairness essays                                         |
 
 **§2.1 Default.** The house voice of §3. Short declaratives that end early. One clause where one clause
-works. The answer arrives in the first two sentences — no throat-clearing, no scene-setting.
+works. The answer arrives in the first two sentences — no throat-clearing, no scene-setting. **The one
+exception is the quoted opening (§3.12)**: a page that opens on one line of the reader's own dialogue,
+falsified by the next sentence, has until the end of the first short paragraph (four sentences).
 Sentence-case headings. Live models: "Splitwise works." "The link is the room." "An empty room is not
 settled, it is empty." → Right: "The free limit is four expenses a day." → Wrong: "If you've ever hit a
 wall while adding expenses, you're not alone." On `guide` pages the same voice runs the travel-warm
@@ -71,8 +73,9 @@ room-surface copy. Content never uses display caps, caps micro-labels, or a land
 One voice writes every Split page. Its internal alias is **Edie Marlow**: _the person who held the
 receipts, and who also writes the website._ She has organised the trip, fronted the money, kept the
 receipts in a bag, and declined to make a fuss about any of it — so her authority is that she has done
-the job, not that she sells the tool. She never raises her voice, never says a thing twice, and never
-gets caught being funny. The second half of the alias is the licence in §3.7: she knows she is writing
+the job, not that she sells the tool. She never raises her voice and never says a thing twice, and she
+gets caught being funny exactly once a page (§3.14) — everywhere else the joke sits in the tail of a
+sentence and goes unremarked. The second half of the alias is the licence in §3.7: she knows she is writing
 marketing for a bill-splitting website, thinks that is a mildly funny job, and will say so **once** on
 a page, in the flattest available sentence, immediately followed by a fact you can check. That
 admission is why the rest of the page gets believed.
@@ -82,16 +85,23 @@ tryhard_ — survives as §3.1–§3.6. Understatement is the default delivery; 
 move, not a second register. **Everything in this section is calibration, not copy.** Never paste a
 stylebook example into a page; find that page's own specific (§3.11).
 
+**§3.12–§3.18 are the 30 Jul sharpening** — seven rules Konrad approved against the sample in §3.19.
+They win over anything earlier in §3 and over §6 wherever they meet, and every rule they replaced has
+been rewritten at its own ID, so there is no contradiction left to reconcile. Each carries its own
+once-per-page cap; §6.17 still governs the total, and a page that spends every allowance is a template,
+not a voice. §3 is meant to be sufficient on its own: read end to end, §3.1–§3.19 produce the §3.19
+register.
+
 ### §3.1–§3.6 The six rules
 
-| #    | Rule                                                                                                                                                                                                                                                        | Right                                                                                                        | Wrong                                                                           |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| §3.1 | **Friendly = concrete and unhurried, not chatty.** Warmth comes from a named physical thing and from litotes, never from adjectives or address                                                                                                              | "Somebody adds the taxi on the way home and it is on everyone else's screen before they are out of the car." | "Hey! Ready to make splitting bills fun again?"                                 |
-| §3.2 | **Easy = one clause per sentence, and stop early.** Say less than the situation deserves. The reader can stop at any paragraph and still have the answer; front-load. Mid-trip pages are short by rule                                                      | "The free limit is four expenses a day. Split has no cap."                                                   | A 200-word preamble before the number                                           |
-| §3.3 | **Honest = named limits in our own words, before anyone asks**                                                                                                                                                                                              | see §4                                                                                                       | "No product is perfect, but…"                                                   |
-| §3.4 | **Quirky = litotes instead of adjectives**, plus the cast names. Not small. Less than ideal. Quite hard to argue with. Never a stylish money sentence                                                                                                       | "The bag of coins was not a system." / "Enjoy the rare feeling."                                             | "Splitting bills has never been this delightful"                                |
-| §3.5 | **One joke per page, and it must name the job.** Test: delete the joke and the sentence stops being factually true. The joke lives in the tail of the sentence, in body copy only — never in a title, H1, meta, CTA, table cell, FAQ question or FAQ answer | "You stop being the group's accounts-receivable department."                                                 | "Money drama? Not on our watch. 💸" / any mockery of the person who hasn't paid |
-| §3.6 | **No setups, no reveals, no transitions — and no sentence points at its own joke.** No "let's be honest", no "we know what you're thinking", no nudge after the line                                                                                        | "Split has no cap and no counter."                                                                           | "And that is where Split comes in." / "Admittedly, we would say that."          |
+| #    | Rule                                                                                                                                                                                                                                                                                                                                        | Right                                                                                                        | Wrong                                                                           |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| §3.1 | **Friendly = concrete and unhurried, not chatty.** Warmth comes from a named physical thing and from litotes, never from adjectives or address                                                                                                                                                                                              | "Somebody adds the taxi on the way home and it is on everyone else's screen before they are out of the car." | "Hey! Ready to make splitting bills fun again?"                                 |
+| §3.2 | **Easy = one clause per sentence, and stop early.** Say less than the situation deserves. The reader can stop at any paragraph and still have the answer; front-load. Mid-trip pages are short by rule                                                                                                                                      | "The free limit is four expenses a day. Split has no cap."                                                   | A 200-word preamble before the number                                           |
+| §3.3 | **Honest = named limits in our own words, before anyone asks**                                                                                                                                                                                                                                                                              | see §4                                                                                                       | "No product is perfect, but…"                                                   |
+| §3.4 | **Quirky = litotes instead of adjectives**, plus the cast names. Not small. Less than ideal. Quite hard to argue with. Never a stylish money sentence                                                                                                                                                                                       | "The bag of coins was not a system." / "Enjoy the rare feeling."                                             | "Splitting bills has never been this delightful"                                |
+| §3.5 | **One joke per page, and it must name the job.** Test: delete the joke and the sentence stops being factually true. The joke lives in the tail of the sentence, in body copy only — never in a title, H1, meta, CTA, table cell, FAQ question or FAQ answer. **This is the same single allowance as the §3.14 punchline, not a second one** | "You stop being the group's accounts-receivable department."                                                 | "Money drama? Not on our watch. 💸" / any mockery of the person who hasn't paid |
+| §3.6 | **No setups, no reveals, no transitions — and no sentence points at its own joke.** No "let's be honest", no "we know what you're thinking", no nudge after the line. The §3.14 punchline may be _visibly_ a joke; it still gets no setup, no nudge and no sentence pointing back at it                                                     | "Split has no cap and no counter."                                                                           | "And that is where Split comes in." / "Admittedly, we would say that."          |
 
 ### §3.7 The wink licence — one wall-break per page
 
@@ -158,16 +168,23 @@ template (§6.17).
 - **The three flat-register families — Splitwise migration, couples-by-income, rent and utilities**
   (slugs in §5.5): register goes flat, personality to zero. No wink, no litotes, no undersell, no
   absurdity; plain declaratives and named numbers, and the concession in the same plain voice.
+  **§3.12–§3.18 are switched off here too** — no quoted opening, no interjection, no exclamation mark,
+  no punchline, no imperative "Just", and the stakes sentence goes in the plainest available words. The
+  product still enters by name once (§3.17), flat, with no imperative and no relief line after it.
+  §3.10 wins over §3.12–§3.18 everywhere they meet.
 - **Editorial (§2.2) is unchanged and takes no wink** — a fourth-wall line is a trapdoor out of exactly
   the discomfort the essay is holding.
 - **Promises, legal, UI and error copy: no voice at all.** A joke next to a promise makes the promise
   sound like one.
 - **Mid-trip capture pages:** deadpan needs a beat the reader standing outside a restaurant does not
-  have. Front-load the fact and drop the tail joke.
+  have. Front-load the fact and drop the tail joke. No quoted opening (§3.12) and no interjection
+  (§3.13) either — both cost the reader a sentence before the answer.
 - **ES and PT-BR are transcreated, never translated.** Litotes reads as a mistake in Spanish, clipped
   plainness reads curt in Portuguese, and the wall-break depends on English genre-literacy. Rebuild
   from the locale's own artefacts (§9.2, §9.3): litotes becomes a plain statement, the wink is dropped
-  or recast as a flat reason.
+  or recast as a flat reason. **§3.12–§3.14 and §3.17 travel** — a quoted objection, one interjection,
+  one punchline and the product entering by name all rebuild from locale artefacts. **§3.18 does not
+  travel**: it is an English word, and the locale finds its own imperative of relief or drops the beat.
 
 ### §3.11 Repetition contract (§6.17, applied to the voice)
 
@@ -180,9 +197,171 @@ template (§6.17).
   do not re-argue it.
 - **Litotes twice per page maximum** — three is a tic. **Em-dashes: target one per page** (§11.2
   hard-fails at four).
+- **Each of §3.12, §3.13, §3.14, §3.17 and §3.18 fires at most once per page**, and §3.15's
+  full-weight stakes sentence is stated once and never restated. A page that spends all five reads as
+  a format. Two or three is the working ceiling, same as §3.9.
 
 Ceiling for humour, recorded verbatim to calibrate against: _"the best man has no chasing up of funds
 like a mediocre mafiosa boss."_ Funny **and** it describes the task. Decorative jokes fail that test.
+The approved register in full is §3.19.
+
+### §3.12 The quoted opening — one line of the reader's world, immediately tested
+
+A page **may** open on one line of quoted micro-dialogue: the friends' objection or the friends'
+promise, in their words, dramatised. The next sentence confirms or falsifies it, flat, with no comment
+on the quote.
+
+→ _"Send me the photo, I'll put it in tonight," they say. Nobody puts it in tonight._
+
+- **Maximum one per page**, and it is the first line or it is nothing — a quote in paragraph four is a
+  scene-setting relapse.
+- **The falsification is the second sentence**, not the second paragraph. Promise then broken promise,
+  or objection then the thing that answers it. A quote left hanging is decoration.
+- **This is humans talking, not the cast.** §5.1 is unchanged: no doodle persona ever speaks, and the
+  quoted line is never attributed to a named person in the group (§1.4) — "they say", "someone says",
+  "the group chat says".
+- **The quote is invented dialogue, not evidence.** It never carries a product claim, a number or a
+  competitor fact, and it is never wrapped in `<Quote source=…>` (§7.1 is for real sources only).
+- **Off on:** the three flat families and mid-trip capture pages (§3.10), editorial (§2.2), and any
+  page whose first job is a number.
+- **The answer still arrives fast.** Where the type requires it in the first two sentences (§2.1,
+  §11.3), a page that opens on a quote gets the first short paragraph instead — four sentences,
+  maximum. Nothing else buys that extension.
+
+### §3.13 Interjection budget — one per page, and it earns its exclamation mark
+
+One short interjection with an exclamation mark per page. It goes **immediately after the quoted
+opening or after the pain beat**, and nowhere else.
+
+→ _Enough of that!_
+
+- **Exactly one per page, all locales.** This supersedes the old zero-exclamation rule; §6.1 and §11.2
+  are rewritten to match. Every other exclamation mark on the page is still a hard fail.
+- **Never in a title, H1–H3, meta description, CTA, CTA hint, table cell, FAQ question or FAQ answer.**
+- **Never within one sentence of a number, a balance, an amount owed or a settle-up instruction** —
+  same guard as §3.7.4. An exclamation mark next to money reads as a sales floor.
+- **It is a release, not a celebration.** §6.1's ban on the celebration register stands: no "woohoo",
+  no "you did it", no confetti. The interjection dismisses the situation, never congratulates the
+  reader.
+- Short. Three or four words. If it needs a comma it is a sentence, and sentences do not get
+  exclamation marks.
+
+### §3.14 One visible punchline per page
+
+The page is allowed one line that is _recognisably_ a joke and lands as one. Deadpan is still the
+default everywhere around it — one visible punchline in 500 words is a voice; three is a comedy
+website.
+
+→ _…you have typed in 19 of them from a sun lounger, which is unpaid bookkeeping in a swimming costume
+for a company that does not exist._
+
+- **It ridicules the genre or the task. Never a person** — not the reader, not a named friend, not
+  whoever has not paid (§1.4), not a competitor's users (§6.11). §3.8's warmth valve decides the
+  direction.
+- **Same single allowance as §3.5 and §3.7.6.** The page gets one joke. If the punchline is it, there
+  is no tail joke and no separate wink; if the wall-break spends it, there is no punchline.
+- **It still lives in the tail of a sentence, in body copy only**, and §3.6 still applies: no setup, no
+  reveal, no nudge afterwards, no sentence pointing back at it. Landing explicitly is not the same as
+  announcing itself.
+- **§3.5's test survives:** delete the punchline and the sentence stops being factually true. "Unpaid
+  bookkeeping in a swimming costume" passes because it describes what the reader is actually doing.
+
+### §3.15 Undersell the mechanics. Never undersell the stakes.
+
+Litotes, the flat sum-up and the undersell (§3.4, §3.9) are for **money and product mechanics**. The
+social cost is stated **plainly, once, at full weight** — including the dark end — and then never
+mentioned again.
+
+→ Stakes at full weight: _When it doesn't, somebody is ninety euros down and says nothing about it,
+and some people never bring it up at all and carry a quiet resentment that outlasts the friendship._
+→ Mechanics undersold: _no accounts and nothing to download._
+
+- **The dark end is allowed and expected.** Resentment, friendships that do not recover, the person
+  who never says anything. Say it once, in the plainest sentence available, with no litotes and no
+  joke inside it or next to it.
+- **Once per page.** §6.17's one-idea-one-appearance is strict here: the stakes sentence is not
+  re-argued in the concession, the CTA or the FAQ.
+- **Still no culprit** (§1.4) and still no verdict on the reader's relationships (§8.4). Name what
+  happens, never who is at fault.
+- Underselling the stakes is the failure this rule exists to kill: "it can get a bit awkward" is a
+  worse sentence than the truth, and the reader already knows it is worse.
+
+### §3.16 Scene-truth and claim-truth are different registers
+
+Vivid, specific counts inside a **scene** are encouraged: _19 receipts_, _ninety euros_, _followed up
+7 times_, _three different phones_. They are narrative detail, and the reader reads them as such.
+
+Numbers that describe **the product or a competitor** are claim-truth: they come from §7.3 verbatim,
+carry a `claims:` / `competitorClaims:` ID (§7.5), and are never rounded, dramatised or invented.
+
+- **The seam is the sentence.** A scene number and a product claim never share one sentence — that is
+  where a made-up number gets read as a fact.
+- Scene numbers stay page-scoped like every other artefact (§3.11, §6.17): the 19 receipts belong to
+  one page and cannot travel.
+- Scene numbers are never presented as research, an average, a survey or "most groups". The moment a
+  count generalises, it is a claim and needs a source.
+- Real corpus statistics (46%, "over two months", §1.1) are claims, not scenery.
+
+### §3.17 The product enters by name, as the actor, once
+
+After the pain beat, Peanut Split enters **by name, doing the thing**, in an imperative. Once per
+page.
+
+→ _Let Peanut Split do that bit instead._ Then the mechanics, flat, in their own sentences.
+
+- **Order is fixed:** pain beat → imperative naming the product → mechanics. Never the product first,
+  never mechanics before the reader knows why.
+- **This is not the setup-and-reveal §6.16 bans.** "And that is where Split comes in" points at the
+  product's arrival; "Let Peanut Split do that bit instead" _is_ the arrival. No transition sentence
+  before it, no "the good news is", no colon.
+- **Full name once, at the point of entry — "Peanut Split".** Every other mention on the page is
+  "Split" (§10).
+- **Once per page in this form.** Later mentions are ordinary sentences about what Split does, not
+  second entrances.
+- Editorial (§2.2) keeps its own limit: Split is mentioned at most twice and never enters on an
+  imperative.
+
+### §3.18 "Just" — legal in an imperative of relief, banned as a minimiser
+
+- **Legal:** sentence-initial, imperative, in the closing beat of relief. → _Just send the link and get
+  back in the sea._ One per page, and only where the page has earned the relief.
+- **Banned:** every minimising use. _it's just easy_ · _just a few taps_ · _just add the expense_ ·
+  _it's just a link_. Minimising our own product is the round-1 tell, and §6.4 still bans **simply**
+  outright with no equivalent carve-out.
+- **The mechanical check follows the grammar, not the judgement** (§11.1): every `just` that is **not
+  sentence-initial** is a hard fail, because every minimising use above sits mid-sentence.
+  Sentence-initial `Just ` passes the regex and is capped at one per page (§11.2); whether it is a real
+  imperative of relief is the drafter's call and a review item, not a regex's.
+- Off in the flat families and editorial (§3.10). Does not translate (§3.10, ES/PT-BR).
+
+### §3.19 The calibration sample (Konrad-approved, 30 Jul)
+
+The register §3 is written to produce. **Calibration only — every artefact in it is burnt.** The sun
+lounger, the 19 receipts, the colour-coded tabs, the ninety euros and "get back in the sea" now belong
+to `/group-trip-expenses` and cannot appear on any other page (§3.11, §6.17). Never paste a sentence of
+it into a draft.
+
+> **H1 — "A spreadsheet template for group trip expenses"**
+>
+> "Send me the photo, I'll put it in tonight," they say. Nobody puts it in tonight. Your sheet was
+> lovely on day one — colour-coded tabs, a column for the currency, a total that worked out the
+> per-person share on its own. By day three you are the only one who has opened it, the receipts are
+> photographs in three different phones, and you have typed in 19 of them from a sun lounger, which is
+> unpaid bookkeeping in a swimming costume for a company that does not exist. Enough of that!
+>
+> Whether the sheet gets finished matters more than it sounds. When it doesn't, somebody is ninety
+> euros down and says nothing about it, and some people never bring it up at all and carry a quiet
+> resentment that outlasts the friendship. Let Peanut Split do that bit instead. One link in the group
+> chat, everyone adds what they paid themselves, in the currency they paid it in, no accounts and
+> nothing to download; the room adds it up and nets it to a short list of who pays whom. Just send the
+> link and get back in the sea.
+
+Read against the rules: quoted opening falsified in one sentence (§3.12) · one interjection, after the
+pain beat, nowhere near a number (§3.13) · one visible punchline, aimed at the task (§3.14) · stakes at
+full weight including the resentment, mechanics undersold (§3.15) · 19 receipts and ninety euros are
+scene-truth, "no accounts and nothing to download" is claim-truth (§3.16) · the product enters by name,
+imperative, once, after the pain beat (§3.17) · one sentence-initial "Just", closing on relief (§3.18) ·
+one em-dash, no second joke, no wink, thesis stated once (§3.11, §6.17).
 
 ---
 
@@ -217,7 +396,8 @@ visual family — never on the same page as a doodle.
 
 - **§5.1 Characters never speak.** No dialogue, no attributed quotes, no character narrating. (Bea's
   "who paid for dinner?" on the landing page is a _person_ in a chat mock, not the Party Bee talking.
-  Do not extend it.)
+  Do not extend it.) **The §3.12 quoted opening is unattributed humans — "they say" — not the cast**,
+  and never a named persona; that rule is a licence for prose dialogue, not for the doodles.
 - **§5.2 No character asserts a product claim.** A drawing next to a number reads as its source.
 - **§5.3 No third-person cast narration about the reader.** Second person, always.
 - **§5.4 Density:** `capture` 1 (inside `<Steps>` only) · `comparison` 1 (never in the table, never in
@@ -251,54 +431,54 @@ ingresos`: a doodle on a page about one partner being in fuel poverty is the doc
 
 ## §6 Hard bans
 
-| #     | Ban                                                                                                                                                                                                                                                      | Evidence                                                                                                                                                                |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| §6.1  | **No celebration register.** No confetti copy, no "woohoo", no "you did it". **Zero exclamation marks in content pages, all locales.**                                                                                                                   | HN: _"I want something that doesn't treat me like a child clapping at Saturday morning cartoons"_; Split's live editorial has none                                      |
-| §6.2  | **Zero emoji** in titles, meta descriptions, H1–H3, table cells, CTAs, FAQ questions. 😂 banned everywhere                                                                                                                                               | HN on Chime: _"tons of emojis… completely childish"_; fine for pizza, not for money. 😂 dates the page                                                                  |
-| §6.3  | **No gamification.** No streaks, levels, points, badges, achievements, progress bars, "reward", "unlock"                                                                                                                                                 | HN: _"Gamification of stuff you're forced to do is patronizing"_                                                                                                        |
-| §6.4  | **No marketing adjectives:** seamless, effortless, robust, powerful, world-class, cutting-edge, game-changing, revolutionary, empower, unlock, elevate, supercharge, truly, incredibly. Split also bans **just** and **simply**                          | mono STE rules + Split's live copy                                                                                                                                      |
-| §6.5  | **No competitor prices, any locale, including inside a quotation.** Keep the _fact_ of a paid tier without a number                                                                                                                                      | Splitwise publishes none; ES review says "4€ al mes", a rival blog "3-4 euros" — both second-hand. Splid "$3.99" and Kittysplit "€3" violate the pages' own no-rot rule |
-| §6.6  | **No live/real-time FX claims.** Ceiling: "converted at the day's rate"                                                                                                                                                                                  | `fx.ts` is live → cache → static fallback; the rate freezes onto each expense at creation                                                                               |
-| §6.7  | **No unbounded or superlative claims:** unlimited, any currency, multi-currency, all currencies, 150+, unguessable, fewest/minimum transfers, optimal, any size group                                                                                    | twelve currencies; twenty people; greedy netting                                                                                                                        |
-| §6.8  | **No permanence promises.** Never "never lose your data", "safe forever", "a permanent record". The optional email is _access from any device_, never a backup guarantee                                                                                 | device loss is the documented churn driver for accountless apps                                                                                                         |
-| §6.9  | **No slang with a shelf life, any locale.** No gen-alpha lexicon                                                                                                                                                                                         | _"vergonha alheia amanhã"_; the failure has a BR name, _tiozão_. Burned already: _lacrou_, _arrasou_                                                                    |
-| §6.10 | **No "split bills, not friendships"**                                                                                                                                                                                                                    | taken twice — Splid's hero and PartyTab's                                                                                                                               |
-| §6.11 | **No triumphalism, no editorialising about a competitor.** "Greedy" is their word, not ours — let quotes carry the anger, keep our sentences flat                                                                                                        | this audience _liked_ Splitwise; mocking it mocks their taste                                                                                                           |
-| §6.12 | **No privacy or anti-surveillance framing.** Accountless is a _friction_ story                                                                                                                                                                           | a bearer link is a weak privacy claim we would have to defend                                                                                                           |
-| §6.13 | **No settlement claim beyond recording.** We never move money, never verify a payment, never imply the Peanut path is safer than cash. Rails named per locale or not at all — Bizum only Spain-scoped, Pix only BR, never "Venmo me" on a shared EN page | frozen money surface; `copy.ts` docstring                                                                                                                               |
-| §6.14 | **No social proof we do not have.** No star ratings, user counts or testimonials                                                                                                                                                                         | _"Split has no users yet, so there is nobody to quote but us."_                                                                                                         |
-| §6.15 | **No invented FAQ.** Every question comes from `intent-queries-2026-07-30.md` or a real support intent                                                                                                                                                   | invented FAQs are where fabricated claims enter                                                                                                                         |
+| #     | Ban                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Evidence                                                                                                                                                                    |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §6.1  | **No celebration register.** No confetti copy, no "woohoo", no "you did it". **Exclamation marks: exactly one per page, all locales, and only as the §3.13 interjection** — body copy, straight after the quoted opening or the pain beat, never within one sentence of a number. Zero in titles, H1–H3, meta, CTAs and CTA hints, table cells, FAQ questions and answers, promises, legal, UI and error copy, and zero on the §3.10 flat families. (Superseded the old zero-everywhere rule, Konrad 30 Jul; the ban it was protecting — congratulating the reader — is unchanged) | HN: _"I want something that doesn't treat me like a child clapping at Saturday morning cartoons"_; the interjection dismisses the situation, it does not applaud the reader |
+| §6.2  | **Zero emoji** in titles, meta descriptions, H1–H3, table cells, CTAs, FAQ questions. 😂 banned everywhere                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | HN on Chime: _"tons of emojis… completely childish"_; fine for pizza, not for money. 😂 dates the page                                                                      |
+| §6.3  | **No gamification.** No streaks, levels, points, badges, achievements, progress bars, "reward", "unlock"                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | HN: _"Gamification of stuff you're forced to do is patronizing"_                                                                                                            |
+| §6.4  | **No marketing adjectives:** seamless, effortless, robust, powerful, world-class, cutting-edge, game-changing, revolutionary, empower, unlock, elevate, supercharge, truly, incredibly. Split also bans **simply** outright, and **just** as a minimiser — sentence-initial imperative "Just …" is legal once per page under §3.18, mid-sentence "just" never is                                                                                                                                                                                                                   | mono STE rules + Split's live copy                                                                                                                                          |
+| §6.5  | **No competitor prices, any locale, including inside a quotation.** Keep the _fact_ of a paid tier without a number                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Splitwise publishes none; ES review says "4€ al mes", a rival blog "3-4 euros" — both second-hand. Splid "$3.99" and Kittysplit "€3" violate the pages' own no-rot rule     |
+| §6.6  | **No live/real-time FX claims.** Ceiling: "converted at the day's rate"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `fx.ts` is live → cache → static fallback; the rate freezes onto each expense at creation                                                                                   |
+| §6.7  | **No unbounded or superlative claims:** unlimited, any currency, multi-currency, all currencies, 150+, unguessable, fewest/minimum transfers, optimal, any size group                                                                                                                                                                                                                                                                                                                                                                                                              | twelve currencies; twenty people; greedy netting                                                                                                                            |
+| §6.8  | **No permanence promises.** Never "never lose your data", "safe forever", "a permanent record". The optional email is _access from any device_, never a backup guarantee                                                                                                                                                                                                                                                                                                                                                                                                           | device loss is the documented churn driver for accountless apps                                                                                                             |
+| §6.9  | **No slang with a shelf life, any locale.** No gen-alpha lexicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | _"vergonha alheia amanhã"_; the failure has a BR name, _tiozão_. Burned already: _lacrou_, _arrasou_                                                                        |
+| §6.10 | **No "split bills, not friendships"**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | taken twice — Splid's hero and PartyTab's                                                                                                                                   |
+| §6.11 | **No triumphalism, no editorialising about a competitor.** "Greedy" is their word, not ours — let quotes carry the anger, keep our sentences flat                                                                                                                                                                                                                                                                                                                                                                                                                                  | this audience _liked_ Splitwise; mocking it mocks their taste                                                                                                               |
+| §6.12 | **No privacy or anti-surveillance framing.** Accountless is a _friction_ story                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | a bearer link is a weak privacy claim we would have to defend                                                                                                               |
+| §6.13 | **No settlement claim beyond recording.** We never move money, never verify a payment, never imply the Peanut path is safer than cash. Rails named per locale or not at all — Bizum only Spain-scoped, Pix only BR, never "Venmo me" on a shared EN page                                                                                                                                                                                                                                                                                                                           | frozen money surface; `copy.ts` docstring                                                                                                                                   |
+| §6.14 | **No social proof we do not have.** No star ratings, user counts or testimonials                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | _"Split has no users yet, so there is nobody to quote but us."_                                                                                                             |
+| §6.15 | **No invented FAQ.** Every question comes from `intent-queries-2026-07-30.md` or a real support intent                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | invented FAQs are where fabricated claims enter                                                                                                                             |
 
 ### §6.16 Anti-AI-tell table
 
-| Pattern                                                  | Kill                                                                 | Fix                              |
-| -------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------- |
-| "Not just X, it's Y" / "It's not about X, it's about Y"  | "The cap isn't just annoying, it's expensive."                       | Pick one claim, state it         |
-| "Whether you're X or Y"                                  | "Whether you're on a trip or splitting rent…"                        | Address this page's one audience |
-| "Imagine" / "Picture this"                               | "Imagine arriving in Lisbon…"                                        | Start with the fact              |
-| Setup → reveal                                           | "And that's where Split comes in."                                   | Introduce it plainly             |
-| Section transition                                       | "Now that we've covered the cap, let's look at…"                     | Delete the sentence              |
-| Meta-commentary on the page                              | "This page is not going to argue." / "The useful thing here is not…" | Delete. Do the thing             |
-| Stacked hedges                                           | "It may in some cases arguably be worth…"                            | One hedge, or none               |
-| Tricolon abuse                                           | three three-part lists on one page                                   | Once per page maximum            |
-| Restated proof point                                     | the four-a-day cap in hero, table and FAQ                            | State a number once, prominently |
-| Em-dash spray                                            | —                                                                    | Maximum 3 per page               |
-| "In today's world" / "look no further" / "let's dive in" | —                                                                    | Delete                           |
+| Pattern                                                  | Kill                                                                 | Fix                                                                                                                                                                      |
+| -------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "Not just X, it's Y" / "It's not about X, it's about Y"  | "The cap isn't just annoying, it's expensive."                       | Pick one claim, state it                                                                                                                                                 |
+| "Whether you're X or Y"                                  | "Whether you're on a trip or splitting rent…"                        | Address this page's one audience                                                                                                                                         |
+| "Imagine" / "Picture this"                               | "Imagine arriving in Lisbon…"                                        | Start with the fact. (The §3.12 quoted opening is not this: it reports a line someone actually says and falsifies it, it does not invite the reader to imagine anything) |
+| Setup → reveal                                           | "And that's where Split comes in."                                   | Introduce it plainly — the §3.17 entrance ("Let Peanut Split do that bit instead") is the approved plain introduction, and it needs no sentence in front of it           |
+| Section transition                                       | "Now that we've covered the cap, let's look at…"                     | Delete the sentence                                                                                                                                                      |
+| Meta-commentary on the page                              | "This page is not going to argue." / "The useful thing here is not…" | Delete. Do the thing                                                                                                                                                     |
+| Stacked hedges                                           | "It may in some cases arguably be worth…"                            | One hedge, or none                                                                                                                                                       |
+| Tricolon abuse                                           | three three-part lists on one page                                   | Once per page maximum                                                                                                                                                    |
+| Restated proof point                                     | the four-a-day cap in hero, table and FAQ                            | State a number once, prominently                                                                                                                                         |
+| Em-dash spray                                            | —                                                                    | Maximum 3 per page                                                                                                                                                       |
+| "In today's world" / "look no further" / "let's dive in" | —                                                                    | Delete                                                                                                                                                                   |
 
 ### §6.17 Repetition and re-emphasis (Konrad ruling, 30 Jul)
 
 Round-1 pages said everything twice. These rules exist because the failure was structural, not
 accidental:
 
-| Rule                                                                                                                                                                                                                  | The disease it kills                                                                                                         |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **One idea, one appearance.** If a sentence restates the previous sentence with different emphasis, cut the weaker one.                                                                                               | "…the ask has already happened without you making it." followed by "The ask has already happened. You never had to make it." |
-| **The thesis is stated once** — in the intro. Section heads, the concession and the CTA do their own jobs; none of them re-argues the intro.                                                                          | ask-shame re-pitched in hero, body, concession and CTA support line                                                          |
-| **Echo landings are capped at one per page.** A short sentence that repeats the long sentence before it is an echo, not a landing.                                                                                    | "Once each." after a sentence that already said "five times, once each"                                                      |
-| **Signature moves max once per page each.** Concede-then-land, the undersell, the counted grievance — one use is a voice, three uses is a template.                                                                   | every paragraph opening with a concession pivot                                                                              |
-| **Concrete artefacts are page-scoped.** Each page finds its own scene. A specific (the villa deposit, the €22 taxi, "sorry to be annoying") lives on ONE page; reuse across pages turns specificity into boilerplate. | the same deposit-and-taxi anecdote on six pages                                                                              |
-| **FAQ answers add information.** An FAQ that restates a body sentence is deleted, not mirrored. (The frontmatter/body byte-mirror is schema, not licence to re-say the intro.)                                        | FAQ 1 = paragraph 2 reworded                                                                                                 |
-| **No re-introductions.** A section never re-establishes what the page is about before doing its job.                                                                                                                  | each H2 opening with a mini-recap                                                                                            |
+| Rule                                                                                                                                                                                                                                                                                                                                                                                                             | The disease it kills                                                                                                         |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **One idea, one appearance.** If a sentence restates the previous sentence with different emphasis, cut the weaker one.                                                                                                                                                                                                                                                                                          | "…the ask has already happened without you making it." followed by "The ask has already happened. You never had to make it." |
+| **The thesis is stated once** — in the intro. Section heads, the concession and the CTA do their own jobs; none of them re-argues the intro.                                                                                                                                                                                                                                                                     | ask-shame re-pitched in hero, body, concession and CTA support line                                                          |
+| **Echo landings are capped at one per page.** A short sentence that repeats the long sentence before it is an echo, not a landing.                                                                                                                                                                                                                                                                               | "Once each." after a sentence that already said "five times, once each"                                                      |
+| **Signature moves max once per page each.** Concede-then-land, the undersell, the counted grievance — one use is a voice, three uses is a template. **The 30 Jul additions count as signature moves**: the quoted opening (§3.12), the interjection (§3.13), the punchline (§3.14), the product entrance (§3.17) and the imperative "Just" (§3.18) are one each, and the stakes sentence (§3.15) is stated once. | every paragraph opening with a concession pivot                                                                              |
+| **Concrete artefacts are page-scoped.** Each page finds its own scene. A specific (the villa deposit, the €22 taxi, "sorry to be annoying") lives on ONE page; reuse across pages turns specificity into boilerplate.                                                                                                                                                                                            | the same deposit-and-taxi anecdote on six pages                                                                              |
+| **FAQ answers add information.** An FAQ that restates a body sentence is deleted, not mirrored. (The frontmatter/body byte-mirror is schema, not licence to re-say the intro.)                                                                                                                                                                                                                                   | FAQ 1 = paragraph 2 reworded                                                                                                 |
+| **No re-introductions.** A section never re-establishes what the page is about before doing its job.                                                                                                                                                                                                                                                                                                             | each H2 opening with a mini-recap                                                                                            |
 
 ---
 
@@ -447,7 +627,7 @@ into `pnpm test`.
 
 ```
 seamless | effortless | robust | powerful | world-class | cutting-edge | game-changing
-revolutionary | empower | supercharge | truly | incredibly | \bjust\b | \bsimply\b
+revolutionary | empower | supercharge | truly | incredibly | \bsimply\b
 not just | isn't just | is not just | it's not about | whether you're | whether you are
 \bimagine\b | picture this | that's where | that is where | let's dive | in today's world
 look no further | now that we've | now that we have covered
@@ -471,31 +651,54 @@ pt-BR:  acerto de contas   (title, H1, slug, description — hard fail)
         passar a régua | lacrou | arrasou
 ```
 
+**`just` — the one string with a grammatical exception (§3.18).** It left the flat never-list on
+30 Jul because the imperative of relief is approved copy. The check moved to the grammar instead of the
+word, which is the only mechanically honest cut available: **every `just` that is not sentence-initial
+is a hard fail.** Every banned minimising use sits mid-sentence ("it's just easy", "just a few taps",
+"it's just a link"), so the regex loses nothing; the approved use is always the first word of a
+sentence ("Just send the link and get back in the sea").
+
+```js
+// hard fail: any `just` preceded on its line by a character that is not a sentence end
+/(?:[^\s.!?\n][^.!?\n]*)\bjust\b/i          // fails "it's just easy", passes "Just send the link"
+// advisory cap: sentence-initial `Just ` more than once per page (§11.2)
+/(?:^|[.!?]\s+)Just\s/g
+```
+
+Whether a sentence-initial `Just` is a genuine imperative of relief is **judgement, not regex** —
+§3.18 is the rule, the cap is the guard, and the cold-read pass is the enforcement. `simply` keeps no
+exception and stays on the list above.
+
 ### §11.2 Structural checks
 
-| Check                | Rule                                                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Exclamation marks    | `!` in body and headings = **0**, all locales                                                                                                                                   |
-| Emoji                | 0 in `title`, `description`, any `#`/`##`/`###`, any `<FAQItem question>`, any `cta`/`text` prop                                                                                |
-| Em-dashes            | `—` ≤ **3** per page                                                                                                                                                            |
-| CTA label            | `<CTA text>` and `<Hero cta>` match the §9 locale label exactly                                                                                                                 |
-| Competitor price     | on `type: comparison`, no `[$€£]\s?\d` or `R\$\s?\d` outside an allowlisted quote exception                                                                                     |
-| Concession           | every page has ≥1 heading from the §4.1 table                                                                                                                                   |
-| Cast keys            | every `cast:` entry exists in `avatars.ts` or `LANDING_CAST`                                                                                                                    |
-| Cast absence         | `cast:` empty on any slug matching `splitwise-alternative`, `splitwise-daily-limit`, `alternativa-splitwise`, `fair-split`, `rent-split`, `dividir-alquiler`, `pareja`, `casal` |
-| Cast density         | `cast:` ≤1 for `capture`/`comparison`, ≤2 for `guide`, 0 for `editorial` except the social-contract essay                                                                       |
-| Cast names in locale | no `avatars.ts` persona label appears in an `es.md` or `pt-BR.md` file (§5.10)                                                                                                  |
-| Claim IDs            | every `claims:` / `competitorClaims:` ID resolves; `type: comparison` with zero `competitorClaims` fails                                                                        |
-| Intent               | `type: capture` requires `intent:`, matching a row in the capture registry                                                                                                      |
-| Check-date           | every `type: comparison` file contains `checked against` + an ISO date                                                                                                          |
-| Quote wrapper        | every quoted competitor sentence sits inside `<Quote source=…>`                                                                                                                 |
-| FAQ source           | every `<FAQItem question>` appears in `intent-queries-2026-07-30.md`                                                                                                            |
-| Fairness pre-emption | slug matching `fair-split\|rent-split\|alquiler\|utilities\|habitaciones` contains a communal-space paragraph (grep `loo\|lights\|kitchen\|áreas comunes\|áreas comuns`)        |
+| Check                     | Rule                                                                                                                                                                                                                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exclamation marks         | `!` ≤ **1** per page in body copy (the §3.13 interjection), all locales. **0** in `title`, `description`, any `#`/`##`/`###`, any `<FAQItem question>` or answer, any `cta`/`text` prop, any table cell. **0** on any slug in the §3.10 flat families (same slug list as the cast-absence row) |
+| Exclamation near a number | no `!` in a sentence containing `[\d]` or a currency symbol (§3.13, §3.7.4)                                                                                                                                                                                                                    |
+| `Just` cap                | sentence-initial `Just ` ≤ **1** per page; any non-sentence-initial `just` = hard fail (§11.1)                                                                                                                                                                                                 |
+| Quoted opening            | ≤ **1** paragraph-initial `"…," they say`-shaped line per page, and only in the first paragraph (§3.12); 0 on `type: editorial` and on the §3.10 flat-family slugs                                                                                                                             |
+| Product entrance          | `Peanut Split` (full name) appears ≤ **1×** per page; every other mention is `Split` (§3.17, §10)                                                                                                                                                                                              |
+| Emoji                     | 0 in `title`, `description`, any `#`/`##`/`###`, any `<FAQItem question>`, any `cta`/`text` prop                                                                                                                                                                                               |
+| Em-dashes                 | `—` ≤ **3** per page                                                                                                                                                                                                                                                                           |
+| CTA label                 | `<CTA text>` and `<Hero cta>` match the §9 locale label exactly                                                                                                                                                                                                                                |
+| Competitor price          | on `type: comparison`, no `[$€£]\s?\d` or `R\$\s?\d` outside an allowlisted quote exception                                                                                                                                                                                                    |
+| Concession                | every page has ≥1 heading from the §4.1 table                                                                                                                                                                                                                                                  |
+| Cast keys                 | every `cast:` entry exists in `avatars.ts` or `LANDING_CAST`                                                                                                                                                                                                                                   |
+| Cast absence              | `cast:` empty on any slug matching `splitwise-alternative`, `splitwise-daily-limit`, `alternativa-splitwise`, `fair-split`, `rent-split`, `dividir-alquiler`, `pareja`, `casal`                                                                                                                |
+| Cast density              | `cast:` ≤1 for `capture`/`comparison`, ≤2 for `guide`, 0 for `editorial` except the social-contract essay                                                                                                                                                                                      |
+| Cast names in locale      | no `avatars.ts` persona label appears in an `es.md` or `pt-BR.md` file (§5.10)                                                                                                                                                                                                                 |
+| Claim IDs                 | every `claims:` / `competitorClaims:` ID resolves; `type: comparison` with zero `competitorClaims` fails                                                                                                                                                                                       |
+| Intent                    | `type: capture` requires `intent:`, matching a row in the capture registry                                                                                                                                                                                                                     |
+| Check-date                | every `type: comparison` file contains `checked against` + an ISO date                                                                                                                                                                                                                         |
+| Quote wrapper             | every quoted competitor sentence sits inside `<Quote source=…>`                                                                                                                                                                                                                                |
+| FAQ source                | every `<FAQItem question>` appears in `intent-queries-2026-07-30.md`                                                                                                                                                                                                                           |
+| Fairness pre-emption      | slug matching `fair-split\|rent-split\|alquiler\|utilities\|habitaciones` contains a communal-space paragraph (grep `loo\|lights\|kitchen\|áreas comunes\|áreas comuns`)                                                                                                                       |
 
 ### §11.3 Required structure by type
 
 - **`capture`** — 350–600 words · no `<Hero>` · H1 = the query as a person says it · answer inside the
-  first two sentences · `<Steps>` ≤3 `<Step>` · one concession paragraph · `<FAQ>` 2–3 · `<CTA>` ·
+  first two sentences, or inside the first paragraph of four sentences maximum when the page opens on a
+  §3.12 quoted line · `<Steps>` ≤3 `<Step>` · one concession paragraph · `<FAQ>` 2–3 · `<CTA>` ·
   `<RelatedPages>` 2–3 · frontmatter `type`, `intent`, `claims`.
 - **`comparison`** — H1 names the competitor or the wedge · ≥1 `<Quote source>` · check-date comment ·
   one table with a source footnote naming the month · concession titled per §4.1 · `<CTA>` · `<FAQ>`
