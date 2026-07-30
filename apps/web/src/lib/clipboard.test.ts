@@ -10,6 +10,9 @@ function fakeDocument(execCommandResult: boolean) {
     const appended: Record<string, unknown>[] = []
     const removed: Record<string, unknown>[] = []
     const copied: string[] = []
+    /** Stands in for the copy button the reader pressed. */
+    const refocused: string[] = []
+    const activeElement = { focus: () => refocused.push('copy button') }
     const element = {
         value: '',
         readOnly: false,
@@ -25,12 +28,13 @@ function fakeDocument(execCommandResult: boolean) {
         createElement: () => element,
         body: { appendChild: (node: Record<string, unknown>) => appended.push(node) },
         getSelection: () => null,
+        activeElement,
         execCommand: () => {
             copied.push(element.value)
             return execCommandResult
         },
     }
-    return { document, element, appended, removed, copied }
+    return { document, element, appended, removed, copied, refocused }
 }
 
 afterEach(() => {
@@ -76,6 +80,17 @@ describe('copyText', () => {
 
         await expect(copyText('room link')).resolves.toBe(true)
         expect(dom.copied).toEqual(['room link'])
+    })
+
+    it('puts the caret back where the reader left it', async () => {
+        // The textarea has to take focus to be copied from. Leaving it on <body>
+        // afterwards restarts the next Tab at the top of the page.
+        vi.stubGlobal('navigator', {})
+        const dom = fakeDocument(true)
+        vi.stubGlobal('document', dom.document)
+
+        await expect(copyText('room link')).resolves.toBe(true)
+        expect(dom.refocused).toEqual(['copy button'])
     })
 
     it('reports failure when neither path copies', async () => {
