@@ -121,6 +121,11 @@ export const billSplitCalculator: Tool = {
             },
         ],
     },
+    related: [
+        { href: '/split-bill-no-signup', label: 'Split a bill with no sign-up and no app' },
+        { href: '/blog/who-pays-for-the-wine', label: 'Who pays for the wine' },
+        { href: '/blog/split-bills-without-an-app', label: 'How to split bills without an app' },
+    ],
     faqs: [
         {
             question: 'How do you split a bill with a tip?',

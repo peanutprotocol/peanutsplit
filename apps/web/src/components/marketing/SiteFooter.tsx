@@ -82,6 +82,15 @@ export function SiteFooter({
                                     {t('createSplit')}
                                 </Link>
                             </li>
+                            {/* One link, not three. The calculators are English-only like
+                                `/splitwise-alternative` above, and their own hub is where a reader
+                                picks between them — a footer that lists all of them is a footer
+                                that grows by one line every time a calculator ships. */}
+                            <li>
+                                <Link href="/tools" className={linkClass}>
+                                    {t('toolsLink')}
+                                </Link>
+                            </li>
                             {splitV2Enabled() && (
                                 <li>
                                     <Link href="/import" className={linkClass}>
