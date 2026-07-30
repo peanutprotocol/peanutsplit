@@ -16,12 +16,33 @@ without being handed a second path.
 | `competitor-claims.md` | Verbatim-quote register. What we may assert about somebody else's product.         | Drafting or editing an `alternatives` page. |
 | `cast.md`              | Which character appears where, and how much.                                       | Putting a `<Cast>` in a page.               |
 
+## The collections
+
+A page is a directory, one file per language: `{slug}/en.md`, `{slug}/es.md`, `{slug}/pt-BR.md`.
+`COLLECTIONS` in `src/lib/content.ts` is the allowlist — a directory outside it is not a collection.
+
+| Collection     | Serves at      | What it is                                                                     |
+| -------------- | -------------- | ------------------------------------------------------------------------------ |
+| `blog`         | `/blog/{slug}` | Guides.                                                                        |
+| `alternatives` | `/{slug}`      | Comparison pages.                                                              |
+| `capture`      | `/{slug}`      | Intent capture. One search query, one answer, one next step — thin but honest. |
+
+`alternatives` and `capture` are both served from the one `[page]` segment at the root of the site,
+so a slug in one must not exist in the other, and neither may collide with a route Next already
+owns. Both are checked in `content.test.ts` — one URL never serves two pages.
+
+Every collection takes the same frontmatter. `capture` takes one key more: `intent`, the query
+family the page answers, written the way a person types it. A capture page exists because a query
+exists, so without `intent` there is nothing to check the page against later, and `content.test.ts`
+fails a capture page that omits it.
+
+Which of those keys, and which blocks, each `type` uses is in `stylebook.md`, not here.
+
 ## The run-book
 
 1. Read `stylebook.md` and `product-truths.md`. Add `competitor-claims.md` for a comparison page and
    `cast.md` if the page draws a character.
-2. Draft into `src/content/{collection}/{slug}/{locale}.md`. Collections: `blog` (guides, served at
-   `/blog/…`), `alternatives` and `capture` (both served at a root slug through `[page]`).
+2. Draft into `src/content/{collection}/{slug}/{locale}.md` — pick the collection above.
 3. Every product claim must trace to a block in `product-truths.md`, and must use that block's
    `safe` phrasing. Every competitor fact must trace to a row in `competitor-claims.md`.
 4. Run `pnpm typecheck && pnpm test && pnpm format` from the repo root. There is no CI in front of
