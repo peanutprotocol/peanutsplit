@@ -28,7 +28,7 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
-import { currencyInfo, formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
+import { currencyInfo, formatAmountInput, formatMoney, isAmountInputAcceptable, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
     useAddMember,
@@ -309,6 +309,21 @@ export function ExpenseDrawer({
      *  be set in one path and forgotten in another. */
     const editExact = (memberId: string, input: string) =>
         patch({ exactInputs: { ...values.exactInputs, [memberId]: input }, exactTouched: true })
+
+    /**
+     * A keystroke the amount parser could never read is dropped rather than
+     * stored. Unlike the total above — which keeps "taxi" so `repairFieldRoles`
+     * can spot a swapped pair and validation can say what is wrong — a share has
+     * nowhere to put a word, and holding one desynchronises the readout under
+     * it from the save button: `allocatedMinor` counts anything it cannot parse
+     * as zero, so a field of letters beside shares that already sum to the total
+     * left the sheet cheering "every cent allocated" while saving refused with
+     * SHARE_AMOUNT_INVALID.
+     */
+    const typeExact = (memberId: string, input: string) => {
+        if (!isAmountInputAcceptable(input, decimals, locale)) return
+        editExact(memberId, input)
+    }
 
     /** On blur, what was typed becomes what the currency actually looks like —
      *  "12" in a EUR room is 12.00, and a field that keeps saying "12" next to a
@@ -1054,7 +1069,7 @@ export function ExpenseDrawer({
                                                     </span>
                                                     <input
                                                         value={values.exactInputs[member.id] ?? ''}
-                                                        onChange={(event) => editExact(member.id, event.target.value)}
+                                                        onChange={(event) => typeExact(member.id, event.target.value)}
                                                         onFocus={(event) => event.target.select()}
                                                         onBlur={() => normaliseExact(member.id)}
                                                         inputMode="decimal"
