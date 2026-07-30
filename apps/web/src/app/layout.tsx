@@ -15,7 +15,18 @@ export const metadata: Metadata = {
     // Shared with the SoftwareApplication node in `siteSchema()` — same sentence, one source.
     description: SITE_DESCRIPTION,
     metadataBase: new URL(siteUrl),
-    applicationName: 'Peanut Split',
+    // The app CHROME is "Split": launcher label, home-screen label, lock-screen sender. Everything
+    // a search engine or a group chat sees — the title above, `SITE_NAME`, every OG unfurl — stays
+    // "Peanut Split".
+    applicationName: 'Split',
+    // Next fills the rest of this object in: `capable` defaults to true and `statusBarStyle` to
+    // 'default', so this one line also emits <meta name="mobile-web-app-capable"> and
+    // <meta name="apple-mobile-web-app-status-bar-style">. What we are here for is
+    // `apple-mobile-web-app-title` — the name iOS proposes in the Add to Home Screen dialog, which
+    // the manifest cannot set. Chromeless launch on iOS comes from the manifest's
+    // `display: 'standalone'`; Next 16 emits no `apple-mobile-web-app-capable` tag at all, so
+    // pre-16.4 iOS gains nothing from this.
+    appleWebApp: { title: 'Split' },
     icons: { apple: '/icons/apple-touch-icon.png' },
 }
 

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { motion, type Variants } from 'motion/react'
 import { Doodle } from '@/components/ui/Doodle'
 import { useMotionAllowed } from '@/lib/use-motion'
+import { SLUG_TAIL_HINT } from '@/lib/slugify'
 import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 const sceneVariants: Variants = {
@@ -80,7 +81,7 @@ export function LandingProof() {
                                 <Doodle name="link" size={34} weight={1.7} />
                                 <span>
                                     <small>{t('linkIdentity.linkLabel')}</small>
-                                    <b>peanutsplit.com/r/lisbon-weekend-••••••</b>
+                                    <b>peanutsplit.com/r/lisbon-weekend{SLUG_TAIL_HINT}</b>
                                 </span>
                             </div>
                             <div className="landing-proof-identity">

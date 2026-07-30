@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { InstallRow } from '@/components/pwa/InstallRow'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
@@ -11,7 +12,8 @@ import { triggerHaptic, useSettings } from '@/lib/use-settings'
 
 /**
  * The four preferences that really are per-device: sound, haptics, animations,
- * language.
+ * language. Installing joins them at the top, for the same reason: an app is on
+ * this phone or it is not.
  *
  * The row that opens this used to be called "This device" while notifications
  * and identity — both per room — sat under it. Those moved into the room card,
@@ -35,6 +37,8 @@ export function DeviceSheet({ open, onClose }: { open: boolean; onClose: () => v
                     <CloseButton onClick={onClose} label={t('closeSheet')} data-testid="close-device-sheet" />
                 </DrawerHeader>
                 <DrawerBody>
+                    {/* Installing is per device by construction, so the sheet's label stays true. */}
+                    <InstallRow />
                     <div className="flex flex-col gap-2">
                         <SettingToggle
                             label={t('sound')}

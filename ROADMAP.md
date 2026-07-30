@@ -5,7 +5,7 @@ Product status/milestones/decision log stay in the Notion project (linked from
 `mono/projects/peanut-split/`); this file is what's built, building, queued, and
 deliberately not built — with enough context to pick any item up cold.
 
-Owner of record for each open item is in brackets. Last full update: 2026-07-29.
+Owner of record for each open item is in brackets. Last full update: 2026-07-30.
 
 ## V1 hold — receipt scanning
 
@@ -243,10 +243,27 @@ reactions/theme, one balance fold instead of two, one fake-expense
 constructor, one rate limiter, the voseo→tuteo sweep, the i18n-audit
 object-form blind spot, and a scroll-padding a11y fix. 690 tests.
 
-**Queued next (wave 3.5): PWA deepening** — permanent install row in settings,
-manifest `share_target` (share a receipt photo from the OS share sheet straight
-into the scan flow), manifest shortcuts, apple-touch-icon + iOS splash, app
-badge wiring.
+**Wave 3.5 (PWA deepening) — shipped 2026-07-30**, except the real-device
+passes below. The installed app is called Split rather than the repo's name;
+the launcher carries shortcuts; the install row lives permanently in settings
+with one owner for the `beforeinstallprompt` event and five honest states; an
+app badge is raised when a push arrives for a device that was away; and the
+manifest `share_target` hands a receipt photo from the OS share sheet into a
+room. The share target is behind `NEXT_PUBLIC_SPLIT_V2_ENABLED`, because the
+scan flow it feeds is the held v1 feature above.
+
+Still open, and NOT closed by any automated check:
+
+- **Real-device install pass** [Konrad] — the install row, the shortcuts, the
+  iOS Safari sheet and the splash have been driven headless only. Chromium's
+  `beforeinstallprompt` and iOS's absence of it are exactly what a headless run
+  cannot tell you apart.
+- **Real-device share-target pass** [Konrad] — an OS share sheet handing a photo
+  to an installed PWA cannot be exercised from Playwright at all.
+- **Push exercise** — unchanged, see "To light up" above.
+- A share abandoned at the room picker keeps the photo up to 10 minutes, until
+  the TTL sweep collects it. Bounded and in memory, but it is a receipt image
+  living longer than the interaction that produced it.
 
 ## Achievement and shareable moments (proposed 2026-07-29)
 
@@ -307,9 +324,28 @@ social safety:
     moment once another person joins their first locally remembered room. Cheap,
     but less expressive than the group achievements above.
 
-Recommended first package: **`WRAPPED + CREW + ALTER-EGO + PASSPORT`**. Build
-these on one reusable achievement-card system, then add the remaining moments
-only when share telemetry demonstrates demand.
+Recommended first package: **`WRAPPED + CREW + ALTER-EGO + PASSPORT`** —
+**shipped 2026-07-30.** Six cards come off one frame behind a single metered
+route (`/r/<slug>/card/<kind>`), achievements are read from what the room
+already holds rather than from a new table, and every unlock has the three
+surfaces above: the in-room moment, the recap shelf, and a PNG handed to the
+share sheet. The remaining moments (`RESCUED`, `TAMED`, `CLEAN-LANDING`,
+`GROUP-LORE`, `UP-TO-DATE`, `FIRST-SPLIT`) stay queued behind share telemetry,
+as planned.
+
+Known items carried out of that wave:
+
+- On a settled recap the deck and the shelf both drew PASSPORT and ALTER EGO.
+  Fixed 2026-07-30 by standing the shelf down on whatever the deck draws — a
+  reversible product judgment, see `shelfKinds` in `achievements-contract.ts`.
+- `/r/<slug>/opengraph-image` has a pre-existing 80-character name overflow.
+  It predates this wave and is NOT a card-route bug, but the fix has a
+  seven-consumer blast radius (every OG surface shares the name-fitting path),
+  so it wants its own pass rather than a patch inside this one. [Konrad]
+- `ART_BY_KIND` reads like a dispatch table and is not one — the route picks
+  art by kind directly. It is live as a completeness check (a seventh kind
+  fails the card test through it) and dead as a dispatcher. Leave it or rename
+  it; do not "wire it up".
 
 The current file-share path is privacy-safe but not clickable. A later
 **`CAPSULE`** phase can mint an optional, revocable, immutable and read-only
@@ -355,12 +391,11 @@ Remaining candidates, ordered by expected value per effort:
    tail's shape. The word list and how it was screened live in
    `apps/web/src/server/slugWords.ts`.
 
-   Left open: the landing hero still previews the tail as six dots (`-••••••`),
-   which was the old tail's width. It should show three groups, and the line has
-   no wrap or truncate rule, so the change needs a look at 375px first. The same
-   six dots appear in `PassTheLinkStage.tsx` and `LandingProof.tsx`.
+   The preview caught up 2026-07-30: the hero, the pass-the-link stage and the
+   proof rail all read one `SLUG_TAIL_HINT` constant and show three dashed runs,
+   checked at 375px against a production build.
 
-   Also left open, found in review: the settings link row now ellipsises. Its
+   Left open, found in review: the settings link row now ellipsises. Its
    `truncate` is load-bearing — `SettingRow.tsx` documents the overflow it fixed
    — so the row hides the end of the tail, which is the part that identifies the
    room. Copy and share are unaffected, and `LinkMoment` still shows the whole
@@ -570,16 +605,14 @@ manual-copy textarea fallback. `SHARE_PACKAGE_METHODS` shrank to
 `native | clipboard`; the five `room.link.download*` keys left all three
 locales.
 
-**Queued (finish the visual, don't resurrect the download):** [Konrad]
+**Shipped 2026-07-30 (the rest of it):** the SVG share path is deleted rather
+than kept alongside — the invite now goes out as a PNG off the same card route
+the achievements use, through the one share chain. The geometry gate came back
+in an equivalent form, reading the card route's own output instead of an
+intercepted download.
 
-- The room-card SVG (`roomShareVisual`) still rides along in native share as an
-  attached file where `canShare` accepts it. If the card should survive as a
-  visual, render it to PNG (offscreen canvas) so messengers accept it, and
-  re-add the e2e geometry test that was deleted with the download path
-  (title-vs-doodle clearance; it lived in `e2e/landing.spec.ts`, use the share
-  payload file instead of a download to capture the markup).
-- Decide whether `share_completed` needs a `card` method once the PNG path
-  exists.
+Still open: decide whether `share_completed` needs a `card` method now that the
+PNG path exists. [Konrad]
 
 **Queued — semi-done feature audit, remaining surfaces:** [Konrad]
 A 2026-07-29 Playwright walk covered landing, room view, and the share drawer

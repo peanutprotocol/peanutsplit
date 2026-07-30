@@ -29,6 +29,7 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
+import { discardSharedReceipt, takeSharedReceipt } from '@/lib/shared-receipt'
 import { currencyInfo, formatAmountInput, formatMoney, isAmountInputAcceptable, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
@@ -63,6 +64,9 @@ interface ExpenseDrawerProps {
     /** Null = add mode. */
     expense: ApiExpense | null
     defaultPaidById: string
+    /** `?shared=1` — a photo the OS share sheet parked for this room. */
+    sharedReceipt?: boolean
+    onSharedReceiptConsumed?: () => void
 }
 
 export function ExpenseDrawer({
@@ -74,6 +78,8 @@ export function ExpenseDrawer({
     token,
     expense,
     defaultPaidById,
+    sharedReceipt = false,
+    onSharedReceiptConsumed,
 }: ExpenseDrawerProps) {
     const t = useTranslations('room.expenseDrawer')
     const tDates = useTranslations('dates')
@@ -159,6 +165,55 @@ export function ExpenseDrawer({
         // mid-edit must not stomp on what is being typed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, expense?.id])
+
+    /**
+     * A receipt shared in from the OS, picked up once.
+     *
+     * Declared AFTER the re-seed effect on purpose: that one clears `scanFile` on every open and
+     * effects run in declaration order, so swapping the two would wipe the photo the drawer is
+     * opening to receive. Its deps are `[open, expense?.id]`, so it does not re-run when `shared`
+     * flips — which is why this placement is enough.
+     *
+     * Fires on the param rather than on the drawer, because the drawer is not always reachable.
+     * A room can be in `ps:recent` and still need a join (recent-rooms is written on every visit
+     * and carries no identity), and RoomScreen gates the whole drawer on that. A photo parked for
+     * a screen that is not coming has to be thrown away, not left waiting.
+     *
+     * The model probe is the second gate. This is a SECOND entry point into the scan flow — the
+     * one ROADMAP's "V1 hold — receipt scanning" holds behind a real-device pass — and it reaches
+     * ScanFlow without passing ScanButton, which is what the probe normally hides. A v2 build with
+     * no model key answers 503, so the share sheet would take the photo, open the overlay and then
+     * fail.
+     */
+    useEffect(() => {
+        if (!sharedReceipt) return
+
+        const drop = () => {
+            void discardSharedReceipt(caches)
+            onSharedReceiptConsumed?.()
+        }
+        // Unjoined room, or a room whose state never loaded. Do not leave a receipt photo parked,
+        // and do not leave `shared=1` in a URL somebody may go on to share.
+        if (!open || !splitV2Enabled()) {
+            drop()
+            return
+        }
+        // Still asking the server whether it can read a bill. Wait rather than guess.
+        if (!modelResolved) return
+        if (!modelEnabled) {
+            drop()
+            return
+        }
+
+        let cancelled = false
+        void takeSharedReceipt(caches).then((file) => {
+            if (!cancelled && file) setScanFile(file)
+            onSharedReceiptConsumed?.()
+        })
+        return () => {
+            cancelled = true
+        }
+    }, [open, sharedReceipt, modelResolved, modelEnabled, onSharedReceiptConsumed])
 
     // Own effect rather than a line in the re-seed above: that one also runs when
     // you tap straight from one expense to another, and the sheet is already open
