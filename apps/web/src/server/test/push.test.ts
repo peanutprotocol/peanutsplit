@@ -301,27 +301,37 @@ describe('status endpoint', () => {
     })
 
     /**
-     * The oracle this route would otherwise widen: a guessed slug answers 404 and
-     * a real slug with a bad token answers 403, so the two are distinguishable —
-     * as often as the limiter allows. On its own 120/hour bucket that is four
-     * times the 30/hour the miss limiter exists to enforce. Once the shared miss
-     * budget is empty, a real slug has to 429 as well, or the rejection itself
-     * tells the caller the room exists.
+     * The oracle all three push paths would otherwise widen: a guessed slug
+     * answers 404 and a real slug with a bad token answers 403, so the two are
+     * distinguishable — as often as the limiter allows. On their own 120/hour
+     * write buckets that is four times the 30/hour the miss limiter exists to
+     * enforce, and a caller could spend one path's budget and then move to the
+     * next. So the misses come out of ONE shared budget, and once it is empty a
+     * real slug has to 429 too — otherwise the rejection itself tells the caller
+     * the room exists.
      */
     it('meters a guessed slug on the shared miss budget, not its own', async () => {
         const fixture = await makeRoom()
-
-        for (let i = 0; i < 31; i++) {
-            const missed = await askStatus({ ...fixture, slug: `missing-${i}` }, fixture.owner, FCM('a'))
-            expect(missed.status).toBe(i < 30 ? 404 : 429)
+        const missOn = (path: number, slug: string) => {
+            const guessed = { ...fixture, slug }
+            if (path === 0) return askStatus(guessed, fixture.owner, FCM('a'))
+            if (path === 1) return subscribe(guessed, fixture.owner, FCM('a'))
+            return unsubscribe(guessed, fixture.owner, FCM('a'))
         }
 
+        // Ten misses each: if any path kept its own bucket, the shared budget
+        // would still have twenty tokens left at the end of this loop.
+        for (let i = 0; i < 30; i++) {
+            expect((await missOn(i % 3, `missing-${i}`)).status).toBe(404)
+        }
+        expect((await missOn(0, 'missing-30')).status).toBe(429)
+
+        // Every path now refuses a slug that really exists, at the same point a
+        // guessed one is refused.
         const { status, body } = await askStatus(fixture, fixture.owner, FCM('a'))
         expect(status).toBe(429)
         expect(body).toMatchObject({ error: { code: 'RATE_LIMITED' } })
-
-        // The sibling DELETE has the same 404/403 shape, and spends the same
-        // budget — one route left on its own bucket would keep the oracle open.
+        expect((await subscribe(fixture, fixture.owner, FCM('a'))).status).toBe(429)
         expect((await unsubscribe(fixture, fixture.owner, FCM('a'))).status).toBe(429)
     })
 

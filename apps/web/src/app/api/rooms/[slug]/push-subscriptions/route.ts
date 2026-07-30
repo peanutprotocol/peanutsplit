@@ -28,7 +28,10 @@ export const POST = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'push-subscribe')
         const { slug } = await ctx.params
         const body = pushSubscribeSchema.parse(await readJson(request))
-        const room = await loadRoom(slug)
+        // A guessed slug 404s here and a real slug with a bad token 403s, so the
+        // miss goes on the shared budget — same as the DELETE below and the
+        // status route beside it. All three paths meter it the same way.
+        const room = await meterRoomLookup(request, () => loadRoom(slug))
         assertWritable(room)
         assertProvenMember(room, body.memberId, body.memberToken)
 
