@@ -177,3 +177,46 @@ test.describe('the install row', () => {
         await expect(page.getByTestId('install-row-installed')).toBeVisible()
     })
 })
+
+/**
+ * The app badge, from the only half a browser test can see.
+ *
+ * The worker sets it, and `pnpm dev` builds no service worker at all (next.config.js gates serwist
+ * on NODE_ENV), so the set is on the real-device list. What is asserted here is the page's
+ * contract: it clears, it clears again on every return to the app, and it never sets.
+ */
+test('the app returning to view clears the badge, and the page never sets one', async ({ page }) => {
+    await page.addInitScript(() => {
+        const window_ = window as typeof window & { __clearAppBadge?: number; __setAppBadge?: number }
+        window_.__clearAppBadge = 0
+        window_.__setAppBadge = 0
+        Object.assign(navigator, {
+            clearAppBadge: () => {
+                window_.__clearAppBadge = (window_.__clearAppBadge ?? 0) + 1
+                return Promise.resolve()
+            },
+            setAppBadge: () => {
+                window_.__setAppBadge = (window_.__setAppBadge ?? 0) + 1
+                return Promise.resolve()
+            },
+        })
+    })
+
+    await page.goto('/')
+    const counts = () =>
+        page.evaluate(() => {
+            const window_ = window as typeof window & { __clearAppBadge?: number; __setAppBadge?: number }
+            return { cleared: window_.__clearAppBadge ?? 0, set: window_.__setAppBadge ?? 0 }
+        })
+
+    // Mount alone is a clear: arriving at the app is the honest read.
+    await expect.poll(async () => (await counts()).cleared).toBeGreaterThanOrEqual(1)
+    const onMount = (await counts()).cleared
+
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+    await expect.poll(async () => (await counts()).cleared).toBeGreaterThan(onMount)
+
+    // Only the worker may raise a dot. A page that sets one is a page claiming the user was away
+    // from the app they are looking at.
+    expect((await counts()).set).toBe(0)
+})
