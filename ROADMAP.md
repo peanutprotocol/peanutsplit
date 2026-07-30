@@ -350,39 +350,16 @@ Remaining candidates, ordered by expected value per effort:
 6. **Verified settle receipts** — reopens the 2026-07-27 decision (Peanut emits
    no signed charge webhook; polling public `GET /charges/:id` is the cheapest
    route). Revisit only if day-30 shows conversion is what's broken.
-7. **Cute slugs** (Konrad, 2026-07-28) — `roomSlug()` currently appends six
-   Crockford base32 characters, so a room reads `ski-trip-x7k2m9`. The link is
-   the thing people paste into a group chat and read aloud in a bar; it should
-   look like a place, not a hash: `ski-trip-brave-otter-lamp`.
+7. ~~**Cute slugs**~~ — shipped 2026-07-30: a room now reads
+   `ski-trip-brave-otter-lamp`. Three words from a frozen 1,024-word list, an
+   exact swap for the six Crockford base32 characters because 32⁶ and 1024³ are
+   the same number. Rooms minted before it keep their tails; nothing reads the
+   tail's shape. The word list and how it was screened live in
+   `apps/web/src/server/slugWords.ts`.
 
-   **The constraint that decides the design: the slug IS the credential.** It is
-   the room's only access control, it is redacted from telemetry (`lib/redact.ts`)
-   and it is deliberately kept out of the shared recap URL. So cuteness must cost
-   zero entropy, and the arithmetic is unusually kind here — 32⁶ and 1024³ are
-   the _same number_ (1,073,741,824). **Three words from a frozen 1,024-word list
-   is an exact swap for the current tail**, no security argument needed beyond
-   pointing at that identity. Two words is not: even a 4,096-word list gives
-   16.8M, a 64× weakening of a credential that sits in URLs and chat logs.
-
-   It is also an upgrade on the property `slug.ts` already cares about. The
-   comment says Crockford base32 was chosen so the tail is "unambiguous when read
-   aloud or typed from a screenshot" — words dodge the i/l/o/u problem entirely
-   rather than routing around it.
-
-   What the work actually is: curate and freeze the list (concrete, picturable
-   nouns and adjectives; no profanity, no unfortunate adjacent pairs, and screened
-   against es-419 and pt-BR now that the product is trilingual), then swap
-   `randomTail()`. Keep the crypto RNG and the modulo-free selection — 1,024 is a
-   power of two, so a masked 10-bit draw stays uniform exactly as the byte mask
-   does today.
-
-   Cheap, and self-contained: `apps/web/src/server/slug.ts` is the only place
-   slugs are minted (callers: `server/rooms.ts`, `server/splitwiseImport.ts`).
-   No migration — existing rooms keep the slugs they were issued, since this
-   changes minting and not resolution. The main real cost is length: the URL
-   grows by roughly ten characters, which matters most on the OG unfurl and in a
-   QR code, and not at all in a pasted link. Pairs naturally with item 3 (room
-   themes) — both are "the room feels like a place" work.
+   Left open: the landing hero still previews the tail as six dots (`-••••••`),
+   which was the old tail's width. It should show three groups, and the line has
+   no wrap or truncate rule, so the change needs a look at 375px first.
 
 ## Design roadmap (opened 2026-07-28)
 
