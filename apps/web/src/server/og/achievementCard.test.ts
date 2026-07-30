@@ -11,7 +11,12 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { CARD_KINDS, type AlterEgoCardParams, type CardKind } from '@/lib/achievements-contract'
 import { prisma, truncateAll } from '@/server/test/db'
-import { currencyStamps, loadAchievementCard, type AchievementCardData } from '@/server/og/achievementCard'
+import {
+    currencyStamps,
+    loadAchievementCard,
+    toPassportCard,
+    type AchievementCardData,
+} from '@/server/og/achievementCard'
 import { ART_BY_KIND } from '@/server/og/achievementCardArt'
 import { nameFontSize } from '@/server/og/card'
 import { MAX_NAME_CHARS } from '@/server/og/roomCard'
@@ -117,6 +122,18 @@ describe('achievement cards', () => {
         // drawing — the rule `lib/currency-doodle.ts` states.
         expect(currencyStamps(['XOF'])).toEqual([{ code: 'XOF', doodle: null }])
         expect(currencyStamps(['AUD', 'BRL', 'CHF', 'EUR', 'GBP', 'INR', 'JPY'])).toHaveLength(6)
+    })
+
+    it('counts every currency in the line, even past the six the art draws', async () => {
+        // An eight-currency trip read "6 currencies" while the cap was doing double duty
+        // as a count. The stamps still stop at six; the sentence tells the truth.
+        const eight = ['AUD', 'BRL', 'CHF', 'EUR', 'GBP', 'INR', 'JPY', 'THB']
+        const card = (await toPassportCard(
+            { theme: null, expenses: eight.map((currency) => ({ currency })) },
+            async (_key, params) => String(params?.count ?? '')
+        )) as Extract<AchievementCardData, { kind: 'passport' }>
+        expect(card.line).toBe('8')
+        expect(card.stamps).toHaveLength(6)
     })
 
     it('reads the passport off expense currencies, not the room currency', async () => {

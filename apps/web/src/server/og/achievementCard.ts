@@ -121,11 +121,17 @@ export async function toCrewCard(
 export const isAwardId = (value: unknown): value is AwardId =>
     typeof value === 'string' && (AWARD_IDS as readonly string[]).includes(value)
 
-/** Distinct EXPENSE currencies, sorted, capped. Not the room currency: a room
- *  that settles in EUR with EUR-only expenses has one currency, correctly. */
+/** Distinct EXPENSE currencies, normalised and sorted, uncapped. Not the room
+ *  currency: a room that settles in EUR with EUR-only expenses has one currency,
+ *  correctly. The art caps; the COUNT must not — see `toPassportCard`. */
+export function distinctCurrencies(currencies: readonly string[]): string[] {
+    return [...new Set(currencies.map((code) => code.toUpperCase()))].sort()
+}
+
+/** The stamps drawn on the passport, capped. Beyond `MAX_STAMPS` they stop being
+ *  stamps and become a grid. */
 export function currencyStamps(currencies: readonly string[]): CurrencyStamp[] {
-    return [...new Set(currencies.map((code) => code.toUpperCase()))]
-        .sort()
+    return distinctCurrencies(currencies)
         .slice(0, MAX_STAMPS)
         .map((code) => ({ code, doodle: currencyDoodle(code) }))
 }
@@ -134,12 +140,16 @@ export async function toPassportCard(
     room: { theme: string | null; expenses: { currency: string }[] },
     t: Copy
 ): Promise<AchievementCardData> {
-    const stamps = currencyStamps(room.expenses.map((e) => e.currency))
+    const codes = room.expenses.map((e) => e.currency)
+    // The line counts the trip, the stamps draw it. Reading the count off the capped
+    // stamp list made an eight-currency room say "6 currencies" — the art has a
+    // reason to stop at six and the sentence does not.
+    const stamps = currencyStamps(codes)
     return {
         kind: 'passport',
         theme: themeFor(room.theme),
         title: displaySafe(await t('card.passport.title')),
-        line: bodySafe(await t('card.passport.line', { count: stamps.length })),
+        line: bodySafe(await t('card.passport.line', { count: distinctCurrencies(codes).length })),
         stamps,
     }
 }
