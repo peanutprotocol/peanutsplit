@@ -24,7 +24,7 @@ export const viewport: Viewport = {
     initialScale: 1,
     colorScheme: 'light',
     viewportFit: 'cover',
-    themeColor: '#FF90E8',
+    themeColor: '#FFC900',
 }
 
 const roboto = Roboto_Flex({
