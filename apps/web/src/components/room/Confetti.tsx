@@ -2,7 +2,8 @@
 
 import { useMemo } from 'react'
 import { motion } from 'motion/react'
-import { DOODLE, type DoodleName } from '@/components/ui/doodles'
+import { Doodle } from '@/components/ui/Doodle'
+import { type DoodleName } from '@/components/ui/doodles'
 import { cn } from '@/lib/cn'
 import { useMotionAllowed } from '@/lib/use-motion'
 
@@ -114,19 +115,10 @@ export function Confetti({
                         }}
                     >
                         {pieceDoodle && (
-                            // Inline rather than <Doodle>: a falling piece needs a heavy
-                            // 3-unit line or it reads as a squiggle at 14px, and black ink
-                            // rather than currentColor — confetti is not text.
-                            <svg width={14} height={14} viewBox="0 0 32 32" aria-hidden="true">
-                                <path
-                                    d={DOODLE[pieceDoodle]}
-                                    fill="none"
-                                    stroke="#211C17"
-                                    strokeWidth={3}
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
+                            // A falling piece needs a heavy 3-unit line or it reads as a
+                            // squiggle at 14px, and it inks itself `n-1` rather than taking
+                            // the ink around it — confetti is not text.
+                            <Doodle name={pieceDoodle} size={14} weight={3} className="text-n-1" />
                         )}
                     </motion.span>
                 )
