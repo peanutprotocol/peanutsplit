@@ -32,14 +32,19 @@ export const slugStem = (name: string): string => kebab(name) || 'room'
  * characters — a preview that shows one run teaches the wrong shape, and the
  * whole point of the word tail is that it is legible before you can read it.
  *
- * THREE dots per run, not the average word length. The hero line is a shrinking
- * flex item with an ellipsis, and it does not wrap: measured against a
- * production build at 375px, four-and-five-dot runs overflow and the ellipsis
- * eats the third run — which loses the one thing the hint exists to show. Three
- * is also the shortest real word in `slugWords.ts`, so it understates the tail
- * rather than inventing one. Do not grow it without re-measuring.
+ * TWO dots per run, well under the 3-7 letters a real word has. The hero line is
+ * a shrinking flex item with an ellipsis and it does not wrap, so the budget is
+ * fixed and the stem spends it first. Measured at 375px against production, with
+ * the widest default stem — the `your-trip` placeholder every first visit shows:
+ * three dots per run render 295.3px into 288.5px and the ellipsis eats the third
+ * run, which loses the one thing the hint exists to show. Two dots render 270.1px
+ * and leave 18px of room for a different mono fallback on a real device.
+ *
+ * So the hint understates the tail rather than overstating it, and what it is
+ * faithful about is the SHAPE: three dash-separated runs, not one. Do not grow it
+ * without re-measuring against the placeholder stem, not a short typed name.
  *
  * One constant with three consumers: the hero, the pass-the-link stage, and the
  * proof rail all promise the same URL and must not drift apart.
  */
-export const SLUG_TAIL_HINT = '-•••-•••-•••'
+export const SLUG_TAIL_HINT = '-••-••-••'
