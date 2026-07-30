@@ -116,6 +116,27 @@ export function allocatedMinor(values: ExpenseFormValues, catalog?: readonly Cur
     return addMinor(parts)
 }
 
+/**
+ * Is a share field holding text the parser cannot read?
+ *
+ * `allocatedMinor` counts such a field as zero, so the readout above the save
+ * button would otherwise agree with itself and disagree with saving: a lone "."
+ * beside shares that already sum to the total left the sheet cheering "every cent
+ * allocated" while save refused with SHARE_AMOUNT_INVALID. The keystroke gate
+ * cannot close that — "." has to stay typeable on the way to ".50" — so the
+ * readout asks this instead, and the validator below asks the same question.
+ */
+export function hasUnreadableShare(
+    values: ExpenseFormValues,
+    catalog?: readonly CurrencyInfo[],
+    locale?: string
+): boolean {
+    const decimals = decimalsOf(values.currency, catalog)
+    return Object.values(values.exactInputs).some(
+        (input) => input.trim().length > 0 && parseAmountToMinor(input, decimals, locale) === null
+    )
+}
+
 /** total − allocated, in expense-currency minor units. Must reach "0" to save. */
 export function remainingMinor(values: ExpenseFormValues, catalog?: readonly CurrencyInfo[], locale?: string): string {
     const decimals = decimalsOf(values.currency, catalog)
@@ -191,12 +212,7 @@ export function validateExpenseForm(
         if (values.participantsTouched && values.participantIds.length === 0) return 'NO_PARTICIPANTS'
         return null
     }
-    if (
-        Object.values(values.exactInputs).some(
-            (input) => input.trim().length > 0 && parseAmountToMinor(input, decimals, locale) === null
-        )
-    )
-        return 'SHARE_AMOUNT_INVALID'
+    if (hasUnreadableShare(values, catalog, locale)) return 'SHARE_AMOUNT_INVALID'
     const shares = exactShareEntries(values, catalog, locale)
     if (shares.length === 0) return 'NO_PARTICIPANTS'
     if (addMinor(shares.map((s) => s.amountMinor)) !== total) return 'SHARES_DO_NOT_ADD_UP'

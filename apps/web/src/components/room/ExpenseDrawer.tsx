@@ -21,6 +21,7 @@ import {
     buildExpenseBody,
     emptyExpenseForm,
     expenseToFormValues,
+    hasUnreadableShare,
     remainingMinor,
     repairMisplacedExpenseFields,
     validateExpenseForm,
@@ -180,8 +181,11 @@ export function ExpenseDrawer({
     const remainingIsZero = remaining === '0'
     /** The green celebration. Zero left to allocate is NOT enough on its own —
      *  an untouched EXACT form is zero against zero, and cheering before the work
-     *  starts spends the moment that was supposed to land at the end of it. */
-    const allocationSettled = remainingIsZero && values.exactTouched
+     *  starts spends the moment that was supposed to land at the end of it. A
+     *  share the parser cannot read counts as zero in `remaining`, so it has to be
+     *  ruled out here too: the readout must never go green over a value that save
+     *  will refuse. */
+    const allocationSettled = remainingIsZero && values.exactTouched && !hasUnreadableShare(values, currencies, locale)
     const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])

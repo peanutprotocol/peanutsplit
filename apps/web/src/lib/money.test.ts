@@ -166,21 +166,48 @@ describe('isAmountInputAcceptable', () => {
         }
     })
 
+    it.each([
+        ['en', ['1', '1,', '1,2', '1,23', '1,234', '1,234,', '1,234,5', '1,234,56', '1,234,567']],
+        ['es', ['1', '1.', '1.2', '1.23', '1.234', '1.234.', '1.234.5', '1.234.56', '1.234.567']],
+        ['pt-BR', ['1', '1.', '1.2', '1.23', '1.234', '1.234.', '1.234.5', '1.234.56', '1.234.567']],
+    ])('lets a grouped million be typed one character at a time in %s', (locale, partials) => {
+        for (const partial of partials) expect(isAmountInputAcceptable(partial, 2, locale)).toBe(true)
+    })
+
+    it('lets a grouped whole be typed in a currency with no cents', () => {
+        // COP: the separator can only be grouping here, and every step of
+        // "1,234" is mid-group until the last digit lands.
+        for (const partial of ['1', '1,', '1,2', '1,23', '1,234']) {
+            expect(isAmountInputAcceptable(partial, 0, 'en')).toBe(true)
+        }
+    })
+
     it('allows a field to be emptied, and a decimal mark before its digits', () => {
-        expect(isAmountInputAcceptable('   ', 2, 'en')).toBe(true)
+        expect(isAmountInputAcceptable('', 2, 'en')).toBe(true)
         expect(isAmountInputAcceptable('.', 2, 'en')).toBe(true)
         expect(isAmountInputAcceptable(',', 2, 'es')).toBe(true)
+    })
+
+    it('refuses whitespace on its own — it is on the way to nothing', () => {
+        expect(isAmountInputAcceptable('   ', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('\t', 2, 'en')).toBe(false)
     })
 
     it('refuses what the parser could never read as money', () => {
         expect(isAmountInputAcceptable('taxi', 2, 'en')).toBe(false)
         expect(isAmountInputAcceptable('12e5', 2, 'en')).toBe(false)
         expect(isAmountInputAcceptable('-5', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('+5', 2, 'en')).toBe(false)
         expect(isAmountInputAcceptable('12.3.4', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('12.34.', 2, 'en')).toBe(false)
+        // A second decimal mark, in either convention.
+        expect(isAmountInputAcceptable('12.34.5', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('12,34,5', 2, 'es')).toBe(false)
     })
 
     it('stops at the precision the currency actually has', () => {
         expect(isAmountInputAcceptable('12.345', 2, 'en')).toBe(false)
+        expect(isAmountInputAcceptable('1,2345', 2, 'en')).toBe(false)
         expect(isAmountInputAcceptable('4500.4', 0, 'en')).toBe(false)
         expect(isAmountInputAcceptable('4500', 0, 'en')).toBe(true)
     })

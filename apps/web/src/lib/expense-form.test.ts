@@ -4,6 +4,7 @@ import {
     buildExpenseBody,
     emptyExpenseForm,
     expenseToFormValues,
+    hasUnreadableShare,
     remainingMinor,
     repairMisplacedExpenseFields,
     validateExpenseForm,
@@ -275,6 +276,37 @@ describe('validateExpenseForm / remainingMinor', () => {
         const values = baseForm({ currency, amountInput })
         expect(validateExpenseForm(values, undefined, locale)).toBeNull()
         expect(buildExpenseBody(values, undefined, locale).amountMinor).toBe('4500')
+    })
+})
+
+describe('hasUnreadableShare — what stops the readout going green early', () => {
+    it('is true while a share holds a value the parser cannot read', () => {
+        // A lone decimal mark is typeable on the way to ".50", and `allocatedMinor`
+        // counts it as zero. So the shares below add up to the total and the readout
+        // would have said "every cent allocated" while save refused the sheet.
+        const values = baseForm({
+            splitMode: 'EXACT',
+            exactInputs: { m1: '30.00', m2: '30.00', m3: '.' },
+        })
+        expect(remainingMinor(values, undefined, 'en')).toBe('0')
+        expect(hasUnreadableShare(values, undefined, 'en')).toBe(true)
+        expect(validateExpenseForm(values, undefined, 'en')).toBe('SHARE_AMOUNT_INVALID')
+    })
+
+    it('ignores blank shares, which mean "not in this split" rather than a bad number', () => {
+        const values = baseForm({
+            splitMode: 'EXACT',
+            exactInputs: { m1: '30.00', m2: '30.00', m3: '' },
+        })
+        expect(hasUnreadableShare(values, undefined, 'en')).toBe(false)
+        expect(validateExpenseForm(values, undefined, 'en')).toBeNull()
+    })
+
+    it('reads each share in the currency of the expense', () => {
+        // COP has no cents, so "30,5" is not a share in a COP room.
+        const values = baseForm({ currency: 'COP', splitMode: 'EXACT', exactInputs: { m1: '30,5' } })
+        expect(hasUnreadableShare(values, undefined, 'en')).toBe(true)
+        expect(hasUnreadableShare({ ...values, currency: 'EUR' }, undefined, 'en')).toBe(false)
     })
 })
 
