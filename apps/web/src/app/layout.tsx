@@ -8,6 +8,7 @@ import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
+import { appleStartupImages } from '@/lib/splash'
 import '../styles/globals.css'
 
 export const metadata: Metadata = {
@@ -26,7 +27,10 @@ export const metadata: Metadata = {
     // the manifest cannot set. Chromeless launch on iOS comes from the manifest's
     // `display: 'standalone'`; Next 16 emits no `apple-mobile-web-app-capable` tag at all, so
     // pre-16.4 iOS gains nothing from this.
-    appleWebApp: { title: 'Split' },
+    // `startupImage` is what an installed iOS app shows while it boots. Without it that second is
+    // a blank `background_color` screen; the matching is per exact device geometry, so it is a file
+    // per phone. `splash.ts` owns the table and `pnpm icons` renders it.
+    appleWebApp: { title: 'Split', startupImage: appleStartupImages() },
     icons: { apple: '/icons/apple-touch-icon.png' },
 }
 
