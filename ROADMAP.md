@@ -587,8 +587,6 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   before any multi-currency settlement work.
 - In-memory rate limiter shares one bucket for header-less clients ('unknown'
   key) — unreachable behind Traefik, but wrong if the proxy ever changes.
-- `/favicon.ico` 404s (browsers probe it regardless of the manifest icons) —
-  drop a real .ico in `public/`.
 - SSE fan-out and the per-room scan quota are per-container (in-memory); a
   second replica halves poke delivery and doubles the quota. Single-replica by
   assumption; the fix is Postgres LISTEN/NOTIFY + a shared store, not caps.
