@@ -8,9 +8,11 @@ import { peanutWavingHello } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
+import { CARD_FILE_NAME, achievementCardPath } from '@/lib/achievements-contract'
 import { roomProps, sharePackageMeasureProps, track } from '@/lib/analytics'
 import { copyText } from '@/lib/clipboard'
-import { roomSharePackage, roomShareVisual } from '@/lib/share-package'
+import { roomSharePackage } from '@/lib/share-package'
+import { useSharePng } from '@/lib/share-card'
 import { themeFor } from '@/lib/themes'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
@@ -37,8 +39,9 @@ export const roomUrl = (slug: string): string =>
  * The group-chat handoff.
  *
  * The bearer link appears only in user-directed text (native share and
- * clipboard). The visual attachment is made locally from the room title,
- * palette and doodle; it contains no URL, roster or ledger data.
+ * clipboard). The visual attachment is the room's own invite card, rendered by
+ * the same pipeline every other card goes through; it carries the room name,
+ * palette and emblem, and no URL, roster or ledger data.
  *
  * Native share is an enhancement. Clipboard and manual copy remain available
  * independently.
@@ -55,7 +58,12 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
             }),
         [roomName, t, url]
     )
-    const visual = useMemo(() => roomShareVisual({ roomName, theme, emblem: emoji }), [emoji, roomName, theme])
+    /**
+     * Prefetched on mount, never inside the tap: `navigator.share` needs transient user
+     * activation and an `await fetch` in the gesture is what loses it on iOS. Both screens that
+     * render this are on display for seconds before anyone taps.
+     */
+    const { file } = useSharePng(achievementCardPath(slug, 'invite'), CARD_FILE_NAME.invite)
     const palette = themeFor(theme)
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
@@ -126,13 +134,15 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
         // gets pasted into the group chat.
         const textPayload = { title: payload.title, text: payload.text, url: payload.url }
         let nativePayload: ShareData = textPayload
-        try {
-            const file = new File([visual.svg], visual.filename, { type: visual.mimeType })
-            const richPayload = { ...textPayload, files: [file] }
-            if (navigator.canShare?.(richPayload)) nativePayload = richPayload
-        } catch {
-            // File construction and `canShare` are both optional enhancements.
-            // The directed text package remains valid on its own.
+        if (file) {
+            try {
+                const richPayload = { ...textPayload, files: [file] }
+                if (navigator.canShare?.(richPayload)) nativePayload = richPayload
+            } catch {
+                // `canShare` is an optional enhancement, and so is the card: if the probe throws,
+                // or the prefetch has not landed, the text+url package goes out unchanged. The
+                // invite's whole job is to carry the link; the picture is the enhancement.
+            }
         }
 
         try {
@@ -147,7 +157,7 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
             setStatus(t('shareFailed'))
             feedback('error', { haptic: 'error' })
         }
-    }, [completed, copy, feedback, payload, slug, t, visual, wave])
+    }, [completed, copy, feedback, file, payload, slug, t, wave])
 
     return (
         <div className="flex flex-col gap-6">
