@@ -36,6 +36,8 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
     await expectBalance(page, 'Ana', '0')
+    // One member is one card per person, so nothing is claiming to be the pair shape yet.
+    await expect(page.locator('[data-testid="balance-card"][data-pair]')).toHaveCount(0)
 
     // A second device, so there is a debt to derive.
     const second = await browser.newContext({ viewport: { width: 390, height: 844 } })
@@ -46,6 +48,9 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await bea.getByTestId('join-room').click()
     // Two people now, so Bea's device shows the one card about Ana.
     await expectBalance(bea, 'Ana', '0')
+    // One fact, one card — the whole point of the pair shape.
+    await expect(bea.locator('[data-testid="balance-card"]')).toHaveCount(1)
+    await expect(bea.locator('[data-testid="balance-card"][data-pair="true"]')).toHaveCount(1)
 
     // Ana fronts €60, split equally: +6000 paid, −3000 her share, +3000 net.
     await page.reload()
@@ -59,28 +64,35 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await expectBalance(page, 'Bea', '-3000')
 
     // ── The sheet ─────────────────────────────────────────────────────────
-    // The card names Bea, but the tap opens the reader's own working — Ana's.
+    // The card is about Bea in every part of it, so the tap opens Bea's working.
     await balance(page, 'Bea').click()
     const drawer = page.getByTestId('balance-drawer')
     await expect(drawer).toBeVisible()
     // The URL carries it, so the sheet survives a refresh and back closes it.
     await expect(page).toHaveURL(/[?&]balance=/)
 
-    await expect(drawer.locator('[data-testid="derivation-line"]')).toHaveCount(2)
-    await expect(drawer.locator('[data-testid="derivation-line"][data-kind="paid"]')).toHaveAttribute(
-        'data-amount',
-        '6000'
-    )
+    // Bea fronted nothing, so her balance is one line: her half of Ana's €60.
+    await expect(drawer.locator('[data-testid="derivation-line"]')).toHaveCount(1)
     await expect(drawer.locator('[data-testid="derivation-line"][data-kind="share"]')).toHaveAttribute(
         'data-amount',
         '-3000'
     )
     // THE assertion: the client's own sum of the lines equals the server's balance.
-    await expect(drawer.getByTestId('derivation-total').first()).toHaveAttribute('data-total', '3000')
+    await expect(drawer.getByTestId('derivation-total').first()).toHaveAttribute('data-total', '-3000')
 
-    // The pair view is two complete sheets, never an invented pairwise debt.
+    // The pair view is two complete sheets, never an invented pairwise debt. Ana's side is
+    // the €60 she put in less her own half, and it is the exact negation of Bea's.
     await drawer.getByTestId('toggle-other-balance').first().click()
-    await expect(drawer.locator('[data-testid="derivation-total"]').nth(1)).toHaveAttribute('data-total', '-3000')
+    const otherSheet = drawer.getByTestId('derivation-transfer')
+    await expect(otherSheet.locator('[data-testid="derivation-line"][data-kind="paid"]')).toHaveAttribute(
+        'data-amount',
+        '6000'
+    )
+    await expect(otherSheet.locator('[data-testid="derivation-line"][data-kind="share"]')).toHaveAttribute(
+        'data-amount',
+        '-3000'
+    )
+    await expect(drawer.locator('[data-testid="derivation-total"]').nth(1)).toHaveAttribute('data-total', '3000')
 
     await page.goBack()
     await expect(page.getByTestId('balance-drawer')).toHaveCount(0)
@@ -90,12 +102,15 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await page.getByTestId('transfer-row').click()
     await page.getByTestId('method-cash').click()
     await page.getByTestId('record-settlement').click()
-    await expectBalance(page, 'Ana', '0')
+    // Still two people, so still the one card about Bea — Ana's own zero read off her name.
+    await expectBalance(page, 'Bea', '0')
 
-    await balance(page, 'Ana').click()
-    await expect(drawer.locator('[data-testid="derivation-line"][data-kind="settlement-received"]')).toHaveAttribute(
+    await balance(page, 'Bea').click()
+    // Bea is the payer, so the payment lands on her sheet as money handed over: +3000 against
+    // the -3000 share above it. The same settlement, from the other end.
+    await expect(drawer.locator('[data-testid="derivation-line"][data-kind="settlement-sent"]')).toHaveAttribute(
         'data-amount',
-        '-3000'
+        '3000'
     )
     await expect(drawer.getByTestId('derivation-total').first()).toHaveAttribute('data-total', '0')
 

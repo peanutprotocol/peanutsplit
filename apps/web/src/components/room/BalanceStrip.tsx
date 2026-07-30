@@ -74,12 +74,17 @@ interface PairMember {
 }
 
 export interface PairCard {
-    /** The member the sentence is about, and whose avatar the card shows. */
+    /**
+     * The one subject of the card: whose avatar it shows, whose name the sentence carries,
+     * whose net it publishes, and whose derivation the tap opens. There is deliberately no
+     * second member here. A card about Bea that opened Ana's working — and told a screen
+     * reader "See how Ana's balance adds up" — shared no word with what the card said, which
+     * is WCAG 2.5.3, and told Ana a sentence about Ana in the third person, which is the very
+     * thing `toneFor`'s `mine` branch exists to prevent.
+     */
     about: PairMember
     /** `about`'s raw server net, unchanged — the same value the per-member card carries. */
     net: string
-    /** Whose derivation the tap opens. */
-    open: PairMember
     label: string
     card: string
     labelClass: string
@@ -106,25 +111,32 @@ export function pairCard(
 ): PairCard {
     // Debtor first, on the comparator the strip already sorts by, so the name-to-name sentence
     // runs in the direction the money moves and two zeroes never swap between polls.
-    const [debtor, creditor] = [...members].sort(byDebtFirst(balances))
+    const sorted = [...members].sort(byDebtFirst(balances))
+    const debtor = sorted[0]
+    const creditor = sorted[1]
+    // `noUncheckedIndexedAccess` is off, so a short array types as two members and only fails
+    // at the first property read — a blank room screen from a TypeError with no name on it.
+    // Say what the contract is instead. The only caller has already checked the length.
+    if (!debtor || !creditor) throw new Error(`pairCard needs exactly two members, got ${members.length}`)
     // A `meId` the roster does not hold is a stale device identity, not a member. Treat it the
     // same as a spectator: say who owes whom by name rather than claim one of them is you.
     const me = meId ? members.find((member) => member.id === meId) : undefined
     const about = me ? (me.id === debtor.id ? creditor : debtor) : debtor
     const net = balances[about.id] ?? '0'
-    // The viewer's own working, because that is the balance being explained. Without a viewer
-    // the debtor's is the one with something to answer for.
-    const open = me ?? debtor
 
     // Zero takes the room's tint for the same reason the strip's does: red and green carry
     // meaning, and a theme may only tint the neutral state. "settled up" is a claim about a
     // debt that got paid, so a room the server holds no expense for has to say "nothing yet".
+    //
+    // Named, because the state itself is not: every brand-new two-person room opens here, and
+    // an avatar over "settled up" over "$0.00" says whose settled-up it is nowhere. The strip
+    // prints the name beside the tone word on every other card; this prints the same two parts
+    // in the same order, with the separator the expense rows already use.
     if (isZeroMinor(net))
         return {
             about,
             net,
-            open,
-            label: anySavedExpenses ? t('settled') : t('nothingYet'),
+            label: `${about.name} · ${anySavedExpenses ? t('settled') : t('nothingYet')}`,
             card: 'bg-[var(--split-theme-tint,#FFFFFF)]',
             labelClass: 'text-n-3',
         }
@@ -135,7 +147,6 @@ export function pairCard(
         return {
             about,
             net,
-            open,
             label: t('pair.owes', { debtor: debtor.name, creditor: creditor.name }),
             card: 'bg-error-1',
             labelClass: 'text-n-1',
@@ -145,7 +156,6 @@ export function pairCard(
         return {
             about,
             net,
-            open,
             label: t('pair.owesYou', { name: about.name }),
             card: 'bg-green-1',
             labelClass: 'text-n-1',
@@ -154,7 +164,6 @@ export function pairCard(
     return {
         about,
         net,
-        open,
         label: t('pair.youOwe', { name: about.name }),
         card: 'bg-error-1',
         labelClass: 'text-n-1',
@@ -203,8 +212,10 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                     person reading the card: the counterparty when the device knows who it is,
                     the debtor when it does not. So in a two-person room a spec that used to read
                     the viewer's own net reads its negation here, off the other name.
-                    `data-pair` is how a spec tells the two shapes apart. */}
+                    `data-pair` is how a spec tells the two shapes apart — balances.spec.ts
+                    asserts it is absent at one member and present at two. */}
                 <div
+                    data-motion-surface
                     data-testid="balance-card"
                     data-pair="true"
                     data-member={pair.about.name}
@@ -212,14 +223,16 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                     className={cn('shadow-4 mx-4 mb-3 mt-1 flex rounded-sm border border-n-1', pair.card)}
                 >
                     {/* The whole card is the target — a balance you cannot
-                        interrogate is the thing this product is against. */}
+                        interrogate is the thing this product is against. One subject
+                        throughout: the tap opens the working of the member the sentence names,
+                        and the accessible name says that member too. */}
                     <button
                         type="button"
                         onClick={() => {
                             feedback('tick')
-                            onSelect(pair.open.id)
+                            onSelect(pair.about.id)
                         }}
-                        aria-label={tDerivation('openLabel', { name: pair.open.name })}
+                        aria-label={tDerivation('openLabel', { name: pair.about.name })}
                         data-testid="open-balance"
                         className="flex w-full items-center gap-3 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                     >
@@ -229,7 +242,17 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                             A sentence is also not uppercased the way the strip's two-word tone
                             labels are. */}
                         <span className="flex min-w-0 flex-1 flex-col gap-1">
-                            <span className={cn('truncate text-h8', pair.labelClass)}>{pair.label}</span>
+                            {/* Wraps rather than truncates. "{name} owes you" puts the verb
+                                LAST, so an ellipsis eats the whole relationship and leaves a
+                                clipped name over an amount, with only the green tint saying
+                                which way the money runs — it started at about 23 characters at
+                                375px. Two lines is the cap; splitting the string into a name
+                                element and a phrase element is not an option, because Spanish
+                                puts the name last in the other direction ("Le debes a {name}")
+                                and the order is the translator's to choose. */}
+                            <span className={cn('line-clamp-2 break-words text-h8 leading-snug', pair.labelClass)}>
+                                {pair.label}
+                            </span>
                             <AnimatedMoney
                                 minor={pair.net}
                                 currency={state.room.currency}
