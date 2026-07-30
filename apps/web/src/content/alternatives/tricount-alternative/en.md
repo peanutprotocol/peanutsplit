@@ -4,7 +4,7 @@ description: Tricount settles up through a bank account and a bunq card. If your
 date: 2026-07-28
 tags: [alternatives, currencies]
 faqs:
-    - question: Is Peanut Split free forever?
+    - question: Is Split free forever?
       answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
     - question: Do I have to download anything?
       answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.
@@ -83,7 +83,7 @@ That is the trade. Less product, fewer assumptions about who you bank with.
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is Peanut Split free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
+<FAQItem question="Is Split free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
 <FAQItem question="Do I have to download anything?">No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.</FAQItem>
 <FAQItem question="Can we still settle by bank transfer or cash?">Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.</FAQItem>
 <FAQItem question="What is Split not good at?">Anything that needs an account. There is no login, no password recovery and no history that follows you across devices — the link is the key, so if the group loses it, the room is gone.</FAQItem>

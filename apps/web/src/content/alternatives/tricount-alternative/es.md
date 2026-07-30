@@ -4,7 +4,7 @@ description: Tricount cobra a través de una cuenta bancaria y una tarjeta bunq.
 date: 2026-07-28
 tags: [alternativas, monedas]
 faqs:
-    - question: ¿Peanut Split es gratis para siempre?
+    - question: ¿Split es gratis para siempre?
       answer: Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.
     - question: ¿Hay que descargar algo?
       answer: 'No. Una sala es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin tienda de apps, sin cuenta, sin correo.'
@@ -83,7 +83,7 @@ Ese es el intercambio. Menos producto, menos suposiciones sobre dónde tenés la
   text="Crear un split" />
 
 <FAQ title="Preguntas">
-<FAQItem question="¿Peanut Split es gratis para siempre?">Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.</FAQItem>
+<FAQItem question="¿Split es gratis para siempre?">Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.</FAQItem>
 <FAQItem question="¿Hay que descargar algo?">No. Una sala es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin tienda de apps, sin cuenta, sin correo.</FAQItem>
 <FAQItem question="¿Podemos saldar por transferencia o en efectivo?">Sí. Split reduce las deudas para que hagas dos o tres transferencias en vez de veinte, y registra cada una como haya ocurrido. No exige un banco ni una app en particular.</FAQItem>
 <FAQItem question="¿En qué es malo Split?">En todo lo que necesite una cuenta. No hay login, ni recuperación de contraseña, ni historial que te siga entre dispositivos: el enlace es la llave, así que si el grupo lo pierde, la sala se pierde.</FAQItem>
