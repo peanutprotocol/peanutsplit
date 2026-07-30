@@ -730,11 +730,13 @@
         }
     },
     "push": {
+        "label": "Notifications",
         "notifyMe": "Notify me about {room}",
         "on": "On, this device",
         "iosNeedsPwa": "Add Split to your home screen.",
         "iosHow": "How?",
         "denied": "Blocked in your browser settings.",
+        "unknown": "Couldn’t check just now — this device may still be getting them.",
         "needsToken": "Pick your name again to turn this on.",
         "failed": "could not change notifications — try again"
     },

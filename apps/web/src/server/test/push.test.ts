@@ -300,6 +300,31 @@ describe('status endpoint', () => {
         expect(body).toMatchObject({ error: { code: 'MEMBER_TOKEN_INVALID' } })
     })
 
+    /**
+     * The oracle this route would otherwise widen: a guessed slug answers 404 and
+     * a real slug with a bad token answers 403, so the two are distinguishable —
+     * as often as the limiter allows. On its own 120/hour bucket that is four
+     * times the 30/hour the miss limiter exists to enforce. Once the shared miss
+     * budget is empty, a real slug has to 429 as well, or the rejection itself
+     * tells the caller the room exists.
+     */
+    it('meters a guessed slug on the shared miss budget, not its own', async () => {
+        const fixture = await makeRoom()
+
+        for (let i = 0; i < 31; i++) {
+            const missed = await askStatus({ ...fixture, slug: `missing-${i}` }, fixture.owner, FCM('a'))
+            expect(missed.status).toBe(i < 30 ? 404 : 429)
+        }
+
+        const { status, body } = await askStatus(fixture, fixture.owner, FCM('a'))
+        expect(status).toBe(429)
+        expect(body).toMatchObject({ error: { code: 'RATE_LIMITED' } })
+
+        // The sibling DELETE has the same 404/403 shape, and spends the same
+        // budget — one route left on its own bucket would keep the oracle open.
+        expect((await unsubscribe(fixture, fixture.owner, FCM('a'))).status).toBe(429)
+    })
+
     /** Turning notifications off is the one thing still worth doing in an
      *  archived room, and the toggle cannot render without this answer. */
     it('still answers in an archived room', async () => {

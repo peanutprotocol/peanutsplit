@@ -554,11 +554,23 @@ test('a link holder can export the room without exporting the room credential', 
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
 
-    await page.getByRole('button', { name: 'Room menu' }).click()
-    await expect(page.getByText('The files include everyone’s names and the current money history.')).toBeVisible()
+    // Export is a row in Settings now, not a top-bar menu. The row says what you
+    // would get; the sheet behind it says who is in the file, and hands it over.
+    await page.getByTestId('open-room-settings').click()
+    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 15_000 })
+    const exportRow = page.getByTestId('export-row')
+    await expect(exportRow).toContainText('CSV · JSON')
+    await exportRow.click()
+
+    const exportSheet = page.getByTestId('export-sheet')
+    await expect(exportSheet).toBeVisible()
+    // One disclosure sentence, and it does not claim to be the whole money
+    // history — deleted records are left out, so that wording would be false.
+    await expect(exportSheet).toContainText('The file has everyone’s names and every expense and payment.')
+    await expect(exportSheet).not.toContainText('money history')
 
     const jsonDownloadPromise = page.waitForEvent('download')
-    await page.getByRole('button', { name: 'Download JSON' }).click()
+    await exportSheet.getByRole('button', { name: 'Download JSON' }).click()
     const jsonDownload = await jsonDownloadPromise
     expect(jsonDownload.suggestedFilename()).toBe('export-room.json')
     const jsonPath = await jsonDownload.path()
@@ -569,4 +581,10 @@ test('a link holder can export the room without exporting the room credential', 
     expect(exported.members).toHaveLength(1)
     expect(JSON.stringify(exported)).not.toContain(new URL(url).pathname)
     expect(exported.room).not.toHaveProperty('slug')
+
+    // The sheet closes back to Settings rather than out of the room, so the
+    // export is one detour and not a dead end.
+    await page.getByTestId('close-export-sheet').click()
+    await expect(exportSheet).toHaveAttribute('data-state', 'closed')
+    await expect(page.getByTestId('settings-sheet')).toBeVisible()
 })
