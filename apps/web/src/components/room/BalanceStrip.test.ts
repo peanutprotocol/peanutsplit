@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pairCard } from './BalanceStrip'
+import { MAX_SENTENCE_NAME_CHARS, pairCard } from './BalanceStrip'
 
 /**
  * The pair card makes a claim about somebody's money in words. A wrong key here says "You owe
@@ -109,6 +109,72 @@ describe('pairCard', () => {
 
         expect(card.label).toBe('Bea · nothingYet')
         expect(card.net).toBe('0')
+    })
+
+    /**
+     * The relationship words are the message; the name is a label the reader can see in full on
+     * the avatar, in the people list and on the derivation sheet. So the name gives way first.
+     *
+     * The sentence gets two lines. At 375px a 46-character name needed three, and because
+     * "{name} owes you" puts the verb last, the third line that got clamped away was "owes you"
+     * — leaving a cut name over an amount with only the tint saying which way the money ran.
+     * Wrapping alone could not fix that; the cap is what makes it hold at any length, and the
+     * name field takes 80 characters.
+     */
+    const longName = 'Maximiliana Wolfeschlegelsteinhausenbergerdorff'
+    const cut = 'Maximiliana Wolfesc…'
+    const long = { id: 'long', name: longName }
+
+    it('cuts a name too long for the two lines, and keeps the relationship words', () => {
+        const card = pairCard([ana, long], { ana: '3000', long: '-3000' }, 'ana', true, t)
+
+        expect(card.label).toBe(`pair.owesYou {"name":"${cut}"}`)
+        expect([...cut]).toHaveLength(MAX_SENTENCE_NAME_CHARS)
+    })
+
+    it('cuts the name in the other direction too', () => {
+        const card = pairCard([ana, long], { ana: '-3000', long: '3000' }, 'ana', true, t)
+
+        expect(card.label).toBe(`pair.youOwe {"name":"${cut}"}`)
+    })
+
+    it('cuts the name in the zero state, where the sentence is longest', () => {
+        const card = pairCard([ana, long], { ana: '0', long: '0' }, 'ana', false, t)
+
+        expect(card.label).toBe(`${cut} · nothingYet`)
+    })
+
+    it('cuts both names when nobody on this device is in the room', () => {
+        const other = { id: 'other', name: 'Bartholomew Fitzgerald-Montgomery' }
+        const card = pairCard([long, other], { long: '-3000', other: '3000' }, undefined, true, t)
+
+        expect(card.label).toBe(`pair.owes {"debtor":"${cut}","creditor":"Bartholomew Fitzger…"}`)
+    })
+
+    it('leaves a name that already fits alone', () => {
+        const fits = { id: 'fits', name: 'A'.repeat(MAX_SENTENCE_NAME_CHARS) }
+        const card = pairCard([ana, fits], { ana: '3000', fits: '-3000' }, 'ana', true, t)
+
+        expect(card.label).toBe(`pair.owesYou {"name":"${fits.name}"}`)
+    })
+
+    it('cuts on characters, so an emoji in a name never becomes half a character', () => {
+        const party = { id: 'party', name: '🎉'.repeat(30) }
+        const card = pairCard([ana, party], { ana: '3000', party: '-3000' }, 'ana', true, t)
+
+        expect(card.label).toBe(`pair.owesYou {"name":"${'🎉'.repeat(MAX_SENTENCE_NAME_CHARS - 1)}…"}`)
+    })
+
+    /**
+     * Only the sentence is cut. `data-member` comes off `about.name`, and every e2e spec that
+     * reads a balance selects on it — `[data-testid="balance-card"][data-member="Ana"]` in
+     * balances, realtime, room and import. So does the avatar and the accessible name.
+     */
+    it('keeps the full name on the subject the card publishes and the tap opens', () => {
+        const card = pairCard([ana, long], { ana: '3000', long: '-3000' }, 'ana', true, t)
+
+        expect(card.about).toBe(long)
+        expect(card.about.name).toBe(longName)
     })
 
     /**
