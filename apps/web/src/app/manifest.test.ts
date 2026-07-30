@@ -49,6 +49,23 @@ describe('shortcuts', () => {
     })
 })
 
+describe('share_target', () => {
+    it('puts nothing in the OS share sheet that this build cannot serve', async () => {
+        const manifest = await manifestWith(false)
+        expect(manifest.share_target).toBeUndefined()
+    })
+
+    it('accepts one image field, posted as multipart, at the route the worker intercepts', async () => {
+        const manifest = await manifestWith(true)
+        expect(manifest.share_target).toEqual({
+            action: '/api/share-target',
+            method: 'POST',
+            enctype: 'multipart/form-data',
+            params: { files: [{ name: 'receipt', accept: ['image/*'] }] },
+        })
+    })
+})
+
 describe('the room slug never leaves the device', () => {
     it('publishes no room path in either flag state', async () => {
         for (const v2 of [false, true]) {
