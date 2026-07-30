@@ -254,6 +254,12 @@ export const api = {
     setTheme: (slug: string, theme: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { theme } }),
 
+    /** The room's drawing. Same PATCH and same credential as the name, because in
+     *  the sheet they are one control: the drawing follows the name until
+     *  somebody overrules it, and `null` hands it back to the name. */
+    setEmblem: (slug: string, emoji: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { emoji } }),
+
     /** One member's playful persona. Like the roster and ledger, this is a
      *  shared-room edit: the room link is the credential. */
     setMemberAvatar: (slug: string, memberId: string, input: MemberAvatarInput) =>

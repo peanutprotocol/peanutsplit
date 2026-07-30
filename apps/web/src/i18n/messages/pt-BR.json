@@ -347,6 +347,8 @@
             "roomName": "Nome da sala",
             "linkStaysTheSame": "O link continua o mesmo.",
             "nameFailed": "não foi possível renomear a sala — tente novamente",
+            "drawing": "Desenho da sala",
+            "drawingFailed": "não foi possível mudar o desenho — tente novamente",
             "people": "Pessoas",
             "addSomeone": "Adicionar alguém",
             "personNamePlaceholder": "Nome da pessoa",
