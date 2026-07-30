@@ -65,16 +65,9 @@ describe('content tree', () => {
         }
     })
 
-    /**
-     * A routed collection with no pages is a dead route. `capture` is the one exemption: the engine
-     * landed ahead of its content on purpose, because the pages are gated on a copy review. Delete
-     * the exemption with the first capture page — the test is worth more than the exemption.
-     */
-    const EMPTY_UNTIL_ITS_CONTENT_LANDS = new Set<Collection>(['capture'])
-
+    /** A routed collection with no pages is a dead route. */
     it('publishes at least one doc per collection', () => {
         for (const collection of COLLECTIONS) {
-            if (EMPTY_UNTIL_ITS_CONTENT_LANDS.has(collection)) continue
             expect(listDocs(collection).length, `${collection} is empty`).toBeGreaterThan(0)
         }
     })

@@ -49,6 +49,11 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     RelatedPages,
     RelatedLink,
 
+    // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by stylebook, so
+    // its h1 is a markdown `#` — same typography as the hero's, inside the column instead of a band.
+    h1: (props: HTMLAttributes<HTMLHeadingElement>) => (
+        <h1 className={`${COLUMN} mb-5 mt-10 text-h3 leading-tight text-n-1`} {...props} />
+    ),
     h2: (props: HTMLAttributes<HTMLHeadingElement>) => (
         <h2 className={`${COLUMN} mb-3 mt-12 text-h5 text-n-1`} {...props} />
     ),

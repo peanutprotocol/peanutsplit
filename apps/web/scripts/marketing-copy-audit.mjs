@@ -4,7 +4,11 @@ import ts from 'typescript'
 
 const root = resolve(import.meta.dirname, '..')
 const claimPattern = /\bfree\b|gratis|grátis/giu
-const commitmentPattern = /free forever|gratis para siempre|grátis para sempre/iu
+/**
+ * The hyphen is not cosmetic: `free-forever` is how the commitment appears as a claim ID in
+ * frontmatter, and matching only the spaced prose form failed every page that cited the claim.
+ */
+const commitmentPattern = /free[\s-]forever|gratis para siempre|grátis para sempre/iu
 const failures = []
 const seenExceptions = new Set()
 
