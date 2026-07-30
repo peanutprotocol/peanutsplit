@@ -604,6 +604,37 @@ test.describe('Pass-the-link default', () => {
         await expect(supportedCurrencies).toBeVisible()
     })
 
+    test('desktop proof milestones keep each icon attached to its label', async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await page.emulateMedia({ reducedMotion: 'reduce' })
+        await openLanding(page)
+
+        const milestones = page.locator('.landing-proof-rail li')
+        await expect(milestones).toHaveCount(4)
+
+        for (const milestone of await milestones.all()) {
+            const [iconBox, labelBox] = await Promise.all([
+                milestone.locator('svg').boundingBox(),
+                milestone.evaluate((element) => {
+                    const label = [...element.childNodes].find(
+                        (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+                    )
+                    if (!label) return null
+
+                    const range = document.createRange()
+                    range.selectNodeContents(label)
+                    const { x, y, width, height } = range.getBoundingClientRect()
+                    return { x, y, width, height }
+                }),
+            ])
+
+            expect(iconBox).not.toBeNull()
+            expect(labelBox).not.toBeNull()
+            expect(labelBox!.x - (iconBox!.x + iconBox!.width)).toBeGreaterThanOrEqual(0)
+            expect(labelBox!.x - (iconBox!.x + iconBox!.width)).toBeLessThanOrEqual(12)
+        }
+    })
+
     for (const locale of ['en', 'es', 'pt-BR'] as const) {
         test(`${locale} localizes the headline, summary, CTA, validation, and proof scenes`, async ({ page }) => {
             await page.setViewportSize({ width: 360, height: 740 })
