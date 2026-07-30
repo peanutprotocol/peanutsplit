@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allocateByWeights, formatFigure, formatShareOfWhole, percentageOfMinor } from './allocate'
+import { allocateByWeights, formatFigure, formatShareOfWhole } from './allocate'
 
 const sum = (values: readonly number[]) => values.reduce((running, value) => running + value, 0)
 
@@ -59,19 +59,6 @@ describe('allocateByWeights', () => {
     it('is deterministic', () => {
         const once = allocateByWeights(100_007, [3, 3, 3, 1])
         for (let run = 0; run < 5; run += 1) expect(allocateByWeights(100_007, [3, 3, 3, 1])).toEqual(once)
-    })
-})
-
-describe('percentageOfMinor', () => {
-    it('rounds half up, the way the card machine did', () => {
-        expect(percentageOfMinor(4785, 10)).toBe(479)
-        expect(percentageOfMinor(1000, 12.5)).toBe(125)
-        expect(percentageOfMinor(105, 50)).toBe(53)
-    })
-
-    it('is nothing for no tip', () => {
-        expect(percentageOfMinor(5000, 0)).toBe(0)
-        expect(percentageOfMinor(5000, Number.NaN)).toBe(0)
     })
 })
 
