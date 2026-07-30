@@ -186,7 +186,7 @@
             "cta": "Adicionar à tela de início",
             "dismiss": "Agora não",
             "row": {
-                "label": "Adicionar à tela de início",
+                "label": "Instalar o Split",
                 "installed": "Já está neste aparelho.",
                 "dismissed": "Não foi adicionado. Abra o Split de novo para tentar.",
                 "unsupported": "Este navegador não oferece isso."

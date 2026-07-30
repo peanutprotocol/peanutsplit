@@ -186,7 +186,7 @@
             "cta": "Add to home screen",
             "dismiss": "Not now",
             "row": {
-                "label": "Add to home screen",
+                "label": "Install Split",
                 "installed": "Already on this device.",
                 "dismissed": "Not added. Open Split again to try.",
                 "unsupported": "This browser doesn’t offer it."
