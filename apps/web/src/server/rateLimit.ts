@@ -126,7 +126,7 @@ export function enforceRateLimitPreflight(request: Request, limit: Limit, scope:
 
 /** The one bucket name every room lookup shares. It only hides room existence
  *  while every path that can 404 on a slug spends from the SAME budget. */
-const LOOKUP_MISS_SCOPE = 'room-lookup-miss'
+export const LOOKUP_MISS_SCOPE = 'room-lookup-miss'
 
 /**
  * Run a room lookup with its misses metered on the shared miss budget.
