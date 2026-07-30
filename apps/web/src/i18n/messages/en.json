@@ -185,6 +185,12 @@
             "body": "Opens instantly, works like an app. No store, no account.",
             "cta": "Add to home screen",
             "dismiss": "Not now",
+            "row": {
+                "label": "Install Split",
+                "installed": "Already on this device.",
+                "dismissed": "Not added. Open Split again to try.",
+                "unsupported": "This browser doesn’t offer it."
+            },
             "ios": {
                 "title": "Add Split to your home screen",
                 "step1": "Tap the Share button in the Safari toolbar.",

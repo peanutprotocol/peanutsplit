@@ -312,12 +312,7 @@ export function RoomScreen({ slug }: { slug: string }) {
 
             {/* Install prompt lives on the room, not the landing page: you only pin
                 something you are already using. */}
-            {state && !needsJoin && (
-                <InstallPrompt
-                    onShown={() => track('pwa_prompt_shown', roomProps(slug))}
-                    onInstalled={() => track('pwa_installed', roomProps(slug))}
-                />
-            )}
+            {state && !needsJoin && <InstallPrompt onShown={() => track('pwa_prompt_shown', roomProps(slug))} />}
         </main>
     )
 }

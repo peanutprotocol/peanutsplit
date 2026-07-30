@@ -185,6 +185,12 @@
             "body": "Abre al instante y funciona como app. Sin tienda, sin cuenta.",
             "cta": "Agregar a pantalla de inicio",
             "dismiss": "Ahora no",
+            "row": {
+                "label": "Instalar Split",
+                "installed": "Ya está en este dispositivo.",
+                "dismissed": "No se agregó. Abre Split otra vez para intentarlo.",
+                "unsupported": "Este navegador no lo ofrece."
+            },
             "ios": {
                 "title": "Agrega Split a tu pantalla de inicio",
                 "step1": "Toca el botón Compartir en la barra de Safari.",
