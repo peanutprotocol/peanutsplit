@@ -92,7 +92,9 @@ self.addEventListener('push', (event) => {
         requireInteraction: false,
         ...(payload.tag ? { tag: payload.tag } : {}),
     }
-    event.waitUntil(self.registration.showNotification(payload.title ?? 'Peanut Split', options))
+    // Every payload we send carries a title (notifyCopy.ts `titleOf()` returns the room name), so
+    // the fallback is the "a push arrived without one" case. It says Split, like the launcher does.
+    event.waitUntil(self.registration.showNotification(payload.title ?? 'Split', options))
 })
 
 self.addEventListener('notificationclick', (event) => {
