@@ -964,3 +964,67 @@ test('v1 does not expose AI or migration tooling in either landing variant', asy
     expect((await page.goto('/import'))?.status()).toBe(404)
     expect((await page.goto('/blog/scan-a-receipt-to-split-a-bill'))?.status()).toBe(404)
 })
+
+/**
+ * The re-added geometry gate, one layer up from where the deleted one sat.
+ *
+ * The old test measured hand-placed SVG coordinates (`x="92" y="270"`, `translate(820 180)`)
+ * against the doodle's bounding box. Satori has no absolute text placement in these cards — the
+ * name and the emblem are flex siblings — so the class of bug it caught is structurally
+ * impossible now. What is still possible, and worse, is shipping bytes that are not a PNG at all:
+ * that is exactly how the SVG attachment failed in every messenger for months. `createImageBitmap`
+ * decoding the payload is the assertion that cannot be satisfied by a renamed blob.
+ *
+ * This is a SECOND test rather than an extension of the one above it. That one installs a
+ * `canShare` that throws, on purpose, to prove the URL never yields to the image — with it in
+ * place `payload.files` is permanently undefined and nothing here could ever run.
+ */
+test('the invite share attaches a real 1200×630 PNG', async ({ page }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async (payload: ShareData) => {
+                ;(window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload = payload
+            },
+        })
+        Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
+    })
+    await page.goto('/new')
+    // 80 W's — the adversarial name the deleted test used, and the field's own maxLength.
+    await page.getByTestId('room-name').fill('W'.repeat(80))
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+
+    // The prefetch runs on mount, so the tap can stay synchronous. Without this poll the click
+    // races it and the test flakes rather than failing honestly.
+    await page.getByTestId('share-link').click()
+    await expect
+        .poll(
+            () =>
+                page.evaluate(
+                    () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload?.files?.length ?? 0
+                ),
+            { timeout: 20_000 }
+        )
+        .toBeGreaterThan(0)
+
+    const meta = await page.evaluate(async () => {
+        const payload = (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
+        const file = payload?.files?.[0]
+        if (!file) return null
+        const bitmap = await createImageBitmap(file)
+        return {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            w: bitmap.width,
+            h: bitmap.height,
+            url: payload?.url,
+        }
+    })
+    expect(meta).toMatchObject({ name: 'peanut-split-invite.png', type: 'image/png', w: 1200, h: 630 })
+    expect(meta!.size).toBeGreaterThan(5_000)
+    // The link still rides along. The picture is the enhancement, never the replacement.
+    expect(meta!.url).toContain('/r/')
+})
