@@ -262,7 +262,7 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                     </DrawerHeader>
                     <DrawerBody>
                         <section
-                            className="shadow-4 shrink-0 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
                             data-testid="room-settings-room-section"
                         >
                             <div className="border-b border-dashed border-grey-1 px-3 py-3">
@@ -336,7 +336,7 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                         </section>
 
                         <section
-                            className="shadow-4 shrink-0 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
                             data-testid="room-settings-people-section"
                         >
                             <div className="border-b border-dashed border-grey-1 px-3 py-3">
@@ -433,7 +433,7 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                             </div>
                         </section>
 
-                        <section className="flex shrink-0 flex-col gap-3" data-testid="room-settings-device-section">
+                        <section className="flex flex-col gap-3" data-testid="room-settings-device-section">
                             <div>
                                 <h2 className="text-h7">{t('deviceSection')}</h2>
                                 <p className="mt-1 text-sm text-grey-1">{t('deviceSectionHint')}</p>

@@ -131,9 +131,31 @@ function callArguments(source, openParen) {
 }
 
 /**
+ * Where a property's value ends: the `,` that starts the next property, or the `}` that closes the
+ * object. Used to step OVER the value, because only the name side of `person: name` is an argument
+ * the call passes — see `passedValues`.
+ */
+function endOfValue(values, start) {
+    let depth = 0
+    for (let index = start; index < values.length; index++) {
+        const character = values[index]
+        if ('([{'.includes(character)) depth += 1
+        else if (')]}'.includes(character)) {
+            if (depth === 0) return index
+            depth -= 1
+        } else if (character === ',' && depth === 0) return index
+    }
+    return values.length
+}
+
+/**
  * The keys of the values object a call passes, or null when it passes no second argument at all.
  * `spread` marks `{...values}`, which cannot be resolved statically — the call is reported as
  * skipped rather than failed, on the same grounds as a computed key.
+ *
+ * Only the NAME side counts. Harvesting identifiers from both sides is what made this check pass
+ * on `t('title', { person: name })` for a message that interpolates `{name}` — the audit read the
+ * value expression as a second argument name, so the one shape it exists to catch went through it.
  */
 function passedValues(args) {
     let depth = 0
@@ -170,18 +192,29 @@ function passedValues(args) {
             spread = true
             continue
         }
-        const name = /^([A-Za-z_$][\w$]*)\s*[:,}\n]/.exec(values.slice(index))
-        if (name) {
-            keys.add(name[1])
-            index += name[1].length - 1
+        const property = /^([A-Za-z_$][\w$]*)\s*([:,}\n])/.exec(values.slice(index))
+        if (!property) continue
+        keys.add(property[1])
+        // `{ name }` and `{ name, count }` name themselves and end where they are read. A `key:`
+        // is followed by an expression that names nothing, so skip to the next property.
+        if (property[2] !== ':') {
+            index += property[1].length - 1
+            continue
         }
+        index = endOfValue(values, index + property[0].length) - 1
     }
     return { keys, spread }
 }
 
 const referenced = new Map()
 const valueSites = []
+/** Call sites whose KEY cannot be resolved statically. */
 const skipped = []
+/** Call sites whose key is known but whose VALUES are not a literal object, so check 3 cannot run
+ *  on them. A different thing from a computed key, and counted separately: mixing the two inflated
+ *  the "computed (skipped)" number on the summary line with sites that have no computed key at
+ *  all. */
+const opaqueValues = []
 
 for (const file of sourceFiles(srcRoot)) {
     const source = stripComments(readFileSync(file, 'utf8'))
@@ -236,7 +269,7 @@ for (const { key, file, values } of valueSites) {
         continue
     }
     if (values.spread) {
-        skipped.push(`${file} — values for ${key} (not a literal object)`)
+        opaqueValues.push(`${file} — ${key}`)
         continue
     }
     const missing = [...wanted].filter((name) => !values.keys.has(name))
@@ -269,6 +302,11 @@ console.log(`refs   ${referenced.size} literal keys in src/, ${skipped.length} c
 if (skipped.length > 0) {
     console.log('\nskipped (dynamic keys — verified by catalog parity, not by usage):')
     for (const entry of [...new Set(skipped)]) console.log(`  ${entry}`)
+}
+
+if (opaqueValues.length > 0) {
+    console.log('\nplaceholders unchecked (values are not a literal object):')
+    for (const entry of [...new Set(opaqueValues)]) console.log(`  ${entry}`)
 }
 
 let failed = false

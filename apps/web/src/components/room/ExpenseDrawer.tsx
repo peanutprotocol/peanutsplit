@@ -1357,7 +1357,11 @@ export function ExpenseDrawer({
                                 className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-3"
                                 data-testid="delete-expense-confirm"
                             >
-                                <p className="text-sm text-n-1">{t('confirmDelete')}</p>
+                                {/* The question replaces the delete button in place, so a
+                                    screen reader is otherwise never told it was asked. */}
+                                <p role="alert" className="text-sm text-n-1">
+                                    {t('confirmDelete')}
+                                </p>
                                 <div className="flex gap-2">
                                     <Button
                                         variant="stroke"
