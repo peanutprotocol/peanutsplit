@@ -347,6 +347,8 @@
             "roomName": "Room name",
             "linkStaysTheSame": "The link stays the same.",
             "nameFailed": "could not rename the room — try again",
+            "drawing": "Room drawing",
+            "drawingFailed": "could not change the drawing — try again",
             "people": "People",
             "addSomeone": "Add someone",
             "personNamePlaceholder": "Person’s name",

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
+import { DoodlePicker } from '@/components/room/DoodlePicker'
 import { PeopleSection } from '@/components/room/PeopleSection'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
 import { RoomExport } from '@/components/room/RoomExport'
@@ -16,13 +17,16 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { SettingRow } from '@/components/ui/SettingRow'
+import type { DoodleName } from '@/components/ui/doodles'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { copyText } from '@/lib/clipboard'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
-import { useSetRoomName, useSetTheme } from '@/lib/queries'
+import { useSetEmblem, useSetRoomName, useSetTheme } from '@/lib/queries'
+import { FALLBACK_DOODLE } from '@/lib/room-doodle'
+import { emblemDoodle } from '@/lib/room-emblem'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
@@ -72,9 +76,24 @@ export function SettingsSheet({
     const feedback = useFeedback()
     const setRoomName = useSetRoomName(room.slug)
     const setTheme = useSetTheme(room.slug)
+    const setEmblem = useSetEmblem(room.slug)
     const [draft, setDraft] = useState(room.name)
     const [deviceOpen, setDeviceOpen] = useState(false)
     const [switchOpen, setSwitchOpen] = useState(false)
+    const [pickerOpen, setPickerOpen] = useState(false)
+    const pickerRef = useRef<HTMLDetailsElement>(null)
+
+    /** A `<details>` has no light-dismiss of its own, so the grid would sit over the
+     *  card — including over the name field beside it — until it was toggled again.
+     *  Same fix, same reason, as the create form. */
+    useEffect(() => {
+        if (!pickerOpen) return
+        const onPointerDown = (event: PointerEvent) => {
+            if (!pickerRef.current?.contains(event.target as Node)) setPickerOpen(false)
+        }
+        document.addEventListener('pointerdown', onPointerDown)
+        return () => document.removeEventListener('pointerdown', onPointerDown)
+    }, [pickerOpen])
 
     // The rename is optimistic, so the room's name is authoritative the instant
     // it commits — and a rename arriving from another device belongs in the
@@ -108,6 +127,27 @@ export function SettingsSheet({
                 setDraft(room.name)
                 feedback('error', { haptic: 'error' })
                 toast.error(errorMessage(error, t('nameFailed')), { duration: TOAST_MS.actionable })
+            },
+        })
+    }
+
+    /**
+     * The drawing the tile is showing, which is what the picker has to highlight.
+     * A room made before the drawings still stores an emoji character, and
+     * `emblemDoodle` is the one place that reading happens.
+     */
+    const shownEmblem = emblemDoodle(room.emoji) ?? FALLBACK_DOODLE
+
+    /** Committed on the tap, like the theme: the picker closes, the tile is
+     *  already the new drawing, and a failure puts the old one back with a toast. */
+    const chooseEmblem = (next: DoodleName) => {
+        setPickerOpen(false)
+        if (next === room.emoji) return
+        feedback('tick')
+        setEmblem.mutate(next, {
+            onError: (error) => {
+                feedback('error')
+                toast.error(errorMessage(error, t('drawingFailed')), { duration: TOAST_MS.actionable })
             },
         })
     }
@@ -157,9 +197,26 @@ export function SettingsSheet({
                             {/* Name and drawing are one control, because the drawing
                             follows the name: `emblem ?? roomDoodleFor(name)`. */}
                             <div className="flex items-stretch gap-2">
-                                <span className="flex shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white px-3">
-                                    <RoomEmblem value={room.emoji} size={24} />
-                                </span>
+                                {/* A details/summary rather than a popover library — the same
+                                    control the create form uses, so the drawing is picked the
+                                    same way whether the room is a minute old or a month old. */}
+                                <details
+                                    ref={pickerRef}
+                                    open={pickerOpen}
+                                    onToggle={(event) => setPickerOpen((event.target as HTMLDetailsElement).open)}
+                                    className="relative shrink-0"
+                                >
+                                    <summary
+                                        aria-label={t('drawing')}
+                                        data-testid="room-drawing"
+                                        className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 [&::-webkit-details-marker]:hidden"
+                                    >
+                                        <RoomEmblem value={room.emoji} size={24} />
+                                    </summary>
+                                    <div className="shadow-4 absolute left-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
+                                        <DoodlePicker value={shownEmblem} onChange={chooseEmblem} />
+                                    </div>
+                                </details>
                                 <BaseInput
                                     value={draft}
                                     onChange={(event) => setDraft(event.target.value)}

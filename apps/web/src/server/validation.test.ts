@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+    createRoomSchema,
     expenseSchema,
     importRoomSchema,
     modelAmountMinor,
     receiptItemSchema,
+    roomSettingsSchema,
     settlementSchema,
 } from '@/server/validation'
 
@@ -113,6 +115,33 @@ describe('trust-ledger fields', () => {
         )
         expect(() => settlementSchema.safeParse({ ...settlement('100'), receiptUrl: 'not a url' })).not.toThrow()
         expect(settlementSchema.safeParse({ ...settlement('100'), receiptUrl: 'not a url' }).success).toBe(false)
+    })
+})
+
+describe('room settings', () => {
+    it('takes a drawing on its own, and null to hand it back to the name', () => {
+        expect(roomSettingsSchema.safeParse({ emoji: 'mountain' }).success).toBe(true)
+        expect(roomSettingsSchema.safeParse({ emoji: null }).success).toBe(true)
+        // A legacy room's emoji character is still a legal value to write.
+        expect(roomSettingsSchema.safeParse({ emoji: '🎿' }).success).toBe(true)
+        expect(roomSettingsSchema.safeParse({ name: 'Ski trip', emoji: 'ski' }).success).toBe(true)
+    })
+
+    /** The edit path must not be able to store an emblem a new room could not
+     *  have been created with — one bound, checked from both ends. */
+    it('bounds the drawing exactly as room creation does', () => {
+        const room = { name: 'Trip', currency: 'EUR', creatorName: 'Ana' }
+        const long = 'x'.repeat(25)
+
+        expect(roomSettingsSchema.safeParse({ emoji: 'x'.repeat(24) }).success).toBe(true)
+        expect(roomSettingsSchema.safeParse({ emoji: long }).success).toBe(false)
+        expect(createRoomSchema.safeParse({ ...room, emoji: long }).success).toBe(false)
+        expect(roomSettingsSchema.safeParse({ emoji: 12 }).success).toBe(false)
+    })
+
+    it('still refuses a body that changes nothing, and any key outside the three', () => {
+        expect(roomSettingsSchema.safeParse({}).success).toBe(false)
+        expect(roomSettingsSchema.safeParse({ emoji: 'ski', slug: 'other-room' }).success).toBe(false)
     })
 })
 
