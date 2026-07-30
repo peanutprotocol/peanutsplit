@@ -11,6 +11,7 @@
  * access control, so it appears only in the click-through `url`, never in a log
  * line or an analytics property.
  */
+import { expenseLabel } from '@/lib/dates'
 import { formatMoney } from '@/lib/money'
 
 export type NotificationTemplate = 'expense_added' | 'settlement_recorded' | 'all_settled'
@@ -58,12 +59,20 @@ export function expenseAddedPayload(input: {
     sendId: string
     actorName: string | null
     description: string
+    /** The expense date, which names the row when the description is blank. */
+    date: Date
     amountMinor: string
     currency: string
 }): PushPayload {
+    // English words, like the rest of this module — see the file comment.
+    const label = expenseLabel(input.description, input.date.toISOString(), {
+        locale: 'en',
+        today: 'Today',
+        yesterday: 'Yesterday',
+    })
     return {
         title: titleOf(input.room),
-        body: `${nameOf(input.actorName)} added ${input.description} — ${formatMoney(input.amountMinor, input.currency)}`,
+        body: `${nameOf(input.actorName)} added ${label} — ${formatMoney(input.amountMinor, input.currency)}`,
         url: roomUrl(input.room),
         template: 'expense_added',
         tag: roomTag(input.roomId),

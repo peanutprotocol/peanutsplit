@@ -38,6 +38,20 @@ const imported = (costMinor: unknown, shareMinor: unknown = costMinor) => ({
     ],
 })
 
+describe('the expense name is optional', () => {
+    it('takes an absent, blank or whitespace name and stores the empty string', () => {
+        for (const description of [undefined, '', '   ']) {
+            const parsed = expenseSchema.safeParse({ ...expense('1200'), description })
+            expect(parsed.success).toBe(true)
+            expect(parsed.success && parsed.data.description).toBe('')
+        }
+    })
+
+    it('still bounds a name that is there', () => {
+        expect(expenseSchema.safeParse({ ...expense('1200'), description: 'x'.repeat(256) }).success).toBe(false)
+    })
+})
+
 describe('public wire money', () => {
     it('accepts decimal strings through the signed BIGINT ceiling', () => {
         const max = '9223372036854775807'

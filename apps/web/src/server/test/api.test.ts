@@ -818,7 +818,8 @@ describe('write validation', () => {
         expect((await post(expenseBody(ana, { participantIds: [ana, 'ghost'] }))).status).toBe(400)
         expect((await post(expenseBody(ana, { participantIds: [ana, ana] }))).status).toBe(400)
         expect((await post(expenseBody(ana, { currency: 'XYZ' }))).status).toBe(400)
-        expect((await post(expenseBody(ana, { description: '' }))).status).toBe(400)
+        // A blank name is NOT a validation failure — the row is labelled by its day.
+        expect((await post(expenseBody(ana, { description: '' }))).status).toBe(201)
         expect((await post(expenseBody(ana, { amountMinor: '10.00' }))).status).toBe(400)
         expect((await post(expenseBody(ana, { amountMinor: 1000 }))).status).toBe(400)
         expect((await post(expenseBody(ana, { amountMinor: '9223372036854775808' }))).status).toBe(400)

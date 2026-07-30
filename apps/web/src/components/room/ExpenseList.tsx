@@ -11,7 +11,7 @@ import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
 import { useMotionAllowed } from '@/lib/use-motion'
-import { dayLabel, groupByDay } from '@/lib/dates'
+import { dayLabel, expenseLabel, groupByDay, relativeTime } from '@/lib/dates'
 import { Button } from '@/components/ui/Button'
 import { Money } from './Money'
 import { MemberAvatar } from './MemberAvatar'
@@ -130,6 +130,7 @@ export function ExpenseList({
         )
     }
 
+    const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
     const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
     const memberAvatar = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
     const groups = groupByDay(timeline, (entry) => entry.date)
@@ -139,11 +140,7 @@ export function ExpenseList({
             {groups.map((group) => (
                 <div key={group.key} className="flex flex-col gap-2">
                     <h3 className="text-h8 uppercase tracking-wide text-grey-1">
-                        {dayLabel(group.items[0].date, {
-                            locale,
-                            today: tDates('today'),
-                            yesterday: tDates('yesterday'),
-                        })}
+                        {dayLabel(group.items[0].date, dayOptions)}
                     </h3>
                     <ul className="flex flex-col gap-2">
                         {/* Default (sync) mode, deliberately: an optimistic `pending-…`
@@ -210,6 +207,12 @@ export function ExpenseList({
                                           ? t('filedByYou')
                                           : t('filedBy', { name: memberName(expense.createdById) })
                                 const foreign = expense.currency !== state.room.currency
+                                // `createdAt`, not `date`: this line is about the row being
+                                // written — a dinner can be backdated, filing it cannot.
+                                const filedWhen = relativeTime(expense.createdAt, {
+                                    locale,
+                                    justNow: tDates('justNow'),
+                                })
                                 return (
                                     <motion.li
                                         key={expense.id}
@@ -275,7 +278,9 @@ export function ExpenseList({
                                                 size={36}
                                             />
                                             <span className="min-w-0 flex-1">
-                                                <span className="block truncate text-h8">{expense.description}</span>
+                                                <span className="block truncate text-h8">
+                                                    {expenseLabel(expense.description, expense.date, dayOptions)}
+                                                </span>
                                                 {isQueuedExpenseId(expense.id, queued) && (
                                                     <span className="block text-sm text-grey-1">
                                                         {tOffline('rowHint')}
@@ -291,7 +296,7 @@ export function ExpenseList({
                                                 </span>
                                                 {!isPending(expense) && (
                                                     <span className="block text-h10 uppercase tracking-wide text-grey-1">
-                                                        {filedBy}
+                                                        {filedBy} · {filedWhen}
                                                     </span>
                                                 )}
                                             </span>

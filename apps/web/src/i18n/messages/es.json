@@ -324,7 +324,8 @@
     },
     "dates": {
         "today": "Hoy",
-        "yesterday": "Ayer"
+        "yesterday": "Ayer",
+        "justNow": "ahora mismo"
     },
     "room": {
         "actions": {
@@ -512,7 +513,6 @@
             "saveFailed": "no se pudo guardar el gasto — intenta de nuevo",
             "deleteFailed": "no se pudo eliminar el gasto",
             "validation": {
-                "DESCRIPTION_REQUIRED": "Ponle un nombre para que todos recuerden qué fue.",
                 "AMOUNT_REQUIRED": "Escribe un monto mayor que cero.",
                 "AMOUNT_INVALID": "Revisa los separadores y decimales del monto.",
                 "PAYER_REQUIRED": "Elige quién pagó.",

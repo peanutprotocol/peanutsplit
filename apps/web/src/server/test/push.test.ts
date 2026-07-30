@@ -269,6 +269,7 @@ describe('send pipeline', () => {
                     sendId,
                     actorName: 'Ana',
                     description: 'Lift passes',
+                    date: new Date(),
                     amountMinor: '12000',
                     currency: 'EUR',
                 }),
