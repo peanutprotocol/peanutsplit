@@ -4,14 +4,14 @@ description: Tricount cobra a través de una cuenta bancaria y una tarjeta bunq.
 date: 2026-07-28
 tags: [alternativas, monedas]
 faqs:
-    - question: ¿Peanut Split es gratis para siempre?
+    - question: ¿Split es gratis para siempre?
       answer: Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.
     - question: ¿Hay que descargar algo?
       answer: 'No. Una sala es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin tienda de apps, sin cuenta, sin correo.'
     - question: ¿Podemos saldar por transferencia o en efectivo?
       answer: Sí. Split reduce las deudas para que hagas dos o tres transferencias en vez de veinte, y registra cada una como haya ocurrido. No exige un banco ni una app en particular.
-    - question: ¿En qué es malo Split?
-      answer: 'En todo lo que necesite una cuenta. No hay login, ni recuperación de contraseña, ni historial que te siga entre dispositivos: el enlace es la llave, así que si el grupo lo pierde, la sala se pierde.'
+    - question: ¿Cómo vuelvo a entrar a una sala?
+      answer: 'Abrí el enlace otra vez. No hay login que recuperar ni contraseña que restablecer, así que el enlace es la llave. Dejalo fijado en el chat del grupo, donde lo encuentra cualquiera que lo necesite.'
 ---
 
 {/* Toda afirmación sobre Tricount en esta página es una cita textual de tricount.com/en,
@@ -73,7 +73,7 @@ La fila que importa es la de saldar. El resto está lo bastante parejo como para
 
 Si tu grupo comparte banco —o si varios tienen tarjeta bunq— Tricount va a ser más cómodo que esto. Split es más chico y hace menos.
 
-No hay cuenta, y eso significa que no hay login, ni recuperación de contraseña, ni historial que te siga a un teléfono nuevo. El enlace es la llave: si el grupo lo pierde, la sala se pierde. No hay una tarjeta que registre tus gastos sola, y no hay un banco atrás haciendo la transferencia. Dos personas saldan como puedan y una de las dos toca para registrarlo. Split no verifica con ningún banco, y no puede.
+No hay una tarjeta que registre tus gastos sola, y no hay un banco atrás haciendo la transferencia. Dos personas saldan como puedan y una de las dos toca para registrarlo. Split no verifica con ningún banco, y no puede.
 
 Ese es el intercambio. Menos producto, menos suposiciones sobre dónde tenés la plata.
 
@@ -83,10 +83,10 @@ Ese es el intercambio. Menos producto, menos suposiciones sobre dónde tenés la
   text="Crear un split" />
 
 <FAQ title="Preguntas">
-<FAQItem question="¿Peanut Split es gratis para siempre?">Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.</FAQItem>
+<FAQItem question="¿Split es gratis para siempre?">Sí. Split es gratis para siempre y no hay nada que pagar después. Peanut lo hace para que la gente conozca Peanut, que es de donde sale la plata.</FAQItem>
 <FAQItem question="¿Hay que descargar algo?">No. Una sala es un enlace web. El que lo abre escribe un nombre y empieza a cargar gastos: sin tienda de apps, sin cuenta, sin correo.</FAQItem>
 <FAQItem question="¿Podemos saldar por transferencia o en efectivo?">Sí. Split reduce las deudas para que hagas dos o tres transferencias en vez de veinte, y registra cada una como haya ocurrido. No exige un banco ni una app en particular.</FAQItem>
-<FAQItem question="¿En qué es malo Split?">En todo lo que necesite una cuenta. No hay login, ni recuperación de contraseña, ni historial que te siga entre dispositivos: el enlace es la llave, así que si el grupo lo pierde, la sala se pierde.</FAQItem>
+<FAQItem question="¿Cómo vuelvo a entrar a una sala?">Abrí el enlace otra vez. No hay login que recuperar ni contraseña que restablecer, así que el enlace es la llave. Dejalo fijado en el chat del grupo, donde lo encuentra cualquiera que lo necesite.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Seguí leyendo">

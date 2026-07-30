@@ -4,14 +4,14 @@ description: Tricount settles up through a bank account and a bunq card. If your
 date: 2026-07-28
 tags: [alternatives, currencies]
 faqs:
-    - question: Is Peanut Split free forever?
+    - question: Is Split free forever?
       answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
     - question: Do I have to download anything?
       answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.
     - question: Can we still settle by bank transfer or cash?
       answer: Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.
-    - question: What is Split not good at?
-      answer: Anything that needs an account. There is no login, no password recovery and no history that follows you across devices — the link is the key, so if the group loses it, the room is gone.
+    - question: How do I get back into a room?
+      answer: Open the link again. There is no login to recover and no password to reset, so the link is the key. Keep it pinned in the group chat, where anybody who needs it can find it.
 ---
 
 {/* Every claim about Tricount on this page is a verbatim quote from tricount.com/en, checked
@@ -73,7 +73,7 @@ Settling up is the row that matters. The rest is close enough that it should not
 
 If your group shares a bank — or several of you hold a bunq card — Tricount will be smoother than this. Split is smaller and does less.
 
-There is no account, which means no login, no password recovery, and no history that follows you to a new phone. The link is the key: if your group loses it, the room is gone. There is no card that logs your spending for you, and there is no bank behind us doing the transfer. Two people settle however they settle, and one of them taps to record it — Split does not check with a bank, and cannot.
+There is no card that logs your spending for you, and there is no bank behind us doing the transfer. Two people settle however they settle, and one of them taps to record it — Split does not check with a bank, and cannot.
 
 That is the trade. Less product, fewer assumptions about who you bank with.
 
@@ -83,10 +83,10 @@ That is the trade. Less product, fewer assumptions about who you bank with.
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is Peanut Split free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
+<FAQItem question="Is Split free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
 <FAQItem question="Do I have to download anything?">No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.</FAQItem>
 <FAQItem question="Can we still settle by bank transfer or cash?">Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.</FAQItem>
-<FAQItem question="What is Split not good at?">Anything that needs an account. There is no login, no password recovery and no history that follows you across devices — the link is the key, so if the group loses it, the room is gone.</FAQItem>
+<FAQItem question="How do I get back into a room?">Open the link again. There is no login to recover and no password to reset, so the link is the key. Keep it pinned in the group chat, where anybody who needs it can find it.</FAQItem>
 </FAQ>
 
 <RelatedPages>

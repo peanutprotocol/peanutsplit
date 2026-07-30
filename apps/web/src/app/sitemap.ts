@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { STATIC_PAGES } from '@/data/static-pages'
-import { listAllTranslations, localesForSlug, type Doc } from '@/lib/content'
+import { TOOLS, toolPath } from '@/tools/registry'
+import { basePathFor, listAllTranslations, localesForSlug, type Collection } from '@/lib/content'
 import { absoluteUrl } from '@/lib/seo'
 import { LOCALES } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
@@ -21,6 +22,17 @@ import { splitV2Enabled } from '@/lib/flags'
  * `lastModified` is the article's own date, never build time. A sitemap that claims every page
  * changed on every deploy teaches crawlers to ignore the field.
  */
+/**
+ * Comparison pages answer a commercial query and are the pages we most want ranked; capture pages
+ * answer a narrower one and are thin by design; guides answer an informational one and earn their
+ * traffic over a longer horizon.
+ */
+const PRIORITY: Record<Collection, number> = {
+    alternatives: 0.8,
+    capture: 0.7,
+    blog: 0.5,
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
     const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.filter((page) => !page.v2Only || splitV2Enabled()).map(
         (page) => ({
@@ -29,6 +41,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: page.priority,
         })
     )
+
+    /**
+     * Calculators, from the registry. Ranked with the comparison pages rather than below them:
+     * both answer a commercial query typed as-is, and a tool page has an answer on it before the
+     * reader does anything. No `alternates` — tools are English-only, and advertising a
+     * translation that does not exist is the one thing hreflang must never do.
+     */
+    const tools: MetadataRoute.Sitemap = TOOLS.map((tool) => ({
+        url: absoluteUrl(toolPath(tool)),
+        lastModified: tool.updated,
+        changeFrequency: 'monthly',
+        priority: 0.8,
+    }))
 
     // The hub exists in every locale by construction — it lists whatever that locale has, even
     // when that is nothing yet.
@@ -41,23 +66,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }))
 
     const articles: MetadataRoute.Sitemap = listAllTranslations().map((doc) => {
-        const languages = absolutise(hreflangAlternates(basePath(doc), localesForSlug(doc.collection, doc.slug)))
+        const languages = absolutise(
+            hreflangAlternates(basePathFor(doc.collection, doc.slug), localesForSlug(doc.collection, doc.slug))
+        )
         return {
             url: absoluteUrl(doc.frontmatter.canonical ?? doc.href),
             lastModified: doc.frontmatter.updated || doc.frontmatter.date || undefined,
             changeFrequency: 'monthly' as const,
-            // Alternative pages answer a commercial query; guides answer an informational one.
-            priority: doc.collection === 'alternatives' ? 0.8 : 0.5,
+            priority: PRIORITY[doc.collection],
             alternates: languages && { languages },
         }
     })
 
-    return [...staticEntries, ...hubs, ...articles]
-}
-
-/** The unprefixed path for a doc — what hreflang is computed from. */
-function basePath(doc: Pick<Doc, 'collection' | 'slug'>): string {
-    return doc.collection === 'blog' ? `/blog/${doc.slug}` : `/${doc.slug}`
+    return [...staticEntries, ...tools, ...hubs, ...articles]
 }
 
 /**

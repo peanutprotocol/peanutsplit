@@ -10,5 +10,5 @@ export const size = ogImageExports.size
 export const contentType = ogImageExports.contentType
 export const alt = 'Peanut Split guide'
 
-export const generateStaticParams = contentOgStaticParams('blog', LOCALE, 'slug')
-export default contentOgImage('blog', LOCALE, 'slug')
+export const generateStaticParams = contentOgStaticParams(['blog'], LOCALE, 'slug')
+export default contentOgImage(['blog'], LOCALE, 'slug')
