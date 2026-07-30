@@ -460,6 +460,29 @@ test.describe('Pass-the-link default', () => {
         await firstFold.locator('summary').click()
         await expect(firstFold).toHaveAttribute('open', '')
         await expect(firstFold.locator('summary')).toHaveCSS('transition-duration', '0s')
+
+        const motionLinks = [
+            page.getByTestId('pass-link-chat-link'),
+            page.getByTestId('proof-link-identity-link'),
+            page.getByTestId('final-cta-link'),
+            ...(await page.getByTestId('room-example-link').all()),
+        ]
+        for (const link of motionLinks) {
+            await expect(link).toHaveCSS('transition-duration', '0s')
+            const stillTransform = await link.evaluate((element) => getComputedStyle(element).transform)
+            await link.hover()
+            await expect(link).toHaveCSS('transform', stillTransform)
+        }
+
+        const exampleLink = page.getByTestId('room-example-link').first()
+        await exampleLink.hover()
+        const stillTransform = await exampleLink.evaluate((element) => getComputedStyle(element).transform)
+        await page.mouse.down()
+        await expect(exampleLink).toHaveCSS('transform', stillTransform)
+        await page.mouse.move(0, 0)
+        await page.mouse.up()
+        await expect(page).toHaveURL('/')
+
         expect(
             await page.locator('main').evaluate((element) =>
                 element
@@ -584,6 +607,21 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(proof.suggestedPlan.title)
         await expect(page.getByTestId('room-examples')).toContainText(proof.examples.title)
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
+
+        for (const testId of ['proof-link-identity-link', 'proof-everyone-adds-link', 'proof-suggested-plan-link']) {
+            await expect(page.getByTestId(testId)).toHaveAttribute('href', '/new')
+        }
+
+        const roomExampleLinks = page.getByTestId('room-example-link')
+        await expect(roomExampleLinks).toHaveCount(4)
+        for (const exampleLink of await roomExampleLinks.all()) {
+            await expect(exampleLink).toHaveAttribute('href', '/new')
+        }
+
+        const finalCtaLink = page.getByTestId('final-cta-link')
+        await expect(finalCtaLink).toHaveAttribute('href', '/new')
+        await expect(finalCtaLink.locator('button')).toHaveCount(0)
+
         await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
         const [personaBox, personaDoodleBox] = await Promise.all([
             page.getByTestId('landing-proof').locator('.landing-persona').first().boundingBox(),
@@ -602,6 +640,32 @@ test.describe('Pass-the-link default', () => {
         await expect(supportedCurrencies).toBeHidden()
         await features.locator('summary').click()
         await expect(supportedCurrencies).toBeVisible()
+    })
+
+    test('a room example opens the creator from the keyboard without creating a room', async ({ page }) => {
+        await openLanding(page)
+
+        const exampleLink = page.getByTestId('room-example-link').first()
+        await exampleLink.focus()
+        await expect(exampleLink).toBeFocused()
+        await page.keyboard.press('Enter')
+
+        await expect(page).toHaveURL('/new')
+        await expect(page.getByTestId('room-composer')).toBeVisible()
+    })
+
+    test('every room example lifts and straightens on desktop hover', async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'desktop', 'desktop pointer interaction')
+        await openLanding(page)
+
+        for (const exampleLink of await page.getByTestId('room-example-link').all()) {
+            await page.mouse.move(0, 0)
+            const restingTransform = await exampleLink.evaluate((element) => getComputedStyle(element).transform)
+            await exampleLink.hover()
+            await expect
+                .poll(() => exampleLink.evaluate((element) => getComputedStyle(element).transform))
+                .not.toBe(restingTransform)
+        }
     })
 
     test('desktop proof milestones keep each icon attached to its label', async ({ page }) => {
@@ -652,6 +716,12 @@ test.describe('Pass-the-link default', () => {
             await expect(page.getByTestId('proof-link-identity')).toContainText(messages.proof.linkIdentity.title)
             await expect(page.getByTestId('proof-everyone-adds')).toContainText(messages.proof.everyoneAdds.title)
             await expect(page.getByTestId('proof-suggested-plan')).toContainText(messages.proof.suggestedPlan.title)
+            await expect(
+                page.getByRole('link', {
+                    name: `${messages.footer.createSplit}: ${messages.proof.linkIdentity.title}`,
+                    exact: true,
+                })
+            ).toHaveAttribute('href', '/new')
 
             const returnFold = page.locator('details').filter({
                 has: page.getByText(messages.readMore.faq.lost.q, { exact: true }),
