@@ -28,8 +28,15 @@ export interface PushEnvironment {
     /** Running as an installed app (any platform). */
     isStandalone: boolean
     permission: NotificationPermission
-    /** A live `PushSubscription` for this origin. */
-    hasSubscription: boolean
+    /**
+     * The SERVER's answer for THIS room: a subscription row exists for
+     * (this device's endpoint, this room).
+     *
+     * Deliberately not the browser's `PushSubscription`, which belongs to the
+     * origin and is shared by every room this device has ever turned on. Reading
+     * that instead made room B render "on" because room A had been turned on.
+     */
+    hasRoomSubscription: boolean
 }
 
 export function derivePushStatus(env: PushEnvironment): SettledPushStatus {
@@ -38,9 +45,10 @@ export function derivePushStatus(env: PushEnvironment): SettledPushStatus {
     // permission 'default', which reads as "just ask" and is a trap.
     if (env.isIOS && !env.isStandalone) return 'ios-needs-pwa'
     if (env.permission === 'denied') return 'denied'
-    // 'granted' without a subscription is normal — the browser drops them on
-    // storage pressure, and re-subscribing needs no prompt.
-    if (env.hasSubscription) return 'subscribed'
+    // 'granted' without a row is normal — the browser drops subscriptions on
+    // storage pressure, and this room may simply never have been turned on.
+    // Re-subscribing needs no prompt either way.
+    if (env.hasRoomSubscription) return 'subscribed'
     return 'default'
 }
 

@@ -281,9 +281,19 @@ export const api = {
                 body: input,
             }),
 
+        /** `endpointStillUsed` is false only when no other room wants this
+         *  browser channel — the one case where it is safe to drop it. */
         unsubscribe: (slug: string, input: PushUnsubscribeInput) =>
-            request<{ subscribed: false }>(`/api/rooms/${encode(slug)}/push-subscriptions`, {
-                method: 'DELETE',
+            request<{ subscribed: false; endpointStillUsed: boolean }>(
+                `/api/rooms/${encode(slug)}/push-subscriptions`,
+                { method: 'DELETE', body: input }
+            ),
+
+        /** Whether this endpoint is registered for THIS room. POST because the
+         *  endpoint carries a device token that must never reach a URL. */
+        status: (slug: string, input: { endpoint: string; memberId: string; memberToken: string }) =>
+            request<{ subscribed: boolean }>(`/api/rooms/${encode(slug)}/push-subscriptions/status`, {
+                method: 'POST',
                 body: input,
             }),
     },

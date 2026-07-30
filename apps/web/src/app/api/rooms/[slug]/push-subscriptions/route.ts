@@ -89,6 +89,15 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         const room = await loadRoom(slug)
         assertProvenMember(room, body.memberId, body.memberToken)
 
-        await prisma.pushSubscription.deleteMany({ where: { roomId: room.id, endpoint: body.endpoint } })
-        return { subscribed: false }
+        // One endpoint can hold a channel in several rooms, so the caller has to
+        // be told whether the browser subscription is still needed. Counting in
+        // the same transaction as the delete is what makes the answer safe to
+        // act on: a concurrent subscribe in another room either lands before the
+        // count (still used) or after (and re-creates its own channel).
+        const endpointStillUsed = await prisma.$transaction(async (tx) => {
+            await tx.pushSubscription.deleteMany({ where: { roomId: room.id, endpoint: body.endpoint } })
+            return (await tx.pushSubscription.count({ where: { endpoint: body.endpoint } })) > 0
+        })
+
+        return { subscribed: false, endpointStillUsed }
     })
