@@ -1,5 +1,5 @@
 /**
- * One way to put text on the clipboard, and one answer about whether it landed.
+ * One way to reach the clipboard, and one answer about whether it landed.
  *
  * `navigator.clipboard` is not always there to use. It is undefined on every
  * non-secure origin — a phone opening the room over `http://` on the local
@@ -32,6 +32,22 @@ export async function copyText(text: string): Promise<boolean> {
         // Missing, blocked, or refused. The textarea below still works there.
     }
     return copyWithTextarea(text)
+}
+
+/**
+ * Copies an image. Same contract as `copyText` — a boolean, never a throw — but
+ * there is no second path: `execCommand` only ever moved text, so a caller that
+ * gets `false` has to degrade to something other than the clipboard.
+ */
+export async function copyImage(blob: Blob): Promise<boolean> {
+    try {
+        if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') return false
+        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
+        return true
+    } catch {
+        // Firefox and every non-secure context land here.
+        return false
+    }
 }
 
 /**

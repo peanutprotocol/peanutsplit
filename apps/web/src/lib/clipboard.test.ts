@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { copyText } from './clipboard'
+import { copyImage, copyText } from './clipboard'
 
 /**
  * A textarea with only the surface `copyWithTextarea` touches. The suite runs in
@@ -92,5 +92,48 @@ describe('copyText', () => {
         vi.stubGlobal('document', undefined)
 
         await expect(copyText('room link')).resolves.toBe(false)
+    })
+})
+
+describe('copyImage', () => {
+    const png = new Blob(['recap'], { type: 'image/png' })
+
+    it('hands the blob over under its own MIME type', async () => {
+        const written: Record<string, Blob>[] = []
+        vi.stubGlobal(
+            'ClipboardItem',
+            class {
+                constructor(readonly items: Record<string, Blob>) {}
+            }
+        )
+        vi.stubGlobal('navigator', {
+            clipboard: {
+                write: async ([item]: { items: Record<string, Blob> }[]) => void written.push(item.items),
+            },
+        })
+
+        await expect(copyImage(png)).resolves.toBe(true)
+        expect(Object.keys(written[0])).toEqual(['image/png'])
+    })
+
+    it('reports failure where images cannot reach the clipboard at all', async () => {
+        // Firefox has no `ClipboardItem`; a non-secure origin has no clipboard.
+        vi.stubGlobal('ClipboardItem', undefined)
+        vi.stubGlobal('navigator', { clipboard: { write: async () => {} } })
+
+        await expect(copyImage(png)).resolves.toBe(false)
+    })
+
+    it('reports failure when the write is refused', async () => {
+        vi.stubGlobal('ClipboardItem', class {})
+        vi.stubGlobal('navigator', {
+            clipboard: {
+                write: async () => {
+                    throw new Error('NotAllowedError')
+                },
+            },
+        })
+
+        await expect(copyImage(png)).resolves.toBe(false)
     })
 })
