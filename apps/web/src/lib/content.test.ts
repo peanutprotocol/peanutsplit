@@ -4,6 +4,8 @@ import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
     COLLECTIONS,
+    ROOT_COLLECTIONS,
+    basePathFor,
     getDoc,
     hrefFor,
     listAllDocs,
@@ -11,6 +13,7 @@ import {
     listDocs,
     listSlugs,
     localesForSlug,
+    type Collection,
 } from './content'
 import { staticPageSlugs } from '@/data/static-pages'
 import { LOCALES } from '@/i18n/locales'
@@ -45,22 +48,57 @@ describe('content tree', () => {
         const root = path.join(process.cwd(), 'src/content')
         for (const collection of COLLECTIONS) {
             const dir = path.join(root, collection)
-            for (const slug of fs.readdirSync(dir)) {
-                for (const file of fs.readdirSync(path.join(dir, slug))) {
+            // Directories only. A collection may hold a loose file (a README holding the directory
+            // open before its first page lands), and the loader ignores those — so must this.
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                if (!entry.isDirectory()) continue
+                for (const file of fs.readdirSync(path.join(dir, entry.name))) {
                     const locale = file.replace(/\.md$/, '')
-                    expect(LOCALES, `${collection}/${slug}/${file} is not a known locale`).toContain(locale)
+                    expect(LOCALES, `${collection}/${entry.name}/${file} is not a known locale`).toContain(locale)
                     expect(
-                        getDoc(collection, slug, locale as (typeof LOCALES)[number]),
-                        `${collection}/${slug}/${file} exists but did not parse`
+                        getDoc(collection, entry.name, locale as (typeof LOCALES)[number]),
+                        `${collection}/${entry.name}/${file} exists but did not parse`
                     ).not.toBeNull()
                 }
             }
         }
     })
 
+    /**
+     * A routed collection with no pages is a dead route. `capture` is the one exemption: the engine
+     * landed ahead of its content on purpose, because the pages are gated on a copy review. Delete
+     * the exemption with the first capture page — the test is worth more than the exemption.
+     */
+    const EMPTY_UNTIL_ITS_CONTENT_LANDS = new Set<Collection>(['capture'])
+
     it('publishes at least one doc per collection', () => {
         for (const collection of COLLECTIONS) {
+            if (EMPTY_UNTIL_ITS_CONTENT_LANDS.has(collection)) continue
             expect(listDocs(collection).length, `${collection} is empty`).toBeGreaterThan(0)
+        }
+    })
+
+    /**
+     * Both root-level collections are served by one `[page]` segment, so a slug in both of them is
+     * two pages fighting over one URL. `generateStaticParams` would emit it twice and the route
+     * would serve whichever collection is listed first — silently, and not necessarily the one the
+     * author meant.
+     */
+    it('never gives two root-level collections the same slug', () => {
+        for (const locale of LOCALES) {
+            const slugs = ROOT_COLLECTIONS.flatMap((collection) => listSlugs(collection, locale))
+            expect(new Set(slugs).size, `duplicate root slug in ${locale}`).toBe(slugs.length)
+        }
+    })
+
+    /**
+     * A capture page exists because a query exists. Without `intent` there is nothing to check the
+     * page against later, and nothing stopping the next one from being written for a query nobody
+     * types.
+     */
+    it('gives every capture page the query it answers', () => {
+        for (const doc of ALL.filter((doc) => doc.collection === 'capture')) {
+            expect(doc.frontmatter.intent, `capture/${doc.slug}/${doc.locale}.md has no intent`).toBeTruthy()
         }
     })
 
@@ -90,14 +128,21 @@ describe('content tree', () => {
         for (const segment of ['new', 'blog', 'r', 'api', 'healthcheck', 'readiness']) {
             expect(staticPageSlugs.has(segment), `${segment} is not reserved`).toBe(true)
         }
-        for (const slug of listSlugs('alternatives')) {
-            expect(staticPageSlugs.has(slug), `${slug} collides with a static route`).toBe(false)
+        for (const collection of ROOT_COLLECTIONS) {
+            for (const slug of listSlugs(collection)) {
+                expect(staticPageSlugs.has(slug), `${slug} collides with a static route`).toBe(false)
+            }
         }
     })
 
     it('derives hrefs that match the routes', () => {
         expect(hrefFor('blog', 'foo')).toBe('/blog/foo')
         expect(hrefFor('alternatives', 'foo-alternative')).toBe('/foo-alternative')
+        expect(hrefFor('capture', 'split-bill-no-signup')).toBe('/split-bill-no-signup')
+        expect(hrefFor('capture', 'split-bill-no-signup', 'es')).toBe('/es/split-bill-no-signup')
+        // The canonical and the hreflang base are the same derivation as the href, minus the prefix.
+        expect(basePathFor('blog', 'foo')).toBe('/blog/foo')
+        expect(basePathFor('capture', 'foo')).toBe('/foo')
     })
 
     it('returns null for an unknown slug', () => {
@@ -158,6 +203,11 @@ describe('loader, against a scratch tree', () => {
         write('alternatives/new/en.md', doc('New', '2026-06-04'))
         write('alternatives/keep-alternative/en.md', doc('Keep', '2026-06-05'))
 
+        // Capture pages share the root slot with alternatives, and are shadowed by the same routes.
+        write('capture/split-bill-no-signup/en.md', doc('No signup', '2026-06-06', 'intent: split bill no signup\n'))
+        write('capture/split-bill-no-signup/es.md', doc('Sin registro', '2026-06-06', 'intent: dividir cuenta\n'))
+        write('capture/blog/en.md', doc('Blog', '2026-06-07'))
+
         // Translations: one article fully localised, one Spanish-only draft, one English-only.
         write('blog/newer/es.md', doc('Nuevo', '2026-06-01'))
         write('blog/newer/pt-BR.md', doc('Novo', '2026-06-01'))
@@ -190,6 +240,27 @@ describe('loader, against a scratch tree', () => {
     it('hides a slug that a static route would shadow', () => {
         expect(listSlugs('alternatives')).toEqual(['keep-alternative'])
         expect(getDoc('alternatives', 'new')).toBeNull()
+        // The shadow rule follows the root slot, not the collection name — a capture page called
+        // `blog` is as unreachable as an alternative called `new`.
+        expect(getDoc('capture', 'blog')).toBeNull()
+        expect(listSlugs('capture')).toEqual(['split-bill-no-signup'])
+    })
+
+    /**
+     * The whole point of generalising `[alternative]` to `[page]`: two collections, one root slot,
+     * and a capture page that gets the same hrefs, the same translations and the same sitemap
+     * treatment as a comparison page without another route.
+     */
+    it('serves capture pages from the root slot beside alternatives', () => {
+        expect(getDoc('capture', 'split-bill-no-signup')?.href).toBe('/split-bill-no-signup')
+        expect(getDoc('capture', 'split-bill-no-signup', 'es')?.href).toBe('/es/split-bill-no-signup')
+        expect(getDoc('capture', 'split-bill-no-signup')?.frontmatter.intent).toBe('split bill no signup')
+        expect(localesForSlug('capture', 'split-bill-no-signup')).toEqual(['en', 'es'])
+
+        const hrefs = listAllTranslations().map((doc) => doc.href)
+        expect(hrefs).toContain('/split-bill-no-signup')
+        expect(hrefs).toContain('/es/split-bill-no-signup')
+        expect(hrefs).toContain('/keep-alternative')
     })
 
     /**
@@ -272,7 +343,7 @@ describe('article bodies', () => {
 
     /** next-mdx-remote parses the body as MDX, so an unbalanced brace is a build failure. */
     it('has balanced custom-component tags', () => {
-        const paired = ['Hero', 'CTA', 'Steps', 'Step', 'FAQ', 'FAQItem', 'Callout', 'Quote', 'Checklist', 'ChecklistItem', 'RelatedPages', 'RelatedLink'] // prettier-ignore
+        const paired = ['Hero', 'CTA', 'Steps', 'Step', 'FAQ', 'FAQItem', 'Callout', 'Quote', 'Cast', 'Checklist', 'ChecklistItem', 'RelatedPages', 'RelatedLink'] // prettier-ignore
         for (const doc of ALL) {
             for (const tag of paired) {
                 const opens = (doc.body.match(new RegExp(`<${tag}[\\s>]`, 'g')) ?? []).length

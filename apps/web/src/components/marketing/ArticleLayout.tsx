@@ -6,7 +6,7 @@ import { SiteFooter } from './SiteFooter'
 import { LanguageLinks } from './LanguageLinks'
 import { articleSchema, breadcrumbSchema, faqSchema, formatDate, type Breadcrumb } from '@/lib/seo'
 import type { Locale } from '@/i18n/locales'
-import type { Doc } from '@/lib/content'
+import { basePathFor, type Doc } from '@/lib/content'
 
 /**
  * The frame every content page shares: structured data, a visible trail, the body, the footer.
@@ -51,11 +51,7 @@ export async function ArticleLayout({
                 )}
             </article>
 
-            <LanguageLinks
-                path={doc.collection === 'blog' ? `/blog/${doc.slug}` : `/${doc.slug}`}
-                current={doc.locale}
-                available={translations}
-            />
+            <LanguageLinks path={basePathFor(doc.collection, doc.slug)} current={doc.locale} available={translations} />
 
             <SiteFooter showLocaleSwitcher={false} />
         </main>
