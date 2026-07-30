@@ -186,7 +186,7 @@
             "cta": "Agregar a pantalla de inicio",
             "dismiss": "Ahora no",
             "row": {
-                "label": "Instalar Split",
+                "label": "Agregar a pantalla de inicio",
                 "installed": "Ya está en este dispositivo.",
                 "dismissed": "No se agregó. Abre Split otra vez para intentarlo.",
                 "unsupported": "Este navegador no lo ofrece."
