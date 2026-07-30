@@ -67,6 +67,32 @@ function beacon(path: string, body: Record<string, unknown>): void {
     }
 }
 
+/**
+ * The home-screen dot, raised.
+ *
+ * NOT `NotificationOptions.badge`, which is the monochrome status-bar mask and is deliberately
+ * absent below. This is the Badging API — a dot on the app icon, no count. A count would need a
+ * store this worker writes and the page reads, plus a definition of "unread" that Split has no
+ * concept of: there is no read state anywhere in the schema.
+ *
+ * A dot means "something happened while you were away", so somebody looking at the app is not
+ * away. Skipping the badge for a visible window is the only way it gets cleared for them at all —
+ * the page clears on mount, focus and visibilitychange, and none of those fire for a window that
+ * never went anywhere.
+ *
+ * A badge that cannot be set must never take the notification with it — same rule as `beacon`.
+ */
+async function raiseAppBadge(): Promise<void> {
+    try {
+        const clients = await self.clients.matchAll({ type: 'window' })
+        if (clients.some((client) => client.visibilityState === 'visible')) return
+        const badging = self.navigator as WorkerNavigator & { setAppBadge?: () => Promise<void> }
+        await badging.setAppBadge?.()
+    } catch {
+        // No Badging API, or permission withheld. The notification still shows.
+    }
+}
+
 self.addEventListener('push', (event) => {
     if (!event.data) return
     let payload: SplitPushPayload
@@ -94,7 +120,9 @@ self.addEventListener('push', (event) => {
     }
     // Every payload we send carries a title (notifyCopy.ts `titleOf()` returns the room name), so
     // the fallback is the "a push arrived without one" case. It says Split, like the launcher does.
-    event.waitUntil(self.registration.showNotification(payload.title ?? 'Split', options))
+    event.waitUntil(
+        Promise.all([self.registration.showNotification(payload.title ?? 'Split', options), raiseAppBadge()])
+    )
 })
 
 self.addEventListener('notificationclick', (event) => {
