@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { motion, type Variants } from 'motion/react'
 import { Doodle } from '@/components/ui/Doodle'
@@ -41,6 +42,7 @@ const popVariants: Variants = {
  */
 export function LandingProof() {
     const t = useTranslations('marketing.proof')
+    const tFooter = useTranslations('marketing.footer')
     const motionAllowed = useMotionAllowed()
     const examples = [
         { persona: LANDING_CAST.lisbon, name: t('examples.lisbon.name'), meta: t('examples.lisbon.meta') },
@@ -67,32 +69,39 @@ export function LandingProof() {
                 </motion.div>
 
                 <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
-                    <div className="landing-proof-link-card" aria-hidden="true">
-                        <div className="landing-proof-ticket">
-                            <Doodle name="link" size={34} weight={1.7} />
-                            <span>
-                                <small>{t('linkIdentity.linkLabel')}</small>
-                                <b>peanutsplit.com/r/lisbon-weekend-••••••</b>
-                            </span>
+                    <Link
+                        href="/new"
+                        aria-label={`${tFooter('createSplit')}: ${t('linkIdentity.title')}`}
+                        data-testid="proof-link-identity-link"
+                        className="landing-proof-object-link landing-proof-object-link-identity"
+                    >
+                        <div className="landing-proof-link-card" aria-hidden="true">
+                            <div className="landing-proof-ticket">
+                                <Doodle name="link" size={34} weight={1.7} />
+                                <span>
+                                    <small>{t('linkIdentity.linkLabel')}</small>
+                                    <b>peanutsplit.com/r/lisbon-weekend-••••••</b>
+                                </span>
+                            </div>
+                            <div className="landing-proof-identity">
+                                <small>{t('linkIdentity.identityLabel')}</small>
+                                <ul>
+                                    <li>
+                                        <LandingPersona persona={LANDING_CAST.you} size={32} />
+                                        {t('linkIdentity.you')}
+                                    </li>
+                                    <li>
+                                        <LandingPersona persona={LANDING_CAST.bea} size={32} />
+                                        {t('linkIdentity.friendOne')}
+                                    </li>
+                                    <li>
+                                        <LandingPersona persona={LANDING_CAST.jules} size={32} />
+                                        {t('linkIdentity.friendTwo')}
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
-                        <div className="landing-proof-identity">
-                            <small>{t('linkIdentity.identityLabel')}</small>
-                            <ul>
-                                <li>
-                                    <LandingPersona persona={LANDING_CAST.you} size={32} />
-                                    {t('linkIdentity.you')}
-                                </li>
-                                <li>
-                                    <LandingPersona persona={LANDING_CAST.bea} size={32} />
-                                    {t('linkIdentity.friendOne')}
-                                </li>
-                                <li>
-                                    <LandingPersona persona={LANDING_CAST.jules} size={32} />
-                                    {t('linkIdentity.friendTwo')}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                    </Link>
                 </motion.div>
             </motion.section>
 
@@ -112,29 +121,36 @@ export function LandingProof() {
                 </motion.div>
 
                 <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
-                    <ul className="landing-proof-expenses" aria-hidden="true">
-                        <li>
-                            <LandingPersona persona={LANDING_CAST.bea} size={42} />
-                            <span>
-                                <b>{t('everyoneAdds.expenseOne')}</b>
-                                <small>{t('everyoneAdds.expenseOneMeta')}</small>
-                            </span>
-                        </li>
-                        <li>
-                            <LandingPersona persona={LANDING_CAST.jules} size={42} />
-                            <span>
-                                <b>{t('everyoneAdds.expenseTwo')}</b>
-                                <small>{t('everyoneAdds.expenseTwoMeta')}</small>
-                            </span>
-                        </li>
-                        <li>
-                            <LandingPersona persona={LANDING_CAST.ana} size={42} />
-                            <span>
-                                <b>{t('everyoneAdds.expenseThree')}</b>
-                                <small>{t('everyoneAdds.expenseThreeMeta')}</small>
-                            </span>
-                        </li>
-                    </ul>
+                    <Link
+                        href="/new"
+                        aria-label={`${tFooter('createSplit')}: ${t('everyoneAdds.title')}`}
+                        data-testid="proof-everyone-adds-link"
+                        className="landing-proof-object-link landing-proof-object-link-expenses"
+                    >
+                        <ul className="landing-proof-expenses" aria-hidden="true">
+                            <li>
+                                <LandingPersona persona={LANDING_CAST.bea} size={42} />
+                                <span>
+                                    <b>{t('everyoneAdds.expenseOne')}</b>
+                                    <small>{t('everyoneAdds.expenseOneMeta')}</small>
+                                </span>
+                            </li>
+                            <li>
+                                <LandingPersona persona={LANDING_CAST.jules} size={42} />
+                                <span>
+                                    <b>{t('everyoneAdds.expenseTwo')}</b>
+                                    <small>{t('everyoneAdds.expenseTwoMeta')}</small>
+                                </span>
+                            </li>
+                            <li>
+                                <LandingPersona persona={LANDING_CAST.ana} size={42} />
+                                <span>
+                                    <b>{t('everyoneAdds.expenseThree')}</b>
+                                    <small>{t('everyoneAdds.expenseThreeMeta')}</small>
+                                </span>
+                            </li>
+                        </ul>
+                    </Link>
                 </motion.div>
             </motion.section>
 
@@ -154,21 +170,28 @@ export function LandingProof() {
                 </motion.div>
 
                 <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
-                    <div className="landing-proof-plan" aria-hidden="true">
-                        <span>{t('suggestedPlan.planLabel')}</span>
-                        <p>
-                            <LandingPersona persona={LANDING_CAST.you} size={32} />
-                            <b>{t('suggestedPlan.paymentOne')}</b>
-                            <Doodle name="iconarrowright" size={25} weight={2.2} />
-                            <LandingPersona persona={LANDING_CAST.bea} size={32} />
-                        </p>
-                        <p>
-                            <LandingPersona persona={LANDING_CAST.you} size={32} />
-                            <b>{t('suggestedPlan.paymentTwo')}</b>
-                            <Doodle name="iconarrowright" size={25} weight={2.2} />
-                            <LandingPersona persona={LANDING_CAST.jules} size={32} />
-                        </p>
-                    </div>
+                    <Link
+                        href="/new"
+                        aria-label={`${tFooter('createSplit')}: ${t('suggestedPlan.title')}`}
+                        data-testid="proof-suggested-plan-link"
+                        className="landing-proof-object-link landing-proof-object-link-plan"
+                    >
+                        <div className="landing-proof-plan" aria-hidden="true">
+                            <span>{t('suggestedPlan.planLabel')}</span>
+                            <p>
+                                <LandingPersona persona={LANDING_CAST.you} size={32} />
+                                <b>{t('suggestedPlan.paymentOne')}</b>
+                                <Doodle name="iconarrowright" size={25} weight={2.2} />
+                                <LandingPersona persona={LANDING_CAST.bea} size={32} />
+                            </p>
+                            <p>
+                                <LandingPersona persona={LANDING_CAST.you} size={32} />
+                                <b>{t('suggestedPlan.paymentTwo')}</b>
+                                <Doodle name="iconarrowright" size={25} weight={2.2} />
+                                <LandingPersona persona={LANDING_CAST.jules} size={32} />
+                            </p>
+                        </div>
+                    </Link>
                 </motion.div>
             </motion.section>
 
@@ -219,11 +242,18 @@ export function LandingProof() {
                 <motion.ul variants={sceneVariants} data-motion-surface>
                     {examples.map((example) => (
                         <motion.li key={example.name} variants={popVariants} data-motion-surface>
-                            <LandingPersona persona={example.persona} size={46} />
-                            <span>
-                                <b>{example.name}</b>
-                                <small>{example.meta}</small>
-                            </span>
+                            <Link
+                                href="/new"
+                                aria-label={`${tFooter('createSplit')}: ${example.name}: ${example.meta}`}
+                                data-testid="room-example-link"
+                                className="landing-room-example-link"
+                            >
+                                <LandingPersona persona={example.persona} size={46} />
+                                <span>
+                                    <b>{example.name}</b>
+                                    <small>{example.meta}</small>
+                                </span>
+                            </Link>
                         </motion.li>
                     ))}
                 </motion.ul>
