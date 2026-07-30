@@ -1,6 +1,14 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
 import { NetworkOnly, Serwist } from 'serwist'
+// Relative, not `@/lib/...`: the alias is a tsconfig path and this file is excluded from tsconfig,
+// so a relative specifier is the one that resolves however the serwist child compiler is set up.
+import {
+    SHARE_TARGET_ACTION,
+    SHARE_TARGET_FIELD,
+    SHARE_TARGET_LANDING,
+    storeSharedReceipt,
+} from '../lib/shared-receipt'
 
 // Declares `injectionPoint` to TypeScript — replaced at build time by the precache manifest.
 declare global {
@@ -31,6 +39,36 @@ const serwist = new Serwist({
         // immutable URLs are safe to serve from cache.
         ...defaultCache,
     ],
+})
+
+/**
+ * The OS share sheet, caught before it reaches the network.
+ *
+ * Registered BEFORE serwist.addEventListeners() on purpose: the first listener to call
+ * respondWith owns the request. Serwist's router only handles GET, so an un-owned POST would fall
+ * through to the network — and the network is the one place a receipt photo has no reason to go.
+ *
+ * Everything below survives a share we cannot read: a failure lands on the same screen an empty
+ * share does, because a 500 here is a share sheet that silently does nothing.
+ */
+self.addEventListener('fetch', (event) => {
+    const request = event.request
+    if (request.method !== 'POST') return
+    if (new URL(request.url).pathname !== SHARE_TARGET_ACTION) return
+
+    event.respondWith(
+        (async () => {
+            try {
+                const file = (await request.formData()).get(SHARE_TARGET_FIELD)
+                if (file instanceof File) await storeSharedReceipt(caches, file)
+            } catch {
+                // Unreadable share. The landing page says so.
+            }
+            // 303 so the browser follows it as a GET; a POST that redirected as a POST would
+            // arrive at a page route as a 405.
+            return Response.redirect(new URL(SHARE_TARGET_LANDING, self.location.origin).toString(), 303)
+        })()
+    )
 })
 
 serwist.addEventListeners()
@@ -67,6 +105,32 @@ function beacon(path: string, body: Record<string, unknown>): void {
     }
 }
 
+/**
+ * The home-screen dot, raised.
+ *
+ * NOT `NotificationOptions.badge`, which is the monochrome status-bar mask and is deliberately
+ * absent below. This is the Badging API — a dot on the app icon, no count. A count would need a
+ * store this worker writes and the page reads, plus a definition of "unread" that Split has no
+ * concept of: there is no read state anywhere in the schema.
+ *
+ * A dot means "something happened while you were away", so somebody looking at the app is not
+ * away. Skipping the badge for a visible window is the only way it gets cleared for them at all —
+ * the page clears on mount, focus and visibilitychange, and none of those fire for a window that
+ * never went anywhere.
+ *
+ * A badge that cannot be set must never take the notification with it — same rule as `beacon`.
+ */
+async function raiseAppBadge(): Promise<void> {
+    try {
+        const clients = await self.clients.matchAll({ type: 'window' })
+        if (clients.some((client) => client.visibilityState === 'visible')) return
+        const badging = self.navigator as WorkerNavigator & { setAppBadge?: () => Promise<void> }
+        await badging.setAppBadge?.()
+    } catch {
+        // No Badging API, or permission withheld. The notification still shows.
+    }
+}
+
 self.addEventListener('push', (event) => {
     if (!event.data) return
     let payload: SplitPushPayload
@@ -92,7 +156,11 @@ self.addEventListener('push', (event) => {
         requireInteraction: false,
         ...(payload.tag ? { tag: payload.tag } : {}),
     }
-    event.waitUntil(self.registration.showNotification(payload.title ?? 'Peanut Split', options))
+    // Every payload we send carries a title (notifyCopy.ts `titleOf()` returns the room name), so
+    // the fallback is the "a push arrived without one" case. It says Split, like the launcher does.
+    event.waitUntil(
+        Promise.all([self.registration.showNotification(payload.title ?? 'Split', options), raiseAppBadge()])
+    )
 })
 
 self.addEventListener('notificationclick', (event) => {

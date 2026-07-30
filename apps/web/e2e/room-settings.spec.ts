@@ -67,6 +67,14 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     // room is inside it any more.
     await page.getByTestId('device-row').click()
     await expect(page.getByTestId('device-sheet')).toBeVisible()
+    // Installing is per device too, and it is the first thing in the sheet. Matched by prefix
+    // because which of the five states renders depends on the browser this project is running.
+    await expect(
+        page
+            .locator('[data-testid="device-sheet"]')
+            .locator('[data-testid^="install-row-"], [data-testid="setting-sound"]')
+            .first()
+    ).toHaveAttribute('data-testid', /^install-row-/)
     await expect(page.getByTestId('setting-sound')).toBeVisible()
     await expect(page.getByTestId('setting-haptics')).toBeVisible()
     await expect(page.getByTestId('setting-animations')).toBeVisible()

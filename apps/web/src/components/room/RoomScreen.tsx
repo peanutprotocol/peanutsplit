@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
@@ -44,6 +44,12 @@ export function RoomScreen({ slug }: { slug: string }) {
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
     const [params, setParams] = useRoomParams()
+    const consumeSharedReceipt = useCallback(
+        // `replace`, not the hook's default `push`: the drawer clears this param the instant it
+        // lands, and with a history entry the back button would return to a share already spent.
+        () => void setParams({ shared: null }, { history: 'replace' }),
+        [setParams]
+    )
     const motionAllowed = useMotionAllowed()
     const celebrated = useRef(false)
     /**
@@ -284,6 +290,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                         token={identity?.token}
                         expense={editing}
                         defaultPaidById={defaultPaidById}
+                        sharedReceipt={params.shared}
+                        onSharedReceiptConsumed={consumeSharedReceipt}
                     />
                     <SettleDrawer
                         open={params.settle && !needsJoin && !staleState}
@@ -312,12 +320,7 @@ export function RoomScreen({ slug }: { slug: string }) {
 
             {/* Install prompt lives on the room, not the landing page: you only pin
                 something you are already using. */}
-            {state && !needsJoin && (
-                <InstallPrompt
-                    onShown={() => track('pwa_prompt_shown', roomProps(slug))}
-                    onInstalled={() => track('pwa_installed', roomProps(slug))}
-                />
-            )}
+            {state && !needsJoin && <InstallPrompt onShown={() => track('pwa_prompt_shown', roomProps(slug))} />}
         </main>
     )
 }
