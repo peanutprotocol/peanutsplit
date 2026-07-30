@@ -63,13 +63,16 @@ export function YourRooms() {
         setRecent(readRecentRooms())
     }, [])
 
-    // Hiding a single sixth room behind a passive "and 1 more" footer made the
-    // list look truncated by accident. Six is still a compact history, so show
-    // it outright; larger histories get an explicit reveal control.
-    const collapsedLimit = recent.length === COLLAPSED_LIMIT + 1 ? recent.length : COLLAPSED_LIMIT
-    const visible = expanded ? recent : recent.slice(0, collapsedLimit)
+    // One limit, whatever the count. A special case that showed a sixth room
+    // outright also took the reveal control away at exactly six — so forgetting a
+    // room from an expanded list of seven left the list expanded with no way back:
+    // "Show less" vanished under the finger that had just deleted something. The
+    // control the list already has is an explicit button, not the passive "and 1
+    // more" footer that made a truncated list look accidental, so it can carry the
+    // sixth room too.
+    const visible = expanded ? recent : recent.slice(0, COLLAPSED_LIMIT)
     const overflow = recent.length - visible.length
-    const canCollapse = recent.length > collapsedLimit
+    const canCollapse = recent.length > COLLAPSED_LIMIT
 
     const forget = (room: RecentRoom) => {
         setPendingForget(null)
@@ -182,7 +185,7 @@ export function YourRooms() {
                                         style={room.theme ? { backgroundColor: themeFor(room.theme).field } : undefined}
                                         className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
                                     >
-                                        <RoomEmblem value={room.emoji} size={30} />
+                                        <RoomEmblem value={room.emoji} name={room.name} size={30} />
                                     </span>
                                     <span className="min-w-0 flex-1">
                                         <span className="block truncate text-h7">{room.name}</span>

@@ -25,8 +25,7 @@ import { copyText } from '@/lib/clipboard'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { useSetEmblem, useSetRoomName, useSetTheme } from '@/lib/queries'
-import { FALLBACK_DOODLE } from '@/lib/room-doodle'
-import { emblemDoodle } from '@/lib/room-emblem'
+import { emblemChoice, roomEmblemDoodle } from '@/lib/room-emblem'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
@@ -132,19 +131,36 @@ export function SettingsSheet({
     }
 
     /**
-     * The drawing the tile is showing, which is what the picker has to highlight.
-     * A room made before the drawings still stores an emoji character, and
-     * `emblemDoodle` is the one place that reading happens.
+     * The name the drawing follows while nothing is pinned. The draft rather than
+     * the committed name, so the tile turns into a pair of skis while somebody is
+     * still writing "Ski trip" — the same live guess the create form makes, which
+     * is the whole reason these two controls are one row.
      */
-    const shownEmblem = emblemDoodle(room.emoji) ?? FALLBACK_DOODLE
+    const nameForDoodle = draft.trim() || room.name
 
-    /** Committed on the tap, like the theme: the picker closes, the tile is
-     *  already the new drawing, and a failure puts the old one back with a toast. */
+    /**
+     * The drawing the tile is showing, which is what the picker has to highlight.
+     * A room made before the drawings still stores an emoji character, and a room
+     * that never picked one follows its name; `roomEmblemDoodle` is the one place
+     * both of those readings happen.
+     */
+    const shownEmblem = roomEmblemDoodle(room.emoji, nameForDoodle)
+
+    /**
+     * Committed on the tap, like the theme: the picker closes, the tile is already
+     * the new drawing, and a failure puts the old one back with a toast.
+     *
+     * `emblemChoice` owns the two decisions — tapping what is already on screen
+     * writes nothing, and tapping the drawing the NAME gives releases the pin
+     * instead of freezing it. Blur has already committed any rename by the time a
+     * tile can be tapped, so the draft and the stored name agree here.
+     */
     const chooseEmblem = (next: DoodleName) => {
         setPickerOpen(false)
-        if (next === room.emoji) return
+        const choice = emblemChoice(next, room.emoji, nameForDoodle)
+        if (!choice) return
         feedback('tick')
-        setEmblem.mutate(next, {
+        setEmblem.mutate(choice.emblem, {
             onError: (error) => {
                 feedback('error')
                 toast.error(errorMessage(error, t('drawingFailed')), { duration: TOAST_MS.actionable })
@@ -211,7 +227,7 @@ export function SettingsSheet({
                                         data-testid="room-drawing"
                                         className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 [&::-webkit-details-marker]:hidden"
                                     >
-                                        <RoomEmblem value={room.emoji} size={24} />
+                                        <RoomEmblem value={room.emoji} name={nameForDoodle} size={24} />
                                     </summary>
                                     <div className="shadow-4 absolute left-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
                                         <DoodlePicker value={shownEmblem} onChange={chooseEmblem} />

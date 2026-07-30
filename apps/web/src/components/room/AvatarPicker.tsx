@@ -18,10 +18,11 @@ interface AvatarPickerProps {
  * The grid of characters.
  *
  * The vibes used to sit on all 28 tiles — 88 words of joke you have to read past
- * to find the drawing you want. They now live on ONE caption under the grid,
- * describing the current pick and following the selection as it moves. Its
- * height is reserved, because a caption that grows from one line to two shifts
- * the grid out from under the finger that is still choosing.
+ * to find the drawing you want. They now live on ONE caption, directly above the
+ * grid, describing the current pick and following the selection as it moves. Its
+ * height is reserved and its text is clamped, because a caption that grows from
+ * one line to two shifts the grid out from under the finger that is still
+ * choosing.
  *
  * The selected tile is marked, never enlarged, for the same reason.
  */
@@ -71,15 +72,27 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                 <Icon name="sparkles" size={24} aria-hidden="true" />
             </button>
 
+            {/* Above the grid and PINNED to the top of it. The grid is 28 tiles —
+                992px, against a 571px sheet — so a caption placed after it sat
+                ~600px below the last tile anyone could see: scrolling to read it
+                put every tile off screen, which is the whole thing it exists for.
+                Sticky rather than merely first, because the tiles at the bottom of
+                the grid have the same problem in reverse.
+
+                It still takes its own space in the flow, so the grid does not move
+                when the pick changes — and the text can never take a third line,
+                which is the other way this could shift the grid under a finger. */}
+            <p
+                aria-live="polite"
+                className="sticky top-0 z-10 line-clamp-2 min-h-10 bg-background pb-1 text-sm text-grey-1"
+                data-testid="avatar-caption"
+            >
+                {t('caption', { label: current.label, vibe: current.vibe })}
+            </p>
+
             <div role="radiogroup" aria-label={t('titleFor', { name })} data-testid="avatar-picker">
                 <div className="grid grid-cols-3 gap-2">{AVATAR_KEYS.map(option)}</div>
             </div>
-
-            {/* Two lines of room, always — the caption is the only place the vibes
-                survive and it must not be able to move the grid. */}
-            <p aria-live="polite" className="min-h-10 text-sm text-grey-1" data-testid="avatar-caption">
-                {t('caption', { label: current.label, vibe: current.vibe })}
-            </p>
         </div>
     )
 }

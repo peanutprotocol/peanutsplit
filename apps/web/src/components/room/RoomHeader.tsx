@@ -53,7 +53,7 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                     data-testid="open-room-settings"
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
                 >
-                    <RoomEmblem value={room.emoji} size={26} />
+                    <RoomEmblem value={room.emoji} name={room.name} size={26} />
                 </button>
 
                 <div className="min-w-0 flex-1">
