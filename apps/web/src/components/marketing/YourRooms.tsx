@@ -50,7 +50,15 @@ export function YourRooms() {
     const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
     const [recent, setRecent] = useState<RecentRoom[]>([])
-    const [expanded, setExpanded] = useState(false)
+    /**
+     * What this person asked the list to do, `null` until they ask anything.
+     *
+     * One value rather than an `expanded` flag plus a "have they touched it" flag,
+     * because the two can never be allowed to disagree: an untouched list is the
+     * only thing the compact rule below is allowed to key on.
+     */
+    const [reveal, setReveal] = useState<'all' | 'fewer' | null>(null)
+    const expanded = reveal === 'all'
     const [pastedLink, setPastedLink] = useState('')
     const [recovering, setRecovering] = useState(false)
     const [recoveryError, setRecoveryError] = useState<string | null>(null)
@@ -63,16 +71,24 @@ export function YourRooms() {
         setRecent(readRecentRooms())
     }, [])
 
-    // One limit, whatever the count. A special case that showed a sixth room
-    // outright also took the reveal control away at exactly six — so forgetting a
-    // room from an expanded list of seven left the list expanded with no way back:
-    // "Show less" vanished under the finger that had just deleted something. The
-    // control the list already has is an explicit button, not the passive "and 1
-    // more" footer that made a truncated list look accidental, so it can carry the
-    // sixth room too.
-    const visible = expanded ? recent : recent.slice(0, COLLAPSED_LIMIT)
+    // Hiding a single sixth room behind a passive "and 1 more" footer made the
+    // list look truncated by accident. Six is still a compact history, so show it
+    // outright; larger histories get an explicit reveal control.
+    //
+    // "Untouched" is the load-bearing half. Once somebody has WORKED the control,
+    // the control's own promise governs instead — a button that says "Show fewer
+    // rooms" and then shows all six of them is a worse lie than a sixth room
+    // behind a reveal.
+    const compact = recent.length === COLLAPSED_LIMIT + 1 && reveal === null
+    const collapsedLimit = compact ? recent.length : COLLAPSED_LIMIT
+    const visible = expanded ? recent : recent.slice(0, collapsedLimit)
     const overflow = recent.length - visible.length
-    const canCollapse = recent.length > COLLAPSED_LIMIT
+    // `expanded ||` is what was missing. Derived from the limit alone, the control
+    // vanished the moment forgetting a room brought an EXPANDED list down to a
+    // count the limit already covered: "Show fewer rooms" disappeared under the
+    // finger that had just deleted something, and the list stayed expanded with no
+    // way back. Whatever the count, an expanded list can always be collapsed.
+    const canCollapse = expanded || recent.length > collapsedLimit
 
     const forget = (room: RecentRoom) => {
         setPendingForget(null)
@@ -213,7 +229,7 @@ export function YourRooms() {
                         <button
                             type="button"
                             onClick={() => {
-                                setExpanded((current) => !current)
+                                setReveal(expanded ? 'fewer' : 'all')
                                 feedback('blip')
                             }}
                             aria-expanded={expanded}
