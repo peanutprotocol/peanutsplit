@@ -1425,6 +1425,7 @@
         font-size: clamp(2.5rem, 12vw, 4.25rem);
     }
 
+    .landing-proof-object-link,
     .landing-proof-link-card,
     .landing-proof-expenses,
     .landing-proof-plan {
