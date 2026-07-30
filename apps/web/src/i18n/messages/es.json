@@ -328,7 +328,8 @@
     },
     "dates": {
         "today": "Hoy",
-        "yesterday": "Ayer"
+        "yesterday": "Ayer",
+        "justNow": "ahora mismo"
     },
     "room": {
         "actions": {
@@ -472,8 +473,8 @@
             "amount": "Monto",
             "currency": "Moneda del gasto",
             "foreignHint": "convertido a un tipo de cambio indicativo",
-            "description": "¿De qué fue?",
-            "descriptionPlaceholder": "Cena, taxi, pase de esquí…",
+            "description": "¿De qué fue? (opcional)",
+            "descriptionPlaceholder": "Cena, taxi, pase de esquí… (opcional)",
             "fieldsSwapped": "Listo: intercambiamos el importe y la descripción.",
             "amountNormalised": "Lo leímos como {amount}. Revísalo antes de guardar.",
             "paidBy": "Pagado por",
@@ -519,6 +520,7 @@
             "confirmDeleteYes": "Eliminar",
             "confirmDeleteNo": "Dejarlo",
             "deletedToast": "«{description}» eliminado",
+            "deletedToastUnnamed": "Gasto eliminado",
             "undo": "Deshacer",
             "restored": "Restaurado",
             "restoreFailed": "No se pudo deshacer — recarga e intenta de nuevo",
@@ -526,7 +528,6 @@
             "saveFailed": "no se pudo guardar el gasto — intenta de nuevo",
             "deleteFailed": "no se pudo eliminar el gasto",
             "validation": {
-                "DESCRIPTION_REQUIRED": "Ponle un nombre para que todos recuerden qué fue.",
                 "AMOUNT_REQUIRED": "Escribe un monto mayor que cero.",
                 "AMOUNT_INVALID": "Revisa los separadores y decimales del monto.",
                 "PAYER_REQUIRED": "Elige quién pagó.",

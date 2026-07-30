@@ -185,7 +185,6 @@ export function repairMisplacedExpenseFields(
 }
 
 export type ExpenseFormError =
-    | 'DESCRIPTION_REQUIRED'
     | 'AMOUNT_REQUIRED'
     | 'AMOUNT_INVALID'
     | 'PAYER_REQUIRED'
@@ -206,7 +205,8 @@ export function validateExpenseForm(
     const total = parseAmountToMinor(amountText, decimals, locale)
     if (total === null) return 'AMOUNT_INVALID'
     if (BigInt(total) <= 0n) return 'AMOUNT_REQUIRED'
-    if (values.description.trim().length === 0) return 'DESCRIPTION_REQUIRED'
+    // No check on the description: a name is optional, and a row saved without
+    // one is labelled by its day instead — see `expenseLabel` in `lib/dates.ts`.
     if (!values.paidById && !values.newPaidByName) return 'PAYER_REQUIRED'
     if (values.splitMode === 'EQUAL') {
         if (values.participantsTouched && values.participantIds.length === 0) return 'NO_PARTICIPANTS'
