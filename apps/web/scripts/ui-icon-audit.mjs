@@ -9,7 +9,6 @@ const sourceRoots = [resolve(root, 'src')]
 const codeExtensions = new Set(['.ts', '.tsx'])
 const rawSvgExceptions = new Map([
     ['src/components/ui/Doodle.tsx', 'the single generated doodle renderer'],
-    ['src/lib/share-package.ts', 'builds a share image file, not an interface icon'],
     ['src/server/og/emblem.ts', 'wraps a generated doodle path as a link-preview image'],
 ])
 const forbiddenImports = [
