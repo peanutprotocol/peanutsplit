@@ -19,11 +19,17 @@ import type { RecapShareTier } from '@/lib/recap'
  * activation, and an `await fetch` inside the gesture is the one thing that reliably loses it on
  * iOS. Every surface that uses this has the card on screen for seconds before anyone taps.
  *
- * `no-store` for two reasons that stack. The route sets `max-age=300`, and — less obviously —
- * `sw.ts` spreads serwist's `defaultCache`, whose last same-origin rule is a `NetworkFirst`
- * bucket matching every non-`/api/` path, card URLs included, for 24 hours. Without this a crew
- * card fetched at three members could be handed to the share sheet a day after the room reached
- * five. The `<img>` shelf tiles keep that cache on purpose: a shelf is a snapshot.
+ * `no-store` skips the browser's HTTP cache, which the route's own `max-age=300` would otherwise
+ * let answer a share tap with a five-minute-old roster.
+ *
+ * It does NOT skip the service worker, and it is worth writing down rather than assuming:
+ * `cache` is an HTTP-cache mode, while `sw.ts` spreads serwist's `defaultCache`, whose last
+ * same-origin rule is a `NetworkFirst` bucket that matches every non-`/api/` path — card URLs
+ * included — and its handler runs whatever `cache` says. Measured: with the page offline, a
+ * `no-store` fetch of a card still resolved 200 out of Cache Storage. `NetworkFirst` means a
+ * reachable network always wins, so the only time a share carries a stale card is offline — where
+ * the alternative is a share with no card at all, and the cached one is the better answer. The
+ * `<img>` shelf tiles keep that cache for the same reason: a shelf is a snapshot.
  *
  * A missing route answers 404 and this returns null. That is the designed degradation — the
  * calling surface shares text, or hides its button, and never shows a broken one.
