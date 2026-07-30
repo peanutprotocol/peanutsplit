@@ -689,7 +689,8 @@
             "open": "Abrir tu personaje",
             "option": "Usar el personaje {name}",
             "failed": "no se pudo cambiar ese personaje — inténtalo de nuevo",
-            "random": "Sorpréndeme",
+            "shuffle": "Mezclar",
+            "shuffleLabel": "Mezclar los personajes disponibles",
             "caption": "{label} — {vibe}",
             "firstOpen": "Cualquiera puede cambiar el personaje de cualquiera.",
             "close": "Cerrar los personajes"
