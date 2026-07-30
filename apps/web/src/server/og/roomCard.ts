@@ -190,7 +190,7 @@ export function avatarLetter(name: string): string {
 }
 
 /** FNV-1a — stable across processes, unlike anything seeded at boot. */
-function hash(value: string): number {
+export function hash(value: string): number {
     let h = 0x811c9dc5
     for (let i = 0; i < value.length; i++) {
         h ^= value.charCodeAt(i)
@@ -252,12 +252,18 @@ export function safeAmount(totalMinor: bigint, code: string): string {
  * put a blank rectangle in the middle of the product's storefront. The filter
  * costs nothing and removes the class.
  */
-const bodySafe = (value: string): string =>
+export const fontSafe = (value: string, charset: ReadonlySet<string>): string =>
     [...value]
-        .filter((ch) => BODY_CHARS.has(ch))
+        .filter((ch) => charset.has(ch))
         .join('')
         .replace(/\s+/g, ' ')
         .trim()
+
+export const bodySafe = (value: string): string => fontSafe(value, BODY_CHARS)
+
+/** The same, for a Knerd headline. The display face has the narrower cmap of the
+ *  two, so a headline is the string most likely to lose a character. */
+export const displaySafe = (value: string): string => fontSafe(value, DISPLAY_CHARS)
 
 export function statLine(
     expenseCount: number,

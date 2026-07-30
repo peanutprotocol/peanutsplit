@@ -953,5 +953,33 @@
         "peopleMany": "{count} people",
         "emptyRoster": "Nobody has joined yet",
         "tagline": "no signup · free forever"
+    },
+    "card": {
+        "crew": {
+            "title": "CREW",
+            "line": "One link, everybody in."
+        },
+        "passport": {
+            "title": "PASSPORT",
+            "line": "{count} currencies. One clean split."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "One trip, one signature move."
+        },
+        "stats": {
+            "title": "OUR TRIP"
+        },
+        "landing": {
+            "title": "ALL SQUARE"
+        },
+        "award": {
+            "tripStarter": "Trip Starter",
+            "firstMover": "First Mover",
+            "ledgerLegend": "Ledger Legend",
+            "currencyHopper": "Currency Hopper",
+            "theCloser": "The Closer",
+            "hypeCrew": "Hype Crew"
+        }
     }
 }
