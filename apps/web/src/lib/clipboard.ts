@@ -76,6 +76,10 @@ function copyWithTextarea(text: string): boolean {
     // Whatever the reader had selected is theirs. Put it back.
     const selection = document.getSelection()
     const previous = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null
+    // So is where they were. Focusing the textarea takes the caret off the copy
+    // button, and removing the element leaves it on <body> — the next Tab starts
+    // the page over, and a screen reader loses its place, for a copy that worked.
+    const focused = document.activeElement as { focus?: () => void } | null
 
     try {
         textarea.focus()
@@ -90,5 +94,6 @@ function copyWithTextarea(text: string): boolean {
             selection.removeAllRanges()
             selection.addRange(previous)
         }
+        focused?.focus?.()
     }
 }

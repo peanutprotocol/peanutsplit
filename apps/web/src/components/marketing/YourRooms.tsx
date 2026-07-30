@@ -58,6 +58,20 @@ export function YourRooms() {
     /** The room waiting on a confirm. This list is the only copy of the link this
      *  device holds, so dropping a room is not something a mis-tap should do. */
     const [pendingForget, setPendingForget] = useState<RecentRoom | null>(null)
+    /**
+     * The room the sheet is ABOUT, which outlives the confirm.
+     *
+     * The sheet animates itself out, and it can only do that while its content is
+     * still there to animate. Rendering the content off `pendingForget` unmounted
+     * the whole sheet in the same render that closed it, so this one sheet
+     * disappeared instantly while every other one slid away.
+     */
+    const [forgetSubject, setForgetSubject] = useState<RecentRoom | null>(null)
+
+    const askForget = (room: RecentRoom) => {
+        setForgetSubject(room)
+        setPendingForget(room)
+    }
 
     useEffect(() => {
         setRecent(readRecentRooms())
@@ -194,7 +208,7 @@ export function YourRooms() {
                                 </Link>
                                 <button
                                     type="button"
-                                    onClick={() => setPendingForget(room)}
+                                    onClick={() => askForget(room)}
                                     aria-label={t('forgetLabel', { room: room.name })}
                                     data-testid="forget-room"
                                     data-room={room.slug}
@@ -279,11 +293,11 @@ export function YourRooms() {
                 without the link, a room dropped here cannot be reached again from
                 this device. So it asks, and it says what the cost is. */}
             <Drawer open={pendingForget !== null} onOpenChange={(next) => !next && setPendingForget(null)}>
-                {pendingForget && (
+                {forgetSubject && (
                     <DrawerContent className={drawerContentClass} data-testid="forget-room-confirm">
                         <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
                             <DrawerTitle className="text-h5">
-                                {t('confirmForgetTitle', { room: pendingForget.name })}
+                                {t('confirmForgetTitle', { room: forgetSubject.name })}
                             </DrawerTitle>
                             <CloseButton
                                 onClick={() => setPendingForget(null)}
@@ -294,12 +308,14 @@ export function YourRooms() {
                         <DrawerBody>
                             <p className="text-sm leading-5 text-grey-1">{t('confirmForgetBody')}</p>
                             <DrawerActions>
+                                {/* Both buttons are `stroke`, as in the expense drawer's delete
+                                    confirm: the pink CTA is what the page uses to invite an
+                                    action, and removing a room is not one this page wants. */}
                                 <Button
-                                    variant="primary"
-                                    shadowSize="4"
+                                    variant="stroke"
                                     icon="trash"
                                     className="justify-center"
-                                    onClick={() => forget(pendingForget)}
+                                    onClick={() => forget(forgetSubject)}
                                     data-testid="confirm-forget-room"
                                 >
                                     {t('confirmForget')}
