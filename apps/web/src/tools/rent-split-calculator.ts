@@ -2,22 +2,29 @@ import { allocateByWeights, formatFigure, formatShareOfWhole } from './allocate'
 import type { Tool, ToolInput, ToolOutcome, ToolWorking } from './types'
 
 /**
- * Rent by room size, with income weighting as a second method rather than a correction to the
- * first.
+ * Rent by room size, with a slider per person as the second half of the method.
  *
- * §3.10 puts rent and utilities in the flat register: this reader wants an arbiter, the page gets
- * quoted at a flatmate, and personality reads as a thumb on the scale. So there is no wink, no
- * litotes and no joke anywhere in this file, and the copy gate checks the register the tool
- * declares.
+ * **The slider replaced a box asking for a monthly income.** Nobody types their real pay into a
+ * marketing page, and the ones who would have to look it up first — so the honest instrument is
+ * five labelled notches the whole flat can argue about out loud. It is not a proxy for a salary and
+ * does not pretend to be one; it is a relative weight, and the FAQ says exactly what the notch does.
  *
- * The weighting is deliberately one blend and not a slider of them: half the rent follows floor
- * area, half follows income. A slider would be a page inviting a household to negotiate the
- * negotiation, and §8.4 is that we present a method and decline to hold an opinion about it.
+ * **Leave every slider alone and it does nothing.** A flat where all five notches match is a flat
+ * that has told us nothing, so the rent follows floor area and only floor area. Move one and half
+ * the rent starts following the sliders. That rule is what lets the control stay visible without
+ * silently tilting a result nobody asked it to tilt — there is no hidden toggle behind it.
+ *
+ * Register is the house default (§3.10 relaxed on 30 Jul), but §8.1 still holds: money between
+ * flatmates gets the fairness boundary in full, carried lightly rather than solemnly.
  */
 
 const EQUAL = (count: number) => 1 / count
 
-function computeRentSplit({ values, toggles, rows }: ToolInput): ToolOutcome {
+/** Five notches, and the notch is the weight. Off the scale in either direction is not a notch. */
+const TOP_NOTCH = 5
+const notchOf = (value: number): number => Math.min(TOP_NOTCH, Math.max(1, Math.round(value) || 1))
+
+function computeRentSplit({ values, rows }: ToolInput): ToolOutcome {
     const rent = Math.trunc(values.rent ?? 0)
     const empty: ToolOutcome = { shares: [], totalMinor: 0, workings: [] }
 
@@ -25,31 +32,32 @@ function computeRentSplit({ values, toggles, rows }: ToolInput): ToolOutcome {
     if (rent < 0) return { ...empty, problem: 'Rent cannot be less than nothing.' }
     if (!Number.isSafeInteger(rent)) return { ...empty, problem: 'That is a bigger rent than this page divides.' }
 
-    const byIncome = toggles.byIncome === true
     const sizes = rows.map((row) => Math.max(0, row.values.size ?? 0))
-    const incomes = rows.map((row) => Math.max(0, row.values.income ?? 0))
+    const notches = rows.map((row) => notchOf(row.values.rich ?? 1))
     const floorArea = sizes.reduce((running, size) => running + size, 0)
-    const incomeTotal = incomes.reduce((running, income) => running + income, 0)
+    const notchTotal = notches.reduce((running, notch) => running + notch, 0)
 
-    // An unmeasured flat is asking for the equal answer, not for an error — same for a household
-    // that turned income weighting on before typing any incomes in.
+    // A flat that has not moved a slider has said nothing about who is flush, and a page that
+    // acted on nothing would be inventing an opinion. Same for an unmeasured flat: no floor area
+    // is a request for the equal answer rather than an error.
+    const tilted = notches.some((notch) => notch !== notches[0])
     const roomShares = sizes.map((size) => (floorArea > 0 ? size / floorArea : EQUAL(rows.length)))
-    const incomeShares = incomes.map((income) => (incomeTotal > 0 ? income / incomeTotal : EQUAL(rows.length)))
-    const weights = roomShares.map((room, index) => (byIncome ? (room + incomeShares[index]) / 2 : room))
+    const richShares = notches.map((notch) => notch / notchTotal)
+    const weights = roomShares.map((room, index) => (tilted ? (room + richShares[index]) / 2 : room))
 
     const amounts = allocateByWeights(rent, weights)
     const workings: ToolWorking[] = [
         { label: 'Rent', amountMinor: rent },
         { label: 'Floor area measured', value: `${formatFigure(floorArea)} sqm` },
     ]
-    if (byIncome) workings.push({ label: 'Income counted', amountMinor: incomeTotal })
+    if (tilted) workings.push({ label: 'Where the sliders sit', value: notches.join(', ') })
 
     return {
         shares: rows.map((row, index) => ({
             label: row.name,
             amountMinor: amounts[index],
-            detail: byIncome
-                ? `room ${formatShareOfWhole(roomShares[index], 1)}, income ${formatShareOfWhole(incomeShares[index], 1)}, so ${formatShareOfWhole(weights[index], 1)} of the rent`
+            detail: tilted
+                ? `room ${formatShareOfWhole(roomShares[index], 1)}, slider ${formatShareOfWhole(richShares[index], 1)}, so ${formatShareOfWhole(weights[index], 1)} of the rent`
                 : `${formatFigure(sizes[index])} sqm, ${formatShareOfWhole(roomShares[index], 1)} of the rent`,
         })),
         totalMinor: rent,
@@ -60,21 +68,21 @@ function computeRentSplit({ values, toggles, rows }: ToolInput): ToolOutcome {
 export const rentSplitCalculator: Tool = {
     slug: 'rent-split-calculator',
     updated: '2026-07-30',
-    register: 'flat',
+    doodle: 'house',
+    register: 'default',
     meta: {
         title: 'Rent split calculator by room size',
         description:
-            'Split rent between flatmates in proportion to room size, with income weighting as an option. The amounts reconcile to the cent.',
+            'Split rent between flatmates in proportion to room size, with a slider for who is better off. The amounts reconcile to the cent.',
     },
     copy: {
         h1: 'Rent split calculator by room size',
         intro: [
-            'Enter the rent and the size of each private room. The rent is divided in proportion to that floor area, and the amounts move as you type.',
-            'Income weighting is a second method rather than a correction to the first. Turned on, half the rent follows room size and half follows income. Split by Peanut holds the same arithmetic in a page the whole flat can open.',
+            'Put in the rent and the size of each private room. The rent follows that floor area, and the numbers move while you type.',
+            'The slider beside each name is the other half of the argument. Leave them all where they are and nothing happens; move one and half the rent starts following who is flush instead. Split by Peanut holds the same arithmetic in a page the whole flat can open.',
         ],
-        formTitle: 'The flat',
         resultTitle: 'What each room pays',
-        resultHint: 'Enter the rent and how many people are on it.',
+        resultHint: 'Put in the rent and how many people are on it.',
         roundingNote:
             'Rent rarely divides evenly, so whatever is left at the end goes to the largest fractions first, one unit each. The column adds up to the rent exactly.',
         copyLabel: 'Copy the split',
@@ -109,13 +117,6 @@ export const rentSplitCalculator: Tool = {
     fields: [
         { name: 'rent', kind: 'amount', label: 'Rent for the month', defaultValue: 1500, min: 0 },
         { name: 'people', kind: 'count', label: 'Flatmates', help: 'Up to twenty.', defaultValue: 3, min: 1, max: 20 },
-        {
-            name: 'byIncome',
-            kind: 'toggle',
-            label: 'Weight it by income',
-            help: 'Half the rent follows room size, half follows income.',
-            defaultValue: 0,
-        },
     ],
     rows: {
         countField: 'people',
@@ -133,19 +134,17 @@ export const rentSplitCalculator: Tool = {
                 step: 0.5,
             },
             {
-                name: 'income',
-                kind: 'amount',
-                label: 'Monthly income',
-                help: 'Take-home, after tax.',
-                requiresToggle: 'byIncome',
-                defaultValue: 0,
-                min: 0,
+                name: 'rich',
+                kind: 'scale',
+                label: 'How rich',
+                defaultValue: 3,
+                notches: ['Broke-ish', 'Getting by', 'Comfortable', 'Doing well', 'Doing very nicely'],
             },
         ],
     },
     related: [
         { href: '/splitwise-alternative', label: 'How Split compares to Splitwise' },
-        { href: '/tools', label: 'The other calculators' },
+        { href: '/tools', label: 'The other calculator' },
     ],
     faqs: [
         {
@@ -153,8 +152,12 @@ export const rentSplitCalculator: Tool = {
             answer: 'Measure the private rooms, add the floor area up, and give each person the same proportion of the rent as their room is of that total. Shared space stays out of the sum, because everybody has the same claim on it.',
         },
         {
+            question: 'What does the slider beside each name actually do?',
+            answer: 'It is five notches, and the notch is the weight: notch one counts once, notch five counts five times, and the notches are added up across the flat to give everybody a share of half the rent. The other half stays with the floor area. While every slider reads the same the whole thing is switched off and the rent follows room size alone, so a flat that would rather not have this conversation can leave the sliders level and lose nothing.',
+        },
+        {
             question: 'How do you split rent when one flatmate earns more?',
-            answer: 'Weight it, or do not. With income weighting on, half the rent follows room size and half follows income, so the number moves toward what each person can pay without ignoring what each person gets. It is a method rather than a verdict, and a household that would rather split on room size alone should leave it off.',
+            answer: 'Move their slider up, or do not. With the sliders apart, half the rent follows room size and half follows where the flat put everybody, so the number moves toward what each person can pay without ignoring what each person gets. It is a method rather than a verdict, and a household that would rather split on room size alone should leave the sliders level.',
         },
         {
             question: 'Why does one flatmate pay a fraction more than the others?',

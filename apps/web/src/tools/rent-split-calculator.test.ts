@@ -4,14 +4,15 @@ import type { ToolOutcome } from './types'
 
 const { compute } = rentSplitCalculator
 
-function split(rent: number, rooms: { size: number; income?: number }[], byIncome = false): ToolOutcome {
+/** `rich` is the slider notch, one to five. Left out, every room sits on the same notch. */
+function split(rent: number, rooms: { size: number; rich?: number }[]): ToolOutcome {
     return compute({
         values: { rent, people: rooms.length },
-        toggles: { byIncome },
+        toggles: {},
         choices: {},
         rows: rooms.map((room, index) => ({
             name: `Flatmate ${index + 1}`,
-            values: { size: room.size, income: room.income ?? 0 },
+            values: { size: room.size, rich: room.rich ?? 3 },
         })),
         decimals: 2,
     })
@@ -38,48 +39,71 @@ describe('rent split by room size', () => {
     })
 })
 
-describe('rent split weighted by income', () => {
-    /** Same rooms, different pay: half the rent follows the room, half follows the income. */
-    it('blends the room share and the income share in half', () => {
-        const outcome = split(100_000, [{ size: 10, income: 300_000 }, { size: 10, income: 100_000 }], true) // prettier-ignore
-        expect(paid(outcome)).toEqual([62_500, 37_500])
+describe('the how-rich slider', () => {
+    /**
+     * The rule the FAQ promises: a flat that has not moved a slider has said nothing, so the rent
+     * follows floor area alone. Asserted at both ends of the scale, because "does nothing" has to
+     * mean the same at notch five as at notch one.
+     */
+    it('does nothing at all while every slider reads the same', () => {
+        const byRoom = paid(split(300_000, [{ size: 20 }, { size: 10 }]))
+        for (const notch of [1, 3, 5]) {
+            expect(paid(split(300_000, [{ size: 20, rich: notch }, { size: 10, rich: notch }])), `notch ${notch}`) // prettier-ignore
+                .toEqual(byRoom)
+        }
     })
 
-    it('names both halves of the working', () => {
-        const outcome = split(100_000, [{ size: 10, income: 300_000 }, { size: 10, income: 100_000 }], true) // prettier-ignore
-        expect(outcome.shares[0].detail).toBe('room 50%, income 75%, so 62.5% of the rent')
-        expect(outcome.workings).toContainEqual({ label: 'Income counted', amountMinor: 400_000 })
-    })
-
-    it('falls back to an even income share while no income is typed in', () => {
-        // Rooms of 20 and 10 are two thirds and one third; an unstated income counts as half each.
-        const outcome = split(120_000, [{ size: 20 }, { size: 10 }], true)
-        expect(paid(outcome)).toEqual([70_000, 50_000])
-    })
-
-    it('leaves the income line off when the weighting is switched off', () => {
-        expect(split(120_000, [{ size: 20 }, { size: 10 }]).workings.map((w) => w.label)).toEqual([
+    it('leaves the slider line out of the working while they are level', () => {
+        expect(split(120_000, [{ size: 20 }, { size: 10 }]).workings.map((entry) => entry.label)).toEqual([
             'Rent',
             'Floor area measured',
         ])
     })
+
+    /** Same rooms, different notches: half the rent follows the room, half follows the slider. */
+    it('blends the room share and the slider share in half once they are apart', () => {
+        const outcome = split(100_000, [{ size: 10, rich: 5 }, { size: 10, rich: 1 }]) // prettier-ignore
+        expect(paid(outcome)).toEqual([66_667, 33_333])
+    })
+
+    /** The notch IS the weight — five counts five times as much as one. This is the documented map. */
+    it('weights a notch by its own number', () => {
+        const outcome = split(120_000, [{ size: 0, rich: 1 }, { size: 0, rich: 2 }, { size: 0, rich: 3 }]) // prettier-ignore
+        // Rooms unmeasured, so the room half is equal thirds and the slider half is 1:2:3 of six.
+        expect(paid(outcome)).toEqual([30_000, 40_000, 50_000])
+    })
+
+    it('names both halves of the working', () => {
+        const outcome = split(100_000, [{ size: 10, rich: 5 }, { size: 10, rich: 1 }]) // prettier-ignore
+        expect(outcome.shares[0].detail).toBe('room 50%, slider 83.3%, so 66.7% of the rent')
+        expect(outcome.workings).toContainEqual({ label: 'Where the sliders sit', value: '5, 1' })
+    })
+
+    /** A range input cannot produce these; a hand-edited state or a stale cache can. */
+    it('holds a notch inside its own scale', () => {
+        const wild = split(100_000, [{ size: 10, rich: 0 }, { size: 10, rich: 99 }]) // prettier-ignore
+        const sane = split(100_000, [{ size: 10, rich: 1 }, { size: 10, rich: 5 }]) // prettier-ignore
+        expect(paid(wild)).toEqual(paid(sane))
+    })
 })
 
 describe('rent split, the numbers that have to hold', () => {
-    it('reconciles to the cent whatever the rooms and incomes are', () => {
+    it('reconciles to the cent whatever the rooms and sliders are', () => {
         const flats = [
             [{ size: 14 }, { size: 11 }, { size: 9 }],
-            [{ size: 12.5, income: 210_000 }, { size: 12.5, income: 190_000 }], // prettier-ignore
-            [{ size: 30 }, { size: 0 }],
+            [{ size: 12.5, rich: 4 }, { size: 12.5, rich: 2 }], // prettier-ignore
+            [
+                { size: 30, rich: 1 },
+                { size: 0, rich: 5 },
+            ],
             [{ size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }],
+            [{ size: 9, rich: 5 }, { size: 9, rich: 4 }, { size: 9, rich: 3 }, { size: 9, rich: 1 }], // prettier-ignore
         ]
         for (const rooms of flats) {
             for (const rent of [1, 99_999, 100_000, 123_457, 1_000_003]) {
-                for (const byIncome of [false, true]) {
-                    const outcome = split(rent, rooms, byIncome)
-                    expect(total(outcome), `${rent} across ${rooms.length} rooms`).toBe(rent)
-                    expect(outcome.totalMinor).toBe(rent)
-                }
+                const outcome = split(rent, rooms)
+                expect(total(outcome), `${rent} across ${rooms.length} rooms`).toBe(rent)
+                expect(outcome.totalMinor).toBe(rent)
             }
         }
     })
