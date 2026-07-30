@@ -734,6 +734,47 @@
             "confirmNo": "Deixar",
             "removed": "Registro desfeito. Os saldos foram atualizados.",
             "removeFailed": "Não deu para excluir esse pagamento — tente de novo."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, other {A turma já tem #}}",
+                "body": "Quem está faltando?",
+                "invite": "Enviar o link"
+            },
+            "passport": {
+                "title": "{count, plural, other {# moedas}}",
+                "body": "Uma divisão limpa, em qualquer moeda."
+            },
+            "alterego": {
+                "title": "Seu papel nessa viagem",
+                "body": "Saiu do que você realmente fez."
+            },
+            "wrapped": {
+                "title": "A viagem, resumida",
+                "body": "{count, plural, other {# cartões. Compartilhe os que quiser.}}"
+            },
+            "share": "Compartilhar",
+            "sharing": "Preparando…",
+            "dismiss": "Agora não",
+            "shelfTitle": "Desbloqueado nessa viagem",
+            "copied": "Cartão copiado — cole onde quiser.",
+            "downloaded": "Cartão salvo nos seus downloads.",
+            "shareFailed": "Não conseguimos montar esse cartão. Tente de novo.",
+            "award": {
+                "tripStarter": "Quem começou",
+                "firstMover": "Primeiro a lançar",
+                "ledgerLegend": "Lenda do caderno",
+                "currencyHopper": "Pula-moedas",
+                "theCloser": "Quem fecha",
+                "hypeCrew": "A torcida"
+            },
+            "shareText": {
+                "crew": "A turma, montada.",
+                "passport": "Moedas diferentes, uma divisão limpa.",
+                "alterego": "Esse fui eu nessa viagem.",
+                "stats": "A viagem, em números.",
+                "landing": "Tudo quites, e ninguém precisou cobrar."
+            }
         }
     },
     "push": {
