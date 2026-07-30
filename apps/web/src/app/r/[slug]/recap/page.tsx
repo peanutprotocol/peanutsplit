@@ -2,9 +2,11 @@ import type { Metadata } from 'next'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
+import { AchievementShelf } from '@/components/room/AchievementShelf'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { RecapPersonalLine } from '@/components/room/RecapPersonalLine'
 import { RecapShareButton } from '@/components/room/RecapShareButton'
+import { WrappedDeck } from '@/components/room/WrappedDeck'
 import { RecapViewed } from '@/components/room/RecapViewed'
 import { RoomNotFound } from '@/components/room/RoomStates'
 import { Button } from '@/components/ui/Button'
@@ -128,6 +130,14 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
             </div>
 
             {recap.settled && <RecapShareButton slug={slug} />}
+
+            {/* Both are client-side and read the device's own identity, for the same reason
+                `RecapPersonalLine` is: the server render does not know who is holding the phone,
+                and an alter ego is about exactly that person. The deck belongs to the closed book;
+                the shelf is what the trip unlocked. They overlap, so when the deck is up the shelf
+                stands down on the cards the deck already draws — see `deckShown`. */}
+            {recap.settled && <WrappedDeck slug={slug} />}
+            <AchievementShelf slug={slug} deckShown={recap.settled} />
 
             <Link href={`/r/${slug}`} className="text-center text-sm font-bold text-n-1 underline">
                 {t('backToRoom')}

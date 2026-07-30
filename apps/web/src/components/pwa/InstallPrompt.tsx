@@ -8,57 +8,16 @@ import { peanutPointing } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { BTN_MEDIUM } from '@/components/ui/control'
+import { track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
+import { isInstallSnoozed, noteInstallDismissed, promptInstall, useInstallState } from '@/lib/install'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { IosInstallSteps } from './IosInstallSteps'
 
-const DISMISS_COUNT_KEY = 'ps:pwa-dismiss-count'
-const DISMISSED_AT_KEY = 'ps:pwa-dismissed-at'
-
 /** Wait this long without typing before asking. Never interrupt someone mid-expense. */
 const IDLE_MS = 20_000
-const HOUR = 60 * 60 * 1000
-const BASE_BACKOFF_MS = 24 * HOUR
-const MAX_BACKOFF_MS = 30 * 24 * HOUR
-
-/** Not in lib.dom yet. */
-interface BeforeInstallPromptEvent extends Event {
-    prompt: () => Promise<void>
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
-}
-
-const readInt = (key: string): number => {
-    const raw = window.localStorage.getItem(key)
-    const parsed = raw === null ? NaN : Number.parseInt(raw, 10)
-    return Number.isFinite(parsed) ? parsed : 0
-}
-
-/** 24h → 48h → 96h → … capped at 30 days. */
-const backoffMs = (dismissCount: number): number =>
-    Math.min(BASE_BACKOFF_MS * 2 ** Math.max(0, dismissCount - 1), MAX_BACKOFF_MS)
-
-const isSnoozed = (): boolean => {
-    try {
-        const count = readInt(DISMISS_COUNT_KEY)
-        if (count === 0) return false
-        return Date.now() - readInt(DISMISSED_AT_KEY) < backoffMs(count)
-    } catch {
-        return false
-    }
-}
-
-const isStandalone = (): boolean =>
-    window.matchMedia('(display-mode: standalone)').matches ||
-    // iOS Safari's pre-standard flag — still the only signal for a pinned iOS PWA.
-    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-
-/** iPadOS reports itself as a Mac; only the touch-point count gives it away. */
-const isIOSDevice = (): boolean => {
-    const ua = window.navigator.userAgent
-    return /iPad|iPhone|iPod/.test(ua) || (window.navigator.maxTouchPoints > 1 && /Mac/.test(ua))
-}
 
 const isTyping = (): boolean => {
     const el = document.activeElement
@@ -67,9 +26,9 @@ const isTyping = (): boolean => {
 }
 
 export interface InstallPromptProps {
-    /** SPEC analytics hooks — wire to PostHog (`pwa_prompt_shown`, `pwa_installed`) at the mount site. */
+    /** SPEC analytics hook — wired to `pwa_prompt_shown` at the mount site. `pwa_installed` is not
+     *  here: it has exactly one source, the `appinstalled` listener in `lib/install.ts`. */
     onShown?: () => void
-    onInstalled?: () => void
     onDismissed?: (dismissCount: number) => void
 }
 
@@ -80,49 +39,25 @@ export interface InstallPromptProps {
  * Chromium gives us a real `beforeinstallprompt` to replay; iOS gives us nothing, so it gets a
  * how-to sheet instead. Not mounted anywhere yet — mount it on the room page.
  */
-export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallPromptProps) {
+export function InstallPrompt({ onShown, onDismissed }: InstallPromptProps) {
     const t = useTranslations('marketing.install')
     const motionAllowed = useMotionAllowed()
-    const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
-    const [iosEligible, setIosEligible] = useState(false)
+    const state = useInstallState()
     const [visible, setVisible] = useState(false)
     const [sheetOpen, setSheetOpen] = useState(false)
     const shownRef = useRef(false)
 
-    // Capture the install opportunity as early as possible — the browser only fires it once.
+    // The capture itself lives in `lib/install.ts`, registered from Providers: `beforeinstallprompt`
+    // fires once per page load, and two listeners for one event is how the settings row and this
+    // banner would have disagreed about whether there was still an opportunity to replay.
+    // A card that is up when the app gets installed comes straight back down.
     useEffect(() => {
-        if (isStandalone() || isSnoozed()) return
-
-        const onBeforeInstallPrompt = (event: Event) => {
-            event.preventDefault()
-            setDeferred(event as BeforeInstallPromptEvent)
-        }
-        const onAppInstalled = () => {
-            setVisible(false)
-            setDeferred(null)
-            try {
-                window.localStorage.removeItem(DISMISS_COUNT_KEY)
-                window.localStorage.removeItem(DISMISSED_AT_KEY)
-            } catch {
-                // ignore
-            }
-            onInstalled?.()
-        }
-
-        window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
-        window.addEventListener('appinstalled', onAppInstalled)
-
-        if (isIOSDevice()) setIosEligible(true)
-
-        return () => {
-            window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
-            window.removeEventListener('appinstalled', onAppInstalled)
-        }
-    }, [onInstalled])
+        if (state === 'installed') setVisible(false)
+    }, [state])
 
     // Idle countdown — any typing pushes it back out to a full IDLE_MS.
     useEffect(() => {
-        const eligible = deferred !== null || iosEligible
+        const eligible = (state === 'promptable' || state === 'ios') && !isInstallSnoozed()
         if (!eligible || visible || shownRef.current) return
 
         let timer: ReturnType<typeof setTimeout>
@@ -150,36 +85,26 @@ export function InstallPrompt({ onShown, onInstalled, onDismissed }: InstallProm
             window.removeEventListener('keydown', arm)
             window.removeEventListener('focusin', arm)
         }
-    }, [deferred, iosEligible, visible, onShown])
+    }, [state, visible, onShown])
 
     const dismiss = useCallback(() => {
         setVisible(false)
         setSheetOpen(false)
-        try {
-            const next = readInt(DISMISS_COUNT_KEY) + 1
-            window.localStorage.setItem(DISMISS_COUNT_KEY, String(next))
-            window.localStorage.setItem(DISMISSED_AT_KEY, String(Date.now()))
-            onDismissed?.(next)
-        } catch {
-            onDismissed?.(1)
-        }
+        onDismissed?.(noteInstallDismissed())
     }, [onDismissed])
 
     const install = useCallback(async () => {
-        if (!deferred) {
+        if (state === 'ios') {
             setSheetOpen(true)
             return
         }
         setVisible(false)
-        await deferred.prompt()
-        const { outcome } = await deferred.userChoice
-        setDeferred(null)
-        if (outcome === 'accepted') {
-            onInstalled?.()
-        } else {
-            dismiss()
-        }
-    }, [deferred, dismiss, onInstalled])
+        const outcome = await promptInstall()
+        if (outcome === 'unavailable') return
+        track('install_prompted', { outcome })
+        // A declined prompt is a dismissal: it feeds the same backoff a tap on "Not now" does.
+        if (outcome === 'dismissed') dismiss()
+    }, [state, dismiss])
 
     return (
         <>

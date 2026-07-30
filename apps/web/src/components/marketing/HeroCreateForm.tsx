@@ -14,7 +14,7 @@ import { cn } from '@/lib/cn'
 import { landingVariant, type LandingVariant } from '@/lib/flags'
 import { useCurrencies } from '@/lib/queries'
 import { roomDoodleFor } from '@/lib/room-doodle'
-import { slugStem } from '@/lib/slugify'
+import { SLUG_TAIL_HINT, slugStem } from '@/lib/slugify'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCreateRoomFlow } from '@/lib/use-create-room'
 import { useFeedback } from '@/lib/use-settings'
@@ -46,9 +46,10 @@ export interface HeroCreateFormProps {
  * The URL preview is the point of the whole layout — proof that this works arrives inside the
  * keystrokes you were already making, rather than as a claim you have to take on faith. It is
  * also deliberately only half live. `slugStem` is the same function the server uses, so the
- * readable part is exact; the six-character tail is minted server-side with crypto randomness
+ * readable part is exact; the three-word tail is minted server-side with crypto randomness
  * because the slug is the room's credential, so it shows as dots until the room exists.
- * Inventing a tail here would be a promise the next screen breaks.
+ * Inventing a tail here would be a promise the next screen breaks — and the dots have to carry
+ * the tail's SHAPE, or the preview teaches a URL the next screen does not deliver.
  *
  * The `(?)` beside it replaced an underlined "How the link works" — one drawn mark instead of a
  * third line of text, sitting on the thing it explains rather than under it.
@@ -267,7 +268,7 @@ export function HeroCreateForm({
                 <span data-testid="hero-slug-preview">
                     peanutsplit.com/r/
                     <span className={stem ? '' : 'text-grey-1'}>{stem || tCreate('namePlaceholderSlug')}</span>
-                    <span className="tracking-widest text-grey-1">-••••••</span>
+                    <span className="tracking-widest text-grey-1">{SLUG_TAIL_HINT}</span>
                 </span>
                 <button
                     type="button"

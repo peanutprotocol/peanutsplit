@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
@@ -9,6 +9,7 @@ import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError } from '@/lib/api'
 import { roomProps, track } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
+import { dismissedMemberIds, latecomerOffer } from '@/lib/latecomer'
 import { isRoomSettled, savedExpenses } from '@/lib/pending'
 import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
@@ -18,6 +19,7 @@ import { daySpan } from '@/lib/story'
 import { themeVars } from '@/lib/themes'
 import { useRoomIdentity } from '@/lib/use-identity'
 import { useMotionAllowed } from '@/lib/use-motion'
+import { AchievementMoment } from './AchievementMoment'
 import { AllSettled } from './AllSettled'
 import { BalanceDrawer } from './BalanceDrawer'
 import { BalanceStrip } from './BalanceStrip'
@@ -44,6 +46,12 @@ export function RoomScreen({ slug }: { slug: string }) {
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
     const [params, setParams] = useRoomParams()
+    const consumeSharedReceipt = useCallback(
+        // `replace`, not the hook's default `push`: the drawer clears this param the instant it
+        // lands, and with a history entry the back button would return to a share already spent.
+        () => void setParams({ shared: null }, { history: 'replace' }),
+        [setParams]
+    )
     const motionAllowed = useMotionAllowed()
     const celebrated = useRef(false)
     /**
@@ -78,6 +86,16 @@ export function RoomScreen({ slug }: { slug: string }) {
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
     const drawerOpen = params.add || params.settle || params.share || !!params.expense || !!params.balance
+
+    /**
+     * Is the latecomer offer on screen? Derived from the same two functions the banner itself
+     * uses, so the two answers cannot drift. Reading storage per render is fine here — this only
+     * decides which of two banners renders, so a stale read costs one frame, not a decision.
+     */
+    const latecomerPending = useMemo(() => {
+        const offer = latecomerOffer(state)
+        return !!offer && !dismissedMemberIds(slug).includes(offer.member.id)
+    }, [slug, state])
     const needsJoin = loaded && !identity && !!state
     const staleState = !!state && isRefetchError
 
@@ -214,6 +232,18 @@ export function RoomScreen({ slug }: { slug: string }) {
                             {!needsJoin && !staleState && (
                                 <LatecomerBanner slug={slug} state={state} token={identity?.token} />
                             )}
+                            {/* One banner at a time. The latecomer offer is a correction to the
+                                numbers directly above it and it expires; a celebration can wait a
+                                render. Two stacked cards over the ledger on a 375px screen pushes
+                                the thing people came for below the fold. */}
+                            {!needsJoin && !staleState && !drawerOpen && !latecomerPending && (
+                                <AchievementMoment
+                                    slug={slug}
+                                    state={state}
+                                    meId={meId}
+                                    onInvite={() => setParams({ share: true })}
+                                />
+                            )}
                             <AnimatePresence initial={false}>
                                 {settledUp && (
                                     <AllSettled
@@ -284,6 +314,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                         token={identity?.token}
                         expense={editing}
                         defaultPaidById={defaultPaidById}
+                        sharedReceipt={params.shared}
+                        onSharedReceiptConsumed={consumeSharedReceipt}
                     />
                     <SettleDrawer
                         open={params.settle && !needsJoin && !staleState}
@@ -312,12 +344,7 @@ export function RoomScreen({ slug }: { slug: string }) {
 
             {/* Install prompt lives on the room, not the landing page: you only pin
                 something you are already using. */}
-            {state && !needsJoin && (
-                <InstallPrompt
-                    onShown={() => track('pwa_prompt_shown', roomProps(slug))}
-                    onInstalled={() => track('pwa_installed', roomProps(slug))}
-                />
-            )}
+            {state && !needsJoin && <InstallPrompt onShown={() => track('pwa_prompt_shown', roomProps(slug))} />}
         </main>
     )
 }

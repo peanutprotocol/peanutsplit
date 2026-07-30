@@ -8,14 +8,24 @@
  */
 
 /** `/r/ski-trip-x7k2m9` and `/api/rooms/ski-trip-x7k2m9/expenses` — the two
- *  shapes a slug ever appears in. Query and hash are left alone; nothing puts a
- *  slug there. */
+ *  shapes a slug ever appears in. */
 const SLUG_PATHS = [/(\/r)\/[^/?#]+/g, /(\/api\/rooms)\/[^/?#]+/g]
+
+/**
+ * The card query string, dropped whole.
+ *
+ * The slug patterns above stop at `?` because nothing used to put anything worth hiding there.
+ * The alter-ego card does: `/r/<slug>/card/alterego?a=theCloser&p=disco-octopus` names the award
+ * and the persona of the person holding the phone. An award IS a description of a person, which is
+ * the reason `analytics.ts` refuses to send one — shipping it to Sentry instead is the same leak
+ * through a different pipe.
+ */
+const CARD_QUERY = /(\/card\/[a-z]+)\?[^#\s"']*/g
 
 export function redactRoomSlugs(value: string): string {
     let out = value
     for (const pattern of SLUG_PATHS) out = out.replace(pattern, '$1/[slug]')
-    return out
+    return out.replace(CARD_QUERY, '$1')
 }
 
 /** In-place variant for the loosely-typed bags Sentry hands us (`Record<string,

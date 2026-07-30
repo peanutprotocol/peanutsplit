@@ -162,3 +162,58 @@ describe('share-package measurement', () => {
         }
     })
 })
+
+describe('achievement measurement', () => {
+    it('defines an honest shared-over-seen measure with an exact identifier-free allowlist', async () => {
+        const { ACHIEVEMENT_MEASURE, achievementProps } = await import('./analytics')
+
+        expect(ACHIEVEMENT_MEASURE).toEqual({
+            exposure: 'achievement_seen',
+            success: 'achievement_shared',
+            definition: 'completed achievement shares / achievement moments seen',
+            allowedProperties: {
+                achievement_seen: ['type'],
+                achievement_share_opened: ['type'],
+                achievement_shared: ['type', 'tier'],
+            },
+        })
+
+        expect(achievementProps('crew')).toEqual({ type: 'crew' })
+        expect(achievementProps('crew', 'files')).toEqual({ type: 'crew', tier: 'files' })
+        expect(Object.keys(achievementProps('crew', 'files'))).toEqual(['type', 'tier'])
+
+        // An unknown type or tier is dropped rather than forwarded.
+        expect(achievementProps('debt' as never)).toEqual({})
+        expect(achievementProps('crew', 'carrier-pigeon' as never)).toEqual({ type: 'crew' })
+
+        for (const type of ['crew', 'passport', 'alterego', 'wrapped'] as const) {
+            const properties = achievementProps(type, 'files')
+            expect(properties).not.toHaveProperty('room')
+            expect(properties).not.toHaveProperty('slug')
+            expect(properties).not.toHaveProperty('name')
+            expect(properties).not.toHaveProperty('member')
+            expect(properties).not.toHaveProperty('award')
+            expect(properties).not.toHaveProperty('persona')
+            expect(properties).not.toHaveProperty('count')
+            expect(properties).not.toHaveProperty('amount')
+            expect(properties).not.toHaveProperty('currency')
+            expect(properties).not.toHaveProperty('description')
+        }
+    })
+
+    it('keeps the recap and the invite out of the achievement vocabulary', async () => {
+        const { ACHIEVEMENT_TYPES, CARD_TYPE } = await import('./achievements-contract')
+
+        // Decision 5 of the design, pinned: SHARE_PACKAGE_METHODS names the delivery mechanism,
+        // not the payload, so a PNG riding inside a native share adds no third method.
+        const { SHARE_PACKAGE_METHODS } = await import('./analytics')
+        expect(SHARE_PACKAGE_METHODS).toEqual(['native', 'clipboard'])
+
+        expect(ACHIEVEMENT_TYPES).toEqual(['crew', 'passport', 'alterego', 'wrapped'])
+        // Both already have their own funnels; a deck tile firing an achievement event would
+        // undercount one measure and pollute the other.
+        expect(CARD_TYPE).not.toHaveProperty('recap')
+        expect(CARD_TYPE).not.toHaveProperty('invite')
+        expect(new Set(Object.values(CARD_TYPE))).toEqual(new Set(ACHIEVEMENT_TYPES))
+    })
+})

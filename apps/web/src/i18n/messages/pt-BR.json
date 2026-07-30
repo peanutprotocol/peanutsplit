@@ -185,6 +185,12 @@
             "body": "Abre na hora e funciona como app. Sem loja, sem conta.",
             "cta": "Adicionar à tela de início",
             "dismiss": "Agora não",
+            "row": {
+                "label": "Instalar o Split",
+                "installed": "Já está neste aparelho.",
+                "dismissed": "Não foi adicionado. Abra o Split de novo para tentar.",
+                "unsupported": "Este navegador não oferece isso."
+            },
             "ios": {
                 "title": "Adicione o Split à sua tela de início",
                 "step1": "Toque no botão Compartilhar na barra do Safari.",
@@ -734,6 +740,47 @@
             "confirmNo": "Deixar",
             "removed": "Registro desfeito. Os saldos foram atualizados.",
             "removeFailed": "Não deu para excluir esse pagamento — tente de novo."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, other {A turma já tem #}}",
+                "body": "Quem está faltando?",
+                "invite": "Enviar o link"
+            },
+            "passport": {
+                "title": "{count, plural, other {# moedas}}",
+                "body": "Uma divisão limpa, em qualquer moeda."
+            },
+            "alterego": {
+                "title": "Seu papel nessa viagem",
+                "body": "Saiu do que você realmente fez."
+            },
+            "wrapped": {
+                "title": "A viagem, resumida",
+                "body": "{count, plural, other {# cartões. Compartilhe os que quiser.}}"
+            },
+            "share": "Compartilhar",
+            "sharing": "Preparando…",
+            "dismiss": "Agora não",
+            "shelfTitle": "Desbloqueado nessa viagem",
+            "copied": "Cartão copiado — cole onde quiser.",
+            "downloaded": "Cartão salvo nos seus downloads.",
+            "shareFailed": "Não conseguimos montar esse cartão. Tente de novo.",
+            "award": {
+                "tripStarter": "Quem começou",
+                "firstMover": "Primeiro a lançar",
+                "ledgerLegend": "Lenda do caderno",
+                "currencyHopper": "Pula-moedas",
+                "theCloser": "Quem fecha",
+                "hypeCrew": "A torcida"
+            },
+            "shareText": {
+                "crew": "A turma, montada.",
+                "passport": "Moedas diferentes, uma divisão limpa.",
+                "alterego": "Esse fui eu nessa viagem.",
+                "stats": "A viagem, em números.",
+                "landing": "Tudo quites, e ninguém precisou cobrar."
+            }
         }
     },
     "push": {
@@ -912,5 +959,41 @@
         "peopleMany": "{count} pessoas",
         "emptyRoster": "Ninguém entrou ainda",
         "tagline": "sem cadastro · grátis para sempre"
+    },
+    "shareTarget": {
+        "pick": "Para qual sala é esta conta?",
+        "empty": "Ainda não há salas neste aparelho. Crie uma e compartilhe a foto de novo.",
+        "start": "Criar uma sala",
+        "expired": "Essa foto não chegou. Compartilhe de novo.",
+        "unavailable": "Escanear contas ainda não está ativo.",
+        "open": "Abrir o Split"
+    },
+    "card": {
+        "crew": {
+            "title": "A TURMA",
+            "line": "Um link só, e todo mundo dentro."
+        },
+        "passport": {
+            "title": "PASSAPORTE",
+            "line": "{count} moedas. Uma divisão limpa."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Uma viagem, uma marca própria."
+        },
+        "stats": {
+            "title": "A VIAGEM"
+        },
+        "landing": {
+            "title": "QUITES"
+        },
+        "award": {
+            "tripStarter": "Quem começou",
+            "firstMover": "Primeiro a lançar",
+            "ledgerLegend": "Lenda do caderno",
+            "currencyHopper": "Pula-moedas",
+            "theCloser": "Quem fecha",
+            "hypeCrew": "A torcida"
+        }
     }
 }
