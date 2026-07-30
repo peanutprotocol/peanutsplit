@@ -8,6 +8,7 @@
  * a SINGLE PushSubscription per origin, which every room shares.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { writeIdentity } from './identity'
 import { addRoomSubscription, dropRoomSubscription, roomSubscribed } from './use-push'
 
 const { subscribe, unsubscribe, status } = vi.hoisted(() => ({
@@ -20,7 +21,13 @@ vi.mock('./api', () => ({ api: { push: { subscribe, unsubscribe, status } } }))
 
 const { readIdentity } = vi.hoisted(() => ({ readIdentity: vi.fn() }))
 
-vi.mock('./identity', () => ({ readIdentity }))
+/** Only the storage read is faked. `identityGeneration` and `writeIdentity` stay
+ *  real, because the guard below is exactly the coupling between them — a stub
+ *  counter would only prove the stub. */
+vi.mock('./identity', async (importOriginal) => ({
+    ...((await importOriginal()) as typeof import('./identity')),
+    readIdentity,
+}))
 
 const ENDPOINT = 'https://fcm.googleapis.com/fcm/send/this-device'
 
@@ -124,6 +131,27 @@ describe('dropRoomSubscription', () => {
 
         await dropRoomSubscription('ski-trip', 'm1', 't1')
         expect(live.revoked).toBe(true)
+    })
+
+    /**
+     * The window `forget()` opens: it starts this drop and does not wait for it,
+     * so the answer can arrive after the phone has changed hands. Here the new
+     * person claims the room and turns notifications on inside that round trip —
+     * `endpointStillUsed` was false when the server counted, and revoking on it
+     * now would take away a channel the NEW identity just created.
+     */
+    it('leaves a channel alone that a new identity claimed while the drop was in flight', async () => {
+        const live = new FakeSubscription(ENDPOINT)
+        browser.subscription = live
+        unsubscribe.mockImplementation(async () => {
+            writeIdentity('ski-trip', { memberId: 'm2', name: 'Bruno', token: 't2' })
+            return { subscribed: false, endpointStillUsed: false }
+        })
+
+        await dropRoomSubscription('ski-trip', 'm1', 't1')
+
+        expect(live.revoked).toBe(false)
+        expect(browser.subscription).toBe(live)
     })
 
     it('leaves the channel alone when the server call fails', async () => {

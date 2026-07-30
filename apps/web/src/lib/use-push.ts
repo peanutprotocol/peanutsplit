@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from './api'
 import { vapidPublicKey } from './flags'
-import { readIdentity } from './identity'
+import { identityGeneration, readIdentity } from './identity'
 import {
     derivePushStatus,
     isIOSDevice,
@@ -218,8 +218,18 @@ export async function addRoomSubscription(slug: string, memberId: string, member
  * Exported for `forget()` in `use-identity.ts`, which has to do this before it
  * deletes the token that authorises it. Throws when the server refuses, so the
  * browser subscription is only ever touched after the row is really gone.
+ *
+ * `forget()` starts this and does not wait for it, so the last step can land
+ * after the phone has changed hands. Revoking the device's channel is therefore
+ * conditional on nobody having claimed an identity in this room since the drop
+ * started — see `identityGeneration`.
  */
 export async function dropRoomSubscription(slug: string, memberId: string, memberToken: string): Promise<void> {
+    // Captured before the first await. Everything below decides whether to revoke
+    // a channel that belongs to whoever this device was when the drop began.
+    const generation = identityGeneration(slug)
+    const stillOurs = () => identityGeneration(slug) === generation
+
     const subscription = await currentSubscription()
     if (!subscription) return
 
@@ -228,7 +238,7 @@ export async function dropRoomSubscription(slug: string, memberId: string, membe
         // A keyless subscription can never have reached the server (subscribe
         // rolls it back), and there is no endpoint to name in a delete. Only the
         // local half exists, so only the local half goes.
-        await subscription.unsubscribe().catch(() => {})
+        if (stillOurs()) await subscription.unsubscribe().catch(() => {})
         return
     }
 
@@ -239,7 +249,12 @@ export async function dropRoomSubscription(slug: string, memberId: string, membe
     // The endpoint is the device's, not the room's. Revoking it while another
     // room's row still points at it takes that room dark with nothing to show
     // for it — its toggle would keep reading "on" and never deliver again.
-    if (!endpointStillUsed) await subscription.unsubscribe()
+    //
+    // Or while THIS room has a new person on it: the phone was handed over and
+    // the next member turned notifications on inside this round trip, so the
+    // endpoint the server counted is not the one that exists now. Answering the
+    // question we asked before would revoke a channel we did not create.
+    if (!endpointStillUsed && stillOurs()) await subscription.unsubscribe()
 }
 
 export function usePush(slug: string): PushControls {
