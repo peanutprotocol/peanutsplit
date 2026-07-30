@@ -66,10 +66,45 @@ export interface ToolRowInput {
     values: Record<string, number>
 }
 
+/**
+ * A named option in a picker.
+ *
+ * The picker exists because one tool wanted a field whose answer is a name rather than a number:
+ * the country whose official rate a shared drive is costed at. `sets` is what makes it more than a
+ * label — choosing an option writes numbers into the fields below it, which is how an official
+ * figure can be a pre-filled default that the reader is still free to type over.
+ */
+export interface ToolChoiceOption {
+    value: string
+    label: string
+    /**
+     * Field text to pre-fill on choosing this option, keyed by field name. Written as the reader
+     * would type it, because that is what the input holds — "0.30", not 30.
+     */
+    sets?: Record<string, string>
+    /** Currency the option's numbers are in. Switches the shell's currency with the choice. */
+    currency?: string
+    /** One flat line under the picker: what the number is, and what it deliberately leaves out. */
+    note?: string
+    /** The page the number was read off, named so the reader can go and check it. */
+    source?: { label: string; href: string }
+}
+
+export interface ToolChoiceField {
+    name: string
+    label: string
+    help?: string
+    /** Must be one of `options[].value`. */
+    defaultValue: string
+    options: readonly ToolChoiceOption[]
+}
+
 export interface ToolInput {
     /** Scalar fields. `amount` fields are already minor units. */
     values: Record<string, number>
     toggles: Record<string, boolean>
+    /** Picked option values, keyed by choice-field name. */
+    choices: Record<string, string>
     /** One entry per person, in display order. */
     rows: ToolRowInput[]
     /** Minor units the chosen currency uses — 2 for EUR, 0 for JPY. */
@@ -110,19 +145,29 @@ export interface ToolFaq {
 }
 
 /**
+ * One row of reference data, which is one number and the page it was read off.
+ *
+ * Provenance sits on the row rather than on the set because the first set to arrive — official
+ * per-kilometre rates, one country at a time — has twelve sources and no index page. A single
+ * `sourceUrl` beside twelve rows would have been a citation for one of them and decoration for
+ * the other eleven.
+ */
+export interface ToolDataRow {
+    /** The page this row was read off. Checked for https by the registry gate. */
+    sourceUrl: string
+}
+
+/**
  * Reference data a tool reads, with the provenance to check it.
  *
- * No tool carries one yet. It is declared now because the tool that will — mileage, against
- * per-country reimbursement rates — must arrive as data with a source and a date rather than as
- * numbers typed into a config, and the gate that checks the provenance is cheaper to write before
- * there is a page depending on it.
+ * Data rather than numbers typed into a config, because a rate is true on a date: the version and
+ * the retrieval date are what let a reader — and the next person to edit this — tell a current
+ * answer from a stale one.
  */
-export interface ToolData<Row = Record<string, unknown>> {
+export interface ToolData<Row extends ToolDataRow = ToolDataRow> {
     /** Bumped whenever a row changes. Lets a cached answer be told apart from a stale one. */
     version: string
-    /** The page the rows were read off. Checked for https by the registry gate. */
-    sourceUrl: string
-    /** ISO date the source was last opened. Not the date the file was edited. */
+    /** ISO date the sources were last opened. Not the date the file was edited. */
     retrievedAt: string
     rows: readonly Row[]
 }
@@ -172,8 +217,16 @@ export interface Tool {
     }
     copy: ToolCopy
     fields: ToolField[]
+    /** Pickers, rendered above the numeric fields they pre-fill. */
+    choices?: readonly ToolChoiceField[]
     rows?: ToolRows
     faqs: ToolFaq[]
     data?: ToolData
+    /**
+     * Two or three pages this reader is likely to want next. Sparse on purpose: a calculator that
+     * ends in a wall of links is a calculator nobody scrolls past. Checked against the routes that
+     * exist by `content.test.ts`, the same way an article's `<RelatedLink>` is.
+     */
+    related?: readonly { href: string; label: string }[]
     compute: (input: ToolInput) => ToolOutcome
 }

@@ -682,6 +682,12 @@ function toolStrings(tool: Tool): string[] {
         copy.faqTitle,
         ...(tool.rows ? [tool.rows.nameLabel, tool.rows.namePrefix] : []),
         ...fields.flatMap((field) => [field.label, field.help ?? '', field.unit ?? '']),
+        ...(tool.choices ?? []).flatMap((choice) => [
+            choice.label,
+            choice.help ?? '',
+            ...choice.options.flatMap((option) => [option.label, option.note ?? '', option.source?.label ?? '']),
+        ]),
+        ...(tool.related ?? []).map((link) => link.label),
         ...tool.faqs.flatMap((faq) => [faq.question, faq.answer]),
         ...computedStrings(tool),
     ].filter(Boolean)
@@ -692,27 +698,42 @@ function toolStrings(tool: Tool): string[] {
  * the derivation §8.3 asks for — and they are the copy least likely to be re-read, because they
  * only exist at runtime. Both toggle states are exercised: on this registry, one of them is the
  * income-weighted wording that no default render would reach.
+ *
+ * Every picker option is run too, one at a time. A working label can be written by the option a
+ * reader picks — "rate for each mile" against "rate for each kilometre" — and an option nobody
+ * renders in the default state is exactly the copy that ships unread.
  */
 function computedStrings(tool: Tool): string[] {
     const toggleNames = tool.fields.filter((field) => field.kind === 'toggle').map((field) => field.name)
-    return [false, true].flatMap((on) => {
-        const outcome = tool.compute({
-            values: Object.fromEntries(tool.fields.map((field) => [field.name, field.defaultValue * 100])),
-            toggles: Object.fromEntries(toggleNames.map((name) => [name, on])),
-            rows: Array.from({ length: 3 }, (_, index) => ({
-                name: `Row ${index + 1}`,
-                values: Object.fromEntries(
-                    (tool.rows?.columns ?? []).map((column) => [column.name, column.defaultValue * 100])
-                ),
-            })),
-            decimals: 2,
+    const defaults = Object.fromEntries((tool.choices ?? []).map((choice) => [choice.name, choice.defaultValue]))
+    const pickings: Record<string, string>[] = [
+        defaults,
+        ...(tool.choices ?? []).flatMap((choice) =>
+            choice.options.map((option) => ({ ...defaults, [choice.name]: option.value }))
+        ),
+    ]
+
+    return [false, true].flatMap((on) =>
+        pickings.flatMap((choices) => {
+            const outcome = tool.compute({
+                values: Object.fromEntries(tool.fields.map((field) => [field.name, field.defaultValue * 100])),
+                toggles: Object.fromEntries(toggleNames.map((name) => [name, on])),
+                choices,
+                rows: Array.from({ length: 3 }, (_, index) => ({
+                    name: `Row ${index + 1}`,
+                    values: Object.fromEntries(
+                        (tool.rows?.columns ?? []).map((column) => [column.name, column.defaultValue * 100])
+                    ),
+                })),
+                decimals: 2,
+            })
+            return [
+                outcome.problem ?? '',
+                ...outcome.shares.map((share) => share.detail),
+                ...outcome.workings.map((working) => working.label),
+            ].filter(Boolean)
         })
-        return [
-            outcome.problem ?? '',
-            ...outcome.shares.map((share) => share.detail),
-            ...outcome.workings.map((working) => working.label),
-        ].filter(Boolean)
-    })
+    )
 }
 
 /** §4.1 — the only approved shapes for the one concession section a page carries. */
@@ -774,13 +795,56 @@ describe('tool registry', () => {
         }
     })
 
+    /**
+     * Row by row, because the first dataset here is a rate per country and the sources are one per
+     * country. A set-level citation would have said where one of them came from.
+     */
     it('carries the provenance of any data it reads', () => {
         for (const tool of TOOLS) {
             if (!tool.data) continue
-            expect(tool.data.sourceUrl, `${tool.slug} data source`).toMatch(/^https:\/\//)
             expect(tool.data.retrievedAt, `${tool.slug} data retrievedAt`).toMatch(/^\d{4}-\d{2}-\d{2}$/)
             expect(tool.data.version, `${tool.slug} data version`).toBeTruthy()
             expect(tool.data.rows.length, `${tool.slug} declares data with no rows`).toBeGreaterThan(0)
+            for (const row of tool.data.rows) {
+                expect(row.sourceUrl, `${tool.slug}: a data row cites no page`).toMatch(/^https:\/\//)
+            }
+        }
+    })
+
+    /**
+     * A picker starts on one of its own options and every option is distinct. Starting on a value
+     * no option carries would render an empty select whose pre-fills never ran — the rate box would
+     * hold one country's number under another country's name.
+     */
+    it('starts every picker on an option it offers', () => {
+        for (const tool of TOOLS) {
+            for (const choice of tool.choices ?? []) {
+                const values = choice.options.map((option) => option.value)
+                expect(values, `${tool.slug}: ${choice.name} starts on nothing`).toContain(choice.defaultValue)
+                expect(new Set(values).size, `${tool.slug}: ${choice.name} offers a value twice`).toBe(values.length)
+                for (const option of choice.options) {
+                    if (!option.source) continue
+                    expect(option.source.href, `${tool.slug}: ${option.value} source`).toMatch(/^https:\/\//)
+                }
+            }
+        }
+    })
+
+    /**
+     * Same rot an article's `<RelatedLink>` has, and the same check: a renamed slug 404s, and a
+     * calculator's onward links are the only thing on the page nothing else would notice breaking.
+     */
+    it('only links onward to pages that exist', () => {
+        const known = new Set<string>([
+            ...LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
+            ...listAllTranslations().map((doc) => doc.href),
+            ...[...staticPageSlugs].map((slug) => `/${slug}`),
+        ])
+        for (const tool of TOOLS) {
+            for (const link of tool.related ?? []) {
+                expect(known.has(link.href), `${tool.slug} links to missing ${link.href}`).toBe(true)
+                expect(link.label.length, `${tool.slug}: ${link.href} has no label`).toBeGreaterThan(0)
+            }
         }
     })
 

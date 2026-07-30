@@ -8,6 +8,7 @@ function split(rent: number, rooms: { size: number; income?: number }[], byIncom
     return compute({
         values: { rent, people: rooms.length },
         toggles: { byIncome },
+        choices: {},
         rows: rooms.map((room, index) => ({
             name: `Flatmate ${index + 1}`,
             values: { size: room.size, income: room.income ?? 0 },
