@@ -166,11 +166,9 @@ still outstanding** and is the remaining half of the written condition.
   link to re-add it, manageable recent rooms), one reduced-motion policy,
   release-state vocabulary in `docs/release-states.md`.
 
-## App icon — DONE 2026-07-30, on `feat-logo`, waiting to merge
+## App icon — shipped 2026-07-30
 
-**This work is finished. Nothing about the icon is open.** It sits on branch
-`feat-logo` because Konrad has not merged it yet, not because anything is left
-to do. A merge to `main` deploys it; no other step is needed.
+**This work is finished. Nothing about the icon is open.**
 
 Split used to run the Peanut mascot on brand yellow, inside a white disc, inside
 a bordered rounded square. The mascot's own colour was 4.0% of the 512px file, so
@@ -359,7 +357,15 @@ Remaining candidates, ordered by expected value per effort:
 
    Left open: the landing hero still previews the tail as six dots (`-••••••`),
    which was the old tail's width. It should show three groups, and the line has
-   no wrap or truncate rule, so the change needs a look at 375px first.
+   no wrap or truncate rule, so the change needs a look at 375px first. The same
+   six dots appear in `PassTheLinkStage.tsx` and `LandingProof.tsx`.
+
+   Also left open, found in review: the settings link row now ellipsises. Its
+   `truncate` is load-bearing — `SettingRow.tsx` documents the overflow it fixed
+   — so the row hides the end of the tail, which is the part that identifies the
+   room. Copy and share are unaffected, and `LinkMoment` still shows the whole
+   link because it wraps with `break-all`. Truncating from the middle would show
+   both ends; that is a design call, not a bug fix.
 
 ## Design roadmap (opened 2026-07-28)
 

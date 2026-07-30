@@ -57,9 +57,15 @@
  *    accepted: jungle (with bunny), cream (with pie), golden (with shower) and
  *    sock (with pink). Their replacements are sprig, parsley, roost, hedge,
  *    jersey, calico, gazebo and saucer.
+ * 8. A third pass caught three pairs the second one missed, all of the same
+ *    kind: cricket (with moon, a racial slur), waffle (with blue) and shower
+ *    (with brown — golden went in pass 7, but the other half of that phrase
+ *    stayed and pairs the same way). Replacements are grotto, igloo and
+ *    tassel. Breaking a pair costs one word; a minted slug is permanent, so a
+ *    later edit cannot recall the rooms already issued one.
  *
  * Content hash (sha256 of the words joined by a space):
- * 449838ac9347703b5457c21ddea6e2e7d1aa8fd6d5e02052dd8c41865eda8bcf
+ * 85f1d479695365860b2ae75419cd1ed69c0cb2f63ef2beb1213b820aa14101c9
  */
 const WORDS = `
 acorn agate agave alarm alder almond alpaca amber anchor anchovy
@@ -83,65 +89,65 @@ clasp clay clever cliff clip cloak clock clog cloud clove
 clover coast coat cobalt cobra cod cog collar collie comb
 comet comfy compass concert condor cone cookie copper coral corgi
 corn cosmos cottage cotton couch cove coyote crab crafty crane
-crate crater crayon creek cricket crimson crisp crocus crow crown
-crystal cub cube cuff cumin cup curly curry curtain curve
-cushion custard cyan dahlia dainty daisy dandy dapper daring dashing
-dawn deck delta denim desert desk diamond diary dice digger
-dill dingo dish dock dolphin dome domino donkey door dot
-dove drake drawer dreamy dress drizzle drum duck dune dusk
-duster dusty duvet eager eagle early easel easy eclipse eel
-egret elegant elk elm ember emerald emu encore eraser falcon
-falls fan fancy farm fawn feather feisty felt fence fern
-ferret ferry festive fiddle field fig finch firefly fizzy flame
-fleece flint floor fluffy flute foam fog folder forest fork
-fox frame fresh fridge frog frost frosty fudge funky fuse
-galaxy gale gallery garage garden garlic gate gazebo gear gecko
-gelato genial gentle gerbil giddy ginger glacier glad glass glasses
-gleeful glider globe glossy glove glow glue goggles gold gong
-goose gopher gorge grand granite granola grape grass gravel gravy
-green grill grouse grove guava guitar gull guppy gust hail
+crate crater crayon creek crimson crisp crocus crow crown crystal
+cub cube cuff cumin cup curly curry curtain curve cushion
+custard cyan dahlia dainty daisy dandy dapper daring dashing dawn
+deck delta denim desert desk diamond diary dice digger dill
+dingo dish dock dolphin dome domino donkey door dot dove
+drake drawer dreamy dress drizzle drum duck dune dusk duster
+dusty duvet eager eagle early easel easy eclipse eel egret
+elegant elk elm ember emerald emu encore eraser falcon falls
+fan fancy farm fawn feather feisty felt fence fern ferret
+ferry festive fiddle field fig finch firefly fizzy flame fleece
+flint floor fluffy flute foam fog folder forest fork fox
+frame fresh fridge frog frost frosty fudge funky fuse galaxy
+gale gallery garage garden garlic gate gazebo gear gecko gelato
+genial gentle gerbil giddy ginger glacier glad glass glasses gleeful
+glider globe glossy glove glow glue goggles gold gong goose
+gopher gorge grand granite granola grape grass gravel gravy green
+grill grotto grouse grove guava guitar gull guppy gust hail
 halibut hamlet hammock hamper hamster handy happy hardy harp hat
 hawk haze hazel hazy hearth hearty heather hedge helix heron
 herring hexagon hill hinge honest honey hoodie hoof hoop horizon
 horn hornet horse hull humble husk husky ibis ice iceberg
-icicle iguana indigo ink iris iron island ivory ivy jacket
-jade jaguar jam jar jasmine jasper jaunty jay jazz jazzy
-jeans jeep jelly jersey jet jetty jigsaw jolly journal jovial
-joyful jug jumpy juniper kayak keel keen kelp kestrel ketchup
-kettle khaki kilt kind kite kitten kiwi koala lace ladder
-ladle ladybug lagoon lake lamp lane lantern lark latch lattice
-laurel leaf leafy leather lemon lemur lens lentil letter lettuce
-lever library lilac lily lime line linen lion lively lizard
-llama loafer lobster locket lodge lofty loop lotus lucky lush
-lyric macaw magenta magnet magpie mambo manatee mango manta mantis
-map maple maraca marble marker market marlin maroon marsh mask
-mast mat meadow meerkat mellow melody merry mesa meteor mighty
-milk mill millet mimosa minnow mint minty mirror mist misty
-mitten mixer modest mole moon moose mop mosaic moss mossy
-moth motif mouse muffin mug museum mustard navy neat nebula
-nectar needle nest newt nickel nifty nimble noble noodle noon
-nutmeg oak oasis oat oatmeal oboe octagon octave octopus olive
-onion onyx opal opera orange orbit orca orchard orchid oriole
-osprey ostrich otter oval oven owl oyster paddle paint palace
-palm pan pancake panda paper parade parasol parcel park parrot
-parsley parsnip pasta pastry path patio pattern peach peachy peanut
-pearl pebble pecan pelican pen pencil pendant penguin peony pepper
-peppy perch pesto petal piano pickle picnic pie pigeon pillow
-pin pine pink pizza plane planet planter plastic plate playful
-plaza plucky plum plush pocket polenta polite polka pollen poncho
-pond pony poodle popcorn poplar poppy porch port poster potato
-pouch prawn pretzel prism proud pudding puffin pulley puma pumpkin
-puppy purple purse puzzle pyramid python quail quaint quartet quartz
-quick quiet quilt rabbit raccoon radiant radio radish raft rain
-rainbow rake ramen ranch rapid rapids rattle raven ravioli ray
-ready record red reef refined resin rhythm ribbon rice ridge
-ring ripple risotto river road robe robin rocket roof roost
-rope rose rosy royal rubber ruby rudder rug ruler rumba
-rusty saffron sage sail salad salmon salsa salt samba sand
-sandal sandy sap sardine sash sassy satchel satin saucer savvy
-scallop scarf scarlet scone scooter seal seaweed seed seesaw sepia
-serene setter shade shadow shark sharp shed sheet shelf shell
-shiny ship shirt shoe shore shorts shovel shower shrimp silk
+icicle igloo iguana indigo ink iris iron island ivory ivy
+jacket jade jaguar jam jar jasmine jasper jaunty jay jazz
+jazzy jeans jeep jelly jersey jet jetty jigsaw jolly journal
+jovial joyful jug jumpy juniper kayak keel keen kelp kestrel
+ketchup kettle khaki kilt kind kite kitten kiwi koala lace
+ladder ladle ladybug lagoon lake lamp lane lantern lark latch
+lattice laurel leaf leafy leather lemon lemur lens lentil letter
+lettuce lever library lilac lily lime line linen lion lively
+lizard llama loafer lobster locket lodge lofty loop lotus lucky
+lush lyric macaw magenta magnet magpie mambo manatee mango manta
+mantis map maple maraca marble marker market marlin maroon marsh
+mask mast mat meadow meerkat mellow melody merry mesa meteor
+mighty milk mill millet mimosa minnow mint minty mirror mist
+misty mitten mixer modest mole moon moose mop mosaic moss
+mossy moth motif mouse muffin mug museum mustard navy neat
+nebula nectar needle nest newt nickel nifty nimble noble noodle
+noon nutmeg oak oasis oat oatmeal oboe octagon octave octopus
+olive onion onyx opal opera orange orbit orca orchard orchid
+oriole osprey ostrich otter oval oven owl oyster paddle paint
+palace palm pan pancake panda paper parade parasol parcel park
+parrot parsley parsnip pasta pastry path patio pattern peach peachy
+peanut pearl pebble pecan pelican pen pencil pendant penguin peony
+pepper peppy perch pesto petal piano pickle picnic pie pigeon
+pillow pin pine pink pizza plane planet planter plastic plate
+playful plaza plucky plum plush pocket polenta polite polka pollen
+poncho pond pony poodle popcorn poplar poppy porch port poster
+potato pouch prawn pretzel prism proud pudding puffin pulley puma
+pumpkin puppy purple purse puzzle pyramid python quail quaint quartet
+quartz quick quiet quilt rabbit raccoon radiant radio radish raft
+rain rainbow rake ramen ranch rapid rapids rattle raven ravioli
+ray ready record red reef refined resin rhythm ribbon rice
+ridge ring ripple risotto river road robe robin rocket roof
+roost rope rose rosy royal rubber ruby rudder rug ruler
+rumba rusty saffron sage sail salad salmon salsa salt samba
+sand sandal sandy sap sardine sash sassy satchel satin saucer
+savvy scallop scarf scarlet scone scooter seal seaweed seed seesaw
+sepia serene setter shade shadow shark sharp shed sheet shelf
+shell shiny ship shirt shoe shore shorts shovel shrimp silk
 silky silly silver simple sincere skate ski skillet skirt sky
 slate sled sleek sleepy sleet slide slipper sloth smart smoke
 smooth snail snappy sneaker snow snowy snug soap sofa soft
@@ -152,15 +158,15 @@ steam stellar stem stew sticker stone stool stork storm stormy
 stove stream street string stripe studio sturdy sugar summit sun
 sunbeam sundial sunlit sunny sunrise sunset surf sushi swallow swamp
 swan sweater sweet swift swing switch syrup table tango tangy
-tape taxi teak teal teapot tempo tender tent terrier thistle
-thorn thread thunder tiara ticket tidy tie tiger timber timer
-tin tiny toad toast toaster toasty toffee tofu token tomato
-topaz torch tote toucan towel tower town tractor trail train
-tram tray trellis trout trowel truck truffle trumpet trunk trusty
-tuba tulip tuna tundra tunic tunnel turkey turnip turtle tweed
-twig twine upbeat urchin valiant valley van vanilla vase velvet
-vest vibrant village vine vinyl viola violet violin vivid volcano
-voyage waffle wagon wall wallet walnut walrus waltz warbler warm
+tape tassel taxi teak teal teapot tempo tender tent terrier
+thistle thorn thread thunder tiara ticket tidy tie tiger timber
+timer tin tiny toad toast toaster toasty toffee tofu token
+tomato topaz torch tote toucan towel tower town tractor trail
+train tram tray trellis trout trowel truck truffle trumpet trunk
+trusty tuba tulip tuna tundra tunic tunnel turkey turnip turtle
+tweed twig twine upbeat urchin valiant valley van vanilla vase
+velvet vest vibrant village vine vinyl viola violet violin vivid
+volcano voyage wagon wall wallet walnut walrus waltz warbler warm
 wasp watch wave wavy wax weasel weave whale wharf wheat
 whisk wicker wiggly willow wind window windy wing wire wise
 witty wolf wombat wool yarn yellow zany zebra zesty zigzag
