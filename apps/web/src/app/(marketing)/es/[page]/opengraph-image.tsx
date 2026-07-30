@@ -1,7 +1,8 @@
 import { contentOgImage, contentOgStaticParams, ogImageExports } from '@/lib/content-og'
+import { ROOT_COLLECTIONS } from '@/lib/content'
 
-/** Portuguese comparison unfurl. Implementation shared — see `lib/content-og`. */
-const LOCALE = 'pt-BR' as const
+/** Spanish root-slug unfurl. Implementation shared — see `lib/content-og`. */
+const LOCALE = 'es' as const
 
 // Literal, not `ogImageExports.runtime`: Next parses this export statically and rejects
 // a member expression outright.
@@ -10,5 +11,5 @@ export const size = ogImageExports.size
 export const contentType = ogImageExports.contentType
 export const alt = 'Peanut Split'
 
-export const generateStaticParams = contentOgStaticParams('alternatives', LOCALE, 'alternative')
-export default contentOgImage('alternatives', LOCALE, 'alternative')
+export const generateStaticParams = contentOgStaticParams(ROOT_COLLECTIONS, LOCALE, 'page')
+export default contentOgImage(ROOT_COLLECTIONS, LOCALE, 'page')

@@ -36,8 +36,24 @@ import { splitV2Enabled } from '@/lib/flags'
 const contentRoot = () => path.join(process.cwd(), 'src/content')
 
 /** The collections that have a route. Adding one means adding a route; keep the two in step. */
-export const COLLECTIONS = ['blog', 'alternatives'] as const
+export const COLLECTIONS = ['blog', 'alternatives', 'capture'] as const
 export type Collection = (typeof COLLECTIONS)[number]
+
+/**
+ * Collections served from a root-level slug instead of a prefixed one.
+ *
+ * Both answer a query typed as-is — "tricount alternative", "split a bill without an app" — so
+ * the slug is the head term and a folder in front of it would push that term a level down for no
+ * reader benefit. They therefore share ONE dynamic segment, `/[page]`, because Next allows only
+ * one dynamic name at a given path position. The route resolves an incoming slug across this
+ * list in order; a slug that exists in two of these collections is a repo bug, and
+ * `content.test.ts` fails on it rather than letting the first match quietly win.
+ */
+export const ROOT_COLLECTIONS = ['alternatives', 'capture'] as const satisfies readonly Collection[]
+export type RootCollection = (typeof ROOT_COLLECTIONS)[number]
+
+export const isRootCollection = (collection: Collection): collection is RootCollection =>
+    (ROOT_COLLECTIONS as readonly Collection[]).includes(collection)
 
 export interface Faq {
     question: string
@@ -65,6 +81,13 @@ export interface Frontmatter {
     v2Only?: boolean
     /** Overrides the derived canonical path. Only needed for pages that moved. */
     canonical?: string
+    /**
+     * The search-query family this page answers, written the way a person types it. Required on
+     * `capture` pages and meaningless elsewhere: a capture page exists because a query exists, and
+     * one with no query behind it is a page nobody asked for. Not rendered — it is the editorial
+     * contract, and `content.test.ts` is what enforces it.
+     */
+    intent?: string
 }
 
 export interface Doc {
@@ -80,16 +103,21 @@ export interface Doc {
 }
 
 /**
- * URL shape per collection. Blog posts sit under /blog/; alternative pages sit at the root
- * because that is what the query looks like ("splitwise alternative") and a /compare/ prefix
- * buys nothing. Root-level slugs are safe: Next matches the static segments (/new, /r, /blog,
- * /api) before the dynamic one, and the route pins `dynamicParams = false`.
+ * The unprefixed path a page is served at — English's own URL, and what hreflang, the sitemap,
+ * the language links and the canonical are all derived from.
  *
- * The locale prefix goes on the front for everything but English — see `@/i18n/paths`.
+ * One function because this used to be `collection === 'blog' ? … : …` written out in four
+ * places, and a fifth collection added to only three of them is a canonical that disagrees with
+ * the route it is on. Root-level slugs are safe: Next matches the static segments (/new, /r,
+ * /blog, /api) before the dynamic one, and the route pins `dynamicParams = false`.
  */
+export function basePathFor(collection: Collection, slug: string): string {
+    return isRootCollection(collection) ? `/${slug}` : `/${collection}/${slug}`
+}
+
+/** `basePathFor`, prefixed for the locale. English keeps the bare path — see `@/i18n/paths`. */
 export function hrefFor(collection: Collection, slug: string, locale: Locale = DEFAULT_LOCALE): string {
-    const base = collection === 'blog' ? `/blog/${slug}` : `/${slug}`
-    return localizedPath(base, locale)
+    return localizedPath(basePathFor(collection, slug), locale)
 }
 
 function collectionDir(collection: Collection): string {
@@ -189,6 +217,7 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
             published: data.published !== false,
             v2Only: data.v2Only === true,
             canonical: typeof data.canonical === 'string' ? data.canonical : undefined,
+            intent: typeof data.intent === 'string' ? data.intent.trim() || undefined : undefined,
         },
         body: content.trim(),
     }
@@ -219,7 +248,7 @@ function readCollection(collection: Collection, locale: Locale): Doc[] {
  * /blog/ and cannot collide.
  */
 function isShadowed(doc: Doc): boolean {
-    return doc.collection !== 'blog' && staticPageSlugs.has(doc.slug)
+    return isRootCollection(doc.collection) && staticPageSlugs.has(doc.slug)
 }
 
 /** Product-version visibility is separate from publishing: v2 content stays

@@ -9,7 +9,7 @@ import { articleMetadata, articlePage, articleStaticParams } from '@/lib/content
  */
 const LOCALE = 'en' as const
 
-export const generateStaticParams = articleStaticParams('blog', LOCALE, 'slug')
+export const generateStaticParams = articleStaticParams(['blog'], LOCALE, 'slug')
 export const dynamicParams = false
-export const generateMetadata = articleMetadata('blog', LOCALE, 'slug')
-export default articlePage('blog', LOCALE, 'slug')
+export const generateMetadata = articleMetadata(['blog'], LOCALE, 'slug')
+export default articlePage(['blog'], LOCALE, 'slug')

@@ -2,7 +2,8 @@ import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
 import { BrandCard, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/card'
 import { BODY_CHARS, ogFonts } from '@/server/og/fonts'
-import { getDoc, listSlugs, type Collection } from '@/lib/content'
+import { getDoc, listSlugs } from '@/lib/content'
+import type { ParamName, RouteCollections } from '@/lib/content-routes'
 import type { Locale } from '@/i18n/locales'
 
 /**
@@ -58,17 +59,20 @@ export function hubOgImage(locale: Locale) {
     }
 }
 
-export function contentOgStaticParams(collection: Collection, locale: Locale, paramName: 'slug' | 'alternative') {
+export function contentOgStaticParams(collections: RouteCollections, locale: Locale, paramName: ParamName) {
     return function generateStaticParams() {
-        return listSlugs(collection, locale).map((slug) => ({ [paramName]: slug }))
+        return collections.flatMap((collection) => listSlugs(collection, locale).map((slug) => ({ [paramName]: slug })))
     }
 }
 
-export function contentOgImage(collection: Collection, locale: Locale, paramName: 'slug' | 'alternative') {
+export function contentOgImage(collections: RouteCollections, locale: Locale, paramName: ParamName) {
     return async function ContentOgImage({ params }: { params: Promise<Record<string, string>> }) {
         const resolved = await params
-        const doc = getDoc(collection, resolved[paramName], locale)
-        const lines: readonly [string, string] = collection === 'blog' ? ['SPLIT', 'GUIDES'] : ['SPLIT', 'IT']
+        // Same walk as the page route: the root slot serves more than one collection, so which one
+        // owns the slug is a question for the tree, not a constant.
+        const slug = resolved[paramName]
+        const doc = collections.map((collection) => getDoc(collection, slug, locale)).find((found) => found !== null)
+        const lines: readonly [string, string] = doc?.collection === 'blog' ? ['SPLIT', 'GUIDES'] : ['SPLIT', 'IT']
 
         return new ImageResponse(
             <BrandCard lines={lines} tagline={drawable(doc?.frontmatter.title ?? 'Peanut Split')} />,
