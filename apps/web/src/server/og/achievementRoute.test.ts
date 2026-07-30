@@ -15,7 +15,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import sharp from 'sharp'
 import { CARD_KINDS } from '@/lib/achievements-contract'
 import { prisma, truncateAll } from '@/server/test/db'
-import { enforceRateLimitPreflight, LOOKUP_MISS_LIMIT, resetRateLimits } from '@/server/rateLimit'
+import { enforceRateLimitPreflight, LOOKUP_MISS_LIMIT, LOOKUP_MISS_SCOPE, resetRateLimits } from '@/server/rateLimit'
 import { GET } from '@/app/r/[slug]/card/[kind]/route'
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47]
@@ -127,7 +127,7 @@ describe('achievement card route', () => {
             expectPng(response, bytes)
         }
         expect(() =>
-            enforceRateLimitPreflight(new Request('http://localhost:3000/x'), LOOKUP_MISS_LIMIT, 'room-lookup-miss')
+            enforceRateLimitPreflight(new Request('http://localhost:3000/x'), LOOKUP_MISS_LIMIT, LOOKUP_MISS_SCOPE)
         ).toThrow()
         resetRateLimits()
     }, 60_000)
