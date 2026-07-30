@@ -16,11 +16,17 @@ const OG_WEIGHT = 2.6
  *
  * `encodeURIComponent` rather than base64 because satori parses the URI either way and the
  * percent-encoded form stays greppable when a card renders wrong.
+ *
+ * The defaults are the unfurl's, so every existing call site is unchanged. They are overridable
+ * for one reason: an avatar persona carries its own ink and its own line weight (`avatars.ts`),
+ * and drawn in flat black at the heavy unfurl weight all thirty-six come out as the same
+ * silhouette — which is exactly what the persona lineup exists to avoid.
  */
-export function doodleDataUri(name: keyof typeof DOODLE): string {
+export function doodleDataUri(name: keyof typeof DOODLE, options?: { ink?: string; weight?: number }): string {
     const svg =
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
-        `<path d="${DOODLE[name]}" fill="none" stroke="${OG_INK}" stroke-width="${OG_WEIGHT}" ` +
+        `<path d="${DOODLE[name]}" fill="none" stroke="${options?.ink ?? OG_INK}" ` +
+        `stroke-width="${options?.weight ?? OG_WEIGHT}" ` +
         `stroke-linecap="round" stroke-linejoin="round"/></svg>`
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
