@@ -17,6 +17,19 @@ describe('redactRoomSlugs', () => {
         )
     })
 
+    it('drops the card query, which names an award and a persona', () => {
+        expect(redactRoomSlugs('/r/ski-trip-x7k2m9/card/alterego?a=theCloser&p=disco-octopus')).toBe(
+            '/r/[slug]/card/alterego'
+        )
+        expect(redactRoomSlugs('https://peanutsplit.com/r/ski-trip-x7k2m9/card/crew')).toBe(
+            'https://peanutsplit.com/r/[slug]/card/crew'
+        )
+        // A breadcrumb often carries a fragment after the query; only the query goes.
+        expect(redactRoomSlugs('/r/ski-trip-x7k2m9/card/alterego?a=hypeCrew&p=wizard-frog#top')).toBe(
+            '/r/[slug]/card/alterego#top'
+        )
+    })
+
     it('leaves slug-free strings alone', () => {
         expect(redactRoomSlugs('/new')).toBe('/new')
         expect(redactRoomSlugs('/api/currencies')).toBe('/api/currencies')
