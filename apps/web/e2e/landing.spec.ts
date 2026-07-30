@@ -703,6 +703,9 @@ test('every retained room is reachable and can be forgotten only on this device'
     )
 
     await page.locator('[data-testid="forget-room"][data-room="room-seven-vwx345"]').click()
+    // Dropping a room asks first: the list is this device's only copy of the link.
+    await expect(page.getByTestId('forget-room-confirm')).toBeVisible()
+    await page.getByTestId('confirm-forget-room').click()
     await expect(list.getByRole('link')).toHaveCount(6)
     await expect(page.getByTestId('recent-room-notice')).toContainText('shared room still works')
     expect(
@@ -892,12 +895,16 @@ test('the room handoff shares a localized message, the link, and the room drawin
                 },
             },
         })
+        // The manual fallback is the floor under BOTH copy paths, so reaching it
+        // means refusing the deprecated one too — on its own, `execCommand` still
+        // copies here, which is exactly why it is the fallback in the product.
+        Object.defineProperty(document, 'execCommand', { configurable: true, value: () => false })
     })
     await page.getByTestId('share-link').click()
     await expect(page.getByTestId('share-status')).toHaveText(catalogs.en.room.link.shareFailed)
 
-    // Removing Web Share cannot remove the independent copy path. The rejected
-    // clipboard path re-renders the component and reveals the selected
+    // Removing Web Share cannot remove the independent copy path. With both
+    // clipboard paths refused, the component re-renders and reveals the selected
     // manual-copy fallback.
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })

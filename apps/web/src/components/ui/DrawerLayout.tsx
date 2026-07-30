@@ -21,13 +21,22 @@ import { cn } from '@/lib/cn'
  * `overflow-auto` wrapper sat around the whole drawer, so its scrollbar ran
  * beside the title and clipped floating pickers. Headers and dedicated action
  * bars now stay outside this viewport.
+ *
+ * `[&>*]:shrink-0` is what makes it scroll at all. This is a column flex
+ * container, so every section in it is a flex ITEM and shrinks when the sheet
+ * runs out of room. A section only resists that while its automatic minimum size
+ * is content-based — and every card in here is `overflow-hidden` for its rounded
+ * corners, which per the flexbox spec drops that minimum to zero. So the tall
+ * ones (an EXACT split with ten people) were silently squashed to fit instead of
+ * overflowing: the viewport had nothing to scroll, the wheel did nothing, and
+ * each card clipped its own last rows.
  */
 export const DrawerBody = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, ...props }, ref) => (
         <div
             ref={ref}
             className={cn(
-                'flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-n-1',
+                'flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-n-1 [&>*]:shrink-0',
                 className
             )}
             {...props}

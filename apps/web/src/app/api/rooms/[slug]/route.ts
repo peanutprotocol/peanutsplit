@@ -24,8 +24,8 @@ export const GET = (request: Request, ctx: Ctx) =>
     })
 
 /**
- * The room's editable presentation: its display name and palette. Never its
- * slug; a rename changes what the room is called, not the link people saved.
+ * The room's editable presentation: its display name, drawing and palette. Never
+ * its slug; a rename changes what the room is called, not the link people saved.
  *
  * No member token, deliberately: the slug is the credential here, exactly as it
  * is for adding an expense or recording a settlement. Impersonation inside a
@@ -48,6 +48,7 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             data: {
                 ...(body.name !== undefined ? { name: body.name } : {}),
                 ...(body.theme !== undefined ? { theme: body.theme } : {}),
+                ...(body.emoji !== undefined ? { emoji: body.emoji } : {}),
             },
         })
         const state = toRoomState(await loadRoomById(room.id))

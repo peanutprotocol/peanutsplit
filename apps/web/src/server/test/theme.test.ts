@@ -52,6 +52,14 @@ const setTheme = (slug: string, theme: unknown, token?: string) =>
         token,
     })
 
+const setEmblem = (slug: string, emoji: unknown) =>
+    call<RoomState & ApiError>(patchRoom as Handler, {
+        path: `/api/rooms/${slug}`,
+        method: 'PATCH',
+        params: { slug },
+        body: { emoji },
+    })
+
 const renameRoom = (slug: string, name: unknown) =>
     call<RoomState & ApiError>(patchRoom as Handler, {
         path: `/api/rooms/${slug}`,
@@ -226,6 +234,84 @@ describe('PATCH /api/rooms/:slug', () => {
         await prisma.room.update({ where: { id: created.room.id }, data: { archivedAt: new Date() } })
 
         const { status, body } = await setTheme(created.room.slug, 'sand')
+        expect(status).toBe(409)
+        expect(body.error.code).toBe('ROOM_ARCHIVED')
+    })
+})
+
+/**
+ * The drawing had no write path at all until the settings sheet merged it with
+ * the name: the room was born with an emblem and kept it forever. These pin the
+ * PATCH that changed that, including the two ways it must NOT behave — a drawing
+ * write is not a rename, and it cannot store what a new room could not hold.
+ */
+describe('the room drawing', () => {
+    it('round-trips a drawing through the room state', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        expect(created.room.emoji).toBe('🎿')
+
+        const { status, body: patched } = await setEmblem(slug, 'mountain')
+        expect(status).toBe(200)
+        expect(patched.room.emoji).toBe('mountain')
+
+        const { body: fetched } = await call<RoomState>(getRoom as Handler, {
+            path: `/api/rooms/${slug}`,
+            params: { slug },
+        })
+        expect(fetched.room.emoji).toBe('mountain')
+    })
+
+    it('leaves the name and the palette exactly where they were', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        await setTheme(slug, 'mint')
+
+        const { body: patched } = await setEmblem(slug, 'island')
+        expect(patched.room.name).toBe('Ski Trip')
+        expect(patched.room.theme).toBe('mint')
+        expect(patched.room.slug).toBe(slug)
+    })
+
+    it('hands the drawing back to the room name as null', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+
+        const { status, body: cleared } = await setEmblem(slug, null)
+        expect(status).toBe(200)
+        expect(cleared.room.emoji).toBeNull()
+        const row = await prisma.room.findUnique({ where: { slug }, select: { emoji: true } })
+        expect(row?.emoji).toBeNull()
+    })
+
+    it('rejects an emblem the column cannot hold and leaves the room alone', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+
+        const { status, body } = await setEmblem(slug, 'x'.repeat(25))
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('VALIDATION_ERROR')
+
+        const row = await prisma.room.findUnique({ where: { slug }, select: { emoji: true } })
+        expect(row?.emoji).toBe('🎿')
+    })
+
+    it('pokes the room so the other phones repaint the emblem too', async () => {
+        const { body: created } = await newRoom()
+        let pokes = 0
+        subscribe(created.room.id, () => {
+            pokes += 1
+        })
+
+        await setEmblem(created.room.slug, 'pizza')
+        expect(pokes).toBe(1)
+    })
+
+    it('refuses to redraw an archived room', async () => {
+        const { body: created } = await newRoom()
+        await prisma.room.update({ where: { id: created.room.id }, data: { archivedAt: new Date() } })
+
+        const { status, body } = await setEmblem(created.room.slug, 'boat')
         expect(status).toBe(409)
         expect(body.error.code).toBe('ROOM_ARCHIVED')
     })

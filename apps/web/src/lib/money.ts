@@ -145,6 +145,26 @@ export function parseAmountToMinor(input: string, decimals: number, locale?: str
     return (next >= 5 ? minor + 1n : minor).toString()
 }
 
+/**
+ * May an amount field hold this text WHILE it is being typed?
+ *
+ * `parseAmountToMinor` answers a different question — "is this an amount" — and
+ * a field that only accepted its answers could never be typed into: "" and "12."
+ * are both on the way to an amount without being one. So this asks the same
+ * parser twice, once as typed and once with a trailing zero, and lets the
+ * keystroke through if either reading works. Nothing else decides: whatever the
+ * parser refuses for good (letters, a minus sign, more fraction digits than the
+ * currency has, punctuation it will not guess at) is refused here too, at the
+ * keystroke rather than as a validation error three fields later.
+ */
+export function isAmountInputAcceptable(input: string, decimals: number, locale?: string): boolean {
+    if (input.trim().length === 0) return true
+    return (
+        parseAmountToMinor(input, decimals, locale) !== null ||
+        parseAmountToMinor(`${input}0`, decimals, locale) !== null
+    )
+}
+
 /** "1234" → "12.34". No symbol, no grouping — this is what goes back into an input. */
 export function formatMinorPlain(minor: string, decimals: number): string {
     const value = BigInt(minor)

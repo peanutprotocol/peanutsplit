@@ -272,6 +272,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     // ── 8. Delete an expense, then undo it ────────────────────────────────
     await page.locator('[data-testid="expense-row"][data-description="Dinner"]').click()
     await page.getByTestId('delete-expense').click()
+    await page.getByTestId('confirm-delete-expense').click()
     await expect(page.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
 
     await page.getByRole('button', { name: 'Undo', exact: true }).click()

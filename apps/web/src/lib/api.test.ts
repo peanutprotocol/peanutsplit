@@ -110,6 +110,21 @@ describe('api requests', () => {
         expect(fetchMock.mock.calls[0][0]).toBe('/api/rooms/weird%2Fslug')
     })
 
+    /** The drawing rides the room PATCH, and it must send ONLY the drawing: a
+     *  body carrying the name too would rename the room on every pick. */
+    it('sends the room drawing as an emoji-only PATCH, including the null reset', async () => {
+        const fetchMock = respondWith(200, {})
+        vi.stubGlobal('fetch', fetchMock)
+
+        await api.setEmblem('ski-trip-aaa', 'mountain')
+        expect(fetchMock.mock.calls[0][0]).toBe('/api/rooms/ski-trip-aaa')
+        expect(fetchMock.mock.calls[0][1].method).toBe('PATCH')
+        expect(fetchMock.mock.calls[0][1].body).toBe(JSON.stringify({ emoji: 'mountain' }))
+
+        await api.setEmblem('ski-trip-aaa', null)
+        expect(fetchMock.mock.calls[1][1].body).toBe(JSON.stringify({ emoji: null }))
+    })
+
     it('injects a stored queue key into legacy expense bodies on replay', async () => {
         const fetchMock = respondWith(201, {})
         vi.stubGlobal('fetch', fetchMock)

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
-import { AVATARS, AVATAR_KEYS, randomPersonaKey, type AvatarKey } from '@/lib/avatars'
+import { AVATARS, AVATAR_KEYS, avatarArt, randomPersonaKey, type AvatarKey } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -15,15 +15,19 @@ interface AvatarPickerProps {
 }
 
 /**
- * The grid of alter egos.
+ * The grid of characters.
  *
- * Names and one-line vibes are visible because the joke is social: a person
- * should be able to announce "I am absolutely the Vampire Penguin", not choose
- * an unlabeled 30px glyph. Random is a real persisted pick, not a name hash or
- * an unstable client-side fallback.
+ * The vibes used to sit on all 28 tiles — 88 words of joke you have to read past
+ * to find the drawing you want. They now live on ONE caption under the grid,
+ * describing the current pick and following the selection as it moves. Its
+ * height is reserved, because a caption that grows from one line to two shifts
+ * the grid out from under the finger that is still choosing.
+ *
+ * The selected tile is marked, never enlarged, for the same reason.
  */
 export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerProps) {
     const t = useTranslations('room.avatar')
+    const current = avatarArt(value)
 
     const option = (key: AvatarKey) => {
         const art = AVATARS[key]
@@ -40,47 +44,42 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                 data-testid="avatar-option"
                 data-avatar={key}
                 className={cn(
-                    'flex min-h-[88px] min-w-0 items-center gap-2.5 rounded-sm border border-n-1 p-2 text-left transition-transform duration-100',
+                    'flex min-h-[92px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-sm border border-n-1 p-2 text-center transition-transform duration-100',
                     selected ? 'shadow-4 bg-primary-1' : 'bg-white active:translate-y-[2px]',
                     disabled && 'opacity-50'
                 )}
             >
-                <MemberAvatar name={name} avatar={key} size={54} />
-                <span className="min-w-0">
-                    <span className="block text-h9 leading-tight">{art.label}</span>
-                    <span className="mt-0.5 block text-xs leading-tight text-grey-1">{art.vibe}</span>
-                </span>
+                <MemberAvatar name={name} avatar={key} size={44} />
+                <span className="w-full truncate text-xs leading-tight">{art.label}</span>
             </button>
         )
     }
 
     return (
         <div className="flex flex-col gap-3">
-            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('titleFor', { name })}</span>
-
             <button
                 type="button"
                 disabled={disabled}
-                aria-label={t('randomHint')}
                 onClick={() => onChange(randomPersonaKey(value))}
                 data-testid="avatar-random"
                 className={cn(
-                    'flex min-h-[54px] w-full items-center justify-between gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-y-[2px]',
+                    'flex min-h-11 w-full items-center justify-between gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-y-[2px]',
                     disabled && 'opacity-50'
                 )}
             >
-                <span>
-                    <span className="block text-h8">{t('random')}</span>
-                    <span className="block text-sm text-grey-1">{t('randomHint')}</span>
-                </span>
+                <span className="text-h8">{t('random')}</span>
                 <Icon name="sparkles" size={24} aria-hidden="true" />
             </button>
 
             <div role="radiogroup" aria-label={t('titleFor', { name })} data-testid="avatar-picker">
-                <div className="grid grid-cols-2 gap-2">{AVATAR_KEYS.map(option)}</div>
+                <div className="grid grid-cols-3 gap-2">{AVATAR_KEYS.map(option)}</div>
             </div>
 
-            <span className="text-sm text-grey-1">{t('hint')}</span>
+            {/* Two lines of room, always — the caption is the only place the vibes
+                survive and it must not be able to move the grid. */}
+            <p aria-live="polite" className="min-h-10 text-sm text-grey-1" data-testid="avatar-caption">
+                {t('caption', { label: current.label, vibe: current.vibe })}
+            </p>
         </div>
     )
 }
