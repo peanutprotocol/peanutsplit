@@ -1,6 +1,5 @@
 import { DOODLE } from '@/components/ui/doodles'
-import { emblemDoodle } from '@/lib/room-emblem'
-import { FALLBACK_DOODLE } from '@/lib/room-doodle'
+import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { themeFor } from '@/lib/themes'
 
 export { SHARE_PACKAGE_VARIANT } from './share-package-contract'
@@ -121,7 +120,7 @@ export function roomShareVisual(input: {
     emblem: string | null | undefined
 }): RoomShareVisual {
     const theme = themeFor(input.theme)
-    const doodle = emblemDoodle(input.emblem) ?? FALLBACK_DOODLE
+    const doodle = roomEmblemDoodle(input.emblem, input.roomName)
     const lines = titleLines(input.roomName)
     const title = lines
         .map(

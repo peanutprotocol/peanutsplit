@@ -36,7 +36,15 @@ export function SettingRow({
                 type="button"
                 onClick={onClick}
                 data-testid={testId}
-                className="flex min-h-11 flex-1 items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-y-[2px]"
+                // `min-w-0` is load-bearing, not tidiness. A flex item's automatic
+                // minimum size is its MIN-CONTENT width, and the value span below
+                // never wraps — so without this the button grew to the full width
+                // of a 49-character slug, `truncate` could never fire, the card
+                // overflowed by ~160px, and the share button beside it was pushed
+                // off screen. `DrawerBody` scrolls vertically, which makes its
+                // horizontal overflow `auto` too, so the whole sheet slid sideways
+                // and clipped its own section labels.
+                className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-y-[2px]"
             >
                 <span className="shrink-0 text-h8">{label}</span>
                 {value && <span className="min-w-0 flex-1 truncate text-right text-sm text-grey-1">{value}</span>}

@@ -13,8 +13,7 @@
  * rasterizer or a database.
  */
 import { type DoodleName } from '@/components/ui/doodles'
-import { FALLBACK_DOODLE } from '@/lib/room-doodle'
-import { emblemDoodle } from '@/lib/room-emblem'
+import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { daySpan } from '@/lib/story'
 import { prisma } from '@/server/db'
 import { balancesOf, type BalanceInput } from '@/server/roomState'
@@ -58,8 +57,6 @@ export interface RoomRecap {
 /** The same facts, drawable. */
 export interface RecapCardData {
     name: string
-    /** Raw emoji as stored — the renderer resolves it to an image, not a glyph. */
-    emoji: string | null
     /** The room's character, for the story strip — always a drawable doodle. */
     emblem: DoodleName
     /** The hero number: "€2340.00". */
@@ -158,10 +155,11 @@ export function toRecapCard(recap: RoomRecap): RecapCardData {
             : null
     return {
         name: sanitizeDisplayName(recap.name),
-        emoji: recap.emoji,
         // The story strip's lead character — RoomEmblem's exact chain, so the
         // strip can never disagree with the emblem drawn beside the room name.
-        emblem: emblemDoodle(recap.emoji) ?? FALLBACK_DOODLE,
+        // Resolved from the RAW name, not the sanitized one above: an unset
+        // emblem follows what the room is actually called.
+        emblem: roomEmblemDoodle(recap.emoji, recap.name),
         total: safeAmount(BigInt(recap.totalMinor), recap.currency),
         stat: recapStatLine(recap),
         topPayer,

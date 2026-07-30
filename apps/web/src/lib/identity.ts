@@ -57,9 +57,33 @@ export function readIdentity(slug: string): MemberIdentity | null {
     }
 }
 
+/**
+ * How many times this tab has claimed an identity in a room.
+ *
+ * It exists so a request that started before a claim can tell that it is now
+ * stale — see `dropRoomSubscription`, where a late browser-level unsubscribe
+ * would otherwise revoke a channel the NEW identity had just created. In memory
+ * and per tab is all it has to be: both ends of that comparison happen inside one
+ * page life, and a reload has no in-flight request left to guard.
+ *
+ * Counted rather than compared against the stored identity on purpose. The same
+ * person re-claiming the same member gets the same memberId and the same token
+ * back, so "is the identity still the one I captured" answers yes to the exact
+ * hand-back-the-phone-to-yourself case that has to be caught.
+ */
+const claims = new Map<string, number>()
+
+/** Capture this before an async job whose last step would be wrong if somebody
+ *  claimed an identity in `slug` while it was in flight. */
+export const identityGeneration = (slug: string): number => claims.get(slug) ?? 0
+
 /** Store (or replace) the identity for `slug`. Call this the instant a token
  *  comes back from room creation, a new join, or an existing-member claim. */
 export function writeIdentity(slug: string, identity: MemberIdentity): void {
+    // Before the storage check, deliberately: the claim has happened either way —
+    // React state already holds the new member — and a blocked localStorage must
+    // not make an in-flight unsubscribe think it is still current.
+    claims.set(slug, identityGeneration(slug) + 1)
     const store = storage()
     if (!store) return
     const payload: MemberIdentity = { memberId: identity.memberId, name: identity.name }
