@@ -30,6 +30,11 @@
             "showMore": "Mostrar mais {count, plural, one {# sala} other {# salas}}",
             "showLess": "Mostrar menos salas",
             "forgetLabel": "Remover {room} deste aparelho",
+            "confirmForgetTitle": "Remover {room} deste aparelho?",
+            "confirmForgetBody": "Esta lista é o único lugar onde este aparelho guarda a sala. O Split funciona sem contas, então o link da sala é o que leva você de volta. Guarde ele antes de remover. As outras pessoas continuam com a sala, os gastos e os saldos.",
+            "confirmForget": "Remover deste aparelho",
+            "confirmForgetKeep": "Deixar aqui",
+            "confirmForgetClose": "Fechar sem remover",
             "forgotten": "{room} foi removida deste aparelho. A sala compartilhada continua funcionando para quem tem o link.",
             "forgetFailed": "Não deu para remover {room} deste aparelho. Ela continua nesta lista.",
             "recovery": {
@@ -181,6 +186,12 @@
             "body": "Abre na hora e funciona como app. Sem loja, sem conta.",
             "cta": "Adicionar à tela de início",
             "dismiss": "Agora não",
+            "row": {
+                "label": "Instalar o Split",
+                "installed": "Já está neste aparelho.",
+                "dismissed": "Não foi adicionado. Abra o Split de novo para tentar.",
+                "unsupported": "Este navegador não oferece isso."
+            },
             "ios": {
                 "title": "Adicione o Split à sua tela de início",
                 "step1": "Toque no botão Compartilhar na barra do Safari.",
@@ -319,13 +330,13 @@
     },
     "settings": {
         "animations": {
-            "title": "Animações",
-            "description": "Pulinhos, estalos e confete"
+            "title": "Animações"
         }
     },
     "dates": {
         "today": "Hoje",
-        "yesterday": "Ontem"
+        "yesterday": "Ontem",
+        "justNow": "agora mesmo"
     },
     "room": {
         "actions": {
@@ -334,39 +345,41 @@
         },
         "header": {
             "shareRoomLink": "Compartilhar o link da sala",
-            "openSettings": "Abrir as configurações da sala",
-            "settingsTitle": "Configurações da sala",
-            "close": "Fechar as configurações da sala",
+            "openSettings": "Abrir as configurações",
+            "title": "Configurações",
+            "close": "Fechar as configurações",
+            "closeSheet": "Fechar",
             "youAre": "você é {name}",
-            "roomSection": "Sala",
-            "roomSectionHint": "Os dados que todas as pessoas desta sala veem.",
-            "displayName": "Nome de exibição",
-            "displayNameHint": "Mude o nome sem mudar o link.",
-            "saveName": "Salvar nome",
+            "switchRoom": "Trocar de sala",
+            "allRooms": "Todas as salas",
+            "roomName": "Nome da sala",
+            "linkStaysTheSame": "O link continua o mesmo.",
             "nameFailed": "não foi possível renomear a sala — tente novamente",
-            "roomLink": "Link da sala",
-            "roomLinkHint": "Este endereço é permanente. Mudar o nome nunca mudará o link.",
-            "shareTheRoomLink": "Compartilhar o link da sala",
-            "peopleSection": "Pessoas",
-            "peopleSectionHint": "Qualquer pessoa com o link pode adicionar pessoas e escolher seus personagens.",
+            "drawing": "Desenho da sala",
+            "drawingFailed": "não foi possível mudar o desenho — tente novamente",
+            "people": "Pessoas",
+            "addSomeone": "Adicionar alguém",
             "personNamePlaceholder": "Nome da pessoa",
-            "addPerson": "Adicionar pessoa",
+            "addPerson": "Adicionar",
             "personDuplicate": "{name} já está na sala.",
             "personFailed": "não foi possível adicionar essa pessoa — tente novamente",
-            "deviceSection": "Este dispositivo",
-            "deviceSectionHint": "Afeta apenas este celular ou navegador.",
-            "notMe": "Outra pessoa está usando este celular?",
-            "feedback": "Som e vibração",
+            "you": "Você",
+            "switchPersonTitle": "Trocar de pessoa?",
+            "switchPersonBody": "Este aparelho deixa de ser {name} e para de receber as notificações desta sala. Você vai escolher um nome de novo.",
+            "switchPerson": "Trocar",
+            "cancel": "Cancelar",
+            "link": "Link",
+            "linkCopied": "Link copiado",
+            "copyFailed": "Seu navegador bloqueou a cópia.",
+            "export": "Exportar",
+            "exportFormats": "CSV · JSON",
+            "device": "Este aparelho",
             "sound": "Som",
-            "soundHint": "Cliques, batidinhas e um sino",
             "haptics": "Vibração",
-            "hapticsHint": "Um toque que dá para sentir",
-            "privacyNote": "Grátis para sempre, sem cadastro. Os links de sala não aparecem em lugar nenhum — só entra quem você convidar."
+            "privacyNote": "Grátis para sempre, sem cadastro. Qualquer pessoa com o link de uma sala pode abri-la."
         },
         "export": {
-            "title": "Leve a sala com você",
-            "privacyWarning": "Os arquivos incluem os nomes e o histórico financeiro atual. Qualquer pessoa com o link da sala pode exportá-los.",
-            "scopeNote": "É a sala como está agora. Registros excluídos ficam de fora, e o Split não adiciona o link da sala.",
+            "disclosure": "O arquivo tem os nomes de todo mundo e cada gasto e pagamento.",
             "csv": "Baixar CSV",
             "json": "Baixar JSON"
         },
@@ -389,7 +402,12 @@
             "getsBack": "recebe",
             "nothingYet": "nada ainda",
             "youOwe": "você deve",
-            "youGetBack": "te devem"
+            "youGetBack": "te devem",
+            "pair": {
+                "owesYou": "{name} te deve",
+                "youOwe": "Você deve a {name}",
+                "owes": "{debtor} deve a {creditor}"
+            }
         },
         "expenses": {
             "title": "Gastos",
@@ -462,8 +480,8 @@
             "amount": "Valor",
             "currency": "Moeda do gasto",
             "foreignHint": "convertido a uma taxa indicativa",
-            "description": "Foi com o quê?",
-            "descriptionPlaceholder": "Jantar, táxi, passe de esqui…",
+            "description": "Foi com o quê? (opcional)",
+            "descriptionPlaceholder": "Jantar, táxi, passe de esqui… (opcional)",
             "fieldsSwapped": "Pronto: trocamos o valor e a descrição.",
             "amountNormalised": "Lemos como {amount}. Confira antes de salvar.",
             "paidBy": "Pago por",
@@ -505,7 +523,11 @@
             "add": "Lançar gasto",
             "addWithAmount": "Lançar gasto de {amount}",
             "delete": "Excluir",
+            "confirmDelete": "Excluir este gasto? Ele sai do histórico da sala e todos os saldos mudam.",
+            "confirmDeleteYes": "Excluir",
+            "confirmDeleteNo": "Deixar",
             "deletedToast": "“{description}” excluído",
+            "deletedToastUnnamed": "Gasto excluído",
             "undo": "Desfazer",
             "restored": "De volta",
             "restoreFailed": "Não deu para desfazer — recarregue e tente de novo",
@@ -513,7 +535,6 @@
             "saveFailed": "não deu para salvar o gasto — tente de novo",
             "deleteFailed": "não deu para excluir o gasto",
             "validation": {
-                "DESCRIPTION_REQUIRED": "Dê um nome para todo mundo lembrar o que foi.",
                 "AMOUNT_REQUIRED": "Digite um valor maior que zero.",
                 "AMOUNT_INVALID": "Confira os separadores e as casas decimais do valor.",
                 "PAYER_REQUIRED": "Escolha quem pagou.",
@@ -579,7 +600,7 @@
             "copied": "Copiado!",
             "share": "Compartilhar",
             "shared": "Convite enviado.",
-            "shareFailed": "O menu de compartilhamento não abriu. Copie ou baixe o convite.",
+            "shareFailed": "O menu de compartilhamento não abriu. Copie o convite.",
             "anyoneCanJoin": "Qualquer pessoa com este link pode entrar e lançar gastos.",
             "shareTitle": "{room} · Peanut Split",
             "shareText": "Abra o link, escolha seu nome e adicione o que você pagou."
@@ -658,7 +679,6 @@
         },
         "theme": {
             "title": "Tema",
-            "hint": "Todo mundo da sala vê, e a prévia do link também.",
             "pick": "Usar o tema {name}",
             "failed": "não deu para mudar o tema — tente de novo",
             "names": {
@@ -673,17 +693,15 @@
             }
         },
         "avatar": {
-            "title": "Alter egos",
-            "titleFor": "Alter ego de {name}",
-            "hint": "Qualquer pessoa na sala pode trocar o papel de qualquer outra. Mantenha a brincadeira leve.",
-            "open": "Abrir o elenco de personagens",
-            "option": "Usar o avatar {name}",
-            "failed": "não deu para mudar esse alter ego — tente de novo",
-            "castTitle": "Elenco de personagens",
-            "castHint": "Escolha alguém e dê um papel. Essa pessoa sempre pode devolver a brincadeira.",
-            "chooseMember": "Escolha quem vai ganhar um papel",
-            "random": "Aleatório",
-            "randomHint": "Sortear um novo personagem"
+            "titleFor": "O personagem de {name}",
+            "open": "Abrir o seu personagem",
+            "option": "Usar o personagem {name}",
+            "failed": "não deu para mudar esse personagem — tente de novo",
+            "shuffle": "Embaralhar",
+            "shuffleLabel": "Embaralhar os personagens disponíveis",
+            "caption": "{label} — {vibe}",
+            "firstOpen": "Qualquer pessoa pode mudar o personagem de qualquer outra.",
+            "close": "Fechar os personagens"
         },
         "reactions": {
             "add": "Reagir a isto",
@@ -723,20 +741,58 @@
             "confirmNo": "Deixar",
             "removed": "Registro desfeito. Os saldos foram atualizados.",
             "removeFailed": "Não deu para excluir esse pagamento — tente de novo."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, other {A turma já tem #}}",
+                "body": "Quem está faltando?",
+                "invite": "Enviar o link"
+            },
+            "passport": {
+                "title": "{count, plural, other {# moedas}}",
+                "body": "Uma divisão limpa, em qualquer moeda."
+            },
+            "alterego": {
+                "title": "Seu papel nessa viagem",
+                "body": "Saiu do que você realmente fez."
+            },
+            "wrapped": {
+                "title": "A viagem, resumida",
+                "body": "{count, plural, other {# cartões. Compartilhe os que quiser.}}"
+            },
+            "share": "Compartilhar",
+            "sharing": "Preparando…",
+            "dismiss": "Agora não",
+            "shelfTitle": "Desbloqueado nessa viagem",
+            "copied": "Cartão copiado — cole onde quiser.",
+            "downloaded": "Cartão salvo nos seus downloads.",
+            "shareFailed": "Não conseguimos montar esse cartão. Tente de novo.",
+            "award": {
+                "tripStarter": "Quem começou",
+                "firstMover": "Primeiro a lançar",
+                "ledgerLegend": "Lenda do caderno",
+                "currencyHopper": "Pula-moedas",
+                "theCloser": "Quem fecha",
+                "hypeCrew": "A torcida"
+            },
+            "shareText": {
+                "crew": "A turma, montada.",
+                "passport": "Moedas diferentes, uma divisão limpa.",
+                "alterego": "Esse fui eu nessa viagem.",
+                "stats": "A viagem, em números.",
+                "landing": "Tudo quites, e ninguém precisou cobrar."
+            }
         }
     },
     "push": {
-        "title": "Notificações",
-        "notifyMe": "Me avisar sobre esta sala",
-        "notifyHint": "Quando alguém adiciona um gasto ou acerta as contas.",
-        "enable": "Ativar",
-        "on": "Você vai receber notificações desta sala",
-        "onHint": "Só neste aparelho.",
-        "stop": "Parar de notificar neste aparelho",
-        "iosNeedsPwa": "Adicione o Split à sua tela de início para receber notificações.",
+        "label": "Notificações",
+        "notifyMe": "Me avisar sobre {room}",
+        "on": "Ativadas neste aparelho",
+        "iosNeedsPwa": "Adicione o Split à sua tela de início.",
         "iosHow": "Como?",
-        "denied": "As notificações estão bloqueadas para este site nas configurações do navegador.",
-        "needsToken": "Para ativar, precisamos ter certeza de que é você — entre na sala de novo com o seu nome.",
+        "denied": "Bloqueadas nas configurações do navegador.",
+        "unknown": "Não deu para verificar agora — este aparelho pode continuar recebendo.",
+        "needsToken": "Escolha seu nome de novo para ativar.",
         "failed": "não deu para mudar as notificações — tente de novo"
     },
     "errors": {
@@ -904,5 +960,41 @@
         "peopleMany": "{count} pessoas",
         "emptyRoster": "Ninguém entrou ainda",
         "tagline": "sem cadastro · grátis para sempre"
+    },
+    "shareTarget": {
+        "pick": "Para qual sala é esta conta?",
+        "empty": "Ainda não há salas neste aparelho. Crie uma e compartilhe a foto de novo.",
+        "start": "Criar uma sala",
+        "expired": "Essa foto não chegou. Compartilhe de novo.",
+        "unavailable": "Escanear contas ainda não está ativo.",
+        "open": "Abrir o Split"
+    },
+    "card": {
+        "crew": {
+            "title": "A TURMA",
+            "line": "Um link só, e todo mundo dentro."
+        },
+        "passport": {
+            "title": "PASSAPORTE",
+            "line": "{count} moedas. Uma divisão limpa."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Uma viagem, uma marca própria."
+        },
+        "stats": {
+            "title": "A VIAGEM"
+        },
+        "landing": {
+            "title": "QUITES"
+        },
+        "award": {
+            "tripStarter": "Quem começou",
+            "firstMover": "Primeiro a lançar",
+            "ledgerLegend": "Lenda do caderno",
+            "currencyHopper": "Pula-moedas",
+            "theCloser": "Quem fecha",
+            "hypeCrew": "A torcida"
+        }
     }
 }

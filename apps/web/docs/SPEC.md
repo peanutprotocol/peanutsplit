@@ -93,7 +93,7 @@ in your final report instead.
 ```prisma
 model Room {
   id         String   @id @default(uuid())
-  slug       String   @unique            // e.g. "ski-trip-x7k2m9" — kebab name + 6 rand base32
+  slug       String   @unique            // e.g. "ski-trip-brave-otter-lamp" — kebab name + 3 rand words
   name       String
   emoji      String?                     // room emoji, default 🥜-adjacent fun set
   currency   String                      // display/settle currency, ISO 4217
@@ -207,7 +207,8 @@ suggestedTransfers[] }` — shapes per
 
 Member creation responses include `token` once. Client sends `X-Member-Token` on mutations;
 server uses it for **attribution only** (who added what), never authorization — the slug is the
-credential. Slug: kebab-cased name + `-` + 6 chars of base32 (unambiguous alphabet, crypto random).
+credential. Slug: kebab-cased name + `-` + 3 words from a frozen 1,024-word list (crypto random,
+masked 10-bit draw). 1024³ === 32⁶, so the tail carries the same 30 bits the old base32 one did.
 
 Rate limiting (deploy wave): per-IP token bucket on room/member creation — 20/hour, in-memory.
 

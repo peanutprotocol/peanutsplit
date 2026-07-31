@@ -1,7 +1,7 @@
 {
   "personavampirepenguin": {
     "name": "Vampire Penguin",
-    "vibe": "tiny, dramatic, mostly harmless",
+    "vibe": "avoids mornings on principle",
     "bg": "#F8D8ED",
     "accent": "#C9B8F4",
     "ink": "#50355F",
@@ -24,7 +24,7 @@
   },
   "personacozyghost": {
     "name": "Cozy Ghost",
-    "vibe": "brought the good blanket",
+    "vibe": "leaves without saying goodbye",
     "bg": "#DDE2FF",
     "accent": "#FFDBA6",
     "ink": "#4A4D83",
@@ -37,7 +37,7 @@
   },
   "personawizardfrog": {
     "name": "Wizard Frog",
-    "vibe": "one spell ahead",
+    "vibe": "has a trick for literally everything",
     "bg": "#D6F1D4",
     "accent": "#CDBCF5",
     "ink": "#315E42",
@@ -50,7 +50,7 @@
   },
   "personaastronautavocado": {
     "name": "Astronaut Avocado",
-    "vibe": "waves at every planet",
+    "vibe": "off in another orbit, happily",
     "bg": "#CDEBF8",
     "accent": "#C8EDB5",
     "ink": "#27506B",
@@ -64,7 +64,7 @@
   },
   "personadiscooctopus": {
     "name": "Disco Octopus",
-    "vibe": "has eight good moves",
+    "vibe": "first on the dance floor, everywhere at once",
     "bg": "#F8D2E5",
     "accent": "#BDEBF2",
     "ink": "#713D68",
@@ -73,7 +73,7 @@
   },
   "personateadragon": {
     "name": "Tea Dragon",
-    "vibe": "breathes steam, politely",
+    "vibe": "puts the kettle on for everyone",
     "bg": "#FFE4BB",
     "accent": "#F5B9B3",
     "ink": "#7B4532",
@@ -96,7 +96,7 @@
   },
   "personaskatersnail": {
     "name": "Skater Snail",
-    "vibe": "slow, but with flair",
+    "vibe": "ready in five minutes, since noon",
     "bg": "#D9F2CF",
     "accent": "#F7C5E6",
     "ink": "#365D42",
@@ -109,7 +109,7 @@
   },
   "personamoonbunny": {
     "name": "Moon Bunny",
-    "vibe": "quietly over the moon",
+    "vibe": "says nothing, has the best time",
     "bg": "#E6DEFA",
     "accent": "#F9D3DC",
     "ink": "#514875",
@@ -122,7 +122,7 @@
   },
   "personarockstarberry": {
     "name": "Rockstar Berry",
-    "vibe": "tiny fruit, huge encore",
+    "vibe": "gives every toast an encore",
     "bg": "#F9C9D4",
     "accent": "#C7E8C1",
     "ink": "#7A304A",
@@ -135,7 +135,7 @@
   },
   "personabakermoon": {
     "name": "Baker Moon",
-    "vibe": "proofs dough after dark",
+    "vibe": "feeds the whole house at midnight",
     "bg": "#FFF0B8",
     "accent": "#D6C5F4",
     "ink": "#6D5730",
@@ -145,7 +145,7 @@
   },
   "personapartybee": {
     "name": "Party Bee",
-    "vibe": "arrived with confetti",
+    "vibe": "turns a Tuesday into an occasion",
     "bg": "#FFE69A",
     "accent": "#F6C5E3",
     "ink": "#665020",
@@ -160,7 +160,7 @@
   },
   "personagardenyeti": {
     "name": "Garden Yeti",
-    "vibe": "grows enormous daisies",
+    "vibe": "waters your plants while you are away",
     "bg": "#D5EDC6",
     "accent": "#F9D38D",
     "ink": "#3F6040",
@@ -173,7 +173,7 @@
   },
   "personapancakebear": {
     "name": "Pancake Bear",
-    "vibe": "believes in second breakfast",
+    "vibe": "already knows where everyone is eating",
     "bg": "#FFE0B8",
     "accent": "#C7E8D0",
     "ink": "#714A33",
@@ -186,7 +186,7 @@
   },
   "personapocketrobot": {
     "name": "Pocket Robot",
-    "vibe": "helpful, with one loose screw",
+    "vibe": "has a charger, a plaster, and a backup plan",
     "bg": "#CBE7ED",
     "accent": "#FFD28E",
     "ink": "#315B64",

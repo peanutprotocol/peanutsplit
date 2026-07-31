@@ -4,6 +4,7 @@ import {
     buildExpenseBody,
     emptyExpenseForm,
     expenseToFormValues,
+    hasUnreadableShare,
     remainingMinor,
     repairMisplacedExpenseFields,
     validateExpenseForm,
@@ -190,14 +191,19 @@ describe('staged new payer', () => {
 })
 
 describe('validateExpenseForm / remainingMinor', () => {
-    it('rejects an empty description, a zero amount and an empty participant list', () => {
-        expect(validateExpenseForm(baseForm({ description: '  ' }))).toBe('DESCRIPTION_REQUIRED')
+    it('rejects a zero amount and an empty participant list', () => {
         expect(validateExpenseForm(baseForm({ amountInput: '0' }))).toBe('AMOUNT_REQUIRED')
         expect(validateExpenseForm(baseForm({ amountInput: '' }))).toBe('AMOUNT_REQUIRED')
         // The composer reads top-to-bottom: an entirely fresh form points at
-        // the hero amount before asking for the receipt line beneath it.
+        // the hero amount, which is the only field it still insists on.
         expect(validateExpenseForm(baseForm({ amountInput: '', description: '' }))).toBe('AMOUNT_REQUIRED')
         expect(validateExpenseForm(baseForm({ participantIds: [] }))).toBe('NO_PARTICIPANTS')
+    })
+
+    it('accepts a nameless expense — the row is labelled by its day instead', () => {
+        expect(validateExpenseForm(baseForm({ description: '' }))).toBeNull()
+        expect(validateExpenseForm(baseForm({ description: '  ' }))).toBeNull()
+        expect(buildExpenseBody(baseForm({ description: '  ' })).description).toBe('')
     })
 
     it('holds an EXACT split to the exact total', () => {
@@ -275,6 +281,37 @@ describe('validateExpenseForm / remainingMinor', () => {
         const values = baseForm({ currency, amountInput })
         expect(validateExpenseForm(values, undefined, locale)).toBeNull()
         expect(buildExpenseBody(values, undefined, locale).amountMinor).toBe('4500')
+    })
+})
+
+describe('hasUnreadableShare — what stops the readout going green early', () => {
+    it('is true while a share holds a value the parser cannot read', () => {
+        // A lone decimal mark is typeable on the way to ".50", and `allocatedMinor`
+        // counts it as zero. So the shares below add up to the total and the readout
+        // would have said "every cent allocated" while save refused the sheet.
+        const values = baseForm({
+            splitMode: 'EXACT',
+            exactInputs: { m1: '30.00', m2: '30.00', m3: '.' },
+        })
+        expect(remainingMinor(values, undefined, 'en')).toBe('0')
+        expect(hasUnreadableShare(values, undefined, 'en')).toBe(true)
+        expect(validateExpenseForm(values, undefined, 'en')).toBe('SHARE_AMOUNT_INVALID')
+    })
+
+    it('ignores blank shares, which mean "not in this split" rather than a bad number', () => {
+        const values = baseForm({
+            splitMode: 'EXACT',
+            exactInputs: { m1: '30.00', m2: '30.00', m3: '' },
+        })
+        expect(hasUnreadableShare(values, undefined, 'en')).toBe(false)
+        expect(validateExpenseForm(values, undefined, 'en')).toBeNull()
+    })
+
+    it('reads each share in the currency of the expense', () => {
+        // COP has no cents, so "30,5" is not a share in a COP room.
+        const values = baseForm({ currency: 'COP', splitMode: 'EXACT', exactInputs: { m1: '30,5' } })
+        expect(hasUnreadableShare(values, undefined, 'en')).toBe(true)
+        expect(hasUnreadableShare({ ...values, currency: 'EUR' }, undefined, 'en')).toBe(false)
     })
 })
 

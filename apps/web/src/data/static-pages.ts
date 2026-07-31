@@ -76,6 +76,7 @@ export const STATIC_PAGES: StaticPage[] = [
 const RESERVED_ROOT_SEGMENTS = [
     'new',
     'r',
+    'share-target',
     'blog',
     'api',
     'healthcheck',
@@ -86,6 +87,11 @@ const RESERVED_ROOT_SEGMENTS = [
     'robots.txt',
     'sitemap.xml',
     'manifest.webmanifest',
+    'icon.png',
+    // The locale prefixes: middleware reads them as a language, so a page slugged
+    // `es` would be served at /es and then tagged Spanish.
+    'es',
+    'pt-br',
 ]
 
 /**

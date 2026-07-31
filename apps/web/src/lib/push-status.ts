@@ -10,11 +10,21 @@
  * spends the origin's single ask. See `use-push.ts` for the enforcement side.
  */
 
-export type PushStatus = 'unsupported' | 'ios-needs-pwa' | 'denied' | 'default' | 'subscribed' | 'pending'
+export type PushStatus = 'unsupported' | 'ios-needs-pwa' | 'denied' | 'default' | 'subscribed' | 'unknown' | 'pending'
 
-/** Everything except `pending`, which is a fact about our own in-flight work
- *  rather than about the device, and so is never derived here. */
+/** Everything the row can show once it has stopped waiting on us. */
 export type SettledPushStatus = Exclude<PushStatus, 'pending'>
+
+/**
+ * What this device can be asked about itself.
+ *
+ * `pending` is a fact about our own in-flight work, and `unknown` is the
+ * server's silence — neither is a property of the device, so neither is derived
+ * here. `unknown` exists because the alternative was worse: answering "off" when
+ * the status request failed told the person their notifications were off while
+ * their phone kept buzzing.
+ */
+export type DerivedPushStatus = Exclude<PushStatus, 'pending' | 'unknown'>
 
 export interface PushEnvironment {
     hasNotification: boolean
@@ -28,19 +38,27 @@ export interface PushEnvironment {
     /** Running as an installed app (any platform). */
     isStandalone: boolean
     permission: NotificationPermission
-    /** A live `PushSubscription` for this origin. */
-    hasSubscription: boolean
+    /**
+     * The SERVER's answer for THIS room: a subscription row exists for
+     * (this device's endpoint, this room).
+     *
+     * Deliberately not the browser's `PushSubscription`, which belongs to the
+     * origin and is shared by every room this device has ever turned on. Reading
+     * that instead made room B render "on" because room A had been turned on.
+     */
+    hasRoomSubscription: boolean
 }
 
-export function derivePushStatus(env: PushEnvironment): SettledPushStatus {
+export function derivePushStatus(env: PushEnvironment): DerivedPushStatus {
     if (!env.hasNotification || !env.hasServiceWorker || !env.hasPushManager || !env.hasVapidKey) return 'unsupported'
     // Before the permission check, deliberately: iOS in a browser tab reports
     // permission 'default', which reads as "just ask" and is a trap.
     if (env.isIOS && !env.isStandalone) return 'ios-needs-pwa'
     if (env.permission === 'denied') return 'denied'
-    // 'granted' without a subscription is normal — the browser drops them on
-    // storage pressure, and re-subscribing needs no prompt.
-    if (env.hasSubscription) return 'subscribed'
+    // 'granted' without a row is normal — the browser drops subscriptions on
+    // storage pressure, and this room may simply never have been turned on.
+    // Re-subscribing needs no prompt either way.
+    if (env.hasRoomSubscription) return 'subscribed'
     return 'default'
 }
 

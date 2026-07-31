@@ -15,6 +15,7 @@ import { POST as postRoom } from '@/app/api/rooms/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteSubscription, POST as postSubscription } from '@/app/api/rooms/[slug]/push-subscriptions/route'
+import { POST as postSubscriptionStatus } from '@/app/api/rooms/[slug]/push-subscriptions/status/route'
 import { POST as postOpened } from '@/app/api/push/opened/route'
 import { POST as postDismissed } from '@/app/api/push/dismissed/route'
 import type { RoomStateWithMember } from '@/lib/api-types'
@@ -92,6 +93,22 @@ const subscribe = (fixture: Fixture, member: { id: string; token: string }, endp
             memberToken: member.token,
             ...extra,
         },
+    })
+
+const unsubscribe = (fixture: Fixture, member: { id: string; token: string }, endpoint: string) =>
+    call<{ subscribed: false; endpointStillUsed: boolean }>(deleteSubscription as Handler, {
+        path: `/api/rooms/${fixture.slug}/push-subscriptions`,
+        method: 'DELETE',
+        params: { slug: fixture.slug },
+        body: { endpoint, memberId: member.id, memberToken: member.token },
+    })
+
+const askStatus = (fixture: Fixture, member: { id: string; token: string }, endpoint: string) =>
+    call<{ subscribed: boolean } | { error: { code: string } }>(postSubscriptionStatus as Handler, {
+        path: `/api/rooms/${fixture.slug}/push-subscriptions/status`,
+        method: 'POST',
+        params: { slug: fixture.slug },
+        body: { endpoint, memberId: member.id, memberToken: member.token },
     })
 
 /** Seed a channel without going through the endpoint, for the pipeline tests. */
@@ -215,14 +232,119 @@ describe('subscribe endpoint', () => {
         const fixture = await makeRoom()
         await subscribe(fixture, fixture.owner, FCM('a'))
 
-        const { status } = await call(deleteSubscription as Handler, {
-            path: `/api/rooms/${fixture.slug}/push-subscriptions`,
-            method: 'DELETE',
-            params: { slug: fixture.slug },
-            body: { endpoint: FCM('a'), memberId: fixture.owner.id, memberToken: fixture.owner.token },
-        })
+        const { status } = await unsubscribe(fixture, fixture.owner, FCM('a'))
         expect(status).toBe(200)
         expect(await prisma.pushSubscription.count()).toBe(0)
+    })
+})
+
+describe('unsubscribe endpoint', () => {
+    /** The client revokes the browser subscription on this answer, and that
+     *  endpoint is the whole device's — every other room's row points at it. */
+    it('says the endpoint is still used while another room holds it', async () => {
+        const first = await makeRoom()
+        const second = await makeRoom()
+        await subscribe(first, first.owner, FCM('shared'))
+        await subscribe(second, second.owner, FCM('shared'))
+
+        const { status, body } = await unsubscribe(first, first.owner, FCM('shared'))
+        expect(status).toBe(200)
+        expect(body).toEqual({ subscribed: false, endpointStillUsed: true })
+        // The other room is untouched — this is the bug that took it dark.
+        expect(await prisma.pushSubscription.count({ where: { roomId: second.roomId } })).toBe(1)
+    })
+
+    it('says the endpoint is free once the last room lets go of it', async () => {
+        const fixture = await makeRoom()
+        await subscribe(fixture, fixture.owner, FCM('only'))
+
+        const { body } = await unsubscribe(fixture, fixture.owner, FCM('only'))
+        expect(body).toEqual({ subscribed: false, endpointStillUsed: false })
+        expect(await prisma.pushSubscription.count()).toBe(0)
+    })
+
+    it('is free of an endpoint this room never had, and says so', async () => {
+        const fixture = await makeRoom()
+        const { status, body } = await unsubscribe(fixture, fixture.owner, FCM('never-registered'))
+        expect(status).toBe(200)
+        expect(body).toEqual({ subscribed: false, endpointStillUsed: false })
+    })
+})
+
+describe('status endpoint', () => {
+    it('answers false for a room this endpoint was never registered for', async () => {
+        const first = await makeRoom()
+        const second = await makeRoom()
+        // One device, two rooms, notifications on in the first only. Reading the
+        // browser's own subscription here reported the second room as on too.
+        await subscribe(first, first.owner, FCM('one-device'))
+
+        expect((await askStatus(first, first.owner, FCM('one-device'))).body).toEqual({ subscribed: true })
+        expect((await askStatus(second, second.owner, FCM('one-device'))).body).toEqual({ subscribed: false })
+    })
+
+    it('goes back to false after the channel is dropped', async () => {
+        const fixture = await makeRoom()
+        await subscribe(fixture, fixture.owner, FCM('a'))
+        await unsubscribe(fixture, fixture.owner, FCM('a'))
+
+        expect((await askStatus(fixture, fixture.owner, FCM('a'))).body).toEqual({ subscribed: false })
+    })
+
+    it('refuses a link-holder who cannot produce the member token', async () => {
+        const fixture = await makeRoom()
+        await subscribe(fixture, fixture.owner, FCM('a'))
+
+        const { status, body } = await askStatus(fixture, { id: fixture.owner.id, token: 'not-the-token' }, FCM('a'))
+        expect(status).toBe(403)
+        expect(body).toMatchObject({ error: { code: 'MEMBER_TOKEN_INVALID' } })
+    })
+
+    /**
+     * The oracle all three push paths would otherwise widen: a guessed slug
+     * answers 404 and a real slug with a bad token answers 403, so the two are
+     * distinguishable — as often as the limiter allows. On their own 120/hour
+     * write buckets that is four times the 30/hour the miss limiter exists to
+     * enforce, and a caller could spend one path's budget and then move to the
+     * next. So the misses come out of ONE shared budget, and once it is empty a
+     * real slug has to 429 too — otherwise the rejection itself tells the caller
+     * the room exists.
+     */
+    it('meters a guessed slug on the shared miss budget, not its own', async () => {
+        const fixture = await makeRoom()
+        const missOn = (path: number, slug: string) => {
+            const guessed = { ...fixture, slug }
+            if (path === 0) return askStatus(guessed, fixture.owner, FCM('a'))
+            if (path === 1) return subscribe(guessed, fixture.owner, FCM('a'))
+            return unsubscribe(guessed, fixture.owner, FCM('a'))
+        }
+
+        // Ten misses each: if any path kept its own bucket, the shared budget
+        // would still have twenty tokens left at the end of this loop.
+        for (let i = 0; i < 30; i++) {
+            expect((await missOn(i % 3, `missing-${i}`)).status).toBe(404)
+        }
+        expect((await missOn(0, 'missing-30')).status).toBe(429)
+
+        // Every path now refuses a slug that really exists, at the same point a
+        // guessed one is refused.
+        const { status, body } = await askStatus(fixture, fixture.owner, FCM('a'))
+        expect(status).toBe(429)
+        expect(body).toMatchObject({ error: { code: 'RATE_LIMITED' } })
+        expect((await subscribe(fixture, fixture.owner, FCM('a'))).status).toBe(429)
+        expect((await unsubscribe(fixture, fixture.owner, FCM('a'))).status).toBe(429)
+    })
+
+    /** Turning notifications off is the one thing still worth doing in an
+     *  archived room, and the toggle cannot render without this answer. */
+    it('still answers in an archived room', async () => {
+        const fixture = await makeRoom()
+        await subscribe(fixture, fixture.owner, FCM('a'))
+        await prisma.room.update({ where: { id: fixture.roomId }, data: { archivedAt: new Date() } })
+
+        const { status, body } = await askStatus(fixture, fixture.owner, FCM('a'))
+        expect(status).toBe(200)
+        expect(body).toEqual({ subscribed: true })
     })
 })
 
@@ -485,6 +607,30 @@ describe('expense route wiring', () => {
             template: 'expense_added',
         })
         expect(payload.body).not.toContain('Ana added')
+    })
+
+    it('drops the label rather than naming an unnamed expense after a day', async () => {
+        const fixture = await makeRoom()
+        await seedSubscription(fixture.roomId, fixture.friend.id, FCM('friend-phone'))
+
+        const request = new Request(`${BASE}/api/rooms/${fixture.slug}/expenses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Member-Token': fixture.owner.token },
+            body: JSON.stringify({
+                amountMinor: '4000',
+                currency: 'EUR',
+                paidById: fixture.owner.id,
+                splitMode: 'EQUAL',
+            }),
+        })
+        expect(
+            (await (postExpense as Handler)(request, { params: Promise.resolve({ slug: fixture.slug }) })).status
+        ).toBe(201)
+
+        await waitFor(async () => (await prisma.notificationSend.count()) === 1)
+        const payload = JSON.parse(sendNotification.mock.calls[0][1])
+        // Not "Ana added Today — €40.00", which is not a sentence.
+        expect(payload.body).toBe('Ana added €40.00')
     })
 })
 

@@ -1,4 +1,5 @@
 import { isDoodleName, type DoodleName } from '@/components/ui/doodles'
+import { FALLBACK_DOODLE, roomDoodleFor } from '@/lib/room-doodle'
 
 /** The old sixteen-option room picker, translated at render time. The stored
  * value stays untouched while every visual room surface uses Split's own drawing;
@@ -45,4 +46,48 @@ export function emblemDoodle(value: string | null | undefined): DoodleName | nul
     if (!value) return null
     if (isDoodleName(value)) return value
     return LEGACY_EMBLEM_DOODLES[value] ?? null
+}
+
+/**
+ * The drawing a room actually shows.
+ *
+ * NOTHING STORED MEANS "FOLLOW THE ROOM NAME". That is the reason the name and the drawing are
+ * one control instead of two: the create form has always resolved `emblem ?? roomDoodleFor(name)`
+ * while somebody types, and this is the same rule applied at render, so a room that never picked
+ * a drawing keeps tracking its name after a rename too.
+ *
+ * A value that IS stored but cannot be read — a room whose emoji is not in the legacy table —
+ * stays on the peanut rather than falling through to the name. It is still a pin; we just cannot
+ * draw it, and quietly re-deriving it from the name would change a picture somebody chose.
+ */
+export function roomEmblemDoodle(stored: string | null | undefined, name: string): DoodleName {
+    if (!stored) return roomDoodleFor(name)
+    return emblemDoodle(stored) ?? FALLBACK_DOODLE
+}
+
+/**
+ * What a tap in the drawing picker must store, or `null` when it must store nothing.
+ *
+ * Two things the picker got wrong, both fixed here. It compared the tapped drawing against the
+ * STORED value, so tapping the drawing already on screen was not a no-op: a room following its
+ * name got that name's drawing written in, which froze it. And it only ever wrote a drawing name,
+ * so once a drawing was pinned there was no way back to following the name.
+ *
+ * The rule needs no second control: the drawing the NAME produces is the "follow the name" option,
+ * because picking it is indistinguishable from following — the room shows exactly that drawing
+ * either way. So it is stored as nothing, and a later rename moves the drawing again.
+ *
+ * A write is skipped only when it would change neither the drawing on screen nor whether the room
+ * is pinned — which is what makes tapping what you can already see do nothing at all.
+ */
+export function emblemChoice(
+    tapped: DoodleName,
+    stored: string | null | undefined,
+    name: string
+): { emblem: DoodleName | null } | null {
+    const emblem = tapped === roomDoodleFor(name) ? null : tapped
+    const pinned = Boolean(stored)
+    const pinChanged = (emblem === null) === pinned
+    if (!pinChanged && roomEmblemDoodle(stored, name) === tapped) return null
+    return { emblem }
 }

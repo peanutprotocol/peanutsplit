@@ -12,7 +12,7 @@
  */
 import { ImageResponse } from 'next/og'
 import { BrandCard, OG_CACHE_CONTROL, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/card'
-import { emblemDataUri } from '@/server/og/emblem'
+import { doodleDataUri } from '@/server/og/emblem'
 import { ogFonts } from '@/server/og/fonts'
 import { loadRecap, toRecapCard } from '@/server/og/recapCard'
 import { RecapCard } from '@/server/og/recapCardArt'
@@ -32,7 +32,7 @@ export default async function RecapOgImage({ params }: { params: Promise<{ slug:
     // button is fetching these bytes, and a failed fetch is a dead button.
     const [fonts, recap] = await Promise.all([ogFonts(), loadRecap(slug).catch(() => null)])
     const card = recap ? toRecapCard(recap) : null
-    const emojiSrc = card ? await emblemDataUri(card.emoji) : null
+    const emojiSrc = card ? doodleDataUri(card.emblem) : null
 
     return new ImageResponse(
         card ? (

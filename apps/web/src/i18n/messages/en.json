@@ -30,6 +30,11 @@
             "showMore": "Show {count, plural, one {# more room} other {# more rooms}}",
             "showLess": "Show fewer rooms",
             "forgetLabel": "Forget {room} on this device",
+            "confirmForgetTitle": "Remove {room} from this device?",
+            "confirmForgetBody": "This list is the only place this device keeps the room. Split has no accounts, so you need the room link to get back in. Everyone else keeps the room, its expenses and its balances.",
+            "confirmForget": "Remove from this device",
+            "confirmForgetKeep": "Keep it",
+            "confirmForgetClose": "Close without removing",
             "forgotten": "{room} was removed from this device. The shared room still works for anyone with its link.",
             "forgetFailed": "We could not remove {room} from this device. It is still in this list.",
             "recovery": {
@@ -181,6 +186,12 @@
             "body": "Opens instantly, works like an app. No store, no account.",
             "cta": "Add to home screen",
             "dismiss": "Not now",
+            "row": {
+                "label": "Install Split",
+                "installed": "Already on this device.",
+                "dismissed": "Not added. Open Split again to try.",
+                "unsupported": "This browser doesn’t offer it."
+            },
             "ios": {
                 "title": "Add Split to your home screen",
                 "step1": "Tap the Share button in the Safari toolbar.",
@@ -319,13 +330,13 @@
     },
     "settings": {
         "animations": {
-            "title": "Animations",
-            "description": "Bounces, pops and confetti"
+            "title": "Animations"
         }
     },
     "dates": {
         "today": "Today",
-        "yesterday": "Yesterday"
+        "yesterday": "Yesterday",
+        "justNow": "just now"
     },
     "room": {
         "actions": {
@@ -334,39 +345,41 @@
         },
         "header": {
             "shareRoomLink": "Share room link",
-            "openSettings": "Open room settings",
-            "settingsTitle": "Room settings",
-            "close": "Close room settings",
+            "openSettings": "Open settings",
+            "title": "Settings",
+            "close": "Close settings",
+            "closeSheet": "Close",
             "youAre": "you are {name}",
-            "roomSection": "Room",
-            "roomSectionHint": "The details everyone in this room sees.",
-            "displayName": "Display name",
-            "displayNameHint": "Rename the room without changing its link.",
-            "saveName": "Save name",
+            "switchRoom": "Switch room",
+            "allRooms": "All rooms",
+            "roomName": "Room name",
+            "linkStaysTheSame": "The link stays the same.",
             "nameFailed": "could not rename the room — try again",
-            "roomLink": "Room link",
-            "roomLinkHint": "This address is permanent. Renaming the room will never change it.",
-            "shareTheRoomLink": "Share the room link",
-            "peopleSection": "People",
-            "peopleSectionHint": "Anyone with the link can add people and choose their characters.",
+            "drawing": "Room drawing",
+            "drawingFailed": "could not change the drawing — try again",
+            "people": "People",
+            "addSomeone": "Add someone",
             "personNamePlaceholder": "Person’s name",
-            "addPerson": "Add person",
+            "addPerson": "Add",
             "personDuplicate": "{name} is already in the room.",
             "personFailed": "could not add that person — try again",
-            "deviceSection": "This device",
-            "deviceSectionHint": "Only affects this phone or browser.",
-            "notMe": "Someone else is using this phone?",
-            "feedback": "Feedback",
+            "you": "You",
+            "switchPersonTitle": "Switch person?",
+            "switchPersonBody": "This device stops being {name}, and stops getting this room’s notifications. You’ll pick a name again.",
+            "switchPerson": "Switch",
+            "cancel": "Cancel",
+            "link": "Link",
+            "linkCopied": "Link copied",
+            "copyFailed": "Your browser blocked the copy.",
+            "export": "Export",
+            "exportFormats": "CSV · JSON",
+            "device": "This device",
             "sound": "Sound",
-            "soundHint": "Little ticks, thunks and a bell",
             "haptics": "Haptics",
-            "hapticsHint": "A tap you can feel",
-            "privacyNote": "Free forever, no signup. Room links are unlisted — only people you send it to can open it."
+            "privacyNote": "Free forever, no signup. Anyone with a room’s link can open it."
         },
         "export": {
-            "title": "Take the room with you",
-            "privacyWarning": "The files include everyone’s names and the current money history. Anyone with the room link can export them.",
-            "scopeNote": "This is the room as it stands now. Deleted records stay out, and Split doesn’t add the room link.",
+            "disclosure": "The file has everyone’s names and every expense and payment.",
             "csv": "Download CSV",
             "json": "Download JSON"
         },
@@ -389,7 +402,12 @@
             "getsBack": "gets back",
             "nothingYet": "nothing yet",
             "youOwe": "you owe",
-            "youGetBack": "you get back"
+            "youGetBack": "you get back",
+            "pair": {
+                "owesYou": "{name} owes you",
+                "youOwe": "You owe {name}",
+                "owes": "{debtor} owes {creditor}"
+            }
         },
         "expenses": {
             "title": "Expenses",
@@ -462,8 +480,8 @@
             "amount": "Amount",
             "currency": "Expense currency",
             "foreignHint": "converted at an indicative rate",
-            "description": "What for?",
-            "descriptionPlaceholder": "Dinner, taxi, lift pass…",
+            "description": "What for? (optional)",
+            "descriptionPlaceholder": "Dinner, taxi, lift pass… (optional)",
             "fieldsSwapped": "Got it — amount and description swapped.",
             "amountNormalised": "Read as {amount}. Check it before saving.",
             "paidBy": "Paid by",
@@ -505,7 +523,11 @@
             "add": "Add expense",
             "addWithAmount": "Add {amount} expense",
             "delete": "Delete",
+            "confirmDelete": "Delete this expense? It leaves the room history and every balance changes.",
+            "confirmDeleteYes": "Delete it",
+            "confirmDeleteNo": "Keep it",
             "deletedToast": "“{description}” deleted",
+            "deletedToastUnnamed": "Expense deleted",
             "undo": "Undo",
             "restored": "Put back",
             "restoreFailed": "Could not undo — refresh and try again",
@@ -513,7 +535,6 @@
             "saveFailed": "could not save the expense — try again",
             "deleteFailed": "could not delete the expense",
             "validation": {
-                "DESCRIPTION_REQUIRED": "Give it a name so everyone remembers what it was.",
                 "AMOUNT_REQUIRED": "Enter an amount greater than zero.",
                 "AMOUNT_INVALID": "Check the separators and decimal places in the amount.",
                 "PAYER_REQUIRED": "Pick who paid.",
@@ -579,7 +600,7 @@
             "copied": "Copied!",
             "share": "Share",
             "shared": "Share package sent.",
-            "shareFailed": "The share sheet did not open. Copy or download the invite instead.",
+            "shareFailed": "The share sheet did not open. Copy the invite instead.",
             "anyoneCanJoin": "Anyone with this link can join and add expenses.",
             "shareTitle": "{room} · Peanut Split",
             "shareText": "Open the link, pick your name, then add what you paid."
@@ -658,7 +679,6 @@
         },
         "theme": {
             "title": "Theme",
-            "hint": "Everyone in the room sees it, and so does the link preview.",
             "pick": "Use the {name} theme",
             "failed": "could not change the theme — try again",
             "names": {
@@ -673,17 +693,15 @@
             }
         },
         "avatar": {
-            "title": "Alter egos",
-            "titleFor": "{name}'s alter ego",
-            "hint": "Anyone in this room can recast anyone. Keep it playful.",
-            "open": "Open the cast of characters",
-            "option": "Use the {name} avatar",
-            "failed": "could not change that alter ego — try again",
-            "castTitle": "Cast of characters",
-            "castHint": "Pick a friend, then give them a role. They can always return the favor.",
-            "chooseMember": "Choose who to cast",
-            "random": "Random",
-            "randomHint": "Roll a new character"
+            "titleFor": "{name}’s character",
+            "open": "Open your character",
+            "option": "Use the {name} character",
+            "failed": "could not change that character — try again",
+            "shuffle": "Shuffle",
+            "shuffleLabel": "Shuffle the characters on offer",
+            "caption": "{label} — {vibe}",
+            "firstOpen": "Anyone can change anyone’s character.",
+            "close": "Close characters"
         },
         "reactions": {
             "add": "React to this",
@@ -723,20 +741,58 @@
             "confirmNo": "Keep it",
             "removed": "Payment record undone. Room balances updated.",
             "removeFailed": "Could not remove that payment — try again."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, other {The crew is # strong}}",
+                "body": "Who's missing?",
+                "invite": "Send the link"
+            },
+            "passport": {
+                "title": "{count, plural, other {# currencies}}",
+                "body": "One clean split, whatever we paid in."
+            },
+            "alterego": {
+                "title": "Your role this trip",
+                "body": "Picked from what you actually did."
+            },
+            "wrapped": {
+                "title": "The trip, wrapped",
+                "body": "{count, plural, other {# cards. Share the ones you like.}}"
+            },
+            "share": "Share",
+            "sharing": "Getting it ready…",
+            "dismiss": "Not now",
+            "shelfTitle": "Unlocked on this trip",
+            "copied": "Card copied — paste it anywhere.",
+            "downloaded": "Card saved to your downloads.",
+            "shareFailed": "We could not build that card. Try again.",
+            "award": {
+                "tripStarter": "Trip Starter",
+                "firstMover": "First Mover",
+                "ledgerLegend": "Ledger Legend",
+                "currencyHopper": "Currency Hopper",
+                "theCloser": "The Closer",
+                "hypeCrew": "Hype Crew"
+            },
+            "shareText": {
+                "crew": "Our split crew, assembled.",
+                "passport": "Different currencies, one clean split.",
+                "alterego": "This is who I was on this trip.",
+                "stats": "The trip, in numbers.",
+                "landing": "All square, and nobody had to chase anybody."
+            }
         }
     },
     "push": {
-        "title": "Notifications",
-        "notifyMe": "Notify me about this room",
-        "notifyHint": "When someone adds an expense or settles up.",
-        "enable": "Turn on",
-        "on": "You’ll get notifications for this room",
-        "onHint": "On this device only.",
-        "stop": "Stop notifying this device",
-        "iosNeedsPwa": "Add Split to your home screen to get notifications.",
+        "label": "Notifications",
+        "notifyMe": "Notify me about {room}",
+        "on": "On, this device",
+        "iosNeedsPwa": "Add Split to your home screen.",
         "iosHow": "How?",
-        "denied": "Notifications are blocked for this site in your browser settings.",
-        "needsToken": "Turning these on needs proof it is really you — rejoin the room with your own name first.",
+        "denied": "Blocked in your browser settings.",
+        "unknown": "Couldn’t check just now — this device may still be getting them.",
+        "needsToken": "Pick your name again to turn this on.",
         "failed": "could not change notifications — try again"
     },
     "errors": {
@@ -904,5 +960,41 @@
         "peopleMany": "{count} people",
         "emptyRoster": "Nobody has joined yet",
         "tagline": "no signup · free forever"
+    },
+    "shareTarget": {
+        "pick": "Which room is this bill for?",
+        "empty": "No rooms on this device yet. Start one, then share the photo again.",
+        "start": "Start a room",
+        "expired": "That photo didn’t make it. Share it again.",
+        "unavailable": "Scanning bills isn’t on yet.",
+        "open": "Open Split"
+    },
+    "card": {
+        "crew": {
+            "title": "CREW",
+            "line": "One link, everybody in."
+        },
+        "passport": {
+            "title": "PASSPORT",
+            "line": "{count} currencies. One clean split."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "One trip, one signature move."
+        },
+        "stats": {
+            "title": "OUR TRIP"
+        },
+        "landing": {
+            "title": "ALL SQUARE"
+        },
+        "award": {
+            "tripStarter": "Trip Starter",
+            "firstMover": "First Mover",
+            "ledgerLegend": "Ledger Legend",
+            "currencyHopper": "Currency Hopper",
+            "theCloser": "The Closer",
+            "hypeCrew": "Hype Crew"
+        }
     }
 }

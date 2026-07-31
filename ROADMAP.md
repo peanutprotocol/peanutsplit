@@ -5,7 +5,7 @@ Product status/milestones/decision log stay in the Notion project (linked from
 `mono/projects/peanut-split/`); this file is what's built, building, queued, and
 deliberately not built — with enough context to pick any item up cold.
 
-Owner of record for each open item is in brackets. Last full update: 2026-07-29.
+Owner of record for each open item is in brackets. Last full update: 2026-07-30.
 
 ## V1 hold — receipt scanning
 
@@ -166,6 +166,40 @@ still outstanding** and is the remaining half of the written condition.
   link to re-add it, manageable recent rooms), one reduced-motion policy,
   release-state vocabulary in `docs/release-states.md`.
 
+## App icon — shipped 2026-07-30
+
+**This work is finished. Nothing about the icon is open.**
+
+Split used to run the Peanut mascot on brand yellow, inside a white disc, inside
+a bordered rounded square. The mascot's own colour was 4.0% of the 512px file, so
+it was a smudge at launcher size and gone at 16px — and it was Peanut's mark, on
+a home screen that holds both apps.
+
+Konrad drew the replacement: a thumbs-up on a black-ringed pink disc
+(`primary-1` `#FF90E8`). Shipped with it:
+
+- `apps/web/src/assets/logos/split-mark.svg` — the artwork. Two ids the
+  generator depends on: `ground` (the disc) and `mark` (the thumb).
+- `apps/web/scripts/generate-icons.mjs` (`pnpm icons`) draws it two ways.
+  **disc** — the mark as designed, ring against the frame, transparent outside —
+  for everything that takes a transparent PNG: launcher, install prompt, tab.
+  **flat** — disc dropped, its pink filling the tile, thumb inside the safe zone
+  — for everything a platform masks into a square: Android maskable, iOS
+  apple-touch. A mask eats an edge ring first, which is why those two differ.
+- `src/app/favicon.ico`, which never existed. Disc at 32 and 48, flat at 16,
+  every size rendered rather than downscaled. The old `src/app/icon.png` was a
+  byte copy of the 192 launcher icon; it now has its own art.
+
+Two decisions, both Konrad's, both closed:
+
+- **The theme colour stays Peanut yellow** (`#FFC900` in `manifest.ts` and in
+  `layout.tsx`'s viewport). The icon carries the distinction from Peanut on its
+  own. Do not follow the icon to pink.
+- The five drawn peanut candidates that preceded the logo are deleted. They were
+  exploration, and the logo answered the question.
+
+Gate at `a6c5479`: typecheck clean, prettier clean, 1118/1118 tests pass.
+
 ## To light up (remaining gates)
 
 Done 2026-07-28 and verified live: the `split-egress` squid pinhole (allowed
@@ -209,10 +243,27 @@ reactions/theme, one balance fold instead of two, one fake-expense
 constructor, one rate limiter, the voseo→tuteo sweep, the i18n-audit
 object-form blind spot, and a scroll-padding a11y fix. 690 tests.
 
-**Queued next (wave 3.5): PWA deepening** — permanent install row in settings,
-manifest `share_target` (share a receipt photo from the OS share sheet straight
-into the scan flow), manifest shortcuts, apple-touch-icon + iOS splash, app
-badge wiring.
+**Wave 3.5 (PWA deepening) — shipped 2026-07-30**, except the real-device
+passes below. The installed app is called Split rather than the repo's name;
+the launcher carries shortcuts; the install row lives permanently in settings
+with one owner for the `beforeinstallprompt` event and five honest states; an
+app badge is raised when a push arrives for a device that was away; and the
+manifest `share_target` hands a receipt photo from the OS share sheet into a
+room. The share target is behind `NEXT_PUBLIC_SPLIT_V2_ENABLED`, because the
+scan flow it feeds is the held v1 feature above.
+
+Still open, and NOT closed by any automated check:
+
+- **Real-device install pass** [Konrad] — the install row, the shortcuts, the
+  iOS Safari sheet and the splash have been driven headless only. Chromium's
+  `beforeinstallprompt` and iOS's absence of it are exactly what a headless run
+  cannot tell you apart.
+- **Real-device share-target pass** [Konrad] — an OS share sheet handing a photo
+  to an installed PWA cannot be exercised from Playwright at all.
+- **Push exercise** — unchanged, see "To light up" above.
+- A share abandoned at the room picker keeps the photo up to 10 minutes, until
+  the TTL sweep collects it. Bounded and in memory, but it is a receipt image
+  living longer than the interaction that produced it.
 
 ## Achievement and shareable moments (proposed 2026-07-29)
 
@@ -273,9 +324,28 @@ social safety:
     moment once another person joins their first locally remembered room. Cheap,
     but less expressive than the group achievements above.
 
-Recommended first package: **`WRAPPED + CREW + ALTER-EGO + PASSPORT`**. Build
-these on one reusable achievement-card system, then add the remaining moments
-only when share telemetry demonstrates demand.
+Recommended first package: **`WRAPPED + CREW + ALTER-EGO + PASSPORT`** —
+**shipped 2026-07-30.** Six cards come off one frame behind a single metered
+route (`/r/<slug>/card/<kind>`), achievements are read from what the room
+already holds rather than from a new table, and every unlock has the three
+surfaces above: the in-room moment, the recap shelf, and a PNG handed to the
+share sheet. The remaining moments (`RESCUED`, `TAMED`, `CLEAN-LANDING`,
+`GROUP-LORE`, `UP-TO-DATE`, `FIRST-SPLIT`) stay queued behind share telemetry,
+as planned.
+
+Known items carried out of that wave:
+
+- On a settled recap the deck and the shelf both drew PASSPORT and ALTER EGO.
+  Fixed 2026-07-30 by standing the shelf down on whatever the deck draws — a
+  reversible product judgment, see `shelfKinds` in `achievements-contract.ts`.
+- `/r/<slug>/opengraph-image` has a pre-existing 80-character name overflow.
+  It predates this wave and is NOT a card-route bug, but the fix has a
+  seven-consumer blast radius (every OG surface shares the name-fitting path),
+  so it wants its own pass rather than a patch inside this one. [Konrad]
+- `ART_BY_KIND` reads like a dispatch table and is not one — the route picks
+  art by kind directly. It is live as a completeness check (a seventh kind
+  fails the card test through it) and dead as a dispatcher. Leave it or rename
+  it; do not "wire it up".
 
 The current file-share path is privacy-safe but not clickable. A later
 **`CAPSULE`** phase can mint an optional, revocable, immutable and read-only
@@ -314,39 +384,23 @@ Remaining candidates, ordered by expected value per effort:
 6. **Verified settle receipts** — reopens the 2026-07-27 decision (Peanut emits
    no signed charge webhook; polling public `GET /charges/:id` is the cheapest
    route). Revisit only if day-30 shows conversion is what's broken.
-7. **Cute slugs** (Konrad, 2026-07-28) — `roomSlug()` currently appends six
-   Crockford base32 characters, so a room reads `ski-trip-x7k2m9`. The link is
-   the thing people paste into a group chat and read aloud in a bar; it should
-   look like a place, not a hash: `ski-trip-brave-otter-lamp`.
+7. ~~**Cute slugs**~~ — shipped 2026-07-30: a room now reads
+   `ski-trip-brave-otter-lamp`. Three words from a frozen 1,024-word list, an
+   exact swap for the six Crockford base32 characters because 32⁶ and 1024³ are
+   the same number. Rooms minted before it keep their tails; nothing reads the
+   tail's shape. The word list and how it was screened live in
+   `apps/web/src/server/slugWords.ts`.
 
-   **The constraint that decides the design: the slug IS the credential.** It is
-   the room's only access control, it is redacted from telemetry (`lib/redact.ts`)
-   and it is deliberately kept out of the shared recap URL. So cuteness must cost
-   zero entropy, and the arithmetic is unusually kind here — 32⁶ and 1024³ are
-   the _same number_ (1,073,741,824). **Three words from a frozen 1,024-word list
-   is an exact swap for the current tail**, no security argument needed beyond
-   pointing at that identity. Two words is not: even a 4,096-word list gives
-   16.8M, a 64× weakening of a credential that sits in URLs and chat logs.
+   The preview caught up 2026-07-30: the hero, the pass-the-link stage and the
+   proof rail all read one `SLUG_TAIL_HINT` constant and show three dashed runs,
+   checked at 375px against a production build.
 
-   It is also an upgrade on the property `slug.ts` already cares about. The
-   comment says Crockford base32 was chosen so the tail is "unambiguous when read
-   aloud or typed from a screenshot" — words dodge the i/l/o/u problem entirely
-   rather than routing around it.
-
-   What the work actually is: curate and freeze the list (concrete, picturable
-   nouns and adjectives; no profanity, no unfortunate adjacent pairs, and screened
-   against es-419 and pt-BR now that the product is trilingual), then swap
-   `randomTail()`. Keep the crypto RNG and the modulo-free selection — 1,024 is a
-   power of two, so a masked 10-bit draw stays uniform exactly as the byte mask
-   does today.
-
-   Cheap, and self-contained: `apps/web/src/server/slug.ts` is the only place
-   slugs are minted (callers: `server/rooms.ts`, `server/splitwiseImport.ts`).
-   No migration — existing rooms keep the slugs they were issued, since this
-   changes minting and not resolution. The main real cost is length: the URL
-   grows by roughly ten characters, which matters most on the OG unfurl and in a
-   QR code, and not at all in a pasted link. Pairs naturally with item 3 (room
-   themes) — both are "the room feels like a place" work.
+   Left open, found in review: the settings link row now ellipsises. Its
+   `truncate` is load-bearing — `SettingRow.tsx` documents the overflow it fixed
+   — so the row hides the end of the tail, which is the part that identifies the
+   room. Copy and share are unaffected, and `LinkMoment` still shows the whole
+   link because it wraps with `break-all`. Truncating from the middle would show
+   both ends; that is a design call, not a bug fix.
 
 ## Design roadmap (opened 2026-07-28)
 
@@ -452,7 +506,10 @@ mockup or pushing the real creation form out of reach.
 
 2. **Run every UI icon through the doodle engine.** — _status: engine
    consolidated and source audit added on `feat/landing-follow-up` 2026-07-29;
-   final real-device route sweep pending_ — **[Konrad]** Inventory the whole
+   audit widened to all of `src` and every route swept in a browser at 375×667
+   and 1280×800 on `feat/landing-sweep` 2026-07-30 — no stray icon found. Two
+   items stay open: the 44px tap floor (below) and the real-device pass_ —
+   **[Konrad]** Inventory the whole
    product, not only the landing page. Replace
    remaining library icons, emoji used as controls, hand-authored one-off SVGs,
    Unicode arrows/checks, and other interface glyphs with named drawings from
@@ -469,6 +526,15 @@ mockup or pushing the real creation form out of reach.
    is no second icon system left for new code to copy; tap targets remain at
    least 44px even when the drawing is visually smaller; a source-level audit
    catches new emoji, raw icon SVGs, or legacy icon-component imports.
+
+   **Open — the 44px tap floor.** Six drawn controls measure under it: the
+   reaction opener (28px) and each reaction option (32px) in `ReactionBar`, the
+   copy-invite button (36px) in `ShareDrawer`, the character opener (20px tall)
+   in `RoomHeader`, and the two full-width rows that are 20px and 33px tall. The
+   obvious fix — an invisible hit area around each drawing — makes adjacent
+   reaction targets overlap, so the wrong reaction gets picked. Growing the
+   drawn control instead changes the density of the expense list. Konrad picks
+   which trade the reaction row takes; the other four are safe to grow.
 
 3. **Rewrite “How the link works” and make “free forever” consistent.** —
    _status: implemented with an enforceable copy audit on
@@ -497,7 +563,11 @@ mockup or pushing the real creation form out of reach.
 
 4. **Give the landing page the app's motion, sound, and haptic vocabulary.** —
    _status: first motion map and implementation complete on
-   `feat/landing-follow-up` 2026-07-29; peanut.me comparison and real-device feel
+   `feat/landing-follow-up` 2026-07-29; every automated contract re-verified
+   against a production build on `feat/landing-sweep` 2026-07-30 — quiet on
+   passive scroll, sound only after a gesture, complete final frame in both
+   reduced-motion paths, no overflow, CTA in the fold at 375×667 and 390×844.
+   peanut.me comparison and real-device feel
    pass pending_ — **[Konrad]** Start with a motion map rather than sprinkling
    unrelated loops over the page. Choreograph the room-link handoff, people
    joining, channel doodles arriving, proof scenes entering the viewport,
@@ -535,16 +605,14 @@ manual-copy textarea fallback. `SHARE_PACKAGE_METHODS` shrank to
 `native | clipboard`; the five `room.link.download*` keys left all three
 locales.
 
-**Queued (finish the visual, don't resurrect the download):** [Konrad]
+**Shipped 2026-07-30 (the rest of it):** the SVG share path is deleted rather
+than kept alongside — the invite now goes out as a PNG off the same card route
+the achievements use, through the one share chain. The geometry gate came back
+in an equivalent form, reading the card route's own output instead of an
+intercepted download.
 
-- The room-card SVG (`roomShareVisual`) still rides along in native share as an
-  attached file where `canShare` accepts it. If the card should survive as a
-  visual, render it to PNG (offscreen canvas) so messengers accept it, and
-  re-add the e2e geometry test that was deleted with the download path
-  (title-vs-doodle clearance; it lived in `e2e/landing.spec.ts`, use the share
-  payload file instead of a download to capture the markup).
-- Decide whether `share_completed` needs a `card` method once the PNG path
-  exists.
+Still open: decide whether `share_completed` needs a `card` method now that the
+PNG path exists. [Konrad]
 
 **Queued — semi-done feature audit, remaining surfaces:** [Konrad]
 A 2026-07-29 Playwright walk covered landing, room view, and the share drawer
@@ -587,13 +655,31 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   before any multi-currency settlement work.
 - In-memory rate limiter shares one bucket for header-less clients ('unknown'
   key) — unreachable behind Traefik, but wrong if the proxy ever changes.
-- `/favicon.ico` 404s (browsers probe it regardless of the manifest icons) —
-  drop a real .ico in `public/`.
 - SSE fan-out and the per-room scan quota are per-container (in-memory); a
   second replica halves poke delivery and doubles the quota. Single-replica by
   assumption; the fix is Postgres LISTEN/NOTIFY + a shared store, not caps.
 - `useDeleteSettlement` (lib/queries.ts) is an exported mutation hook with no
   caller (pre-dates wave 3).
+- **The content stylebook describes more gates than it has.** Found in review
+  2026-07-30. `content.test.ts` really does enforce the counting rules and about
+  six of §11.1's ~40 never-strings — a page saying `unlimited`, `fewest
+transfers` or `live exchange rate` fails. The rest do not exist: a page can
+  ship `truly seamless`, `world-class`, `split bills not friendships`, `any
+currency`, `150+` or any es/pt-BR never-string and pass clean, and the
+  em-dash cap, the co-presentation rule and the banned-concession-title rule
+  are unenforced (the Tricount page carries 6 em-dashes against a cap of 3).
+  Worse, `content.ts`'s `Frontmatter` has no `type`, `claims`, `cast` or
+  `competitorClaims`, and `parseDoc` builds from an explicit key list — so
+  those keys are silently DISCARDED and every §11.2/§11.3 rule keyed on them
+  is unrunnable. Either implement them or mark those rows human-review-only; a
+  rulebook that names a gate it does not have stops the next reviewer looking.
+  The `_system/stylebook.md` header also links six files that do not exist in
+  this repo, including the `intent-queries` list §6.15 says every FAQ question
+  must come from — so no FAQ on the new pages is checked against anything.
+- The competitor-claims register calls itself exhaustive but is missing a row
+  for the `"tricount does the math for you"` quote the comparison page uses.
+  The quote is verbatim (confirmed on tricount.com 2026-07-30); the register
+  is what is incomplete.
 - `equalSplitMinor` (lib/money.ts) and `equalShares` (server/split.ts) are
   documented as "the same rule" with nothing pinning them — a two-line
   agreement test would close it.

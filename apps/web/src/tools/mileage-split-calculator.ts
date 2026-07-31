@@ -1,4 +1,4 @@
-import { allocateByWeights, formatFigure } from './allocate'
+import { allocateByWeights, formatFigure, MAX_SAFE_MINOR } from './allocate'
 import { MILEAGE_RATES, MILEAGE_RATES_RETRIEVED, MILEAGE_RATES_VERSION, mileageRate } from './mileage-rates'
 import type { Tool, ToolChoiceOption, ToolInput, ToolOutcome, ToolWorking } from './types'
 
@@ -92,7 +92,8 @@ function computeMileageSplit({ values, toggles, choices, rows, decimals }: ToolI
     // a real amount.
     const cost = Math.round(distance * rate * 10 ** decimals)
     // Past this the doubles stop counting whole cents, and a wrong number is worse than no number.
-    if (!Number.isSafeInteger(cost)) return { ...empty, problem: 'That is a longer drive than this page divides.' }
+    if (!Number.isSafeInteger(cost) || cost > MAX_SAFE_MINOR)
+        return { ...empty, problem: 'That is a longer drive than this page divides.' }
 
     const driverToo = toggles.driverShares === true
 

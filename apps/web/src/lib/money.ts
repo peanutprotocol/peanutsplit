@@ -145,6 +145,43 @@ export function parseAmountToMinor(input: string, decimals: number, locale?: str
     return (next >= 5 ? minor + 1n : minor).toString()
 }
 
+/**
+ * How many digits a half-typed amount may still be waiting for. Three is the
+ * grouping width, and grouping is what needs the most: `1,234,` is only ever on
+ * the way to `1,234,000`, and until the last of those three digits arrives no
+ * completion of it parses. Every fraction in the catalog is shorter than that.
+ */
+const TYPEABLE_COMPLETIONS = ['', '0', '00', '000'] as const
+
+/**
+ * May an amount field hold this text WHILE it is being typed?
+ *
+ * `parseAmountToMinor` answers a different question — "is this an amount" — and
+ * a field that only accepted its answers could never be typed into: "" and "12."
+ * are both on the way to an amount without being one. So this asks whether the
+ * text is a PREFIX of one: the same parser, run on the text as typed and then on
+ * the text plus up to three digits, lets the keystroke through as soon as any of
+ * those readings works. Nothing else decides: whatever no completion can rescue
+ * (letters, a minus sign, more fraction digits than the currency has, a second
+ * decimal mark, punctuation the parser will not guess at) is refused here too,
+ * at the keystroke rather than as a validation error three fields later.
+ *
+ * Asking the parser only about the text and one trailing zero is what made
+ * `1,234,567` impossible to type: `1,234,` and `1,234,5` are both mid-group, so
+ * both readings failed and the field froze on the keystroke after `1,234`.
+ *
+ * An empty field is accepted — a share can be cleared, and blank means "not in
+ * this split". Whitespace alone is not: it is on the way to nothing, and a field
+ * holding it would read as filled while the parser sees no amount in it.
+ */
+export function isAmountInputAcceptable(input: string, decimals: number, locale?: string): boolean {
+    if (input.length === 0) return true
+    if (input.trim().length === 0) return false
+    return TYPEABLE_COMPLETIONS.some(
+        (completion) => parseAmountToMinor(`${input}${completion}`, decimals, locale) !== null
+    )
+}
+
 /** "1234" → "12.34". No symbol, no grouping — this is what goes back into an input. */
 export function formatMinorPlain(minor: string, decimals: number): string {
     const value = BigInt(minor)

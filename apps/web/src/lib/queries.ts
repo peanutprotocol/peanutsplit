@@ -559,6 +559,40 @@ export function useSetTheme(slug: string) {
 }
 
 /**
+ * The room's drawing, painted on the tap.
+ *
+ * Optimistic for the theme's reason and one more: the drawing sits beside the
+ * name in a single control, and a tile that lags the tap by a round trip reads
+ * as a picker that did not register the pick.
+ *
+ * The cache is the only thing this updates. `ps:recent` — what the room switcher
+ * draws its tiles from — is refreshed by `RoomScreen`, which re-remembers the
+ * room whenever the room state changes; that is the same path a rename and a
+ * repaint already take, so there is no second write to keep in agreement here.
+ */
+export function useSetEmblem(slug: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (emoji: string | null) => api.setEmblem(slug, emoji),
+        onMutate: async (emoji) => {
+            await queryClient.cancelQueries({ queryKey: roomKey(slug) })
+            const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
+            if (previous) {
+                queryClient.setQueryData<RoomState>(roomKey(slug), {
+                    ...previous,
+                    room: { ...previous.room, emoji },
+                })
+            }
+            return { previous }
+        },
+        onError: (_error, _emoji, context) => {
+            if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
+        },
+        onSuccess: (state) => seed(queryClient, slug, state),
+    })
+}
+
+/**
  * One member's alter ego, painted on the tap.
  *
  * Optimistic for the same reason the theme is: the grid is something a group

@@ -1,46 +1,55 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
-import { BTN_MEDIUM } from '@/components/ui/control'
-import { cn } from '@/lib/cn'
+import { SettingToggle } from '@/components/ui/SettingToggle'
+import { StateRow } from '@/components/ui/StateRow'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import type { SettledPushStatus } from '@/lib/push-status'
+import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
 import { usePush } from '@/lib/use-push'
 import { IosInstallSteps } from './IosInstallSteps'
 
 interface PushOptInProps {
     slug: string
+    /** Named in the label, because the switch is per room and the sheet is not. */
+    roomName: string
     identity: MemberIdentity | null
+    /** A tokenless identity can only be repaired by picking a name again. */
+    onSwitchPerson: () => void
 }
 
 /**
- * Notification opt-in, as one row in the room's settings drawer.
+ * Notifications for THIS room, as one toggle row inside the room card.
  *
- * Opt-in per room AND per device, which is what the shape of the backend
- * already says: a subscription row is (room, endpoint, member). Nothing here
- * ever asks on its own — the row sits in a drawer somebody deliberately opened.
+ * Opt-in per room AND per device, which is what the shape of the backend already
+ * says: a subscription row is (room, endpoint, member). Nothing here ever asks on
+ * its own — the row sits in a sheet somebody deliberately opened.
  *
- * Every state below is a state the device can actually be in, and each renders
- * exactly what can be done about it, which is sometimes nothing.
+ * At most one line ever renders under the toggle, and in the three states the
+ * toggle cannot honestly work — iOS in a tab, an origin-level block, and a check
+ * that could not reach the server — that line REPLACES it, inside a labelled row.
+ * A live switch that does nothing, or that claims a position nobody verified, is
+ * worse than no switch.
  */
-export function PushOptIn({ slug, identity }: PushOptInProps) {
+export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptInProps) {
     const t = useTranslations('push')
     const tInstall = useTranslations('marketing.install')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
-    const { status, error, subscribe, unsubscribe } = usePush()
+    const { status, error, subscribe, unsubscribe } = usePush(slug)
     const [iosSheetOpen, setIosSheetOpen] = useState(false)
     /**
      * The last settled status, so a subscribe in flight (which reports
      * 'pending') does not make the row someone just tapped disappear from under
-     * their finger. `busy` drives the button instead.
+     * their finger. `busy` drives the disabled state instead.
      */
     const [displayed, setDisplayed] = useState<SettledPushStatus | null>(null)
     const reported = useRef(false)
@@ -57,6 +66,15 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
         track('push_optin_shown', roomProps(slug, { status: displayed }))
     }, [displayed, slug])
 
+    /**
+     * A failure is a toast, not a reserved line. The row promises at most one
+     * state sentence, and an error is not one of the four states it describes.
+     */
+    useEffect(() => {
+        if (error === null) return
+        toast.error(errorMessage(error, t('failed')), { duration: TOAST_MS.actionable })
+    }, [error, errorMessage, t])
+
     const busy = status === 'pending'
 
     // A browser with no push at all gets no row, no explanation and no apology.
@@ -64,8 +82,8 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
 
     if (displayed === 'ios-needs-pwa') {
         return (
-            <Section title={t('title')}>
-                <p className="text-sm text-grey-1">{t('iosNeedsPwa')}</p>
+            <div className="flex flex-col gap-2">
+                <StateRow label={t('label')} line={t('iosNeedsPwa')} />
                 <button
                     type="button"
                     onClick={() => setIosSheetOpen(true)}
@@ -93,20 +111,20 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
                         </DrawerBody>
                     </DrawerContent>
                 </Drawer>
-            </Section>
+            </div>
         )
     }
 
-    // No button: an origin-level block can only be lifted in browser settings,
+    // No toggle: an origin-level block can only be lifted in browser settings,
     // and requestPermission() from here would resolve 'denied' without showing
-    // anything. A line of text is the entire honest answer.
-    if (displayed === 'denied') {
-        return (
-            <Section title={t('title')}>
-                <p className="text-sm text-grey-1">{t('denied')}</p>
-            </Section>
-        )
-    }
+    // anything. A labelled line is the entire honest answer.
+    if (displayed === 'denied') return <StateRow label={t('label')} line={t('denied')} />
+
+    // No toggle either: the per-room row lives on the server and the check for it
+    // did not come back. A switch has to sit somewhere, and both positions would
+    // be a claim — "off" is the one that contradicts a phone that is still
+    // buzzing. Say what happened; the next sheet open asks again.
+    if (displayed === 'unknown') return <StateRow label={t('label')} line={t('unknown')} />
 
     /**
      * Legacy tokenless identities can still read the room, but the push endpoint
@@ -115,10 +133,15 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
      * for old localStorage records and unavailable storage.
      */
     const provenIdentity = identity?.token ? identity : null
+    const subscribed = displayed === 'subscribed'
 
-    const enable = async () => {
+    const toggle = async (next: boolean) => {
         if (!provenIdentity?.token) return
-        const outcome = await subscribe(slug, provenIdentity.memberId, provenIdentity.token)
+        if (!next) {
+            await unsubscribe(provenIdentity.memberId, provenIdentity.token)
+            return
+        }
+        const outcome = await subscribe(provenIdentity.memberId, provenIdentity.token)
         if (outcome === 'subscribed') {
             feedback('pop')
             track('push_optin_accepted', roomProps(slug))
@@ -127,48 +150,22 @@ export function PushOptIn({ slug, identity }: PushOptInProps) {
         }
     }
 
-    const disable = async () => {
-        if (!provenIdentity?.token) return
-        await unsubscribe(slug, provenIdentity.memberId, provenIdentity.token)
-    }
-
-    const subscribed = displayed === 'subscribed'
-
-    return (
-        <Section title={t('title')}>
-            <div className="flex items-center gap-3 rounded-sm border border-n-1 bg-white p-3">
-                <span className="min-w-0 flex-1">
-                    <span className="block text-h8">{subscribed ? t('on') : t('notifyMe')}</span>
-                    <span className="block text-sm text-grey-1">{subscribed ? t('onHint') : t('notifyHint')}</span>
-                </span>
-                <Button
-                    variant={subscribed ? 'transparent' : 'stroke'}
-                    size="medium"
-                    className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center whitespace-nowrap')}
-                    disabled={!provenIdentity || busy}
-                    loading={busy}
-                    onClick={subscribed ? disable : enable}
-                    data-testid={subscribed ? 'push-disable' : 'push-enable'}
-                >
-                    {subscribed ? t('stop') : t('enable')}
-                </Button>
-            </div>
-            {!provenIdentity && <p className="text-sm text-grey-1">{t('needsToken')}</p>}
-            {error !== null && (
-                <p role="alert" className="text-sm font-bold text-error">
-                    {errorMessage(error, t('failed'))}
-                </p>
-            )}
-        </Section>
-    )
-}
-
-/** The settings drawer's group shape: a small uppercase label over its rows. */
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <div className="flex flex-col gap-2">
-            <span className="text-h8 uppercase tracking-wide text-grey-1">{title}</span>
-            {children}
+            <SettingToggle
+                label={t('notifyMe', { room: roomName })}
+                testId={subscribed ? 'push-disable' : 'push-enable'}
+                checked={subscribed}
+                disabled={!provenIdentity || busy}
+                onChange={(next) => void toggle(next)}
+            />
+            {provenIdentity ? (
+                subscribed && <p className="text-sm text-grey-1">{t('on')}</p>
+            ) : (
+                <button type="button" onClick={onSwitchPerson} className="self-start text-sm text-black underline">
+                    {t('needsToken')}
+                </button>
+            )}
         </div>
     )
 }

@@ -12,7 +12,7 @@ import { ApiError, readJson, respond } from '@/server/http'
 import { isAllowedPushEndpoint } from '@/server/pushHosts'
 import { assertProvenMember, loadRoom } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
-import { enforceRateLimit, WRITE_LIMIT } from '@/server/rateLimit'
+import { enforceRateLimit, meterRoomLookup, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushSubscribeSchema, pushUnsubscribeSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -28,7 +28,10 @@ export const POST = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'push-subscribe')
         const { slug } = await ctx.params
         const body = pushSubscribeSchema.parse(await readJson(request))
-        const room = await loadRoom(slug)
+        // A guessed slug 404s here and a real slug with a bad token 403s, so the
+        // miss goes on the shared budget — same as the DELETE below and the
+        // status route beside it. All three paths meter it the same way.
+        const room = await meterRoomLookup(request, () => loadRoom(slug))
         assertWritable(room)
         assertProvenMember(room, body.memberId, body.memberToken)
 
@@ -86,9 +89,20 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'push-subscribe')
         const { slug } = await ctx.params
         const body = pushUnsubscribeSchema.parse(await readJson(request))
-        const room = await loadRoom(slug)
+        // Same 404-versus-403 oracle as the status route: metered on the shared
+        // miss budget rather than this route's own write bucket.
+        const room = await meterRoomLookup(request, () => loadRoom(slug))
         assertProvenMember(room, body.memberId, body.memberToken)
 
-        await prisma.pushSubscription.deleteMany({ where: { roomId: room.id, endpoint: body.endpoint } })
-        return { subscribed: false }
+        // One endpoint can hold a channel in several rooms, so the caller has to
+        // be told whether the browser subscription is still needed. Counting in
+        // the same transaction as the delete is what makes the answer safe to
+        // act on: a concurrent subscribe in another room either lands before the
+        // count (still used) or after (and re-creates its own channel).
+        const endpointStillUsed = await prisma.$transaction(async (tx) => {
+            await tx.pushSubscription.deleteMany({ where: { roomId: room.id, endpoint: body.endpoint } })
+            return (await tx.pushSubscription.count({ where: { endpoint: body.endpoint } })) > 0
+        })
+
+        return { subscribed: false, endpointStillUsed }
     })

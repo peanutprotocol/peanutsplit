@@ -42,11 +42,21 @@ const clientKey = z
     .regex(/^[A-Za-z0-9-]+$/, 'must be an opaque request key')
 const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
 
+/**
+ * The room's emblem. 8 was sized for an emoji grapheme cluster; the column now also takes a
+ * doodle name (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a
+ * text field.
+ *
+ * One definition for all three ways a room gets an emblem — create, import, and the settings
+ * PATCH — so a room cannot be renamed into holding a value it could never have been created
+ * with. Deliberately NOT an enum of the drawing names: rooms made before the drawings still
+ * hold an emoji character, and `lib/room-emblem.ts` is where that reading happens.
+ */
+const roomEmblem = z.string().max(24)
+
 export const createRoomSchema = z.object({
     name: z.string().trim().min(1, 'is required').max(80),
-    // 8 was sized for an emoji grapheme cluster; the column now also takes a doodle name
-    // (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a text field.
-    emoji: z.string().max(24).nullish(),
+    emoji: roomEmblem.nullish(),
     currency: currencyCode,
     creatorName: personName,
 })
@@ -59,31 +69,58 @@ export const createMemberSchema = z.object({
     intent: z.enum(['join', 'add']).default('join'),
 })
 
+const expenseName = z.string().trim().max(MAX_DESCRIPTION_CHARS)
+
+/** Everything an expense request carries except its name, which is the one field
+ *  a create and an edit have to treat differently — see the two schemas below. */
+const expenseFields = {
+    clientKey: clientKey.optional(),
+    amountMinor: minorAmount,
+    currency: currencyCode,
+    paidById: id.optional(),
+    /** A payer typed inside a new expense stays a draft until the expense
+     *  transaction commits. It is mutually exclusive with an existing id. */
+    newPaidByName: personName.optional(),
+    splitMode: z.enum(['EQUAL', 'EXACT']),
+    participantIds: z.array(id).optional(),
+    exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
+    date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
+    category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
+}
+
+const onePayer = (body: { paidById?: string; newPaidByName?: string }, ctx: z.RefinementCtx): void => {
+    if (!!body.paidById === !!body.newPaidByName) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['paidById'],
+            message: 'provide either paidById or newPaidByName',
+        })
+    }
+}
+
 export const expenseSchema = z
     .object({
-        clientKey: clientKey.optional(),
-        description: z.string().trim().min(1, 'is required').max(MAX_DESCRIPTION_CHARS),
-        amountMinor: minorAmount,
-        currency: currencyCode,
-        paidById: id.optional(),
-        /** A payer typed inside a new expense stays a draft until the expense
-         *  transaction commits. It is mutually exclusive with an existing id. */
-        newPaidByName: personName.optional(),
-        splitMode: z.enum(['EQUAL', 'EXACT']),
-        participantIds: z.array(id).optional(),
-        exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
-        date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
-        category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
+        ...expenseFields,
+        /** Optional. A row with no name is labelled by its day on every surface
+         *  that shows it, so an absent or blank one stores as the empty string
+         *  rather than being refused. */
+        description: expenseName.default(''),
     })
-    .superRefine((body, ctx) => {
-        if (!!body.paidById === !!body.newPaidByName) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['paidById'],
-                message: 'provide either paidById or newPaidByName',
-            })
-        }
-    })
+    .superRefine(onePayer)
+
+/**
+ * The same request, for a PATCH.
+ *
+ * `description` is `.optional()` here and NOT defaulted, because the two verbs
+ * mean opposite things by an absent key. On a create, "no name given" is the
+ * empty string. On an edit, the PATCH handler replaces every column it is given,
+ * so a default turned "I did not send that field" into "blank the name" — a
+ * client that sent only a new amount silently lost the row's name. Absent now
+ * means untouched, and `''` still means clear it.
+ */
+export const expenseUpdateSchema = z
+    .object({ ...expenseFields, description: expenseName.optional() })
+    .superRefine(onePayer)
 
 const receiptUrl = z
     .string()
@@ -136,6 +173,15 @@ export const pushUnsubscribeSchema = z.object({
     memberToken: memberSecret,
 })
 
+/** Asking whether THIS room is on for this endpoint. Same three fields as the
+ *  unsubscribe, and deliberately its own schema: the question is a read, and it
+ *  must stay free to gain a field without widening what a delete accepts. */
+export const pushStatusSchema = z.object({
+    endpoint: pushEndpoint,
+    memberId: id,
+    memberToken: memberSecret,
+})
+
 /** What the service worker beacons back on a tap or a swipe-away. Every field is
  *  optional-ish because the worker is fire-and-forget and must never be the
  *  reason a notification misbehaves. */
@@ -150,6 +196,7 @@ export type PushSubscribeBody = z.infer<typeof pushSubscribeSchema>
 export type CreateRoomBody = z.infer<typeof createRoomSchema>
 export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
+export type ExpenseUpdateBody = z.infer<typeof expenseUpdateSchema>
 export type SettlementBody = z.infer<typeof settlementSchema>
 
 // ── what a model says ────────────────────────────────────────────────────────
@@ -266,6 +313,10 @@ export type NlParseBody = z.infer<typeof nlParseSchema>
  * catalog is rejected outright rather than stored and ignored — a row holding a
  * key nothing can render is a bug that only shows up months later, on an unfurl.
  * `null` is the default palette and is always legal.
+ *
+ * The emblem is the SAME `roomEmblem` the create and import paths use, on
+ * purpose: an edit must not be able to write a value a new room could not hold.
+ * `null` means "follow the room name" — the state a room is born in.
  */
 export const roomSettingsSchema = z
     .object({
@@ -278,9 +329,11 @@ export const roomSettingsSchema = z
             .nullable()
             .refine((value) => value === null || isThemeKey(value), { message: 'unknown theme' })
             .optional(),
+        // `nullable`, not `nullish`, for the reason the theme gives above.
+        emoji: roomEmblem.nullable().optional(),
     })
     .strict()
-    .refine((value) => value.name !== undefined || value.theme !== undefined, {
+    .refine((value) => value.name !== undefined || value.theme !== undefined || value.emoji !== undefined, {
         message: 'at least one room setting is required',
     })
 
@@ -367,9 +420,7 @@ const importedExpenseSchema = z.object({
 export const importRoomSchema = z
     .object({
         roomName: z.string().trim().min(1, 'is required').max(80),
-        // 8 was sized for an emoji grapheme cluster; the column now also takes a doodle name
-        // (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a text field.
-        emoji: z.string().max(24).nullish(),
+        emoji: roomEmblem.nullish(),
         currency: currencyCode,
         creatorName: personName,
         members: z.array(personName).min(1).max(MAX_MEMBERS),

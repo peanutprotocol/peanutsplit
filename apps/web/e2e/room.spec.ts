@@ -11,6 +11,16 @@ import { readFile } from 'node:fs/promises'
  * frame caught mid-animation.
  */
 
+/**
+ * `data-member` names the member the card is ABOUT, which is not always the person holding the
+ * phone. A room with three or more people gets one card each. A TWO-person room gets ONE pair
+ * card, and it is about the counterparty — balances sum to zero, so the second card would be the
+ * first one negated, and a reader adding both sees twice the real debt (see `pairCard` in
+ * `BalanceStrip.tsx`).
+ *
+ * So in a two-person room a fact about the viewer is asserted as its negation, on the other name.
+ * These assertions used to name the viewer and predate that change.
+ */
 const balance = (page: Page, member: string) => page.locator(`[data-testid="balance-card"][data-member="${member}"]`)
 
 /** Scoped to the page body: the settle drawer briefly shows the same celebration
@@ -169,7 +179,8 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await bea.getByTestId('join-name').fill('Bea')
     await bea.getByTestId('join-room').click()
     await expect(bea.getByTestId('join-gate')).toHaveCount(0)
-    await expectBalance(bea, 'Bea', '0')
+    // Two members now, so one pair card, about Ana. Bea's own zero is Ana's zero.
+    await expectBalance(bea, 'Ana', '0')
 
     // ── 4. Bea adds an EQUAL expense in the room currency ─────────────────
     await bea.getByTestId('open-add-expense').click()
@@ -180,7 +191,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await bea.getByTestId('save-expense').click()
 
     await expect(bea.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
-    await expectBalance(bea, 'Bea', '3000')
+    // Bea paid 60 and owes 30, so Bea is +3000 — stated once, on the card, as Ana's -3000.
     await expectBalance(bea, 'Ana', '-3000')
 
     // ── 5. Ana adds a foreign-currency EXACT expense ──────────────────────
@@ -219,8 +230,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await page.getByTestId('save-expense').click()
     await expect(page.getByTestId('expense-row')).toHaveCount(2, { timeout: 15_000 })
 
-    // Ana: +103.70 paid − 62.22 share − 30.00 dinner share = +11.48
-    await expectBalance(page, 'Ana', '1148')
+    // Ana: +103.70 paid − 62.22 share − 30.00 dinner share = +11.48, so Bea is −11.48.
     await expectBalance(page, 'Bea', '-1148')
     // The foreign row shows the room-currency conversion, labelled indicative.
     await expect(page.locator('[data-testid="expense-row"][data-description="Lift passes"]')).toContainText(
@@ -233,7 +243,6 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(page.locator('[data-testid="exact-input"][data-member="Ana"]')).toHaveValue('60.00')
     await expect(page.getByTestId('remaining-readout')).toContainText('Every cent allocated')
     await page.getByTestId('save-expense').click()
-    await expectBalance(page, 'Ana', '1148')
     await expectBalance(page, 'Bea', '-1148')
 
     // ── 7. Settle up ──────────────────────────────────────────────────────
@@ -246,7 +255,6 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await page.getByTestId('method-cash').click()
     await page.getByTestId('record-settlement').click()
 
-    await expectBalance(page, 'Ana', '0')
     await expectBalance(page, 'Bea', '0')
     await expect(allSettled(page)).toBeVisible({ timeout: 15_000 })
     const payment = page.getByTestId('settlement-row')
@@ -258,25 +266,24 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await payment.getByTestId('remove-settlement').click()
     await payment.getByTestId('confirm-remove-settlement').click()
     await expect(page.getByTestId('settlement-row')).toHaveCount(0)
-    await expectBalance(page, 'Ana', '1148')
     await expectBalance(page, 'Bea', '-1148')
 
     // Record it again so the rest of this journey continues from all square.
     await page.getByTestId('open-settle').click()
     await page.getByTestId('transfer-row').click()
     await page.getByTestId('record-settlement').click()
-    await expectBalance(page, 'Ana', '0')
     await expectBalance(page, 'Bea', '0')
     await expect(allSettled(page)).toBeVisible({ timeout: 15_000 })
 
     // ── 8. Delete an expense, then undo it ────────────────────────────────
     await page.locator('[data-testid="expense-row"][data-description="Dinner"]').click()
     await page.getByTestId('delete-expense').click()
+    await page.getByTestId('confirm-delete-expense').click()
     await expect(page.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
 
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(page.getByTestId('expense-row')).toHaveCount(2, { timeout: 15_000 })
-    await expectBalance(page, 'Ana', '0')
+    await expectBalance(page, 'Bea', '0')
     await expect(allSettled(page)).toBeVisible()
 
     await second.close()
@@ -318,7 +325,8 @@ test('receipt links belong only to Peanut settlements', async ({ page }) => {
         { slug: room.room.slug, memberId: room.memberId, token: room.memberToken }
     )
     await page.goto(`/r/${room.room.slug}`)
-    await expectBalance(page, 'Ana', '-500')
+    // Bea paid 10 and they split it, so Ana is −500 and the pair card says Bea +500.
+    await expectBalance(page, 'Bea', '500')
 
     await page.getByTestId('open-settle').click()
     await page.getByTestId('transfer-row').click()
@@ -335,12 +343,12 @@ test('receipt links belong only to Peanut settlements', async ({ page }) => {
     )
     await page.getByTestId('record-settlement').click()
     expect((await bankRequest).postDataJSON()).not.toHaveProperty('receiptUrl')
-    await expectBalance(page, 'Ana', '0')
+    await expectBalance(page, 'Bea', '0')
 
     const payment = page.getByTestId('settlement-row')
     await payment.getByTestId('remove-settlement').click()
     await payment.getByTestId('confirm-remove-settlement').click()
-    await expectBalance(page, 'Ana', '-500')
+    await expectBalance(page, 'Bea', '500')
 
     await page.getByTestId('open-settle').click()
     await page.getByTestId('transfer-row').click()
@@ -504,7 +512,7 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]')).toContainText(
         'Filed by you'
     )
-    await expectBalance(page, 'Ana', '-3000')
+    // Ana filed an expense Bea paid, so Ana is −3000 — the pair card states it as Bea +3000.
     await expectBalance(page, 'Bea', '3000')
 
     // Adding Bea did not switch Ana's device identity. On another device the
@@ -515,7 +523,8 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
     await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
     await expect(bea.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
-    await expectBalance(bea, 'Bea', '3000')
+    // Bea's own device, so the pair card is about Ana: the same fact, negated.
+    await expectBalance(bea, 'Ana', '-3000')
 
     const slug = new URL(url).pathname.split('/').filter(Boolean).at(-1)
     const storedIdentity = await bea.evaluate((key) => {
@@ -553,11 +562,23 @@ test('a link holder can export the room without exporting the room credential', 
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
 
-    await page.getByRole('button', { name: 'Room menu' }).click()
-    await expect(page.getByText('The files include everyone’s names and the current money history.')).toBeVisible()
+    // Export is a row in Settings now, not a top-bar menu. The row says what you
+    // would get; the sheet behind it says who is in the file, and hands it over.
+    await page.getByTestId('open-room-settings').click()
+    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 15_000 })
+    const exportRow = page.getByTestId('export-row')
+    await expect(exportRow).toContainText('CSV · JSON')
+    await exportRow.click()
+
+    const exportSheet = page.getByTestId('export-sheet')
+    await expect(exportSheet).toBeVisible()
+    // One disclosure sentence, and it does not claim to be the whole money
+    // history — deleted records are left out, so that wording would be false.
+    await expect(exportSheet).toContainText('The file has everyone’s names and every expense and payment.')
+    await expect(exportSheet).not.toContainText('money history')
 
     const jsonDownloadPromise = page.waitForEvent('download')
-    await page.getByRole('button', { name: 'Download JSON' }).click()
+    await exportSheet.getByRole('button', { name: 'Download JSON' }).click()
     const jsonDownload = await jsonDownloadPromise
     expect(jsonDownload.suggestedFilename()).toBe('export-room.json')
     const jsonPath = await jsonDownload.path()
@@ -568,4 +589,10 @@ test('a link holder can export the room without exporting the room credential', 
     expect(exported.members).toHaveLength(1)
     expect(JSON.stringify(exported)).not.toContain(new URL(url).pathname)
     expect(exported.room).not.toHaveProperty('slug')
+
+    // The sheet closes back to Settings rather than out of the room, so the
+    // export is one detour and not a dead end.
+    await page.getByTestId('close-export-sheet').click()
+    await expect(exportSheet).toHaveAttribute('data-state', 'closed')
+    await expect(page.getByTestId('settings-sheet')).toBeVisible()
 })
