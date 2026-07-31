@@ -350,7 +350,6 @@
             "close": "Fechar as configurações",
             "closeSheet": "Fechar",
             "youAre": "você é {name}",
-            "switchRoom": "Trocar de sala",
             "allRooms": "Todas as salas",
             "roomName": "Nome da sala",
             "linkStaysTheSame": "O link continua o mesmo.",
@@ -806,7 +805,7 @@
     "push": {
         "label": "Notificações",
         "notifyMe": "Me avisar sobre {room}",
-        "on": "Ativadas neste aparelho",
+        "on": "Ativadas",
         "iosNeedsPwa": "Adicione o Split à sua tela de início.",
         "iosHow": "Como?",
         "denied": "Bloqueadas nas configurações do navegador.",

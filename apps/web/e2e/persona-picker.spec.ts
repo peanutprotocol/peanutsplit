@@ -80,6 +80,12 @@ test('your avatar chip opens your own character sheet and a pick persists', asyn
 
     await page.screenshot({ path: testInfo.outputPath('persona-picker.png'), fullPage: true })
 
+    // Close it first. The sheet is `?character=<id>` now, so it survives a reload the way the
+    // share and settle sheets always have — leaving it open would reload straight back into it and
+    // the chip would be behind the overlay, which is not what this test is about.
+    await page.getByTestId('close-character-sheet').click()
+    await expect(page.getByTestId('character-sheet')).toHaveCount(0)
+
     await page.reload()
     await page.getByTestId('open-avatar').click()
     await expect(page.getByTestId('avatar-picker').locator(`[data-avatar="${targetKey}"]`)).toHaveAttribute(
