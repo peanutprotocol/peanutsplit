@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
-import type { ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/lib/api-types'
+import type { ApiMember, ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -30,6 +30,7 @@ interface SettleDrawerProps {
     state: RoomState
     currencies: readonly CurrencyInfo[]
     token?: string | null
+    me?: ApiMember | null
 }
 
 /** The Peanut link is the ONE place Peanut appears outside the footer mark, and
@@ -67,7 +68,7 @@ const COLLAPSE_MS = 620
 const REVEAL_STAGGER_S = 0.07
 const REVEAL_STAGGER_MAX = 6
 
-export function SettleDrawer({ open, onClose, slug, state, currencies, token }: SettleDrawerProps) {
+export function SettleDrawer({ open, onClose, slug, state, currencies, token, me }: SettleDrawerProps) {
     const t = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
     const locale = useLocale()
@@ -178,7 +179,12 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token }: 
         if (parsed === null) return { problem: t('amountFormatInvalid') }
         if (BigInt(parsed) <= 0n) return { problem: t('amountInvalid') }
         if (BigInt(parsed) > BigInt(selected.amountMinor))
-            return { problem: t('amountTooHigh', { name: nameOf(selected.fromId) }) }
+            return {
+                problem:
+                    selected.fromId === me?.id
+                        ? t('amountTooHighYou')
+                        : t('amountTooHigh', { name: nameOf(selected.fromId) }),
+            }
         return { minor: parsed }
     }
 

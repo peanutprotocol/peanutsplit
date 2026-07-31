@@ -356,7 +356,7 @@ export function CurrencySelect({
                 aria-label={`${ariaLabel}, ${value}`}
                 aria-haspopup="listbox"
                 aria-expanded={open}
-                aria-controls={listboxId}
+                aria-controls={open && placement ? listboxId : undefined}
                 onClick={() => {
                     if (open) {
                         setOpen(false)

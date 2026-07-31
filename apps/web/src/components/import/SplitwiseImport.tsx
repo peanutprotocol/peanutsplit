@@ -257,6 +257,7 @@ export function SplitwiseImport() {
     if (created) {
         return (
             <LinkMoment
+                headingLevel={2}
                 slug={created.room.slug}
                 roomName={created.room.name}
                 emoji={created.room.emoji}

@@ -28,6 +28,12 @@ interface LinkMomentProps {
     /** Headline. The creation screen and the share drawer say different things. */
     title: string
     subtitle: string
+    /**
+     * Rank of the headline. `/new` is the default because there this headline is
+     * the page's only one; inside the share drawer the room header already owns
+     * the `h1`, and a second one would claim the page is about two things.
+     */
+    headingLevel?: 1 | 2
 }
 
 export const roomUrl = (slug: string): string =>
@@ -46,8 +52,18 @@ export const roomUrl = (slug: string): string =>
  * Native share is an enhancement. Clipboard and manual copy remain available
  * independently.
  */
-export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtitle }: LinkMomentProps) {
+export function LinkMoment({
+    slug,
+    roomName,
+    emoji,
+    theme,
+    footer,
+    title,
+    subtitle,
+    headingLevel = 1,
+}: LinkMomentProps) {
     const t = useTranslations('room.link')
+    const Heading = headingLevel === 1 ? 'h1' : 'h2'
     const url = roomUrl(slug)
     const payload = useMemo(
         () =>
@@ -168,7 +184,7 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
                 data-motion-surface
                 className="flex flex-col gap-2 text-center"
             >
-                <h1 className="text-h4">{title}</h1>
+                <Heading className="text-h4">{title}</Heading>
                 <p className="text-sm text-grey-1">{subtitle}</p>
             </motion.div>
 
@@ -279,7 +295,7 @@ export function LinkMoment({ slug, roomName, emoji, theme, footer, title, subtit
                                             : { scale: 1, backgroundColor: 'rgba(255,255,255,0)' }
                                     }
                                     transition={{ duration: 0.22 }}
-                                    className="flex size-9 shrink-0 items-center justify-center rounded-sm transition-transform active:translate-y-px"
+                                    className="flex size-10 shrink-0 items-center justify-center rounded-sm transition-transform active:translate-y-px"
                                 >
                                     <AnimatePresence mode="popLayout" initial={false}>
                                         <motion.span

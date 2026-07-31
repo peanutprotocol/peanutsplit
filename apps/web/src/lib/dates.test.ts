@@ -110,16 +110,27 @@ describe('expenseRowLabel — under a day heading, the clock is what separates t
         expect(lunch).not.toBe(heading)
         expect(coffee).not.toBe(heading)
         expect(lunch).not.toBe(coffee)
-        expect(lunch).toBe('Today, 11:40 AM')
-        expect(coffee).toBe('Today, 2:32 PM')
+        expect(lunch).toBe('Today, 11:40:00 AM')
+        expect(coffee).toBe('Today, 2:32:00 PM')
     })
 
     it('takes the clock convention from the locale, not from us', () => {
         const ES = { locale: 'es', today: 'Hoy', yesterday: 'Ayer' }
-        expect(expenseRowLabel('', '2026-07-30T14:32:00.000Z', ES, NOW)).toBe('Hoy, 14:32')
+        expect(expenseRowLabel('', '2026-07-30T14:32:00.000Z', ES, NOW)).toBe('Hoy, 14:32:00')
     })
 
     it('keeps the day for an older row, with its time', () => {
-        expect(expenseRowLabel(null, '2026-07-25T09:05:00.000Z', EN, NOW)).toBe('Sat, Jul 25, 9:05 AM')
+        expect(expenseRowLabel(null, '2026-07-25T09:05:00.000Z', EN, NOW)).toBe('Sat, Jul 25, 9:05:00 AM')
+    })
+
+    it('tells apart two unnamed expenses filed in the same minute — the ordinary settling-up-at-the-table case', () => {
+        // Two rounds typed one-handed within the same minute, which a
+        // minute-only clock could not tell apart: same day, same hour, same
+        // minute, differing only in the seconds nobody but this fallback reads.
+        const first = expenseRowLabel('', '2026-07-30T14:32:07.000Z', EN, NOW)
+        const second = expenseRowLabel('', '2026-07-30T14:32:45.000Z', EN, NOW)
+        expect(first).not.toBe(second)
+        expect(first).toBe('Today, 2:32:07 PM')
+        expect(second).toBe('Today, 2:32:45 PM')
     })
 })

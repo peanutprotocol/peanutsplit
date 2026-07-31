@@ -6,6 +6,19 @@ import { useTranslations } from 'next-intl'
 import { peanutSad } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 
+/** The bar is the room's first 69px and it only exists once the state does, so
+ *  without a stand-in of the same height everything below it drops when the data
+ *  lands (0.104 CLS on mobile). Same box, same paint, no content. */
+export function RoomHeaderSkeleton() {
+    return (
+        <div
+            aria-hidden="true"
+            data-testid="room-header-skeleton"
+            className="h-[69px] shrink-0 border-b border-n-1 bg-[var(--split-theme-field,#FFC900)]"
+        />
+    )
+}
+
 /** First paint. Skeletons, never a spinner — the shape of the room should be
  *  there before the numbers are. */
 export function RoomSkeleton() {

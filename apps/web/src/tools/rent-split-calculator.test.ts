@@ -21,6 +21,13 @@ function split(rent: number, rooms: { size: number; rich?: number }[]): ToolOutc
 const paid = (outcome: ToolOutcome) => outcome.shares.map((share) => share.amountMinor)
 const total = (outcome: ToolOutcome) => paid(outcome).reduce((running, amount) => running + amount, 0)
 
+/** The same flat with one person's slider moved and nobody else's touched. */
+const moved = (rooms: { size: number; rich?: number }[], mover: number, rich: number) =>
+    rooms.map((room, index) => (index === mover ? { ...room, rich } : room))
+
+/** A flat big enough to hold the maximum the page offers, with every notch represented. */
+const twenty = Array.from({ length: 20 }, (_, index) => ({ size: 5 + index, rich: (index % 5) + 1 }))
+
 describe('rent split by room size', () => {
     it('divides the rent in proportion to floor area', () => {
         expect(paid(split(300_000, [{ size: 20 }, { size: 10 }]))).toEqual([200_000, 100_000])
@@ -60,23 +67,79 @@ describe('the how-rich slider', () => {
         ])
     })
 
-    /** Same rooms, different notches: half the rent follows the room, half follows the slider. */
-    it('blends the room share and the slider share in half once they are apart', () => {
+    /** Same rooms, different notches: the notch multiplies the room, so five counts five rooms. */
+    it('counts a room as many times as its notch says once they are apart', () => {
         const outcome = split(100_000, [{ size: 10, rich: 5 }, { size: 10, rich: 1 }]) // prettier-ignore
-        expect(paid(outcome)).toEqual([66_667, 33_333])
+        expect(paid(outcome)).toEqual([83_333, 16_667])
     })
 
     /** The notch IS the weight — five counts five times as much as one. This is the documented map. */
     it('weights a notch by its own number', () => {
         const outcome = split(120_000, [{ size: 0, rich: 1 }, { size: 0, rich: 2 }, { size: 0, rich: 3 }]) // prettier-ignore
-        // Rooms unmeasured, so the room half is equal thirds and the slider half is 1:2:3 of six.
-        expect(paid(outcome)).toEqual([30_000, 40_000, 50_000])
+        // Rooms unmeasured, so every room counts the same and the notches carry it: 1:2:3 of six.
+        expect(paid(outcome)).toEqual([20_000, 40_000, 60_000])
     })
 
-    it('names both halves of the working', () => {
+    it('names the room and the notch in the working', () => {
         const outcome = split(100_000, [{ size: 10, rich: 5 }, { size: 10, rich: 1 }]) // prettier-ignore
-        expect(outcome.shares[0].detail).toBe('room 50%, slider 83.3%, so 66.7% of the rent')
+        expect(outcome.shares[0].detail).toBe('room 50%, notch 5, so 83.3% of the rent')
         expect(outcome.workings).toContainEqual({ label: 'Where the sliders sit', value: '5, 1' })
+    })
+
+    /**
+     * The property the page promises, and the one the old arithmetic broke: pushing a slider up is
+     * the only thing it does. Averaging each notch's share of the flat's notches against the floor
+     * area dragged every flat toward an even split, and the largest room was already above an even
+     * split — so marking the biggest room as the flush one paid them a discount. Checked on every
+     * row of every flat, at every notch of the scale, and in both directions at once.
+     */
+    it('never moves a rent the opposite way to the slider that moved', () => {
+        const flats = [
+            [{ size: 15 }, { size: 10 }, { size: 7 }],
+            [{ size: 12.5 }, { size: 12.5 }],
+            [{ size: 30, rich: 1 }, { size: 4, rich: 5 }], // prettier-ignore
+            [{ size: 20 }, { size: 0 }, { size: 9, rich: 2 }],
+            [{ size: 0 }, { size: 0 }, { size: 0 }, { size: 0 }],
+            twenty,
+        ]
+        for (const rooms of flats) {
+            for (let mover = 0; mover < rooms.length; mover += 1) {
+                for (let notch = 1; notch < 5; notch += 1) {
+                    const before = paid(split(123_457, moved(rooms, mover, notch)))
+                    const after = paid(split(123_457, moved(rooms, mover, notch + 1)))
+                    const where = `${rooms.length} rooms, row ${mover}, notch ${notch} to ${notch + 1}`
+                    expect(after[mover], `${where}: the mover`).toBeGreaterThanOrEqual(before[mover])
+                    for (let other = 0; other < rooms.length; other += 1) {
+                        if (other === mover) continue
+                        expect(after[other], `${where}: row ${other}`).toBeLessThanOrEqual(before[other])
+                    }
+                }
+            }
+        }
+    })
+
+    /**
+     * Level sliders are not "close to" floor area, they ARE floor area — the multiplier divides
+     * straight back out. Asserted against the arithmetic written out by hand rather than against
+     * the page's own untouched answer, so both cannot drift together.
+     */
+    it('lands exactly on floor area wherever the level sliders sit', () => {
+        for (const notch of [1, 2, 3, 4, 5]) {
+            const rooms = [{ size: 15, rich: notch }, { size: 10, rich: notch }, { size: 7, rich: notch }] // prettier-ignore
+            expect(paid(split(100_000, rooms)), `notch ${notch}`).toEqual([46_875, 31_250, 21_875])
+        }
+    })
+
+    /**
+     * The flat that caught it, pinned to the cent. Rent 1000 over 15, 10 and 7 sqm: level sliders
+     * pay 468.75, and the old blend answered 461.65 once the biggest room was marked the flush one
+     * — seven euros off the person the flat had just pointed at, and twenty-seven onto the smallest
+     * room, which nobody had touched.
+     */
+    it('pins the flat that caught the old blend', () => {
+        const rooms = [{ size: 15, rich: 5 }, { size: 10 }, { size: 7 }] // prettier-ignore
+        expect(paid(split(100_000, rooms))).toEqual([59_524, 23_809, 16_667])
+        expect(total(split(100_000, rooms))).toBe(100_000)
     })
 
     /** A range input cannot produce these; a hand-edited state or a stale cache can. */
@@ -98,6 +161,7 @@ describe('rent split, the numbers that have to hold', () => {
             ],
             [{ size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 }],
             [{ size: 9, rich: 5 }, { size: 9, rich: 4 }, { size: 9, rich: 3 }, { size: 9, rich: 1 }], // prettier-ignore
+            twenty,
         ]
         for (const rooms of flats) {
             for (const rent of [1, 99_999, 100_000, 123_457, 1_000_003]) {
@@ -106,6 +170,21 @@ describe('rent split, the numbers that have to hold', () => {
                 expect(outcome.totalMinor).toBe(rent)
             }
         }
+    })
+
+    /** One name on the rent pays the rent, and no slider position can take a cent off that. */
+    it('hands the whole rent to the only person on it', () => {
+        for (const notch of [1, 3, 5]) {
+            expect(paid(split(87_654, [{ size: 12, rich: notch }])), `notch ${notch}`).toEqual([87_654])
+        }
+        expect(paid(split(87_654, [{ size: 0 }]))).toEqual([87_654])
+    })
+
+    /** Twenty is the most the field allows, so it is the widest the largest-remainder hand-out gets. */
+    it('divides a rent across a full flat of twenty', () => {
+        const outcome = split(100_003, twenty)
+        expect(outcome.shares).toHaveLength(20)
+        expect(total(outcome)).toBe(100_003)
     })
 
     it('has nothing to divide when nobody is on the rent', () => {

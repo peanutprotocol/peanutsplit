@@ -34,9 +34,15 @@ export function dayLabel(iso: string, options: DayLabelOptions, now: Date = new 
     })
 }
 
-/** "14:32" / "2:32 PM" — the reader's own clock convention, not ours. */
-const timeOfDay = (date: Date, locale: string): string =>
-    date.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })
+/** "14:32" / "2:32 PM" — the reader's own clock convention, not ours. Seconds
+ *  are opt-in: `expenseRowLabel` needs them to tell apart two unnamed expenses
+ *  filed in the same minute, but nothing else that reads a clock face does. */
+const timeOfDay = (date: Date, locale: string, withSeconds = false): string =>
+    date.toLocaleTimeString(locale, {
+        hour: 'numeric',
+        minute: '2-digit',
+        ...(withSeconds ? { second: '2-digit' } : {}),
+    })
 
 /**
  * An expense's display name.
@@ -65,6 +71,13 @@ export const expenseLabel = (
  * one indistinguishable pair. The time of day is the one thing that separates
  * them, and it is also what a person reaches for — "the 40 euros from just after
  * lunch". So the fallback here is the day AND the clock: "Today, 2:32 PM".
+ *
+ * The clock carries seconds. Settling up at a table is the ordinary case this
+ * fallback exists for, and two rounds typed one-handed in the same minute is
+ * the ordinary shape of that — a minute-only clock reprints the exact same
+ * fallback for both and the defect above is back, just one field over. Seconds
+ * are real elapsed time, not an invented ordinal, so "Today, 2:32:07 PM" stays
+ * honest about what actually separates the two rows.
  */
 export const expenseRowLabel = (
     description: string | null | undefined,
@@ -76,7 +89,7 @@ export const expenseRowLabel = (
     if (name) return name
     const date = new Date(iso)
     if (Number.isNaN(date.getTime())) return dayLabel(iso, options, now)
-    return `${dayLabel(iso, options, now)}, ${timeOfDay(date, options.locale)}`
+    return `${dayLabel(iso, options, now)}, ${timeOfDay(date, options.locale, true)}`
 }
 
 /**

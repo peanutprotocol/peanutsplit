@@ -290,10 +290,15 @@ export function ExpenseList({
                                                         {tOffline('rowHint')}
                                                     </span>
                                                 )}
-                                                <span className="block text-sm text-grey-1">
+                                                <span className="block truncate text-sm text-grey-1">
                                                     {/* Separate first-person key, not an interpolated "you":
                                                         Spanish must conjugate — "Tú pagó" was a literal
-                                                        grammar error on the most-read line in the app. */}
+                                                        grammar error on the most-read line in the app.
+                                                        Truncated, not wrapped: the amount column next to
+                                                        this one is `shrink-0`, so a wide amount squeezes
+                                                        this flex-1 column narrow enough that "You paid ·
+                                                        1 person" wrapped mid-phrase and nearly doubled the
+                                                        row's height. */}
                                                     {expense.paidById === meId
                                                         ? t('paidByYou', { count: expense.shares.length })
                                                         : t('paidBy', { payer, count: expense.shares.length })}

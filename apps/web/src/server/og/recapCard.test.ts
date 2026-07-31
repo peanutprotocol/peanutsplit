@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
+import { isAvatarKey } from '@/lib/avatars'
 import { type RoomWithRelations } from '@/server/roomState'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
 import { MEMBER_FALLBACK } from '@/server/og/roomCard'
@@ -215,7 +216,7 @@ describe('toRoomRecap', () => {
         expect(recap.dayCount).toBe(0)
         expect(recap.topPayerName).toBeNull()
         expect(recap.settled).toBe(false)
-        expect(recap.memberNames).toEqual([])
+        expect(recap.members).toEqual([])
     })
 
     it('is settled once the debt has been paid back', () => {
@@ -233,8 +234,22 @@ describe('toRecapCard', () => {
         expect(card.total).toBe('€2340.00')
         expect(card.stat).toBe('9 days · 2 expenses · 2 people')
         expect(card.topPayer).toBe('María fronted the most')
-        expect(card.avatars.map((a) => a.letter)).toEqual(['A', 'M'])
+        // A legacy row carries no avatar key; the card passes the null through and the disc
+        // falls back, rather than inventing a face the recap page would not draw.
+        expect(card.personas).toEqual([null, null])
         expect(card.overflow).toBe(0)
+    })
+
+    it('gives every member their own persona rather than a letter', () => {
+        const card = toRecapCard(
+            recapOf({
+                members: [
+                    { id: 'a', name: 'Ana', avatar: 'wizard-frog' },
+                    { id: 'm', name: 'María', avatar: 'moon-bunny' },
+                ],
+            })
+        )
+        expect(card.personas).toEqual(['wizard-frog', 'moon-bunny'])
     })
 
     it('sanitizes a hostile room name instead of drawing blank boxes', () => {
@@ -284,7 +299,8 @@ describe('toRecapCard', () => {
             expect(drawableByBody(card.total)).toBe(true)
             expect(drawableByBody(card.stat)).toBe(true)
             expect(drawableByDisplay(card.name)).toBe(true)
-            expect(card.avatars.every((a) => drawableByDisplay(a.letter))).toBe(true)
+            // The faces carry no text at all now — a persona is a drawing, so there is no
+            // codepoint for the two shipped fonts to be missing.
         }
     })
 
@@ -307,7 +323,7 @@ describe('toRecapCard', () => {
 
     it('collapses a big roster into +N', () => {
         const many = recapOf({ members: Array.from({ length: 9 }, (_, i) => ({ id: `m${i}`, name: `Member ${i}` })) })
-        expect(toRecapCard(many).avatars).toHaveLength(6)
+        expect(toRecapCard(many).personas).toHaveLength(6)
         expect(toRecapCard(many).overflow).toBe(3)
     })
 
@@ -407,7 +423,11 @@ describe('loadRecap', () => {
         expect(recap?.totalMinor).toBe('234000')
         expect(recap?.expenseCount).toBe(2)
         expect(recap?.dayCount).toBe(9)
-        expect(recap?.memberNames).toEqual(['Ana', 'Maria'])
+        expect(recap?.members.map((member) => member.name)).toEqual(['Ana', 'Maria'])
+        // The M6 regression guard: the query used to select only `{ id, name }`, so every face on
+        // the recap drew the same fallback peanut. Reading a real persona key back proves the
+        // avatar survives the round trip.
+        expect(recap?.members.every((member) => isAvatarKey(member.avatar))).toBe(true)
         expect(recap?.topPayerName).toBe('Maria')
         expect(recap?.settled).toBe(false)
     })

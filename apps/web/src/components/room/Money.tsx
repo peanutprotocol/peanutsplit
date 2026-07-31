@@ -5,7 +5,7 @@ import NumberFlow from '@number-flow/react'
 import { useLocale } from 'next-intl'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
-import { currencyInfo, formatMoneyParts, minorToNumber, moneyFormatOptions } from '@/lib/money'
+import { currencyInfo, formatMoney, formatMoneyParts, minorToNumber, moneyFormatOptions } from '@/lib/money'
 
 interface MoneyProps {
     /** Minor units, as a string, exactly as the API gave it. */
@@ -67,23 +67,34 @@ const FADE_TIMING: EffectTiming = { duration: 380, easing: 'ease-out' }
 export function AnimatedMoney({ minor, currency, catalog, className, absolute }: MoneyProps) {
     const locale = useLocale()
     const info = currencyInfo(currency, catalog)
-    const raw = minorToNumber(minor, info.decimals)
-    const value = absolute ? Math.abs(raw) : raw
+    const signedMinor = absolute && minor.startsWith('-') ? minor.slice(1) : minor
+    const value = minorToNumber(signedMinor, info.decimals)
     return (
-        <NumberFlow
-            value={value}
-            // `locales` and `format` together are what make this agree with <Money/>: left to
-            // itself NumberFlow formats in the *browser's* locale, which on a Spanish phone
-            // reading an English page put "12.34" and "12,34" on the same screen. The symbol
-            // now comes from the currency style rather than a manual prefix, so its placement
-            // (before in en, after in es) is localised too.
-            locales={locale}
-            format={moneyFormatOptions(info)}
-            spinTiming={COUNT_TIMING}
-            transformTiming={COUNT_TIMING}
-            opacityTiming={FADE_TIMING}
-            respectMotionPreference
-            className={cn('tabular-nums', className)}
-        />
+        <>
+            {/* NumberFlow's digits live in a shadow root, spun in one at a time: the
+                accessible name it sets there is an ElementInternals property, not a DOM
+                attribute, so it doesn't reach every AT, and it leaves no light-DOM text to
+                select or copy — a screen reader can end up spelling the amount out digit by
+                digit instead of saying it. This sr-only span is built from the same minor
+                units through the same formatter <Money/> uses, so the two can never disagree,
+                and the animation below is marked decorative so AT reads this instead. */}
+            <span className="sr-only">{formatMoney(signedMinor, currency, catalog, locale)}</span>
+            <NumberFlow
+                aria-hidden="true"
+                value={value}
+                // `locales` and `format` together are what make this agree with <Money/>: left to
+                // itself NumberFlow formats in the *browser's* locale, which on a Spanish phone
+                // reading an English page put "12.34" and "12,34" on the same screen. The symbol
+                // now comes from the currency style rather than a manual prefix, so its placement
+                // (before in en, after in es) is localised too.
+                locales={locale}
+                format={moneyFormatOptions(info)}
+                spinTiming={COUNT_TIMING}
+                transformTiming={COUNT_TIMING}
+                opacityTiming={FADE_TIMING}
+                respectMotionPreference
+                className={cn('tabular-nums', className)}
+            />
+        </>
     )
 }

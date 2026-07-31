@@ -40,9 +40,11 @@ const PEANUT_LINKS = [
  * by decision and are therefore NOT run through `localizedPath` — a `/es/import` would 404.
  *
  * `showLocaleSwitcher` exists for the indexed pages. The switcher sets a cookie and reloads,
- * which is right for the app — one URL, three languages. On `/es/blog/…` it would reload the same
- * Spanish URL, so it reads as a broken control. Those pages pass `false` and offer real links to
- * the translations that exist instead (see ArticleLayout / ContentHub).
+ * which is right for the app — one URL, three languages. An indexed page states its language in
+ * its own URL, so the reload lands on the same page in the same language and the control reads as
+ * broken. That holds for `/es/blog/…` and just as much for the English `/tricount-alternative` it
+ * translates. Every indexed page passes `false` and offers real links to the translations that
+ * exist instead (see ArticleLayout / ContentHub).
  */
 export function SiteFooter({
     showCompareLink = true,
