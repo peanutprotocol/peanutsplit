@@ -47,7 +47,7 @@ export const marketingCopy = {
                 {
                     title: 'The day you add a lot of expenses is the day it stops',
                     quote: 'Add as many expenses as you like each day, with no interruptions.',
-                    body: 'That is Pro’s pitch for “unlimited expenses”, which tells you the free tier counts. A trip is exactly when you add a dozen in an afternoon. Split has no cap and no counter.',
+                    body: 'A trip is exactly when you add a dozen in an afternoon. Split has no cap and no counter.',
                 },
                 {
                     title: 'Splitting across currencies is a paid feature',
