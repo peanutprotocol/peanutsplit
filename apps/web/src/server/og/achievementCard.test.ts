@@ -118,9 +118,13 @@ describe('achievement cards', () => {
             { code: 'EUR', doodle: 'euro' },
             { code: 'JPY', doodle: 'yen' },
         ])
-        // A currency with no drawn sign keeps its code and gets no near-miss
-        // drawing — the rule `lib/currency-doodle.ts` states.
-        expect(currencyStamps(['XOF'])).toEqual([{ code: 'XOF', doodle: null }])
+        // Every stamp has a drawing, in the three ways `lib/currency-doodle.ts`
+        // gives one: the family mark a shared sign stands for, a banknote for a
+        // real currency nobody drew, and the shrug for a code that is not a
+        // currency at all.
+        expect(currencyStamps(['XOF'])).toEqual([{ code: 'XOF', doodle: 'franc' }])
+        expect(currencyStamps(['AED'])).toEqual([{ code: 'AED', doodle: 'banknote' }])
+        expect(currencyStamps(['zzz'])).toEqual([{ code: 'ZZZ', doodle: 'shrug' }])
         expect(currencyStamps(['AUD', 'BRL', 'CHF', 'EUR', 'GBP', 'INR', 'JPY'])).toHaveLength(6)
     })
 

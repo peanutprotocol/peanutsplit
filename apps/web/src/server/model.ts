@@ -44,7 +44,7 @@
 
 import { egressFetch, type EgressResponse } from '@/server/egress'
 import { ApiError } from '@/server/http'
-import { CURRENCY_CODES } from '@/server/money'
+import { canPriceCode, isValidCode, normaliseCode } from '@/server/money'
 
 /**
  * Flash-Lite is the cheapest model in the 2.5 family that reads printed text off
@@ -269,13 +269,22 @@ export function unfence(text: string): string {
     return fenced ? fenced[1] : text.trim()
 }
 
-/** ISO-4217 only if we actually support it. An unsupported guess is worse than
- *  no guess: every caller falls back to the room's currency, which is right far
- *  more often than a currency the app cannot price. */
-export function coerceCurrency(raw: unknown): string | null {
+/**
+ * A guess is only worth keeping if the room can actually price it. Every caller falls back to the
+ * room's currency, which is right far more often than a currency the expense could not be written
+ * in — so an unpriceable guess is dropped rather than carried through to a hard NO_RATE on the
+ * create that follows.
+ *
+ * The gate is "priceable to the room currency", not "in the catalog", and the difference matters
+ * now that the catalog is 162 codes wide: a receipt read as INR is fine in a EUR room and useless
+ * in a room settling in a made-up ticker. Catalog-level, deliberately — this is a suggestion on a
+ * draft, not a write, and it must not cost a scan a rate-table read.
+ */
+export function coerceCurrency(raw: unknown, roomCurrency: string): string | null {
     if (typeof raw !== 'string') return null
-    const code = raw.trim().toUpperCase()
-    return CURRENCY_CODES.includes(code) ? code : null
+    const code = normaliseCode(raw)
+    if (!isValidCode(code)) return null
+    return canPriceCode(code, roomCurrency) ? code : null
 }
 
 /** A date is a nicety, so the bar is "unambiguous and plausible" — anything else

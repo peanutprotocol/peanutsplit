@@ -35,11 +35,12 @@ export const MAX_LINEUP = 8
 /** Stamps on the passport. Beyond six they stop being stamps and become a grid. */
 export const MAX_STAMPS = 6
 
-/** One currency's stamp. `doodle` is null when the sign has no drawing — see
- *  `lib/currency-doodle.ts` on why a near-miss drawing is worse than the code. */
+/** One currency's stamp. Every code has a drawing — a real currency nobody drew
+ *  gets a banknote and an invented ticker gets the shrug, so a stamp is never a
+ *  bare code. See `lib/currency-doodle.ts`. */
 export interface CurrencyStamp {
     code: string
-    doodle: DoodleName | null
+    doodle: DoodleName
 }
 
 interface CardFrame {

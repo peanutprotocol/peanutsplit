@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FALLBACK_CURRENCIES } from '@/lib/money'
-import { CURRENCIES, convertMinorAtRate } from '@/server/money'
+import { convertMinorAtRate, STATIC_USD_PER_UNIT } from '@/server/money'
 import { exactShares } from '@/server/split'
 import { importRoomSchema } from '@/server/validation'
 import {
@@ -308,7 +307,7 @@ describe('parseSplitwiseCsv — hostile and messy input', () => {
         expect(result.warnings).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({ code: 'ROW_UNBALANCED', row: 7 }),
-                expect.objectContaining({ code: 'ROW_UNSUPPORTED_CURRENCY', row: 8, detail: 'INR' }),
+                expect.objectContaining({ code: 'ROW_UNSUPPORTED_CURRENCY', row: 8, detail: 'KPW' }),
                 expect.objectContaining({ code: 'ROW_ZERO_COST', row: 9 }),
             ])
         )
@@ -644,12 +643,15 @@ const fileNets = (expenses: readonly ParsedExpense[]): Map<string, bigint> => {
 /** A room that settles in something the group never spent. THB is 2-decimal like
  *  EUR, so the rate is the only thing moving — not a decimals change as well. */
 const ROOM_CURRENCY = 'THB'
+
+/** Twelve rated codes — see the ceiling test below for why the count is pinned. */
+const WORST_CASE_CURRENCIES = ['USD', 'EUR', 'GBP', 'ARS', 'BRL', 'MXN', 'COP', 'CHF', 'THB', 'JPY', 'AUD', 'CAD']
 const EUR_TO_THB = rateOf('EUR') / rateOf('THB')
 
 function rateOf(code: string): number {
     // What `rateFrom` does with the static table, without dragging Prisma into a
     // pure test through `server/fx`.
-    return CURRENCIES.find((c) => c.code === code)!.usdPerUnit
+    return STATIC_USD_PER_UNIT[code]
 }
 
 /**
@@ -777,15 +779,18 @@ describe('carrying history a room cannot hold', () => {
 
     /**
      * The ceiling at the worst shape the other caps allow: the biggest roster a
-     * room can hold, spending in every currency Split knows, with one person
-     * fronting everything so the pairing cannot fold the residual into fewer than
+     * room can hold, spending in a dozen currencies, with one person fronting
+     * everything so the pairing cannot fold the residual into fewer than
      * `n − 1` transfers per currency.
+     *
+     * Twelve is pinned here rather than taken from the catalog, which is 162 codes wide. The
+     * reserve is bounded by the currencies a FILE uses, and a file with 162 of them would reserve
+     * more than the ceiling — a different case, and not this one.
      *
      * That is the case `reserved` exists for, and the only one where it is spent
      * to the last row: 19 × 12 = 228 carried rows plus 272 kept ones is exactly
-     * 500. Nothing else in the suite would notice `MAX_MEMBERS` or the currency
-     * catalog growing without the reservation following — the import would just
-     * start proposing rooms `importRoomSchema` refuses.
+     * 500. Nothing else in the suite would notice `MAX_MEMBERS` growing without the reservation
+     * following — the import would just start proposing rooms `importRoomSchema` refuses.
      */
     it('stays inside the ceiling at the worst case the caps allow', () => {
         const members = Array.from({ length: MAX_MEMBERS }, (_, i) => `P${i}`)
@@ -797,7 +802,7 @@ describe('carrying history a room cannot hold', () => {
                 description: `Row ${i + 1}`,
                 category: null,
                 // Round-robin, so every currency still has rows below the cut.
-                currencyCode: FALLBACK_CURRENCIES[i % FALLBACK_CURRENCIES.length].code,
+                currencyCode: WORST_CASE_CURRENCIES[i % WORST_CASE_CURRENCIES.length],
                 costMinor: String(shares.reduce((total, share) => total + Number(share.amountMinor), 0)),
                 paidBy: members[0],
                 splitMode: 'EXACT' as const,
@@ -810,7 +815,7 @@ describe('carrying history a room cannot hold', () => {
         const carried = capped.expenses.filter((expense) => expense.description.startsWith(BROUGHT_FORWARD))
 
         expect(capped.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
-        expect(carried).toHaveLength((MAX_MEMBERS - 1) * FALLBACK_CURRENCIES.length)
+        expect(carried).toHaveLength((MAX_MEMBERS - 1) * WORST_CASE_CURRENCIES.length)
     })
 
     it('leaves a file inside the ceiling completely untouched', () => {

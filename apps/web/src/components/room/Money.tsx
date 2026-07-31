@@ -5,7 +5,7 @@ import NumberFlow from '@number-flow/react'
 import { useLocale } from 'next-intl'
 import type { CurrencyInfo } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
-import { currencyInfo, formatMoneyParts, minorToNumber, moneyFormatOptions } from '@/lib/money'
+import { currencyInfo, currencySuffix, formatMoneyParts, minorToNumber, moneyFormatOptions } from '@/lib/money'
 
 interface MoneyProps {
     /** Minor units, as a string, exactly as the API gave it. */
@@ -79,6 +79,9 @@ export function AnimatedMoney({ minor, currency, catalog, className, absolute }:
             // (before in en, after in es) is localised too.
             locales={locale}
             format={moneyFormatOptions(info)}
+            // A currency with no symbol prints its code after the amount, and `format` above only
+            // covers the digits for those. Without this a BEER balance counts up to a bare number.
+            suffix={currencySuffix(info)}
             spinTiming={COUNT_TIMING}
             transformTiming={COUNT_TIMING}
             opacityTiming={FADE_TIMING}

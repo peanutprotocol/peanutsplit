@@ -167,8 +167,10 @@ describe('statLine', () => {
         expect(drawableByBody(statLine(1, 50000n, 'THB'))).toBe(true)
     })
 
-    it('survives an unknown currency code', () => {
-        expect(safeAmount(1234n, 'XYZ')).toBe('1234 XYZ')
+    /** This used to print raw minor units, because `currency()` threw and the catch below fell
+     *  back to the undivided number. It is total now, so an invented ticker reads as money. */
+    it('renders an invented ticker as money, not as raw minor units', () => {
+        expect(safeAmount(1234n, 'XYZ')).toBe('12.34 XYZ')
     })
 
     it('only ever emits characters the body font can draw', () => {

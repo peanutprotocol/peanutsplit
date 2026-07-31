@@ -176,7 +176,10 @@ const coerceDescription = (raw: unknown): string | null => {
  * throws `NL_NO_AMOUNT` — which is also the honest answer for a line that was
  * never about an expense at all.
  */
-export function normalizeNlExpense(rawText: string, ctx: { members: readonly NlMember[] }): NlParseResult {
+export function normalizeNlExpense(
+    rawText: string,
+    ctx: { members: readonly NlMember[]; roomCurrency: string }
+): NlParseResult {
     let parsed: unknown
     try {
         parsed = JSON.parse(unfence(rawText))
@@ -230,7 +233,7 @@ export function normalizeNlExpense(rawText: string, ctx: { members: readonly NlM
         draft: {
             description: coerceDescription(envelope.data.description),
             amountMinor,
-            currency: coerceCurrency(envelope.data.currency),
+            currency: coerceCurrency(envelope.data.currency, ctx.roomCurrency),
             date: coerceDate(envelope.data.date),
             paidById: payer?.id ?? null,
             participantIds,
@@ -269,7 +272,7 @@ export const enforceRoomNlLimit = (roomId: string): void =>
  */
 export async function parseNlExpense(
     body: NlParseBody,
-    ctx: { members: readonly NlMember[]; today: string }
+    ctx: { members: readonly NlMember[]; today: string; roomCurrency: string }
 ): Promise<NlParseResult> {
     const config = modelConfig()
     // The route checks `modelEnabled()` first, so this is the belt to that brace

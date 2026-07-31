@@ -2,7 +2,7 @@
  * Share maths. Both modes guarantee the same invariant: the shares sum to the
  * room-currency total exactly, so balances always net to zero.
  */
-import { decimalsOf, RATE_SCALE } from '@/server/money'
+import { decimalsOf, RATE_SCALE, scaleRate } from '@/server/money'
 
 export interface ShareDraft {
     memberId: string
@@ -99,7 +99,7 @@ export function exactShares(
     // Character-identical arithmetic to convertMinorAtRate. buildExpense made
     // `baseTotal` with the same rate, so these quotients and remainders describe
     // the exact rational value that total rounded from.
-    const scaledRate = expenseCurrency === baseCurrency ? RATE_SCALE : BigInt(Math.round(rate * Number(RATE_SCALE)))
+    const scaledRate = expenseCurrency === baseCurrency ? RATE_SCALE : scaleRate(rate)
     const numeratorScale = scaledRate * 10n ** BigInt(decimalsOf(baseCurrency))
     const denominator = RATE_SCALE * 10n ** BigInt(decimalsOf(expenseCurrency))
 

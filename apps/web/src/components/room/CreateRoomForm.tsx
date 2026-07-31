@@ -189,7 +189,13 @@ export function CreateRoomForm() {
                     </button>
                 </div>
 
-                <p className="px-1 text-xs text-grey-1">{t('currencyHint')}</p>
+                {/* An invented ticker has no rate, so this room converts nothing. Said here, at the
+                    pick, rather than as a warning later: it is a property of the choice. */}
+                <p className="px-1 text-xs text-grey-1" data-testid="room-currency-hint">
+                    {currencies.some((info) => info.code === currency)
+                        ? t('currencyHint')
+                        : t('currencyCustomHint', { code: currency })}
+                </p>
 
                 <AnimatePresence initial={false}>
                     {drawingOpen && (

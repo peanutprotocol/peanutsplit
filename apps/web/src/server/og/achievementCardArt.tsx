@@ -158,9 +158,9 @@ function CrewCard(card: Extract<AchievementCardData, { kind: 'crew' }>): ReactEl
 
 // ---------------------------------------------------------------- passport
 
-/** One currency's stamp. A code with no drawing shows the code alone —
- *  `lib/currency-doodle.ts` explains why a near-miss drawing of a sign somebody
- *  reads every day is worse than no drawing. */
+/** One currency's stamp: a drawn sign and the code. Every code resolves to some
+ *  drawing — a real currency without a sign of its own gets a banknote, and an
+ *  invented ticker gets the shrug. `lib/currency-doodle.ts` explains the order. */
 function Stamp({ stamp, index }: { stamp: CurrencyStamp; index: number }) {
     return (
         <div
@@ -178,25 +178,19 @@ function Stamp({ stamp, index }: { stamp: CurrencyStamp; index: number }) {
                 flexShrink: 0,
             }}
         >
-            {stamp.doodle ? (
-                <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={doodleDataUri(stamp.doodle)} width={54} height={54} alt="" />
-                    <div
-                        style={{
-                            display: 'flex',
-                            marginLeft: 14,
-                            fontFamily: DISPLAY_FONT,
-                            fontSize: 46,
-                            color: INK,
-                        }}
-                    >
-                        {stamp.code}
-                    </div>
-                </>
-            ) : (
-                <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 46, color: INK }}>{stamp.code}</div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={doodleDataUri(stamp.doodle)} width={54} height={54} alt="" />
+            <div
+                style={{
+                    display: 'flex',
+                    marginLeft: 14,
+                    fontFamily: DISPLAY_FONT,
+                    fontSize: 46,
+                    color: INK,
+                }}
+            >
+                {stamp.code}
+            </div>
         </div>
     )
 }
