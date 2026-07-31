@@ -437,10 +437,10 @@ visual family — never on the same page as a doodle.
   income** — by-income calculator surface, ability-to-pay essay, `dividir gastos en pareja según
 ingresos`: a doodle on a page about one partner being in fuel poverty is the documented cutesy
   failure. (2) **Rent and utilities fairness** — rent split by room size, uneven utilities,
-  `/es/dividir-alquiler-habitaciones-diferentes`: this segment wants an arbiter and least wants
+  `/es-419/split-rent-unequal-rooms`: this segment wants an arbiter and least wants
   personality, and the page gets quoted at a flatmate. (3) **Splitwise migration pages** —
-  `/splitwise-alternative`, `/splitwise-daily-limit`, `/es/alternativa-splitwise`,
-  `/pt/alternativa-splitwise`: the reader just lost trust in a product, so charm reads as sales.
+  `/splitwise-alternative`, `/splitwise-daily-limit`, `/es-419/splitwise-alternative`,
+  `/pt-br/splitwise-alternative`: the reader just lost trust in a product, so charm reads as sales.
 - **§5.6 Editorial exception:** of the five fairness clusters, only _ambiguous social contract_
   (stag / hen / despedida) may carry one character, and not in the opening or closing 200 words.
 - **§5.7 Travel content reuses the shipped rooms, not inventions:** **Lisbon weekend** (4 friends,

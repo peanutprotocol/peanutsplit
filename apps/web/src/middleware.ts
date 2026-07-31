@@ -4,7 +4,7 @@ import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
 /**
  * Tells the server what language a URL is in. It does not route, redirect or rewrite anything.
  *
- * The indexed pages live under `/es/…`, `/pt-br/…`, and the English originals they translate. Every
+ * The indexed pages live under `/es-419/…`, `/pt-br/…`, and the English originals they translate. Every
  * server component on them — the footer, the locale switcher, anything on `useTranslations` —
  * resolves its language through next-intl's request config. That config runs once per request and
  * is resolved by the root layout, which renders *before* the page: by the time a page could call

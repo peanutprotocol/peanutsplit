@@ -89,8 +89,8 @@ const RESERVED_ROOT_SEGMENTS = [
     'manifest.webmanifest',
     'icon.png',
     // The locale prefixes: middleware reads them as a language, so a page slugged
-    // `es` would be served at /es and then tagged Spanish.
-    'es',
+    // `es-419` would be served at /es-419 and then tagged Spanish.
+    'es-419',
     'pt-br',
 ]
 

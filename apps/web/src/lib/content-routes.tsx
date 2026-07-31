@@ -22,7 +22,7 @@ import { LOCALES, type Locale } from '@/i18n/locales'
  *
  * The alternative was a `[locale]` segment, and it is not available: `[page]` already occupies the
  * root dynamic slot, and Next rejects two differently-named dynamic segments at the same path
- * position. So each language gets a real folder (`es/`, `pt-br/`) holding six-line files that call
+ * position. So each language gets a real folder (`es-419/`, `pt-br/`) holding six-line files that call
  * these builders. The folders are the only thing duplicated per locale, and a folder that exists is
  * easier to reason about than a segment that has to be told what it is.
  *
@@ -70,7 +70,7 @@ function resolveDoc(collections: RouteCollections, slug: string, locale: Locale)
 async function crumbsFor(locale: Locale, collection: Collection, title: string, href: string) {
     const t = await getTranslations({ locale, namespace: 'content' })
     // Bare `/`, never `localizedPath('/', locale)`: the landing is app shell, so it answers at one
-    // URL in every language (see `@/i18n/paths`) and there is no route at `/es` or `/pt-br`. The
+    // URL in every language (see `@/i18n/paths`) and there is no route at `/es-419` or `/pt-br`. The
     // prefixed version 404s — in the rendered trail AND in the BreadcrumbList it feeds.
     const home = { name: t('home'), href: '/' }
     const article = { name: title, href }

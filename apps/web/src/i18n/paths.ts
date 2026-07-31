@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, LOCALES, type Locale } from './locales'
+import { DEFAULT_LOCALE, HREFLANG, LOCALES, type Locale } from './locales'
 
 /**
  * URL locale prefixes — for indexed pages only.
@@ -20,14 +20,20 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from './locales'
  */
 
 /**
- * Lowercase, because a path segment is compared byte-for-byte and `pt-BR` in a URL is a
- * capitalisation someone will get wrong in a link. The locale keeps its BCP 47 casing everywhere
- * else — this map is the only place the two spellings meet.
+ * The locale code IS the URL segment, for every locale except the default.
+ *
+ * Both are lowercase BCP 47 (see `locales.ts`), so there is nothing to translate here and the map
+ * exists only to say that English has no prefix. A path segment is compared byte-for-byte, and a
+ * `pt-BR` in a URL is a capitalisation somebody gets wrong in a link — which is the reason the
+ * codes are lowercase in the first place. `HREFLANG` is where the standard casing lives.
+ *
+ * The prefix is exactly ONE path segment, always: `es-419`, never `es/419`. `[page]` sits at the
+ * root, and a two-segment prefix would collide with `/[page]/[something]`.
  */
 const PREFIX_BY_LOCALE: Record<Locale, string> = {
     en: '',
-    es: 'es',
-    'pt-BR': 'pt-br',
+    'es-419': 'es-419',
+    'pt-br': 'pt-br',
 }
 
 const LOCALE_BY_PREFIX = new Map<string, Locale>(
@@ -44,13 +50,13 @@ export const LOCALE_HEADER = 'x-split-locale'
 /** Locales that live under a path prefix — everything except the default. */
 export const PREFIXED_LOCALES = LOCALES.filter((locale) => locale !== DEFAULT_LOCALE)
 
-/** `es` → `/es`, `en` → `` (English is unprefixed). */
+/** `es-419` → `/es-419`, `en` → `` (English is unprefixed). */
 export function localePrefix(locale: Locale): string {
     const prefix = PREFIX_BY_LOCALE[locale]
     return prefix ? `/${prefix}` : ''
 }
 
-/** `'pt-br'` → `'pt-BR'`. Returns null for anything that is not a locale prefix. */
+/** First path segment → locale. Returns null for anything that is not a locale prefix. */
 export function localeFromPrefix(prefix: string): Locale | null {
     return LOCALE_BY_PREFIX.get(prefix.toLowerCase()) ?? null
 }
@@ -71,8 +77,8 @@ const COOKIE_LOCALE_SEGMENTS = new Set(['new', 'r', 'share-target'])
  * The language a URL states, or null when it states none and the cookie decides.
  *
  * Unprefixed is English, not "unknown". `/tricount-alternative` is the canonical ENGLISH URL of
- * that page as firmly as `/es/tricount-alternative` is the Spanish one, so it has to render
- * English chrome and declare `lang="en"` even for a reader carrying a `ps-locale=pt-BR` cookie
+ * that page as firmly as `/es-419/tricount-alternative` is the Spanish one, so it has to render
+ * English chrome and declare `lang="en"` even for a reader carrying a `ps-locale=pt-br` cookie
  * picked up from a Portuguese guide. Letting the cookie answer there wrapped English articles in
  * Portuguese furniture and told screen readers and crawlers the wrong language.
  */
@@ -83,12 +89,12 @@ export function localeFromPathname(pathname: string): Locale | null {
 }
 
 /**
- * Prefix a root-relative path for a locale. `/blog/x` + `es` → `/es/blog/x`, and the same path
+ * Prefix a root-relative path for a locale. `/blog/x` + `es-419` → `/es-419/blog/x`, and the same path
  * in `en` comes back untouched.
  *
  * Only ever point this at a path that HAS a locale-prefixed route — the guides hub, the articles,
  * the comparison pages. The app shell (`/`, `/new`, `/r/*`) answers at one URL by design, so
- * prefixing one of those produces a URL nothing serves: `/es` and `/es/new` both shipped as live
+ * prefixing one of those produces a URL nothing serves: `/es-419` and `/es-419/new` both shipped as live
  * 404s, linked from every Spanish page's breadcrumb and the Spanish hub's only CTA.
  */
 export function localizedPath(path: string, locale: Locale): string {
@@ -99,7 +105,7 @@ export function localizedPath(path: string, locale: Locale): string {
 /**
  * hreflang map for one page, given the locales it actually exists in.
  *
- * Only real translations are listed. Advertising `/es/blog/x` for a page that has no Spanish
+ * Only real translations are listed. Advertising `/es-419/blog/x` for a page that has no Spanish
  * file would either 404 the crawler or — worse, if we fell back to English — put the same English
  * text at two URLs and let Google pick which to drop. A partially translated site is normal; a
  * partially translated site that lies about it is a ranking problem.
@@ -113,9 +119,11 @@ export function hreflangAlternates(path: string, available: Locale[]): Record<st
 
     const languages: Record<string, string> = {}
     for (const locale of available) {
-        // The locale IS the hreflang value: both are BCP 47, and Google matches
-        // them case-insensitively. Only the URL prefix has its own spelling.
-        languages[locale] = localizedPath(path, locale)
+        // `HREFLANG`, not the locale code: the code is the lowercase filename spelling, and the
+        // markup gets standard BCP 47 casing (`pt-br` → `pt-BR`). Google matches the attribute
+        // case-insensitively, so this is correctness rather than function — but the sitemap
+        // reuses these keys as `xhtml:link` hreflang values, and a validator does read them.
+        languages[HREFLANG[locale]] = localizedPath(path, locale)
     }
     if (available.includes(DEFAULT_LOCALE)) {
         languages['x-default'] = localizedPath(path, DEFAULT_LOCALE)

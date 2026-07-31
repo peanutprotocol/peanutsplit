@@ -15,7 +15,7 @@
  * never touches `en`.
  */
 
-import { DEFAULT_LOCALE, isLocale, type Locale } from './locales'
+import { asLocale, DEFAULT_LOCALE, type Locale } from './locales'
 import { loadMessages, type Messages } from './messages'
 
 /** Values a message can interpolate. Objects would stringify to `[object Object]` in a user's face. */
@@ -50,7 +50,7 @@ export function interpolate(template: string, params?: TranslationParams): strin
  * is meant to be conspicuous — if you see one in output, the catalog is wrong, not the caller.
  */
 export async function translate(locale: string, key: string, params?: TranslationParams): Promise<string> {
-    const active: Locale = isLocale(locale) ? locale : DEFAULT_LOCALE
+    const active: Locale = asLocale(locale)
 
     const found = pick(await loadMessages(active), key)
     if (found !== undefined) return interpolate(found, params)
@@ -71,7 +71,7 @@ export async function translate(locale: string, key: string, params?: Translatio
 export async function getTranslator(
     locale: string
 ): Promise<(key: string, params?: TranslationParams) => Promise<string>> {
-    const active: Locale = isLocale(locale) ? locale : DEFAULT_LOCALE
+    const active: Locale = asLocale(locale)
     await loadMessages(active)
     return (key, params) => translate(active, key, params)
 }
