@@ -308,7 +308,15 @@ describe('loader, against a scratch tree', () => {
 })
 
 describe('article bodies', () => {
-    /** Internal links are the only thing here that can rot silently — a renamed slug 404s. */
+    /**
+     * Internal links are the only thing here that can rot silently — a renamed slug 404s.
+     *
+     * Both spellings, because the body is MDX and an author has two of them: `href="/x"` on a
+     * component, and `[label](/x)` in prose. Checking only the attribute left every markdown link
+     * unchecked, which is most of the links a capture page has — its whole job is routing the
+     * reader onward. A fragment or a query is cut off before the lookup: `/tools#rent` rots when
+     * `/tools` does, and the anchor is not a page.
+     */
     it('only links internally to pages that exist', () => {
         const known = new Set<string>([
             ...LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
@@ -317,7 +325,10 @@ describe('article bodies', () => {
         ])
 
         for (const doc of ALL) {
-            const links = [...doc.body.matchAll(/href="(\/[^"#?]*)"/g)].map((m) => m[1])
+            const links = [
+                ...[...doc.body.matchAll(/href="(\/[^"#?]*)"/g)].map((m) => m[1]),
+                ...[...doc.body.matchAll(/\]\((\/[^)]*)\)/g)].map((m) => m[1].replace(/[#?].*$/, '')),
+            ].filter(Boolean)
             for (const link of links) {
                 expect(known.has(link), `${doc.slug} links to missing ${link}`).toBe(true)
             }
@@ -1114,14 +1125,26 @@ describe('tool style gate', () => {
 
     /**
      * §8.1: a usage-weighted tool that ignores the communal-space objection reads as absurd to the
-     * exact reader it is for. Same slug family as the cast-absence row in §11.2.
+     * exact reader it is for.
+     *
+     * Rent and utilities only. The objection is about a household — the loo, the lights, the
+     * kitchen are things flatmates share and one of them uses more — so it belongs on the surfaces
+     * that divide a home. `fair-split` used to be in this list and matched anything with those two
+     * words in its slug, including a routing hub whose job is to send the reader to the right
+     * calculator; that page was carrying a mandatory paragraph about a flat it never describes.
+     * A page may still make the argument, and the fairness pages do. It is required here.
+     *
+     * The words are whole words. Unanchored, `loo` sits inside "floor" — and a page about floor
+     * area says that in the first line, so the gate passed on the phrase it exists to require.
      */
     it('pre-empts the communal-space objection on a fairness page', () => {
         for (const tool of TOOLS) {
-            if (!/rent-split|utilities|fair-split|alquiler|habitaciones/.test(tool.slug)) continue
+            if (!/rent-split|utilities|alquiler|habitaciones/.test(tool.slug)) continue
             const prose = toolStrings(tool).join('\n')
-            expect(/loo|lights|kitchen/i.test(prose), `${tool.slug}: name the objection and give the boundary (§8.1)`) //
-                .toBe(true)
+            expect(
+                /\b(?:loo|lights|kitchen)\b/i.test(prose),
+                `${tool.slug}: name the objection and give the boundary (§8.1)`
+            ).toBe(true)
         }
     })
 })

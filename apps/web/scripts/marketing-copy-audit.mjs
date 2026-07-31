@@ -10,46 +10,37 @@ const claimPattern = /\bfree\b|gratis|grátis/giu
  */
 const commitmentPattern = /free[\s-]forever|gratis para siempre|grátis para sempre/iu
 const failures = []
-const seenExceptions = new Set()
 
-const exceptions = [
-    {
-        id: 'splitwise-free-version',
-        files: /src\/components\/marketing\/copy\.ts$/,
-        phrase: 'the free version',
-        reason: 'description of Splitwise’s free tier',
-    },
-    {
-        id: 'splitwise-free-tier',
-        files: /src\/components\/marketing\/copy\.ts$/,
-        phrase: 'the free tier',
-        reason: 'description of Splitwise’s free tier',
-    },
-    {
-        id: 'splitwise-free-app',
-        files: /src\/components\/marketing\/copy\.ts$/,
-        phrase: 'The free app',
-        reason: 'description of Splitwise’s app',
-    },
-    {
-        id: 'splitwise-ad-free-quote',
-        files: /src\/components\/marketing\/copy\.ts$/,
-        phrase: 'ad-free',
-        reason: 'quoted Splitwise Pro wording',
-    },
-    {
-        id: 'splitwise-free-with-ads',
-        files: /src\/components\/marketing\/copy\.ts$/,
-        phrase: 'Free with ads',
-        reason: 'description of Splitwise’s plan',
-    },
-    {
-        id: 'tricount-quoted-claim',
-        files: /src\/content\/alternatives\/tricount-alternative\/(?:en|es|pt-BR)\.md$/,
-        phrase: '"100% free"',
-        reason: 'quoted Tricount wording',
-    },
-]
+/**
+ * The rule is about OUR pricing claim, so it runs on the sentences that make one.
+ *
+ * A comparison page is mostly a description of somebody else's free tier — "Free with ads", "the
+ * free version", an ad-free quote from a Pro pitch — and none of that is a promise Peanut is making
+ * about Peanut. Auditing every `free` on the page made the six comparison pages fire about sixty
+ * times, and the only way to land them was a per-file exception list longer than the rule it
+ * excepted. Scoping to the subject is what lets the rule stay absolute where it applies: inside a
+ * sentence that names the product, `free` still has to arrive with the forever commitment.
+ *
+ * Case-sensitive on purpose. The verb ("split what one person consumes") is ordinary copy on these
+ * pages, and `\b` already keeps "Splitwise" out of `\bSplit\b`.
+ */
+const ourNamePattern = /\bSplit\b|\bPeanut\b/u
+/**
+ * What ends a subject. A full stop only counts with whitespace behind it, so `kb.splitwise.com`
+ * stays one sentence; a `|` counts because a comparison table puts our column and theirs on one
+ * line, and a row that names Split in one cell must not vouch for the cell beside it.
+ */
+const subjectBreakPattern = /[.!?](?=\s|$)|\||\n/g
+
+function sentenceAround(text, index) {
+    let start = 0
+    for (const match of text.matchAll(subjectBreakPattern)) {
+        const end = match.index + match[0].length
+        if (index < end) return text.slice(start, end)
+        start = end
+    }
+    return text.slice(start)
+}
 
 /**
  * `_system` is the drafting agent's input layer, not a publishing surface — `COLLECTIONS` in
@@ -67,21 +58,9 @@ function filesBelow(directory, extensions) {
     })
 }
 
-function exceptionFor(file, text, claimIndex) {
-    return exceptions.find(({ files, phrase }) => {
-        if (!files.test(file)) return false
-        const phraseIndex = text.toLocaleLowerCase().indexOf(phrase.toLocaleLowerCase())
-        return phraseIndex >= 0 && claimIndex >= phraseIndex && claimIndex < phraseIndex + phrase.length
-    })
-}
-
 function auditText(file, location, text) {
     for (const match of text.matchAll(claimPattern)) {
-        const exception = exceptionFor(file, text, match.index)
-        if (exception) {
-            seenExceptions.add(exception.id)
-            continue
-        }
+        if (!ourNamePattern.test(sentenceAround(text, match.index))) continue
 
         const around = text.slice(Math.max(0, match.index - 24), match.index + 48)
         if (!commitmentPattern.test(around)) {
@@ -150,12 +129,6 @@ for (const path of filesBelow(resolve(root, 'src/tools'), new Set(['.ts']))) {
     auditTypescript(path)
 }
 
-for (const exception of exceptions) {
-    if (!seenExceptions.has(exception.id)) {
-        failures.push(`stale audit exception ${exception.id}; remove or update it`)
-    }
-}
-
 if (failures.length) {
     console.error('Marketing copy audit failed:\n')
     for (const failure of failures) console.error(`  - ${failure}`)
@@ -163,4 +136,3 @@ if (failures.length) {
 }
 
 console.log('Marketing copy audit clean')
-for (const exception of exceptions) console.log(`  allowed: ${exception.id} — ${exception.reason}`)
