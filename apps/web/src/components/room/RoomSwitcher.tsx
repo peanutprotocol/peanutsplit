@@ -33,9 +33,20 @@ export function RoomSwitcher({ currentSlug, onNavigate }: { currentSlug: string;
     if (rooms.length === 0) return null
 
     return (
-        <section className="flex flex-col gap-2" data-testid="room-switcher">
-            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('switchRoom')}</span>
-            <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <section data-testid="room-switcher">
+            {/* No heading. A row of rooms above the room you are in does not need a
+                word to say what it is, and the label cost a line of the sheet. */}
+            <ul
+                // vaul owns the pointer inside a sheet: it sets `touch-action: none` on the drawer,
+                // and touch-action resolves up the ancestor chain, so this strip could not be
+                // panned by a finger at all. `data-vaul-no-drag` is vaul's own opt-out, and the
+                // explicit `pan-x` hands horizontal panning back to the browser.
+                data-vaul-no-drag
+                // The scrollbar used to be hidden on both engines. On a phone that was survivable
+                // once panning worked, but a mouse has no gesture to fall back on — the rooms past
+                // the edge were simply unreachable. A thin bar is the affordance.
+                className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:thin] [touch-action:pan-x]"
+            >
                 {rooms.map((room) => (
                     <li key={room.slug}>
                         <Link

@@ -35,7 +35,14 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
                 built to carry black ink (see the contrast note in `lib/themes.ts`)
                 — inheriting it is what the `PEOPLE` label two rows down already does. */}
             <span className="text-h8 uppercase tracking-wide">{t('title')}</span>
-            <ul className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* Same fix as `RoomSwitcher`, same reason: vaul sets `touch-action: none` on the
+                drawer and touch-action resolves up the ancestor chain, so this row was dead to a
+                finger — and with the scrollbar hidden a mouse had nothing either. The eighth
+                swatch was unreachable at 390px, which is the width this sheet is designed at. */}
+            <ul
+                data-vaul-no-drag
+                className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin] [touch-action:pan-x]"
+            >
                 {ROOM_THEMES.map((theme) => {
                     // `t.has`-free: every name lives under `names.<key>` and the
                     // catalog parity audit is what guarantees all three locales

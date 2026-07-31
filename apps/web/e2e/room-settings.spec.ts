@@ -46,7 +46,11 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     await page.getByTestId('room-display-name').press('Enter')
     expect((await rename).ok()).toBe(true)
     await expect(page.locator('header h1')).toHaveText('The great escape')
-    expect(page.url()).toBe(permanentUrl)
+    // The claim is that a rename does not move the room, so compare the path. The sheet itself is
+    // a URL param now (`?settings=1`, like `?share=1` always was) so that the back gesture closes
+    // it instead of leaving the room — and the link people actually share is built from the origin
+    // and the slug, never from the address bar.
+    expect(new URL(page.url()).pathname).toBe(new URL(permanentUrl).pathname)
     await expect(page.getByTestId('room-card')).not.toContainText('The link stays the same.')
 
     const addFromSettings = page.waitForResponse(
