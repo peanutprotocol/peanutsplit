@@ -61,6 +61,38 @@ export const marketingCopy = {
                 },
             ],
         },
+        /**
+         * The cap, stated once, next to the first-party sentence that states it.
+         *
+         * Checked against kb.splitwise.com/pro/what-is-splitwise-pro-and-who-can-use-it on
+         * 2026-07-31 (`splitwise-free-daily-cap` in `_system/competitor-claims.md`). The number
+         * belongs to this section and nowhere else on the page: the table row and the FAQ keep the
+         * paid-tier fact without repeating the figure (§6.16.3, restated proof point).
+         *
+         * The section is the rescue action only. The correction ("four, not three"), the ways out
+         * Splitwise itself publishes and the full balance move all live on /splitwise-daily-limit,
+         * so nothing here restates them (§6.17) — `moreHref` is how the reader gets to them.
+         *
+         * Flat register (§3.10): this reader has lost trust in a product, so charm reads as sales.
+         */
+        migration: {
+            title: 'If the counter has already stopped you today',
+            quote: 'Add as many expenses as you need without hitting a limit (free users can add up to 4 expenses each day).',
+            quoteNote: "From Splitwise's help centre, kb.splitwise.com, July 2026.",
+            body: [
+                'That is Splitwise describing its own free tier. The counter resets and you can add again tomorrow, which is no help tonight.',
+                'A group does not have to move its history to carry on. Start a room, paste the link into the group chat, and put the rest of today in there. There is no account to make, so nobody in the group has to sign up before the next expense goes in. What is already in Splitwise stays in Splitwise and stays correct.',
+                'Running two ledgers for one trip is worth it for the days the counter is in the way and not much longer. A group at the start of a week away is better off opening the room on day one, and a group that would rather carry the open balances over than start from today should do that in one sitting.',
+            ],
+            /**
+             * Appended to the second paragraph, and only where the importer exists. With the flag
+             * off the section must still read correctly, so the promise cannot sit in `body`.
+             */
+            importSentence:
+                'If you would rather bring the history across, export the group from Splitwise as a spreadsheet and drop the file on the import page.',
+            moreHref: '/splitwise-daily-limit',
+            moreLabel: 'What the daily cap does, and how to move a group mid-trip',
+        },
         table: {
             title: 'The difference, plainly',
             splitLabel: 'Peanut Split',

@@ -15,6 +15,15 @@ const { compare } = marketingCopy
 const compareFaqItems = compare.faq.items.filter((item) => splitV2Enabled() || !('v2Only' in item && item.v2Only))
 
 /**
+ * The importer is behind the v2 flag, so the sentence that promises it is appended to the second
+ * paragraph rather than carried in `body`. With the flag off the section has to read correctly on
+ * its own, which is a different requirement from merely leaving a line out.
+ */
+const migrationBody = compare.migration.body.map((paragraph, index) =>
+    index === 1 && splitV2Enabled() ? `${paragraph} ${compare.migration.importSentence}` : paragraph
+)
+
+/**
  * Built by hand rather than through the content engine — the copy here is argued over line by
  * line and carries an interactive comparison table. It goes through `pageMetadata` anyway so the
  * head does not drift from the generated pages: this is the highest-intent page on the site and
@@ -97,6 +106,31 @@ export default function SplitwiseAlternativePage() {
                         </li>
                     ))}
                 </ul>
+            </section>
+
+            {/* The rescue action for a reader who is capped right now. It sits after `why` has
+                established what Splitwise puts behind Pro and before the table, which is reference
+                furniture — and ahead of `honest`, so the page still concedes once, immediately
+                before the CTA. The link at the foot is the only thing here that leaves the page:
+                the correction, the ways out and the full balance move belong to
+                /splitwise-daily-limit, and two pages that repeat each other compete for one query
+                instead of stacking. */}
+            <section className="mx-auto w-full max-w-xl px-5">
+                <div className="rounded-sm border border-n-1 bg-white p-4">
+                    <h2 className="text-h5">{compare.migration.title}</h2>
+                    <blockquote className="mt-3 border-l-2 border-n-1 pl-3 text-sm italic leading-5 text-n-1">
+                        “{compare.migration.quote}”
+                    </blockquote>
+                    <p className="mt-2 text-sm leading-5 text-grey-1">{compare.migration.quoteNote}</p>
+                    {migrationBody.map((paragraph) => (
+                        <p key={paragraph} className="mt-3 text-sm leading-5 text-grey-1">
+                            {paragraph}
+                        </p>
+                    ))}
+                    <Link href={compare.migration.moreHref} className="mt-4 inline-block text-sm text-black underline">
+                        {compare.migration.moreLabel}
+                    </Link>
+                </div>
             </section>
 
             <CompareTable />
