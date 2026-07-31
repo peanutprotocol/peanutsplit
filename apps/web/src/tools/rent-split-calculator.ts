@@ -89,10 +89,10 @@ export const rentSplitCalculator: Tool = {
         copyLabel: 'Copy the split',
         copyDone: 'Copied',
         method: {
-            title: 'Where this stops being worth it',
+            title: 'Where the measuring stops',
             body: [
-                'So is everyone going to split how many times they use the loo, or who left the lights on, or the hours one person spends in the kitchen? No. A bigger bedroom is one decision, made once, and it stays true all year. The loo roll is a running argument.',
-                'Most households land on splitting what one person clearly consumes and leaving the shared things shared. Where the gap between the two biggest rooms works out at a few pounds a month, the upheaval costs more than the money does.',
+                'Somebody in the flat will ask where this ends — the kitchen next, then the hot water, then who is home enough to use either. The line here is drawn at what gets measured once. A bedroom is the same size in November as it was in March, so the rent it carries can be settled in one conversation; a kettle would need a new one every week.',
+                'The size of the gap decides whether to have that conversation at all. If the biggest room and the smallest come out within small change of each other, a flat gets more from leaving the rent alone than from reopening it every month.',
             ],
         },
         concession: {
