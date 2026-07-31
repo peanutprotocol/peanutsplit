@@ -30,7 +30,7 @@ export const marketingCopy = {
         hero: {
             eyebrow: 'splitwise alternative',
             title: 'Split the bill without making everyone sign up',
-            body: 'Splitwise works. It also asks every person in the group to make an account before they can add a single expense, and that is where most groups quietly give up. Peanut Split is a link. Send it, people type a name, everyone adds what they paid.',
+            body: 'Splitwise works. It also asks every person in the group to make an account before they can add a single expense, and that is where most groups quietly give up. Split by Peanut is a link. Send it, people type a name, everyone adds what they paid.',
             cta: 'Start a split',
             ctaHint: 'Takes ten seconds. No email, no password, no download.',
             importLink: 'Already on Splitwise? Bring your group’s history with you',
