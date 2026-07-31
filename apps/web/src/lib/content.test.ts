@@ -438,6 +438,76 @@ export const NEVER_STRINGS: readonly StyleRule[] = [
 ]
 
 /**
+ * §6.16, the half of it a regex can carry.
+ *
+ * These are not banned for being machine-written. They are banned for being sentences with no cargo
+ * — a warm-up, a hand-off, a narrator telling you the next fact matters — and a model reaches for
+ * them first because they are the cheapest thing to write. They are split out from `NEVER_STRINGS`
+ * because the two lists fail for different reasons: a never-string is a CLAIM we cannot support, and
+ * one of these is a sentence we would not have written.
+ *
+ * Only the phrases with no legal reading on these pages are here. §6.16 covers a much larger family
+ * — explore, navigate, journey, landscape, dive, unpack, ultimately, notably, keep in mind — and
+ * every one of those is left to the cold read on purpose, because this is a travel site: you explore
+ * the old town, you navigate to the ferry, you unpack at the villa. Gating the figurative sense of a
+ * word whose literal sense is our subject matter fails correct copy, and a gate that fails correct
+ * copy gets suppressed. The one narrow figurative form that survives is "let's unpack", which nobody
+ * writes about luggage.
+ */
+export const ANTI_AI_STRINGS: readonly StyleRule[] = [
+    {
+        id: 'rhetorical-question-transition',
+        target: 'prose',
+        pattern:
+            /\bthe (?:result|catch|kicker|upshot|twist|best part)\?|\bsound familiar\?|\bso what does (?:this|that) mean/i,
+        why: 'a question asked so the page can answer it is a transition (§6.16.1) — delete the question and keep the answer',
+    },
+    {
+        id: 'fake-chummy-opener',
+        target: 'prose',
+        pattern:
+            /\blet'?s (?:be honest|face it)\b|\bwe'?ve all been there\b|\bhere'?s (?:the thing|where it gets)\b|\b(?:seamos|sejamos|vamos a ser|vamos ser) honestos\b/i,
+        why: "open on the fact, not on an arm round the shoulder (§6.16.1) — warmth is §3.1's concrete thing",
+    },
+    {
+        id: 'conclusion-tell',
+        target: 'prose',
+        pattern:
+            /\bat the end of the day\b|\bwhen all is said and done\b|\bthe bottom line\b|\bin short,|\bin conclusion\b|\bto sum up\b/i,
+        why: 'a last paragraph is already last (§6.16.1) — cut the opener and keep the sentence',
+    },
+    {
+        id: 'importance-narrator',
+        target: 'prose',
+        pattern:
+            /\bit'?s worth noting\b|\bit is worth noting\b|\bworth noting that\b|\b(?:importantly|interestingly),/i,
+        why: 'telling the reader a fact matters is the tell that it does not (§6.16.1) — state the fact',
+    },
+    {
+        id: 'anthropomorphic-reassurance',
+        target: 'prose',
+        pattern:
+            /\b(?:we'?ve|we have) (?:got )?you covered\b|\b(?:got|has) your back\b|\bsay (?:goodbye|hello) to\b|\byour new best friend\b/i,
+        why: 'Split is a page that counts, not a friend with feelings about you (§6.16.2) — say what it does',
+    },
+    {
+        id: 'metaphor-vocabulary',
+        target: 'prose',
+        pattern: /\bdelve\b|\bdeep[-\s]dive\b|\bgame[-\s]chang/i,
+        why: 'use the plain verb — work out, look at, compare (§6.16.2); §6.4 bans the adjective form as well',
+    },
+    {
+        id: 'figurative-unpack',
+        target: 'prose',
+        pattern: /\blet'?s unpack\b/i,
+        why: 'unpacking is what you do at the villa (§6.16.2) — for an argument, say "work out", or make the argument',
+    },
+]
+
+/** Both gates run the whole book. The two lists are separate for their reasons, not their scope. */
+const STYLE_RULES: readonly StyleRule[] = [...NEVER_STRINGS, ...ANTI_AI_STRINGS]
+
+/**
  * What a prose rule is matched against. A `<Quote>` is somebody else's words, attributed and dated,
  * and it is the one place a phrase we would not write ourselves is allowed to appear — stripping it
  * is what lets the rules be absolute everywhere else. MDX comments go too: the check-date note at the
@@ -449,7 +519,7 @@ function ownProse(doc: (typeof ALL)[number]): string {
 }
 
 describe('style gate', () => {
-    it.each(NEVER_STRINGS.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
+    it.each(STYLE_RULES.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
         for (const doc of ALL) {
             if (rule.collections && !rule.collections.includes(doc.collection)) continue
             const subject =
@@ -526,6 +596,28 @@ function noExclamationZones(doc: (typeof ALL)[number]): [string, string][] {
     for (const [, label] of body.matchAll(/\b(?:text|cta)="([^"]*)"/g)) zones.push(['a CTA label', label])
     for (const [item] of body.matchAll(/<FAQItem[\s\S]*?<\/FAQItem>/g)) zones.push(['an FAQ item', item])
     return zones
+}
+
+/**
+ * §11.2's question cap: the questions the page asks in its own voice, which is what is left once
+ * the three kinds of legitimate question mark are taken out.
+ *
+ * An `<FAQ>` block is the reader's questions, not ours. A component attribute — `title=` on a
+ * `<Step>` or a `<ChecklistItem>`, `question=` on an `<FAQItem>` — is a heading, and a heading
+ * phrased as a question is navigation ("Does it net the debts down?"), the same way §11.2 treats a
+ * heading as its own zone for exclamation marks. A `?` inside quotation marks is somebody speaking:
+ * the §3.12 quoted opening, a line of dialogue, a sentence written for the reader to say at a table.
+ *
+ * What survives all three is the tell — a question with no asker, standing in front of its own
+ * answer. §6.16.1 wants it deleted; the one that is allowed to stay is the §8.1 pre-emption, which
+ * is why this counts to one rather than to zero.
+ */
+function ownVoiceQuestions(text: string): string[] {
+    const asked = text
+        .replace(/<FAQ>[\s\S]*?<\/FAQ>/g, ' ')
+        .replace(/\b[a-zA-Z]+="[^"]*"/g, ' ')
+        .replace(/["“][^"”]*["”]/g, ' ')
+    return [...asked.matchAll(/[^.!?\n]*\?/g)].map((match) => match[0].trim()).filter(Boolean)
 }
 
 /**
@@ -620,6 +712,17 @@ describe('page style gate', () => {
             expect(
                 count,
                 `${doc.collection}/${doc.slug}/${doc.locale}.md: the product enters by name once (§3.17) — every later mention is "Split"`
+            ).toBeLessThanOrEqual(1)
+        }
+    })
+
+    /** §6.16.1: one question in our own voice per page, and it is the §8.1 pre-emption. */
+    it('asks at most one question in its own voice', () => {
+        for (const doc of ALL) {
+            const asked = ownVoiceQuestions(bodyProse(doc))
+            expect(
+                asked.length,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: ${asked.map((q) => `"${q}"`).join(' / ')} — a question standing in front of its own answer is a transition (§6.16.1); name the objection as a statement`
             ).toBeLessThanOrEqual(1)
         }
     })
@@ -919,7 +1022,7 @@ describe('tool registry', () => {
 })
 
 describe('tool style gate', () => {
-    it.each(NEVER_STRINGS.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
+    it.each(STYLE_RULES.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
         for (const tool of TOOLS) {
             const subject =
                 rule.target === 'meta' ? `${tool.meta.title} ${tool.meta.description}` : toolStrings(tool).join('\n')
@@ -975,6 +1078,27 @@ describe('tool style gate', () => {
                     .match(/Peanut Split|Split by Peanut/g) ?? []
             ).length
             expect(count, `${tool.slug}: the product enters by name once (§3.17)`).toBeLessThanOrEqual(1)
+        }
+    })
+
+    /**
+     * §6.16.1, and the tool's one allowance is spent before it starts: §8.1 requires the fairness
+     * pages to put the communal-space objection in the reader's own words, and the reader asks it
+     * as a question. The FAQ is dropped first — a `faqTitle` of "Questions" is the clue that those
+     * are the reader's, not ours.
+     */
+    it('asks at most one question in its own voice', () => {
+        for (const tool of TOOLS) {
+            const answered = new Set(tool.faqs.flatMap((faq) => [faq.question, faq.answer]))
+            const asked = ownVoiceQuestions(
+                toolStrings(tool)
+                    .filter((line) => !answered.has(line))
+                    .join('\n')
+            )
+            expect(
+                asked.length,
+                `${tool.slug}: ${asked.map((q) => `"${q}"`).join(' / ')} — a question standing in front of its own answer is a transition (§6.16.1)`
+            ).toBeLessThanOrEqual(1)
         }
     })
 
