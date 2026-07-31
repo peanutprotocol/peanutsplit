@@ -29,7 +29,12 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
 
     return (
         <div className="flex flex-col gap-2">
-            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('title')}</span>
+            {/* No `text-grey-1` here: this card wears the room's own field colour
+                (`SettingsSheet`'s `room-card` section), and grey-1 fails 4.5:1 on
+                five of the eight fields including the default. Every field is
+                built to carry black ink (see the contrast note in `lib/themes.ts`)
+                — inheriting it is what the `PEOPLE` label two rows down already does. */}
+            <span className="text-h8 uppercase tracking-wide">{t('title')}</span>
             <ul className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {ROOM_THEMES.map((theme) => {
                     // `t.has`-free: every name lives under `names.<key>` and the

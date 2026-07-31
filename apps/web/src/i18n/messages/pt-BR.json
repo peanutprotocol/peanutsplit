@@ -430,7 +430,7 @@
             "staleBody": "Estamos mostrando a última sala carregada. Editar ou excluir gastos salvos e acertar as contas fica pausado até atualizar. Você ainda pode lançar uma despesa.",
             "retry": "Tentar de novo",
             "notFoundTitle": "Esta sala não existe",
-            "notFoundBody": "Os links diferenciam maiúsculas — confira se você copiou tudo, inclusive o pedaço depois do último traço.",
+            "notFoundBody": "Ou ela foi excluída, ou falta o último pedaço do link — os links também diferenciam maiúsculas.",
             "notFoundCta": "Criar uma sala nova"
         },
         "allSettled": {
@@ -540,10 +540,13 @@
                 "PAYER_REQUIRED": "Escolha quem pagou.",
                 "NO_PARTICIPANTS": "Escolha pelo menos uma pessoa para dividir.",
                 "SHARE_AMOUNT_INVALID": "Confira os separadores e as casas decimais dos valores exatos.",
-                "SHARES_DO_NOT_ADD_UP": "Os valores exatos precisam somar o total."
+                "SHARES_DO_NOT_ADD_UP": "Os valores exatos precisam somar o total.",
+                "AMOUNT_NEGATIVE": "Tire o sinal de menos — o valor de um gasto é sempre positivo."
             },
             "equallyHint": "Igual para todo mundo",
-            "exactAmountsHint": "Valores diferentes"
+            "exactAmountsHint": "Valores diferentes",
+            "equallyShort": "igual",
+            "exactShort": "exatos"
         },
         "settle": {
             "listTitle": "Quem deve a quem",
@@ -574,7 +577,8 @@
             "amountFormatInvalid": "Confira os separadores e as casas decimais do valor.",
             "amountTooHigh": "Isso é mais do que {name} deve.",
             "recordedTitle": "Registrado agora",
-            "recordedHint": "Eles também ficam no histórico da sala, junto com o resto."
+            "recordedHint": "Eles também ficam no histórico da sala, junto com o resto.",
+            "amountTooHighYou": "Isso é mais do que você deve."
         },
         "share": {
             "title": "Chame o resto do grupo",
@@ -586,9 +590,7 @@
                 "add": "Adicionar",
                 "note": "Elas ainda vão abrir o link e escolher o próprio nome — isso só guarda o lugar.",
                 "duplicate": "{name} já está nesta sala.",
-                "failed": "não deu para adicionar — tente de novo",
-                "remove": "Remover o nome não usado de {name}",
-                "removeFailed": "não foi possível remover esse nome — tente de novo"
+                "failed": "não deu para adicionar — tente de novo"
             }
         },
         "link": {
@@ -781,7 +783,24 @@
                 "alterego": "Esse fui eu nessa viagem.",
                 "stats": "A viagem, em números.",
                 "landing": "Tudo quites, e ninguém precisou cobrar."
+            },
+            "shareLabel": {
+                "crew": "Compartilhar o cartão da turma",
+                "passport": "Compartilhar o cartão de moedas",
+                "alterego": "Compartilhar o cartão do seu papel",
+                "stats": "Compartilhar o cartão da viagem",
+                "landing": "Compartilhar o cartão de tudo quites"
             }
+        },
+        "people": {
+            "remove": "Tirar {name} da lista",
+            "blocked": "Por que {name} continua na lista",
+            "blockedReason": "Dá para tirar um nome enquanto ninguém o escolheu e ele não entrou em nenhum gasto. {name} já passou desse ponto, então nada do que já está registrado muda.",
+            "confirmTitle": "Tirar {name} da lista?",
+            "confirmBody": "A pessoa sai das próximas divisões, e não dá para desfazer. Qualquer pessoa com o link da sala pode abrir e escolher um nome de novo.",
+            "confirm": "Remover",
+            "cancel": "Cancelar",
+            "removeFailed": "não foi possível tirar esse nome — tente de novo"
         }
     },
     "push": {
@@ -833,7 +852,8 @@
         "NL_ROOM_LIMIT": "Esta sala já usou os adicionares rápidos de hoje — tente amanhã.",
         "NL_FAILED": "Não deu para ler isso — tente de novo.",
         "IMPORT_TOO_LARGE": "Essa importação é grande demais para enviar. Tente um grupo com menos histórico.",
-        "RATE_LIMITED": "Foram muitas tentativas — espere um minuto e tente de novo."
+        "RATE_LIMITED": "Foram muitas tentativas — espere um minuto e tente de novo.",
+        "MEMBER_HAS_HISTORY": "Essa pessoa já faz parte do histórico da sala — não dá para tirar da lista."
     },
     "derivation": {
         "title": "De onde vem esse número",

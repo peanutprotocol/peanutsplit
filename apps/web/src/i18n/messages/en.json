@@ -430,7 +430,7 @@
             "staleBody": "Showing the last loaded room. Editing or deleting saved expenses and settling up are paused until refresh. You can still add an expense.",
             "retry": "Try again",
             "notFoundTitle": "This split doesn’t exist",
-            "notFoundBody": "Room links are case-sensitive — check you copied the whole thing, including the bit after the last dash.",
+            "notFoundBody": "Either it was deleted, or the link is missing its last part — room links are case-sensitive too.",
             "notFoundCta": "Start a new split"
         },
         "allSettled": {
@@ -540,10 +540,13 @@
                 "PAYER_REQUIRED": "Pick who paid.",
                 "NO_PARTICIPANTS": "Pick at least one person to split this between.",
                 "SHARE_AMOUNT_INVALID": "Check the separators and decimal places in the exact amounts.",
-                "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total."
+                "SHARES_DO_NOT_ADD_UP": "The exact amounts have to add up to the total.",
+                "AMOUNT_NEGATIVE": "Drop the minus sign — an expense amount is always positive."
             },
             "equallyHint": "Same for everyone",
-            "exactAmountsHint": "Different amounts"
+            "exactAmountsHint": "Different amounts",
+            "equallyShort": "equally",
+            "exactShort": "exact"
         },
         "settle": {
             "listTitle": "Who owes whom",
@@ -574,7 +577,8 @@
             "amountFormatInvalid": "Check the separators and decimal places in the amount.",
             "amountTooHigh": "That is more than {name} owes.",
             "recordedTitle": "Recorded just now",
-            "recordedHint": "These are in the room history too, with everything else."
+            "recordedHint": "These are in the room history too, with everything else.",
+            "amountTooHighYou": "That is more than you owe."
         },
         "share": {
             "title": "Invite the rest",
@@ -586,9 +590,7 @@
                 "add": "Add",
                 "note": "They still open the link and pick their own name — this only holds their place.",
                 "duplicate": "{name} is already in this room.",
-                "failed": "could not add them — try again",
-                "remove": "Remove untouched placeholder for {name}",
-                "removeFailed": "could not remove that name — try again"
+                "failed": "could not add them — try again"
             }
         },
         "link": {
@@ -781,7 +783,24 @@
                 "alterego": "This is who I was on this trip.",
                 "stats": "The trip, in numbers.",
                 "landing": "All square, and nobody had to chase anybody."
+            },
+            "shareLabel": {
+                "crew": "Share the crew card",
+                "passport": "Share the currencies card",
+                "alterego": "Share your role card",
+                "stats": "Share the trip card",
+                "landing": "Share the all-square card"
             }
+        },
+        "people": {
+            "remove": "Take {name} off the list",
+            "blocked": "Why {name} stays on the list",
+            "blockedReason": "You can take a name back until someone picks it up or it lands in a split. {name} is past that, so everything they are already in stays exactly as it is.",
+            "confirmTitle": "Take {name} off the list?",
+            "confirmBody": "They drop out of new splits, and there is no undo. Anyone with the room link can still open it and pick a name again.",
+            "confirm": "Remove",
+            "cancel": "Cancel",
+            "removeFailed": "could not take that name off — try again"
         }
     },
     "push": {
@@ -833,7 +852,8 @@
         "NL_ROOM_LIMIT": "This room has used its quick adds for today — try again tomorrow.",
         "NL_FAILED": "Could not read that — try again.",
         "IMPORT_TOO_LARGE": "That import is too big to send. Try a group with less history.",
-        "RATE_LIMITED": "That was a lot of requests — give it a minute and try again."
+        "RATE_LIMITED": "That was a lot of requests — give it a minute and try again.",
+        "MEMBER_HAS_HISTORY": "That person is part of the room's history now — they cannot be taken off the list."
     },
     "derivation": {
         "title": "How this adds up",

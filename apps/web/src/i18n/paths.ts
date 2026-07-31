@@ -56,6 +56,33 @@ export function localeFromPrefix(prefix: string): Locale | null {
 }
 
 /**
+ * The app shell, by first path segment — the pages that answer at ONE URL in every language. `/`
+ * is the fourth of them and falls out of the empty-segment check below, for the same reason
+ * `localizedPath` refuses to prefix it: the landing is the app's front door, not one side of a
+ * translation set.
+ *
+ * Written as what the cookie still owns rather than as what the URL pins, because the indexed
+ * side is dynamic — `/[page]` and `/blog/[slug]` grow with every markdown file — while this set
+ * is the top level of `src/app/` minus the route handlers.
+ */
+const COOKIE_LOCALE_SEGMENTS = new Set(['new', 'r', 'share-target'])
+
+/**
+ * The language a URL states, or null when it states none and the cookie decides.
+ *
+ * Unprefixed is English, not "unknown". `/tricount-alternative` is the canonical ENGLISH URL of
+ * that page as firmly as `/es/tricount-alternative` is the Spanish one, so it has to render
+ * English chrome and declare `lang="en"` even for a reader carrying a `ps-locale=pt-BR` cookie
+ * picked up from a Portuguese guide. Letting the cookie answer there wrapped English articles in
+ * Portuguese furniture and told screen readers and crawlers the wrong language.
+ */
+export function localeFromPathname(pathname: string): Locale | null {
+    const [, first = ''] = pathname.split('/')
+    if (first === '' || COOKIE_LOCALE_SEGMENTS.has(first)) return null
+    return localeFromPrefix(first) ?? DEFAULT_LOCALE
+}
+
+/**
  * Prefix a root-relative path for a locale. `/blog/x` + `es` → `/es/blog/x`, and the same path
  * in `en` comes back untouched.
  *

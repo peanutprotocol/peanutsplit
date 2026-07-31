@@ -167,12 +167,17 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                                                     className="shrink-0 text-h7"
                                                 />
                                             </div>
+                                            {/* The visible row stays exactly this height — a
+                                                `before` pseudo-element pads the TAP target to the
+                                                40px floor without it. It is `absolute`, so it adds
+                                                nothing to this row's height and cannot push the
+                                                derivation panel below it down. */}
                                             <button
                                                 type="button"
                                                 onClick={() => setExpanded(isOpen ? null : key)}
                                                 aria-expanded={isOpen}
                                                 data-testid="toggle-other-balance"
-                                                className="flex items-center justify-between gap-2 border-t border-dashed border-n-4 px-3 py-2 text-left text-h9 text-grey-1"
+                                                className="relative flex items-center justify-between gap-2 border-t border-dashed border-n-4 px-3 py-2 text-left text-h9 text-grey-1 before:absolute before:-inset-1.5 before:content-['']"
                                             >
                                                 {isOpen
                                                     ? t('hideOther', { name: nameOf(otherId) })

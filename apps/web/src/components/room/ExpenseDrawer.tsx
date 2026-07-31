@@ -20,6 +20,7 @@ import {
     allocatedMinor,
     buildExpenseBody,
     emptyExpenseForm,
+    exactParticipantIds,
     expenseToFormValues,
     hasUnreadableShare,
     remainingMinor,
@@ -123,6 +124,7 @@ export function ExpenseDrawer({
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
+    const validationAlertRef = useRef<HTMLParagraphElement>(null)
     // React does not disable the button until the mutation state renders. A
     // second tap in that gap would mint a second clientKey and create a second
     // expense, so the synchronous guard owns the save attempt.
@@ -419,10 +421,31 @@ export function ExpenseDrawer({
         feedback('tick')
     }
 
+    /** What this person currently holds, in expense-currency minor units. Blank
+     *  and unreadable both read as zero — neither is money they are down for. */
+    const shareMinor = (memberId: string) =>
+        parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals, locale) ?? '0'
+
+    /**
+     * Would tapping this person's chip actually settle the split?
+     *
+     * Adding always can. Taking away only goes as far as the share they hold, and
+     * the chip used to offer "−15.00" to somebody holding 5.00: the tap clamped
+     * at zero and left the split over by the difference, so the chip named an
+     * amount it could not deliver. Rather than print a smaller number — which
+     * still leaves the split unsettled and now reads as a step towards nothing —
+     * the chip stays away from the people who cannot absorb the overage, and the
+     * number it does show is the one the tap produces.
+     */
+    const canTakeRemainder = (memberId: string) => {
+        if (remainingIsZero) return false
+        if (!remaining.startsWith('-')) return true
+        return BigInt(shareMinor(memberId)) + BigInt(remaining) >= 0n
+    }
+
     const putRemainderOn = (memberId: string) => {
-        const current = parseAmountToMinor(values.exactInputs[memberId] ?? '', decimals, locale) ?? '0'
-        const next = BigInt(current) + BigInt(remaining)
-        editExact(memberId, formatAmountInput((next < 0n ? 0n : next).toString(), decimals, locale))
+        const next = BigInt(shareMinor(memberId)) + BigInt(remaining)
+        editExact(memberId, formatAmountInput(next.toString(), decimals, locale))
     }
 
     const close = () => {
@@ -456,10 +479,30 @@ export function ExpenseDrawer({
             // is what tells you the tap was received and refused.
             feedback('error', { haptic: 'error' })
             shake()
-            if (validationToSave === 'AMOUNT_REQUIRED' || validationToSave === 'AMOUNT_INVALID')
+            if (
+                validationToSave === 'AMOUNT_REQUIRED' ||
+                validationToSave === 'AMOUNT_INVALID' ||
+                validationToSave === 'AMOUNT_NEGATIVE'
+            ) {
                 amountRef.current?.focus()
-            else if (validationToSave === 'PAYER_REQUIRED') setEditor('payer')
-            else setEditor('split')
+            } else {
+                setEditor(validationToSave === 'PAYER_REQUIRED' ? 'payer' : 'split')
+                /**
+                 * The reason renders under a section this tap just opened, which on a
+                 * phone puts it a screen and a half below the fold: the sheet shook,
+                 * nothing moved, and the refusal was somewhere the person never looked.
+                 * A frame lets that section lay out, then the message comes to the eye
+                 * and to the screen reader's cursor. Focusing the amount field already
+                 * does both for the branch above.
+                 */
+                requestAnimationFrame(() => {
+                    // Focus first, but let the scroll below choose where it lands:
+                    // focus on its own settles for "nearest", which parks the reason
+                    // against the bottom edge under the action bar.
+                    validationAlertRef.current?.focus({ preventScroll: true })
+                    validationAlertRef.current?.scrollIntoView({ block: 'center' })
+                })
+            }
             return
         }
         savingRef.current = true
@@ -558,7 +601,11 @@ export function ExpenseDrawer({
         return minor === null ? null : formatMoney(minor, state.room.currency, currencies, locale)
     }, [isForeign, rateQuote, totalMinor, state.room.currency, currencies, decimals, locale])
 
-    const participantsForExact = useMemo(
+    /** Rows the EXACT editor puts on screen. Having a field is what makes someone
+     *  visible here — the blank field IS how you give them an amount — which is a
+     *  different question from whether they are on the split. `participantIds`
+     *  below answers that one, and only that one is allowed near the summary. */
+    const exactRows = useMemo(
         () => state.members.filter((member) => values.exactInputs[member.id] !== undefined),
         [state.members, values.exactInputs]
     )
@@ -571,7 +618,7 @@ export function ExpenseDrawer({
             ? values.participantsTouched
                 ? values.participantIds
                 : state.members.map((member) => member.id)
-            : participantsForExact.map((member) => member.id)
+            : exactParticipantIds(values, currencies, locale)
     const participants = state.members.filter((member) => participantIds.includes(member.id))
     const participantSummary =
         participants.length === state.members.length
@@ -582,6 +629,13 @@ export function ExpenseDrawer({
                 ? participants[0].name
                 : t('peopleSummary', { name: participants[0].name, count: participants.length - 1 })
     const splitModeSummary = values.splitMode === 'EQUAL' ? t('equally') : t('exactAmounts')
+    /** The strip's three sub-labels are captions, not headings, and "paid" and
+     *  "date" already read that way — so this one is lower case too. It is also
+     *  the short form: "Exact amounts" truncated to "Exact amou…" in a 1.45fr
+     *  column at 390px, and shortening the word is cheaper than widening the
+     *  column at the payer's and the date's expense. The button's aria-label
+     *  keeps the full wording. */
+    const splitModeCaption = values.splitMode === 'EQUAL' ? t('equallyShort') : t('exactShort')
     const dateSummary = dayLabel(values.date, {
         locale,
         today: tDates('today'),
@@ -592,30 +646,29 @@ export function ExpenseDrawer({
     yesterdayDate.setDate(yesterdayDate.getDate() - 1)
     const yesterdayInput = toDateInputValue(yesterdayDate.toISOString())
     const selectedDateInput = toDateInputValue(values.date)
-    const validationCopy =
-        validation === 'AMOUNT_REQUIRED'
-            ? t('validation.AMOUNT_REQUIRED')
-            : validation === 'AMOUNT_INVALID'
-              ? t('validation.AMOUNT_INVALID')
-              : validation === 'PAYER_REQUIRED'
-                ? t('validation.PAYER_REQUIRED')
-                : validation === 'NO_PARTICIPANTS'
-                  ? t('validation.NO_PARTICIPANTS')
-                  : validation === 'SHARE_AMOUNT_INVALID'
-                    ? t('validation.SHARE_AMOUNT_INVALID')
-                    : validation === 'SHARES_DO_NOT_ADD_UP'
-                      ? t('validation.SHARES_DO_NOT_ADD_UP')
-                      : null
-    const amountInvalid = submitted && (validation === 'AMOUNT_REQUIRED' || validation === 'AMOUNT_INVALID')
+    /** Every `ExpenseFormError` code is a key under `validation`, so a new refusal
+     *  reason cannot ship with no sentence to show for it. */
+    const validationCopy = validation ? t(`validation.${validation}`) : null
+    const amountInvalid =
+        submitted &&
+        (validation === 'AMOUNT_REQUIRED' || validation === 'AMOUNT_INVALID' || validation === 'AMOUNT_NEGATIVE')
     const positiveTotal = totalMinor !== null && BigInt(totalMinor) > 0n
-    const primaryLabel =
-        expense || !positiveTotal
-            ? expense
-                ? t('save')
-                : t('add')
-            : t('addWithAmount', {
-                  amount: formatMoney(totalMinor!, values.currency, currencies, locale),
-              })
+    /**
+     * A long amount runs out of room in two places at once, and both are the same
+     * fact: at 390px the composer field is 204px wide and the primary button is
+     * one line. Past nine characters `text-h3` clips the tail with no way to read
+     * it back — an input does not scroll home when focus leaves — and
+     * "Add {amount} expense" wraps onto a second line. So the display type steps
+     * down, and the button falls back to its plain label, where the amount was
+     * only ever confirmation of what is already legible in the composer.
+     */
+    const amountChars = values.amountInput.trim().length
+    const amountTextSize = amountChars > 13 ? 'text-h5' : amountChars > 9 ? 'text-h4' : 'text-h3'
+    const primaryLabel = expense
+        ? t('save')
+        : positiveTotal && amountChars <= 9
+          ? t('addWithAmount', { amount: formatMoney(totalMinor!, values.currency, currencies, locale) })
+          : t('add')
     const pending = addExpense.isPending || updateExpense.isPending
 
     return (
@@ -682,7 +735,10 @@ export function ExpenseDrawer({
                                     aria-invalid={amountInvalid || undefined}
                                     aria-describedby={amountInvalid ? 'expense-amount-error' : undefined}
                                     data-testid="expense-amount"
-                                    className="h-16 w-full min-w-0 border-0 bg-transparent px-1 text-h3 font-extrabold tabular-nums outline-none placeholder:text-grey-2"
+                                    className={cn(
+                                        'h-16 w-full min-w-0 border-0 bg-transparent px-1 font-extrabold tabular-nums outline-none placeholder:text-grey-2',
+                                        amountTextSize
+                                    )}
                                 />
                             </label>
                             <div className="w-[7.25rem] shrink-0">
@@ -760,7 +816,7 @@ export function ExpenseDrawer({
                                 </span>
                                 <span className="min-w-0">
                                     <span className="block truncate text-h9">{participantSummary}</span>
-                                    <span className="block truncate text-h10 text-grey-1">{splitModeSummary}</span>
+                                    <span className="block truncate text-h10 text-grey-1">{splitModeCaption}</span>
                                 </span>
                             </button>
                             <button
@@ -1103,7 +1159,7 @@ export function ExpenseDrawer({
                                 ) : (
                                     <div className="flex flex-col gap-2">
                                         <ul className="flex flex-col gap-2">
-                                            {participantsForExact.map((member) => (
+                                            {exactRows.map((member) => (
                                                 <li
                                                     key={member.id}
                                                     className="flex items-center gap-2 rounded-md border border-n-1 bg-white p-2"
@@ -1125,7 +1181,7 @@ export function ExpenseDrawer({
                                                         data-member={member.name}
                                                         className="input h-12 min-w-0 flex-1 px-3 text-base tabular-nums"
                                                     />
-                                                    {!remainingIsZero && (
+                                                    {canTakeRemainder(member.id) && (
                                                         <button
                                                             type="button"
                                                             onClick={() => putRemainderOn(member.id)}
@@ -1368,7 +1424,14 @@ export function ExpenseDrawer({
                     )}
 
                     {submitted && validationCopy && !amountInvalid && (
-                        <p role="alert" className="flex items-center gap-2 text-sm font-bold text-error">
+                        <p
+                            ref={validationAlertRef}
+                            role="alert"
+                            // Programmatic focus target only — `save()` brings it into view
+                            // and puts the cursor on it, and it is not in the tab order.
+                            tabIndex={-1}
+                            className="flex items-center gap-2 text-sm font-bold text-error outline-none"
+                        >
                             <Icon name="x" size={16} />
                             {validationCopy}
                         </p>
