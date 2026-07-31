@@ -8,7 +8,7 @@ import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from
 import { SettingRow } from '@/components/ui/SettingRow'
 import { StateRow } from '@/components/ui/StateRow'
 import { track } from '@/lib/analytics'
-import { promptInstall, useInstallState } from '@/lib/install'
+import { isIOSHere, promptInstall, useInstallState } from '@/lib/install'
 import { useFeedback } from '@/lib/use-settings'
 import { IosInstallSteps } from './IosInstallSteps'
 
@@ -24,6 +24,12 @@ import { IosInstallSteps } from './IosInstallSteps'
  *
  * No leading glyph: `SettingRow` draws its own chevron and the neighbouring rows carry none, so one
  * here would make this the only decorated row in the sheet.
+ *
+ * The label is the one thing here that answers to the DEVICE rather than the state. iOS never says
+ * "install" — the word the person is about to look for in Safari's share sheet is "Add to Home
+ * Screen" — so naming the row after a verb that appears nowhere on their phone sends them hunting
+ * for it. Everywhere else, including a Mac, the row keeps the install wording. The state lines
+ * below it are unchanged: what the row is called and what it currently says are separate answers.
  */
 export function InstallRow() {
     const t = useTranslations('marketing.install')
@@ -51,20 +57,24 @@ export function InstallRow() {
     // Nothing painted before the first browser read: every state below is a claim about a device.
     if (state === null) return null
 
+    // Safe here and not a line earlier: `state` is null until the store's first browser read, so
+    // this never runs on the server.
+    const label = isIOSHere() ? t('row.labelIos') : t('row.label')
+
     if (state === 'installed') {
-        return <StateRow label={t('row.label')} line={t('row.installed')} testId="install-row-installed" />
+        return <StateRow label={label} line={t('row.installed')} testId="install-row-installed" />
     }
     if (state === 'dismissed') {
-        return <StateRow label={t('row.label')} line={t('row.dismissed')} testId="install-row-dismissed" />
+        return <StateRow label={label} line={t('row.dismissed')} testId="install-row-dismissed" />
     }
     if (state === 'unsupported') {
-        return <StateRow label={t('row.label')} line={t('row.unsupported')} testId="install-row-unsupported" />
+        return <StateRow label={label} line={t('row.unsupported')} testId="install-row-unsupported" />
     }
 
     if (state === 'ios') {
         return (
             <>
-                <SettingRow label={t('row.label')} onClick={() => setIosSheetOpen(true)} testId="install-row-ios" />
+                <SettingRow label={label} onClick={() => setIosSheetOpen(true)} testId="install-row-ios" />
                 {/* The same sheet the deferred banner and the push row already open. There is no
                     second install explanation in this app. */}
                 <Drawer open={iosSheetOpen} onOpenChange={setIosSheetOpen}>
@@ -91,5 +101,5 @@ export function InstallRow() {
         )
     }
 
-    return <SettingRow label={t('row.label')} onClick={() => void install()} testId="install-row-prompt" />
+    return <SettingRow label={label} onClick={() => void install()} testId="install-row-prompt" />
 }

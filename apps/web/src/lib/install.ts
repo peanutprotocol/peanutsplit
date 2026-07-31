@@ -126,6 +126,28 @@ let state: InstallState | null = null
 
 const listeners = new Set<() => void>()
 
+/**
+ * `isIOSDevice` asked of the live navigator.
+ *
+ * Exported because the settings row's LABEL follows the device rather than the state. Apple has no
+ * install verb — Safari's own share sheet says "Add to Home Screen" — and the browsers that do say
+ * install have no home screen to add to. Every state but `installed` implies its platform anyway
+ * (`promptable` and `dismissed` need a `beforeinstallprompt` no Apple browser fires; `ios` and
+ * `unsupported` are the two halves of this same check), so asking the device once is both shorter
+ * than a per-state table and the only thing that gets `installed` right.
+ *
+ * A Mac answers false, which is correct rather than a gap: macOS Safari's affordance is "Add to
+ * Dock", an install, not a home-screen add. Only an iPad pretending to be a Mac flips it back.
+ */
+export function isIOSHere(): boolean {
+    const navigator = window.navigator
+    return isIOSDevice({
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        maxTouchPoints: navigator.maxTouchPoints,
+    })
+}
+
 function readEnvironment(): InstallEnvironment {
     const navigator = window.navigator as Navigator & { standalone?: boolean }
     return {
@@ -133,11 +155,7 @@ function readEnvironment(): InstallEnvironment {
             window.matchMedia('(display-mode: standalone)').matches,
             navigator.standalone
         ),
-        isIOS: isIOSDevice({
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            maxTouchPoints: navigator.maxTouchPoints,
-        }),
+        isIOS: isIOSHere(),
         hasPrompt: deferred !== null,
         promptSpent,
         installedHere,
