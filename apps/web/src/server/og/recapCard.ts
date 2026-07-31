@@ -1,9 +1,10 @@
 /**
  * The trip recap: what a room adds up to once it is over.
  *
- * Two shapes, on purpose. `RoomRecap` is the raw derivation — real names, minor
- * units, counts — and is what the HTML recap page renders, because HTML has no
- * glyph budget and a Cyrillic name is fine there. `RecapCardData` is the same
+ * Two shapes, on purpose. `RoomRecap` is the raw derivation — real names, real
+ * avatar keys, minor units, counts — and is what the HTML recap page renders,
+ * because HTML has no glyph budget and a Cyrillic name is fine there, and it can
+ * draw the member's actual doodle rather than a letter. `RecapCardData` is the same
  * facts reduced to strings the two shipped OG fonts can actually draw, and is
  * the only thing the rasterizer ever sees. Mixing the two is how a card ends up
  * with a row of blank boxes where a name should be (see `fonts.ts`).
@@ -17,7 +18,7 @@ import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { daySpan } from '@/lib/story'
 import { prisma } from '@/server/db'
 import { balancesOf, type BalanceInput } from '@/server/roomState'
-import { avatarsFor, safeAmount, sanitizeDisplayName, sanitizeMemberName, type OgAvatar } from '@/server/og/roomCard'
+import { MAX_AVATARS, safeAmount, sanitizeDisplayName, sanitizeMemberName } from '@/server/og/roomCard'
 
 /** The lean row shape `loadRecap` selects. Declared, not inferred, so the query
  *  and the derivation cannot drift apart silently. */
@@ -25,7 +26,7 @@ export interface RecapRoomRow {
     name: string
     emoji: string | null
     currency: string
-    members: { id: string; name: string }[]
+    members: { id: string; name: string; avatar?: string | null }[]
     expenses: {
         baseAmountMinor: bigint
         paidById: string
@@ -33,6 +34,19 @@ export interface RecapRoomRow {
         shares: { memberId: string; amountMinor: bigint }[]
     }[]
     settlements: { fromId: string; toId: string; amountMinor: bigint }[]
+}
+
+/**
+ * One face on the recap. The avatar travels WITH the name rather than being
+ * looked up again per surface: the page draws the member's doodle and the OG
+ * card draws a letter disc, and the two must at least be describing the same
+ * roster in the same order.
+ */
+export interface RecapMember {
+    name: string
+    /** A key into `lib/avatars.ts`, never artwork. Null on a legacy row — that is
+     *  what `avatarArt` reads as "draw the neutral peanut". */
+    avatar: string | null
 }
 
 /** The derivation, in the units the page wants. No font sanitizing applied. */
@@ -47,8 +61,8 @@ export interface RoomRecap {
     /** Calendar days from the first expense to the last, inclusive. 0 when empty. */
     dayCount: number
     settlementCount: number
-    /** Roster order, raw as stored. */
-    memberNames: string[]
+    /** Roster order, raw as stored — name and avatar key together. */
+    members: RecapMember[]
     /** Who fronted the most, raw. Null when there is nothing to be top of. */
     topPayerName: string | null
     settled: boolean
@@ -65,7 +79,13 @@ export interface RecapCardData {
     stat: string
     /** "María fronted the most", or null when the line would be silly. */
     topPayer: string | null
-    avatars: OgAvatar[]
+    /**
+     * Avatar keys, in roster order, capped at `MAX_AVATARS` — NOT letters. The card draws the
+     * same personas the recap page draws, so the two halves of one artefact cannot disagree
+     * about what these people look like. It also sidesteps the glyph budget entirely: a doodle
+     * has no codepoint to be missing from the two shipped fonts.
+     */
+    personas: (string | null)[]
     overflow: number
     settled: boolean
 }
@@ -125,7 +145,7 @@ export function toRoomRecap(room: RecapRoomRow): RoomRecap {
         memberCount: room.members.length,
         dayCount: daySpan(room.expenses.map((e) => e.date)),
         settlementCount: room.settlements.length,
-        memberNames: room.members.map((m) => m.name),
+        members: room.members.map((m) => ({ name: m.name, avatar: m.avatar ?? null })),
         topPayerName: topPayerName(room.members, room.expenses),
         settled: isSettled(room),
     }
@@ -148,7 +168,8 @@ export function recapStatLine(recap: Pick<RoomRecap, 'dayCount' | 'expenseCount'
  * a room where Ana is the only person is a true sentence that reads as a bug.
  */
 export function toRecapCard(recap: RoomRecap): RecapCardData {
-    const { avatars, overflow } = avatarsFor(recap.memberNames)
+    const personas = recap.members.slice(0, MAX_AVATARS).map((member) => member.avatar)
+    const overflow = Math.max(0, recap.members.length - MAX_AVATARS)
     const topPayer =
         recap.topPayerName !== null && recap.memberCount > 1
             ? `${sanitizeMemberName(recap.topPayerName)} fronted the most`
@@ -163,7 +184,7 @@ export function toRecapCard(recap: RoomRecap): RecapCardData {
         total: safeAmount(BigInt(recap.totalMinor), recap.currency),
         stat: recapStatLine(recap),
         topPayer,
-        avatars,
+        personas,
         overflow,
         settled: recap.settled,
     }
@@ -182,7 +203,9 @@ export async function loadRecap(slug: string): Promise<RoomRecap | null> {
             name: true,
             emoji: true,
             currency: true,
-            members: { orderBy: { createdAt: 'asc' }, select: { id: true, name: true } },
+            // `avatar` is what the page draws each face with. Without it every
+            // member on the recap fell through to the neutral peanut.
+            members: { orderBy: { createdAt: 'asc' }, select: { id: true, name: true, avatar: true } },
             expenses: {
                 where: { deletedAt: null },
                 select: {

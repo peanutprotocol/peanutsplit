@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { CharacterSheet } from '@/components/room/CharacterSheet'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
@@ -9,6 +8,7 @@ import { SettingsSheet } from '@/components/room/SettingsSheet'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
 import type { MemberIdentity } from '@/lib/identity'
+import { useRoomParams } from '@/lib/room-params'
 
 interface RoomHeaderProps {
     room: ApiRoom
@@ -34,11 +34,11 @@ interface RoomHeaderProps {
 export function RoomHeader({ room, members, state, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const tAvatar = useTranslations('room.avatar')
-    const [settingsOpen, setSettingsOpen] = useState(false)
-    const [characterMemberId, setCharacterMemberId] = useState<string | null>(null)
+    const [sheets, setSheets] = useRoomParams()
     // Resolved rather than held, so a member disappearing under an open sheet
-    // closes it instead of leaving a sheet about nobody.
-    const characterMember = members.find((member) => member.id === characterMemberId) ?? null
+    // closes it instead of leaving a sheet about nobody — which is also what an
+    // unknown or stale id in the URL does.
+    const characterMember = members.find((member) => member.id === sheets.character) ?? null
 
     return (
         // The room's field colour, with the classic yellow as the literal
@@ -48,7 +48,7 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
             <div className="flex items-center gap-3 px-4 py-3">
                 <button
                     type="button"
-                    onClick={() => setSettingsOpen(true)}
+                    onClick={() => setSheets({ settings: true })}
                     aria-label={t('openSettings')}
                     data-testid="open-room-settings"
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
@@ -63,10 +63,15 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                     {me ? (
                         <button
                             type="button"
-                            onClick={() => setCharacterMemberId(me.id)}
+                            onClick={() => setSheets({ character: me.id })}
                             aria-label={tAvatar('open')}
                             data-testid="open-avatar"
-                            className="-my-0.5 flex items-center gap-1.5 py-0.5"
+                            // `max-w-full` because a button shrink-wraps its content: without a
+                            // bounded box the `truncate` below has nothing to truncate against and
+                            // a long name widens the whole document instead.
+                            // The padding is 40px of tap target cancelled by an equal negative
+                            // margin, so the bar keeps the height it had.
+                            className="-my-3 flex max-w-full items-center gap-1.5 py-3"
                         >
                             <MemberAvatar name={me.name} avatar={me.avatar} size={16} />
                             <span className="truncate text-h10 uppercase tracking-wide text-n-1/70">
@@ -93,8 +98,8 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
             </div>
 
             <SettingsSheet
-                open={settingsOpen}
-                onClose={() => setSettingsOpen(false)}
+                open={sheets.settings}
+                onClose={() => setSheets({ settings: null })}
                 room={room}
                 members={members}
                 state={state}
@@ -102,12 +107,12 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                 me={me}
                 onShare={onShare}
                 onForgetIdentity={onForgetIdentity}
-                onOpenCharacter={setCharacterMemberId}
+                onOpenCharacter={(memberId) => setSheets({ character: memberId })}
             />
 
             <CharacterSheet
                 open={characterMember !== null}
-                onClose={() => setCharacterMemberId(null)}
+                onClose={() => setSheets({ character: null })}
                 slug={room.slug}
                 member={characterMember}
             />

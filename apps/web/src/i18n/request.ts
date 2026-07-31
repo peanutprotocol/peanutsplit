@@ -13,8 +13,11 @@
  * config, the footer and everything else follow with no prop-drilling.
  *
  * The URL arrives as a header set by `middleware.ts`. `setRequestLocale` cannot do it: this config
- * is resolved by the root layout, which renders before any page could call it. The middleware is
- * matcher-scoped to the locale prefixes, so nothing else on the site is affected.
+ * is resolved by the root layout, which renders before any page could call it. `localeFromPathname`
+ * is the rule the middleware applies, and it answers for the unprefixed pages too: `/blog` and
+ * `/tricount-alternative` are the canonical ENGLISH URLs of those pages and state `en` as firmly
+ * as `/es/blog` states `es`. Only the app shell — `/`, `/new`, `/r/*` — states nothing, and it is
+ * the only thing the cookie still decides.
  *
  * `requestLocale` comes first and is NOT optional to honour. next-intl re-invokes this config with
  * it whenever a caller asks for a specific language — `getTranslations({ locale: 'en' })`. Ignoring

@@ -1450,10 +1450,6 @@
         border-right: 1px solid rgb(255 255 255 / 20%);
     }
 
-    .landing-proof-rail li::before {
-        display: none;
-    }
-
     .landing-room-examples {
         padding: 3.25rem 1rem;
     }
@@ -1465,6 +1461,25 @@
     .landing-room-examples ul {
         grid-template-columns: 1fr 1fr;
         margin-top: 2rem;
+    }
+}
+
+/* The hero's URL preview and the proof card's demo link both promise the same
+   room ("lisbon-weekend" — the proof card's own example) plus the dot-shaped
+   tail, in the same monospace line the ellipsis can eat into. At a real phone
+   width that string is wider than the placeholder-derived budget assumed. A
+   smaller mono size is the same fix the illustrated pass-link-stage card
+   already uses to keep its URL whole; applying it here too keeps what the
+   hero prints and what the proof card prints from disagreeing with each
+   other on a phone. Desktop and tablet already have room to spare, so this
+   stays scoped to the width where the string actually overflows. */
+@media (max-width: 400px) {
+    .pass-link-form [data-testid='hero-slug-preview'] {
+        font-size: 0.625rem;
+    }
+
+    .landing-proof-ticket b {
+        font-size: 0.625rem;
     }
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
+import { RemovePerson } from '@/components/room/RemovePerson'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
@@ -38,6 +39,10 @@ const writeOpen = (open: boolean): void => {
  * the same names that was the only tappable copy. Now every row is the tap — it
  * opens that person's character sheet — and "Add someone" is the last row rather
  * than a form standing between the list and everything under it.
+ *
+ * A name also comes back OFF here, on the row that names the person. It used to
+ * be reachable only from a collapsed section of the share sheet, which is where
+ * you go to invite people, not to correct the list.
  *
  * Collapsing exists so a twelve-person room cannot own the sheet. Open is the
  * default and the choice persists, because whichever one you want you want every
@@ -105,20 +110,23 @@ export function PeopleSection({
                 className="flex min-h-11 items-center gap-2 self-start"
             >
                 <span className="text-h8 uppercase tracking-wide">{t('people')}</span>
-                <span className="text-sm text-grey-1">{members.length}</span>
+                {/* Same ink as the label beside it: one row, one colour. */}
+                <span className="text-sm">{members.length}</span>
                 <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
             </button>
 
             {open && (
                 <ul className="flex flex-col gap-2" data-testid="people-list">
                     {members.map((member) => (
-                        <li key={member.id}>
+                        // `flex-wrap`, because the removal panel takes a line of
+                        // its own under the row rather than covering it.
+                        <li key={member.id} className="flex flex-wrap items-center gap-2">
                             <button
                                 type="button"
                                 onClick={() => onOpenCharacter(member.id)}
                                 data-testid="person-row"
                                 data-member={member.name}
-                                className="flex min-h-11 w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-2 text-left transition-transform duration-100 active:translate-y-[2px]"
+                                className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-sm border border-n-1 bg-white p-2 text-left transition-transform duration-100 active:translate-y-[2px]"
                             >
                                 <MemberAvatar name={member.name} avatar={member.avatar} size={32} />
                                 <span className="min-w-0 flex-1 truncate text-h8">{member.name}</span>
@@ -127,6 +135,7 @@ export function PeopleSection({
                                 </span>
                                 <Icon name="chevron-right" size={16} className="shrink-0" />
                             </button>
+                            <RemovePerson slug={slug} member={member} />
                         </li>
                     ))}
                     <li>
