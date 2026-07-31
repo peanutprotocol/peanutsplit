@@ -1,12 +1,12 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
-import esMessages from '../src/i18n/messages/es.json'
-import ptBRMessages from '../src/i18n/messages/pt-BR.json'
+import esMessages from '../src/i18n/messages/es-419.json'
+import ptBRMessages from '../src/i18n/messages/pt-br.json'
 import { SLUG_TAIL_HINT } from '../src/lib/slugify'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
 
-type Locale = 'en' | 'es' | 'pt-BR'
+type Locale = 'en' | 'es-419' | 'pt-br'
 type LandingMessages = {
     marketing: {
         hero: {
@@ -70,8 +70,8 @@ type LandingMessages = {
 
 const catalogs: Record<Locale, LandingMessages> = {
     en: enMessages as unknown as LandingMessages,
-    es: esMessages as unknown as LandingMessages,
-    'pt-BR': ptBRMessages as unknown as LandingMessages,
+    'es-419': esMessages as unknown as LandingMessages,
+    'pt-br': ptBRMessages as unknown as LandingMessages,
 }
 
 const viewports = [
@@ -706,7 +706,7 @@ test.describe('Pass-the-link default', () => {
         }
     })
 
-    for (const locale of ['en', 'es', 'pt-BR'] as const) {
+    for (const locale of ['en', 'es-419', 'pt-br'] as const) {
         test(`${locale} localizes the headline, summary, CTA, validation, and proof scenes`, async ({ page }) => {
             await page.setViewportSize({ width: 360, height: 740 })
             await openLanding(page, locale)

@@ -32,9 +32,9 @@ afterEach(async () => {
 
 describe('a room remembers the language it was started in', () => {
     it('stores the creator’s locale', async () => {
-        const { room } = await newRoom('es')
+        const { room } = await newRoom('es-419')
         const stored = await prisma.room.findUnique({ where: { id: room.id }, select: { locale: true } })
-        expect(stored?.locale).toBe('es')
+        expect(stored?.locale).toBe('es-419')
     })
 
     /** Every room written before the column existed, and every import. Null is
@@ -48,7 +48,7 @@ describe('a room remembers the language it was started in', () => {
 
 describe('the meta a chat preview reads', () => {
     it('describes the room in the room’s language', async () => {
-        const { room } = await newRoom('pt-BR')
+        const { room } = await newRoom('pt-br')
         const meta = await roomMetadata(room.slug)
 
         expect(meta.description).toBe('Entre na divisão — veja quem deve o quê e lance o que você pagou.')
@@ -76,7 +76,7 @@ describe('the meta a chat preview reads', () => {
 
 describe('the card a chat preview draws', () => {
     it('writes the stat line and the roster count in the room’s language', async () => {
-        const { room } = await newRoom('es')
+        const { room } = await newRoom('es-419')
         await prisma.expense.create({
             data: {
                 roomId: room.id,

@@ -6,7 +6,7 @@
  * cookie, resolved here, on the server, before anything renders — which is also what keeps the
  * first paint from flashing English at a Spanish reader.
  *
- * The **indexed** pages are the exception. A guide at `/es/blog/…` is a distinct URL that exists
+ * The **indexed** pages are the exception. A guide at `/es-419/blog/…` is a distinct URL that exists
  * so a crawler can find the Spanish version; serving it in whatever language a cookie happens to
  * hold would defeat the point and would render Spanish chrome around an English article. When the
  * URL states a language, the URL wins — and because the whole shell reads its strings through this
@@ -16,7 +16,7 @@
  * is resolved by the root layout, which renders before any page could call it. `localeFromPathname`
  * is the rule the middleware applies, and it answers for the unprefixed pages too: `/blog` and
  * `/tricount-alternative` are the canonical ENGLISH URLs of those pages and state `en` as firmly
- * as `/es/blog` states `es`. Only the app shell — `/`, `/new`, `/r/*` — states nothing, and it is
+ * as `/es-419/blog` states `es-419`. Only the app shell — `/`, `/new`, `/r/*` — states nothing, and it is
  * the only thing the cookie still decides.
  *
  * `requestLocale` comes first and is NOT optional to honour. next-intl re-invokes this config with
@@ -44,7 +44,7 @@ async function resolveLocale(requested: string | undefined): Promise<Locale> {
     if (isLocale(fromUrl)) return fromUrl
 
     const stored = (await cookies()).get(LOCALE_COOKIE)?.value
-    // A hand-edited or stale cookie ("fr", "es-ES") must not be trusted into a failed import.
+    // A hand-edited or stale cookie ("fr", "es") must not be trusted into a failed import.
     if (isLocale(stored)) return stored
 
     return localeFromAcceptLanguage(requestHeaders.get('accept-language')) ?? DEFAULT_LOCALE
@@ -59,7 +59,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
         /**
          * There is deliberately no English fallback catalog here: merging one in would mean
          * loading two catalogs on every non-English request, which is exactly the regression the
-         * lazy loader exists to avoid. A key missing from `es` therefore renders as its own key
+         * lazy loader exists to avoid. A key missing from `es-419` therefore renders as its own key
          * path — which looks fine in dev and ships silently, so `pnpm i18n:audit` is the real
          * gate and runs in CI. This hook only stops one bad key from filling production logs.
          */

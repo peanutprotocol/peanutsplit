@@ -48,7 +48,7 @@ describe('achievement card route', () => {
                 emoji: '🎿',
                 currency: 'EUR',
                 theme: 'coral',
-                locale: 'pt-BR',
+                locale: 'pt-br',
                 members: {
                     create: Array.from({ length: 11 }, (_, i) => ({
                         name: `Member ${i}`,

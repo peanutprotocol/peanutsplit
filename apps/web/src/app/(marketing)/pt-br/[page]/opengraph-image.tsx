@@ -2,7 +2,7 @@ import { contentOgImage, contentOgStaticParams, ogImageExports } from '@/lib/con
 import { ROOT_COLLECTIONS } from '@/lib/content'
 
 /** Portuguese root-slug unfurl. Implementation shared — see `lib/content-og`. */
-const LOCALE = 'pt-BR' as const
+const LOCALE = 'pt-br' as const
 
 // Literal, not `ogImageExports.runtime`: Next parses this export statically and rejects
 // a member expression outright.

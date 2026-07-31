@@ -7,7 +7,7 @@ import { articleMetadata, articlePage, articleStaticParams } from '@/lib/content
  * `dynamicParams = false` pins the match set to the slugs that have a pt-BR file, so an
  * untranslated article 404s here rather than being rendered on demand in the wrong language.
  */
-const LOCALE = 'pt-BR' as const
+const LOCALE = 'pt-br' as const
 
 export const generateStaticParams = articleStaticParams(['blog'], LOCALE, 'slug')
 export const dynamicParams = false
