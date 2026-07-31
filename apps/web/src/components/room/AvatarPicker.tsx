@@ -1,9 +1,22 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
-import { AVATARS, AVATAR_KEYS, randomPersonaKey, type AvatarKey } from '@/lib/avatars'
+import {
+    SPIN_MS,
+    TICK_MS,
+    type SpinPlan,
+    ensurePick,
+    handAt,
+    hasSettled,
+    initialHand,
+    isPopping,
+    planSpin,
+} from '@/lib/avatar-hand'
+import { AVATARS, avatarArt, type AvatarKey } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { MemberAvatar } from './MemberAvatar'
 
 interface AvatarPickerProps {
@@ -14,41 +27,162 @@ interface AvatarPickerProps {
     disabled?: boolean
 }
 
+/** Every tile is the same object, dice included. */
+const tileClass =
+    'flex min-h-[92px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-sm border border-n-1 p-2 text-center transition-transform duration-100'
+
 /**
- * The grid of alter egos.
+ * Two lines of name, always. A name is how you find your own character, so
+ * "Overpacker Hamster" may not arrive as "Overpacker Ha…" — the animal is the
+ * half that identifies it. The height is fixed rather than grown because the
+ * reels cycle long and short names through the same tile: a label that wrapped
+ * on its own would resize the grid sixteen times a second.
+ */
+const labelClass = 'line-clamp-2 h-[30px] w-full text-xs leading-tight'
+
+/**
+ * One roll of the die, in degrees.
  *
- * Names and one-line vibes are visible because the joke is social: a person
- * should be able to announce "I am absolutely the Vampire Penguin", not choose
- * an unlabeled 30px glyph. Random is a real persisted pick, not a name hash or
- * an unstable client-side fallback.
+ * A whole number of turns, so the die always comes to rest the way it was drawn,
+ * and ADDED to wherever it already is rather than set — that is what keeps the
+ * roll going forward through a second tap and stops it snapping back to zero
+ * when the spin state clears. One CSS transition on the app's decelerating
+ * curve carries it: a die is thrown, it does not tick.
+ */
+const DIE_TURN_DEGREES = 720
+
+/**
+ * The grid of characters: eight of them, plus a die.
+ *
+ * The catalog is forty-eight options and a wall of forty-eight tiles is not a
+ * choice, it is a search task. So the grid is one hand of eight and the ninth
+ * tile deals another — the whole thing stays a 3×3 that a thumb can cover.
+ *
+ * The die reshuffles what is OFFERED and never changes who you are: the current
+ * pick survives every shuffle (`ensurePick` / `planSpin`), because a character
+ * that vanishes from the grid reads as a character that was lost. Selection
+ * happens only by tapping a face.
+ *
+ * The reels start in a ripple and stop one after another, decelerating, which is
+ * the entire delight; one interval drives all eight — `avatar-hand.ts` plans the
+ * spin and this component renders ticks of it. A tile does not merely stop, it
+ * RESOLVES: the name it was cycling too fast to carry fades in as it lands and
+ * the tile pops once. Reduced motion gets the new hand with no cycling, no fade
+ * and no pop at all.
+ *
+ * The vibes used to sit on all the tiles — words of joke you have to read past to
+ * find the drawing you want. They now live on ONE caption under the grid,
+ * describing the current pick and following the selection as it moves. Its height
+ * is reserved, because a caption that grows from one line to two shifts the grid
+ * out from under the finger that is still choosing.
+ *
+ * The selected tile is marked, never enlarged, for the same reason.
  */
 export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerProps) {
     const t = useTranslations('room.avatar')
+    const motionAllowed = useMotionAllowed()
+    const current = avatarArt(value)
 
-    const option = (key: AvatarKey) => {
+    // Derived from `value` alone, so the server HTML and the first client render
+    // are identical. Randomness starts at the first tap of the die, never here.
+    const [hand, setHand] = useState<AvatarKey[]>(() => initialHand(value))
+    const [spin, setSpin] = useState<{ plan: SpinPlan; tick: number } | null>(null)
+    // The die's angle outlives the spin, so nothing about starting or ending one
+    // can make it jump. It only ever grows.
+    const [dieAngle, setDieAngle] = useState(0)
+    const timer = useRef<number | null>(null)
+
+    const stopSpin = () => {
+        if (timer.current === null) return
+        window.clearInterval(timer.current)
+        timer.current = null
+    }
+
+    // The drawer can close mid-spin. Nothing may tick, or set state, after that.
+    useEffect(() => stopSpin, [])
+
+    const shuffle = () => {
+        if (disabled) return
+        // One timer, whatever happens: a second tap mid-spin abandons the old
+        // plan rather than racing it.
+        stopSpin()
+        const plan = planSpin(value)
+
+        if (!motionAllowed) {
+            setSpin(null)
+            setHand([...plan.hand])
+            return
+        }
+
+        setDieAngle((angle) => angle + DIE_TURN_DEGREES)
+        setSpin({ plan, tick: 0 })
+
+        // The wall clock decides which tick we are on, not a counter: a busy main
+        // thread should make the spin SKIP ticks, never run long. A counter turns
+        // one janky frame into a longer animation, and eight of them into a spin
+        // that is still going when the drawer has been shut.
+        const startedAt = performance.now()
+        timer.current = window.setInterval(() => {
+            const tick = Math.round((performance.now() - startedAt) / TICK_MS)
+            if (tick >= plan.ticks) {
+                // Everything settled long before this; the tail was the last
+                // tile's pop. Commit the hand and stop rendering spin state.
+                stopSpin()
+                setSpin(null)
+                setHand([...plan.hand])
+                return
+            }
+            setSpin({ plan, tick })
+        }, TICK_MS)
+    }
+
+    const spinning = spin !== null
+    const shown = spin ? handAt(spin.plan, spin.tick) : ensurePick(hand, value)
+
+    const option = (key: AvatarKey, slot: number) => {
         const art = AVATARS[key]
-        const selected = key === value
+        // Mid-spin nothing is "the selection": a tile is showing whatever its reel
+        // is on, and flashing the selected treatment as that scrolls past would be
+        // a lie told sixteen times a second.
+        const selected = !spinning && key === value
+        const settled = spin === null || hasSettled(spin.plan, slot, spin.tick)
+        const popping = spin !== null && isPopping(spin.plan, slot, spin.tick)
         return (
             <button
-                key={key}
+                // The SLOT is the identity, not the character. Re-keying on the
+                // character would unmount and rebuild eight drawings every frame.
+                key={slot}
                 type="button"
                 role="radio"
                 aria-checked={selected}
                 disabled={disabled}
                 aria-label={t('option', { name: art.label })}
-                onClick={() => onChange(key)}
+                // A tap that lands on a moving tile would select a character
+                // nobody chose to look at.
+                onClick={() => !spinning && onChange(key)}
                 data-testid="avatar-option"
                 data-avatar={key}
                 className={cn(
-                    'flex min-h-[88px] min-w-0 items-center gap-2.5 rounded-sm border border-n-1 p-2 text-left transition-transform duration-100',
+                    tileClass,
                     selected ? 'shadow-4 bg-primary-1' : 'bg-white active:translate-y-[2px]',
+                    // One short scale as the reel lands. Without it, "settled" is
+                    // only ever inferred from movement stopping, which is negative
+                    // information — the eye has to notice an absence.
+                    popping && 'animate-tile-settle',
                     disabled && 'opacity-50'
                 )}
             >
-                <MemberAvatar name={name} avatar={key} size={54} />
-                <span className="min-w-0">
-                    <span className="block text-h9 leading-tight">{art.label}</span>
-                    <span className="mt-0.5 block text-xs leading-tight text-grey-1">{art.vibe}</span>
+                <MemberAvatar name={name} avatar={key} size={44} />
+                {/* Nobody reads a name at sixteen changes a second, so it is not
+                    there to be read: it fades in as the reel stops. That is what
+                    turns a tile that merely stopped moving into a tile that
+                    resolved into a character — and it takes the strobing text,
+                    the least legible thing on the grid, out of the spin entirely.
+                    Opacity moves nothing: the two lines stay reserved throughout. */}
+                <span
+                    className={cn(labelClass, 'transition-opacity duration-150', settled ? 'opacity-100' : 'opacity-0')}
+                >
+                    {art.label}
                 </span>
             </button>
         )
@@ -56,31 +190,67 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
 
     return (
         <div className="flex flex-col gap-3">
-            <span className="text-h8 uppercase tracking-wide text-grey-1">{t('titleFor', { name })}</span>
-
-            <button
-                type="button"
-                disabled={disabled}
-                aria-label={t('randomHint')}
-                onClick={() => onChange(randomPersonaKey(value))}
-                data-testid="avatar-random"
-                className={cn(
-                    'flex min-h-[54px] w-full items-center justify-between gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-y-[2px]',
-                    disabled && 'opacity-50'
-                )}
+            {/* The die sits INSIDE the radiogroup because it is the ninth tile of
+                one 3×3 object and splitting the grid would break that. It is a
+                plain button and selects nothing; `aria-busy` marks the group while
+                the reels are still moving. */}
+            <div
+                role="radiogroup"
+                aria-label={t('titleFor', { name })}
+                aria-busy={spinning || undefined}
+                data-testid="avatar-picker"
+                className="grid grid-cols-3 gap-2"
             >
-                <span>
-                    <span className="block text-h8">{t('random')}</span>
-                    <span className="block text-sm text-grey-1">{t('randomHint')}</span>
-                </span>
-                <Icon name="sparkles" size={24} aria-hidden="true" />
-            </button>
-
-            <div role="radiogroup" aria-label={t('titleFor', { name })} data-testid="avatar-picker">
-                <div className="grid grid-cols-2 gap-2">{AVATAR_KEYS.map(option)}</div>
+                {shown.map(option)}
+                <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={shuffle}
+                    aria-label={t('shuffleLabel')}
+                    data-testid="avatar-shuffle"
+                    // Not a character and not a selection. In this grid a filled
+                    // yellow tile MEANS "this is you", so the die cannot borrow that
+                    // colour to mean "press me" — it wore `bg-primary-3` and read as
+                    // a second, paler selection. Dashed border on the page surface is
+                    // the language this app already uses for a control sitting among
+                    // content (PeopleSection's add row, LinkMoment, SettlementRow):
+                    // an outline where the others have a card, and no fill of its own.
+                    className={cn(
+                        tileClass,
+                        'border-dashed bg-grey-3',
+                        !disabled && 'active:translate-y-[2px]',
+                        disabled && 'opacity-50'
+                    )}
+                >
+                    <span
+                        className="flex h-11 w-11 items-center justify-center"
+                        style={{
+                            transform: `rotate(${dieAngle}deg)`,
+                            // Declared here rather than as a class so the roll and
+                            // the reels cannot drift apart: one constant, one spin.
+                            transition: motionAllowed
+                                ? `transform ${SPIN_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`
+                                : undefined,
+                        }}
+                    >
+                        <Icon name="dice" size={40} />
+                    </span>
+                    <span className={labelClass}>{t('shuffle')}</span>
+                </button>
             </div>
 
-            <span className="text-sm text-grey-1">{t('hint')}</span>
+            {/* Two lines of room, always — the caption is the only place the vibes
+                survive and it must not be able to move the grid. It describes the
+                PICK, which a shuffle does not touch, so the live region stays quiet
+                while the reels spin.
+
+                `min-h-11` (44px) rather than the 40px that "two lines" sounds like:
+                `text-sm` here is 14px on a 21px line, so two lines measure 42 and a
+                40px floor let a one-line vibe grow the sheet by 2px on the way to a
+                two-line one. Reserved means reserved. */}
+            <p aria-live="polite" className="min-h-11 text-sm text-grey-1" data-testid="avatar-caption">
+                {t('caption', { label: current.label, vibe: current.vibe })}
+            </p>
         </div>
     )
 }

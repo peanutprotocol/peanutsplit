@@ -7,7 +7,7 @@ import { badRequest, conflict, notFound, readJson, respond } from '@/server/http
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState, type RoomWithRelations } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
-import { expenseSchema } from '@/server/validation'
+import { expenseUpdateSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +25,7 @@ export const PATCH = (request: Request, ctx: Ctx) =>
     respond(async () => {
         enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, id } = await ctx.params
-        const body = expenseSchema.parse(await readJson(request))
+        const body = expenseUpdateSchema.parse(await readJson(request))
         if (!body.paidById || body.newPaidByName)
             throw badRequest('a new payer can only be added with a new expense', 'NEW_PAYER_ON_EDIT')
         const editBody = { ...body, paidById: body.paidById }
@@ -44,7 +44,17 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             const existing = await findExpense(room, id, tx)
             if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
 
-            const write = await buildExpense(room, editBody, existing, rateTable)
+            // An edit replaces every column it is handed, so a field the client did
+            // not send has to be filled from the row rather than from a schema
+            // default: `expenseUpdateSchema` leaves `description` undefined on a
+            // PATCH that only moved the amount, and defaulting it to '' silently
+            // blanked the name. An explicit '' still clears it.
+            const write = await buildExpense(
+                room,
+                { ...editBody, description: editBody.description ?? existing.description },
+                existing,
+                rateTable
+            )
             // Shares are rebuilt wholesale: an edit must behave exactly like a
             // fresh write, or EQUAL splits keep stale per-member amounts.
             await tx.expenseShare.deleteMany({ where: { expenseId: id } })

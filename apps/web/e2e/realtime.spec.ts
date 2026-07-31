@@ -17,6 +17,11 @@ import { expect, test, type Page } from '@playwright/test'
  */
 const LIVE_BUDGET_MS = 6_000
 
+/**
+ * `data-member` names the member the card is ABOUT. Once this room has two people the strip
+ * collapses to a single sentence card about the OTHER person, so from here on the viewer's own
+ * net is read off the counterparty's card, negated.
+ */
 const balance = (page: Page, member: string) => page.locator(`[data-testid="balance-card"][data-member="${member}"]`)
 
 test('an expense on one device lands on the other without a refresh', async ({ page, browser }) => {
@@ -54,7 +59,8 @@ test('an expense on one device lands on the other without a refresh', async ({ p
     await expect(bea.getByTestId('join-gate')).toHaveCount(0)
 
     // Ana sees the new member arrive — the members POST publishes too, so the
-    // roster is live before any money is involved.
+    // roster is live before any money is involved. The strip is now the pair
+    // card, and the pair card is about Bea.
     await expect(balance(page, 'Bea')).toBeVisible({ timeout: LIVE_BUDGET_MS })
 
     // ── Bea adds an expense; Ana is not touching her phone ────────────────
@@ -71,7 +77,8 @@ test('an expense on one device lands on the other without a refresh', async ({ p
     await expect(page.locator('[data-testid="expense-row"][data-description="Dinner"]')).toBeVisible({
         timeout: LIVE_BUDGET_MS,
     })
-    await expect(balance(page, 'Ana')).toHaveAttribute('data-net', '-3000', { timeout: LIVE_BUDGET_MS })
+    // Ana's own -3000, stated as Bea's +3000 on the pair card.
+    await expect(balance(page, 'Bea')).toHaveAttribute('data-net', '3000', { timeout: LIVE_BUDGET_MS })
 
     // ── And the same in reverse: Ana settles, Bea's screen clears ─────────
     await page.getByTestId('open-settle').click()
@@ -80,9 +87,10 @@ test('an expense on one device lands on the other without a refresh', async ({ p
     await transfer.click()
     await page.getByTestId('method-cash').click()
     await page.getByTestId('record-settlement').click()
-    await expect(balance(page, 'Ana')).toHaveAttribute('data-net', '0', { timeout: 15_000 })
+    await expect(balance(page, 'Bea')).toHaveAttribute('data-net', '0', { timeout: 15_000 })
 
-    await expect(balance(bea, 'Bea')).toHaveAttribute('data-net', '0', { timeout: LIVE_BUDGET_MS })
+    // Bea's device reads the same zero off the card about Ana.
+    await expect(balance(bea, 'Ana')).toHaveAttribute('data-net', '0', { timeout: LIVE_BUDGET_MS })
 
     await second.close()
 })

@@ -8,8 +8,14 @@
 
 import posthog from 'posthog-js'
 import type { CaptureResult } from 'posthog-js'
+import { ACHIEVEMENT_TYPES } from './achievements-contract'
+import type { AchievementType } from './achievements-contract'
 import type { LandingVariant } from './flags'
+import type { RecapShareTier } from './recap'
 import { SHARE_PACKAGE_VARIANT } from './share-package-contract'
+
+/** The runtime half of `RecapShareTier`, so an unknown tier can be dropped rather than forwarded. */
+const SHARE_TIERS = ['files', 'clipboard', 'download'] as const satisfies readonly RecapShareTier[]
 
 export type LandingEvent =
     | 'landing_hero_exposed'
@@ -35,6 +41,15 @@ export type AnalyticsEvent =
     | 'all_settled'
     | 'pwa_prompt_shown'
     | 'pwa_installed'
+    // Installing. Every property is a fact about a browser — which of five states the settings row
+    // found this device in, and which of two answers the browser's own dialog got. Never a room,
+    // never a device id. `pwa_installed` is Chromium-only, because `appinstalled` is: iOS install
+    // conversion is unmeasurable and no number here should pretend otherwise.
+    | 'install_row_shown'
+    | 'install_prompted'
+    // A photo handed in from the OS share sheet. One enum, five buckets, and never a room count:
+    // "this device has 7 rooms" is a weak fingerprint and buys nothing the buckets do not.
+    | 'share_target_opened'
     | 'peanut_option_shown'
     | 'peanut_option_clicked'
     // Push opt-in. Same discipline as everything above: neither a room
@@ -91,6 +106,16 @@ export type AnalyticsEvent =
     | 'import_parsed'
     | 'import_completed'
     | 'import_failed'
+    // Achievements. The type is a closed set of four and the tier is which rung
+    // of the share chain fired. A threshold value, an award id, a persona key
+    // and a member are all absent on purpose: which of the six roles somebody
+    // got is a description of a person, and the avatar comment three blocks up
+    // already settled that question. `crew_5` is out for the same reason — it
+    // would publish the roster size, and the funnel question is only "did
+    // anyone share a crew card".
+    | 'achievement_seen'
+    | 'achievement_share_opened'
+    | 'achievement_shared'
 
 let ready = false
 
@@ -204,6 +229,31 @@ export function sharePackageMeasureProps(method?: SharePackageMethod): Record<st
     return method && (SHARE_PACKAGE_METHODS as readonly string[]).includes(method)
         ? { variant: SHARE_PACKAGE_VARIANT, method }
         : { variant: SHARE_PACKAGE_VARIANT }
+}
+
+/**
+ * The achievement wave's complete measurement contract.
+ *
+ * Success is a completed achievement share divided by achievement moments seen. `recap` and
+ * `invite` are deliberately not achievement types: both already have their own funnels
+ * (`recap_shared`, `share_completed`), and a deck tile that fired an achievement event would
+ * undercount one measure while polluting the other.
+ */
+export const ACHIEVEMENT_MEASURE = {
+    exposure: 'achievement_seen',
+    success: 'achievement_shared',
+    definition: 'completed achievement shares / achievement moments seen',
+    allowedProperties: {
+        achievement_seen: ['type'],
+        achievement_share_opened: ['type'],
+        achievement_shared: ['type', 'tier'],
+    },
+} as const
+
+/** Exact allowlisted properties. An unknown type or tier is dropped, not passed through. */
+export function achievementProps(type: AchievementType, tier?: RecapShareTier): Record<string, string> {
+    if (!(ACHIEVEMENT_TYPES as readonly string[]).includes(type)) return {}
+    return tier && (SHARE_TIERS as readonly string[]).includes(tier) ? { type, tier } : { type }
 }
 
 /** Keeps the room call sites ergonomic without attaching any room identifier. */

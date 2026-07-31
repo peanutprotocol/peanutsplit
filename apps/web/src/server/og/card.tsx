@@ -1,144 +1,32 @@
 /**
  * The unfurl artwork itself.
  *
+ * The frame — field, sheet, wordmark, the disc — lives in `frame.tsx` now and is
+ * shared with every other card. What stays here is what only the unfurl does:
+ * the room name stepped to fit, the avatar row, and the empty seat.
+ *
  * Satori rules that this file obeys, and that any edit must keep obeying:
  *  - every element with more than one child carries an explicit `display: flex`
  *  - no CSS grid, no `gap` (margins only), no shorthand `background`
  *  - inline styles only; no class names, no Tailwind, no CSS variables
  *  - text lives in a leaf element, never as a sibling of another element
  */
-import { DEFAULT_THEME, type RoomTheme } from '@/lib/themes'
+import { DEFAULT_THEME } from '@/lib/themes'
 import { doodleDataUri } from '@/server/og/emblem'
-import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
+import { DISPLAY_FONT } from '@/server/og/fonts'
+import { BLOBS_RIGHT, disc, Field, INK, MUTED, Sheet, Wordmark } from '@/server/og/frame'
 import { AVATAR_COLORS, ENGLISH_CARD_COPY, type OgAvatar, type RoomCardData } from '@/server/og/roomCard'
 
-export const OG_SIZE = { width: 1200, height: 630 } as const
-export const OG_CONTENT_TYPE = 'image/png'
-/**
- * Five minutes. Long enough that a link pasted into three chats renders once,
- * short enough that the card catches up with the room within a coffee break —
- * a stale "no expenses yet" is worse than a re-render.
- */
-export const OG_CACHE_CONTROL = 'public, max-age=300'
-
-const INK = '#211C17'
-const MUTED = '#5F646D'
-
-/**
- * The field colours come from the room's theme now, not from constants. Ink,
- * borders, the white sheet and the shadow do NOT — a theme tints the field, it
- * does not restyle the card, and every palette in the catalog is chosen to carry
- * warm dark ink. `DEFAULT_THEME` is what the brand card and an unthemed room use, and
- * its values are the literals this file shipped with.
- */
+/** Re-exported from their canonical home so the seven `opengraph-image` routes
+ *  that already read them off this module keep one import each. */
+export { OG_CACHE_CONTROL, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/frame'
 
 /** Knerd is wide; step the name down rather than let it wrap to three lines. */
-function nameFontSize(name: string): number {
+export function nameFontSize(name: string): number {
     if (name.length <= 10) return 92
     if (name.length <= 16) return 76
     if (name.length <= 26) return 60
     return 48
-}
-
-const disc = (size: number, color: string) =>
-    ({
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: size,
-        height: size,
-        borderRadius: 9999,
-        backgroundColor: color,
-        border: `4px solid ${INK}`,
-        color: INK,
-        flexShrink: 0,
-    }) as const
-
-function Field({ theme, children }: { theme: RoomTheme; children: React.ReactNode }) {
-    return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                width: OG_SIZE.width,
-                height: OG_SIZE.height,
-                backgroundColor: theme.field,
-                fontFamily: BODY_FONT,
-                position: 'relative',
-            }}
-        >
-            <div
-                style={{
-                    display: 'flex',
-                    position: 'absolute',
-                    top: -170,
-                    right: -130,
-                    width: 470,
-                    height: 470,
-                    borderRadius: 9999,
-                    backgroundColor: theme.fieldTint,
-                }}
-            />
-            <div
-                style={{
-                    display: 'flex',
-                    position: 'absolute',
-                    bottom: -200,
-                    left: -150,
-                    width: 430,
-                    height: 430,
-                    borderRadius: 9999,
-                    backgroundColor: theme.fieldTint,
-                }}
-            />
-            {children}
-        </div>
-    )
-}
-
-/** "PEANUT SPLIT" is the brand and stays put in every language. The line beside
- *  it is a sentence, so it arrives already localized and font-safe. */
-function Wordmark({ theme, tagline }: { theme: RoomTheme; tagline: string }) {
-    return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                height: 96,
-                padding: '0 56px',
-            }}
-        >
-            <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 34, color: INK }}>PEANUT SPLIT</div>
-            <div style={{ display: 'flex', fontSize: 26, color: theme.fieldInk }}>{tagline}</div>
-        </div>
-    )
-}
-
-/**
- * The white card floats, height-to-content, on the yellow field — chat clients
- * crop previews unpredictably, and a card that hugs its content survives a crop
- * better than one stretched to the canvas.
- */
-function Sheet({ children }: { children: React.ReactNode }) {
-    return (
-        <div style={{ display: 'flex', flex: 1, alignItems: 'center', padding: '36px 62px 0 46px' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: '100%',
-                    padding: '44px 46px',
-                    backgroundColor: '#FFFFFF',
-                    border: `5px solid ${INK}`,
-                    borderRadius: 28,
-                    boxShadow: `12px 12px 0 ${INK}`,
-                }}
-            >
-                {children}
-            </div>
-        </div>
-    )
 }
 
 function AvatarRow({ avatars, overflow, people }: { avatars: OgAvatar[]; overflow: number; people: string }) {
@@ -185,7 +73,7 @@ function AvatarRow({ avatars, overflow, people }: { avatars: OgAvatar[]; overflo
 /** The room unfurl. `emojiSrc` is a resolved data URI, or null for the initial. */
 export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: string | null }) {
     return (
-        <Field theme={card.theme}>
+        <Field field={card.theme.field} tint={card.theme.fieldTint} blobs={BLOBS_RIGHT}>
             <Sheet>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     {emojiSrc ? (
@@ -219,7 +107,7 @@ export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: str
                     </div>
                 </div>
             </Sheet>
-            <Wordmark theme={card.theme} tagline={card.tagline} />
+            <Wordmark note={card.tagline} noteColor={card.theme.fieldInk} />
         </Field>
     )
 }
@@ -230,7 +118,7 @@ export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: str
  */
 export function BrandCard({ lines, tagline }: { lines: readonly [string, string]; tagline: string }) {
     return (
-        <Field theme={DEFAULT_THEME}>
+        <Field field={DEFAULT_THEME.field} tint={DEFAULT_THEME.fieldTint} blobs={BLOBS_RIGHT}>
             <Sheet>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 108, lineHeight: 1.02 }}>
@@ -267,7 +155,7 @@ export function BrandCard({ lines, tagline }: { lines: readonly [string, string]
                     </div>
                 </div>
             </Sheet>
-            <Wordmark theme={DEFAULT_THEME} tagline={ENGLISH_CARD_COPY.tagline} />
+            <Wordmark note={ENGLISH_CARD_COPY.tagline} noteColor={DEFAULT_THEME.fieldInk} />
         </Field>
     )
 }

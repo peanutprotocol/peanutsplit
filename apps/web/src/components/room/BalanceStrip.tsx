@@ -66,6 +66,143 @@ const byDebtFirst = (balances: Record<string, string>) => (a: { id: string }, b:
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
 }
 
+/** Only what the pair card needs off a member, so the decision can be tested without a room. */
+interface PairMember {
+    id: string
+    name: string
+    avatar?: string | null
+}
+
+export interface PairCard {
+    /**
+     * The one subject of the card: whose avatar it shows, whose name the sentence carries,
+     * whose net it publishes, and whose derivation the tap opens. There is deliberately no
+     * second member here. A card about Bea that opened Ana's working — and told a screen
+     * reader "See how Ana's balance adds up" — shared no word with what the card said, which
+     * is WCAG 2.5.3, and told Ana a sentence about Ana in the third person, which is the very
+     * thing `toneFor`'s `mine` branch exists to prevent.
+     */
+    about: PairMember
+    /** `about`'s raw server net, unchanged — the same value the per-member card carries. */
+    net: string
+    label: string
+    card: string
+    labelClass: string
+}
+
+/**
+ * The longest name the pair sentence may carry.
+ *
+ * The sentence gets two lines. Wrapping it was not enough: "{name} owes you" puts the verb
+ * LAST, so a first name plus a long surname spends line 1 on the first name, breaks the surname
+ * across line 2, and the clamp eats the relationship words — which is the whole message. Only
+ * the background tint was then left to say which way the money ran, and the name field takes 80
+ * characters.
+ *
+ * So the name is capped where the sentence is built, and the wrap is only the backstop. 20 is
+ * the largest cap that survives the worst shape — a two-letter first name and one unbreakable
+ * surname, which strands the surname alone on line 2 — measured at 375px in Roboto Flex 800 at
+ * 14px, the 265px the label column gets, across all three locales and both directions. A line
+ * holds 20 of the widest capital (W) there, so a capped name plus its phrase always fits.
+ *
+ * This is a character count standing in for a width, so it is sized on Latin metrics. Only the
+ * sentence is capped: the avatar, the roster, the people list, the derivation sheet, the
+ * accessible name and `data-member` all keep the name in full.
+ */
+export const MAX_SENTENCE_NAME_CHARS = 20
+
+/** Code points, not UTF-16 units, so an emoji in a name is never cut into half a character. */
+const forSentence = (name: string) => {
+    const chars = [...name]
+    if (chars.length <= MAX_SENTENCE_NAME_CHARS) return name
+    return `${chars
+        .slice(0, MAX_SENTENCE_NAME_CHARS - 1)
+        .join('')
+        .trimEnd()}…`
+}
+
+/**
+ * The copy, the colour and the subject of the pair card, as data.
+ *
+ * Balances always sum to zero, so n people carry n−1 independent numbers. At n = 2 the second
+ * card is the first one negated — one fact printed twice — and a reader scanning both can add
+ * them into a debt twice the real size, or miss which of the two is the one to act on. So a
+ * two-person room states the fact once, as a sentence.
+ *
+ * Everything is decided off `about`'s net, which is also what the card publishes as `data-net`,
+ * so the label and the number can never disagree. Takes the translator for the same reason
+ * `toneFor` does: every key stays a literal where `pnpm i18n:audit` can see it.
+ */
+export function pairCard(
+    members: readonly PairMember[],
+    balances: Record<string, string>,
+    meId: string | undefined,
+    anySavedExpenses: boolean,
+    t: (key: string, values?: Record<string, string>) => string
+): PairCard {
+    // Debtor first, on the comparator the strip already sorts by, so the name-to-name sentence
+    // runs in the direction the money moves and two zeroes never swap between polls.
+    const sorted = [...members].sort(byDebtFirst(balances))
+    const debtor = sorted[0]
+    const creditor = sorted[1]
+    // `noUncheckedIndexedAccess` is off, so a short array types as two members and only fails
+    // at the first property read — a blank room screen from a TypeError with no name on it.
+    // Say what the contract is instead. The only caller has already checked the length.
+    if (!debtor || !creditor) throw new Error(`pairCard needs exactly two members, got ${members.length}`)
+    // A `meId` the roster does not hold is a stale device identity, not a member. Treat it the
+    // same as a spectator: say who owes whom by name rather than claim one of them is you.
+    const me = meId ? members.find((member) => member.id === meId) : undefined
+    const about = me ? (me.id === debtor.id ? creditor : debtor) : debtor
+    const net = balances[about.id] ?? '0'
+
+    // Zero takes the room's tint for the same reason the strip's does: red and green carry
+    // meaning, and a theme may only tint the neutral state. "settled up" is a claim about a
+    // debt that got paid, so a room the server holds no expense for has to say "nothing yet".
+    //
+    // Named, because the state itself is not: every brand-new two-person room opens here, and
+    // an avatar over "settled up" over "$0.00" says whose settled-up it is nowhere. The strip
+    // prints the name beside the tone word on every other card; this prints the same two parts
+    // in the same order, with the separator the expense rows already use.
+    if (isZeroMinor(net))
+        return {
+            about,
+            net,
+            label: `${forSentence(about.name)} · ${anySavedExpenses ? t('settled') : t('nothingYet')}`,
+            card: 'bg-[var(--split-theme-tint,#FFFFFF)]',
+            labelClass: 'text-n-3',
+        }
+
+    if (!me)
+        // Neither name is the reader's, so the card takes the colour of the fact it states: a
+        // debt is open. `about` is the debtor here, so its net is always the negative one.
+        return {
+            about,
+            net,
+            // Both names are capped. Two long ones can still reach a third line, but the verb
+            // sits right after the debtor in all three locales, so the clamp never removes it.
+            label: t('pair.owes', { debtor: forSentence(debtor.name), creditor: forSentence(creditor.name) }),
+            card: 'bg-error-1',
+            labelClass: 'text-n-1',
+        }
+
+    if (net.startsWith('-'))
+        return {
+            about,
+            net,
+            label: t('pair.owesYou', { name: forSentence(about.name) }),
+            card: 'bg-green-1',
+            labelClass: 'text-n-1',
+        }
+
+    return {
+        about,
+        net,
+        label: t('pair.youOwe', { name: forSentence(about.name) }),
+        card: 'bg-error-1',
+        labelClass: 'text-n-1',
+    }
+}
+
 /**
  * Who is up and who is down, at a glance. Balances count to their new values
  * (moment #3) and a member who joins mid-trip springs in and pops (moment #2) —
@@ -82,6 +219,9 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
     // Copied before sorting: `state.members` is the query cache's array, and sorting in place
     // would reorder it for every other reader of the same room.
     const ordered = useMemo(() => [...state.members].sort(byDebtFirst(state.balances)), [state.members, state.balances])
+    // Exactly two people is one number, not two. One and three-or-more keep the strip.
+    const pair =
+        state.members.length === 2 ? pairCard(state.members, state.balances, meId, anySavedExpenses, t) : undefined
     // Seeded on the first render so the initial roster does not fire n pops.
     const known = useRef<Set<string> | null>(null)
 
@@ -95,6 +235,72 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
         known.current = new Set(ids)
         if (arrived) feedback('pop')
     }, [state.members, feedback])
+
+    if (pair)
+        return (
+            <section aria-label={t('title')} className="flex flex-col gap-2">
+                <h2 className="px-4 text-h8 uppercase tracking-wide text-grey-1">{t('title')}</h2>
+
+                {/* `data-member` and `data-net` name the member the SENTENCE is about, not the
+                    person reading the card: the counterparty when the device knows who it is,
+                    the debtor when it does not. So in a two-person room a spec that used to read
+                    the viewer's own net reads its negation here, off the other name.
+                    `data-pair` is how a spec tells the two shapes apart — balances.spec.ts
+                    asserts it is absent at one member and present at two. */}
+                <div
+                    data-motion-surface
+                    data-testid="balance-card"
+                    data-pair="true"
+                    data-member={pair.about.name}
+                    data-net={pair.net}
+                    className={cn('shadow-4 mx-4 mb-3 mt-1 flex rounded-sm border border-n-1', pair.card)}
+                >
+                    {/* The whole card is the target — a balance you cannot
+                        interrogate is the thing this product is against. One subject
+                        throughout: the tap opens the working of the member the sentence names,
+                        and the accessible name says that member too. */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            feedback('tick')
+                            onSelect(pair.about.id)
+                        }}
+                        aria-label={tDerivation('openLabel', { name: pair.about.name })}
+                        data-testid="open-balance"
+                        className="flex w-full items-center gap-3 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
+                    >
+                        <MemberAvatar name={pair.about.name} avatar={pair.about.avatar} size={40} />
+                        {/* The sentence sits over the amount rather than beside it, so a long
+                            name has the width of the card and is not cut into half a sentence.
+                            A sentence is also not uppercased the way the strip's two-word tone
+                            labels are. */}
+                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                            {/* Wraps rather than truncates. "{name} owes you" puts the verb
+                                LAST, so an ellipsis eats the whole relationship and leaves a
+                                clipped name over an amount, with only the green tint saying
+                                which way the money runs — it started at about 23 characters at
+                                375px. Two lines is the cap. The name is already cut to
+                                MAX_SENTENCE_NAME_CHARS where the sentence is built, so those two
+                                lines hold it at any name length; this clamp is the backstop, not
+                                the fix. Splitting the string into a name element and a phrase
+                                element is not an option, because Spanish puts the name last in
+                                the other direction ("Le debes a {name}") and the order is the
+                                translator's to choose. */}
+                            <span className={cn('line-clamp-2 break-words text-h8 leading-snug', pair.labelClass)}>
+                                {pair.label}
+                            </span>
+                            <AnimatedMoney
+                                minor={pair.net}
+                                currency={state.room.currency}
+                                catalog={currencies}
+                                absolute
+                                className="text-h5"
+                            />
+                        </span>
+                    </button>
+                </div>
+            </section>
+        )
 
     return (
         <section aria-label={t('title')} className="flex flex-col gap-2">

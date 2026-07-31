@@ -21,6 +21,7 @@ import {
     buildExpenseBody,
     emptyExpenseForm,
     expenseToFormValues,
+    hasUnreadableShare,
     remainingMinor,
     repairMisplacedExpenseFields,
     validateExpenseForm,
@@ -28,7 +29,8 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
-import { currencyInfo, formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
+import { discardSharedReceipt, takeSharedReceipt } from '@/lib/shared-receipt'
+import { currencyInfo, formatAmountInput, formatMoney, isAmountInputAcceptable, parseAmountToMinor } from '@/lib/money'
 import {
     useAddExpense,
     useAddMember,
@@ -62,6 +64,9 @@ interface ExpenseDrawerProps {
     /** Null = add mode. */
     expense: ApiExpense | null
     defaultPaidById: string
+    /** `?shared=1` — a photo the OS share sheet parked for this room. */
+    sharedReceipt?: boolean
+    onSharedReceiptConsumed?: () => void
 }
 
 export function ExpenseDrawer({
@@ -73,6 +78,8 @@ export function ExpenseDrawer({
     token,
     expense,
     defaultPaidById,
+    sharedReceipt = false,
+    onSharedReceiptConsumed,
 }: ExpenseDrawerProps) {
     const t = useTranslations('room.expenseDrawer')
     const tDates = useTranslations('dates')
@@ -110,10 +117,12 @@ export function ExpenseDrawer({
     const [participantError, setParticipantError] = useState<string | null>(null)
     const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
     const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
+    /** Delete asks first, like undoing a payment record does. The row is the
+     *  room's shared history, so a mis-tap costs everyone a balance. */
+    const [confirmingDelete, setConfirmingDelete] = useState(false)
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
-    const descriptionRef = useRef<HTMLInputElement>(null)
     // React does not disable the button until the mutation state renders. A
     // second tap in that gap would mint a second clientKey and create a second
     // expense, so the synchronous guard owns the save attempt.
@@ -141,6 +150,7 @@ export function ExpenseDrawer({
         setParticipantError(null)
         setFieldRepairNotice(null)
         setEditor(null)
+        setConfirmingDelete(false)
         expenseRequestRef.current = null
         setValues(
             expense
@@ -155,6 +165,55 @@ export function ExpenseDrawer({
         // mid-edit must not stomp on what is being typed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, expense?.id])
+
+    /**
+     * A receipt shared in from the OS, picked up once.
+     *
+     * Declared AFTER the re-seed effect on purpose: that one clears `scanFile` on every open and
+     * effects run in declaration order, so swapping the two would wipe the photo the drawer is
+     * opening to receive. Its deps are `[open, expense?.id]`, so it does not re-run when `shared`
+     * flips — which is why this placement is enough.
+     *
+     * Fires on the param rather than on the drawer, because the drawer is not always reachable.
+     * A room can be in `ps:recent` and still need a join (recent-rooms is written on every visit
+     * and carries no identity), and RoomScreen gates the whole drawer on that. A photo parked for
+     * a screen that is not coming has to be thrown away, not left waiting.
+     *
+     * The model probe is the second gate. This is a SECOND entry point into the scan flow — the
+     * one ROADMAP's "V1 hold — receipt scanning" holds behind a real-device pass — and it reaches
+     * ScanFlow without passing ScanButton, which is what the probe normally hides. A v2 build with
+     * no model key answers 503, so the share sheet would take the photo, open the overlay and then
+     * fail.
+     */
+    useEffect(() => {
+        if (!sharedReceipt) return
+
+        const drop = () => {
+            void discardSharedReceipt(caches)
+            onSharedReceiptConsumed?.()
+        }
+        // Unjoined room, or a room whose state never loaded. Do not leave a receipt photo parked,
+        // and do not leave `shared=1` in a URL somebody may go on to share.
+        if (!open || !splitV2Enabled()) {
+            drop()
+            return
+        }
+        // Still asking the server whether it can read a bill. Wait rather than guess.
+        if (!modelResolved) return
+        if (!modelEnabled) {
+            drop()
+            return
+        }
+
+        let cancelled = false
+        void takeSharedReceipt(caches).then((file) => {
+            if (!cancelled && file) setScanFile(file)
+            onSharedReceiptConsumed?.()
+        })
+        return () => {
+            cancelled = true
+        }
+    }, [open, sharedReceipt, modelResolved, modelEnabled, onSharedReceiptConsumed])
 
     // Own effect rather than a line in the re-seed above: that one also runs when
     // you tap straight from one expense to another, and the sheet is already open
@@ -176,8 +235,11 @@ export function ExpenseDrawer({
     const remainingIsZero = remaining === '0'
     /** The green celebration. Zero left to allocate is NOT enough on its own —
      *  an untouched EXACT form is zero against zero, and cheering before the work
-     *  starts spends the moment that was supposed to land at the end of it. */
-    const allocationSettled = remainingIsZero && values.exactTouched
+     *  starts spends the moment that was supposed to land at the end of it. A
+     *  share the parser cannot read counts as zero in `remaining`, so it has to be
+     *  ruled out here too: the readout must never go green over a value that save
+     *  will refuse. */
+    const allocationSettled = remainingIsZero && values.exactTouched && !hasUnreadableShare(values, currencies, locale)
     const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
@@ -306,6 +368,21 @@ export function ExpenseDrawer({
     const editExact = (memberId: string, input: string) =>
         patch({ exactInputs: { ...values.exactInputs, [memberId]: input }, exactTouched: true })
 
+    /**
+     * A keystroke the amount parser could never read is dropped rather than
+     * stored. Unlike the total above — which keeps "taxi" so `repairFieldRoles`
+     * can spot a swapped pair and validation can say what is wrong — a share has
+     * nowhere to put a word, and holding one desynchronises the readout under
+     * it from the save button: `allocatedMinor` counts anything it cannot parse
+     * as zero, so a field of letters beside shares that already sum to the total
+     * left the sheet cheering "every cent allocated" while saving refused with
+     * SHARE_AMOUNT_INVALID.
+     */
+    const typeExact = (memberId: string, input: string) => {
+        if (!isAmountInputAcceptable(input, decimals, locale)) return
+        editExact(memberId, input)
+    }
+
     /** On blur, what was typed becomes what the currency actually looks like —
      *  "12" in a EUR room is 12.00, and a field that keeps saying "12" next to a
      *  neighbour saying "8.50" invites the reader to add them up wrong. A field
@@ -381,7 +458,6 @@ export function ExpenseDrawer({
             shake()
             if (validationToSave === 'AMOUNT_REQUIRED' || validationToSave === 'AMOUNT_INVALID')
                 amountRef.current?.focus()
-            else if (validationToSave === 'DESCRIPTION_REQUIRED') descriptionRef.current?.focus()
             else if (validationToSave === 'PAYER_REQUIRED') setEditor('payer')
             else setEditor('split')
             return
@@ -430,14 +506,18 @@ export function ExpenseDrawer({
     const remove = async () => {
         if (!expense) return
         const id = expense.id
-        const description = expense.description
+        // The toast quotes the row that just left the list, so it can only quote a
+        // real name. Quoting the day fallback made "“Today” deleted", which reads
+        // like somebody had called the expense that; an unnamed row gets the
+        // sentence with no quotation instead.
+        const description = expense.description.trim()
         try {
             await deleteExpense.mutateAsync(id)
             close()
             track('expense_deleted', roomProps(slug))
             // The toast IS the undo window — it has to outlive "wait, did I mean
             // to do that?", which is why it takes the actionable duration.
-            toast(t('deletedToast', { description }), {
+            toast(description ? t('deletedToast', { description }) : t('deletedToastUnnamed'), {
                 duration: TOAST_MS.actionable,
                 action: {
                     label: t('undo'),
@@ -455,6 +535,7 @@ export function ExpenseDrawer({
             })
         } catch (err) {
             feedback('error', { haptic: 'error' })
+            setConfirmingDelete(false)
             setError(errorMessage(err, t('deleteFailed')))
         }
     }
@@ -512,23 +593,20 @@ export function ExpenseDrawer({
     const yesterdayInput = toDateInputValue(yesterdayDate.toISOString())
     const selectedDateInput = toDateInputValue(values.date)
     const validationCopy =
-        validation === 'DESCRIPTION_REQUIRED'
-            ? t('validation.DESCRIPTION_REQUIRED')
-            : validation === 'AMOUNT_REQUIRED'
-              ? t('validation.AMOUNT_REQUIRED')
-              : validation === 'AMOUNT_INVALID'
-                ? t('validation.AMOUNT_INVALID')
-                : validation === 'PAYER_REQUIRED'
-                  ? t('validation.PAYER_REQUIRED')
-                  : validation === 'NO_PARTICIPANTS'
-                    ? t('validation.NO_PARTICIPANTS')
-                    : validation === 'SHARE_AMOUNT_INVALID'
-                      ? t('validation.SHARE_AMOUNT_INVALID')
-                      : validation === 'SHARES_DO_NOT_ADD_UP'
-                        ? t('validation.SHARES_DO_NOT_ADD_UP')
-                        : null
+        validation === 'AMOUNT_REQUIRED'
+            ? t('validation.AMOUNT_REQUIRED')
+            : validation === 'AMOUNT_INVALID'
+              ? t('validation.AMOUNT_INVALID')
+              : validation === 'PAYER_REQUIRED'
+                ? t('validation.PAYER_REQUIRED')
+                : validation === 'NO_PARTICIPANTS'
+                  ? t('validation.NO_PARTICIPANTS')
+                  : validation === 'SHARE_AMOUNT_INVALID'
+                    ? t('validation.SHARE_AMOUNT_INVALID')
+                    : validation === 'SHARES_DO_NOT_ADD_UP'
+                      ? t('validation.SHARES_DO_NOT_ADD_UP')
+                      : null
     const amountInvalid = submitted && (validation === 'AMOUNT_REQUIRED' || validation === 'AMOUNT_INVALID')
-    const descriptionInvalid = submitted && validation === 'DESCRIPTION_REQUIRED'
     const positiveTotal = totalMinor !== null && BigInt(totalMinor) > 0n
     const primaryLabel =
         expense || !positiveTotal
@@ -580,7 +658,7 @@ export function ExpenseDrawer({
                         data-testid="expense-composer"
                         className={cn(
                             'shadow-4 overflow-hidden rounded-lg border-2 bg-white transition-colors',
-                            amountInvalid || descriptionInvalid ? 'border-error' : 'border-n-1'
+                            amountInvalid ? 'border-error' : 'border-n-1'
                         )}
                     >
                         <div className="flex min-w-0 items-center gap-2 px-3 py-2">
@@ -623,7 +701,6 @@ export function ExpenseDrawer({
                         <label className="block border-t border-dashed border-grey-1">
                             <span className="sr-only">{t('description')}</span>
                             <input
-                                ref={descriptionRef}
                                 value={values.description}
                                 onChange={(event) => {
                                     patch({ description: event.target.value })
@@ -633,8 +710,6 @@ export function ExpenseDrawer({
                                 onBlur={() => repairFieldRoles()}
                                 placeholder={t('descriptionPlaceholder')}
                                 maxLength={255}
-                                aria-invalid={descriptionInvalid || undefined}
-                                aria-describedby={descriptionInvalid ? 'expense-description-error' : undefined}
                                 data-testid="expense-description"
                                 className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
                             />
@@ -735,16 +810,6 @@ export function ExpenseDrawer({
                         >
                             <Icon name="x" size={16} />
                             {validationCopy ?? t('validation.AMOUNT_REQUIRED')}
-                        </p>
-                    )}
-                    {descriptionInvalid && (
-                        <p
-                            id="expense-description-error"
-                            role="alert"
-                            className="flex items-center gap-2 text-sm font-bold text-error"
-                        >
-                            <Icon name="x" size={16} />
-                            {t('validation.DESCRIPTION_REQUIRED')}
                         </p>
                     )}
 
@@ -1049,7 +1114,7 @@ export function ExpenseDrawer({
                                                     </span>
                                                     <input
                                                         value={values.exactInputs[member.id] ?? ''}
-                                                        onChange={(event) => editExact(member.id, event.target.value)}
+                                                        onChange={(event) => typeExact(member.id, event.target.value)}
                                                         onFocus={(event) => event.target.select()}
                                                         onBlur={() => normaliseExact(member.id)}
                                                         inputMode="decimal"
@@ -1302,7 +1367,7 @@ export function ExpenseDrawer({
                         </section>
                     )}
 
-                    {submitted && validationCopy && !amountInvalid && !descriptionInvalid && (
+                    {submitted && validationCopy && !amountInvalid && (
                         <p role="alert" className="flex items-center gap-2 text-sm font-bold text-error">
                             <Icon name="x" size={16} />
                             {validationCopy}
@@ -1327,18 +1392,49 @@ export function ExpenseDrawer({
                     >
                         {primaryLabel}
                     </Button>
-                    {expense && (
-                        <Button
-                            variant="stroke"
-                            icon="trash"
-                            onClick={remove}
-                            loading={deleteExpense.isPending}
-                            className="justify-center"
-                            data-testid="delete-expense"
-                        >
-                            {t('delete')}
-                        </Button>
-                    )}
+                    {expense &&
+                        (confirmingDelete ? (
+                            <div
+                                className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-3"
+                                data-testid="delete-expense-confirm"
+                            >
+                                {/* The question replaces the delete button in place, so a
+                                    screen reader is otherwise never told it was asked. */}
+                                <p role="alert" className="text-sm text-n-1">
+                                    {t('confirmDelete')}
+                                </p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="stroke"
+                                        icon="trash"
+                                        onClick={remove}
+                                        loading={deleteExpense.isPending}
+                                        className="flex-1 justify-center"
+                                        data-testid="confirm-delete-expense"
+                                    >
+                                        {t('confirmDeleteYes')}
+                                    </Button>
+                                    <Button
+                                        variant="stroke"
+                                        onClick={() => setConfirmingDelete(false)}
+                                        className="w-auto shrink-0 justify-center"
+                                        data-testid="cancel-delete-expense"
+                                    >
+                                        {t('confirmDeleteNo')}
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <Button
+                                variant="stroke"
+                                icon="trash"
+                                onClick={() => setConfirmingDelete(true)}
+                                className="justify-center"
+                                data-testid="delete-expense"
+                            >
+                                {t('delete')}
+                            </Button>
+                        ))}
                 </DrawerActions>
             </DrawerContent>
 

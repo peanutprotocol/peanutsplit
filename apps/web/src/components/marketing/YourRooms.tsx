@@ -9,8 +9,12 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { CloseButton } from '@/components/ui/CloseButton'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { api, isApiError } from '@/lib/api'
+import { cn } from '@/lib/cn'
 import { forgetRoom, readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
@@ -46,25 +50,62 @@ export function YourRooms() {
     const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
     const [recent, setRecent] = useState<RecentRoom[]>([])
-    const [expanded, setExpanded] = useState(false)
+    /**
+     * What this person asked the list to do, `null` until they ask anything.
+     *
+     * One value rather than an `expanded` flag plus a "have they touched it" flag,
+     * because the two can never be allowed to disagree: an untouched list is the
+     * only thing the compact rule below is allowed to key on.
+     */
+    const [reveal, setReveal] = useState<'all' | 'fewer' | null>(null)
+    const expanded = reveal === 'all'
     const [pastedLink, setPastedLink] = useState('')
     const [recovering, setRecovering] = useState(false)
     const [recoveryError, setRecoveryError] = useState<string | null>(null)
     const [notice, setNotice] = useState<string | null>(null)
+    /** The room waiting on a confirm. This list is the only copy of the link this
+     *  device holds, so dropping a room is not something a mis-tap should do. */
+    const [pendingForget, setPendingForget] = useState<RecentRoom | null>(null)
+    /**
+     * The room the sheet is ABOUT, which outlives the confirm.
+     *
+     * The sheet animates itself out, and it can only do that while its content is
+     * still there to animate. Rendering the content off `pendingForget` unmounted
+     * the whole sheet in the same render that closed it, so this one sheet
+     * disappeared instantly while every other one slid away.
+     */
+    const [forgetSubject, setForgetSubject] = useState<RecentRoom | null>(null)
+
+    const askForget = (room: RecentRoom) => {
+        setForgetSubject(room)
+        setPendingForget(room)
+    }
 
     useEffect(() => {
         setRecent(readRecentRooms())
     }, [])
 
     // Hiding a single sixth room behind a passive "and 1 more" footer made the
-    // list look truncated by accident. Six is still a compact history, so show
-    // it outright; larger histories get an explicit reveal control.
-    const collapsedLimit = recent.length === COLLAPSED_LIMIT + 1 ? recent.length : COLLAPSED_LIMIT
+    // list look truncated by accident. Six is still a compact history, so show it
+    // outright; larger histories get an explicit reveal control.
+    //
+    // "Untouched" is the load-bearing half. Once somebody has WORKED the control,
+    // the control's own promise governs instead — a button that says "Show fewer
+    // rooms" and then shows all six of them is a worse lie than a sixth room
+    // behind a reveal.
+    const compact = recent.length === COLLAPSED_LIMIT + 1 && reveal === null
+    const collapsedLimit = compact ? recent.length : COLLAPSED_LIMIT
     const visible = expanded ? recent : recent.slice(0, collapsedLimit)
     const overflow = recent.length - visible.length
-    const canCollapse = recent.length > collapsedLimit
+    // `expanded ||` is what was missing. Derived from the limit alone, the control
+    // vanished the moment forgetting a room brought an EXPANDED list down to a
+    // count the limit already covered: "Show fewer rooms" disappeared under the
+    // finger that had just deleted something, and the list stayed expanded with no
+    // way back. Whatever the count, an expanded list can always be collapsed.
+    const canCollapse = expanded || recent.length > collapsedLimit
 
     const forget = (room: RecentRoom) => {
+        setPendingForget(null)
         if (!forgetRoom(room.slug)) {
             setNotice(t('forgetFailed', { room: room.name }))
             feedback('error', { haptic: 'error' })
@@ -174,7 +215,7 @@ export function YourRooms() {
                                         style={room.theme ? { backgroundColor: themeFor(room.theme).field } : undefined}
                                         className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
                                     >
-                                        <RoomEmblem value={room.emoji} size={30} />
+                                        <RoomEmblem value={room.emoji} name={room.name} size={30} />
                                     </span>
                                     <span className="min-w-0 flex-1">
                                         <span className="block truncate text-h7">{room.name}</span>
@@ -186,7 +227,7 @@ export function YourRooms() {
                                 </Link>
                                 <button
                                     type="button"
-                                    onClick={() => forget(room)}
+                                    onClick={() => askForget(room)}
                                     aria-label={t('forgetLabel', { room: room.name })}
                                     data-testid="forget-room"
                                     data-room={room.slug}
@@ -202,7 +243,7 @@ export function YourRooms() {
                         <button
                             type="button"
                             onClick={() => {
-                                setExpanded((current) => !current)
+                                setReveal(expanded ? 'fewer' : 'all')
                                 feedback('blip')
                             }}
                             aria-expanded={expanded}
@@ -266,6 +307,51 @@ export function YourRooms() {
                     </Button>
                 </form>
             </details>
+
+            {/* Removing a room is the one irreversible thing this page can do:
+                without the link, a room dropped here cannot be reached again from
+                this device. So it asks, and it says what the cost is. */}
+            <Drawer open={pendingForget !== null} onOpenChange={(next) => !next && setPendingForget(null)}>
+                {forgetSubject && (
+                    <DrawerContent className={drawerContentClass} data-testid="forget-room-confirm">
+                        <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+                            <DrawerTitle className="text-h5">
+                                {t('confirmForgetTitle', { room: forgetSubject.name })}
+                            </DrawerTitle>
+                            <CloseButton
+                                onClick={() => setPendingForget(null)}
+                                label={t('confirmForgetClose')}
+                                data-testid="close-forget-room"
+                            />
+                        </DrawerHeader>
+                        <DrawerBody>
+                            <p className="text-sm leading-5 text-grey-1">{t('confirmForgetBody')}</p>
+                            <DrawerActions>
+                                {/* Both buttons are `stroke`, as in the expense drawer's delete
+                                    confirm: the pink CTA is what the page uses to invite an
+                                    action, and removing a room is not one this page wants. */}
+                                <Button
+                                    variant="stroke"
+                                    icon="trash"
+                                    className="justify-center"
+                                    onClick={() => forget(forgetSubject)}
+                                    data-testid="confirm-forget-room"
+                                >
+                                    {t('confirmForget')}
+                                </Button>
+                                <Button
+                                    variant="stroke"
+                                    className="justify-center"
+                                    onClick={() => setPendingForget(null)}
+                                    data-testid="cancel-forget-room"
+                                >
+                                    {t('confirmForgetKeep')}
+                                </Button>
+                            </DrawerActions>
+                        </DrawerBody>
+                    </DrawerContent>
+                )}
+            </Drawer>
 
             {notice && (
                 <p

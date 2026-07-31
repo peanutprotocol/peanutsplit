@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { motion } from 'motion/react'
-import { Button } from '@/components/ui/Button'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { LANDING_CAST, LandingPersona } from './LandingPersona'
@@ -36,7 +35,12 @@ export function FinalCta() {
             transition={motionAllowed ? { type: 'spring', stiffness: 220, damping: 22 } : { duration: 0 }}
             className="mx-auto w-full max-w-xl px-5 py-10"
         >
-            <div className="shadow-4 rounded-sm border border-n-1 bg-white p-5">
+            <Link
+                href="/new"
+                data-testid="final-cta-link"
+                className="final-cta-link shadow-4 block rounded-sm border border-n-1 bg-white p-5 text-inherit no-underline"
+                onClick={() => feedback('whoosh')}
+            >
                 <div className="mb-4 flex -space-x-2" aria-hidden="true">
                     <LandingPersona persona={LANDING_CAST.bea} size={40} />
                     <LandingPersona persona={LANDING_CAST.jules} size={40} />
@@ -44,12 +48,19 @@ export function FinalCta() {
                 </div>
                 <h2 className="text-h5">{t('title')}</h2>
                 <p className="mt-2 text-sm leading-5 text-grey-1">{t('subtitle')}</p>
-                <Link href="/new" className="mt-4 block" onClick={() => feedback('whoosh')}>
-                    <Button variant="primary" shadowSize="4" className="justify-center text-h6" disableHaptics>
-                        {t('button')}
-                    </Button>
-                </Link>
-            </div>
+                {/*
+                 * Not <Button>: a <button> inside an <a> is invalid HTML, and the whole card is the
+                 * link now. It borrows Button's classes and carries Button's translate guard, which
+                 * stops Google Translate rewriting the label. The press affordance lives on
+                 * .final-cta-link:active instead — this span is pointer-events: none.
+                 */}
+                <span
+                    translate="no"
+                    className="final-cta-button notranslate btn btn-primary btn-shadow-primary-4 mt-4 flex w-full justify-center text-h6"
+                >
+                    {t('button')}
+                </span>
+            </Link>
         </motion.section>
     )
 }

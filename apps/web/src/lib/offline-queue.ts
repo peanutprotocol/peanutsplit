@@ -230,7 +230,7 @@ export function draftExpenseRow(
 
     return {
         id: context.id,
-        description: input.description,
+        description: input.description ?? '',
         amountMinor: input.amountMinor,
         currency: input.currency,
         // No FX applied yet — the row shows the entered amount and no conversion

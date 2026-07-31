@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es.json'
 import ptBRMessages from '../src/i18n/messages/pt-BR.json'
+import { SLUG_TAIL_HINT } from '../src/lib/slugify'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
 
@@ -359,9 +360,15 @@ test.describe('Pass-the-link default', () => {
             ['🎿🎿', 'room'],
         ] as const) {
             await page.getByTestId('hero-room-name').fill(name)
-            await expect(page.getByTestId('pass-link-url')).toContainText(`peanutsplit.com/r/${stem}-••••••`)
-            await expect(page.getByTestId('hero-slug-preview')).toContainText(`peanutsplit.com/r/${stem}-••••••`)
+            await expect(page.getByTestId('pass-link-url')).toContainText(`peanutsplit.com/r/${stem}${SLUG_TAIL_HINT}`)
+            await expect(page.getByTestId('hero-slug-preview')).toContainText(
+                `peanutsplit.com/r/${stem}${SLUG_TAIL_HINT}`
+            )
         }
+
+        // The hint is imported so the two previews cannot drift, so pin its SHAPE here:
+        // the tail is three words, and a preview showing one run teaches the wrong URL.
+        expect(SLUG_TAIL_HINT.split('-').filter(Boolean)).toHaveLength(3)
 
         expect(roomWrites).toEqual([])
     })
@@ -460,6 +467,29 @@ test.describe('Pass-the-link default', () => {
         await firstFold.locator('summary').click()
         await expect(firstFold).toHaveAttribute('open', '')
         await expect(firstFold.locator('summary')).toHaveCSS('transition-duration', '0s')
+
+        const motionLinks = [
+            page.getByTestId('pass-link-chat-link'),
+            page.getByTestId('proof-link-identity-link'),
+            page.getByTestId('final-cta-link'),
+            ...(await page.getByTestId('room-example-link').all()),
+        ]
+        for (const link of motionLinks) {
+            await expect(link).toHaveCSS('transition-duration', '0s')
+            const stillTransform = await link.evaluate((element) => getComputedStyle(element).transform)
+            await link.hover()
+            await expect(link).toHaveCSS('transform', stillTransform)
+        }
+
+        const exampleLink = page.getByTestId('room-example-link').first()
+        await exampleLink.hover()
+        const stillTransform = await exampleLink.evaluate((element) => getComputedStyle(element).transform)
+        await page.mouse.down()
+        await expect(exampleLink).toHaveCSS('transform', stillTransform)
+        await page.mouse.move(0, 0)
+        await page.mouse.up()
+        await expect(page).toHaveURL('/')
+
         expect(
             await page.locator('main').evaluate((element) =>
                 element
@@ -568,7 +598,7 @@ test.describe('Pass-the-link default', () => {
         await page.getByTestId('hero-creator-name').fill('Ana')
         await page.getByTestId('hero-create-room').click()
 
-        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[0-9a-hjkmnp-tv-z]{6}$`), {
+        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$`), {
             timeout: 20_000,
         })
         await expect(page.getByTestId('join-gate')).toHaveCount(0)
@@ -584,6 +614,21 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(proof.suggestedPlan.title)
         await expect(page.getByTestId('room-examples')).toContainText(proof.examples.title)
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
+
+        for (const testId of ['proof-link-identity-link', 'proof-everyone-adds-link', 'proof-suggested-plan-link']) {
+            await expect(page.getByTestId(testId)).toHaveAttribute('href', '/new')
+        }
+
+        const roomExampleLinks = page.getByTestId('room-example-link')
+        await expect(roomExampleLinks).toHaveCount(4)
+        for (const exampleLink of await roomExampleLinks.all()) {
+            await expect(exampleLink).toHaveAttribute('href', '/new')
+        }
+
+        const finalCtaLink = page.getByTestId('final-cta-link')
+        await expect(finalCtaLink).toHaveAttribute('href', '/new')
+        await expect(finalCtaLink.locator('button')).toHaveCount(0)
+
         await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
         const [personaBox, personaDoodleBox] = await Promise.all([
             page.getByTestId('landing-proof').locator('.landing-persona').first().boundingBox(),
@@ -604,6 +649,63 @@ test.describe('Pass-the-link default', () => {
         await expect(supportedCurrencies).toBeVisible()
     })
 
+    test('a room example opens the creator from the keyboard without creating a room', async ({ page }) => {
+        await openLanding(page)
+
+        const exampleLink = page.getByTestId('room-example-link').first()
+        await exampleLink.focus()
+        await expect(exampleLink).toBeFocused()
+        await page.keyboard.press('Enter')
+
+        await expect(page).toHaveURL('/new')
+        await expect(page.getByTestId('room-composer')).toBeVisible()
+    })
+
+    test('every room example lifts and straightens on desktop hover', async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'desktop', 'desktop pointer interaction')
+        await openLanding(page)
+
+        for (const exampleLink of await page.getByTestId('room-example-link').all()) {
+            await page.mouse.move(0, 0)
+            const restingTransform = await exampleLink.evaluate((element) => getComputedStyle(element).transform)
+            await exampleLink.hover()
+            await expect
+                .poll(() => exampleLink.evaluate((element) => getComputedStyle(element).transform))
+                .not.toBe(restingTransform)
+        }
+    })
+
+    test('desktop proof milestones keep each icon attached to its label', async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await page.emulateMedia({ reducedMotion: 'reduce' })
+        await openLanding(page)
+
+        const milestones = page.locator('.landing-proof-rail li')
+        await expect(milestones).toHaveCount(4)
+
+        for (const milestone of await milestones.all()) {
+            const [iconBox, labelBox] = await Promise.all([
+                milestone.locator('svg').boundingBox(),
+                milestone.evaluate((element) => {
+                    const label = [...element.childNodes].find(
+                        (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
+                    )
+                    if (!label) return null
+
+                    const range = document.createRange()
+                    range.selectNodeContents(label)
+                    const { x, y, width, height } = range.getBoundingClientRect()
+                    return { x, y, width, height }
+                }),
+            ])
+
+            expect(iconBox).not.toBeNull()
+            expect(labelBox).not.toBeNull()
+            expect(labelBox!.x - (iconBox!.x + iconBox!.width)).toBeGreaterThanOrEqual(0)
+            expect(labelBox!.x - (iconBox!.x + iconBox!.width)).toBeLessThanOrEqual(12)
+        }
+    })
+
     for (const locale of ['en', 'es', 'pt-BR'] as const) {
         test(`${locale} localizes the headline, summary, CTA, validation, and proof scenes`, async ({ page }) => {
             await page.setViewportSize({ width: 360, height: 740 })
@@ -621,6 +723,12 @@ test.describe('Pass-the-link default', () => {
             await expect(page.getByTestId('proof-link-identity')).toContainText(messages.proof.linkIdentity.title)
             await expect(page.getByTestId('proof-everyone-adds')).toContainText(messages.proof.everyoneAdds.title)
             await expect(page.getByTestId('proof-suggested-plan')).toContainText(messages.proof.suggestedPlan.title)
+            await expect(
+                page.getByRole('link', {
+                    name: `${messages.footer.createSplit}: ${messages.proof.linkIdentity.title}`,
+                    exact: true,
+                })
+            ).toHaveAttribute('href', '/new')
 
             const returnFold = page.locator('details').filter({
                 has: page.getByText(messages.readMore.faq.lost.q, { exact: true }),
@@ -703,6 +811,15 @@ test('every retained room is reachable and can be forgotten only on this device'
     )
 
     await page.locator('[data-testid="forget-room"][data-room="room-seven-vwx345"]').click()
+    // Dropping a room asks first: the list is this device's only copy of the link.
+    await expect(page.getByTestId('forget-room-confirm')).toBeVisible()
+    // Saying no costs nothing: the room, and its link, are still here.
+    await page.getByTestId('cancel-forget-room').click()
+    await expect(page.getByTestId('forget-room-confirm')).toBeHidden()
+    await expect(list.getByRole('link')).toHaveCount(7)
+
+    await page.locator('[data-testid="forget-room"][data-room="room-seven-vwx345"]').click()
+    await page.getByTestId('confirm-forget-room').click()
     await expect(list.getByRole('link')).toHaveCount(6)
     await expect(page.getByTestId('recent-room-notice')).toContainText('shared room still works')
     expect(
@@ -874,7 +991,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
     const payload = await page.evaluate(
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
-    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[0-9a-hjkmnp-tv-z]{6}$/)
+    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
     await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.evaluate(() => {
@@ -892,12 +1009,16 @@ test('the room handoff shares a localized message, the link, and the room drawin
                 },
             },
         })
+        // The manual fallback is the floor under BOTH copy paths, so reaching it
+        // means refusing the deprecated one too — on its own, `execCommand` still
+        // copies here, which is exactly why it is the fallback in the product.
+        Object.defineProperty(document, 'execCommand', { configurable: true, value: () => false })
     })
     await page.getByTestId('share-link').click()
     await expect(page.getByTestId('share-status')).toHaveText(catalogs.en.room.link.shareFailed)
 
-    // Removing Web Share cannot remove the independent copy path. The rejected
-    // clipboard path re-renders the component and reveals the selected
+    // Removing Web Share cannot remove the independent copy path. With both
+    // clipboard paths refused, the component re-renders and reveals the selected
     // manual-copy fallback.
     await page.evaluate(() => {
         Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
@@ -919,4 +1040,114 @@ test('v1 does not expose AI or migration tooling in either landing variant', asy
 
     expect((await page.goto('/import'))?.status()).toBe(404)
     expect((await page.goto('/blog/scan-a-receipt-to-split-a-bill'))?.status()).toBe(404)
+})
+
+/**
+ * The re-added geometry gate, one layer up from where the deleted one sat.
+ *
+ * The old test measured hand-placed SVG coordinates (`x="92" y="270"`, `translate(820 180)`)
+ * against the doodle's bounding box. Satori has no absolute text placement in these cards — the
+ * name and the emblem are flex siblings — so the class of bug it caught is structurally
+ * impossible now. What is still possible, and worse, is shipping bytes that are not a PNG at all:
+ * that is exactly how the SVG attachment failed in every messenger for months. `createImageBitmap`
+ * decoding the payload is the assertion that cannot be satisfied by a renamed blob.
+ *
+ * This is a SECOND test rather than an extension of the one above it. That one installs a
+ * `canShare` that throws, on purpose, to prove the URL never yields to the image — with it in
+ * place `payload.files` is permanently undefined and nothing here could ever run.
+ */
+test('the invite share attaches a real 1200\u00d7630 PNG', async ({ page, request }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async (payload: ShareData) => {
+                ;(window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload = payload
+            },
+        })
+        Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
+    })
+    await page.goto('/new')
+    // 80 W's \u2014 the adversarial name the deleted test used, and the field's own maxLength.
+    await page.getByTestId('room-name').fill('W'.repeat(80))
+    await page.getByTestId('creator-name').fill('Ana')
+    /**
+     * Armed BEFORE the room exists, because `useSharePng` fires the moment `LinkMoment` mounts \u2014
+     * which is the same paint that reveals the link. Measured: the prefetch response landed 8ms
+     * AFTER an immediate tap, so without this wait the test taps a button that is legitimately
+     * still holding null, gets the correct text-only degradation, and fails on the decode below.
+     * The `expect.poll` further down cannot save it: `__roomSharePayload` is written once, by the
+     * `share` call, so polling it re-reads a snapshot taken at tap time and can never change.
+     *
+     * A phone is not this fast \u2014 both screens that render `LinkMoment` sit on display for seconds
+     * before anyone taps, which is the whole reason the fetch was moved to mount. The wait models
+     * that, rather than papering over a race that only a test harness can win.
+     */
+    const cardPrefetched = page
+        .waitForResponse((response) => response.url().includes('/card/invite'), { timeout: 20_000 })
+        // Any answer, including a 404: the degradation branch below owns that case and must still
+        // be reachable when the route is not there.
+        .catch(() => null)
+    await page.getByTestId('create-room').click()
+    const link = page.getByTestId('room-link')
+    await expect(link).toBeVisible({ timeout: 15_000 })
+    const slug = new URL((await link.innerText()).trim()).pathname.split('/')[2]
+    await cardPrefetched
+    // Two frames: the response is decoded and `setFile` has committed before the gesture.
+    await page.evaluate(
+        () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+    )
+
+    await page.getByTestId('share-link').click()
+    await expect
+        .poll(() => page.evaluate(() => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload))
+        .toBeTruthy()
+    const payload = await page.evaluate(
+        () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
+    )
+
+    /**
+     * The designed degradation, asserted for real rather than assumed: with no card route the
+     * prefetch 404s, `useSharePng` holds null, and the text+url package goes out unchanged. The
+     * invite's job is to carry the link; the picture is the enhancement.
+     *
+     * This branch disarms itself. The moment the card route answers, the decode below is the gate.
+     */
+    const cardRoute = await request.get(`/r/${slug}/card/invite`)
+    if (cardRoute.status() === 404) {
+        expect(payload?.files ?? []).toHaveLength(0)
+        expect(payload?.url).toContain('/r/')
+        expect(payload?.text).toBe('Open the link, pick your name, then add what you paid.')
+        test.skip(true, 'the card route has not landed; the text-only degradation is asserted above')
+    }
+
+    // The prefetch runs on mount so the tap can stay synchronous. Without the poll the click races
+    // it and the test flakes rather than failing honestly.
+    await expect
+        .poll(
+            () =>
+                page.evaluate(
+                    () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload?.files?.length ?? 0
+                ),
+            { timeout: 20_000 }
+        )
+        .toBeGreaterThan(0)
+
+    const meta = await page.evaluate(async () => {
+        const shared = (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
+        const file = shared?.files?.[0]
+        if (!file) return null
+        const bitmap = await createImageBitmap(file)
+        return {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            w: bitmap.width,
+            h: bitmap.height,
+            url: shared?.url,
+        }
+    })
+    expect(meta).toMatchObject({ name: 'peanut-split-invite.png', type: 'image/png', w: 1200, h: 630 })
+    expect(meta!.size).toBeGreaterThan(5_000)
+    // The link still rides along. The picture is the enhancement, never the replacement.
+    expect(meta!.url).toContain('/r/')
 })

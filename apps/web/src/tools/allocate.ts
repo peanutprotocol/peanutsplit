@@ -15,8 +15,15 @@
  * does. It is why spreadsheets are off by four cents.
  */
 
-/** The largest total this arithmetic is exact for — beyond it, doubles stop counting whole cents. */
-export const MAX_SAFE_MINOR = Number.MAX_SAFE_INTEGER
+/**
+ * The largest total this arithmetic is exact for.
+ *
+ * Not `MAX_SAFE_INTEGER`: above 2^52 a double's step exceeds one minor unit, so `total * weight /
+ * basisSum` can round ABOVE the true share, `Math.floor` returns one unit too many, the remainder
+ * goes negative, and the hand-out loop never runs — the function invents a minor unit that nobody
+ * owes. Both tools refuse totals past this rather than print a column that does not add up.
+ */
+export const MAX_SAFE_MINOR = 2 ** 52
 
 /**
  * Split `totalMinor` across `weights`, exactly.

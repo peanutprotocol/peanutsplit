@@ -25,15 +25,16 @@ describe('the default alter ego', () => {
     })
 
     it('excludes the current persona when somebody rolls again', () => {
+        const last = PERSONA_KEYS[PERSONA_KEYS.length - 1]
         expect(randomPersonaKey(PERSONA_KEYS[0], () => 0)).toBe(PERSONA_KEYS[1])
-        expect(randomPersonaKey(PERSONA_KEYS[15], () => 0.999999)).toBe(PERSONA_KEYS[14])
+        expect(randomPersonaKey(last, () => 0.999999)).toBe(PERSONA_KEYS[PERSONA_KEYS.length - 2])
     })
 })
 
 describe('the catalog', () => {
-    it('offers the sixteen approved personas and more than twenty choices overall', () => {
-        expect(PERSONA_KEYS).toHaveLength(16)
-        expect(AVATAR_KEYS).toHaveLength(28)
+    it('offers the thirty-six approved personas and the twelve classics', () => {
+        expect(PERSONA_KEYS).toHaveLength(36)
+        expect(AVATAR_KEYS).toHaveLength(48)
     })
 
     it('includes the strange combinations promised by the interaction', () => {
@@ -43,6 +44,10 @@ describe('the catalog', () => {
         expect(PERSONAS['rockstar-strawberry'].label).toBe('Rockstar Berry')
         expect(PERSONAS['tea-dragon'].label).toBe('Tea Dragon')
         expect(PERSONAS['pocket-robot'].label).toBe('Pocket Robot')
+        expect(PERSONAS['snooze-sloth'].label).toBe('Snooze Sloth')
+        expect(PERSONAS['drama-prawn'].label).toBe('Drama Prawn')
+        expect(PERSONAS['thermostat-gremlin'].label).toBe('Thermostat Gremlin')
+        expect(PERSONAS['punk-pineapple'].label).toBe('Punk Pineapple')
     })
 
     it('has unique names, vibes and production drawings', () => {
@@ -107,10 +112,23 @@ describe('compatibility and validation', () => {
     })
 
     it('redraws first-release persona keys without reoffering the less charming glyphs', () => {
-        for (const key of ['ninja-pear', 'detective-raccoon', 'dj-dinosaur', 'cosmic-llama']) {
+        for (const key of ['ninja-pear', 'sleepy-cloud', 'karaoke-kiwi', 'cosmic-llama']) {
             expect(isAvatarKey(key)).toBe(true)
             expect(avatarArt(key, 'Ana').kind).toBe('persona')
             expect(AVATAR_KEYS).not.toContain(key)
+        }
+    })
+
+    it('graduates the six resurrected first-release keys into the visible cast', () => {
+        for (const key of [
+            'detective-raccoon',
+            'dj-dinosaur',
+            'gamer-cat',
+            'bookworm-bat',
+            'trickster-fox',
+            'punk-pineapple',
+        ]) {
+            expect(AVATAR_KEYS).toContain(key)
         }
     })
 

@@ -43,6 +43,10 @@ export interface DerivationLine {
     /** ISO instant: the expense date (user-editable, the one the receipt shows) or the
      *  settlement's `createdAt`. */
     date: string
+    /** ISO instant the row was filed, which `date` is not: an expense can be backdated, and
+     *  a "how long ago" stamp built on `date` reads "in 6d" on a sheet explaining a balance
+     *  that has already moved. A settlement carries the same instant in both fields. */
+    createdAt: string
     /** Signed, room-currency minor units. Negative pushed the balance down. */
     amountMinor: string
     /** What was actually typed, when the expense was not in the room currency. The balance
@@ -111,6 +115,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 partyName: null,
                 partyId: null,
                 date: expense.date,
+                createdAt: expense.createdAt,
                 amountMinor: expense.baseAmountMinor,
                 original: isForeign(expense) ? { amountMinor: expense.amountMinor, currency: expense.currency } : null,
             })
@@ -125,6 +130,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 partyName: nameOf(expense.paidById),
                 partyId: expense.paidById,
                 date: expense.date,
+                createdAt: expense.createdAt,
                 amountMinor: negate(share.amountMinor),
                 // An EQUAL split has no typed original to show — the share is a division of
                 // the total, not something anyone entered. EXACT shares were typed in the
@@ -149,6 +155,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 partyName: nameOf(settlement.toId),
                 partyId: settlement.toId,
                 date: settlement.createdAt,
+                createdAt: settlement.createdAt,
                 amountMinor: settlement.amountMinor,
                 original: null,
             })
@@ -161,6 +168,7 @@ export function deriveBalance(state: RoomState, memberId: string): MemberDerivat
                 partyName: nameOf(settlement.fromId),
                 partyId: settlement.fromId,
                 date: settlement.createdAt,
+                createdAt: settlement.createdAt,
                 amountMinor: negate(settlement.amountMinor),
                 original: null,
             })

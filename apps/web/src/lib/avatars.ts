@@ -6,6 +6,11 @@
  * monster or object with a joke attached. Nothing asks the person's gender,
  * age, skin colour or appearance, and nothing is inferred from their name.
  *
+ * The joke is always a lovable flaw or a group role — the friend who is ready
+ * "in five minutes", the one with the spreadsheet — told in third person and
+ * kept charming. A person picks their own character, so wearing it is a proud
+ * self-own, never an accusation.
+ *
  * Member rows store only an allowlisted key. Artwork and copy stay code-side so
  * a drawing can be improved everywhere without migrating data.
  */
@@ -55,16 +60,15 @@ const classic = (
 /**
  * The approved colorful cast.
  *
- * These are the exact deterministic paths and palettes reviewed in the doodle
- * canary picker. Sixteen named personas plus twelve classics keep the live
- * picker above the promised twenty-option floor without shipping any of the
- * less charming procedural glyphs.
+ * Thirty-six named personas plus twelve classics. The first sixteen keep the
+ * exact deterministic paths and palettes reviewed in the doodle canary picker;
+ * the twenty that follow are the cast-36 expansion (design/doodles/parts/07–10).
  */
 export const PERSONAS = {
     'vampire-penguin': persona(
         'personavampirepenguin',
         'Vampire Penguin',
-        'tiny, dramatic, mostly harmless',
+        'avoids mornings on principle',
         '#F8D8ED',
         '#C9B8F4',
         '#50355F'
@@ -80,16 +84,23 @@ export const PERSONAS = {
     'cozy-ghost': persona(
         'personacozyghost',
         'Cozy Ghost',
-        'brought the good blanket',
+        'leaves without saying goodbye',
         '#DDE2FF',
         '#FFDBA6',
         '#4A4D83'
     ),
-    'wizard-frog': persona('personawizardfrog', 'Wizard Frog', 'one spell ahead', '#D6F1D4', '#CDBCF5', '#315E42'),
+    'wizard-frog': persona(
+        'personawizardfrog',
+        'Wizard Frog',
+        'has a trick for literally everything',
+        '#D6F1D4',
+        '#CDBCF5',
+        '#315E42'
+    ),
     'astronaut-avocado': persona(
         'personaastronautavocado',
         'Astronaut Avocado',
-        'waves at every planet',
+        'off in another orbit, happily',
         '#CDEBF8',
         '#C8EDB5',
         '#27506B'
@@ -97,7 +108,7 @@ export const PERSONAS = {
     'disco-octopus': persona(
         'personadiscooctopus',
         'Disco Octopus',
-        'has eight good moves',
+        'first on the dance floor, everywhere at once',
         '#F8D2E5',
         '#BDEBF2',
         '#713D68'
@@ -105,7 +116,7 @@ export const PERSONAS = {
     'tea-dragon': persona(
         'personateadragon',
         'Tea Dragon',
-        'breathes steam, politely',
+        'puts the kettle on for everyone',
         '#FFE4BB',
         '#F5B9B3',
         '#7B4532'
@@ -114,28 +125,49 @@ export const PERSONAS = {
     'skater-snail': persona(
         'personaskatersnail',
         'Skater Snail',
-        'slow, but with flair',
+        'ready in five minutes, since noon',
         '#D9F2CF',
         '#F7C5E6',
         '#365D42'
     ),
-    'moon-bunny': persona('personamoonbunny', 'Moon Bunny', 'quietly over the moon', '#E6DEFA', '#F9D3DC', '#514875'),
+    'moon-bunny': persona(
+        'personamoonbunny',
+        'Moon Bunny',
+        'says nothing, has the best time',
+        '#E6DEFA',
+        '#F9D3DC',
+        '#514875'
+    ),
     // Keep the already-shipped storage key while adopting the approved name
     // and drawing. Existing rooms upgrade visually without a data migration.
     'rockstar-strawberry': persona(
         'personarockstarberry',
         'Rockstar Berry',
-        'tiny fruit, huge encore',
+        'gives every toast an encore',
         '#F9C9D4',
         '#C7E8C1',
         '#7A304A'
     ),
-    'baker-moon': persona('personabakermoon', 'Baker Moon', 'proofs dough after dark', '#FFF0B8', '#D6C5F4', '#6D5730'),
-    'party-bee': persona('personapartybee', 'Party Bee', 'arrived with confetti', '#FFE69A', '#F6C5E3', '#665020'),
+    'baker-moon': persona(
+        'personabakermoon',
+        'Baker Moon',
+        'feeds the whole house at midnight',
+        '#FFF0B8',
+        '#D6C5F4',
+        '#6D5730'
+    ),
+    'party-bee': persona(
+        'personapartybee',
+        'Party Bee',
+        'turns a Tuesday into an occasion',
+        '#FFE69A',
+        '#F6C5E3',
+        '#665020'
+    ),
     'garden-yeti': persona(
         'personagardenyeti',
         'Garden Yeti',
-        'grows enormous daisies',
+        'waters your plants while you are away',
         '#D5EDC6',
         '#F9D38D',
         '#3F6040'
@@ -143,7 +175,7 @@ export const PERSONAS = {
     'pancake-bear': persona(
         'personapancakebear',
         'Pancake Bear',
-        'believes in second breakfast',
+        'already knows where everyone is eating',
         '#FFE0B8',
         '#C7E8D0',
         '#714A33'
@@ -151,10 +183,163 @@ export const PERSONAS = {
     'pocket-robot': persona(
         'personapocketrobot',
         'Pocket Robot',
-        'helpful, with one loose screw',
+        'has a charger, a plaster, and a backup plan',
         '#CBE7ED',
         '#FFD28E',
         '#315B64'
+    ),
+    'snooze-sloth': persona(
+        'personasnoozesloth',
+        'Snooze Sloth',
+        'five more minutes, forever',
+        '#E8E4F8',
+        '#F9D3A8',
+        '#4E4468'
+    ),
+    'hangry-goblin': persona(
+        'personahangrygoblin',
+        'Hangry Goblin',
+        'sweet again four minutes after eating',
+        '#D9F2CF',
+        '#FFD78A',
+        '#3A5E35'
+    ),
+    'chaos-gremlin': persona(
+        'personachaosgremlin',
+        'Chaos Gremlin',
+        'no plan, incredible outcomes',
+        '#FFD9C9',
+        '#C9B8F4',
+        '#6B4226'
+    ),
+    'drama-prawn': persona(
+        'personadramaprawn',
+        'Drama Prawn',
+        'tiny inconvenience, full theatrical retelling',
+        '#F8D2E5',
+        '#BDEBF2',
+        '#7A3055'
+    ),
+    'fomo-firefly': persona(
+        'personafomofirefly',
+        'FOMO Firefly',
+        'physically cannot leave early',
+        '#FFF0B8',
+        '#C8EDB5',
+        '#665020'
+    ),
+    'overpacker-hamster': persona(
+        'personaoverpackerhamster',
+        'Overpacker Hamster',
+        'packed for four seasons in one day',
+        '#FFDFD0',
+        '#BDECF5',
+        '#71462B'
+    ),
+    'spreadsheet-owl': persona(
+        'personaspreadsheetowl',
+        'Spreadsheet Owl',
+        'made a spreadsheet; the spreadsheet has tabs',
+        '#DDE2FF',
+        '#FAE184',
+        '#41487E'
+    ),
+    'snack-alpaca': persona(
+        'personasnackalpaca',
+        'Snack Alpaca',
+        'bag is 80% snacks, all shared',
+        '#FFEBC9',
+        '#F7C5E6',
+        '#6B4A2E'
+    ),
+    'group-chat-magpie': persona(
+        'personagroupchatmagpie',
+        'Group-Chat Magpie',
+        'sends fourteen links before breakfast',
+        '#CDEDF2',
+        '#F6C7EC',
+        '#1F5561'
+    ),
+    'paparazzi-puffin': persona(
+        'personapaparazzipuffin',
+        'Paparazzi Puffin',
+        'takes 300 photos, sends the album unprompted',
+        '#CDEBF8',
+        '#FFD78A',
+        '#27506B'
+    ),
+    'lost-duckling': persona(
+        'personalostduckling',
+        'Lost Duckling',
+        'was right behind you, promise',
+        '#FFF4CC',
+        '#BDECF5',
+        '#6B5720'
+    ),
+    'karaoke-newt': persona(
+        'personakaraokenewt',
+        'Karaoke Newt',
+        'first on the mic, last off it',
+        '#F8D8ED',
+        '#CDBCF5',
+        '#6B3560'
+    ),
+    'tupperware-turtle': persona(
+        'personatupperwareturtle',
+        'Tupperware Turtle',
+        'never lets a leftover die',
+        '#C9EFE3',
+        '#FFDBA6',
+        '#2F5E45'
+    ),
+    'thermostat-gremlin': persona(
+        'personathermostatgremlin',
+        'Thermostat Gremlin',
+        'permanently two degrees too cold',
+        '#CBE7ED',
+        '#F5B9B3',
+        '#35566B'
+    ),
+    'detective-raccoon': persona(
+        'personadetectiveraccoon',
+        'Detective Raccoon',
+        'knows exactly who ate the last slice',
+        '#E6DEFA',
+        '#FFE487',
+        '#4A3F78'
+    ),
+    'dj-dinosaur': persona(
+        'personadjdinosaur',
+        'DJ Dinosaur',
+        'controls the aux, takes requests, ignores them',
+        '#D5EDC6',
+        '#F6C7EC',
+        '#3C6033'
+    ),
+    'gamer-cat': persona('personagamercat', 'Gamer Cat', 'negotiating one more round', '#FFE69A', '#C9D3F3', '#66501C'),
+    'bookworm-bat': persona(
+        'personabookwormbat',
+        'Bookworm Bat',
+        'one more chapter, suddenly 3am',
+        '#EDE3FA',
+        '#FFE487',
+        '#52407A'
+    ),
+    'trickster-fox': persona(
+        'personatricksterfox',
+        'Trickster Fox',
+        'definitely behind the group chat rename',
+        '#FFDCC2',
+        '#BDEBF2',
+        '#7A4526'
+    ),
+    'punk-pineapple': persona(
+        'personapunkpineapple',
+        'Punk Pineapple',
+        'all spikes, zero menace',
+        '#FDF0A6',
+        '#F7C5E6',
+        '#6E5A1B'
     ),
 } as const satisfies Record<string, PersonaArt>
 
@@ -163,50 +348,47 @@ export const PERSONA_KEYS = Object.keys(PERSONAS) as PersonaKey[]
 
 /**
  * Existing non-human doodle picks remain available as classics. Together with
- * the named cast they make twenty-eight visible options.
+ * the named cast they make forty-eight visible options.
  */
 export const CLASSIC_AVATARS = {
     'doodle-dog': classic('dog', 'Good Dog', 'reliably delighted', '#FFF4CC', '#B8F0C5'),
     'doodle-peanut': classic('peanut', 'Classic Peanut', 'keeps it simple', '#FAE184', '#F6C7EC'),
-    'doodle-sun': classic('sun', 'Little Sun', 'morning energy', '#FAE184', '#BDECF5'),
-    'doodle-wave': classic('wave', 'Big Wave', 'brings momentum', '#BDECF5', '#FFF4CC'),
+    'doodle-sun': classic('sun', 'Little Sun', 'aggressively a morning person', '#FAE184', '#BDECF5'),
+    'doodle-wave': classic('wave', 'Big Wave', 'suggests swimming in all weather', '#BDECF5', '#FFF4CC'),
     'doodle-leaf': classic('leaf', 'Fresh Leaf', 'touches grass', '#B8F0C5', '#FFF4CC'),
-    'doodle-crystal': classic('crystal', 'Lucky Crystal', 'good vibrations', '#F6C7EC', '#C9D3F3'),
-    'doodle-guitar': classic('guitar', 'Tiny Guitar', 'has a playlist', '#FFF4CC', '#F6C7EC'),
+    'doodle-crystal': classic('crystal', 'Lucky Crystal', 'trusts the vibes over the map', '#F6C7EC', '#C9D3F3'),
+    'doodle-guitar': classic('guitar', 'Tiny Guitar', 'brought it, will play it', '#FFF4CC', '#F6C7EC'),
     'doodle-football': classic('football', 'Match Ball', 'keeps score', '#B8F0C5', '#C9D3F3'),
     'doodle-pizza': classic('pizza', 'Pizza Slice', 'orders for the table', '#F6C7EC', '#FAE184'),
     'doodle-coffee': classic('coffee', 'Coffee Cup', 'first one awake', '#FFF4CC', '#C9D3F3'),
     'doodle-cake': classic('cake', 'Cake Slice', 'celebrates everything', '#F6C7EC', '#FFF4CC'),
-    'doodle-boat': classic('boat', 'Little Boat', 'gets everyone home', '#BDECF5', '#FAE184'),
+    'doodle-boat': classic('boat', 'Little Boat', 'gets everyone home, every time', '#BDECF5', '#FAE184'),
 } as const satisfies Record<string, DoodleArt>
 
 /**
  * Keys from the first alter-ego release can already be stored in production.
  * Keep accepting all of them, but redraw each through an approved doodle and
  * omit it from the picker. This is a compatibility shim, not a second catalog.
+ *
+ * Six first-release keys (detective-raccoon, dj-dinosaur, gamer-cat,
+ * bookworm-bat, trickster-fox, punk-pineapple) graduated into the real cast in
+ * the cast-36 expansion, so they live in PERSONAS above, not here.
  */
 const RETIRED_PERSONAS = {
     'ninja-pear': PERSONAS['skater-snail'],
     'lucky-alien': PERSONAS['pocket-robot'],
-    'trickster-fox': PERSONAS['pirate-parrot'],
-    'punk-pineapple': PERSONAS['rockstar-strawberry'],
     'garden-snail': PERSONAS['skater-snail'],
-    'sleepy-cloud': PERSONAS['moon-bunny'],
+    'sleepy-cloud': PERSONAS['snooze-sloth'],
     'explorer-bear': PERSONAS['pancake-bear'],
     'yoga-yeti': PERSONAS['garden-yeti'],
-    'detective-raccoon': PERSONAS['pocket-robot'],
-    'bookworm-bat': PERSONAS['vampire-penguin'],
-    'scientist-owl': PERSONAS['wizard-frog'],
     'mechanic-robot': PERSONAS['pocket-robot'],
-    'gamer-cat': PERSONAS['disco-octopus'],
-    'dj-dinosaur': PERSONAS['disco-octopus'],
-    'painter-panda': PERSONAS['garden-yeti'],
-    'karaoke-kiwi': PERSONAS['rockstar-strawberry'],
-    'surfer-shark': PERSONAS['raincoat-duck'],
-    'skater-cactus': PERSONAS['skater-snail'],
+    'karaoke-kiwi': PERSONAS['karaoke-newt'],
+    'scientist-owl': PERSONAS['spreadsheet-owl'],
     'chef-dragon': PERSONAS['tea-dragon'],
     'sailor-banana': PERSONAS['pirate-parrot'],
-    'cosmic-llama': PERSONAS['astronaut-avocado'],
+    'cosmic-llama': PERSONAS['snack-alpaca'],
+    'surfer-shark': PERSONAS['raincoat-duck'],
+    'skater-cactus': PERSONAS['skater-snail'],
 } as const satisfies Record<string, PersonaArt>
 
 /**
@@ -253,6 +435,10 @@ export function randomPersonaKey(exclude: string | null = null, random: () => nu
 
 /** A neutral defensive render fallback for null or unknown legacy values. */
 export const FALLBACK_AVATAR = CLASSIC_AVATARS['doodle-peanut']
+
+/** The same fallback as a key, for the callers that pass a persona across a boundary rather than
+ *  render it — `avatar` is null on legacy rows, and the card route 404s on a null. */
+export const FALLBACK_AVATAR_KEY = 'doodle-peanut' satisfies AvatarKey
 
 export const avatarArt = (avatar: string | null | undefined, _name?: string): AvatarArt =>
     isAvatarKey(avatar) ? AVATARS[avatar] : FALLBACK_AVATAR
