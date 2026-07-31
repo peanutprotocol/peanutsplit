@@ -187,10 +187,25 @@ export function repairMisplacedExpenseFields(
 export type ExpenseFormError =
     | 'AMOUNT_REQUIRED'
     | 'AMOUNT_INVALID'
+    | 'AMOUNT_NEGATIVE'
     | 'PAYER_REQUIRED'
     | 'NO_PARTICIPANTS'
     | 'SHARE_AMOUNT_INVALID'
     | 'SHARES_DO_NOT_ADD_UP'
+
+/**
+ * A readable amount wearing a minus sign.
+ *
+ * The share fields refuse a "-" at the keystroke, but the total keeps whatever
+ * was typed so that a swapped amount/description pair can still be repaired —
+ * so "-5" is the one negative the form has to explain. It is not a separator
+ * mistake, and sending someone to check separators and decimal places leaves
+ * them re-reading digits that were right all along.
+ */
+const isNegativeAmount = (text: string, decimals: number, locale?: string): boolean => {
+    const unsigned = text.replace(/^[-−–]\s*/, '')
+    return unsigned !== text && parseAmountToMinor(unsigned, decimals, locale) !== null
+}
 
 /** The one validator — the drawer's save button and `buildExpenseBody` agree by
  *  construction because both read this. */
@@ -203,7 +218,7 @@ export function validateExpenseForm(
     const amountText = values.amountInput.trim()
     if (amountText.length === 0) return 'AMOUNT_REQUIRED'
     const total = parseAmountToMinor(amountText, decimals, locale)
-    if (total === null) return 'AMOUNT_INVALID'
+    if (total === null) return isNegativeAmount(amountText, decimals, locale) ? 'AMOUNT_NEGATIVE' : 'AMOUNT_INVALID'
     if (BigInt(total) <= 0n) return 'AMOUNT_REQUIRED'
     // No check on the description: a name is optional, and a row saved without
     // one is labelled by its day instead — see `expenseLabel` in `lib/dates.ts`.
@@ -219,7 +234,18 @@ export function validateExpenseForm(
     return null
 }
 
-/** EXACT rows with a non-empty, non-zero amount, in expense-currency minor units. */
+/**
+ * THE definition of who an EXACT split is between: a member whose field holds an
+ * amount GREATER THAN ZERO. A blank field means "not in this split" rather than
+ * zero, and an explicit 0 is the same sentence typed out — a zero share is not a
+ * share, and it would put a member on a split owing nothing.
+ *
+ * Having a field is NOT the predicate. The composer used to count that instead,
+ * so a third member left blank was drawn into the "Everyone" chip and its
+ * avatars while this function quietly left them off the body: the sheet claimed
+ * a three-way split, saved a two-way one, and the balances followed the body.
+ * The chip now reads `exactParticipantIds` below, so the two cannot disagree.
+ */
 export function exactShareEntries(
     values: ExpenseFormValues,
     catalog?: readonly CurrencyInfo[],
@@ -232,6 +258,16 @@ export function exactShareEntries(
             amountMinor: parseAmountToMinor(input, decimals, locale) ?? '0',
         }))
         .filter((share) => BigInt(share.amountMinor) > 0n)
+}
+
+/** Who the composer may say the split is between — the same members, and only
+ *  the same members, that `exactShareEntries` will post. */
+export function exactParticipantIds(
+    values: ExpenseFormValues,
+    catalog?: readonly CurrencyInfo[],
+    locale?: string
+): string[] {
+    return exactShareEntries(values, catalog, locale).map((share) => share.memberId)
 }
 
 /**

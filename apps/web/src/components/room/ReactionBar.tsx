@@ -147,7 +147,12 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                 title={canReact ? t('add') : t('needsToken')}
                 data-testid="reaction-add"
                 className={cn(
-                    'flex size-7 items-center justify-center rounded-sm border border-dashed border-grey-1 text-h9 text-grey-1 transition-transform duration-100',
+                    // The dashed square stays size-7 (28px) — any bigger and it
+                    // stops being the small deliberate thing the comment at the
+                    // top of this file promises. `before` pads the TAP target to
+                    // 40px instead: `absolute`, so it adds nothing to this row's
+                    // height and cannot steal a tap meant for a pill beside it.
+                    "relative flex size-7 items-center justify-center rounded-sm border border-dashed border-grey-1 text-h9 text-grey-1 transition-transform duration-100 before:absolute before:-inset-1.5 before:content-['']",
                     canReact ? 'active:translate-y-[1px]' : 'opacity-50'
                 )}
             >

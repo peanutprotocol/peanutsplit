@@ -24,7 +24,7 @@
 import type { DoodleName } from '@/components/ui/doodles'
 import { doodleDataUri } from '@/server/og/emblem'
 import { DISPLAY_FONT } from '@/server/og/fonts'
-import { BLOBS_LEFT, disc, Field, INK, MUTED, SettledStamp, Sheet, Wordmark } from '@/server/og/frame'
+import { BLOBS_LEFT, disc, Field, INK, MUTED, PersonaDisc, SettledStamp, Sheet, Wordmark } from '@/server/og/frame'
 import type { RecapCardData } from '@/server/og/recapCard'
 
 /** green-1 — the all-settled colour the app already celebrates in. */
@@ -85,18 +85,8 @@ function StoryStrip({ emblem }: { emblem: DoodleName }) {
 function AvatarRow({ card }: { card: RecapCardData }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-            {card.avatars.map((avatar, i) => (
-                <div
-                    key={i}
-                    style={{
-                        ...disc(64, avatar.color),
-                        marginLeft: i === 0 ? 0 : -16,
-                        fontFamily: DISPLAY_FONT,
-                        fontSize: 28,
-                    }}
-                >
-                    {avatar.letter}
-                </div>
+            {card.personas.map((avatar, i) => (
+                <PersonaDisc key={i} avatar={avatar} size={64} marginLeft={i === 0 ? 0 : -16} />
             ))}
             {card.overflow > 0 ? (
                 <div style={{ ...disc(64, '#FFFFFF'), marginLeft: -16, fontSize: 25, fontWeight: 800 }}>
@@ -108,7 +98,7 @@ function AvatarRow({ card }: { card: RecapCardData }) {
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        marginLeft: card.avatars.length > 0 ? 24 : 0,
+                        marginLeft: card.personas.length > 0 ? 24 : 0,
                         fontSize: 32,
                         color: MUTED,
                     }}

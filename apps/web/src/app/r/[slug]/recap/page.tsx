@@ -5,7 +5,6 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { AchievementShelf } from '@/components/room/AchievementShelf'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { RecapPersonalLine } from '@/components/room/RecapPersonalLine'
-import { RecapShareButton } from '@/components/room/RecapShareButton'
 import { WrappedDeck } from '@/components/room/WrappedDeck'
 import { RecapViewed } from '@/components/room/RecapViewed'
 import { RoomNotFound } from '@/components/room/RoomStates'
@@ -54,8 +53,8 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
     const t = await getTranslations('room.recap')
     const tStory = await getTranslations('room.story')
     const locale = asLocale(await getLocale())
-    const faces = recap.memberNames.slice(0, MAX_FACES)
-    const overflow = recap.memberNames.length - faces.length
+    const faces = recap.members.slice(0, MAX_FACES)
+    const overflow = recap.members.length - faces.length
 
     return (
         <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 bg-background px-4 py-8">
@@ -66,7 +65,10 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
                     <RoomEmblem value={recap.emoji} name={recap.name} size={30} />
                 </span>
                 <div className="min-w-0">
-                    <p className="truncate text-h5">{recap.name}</p>
+                    {/* The room name is the page's one h1 — the same thing `RoomHeader`
+                        makes the h1 in the room, so walking from one to the other does
+                        not change what the screen is called. */}
+                    <h1 className="truncate text-h5">{recap.name}</h1>
                     <p className="text-h10 uppercase tracking-wide text-grey-1">
                         {recap.settled ? t('settledBadge') : t('ongoingBadge')}
                     </p>
@@ -76,7 +78,7 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
             {/* The number is the headline, the same way it is on the card — the
                 screen and the artefact should say the same thing in the same order. */}
             <Card shadowSize="6" className={recap.settled ? 'gap-2 bg-green-1 px-4 py-6' : 'gap-2 px-4 py-6'}>
-                <p className="text-h10 uppercase tracking-wide text-n-1/70">{t('totalLabel')}</p>
+                <h2 className="text-h10 uppercase tracking-wide text-n-1/70">{t('totalLabel')}</h2>
                 <p className="text-h1 leading-none" data-testid="recap-total">
                     {formatMoney(recap.totalMinor, recap.currency, undefined, locale)}
                 </p>
@@ -114,8 +116,8 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
 
             <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                    {faces.map((name) => (
-                        <MemberAvatar key={name} name={name} size={40} />
+                    {faces.map((member) => (
+                        <MemberAvatar key={member.name} name={member.name} avatar={member.avatar} size={40} />
                     ))}
                     {overflow > 0 && <span className="text-sm font-bold text-grey-1">{`+${overflow}`}</span>}
                 </div>
@@ -129,9 +131,12 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
                 <RecapPersonalLine slug={slug} />
             </div>
 
-            {recap.settled && <RecapShareButton slug={slug} />}
+            {/* "Share the story" lives in the deck's leading tile and nowhere else. It used to
+                sit here as a bare button too, one screen above an identical one — same label,
+                same PNG — and the tile is the better of the two because it shows the card you
+                are about to send.
 
-            {/* Both are client-side and read the device's own identity, for the same reason
+                Both are client-side and read the device's own identity, for the same reason
                 `RecapPersonalLine` is: the server render does not know who is holding the phone,
                 and an alter ego is about exactly that person. The deck belongs to the closed book;
                 the shelf is what the trip unlocked. They overlap, so when the deck is up the shelf
@@ -139,7 +144,13 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
             {recap.settled && <WrappedDeck slug={slug} />}
             <AchievementShelf slug={slug} deckShown={recap.settled} />
 
-            <Link href={`/r/${slug}`} className="text-center text-sm font-bold text-n-1 underline">
+            {/* `min-h-11` and the side padding, not just the text: the label alone was a 21px
+                strip, under the 40px a thumb needs. Hugging the label rather than the full
+                column width keeps the whole row from being a back button. */}
+            <Link
+                href={`/r/${slug}`}
+                className="flex min-h-11 items-center justify-center self-center px-4 text-sm font-bold text-n-1 underline"
+            >
                 {t('backToRoom')}
             </Link>
 

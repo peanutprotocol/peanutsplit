@@ -109,7 +109,7 @@ export default function ImportPage() {
                 </div>
             </section>
 
-            <SiteFooter />
+            <SiteFooter showLocaleSwitcher={false} />
         </main>
     )
 }

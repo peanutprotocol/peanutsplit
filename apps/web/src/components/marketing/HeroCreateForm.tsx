@@ -274,7 +274,11 @@ export function HeroCreateForm({
                     type="button"
                     onClick={() => setExplainerOpen(true)}
                     aria-label={t('linkExplainerTrigger')}
-                    className="text-grey-1 transition-colors hover:text-n-1"
+                    // The padding is 41px of tap target cancelled by an equal negative
+                    // margin, so the mark stays put and the row's width for the URL
+                    // text above is unchanged — see RoomHeader's avatar button for the
+                    // same trick.
+                    className="-m-3 p-3 text-grey-1 transition-colors hover:text-n-1"
                     data-testid="hero-link-explainer"
                 >
                     <Doodle name="question" size={17} weight={2.4} />

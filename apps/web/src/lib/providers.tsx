@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MotionConfig } from 'motion/react'
 import { useLocale } from 'next-intl'
+import { usePathname } from 'next/navigation'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from 'sonner'
 import { PushNavigation } from '@/components/pwa/PushNavigation'
 import { asLocale } from '@/i18n/locales'
+import { localeFromPathname } from '@/i18n/paths'
 import { initAnalytics } from './analytics'
 import { ensureDeviceId } from './identity'
 import { captureInstallPrompt } from './install'
@@ -47,6 +49,7 @@ function OfflineQueueRunner() {
  */
 export function Providers({ children }: { children: React.ReactNode }) {
     const locale = useLocale()
+    const pathname = usePathname()
     const motionAllowed = useMotionAllowed()
     const [queryClient] = useState(
         () =>
@@ -102,8 +105,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
      * rolling, so without this a chosen language quietly expires between trips.
      */
     useEffect(() => {
+        // Only where the cookie is the authority. An indexed page states its language in its URL,
+        // and writing that to the cookie lets one visit to a Portuguese guide re-language the app
+        // for a reader who never asked for it.
+        if (localeFromPathname(pathname)) return
         writeLocaleCookie(asLocale(locale))
-    }, [locale])
+    }, [locale, pathname])
 
     return (
         // The root policy catches every motion/react surface, including a new

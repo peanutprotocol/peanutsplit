@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { hreflangAlternates, localeFromPrefix, localePrefix, localizedPath, PREFIXED_LOCALES } from './paths'
+import {
+    hreflangAlternates,
+    localeFromPathname,
+    localeFromPrefix,
+    localePrefix,
+    localizedPath,
+    PREFIXED_LOCALES,
+} from './paths'
 
 describe('locale prefixes', () => {
     it('leaves English bare and prefixes the rest', () => {
@@ -24,6 +31,31 @@ describe('locale prefixes', () => {
     it('never emits a double slash for the root path', () => {
         expect(localizedPath('/', 'en')).toBe('/')
         expect(localizedPath('/', 'es')).toBe('/es')
+    })
+})
+
+describe('the language a URL states', () => {
+    it('reads the prefix on the translated pages', () => {
+        expect(localeFromPathname('/es/blog')).toBe('es')
+        expect(localeFromPathname('/pt-br/blog/split-expenses-across-currencies')).toBe('pt-BR')
+        expect(localeFromPathname('/es/tricount-alternative')).toBe('es')
+    })
+
+    /** The regression this exists for: an English URL opened with a stale `ps-locale=pt-BR`. */
+    it('reads every other indexed page as English rather than as unknown', () => {
+        expect(localeFromPathname('/tricount-alternative')).toBe('en')
+        expect(localeFromPathname('/blog')).toBe('en')
+        expect(localeFromPathname('/blog/who-pays-for-the-wine')).toBe('en')
+        expect(localeFromPathname('/tools')).toBe('en')
+        expect(localeFromPathname('/splitwise-alternative')).toBe('en')
+    })
+
+    it('states nothing for the app shell, where the cookie answers', () => {
+        expect(localeFromPathname('/')).toBeNull()
+        expect(localeFromPathname('/new')).toBeNull()
+        expect(localeFromPathname('/r/loud-otter-42')).toBeNull()
+        expect(localeFromPathname('/r/loud-otter-42/recap')).toBeNull()
+        expect(localeFromPathname('/share-target')).toBeNull()
     })
 })
 

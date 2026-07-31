@@ -103,8 +103,14 @@ export function AllSettled({ compact = false, celebrate = false, summary, emblem
             }
         >
             {/* Spilling past the card edge is the point — a burst contained by a
-                border is a progress bar, not a celebration. */}
-            {celebrate && <Confetti className="-inset-8" delay={CONFETTI_DELAY_S} doodle={emblem} />}
+                border is a progress bar, not a celebration. The inset is capped at
+                `-inset-4`, matching this card's own `mx-4`: that margin is the only
+                safe room to spill into, because nothing wraps this component with
+                horizontal padding of its own. A wider inset (this was `-inset-8`)
+                spilled past the viewport itself, widening the whole document by
+                15px on a 390px phone and pushing the "Add expense" bar off-screen
+                with no way to scroll to it. */}
+            {celebrate && <Confetti className="-inset-4" delay={CONFETTI_DELAY_S} doodle={emblem} />}
 
             <motion.div
                 initial={

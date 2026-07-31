@@ -84,12 +84,15 @@ try {
 `
 
 /**
- * The locale is a cookie, so this layout reads a dynamic API and every route under it renders
- * per request rather than at build time. That is inherent to "one URL per room, in any
+ * The locale is a per-request fact, so this layout reads a dynamic API and every route under it
+ * renders per request rather than at build time. That is inherent to "one URL per room, in any
  * language" — there is no static HTML that can be correct for three languages at once.
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-    // Resolved by src/i18n/request.ts: ps-locale cookie → Accept-Language → en.
+    // Resolved by src/i18n/request.ts: the language the URL states, then ps-locale cookie →
+    // Accept-Language → en. `lang` has to follow the URL and not the cookie — an English page
+    // opened by a reader carrying `ps-locale=pt-BR` is still an English page, and declaring it
+    // Portuguese misreads it to a screen reader and misfiles it with a crawler.
     const locale = await getLocale()
 
     return (

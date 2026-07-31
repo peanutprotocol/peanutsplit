@@ -179,7 +179,7 @@ export default function SplitwiseAlternativePage() {
                 </div>
             </section>
 
-            <SiteFooter showCompareLink={false} />
+            <SiteFooter showCompareLink={false} showLocaleSwitcher={false} />
         </main>
     )
 }

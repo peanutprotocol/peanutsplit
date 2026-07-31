@@ -171,7 +171,7 @@ export function CreateRoomForm() {
                         type="button"
                         onClick={() => setDrawingOpen((current) => !current)}
                         aria-expanded={drawingOpen}
-                        aria-controls="room-drawing-editor"
+                        aria-controls={drawingOpen ? 'room-drawing-editor' : undefined}
                         aria-label={t('emojiGroup')}
                         data-testid="room-drawing-summary"
                         className="flex min-h-14 w-full items-center gap-3 border-t border-dashed border-grey-1 px-4 text-left"

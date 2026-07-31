@@ -3,6 +3,8 @@ import type { ApiExpense } from './api-types'
 import {
     buildExpenseBody,
     emptyExpenseForm,
+    exactParticipantIds,
+    exactShareEntries,
     expenseToFormValues,
     hasUnreadableShare,
     remainingMinor,
@@ -312,6 +314,106 @@ describe('hasUnreadableShare — what stops the readout going green early', () =
         const values = baseForm({ currency: 'COP', splitMode: 'EXACT', exactInputs: { m1: '30,5' } })
         expect(hasUnreadableShare(values, undefined, 'en')).toBe(true)
         expect(hasUnreadableShare({ ...values, currency: 'EUR' }, undefined, 'en')).toBe(false)
+    })
+})
+
+/**
+ * The composer says who a split is between; `buildExpenseBody` decides who it is
+ * actually between. When those two read different predicates the sheet can claim
+ * a three-way split and post a two-way one — money on the most-used screen — so
+ * every case below asserts them together rather than one at a time.
+ */
+describe('who an EXACT split is between', () => {
+    /** Ana 30 / Bea 60 / Cass blank against a 90.00 total: the shares reconcile,
+     *  so nothing on screen contradicts a summary that counts Cass in. */
+    const blankThird = baseForm({
+        amountInput: '90.00',
+        splitMode: 'EXACT',
+        exactInputs: { m1: '30.00', m2: '60.00', m3: '' },
+    })
+
+    it('leaves a blank field out of the participant list, not just out of the body', () => {
+        expect(validateExpenseForm(blankThird, undefined, 'en')).toBeNull()
+        expect(exactParticipantIds(blankThird, undefined, 'en')).toEqual(['m1', 'm2'])
+        expect(buildExpenseBody(blankThird, undefined, 'en').exactShares).toEqual([
+            { memberId: 'm1', amountMinor: '3000' },
+            { memberId: 'm2', amountMinor: '6000' },
+        ])
+    })
+
+    it.each([
+        ['a blank field', ''],
+        ['a whitespace-only field', '   '],
+        // A zero share is not a share: it would put someone on a split owing
+        // nothing, which is what leaving them off already says.
+        ['an explicit zero', '0'],
+        ['a zero typed out in full', '0.00'],
+    ])('does not count %s as a participant', (_case, input) => {
+        const values = baseForm({
+            amountInput: '90.00',
+            splitMode: 'EXACT',
+            exactInputs: { m1: '30.00', m2: '60.00', m3: input },
+        })
+        expect(exactParticipantIds(values, undefined, 'en')).toEqual(['m1', 'm2'])
+        expect(hasUnreadableShare(values, undefined, 'en')).toBe(false)
+        expect(validateExpenseForm(values, undefined, 'en')).toBeNull()
+    })
+
+    it('agrees with exactShareEntries member for member, whatever the fields hold', () => {
+        const cases = [
+            blankThird,
+            baseForm({ amountInput: '90.00', splitMode: 'EXACT', exactInputs: { m1: '90.00', m2: '', m3: '  ' } }),
+            baseForm({ amountInput: '90.00', splitMode: 'EXACT', exactInputs: { m1: '30.00', m2: '60.00', m3: '0' } }),
+            baseForm({ amountInput: '90.00', splitMode: 'EXACT', exactInputs: { m1: '', m2: '', m3: '' } }),
+            baseForm({ amountInput: '90.00', splitMode: 'EXACT', exactInputs: {} }),
+        ]
+        for (const values of cases) {
+            expect(exactParticipantIds(values, undefined, 'en')).toEqual(
+                exactShareEntries(values, undefined, 'en').map((share) => share.memberId)
+            )
+        }
+    })
+
+    it('refuses a split nobody is on rather than posting an empty one', () => {
+        const nobody = baseForm({
+            amountInput: '90.00',
+            splitMode: 'EXACT',
+            exactInputs: { m1: '', m2: '0', m3: '   ' },
+        })
+        expect(exactParticipantIds(nobody, undefined, 'en')).toEqual([])
+        expect(validateExpenseForm(nobody, undefined, 'en')).toBe('NO_PARTICIPANTS')
+    })
+
+    it('keeps a normal two-of-three exact split whole', () => {
+        const twoOfThree = baseForm({
+            amountInput: '90.00',
+            splitMode: 'EXACT',
+            exactInputs: { m1: '45.00', m2: '45.00' },
+        })
+        expect(exactParticipantIds(twoOfThree, undefined, 'en')).toEqual(['m1', 'm2'])
+        expect(remainingMinor(twoOfThree, undefined, 'en')).toBe('0')
+        expect(validateExpenseForm(twoOfThree, undefined, 'en')).toBeNull()
+        expect(buildExpenseBody(twoOfThree, undefined, 'en').exactShares).toEqual([
+            { memberId: 'm1', amountMinor: '4500' },
+            { memberId: 'm2', amountMinor: '4500' },
+        ])
+    })
+})
+
+describe('a negative amount is its own mistake', () => {
+    it.each([
+        ['en', '-5'],
+        ['en', '−5'],
+        ['es', '-1.234,56'],
+        ['pt-BR', '- 5,00'],
+    ])('says so in %s instead of blaming the separators', (locale, amountInput) => {
+        expect(validateExpenseForm(baseForm({ amountInput }), undefined, locale)).toBe('AMOUNT_NEGATIVE')
+    })
+
+    it('still blames the separators when that is the real problem', () => {
+        expect(validateExpenseForm(baseForm({ amountInput: '12.345' }), undefined, 'en')).toBe('AMOUNT_INVALID')
+        expect(validateExpenseForm(baseForm({ amountInput: '-taxi' }), undefined, 'en')).toBe('AMOUNT_INVALID')
+        expect(validateExpenseForm(baseForm({ amountInput: '5-' }), undefined, 'en')).toBe('AMOUNT_INVALID')
     })
 })
 

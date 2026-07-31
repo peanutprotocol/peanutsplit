@@ -13,11 +13,12 @@ import { cn } from '@/lib/cn'
 import { isApiError } from '@/lib/api'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
-import { useAddMember, useDeleteMember } from '@/lib/queries'
+import { useAddMember } from '@/lib/queries'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { LinkMoment } from './LinkMoment'
 import { MemberAvatar } from './MemberAvatar'
+import { RemovePerson } from './RemovePerson'
 
 interface ShareDrawerProps {
     open: boolean
@@ -35,7 +36,6 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
     const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
     const addMember = useAddMember(room.slug)
-    const deleteMember = useDeleteMember(room.slug)
     /**
      * Collapsed until asked for. The link is the hero of this sheet and the thing
      * that actually gets the room populated; typing four names is the fallback
@@ -45,7 +45,6 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
     const [expanded, setExpanded] = useState(false)
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
-    const [removingId, setRemovingId] = useState<string | null>(null)
 
     // The sheet opening gets the blip; the link leaving gets the whoosh, inside
     // LinkMoment. Two different events, two different cues.
@@ -78,21 +77,6 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
         }
     }
 
-    const remove = async (member: ApiMember) => {
-        if (!member.canRemove || deleteMember.isPending) return
-        setError(null)
-        setRemovingId(member.id)
-        try {
-            await deleteMember.mutateAsync(member.id)
-            feedback('thunk')
-        } catch (err) {
-            feedback('error', { haptic: 'error' })
-            setError(errorMessage(err, t('addPeople.removeFailed')))
-        } finally {
-            setRemovingId(null)
-        }
-    }
-
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
             <DrawerContent className={drawerContentClass}>
@@ -105,6 +89,9 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                         theme={room.theme}
                         title={t('title')}
                         subtitle={t('subtitle')}
+                        // The room page already has its `h1` in the header; this
+                        // is a sheet on top of it, not a second page.
+                        headingLevel={2}
                     />
 
                     <div className="border-t border-dashed border-n-1 pt-4">
@@ -117,7 +104,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                             }}
                             aria-expanded={expanded}
                             data-testid="add-people-toggle"
-                            className="flex w-full items-center gap-2 text-left"
+                            className="flex min-h-11 w-full items-center gap-2 text-left"
                         >
                             <Icon name="users" size={18} className="shrink-0" />
                             <span className="flex-1 text-h7">{t('addPeople.toggle')}</span>
@@ -149,31 +136,13 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                                                     key={member.id}
                                                     data-testid="roster-chip"
                                                     data-member={member.name}
-                                                    className="flex items-center gap-2 rounded-sm border border-n-1 bg-white p-1"
+                                                    className="flex flex-wrap items-center gap-2 rounded-sm border border-n-1 bg-white p-1"
                                                 >
                                                     <MemberAvatar name={member.name} avatar={member.avatar} size={24} />
                                                     <span className="max-w-[10rem] truncate text-sm">
                                                         {member.name}
                                                     </span>
-                                                    {member.canRemove && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => remove(member)}
-                                                            disabled={deleteMember.isPending}
-                                                            aria-label={t('addPeople.remove', { name: member.name })}
-                                                            className="flex size-7 items-center justify-center rounded-sm text-grey-1 disabled:opacity-45"
-                                                        >
-                                                            <Icon
-                                                                name="x"
-                                                                size={14}
-                                                                className={
-                                                                    removingId === member.id
-                                                                        ? 'animate-pulse'
-                                                                        : undefined
-                                                                }
-                                                            />
-                                                        </button>
-                                                    )}
+                                                    <RemovePerson slug={room.slug} member={member} />
                                                 </li>
                                             ))}
                                         </ul>

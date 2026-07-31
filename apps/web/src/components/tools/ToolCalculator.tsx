@@ -111,8 +111,14 @@ function Calculator({ tool }: { tool: Tool }) {
         touched()
     }
 
-    const write = (name: string, next: string) => {
-        setText((current) => ({ ...current, [name]: next }))
+    /**
+     * A count is held to its own maximum in the box, as it is typed. The row table was already
+     * clamped, so a field left reading 50 while the page divided by twenty was a page disagreeing
+     * with itself — and the reader who does not count the rows leaves with a number two and a half
+     * times too big, with nothing on screen to say so.
+     */
+    const write = (field: ToolField, next: string) => {
+        setText((current) => ({ ...current, [field.name]: capped(field, next) }))
         touched()
     }
 
@@ -203,7 +209,7 @@ function Calculator({ tool }: { tool: Tool }) {
                         <span className="block px-1 text-xs text-grey-1">{hero.label}</span>
                         <input
                             value={text[hero.name] ?? ''}
-                            onChange={(event) => write(hero.name, event.target.value)}
+                            onChange={(event) => write(hero, event.target.value)}
                             type={hero.kind === 'amount' ? 'text' : 'number'}
                             inputMode={hero.kind === 'amount' ? 'decimal' : 'numeric'}
                             min={hero.min}
@@ -239,7 +245,7 @@ function Calculator({ tool }: { tool: Tool }) {
                         key={field.name}
                         field={field}
                         value={text[field.name] ?? ''}
-                        onChange={(next) => write(field.name, next)}
+                        onChange={(next) => write(field, next)}
                     />
                 ))}
 
@@ -297,7 +303,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                             key={field.name}
                                             field={field}
                                             value={text[field.name] ?? ''}
-                                            onChange={(next) => write(field.name, next)}
+                                            onChange={(next) => write(field, next)}
                                             plain
                                         />
                                     ))}
@@ -685,6 +691,20 @@ const figure = (value: number): string => String(Number(value.toFixed(4)))
 function clamp(value: number, field: ToolField): number {
     if (!Number.isFinite(value)) return 0
     return Math.min(Math.max(value, field.min ?? 0), field.max ?? Number.MAX_SAFE_INTEGER)
+}
+
+/**
+ * The typed text of a count, cut back to the field's maximum before it is stored.
+ *
+ * Only the ceiling, and only for counts. The floor has to stay soft because an empty box and a
+ * half-typed one are both on the way to a real number, and a field that snapped to its minimum on
+ * every keystroke could not be cleared. Amounts are left alone: their text is a locale's, not a
+ * number's, and this is not the place that parses it.
+ */
+function capped(field: ToolField, raw: string): string {
+    if (field.kind !== 'count' || field.max === undefined || raw.trim() === '') return raw
+    const value = Math.trunc(Number(raw))
+    return Number.isFinite(value) && value > field.max ? String(field.max) : raw
 }
 
 export default ToolCalculator

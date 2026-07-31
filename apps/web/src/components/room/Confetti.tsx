@@ -79,7 +79,18 @@ export function Confetti({
     return (
         // data-decorative: if the preference flips while a burst is in the air, CSS
         // takes it to opacity 0 rather than leaving pieces frozen mid-flight.
-        <div aria-hidden="true" data-decorative className={cn('pointer-events-none absolute inset-0', className)}>
+        //
+        // overflow-hidden: pieces travel up to ~210px from centre on `x`, which is
+        // real distance, not bounded by how big `className` makes this box. Without
+        // a clip here a piece in full flight paints (and scrolls) past this element's
+        // own box, and past whatever inset the caller chose — the caller's inset is
+        // what decides how far the celebration is ALLOWED to spill, this is what
+        // holds it to that.
+        <div
+            aria-hidden="true"
+            data-decorative
+            className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}
+        >
             {pieces.map((piece, index) => {
                 // Same trajectory either way — the character rides the burst,
                 // it does not get its own choreography.

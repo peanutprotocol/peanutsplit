@@ -7,6 +7,10 @@ import { createParser, parseAsString, useQueryStates } from 'nuqs'
  * the back button closes the sheet instead of leaving the room.
  *
  * `?add=1` · `?expense=<id>` · `?settle=1` · `?share=1` · `?balance=<memberId>` · `?shared=1`
+ * · `?settings=1` · `?character=<memberId>`
+ *
+ * The last two arrived late: the header held them in `useState`, so on Android
+ * the back gesture left the room instead of closing the sheet.
  */
 const parseAsFlag = createParser<boolean>({
     parse: (value) => (value === '1' || value === 'true' ? true : null),
@@ -22,6 +26,9 @@ export const roomSearchParams = {
     balance: parseAsString.withDefault(''),
     /** A photo the OS share sheet parked for this room. Cleared the moment it is picked up. */
     shared: parseAsFlag,
+    settings: parseAsFlag,
+    /** Member id — whose character sheet is open. */
+    character: parseAsString.withDefault(''),
 }
 
 export function useRoomParams() {

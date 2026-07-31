@@ -27,7 +27,7 @@ import { ExpenseDrawer } from './ExpenseDrawer'
 import { ExpenseList } from './ExpenseList'
 import { JoinGate } from './JoinGate'
 import { LatecomerBanner } from './LatecomerBanner'
-import { RoomErrorState, RoomNotFound, RoomSkeleton } from './RoomStates'
+import { RoomErrorState, RoomHeaderSkeleton, RoomNotFound, RoomSkeleton } from './RoomStates'
 import { RoomHeader } from './RoomHeader'
 import { SettleDrawer } from './SettleDrawer'
 import { ShareDrawer } from './ShareDrawer'
@@ -163,7 +163,7 @@ export function RoomScreen({ slug }: { slug: string }) {
             data-theme={state?.room.theme ?? 'classic'}
             className="relative mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background"
         >
-            {state && (
+            {state ? (
                 <RoomHeader
                     room={state.room}
                     members={state.members}
@@ -173,6 +173,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                     onShare={() => setParams({ share: true })}
                     onForgetIdentity={forget}
                 />
+            ) : (
+                <RoomHeaderSkeleton />
             )}
 
             {staleState && (
@@ -232,11 +234,13 @@ export function RoomScreen({ slug }: { slug: string }) {
                             {!needsJoin && !staleState && (
                                 <LatecomerBanner slug={slug} state={state} token={identity?.token} />
                             )}
-                            {/* One banner at a time. The latecomer offer is a correction to the
-                                numbers directly above it and it expires; a celebration can wait a
-                                render. Two stacked cards over the ledger on a 375px screen pushes
-                                the thing people came for below the fold. */}
-                            {!needsJoin && !staleState && !drawerOpen && !latecomerPending && (
+                            {/* One banner at a time, and the achievement card is the one that
+                                yields. The latecomer offer is a correction to the numbers directly
+                                above it and it expires; the all-settled celebration is the payoff
+                                people came back for. An achievement can wait a render — stacked
+                                over the ledger on a 375px screen it pushes either of them below
+                                the fold. */}
+                            {!needsJoin && !staleState && !drawerOpen && !latecomerPending && !settledUp && (
                                 <AchievementMoment
                                     slug={slug}
                                     state={state}
@@ -324,6 +328,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                         state={state}
                         currencies={currencies}
                         token={identity?.token}
+                        me={me}
                     />
                     <ShareDrawer
                         open={params.share}

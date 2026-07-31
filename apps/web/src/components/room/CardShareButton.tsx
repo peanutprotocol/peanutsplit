@@ -30,6 +30,10 @@ import { useFeedback } from '@/lib/use-settings'
  * being forwarded.
  *
  * Sound and haptics fire on the tap, never on appearance.
+ *
+ * The visible label is just "Share" — it sits under the card it shares, so the picture is the
+ * label. A screen reader gets the card's name instead (`shareLabel.<kind>`), because a settled
+ * recap can carry five of these and "Share, Share, Share" is a list of nothing.
  */
 export function CardShareButton({
     slug,
@@ -93,6 +97,7 @@ export function CardShareButton({
             loading={busy}
             onClick={() => void share()}
             className="justify-center"
+            aria-label={t(`shareLabel.${kind}`)}
             data-testid={`share-card-${kind}`}
         >
             {busy ? t('sharing') : t('share')}

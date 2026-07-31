@@ -2,17 +2,21 @@ import { allocateByWeights, formatFigure, formatShareOfWhole, MAX_SAFE_MINOR } f
 import type { Tool, ToolInput, ToolOutcome, ToolWorking } from './types'
 
 /**
- * Rent by room size, with a slider per person as the second half of the method.
+ * Rent by room size, with a slider per person weighting the room they got.
  *
  * **The slider replaced a box asking for a monthly income.** Nobody types their real pay into a
  * marketing page, and the ones who would have to look it up first — so the honest instrument is
  * five labelled notches the whole flat can argue about out loud. It is not a proxy for a salary and
  * does not pretend to be one; it is a relative weight, and the FAQ says exactly what the notch does.
  *
- * **Leave every slider alone and it does nothing.** A flat where all five notches match is a flat
- * that has told us nothing, so the rent follows floor area and only floor area. Move one and half
- * the rent starts following the sliders. That rule is what lets the control stay visible without
- * silently tilting a result nobody asked it to tilt — there is no hidden toggle behind it.
+ * **Leave every slider alone and it does nothing.** The notch multiplies the room rather than being
+ * averaged against it, so a flat where all five notches match is a flat where the multiplier cancels
+ * out of every line exactly: the rent follows floor area and only floor area. Move one up and that
+ * person's number goes up and everybody else's comes down, which is the only direction a control
+ * like this can honestly move in. Averaging the room share against each notch's share of the flat's
+ * notches — what this did until 31 Jul — dragged every result back toward an even split instead, so
+ * marking the biggest room as the flush one took money off them. There is no toggle behind any of
+ * it, and nothing to cross: level sliders and multiplied sliders are the same arithmetic.
  *
  * Register is the house default (§3.10 relaxed on 30 Jul), but §8.1 still holds: money between
  * flatmates gets the fairness boundary in full, carried lightly rather than solemnly.
@@ -36,15 +40,19 @@ function computeRentSplit({ values, rows }: ToolInput): ToolOutcome {
     const sizes = rows.map((row) => Math.max(0, row.values.size ?? 0))
     const notches = rows.map((row) => notchOf(row.values.rich ?? 1))
     const floorArea = sizes.reduce((running, size) => running + size, 0)
-    const notchTotal = notches.reduce((running, notch) => running + notch, 0)
 
-    // A flat that has not moved a slider has said nothing about who is flush, and a page that
-    // acted on nothing would be inventing an opinion. Same for an unmeasured flat: no floor area
-    // is a request for the equal answer rather than an error.
-    const tilted = notches.some((notch) => notch !== notches[0])
+    // No floor area is a request for the equal answer rather than an error: with nothing measured,
+    // every room counts the same.
     const roomShares = sizes.map((size) => (floorArea > 0 ? size / floorArea : EQUAL(rows.length)))
-    const richShares = notches.map((notch) => notch / notchTotal)
-    const weights = roomShares.map((room, index) => (tilted ? (room + richShares[index]) / 2 : room))
+
+    // The notch multiplies the room. A flat that has not moved a slider has said nothing about who
+    // is flush, and multiplying every room by the same number divides back out exactly, so nothing
+    // is invented. Pushing one slider up scales that room and dilutes the rest — the only direction
+    // the control claims to move in. Averaging the two shares moved the biggest room the other way.
+    const scaled = roomShares.map((room, index) => room * notches[index])
+    const scaledTotal = scaled.reduce((running, weight) => running + weight, 0)
+    const weights = scaled.map((weight) => weight / scaledTotal)
+    const tilted = notches.some((notch) => notch !== notches[0])
 
     const amounts = allocateByWeights(rent, weights)
     const workings: ToolWorking[] = [
@@ -58,7 +66,7 @@ function computeRentSplit({ values, rows }: ToolInput): ToolOutcome {
             label: row.name,
             amountMinor: amounts[index],
             detail: tilted
-                ? `room ${formatShareOfWhole(roomShares[index], 1)}, slider ${formatShareOfWhole(richShares[index], 1)}, so ${formatShareOfWhole(weights[index], 1)} of the rent`
+                ? `room ${formatShareOfWhole(roomShares[index], 1)}, notch ${notches[index]}, so ${formatShareOfWhole(weights[index], 1)} of the rent`
                 : `${formatFigure(sizes[index])} sqm, ${formatShareOfWhole(roomShares[index], 1)} of the rent`,
         })),
         totalMinor: rent,
@@ -80,7 +88,7 @@ export const rentSplitCalculator: Tool = {
         h1: 'Rent split calculator by room size',
         intro: [
             'Put in the rent and the size of each private room. The rent follows that floor area, and the numbers move while you type.',
-            'The slider beside each name is the other half of the argument. Leave them all where they are and nothing happens; move one and half the rent starts following who is flush instead. Split by Peanut holds the same arithmetic in a page the whole flat can open.',
+            'The slider beside each name is the other half of the argument. Leave them all where they are and nothing happens; move one up and that person pays more while everybody else pays less. Split by Peanut holds the same arithmetic in a page the whole flat can open.',
         ],
         resultTitle: 'What each room pays',
         resultHint: 'Put in the rent and how many people are on it.',
@@ -154,11 +162,11 @@ export const rentSplitCalculator: Tool = {
         },
         {
             question: 'What does the slider beside each name actually do?',
-            answer: 'It is five notches, and the notch is the weight: notch one counts once, notch five counts five times, and the notches are added up across the flat to give everybody a share of half the rent. The other half stays with the floor area. While every slider reads the same the whole thing is switched off and the rent follows room size alone, so a flat that would rather not have this conversation can leave the sliders level and lose nothing.',
+            answer: 'It is five notches, and the notch is the weight it puts on the room: notch one counts that room once, notch five counts it five times, and everybody’s counted room is put back over the whole to give the shares. While every slider reads the same the multiplier divides straight back out and the rent follows room size alone, so a flat that would rather not have this conversation can leave the sliders level and lose nothing. Move one up and that person pays more and the rest of the flat pays less.',
         },
         {
             question: 'How do you split rent when one flatmate earns more?',
-            answer: 'Move their slider up, or do not. With the sliders apart, half the rent follows room size and half follows where the flat put everybody, so the number moves toward what each person can pay without ignoring what each person gets. It is a method rather than a verdict, and a household that would rather split on room size alone should leave the sliders level.',
+            answer: 'Move their slider up, or do not. Their room is then counted more times than everybody else’s, so their share goes up and the rest of the flat’s comes down — the number moves toward what each person can pay without ever losing sight of what each person gets. It is a method rather than a verdict, and a household that would rather split on room size alone should leave the sliders level.',
         },
         {
             question: 'Why does one flatmate pay a fraction more than the others?',
