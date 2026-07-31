@@ -188,6 +188,7 @@
             "dismiss": "Agora não",
             "row": {
                 "label": "Instalar o Split",
+                "labelIos": "Adicionar à tela de início",
                 "installed": "Já está neste aparelho.",
                 "dismissed": "Não foi adicionado. Abra o Split de novo para tentar.",
                 "unsupported": "Este navegador não oferece isso."
