@@ -19,8 +19,14 @@ import { themeFor } from '@/lib/themes'
  * `readRecentRooms()` also returns `[]` when storage is blocked, which is the
  * same branch and the same right answer: a device that cannot remember rooms has
  * no list to offer.
+ *
+ * Nothing here closes the sheet, and that is deliberate. Every drawer in the room
+ * is a URL param (`?settings=1`), so closing one is itself a router push — and a
+ * tile that both closed the sheet and followed its `href` fired two router pushes
+ * from one click, where the query-param one won and the room never changed. The
+ * targets carry no `settings` param, so arriving is what closes the sheet.
  */
-export function RoomSwitcher({ currentSlug, onNavigate }: { currentSlug: string; onNavigate: () => void }) {
+export function RoomSwitcher({ currentSlug }: { currentSlug: string }) {
     const t = useTranslations('room.header')
     // Read after mount: the list is localStorage, and rendering it during the
     // server pass would be a hydration mismatch on every device that has one.
@@ -51,7 +57,6 @@ export function RoomSwitcher({ currentSlug, onNavigate }: { currentSlug: string;
                     <li key={room.slug}>
                         <Link
                             href={`/r/${room.slug}`}
-                            onClick={onNavigate}
                             data-testid="room-switcher-tile"
                             data-slug={room.slug}
                             // Inline for the same reason the theme picker does it:
@@ -70,7 +75,6 @@ export function RoomSwitcher({ currentSlug, onNavigate }: { currentSlug: string;
                         page that owns the full list and the paste-a-link recovery. */}
                     <Link
                         href="/"
-                        onClick={onNavigate}
                         data-testid="room-switcher-all"
                         className="flex w-24 shrink-0 flex-col items-center gap-1 rounded-sm border border-dashed border-n-1 bg-white p-2 transition-transform duration-100 active:translate-y-[2px]"
                     >
