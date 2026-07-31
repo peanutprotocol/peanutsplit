@@ -201,7 +201,7 @@ export function SettingsSheet({
                         <CloseButton onClick={onClose} label={t('close')} data-testid="close-room-settings" />
                     </DrawerHeader>
                     <DrawerBody>
-                        <RoomSwitcher currentSlug={room.slug} onNavigate={onClose} />
+                        <RoomSwitcher currentSlug={room.slug} />
 
                         <section
                             data-testid="room-card"
