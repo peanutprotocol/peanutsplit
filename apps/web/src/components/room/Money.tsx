@@ -78,7 +78,14 @@ export function AnimatedMoney({ minor, currency, catalog, className, absolute }:
                 digit instead of saying it. This sr-only span is built from the same minor
                 units through the same formatter <Money/> uses, so the two can never disagree,
                 and the animation below is marked decorative so AT reads this instead. */}
-            <span className="sr-only">{formatMoney(signedMinor, currency, catalog, locale)}</span>
+            {/* `relative` is load-bearing, not decoration. `sr-only` is `position: absolute`, and
+                with no positioned ancestor its containing block is the document — so inside a
+                horizontally scrolling strip (the balance cards) it escaped the scroller's clipping
+                and stretched the whole page sideways by the width of the strip. Giving it a
+                positioned parent of its own keeps it where it belongs. */}
+            <span className="relative">
+                <span className="sr-only">{formatMoney(signedMinor, currency, catalog, locale)}</span>
+            </span>
             <NumberFlow
                 aria-hidden="true"
                 value={value}

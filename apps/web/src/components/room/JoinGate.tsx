@@ -154,7 +154,15 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
     }
 
     return (
-        <div ref={gateRootRef} className="fixed inset-0 z-30 flex flex-col justify-end" data-testid="join-gate">
+        // `h-svh` rather than `inset-0` alone. The small-viewport unit is the one that is never
+        // taller than what the reader can actually see, and this gate is the only way into a
+        // room: with four people already in it, a fifth on a 667px-tall phone had "I'm new"
+        // painted below the fold, with neither the card nor the page able to scroll to it.
+        <div
+            ref={gateRootRef}
+            className="fixed inset-0 z-30 flex h-svh flex-col justify-end overflow-y-auto"
+            data-testid="join-gate"
+        >
             {/* Soft scrim: the room stays readable underneath on purpose. */}
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" aria-hidden="true" />
 
@@ -176,7 +184,7 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                     motion writes `transform` inline on every render, and a CSS
                     keyframe animation on the same property is a fight, not a stack. */}
                 <div ref={cardRef}>
-                    <Card shadowSize="6" className="max-h-[80dvh] gap-5 overflow-y-auto p-4">
+                    <Card shadowSize="6" className="max-h-[80svh] gap-5 overflow-y-auto p-4">
                         <div className="flex flex-col gap-1">
                             <h2 id={titleId} className="text-h5">
                                 {t('title')}
