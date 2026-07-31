@@ -57,7 +57,10 @@ Total balance,,,0.00,EUR,0.00,0.00
 `
 
 /** Preamble rows, blank lines, a row that does not sum to zero, a currency Split does not carry,
- *  and a zero-cost row. Everything survivable should survive. */
+ *  and a zero-cost row. Everything survivable should survive.
+ *
+ *  KPW is a real ISO 4217 code that the rate feed does not carry, so nothing can price it. It is
+ *  what "a currency Split does not carry" means now that the catalog is 162 codes wide. */
 export const MESSY_GROUP = `My group export
 ,,,,,,
 
@@ -65,7 +68,7 @@ Date,Description,Category,Cost,Currency,Ana,Bruno
 
 2026-07-01,Dinner,Dining out,50.00,EUR,25.00,-25.00
 2026-07-02,Broken,Dining out,50.00,EUR,25.00,-20.00
-2026-07-03,Rupees,Dining out,500.00,INR,250.00,-250.00
+2026-07-03,Unpriceable,Dining out,500.00,KPW,250.00,-250.00
 2026-07-04,Nothing,Dining out,0.00,EUR,0.00,0.00
 2026-07-05,Lunch,Dining out,30.00,EUR,-15.00,15.00
 

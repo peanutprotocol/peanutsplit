@@ -4,7 +4,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
-import { CURRENCIES } from '@/server/money'
+import { STATIC_USD_PER_UNIT } from '@/server/money'
 import { resetRateLimits } from '@/server/rateLimit'
 import { GET as getCurrencies } from '@/app/api/currencies/route'
 import { GET as getRate } from '@/app/api/rate/route'
@@ -150,14 +150,18 @@ describe('ops endpoints', () => {
 })
 
 describe('reference data', () => {
-    it('lists the currency catalog', async () => {
-        const { status, body } = await call<{ currencies: { code: string; decimals: number }[] }>(
+    it('lists the currency catalog, with rate coverage per code', async () => {
+        const { status, body } = await call<{ currencies: { code: string; decimals: number; hasRate: boolean }[] }>(
             getCurrencies as unknown as Handler,
             { path: '/api/currencies' }
         )
         expect(status).toBe(200)
-        expect(body.currencies).toHaveLength(12)
+        expect(body.currencies).toHaveLength(162)
         expect(body.currencies.find((c) => c.code === 'JPY')?.decimals).toBe(0)
+        expect(body.currencies.find((c) => c.code === 'KWD')?.decimals).toBe(3)
+        // The picker needs this to know which currencies a room can actually take.
+        expect(body.currencies.find((c) => c.code === 'EUR')?.hasRate).toBe(true)
+        expect(body.currencies.find((c) => c.code === 'KPW')?.hasRate).toBe(false)
     })
 
     it('quotes an indicative rate and says that it is indicative', async () => {
@@ -171,8 +175,22 @@ describe('reference data', () => {
         expect(body.rate).toBeCloseTo(0.028 / 1.08, 12)
     })
 
-    it('rejects an unsupported currency', async () => {
-        const { status, body } = await call<ApiError>(getRate as Handler, { path: '/api/rate?from=EUR&to=XYZ' })
+    /**
+     * A pair nothing can price is an answer, not a failure. `useRate` runs with `retry: false`,
+     * so a 4xx here would render as a broken screen for what is now an ordinary case: somebody
+     * typed a ticker that does not exist.
+     */
+    it('answers 200 with a null rate for a pair it cannot price', async () => {
+        const { status, body } = await call<{ rate: number | null; source: string }>(getRate as Handler, {
+            path: '/api/rate?from=EUR&to=DOGE',
+        })
+        expect(status).toBe(200)
+        expect(body.rate).toBeNull()
+        expect(body.source).toBe('static')
+    })
+
+    it('rejects a string that is not a currency code at all', async () => {
+        const { status, body } = await call<ApiError>(getRate as Handler, { path: '/api/rate?from=EUR&to=EUROS' })
         expect(status).toBe(400)
         expect(body.error.code).toBe('VALIDATION_ERROR')
     })
@@ -937,10 +955,10 @@ describe('fx is locked at creation', () => {
     const seedRates = async (overrides: Record<string, number>) => {
         await prisma.fxRate.deleteMany()
         await prisma.fxRate.createMany({
-            data: CURRENCIES.map((c) => ({
+            data: Object.entries(STATIC_USD_PER_UNIT).map(([code, usdPerUnit]) => ({
                 base: 'USD',
-                quote: c.code,
-                rate: overrides[c.code] ?? c.usdPerUnit,
+                quote: code,
+                rate: overrides[code] ?? usdPerUnit,
                 fetchedAt: new Date(),
             })),
         })

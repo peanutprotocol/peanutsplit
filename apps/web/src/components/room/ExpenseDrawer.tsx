@@ -646,6 +646,23 @@ export function ExpenseDrawer({
                 onEscapeKeyDown={(event) => {
                     if (document.querySelector('[data-currency-menu]')) event.preventDefault()
                 }}
+                /**
+                 * The currency menu is portalled outside this sheet so it can escape the scroll
+                 * viewport, which makes its search field "outside" for both of the mechanisms this
+                 * sheet runs. These two are the DISMISSAL half: without them, focus landing in the
+                 * menu is an outside interaction and the sheet closes under the reader.
+                 *
+                 * They do NOT release the focus trap — that is Radix's FocusScope, which reads
+                 * neither prop, and `CurrencySelect` releases it for its own menu.
+                 */
+                onFocusOutside={(event) => {
+                    const target = event.target
+                    if (target instanceof Element && target.closest('[data-currency-menu]')) event.preventDefault()
+                }}
+                onInteractOutside={(event) => {
+                    const target = event.target
+                    if (target instanceof Element && target.closest('[data-currency-menu]')) event.preventDefault()
+                }}
             >
                 <DrawerHeader className="flex shrink-0 flex-row items-end justify-between px-4 pb-2 pt-0 text-left">
                     <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
@@ -691,6 +708,7 @@ export function ExpenseDrawer({
                                     onChange={(code) => patch({ currency: code })}
                                     currencies={currencies}
                                     suggested={suggestedCurrencies}
+                                    requireRateTo={state.room.currency}
                                     variant="sm"
                                     aria-label={t('currency')}
                                     data-testid="expense-currency"

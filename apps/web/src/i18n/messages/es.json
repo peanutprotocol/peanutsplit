@@ -235,8 +235,8 @@
             "features": {
                 "title": "Qué hace Split",
                 "currency": {
-                    "title": "12 monedas disponibles",
-                    "body": "La sala cuenta en una moneda. Agregá un gasto en cualquiera de las 12 monedas disponibles y Split lo convierte al cambio del día."
+                    "title": "162 monedas disponibles",
+                    "body": "La sala cuenta en una moneda. Agregá un gasto en cualquiera de las 162 monedas disponibles y Split lo convierte al cambio del día."
                 },
                 "splits": {
                     "title": "Divisiones que no son parejas",
@@ -624,12 +624,21 @@
             "readyTitle": "Tu sala está lista",
             "readySubtitle": "Envía este link a todos los que dividen.",
             "goToRoom": "Ir a la sala",
-            "namePlaceholderSlug": "tu-viaje"
+            "namePlaceholderSlug": "tu-viaje",
+            "currencyCustomHint": "«{code}» es tu propia moneda. Todos los gastos de esta sala van en ella — no se convierte nada."
         },
         "currency": {
-            "suggested": "Sugeridas",
-            "all": "Todas las monedas",
-            "useSuggestion": "Usar {name}"
+            "all": "Buscar entre las {count} monedas",
+            "searchLabel": "Buscar monedas",
+            "searchPlaceholder": "Buscá o inventá",
+            "clearSearch": "Borrar la búsqueda",
+            "results": "{count, plural, one {# moneda} other {# monedas}}",
+            "noMatch": "No existe una moneda «{query}» — podés crearla.",
+            "noMatchLong": "No existe una moneda «{query}». Un ticker tiene tres o cuatro letras.",
+            "useCustom": "Usar «{code}»",
+            "useCustomHint": "Tu propia moneda — sin cotización, no se convierte nada.",
+            "noRateChip": "sin cotización",
+            "roomOnly": "{roomCurrency} no tiene cotización, así que todos los gastos de esta sala van en {roomCurrency}."
         },
         "scan": {
             "cta": "Escanear una cuenta",
@@ -833,7 +842,8 @@
         "NL_ROOM_LIMIT": "Esta sala ya usó sus agregados rápidos de hoy — intenta mañana.",
         "NL_FAILED": "No se pudo leer eso — intenta de nuevo.",
         "IMPORT_TOO_LARGE": "Esa importación es demasiado grande para enviarse. Prueba con un grupo con menos historial.",
-        "RATE_LIMITED": "Fueron muchas solicitudes — espera un minuto e intenta de nuevo."
+        "RATE_LIMITED": "Fueron muchas solicitudes — espera un minuto e intenta de nuevo.",
+        "NO_RATE": "No hay cotización entre esa moneda y la de la sala, así que no se puede convertir. Usá la moneda de la sala."
     },
     "derivation": {
         "title": "Cómo sale este número",

@@ -1,7 +1,7 @@
 /** Request-shape validation. Cross-field rules that need the room (membership,
  *  exact shares adding up) live in the domain modules, not here. */
 import { z } from 'zod'
-import { CURRENCY_CODES, MAX_SIGNED_MINOR } from '@/server/money'
+import { isValidCode, MAX_SIGNED_MINOR, normaliseCode } from '@/server/money'
 import { isAvatarKey } from '@/lib/avatars'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isThemeKey } from '@/lib/themes'
@@ -13,10 +13,22 @@ import {
     MAX_NAME_CHARS,
 } from '@/lib/splitwise-csv'
 
+/**
+ * A currency code — one of the 162 real ones, or a ticker somebody invented.
+ *
+ * The shape is the whole gate: three or four ASCII letters after NFKC, trim and uppercase. That
+ * is deliberately not "is it in the catalog", because a made-up ticker is a supported room
+ * currency now. What stops a made-up code from being netted against a real one is FX, not this —
+ * `requireRate` refuses any pair it cannot price.
+ *
+ * `.max(16)` bounds the input before normalising it. NFKC on unbounded text is work an
+ * unauthenticated request should not be able to ask for.
+ */
 const currencyCode = z
     .string()
-    .transform((s) => s.toUpperCase())
-    .refine((s) => (CURRENCY_CODES as string[]).includes(s), { message: 'unsupported currency' })
+    .max(16)
+    .transform(normaliseCode)
+    .refine(isValidCode, { message: 'must be a three or four letter currency code' })
 
 /** Minor units as a decimal string — the only money representation on the wire. */
 const minorAmount = z

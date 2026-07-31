@@ -26,7 +26,7 @@ const ROOM = [
 ]
 
 const parse = (answer: unknown, members: readonly { id: string; name: string }[] = ROOM) =>
-    normalizeNlExpense(JSON.stringify(answer), { members })
+    normalizeNlExpense(JSON.stringify(answer), { members, roomCurrency: 'EUR' })
 
 const codeOf = (fn: () => unknown): string => {
     try {
@@ -180,9 +180,11 @@ describe('normalizing what the model read', () => {
     it('reads a fenced answer, and refuses one that is not JSON at all', () => {
         vi.spyOn(console, 'error').mockImplementation(() => {})
         const fenced = '```json\n{"amountMinor":"1200"}\n```'
-        expect(normalizeNlExpense(fenced, { members: ROOM }).draft.amountMinor).toBe('1200')
-        expect(codeOf(() => normalizeNlExpense('sure! here you go', { members: ROOM }))).toBe('NL_FAILED')
-        expect(codeOf(() => normalizeNlExpense('"a string"', { members: ROOM }))).toBe('NL_FAILED')
+        expect(normalizeNlExpense(fenced, { members: ROOM, roomCurrency: 'EUR' }).draft.amountMinor).toBe('1200')
+        expect(codeOf(() => normalizeNlExpense('sure! here you go', { members: ROOM, roomCurrency: 'EUR' }))).toBe(
+            'NL_FAILED'
+        )
+        expect(codeOf(() => normalizeNlExpense('"a string"', { members: ROOM, roomCurrency: 'EUR' }))).toBe('NL_FAILED')
         vi.restoreAllMocks()
     })
 })
@@ -229,7 +231,9 @@ describe('the transport, shared with the scan', () => {
 
     it('is unavailable with no key, and a call that arrives anyway never reaches the network', async () => {
         const fetchSpy = vi.spyOn(globalThis, 'fetch')
-        await expect(parseNlExpense({ text: 'taxi 12' }, { members: ROOM, today: TODAY })).rejects.toMatchObject({
+        await expect(
+            parseNlExpense({ text: 'taxi 12' }, { members: ROOM, today: TODAY, roomCurrency: 'EUR' })
+        ).rejects.toMatchObject({
             code: 'NL_UNAVAILABLE',
         })
         expect(fetchSpy).not.toHaveBeenCalled()
@@ -239,7 +243,7 @@ describe('the transport, shared with the scan', () => {
         process.env.SPLIT_OPENROUTER_API_KEY = OPENROUTER_KEY
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(answer({ amountMinor: '1200' }))
 
-        await parseNlExpense({ text: 'taxi 12 EUR ayer' }, { members: ROOM, today: TODAY })
+        await parseNlExpense({ text: 'taxi 12 EUR ayer' }, { members: ROOM, today: TODAY, roomCurrency: 'EUR' })
 
         const payload = sentBody(fetchSpy)
         expect(payload.messages).toHaveLength(1)
@@ -269,7 +273,10 @@ describe('the transport, shared with the scan', () => {
             )
         )
 
-        const { draft } = await parseNlExpense({ text: 'taxi 12' }, { members: ROOM, today: TODAY })
+        const { draft } = await parseNlExpense(
+            { text: 'taxi 12' },
+            { members: ROOM, today: TODAY, roomCurrency: 'EUR' }
+        )
         expect(draft.amountMinor).toBe('1200')
 
         const payload = sentBody(fetchSpy)
@@ -294,7 +301,7 @@ describe('the transport, shared with the scan', () => {
         )
 
         await expect(
-            parseNlExpense({ text: 'dinner with Ana 45 EUR' }, { members: ROOM, today: TODAY })
+            parseNlExpense({ text: 'dinner with Ana 45 EUR' }, { members: ROOM, today: TODAY, roomCurrency: 'EUR' })
         ).rejects.toMatchObject({ code: 'NL_FAILED' })
 
         const logged = error.mock.calls.map((call) => call.map(String).join(' ')).join('\n')

@@ -431,23 +431,40 @@ test('one person can add a payer and submit an expense on their behalf', async (
 
     const currencyTrigger = page.getByRole('button', { name: /Expense currency, EUR/ })
     await currencyTrigger.click()
-    const currencyList = page.getByRole('listbox', { name: 'Expense currency' })
-    await expect(currencyList).toHaveAttribute('data-direction', 'down')
-    const [triggerBox, listBox] = await Promise.all([currencyTrigger.boundingBox(), currencyList.boundingBox()])
+    const currencyMenu = page.locator('[data-currency-menu]')
+    const currencySearch = page.getByTestId('expense-currency-search')
+    await expect(currencyMenu).toHaveAttribute('data-direction', 'down')
+    const [triggerBox, menuBox] = await Promise.all([currencyTrigger.boundingBox(), currencyMenu.boundingBox()])
     expect(triggerBox).not.toBeNull()
-    expect(listBox).not.toBeNull()
-    expect(listBox!.y).toBeGreaterThan(triggerBox!.y)
-    await expect(currencyTrigger).toBeFocused()
-    const activeCurrency = currencyList.locator('[data-active="true"]')
+    expect(menuBox).not.toBeNull()
+    expect(menuBox!.y).toBeGreaterThan(triggerBox!.y)
+    const activeCurrency = currencyMenu.locator('[data-active="true"]')
     const firstActiveCurrency = await activeCurrency.getAttribute('id')
     await page.keyboard.press('ArrowDown')
     await expect.poll(() => activeCurrency.getAttribute('id')).not.toBe(firstActiveCurrency)
-    await expect(currencyTrigger).toBeFocused()
+    // CHANGED BY DESIGN: this used to assert the TRIGGER kept focus, because a Vaul sheet's focus
+    // trap bounced a focused option back on every arrow key. The drawer now vetoes the trap for
+    // this menu, so the search field holds focus inside the sheet like anywhere else — which it
+    // must, since it has to receive text. Asserted after a key rather than after the tap that
+    // opened the menu: a tap deliberately does not raise the keyboard.
+    await expect(currencySearch).toBeFocused()
+    // Escape on a typed query clears the query and keeps the menu open; only an empty query closes
+    // the menu, and neither Escape ever reaches the drawer.
+    await currencySearch.fill('chf')
+    await page.keyboard.press('Escape')
+    await expect(currencySearch).toHaveValue('')
+    await expect(currencyTrigger).toHaveAttribute('aria-expanded', 'true')
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
     await expect(page.getByTestId('expense-composer')).toBeVisible()
     await expect(currencyTrigger).toHaveAttribute('aria-expanded', 'false')
+    // Typing then Enter picks the top match without an arrow key — the whole point of the field.
     await currencyTrigger.click()
+    await currencySearch.fill('chf')
+    await page.keyboard.press('Enter')
+    const swissTrigger = page.getByRole('button', { name: /Expense currency, CHF/ })
+    await expect(swissTrigger).toBeVisible()
+    await swissTrigger.click()
     await page.getByRole('option', { name: 'EUR', exact: true }).click()
     await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
     await page.getByTestId('expense-scroll').evaluate((element) => {

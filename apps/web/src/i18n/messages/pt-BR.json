@@ -235,8 +235,8 @@
             "features": {
                 "title": "O que o Split faz",
                 "currency": {
-                    "title": "12 moedas disponíveis",
-                    "body": "A sala conta em uma moeda. Adicione uma despesa em qualquer uma das 12 moedas disponíveis e o Split converte pela cotação do dia."
+                    "title": "162 moedas disponíveis",
+                    "body": "A sala conta em uma moeda. Adicione uma despesa em qualquer uma das 162 moedas disponíveis e o Split converte pela cotação do dia."
                 },
                 "splits": {
                     "title": "Divisões desiguais",
@@ -624,12 +624,21 @@
             "readyTitle": "Sua sala está pronta",
             "readySubtitle": "Mande este link para todo mundo que vai dividir.",
             "goToRoom": "Ir para a sala",
-            "namePlaceholderSlug": "sua-viagem"
+            "namePlaceholderSlug": "sua-viagem",
+            "currencyCustomHint": "“{code}” é a sua própria moeda. Todo gasto desta sala fica nela — nada é convertido."
         },
         "currency": {
-            "suggested": "Sugeridas",
-            "all": "Todas as moedas",
-            "useSuggestion": "Usar {name}"
+            "all": "Buscar entre as {count} moedas",
+            "searchLabel": "Buscar moedas",
+            "searchPlaceholder": "Busque ou invente",
+            "clearSearch": "Limpar a busca",
+            "results": "{count, plural, one {# moeda} other {# moedas}}",
+            "noMatch": "Não existe moeda “{query}” — crie a sua.",
+            "noMatchLong": "Não existe moeda “{query}”. Um ticker tem três ou quatro letras.",
+            "useCustom": "Usar “{code}”",
+            "useCustomHint": "Sua própria moeda — sem cotação, nada é convertido.",
+            "noRateChip": "sem cotação",
+            "roomOnly": "{roomCurrency} não tem cotação, então todo gasto desta sala fica em {roomCurrency}."
         },
         "scan": {
             "cta": "Escanear uma conta",
@@ -833,7 +842,8 @@
         "NL_ROOM_LIMIT": "Esta sala já usou os adicionares rápidos de hoje — tente amanhã.",
         "NL_FAILED": "Não deu para ler isso — tente de novo.",
         "IMPORT_TOO_LARGE": "Essa importação é grande demais para enviar. Tente um grupo com menos histórico.",
-        "RATE_LIMITED": "Foram muitas tentativas — espere um minuto e tente de novo."
+        "RATE_LIMITED": "Foram muitas tentativas — espere um minuto e tente de novo.",
+        "NO_RATE": "Não há cotação entre essa moeda e a da sala, então não dá para converter. Use a moeda da sala."
     },
     "derivation": {
         "title": "De onde vem esse número",

@@ -424,6 +424,9 @@ export function SplitwiseImport() {
                     }}
                     currencies={currencies}
                     suggested={parsed.currencies}
+                    // The room here has to be able to RECEIVE the file's currencies. An invented
+                    // ticker converts nothing, so every row of the import would have to be dropped.
+                    allowCustom={false}
                     aria-label={t('preview.currencyLabel')}
                     data-testid="import-currency"
                 />
