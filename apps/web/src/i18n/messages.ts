@@ -5,12 +5,12 @@
  *
  * 1. **Static import specifiers.** A previous production incident shipped a build whose locale
  *    JSON was read from disk at runtime; the files were not in the deployed bundle and every
- *    single message silently fell back to its bare key. `import('./messages/es.json')` written
+ *    single message silently fell back to its bare key. `import('./messages/es-419.json')` written
  *    out literally is a promise the bundler can see and therefore emit. Never replace this map
  *    with `import(\`./messages/${locale}.json\`)` or an `fs.readFile`.
  *
  * 2. **One catalog per request, lazily.** The map holds *importers*, not modules, so a request
- *    serving `es` never pulls `en` or `pt-BR` into memory. Eager-loading all three, or preloading
+ *    serving `es-419` never pulls `en` or `pt-br` into memory. Eager-loading all three, or preloading
  *    the fallback alongside the active locale, is the measured regression this shape exists to
  *    prevent.
  */
@@ -22,8 +22,8 @@ export type Messages = { [key: string]: string | Messages }
 
 const LOADERS: Record<Locale, () => Promise<{ default: Messages }>> = {
     en: () => import('./messages/en.json'),
-    es: () => import('./messages/es.json'),
-    'pt-BR': () => import('./messages/pt-BR.json'),
+    'es-419': () => import('./messages/es-419.json'),
+    'pt-br': () => import('./messages/pt-br.json'),
 }
 
 const cache = new Map<Locale, Messages>()

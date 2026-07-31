@@ -5,11 +5,10 @@
  * install prompt — moved into `src/i18n/messages/*.json` and is rendered through
  * `useTranslations`. The key paths here were already namespaced for exactly that move.
  *
- * This page did NOT move, deliberately. It is the one SEO page: its `<title>`, its description
- * and its FAQPage JSON-LD are all built from these strings at module scope, and the structured
- * data has to match what a crawler is served. Rendering the body in Spanish while the JSON-LD
- * stayed English would be a rich-result mismatch on the highest-intent page on the site. It is
- * English because it is indexed in English — the same reason the OG images are.
+ * This page is hand-built rather than MDX. Its `<title>`, description and FAQPage JSON-LD are all
+ * built from the same locale-keyed copy object, so the structured data always matches the body a
+ * crawler is served. English stays here as the source version; `compare-copy.ts` carries the two
+ * reviewed transcreations.
  *
  * Rules for whoever edits this: keep it honest. Free forever is a promise, not a growth line;
  * "settle however you like" must never imply the Peanut path is safer than cash.
@@ -192,7 +191,7 @@ export const marketingCopy = {
                 },
                 {
                     q: 'Is it in Spanish or Portuguese?',
-                    a: 'Yes — English, Spanish and Brazilian Portuguese, picked from whatever the phone opening the link is set to. This comparison page stays in English because that is the language it is searched in.',
+                    a: 'Yes — English, Spanish and Brazilian Portuguese, picked from whatever the phone opening the link is set to. This comparison page exists in all three too.',
                 },
                 {
                     q: 'Can I import my Splitwise history?',

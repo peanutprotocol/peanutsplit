@@ -43,7 +43,7 @@ function drawable(text: string): string {
 /**
  * Unfurl for a translated guides hub.
  *
- * The English hub has its own file; `/es/blog` and `/pt-br/blog` had none and were therefore
+ * The English hub has its own file; `/es-419/blog` and `/pt-br/blog` had none and were therefore
  * sharing as a blank card — a metadata image file is NOT inherited across route segments, so a
  * segment without one simply emits no `og:image`. The tagline is the hub's own description from
  * the catalog rather than a second string to keep in step, and it goes through `drawable` because

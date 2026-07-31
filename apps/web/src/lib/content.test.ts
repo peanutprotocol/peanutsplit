@@ -16,10 +16,12 @@ import {
     type Collection,
 } from './content'
 import { CAST_NAMES, isCastName } from './cast'
-import { staticPageSlugs } from '@/data/static-pages'
-import { LOCALES } from '@/i18n/locales'
-import { localizedPath } from '@/i18n/paths'
-import { pageTitle } from './seo'
+import { findDroppedDiacritics } from './diacritics'
+import { STATIC_PAGES, staticPageSlugs } from '@/data/static-pages'
+import { DEFAULT_LOCALE, HREFLANG, LOCALES } from '@/i18n/locales'
+import { hreflangAlternates, localizedPath } from '@/i18n/paths'
+import sitemap from '@/app/sitemap'
+import { absoluteUrl, pageTitle } from './seo'
 import { TOOLS } from '@/tools/registry'
 import type { Tool, ToolField } from '@/tools/types'
 
@@ -135,7 +137,7 @@ describe('content tree', () => {
         expect(hrefFor('blog', 'foo')).toBe('/blog/foo')
         expect(hrefFor('alternatives', 'foo-alternative')).toBe('/foo-alternative')
         expect(hrefFor('capture', 'split-bill-no-signup')).toBe('/split-bill-no-signup')
-        expect(hrefFor('capture', 'split-bill-no-signup', 'es')).toBe('/es/split-bill-no-signup')
+        expect(hrefFor('capture', 'split-bill-no-signup', 'es-419')).toBe('/es-419/split-bill-no-signup')
         // The canonical and the hreflang base are the same derivation as the href, minus the prefix.
         expect(basePathFor('blog', 'foo')).toBe('/blog/foo')
         expect(basePathFor('capture', 'foo')).toBe('/foo')
@@ -201,13 +203,13 @@ describe('loader, against a scratch tree', () => {
 
         // Capture pages share the root slot with alternatives, and are shadowed by the same routes.
         write('capture/split-bill-no-signup/en.md', doc('No signup', '2026-06-06', 'intent: split bill no signup\n'))
-        write('capture/split-bill-no-signup/es.md', doc('Sin registro', '2026-06-06', 'intent: dividir cuenta\n'))
+        write('capture/split-bill-no-signup/es-419.md', doc('Sin registro', '2026-06-06', 'intent: dividir cuenta\n'))
         write('capture/blog/en.md', doc('Blog', '2026-06-07'))
 
         // Translations: one article fully localised, one Spanish-only draft, one English-only.
-        write('blog/newer/es.md', doc('Nuevo', '2026-06-01'))
-        write('blog/newer/pt-BR.md', doc('Novo', '2026-06-01'))
-        write('blog/older/es.md', doc('Viejo', '2026-01-01', 'published: false\n'))
+        write('blog/newer/es-419.md', doc('Nuevo', '2026-06-01'))
+        write('blog/newer/pt-br.md', doc('Novo', '2026-06-01'))
+        write('blog/older/es-419.md', doc('Viejo', '2026-01-01', 'published: false\n'))
 
         process.chdir(root)
     })
@@ -249,13 +251,13 @@ describe('loader, against a scratch tree', () => {
      */
     it('serves capture pages from the root slot beside alternatives', () => {
         expect(getDoc('capture', 'split-bill-no-signup')?.href).toBe('/split-bill-no-signup')
-        expect(getDoc('capture', 'split-bill-no-signup', 'es')?.href).toBe('/es/split-bill-no-signup')
+        expect(getDoc('capture', 'split-bill-no-signup', 'es-419')?.href).toBe('/es-419/split-bill-no-signup')
         expect(getDoc('capture', 'split-bill-no-signup')?.frontmatter.intent).toBe('split bill no signup')
-        expect(localesForSlug('capture', 'split-bill-no-signup')).toEqual(['en', 'es'])
+        expect(localesForSlug('capture', 'split-bill-no-signup')).toEqual(['en', 'es-419'])
 
         const hrefs = listAllTranslations().map((doc) => doc.href)
         expect(hrefs).toContain('/split-bill-no-signup')
-        expect(hrefs).toContain('/es/split-bill-no-signup')
+        expect(hrefs).toContain('/es-419/split-bill-no-signup')
         expect(hrefs).toContain('/keep-alternative')
     })
 
@@ -266,42 +268,42 @@ describe('loader, against a scratch tree', () => {
     describe('translations', () => {
         it('serves each language its own file', () => {
             expect(getDoc('blog', 'newer', 'en')?.frontmatter.title).toBe('Newer')
-            expect(getDoc('blog', 'newer', 'es')?.frontmatter.title).toBe('Nuevo')
-            expect(getDoc('blog', 'newer', 'pt-BR')?.frontmatter.title).toBe('Novo')
+            expect(getDoc('blog', 'newer', 'es-419')?.frontmatter.title).toBe('Nuevo')
+            expect(getDoc('blog', 'newer', 'pt-br')?.frontmatter.title).toBe('Novo')
         })
 
         it('never falls back to English for an untranslated article', () => {
-            // `older` has no pt-BR file at all, and its es file is a draft.
-            expect(getDoc('blog', 'older', 'pt-BR')).toBeNull()
-            expect(getDoc('blog', 'older', 'es')).toBeNull()
+            // `older` has no pt-br file at all, and its es-419 file is a draft.
+            expect(getDoc('blog', 'older', 'pt-br')).toBeNull()
+            expect(getDoc('blog', 'older', 'es-419')).toBeNull()
         })
 
         it('lists only what exists in that language', () => {
-            expect(listSlugs('blog', 'es')).toEqual(['newer'])
-            expect(listSlugs('blog', 'pt-BR')).toEqual(['newer'])
+            expect(listSlugs('blog', 'es-419')).toEqual(['newer'])
+            expect(listSlugs('blog', 'pt-br')).toEqual(['newer'])
         })
 
         it('reports the locales a slug has, in a stable order', () => {
-            expect(localesForSlug('blog', 'newer')).toEqual(['en', 'es', 'pt-BR'])
+            expect(localesForSlug('blog', 'newer')).toEqual(['en', 'es-419', 'pt-br'])
             expect(localesForSlug('blog', 'dateless')).toEqual(['en'])
             expect(localesForSlug('blog', 'no-such-slug')).toEqual([])
         })
 
         it('prefixes non-default locales and leaves English bare', () => {
             expect(getDoc('blog', 'newer', 'en')?.href).toBe('/blog/newer')
-            expect(getDoc('blog', 'newer', 'es')?.href).toBe('/es/blog/newer')
-            expect(getDoc('blog', 'newer', 'pt-BR')?.href).toBe('/pt-br/blog/newer')
+            expect(getDoc('blog', 'newer', 'es-419')?.href).toBe('/es-419/blog/newer')
+            expect(getDoc('blog', 'newer', 'pt-br')?.href).toBe('/pt-br/blog/newer')
             expect(getDoc('alternatives', 'keep-alternative', 'en')?.href).toBe('/keep-alternative')
         })
 
         it('enumerates every published translation for the sitemap', () => {
             const hrefs = listAllTranslations().map((doc) => doc.href)
             expect(hrefs).toContain('/blog/newer')
-            expect(hrefs).toContain('/es/blog/newer')
+            expect(hrefs).toContain('/es-419/blog/newer')
             expect(hrefs).toContain('/pt-br/blog/newer')
             // The Spanish draft of `older` is published:false — a live English page beside it
             // must not drag the unfinished translation into the sitemap.
-            expect(hrefs).not.toContain('/es/blog/older')
+            expect(hrefs).not.toContain('/es-419/blog/older')
             expect(new Set(hrefs).size).toBe(hrefs.length)
         })
     })
@@ -322,6 +324,9 @@ describe('article bodies', () => {
             ...LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
             ...ALL.map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
+            ...STATIC_PAGES.flatMap((page) =>
+                (page.locales ?? [DEFAULT_LOCALE]).map((locale) => localizedPath(page.href, locale))
+            ),
         ])
 
         for (const doc of ALL) {
@@ -875,6 +880,151 @@ function computedStrings(tool: Tool): string[] {
     )
 }
 
+/**
+ * The dropped-accent gate, over the real tree.
+ *
+ * `diacritics.test.ts` proves the matcher — the wordlist, the boundaries, the interrogative
+ * scoping, and the mutation loop that shows every row can fail. This is the other half: the rule
+ * pointed at what actually ships. An English page has nothing to drop, so it is skipped by
+ * construction rather than by an exception.
+ */
+describe('diacritic gate', () => {
+    /**
+     * Everything on the page that a reader of that language reads.
+     *
+     * `ownProse` is not enough here, and the mutation test is what proved it: the frontmatter FAQ
+     * block is copy — it renders as `<FAQItem>` on the page AND as FAQPage JSON-LD in the head —
+     * but it is not in `doc.body`, so a dropped accent in an answer went through unseen. The
+     * exclamation gate already counts frontmatter FAQs as their own zone for the same reason.
+     */
+    const localeCopy = (doc: (typeof ALL)[number]): string =>
+        [ownProse(doc), ...(doc.frontmatter.faqs ?? []).flatMap((faq) => [faq.question, faq.answer])].join('\n')
+
+    it('never drops an accent in a Spanish or Portuguese page', () => {
+        for (const doc of ALL) {
+            const hits = findDroppedDiacritics(localeCopy(doc), doc.locale)
+            expect(
+                hits.map((hit) => `"${hit.found}" → "${hit.expected}"`).join(', '),
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: a dropped diacritic reads as a page nobody who speaks the language has read`
+            ).toBe('')
+        }
+    })
+
+    /** The gate is only worth having if a locale page is actually reaching it. */
+    it('runs over at least one page in each translated locale', () => {
+        for (const locale of LOCALES) {
+            if (locale === 'en') continue
+            expect(
+                ALL.some((doc) => doc.locale === locale),
+                `no ${locale} page exists, so the diacritic gate covers nothing in that language`
+            ).toBe(true)
+        }
+    })
+})
+
+/**
+ * The locale plumbing, asserted against the tree rather than against a fixture: every translation
+ * on disk is reachable at a locale-prefixed URL, advertises its siblings, and none of it moves the
+ * English URLs.
+ */
+describe('locale routing', () => {
+    it('serves English from the bare path and every translation from one prefixed segment', () => {
+        for (const doc of ALL) {
+            const base = basePathFor(doc.collection, doc.slug)
+            if (doc.locale === 'en') {
+                expect(doc.href, `${doc.slug}: English must not move off its bare path`).toBe(base)
+                continue
+            }
+            expect(doc.href).toBe(`/${doc.locale}${base}`)
+            // Exactly one segment of locale in front of the English slug, which is never translated.
+            expect(doc.href.split('/')[1]).toBe(doc.locale)
+            expect(doc.href.endsWith(base)).toBe(true)
+        }
+    })
+
+    /** A locale with no file for a slug has no page there — not an English body at a Spanish URL. */
+    it('404s a locale a page was never translated into', () => {
+        for (const collection of COLLECTIONS) {
+            for (const slug of listSlugs(collection)) {
+                const present = localesForSlug(collection, slug)
+                for (const locale of LOCALES) {
+                    if (present.includes(locale)) continue
+                    expect(getDoc(collection, slug, locale), `${slug}/${locale}.md does not exist`).toBeNull()
+                }
+            }
+        }
+    })
+
+    /**
+     * hreflang reciprocity. Google honours the map only when every variant of a page advertises
+     * every other one, so the set is derived from the files rather than from the locale list, and
+     * it has to come out identical whichever variant is asked.
+     */
+    it('advertises a mutual hreflang set, in BCP 47 casing, from every variant', () => {
+        for (const collection of COLLECTIONS) {
+            for (const slug of listSlugs(collection)) {
+                const available = localesForSlug(collection, slug)
+                const languages = hreflangAlternates(basePathFor(collection, slug), available)
+                if (available.length < 2) {
+                    expect(languages, `${slug}: one language is not a set of alternates`).toBeUndefined()
+                    continue
+                }
+                for (const locale of available) {
+                    expect(languages, `${slug}: ${locale} missing from its own hreflang set`).toHaveProperty(
+                        HREFLANG[locale]
+                    )
+                    expect(languages![HREFLANG[locale]]).toBe(localizedPath(basePathFor(collection, slug), locale))
+                }
+                // x-default is the English URL and only exists when English does.
+                expect(HREFLANG.en in languages!).toBe(available.includes('en'))
+                expect('x-default' in languages!).toBe(available.includes('en'))
+                if (available.includes('en')) {
+                    expect(languages!['x-default']).toBe(basePathFor(collection, slug))
+                }
+            }
+        }
+    })
+
+    /**
+     * The sitemap is the only place a translation is announced to a crawler, so every published
+     * one has to be in it, carrying the alternates that say what it is a translation of.
+     */
+    it('lists every published translation in the sitemap, with its alternates', () => {
+        const entries = sitemap()
+        const byUrl = new Map(entries.map((entry) => [entry.url, entry]))
+
+        for (const doc of ALL) {
+            const url = absoluteUrl(doc.frontmatter.canonical ?? doc.href)
+            const entry = byUrl.get(url)
+            expect(entry, `${doc.collection}/${doc.slug}/${doc.locale}.md is missing from the sitemap`).toBeDefined()
+
+            const available = localesForSlug(doc.collection, doc.slug)
+            if (available.length < 2) continue
+            expect(
+                entry!.alternates?.languages,
+                `${doc.href} is listed without saying what it translates`
+            ).toBeDefined()
+            // Next types `languages` as a map over the codes it knows; ours are looked up by
+            // hreflang value, which is a plain string as far as that type is concerned.
+            const languages = entry!.alternates!.languages as Record<string, string>
+            for (const locale of available) {
+                expect(languages[HREFLANG[locale]]).toBe(
+                    absoluteUrl(localizedPath(basePathFor(doc.collection, doc.slug), locale))
+                )
+            }
+        }
+    })
+
+    /** No page is kept out of the index — the whole point of one URL per language. */
+    it('sitemaps every locale of the guides hub and nothing twice', () => {
+        const urls = sitemap().map((entry) => entry.url)
+        for (const locale of LOCALES) {
+            expect(urls).toContain(absoluteUrl(localizedPath('/blog', locale)))
+        }
+        expect(new Set(urls).size).toBe(urls.length)
+    })
+})
+
 /** §4.1 — the only approved shapes for the one concession section a page carries. */
 const CONCESSION_TITLE = /^When .+ (?:is the better tool|still wins)$/
 
@@ -1028,6 +1178,52 @@ describe('tool registry', () => {
             const questions = tool.faqs.map((faq) => faq.question)
             expect(new Set(questions).size, `${tool.slug} asks the same question twice`).toBe(questions.length)
             for (const faq of tool.faqs) expect(faq.answer.length, `${tool.slug}: ${faq.question}`).toBeGreaterThan(20)
+        }
+    })
+})
+
+/** The locale-specific mechanical rows in stylebook §11.2, over the real translated tree. */
+describe('localized content gates', () => {
+    it('keeps the Settle Up brand cased, without treating a URL slug as prose', () => {
+        for (const doc of ALL) {
+            if (doc.locale === 'en') continue
+            const prose = ownProse(doc).replace(/\/[a-z0-9][a-z0-9/-]*/g, ' ')
+            expect(
+                prose.match(/\bsettle up\b/)?.[0],
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: use “Settle Up” for the brand, or the locale's verb`
+            ).toBeUndefined()
+        }
+    })
+
+    it('dates every comparison against a source in the page language', () => {
+        const phrase: Record<(typeof LOCALES)[number], RegExp> = {
+            en: /checked\s+against[\s\S]{0,100}\d{4}-\d{2}-\d{2}/i,
+            'es-419': /verificad[ao]s? contra[\s\S]{0,100}\d{4}-\d{2}-\d{2}/i,
+            'pt-br': /conferid[ao]s? (?:contra|no)[\s\S]{0,120}\d{4}-\d{2}-\d{2}/i,
+        }
+        for (const doc of ALL) {
+            if (doc.collection !== 'alternatives') continue
+            expect(
+                phrase[doc.locale].test(doc.body),
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: comparison needs a locale-correct source check phrase and ISO date`
+            ).toBe(true)
+        }
+    })
+
+    it('does not lead a Brazilian Portuguese heading with an absence', () => {
+        for (const doc of ALL) {
+            if (doc.locale !== 'pt-br') continue
+            const headings = [
+                doc.frontmatter.title,
+                doc.frontmatter.description,
+                ...[...doc.body.matchAll(/^#{1,6}\s+(.+)$/gm)].map((match) => match[1]),
+            ]
+            for (const heading of headings) {
+                expect(
+                    /^Sem\s/.test(heading),
+                    `${doc.collection}/${doc.slug}/${doc.locale}.md: lead with what the reader gets, not “Sem …”`
+                ).toBe(false)
+            }
         }
     })
 })

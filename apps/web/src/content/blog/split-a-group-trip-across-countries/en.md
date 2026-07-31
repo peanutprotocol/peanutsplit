@@ -5,7 +5,7 @@ date: 2026-07-28
 tags: [trips, currencies, getting paid back]
 faqs:
     - question: Does everyone need to install something?
-      answer: No. A Split room is a web link. Whoever opens it types a name and starts adding expenses — no app, no account, no email.
+      answer: No. A Split room is a web link. Whoever opens it types a name and starts adding expenses. No app, no account, no email.
     - question: What currency should the room be in?
       answer: The one you will argue about at the end. Usually that is the currency most of the trip was paid in. You can still enter individual expenses in whatever you actually spent.
     - question: How do people pay each other back across countries?
@@ -51,7 +51,7 @@ Split nets the debts against each other so you make two or three transfers inste
 
 <Checklist title="What settled should actually look like">
 <ChecklistItem title="Two or three payments, not twenty">One person paying one person happens. Six people paying each other gets discussed.</ChecklistItem>
-<ChecklistItem title="Each payment has an owner and a number">"Mark owes Ana €140" is actionable. "We all owe each other roughly the same" is not.</ChecklistItem>
+<ChecklistItem title="Each payment has an owner and a number">"Jules owes Ana €140" is actionable. "We all owe each other roughly the same" is not.</ChecklistItem>
 <ChecklistItem title="Someone has to say it landed">A settled row is one person's word that they paid. Split does not check with a bank and cannot — that is fine among friends, and worth knowing about your ledger.</ChecklistItem>
 </Checklist>
 
@@ -59,7 +59,7 @@ Split nets the debts against each other so you make two or three transfers inste
 
 This is where most trip-splitting advice stops.
 
-If the group shares a country you already have an answer — one domestic transfer app that everyone has. If the group does not, "send it to me" turns into a week of back-and-forth about which app someone has, what a SWIFT transfer costs, and whether a €4 fee on a €40 debt is worth arguing about.
+If the group shares a country you already have an answer: one domestic transfer app that everyone has. If the group does not, "send it to me" turns into a week of back-and-forth about which app someone has, what a SWIFT transfer costs, and whether a €4 fee on a €40 debt is worth arguing about.
 
 In order of preference:
 
@@ -75,7 +75,7 @@ Split records the payment when whoever paid says they paid it. It does not care 
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Does everyone need to install something?">No. A Split room is a web link. Whoever opens it types a name and starts adding expenses — no app, no account, no email.</FAQItem>
+<FAQItem question="Does everyone need to install something?">No. A Split room is a web link. Whoever opens it types a name and starts adding expenses. No app, no account, no email.</FAQItem>
 <FAQItem question="What currency should the room be in?">The one you will argue about at the end. Usually that is the currency most of the trip was paid in. You can still enter individual expenses in whatever you actually spent.</FAQItem>
 <FAQItem question="How do people pay each other back across countries?">However they already do it. Split nets the debts down so you make two or three transfers instead of twenty, and records each one when whoever paid says they paid it.</FAQItem>
 </FAQ>

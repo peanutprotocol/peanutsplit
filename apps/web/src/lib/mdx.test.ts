@@ -13,7 +13,7 @@ const ALL = COLLECTIONS.flatMap((collection) => listDocs(collection))
 
 describe('article compilation', () => {
     it.each(ALL.map((doc) => [doc.slug, doc] as const))('compiles %s', async (_slug, doc) => {
-        await expect(renderArticle(doc.body)).resolves.toBeTruthy()
+        await expect(renderArticle(doc.body, doc.locale)).resolves.toBeTruthy()
     })
 
     /**

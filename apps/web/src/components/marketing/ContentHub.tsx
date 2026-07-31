@@ -5,6 +5,7 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { LanguageLinks } from '@/components/marketing/LanguageLinks'
 import { Button } from '@/components/ui/Button'
+import { comparisonCopy } from '@/components/marketing/compare-copy'
 import { STATIC_PAGES } from '@/data/static-pages'
 import { listAllDocs } from '@/lib/content'
 import { absoluteUrl, breadcrumbSchema, formatDate } from '@/lib/seo'
@@ -18,9 +19,8 @@ import { localizedPath } from '@/i18n/paths'
  * whole job — an article nothing links to is one Google finds late and re-crawls rarely. It
  * lists whatever markdown exists for the locale, so a new file shows up with no edit here.
  *
- * The hand-built pages in STATIC_PAGES are English-only (the Splitwise page's copy and its
- * FAQPage schema are both English by decision — see `copy.ts`), so they are listed on the English
- * hub and nowhere else. A Spanish hub linking an English page would be a dead end mid-journey.
+ * Hand-built pages declare the locales they actually serve. The Splitwise page is present in all
+ * three and takes its card copy from the same object as its metadata; the tools remain English-only.
  */
 
 interface HubEntry {
@@ -36,7 +36,7 @@ export async function ContentHub({ locale }: { locale: Locale }) {
     const t = await getTranslations({ locale, namespace: 'content' })
 
     // The landing is bare `/` in every language — it is app shell, so it answers at one URL and
-    // has no `/es` or `/pt-br` route (see `@/i18n/paths`). Only `/blog` is locale-prefixed here.
+    // has no `/es-419` or `/pt-br` route (see `@/i18n/paths`). Only `/blog` is locale-prefixed here.
     const crumbs = [
         { name: t('home'), href: '/' },
         { name: t('guides'), href: localizedPath('/blog', locale) },
@@ -50,13 +50,16 @@ export async function ContentHub({ locale }: { locale: Locale }) {
             date: doc.frontmatter.date,
             tags: doc.frontmatter.tags,
         })),
-        ...(locale === DEFAULT_LOCALE
-            ? STATIC_PAGES.filter((page) => page.inHub).map((page) => ({
-                  href: page.href,
-                  title: page.title,
-                  description: page.description,
-              }))
-            : []),
+        ...STATIC_PAGES.filter((page) => page.inHub && (page.locales ?? [DEFAULT_LOCALE]).includes(locale)).map(
+            (page) => {
+                const copy = page.href === '/splitwise-alternative' ? comparisonCopy[locale].meta : page
+                return {
+                    href: localizedPath(page.href, locale),
+                    title: copy.title,
+                    description: copy.description,
+                }
+            }
+        ),
     ]
 
     /** ItemList tells a crawler this is a listing and gives it the crawl order we intend. */
@@ -115,7 +118,7 @@ export async function ContentHub({ locale }: { locale: Locale }) {
                     </ul>
                 )}
 
-                {/* `/new` is app shell too — one URL, cookie decides the language. `/es/new` and
+                {/* `/new` is app shell too — one URL, cookie decides the language. `/es-419/new` and
                     `/pt-br/new` are not routes, so prefixing this made the hub's only CTA a 404. */}
                 <Link href="/new" className="mt-8 block">
                     <Button variant="primary" shadowSize="4" className="justify-center text-h6">

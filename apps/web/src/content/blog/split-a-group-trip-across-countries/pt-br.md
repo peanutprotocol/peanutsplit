@@ -51,7 +51,7 @@ O Split compensa as dívidas entre si para vocês fazerem duas ou três transfer
 
 <Checklist title="Como acertado deveria ser">
 <ChecklistItem title="Dois ou três pagamentos, não vinte">Uma pessoa pagar outra acontece. Seis pessoas se pagando entre si vira discussão.</ChecklistItem>
-<ChecklistItem title="Cada pagamento com dono e com número">"Mark deve 140 € para a Ana" dá para executar. "Todo mundo deve mais ou menos a mesma coisa" não.</ChecklistItem>
+<ChecklistItem title="Cada pagamento com dono e com número">"Jules deve 140 € para a Ana" dá para executar. "Todo mundo deve mais ou menos a mesma coisa" não.</ChecklistItem>
 <ChecklistItem title="Alguém precisa dizer que caiu">Uma linha acertada é a palavra de uma pessoa de que pagou. O Split não confere com banco nenhum e não tem como — entre amigos tudo bem, e vale saber disso sobre o seu registro.</ChecklistItem>
 </Checklist>
 

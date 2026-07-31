@@ -1,7 +1,7 @@
 import { contentOgImage, contentOgStaticParams, ogImageExports } from '@/lib/content-og'
 
 /** Portuguese guide unfurl. Implementation shared — see `lib/content-og`. */
-const LOCALE = 'pt-BR' as const
+const LOCALE = 'pt-br' as const
 
 // Literal, not `ogImageExports.runtime`: Next parses this export statically and rejects
 // a member expression outright.

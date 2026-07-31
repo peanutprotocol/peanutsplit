@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
-import { LOCALE_LABELS, type Locale } from '@/i18n/locales'
+import { HREFLANG, LOCALE_LABELS, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 
 /**
@@ -8,7 +8,7 @@ import { localizedPath } from '@/i18n/paths'
  *
  * hreflang tells a crawler which URL to serve to whom; it does nothing for a reader who landed on
  * the wrong one. The footer's locale switcher does not help either — it writes a cookie and
- * reloads, which on `/es/blog/…` reloads the same Spanish URL. These links are the only control
+ * reloads, which on `/es-419/blog/…` reloads the same Spanish URL. These links are the only control
  * that actually crosses to the translated page, which is why the indexed pages hide the switcher
  * and render this instead.
  *
@@ -41,8 +41,8 @@ export async function LanguageLinks({
                     {i > 0 && <span className="text-xs text-grey-1"> · </span>}
                     <Link
                         href={localizedPath(path, locale)}
-                        hrefLang={locale}
-                        lang={locale}
+                        hrefLang={HREFLANG[locale]}
+                        lang={HREFLANG[locale]}
                         translate="no"
                         className="notranslate text-xs text-n-1 underline underline-offset-2"
                     >

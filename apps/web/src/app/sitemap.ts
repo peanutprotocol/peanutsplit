@@ -3,7 +3,7 @@ import { STATIC_PAGES } from '@/data/static-pages'
 import { TOOLS, toolPath } from '@/tools/registry'
 import { basePathFor, listAllTranslations, localesForSlug, type Collection } from '@/lib/content'
 import { absoluteUrl } from '@/lib/seo'
-import { LOCALES } from '@/i18n/locales'
+import { DEFAULT_LOCALE, LOCALES } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { splitV2Enabled } from '@/lib/flags'
 
@@ -34,13 +34,18 @@ const PRIORITY: Record<Collection, number> = {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.filter((page) => !page.v2Only || splitV2Enabled()).map(
-        (page) => ({
-            url: absoluteUrl(page.href),
-            changeFrequency: 'monthly',
+    const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.filter(
+        (page) => !page.v2Only || splitV2Enabled()
+    ).flatMap((page) => {
+        const locales = page.locales ?? [DEFAULT_LOCALE]
+        const languages = absolutise(hreflangAlternates(page.href, [...locales]))
+        return locales.map((locale) => ({
+            url: absoluteUrl(localizedPath(page.href, locale)),
+            changeFrequency: 'monthly' as const,
             priority: page.priority,
-        })
-    )
+            alternates: languages && { languages },
+        }))
+    })
 
     /**
      * Calculators, from the registry. Ranked with the comparison pages rather than below them:

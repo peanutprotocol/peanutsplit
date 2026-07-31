@@ -1,13 +1,19 @@
-import { marketingCopy } from './copy'
-
-const { table } = marketingCopy.compare
+interface CompareTableProps {
+    table: {
+        title: string
+        splitLabel: string
+        otherLabel: string
+        rows: readonly { feature: string; split: string; other: string }[]
+        footnote: string
+    }
+}
 
 /**
  * A comparison "table" rendered as stacked rows rather than a <table>. Split is read on a
  * phone first, and a two-column table at 360px either scrolls sideways or shrinks the text
  * to nothing. Each row carries its own column labels so the comparison survives the stack.
  */
-export function CompareTable() {
+export function CompareTable({ table }: CompareTableProps) {
     return (
         <section className="mx-auto w-full max-w-xl px-5">
             <h2 className="text-h5">{table.title}</h2>
