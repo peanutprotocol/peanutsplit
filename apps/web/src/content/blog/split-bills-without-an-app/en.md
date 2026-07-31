@@ -37,9 +37,9 @@ Split is the third one. There is no email field anywhere in the product, because
 
 ## How a link can be the login
 
-The usual objection: if there is no account, what stops anyone from opening the room?
+The usual objection to a room with no accounts: nothing appears to be keeping anybody out.
 
-The link. A room's address ends in six random characters, and search engines are told not to index room pages, so it is not something anyone stumbles onto. That makes the room as private as the chat you paste it into, and no more.
+The link is. A room's address ends in six random characters, and search engines are told not to index room pages, so it is not something anyone stumbles onto. That makes the room as private as the chat you paste it into, and no more.
 
 <Callout title="The tradeoff">
 A link that is the key can be forwarded, and it can be lost. Keep it in the group chat rather than only in your own browser, and treat "anyone with this link can see the room" as literally true. Link-preview bots are allowed to read room pages so the unfurl works in a group chat — that is deliberate, and it means the room name and totals travel with the link. In exchange, nobody in your group has to make an account.
