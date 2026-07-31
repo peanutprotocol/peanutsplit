@@ -5,6 +5,9 @@ page. Where a rule fights your instinct, the rule wins; where it fights a Konrad
 [`project.md`](project.md), `project.md` wins. Rule IDs are stable — cite them in checklists and
 reviews. Why each rule exists: [`idea-maze.md`](idea-maze.md). Evidence:
 [`research/audiences.md`](research/audiences.md), [`research/brand-cast.md`](research/brand-cast.md).
+**Localising?** This file plus the matching locale rulebook —
+[`localization.es-419.md`](localization.es-419.md) or
+[`localization.pt-br.md`](localization.pt-br.md) — and §9 for the rules that span both.
 Pages: [`../seo-backlog.md`](../seo-backlog.md). **Only legal FAQ source:**
 [`../intent-queries-2026-07-30.md`](../intent-queries-2026-07-30.md).
 
@@ -377,8 +380,8 @@ is comparative, confident and specific. It is never a list of things we are bad 
 | Locale | When another tool wins (the concession)                                             | Practical facts        |
 | ------ | ----------------------------------------------------------------------------------- | ---------------------- |
 | en     | "When {Competitor} is the better tool" · "When {Competitor} still wins"             | "Good to know"         |
-| es     | "Cuándo {Competidor} es la mejor herramienta" · "Cuándo {Competidor} sigue ganando" | "Para tener en cuenta" |
-| pt-BR  | "Quando o {Competidor} é a ferramenta melhor" · "Quando o {Competidor} ainda ganha" | "Bom saber"            |
+| es-419 | "Cuándo {Competidor} es la mejor herramienta" · "Cuándo {Competidor} sigue ganando" | "Para tener en cuenta" |
+| pt-br  | "Quando o {Competidor} é a ferramenta melhor" · "Quando o {Competidor} ainda ganha" | "Bom saber"            |
 
 `{Competitor}` is any named alternative, product or not — Tricount, Splitwise, a spreadsheet, a group
 chat, a shared note, cash. Name the thing; never write "other tools". **"Good to know" is not a
@@ -434,13 +437,14 @@ visual family — never on the same page as a doodle.
   the concession) · `guide` 2 (one per major section) · `editorial` 0 by default. Never in an H1,
   never in a claims or comparison table, never two in one section.
 - **§5.5 Three families where the cast is ABSENT — no exceptions.** (1) **Couples splitting by
-  income** — by-income calculator surface, ability-to-pay essay, `dividir gastos en pareja según
-ingresos`: a doodle on a page about one partner being in fuel poverty is the documented cutesy
-  failure. (2) **Rent and utilities fairness** — rent split by room size, uneven utilities,
-  `/es/dividir-alquiler-habitaciones-diferentes`: this segment wants an arbiter and least wants
-  personality, and the page gets quoted at a flatmate. (3) **Splitwise migration pages** —
-  `/splitwise-alternative`, `/splitwise-daily-limit`, `/es/alternativa-splitwise`,
-  `/pt/alternativa-splitwise`: the reader just lost trust in a product, so charm reads as sales.
+  income** — by-income calculator surface, ability-to-pay essay, the `dividir gastos en pareja según
+ingresos` query: a doodle on a page about one partner being in fuel poverty is the documented
+  cutesy failure. (2) **Rent and utilities fairness** — rent split by room size, uneven utilities:
+  this segment wants an arbiter and least wants personality, and the page gets quoted at a flatmate.
+  (3) **Splitwise migration pages** — `/splitwise-alternative`, `/splitwise-daily-limit`: the reader
+  just lost trust in a product, so charm reads as sales. **The families are slug-scoped, and slugs
+  are English in every locale (§9.5)** — so one slug list covers all three locales and the localised
+  variants need no separate row.
 - **§5.6 Editorial exception:** of the five fairness clusters, only _ambiguous social contract_
   (stag / hen / despedida) may carry one character, and not in the opening or closing 200 words.
 - **§5.7 Travel content reuses the shipped rooms, not inventions:** **Lisbon weekend** (4 friends,
@@ -452,10 +456,12 @@ ingresos`: a doodle on a page about one partner being in fuel poverty is the doc
 - **§5.9 The room-emblem device is free and locale-proof:** "name the room 'Ski trip' and it is
   already a pair of skis" is a true product detail. Prefer it over a persona when the page needs one
   visual beat and the moment is not light.
-- **§5.10 PROVISIONAL — ES and PT-BR pages print no character name.** The 16 labels are English
-  string literals in `avatars.ts`, absent from the i18n catalogs, and no translation ruling exists.
-  Until one does, localised pages may use cast _art_, the room-emblem device and the shipped
-  localised room names, but not "Vampire Penguin" or any persona label.
+- **§5.10 RESOLVED 31 Jul (§9.8) — persona labels are locale-invariant and localised pages may print
+  them.** The provisional rule (no character name on an `es-419` or `pt-br` page, pending a
+  translation ruling) is closed by the mono-conventions adoption: names live in the data layer and
+  every locale inherits them unchanged, so "Vampire Penguin" is "Vampire Penguin" in all three. The
+  same §5.4 density caps and §5.5 absence families apply. Room names remain the exception — the
+  shipped localised strings in `src/i18n/messages/`, never a new translation.
 
 ---
 
@@ -634,12 +640,41 @@ comments say the date.
 
 ## §9 Locale rules
 
-Three locales: `en`, `es`, `pt-BR`. **An untranslated page does not exist** — it 404s, it is out of
-the sitemap, hreflang never points at it. No English fallback, ever. Localise the slug, the example
-names, the currency and the settlement rail — not just the sentences.
+Three locales. **The codes, the URL shape and the framing rules are peanut.me's**, adopted whole
+under Konrad's binding ruling of 31 Jul: _"for localization use whatever we used on peanut.me mono
+content repo — for whatever dilemmas, always consult the choices on mono peanut content."_ The
+extraction is [`research/mono-localization-conventions.md`](research/mono-localization-conventions.md);
+the two per-locale rulebooks that come out of it are
+[`localization.es-419.md`](localization.es-419.md) and [`localization.pt-br.md`](localization.pt-br.md).
+**Every transcreation brief carries the stylebook plus the matching context file.**
 
-Content CTA label: `en` **Start a split** · `es` **Empezar a dividir** · `pt-BR` **Começar uma
-divisão**. EN CTA hint: "Takes ten seconds. No email, no password, no download."
+| Locale               | Code — filename, frontmatter | hreflang           | URL                                     | Register     |
+| -------------------- | ---------------------------- | ------------------ | --------------------------------------- | ------------ |
+| English              | `en`                         | `en` + `x-default` | **bare root** — `/split-bill-no-signup` | §9.1         |
+| LATAM Spanish        | `es-419`                     | `es-419`           | `/es-419/split-bill-no-signup`          | §9.2, _tú_   |
+| Brazilian Portuguese | `pt-br`                      | `pt-BR`            | `/pt-br/split-bill-no-signup`           | §9.3, _você_ |
+
+- **`es-419` and `pt-br`, never `es` or `pt`** — mono's baseline pair, mono's spelling
+  (`locales.md` §1: lowercase BCP 47 in filenames and frontmatter, BCP 47 casing in hreflang).
+  `es-ar` and `es-es` exist in mono and are **out of scope for Split** — they are added only on
+  Argentina- or Spain-specific pages, and none is planned. If one is ever written, mono's two
+  register files are the spec, unchanged.
+- **EN stays at the bare root — a deviation from mono, on purpose.** Mono redirects `peanut.me/` to
+  `peanut.me/en/` and gives English its own prefix. Split's EN pages are live and indexed at the
+  root, and the canonicals are due to move to `peanut.me/split/*` anyway (the Hugo-side rewrite
+  keystone). Retiring live URLs to buy a prefix, twice, buys nothing. `x-default` points at the root
+  EN page.
+- **Canonical is self, per locale** — `/{locale}/{slug}`, never cross-canonical to EN
+  (mono `seo.md` §9.1).
+- **An untranslated page does not exist** — it 404s, it leaves the sitemap, hreflang never points at
+  it. No English fallback, ever. Split deviates from mono here, which falls back to English; a
+  partially translated site that lies about it is a ranking problem.
+
+Content CTA label: `en` **Start a split** · `es-419` **Crear un split** · `pt-br` **Criar um
+split**. CTA hint: `en` "Takes ten seconds. No email, no password, no download." · `es-419` "Diez
+segundos. Sin correo, sin contraseña, sin descargas." · `pt-br` "Dez segundos. Sem e-mail, sem senha,
+sem download." All six are the strings already live on prod. The full pin list, including the
+recurring cross-link labels, is `localization.es-419.md` §7 and `localization.pt-br.md` §8.
 
 **§9.1 EN — British English, between UK warmth and US calm.** maths (never math), help centre,
 organise, licence (noun), recognise. Sit closer to The Knot's calm admin than StagWeb's banter;
@@ -647,7 +682,10 @@ British warmth yes, lad-banter no. **No "lads"** — it excludes the larger, hen
 occasion audience. Neutral money nouns only: no quid, skint, bucks, "Venmo me". Utility-shaped humour
 survives; decorative humour does not.
 
-**§9.2 ES — one URL, pan-Hispanic, singular _tú_.**
+**§9.2 `es-419` — one Spanish, LATAM-neutral, singular _tú_.** Mono's own es-419 rule, verbatim
+(`localization.es-419.md` §2): _"Use **tú** … Use **ustedes** for plural … **Never** use voseo …
+**Never** use vosotros"_. Split ships no `es-es`, so this page is also what a reader in Spain gets —
+which is why the Spain-unsafe bans below survive even where mono's es-419 permits them.
 
 - Singular _**tú**_ throughout (locked). **Never** vosotros / estáis / habéis / vuestro / vuestra —
   Tricount's own ES App Store copy is _vosotros_, unusable across both hemispheres.
@@ -663,7 +701,9 @@ piso` (say _departamento_, _roomie_) · chaval, tío, vale, guay · `coger`. **B
 - **Diminutives are not locale-safe:** "un café" is safe, "una cañita" is not (beer in Spain, wine in
   Chile).
 
-**§9.3 PT-BR — the vocabulary map is the strategy.**
+**§9.3 `pt-br` — the vocabulary map is the strategy.** Register is _você_, never _tu_
+(`localization.pt-br.md` §2). The mono positive-framing rule and the `sem cadastro` nuance it
+produces live in [`localization.pt-br.md`](localization.pt-br.md) §6.
 
 - **`dividir` in titles, H1s and slugs; `rachar` in headlines and body.** BR autocomplete sends
   `rachar a conta` to _significado / sinônimo / em inglês_, while `dividir` owns every transactional
@@ -689,6 +729,48 @@ piso` (say _departamento_, _roomie_) · chaval, tío, vale, guay · `coger`. **B
 **§9.4 Evidence caveat.** ES and PT-BR user-voice evidence is thin (no Reddit, X or unbranded
 forums). Any emotional claim sourced from those locales needs first-party verification before it
 ships as copy; competitor-page and App Store evidence is fine as-is.
+
+**§9.5 Slugs are English in every locale.** `/es-419/split-bill-no-signup`, not
+`/es/dividir-gastos-sin-registrarse`. Mono's rule, verbatim (`locales.md` §5): _"All path segments
+stay in English across all locales"_, enforced there by a single shared `ROUTE_SLUGS` constant
+commented _"same across all locales (Wise pattern)"_. **The ES/PT query is targeted through `title`,
+`H1` and body — never through the slug.** The trade-off is stated openly: the intent-query research
+picked translated head terms (`dividir-conta-sem-cadastro`, `alternativa-splitwise`) and the
+translated-slug keyword signal is given up in exchange for the peanut.me convention. Everything else
+that is a machine value — frontmatter keys, `claims`/`competitorClaims` IDs, `cast` keys, schema
+fields — also stays English. `tags` is the exception: facet labels are reader-facing and translate.
+
+**§9.6 A byte-locked competitor quote never translates.** A verbatim quote inside `<Quote source=…>`
+stays in the language of the page it was taken from, in every locale. The surrounding in-locale prose
+carries the characterisation and, where the reader needs it, a short gloss in our own words — never a
+translation presented as the quote. §7.1 rests on the quote being the evidence; translating it breaks
+the byte-lock. This is already the shipped convention and the live pages say so in their own header
+comments: _"Las citas se dejan en inglés a propósito: son la prueba."_ / _"As citações ficam em
+inglês de propósito: elas são a prova."_ Keep that sentence in every localised page that quotes a
+competitor.
+
+**§9.7 Transcreate, do not translate.** The page is re-authored for its reader against a shared
+skeleton. Mono's model, and mono's evidence: `content/countries/brazil/en.md` and its `pt-br.md`
+share their H2 skeleton and have completely different H3s, because the EN page is
+foreigner-in-Brazil and the pt-br page inverts to Brazilian-abroad; word counts differ by a third.
+The generation rule behind it, verbatim (`generate-content.md` §6): _"**Compose original prose.**
+Templates are briefs, not fill-in-the-blanks."_ **Keep:** the query, the H2 skeleton, every claim and
+its ID, the concession (§4), the §11.3 structure, the numbers. **Re-author:** the opening scene, the
+examples, the pre-empted objection, the segment order, the FAQ phrasing. §6.17 is page-scoped **and**
+locale-scoped — a localised page must not re-import a duplication the EN page removed, which is why
+the cluster idea-ownership map ships with every transcreation brief.
+
+**§9.8 Example and cast names are locale-invariant.** Same names in every locale, never translated,
+never swapped for local ones. Mono's cleanest precedent: names that live in the **data layer** are
+inherited unchanged by all five of its locales, and a real person's name is never translated in a
+mono story. Its prose layer is incoherent by contrast (`Alice`/`Bob` kept, `Alicia`/`Bruno`
+hispanicised, `Ana`/`Carlos` invented — same corpus), and Split does not inherit that. **This
+supersedes §5.10.** The 16 `avatars.ts` persona labels and the friend group (Bea, Jules, Mo, Ana) are
+now allowed on localised pages, unchanged, under the same §5.4 density caps and §5.5 absence
+families as English. The one exception is room names, which have **shipped** localised strings in
+`src/i18n/messages/{es,pt-BR}.json` (_Finde en Lisboa_, _Depto 4B_, _Ramen del martes_, _Retiro
+remoto_ / _Fim de semana em Lisboa_, _Apê 4B_, _Lámen de terça_, _Retiro remoto_) — use those exactly
+and invent no others.
 
 ---
 
@@ -775,16 +857,29 @@ languages and are not gated either, though the judgement rules apply in every lo
 stay in the §6.16 tables and are caught by the cold read.
 
 ```
-es:     vosotros | estáis | habéis | vuestr[oa] | a escote | a pachas | \bcoger\b
-        \bpasta\b | \bplata\b | \bguita\b | \blana\b | \bchaval | \btío\b | \bguay\b
+es-419: vosotros | estáis | habéis | vuestr[oa] | a escote | a pachas | \bcoger\b
+        \bpasta\b | \bguita\b | \blana\b | \bchaval | \btío\b | \bguay\b
+        \bplata\b  → hard fail on new files, ADVISORY on the three shipped es pages
+                     that already carry it (8 occurrences); see localization.es-419.md §3
         compañero de piso
         \bbote\b  → legal only as "bote común" inside a Spain-scoped block
+        vos podés | pagá | enviá | poné | \bsos\b | dejalo | probalo    (voseo, §9.2)
+        saltarte el registro | sin identificarte | sin documentos | elimina esa barrera
         no es bueno | la parte honesta                     (§4.3)
-pt-BR:  acerto de contas   (title, H1, slug, description — hard fail)
+pt-br:  acerto de contas   (title, H1, slug, description — hard fail)
         \bracha\b          (standalone token — hard fail; "rachar" is fine)
         passar a régua | lacrou | arrasou
+        sem CPF | pular o cadastro | furar a fila | burlar | driblar
+        sem precisar se identificar | sem documentos | elimina essa barreira
         não é bom | a parte honesta                        (§4.3)
 ```
+
+**The diacritic gate is locale-specific and is specified in the context files, not here** —
+[`localization.es-419.md`](localization.es-419.md) §10 and
+[`localization.pt-br.md`](localization.pt-br.md) §11 carry the wordlists, the heading-position class
+and the accent-density advisory. It exists because mono's own corpus has generated files with five
+accented characters in them. Not built; implement with batch 2. It runs over `ownProse()`, so a
+byte-locked English quote (§9.6) never trips it.
 
 **`just` — the one string with a grammatical exception (§3.18).** It left the flat never-list on
 30 Jul because the imperative of relief is approved copy. The check moved to the grammar instead of the
@@ -822,12 +917,16 @@ exception and stays on the list above.
 | Concession                 | every page has ≥1 heading from the §4.1 table                                                                                                                                                                                                                                                                                                                                                       |
 | Banned concession title    | `not good at`, `does not do`, `honest bit`, `no es bueno`, `parte honesta`, `não é bom` in any `#`/`##`/`###`, any `<FAQItem question>` or any `faqs:` question = hard fail (§4.3)                                                                                                                                                                                                                  |
 | Cast keys                  | every `cast:` entry exists in `avatars.ts` or `LANDING_CAST`                                                                                                                                                                                                                                                                                                                                        |
-| Cast absence               | `cast:` empty on any slug matching `splitwise-alternative`, `splitwise-daily-limit`, `alternativa-splitwise`, `fair-split`, `rent-split`, `dividir-alquiler`, `pareja`, `casal`                                                                                                                                                                                                                     |
+| Cast absence               | `cast:` empty on any slug matching `splitwise-alternative`, `splitwise-daily-limit`, `fair-split`, `rent-split`, `income`, `couple`. One English slug list covers all three locales (§9.5)                                                                                                                                                                                                          |
 | Cast density               | `cast:` ≤1 for `capture`/`comparison`, ≤2 for `guide`, 0 for `editorial` except the social-contract essay                                                                                                                                                                                                                                                                                           |
-| Cast names in locale       | no `avatars.ts` persona label appears in an `es.md` or `pt-BR.md` file (§5.10)                                                                                                                                                                                                                                                                                                                      |
+| Room names in locale       | an `es-419.md`/`pt-br.md` file naming one of the four shipped rooms uses the shipped catalog string from `src/i18n/messages/{es-419,pt-br}.json` — any other rendering is a hard fail (§9.8). The old §5.10 persona-label ban is **struck**: persona labels are locale-invariant and legal in every locale                                                                                          |
+| Locale codes               | content filenames are `en.md`, `es-419.md`, `pt-br.md` — no `es.md`, no `pt-BR.md`, no `pt.md` (§9)                                                                                                                                                                                                                                                                                                 |
+| Quote language             | a `<Quote>` inside an `es-419.md`/`pt-br.md` file matches the EN page's quote byte for byte — a translated quote is a hard fail (§9.6)                                                                                                                                                                                                                                                              |
+| `Settle Up` casing         | in an `es-419.md`/`pt-br.md` file, a lowercase `settle up` is a hard fail: it is either the untranslated verb (`saldar` / `acertar`) or a mis-cased brand                                                                                                                                                                                                                                           |
+| No-account heading         | in a `pt-br.md` file, no `#`/`##`/`###`, `title:` or `description:` opens on `Sem ` (`localization.pt-br.md` §6.1). Advisory in `es-419.md` for `Sin `                                                                                                                                                                                                                                              |
 | Claim IDs                  | every `claims:` / `competitorClaims:` ID resolves; `type: comparison` with zero `competitorClaims` fails                                                                                                                                                                                                                                                                                            |
 | Intent                     | `type: capture` requires `intent:`, matching a row in the capture registry                                                                                                                                                                                                                                                                                                                          |
-| Check-date                 | every `type: comparison` file contains `checked against` + an ISO date                                                                                                                                                                                                                                                                                                                              |
+| Check-date                 | every comparison contains its locale's check phrase (`checked against`, `verificada contra`, `conferida contra`/`conferida no`) + an ISO date                                                                                                                                                                                                                                                       |
 | Quote wrapper              | every quoted competitor sentence sits inside `<Quote source=…>`                                                                                                                                                                                                                                                                                                                                     |
 | FAQ source                 | Judgement, not a check. Every FAQ question tracks a researched intent from `intent-queries-2026-07-30.md`, phrased the way a person asks it — matching the file word for word is not required and no page does it. §6.15 still bans the invented question                                                                                                                                           |
 | Fairness pre-emption       | slug matching `rent-split\|alquiler\|utilities\|habitaciones` contains a communal-space paragraph (grep whole words: `\bloo\b\|\blights\b\|\bkitchen\b\|áreas comunes\|áreas comuns` — unanchored, `loo` matches "floor", which every rent page says). Rent and utilities only: a fairness hub that routes to the calculators is not a page about a household, and must not be made to describe one |

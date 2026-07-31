@@ -11,7 +11,7 @@ import { ROOT_COLLECTIONS } from '@/lib/content'
  * collection to read. Safe beside the static segments — Next matches `blog`, `new`, `api` and
  * friends first, and `dynamicParams = false` pins the rest to what is on disk.
  */
-const LOCALE = 'es' as const
+const LOCALE = 'es-419' as const
 
 export const generateStaticParams = articleStaticParams(ROOT_COLLECTIONS, LOCALE, 'page')
 export const dynamicParams = false

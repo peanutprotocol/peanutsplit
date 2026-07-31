@@ -23,7 +23,7 @@ import { splitV2Enabled } from '@/lib/flags'
  * the sitemap omits it, the hub does not list it, and hreflang never points at it. Partial
  * translation is a normal state, and this is what makes it a safe one.
  *
- * Publishing an article is: drop `{slug}/en.md` in, push. Translating one is: drop `es.md` in
+ * Publishing an article is: drop `{slug}/en.md` in, push. Translating one is: drop `es-419.md` in
  * beside it. `generateStaticParams` and `sitemap.ts` both derive from the directory, so neither
  * has a list to update.
  */
@@ -288,7 +288,7 @@ export function listAllDocs(locale: Locale = DEFAULT_LOCALE): Doc[] {
 
 /**
  * Every (collection, slug, locale) that has a file — the sitemap's whole input, and what proves
- * a translation is reachable. Published-gated per locale: a draft `es.md` beside a live `en.md`
+ * a translation is reachable. Published-gated per locale: a draft `es-419.md` beside a live `en.md`
  * hides only the Spanish URL.
  */
 export function listAllTranslations(): Doc[] {

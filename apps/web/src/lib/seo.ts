@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { siteUrl } from '@/lib/site'
-import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales'
+import { DEFAULT_LOCALE, HREFLANG, type Locale } from '@/i18n/locales'
 import type { Doc, Faq } from '@/lib/content'
 
 /**
@@ -24,11 +24,18 @@ const SITE_NAME = 'Peanut Split'
 export const SITE_DESCRIPTION =
     'Accountless, link-based expense splitting. Create a room, share the link, settle up however you like. Free forever.'
 
-/** OG spells locales `language_TERRITORY`; everything else here uses BCP 47. */
+/**
+ * OG spells locales `language_TERRITORY`; everything else here uses BCP 47.
+ *
+ * `es_419` is not a value Facebook's list accepts — the territory has to be a country — so LATAM
+ * Spanish is declared as `es_LA`, which is the one entry in that list covering the region rather
+ * than a single country. This is the only place a locale is spelled as something other than its
+ * code or its `HREFLANG` value, and it is OG's constraint, not ours.
+ */
 const OG_LOCALE: Record<Locale, string> = {
     en: 'en_US',
-    es: 'es_ES',
-    'pt-BR': 'pt_BR',
+    'es-419': 'es_LA',
+    'pt-br': 'pt_BR',
 }
 
 /** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
@@ -109,7 +116,7 @@ export function pageMetadata({
  * the month name. `en-GB` rather than `en-US` for English — "28 July 2026" reads as a date in
  * both, where "July 28, 2026" reads as American to everyone else.
  */
-const DATE_LOCALE: Record<Locale, string> = { en: 'en-GB', es: 'es-419', 'pt-BR': 'pt-BR' }
+const DATE_LOCALE: Record<Locale, string> = { en: 'en-GB', 'es-419': 'es-419', 'pt-br': 'pt-BR' }
 
 export function formatDate(iso: string, locale: Locale = DEFAULT_LOCALE): string {
     const date = new Date(`${iso}T00:00:00Z`)
@@ -174,7 +181,9 @@ export function articleSchema(doc: Doc) {
         '@type': doc.collection === 'blog' ? 'BlogPosting' : 'Article',
         headline: frontmatter.title,
         description: frontmatter.description,
-        inLanguage: doc.locale,
+        // Standard BCP 47 casing, like hreflang — schema.org's `inLanguage` is an IETF tag, and
+        // the lowercase code is a filename convention that has no business in structured data.
+        inLanguage: HREFLANG[doc.locale],
         datePublished: frontmatter.date,
         dateModified: frontmatter.updated ?? frontmatter.date,
         author: frontmatter.author ? { '@type': 'Person', name: frontmatter.author } : { '@id': ORGANIZATION_ID },
@@ -209,7 +218,7 @@ export function toolSchema({ path, title, description }: { path: string; title: 
         url: absoluteUrl(path),
         applicationCategory: 'FinanceApplication',
         operatingSystem: 'Web',
-        inLanguage: DEFAULT_LOCALE,
+        inLanguage: HREFLANG[DEFAULT_LOCALE],
         isPartOf: { '@id': `${siteUrl}/#website` },
         publisher: { '@id': ORGANIZATION_ID },
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },

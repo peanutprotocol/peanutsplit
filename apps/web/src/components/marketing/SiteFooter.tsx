@@ -36,13 +36,13 @@ const PEANUT_LINKS = [
  * The guide and comparison columns are read off disk for the current locale, so a new markdown
  * file appears here without anyone editing this component. That is the point: a page nothing
  * links to is one Google finds late and re-crawls rarely, and the footer is the one component
- * every page shares. The hand-built pages (`/splitwise-alternative`, `/import`) are English-only
- * by decision and are therefore NOT run through `localizedPath` — a `/es/import` would 404.
+ * every page shares. The hand-built Splitwise comparison has a route in every locale and follows
+ * `localizedPath`; `/import` remains English-only and is deliberately left bare.
  *
  * `showLocaleSwitcher` exists for the indexed pages. The switcher sets a cookie and reloads,
  * which is right for the app — one URL, three languages. An indexed page states its language in
  * its own URL, so the reload lands on the same page in the same language and the control reads as
- * broken. That holds for `/es/blog/…` and just as much for the English `/tricount-alternative` it
+ * broken. That holds for `/es-419/blog/…` and just as much for the English `/tricount-alternative` it
  * translates. Every indexed page passes `false` and offers real links to the translations that
  * exist instead (see ArticleLayout / ContentHub).
  */
@@ -84,10 +84,10 @@ export function SiteFooter({
                                     {t('createSplit')}
                                 </Link>
                             </li>
-                            {/* One link, not three. The calculators are English-only like
-                                `/splitwise-alternative` above, and their own hub is where a reader
-                                picks between them — a footer that lists all of them is a footer
-                                that grows by one line every time a calculator ships. */}
+                            {/* One link, not three. The calculators are English-only, and their own
+                                hub is where a reader picks between them — a footer that lists all
+                                of them is a footer that grows by one line every time a calculator
+                                ships. */}
                             <li>
                                 <Link href="/tools" className={linkClass}>
                                     {t('toolsLink')}
@@ -108,7 +108,7 @@ export function SiteFooter({
                         <ul className="mt-2 flex flex-col gap-1.5">
                             {showCompareLink && (
                                 <li>
-                                    <Link href="/splitwise-alternative" className={linkClass}>
+                                    <Link href={localizedPath('/splitwise-alternative', locale)} className={linkClass}>
                                         {t('compareLink')}
                                     </Link>
                                 </li>

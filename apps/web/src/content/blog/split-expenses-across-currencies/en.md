@@ -9,15 +9,15 @@ faqs:
     - question: Should I enter the amount I paid or what it cost me?
       answer: Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.
     - question: Does Split charge for converting currencies?
-      answer: No. Multi-currency rooms are free forever, with no paid tier to upgrade to.
+      answer: No. Converting currencies is free forever, with no paid tier to upgrade to.
 ---
 
 <Hero
-  eyebrow="multi-currency splits"
+  eyebrow="splitting across currencies"
   title="Splitting across currencies without losing money in the gap"
   subtitle="Three different rates can apply to the same dinner. Only one of them should end up in the group's maths."
   cta="Start a split"
-  ctaHint="Multi-currency rooms are free forever. No paid tier." />
+  ctaHint="Converting currencies is free forever. No paid tier." />
 
 Here is a dinner in Bangkok, paid by one person, split four ways.
 
@@ -47,7 +47,7 @@ When you pay 3,200 baht on a card that bills in pounds, your bank picks a rate a
 
 The only fix is a different card — or being the person who pays in cash.
 
-<Checklist title="Keeping a multi-currency room clean">
+<Checklist title="Keeping a room clean across currencies">
 <ChecklistItem title="Pick the room currency before the first expense">Choose whatever most of the spending is actually in, not whatever your own bank uses.</ChecklistItem>
 <ChecklistItem title="Log local amounts, always">The currency on the receipt is the currency you enter. Converting at entry throws away the provable number.</ChecklistItem>
 <ChecklistItem title="Settle in the room's currency">If the room counts in euros, the transfers at the end are in euros. Converting again on the way out reintroduces the gap you avoided.</ChecklistItem>
@@ -68,7 +68,7 @@ So it is free forever, and there is no tier above it.
 <FAQ>
 <FAQItem question="Which exchange rate should the group use?">Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative — a daily reference rate, not your bank's — so treat the totals as exact and the conversion as close enough to split by.</FAQItem>
 <FAQItem question="Should I enter the amount I paid or what it cost me?">Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.</FAQItem>
-<FAQItem question="Does Split charge for converting currencies?">No. Multi-currency rooms are free forever, with no paid tier to upgrade to.</FAQItem>
+<FAQItem question="Does Split charge for converting currencies?">No. Converting currencies is free forever, with no paid tier to upgrade to.</FAQItem>
 </FAQ>
 
 <RelatedPages>

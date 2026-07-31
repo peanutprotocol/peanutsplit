@@ -20,12 +20,14 @@ import {
 import { ART_BY_KIND } from '@/server/og/achievementCardArt'
 import { nameFontSize } from '@/server/og/card'
 import { MAX_NAME_CHARS } from '@/server/og/roomCard'
+// The real list, not a copy: a private locale array in a test is how a fourth locale
+// ships with no card coverage and nothing red to say so.
+import { LOCALES } from '@/i18n/locales'
 
 const FIXTURE_ROOM_NAME = 'Kraken cabin weekender'
 const FIXTURE_MEMBER_NAMES = ['Anastasiya', 'Bartholomew', 'Clementina', 'Dorotheus', 'Eusebio']
 const ALTER_EGO: AlterEgoCardParams = { award: 'theCloser', persona: 'wizard-frog' }
 
-const LOCALES = ['en', 'es', 'pt-BR'] as const
 const slugOf = (locale: string) => `card-fixture-${locale.toLowerCase()}`
 
 const buildFixtureCard = (kind: CardKind, locale: string = 'en') => loadAchievementCard(slugOf(locale), kind, ALTER_EGO)

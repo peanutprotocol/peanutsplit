@@ -11,7 +11,7 @@
  * Three failures, all exit 1:
  *
  *   1. A key referenced in `src/` that does not exist in `en.json` — a typo or a rename.
- *   2. A key in `en.json` missing from `es.json` or `pt-BR.json` — a translation not done.
+ *   2. A key in `en.json` missing from `es-419.json` or `pt-br.json` — a translation not done.
  *   3. A `{placeholder}` in the message that the call site never passes a value for. This fails
  *      the same silent way: next-intl cannot format the message, so it returns the key path and
  *      "Dani joined after 1 earlier expense" ships as "room.latecomer.title". A reader who has
@@ -34,7 +34,7 @@ const srcRoot = join(appRoot, 'src')
 const messagesRoot = join(srcRoot, 'i18n/messages')
 
 const DEFAULT_LOCALE = 'en'
-const LOCALES = ['en', 'es', 'pt-BR']
+const LOCALES = ['en', 'es-419', 'pt-br']
 
 // ---------------------------------------------------------------- catalogs
 

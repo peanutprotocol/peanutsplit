@@ -1,7 +1,7 @@
 import { hubOgImage, ogImageExports } from '@/lib/content-og'
 
 /** Spanish guides-hub unfurl. Implementation shared — see `lib/content-og`. */
-const LOCALE = 'es' as const
+const LOCALE = 'es-419' as const
 
 // Literal, not `ogImageExports.runtime`: Next parses this export statically and rejects
 // a member expression outright.

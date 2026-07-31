@@ -1,5 +1,6 @@
-import type { AnchorHTMLAttributes, HTMLAttributes } from 'react'
+import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
 import Link from 'next/link'
+import type { Locale } from '@/i18n/locales'
 import {
     Callout,
     Cast,
@@ -97,4 +98,30 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     td: (props: HTMLAttributes<HTMLTableCellElement>) => (
         <td className="border-b border-grey-2 px-4 py-3 align-top leading-5 text-grey-1" {...props} />
     ),
+}
+
+const BLOCK_LABELS: Record<Locale, { faq: string; related: string }> = {
+    en: { faq: 'Questions', related: 'Keep reading' },
+    'es-419': { faq: 'Preguntas', related: 'Sigue leyendo' },
+    'pt-br': { faq: 'Perguntas', related: 'Continue lendo' },
+}
+
+/**
+ * Bind defaults to the document locale before MDX is compiled.
+ *
+ * A translated file may still pass an explicit title, but omitting one can no longer drop an
+ * English heading into the middle of a Spanish or Portuguese article. The locale comes from the
+ * file being rendered, not from a cookie, so a build produces the same page every time.
+ */
+export function localizedMdxComponents(locale: Locale): Record<string, React.ComponentType<any>> {
+    const labels = BLOCK_LABELS[locale]
+    return {
+        ...mdxComponents,
+        FAQ: ({ title, children }: { title?: string; children: ReactNode }) => (
+            <FAQ title={title ?? labels.faq}>{children}</FAQ>
+        ),
+        RelatedPages: ({ title, children }: { title?: string; children: ReactNode }) => (
+            <RelatedPages title={title ?? labels.related}>{children}</RelatedPages>
+        ),
+    }
 }

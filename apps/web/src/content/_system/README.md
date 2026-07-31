@@ -9,16 +9,18 @@ without being handed a second path.
 
 ## The files
 
-| File                   | What it is                                                                         | Read it when                                |
-| ---------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------- |
-| `stylebook.md`         | The voice rulebook. Registers, banned constructions, vocabulary, locale notes.     | Always.                                     |
-| `product-truths.md`    | One fact, one place. Each claim has an ID, safe phrasing, unsafe phrasing, source. | Always.                                     |
-| `competitor-claims.md` | Verbatim-quote register. What we may assert about somebody else's product.         | Drafting or editing an `alternatives` page. |
-| `cast.md`              | Which character appears where, and how much.                                       | Putting a `<Cast>` in a page.               |
+| File                     | What it is                                                                         | Read it when                                |
+| ------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------- |
+| `stylebook.md`           | The voice rulebook. Registers, banned constructions, vocabulary, locale notes.     | Always.                                     |
+| `localization.es-419.md` | LATAM Spanish register, vocabulary, numbers and transcreation rules.               | Writing or editing an `es-419.md` page.     |
+| `localization.pt-br.md`  | Brazilian Portuguese register, vocabulary, numbers and transcreation rules.        | Writing or editing a `pt-br.md` page.       |
+| `product-truths.md`      | One fact, one place. Each claim has an ID, safe phrasing, unsafe phrasing, source. | Always.                                     |
+| `competitor-claims.md`   | Verbatim-quote register. What we may assert about somebody else's product.         | Drafting or editing an `alternatives` page. |
+| `cast.md`                | Which character appears where, and how much.                                       | Putting a `<Cast>` in a page.               |
 
 ## The collections
 
-A page is a directory, one file per language: `{slug}/en.md`, `{slug}/es.md`, `{slug}/pt-BR.md`.
+A page is a directory, one file per language: `{slug}/en.md`, `{slug}/es-419.md`, `{slug}/pt-br.md`.
 `COLLECTIONS` in `src/lib/content.ts` is the allowlist — a directory outside it is not a collection.
 
 | Collection     | Serves at      | What it is                                                                     |
@@ -40,8 +42,9 @@ Which of those keys, and which blocks, each `type` uses is in `stylebook.md`, no
 
 ## The run-book
 
-1. Read `stylebook.md` and `product-truths.md`. Add `competitor-claims.md` for a comparison page and
-   `cast.md` if the page draws a character.
+1. Read `stylebook.md` and `product-truths.md`. For a translated page, also read its matching
+   `localization.*.md` rulebook. Add `competitor-claims.md` for a comparison page and `cast.md` if
+   the page draws a character.
 2. Draft into `src/content/{collection}/{slug}/{locale}.md` — pick the collection above.
 3. Every product claim must trace to a block in `product-truths.md`, and must use that block's
    `safe` phrasing. Every competitor fact must trace to a row in `competitor-claims.md`.

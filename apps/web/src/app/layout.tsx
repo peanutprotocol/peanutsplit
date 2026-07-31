@@ -4,6 +4,7 @@ import localFont from 'next/font/local'
 import { NextIntlClientProvider } from 'next-intl'
 import Script from 'next/script'
 import { getLocale } from 'next-intl/server'
+import { asLocale, HREFLANG } from '@/i18n/locales'
 import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
@@ -91,12 +92,15 @@ try {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
     // Resolved by src/i18n/request.ts: the language the URL states, then ps-locale cookie →
     // Accept-Language → en. `lang` has to follow the URL and not the cookie — an English page
-    // opened by a reader carrying `ps-locale=pt-BR` is still an English page, and declaring it
+    // opened by a reader carrying `ps-locale=pt-br` is still an English page, and declaring it
     // Portuguese misreads it to a screen reader and misfiles it with a crawler.
+    //
+    // `HREFLANG`, not the raw code: `lang` is an HTML language tag, so it gets the standard
+    // BCP 47 casing (`pt-BR`) rather than the lowercase spelling used in filenames and URLs.
     const locale = await getLocale()
 
     return (
-        <html lang={locale} style={{ colorScheme: 'light' }} suppressHydrationWarning>
+        <html lang={HREFLANG[asLocale(locale)]} style={{ colorScheme: 'light' }} suppressHydrationWarning>
             <head>
                 <Script id="split-motion-preflight" strategy="beforeInteractive">
                     {motionPreferencePreflight}

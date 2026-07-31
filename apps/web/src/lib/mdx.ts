@@ -1,6 +1,7 @@
 import { compileMDX } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
-import { mdxComponents } from '@/components/marketing/mdx/components'
+import { localizedMdxComponents } from '@/components/marketing/mdx/components'
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales'
 
 /**
  * Compile an article body into React on the server. Frontmatter is already stripped by
@@ -13,10 +14,10 @@ import { mdxComponents } from '@/components/marketing/mdx/components'
  * build. The first is the dangerous one because nothing reports it, so `mdx.test.ts` compiles
  * every article and asserts no doc contains a bare brace.
  */
-export async function renderArticle(body: string) {
+export async function renderArticle(body: string, locale: Locale = DEFAULT_LOCALE) {
     const { content } = await compileMDX({
         source: body,
-        components: mdxComponents,
+        components: localizedMdxComponents(locale),
         options: { mdxOptions: { format: 'mdx', remarkPlugins: [remarkGfm] } },
     })
     return content

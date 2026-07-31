@@ -14,6 +14,21 @@ const nextConfig = {
     output: 'standalone',
     reactStrictMode: true,
     productionBrowserSourceMaps: false,
+
+    /**
+     * The Spanish pages shipped under `/es/…` before the locale codes carried a territory. They
+     * are `/es-419/…` now, and four indexed URLs would otherwise 404.
+     *
+     * This is the ONE redirect the site has, and it is not locale detection: nothing here reads
+     * `Accept-Language` or a cookie, and no reader is ever moved off the language they asked for.
+     * It retires a path that moved, which is what a 308 is for. `/es` itself is not listed — it
+     * never resolved to anything, because the app shell answers at one URL in every language.
+     *
+     * Delete it once Search Console shows no impressions left on `/es/*`.
+     */
+    async redirects() {
+        return [{ source: '/es/:path*', destination: '/es-419/:path*', permanent: true }]
+    },
 }
 
 // Serwist compiles src/app/sw.ts → public/sw.js. Skipped in dev so cold starts
