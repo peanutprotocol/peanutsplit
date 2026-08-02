@@ -18,8 +18,9 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '1100', bea: '-1100' }, 'ana', true, t)
 
         expect(card.label).toBe('pair.owesYou {"name":"Bea"}')
-        expect(card.card).toBe('bg-green-1')
-        expect(card.labelClass).toBe('text-n-1')
+        expect(card.labelClass).toBe('bg-green-1 text-n-1')
+        expect(card.mark).toBe('←')
+        expect(card.direction).toBe('incoming')
         // The sentence is about Bea, so the card publishes Bea's net — the negation of the
         // viewer's own. This is the rule an e2e reader trips on.
         expect(card.about).toBe(bea)
@@ -30,8 +31,9 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '-1100', bea: '1100' }, 'ana', true, t)
 
         expect(card.label).toBe('pair.youOwe {"name":"Bea"}')
-        expect(card.card).toBe('bg-error-1')
-        expect(card.labelClass).toBe('text-n-1')
+        expect(card.labelClass).toBe('bg-error-3 text-white')
+        expect(card.mark).toBe('→')
+        expect(card.direction).toBe('outgoing')
         expect(card.about).toBe(bea)
         expect(card.net).toBe('1100')
     })
@@ -40,7 +42,9 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '1100', bea: '-1100' }, 'bea', true, t)
 
         expect(card.label).toBe('pair.youOwe {"name":"Ana"}')
-        expect(card.card).toBe('bg-error-1')
+        expect(card.labelClass).toBe('bg-error-3 text-white')
+        expect(card.mark).toBe('→')
+        expect(card.direction).toBe('outgoing')
         expect(card.about).toBe(ana)
         expect(card.net).toBe('1100')
     })
@@ -49,8 +53,9 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '0', bea: '0' }, 'ana', true, t)
 
         expect(card.label).toBe('Bea · settled')
-        expect(card.card).toBe('bg-[var(--split-theme-tint,#FFFFFF)]')
-        expect(card.labelClass).toBe('text-n-3')
+        expect(card.labelClass).toBe('bg-[var(--split-theme-tint,#FFFFFF)] text-n-3')
+        expect(card.mark).toBe('—')
+        expect(card.direction).toBe('neutral')
         expect(card.net).toBe('0')
     })
 
@@ -58,14 +63,13 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '0', bea: '0' }, 'ana', false, t)
 
         expect(card.label).toBe('Bea · nothingYet')
-        expect(card.card).toBe('bg-[var(--split-theme-tint,#FFFFFF)]')
-        expect(card.labelClass).toBe('text-n-3')
+        expect(card.labelClass).toBe('bg-[var(--split-theme-tint,#FFFFFF)] text-n-3')
     })
 
     /**
      * The state every brand-new two-person room opens in, and the one that used to be
-     * anonymous: an avatar, "nothing yet" and a zero, with no name anywhere on the card. The
-     * tap has to land on the same person the card is about, zero or not.
+     * anonymous: "nothing yet" and a zero, with no name anywhere on the card. The tap has to
+     * land on the same person the card is about, zero or not.
      */
     it('names its subject in the zero state, and that subject is what the tap opens', () => {
         const settled = pairCard(pair, { ana: '0', bea: '0' }, 'ana', true, t)
@@ -73,8 +77,8 @@ describe('pairCard', () => {
 
         expect(settled.label).toContain('Bea')
         expect(fresh.label).toContain('Bea')
-        // `about` is the whole card — avatar, name, net and the derivation the tap opens — so
-        // the zero branch has to reach the counterparty exactly like the others do.
+        // `about` is the whole card — name, net and the derivation the tap opens — so the zero
+        // branch has to reach the counterparty exactly like the others do.
         expect(settled.about).toBe(bea)
         expect(fresh.about).toBe(bea)
     })
@@ -83,7 +87,9 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '1100', bea: '-1100' }, undefined, true, t)
 
         expect(card.label).toBe('pair.owes {"debtor":"Bea","creditor":"Ana"}')
-        expect(card.card).toBe('bg-error-1')
+        expect(card.labelClass).toBe('bg-error-3 text-white')
+        expect(card.mark).toBe('→')
+        expect(card.direction).toBe('between-members')
         // The debtor is the subject, so the net on the card is the negative one, and the tap
         // opens the working of the person with something to answer for.
         expect(card.about).toBe(bea)
@@ -113,7 +119,7 @@ describe('pairCard', () => {
 
     /**
      * The relationship words are the message; the name is a label the reader can see in full on
-     * the avatar, in the people list and on the derivation sheet. So the name gives way first.
+     * the people list and the derivation sheet. So the name gives way first.
      *
      * The sentence gets two lines. At 375px a 46-character name needed three, and because
      * "{name} owes you" puts the verb last, the third line that got clamped away was "owes you"
@@ -168,7 +174,7 @@ describe('pairCard', () => {
     /**
      * Only the sentence is cut. `data-member` comes off `about.name`, and every e2e spec that
      * reads a balance selects on it — `[data-testid="balance-card"][data-member="Ana"]` in
-     * balances, realtime, room and import. So does the avatar and the accessible name.
+     * balances, realtime, room and import. So does the accessible name.
      */
     it('keeps the full name on the subject the card publishes and the tap opens', () => {
         const card = pairCard([ana, long], { ana: '3000', long: '-3000' }, 'ana', true, t)
