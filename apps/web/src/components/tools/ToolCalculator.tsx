@@ -10,7 +10,8 @@ import { Doodle } from '@/components/ui/Doodle'
 import { Icon } from '@/components/ui/Icon'
 import { PERSONA_KEYS } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
-import { FALLBACK_CURRENCIES, decimalsOf, formatMoney, parseAmountToMinor } from '@/lib/money'
+import { CURRENCY_CATALOG } from '@/lib/currency-catalog'
+import { decimalsOf, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { getTool } from '@/tools/registry'
@@ -190,7 +191,7 @@ function Calculator({ tool }: { tool: Tool }) {
         return builder.derive(values)
     }, [builder, text, decimals])
 
-    const money = (minor: number) => formatMoney(String(minor), currency, FALLBACK_CURRENCIES, 'en')
+    const money = (minor: number) => formatMoney(String(minor), currency, CURRENCY_CATALOG, 'en')
     const pasteable = outcome?.shares.map((share) => `${share.label} ${money(share.amountMinor)}`).join(', ') ?? ''
 
     return (
@@ -228,7 +229,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                 touched()
                                 feedback('tick')
                             }}
-                            currencies={FALLBACK_CURRENCIES}
+                            currencies={CURRENCY_CATALOG}
                             variant="sm"
                             aria-label="Currency"
                             data-testid="tool-currency"
@@ -432,7 +433,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                         <AnimatedMoney
                                             minor={String(share.amountMinor)}
                                             currency={currency}
-                                            catalog={FALLBACK_CURRENCIES}
+                                            catalog={CURRENCY_CATALOG}
                                         />
                                     </dd>
                                 </div>
@@ -450,7 +451,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                             <Money
                                                 minor={String(working.amountMinor)}
                                                 currency={currency}
-                                                catalog={FALLBACK_CURRENCIES}
+                                                catalog={CURRENCY_CATALOG}
                                             />
                                         )}
                                     </span>

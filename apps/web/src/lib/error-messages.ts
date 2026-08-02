@@ -44,6 +44,8 @@ export const KNOWN_ERROR_CODES = [
     'NOT_A_MEMBER',
     'AMOUNT_NOT_POSITIVE',
     'AMOUNT_TOO_LARGE',
+    // The expense's currency cannot be priced into the room's, so the amount has nowhere to go.
+    'NO_RATE',
     'EXACT_SHARES_REQUIRED',
     'SHARES_DO_NOT_ADD_UP',
     'NO_PARTICIPANTS',

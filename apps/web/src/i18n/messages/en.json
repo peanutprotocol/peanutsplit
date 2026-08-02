@@ -235,8 +235,8 @@
             "features": {
                 "title": "What Split does",
                 "currency": {
-                    "title": "12 supported currencies",
-                    "body": "The room counts in one currency. Add an expense in any of the 12 supported currencies and Split converts it at the rate on the day."
+                    "title": "162 supported currencies",
+                    "body": "The room counts in one currency. Add an expense in any of the 162 supported currencies and Split converts it at the rate on the day."
                 },
                 "splits": {
                     "title": "Splits that are not even",
@@ -625,12 +625,21 @@
             "readyTitle": "Your room is ready",
             "readySubtitle": "Send this link to everyone splitting.",
             "goToRoom": "Go to room",
-            "namePlaceholderSlug": "your-trip"
+            "namePlaceholderSlug": "your-trip",
+            "currencyCustomHint": "“{code}” is your own currency. Every expense in this room is in it — nothing gets converted."
         },
         "currency": {
-            "suggested": "Suggested",
-            "all": "All currencies",
-            "useSuggestion": "Use {name}"
+            "all": "Search all {count} currencies",
+            "searchLabel": "Search currencies",
+            "searchPlaceholder": "Search or invent",
+            "clearSearch": "Clear search",
+            "results": "{count, plural, one {# currency} other {# currencies}}",
+            "noMatch": "No currency called “{query}” — make it one.",
+            "noMatchLong": "No currency called “{query}”. A ticker is three or four letters.",
+            "useCustom": "Use “{code}”",
+            "useCustomHint": "Your own currency — no rate, nothing converts.",
+            "noRateChip": "no rate",
+            "roomOnly": "{roomCurrency} has no rate, so every expense in this room is in {roomCurrency}."
         },
         "scan": {
             "cta": "Scan a bill",
@@ -852,7 +861,8 @@
         "NL_FAILED": "Could not read that — try again.",
         "IMPORT_TOO_LARGE": "That import is too big to send. Try a group with less history.",
         "RATE_LIMITED": "That was a lot of requests — give it a minute and try again.",
-        "MEMBER_HAS_HISTORY": "That person is part of the room's history now — they cannot be taken off the list."
+        "MEMBER_HAS_HISTORY": "That person is part of the room's history now — they cannot be taken off the list.",
+        "NO_RATE": "There is no rate between that currency and the room’s, so it cannot be converted. Use the room currency."
     },
     "derivation": {
         "title": "How this adds up",

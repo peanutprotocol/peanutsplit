@@ -359,7 +359,7 @@ describe('what the route refuses', () => {
 
     it('refuses an expense in a currency Split does not carry', async () => {
         const file = parsed()
-        file.expenses[0].currencyCode = 'INR'
+        file.expenses[0].currencyCode = 'KPW'
         const { status } = await post<ApiError>(bodyFor(file))
         expect(status).toBe(400)
     })

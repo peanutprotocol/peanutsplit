@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { formatMinor } from '@/server/money'
 import {
     currencyDisplayName,
     currencyInfo,
@@ -274,6 +275,70 @@ describe('formatting', () => {
     it('does not lose digits past 2^53', () => {
         expect(formatMoney('900719925474099123', 'EUR', undefined, 'en')).toBe('€9,007,199,254,740,991.23')
     })
+
+    /**
+     * THE back-compat lock. Every room in production settles in one of these twelve, and widening
+     * the catalog from twelve codes to 162 must not move a single character of what they render.
+     * The twelve symbols are pinned in the generated catalog for exactly this reason, and pinned
+     * symbols are what keeps all twelve on the Intl branch.
+     */
+    it('renders the twelve legacy currencies exactly as it always has', () => {
+        expect([
+            formatMoney('123456', 'USD', undefined, 'en'),
+            formatMoney('123456', 'EUR', undefined, 'en'),
+            formatMoney('123456', 'GBP', undefined, 'en'),
+            formatMoney('123456', 'ARS', undefined, 'en'),
+            formatMoney('123456', 'BRL', undefined, 'en'),
+            formatMoney('123456', 'MXN', undefined, 'en'),
+            formatMoney('123456', 'COP', undefined, 'en'),
+            formatMoney('123456', 'CHF', undefined, 'en'),
+            formatMoney('123456', 'THB', undefined, 'en'),
+            formatMoney('123456', 'JPY', undefined, 'en'),
+            formatMoney('123456', 'AUD', undefined, 'en'),
+            formatMoney('123456', 'CAD', undefined, 'en'),
+        ]).toEqual([
+            '$1,234.56',
+            '€1,234.56',
+            '£1,234.56',
+            'ARS\u00a01,234.56',
+            'R$1,234.56',
+            'MX$1,234.56',
+            'COP\u00a0123,456',
+            'CHF\u00a01,234.56',
+            'THB\u00a01,234.56',
+            '¥123,456',
+            'A$1,234.56',
+            'CA$1,234.56',
+        ])
+        expect(formatMoney('123456', 'EUR', undefined, 'es')).toBe('1234,56\u00a0€')
+        expect(formatMoney('123456', 'BRL', undefined, 'pt-BR')).toBe('R$\u00a01.234,56')
+    })
+
+    /**
+     * 61 of the 162 catalog codes have no symbol, and every invented ticker has none either. Those
+     * print `12.34 AED` — the rule lives in `currency-rules.ts` and BOTH sides import it, so the
+     * balance in the app, the amount on the OG card and the number in an error all agree.
+     *
+     * Under a thousand so no grouping is involved: the server does not group and the client does,
+     * which is a difference of locale rather than of rule.
+     */
+    it('agrees with the server on a currency that has no symbol', () => {
+        for (const code of ['AED', 'BEER', 'WAT']) {
+            expect(formatMoney('1234', code, undefined, 'en')).toBe(formatMinor(1234n, code))
+        }
+        expect(formatMoney('1234', 'AED', undefined, 'en')).toBe('12.34 AED')
+    })
+
+    /**
+     * The two ways Intl was wrong about a code it should not have been asked about. A four-letter
+     * ticker it refuses outright, which used to drop the currency and print a bare `1234.00`; a
+     * three-letter non-currency it accepts happily, because it never checks ISO 4217.
+     */
+    it('keeps the code on an amount Intl cannot or should not format', () => {
+        expect(formatMoney('123456', 'BEER', undefined, 'en')).toBe('1,234.56 BEER')
+        expect(formatMoney('1234', 'DOG', undefined, 'en')).toBe('12.34 DOG')
+        expect(currencyInfo('BEER').decimals).toBe(2)
+    })
 })
 
 describe('formatMoneyParts', () => {
@@ -317,9 +382,16 @@ describe('formatMoneyParts', () => {
         ])
     })
 
-    it('falls back to one undivided run rather than losing the amount', () => {
+    /** A currency with no symbol still gets a `currency` part, or the styling would have nothing
+     *  to hold on to and the code would be styled as three digits of the number. */
+    it('makes the code its own run when the currency has no symbol', () => {
+        expect(formatMoneyParts('123456', 'BEER', undefined, 'en')).toEqual([
+            { type: 'text', value: '1,234.56 ' },
+            { type: 'currency', value: 'BEER' },
+        ])
         expect(formatMoneyParts('1234', 'not-a-code')).toEqual([
-            { type: 'text', value: formatMoney('1234', 'not-a-code') },
+            { type: 'text', value: '12.34 ' },
+            { type: 'currency', value: 'not-a-code' },
         ])
     })
 })

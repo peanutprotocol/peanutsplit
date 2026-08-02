@@ -68,6 +68,7 @@ export const POST = (request: Request, ctx: Ctx) =>
 
         return await parseNlExpense(body, {
             members: room.members,
+            roomCurrency: room.currency,
             // UTC, because a room has no timezone and never will — the cost of
             // being wrong is an expense dated a day off in the hours around
             // midnight, on a field the form shows and the user can change.

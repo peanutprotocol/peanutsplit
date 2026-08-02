@@ -5,6 +5,7 @@ import {
     expenseUpdateSchema,
     importRoomSchema,
     modelAmountMinor,
+    rateQuerySchema,
     receiptItemSchema,
     roomSettingsSchema,
     settlementSchema,
@@ -63,6 +64,59 @@ describe('the expense name is optional', () => {
         // An explicit empty string is still a request to clear the name.
         const cleared = expenseUpdateSchema.safeParse({ ...expense('1200'), description: '  ' })
         expect(cleared.success && cleared.data.description).toBe('')
+    })
+})
+
+/**
+ * One rule, three entry points. The shape is the whole gate — a made-up ticker is a supported
+ * room currency now, and what stops it from being netted against a real one is FX, not this.
+ */
+describe('currency codes', () => {
+    const room = (currency: unknown) => createRoomSchema.safeParse({ name: 'Trip', currency, creatorName: 'Ana' })
+
+    it('accepts a real code however it was typed', () => {
+        expect(room('usd').success).toBe(true)
+        expect(room('  eur  ').success).toBe(true)
+        expect(room('ＵＳＤ').success).toBe(true)
+        // The wide catalog, which is the point of the change.
+        expect(room('INR').success).toBe(true)
+        expect(room('KWD').success).toBe(true)
+    })
+
+    it('normalises to the one spelling a currency has', () => {
+        const parsed = room('  usd ')
+        expect(parsed.success && parsed.data.currency).toBe('USD')
+    })
+
+    it('accepts an invented three or four letter ticker', () => {
+        expect(room('DOGE').success).toBe(true)
+        expect(room('ZZZ').success).toBe(true)
+        expect(room('beer').success).toBe(true)
+    })
+
+    it('rejects anything that is not three or four ASCII letters', () => {
+        for (const code of ['US', 'EUROS', 'US1', 'U-S', 'US D', '', '   ', '$', 'x'.repeat(200)]) {
+            expect(room(code).success).toBe(false)
+        }
+    })
+
+    /** Cyrillic and Greek twins survive NFKC, so `[A-Z]` is what refuses them. Without this a
+     *  room could hold two different strings that both read as "USD". */
+    it('rejects homoglyphs', () => {
+        expect(room('ЕUR').success).toBe(false) // Cyrillic Е
+        expect(room('ΕUR').success).toBe(false) // Greek Ε
+        expect(room('ЅЅЅ').success).toBe(false)
+    })
+
+    it('is the same rule on a room, an expense and a rate query', () => {
+        expect(expenseSchema.safeParse({ ...expense('1200'), currency: 'DOGE' }).success).toBe(true)
+        expect(expenseSchema.safeParse({ ...expense('1200'), currency: 'EUROS' }).success).toBe(false)
+        expect(rateQuerySchema.safeParse({ from: 'doge', to: 'KWD' })).toMatchObject({
+            success: true,
+            data: { from: 'DOGE', to: 'KWD' },
+        })
+        expect(rateQuerySchema.safeParse({ from: 'EUR', to: 'US' }).success).toBe(false)
+        expect(importRoomSchema.safeParse({ ...imported('100'), currency: 'DOGE' }).success).toBe(true)
     })
 })
 

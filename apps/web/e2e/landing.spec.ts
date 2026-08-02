@@ -2,6 +2,8 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es-419.json'
 import ptBRMessages from '../src/i18n/messages/pt-br.json'
+import { CURRENCY_CATALOG } from '../src/lib/currency-catalog'
+import { COMMON_COUNT } from '../src/components/room/CurrencySelect'
 import { SLUG_TAIL_HINT } from '../src/lib/slugify'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
@@ -112,7 +114,9 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
     await openLanding(page)
 
     const selectedCurrency = page.getByTestId('hero-currency')
-    await expect(selectedCurrency.locator('option')).toHaveCount(12)
+    // The hidden native select is the form/test bridge and carries the whole catalog; the visible
+    // list opens on five and expands by typing.
+    await expect(selectedCurrency.locator('option')).toHaveCount(CURRENCY_CATALOG.length)
     const currencyTrigger = page.getByRole('button', {
         name: new RegExp(`^${catalogs.en.room.create.currencyLabel}, [A-Z]{3}$`),
     })
@@ -121,8 +125,8 @@ test('landing page keeps the real currency picker, detailed FAQ, and selected te
     await currencyTrigger.click()
     await expect(currencyTrigger).toHaveAttribute('aria-expanded', 'true')
     const currencyOptions = page.getByRole('option')
-    await expect(currencyOptions).toHaveCount(12)
-    await expect(currencyOptions.locator('svg')).toHaveCount(12)
+    await expect(currencyOptions).toHaveCount(COMMON_COUNT)
+    await expect(currencyOptions.locator('svg')).toHaveCount(COMMON_COUNT)
 
     const tickers = (await currencyOptions.allTextContents()).map((text) => text.trim())
     expect(tickers.every((ticker) => /^[A-Z]{3}$/.test(ticker))).toBe(true)
@@ -417,7 +421,9 @@ test.describe('Pass-the-link default', () => {
 
         await page.keyboard.press('ArrowDown')
         await expect(page.getByRole('listbox', { name: catalogs.en.room.create.currencyLabel })).toBeVisible()
-        await expect(page.locator('[role="option"]:focus')).toHaveCount(1)
+        // Focus lands on the search field rather than on an option: there is no roving focus any
+        // more, and `aria-activedescendant` is the only highlight.
+        await expect(page.getByTestId('hero-currency-search')).toBeFocused()
         await page.keyboard.press('Escape')
         await expect(currencyTrigger).toBeFocused()
 
