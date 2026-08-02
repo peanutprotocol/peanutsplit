@@ -3,6 +3,37 @@ import { expect, test } from '@playwright/test'
 test('the room emblem opens Settings, rename keeps the link, and people can be added in context', async ({ page }) => {
     test.setTimeout(60_000)
 
+    await page.addInitScript(() => {
+        let permission: NotificationPermission = 'default'
+        Object.defineProperty(window, 'Notification', {
+            configurable: true,
+            value: {
+                get permission() {
+                    return permission
+                },
+                requestPermission: () =>
+                    new Promise<NotificationPermission>((resolve) => {
+                        window.setTimeout(() => {
+                            permission = 'denied'
+                            resolve(permission)
+                        }, 300)
+                    }),
+            },
+        })
+        Object.defineProperty(window, 'PushManager', { configurable: true, value: function PushManager() {} })
+        Object.defineProperty(navigator, 'serviceWorker', {
+            configurable: true,
+            value: {
+                getRegistration: async () => null,
+                addEventListener: () => {},
+                removeEventListener: () => {},
+            },
+        })
+        // The mobile project emulates an iPhone. Mark it as a home-screen app so the test reaches
+        // the permission path instead of the separate iOS install instructions.
+        Object.defineProperty(navigator, 'standalone', { configurable: true, value: true })
+    })
+
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Weekend away')
     await page.getByTestId('room-currency').selectOption('EUR')
@@ -33,6 +64,16 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     await expect(page.getByTestId('room-display-name')).toHaveValue('Weekend away')
     await expect(page.getByTestId('people-list')).toContainText('Ana')
     await expect(page.getByText('Dark mode', { exact: true })).toHaveCount(0)
+
+    // A denied browser prompt leaves the same control in place with its reason. It must not turn
+    // grey and then vanish while the person is waiting for the permission result.
+    const notificationToggle = page.getByTestId('push-enable')
+    await expect(notificationToggle).toBeVisible()
+    await notificationToggle.click()
+    await expect(notificationToggle).toHaveAttribute('aria-busy', 'true')
+    await expect(notificationToggle).toBeVisible()
+    await expect(notificationToggle).toBeDisabled()
+    await expect(notificationToggle).toContainText('Blocked in your browser settings.')
 
     // A live field: no Save button, and the one surviving line only while dirty.
     await expect(page.getByTestId('save-room-name')).toHaveCount(0)
