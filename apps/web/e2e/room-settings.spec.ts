@@ -118,9 +118,7 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     // Installing is per device too, and it is the first thing in the sheet. Matched by prefix
     // because which of the five states renders depends on the browser this project is running.
     await expect(
-        deviceSheet
-            .locator('[data-testid^="install-row-"], [role="group"][aria-label="Language"]')
-            .first()
+        deviceSheet.locator('[data-testid^="install-row-"], [role="group"][aria-label="Language"]').first()
     ).toBeVisible()
     const language = deviceSheet.getByRole('group', { name: 'Language' })
     await expect(language).toBeVisible()

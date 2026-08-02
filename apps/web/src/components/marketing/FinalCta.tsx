@@ -53,9 +53,7 @@ export function FinalCta() {
                  * link now. It borrows Button's classes. The document root owns the native-catalog
                  * translation policy. The press affordance lives on .final-cta-link:active instead.
                  */}
-                <span
-                    className="final-cta-button btn btn-primary btn-shadow-primary-4 mt-4 flex w-full justify-center text-h6"
-                >
+                <span className="final-cta-button btn btn-primary btn-shadow-primary-4 mt-4 flex w-full justify-center text-h6">
                     {t('button')}
                 </span>
             </Link>
