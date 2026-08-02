@@ -6,7 +6,11 @@ import {
     exactParticipantIds,
     exactShareEntries,
     expenseToFormValues,
+    hasUnreadablePercentage,
+    hasUnreadableShareWeight,
     hasUnreadableShare,
+    percentageRemainingBasisPoints,
+    percentageShareEntries,
     remainingMinor,
     repairMisplacedExpenseFields,
     validateExpenseForm,
@@ -32,8 +36,8 @@ const foreignExactExpense: ApiExpense = {
     category: null,
     createdAt: '2026-07-20T10:00:00.000Z',
     shares: [
-        { memberId: 'm1', amountMinor: '5804', enteredAmountMinor: '6500' },
-        { memberId: 'm2', amountMinor: '3125', enteredAmountMinor: '3500' },
+        { memberId: 'm1', amountMinor: '5804', enteredAmountMinor: '6500', splitWeight: null },
+        { memberId: 'm2', amountMinor: '3125', enteredAmountMinor: '3500', splitWeight: null },
     ],
     reactions: [],
 }
@@ -79,6 +83,7 @@ describe('expenseToFormValues — the no-drift path', () => {
                     // Server would recompute this; the point is the entered value survives.
                     amountMinor: '1',
                     enteredAmountMinor: share.amountMinor,
+                    splitWeight: null,
                 })),
             })
         }
@@ -88,7 +93,7 @@ describe('expenseToFormValues — the no-drift path', () => {
     it('falls back to amountMinor only when enteredAmountMinor is absent', () => {
         const values = expenseToFormValues({
             ...foreignExactExpense,
-            shares: [{ memberId: 'm1', amountMinor: '10000', enteredAmountMinor: null }],
+            shares: [{ memberId: 'm1', amountMinor: '10000', enteredAmountMinor: null, splitWeight: null }],
         })
         expect(values.exactInputs).toEqual({ m1: '100.00' })
     })
@@ -99,8 +104,8 @@ describe('expenseToFormValues — the no-drift path', () => {
             currency: 'JPY',
             amountMinor: '4500',
             shares: [
-                { memberId: 'm1', amountMinor: '20', enteredAmountMinor: '2500' },
-                { memberId: 'm2', amountMinor: '16', enteredAmountMinor: '2000' },
+                { memberId: 'm1', amountMinor: '20', enteredAmountMinor: '2500', splitWeight: null },
+                { memberId: 'm2', amountMinor: '16', enteredAmountMinor: '2000', splitWeight: null },
             ],
         })
         expect(values.exactInputs).toEqual({ m1: '2500', m2: '2000' })
@@ -123,8 +128,8 @@ describe('expenseToFormValues — the no-drift path', () => {
             ...foreignExactExpense,
             splitMode: 'EQUAL',
             shares: [
-                { memberId: 'm1', amountMinor: '4465', enteredAmountMinor: null },
-                { memberId: 'm2', amountMinor: '4464', enteredAmountMinor: null },
+                { memberId: 'm1', amountMinor: '4465', enteredAmountMinor: null, splitWeight: null },
+                { memberId: 'm2', amountMinor: '4464', enteredAmountMinor: null, splitWeight: null },
             ],
         })
         expect(values.participantIds).toEqual(['m1', 'm2'])
@@ -143,6 +148,8 @@ const baseForm = (overrides: Partial<ExpenseFormValues> = {}): ExpenseFormValues
     participantsTouched: true,
     exactInputs: {},
     exactTouched: true,
+    percentageInputs: {},
+    shareInputs: {},
     date: '2026-07-25T12:00:00.000Z',
     ...overrides,
 })
@@ -396,6 +403,103 @@ describe('who an EXACT split is between', () => {
         expect(buildExpenseBody(twoOfThree, undefined, 'en').exactShares).toEqual([
             { memberId: 'm1', amountMinor: '4500' },
             { memberId: 'm2', amountMinor: '4500' },
+        ])
+    })
+})
+
+describe('PERCENTAGE splits', () => {
+    it('parses locale-aware two-decimal percentages as basis points and requires exactly 100%', () => {
+        const values = baseForm({
+            splitMode: 'PERCENTAGE',
+            percentageInputs: { m1: '33,33', m2: '33,33', m3: '33,34' },
+        })
+        expect(percentageShareEntries(values, 'pt-BR')).toEqual([
+            { memberId: 'm1', weight: '3333' },
+            { memberId: 'm2', weight: '3333' },
+            { memberId: 'm3', weight: '3334' },
+        ])
+        expect(percentageRemainingBasisPoints(values, 'pt-BR')).toBe('0')
+        expect(validateExpenseForm(values, undefined, 'pt-BR')).toBeNull()
+        expect(buildExpenseBody(values, undefined, 'pt-BR')).toMatchObject({
+            splitMode: 'PERCENTAGE',
+            weightedShares: [
+                { memberId: 'm1', weight: '3333' },
+                { memberId: 'm2', weight: '3333' },
+                { memberId: 'm3', weight: '3334' },
+            ],
+        })
+    })
+
+    it.each([
+        ['99.99', '1'],
+        ['100.01', '-1'],
+    ])('rejects a %s%% total', (input, remaining) => {
+        const values = baseForm({ splitMode: 'PERCENTAGE', percentageInputs: { m1: input } })
+        expect(percentageRemainingBasisPoints(values, 'en')).toBe(remaining)
+        expect(validateExpenseForm(values, undefined, 'en')).toBe('PERCENTAGES_DO_NOT_ADD_UP')
+    })
+
+    it('excludes blank and zero rows', () => {
+        const values = baseForm({
+            splitMode: 'PERCENTAGE',
+            percentageInputs: { m1: '100', m2: '', m3: '0.00' },
+        })
+        expect(validateExpenseForm(values, undefined, 'en')).toBeNull()
+        expect(buildExpenseBody(values, undefined, 'en').weightedShares).toEqual([{ memberId: 'm1', weight: '10000' }])
+    })
+
+    it('rejects over-precision and weights outside the signed 64-bit boundary', () => {
+        expect(
+            hasUnreadablePercentage(baseForm({ splitMode: 'PERCENTAGE', percentageInputs: { m1: '33.333' } }), 'en')
+        ).toBe(true)
+        expect(
+            hasUnreadablePercentage(
+                baseForm({ splitMode: 'PERCENTAGE', percentageInputs: { m1: '92233720368547758.08' } }),
+                'en'
+            )
+        ).toBe(true)
+    })
+})
+
+describe('SHARES splits', () => {
+    it('posts positive whole-number weights and excludes blank or zero rows', () => {
+        const values = baseForm({ splitMode: 'SHARES', shareInputs: { m1: '2', m2: '1', m3: '0' } })
+        expect(validateExpenseForm(values)).toBeNull()
+        expect(buildExpenseBody(values)).toMatchObject({
+            splitMode: 'SHARES',
+            weightedShares: [
+                { memberId: 'm1', weight: '2' },
+                { memberId: 'm2', weight: '1' },
+            ],
+        })
+    })
+
+    it.each(['1.5', '-1', 'three', '9223372036854775808'])('rejects invalid share weight %s', (input) => {
+        const values = baseForm({ splitMode: 'SHARES', shareInputs: { m1: input } })
+        expect(hasUnreadableShareWeight(values)).toBe(true)
+        expect(validateExpenseForm(values)).toBe('SHARE_WEIGHT_INVALID')
+    })
+})
+
+describe('weighted edit round trips', () => {
+    it.each([
+        ['PERCENTAGE' as const, ['2500', '7500']],
+        ['SHARES' as const, ['1', '3']],
+    ])('restores %s from splitWeight, never the calculated amountMinor', (splitMode, weights) => {
+        const expense: ApiExpense = {
+            ...foreignExactExpense,
+            splitMode,
+            shares: [
+                { memberId: 'm1', amountMinor: '1', enteredAmountMinor: null, splitWeight: weights[0] },
+                { memberId: 'm2', amountMinor: '9999', enteredAmountMinor: null, splitWeight: weights[1] },
+            ],
+        }
+        const values = expenseToFormValues(expense, undefined, 'en')
+        if (splitMode === 'PERCENTAGE') expect(values.percentageInputs).toEqual({ m1: '25.00', m2: '75.00' })
+        else expect(values.shareInputs).toEqual({ m1: '1', m2: '3' })
+        expect(buildExpenseBody(values, undefined, 'en').weightedShares).toEqual([
+            { memberId: 'm1', weight: weights[0] },
+            { memberId: 'm2', weight: weights[1] },
         ])
     })
 })

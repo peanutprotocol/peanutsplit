@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { convertMinorAtRate, MAX_SIGNED_MINOR, STATIC_USD_PER_UNIT } from '@/server/money'
-import { equalShares, exactShares, sumShares } from '@/server/split'
+import { equalShares, exactShares, sumShares, weightedShares } from '@/server/split'
 
 const STATIC_CODES = Object.keys(STATIC_USD_PER_UNIT)
 const usdPerUnit = (code: string) => STATIC_USD_PER_UNIT[code]
@@ -28,10 +28,84 @@ describe('equalShares', () => {
 
     it('leaves enteredAmountMinor null — EQUAL has nothing typed per person', () => {
         expect(equalShares(300n, ['a', 'b'])[0].enteredAmountMinor).toBeNull()
+        expect(equalShares(300n, ['a', 'b'])[0].splitWeight).toBeNull()
     })
 
     it('refuses an expense with no participants', () => {
         expect(() => equalShares(100n, [])).toThrow()
+    })
+})
+
+describe('weightedShares', () => {
+    it('splits 10 minor units at 2 shares to 1 as 7 / 3', () => {
+        expect(
+            amounts(
+                weightedShares(10n, [
+                    { memberId: 'a', weight: 2n },
+                    { memberId: 'b', weight: 1n },
+                ])
+            )
+        ).toEqual([7n, 3n])
+    })
+
+    it('splits a 10-unit percentage total at 33.33 / 33.33 / 33.34 as 3 / 3 / 4', () => {
+        expect(
+            amounts(
+                weightedShares(10n, [
+                    { memberId: 'a', weight: 3333n },
+                    { memberId: 'b', weight: 3333n },
+                    { memberId: 'c', weight: 3334n },
+                ])
+            )
+        ).toEqual([3n, 3n, 4n])
+    })
+
+    it('uses largest remainders and preserves the entered integer weights', () => {
+        const shares = weightedShares(1001n, [
+            { memberId: 'a', weight: 1n },
+            { memberId: 'b', weight: 2n },
+            { memberId: 'c', weight: 3n },
+        ])
+
+        expect(amounts(shares)).toEqual([167n, 334n, 500n])
+        expect(shares.map((share) => share.splitWeight)).toEqual([1n, 2n, 3n])
+        expect(shares.every((share) => share.enteredAmountMinor === null)).toBe(true)
+        expect(sumShares(shares)).toBe(1001n)
+    })
+
+    it('breaks equal-remainder ties by input order deterministically', () => {
+        const weights = ['first', 'second', 'third'].map((memberId) => ({ memberId, weight: 1n }))
+        expect(amounts(weightedShares(2n, weights))).toEqual([1n, 1n, 0n])
+        expect(weightedShares(2n, weights)).toEqual(weightedShares(2n, weights))
+    })
+
+    it('does all arithmetic as BigInt above Number safe-integer precision', () => {
+        const huge = 9_007_199_254_740_993n
+        const shares = weightedShares(10_000_000_000_000_001n, [
+            { memberId: 'a', weight: huge },
+            { memberId: 'b', weight: huge + 1n },
+            { memberId: 'c', weight: 1n },
+        ])
+        expect(sumShares(shares)).toBe(10_000_000_000_000_001n)
+        expect(shares.map((share) => share.splitWeight)).toEqual([huge, huge + 1n, 1n])
+    })
+
+    it('always sums exactly to the total across small totals and varied weights', () => {
+        for (let total = 0; total < 60; total++) {
+            for (let size = 1; size <= 7; size++) {
+                const weights = Array.from({ length: size }, (_, index) => ({
+                    memberId: `m${index}`,
+                    weight: BigInt((index + 1) * (size + 2)),
+                }))
+                expect(sumShares(weightedShares(BigInt(total), weights))).toBe(BigInt(total))
+            }
+        }
+    })
+
+    it('refuses missing and non-positive weights', () => {
+        expect(() => weightedShares(100n, [])).toThrow()
+        expect(() => weightedShares(100n, [{ memberId: 'a', weight: 0n }])).toThrow()
+        expect(() => weightedShares(100n, [{ memberId: 'a', weight: -1n }])).toThrow()
     })
 })
 
@@ -51,6 +125,7 @@ describe('exactShares', () => {
             rate
         )
         expect(shares.map((s) => s.enteredAmountMinor)).toEqual([100_000n, 200_000n])
+        expect(shares.every((s) => s.splitWeight === null)).toBe(true)
     })
 
     it('sums to the converted total even when every share rounds down', () => {

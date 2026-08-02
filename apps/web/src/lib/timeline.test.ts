@@ -15,7 +15,7 @@ const expense = (id: string, date: string, createdAt = date): ApiExpense => ({
     date,
     category: null,
     createdAt,
-    shares: [{ memberId: 'ana', amountMinor: '1000', enteredAmountMinor: null }],
+    shares: [{ memberId: 'ana', amountMinor: '1000', enteredAmountMinor: null, splitWeight: null }],
     reactions: [],
 })
 

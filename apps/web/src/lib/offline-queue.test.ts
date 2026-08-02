@@ -99,8 +99,8 @@ const state = (): RoomState => ({
             createdAt: '2026-07-01T00:00:00.000Z',
             reactions: [],
             shares: [
-                { memberId: 'ana', amountMinor: '5000', enteredAmountMinor: null },
-                { memberId: 'bea', amountMinor: '5000', enteredAmountMinor: null },
+                { memberId: 'ana', amountMinor: '5000', enteredAmountMinor: null, splitWeight: null },
+                { memberId: 'bea', amountMinor: '5000', enteredAmountMinor: null, splitWeight: null },
             ],
         },
     ],
@@ -332,6 +332,36 @@ describe('queued rows on screen', () => {
             }),
         ])
         expect(exact.expenses[0].shares.map((s) => s.memberId)).toEqual(['ana'])
+    })
+
+    it('keeps weighted participants and their original weights on queued rows', () => {
+        const percentage = mergeQueuedExpenses(state(), [
+            item({
+                body: input({
+                    splitMode: 'PERCENTAGE',
+                    weightedShares: [
+                        { memberId: 'ana', weight: '2500' },
+                        { memberId: 'bea', weight: '7500' },
+                    ],
+                }),
+            }),
+        ])
+        expect(percentage.expenses[0].shares).toEqual([
+            { memberId: 'ana', amountMinor: '0', enteredAmountMinor: null, splitWeight: '2500' },
+            { memberId: 'bea', amountMinor: '0', enteredAmountMinor: null, splitWeight: '7500' },
+        ])
+
+        const shares = mergeQueuedExpenses(state(), [
+            item({
+                body: input({
+                    splitMode: 'SHARES',
+                    weightedShares: [{ memberId: 'bea', weight: '3' }],
+                }),
+            }),
+        ])
+        expect(shares.expenses[0].shares).toEqual([
+            { memberId: 'bea', amountMinor: '0', enteredAmountMinor: null, splitWeight: '3' },
+        ])
     })
 
     it('shows no conversion line for a queued foreign expense — no FX has happened', () => {

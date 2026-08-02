@@ -34,8 +34,8 @@ const state: RoomState = {
             category: 'transport',
             createdAt: '2026-07-02T09:00:00.000Z',
             shares: [
-                { memberId: 'ana', amountMinor: '7000', enteredAmountMinor: '5932' },
-                { memberId: 'bea', amountMinor: '7567', enteredAmountMinor: '6413' },
+                { memberId: 'ana', amountMinor: '7000', enteredAmountMinor: '5932', splitWeight: null },
+                { memberId: 'bea', amountMinor: '7567', enteredAmountMinor: '6413', splitWeight: null },
             ],
             reactions: [{ emoji: 'spark', memberId: 'bea' }],
         },
@@ -96,7 +96,7 @@ describe('room export', () => {
         const parsed = JSON.parse(roomJson(state, '2026-07-29T12:00:00.000Z'))
 
         expect(parsed.schema).toBe('peanut-split-room')
-        expect(parsed.version).toBe(1)
+        expect(parsed.version).toBe(2)
         expect(parsed.expenses[0].shares).toHaveLength(2)
         expect(parsed.suggestedTransfers).toEqual(state.suggestedTransfers)
         for (const member of parsed.members) {
@@ -110,7 +110,8 @@ describe('room export', () => {
         expect(csv).toContain('"Lisbon, ""weekend"""')
         expect(csv).toContain('"Train, airport"')
         expect(csv).toContain('expense,expense-1')
-        expect(csv).toContain('share,,expense-1,ana,,7000,EUR,,5932,1.179991000000,EXACT')
+        expect(csv).toContain('entered_amount_minor,split_weight,fx_rate')
+        expect(csv).toContain('share,,expense-1,ana,,7000,EUR,,5932,,1.179991000000,EXACT')
         expect(csv).toContain('settlement,settlement-1,,,,5000,EUR')
         expect(csv).toContain('balance,,,ana,,2567,EUR')
         expect(csv).toContain('balance,,,bea,,-2567,EUR')
@@ -122,6 +123,26 @@ describe('room export', () => {
         const columnCount = csvWidth(lines[0])
         expect(lines.every((line) => csvWidth(line) === columnCount)).toBe(true)
         expect(csv).not.toContain(state.room.slug)
+    })
+
+    it('exports the original weights for percentage and shares splits', () => {
+        const weighted: RoomState = {
+            ...state,
+            expenses: [
+                {
+                    ...state.expenses[0],
+                    splitMode: 'PERCENTAGE',
+                    shares: [
+                        { memberId: 'ana', amountMinor: '3642', enteredAmountMinor: null, splitWeight: '2500' },
+                        { memberId: 'bea', amountMinor: '10925', enteredAmountMinor: null, splitWeight: '7500' },
+                    ],
+                },
+            ],
+        }
+
+        const csv = roomCsv(weighted)
+        expect(csv).toContain('share,,expense-1,ana,,3642,EUR,,,2500,1.179991000000,PERCENTAGE')
+        expect(csv).toContain('share,,expense-1,bea,,10925,EUR,,,7500,1.179991000000,PERCENTAGE')
     })
 
     it('uses a safe local filename and never derives it from the slug', () => {

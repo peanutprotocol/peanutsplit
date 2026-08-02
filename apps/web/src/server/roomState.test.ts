@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { balancesOf, suggestedTransfers, type RoomWithRelations } from '@/server/roomState'
+import { balancesOf, suggestedTransfers, toRoomState, type RoomWithRelations } from '@/server/roomState'
 
 type ExpenseFixture = { paidById: string; baseAmountMinor: bigint; shares: [string, bigint][] }
 type SettlementFixture = { fromId: string; toId: string; amountMinor: bigint }
@@ -132,5 +132,122 @@ describe('suggestedTransfers', () => {
                 ])
             )
         ).toEqual([])
+    })
+})
+
+describe('toRoomState weighted share serialization', () => {
+    it('emits split weights as decimal strings and absent weights as null', () => {
+        const createdAt = new Date('2026-08-02T12:00:00.000Z')
+        const state = toRoomState({
+            id: 'room',
+            slug: 'weighted-room',
+            name: 'Weighted room',
+            emoji: null,
+            currency: 'EUR',
+            coverUrl: null,
+            theme: null,
+            locale: null,
+            createdAt,
+            archivedAt: null,
+            members: [
+                {
+                    id: 'a',
+                    roomId: 'room',
+                    name: 'Ana',
+                    token: 'token-a',
+                    avatar: null,
+                    userId: null,
+                    provisional: false,
+                    createdAt,
+                    removedAt: null,
+                    canRemove: false,
+                },
+                {
+                    id: 'b',
+                    roomId: 'room',
+                    name: 'Bea',
+                    token: 'token-b',
+                    avatar: null,
+                    userId: null,
+                    provisional: false,
+                    createdAt,
+                    removedAt: null,
+                    canRemove: false,
+                },
+            ],
+            expenses: [
+                {
+                    id: 'weighted',
+                    roomId: 'room',
+                    description: 'Cabin',
+                    amountMinor: 100n,
+                    currency: 'EUR',
+                    baseAmountMinor: 100n,
+                    fxRate: { toString: () => '1' },
+                    paidById: 'a',
+                    createdById: 'a',
+                    splitMode: 'PERCENTAGE',
+                    date: createdAt,
+                    category: null,
+                    createdAt,
+                    deletedAt: null,
+                    shares: [
+                        {
+                            id: 'share-a',
+                            expenseId: 'weighted',
+                            memberId: 'a',
+                            amountMinor: 25n,
+                            enteredAmountMinor: null,
+                            splitWeight: 2500n,
+                        },
+                        {
+                            id: 'share-b',
+                            expenseId: 'weighted',
+                            memberId: 'b',
+                            amountMinor: 75n,
+                            enteredAmountMinor: null,
+                            splitWeight: 7500n,
+                        },
+                    ],
+                    reactions: [],
+                },
+                {
+                    id: 'equal',
+                    roomId: 'room',
+                    description: 'Coffee',
+                    amountMinor: 10n,
+                    currency: 'EUR',
+                    baseAmountMinor: 10n,
+                    fxRate: { toString: () => '1' },
+                    paidById: 'a',
+                    createdById: null,
+                    splitMode: 'EQUAL',
+                    date: createdAt,
+                    category: null,
+                    createdAt,
+                    deletedAt: null,
+                    shares: [
+                        {
+                            id: 'share-equal',
+                            expenseId: 'equal',
+                            memberId: 'a',
+                            amountMinor: 10n,
+                            enteredAmountMinor: null,
+                            splitWeight: null,
+                        },
+                    ],
+                    reactions: [],
+                },
+            ],
+            settlements: [],
+            pushSubscriptions: [],
+            notificationSends: [],
+        } as unknown as RoomWithRelations)
+
+        expect(state.expenses.find((expense) => expense.id === 'weighted')?.shares).toEqual([
+            { memberId: 'a', amountMinor: '25', enteredAmountMinor: null, splitWeight: '2500' },
+            { memberId: 'b', amountMinor: '75', enteredAmountMinor: null, splitWeight: '7500' },
+        ])
+        expect(state.expenses.find((expense) => expense.id === 'equal')?.shares[0].splitWeight).toBeNull()
     })
 })

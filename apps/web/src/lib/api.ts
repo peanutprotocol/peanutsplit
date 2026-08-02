@@ -9,6 +9,7 @@ import type {
     CreateRoomInput,
     CurrencyInfo,
     ExpenseInput,
+    ExpenseUpdateInput,
     ImportRoomInput,
     MemberAvatarInput,
     ModelStatus,
@@ -175,7 +176,7 @@ export const api = {
             timeoutMs: EXPENSE_WRITE_TIMEOUT_MS,
         }),
 
-    updateExpense: (slug: string, id: string, input: ExpenseInput, token?: string | null) =>
+    updateExpense: (slug: string, id: string, input: ExpenseUpdateInput, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/expenses/${encode(id)}`, {
             method: 'PATCH',
             body: input,

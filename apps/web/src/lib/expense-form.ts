@@ -47,6 +47,10 @@ export interface ExpenseFormValues {
      * not in this session.
      */
     exactTouched: boolean
+    /** PERCENTAGE mode: memberId → locale-aware percentage text (2dp max). */
+    percentageInputs: Record<string, string>
+    /** SHARES mode: memberId → positive whole-number weight text. */
+    shareInputs: Record<string, string>
     /** ISO date-time. */
     date: string
 }
@@ -66,6 +70,8 @@ export const emptyExpenseForm = (opts: {
     participantsTouched: false,
     exactInputs: {},
     exactTouched: false,
+    percentageInputs: {},
+    shareInputs: {},
     date: new Date().toISOString(),
 })
 
@@ -81,12 +87,25 @@ export function expenseToFormValues(
 ): ExpenseFormValues {
     const decimals = decimalsOf(expense.currency, catalog)
     const exactInputs: Record<string, string> = {}
+    const percentageInputs: Record<string, string> = {}
+    const shareInputs: Record<string, string> = {}
     if (expense.splitMode === 'EXACT') {
         for (const share of expense.shares) {
             const entered = share.enteredAmountMinor ?? share.amountMinor
             exactInputs[share.memberId] = locale
                 ? formatAmountInput(entered, decimals, locale)
                 : formatMinorPlain(entered, decimals)
+        }
+    } else if (expense.splitMode === 'PERCENTAGE') {
+        for (const share of expense.shares) {
+            if (share.splitWeight === null) continue
+            percentageInputs[share.memberId] = locale
+                ? formatAmountInput(share.splitWeight, 2, locale)
+                : formatMinorPlain(share.splitWeight, 2)
+        }
+    } else if (expense.splitMode === 'SHARES') {
+        for (const share of expense.shares) {
+            if (share.splitWeight !== null) shareInputs[share.memberId] = share.splitWeight
         }
     }
     return {
@@ -105,6 +124,8 @@ export function expenseToFormValues(
         // A saved EXACT expense is allocated by definition — it could not have
         // been saved otherwise — so the readout opens reconciled and green.
         exactTouched: true,
+        percentageInputs,
+        shareInputs,
         date: expense.date,
     }
 }
@@ -192,6 +213,9 @@ export type ExpenseFormError =
     | 'NO_PARTICIPANTS'
     | 'SHARE_AMOUNT_INVALID'
     | 'SHARES_DO_NOT_ADD_UP'
+    | 'PERCENTAGE_INVALID'
+    | 'PERCENTAGES_DO_NOT_ADD_UP'
+    | 'SHARE_WEIGHT_INVALID'
 
 /**
  * A readable amount wearing a minus sign.
@@ -227,11 +251,71 @@ export function validateExpenseForm(
         if (values.participantsTouched && values.participantIds.length === 0) return 'NO_PARTICIPANTS'
         return null
     }
-    if (hasUnreadableShare(values, catalog, locale)) return 'SHARE_AMOUNT_INVALID'
-    const shares = exactShareEntries(values, catalog, locale)
-    if (shares.length === 0) return 'NO_PARTICIPANTS'
-    if (addMinor(shares.map((s) => s.amountMinor)) !== total) return 'SHARES_DO_NOT_ADD_UP'
+    if (values.splitMode === 'EXACT') {
+        if (hasUnreadableShare(values, catalog, locale)) return 'SHARE_AMOUNT_INVALID'
+        const shares = exactShareEntries(values, catalog, locale)
+        if (shares.length === 0) return 'NO_PARTICIPANTS'
+        if (addMinor(shares.map((s) => s.amountMinor)) !== total) return 'SHARES_DO_NOT_ADD_UP'
+        return null
+    }
+    if (values.splitMode === 'PERCENTAGE') {
+        if (hasUnreadablePercentage(values, locale)) return 'PERCENTAGE_INVALID'
+        const shares = percentageShareEntries(values, locale)
+        if (shares.length === 0) return 'NO_PARTICIPANTS'
+        if (addMinor(shares.map((share) => share.weight)) !== '10000') return 'PERCENTAGES_DO_NOT_ADD_UP'
+        return null
+    }
+    if (hasUnreadableShareWeight(values)) return 'SHARE_WEIGHT_INVALID'
+    if (shareWeightEntries(values).length === 0) return 'NO_PARTICIPANTS'
     return null
+}
+
+/** PERCENTAGE values are stored on the wire as basis points: 12.34% → "1234". */
+export function percentageShareEntries(
+    values: ExpenseFormValues,
+    locale?: string
+): { memberId: string; weight: string }[] {
+    return Object.entries(values.percentageInputs)
+        .map(([memberId, input]) => ({ memberId, weight: parseAmountToMinor(input, 2, locale) ?? '0' }))
+        .filter((share) => BigInt(share.weight) > 0n)
+}
+
+/** Prisma/Postgres store split weights as signed 64-bit integers. */
+export const MAX_SPLIT_WEIGHT = 9_223_372_036_854_775_807n
+
+export function hasUnreadablePercentage(values: ExpenseFormValues, locale?: string): boolean {
+    return Object.values(values.percentageInputs).some((input) => {
+        if (input.trim().length === 0) return false
+        const weight = parseAmountToMinor(input, 2, locale)
+        return weight === null || BigInt(weight) > MAX_SPLIT_WEIGHT
+    })
+}
+
+/** 100.00% minus the entered percentage, expressed in basis points. */
+export function percentageRemainingBasisPoints(values: ExpenseFormValues, locale?: string): string {
+    const allocated = addMinor(percentageShareEntries(values, locale).map((share) => share.weight))
+    return (10000n - BigInt(allocated)).toString()
+}
+
+/** SHARES values are deliberately stricter than money: only positive integers participate. */
+export function shareWeightEntries(values: ExpenseFormValues): { memberId: string; weight: string }[] {
+    return Object.entries(values.shareInputs)
+        .filter(([, input]) => /^\d+$/.test(input.trim()) && BigInt(input.trim()) > 0n)
+        .map(([memberId, input]) => ({ memberId, weight: BigInt(input.trim()).toString() }))
+}
+
+export function hasUnreadableShareWeight(values: ExpenseFormValues): boolean {
+    return Object.values(values.shareInputs).some((input) => {
+        const trimmed = input.trim()
+        return trimmed.length > 0 && (!/^\d+$/.test(trimmed) || BigInt(trimmed) > MAX_SPLIT_WEIGHT)
+    })
+}
+
+/** The participant summary and request body must use the same inclusion rule. */
+export function weightedParticipantIds(values: ExpenseFormValues, locale?: string): string[] {
+    const entries =
+        values.splitMode === 'PERCENTAGE' ? percentageShareEntries(values, locale) : shareWeightEntries(values)
+    return entries.map((share) => share.memberId)
 }
 
 /**
@@ -295,6 +379,12 @@ export function buildExpenseBody(
 
     if (values.splitMode === 'EXACT') {
         return { ...base, splitMode: 'EXACT', exactShares: exactShareEntries(values, catalog, locale) }
+    }
+    if (values.splitMode === 'PERCENTAGE') {
+        return { ...base, splitMode: 'PERCENTAGE', weightedShares: percentageShareEntries(values, locale) }
+    }
+    if (values.splitMode === 'SHARES') {
+        return { ...base, splitMode: 'SHARES', weightedShares: shareWeightEntries(values) }
     }
     if (!values.participantsTouched) return { ...base, splitMode: 'EQUAL' }
     return { ...base, splitMode: 'EQUAL', participantIds: values.participantIds }

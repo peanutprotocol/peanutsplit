@@ -2,10 +2,17 @@
  *  that keep balances honest. Shared by POST and PATCH so an edit behaves
  *  exactly like a fresh write. */
 import type { Expense } from '@prisma/client'
+import type { SplitMode } from '@/lib/api-types'
 import { getRateTable, requireRate, type RateTable } from '@/server/fx'
 import { badRequest } from '@/server/http'
 import { convertMinorAtRate, FX_RATE_DIGITS, MAX_SIGNED_MINOR, parseMinor, quantiseRate } from '@/server/money'
-import { equalShares, exactShares, sumShares, type ShareDraft } from '@/server/split'
+import {
+    equalShares,
+    exactShares,
+    sumShares,
+    weightedShares as apportionWeightedShares,
+    type ShareDraft,
+} from '@/server/split'
 import type { RoomWithRelations } from '@/server/roomState'
 import type { ExpenseBody } from '@/server/validation'
 
@@ -16,7 +23,7 @@ export interface ExpenseWrite {
     baseAmountMinor: bigint
     fxRate: string
     paidById: string
-    splitMode: 'EQUAL' | 'EXACT'
+    splitMode: SplitMode
     date: Date
     category: string | null
     shares: ShareDraft[]
@@ -47,6 +54,7 @@ export async function buildExpense(
      *  else, where a single write can afford to fetch its own. */
     rateTable?: RateTable
 ): Promise<ExpenseWrite> {
+    assertSplitPayloadMatchesMode(body)
     const total = parseMinor(body.amountMinor)
     if (total <= 0n) throw badRequest('amount must be greater than zero', 'AMOUNT_NOT_POSITIVE')
     requireMember(room, body.paidById, 'payer')
@@ -98,6 +106,18 @@ export async function buildExpense(
         const sum = parsed.reduce((a, s) => a + s.amountMinor, 0n)
         if (sum !== total) throw badRequest('exact shares must add up to the expense total', 'SHARES_DO_NOT_ADD_UP')
         shares = exactShares(parsed, body.currency, room.currency, baseAmountMinor, rate)
+    } else if (body.splitMode === 'PERCENTAGE' || body.splitMode === 'SHARES') {
+        const entered = body.weightedShares ?? []
+        if (entered.length === 0)
+            throw badRequest('weightedShares is required for a weighted split', 'WEIGHTED_SHARES_REQUIRED')
+        assertNoDuplicates(entered.map((share) => share.memberId))
+        entered.forEach((share) => requireMember(room, share.memberId, 'share member'))
+        const parsed = entered.map((share) => ({ memberId: share.memberId, weight: parseMinor(share.weight) }))
+        if (parsed.some((share) => share.weight <= 0n))
+            throw badRequest('split weights must be greater than zero', 'SPLIT_WEIGHT_NOT_POSITIVE')
+        if (body.splitMode === 'PERCENTAGE' && parsed.reduce((sum, share) => sum + share.weight, 0n) !== 10_000n)
+            throw badRequest('percentage shares must add up to 100%', 'PERCENTAGES_DO_NOT_ADD_UP')
+        shares = apportionWeightedShares(baseAmountMinor, parsed)
     } else {
         const ids = body.participantIds?.length ? body.participantIds : room.members.map((m) => m.id)
         if (ids.length === 0) throw badRequest('an expense needs at least one participant', 'NO_PARTICIPANTS')
@@ -126,4 +146,14 @@ export async function buildExpense(
 function assertNoDuplicates(ids: readonly string[]): void {
     if (new Set(ids).size !== ids.length)
         throw badRequest('a member can only appear once in a split', 'DUPLICATE_PARTICIPANT')
+}
+
+function assertSplitPayloadMatchesMode(body: ExpenseBody): void {
+    const mismatched =
+        body.splitMode === 'EQUAL'
+            ? body.exactShares !== undefined || body.weightedShares !== undefined
+            : body.splitMode === 'EXACT'
+              ? body.participantIds !== undefined || body.weightedShares !== undefined
+              : body.participantIds !== undefined || body.exactShares !== undefined
+    if (mismatched) throw badRequest('split fields do not match splitMode', 'SPLIT_FIELDS_DO_NOT_MATCH_MODE')
 }

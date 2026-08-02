@@ -13,7 +13,7 @@ import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
-import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
+import type { ApiExpense, CurrencyInfo, ExpenseUpdateInput, RoomState, SplitMode } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
 import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
@@ -22,10 +22,15 @@ import {
     emptyExpenseForm,
     exactParticipantIds,
     expenseToFormValues,
+    hasUnreadablePercentage,
     hasUnreadableShare,
+    MAX_SPLIT_WEIGHT,
+    percentageRemainingBasisPoints,
     remainingMinor,
     repairMisplacedExpenseFields,
+    shareWeightEntries,
     validateExpenseForm,
+    weightedParticipantIds,
     type ExpenseFormValues,
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -69,6 +74,9 @@ interface ExpenseDrawerProps {
     sharedReceipt?: boolean
     onSharedReceiptConsumed?: () => void
 }
+
+const ADVANCED_SPLIT_MODES = ['EXACT', 'PERCENTAGE', 'SHARES'] as const
+const ALL_SPLIT_MODES = ['EQUAL', ...ADVANCED_SPLIT_MODES] as const
 
 export function ExpenseDrawer({
     open,
@@ -118,6 +126,7 @@ export function ExpenseDrawer({
     const [participantError, setParticipantError] = useState<string | null>(null)
     const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
     const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
+    const [moreSplitOptionsOpen, setMoreSplitOptionsOpen] = useState(false)
     /** Delete asks first, like undoing a payment record does. The row is the
      *  room's shared history, so a mis-tap costs everyone a balance. */
     const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -152,6 +161,7 @@ export function ExpenseDrawer({
         setParticipantError(null)
         setFieldRepairNotice(null)
         setEditor(null)
+        setMoreSplitOptionsOpen(Boolean(expense && expense.splitMode !== 'EQUAL'))
         setConfirmingDelete(false)
         expenseRequestRef.current = null
         setValues(
@@ -242,6 +252,10 @@ export function ExpenseDrawer({
      *  ruled out here too: the readout must never go green over a value that save
      *  will refuse. */
     const allocationSettled = remainingIsZero && values.exactTouched && !hasUnreadableShare(values, currencies, locale)
+    const percentageRemaining = percentageRemainingBasisPoints(values, locale)
+    const percentageHasInput = Object.values(values.percentageInputs).some((input) => input.trim().length > 0)
+    const percentageSettled =
+        percentageRemaining === '0' && percentageHasInput && !hasUnreadablePercentage(values, locale)
     const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
@@ -293,16 +307,66 @@ export function ExpenseDrawer({
      * Editing a saved EXACT expense keeps its amounts; this only runs on a
      * deliberate mode switch.
      */
-    const setSplitMode = (mode: 'EQUAL' | 'EXACT') => {
+    const setSplitMode = (mode: SplitMode) => {
         if (mode === values.splitMode) return
         if (mode === 'EQUAL') {
             patch({ splitMode: 'EQUAL' })
             return
         }
         const participants = values.participantsTouched ? values.participantIds : state.members.map((m) => m.id)
-        const exactInputs: Record<string, string> = {}
-        for (const memberId of participants) exactInputs[memberId] = ''
-        patch({ splitMode: 'EXACT', exactInputs, exactTouched: false })
+        if (mode === 'EXACT') {
+            if (Object.keys(values.exactInputs).length > 0) {
+                patch({ splitMode: mode })
+                return
+            }
+            const exactInputs: Record<string, string> = {}
+            for (const memberId of participants) exactInputs[memberId] = ''
+            patch({ splitMode: mode, exactInputs, exactTouched: false })
+            return
+        }
+        if (mode === 'PERCENTAGE') {
+            if (Object.keys(values.percentageInputs).length > 0) {
+                patch({ splitMode: mode })
+                return
+            }
+            const percentageInputs: Record<string, string> = {}
+            for (const memberId of participants) percentageInputs[memberId] = ''
+            patch({ splitMode: mode, percentageInputs })
+            return
+        }
+        if (Object.keys(values.shareInputs).length > 0) {
+            patch({ splitMode: mode })
+            return
+        }
+        const shareInputs: Record<string, string> = {}
+        for (const memberId of participants) shareInputs[memberId] = ''
+        patch({ splitMode: mode, shareInputs })
+    }
+
+    /** The split methods expose radio semantics, including the arrow-key
+     *  behavior native radios provide. Moving to a hidden advanced option also
+     *  opens the disclosure before focus follows the selection. */
+    const moveSplitMode = (event: React.KeyboardEvent<HTMLButtonElement>, mode: SplitMode) => {
+        const key = event.key
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) return
+        event.preventDefault()
+
+        const current = ALL_SPLIT_MODES.indexOf(mode)
+        const nextIndex =
+            key === 'Home'
+                ? 0
+                : key === 'End'
+                  ? ALL_SPLIT_MODES.length - 1
+                  : key === 'ArrowLeft' || key === 'ArrowUp'
+                    ? (current - 1 + ALL_SPLIT_MODES.length) % ALL_SPLIT_MODES.length
+                    : (current + 1) % ALL_SPLIT_MODES.length
+        const next = ALL_SPLIT_MODES[nextIndex]
+        if (next !== 'EQUAL') setMoreSplitOptionsOpen(true)
+        setSplitMode(next)
+        feedback('tick')
+        requestAnimationFrame(() => {
+            document.querySelector<HTMLButtonElement>(`[data-testid="split-${next.toLowerCase()}"]`)?.focus()
+        })
     }
 
     const toggleParticipant = (memberId: string) => {
@@ -335,8 +399,12 @@ export function ExpenseDrawer({
                     participantsTouched: true,
                     participantIds: current.includes(memberId) ? current : [...current, memberId],
                 })
-            } else if (values.exactInputs[memberId] === undefined) {
+            } else if (values.splitMode === 'EXACT' && values.exactInputs[memberId] === undefined) {
                 patch({ exactInputs: { ...values.exactInputs, [memberId]: '' } })
+            } else if (values.splitMode === 'PERCENTAGE' && values.percentageInputs[memberId] === undefined) {
+                patch({ percentageInputs: { ...values.percentageInputs, [memberId]: '' } })
+            } else if (values.splitMode === 'SHARES' && values.shareInputs[memberId] === undefined) {
+                patch({ shareInputs: { ...values.shareInputs, [memberId]: '' } })
             }
             setAddingParticipant(false)
             setNewParticipantName('')
@@ -395,6 +463,38 @@ export function ExpenseDrawer({
         const minor = parseAmountToMinor(raw, decimals, locale)
         if (minor === null) return
         editExact(memberId, formatAmountInput(minor, decimals, locale))
+    }
+
+    const typePercentage = (memberId: string, input: string) => {
+        if (!isAmountInputAcceptable(input, 2, locale)) return
+        const weight = parseAmountToMinor(input, 2, locale)
+        if (weight !== null && BigInt(weight) > MAX_SPLIT_WEIGHT) return
+        patch({ percentageInputs: { ...values.percentageInputs, [memberId]: input } })
+    }
+
+    const normalisePercentage = (memberId: string) => {
+        const raw = values.percentageInputs[memberId] ?? ''
+        if (raw.trim().length === 0) return
+        const basisPoints = parseAmountToMinor(raw, 2, locale)
+        if (basisPoints === null) return
+        patch({
+            percentageInputs: {
+                ...values.percentageInputs,
+                [memberId]: formatAmountInput(basisPoints, 2, locale),
+            },
+        })
+    }
+
+    const typeShares = (memberId: string, input: string) => {
+        if (!/^\d*$/.test(input)) return
+        if (input && BigInt(input) > MAX_SPLIT_WEIGHT) return
+        patch({ shareInputs: { ...values.shareInputs, [memberId]: input } })
+    }
+
+    const normaliseShares = (memberId: string) => {
+        const raw = values.shareInputs[memberId]?.trim() ?? ''
+        if (!raw) return
+        patch({ shareInputs: { ...values.shareInputs, [memberId]: BigInt(raw).toString() } })
     }
 
     /** Make the interpretation visible before save. A grouped `1,234` in
@@ -510,7 +610,8 @@ export function ExpenseDrawer({
         const body = buildExpenseBody(valuesToSave, currencies, locale)
         try {
             if (expense) {
-                await updateExpense.mutateAsync({ id: expense.id, input: body })
+                const input: ExpenseUpdateInput = { ...body, expectedSplitMode: expense.splitMode }
+                await updateExpense.mutateAsync({ id: expense.id, input })
                 track(
                     'expense_edited',
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
@@ -610,6 +711,10 @@ export function ExpenseDrawer({
         [state.members, values.exactInputs]
     )
     const membersNotInExact = state.members.filter((member) => values.exactInputs[member.id] === undefined)
+    const weightedInputs = values.splitMode === 'PERCENTAGE' ? values.percentageInputs : values.shareInputs
+    const weightedRows = state.members.filter((member) => weightedInputs[member.id] !== undefined)
+    const membersNotInWeighted = state.members.filter((member) => weightedInputs[member.id] === undefined)
+    const shareWeightTotal = shareWeightEntries(values).reduce((total, share) => total + BigInt(share.weight), 0n)
 
     const payer = state.members.find((member) => member.id === values.paidById)
     const payerName = values.newPaidByName || payer?.name
@@ -618,7 +723,9 @@ export function ExpenseDrawer({
             ? values.participantsTouched
                 ? values.participantIds
                 : state.members.map((member) => member.id)
-            : exactParticipantIds(values, currencies, locale)
+            : values.splitMode === 'EXACT'
+              ? exactParticipantIds(values, currencies, locale)
+              : weightedParticipantIds(values, locale)
     const participants = state.members.filter((member) => participantIds.includes(member.id))
     const participantSummary =
         participants.length === state.members.length
@@ -628,14 +735,44 @@ export function ExpenseDrawer({
               : participants.length === 1
                 ? participants[0].name
                 : t('peopleSummary', { name: participants[0].name, count: participants.length - 1 })
-    const splitModeSummary = values.splitMode === 'EQUAL' ? t('equally') : t('exactAmounts')
+    const splitModeSummary =
+        values.splitMode === 'EQUAL'
+            ? t('equally')
+            : values.splitMode === 'EXACT'
+              ? t('exactAmounts')
+              : values.splitMode === 'PERCENTAGE'
+                ? t('percentage')
+                : t('shares')
     /** The strip's three sub-labels are captions, not headings, and "paid" and
      *  "date" already read that way — so this one is lower case too. It is also
      *  the short form: "Exact amounts" truncated to "Exact amou…" in a 1.45fr
      *  column at 390px, and shortening the word is cheaper than widening the
      *  column at the payer's and the date's expense. The button's aria-label
      *  keeps the full wording. */
-    const splitModeCaption = values.splitMode === 'EQUAL' ? t('equallyShort') : t('exactShort')
+    const splitModeCaption =
+        values.splitMode === 'EQUAL'
+            ? t('equallyShort')
+            : values.splitMode === 'EXACT'
+              ? t('exactShort')
+              : values.splitMode === 'PERCENTAGE'
+                ? t('percentageShort')
+                : t('sharesShort')
+    const splitModeHint =
+        values.splitMode === 'EQUAL'
+            ? t('equallyHint')
+            : values.splitMode === 'EXACT'
+              ? t('exactAmountsHint')
+              : values.splitMode === 'PERCENTAGE'
+                ? t('percentageHint')
+                : t('sharesHint')
+    /** A collapsed disclosure still shows the selected advanced radio. Hiding
+     *  it would leave the exposed radiogroup with no checked item while the
+     *  percentage/share editor remained active. */
+    const visibleAdvancedSplitModes = moreSplitOptionsOpen
+        ? ADVANCED_SPLIT_MODES
+        : values.splitMode === 'EQUAL'
+          ? []
+          : [values.splitMode]
     const dateSummary = dayLabel(values.date, {
         locale,
         today: tDates('today'),
@@ -1068,9 +1205,7 @@ export function ExpenseDrawer({
                             <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
                                 <div>
                                     <h3 className="text-h8">{t('whoShares')}</h3>
-                                    <p className="mt-1 text-xs text-grey-1">
-                                        {values.splitMode === 'EQUAL' ? t('equallyHint') : t('exactAmountsHint')}
-                                    </p>
+                                    <p className="mt-1 text-xs text-grey-1">{splitModeHint}</p>
                                 </div>
                                 <button
                                     type="button"
@@ -1083,25 +1218,77 @@ export function ExpenseDrawer({
                                 </button>
                             </div>
                             <div className="flex flex-col gap-3 p-3">
-                                <div className="grid grid-cols-2 rounded-full border border-n-1 bg-white p-1">
-                                    {(['EQUAL', 'EXACT'] as const).map((mode) => (
+                                <div className="flex flex-col gap-2">
+                                    <div role="radiogroup" aria-label={t('splitMode')} className="flex flex-col gap-2">
                                         <button
-                                            key={mode}
                                             type="button"
+                                            role="radio"
+                                            aria-checked={values.splitMode === 'EQUAL'}
+                                            tabIndex={values.splitMode === 'EQUAL' ? 0 : -1}
+                                            onKeyDown={(event) => moveSplitMode(event, 'EQUAL')}
                                             onClick={() => {
-                                                setSplitMode(mode)
+                                                setSplitMode('EQUAL')
                                                 feedback('tick')
                                             }}
-                                            aria-pressed={values.splitMode === mode}
-                                            data-testid={`split-${mode.toLowerCase()}`}
+                                            data-testid="split-equal"
                                             className={cn(
-                                                'min-h-10 rounded-full px-3 py-2 text-h9 transition-colors duration-150',
-                                                values.splitMode === mode ? 'bg-n-1 text-white' : 'bg-white text-n-1'
+                                                'min-h-11 rounded-md border border-n-1 px-3 py-2 text-h9 transition-colors duration-150',
+                                                values.splitMode === 'EQUAL' ? 'bg-n-1 text-white' : 'bg-white text-n-1'
                                             )}
                                         >
-                                            {mode === 'EQUAL' ? t('equally') : t('exactAmounts')}
+                                            {t('equally')}
                                         </button>
-                                    ))}
+
+                                        {visibleAdvancedSplitModes.length > 0 && (
+                                            <div
+                                                id="expense-more-split-options"
+                                                className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+                                            >
+                                                {visibleAdvancedSplitModes.map((mode) => {
+                                                    const label =
+                                                        mode === 'EXACT'
+                                                            ? t('exactAmounts')
+                                                            : mode === 'PERCENTAGE'
+                                                              ? t('percentage')
+                                                              : t('shares')
+                                                    return (
+                                                        <button
+                                                            key={mode}
+                                                            type="button"
+                                                            role="radio"
+                                                            aria-checked={values.splitMode === mode}
+                                                            tabIndex={values.splitMode === mode ? 0 : -1}
+                                                            onKeyDown={(event) => moveSplitMode(event, mode)}
+                                                            onClick={() => {
+                                                                setSplitMode(mode)
+                                                                feedback('tick')
+                                                            }}
+                                                            data-testid={`split-${mode.toLowerCase()}`}
+                                                            className={cn(
+                                                                'min-h-11 rounded-md border border-n-1 px-3 py-2 text-h9 transition-colors duration-150',
+                                                                values.splitMode === mode
+                                                                    ? 'bg-n-1 text-white'
+                                                                    : 'bg-white text-n-1'
+                                                            )}
+                                                        >
+                                                            {label}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        aria-expanded={moreSplitOptionsOpen}
+                                        aria-controls="expense-more-split-options"
+                                        onClick={() => setMoreSplitOptionsOpen((current) => !current)}
+                                        data-testid="more-split-options"
+                                        className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-dashed border-n-1 bg-white px-3 py-2 text-h9"
+                                    >
+                                        {t('moreOptions')}
+                                        <Icon name={moreSplitOptionsOpen ? 'chevron-up' : 'chevron-down'} size={18} />
+                                    </button>
                                 </div>
 
                                 {values.splitMode === 'EQUAL' ? (
@@ -1174,7 +1361,7 @@ export function ExpenseDrawer({
                                             )
                                         })}
                                     </ul>
-                                ) : (
+                                ) : values.splitMode === 'EXACT' ? (
                                     <div className="flex flex-col gap-2">
                                         <ul className="flex flex-col gap-2">
                                             {exactRows.map((member) => (
@@ -1302,6 +1489,148 @@ export function ExpenseDrawer({
                                                     locale
                                                 ),
                                             })}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        <ul className="flex flex-col gap-2">
+                                            {weightedRows.map((member) => (
+                                                <li
+                                                    key={member.id}
+                                                    className="flex items-center gap-2 rounded-md border border-n-1 bg-white p-2"
+                                                >
+                                                    <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
+                                                    <span className="w-20 shrink-0 truncate text-h8">
+                                                        {member.name}
+                                                    </span>
+                                                    <div className="flex h-12 min-w-0 flex-1 items-center rounded-sm border border-n-1 bg-white focus-within:ring-2 focus-within:ring-n-1">
+                                                        <input
+                                                            value={weightedInputs[member.id] ?? ''}
+                                                            onChange={(event) =>
+                                                                values.splitMode === 'PERCENTAGE'
+                                                                    ? typePercentage(member.id, event.target.value)
+                                                                    : typeShares(member.id, event.target.value)
+                                                            }
+                                                            onFocus={(event) => event.target.select()}
+                                                            onBlur={() =>
+                                                                values.splitMode === 'PERCENTAGE'
+                                                                    ? normalisePercentage(member.id)
+                                                                    : normaliseShares(member.id)
+                                                            }
+                                                            inputMode={
+                                                                values.splitMode === 'PERCENTAGE'
+                                                                    ? 'decimal'
+                                                                    : 'numeric'
+                                                            }
+                                                            aria-label={
+                                                                values.splitMode === 'PERCENTAGE'
+                                                                    ? t('percentageFor', { name: member.name })
+                                                                    : t('sharesFor', { name: member.name })
+                                                            }
+                                                            aria-invalid={
+                                                                submitted &&
+                                                                (validation === 'PERCENTAGE_INVALID' ||
+                                                                    validation === 'PERCENTAGES_DO_NOT_ADD_UP' ||
+                                                                    validation === 'SHARE_WEIGHT_INVALID')
+                                                            }
+                                                            data-testid={
+                                                                values.splitMode === 'PERCENTAGE'
+                                                                    ? 'percentage-input'
+                                                                    : 'shares-input'
+                                                            }
+                                                            data-member={member.name}
+                                                            className="h-full min-w-0 flex-1 border-0 bg-transparent px-3 text-base tabular-nums outline-none"
+                                                        />
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="shrink-0 pr-3 text-sm text-grey-1"
+                                                        >
+                                                            {values.splitMode === 'PERCENTAGE' ? '%' : t('sharesUnit')}
+                                                        </span>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+
+                                        {membersNotInWeighted.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {membersNotInWeighted.map((member) => (
+                                                    <button
+                                                        key={member.id}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            values.splitMode === 'PERCENTAGE'
+                                                                ? patch({
+                                                                      percentageInputs: {
+                                                                          ...values.percentageInputs,
+                                                                          [member.id]: '',
+                                                                      },
+                                                                  })
+                                                                : patch({
+                                                                      shareInputs: {
+                                                                          ...values.shareInputs,
+                                                                          [member.id]: '',
+                                                                      },
+                                                                  })
+                                                        }
+                                                        className="rounded-sm border border-dashed border-n-1 px-3 py-2 text-h9"
+                                                    >
+                                                        {t('addToSplit', { name: member.name })}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {values.splitMode === 'PERCENTAGE' ? (
+                                            <motion.div
+                                                data-testid="percentage-readout"
+                                                role="status"
+                                                aria-live="polite"
+                                                animate={
+                                                    motionAllowed && percentageSettled
+                                                        ? { scale: [1, 1.03, 1] }
+                                                        : { scale: 1 }
+                                                }
+                                                transition={
+                                                    motionAllowed ? { duration: 0.3, ease: 'easeOut' } : { duration: 0 }
+                                                }
+                                                data-motion-surface
+                                                className={cn(
+                                                    'flex items-center justify-between rounded-md border border-n-1 px-3 py-3 text-h8 transition-colors duration-200',
+                                                    percentageSettled ? 'bg-green-1' : 'bg-primary-3'
+                                                )}
+                                            >
+                                                <span>
+                                                    {percentageSettled
+                                                        ? t('percentageAllocated')
+                                                        : percentageRemaining.startsWith('-')
+                                                          ? t('percentageOverBy')
+                                                          : t('percentageLeft')}
+                                                </span>
+                                                <span className="flex items-center gap-2 tabular-nums">
+                                                    {percentageSettled && <Icon name="check" size={18} />}
+                                                    {!percentageSettled &&
+                                                        `${formatAmountInput(
+                                                            percentageRemaining.replace('-', ''),
+                                                            2,
+                                                            locale
+                                                        )}%`}
+                                                </span>
+                                            </motion.div>
+                                        ) : (
+                                            <p
+                                                data-testid="shares-readout"
+                                                role="status"
+                                                aria-live="polite"
+                                                className="rounded-md border border-n-1 bg-primary-3 px-3 py-3 text-sm"
+                                            >
+                                                {t('sharesTotal', { total: shareWeightTotal.toString() })}
+                                            </p>
+                                        )}
+                                        <p className="text-sm text-grey-1">
+                                            {values.splitMode === 'PERCENTAGE'
+                                                ? t('percentageCaption')
+                                                : t('sharesCaption')}
                                         </p>
                                     </div>
                                 )}

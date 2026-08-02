@@ -18,8 +18,8 @@ const expense = (id: string, overrides: Partial<ApiExpense> = {}): ApiExpense =>
     category: null,
     createdAt: '2026-07-01T00:00:00.000Z',
     shares: [
-        { memberId: 'ana', amountMinor: '3000', enteredAmountMinor: null },
-        { memberId: 'bea', amountMinor: '3000', enteredAmountMinor: null },
+        { memberId: 'ana', amountMinor: '3000', enteredAmountMinor: null, splitWeight: null },
+        { memberId: 'bea', amountMinor: '3000', enteredAmountMinor: null, splitWeight: null },
     ],
     reactions: [],
     ...overrides,
@@ -103,7 +103,7 @@ describe('isRoomSettled', () => {
         const solo = room(
             [
                 expense('real-1', {
-                    shares: [{ memberId: 'ana', amountMinor: '6000', enteredAmountMinor: null }],
+                    shares: [{ memberId: 'ana', amountMinor: '6000', enteredAmountMinor: null, splitWeight: null }],
                 }),
             ],
             [],
@@ -116,7 +116,7 @@ describe('isRoomSettled', () => {
      *  of them logging something they bought for themselves. Real money, no debt. */
     it('a room whose expenses never crossed between people is not settled', () => {
         const ownCoffee = expense('real-1', {
-            shares: [{ memberId: 'ana', amountMinor: '6000', enteredAmountMinor: null }],
+            shares: [{ memberId: 'ana', amountMinor: '6000', enteredAmountMinor: null, splitWeight: null }],
         })
         expect(isRoomSettled(room([ownCoffee]))).toBe(false)
     })
@@ -127,7 +127,7 @@ describe('isRoomSettled', () => {
     it('a single share on somebody other than the payer is a real debt', () => {
         const covered = expense('real-1', {
             splitMode: 'EXACT',
-            shares: [{ memberId: 'bea', amountMinor: '6000', enteredAmountMinor: '6000' }],
+            shares: [{ memberId: 'bea', amountMinor: '6000', enteredAmountMinor: '6000', splitWeight: null }],
         })
         expect(isRoomSettled(room([covered]))).toBe(true)
         expect(isRoomSettled(room([covered], [{ fromId: 'bea', toId: 'ana', amountMinor: '6000' }]))).toBe(false)

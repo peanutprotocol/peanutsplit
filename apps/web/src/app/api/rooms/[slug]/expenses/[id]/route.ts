@@ -43,6 +43,13 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             assertWritable(room)
             const existing = await findExpense(room, id, tx)
             if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+            const weightedExisting = existing.splitMode === 'PERCENTAGE' || existing.splitMode === 'SHARES'
+            if (
+                (weightedExisting && body.expectedSplitMode !== existing.splitMode) ||
+                (body.expectedSplitMode !== undefined && body.expectedSplitMode !== existing.splitMode)
+            ) {
+                throw conflict('the split type changed — reopen the expense and try again', 'SPLIT_MODE_CONFLICT')
+            }
 
             // An edit replaces every column it is handed, so a field the client did
             // not send has to be filled from the row rather than from a schema

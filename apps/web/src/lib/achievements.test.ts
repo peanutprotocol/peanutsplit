@@ -67,6 +67,7 @@ const state = (
             memberId,
             amountMinor: '500',
             enteredAmountMinor: null,
+            splitWeight: null,
         })),
         reactions: (expense.reactions ?? []).map((memberId) => ({ emoji: '🔥', memberId })),
     })),

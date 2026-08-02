@@ -1,5 +1,5 @@
 /**
- * Share maths. Both modes guarantee the same invariant: the shares sum to the
+ * Share maths. Every mode guarantees the same invariant: the shares sum to the
  * room-currency total exactly, so balances always net to zero.
  */
 import { decimalsOf, RATE_SCALE, scaleRate } from '@/server/money'
@@ -10,6 +10,8 @@ export interface ShareDraft {
     amountMinor: bigint
     /** EXACT only: verbatim in the expense currency, so a re-save can't drift. */
     enteredAmountMinor: bigint | null
+    /** PERCENTAGE basis points or SHARES relative weight. Null for EQUAL/EXACT. */
+    splitWeight: bigint | null
 }
 
 export interface EnteredShare {
@@ -17,11 +19,17 @@ export interface EnteredShare {
     amountMinor: bigint
 }
 
+export interface WeightedShare {
+    memberId: string
+    weight: bigint
+}
+
 export const sumShares = (shares: readonly ShareDraft[]): bigint => shares.reduce((a, s) => a + s.amountMinor, 0n)
 
 interface ApportionPart {
     memberId: string
     enteredAmountMinor: bigint | null
+    splitWeight: bigint | null
     /** Exact rational numerator before division by the shared denominator. */
     numerator: bigint
 }
@@ -44,6 +52,7 @@ function apportionMinor(total: bigint, denominator: bigint, parts: readonly Appo
     const apportioned = parts.map((part, index) => ({
         memberId: part.memberId,
         enteredAmountMinor: part.enteredAmountMinor,
+        splitWeight: part.splitWeight,
         amountMinor: part.numerator / denominator,
         remainder: part.numerator % denominator,
         index,
@@ -61,9 +70,10 @@ function apportionMinor(total: bigint, denominator: bigint, parts: readonly Appo
     )
     for (let i = 0; i < Number(residue); i++) byRemainder[i].amountMinor += 1n
 
-    return apportioned.map(({ memberId, enteredAmountMinor, amountMinor }) => ({
+    return apportioned.map(({ memberId, enteredAmountMinor, splitWeight, amountMinor }) => ({
         memberId,
         enteredAmountMinor,
+        splitWeight,
         amountMinor,
     }))
 }
@@ -74,7 +84,28 @@ export function equalShares(total: bigint, memberIds: readonly string[]): ShareD
     return apportionMinor(
         total,
         BigInt(memberIds.length),
-        memberIds.map((memberId) => ({ memberId, enteredAmountMinor: null, numerator: total }))
+        memberIds.map((memberId) => ({ memberId, enteredAmountMinor: null, splitWeight: null, numerator: total }))
+    )
+}
+
+/** Apportion a room-currency total by positive integer weights. PERCENTAGE uses
+ *  this with a fixed denominator of 10000 basis points; SHARES uses the sum of
+ *  its arbitrary relative weights. Largest remainder is deterministic by input
+ *  order when fractional remainders tie. */
+export function weightedShares(total: bigint, entered: readonly WeightedShare[]): ShareDraft[] {
+    if (entered.length === 0) throw new Error('an expense needs at least one participant')
+    if (entered.some((share) => share.weight <= 0n)) throw new Error('split weights must be positive')
+
+    const denominator = entered.reduce((sum, share) => sum + share.weight, 0n)
+    return apportionMinor(
+        total,
+        denominator,
+        entered.map((share) => ({
+            memberId: share.memberId,
+            enteredAmountMinor: null,
+            splitWeight: share.weight,
+            numerator: total * share.weight,
+        }))
     )
 }
 
@@ -109,6 +140,7 @@ export function exactShares(
         entered.map((share) => ({
             memberId: share.memberId,
             enteredAmountMinor: share.amountMinor,
+            splitWeight: null,
             numerator: share.amountMinor * numeratorScale,
         }))
     )

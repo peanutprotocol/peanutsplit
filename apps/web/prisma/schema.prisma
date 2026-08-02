@@ -14,6 +14,8 @@ datasource db {
 enum SplitMode {
   EQUAL
   EXACT
+  PERCENTAGE
+  SHARES
 
   @@schema("split")
 }
@@ -148,6 +150,7 @@ model ExpenseShare {
   memberId           String
   amountMinor        BigInt // ALWAYS in room currency (post-FX)
   enteredAmountMinor BigInt? // EXACT mode: verbatim in expense currency — no-drift re-save
+  splitWeight        BigInt? // PERCENTAGE: basis points; SHARES: relative integer weight
 
   expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)

@@ -249,6 +249,8 @@ export function toExpenseFormValues(
         participantIds: Object.keys(exactInputs),
         participantsTouched: true,
         exactInputs,
+        percentageInputs: {},
+        shareInputs: {},
         // The receipt did the allocating, item by item, on the screen before this
         // one — so the drawer's readout opens already celebrating rather than
         // asking for numbers that are visibly all there.
