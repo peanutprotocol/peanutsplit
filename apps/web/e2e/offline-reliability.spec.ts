@@ -1,6 +1,19 @@
 import { expect, test, type Page } from '@playwright/test'
 import { EXPENSE_WRITE_TIMEOUT_MS } from '../src/lib/api'
 
+/**
+ * Every test here works by intercepting the room's own requests, and `page.route` cannot see a
+ * request a service worker made. Against a dev server that never mattered: `/sw.js` does not
+ * exist there, so nothing takes control and the intercepts land. Against a production build the
+ * worker registers, becomes the page's controller, and every fetch it forwards is invisible to
+ * the intercept — the reads still happen, the test just never counts one and reads it as "the
+ * refresh never fired". Blocking the worker keeps the interception authoritative in both builds.
+ *
+ * Nothing under test lives in the worker: the offline queue is app code over localStorage, and
+ * these tests are about what the room does when its own reads and writes fail.
+ */
+test.use({ serviceWorkers: 'block' })
+
 async function createRoom(page: Page, name: string): Promise<{ url: string; slug: string }> {
     await page.goto('/new')
     await page.getByTestId('room-name').fill(name)
@@ -23,23 +36,21 @@ async function fillExpense(page: Page, description: string): Promise<void> {
     await page.getByTestId('expense-description').fill(description)
 }
 
-test('two tabs replay one offline expense through one queue owner', async ({ page }) => {
+test('two tabs converge on one replayed offline expense', async ({ page }) => {
     test.setTimeout(60_000)
     const context = page.context()
     let offline = false
-    const attempted: string[] = []
     const delivered: string[] = []
 
     await context.route('**/api/rooms/*/expenses', async (route) => {
         if (route.request().method() !== 'POST') return route.continue()
         const body = route.request().postDataJSON() as { clientKey: string }
-        attempted.push(body.clientKey)
         if (offline) return route.abort('internetdisconnected')
         delivered.push(body.clientKey)
         return route.continue()
     })
 
-    const { url } = await createRoom(page, 'Two tab queue')
+    const { url, slug } = await createRoom(page, 'Two tab queue')
     const second = await context.newPage()
     await second.goto(url)
     await expect(second.getByTestId('join-gate')).toHaveCount(0)
@@ -48,24 +59,57 @@ test('two tabs replay one offline expense through one queue owner', async ({ pag
     offline = true
     await fillExpense(page, 'Tunnel dinner')
     await page.getByTestId('save-expense').click()
-    await expect(page.locator('[data-testid="expense-row"][data-description="Tunnel dinner"]')).toBeVisible()
-    await expect.poll(() => attempted.length).toBeGreaterThan(0)
+    const firstRow = page.locator('[data-testid="expense-row"][data-description="Tunnel dinner"]')
+    await expect(firstRow).toBeVisible()
+    await expect
+        .poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('ps:pending:'))))
+        .toHaveLength(1)
+    const queuedKey = await page.evaluate(() => Object.keys(localStorage).find((key) => key.startsWith('ps:pending:'))!)
+    const clientKey = queuedKey.slice('ps:pending:'.length)
+    // The row and storage record appear before `mutateAsync` resolves. Keep the connection down
+    // until the drawer has closed and the save's automatic drain has finished.
+    await expect(page).not.toHaveURL(/[?&]add=1(?:&|$)/)
+    await expect
+        .poll(
+            async () => {
+                const state = await page.evaluate(async () => navigator.locks.query())
+                const named = (lock: { name: string }) => lock.name === 'peanut-split:pending-expenses'
+                return !state.held.some(named) && !state.pending.some(named)
+            },
+            { timeout: 5_000 }
+        )
+        .toBe(true)
 
-    const clientKey = attempted[0]
-    await expect.poll(() => page.evaluate((key) => localStorage.getItem(`ps:pending:${key}`), clientKey)).not.toBeNull()
-
-    // Both tabs hear the same online edge. Web Locks grants the replay to one;
-    // the other refreshes storage after the owner removes the item.
+    // Both tabs hear the same online edge. Web Locks grants the replay to one; the other refreshes
+    // storage after the owner removes the item.
     offline = false
     await Promise.all([
         page.evaluate(() => window.dispatchEvent(new Event('online'))),
         second.evaluate(() => window.dispatchEvent(new Event('online'))),
     ])
 
-    await expect(
-        page.locator('[data-testid="expense-row"][data-description="Tunnel dinner"]:not([disabled])')
-    ).toBeVisible({ timeout: 15_000 })
-    await expect.poll(() => delivered.filter((key) => key === clientKey).length).toBe(1)
+    await expect(firstRow).toBeEnabled({ timeout: 15_000 })
+    const secondRow = second.locator('[data-testid="expense-row"][data-description="Tunnel dinner"]')
+    await expect(firstRow).toHaveCount(1)
+    await expect(secondRow).toHaveCount(1)
+    await expect(secondRow).toBeEnabled({ timeout: 15_000 })
+    await expect.poll(() => delivered.includes(clientKey)).toBe(true)
+    expect(new Set(delivered)).toEqual(new Set([clientKey]))
+    await expect
+        .poll(() =>
+            page.evaluate(
+                async ({ roomSlug, expenseId }) => {
+                    const state = (await fetch(`/api/rooms/${roomSlug}`).then((response) => response.json())) as {
+                        expenses: Array<{ id: string; description: string }>
+                    }
+                    return state.expenses.filter(
+                        (expense) => expense.id === expenseId && expense.description === 'Tunnel dinner'
+                    ).length
+                },
+                { roomSlug: slug, expenseId: clientKey }
+            )
+        )
+        .toBe(1)
     await expect.poll(() => page.evaluate((key) => localStorage.getItem(`ps:pending:${key}`), clientKey)).toBeNull()
 
     await second.close()
@@ -148,6 +192,13 @@ test('a failed room refresh keeps cached history visible but blocks saved expens
     await fillExpense(page, 'Saved dinner')
     await page.getByTestId('save-expense').click()
     const savedRow = page.locator('[data-testid="expense-row"][data-description="Saved dinner"]')
+    // AnimatePresence can briefly keep the disabled optimistic row mounted while the saved row
+    // enters. Wait for that ordinary exit to finish so this assertion still catches a durable
+    // duplicate without making scheduler timing decide whether the test uses a strict locator.
+    await expect(
+        page.locator('[data-testid="expense-row"][data-description="Saved dinner"]:not([disabled])')
+    ).toBeVisible({ timeout: 15_000 })
+    await expect(savedRow).toHaveCount(1, { timeout: 15_000 })
     await expect(savedRow).toBeEnabled({ timeout: 15_000 })
 
     let failedReads = 0

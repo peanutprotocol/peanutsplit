@@ -14,6 +14,7 @@ import {
     addExpenseMutationOptions,
     addMemberMutationOptions,
     claimMemberMutationOptions,
+    removedQueueSlugs,
     roomKey,
     type ExpenseRequestRef,
 } from './queries'
@@ -113,6 +114,44 @@ afterEach(() => {
     queryClient.clear()
 })
 
+describe('cross-tab queue removals', () => {
+    const queued = (clientKey: string, slug: string) => ({
+        clientKey,
+        slug,
+        endpoint: `/api/rooms/${slug}/expenses`,
+        method: 'POST' as const,
+        body: input,
+        token: null,
+        addedAt: 1,
+    })
+
+    it('finds rooms removed from the legacy array without refetching retained writes', () => {
+        const removed = queued('removed-key', 'old-room')
+        const retained = queued('retained-key', 'current-room')
+
+        expect(
+            removedQueueSlugs({
+                key: 'ps:pending',
+                oldValue: JSON.stringify([removed, retained]),
+                newValue: JSON.stringify([retained]),
+            })
+        ).toEqual(['old-room'])
+    })
+
+    it('targets a removed per-item record and treats a storage clear as all active rooms', () => {
+        const removed = queued('removed-key', 'item-room')
+
+        expect(
+            removedQueueSlugs({
+                key: 'ps:pending:removed-key',
+                oldValue: JSON.stringify(removed),
+                newValue: null,
+            })
+        ).toEqual(['item-room'])
+        expect(removedQueueSlugs({ key: null, oldValue: null, newValue: null })).toBeNull()
+    })
+})
+
 describe('adding an expense', () => {
     it('seeds the room cache from the response, in one hop', async () => {
         const served = roomState(['e1', 'e2'])
@@ -130,17 +169,19 @@ describe('adding an expense', () => {
         queryClient.setQueryData(roomKey(SLUG), roomState())
         const served = roomState(['e2', 'e1'])
         let seenMidFlight: RoomState | undefined
+        let sentClientKey: string | undefined
         vi.stubGlobal(
             'fetch',
-            vi.fn().mockImplementation(async () => {
+            vi.fn().mockImplementation(async (_url: string | URL | Request, init?: RequestInit) => {
                 seenMidFlight = queryClient.getQueryData<RoomState>(roomKey(SLUG))
+                sentClientKey = (JSON.parse(init?.body as string) as ExpenseInput).clientKey
                 return { ok: true, status: 201, text: () => Promise.resolve(JSON.stringify(served)) } as Response
             })
         )
 
         await addExpense(queryClient)
 
-        expect(seenMidFlight?.expenses[0].id.startsWith('pending-')).toBe(true)
+        expect(seenMidFlight?.expenses[0].id).toBe(`pending-${sentClientKey}`)
         expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(served)
     })
 
@@ -252,6 +293,20 @@ describe('adding an expense with no network', () => {
         const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1].body)
         expect(queueSnapshot()[0].clientKey).toBe(firstAttempt.clientKey)
         expect(queueSnapshot()[0].body.clientKey).toBe(firstAttempt.clientKey)
+    })
+
+    it('removes only its own optimistic row when another save is still pending', async () => {
+        const before = roomState()
+        const unrelated = { ...before.expenses[0], id: 'pending-another-save' }
+        queryClient.setQueryData(roomKey(SLUG), { ...before, expenses: [unrelated, ...before.expenses] })
+        const fetchMock = offline()
+
+        await addExpense(queryClient)
+
+        const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1].body)
+        const cached = queryClient.getQueryData<RoomState>(roomKey(SLUG))!
+        expect(cached.expenses.map((expense) => expense.id)).toEqual(['pending-another-save', 'e1'])
+        expect(queueSnapshot()[0].clientKey).toBe(firstAttempt.clientKey)
     })
 
     it('fails honestly when there is no cached room to resolve with', async () => {
