@@ -16,6 +16,9 @@ export interface CurrencyInfo {
     symbol: string
     name: string
     decimals: number
+    /** The rate feed carries this code, so it can be converted. A currency can be used in a room
+     *  when it IS the room currency, or when both it and the room currency have a rate. */
+    hasRate: boolean
 }
 
 export interface ApiRoom {

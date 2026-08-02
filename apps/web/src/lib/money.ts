@@ -8,34 +8,26 @@
  */
 
 import { DEFAULT_LOCALE } from '@/i18n/locales'
+import { CATALOG_BY_CODE, CURRENCY_CATALOG } from './currency-catalog'
+import { formatWithCurrency } from './currency-rules'
 import type { CurrencyInfo } from './api-types'
 
 /**
- * The catalog, duplicated by value so the very first paint of a room can format
- * money before `/api/currencies` resolves. `useCurrencies()` seeds itself from
- * this and overwrites it with the server list.
+ * The catalog, in the bundle.
+ *
+ * It used to be twelve entries typed out by hand here, which is why a JPY room could flash a hero
+ * balance 100x off: the client had no decimals for anything else until `/api/currencies` resolved.
+ * Importing the generated table instead makes the decimals a build-time fact for all 162 codes,
+ * and makes it impossible for the client's idea of a currency to drift from the server's.
  */
-export const FALLBACK_CURRENCIES: readonly CurrencyInfo[] = [
-    { code: 'USD', symbol: '$', name: 'US Dollar', decimals: 2 },
-    { code: 'EUR', symbol: '€', name: 'Euro', decimals: 2 },
-    { code: 'GBP', symbol: '£', name: 'British Pound', decimals: 2 },
-    { code: 'ARS', symbol: '$', name: 'Argentine Peso', decimals: 2 },
-    { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', decimals: 2 },
-    { code: 'MXN', symbol: '$', name: 'Mexican Peso', decimals: 2 },
-    { code: 'COP', symbol: '$', name: 'Colombian Peso', decimals: 0 },
-    { code: 'CHF', symbol: 'CHF ', name: 'Swiss Franc', decimals: 2 },
-    { code: 'THB', symbol: '฿', name: 'Thai Baht', decimals: 2 },
-    { code: 'JPY', symbol: '¥', name: 'Japanese Yen', decimals: 0 },
-    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', decimals: 2 },
-    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', decimals: 2 },
-] as const
+export const FALLBACK_CURRENCIES: readonly CurrencyInfo[] = CURRENCY_CATALOG
 
-const UNKNOWN = (code: string): CurrencyInfo => ({ code, symbol: '', name: code, decimals: 2 })
+const UNKNOWN = (code: string): CurrencyInfo => ({ code, symbol: '', name: code, decimals: 2, hasRate: false })
 
-/** Look a currency up in the catalog, falling back to the static table and then
+/** Look a currency up in the catalog, falling back to the bundled table and then
  *  to a 2-decimal placeholder — formatting must never throw mid-render. */
 export function currencyInfo(code: string, catalog: readonly CurrencyInfo[] = FALLBACK_CURRENCIES): CurrencyInfo {
-    return catalog.find((c) => c.code === code) ?? FALLBACK_CURRENCIES.find((c) => c.code === code) ?? UNKNOWN(code)
+    return catalog.find((c) => c.code === code) ?? CATALOG_BY_CODE.get(code) ?? UNKNOWN(code)
 }
 
 export const decimalsOf = (code: string, catalog?: readonly CurrencyInfo[]): number =>
@@ -219,16 +211,41 @@ export interface MoneyFormat {
 }
 
 /**
+ * Does this currency print as a symbol, or as its code after the amount?
+ *
+ * ONE rule, and `currency-rules.ts` states it for both sides of the app: a symbol if it has one,
+ * otherwise the code. 61 of the 162 catalog codes have no symbol and no custom ticker has one, so
+ * the second branch is a third of the product rather than an edge case.
+ *
+ * Catalog membership is the wrong question to ask here, and asking it is the bug this replaces.
+ * `Intl` does not check ISO 4217: given AED — a real currency with no symbol — it answers
+ * `AED 12.34` while the server writes `12.34 AED`, and given the non-currency `DOG` it invents
+ * `DOG 12.34` rather than refusing. A four-letter ticker it refuses outright, which used to drop
+ * the currency from the amount entirely: `BEER 1234.00` printed as `1234.00`.
+ *
+ * The `isCurrencyCode` half stays because `Intl.NumberFormat` throws a RangeError on anything that
+ * is not three letters; nothing with a symbol fails it, so it only ever guards the impossible.
+ */
+const printsSymbol = (info: CurrencyInfo): boolean => info.symbol !== '' && isCurrencyCode(info.code)
+
+/**
  * The catalog's `decimals` always wins over the currency's Intl default. The API decides that a
  * JPY or COP room has no cents; letting Intl reintroduce them would print an amount that cannot
  * be typed back into the field.
+ *
+ * In the decimal branch this formats the NUMBER only — the code is not part of it. Callers that
+ * hand these options straight to a formatter (`AnimatedMoney`) must add the code themselves.
  */
 export function moneyFormatOptions(info: CurrencyInfo): MoneyFormat {
     const digits = { minimumFractionDigits: info.decimals, maximumFractionDigits: info.decimals }
-    return isCurrencyCode(info.code)
+    return printsSymbol(info)
         ? { style: 'currency', currency: info.code.toUpperCase(), ...digits }
         : { style: 'decimal', ...digits }
 }
+
+/** What follows the digits when the currency has no symbol — '' when it has one. */
+export const currencySuffix = (info: CurrencyInfo): string =>
+    printsSymbol(info) ? '' : formatWithCurrency('', '', info)
 
 /**
  * Formatters are expensive to construct and a room re-renders one per row per poll, so they are
@@ -263,12 +280,20 @@ export function formatMoney(
 ): string {
     const info = currencyInfo(code, catalog)
     const plain = formatMinorPlain(minor, info.decimals)
+    const sign = plain.startsWith('-') ? '-' : ''
+    const magnitude = sign ? plain.slice(1) : plain
     try {
-        return moneyFormatter(locale, info).format(plain as unknown as number)
+        // With a symbol, Intl owns the whole string: it knows this locale puts the symbol in front
+        // (`€12.34`) or behind (`12,34 €`), and that placement is the reason the twelve legacy
+        // currencies still render exactly as they did.
+        if (printsSymbol(info)) return moneyFormatter(locale, info).format(plain as unknown as number)
+        // Without one, Intl only formats the digits and `formatWithCurrency` says where the code
+        // goes — the same function the server formats with, so both sides print `12.34 AED`.
+        return formatWithCurrency(sign, moneyFormatter(locale, info).format(magnitude as unknown as number), info)
     } catch {
-        // An unknown code, or an engine without string input. Formatting must never throw
-        // mid-render, so fall back to the pre-Intl shape rather than losing the amount.
-        return plain.startsWith('-') ? `-${info.symbol}${plain.slice(1)}` : `${info.symbol}${plain}`
+        // An engine without string input. Formatting must never throw mid-render, so fall back to
+        // ungrouped digits rather than losing the amount.
+        return formatWithCurrency(sign, magnitude, info)
     }
 }
 
@@ -302,6 +327,16 @@ export function formatMoneyParts(
     const info = currencyInfo(code, catalog)
     const plain = formatMinorPlain(minor, info.decimals)
     try {
+        if (!printsSymbol(info)) {
+            // The code is a suffix by construction — `formatWithCurrency` puts it there — so the
+            // split is "everything but the last N characters", and rejoining is exact by the same
+            // construction rather than by a second copy of the rule.
+            const whole = formatMoney(minor, code, catalog, locale)
+            return [
+                { type: 'text', value: whole.slice(0, whole.length - info.code.length) },
+                { type: 'currency', value: info.code },
+            ]
+        }
         const merged: MoneyPart[] = []
         for (const part of moneyFormatter(locale, info).formatToParts(plain as unknown as number)) {
             const type: MoneyPart['type'] = part.type === 'currency' ? 'currency' : 'text'

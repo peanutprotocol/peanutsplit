@@ -79,7 +79,7 @@ export const POST = (request: Request, ctx: Ctx) =>
         // allowance belongs to a real room, not to a slug someone guessed.
         enforceRoomScanLimit(room.id)
 
-        return await parseReceipt(body)
+        return await parseReceipt(body, room.currency)
     })
 
 const imageTooLarge = () => new ApiError(413, 'SCAN_IMAGE_TOO_LARGE', 'that image is too large — take a new photo')

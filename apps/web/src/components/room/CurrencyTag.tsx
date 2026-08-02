@@ -21,23 +21,20 @@ interface CurrencyTagProps {
  * "flag: Brazil, R$, BRL" is noise to a screen reader), it cost width the code needed, and a
  * country is not a currency — the euro has twenty of them and the dollar sign has a dozen.
  *
- * Every supported sign is drawn (see `currency-doodle.ts`), including the baht,
- * so the picker never falls into a second visual language halfway down its list.
+ * EVERY code gets a drawing, and `currency-doodle.ts` owns which one: its own sign, its family's
+ * mark, a banknote for a real currency nobody has drawn, or the shrug for an invented ticker. This
+ * component therefore has no fallback of its own to choose. It used to fall back to the `question`
+ * doodle, which at 162 codes would have been a picker of question marks.
  *
  * The sign yields first when space runs out — it is the decoration, the code is the fact. Losing
  * "THB" to an ellipsis inside a narrow picker is the bug that ordering prevents.
  */
 export function CurrencyTag({ code, catalog, className }: CurrencyTagProps) {
     const info = currencyInfo(code, catalog)
-    const drawn = currencyDoodle(info.code)
 
     return (
         <span className={cn('flex min-w-0 items-center gap-1.5 text-h8', className)}>
-            {drawn ? (
-                <Doodle name={drawn} size={16} weight={2.4} className="text-grey-1" />
-            ) : (
-                <Doodle name="question" size={16} weight={2.4} className="text-grey-1" />
-            )}
+            <Doodle name={currencyDoodle(info.code)} size={16} weight={2.4} className="text-grey-1" />
             <span className="shrink-0">{info.code}</span>
         </span>
     )

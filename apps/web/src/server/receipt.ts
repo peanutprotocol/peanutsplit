@@ -147,7 +147,7 @@ const coerceMerchant = (raw: unknown): string | null => {
  * receipt the model could not read are the same outcome for the person holding
  * the phone, and both deserve "try again" rather than an empty review screen.
  */
-export function normalizeReceipt(rawText: string): ParsedReceipt {
+export function normalizeReceipt(rawText: string, roomCurrency: string): ParsedReceipt {
     let parsed: unknown
     try {
         parsed = JSON.parse(unfence(rawText))
@@ -181,7 +181,7 @@ export function normalizeReceipt(rawText: string): ParsedReceipt {
         items,
         suggestedTotalMinor: items.reduce((sum, item) => sum + BigInt(item.amountMinor), 0n).toString(),
         receiptTotalMinor: coerceTotal(envelope.data.total),
-        currency: coerceCurrency(envelope.data.currency),
+        currency: coerceCurrency(envelope.data.currency, roomCurrency),
         merchant: coerceMerchant(envelope.data.merchant),
         date: coerceDate(envelope.data.date),
     }
@@ -218,7 +218,7 @@ export const enforceRoomScanLimit = (roomId: string): void =>
 
 /** The whole server side of a scan: send the image once, keep nothing, and hand
  *  back numbers we counted ourselves. */
-export async function parseReceipt(body: ReceiptParseBody): Promise<ParsedReceipt> {
+export async function parseReceipt(body: ReceiptParseBody, roomCurrency: string): Promise<ParsedReceipt> {
     const config = modelConfig()
     // The route checks `modelEnabled()` first, so this is the belt to that brace
     // — and the only correct answer for a caller that skipped it.
@@ -234,5 +234,5 @@ export async function parseReceipt(body: ReceiptParseBody): Promise<ParsedReceip
         },
         config
     )
-    return normalizeReceipt(text)
+    return normalizeReceipt(text, roomCurrency)
 }

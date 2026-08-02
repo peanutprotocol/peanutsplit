@@ -177,19 +177,17 @@ function Subject({
         const codes = [...new Set(savedExpenses(state.expenses).map((expense) => expense.currency))].slice(0, 6)
         return (
             <div className="flex flex-wrap gap-2" data-testid="achievement-stamps">
-                {codes.map((code) => {
-                    const doodle = currencyDoodle(code)
-                    return (
-                        <span
-                            key={code}
-                            className="flex items-center gap-1 rounded-sm border-2 border-n-1 px-2 py-1 text-h10"
-                        >
-                            {/* No drawing rather than a near-miss of a sign somebody reads daily. */}
-                            {doodle && <Doodle name={doodle} size={14} weight={2.4} aria-hidden />}
-                            {code}
-                        </span>
-                    )
-                })}
+                {codes.map((code) => (
+                    <span
+                        key={code}
+                        className="flex items-center gap-1 rounded-sm border-2 border-n-1 px-2 py-1 text-h10"
+                    >
+                        {/* Every code has a drawing: its sign, its family's mark, a banknote, or
+                            the shrug for an invented ticker. */}
+                        <Doodle name={currencyDoodle(code)} size={14} weight={2.4} aria-hidden />
+                        {code}
+                    </span>
+                ))}
             </div>
         )
     }

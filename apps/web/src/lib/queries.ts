@@ -87,13 +87,27 @@ const withTimeout = (signal: AbortSignal | undefined, ms: number): AbortSignal |
     return signal ? AbortSignal.any([signal, timeout]) : timeout
 }
 
-/** Static catalog. Seeded from the bundled table so first paint can format money. */
+/**
+ * The catalog. Seeded from the bundled table so first paint can format money, then revalidated.
+ *
+ * `initialDataUpdatedAt: 0` is the whole point. `initialData` on its own is dated NOW, so a 24h
+ * `staleTime` makes the seed fresh for a day and the fetch never happens — measured: zero requests
+ * to `/api/currencies` across a full journey. Dating the seed at the epoch makes it stale on
+ * arrival, so the query renders the bundled table instantly and then goes to the server once;
+ * after that the 24h `staleTime` applies to the real response.
+ *
+ * It is not a cosmetic difference. The bundled table is a build-time fact, and `hasRate` is the
+ * one field on it the server can contradict — under `SPLIT_FX_MODE=static` it prices twelve codes,
+ * not 158. Without the revalidation the picker offers currencies the write refuses with a 400
+ * `NO_RATE`, which is exactly what the picker exists to prevent.
+ */
 export function useCurrencies() {
     return useQuery({
         queryKey: currenciesKey,
         queryFn: ({ signal }) => api.currencies(signal),
         staleTime: 24 * 60 * 60 * 1000,
         initialData: FALLBACK_CURRENCIES as CurrencyInfo[],
+        initialDataUpdatedAt: 0,
     })
 }
 

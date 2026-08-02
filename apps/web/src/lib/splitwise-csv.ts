@@ -25,7 +25,8 @@
  * hand-typed amount go through one code path.
  */
 
-import { currencyInfo, parseAmountToMinor, FALLBACK_CURRENCIES } from '@/lib/money'
+import { CURRENCY_CATALOG } from '@/lib/currency-catalog'
+import { currencyInfo, parseAmountToMinor } from '@/lib/money'
 
 // ─── shape ──────────────────────────────────────────────────────────────────
 
@@ -333,7 +334,13 @@ export function parseSignedMinor(cell: string, decimals: number): bigint | null 
     return negative ? -value : value
 }
 
-const SUPPORTED_CURRENCIES = new Set(FALLBACK_CURRENCIES.map((c) => c.code))
+/**
+ * Rated codes only, not the whole catalog. A row in a currency nothing can price is dropped with
+ * `ROW_UNSUPPORTED_CURRENCY`, exactly as it has always been — carrying it instead would let one
+ * unpriceable row fail the whole import with NO_RATE at write time, which is a much worse answer
+ * than losing the row.
+ */
+const SUPPORTED_CURRENCIES = new Set(CURRENCY_CATALOG.filter((c) => c.hasRate).map((c) => c.code))
 
 /**
  * Spread `total` across `weights` so the parts are whole minor units and sum to `total` exactly.
@@ -613,9 +620,9 @@ export function capHistory(
     const currencies = [...new Set(expenses.map((e) => e.currencyCode))]
     // The opening balance has to fit inside the ceiling alongside the history it
     // is standing in for, so its worst case is reserved before the cut rather
-    // than discovered after it. The worst case is bounded by two other caps —
-    // `MAX_MEMBERS − 1` rows per currency, over at most `FALLBACK_CURRENCIES`
-    // currencies (19 × 12 = 228 of the 500); if either grows, this grows with it.
+    // than discovered after it. The worst case is `MAX_MEMBERS − 1` rows per currency, over the
+    // currencies THIS FILE uses — not over the catalog, which is 162 codes wide and would reserve
+    // more than the ceiling. A twelve-currency file reserves 19 × 12 = 228 of the 500.
     const reserved = Math.max(0, members.length - 1) * Math.max(1, currencies.length)
     const cut = Math.max(1, MAX_EXPENSES - reserved)
 

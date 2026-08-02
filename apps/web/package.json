@@ -11,6 +11,7 @@
         "lint": "prettier --check .",
         "format": "prettier --write .",
         "test": "vitest run",
+        "currencies:gen": "node scripts/gen-currency-catalog.mjs",
         "i18n:audit": "node scripts/i18n-audit.mjs",
         "marketing-copy:audit": "node scripts/marketing-copy-audit.mjs",
         "ui-icons:audit": "node scripts/ui-icon-audit.mjs",

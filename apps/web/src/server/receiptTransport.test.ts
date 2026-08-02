@@ -76,7 +76,7 @@ describe('transport selection', () => {
     it('is disabled with neither key, and a call that arrives anyway never reaches the network', async () => {
         const fetchSpy = stubFetch()
         expect(modelEnabled()).toBe(false)
-        expect(await codeOf(() => parseReceipt(body))).toBe('SCAN_UNAVAILABLE')
+        expect(await codeOf(() => parseReceipt(body, 'EUR'))).toBe('SCAN_UNAVAILABLE')
         expect(fetchSpy).not.toHaveBeenCalled()
     })
 
@@ -94,7 +94,7 @@ describe('transport selection', () => {
         process.env.SPLIT_GEMINI_API_KEY = GEMINI_KEY
         const fetchSpy = stubFetch().mockResolvedValueOnce(openRouterAnswer(RECEIPT))
 
-        await parseReceipt(body)
+        await parseReceipt(body, 'EUR')
         expect(sentAt(fetchSpy).url).toBe('https://openrouter.ai/api/v1/chat/completions')
         expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
@@ -103,7 +103,7 @@ describe('transport selection', () => {
         process.env.SPLIT_GEMINI_API_KEY = GEMINI_KEY
         const fetchSpy = stubFetch().mockResolvedValueOnce(geminiAnswer(RECEIPT))
 
-        const parsed = await parseReceipt(body)
+        const parsed = await parseReceipt(body, 'EUR')
         expect(parsed.suggestedTotalMinor).toBe('500')
 
         const sent = sentAt(fetchSpy)
@@ -122,14 +122,14 @@ describe('transport selection', () => {
         // rules about what counts as a line item.
         process.env.SPLIT_OPENROUTER_API_KEY = OPENROUTER_KEY
         const openRouter = stubFetch().mockResolvedValueOnce(openRouterAnswer(RECEIPT))
-        await parseReceipt(body)
+        await parseReceipt(body, 'EUR')
         const openRouterPrompt = sentBody(sentAt(openRouter)).messages[0].content[0].text
         vi.restoreAllMocks()
 
         delete process.env.SPLIT_OPENROUTER_API_KEY
         process.env.SPLIT_GEMINI_API_KEY = GEMINI_KEY
         const gemini = stubFetch().mockResolvedValueOnce(geminiAnswer(RECEIPT))
-        await parseReceipt(body)
+        await parseReceipt(body, 'EUR')
         const geminiPrompt = sentBody(sentAt(gemini)).contents[0].parts[0].text
 
         expect(openRouterPrompt).toBe(geminiPrompt)
@@ -160,7 +160,7 @@ describe('OpenRouter — the request', () => {
 
         // The canned answer goes through the SAME normalization the Gemini path
         // uses — the whole point of the change is that only the wire differs.
-        const parsed = await parseReceipt(body)
+        const parsed = await parseReceipt(body, 'EUR')
         expect(parsed.items).toEqual([
             { label: 'Margherita', amountMinor: '1200', quantity: 2 },
             { label: 'Water', amountMinor: '350', quantity: null },
@@ -197,7 +197,7 @@ describe('OpenRouter — the request', () => {
         process.env.SPLIT_GEMINI_MODEL = 'gemini-3-pro'
         const fetchSpy = stubFetch().mockResolvedValueOnce(openRouterAnswer(RECEIPT))
 
-        await parseReceipt(body)
+        await parseReceipt(body, 'EUR')
         expect(sentBody(sentAt(fetchSpy)).model).toBe('qwen/qwen2.5-vl-72b-instruct')
     })
 
@@ -215,7 +215,7 @@ describe('OpenRouter — the request', () => {
         process.env.SPLIT_SCAN_PROXY_URL = 'http://127.0.0.1:1/'
         const fetchSpy = stubFetch()
 
-        await expect(parseReceipt(body)).rejects.toMatchObject({ code: 'SCAN_FAILED' })
+        await expect(parseReceipt(body, 'EUR')).rejects.toMatchObject({ code: 'SCAN_FAILED' })
         expect(fetchSpy).not.toHaveBeenCalled()
     })
 
@@ -224,7 +224,7 @@ describe('OpenRouter — the request', () => {
         // anyway. Shared, not re-implemented — a second copy is a second bug.
         stubFetch().mockResolvedValueOnce(openRouterAnswer(`\`\`\`json\n${RECEIPT}\n\`\`\``))
 
-        const parsed = await parseReceipt(body)
+        const parsed = await parseReceipt(body, 'EUR')
         expect(parsed.items).toEqual([{ label: 'Beer', amountMinor: '500', quantity: null }])
     })
 })
@@ -249,7 +249,7 @@ describe('OpenRouter — the failures', () => {
             )
         )
 
-        expect(await codeOf(() => parseReceipt(body))).toBe('SCAN_FAILED')
+        expect(await codeOf(() => parseReceipt(body, 'EUR'))).toBe('SCAN_FAILED')
         expect(logged(error)).toContain('402')
         expect(logged(error)).toContain('insufficient_quota')
         // The provider quoted our request back at us. It does not reach the log.
@@ -273,7 +273,7 @@ describe('OpenRouter — the failures', () => {
             })
         )
 
-        expect(await codeOf(() => parseReceipt(body))).toBe('SCAN_FAILED')
+        expect(await codeOf(() => parseReceipt(body, 'EUR'))).toBe('SCAN_FAILED')
         expect(logged(error)).toContain('502')
         expect(logged(error)).not.toContain('upstream provider returned nothing')
     })
@@ -282,18 +282,18 @@ describe('OpenRouter — the failures', () => {
         vi.spyOn(console, 'error').mockImplementation(() => {})
 
         stubFetch().mockResolvedValueOnce(openRouterAnswer(''))
-        expect(await codeOf(() => parseReceipt(body))).toBe('SCAN_FAILED')
+        expect(await codeOf(() => parseReceipt(body, 'EUR'))).toBe('SCAN_FAILED')
 
         vi.restoreAllMocks()
         vi.spyOn(console, 'error').mockImplementation(() => {})
         stubFetch().mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
-        expect(await codeOf(() => parseReceipt(body))).toBe('SCAN_FAILED')
+        expect(await codeOf(() => parseReceipt(body, 'EUR'))).toBe('SCAN_FAILED')
     })
 
     it('still distinguishes "nothing readable" from "the call failed"', async () => {
         vi.spyOn(console, 'error').mockImplementation(() => {})
         stubFetch().mockResolvedValueOnce(openRouterAnswer(JSON.stringify({ items: [] })))
 
-        expect(await codeOf(() => parseReceipt(body))).toBe('SCAN_NO_ITEMS')
+        expect(await codeOf(() => parseReceipt(body, 'EUR'))).toBe('SCAN_NO_ITEMS')
     })
 })

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { CURRENCIES, convertMinorAtRate } from '@/server/money'
+import { convertMinorAtRate, MAX_SIGNED_MINOR, STATIC_USD_PER_UNIT } from '@/server/money'
 import { equalShares, exactShares, sumShares } from '@/server/split'
 
-const usdPerUnit = (code: string) => CURRENCIES.find((c) => c.code === code)!.usdPerUnit
+const STATIC_CODES = Object.keys(STATIC_USD_PER_UNIT)
+const usdPerUnit = (code: string) => STATIC_USD_PER_UNIT[code]
 const staticRate = (from: string, to: string) => usdPerUnit(from) / usdPerUnit(to)
 const amounts = (shares: { amountMinor: bigint }[]) => shares.map((s) => s.amountMinor)
 
@@ -83,18 +84,18 @@ describe('exactShares', () => {
     })
 
     it('is deterministic, nonnegative and exact across every currency pair and roster size', () => {
-        for (const from of CURRENCIES) {
-            for (const to of CURRENCIES) {
-                const pairRate = staticRate(from.code, to.code)
+        for (const from of STATIC_CODES) {
+            for (const to of STATIC_CODES) {
+                const pairRate = staticRate(from, to)
                 for (let size = 1; size <= 20; size++) {
                     const entered = Array.from({ length: size }, (_, index) => ({
                         memberId: `m${index}`,
                         amountMinor: BigInt(1 + ((index * 7 + size) % 53)),
                     }))
                     const enteredTotal = entered.reduce((sum, share) => sum + share.amountMinor, 0n)
-                    const baseTotal = convertMinorAtRate(enteredTotal, from.code, to.code, pairRate)
-                    const first = exactShares(entered, from.code, to.code, baseTotal, pairRate)
-                    const second = exactShares(entered, from.code, to.code, baseTotal, pairRate)
+                    const baseTotal = convertMinorAtRate(enteredTotal, from, to, pairRate)
+                    const first = exactShares(entered, from, to, baseTotal, pairRate)
+                    const second = exactShares(entered, from, to, baseTotal, pairRate)
 
                     expect(first).toEqual(second)
                     expect(first.every((share) => share.amountMinor >= 0n)).toBe(true)
@@ -156,5 +157,60 @@ describe('exactShares', () => {
             1
         )
         expect(amounts(shares)).toEqual([700n, 300n])
+    })
+})
+
+/**
+ * `exactShares` and `convertMinorAtRate` are hand-kept character-identical arithmetic
+ * (`split.ts` says so), and `buildExpense` throws a raw 500 when they disagree. Raising
+ * `RATE_SCALE` moved both, so the agreement needs a test that covers the pairs the 162-code
+ * catalog reaches — not just the twelve where the rates are all within four orders of magnitude.
+ */
+describe('exactShares agrees with convertMinorAtRate at the new scale', () => {
+    const pairs: [string, string, number][] = [
+        ['THB', 'EUR', 0.028 / 1.08],
+        ['JPY', 'KWD', 0.0064 / 3.2673], // 0 decimals → 3 decimals
+        ['KWD', 'JPY', 3.2673 / 0.0064], // 3 decimals → 0 decimals, a ~510x multiply
+        ['IRR', 'KWD', 0.0000002418180611634891], // the smallest cross rate in the catalog
+        ['KWD', 'IRR', 4_135_340.409184394], // the largest
+        ['USD', 'DOGE', 1], // a made-up ticker, priced only against itself
+    ]
+
+    it('reconciles every share to the converted total, for every roster size', () => {
+        for (const [from, to, rate] of pairs) {
+            for (let size = 1; size <= 12; size++) {
+                const entered = Array.from({ length: size }, (_, index) => ({
+                    memberId: `m${index}`,
+                    amountMinor: BigInt(1 + ((index * 7919 + size) % 100_003)),
+                }))
+                const total = entered.reduce((sum, share) => sum + share.amountMinor, 0n)
+                const baseTotal = convertMinorAtRate(total, from, to, rate)
+                const shares = exactShares(entered, from, to, baseTotal, rate)
+
+                expect(sumShares(shares)).toBe(baseTotal)
+                expect(shares.every((share) => share.amountMinor >= 0n)).toBe(true)
+            }
+        }
+    })
+
+    /** The stored rate has to survive the column it goes into. `Decimal(24,12)` holds 12 integer
+     *  digits; the widest rate the catalog reaches is about 4.1e6, so eight are used. */
+    it('stores a rate that fits Decimal(24,12) at both ends of the catalog', () => {
+        for (const [, , rate] of pairs) {
+            const stored = rate.toFixed(12)
+            const [whole, fraction] = stored.split('.')
+            expect(whole.replace('-', '').length).toBeLessThanOrEqual(12)
+            expect(fraction).toHaveLength(12)
+        }
+    })
+
+    /** KWD → IRR multiplies a stored minor amount by about 4 135 — a rate of 4.1e6 over a
+     *  three-decimal gap — which is the largest blow-up in the catalog and far past anything the
+     *  twelve codes could do. `buildExpense` refuses the result with AMOUNT_TOO_LARGE rather than
+     *  handing Postgres a number the BIGINT column cannot hold, so the boundary has to be real. */
+    it('leaves a conversion that would overflow the column detectable, not wrapped', () => {
+        const huge = convertMinorAtRate(10_000_000_000_000_000n, 'KWD', 'IRR', 4_135_340.409184394)
+        expect(huge).toBeGreaterThan(MAX_SIGNED_MINOR)
+        expect(convertMinorAtRate(1_000_000n, 'KWD', 'IRR', 4_135_340.409184394)).toBeLessThan(MAX_SIGNED_MINOR)
     })
 })
