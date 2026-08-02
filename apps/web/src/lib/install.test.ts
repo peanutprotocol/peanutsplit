@@ -44,7 +44,12 @@ interface FakeWindow {
     standalone: boolean
 }
 
-function fakeWindow({ standalone = false, ua = 'Mozilla/5.0 (X11; Linux x86_64)' } = {}): FakeWindow {
+function fakeWindow({
+    standalone = false,
+    ua = 'Mozilla/5.0 (X11; Linux x86_64)',
+    platform = 'Linux x86_64',
+    maxTouchPoints = 0,
+} = {}): FakeWindow {
     const listeners = new Map<string, ((event: unknown) => void)[]>()
     const store = new Map<string, string>()
     const state = { standalone }
@@ -54,7 +59,7 @@ function fakeWindow({ standalone = false, ua = 'Mozilla/5.0 (X11; Linux x86_64)'
             listeners.set(type, [...(listeners.get(type) ?? []), handler])
         },
         matchMedia: () => ({ matches: state.standalone }),
-        navigator: { userAgent: ua, platform: 'Linux x86_64', maxTouchPoints: 0 },
+        navigator: { userAgent: ua, platform, maxTouchPoints },
         localStorage: {
             getItem: (key: string) => store.get(key) ?? null,
             setItem: (key: string, value: string) => void store.set(key, value),
@@ -162,6 +167,51 @@ describe('the install store', () => {
         expect(isInstallSnoozed()).toBe(false)
         expect(win.store.size).toBe(0)
         expect(readInstallState()).toBe('installed')
+    })
+})
+
+/**
+ * The device question behind the row's label. The row asks it because the label names the
+ * affordance the person is about to go looking for, and Apple's is "Add to Home Screen" while
+ * everyone else's is an install — a distinction no `InstallState` carries, since `installed` is
+ * reachable on both.
+ */
+describe('the device behind the label', () => {
+    beforeEach(() => {
+        vi.resetModules()
+    })
+
+    afterEach(() => {
+        vi.unstubAllGlobals()
+    })
+
+    it('answers Apple for an iPhone', async () => {
+        fakeWindow({ ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Version/17.5 Safari/604.1' })
+        const { isIOSHere } = await import('./install')
+
+        expect(isIOSHere()).toBe(true)
+    })
+
+    it('answers Apple for an iPad, which reports the desktop user agent', async () => {
+        fakeWindow({
+            ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Version/17.5 Safari/605.1.15',
+            platform: 'MacIntel',
+            maxTouchPoints: 5,
+        })
+        const { isIOSHere } = await import('./install')
+
+        expect(isIOSHere()).toBe(true)
+    })
+
+    it('leaves a Mac on the install side: it has a Dock, not a home screen', async () => {
+        fakeWindow({
+            ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Version/17.5 Safari/605.1.15',
+            platform: 'MacIntel',
+            maxTouchPoints: 0,
+        })
+        const { isIOSHere } = await import('./install')
+
+        expect(isIOSHere()).toBe(false)
     })
 })
 
