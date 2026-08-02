@@ -1,11 +1,22 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies, headers } from 'next/headers'
+import { NextIntlClientProvider } from 'next-intl'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { marketingCopy } from '@/components/marketing/copy'
 import { SplitwiseImport } from '@/components/import/SplitwiseImport'
 import { Button } from '@/components/ui/Button'
+import {
+    DEFAULT_LOCALE,
+    HREFLANG,
+    LOCALE_COOKIE,
+    isLocale,
+    localeFromAcceptLanguage,
+    type Locale,
+} from '@/i18n/locales'
+import { loadMessages } from '@/i18n/messages'
 import { breadcrumbSchema, pageMetadata } from '@/lib/seo'
 
 const { importPage } = marketingCopy
@@ -45,9 +56,25 @@ const faqJsonLd = {
     })),
 }
 
-export default function ImportPage() {
+/**
+ * The canonical page remains English, but its embedded product tool follows the reader's app
+ * preference. The request-level locale cannot answer this because middleware correctly pins the
+ * English marketing shell to `en`; resolving the preference locally keeps the indexed prose and
+ * `<html lang="en">` truthful while the tool itself speaks the language the reader chose.
+ */
+async function importToolLocale(): Promise<Locale> {
+    const stored = (await cookies()).get(LOCALE_COOKIE)?.value
+    if (isLocale(stored)) return stored
+
+    return localeFromAcceptLanguage((await headers()).get('accept-language')) ?? DEFAULT_LOCALE
+}
+
+export default async function ImportPage() {
+    const toolLocale = await importToolLocale()
+    const toolMessages = await loadMessages(toolLocale)
+
     return (
-        <main className="flex min-h-dvh flex-col gap-10 bg-background">
+        <main className="flex min-h-dvh flex-col gap-8 bg-background sm:gap-10">
             <JsonLd data={faqJsonLd} />
             <JsonLd data={breadcrumbSchema(crumbs)} />
 
@@ -65,8 +92,10 @@ export default function ImportPage() {
                 </div>
             </section>
 
-            <section className="mx-auto w-full max-w-xl px-5">
-                <SplitwiseImport />
+            <section className="mx-auto w-full max-w-xl px-5" lang={HREFLANG[toolLocale]}>
+                <NextIntlClientProvider locale={toolLocale} messages={toolMessages}>
+                    <SplitwiseImport />
+                </NextIntlClientProvider>
             </section>
 
             <section className="mx-auto w-full max-w-xl px-5">
