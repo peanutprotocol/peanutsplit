@@ -34,7 +34,7 @@ export const HREFLANG: Record<Locale, string> = {
     'pt-br': 'pt-BR',
 }
 
-/** Also the fallback catalog: a key missing from `es` renders its English text, never a bare key. */
+/** Default when neither URL, cookie nor browser preferences resolve to a supported locale. */
 export const DEFAULT_LOCALE: Locale = 'en'
 
 /**
@@ -61,8 +61,21 @@ export const asLocale = (value: string): Locale =>
     isLocale(value) ? value : (localeFromLanguageTag(value) ?? DEFAULT_LOCALE)
 
 /**
- * The switcher's own labels are the one thing that must NOT be translated: someone stuck in a
- * language they can't read finds their way out by looking for a word they recognise.
+ * Accept the canonical cookie values plus the two values shipped by the previous locale set.
+ * The provider writes the canonical value after hydration, so this is a one-read migration rather
+ * than a permanent second representation.
+ */
+export function localeFromStoredPreference(value: string | null | undefined): Locale | null {
+    if (isLocale(value)) return value
+    const normalised = value?.trim().toLowerCase()
+    if (normalised === 'es') return 'es-419'
+    if (normalised === 'pt-br') return 'pt-br'
+    return null
+}
+
+/**
+ * Switcher labels are endonyms rather than catalog messages: someone stuck in a language they
+ * cannot read finds their way out by looking for a language name they recognise.
  */
 export const LOCALE_LABELS: Record<Locale, string> = {
     en: 'English',

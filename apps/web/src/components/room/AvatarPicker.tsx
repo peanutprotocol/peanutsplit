@@ -14,7 +14,7 @@ import {
     isPopping,
     planSpin,
 } from '@/lib/avatar-hand'
-import { AVATARS, avatarArt, type AvatarKey } from '@/lib/avatars'
+import { AVATARS, type AvatarKey } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { MemberAvatar } from './MemberAvatar'
@@ -29,16 +29,22 @@ interface AvatarPickerProps {
 
 /** Every tile is the same object, dice included. */
 const tileClass =
-    'flex min-h-[92px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-sm border border-n-1 p-2 text-center transition-transform duration-100'
+    'flex min-h-[112px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-sm border border-n-1 p-2 text-center transition-transform duration-100'
 
 /**
- * Two lines of name, always. A name is how you find your own character, so
+ * Two lines of title, always. A name is how you find your own character, so
  * "Overpacker Hamster" may not arrive as "Overpacker Ha…" — the animal is the
  * half that identifies it. The height is fixed rather than grown because the
  * reels cycle long and short names through the same tile: a label that wrapped
  * on its own would resize the grid sixteen times a second.
  */
-const labelClass = 'line-clamp-2 h-[30px] w-full text-xs leading-tight'
+const titleClass = 'line-clamp-2 w-full text-xs font-semibold leading-tight'
+
+/** One deliberately short line, visually secondary to the character name. */
+const vibeClass = 'h-3.5 w-full truncate text-[10px] leading-[14px] text-grey-1'
+
+/** Title, subtitle and their gap have one stable footprint while the reel spins. */
+const copyClass = 'flex h-[46px] w-full min-w-0 flex-col justify-center gap-0.5'
 
 /**
  * One roll of the die, in degrees.
@@ -70,18 +76,16 @@ const DIE_TURN_DEGREES = 720
  * the tile pops once. Reduced motion gets the new hand with no cycling, no fade
  * and no pop at all.
  *
- * The vibes used to sit on all the tiles — words of joke you have to read past to
- * find the drawing you want. They now live on ONE caption under the grid,
- * describing the current pick and following the selection as it moves. Its height
- * is reserved, because a caption that grows from one line to two shifts the grid
- * out from under the finger that is still choosing.
+ * Each tile carries its short joke as a one-line subtitle. The character name is
+ * darker and semibold so the grid remains easy to scan; the joke is smaller and
+ * muted. Both live in one fixed-height copy block, so reels cycling between long
+ * and short names never resize the grid under a choosing finger.
  *
  * The selected tile is marked, never enlarged, for the same reason.
  */
 export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerProps) {
     const t = useTranslations('room.avatar')
     const motionAllowed = useMotionAllowed()
-    const current = avatarArt(value)
 
     // Derived from `value` alone, so the server HTML and the first client render
     // are identical. Randomness starts at the first tap of the die, never here.
@@ -173,16 +177,18 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                 )}
             >
                 <MemberAvatar name={name} avatar={key} size={44} />
-                {/* Nobody reads a name at sixteen changes a second, so it is not
-                    there to be read: it fades in as the reel stops. That is what
-                    turns a tile that merely stopped moving into a tile that
-                    resolved into a character — and it takes the strobing text,
-                    the least legible thing on the grid, out of the spin entirely.
-                    Opacity moves nothing: the two lines stay reserved throughout. */}
+                {/* Nobody reads copy at sixteen changes a second, so both lines
+                    fade in only when the reel settles. Opacity moves nothing:
+                    the full copy block stays reserved throughout. */}
                 <span
-                    className={cn(labelClass, 'transition-opacity duration-150', settled ? 'opacity-100' : 'opacity-0')}
+                    className={cn(copyClass, 'transition-opacity duration-150', settled ? 'opacity-100' : 'opacity-0')}
                 >
-                    {art.label}
+                    <span className={titleClass} data-testid="avatar-option-title">
+                        {art.label}
+                    </span>
+                    <span className={vibeClass} data-testid="avatar-option-description">
+                        {art.vibe}
+                    </span>
                 </span>
             </button>
         )
@@ -235,22 +241,11 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                     >
                         <Icon name="dice" size={40} />
                     </span>
-                    <span className={labelClass}>{t('shuffle')}</span>
+                    <span className={copyClass}>
+                        <span className={titleClass}>{t('shuffle')}</span>
+                    </span>
                 </button>
             </div>
-
-            {/* Two lines of room, always — the caption is the only place the vibes
-                survive and it must not be able to move the grid. It describes the
-                PICK, which a shuffle does not touch, so the live region stays quiet
-                while the reels spin.
-
-                `min-h-11` (44px) rather than the 40px that "two lines" sounds like:
-                `text-sm` here is 14px on a 21px line, so two lines measure 42 and a
-                40px floor let a one-line vibe grow the sheet by 2px on the way to a
-                two-line one. Reserved means reserved. */}
-            <p aria-live="polite" className="min-h-11 text-sm text-grey-1" data-testid="avatar-caption">
-                {t('caption', { label: current.label, vibe: current.vibe })}
-            </p>
         </div>
     )
 }

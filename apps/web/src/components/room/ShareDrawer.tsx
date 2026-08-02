@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
@@ -8,17 +8,17 @@ import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody, drawerContentClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
+import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { BTN_MEDIUM } from '@/components/ui/control'
 import { cn } from '@/lib/cn'
 import { isApiError } from '@/lib/api'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
-import { useAddMember } from '@/lib/queries'
+import { useAddMember, useDeleteMember } from '@/lib/queries'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { LinkMoment } from './LinkMoment'
 import { MemberAvatar } from './MemberAvatar'
-import { RemovePerson } from './RemovePerson'
 
 interface ShareDrawerProps {
     open: boolean
@@ -36,6 +36,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
     const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
     const addMember = useAddMember(room.slug)
+    const deleteMember = useDeleteMember(room.slug)
     /**
      * Collapsed until asked for. The link is the hero of this sheet and the thing
      * that actually gets the room populated; typing four names is the fallback
@@ -45,11 +46,15 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
     const [expanded, setExpanded] = useState(false)
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
+    const [removingId, setRemovingId] = useState<string | null>(null)
+    const [pendingRemoval, setPendingRemoval] = useState<ApiMember | null>(null)
+    const removeTriggerRefs = useRef(new Map<string, HTMLButtonElement>())
 
     // The sheet opening gets the blip; the link leaving gets the whoosh, inside
     // LinkMoment. Two different events, two different cues.
     useEffect(() => {
         if (open) feedback('blip')
+        else setPendingRemoval(null)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
 
@@ -74,6 +79,30 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                 return
             }
             setError(errorMessage(err, t('addPeople.failed')))
+        }
+    }
+
+    const cancelRemoval = () => {
+        const memberId = pendingRemoval?.id
+        setPendingRemoval(null)
+        if (memberId) window.requestAnimationFrame(() => removeTriggerRefs.current.get(memberId)?.focus())
+    }
+
+    const remove = async (member: ApiMember): Promise<boolean> => {
+        if (!member.canRemove || deleteMember.isPending) return false
+        setError(null)
+        setRemovingId(member.id)
+        try {
+            await deleteMember.mutateAsync(member.id)
+            feedback('thunk')
+            setPendingRemoval(null)
+            return true
+        } catch (err) {
+            feedback('error', { haptic: 'error' })
+            setError(errorMessage(err, t('addPeople.removeFailed')))
+            return false
+        } finally {
+            setRemovingId(null)
         }
     }
 
@@ -142,10 +171,68 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                                                     <span className="max-w-[10rem] truncate text-sm">
                                                         {member.name}
                                                     </span>
-                                                    <RemovePerson slug={room.slug} member={member} />
+                                                    {member.canRemove && (
+                                                        <button
+                                                            ref={(node) => {
+                                                                if (node) removeTriggerRefs.current.set(member.id, node)
+                                                                else removeTriggerRefs.current.delete(member.id)
+                                                            }}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setError(null)
+                                                                setPendingRemoval(member)
+                                                            }}
+                                                            disabled={deleteMember.isPending}
+                                                            aria-label={t('addPeople.remove', { name: member.name })}
+                                                            className="flex size-7 items-center justify-center rounded-sm text-grey-1 disabled:opacity-45"
+                                                        >
+                                                            <Icon
+                                                                name="x"
+                                                                size={14}
+                                                                className={
+                                                                    removingId === member.id
+                                                                        ? 'animate-pulse'
+                                                                        : undefined
+                                                                }
+                                                            />
+                                                        </button>
+                                                    )}
                                                 </li>
                                             ))}
                                         </ul>
+
+                                        {pendingRemoval && (
+                                            <div
+                                                className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-3"
+                                                data-testid="remove-member-confirm"
+                                            >
+                                                <p id="remove-member-warning" role="alert" className="text-sm text-n-1">
+                                                    {t('addPeople.confirmRemove', { name: pendingRemoval.name })}
+                                                </p>
+                                                <SlideToConfirm
+                                                    autoFocus
+                                                    label={t('addPeople.slideRemove', {
+                                                        name: pendingRemoval.name,
+                                                    })}
+                                                    loadingLabel={t('addPeople.removing')}
+                                                    loading={deleteMember.isPending && removingId === pendingRemoval.id}
+                                                    onConfirm={() => remove(pendingRemoval)}
+                                                    onCancel={cancelRemoval}
+                                                    aria-describedby="remove-member-warning"
+                                                    data-testid="confirm-remove-member"
+                                                />
+                                                <Button
+                                                    variant="stroke"
+                                                    size="medium"
+                                                    className="justify-center"
+                                                    onClick={cancelRemoval}
+                                                    disabled={deleteMember.isPending}
+                                                    data-testid="cancel-remove-member"
+                                                >
+                                                    {t('addPeople.keep', { name: pendingRemoval.name })}
+                                                </Button>
+                                            </div>
+                                        )}
 
                                         <form onSubmit={add} className="flex items-start gap-2">
                                             <BaseInput

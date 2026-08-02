@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { PushOptIn } from '@/components/pwa/PushOptIn'
 import { DoodlePicker } from '@/components/room/DoodlePicker'
 import { PeopleSection } from '@/components/room/PeopleSection'
@@ -17,7 +17,9 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { SettingRow } from '@/components/ui/SettingRow'
+import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import type { DoodleName } from '@/components/ui/doodles'
+import { asLocale, LOCALE_LABELS } from '@/i18n/locales'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
@@ -71,6 +73,7 @@ export function SettingsSheet({
 }: SettingsSheetProps) {
     const t = useTranslations('room.header')
     const tTheme = useTranslations('room.theme')
+    const locale = asLocale(useLocale())
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const setRoomName = useSetRoomName(room.slug)
@@ -294,7 +297,12 @@ export function SettingsSheet({
                             <RoomExport state={state} />
                         </section>
 
-                        <SettingRow label={t('device')} onClick={() => setDeviceOpen(true)} testId="device-row" />
+                        <SettingRow
+                            label={t('device')}
+                            value={LOCALE_LABELS[locale]}
+                            onClick={() => setDeviceOpen(true)}
+                            testId="device-row"
+                        />
 
                         {/* The one surviving statement of the link-is-the-credential
                         fact. It used to appear four times. Say it once, here. */}
@@ -311,19 +319,18 @@ export function SettingsSheet({
                         <DrawerTitle className="text-h5">{t('switchPersonTitle')}</DrawerTitle>
                     </DrawerHeader>
                     <DrawerBody>
-                        <p className="text-sm text-grey-1">
+                        <p id="switch-person-warning" className="text-sm text-grey-1">
                             {t('switchPersonBody', { name: me?.name ?? identity?.name ?? '' })}
                         </p>
                         <DrawerActions>
-                            <Button
-                                variant="primary"
-                                shadowSize="4"
-                                className="justify-center"
-                                onClick={switchPerson}
+                            <SlideToConfirm
+                                autoFocus
+                                label={t('slideSwitchPerson')}
+                                onConfirm={switchPerson}
+                                onCancel={() => setSwitchOpen(false)}
+                                aria-describedby="switch-person-warning"
                                 data-testid="switch-person-confirm"
-                            >
-                                {t('switchPerson')}
-                            </Button>
+                            />
                             <Button
                                 variant="stroke"
                                 className="justify-center"

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
+import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
 /**
  * The whole product in one journey, against the real API and the real database:
@@ -265,7 +266,13 @@ test('create → share → join → split → settle → undo', async ({ page, b
     // Undo changes only Split's record. The server returns recomputed balances
     // in the same response, so the debt re-opens without a refresh.
     await payment.getByTestId('remove-settlement').click()
-    await payment.getByTestId('confirm-remove-settlement').click()
+    const removePayment = payment.getByTestId('confirm-remove-settlement')
+    // A short drag is not a destructive command.
+    await slideToConfirm(page, removePayment, 0.5)
+    await expectSlideReset(removePayment)
+    await expect(page.getByTestId('settlement-row')).toHaveCount(1)
+    await expectBalance(page, 'Ana', '0')
+    await slideToConfirm(page, removePayment)
     await expect(page.getByTestId('settlement-row')).toHaveCount(0)
     await expectBalance(page, 'Bea', '-1148')
 
@@ -279,7 +286,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     // ── 8. Delete an expense, then undo it ────────────────────────────────
     await page.locator('[data-testid="expense-row"][data-description="Dinner"]').click()
     await page.getByTestId('delete-expense').click()
-    await page.getByTestId('confirm-delete-expense').click()
+    await slideToConfirm(page, page.getByTestId('confirm-delete-expense'))
     await expect(page.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
 
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
@@ -348,8 +355,10 @@ test('receipt links belong only to Peanut settlements', async ({ page }) => {
 
     const payment = page.getByTestId('settlement-row')
     await payment.getByTestId('remove-settlement').click()
-    await payment.getByTestId('confirm-remove-settlement').click()
+    // Native button semantics keep a direct keyboard/assistive-tech path.
+    await payment.getByTestId('confirm-remove-settlement').press('Enter')
     await expectBalance(page, 'Bea', '500')
+    await expectBalance(page, 'Ana', '-500')
 
     await page.getByTestId('open-settle').click()
     await page.getByTestId('transfer-row').click()

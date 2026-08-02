@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Doodle } from '@/components/ui/Doodle'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
@@ -130,6 +131,7 @@ export function ExpenseDrawer({
     /** Delete asks first, like undoing a payment record does. The row is the
      *  room's shared history, so a mis-tap costs everyone a balance. */
     const [confirmingDelete, setConfirmingDelete] = useState(false)
+    const deleteTriggerRef = useRef<HTMLButtonElement>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
@@ -647,8 +649,8 @@ export function ExpenseDrawer({
         }
     }
 
-    const remove = async () => {
-        if (!expense) return
+    const remove = async (): Promise<boolean> => {
+        if (!expense) return false
         const id = expense.id
         // The toast quotes the row that just left the list, so it can only quote a
         // real name. Quoting the day fallback made "“Today” deleted", which reads
@@ -677,11 +679,17 @@ export function ExpenseDrawer({
                     },
                 },
             })
+            return true
         } catch (err) {
             feedback('error', { haptic: 'error' })
-            setConfirmingDelete(false)
             setError(errorMessage(err, t('deleteFailed')))
+            return false
         }
+    }
+
+    const cancelDelete = () => {
+        setConfirmingDelete(false)
+        window.requestAnimationFrame(() => deleteTriggerRef.current?.focus())
     }
 
     /**
@@ -1810,24 +1818,24 @@ export function ExpenseDrawer({
                             >
                                 {/* The question replaces the delete button in place, so a
                                     screen reader is otherwise never told it was asked. */}
-                                <p role="alert" className="text-sm text-n-1">
+                                <p id="delete-expense-warning" role="alert" className="text-sm text-n-1">
                                     {t('confirmDelete')}
                                 </p>
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="stroke"
-                                        icon="trash"
-                                        onClick={remove}
+                                <div className="flex flex-col gap-2">
+                                    <SlideToConfirm
+                                        autoFocus
+                                        label={t('slideDelete')}
+                                        loadingLabel={t('deleting')}
+                                        onConfirm={remove}
+                                        onCancel={cancelDelete}
                                         loading={deleteExpense.isPending}
-                                        className="flex-1 justify-center"
+                                        aria-describedby="delete-expense-warning"
                                         data-testid="confirm-delete-expense"
-                                    >
-                                        {t('confirmDeleteYes')}
-                                    </Button>
+                                    />
                                     <Button
                                         variant="stroke"
-                                        onClick={() => setConfirmingDelete(false)}
-                                        className="w-auto shrink-0 justify-center"
+                                        onClick={cancelDelete}
+                                        className="justify-center"
                                         data-testid="cancel-delete-expense"
                                     >
                                         {t('confirmDeleteNo')}
@@ -1836,6 +1844,7 @@ export function ExpenseDrawer({
                             </div>
                         ) : (
                             <Button
+                                ref={deleteTriggerRef}
                                 variant="stroke"
                                 icon="trash"
                                 onClick={() => setConfirmingDelete(true)}

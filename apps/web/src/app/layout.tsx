@@ -109,10 +109,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     //
     // `HREFLANG`, not the raw code: `lang` is an HTML language tag, so it gets the standard
     // BCP 47 casing (`pt-BR`) rather than the lowercase spelling used in filenames and URLs.
-    const locale = await getLocale()
+    const locale = HREFLANG[asLocale(await getLocale())]
 
     return (
-        <html lang={HREFLANG[asLocale(locale)]} style={{ colorScheme: 'light' }} suppressHydrationWarning>
+        <html lang={locale} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
             <head>
                 <Script id="split-motion-preflight" strategy="beforeInteractive">
                     {motionPreferencePreflight}

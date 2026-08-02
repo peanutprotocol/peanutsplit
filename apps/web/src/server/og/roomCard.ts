@@ -6,7 +6,7 @@
  * `+N` overflow, the unknown-slug fallback — are unit-testable without booting
  * a rasterizer.
  */
-import { interpolate, getTranslator } from '@/i18n/t'
+import { getTranslator } from '@/i18n/t'
 import { prisma } from '@/server/db'
 import { formatMinor } from '@/server/money'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
@@ -49,20 +49,16 @@ export interface OgAvatar {
  * that renders it carries no cookie and no useful `Accept-Language`, so the room
  * has to remember — see `Room.locale`.
  *
- * Written as templates rather than resolved through ICU because the translator
- * this file reaches for (`i18n/t.ts`) deliberately is not an ICU implementation:
- * it substitutes `{param}` and nothing else, so a plural has to be two keys and
- * a branch rather than one message. Two keys is the cheaper of the two costs.
+ * The functions keep every interpolation inside next-intl. The OG card remains
+ * pure after this object is constructed, while message formatting still has one
+ * implementation across components, metadata and images.
  */
 export interface CardCopy {
     statNone: string
-    /** `{amount}`. */
-    statOne: string
-    /** `{count}`, `{amount}`. */
-    statMany: string
+    statOne: (amount: string) => string
+    statMany: (count: number, amount: string) => string
     peopleOne: string
-    /** `{count}`. */
-    peopleMany: string
+    peopleMany: (count: number) => string
     emptyRoster: string
     tagline: string
 }
@@ -74,10 +70,10 @@ export interface CardCopy {
  */
 export const ENGLISH_CARD_COPY: CardCopy = {
     statNone: 'No expenses yet',
-    statOne: '1 expense · {amount} so far',
-    statMany: '{count} expenses · {amount} so far',
+    statOne: (amount) => `1 expense · ${amount} so far`,
+    statMany: (count, amount) => `${count} expenses · ${amount} so far`,
     peopleOne: '1 person',
-    peopleMany: '{count} people',
+    peopleMany: (count) => `${count} people`,
     emptyRoster: 'Nobody has joined yet',
     tagline: 'no signup · free forever',
 }
@@ -86,16 +82,15 @@ export const ENGLISH_CARD_COPY: CardCopy = {
  *  falls back to English through `getTranslator` itself. */
 export async function cardCopy(locale: string | null | undefined): Promise<CardCopy> {
     const t = await getTranslator(locale ?? 'en')
-    const [statNone, statOne, statMany, peopleOne, peopleMany, emptyRoster, tagline] = await Promise.all([
-        t('preview.statNone'),
-        t('preview.statOne'),
-        t('preview.statMany'),
-        t('preview.peopleOne'),
-        t('preview.peopleMany'),
-        t('preview.emptyRoster'),
-        t('preview.tagline'),
-    ])
-    return { statNone, statOne, statMany, peopleOne, peopleMany, emptyRoster, tagline }
+    return {
+        statNone: t('preview.statNone'),
+        statOne: (amount) => t('preview.statOne', { amount }),
+        statMany: (count, amount) => t('preview.statMany', { count, amount }),
+        peopleOne: t('preview.peopleOne'),
+        peopleMany: (count) => t('preview.peopleMany', { count }),
+        emptyRoster: t('preview.emptyRoster'),
+        tagline: t('preview.tagline'),
+    }
 }
 
 export interface RoomCardData {
@@ -273,14 +268,13 @@ export function statLine(
 ): string {
     if (expenseCount === 0) return bodySafe(copy.statNone)
     const amount = safeAmount(totalMinor, code)
-    const template = expenseCount === 1 ? copy.statOne : copy.statMany
-    return bodySafe(interpolate(template, { count: expenseCount, amount }))
+    return bodySafe(expenseCount === 1 ? copy.statOne(amount) : copy.statMany(expenseCount, amount))
 }
 
 /** "1 person" / "6 people", or the empty-roster line. Same font discipline. */
 export function peopleLine(memberCount: number, copy: CardCopy = ENGLISH_CARD_COPY): string {
     if (memberCount === 0) return bodySafe(copy.emptyRoster)
-    return bodySafe(memberCount === 1 ? copy.peopleOne : interpolate(copy.peopleMany, { count: memberCount }))
+    return bodySafe(memberCount === 1 ? copy.peopleOne : copy.peopleMany(memberCount))
 }
 
 /** Shape the raw room row into card data. Exported for tests; no I/O. */

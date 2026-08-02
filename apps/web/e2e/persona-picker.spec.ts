@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { AVATARS, AVATAR_KEYS } from '../src/lib/avatars'
 
 /**
  * Longer than one spin. `SPIN_MS` is 800 — 680ms of reels plus the last tile's
@@ -13,9 +14,6 @@ const dealt = (picker: Locator): Promise<string[]> =>
 
 const checkedKey = (picker: Locator): Promise<string | null> =>
     picker.locator('[data-testid="avatar-option"][aria-checked="true"]').first().getAttribute('data-avatar')
-
-/** The label under the drawing, which is the only text a tile carries. */
-const tileLabel = async (tile: Locator): Promise<string> => (await tile.locator('span').last().innerText()).trim()
 
 async function openOwnCharacterSheet(page: Page, room: string) {
     await page.goto('/new')
@@ -52,9 +50,28 @@ test('your avatar chip opens your own character sheet and a pick persists', asyn
     await expect(picker.getByTestId('avatar-shuffle')).toBeVisible()
     // Ana's own character is one of the eight, and it is the only one marked.
     await expect(picker.locator('[data-testid="avatar-option"][aria-checked="true"]')).toHaveCount(1)
-    // A tile carries its name and nothing else — the vibe lives on ONE caption
-    // under the grid.
-    await expect(options.first()).toHaveText(await tileLabel(options.first()))
+    // Every tile carries a scannable title and one short, secondary line.
+    await expect(options.first().getByTestId('avatar-option-title')).toBeVisible()
+    await expect(options.first().getByTestId('avatar-option-description')).toBeVisible()
+    const descriptions = AVATAR_KEYS.map((key) => AVATARS[key].vibe)
+    expect(
+        await options
+            .first()
+            .getByTestId('avatar-option-description')
+            .evaluate((description, everyDescription) => {
+                const original = description.textContent
+                const style = window.getComputedStyle(description)
+                const overflowing = everyDescription.flatMap((text) => {
+                    description.textContent = text
+                    const fits =
+                        description.scrollWidth <= description.clientWidth &&
+                        description.clientHeight <= parseFloat(style.lineHeight)
+                    return fits ? [] : [{ text, width: description.clientWidth, contentWidth: description.scrollWidth }]
+                })
+                description.textContent = original
+                return overflowing
+            }, descriptions)
+    ).toEqual([])
 
     // The tiles must stay inside a 390px phone.
     expect(
@@ -66,7 +83,6 @@ test('your avatar chip opens your own character sheet and a pick persists', asyn
 
     const target = picker.locator('[data-testid="avatar-option"][aria-checked="false"]').first()
     const targetKey = await target.getAttribute('data-avatar')
-    const targetLabel = await tileLabel(target)
     const saved = page.waitForResponse(
         (response) =>
             response.request().method() === 'PATCH' &&
@@ -75,8 +91,7 @@ test('your avatar chip opens your own character sheet and a pick persists', asyn
     await target.click()
     expect((await saved).ok()).toBe(true)
     await expect(picker.locator(`[data-avatar="${targetKey}"]`)).toHaveAttribute('aria-checked', 'true')
-    // The caption follows the selection, and it is the only place the vibe shows.
-    await expect(page.getByTestId('avatar-caption')).toHaveText(new RegExp(`^${targetLabel} — .+`))
+    await expect(page.getByTestId('avatar-caption')).toHaveCount(0)
 
     await page.screenshot({ path: testInfo.outputPath('persona-picker.png'), fullPage: true })
 

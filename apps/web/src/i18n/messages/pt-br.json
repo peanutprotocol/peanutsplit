@@ -33,6 +33,7 @@
             "confirmForgetTitle": "Remover {room} deste aparelho?",
             "confirmForgetBody": "Esta lista é o único lugar onde este aparelho guarda a sala. O Split funciona sem contas, então o link da sala é o que leva você de volta. Guarde ele antes de remover. As outras pessoas continuam com a sala, os gastos e os saldos.",
             "confirmForget": "Remover deste aparelho",
+            "slideForget": "Deslize para remover deste aparelho",
             "confirmForgetKeep": "Deixar aqui",
             "confirmForgetClose": "Fechar sem remover",
             "forgotten": "{room} foi removida deste aparelho. A sala compartilhada continua funcionando para quem tem o link.",
@@ -366,6 +367,7 @@
             "switchPersonTitle": "Trocar de pessoa?",
             "switchPersonBody": "Este aparelho deixa de ser {name} e para de receber as notificações desta sala. Você vai escolher um nome de novo.",
             "switchPerson": "Trocar",
+            "slideSwitchPerson": "Deslize para trocar de pessoa",
             "cancel": "Cancelar",
             "link": "Link",
             "linkCopied": "Link copiado",
@@ -541,6 +543,8 @@
             "delete": "Excluir",
             "confirmDelete": "Excluir este gasto? Ele sai do histórico da sala e todos os saldos mudam.",
             "confirmDeleteYes": "Excluir",
+            "slideDelete": "Deslize para excluir",
+            "deleting": "Excluindo…",
             "confirmDeleteNo": "Deixar",
             "deletedToast": "“{description}” excluído",
             "deletedToastUnnamed": "Gasto excluído",
@@ -613,7 +617,13 @@
                 "add": "Adicionar",
                 "note": "Elas ainda vão abrir o link e escolher o próprio nome — isso só guarda o lugar.",
                 "duplicate": "{name} já está nesta sala.",
-                "failed": "não deu para adicionar — tente de novo"
+                "failed": "não deu para adicionar — tente de novo",
+                "remove": "Remover o nome não usado de {name}",
+                "confirmRemove": "Remover {name}? Isso exclui da sala o nome ainda não usado.",
+                "slideRemove": "Deslize para remover {name}",
+                "removing": "Removendo…",
+                "keep": "Manter {name}",
+                "removeFailed": "não foi possível remover esse nome — tente de novo"
             }
         },
         "link": {
@@ -733,7 +743,6 @@
             "failed": "não deu para mudar esse personagem — tente de novo",
             "shuffle": "Embaralhar",
             "shuffleLabel": "Embaralhar os personagens disponíveis",
-            "caption": "{label} — {vibe}",
             "firstOpen": "Qualquer pessoa pode mudar o personagem de qualquer outra.",
             "close": "Fechar os personagens"
         },
@@ -772,6 +781,8 @@
             "remove": "Desfazer este registro de pagamento",
             "confirmRemove": "Desfazer este registro? Isso muda o saldo da sala, não o dinheiro já enviado.",
             "confirmYes": "Desfazer registro",
+            "slideRemove": "Deslize para desfazer o pagamento",
+            "removing": "Desfazendo…",
             "confirmNo": "Deixar",
             "removed": "Registro desfeito. Os saldos foram atualizados.",
             "removeFailed": "Não deu para excluir esse pagamento — tente de novo."
@@ -834,6 +845,12 @@
             "cancel": "Cancelar",
             "removeFailed": "não foi possível tirar esse nome — tente de novo"
         }
+    },
+    "slideToConfirm": {
+        "release": "Solte para confirmar",
+        "working": "Processando…",
+        "instructions": "Arraste o controle até o fim, use as setas ou pressione Enter ou Espaço para confirmar.",
+        "progress": "{progress}% concluído."
     },
     "push": {
         "label": "Notificações",

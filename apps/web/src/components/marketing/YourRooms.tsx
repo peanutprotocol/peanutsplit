@@ -13,6 +13,7 @@ import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
+import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { api, isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import { forgetRoom, readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
@@ -66,6 +67,7 @@ export function YourRooms() {
     /** The room waiting on a confirm. This list is the only copy of the link this
      *  device holds, so dropping a room is not something a mis-tap should do. */
     const [pendingForget, setPendingForget] = useState<RecentRoom | null>(null)
+    const [forgetError, setForgetError] = useState<string | null>(null)
     /**
      * The room the sheet is ABOUT, which outlives the confirm.
      *
@@ -77,8 +79,14 @@ export function YourRooms() {
     const [forgetSubject, setForgetSubject] = useState<RecentRoom | null>(null)
 
     const askForget = (room: RecentRoom) => {
+        setForgetError(null)
         setForgetSubject(room)
         setPendingForget(room)
+    }
+
+    const closeForget = () => {
+        setForgetError(null)
+        setPendingForget(null)
     }
 
     useEffect(() => {
@@ -104,16 +112,20 @@ export function YourRooms() {
     // way back. Whatever the count, an expanded list can always be collapsed.
     const canCollapse = expanded || recent.length > collapsedLimit
 
-    const forget = (room: RecentRoom) => {
-        setPendingForget(null)
+    const forget = (room: RecentRoom): boolean => {
         if (!forgetRoom(room.slug)) {
-            setNotice(t('forgetFailed', { room: room.name }))
+            const message = t('forgetFailed', { room: room.name })
+            setNotice(message)
+            setForgetError(message)
             feedback('error', { haptic: 'error' })
-            return
+            return false
         }
+        setForgetError(null)
+        setPendingForget(null)
         setRecent((current) => current.filter((candidate) => candidate.slug !== room.slug))
         setNotice(t('forgotten', { room: room.name }))
         feedback('tick')
+        return true
     }
 
     const recover = async (event: React.FormEvent) => {
@@ -311,7 +323,7 @@ export function YourRooms() {
             {/* Removing a room is the one irreversible thing this page can do:
                 without the link, a room dropped here cannot be reached again from
                 this device. So it asks, and it says what the cost is. */}
-            <Drawer open={pendingForget !== null} onOpenChange={(next) => !next && setPendingForget(null)}>
+            <Drawer open={pendingForget !== null} onOpenChange={(next) => !next && closeForget()}>
                 {forgetSubject && (
                     <DrawerContent className={drawerContentClass} data-testid="forget-room-confirm">
                         <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
@@ -319,30 +331,35 @@ export function YourRooms() {
                                 {t('confirmForgetTitle', { room: forgetSubject.name })}
                             </DrawerTitle>
                             <CloseButton
-                                onClick={() => setPendingForget(null)}
+                                onClick={closeForget}
                                 label={t('confirmForgetClose')}
                                 data-testid="close-forget-room"
                             />
                         </DrawerHeader>
                         <DrawerBody>
-                            <p className="text-sm leading-5 text-grey-1">{t('confirmForgetBody')}</p>
+                            <p id="forget-room-warning" className="text-sm leading-5 text-grey-1">
+                                {t('confirmForgetBody')}
+                            </p>
+                            {forgetError && (
+                                <p id="forget-room-error" role="alert" className="text-sm font-bold text-error">
+                                    {forgetError}
+                                </p>
+                            )}
                             <DrawerActions>
-                                {/* Both buttons are `stroke`, as in the expense drawer's delete
-                                    confirm: the pink CTA is what the page uses to invite an
-                                    action, and removing a room is not one this page wants. */}
-                                <Button
-                                    variant="stroke"
-                                    icon="trash"
-                                    className="justify-center"
-                                    onClick={() => forget(forgetSubject)}
+                                <SlideToConfirm
+                                    autoFocus
+                                    label={t('slideForget')}
+                                    onConfirm={() => forget(forgetSubject)}
+                                    onCancel={closeForget}
+                                    aria-describedby={['forget-room-warning', forgetError ? 'forget-room-error' : null]
+                                        .filter(Boolean)
+                                        .join(' ')}
                                     data-testid="confirm-forget-room"
-                                >
-                                    {t('confirmForget')}
-                                </Button>
+                                />
                                 <Button
                                     variant="stroke"
                                     className="justify-center"
-                                    onClick={() => setPendingForget(null)}
+                                    onClick={closeForget}
                                     data-testid="cancel-forget-room"
                                 >
                                     {t('confirmForgetKeep')}
