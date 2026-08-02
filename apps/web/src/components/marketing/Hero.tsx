@@ -1,13 +1,12 @@
 import { useTranslations } from 'next-intl'
 import { Title } from '@/components/ui/Title'
 import { landingVariant, type LandingVariant } from '@/lib/flags'
-import { HeroCreateForm } from './HeroCreateForm'
+import { LandingAppLink } from './LandingAppLink'
 import { PassTheLinkHero } from './PassTheLinkHero'
 
 /**
- * The former compact creator remains one build flag away as a rollback. The new default hands
- * the same real form to `PassTheLinkHero`, which adds social context without adding another
- * creation path or any illustrative network activity.
+ * The rollback changes the story layout, not the route contract: both variants hand off from
+ * public marketing to the app before anything can write room data.
  */
 function CompactHero() {
     const t = useTranslations('marketing.hero')
@@ -27,7 +26,7 @@ function CompactHero() {
                     <h1 className="sr-only">{t('controlTitleAccessible')}</h1>
                 </div>
 
-                <HeroCreateForm analyticsVariant="control" />
+                <LandingAppLink variant="compact" />
             </div>
         </section>
     )

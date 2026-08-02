@@ -66,7 +66,7 @@ export function RoomNotFound() {
             <Image src={peanutSad} alt="" unoptimized priority className="h-32 w-32 object-contain" />
             <p className="text-h5">{t('notFoundTitle')}</p>
             <p className="max-w-[22rem] text-sm text-grey-1">{t('notFoundBody')}</p>
-            <Link href="/" className="w-full max-w-xs">
+            <Link href="/app" className="w-full max-w-xs">
                 <Button variant="stroke" className="justify-center">
                     {t('notFoundCta')}
                 </Button>

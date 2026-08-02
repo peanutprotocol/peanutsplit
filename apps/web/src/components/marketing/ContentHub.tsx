@@ -120,7 +120,7 @@ export async function ContentHub({ locale }: { locale: Locale }) {
 
                 {/* `/new` is app shell too — one URL, cookie decides the language. `/es-419/new` and
                     `/pt-br/new` are not routes, so prefixing this made the hub's only CTA a 404. */}
-                <Link href="/new" className="mt-8 block">
+                <Link href="/app" className="mt-8 block">
                     <Button variant="primary" shadowSize="4" className="justify-center text-h6">
                         {t('startRoom')}
                     </Button>

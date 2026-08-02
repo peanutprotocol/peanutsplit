@@ -5,6 +5,7 @@ import { LandingProof } from '@/components/marketing/LandingProof'
 import { ReadMore } from '@/components/marketing/ReadMore'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { YourRooms } from '@/components/marketing/YourRooms'
+import { StandaloneLandingRedirect } from '@/components/pwa/StandaloneLandingRedirect'
 import enMessages from '@/i18n/messages/en.json'
 
 /**
@@ -35,9 +36,10 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
     return (
-        <main className="flex min-h-dvh flex-col bg-background">
+        <main data-testid="marketing-home" className="flex min-h-dvh flex-col bg-background">
+            <StandaloneLandingRedirect />
             <Hero />
-            <YourRooms />
+            <YourRooms surface="landing" />
             <LandingProof />
             <ReadMore />
             <FinalCta />

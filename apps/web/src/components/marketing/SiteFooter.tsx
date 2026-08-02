@@ -79,7 +79,7 @@ export function SiteFooter({
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colSplit')}</h2>
                         <ul className="mt-2 flex flex-col gap-1.5">
                             <li>
-                                <Link href="/new" className={linkClass}>
+                                <Link href="/app" className={linkClass}>
                                     {t('createSplit')}
                                 </Link>
                             </li>

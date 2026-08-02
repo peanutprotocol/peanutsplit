@@ -14,7 +14,8 @@ import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
  * `localeFromPathname` is the whole reason this is acceptable next to the no-middleware rule in
  * `request.ts`. It returns null for the app shell, so `/`, `/new`, `/r/*` and `/share-target` fall
  * through untouched and keep their cookie-decided locale. WHICH pages get a header is that
- * function's call, not the matcher's — one rule, one place.
+ * function's call, not the matcher's — one rule, one place. `/app` is the operational home;
+ * `/` remains cookie-localized public marketing.
  */
 export function middleware(request: NextRequest) {
     const locale = localeFromPathname(request.nextUrl.pathname)

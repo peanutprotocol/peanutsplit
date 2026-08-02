@@ -63,15 +63,14 @@ export function localeFromPrefix(prefix: string): Locale | null {
 
 /**
  * The app shell, by first path segment — the pages that answer at ONE URL in every language. `/`
- * is the fourth of them and falls out of the empty-segment check below, for the same reason
- * `localizedPath` refuses to prefix it: the landing is the app's front door, not one side of a
- * translation set.
+ * falls out of the empty-segment check below because public landing copy follows the visitor's
+ * cookie rather than using locale-prefixed URLs.
  *
  * Written as what the cookie still owns rather than as what the URL pins, because the indexed
  * side is dynamic — `/[page]` and `/blog/[slug]` grow with every markdown file — while this set
  * is the top level of `src/app/` minus the route handlers.
  */
-const COOKIE_LOCALE_SEGMENTS = new Set(['new', 'r', 'share-target'])
+const COOKIE_LOCALE_SEGMENTS = new Set(['app', 'new', 'r', 'share-target'])
 
 /**
  * The language a URL states, or null when it states none and the cookie decides.
@@ -94,7 +93,7 @@ export function localeFromPathname(pathname: string): Locale | null {
  *
  * Only ever point this at a path that HAS a locale-prefixed route — the guides hub, the articles,
  * the comparison pages. The app shell (`/`, `/new`, `/r/*`) answers at one URL by design, so
- * prefixing one of those produces a URL nothing serves: `/es-419` and `/es-419/new` both shipped as live
+ * prefixing one of those produces a URL nothing serves: `/es-419` and `/es-419/app` both become live
  * 404s, linked from every Spanish page's breadcrumb and the Spanish hub's only CTA.
  */
 export function localizedPath(path: string, locale: Locale): string {

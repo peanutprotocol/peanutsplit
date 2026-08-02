@@ -36,7 +36,7 @@ export function FinalCta() {
             className="mx-auto w-full max-w-xl px-5 py-10"
         >
             <Link
-                href="/new"
+                href="/app"
                 data-testid="final-cta-link"
                 className="final-cta-link shadow-4 block rounded-sm border border-n-1 bg-white p-5 text-inherit no-underline"
                 onClick={() => feedback('whoosh')}

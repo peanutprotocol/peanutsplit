@@ -40,11 +40,11 @@ const relativeTime = (epochMs: number, locale: string): string => {
 }
 
 /**
- * "Your rooms" — the only personalisation the landing page has, since there are no accounts.
- * Reads localStorage after mount (never during render, so SSR and hydration agree). The
- * paste-link recovery stays available even when the device has no history.
+ * Device-local room history is the one permitted personal fold on marketing and the full history
+ * surface in the app. Reads localStorage after mount (never during render, so SSR and hydration
+ * agree). Paste-link recovery belongs to the app home, including when the device has no history.
  */
-export function YourRooms() {
+export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app' }) {
     const router = useRouter()
     const t = useTranslations('marketing.rooms')
     const locale = useLocale()
@@ -111,6 +111,8 @@ export function YourRooms() {
     // finger that had just deleted something, and the list stayed expanded with no
     // way back. Whatever the count, an expanded list can always be collapsed.
     const canCollapse = expanded || recent.length > collapsedLimit
+
+    if (surface === 'landing' && recent.length === 0) return null
 
     const forget = (room: RecentRoom): boolean => {
         if (!forgetRoom(room.slug)) {
@@ -183,6 +185,7 @@ export function YourRooms() {
             data-motion={motionAllowed ? 'ready' : 'still'}
             data-motion-surface
             data-testid="recent-rooms"
+            data-surface={surface}
             className="mx-auto w-full max-w-xl px-5 py-8 sm:py-10"
         >
             {recent.length > 0 && (
@@ -270,55 +273,60 @@ export function YourRooms() {
                 </>
             )}
 
-            <details
-                className={`${recent.length > 0 ? 'mt-5' : ''} rounded-sm border border-n-1 bg-white px-4`}
-                data-testid="room-link-recovery"
-            >
-                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-h7 [&::-webkit-details-marker]:hidden">
-                    <span>{t('recovery.title')}</span>
-                    <Icon name="chevron-down" size={18} className="shrink-0" aria-hidden="true" />
-                </summary>
-                <form onSubmit={recover} className="flex flex-col gap-3 border-t border-dashed border-n-1 pb-4 pt-4">
-                    <label className="text-sm font-bold" htmlFor="recover-room-link">
-                        {t('recovery.label')}
-                    </label>
-                    <BaseInput
-                        id="recover-room-link"
-                        value={pastedLink}
-                        onChange={(event) => {
-                            setPastedLink(event.target.value)
-                            setRecoveryError(null)
-                        }}
-                        placeholder={t('recovery.placeholder')}
-                        inputMode="url"
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        aria-invalid={recoveryError ? 'true' : undefined}
-                        aria-describedby={recoveryError ? 'recover-room-error' : 'recover-room-hint'}
-                        data-testid="recover-room-input"
-                    />
-                    <p id="recover-room-hint" className="text-sm leading-5 text-grey-1">
-                        {t('recovery.hint')}
-                    </p>
-                    {recoveryError && (
-                        <p id="recover-room-error" role="alert" className="text-sm font-bold text-error">
-                            {recoveryError}
-                        </p>
-                    )}
-                    <Button
-                        type="submit"
-                        variant="stroke"
-                        size="medium"
-                        loading={recovering}
-                        disabled={!pastedLink.trim() || recovering}
-                        className="justify-center"
-                        data-testid="recover-room-submit"
+            {surface === 'app' && (
+                <details
+                    className={`${recent.length > 0 ? 'mt-5' : ''} rounded-sm border border-n-1 bg-white px-4`}
+                    data-testid="room-link-recovery"
+                >
+                    <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-h7 [&::-webkit-details-marker]:hidden">
+                        <span>{t('recovery.title')}</span>
+                        <Icon name="chevron-down" size={18} className="shrink-0" aria-hidden="true" />
+                    </summary>
+                    <form
+                        onSubmit={recover}
+                        className="flex flex-col gap-3 border-t border-dashed border-n-1 pb-4 pt-4"
                     >
-                        {t('recovery.submit')}
-                    </Button>
-                </form>
-            </details>
+                        <label className="text-sm font-bold" htmlFor="recover-room-link">
+                            {t('recovery.label')}
+                        </label>
+                        <BaseInput
+                            id="recover-room-link"
+                            value={pastedLink}
+                            onChange={(event) => {
+                                setPastedLink(event.target.value)
+                                setRecoveryError(null)
+                            }}
+                            placeholder={t('recovery.placeholder')}
+                            inputMode="url"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            aria-invalid={recoveryError ? 'true' : undefined}
+                            aria-describedby={recoveryError ? 'recover-room-error' : 'recover-room-hint'}
+                            data-testid="recover-room-input"
+                        />
+                        <p id="recover-room-hint" className="text-sm leading-5 text-grey-1">
+                            {t('recovery.hint')}
+                        </p>
+                        {recoveryError && (
+                            <p id="recover-room-error" role="alert" className="text-sm font-bold text-error">
+                                {recoveryError}
+                            </p>
+                        )}
+                        <Button
+                            type="submit"
+                            variant="stroke"
+                            size="medium"
+                            loading={recovering}
+                            disabled={!pastedLink.trim() || recovering}
+                            className="justify-center"
+                            data-testid="recover-room-submit"
+                        >
+                            {t('recovery.submit')}
+                        </Button>
+                    </form>
+                </details>
+            )}
 
             {/* Removing a room is the one irreversible thing this page can do:
                 without the link, a room dropped here cannot be reached again from
