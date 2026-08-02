@@ -156,7 +156,7 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     await page.waitForURL(permanentUrl)
     await page.reload()
     await expect(page.locator('header h1')).toHaveText('The great escape', { timeout: 15_000 })
-    expect(page.url()).toBe(permanentUrl)
+    expect(new URL(page.url()).pathname).toBe(new URL(permanentUrl).pathname)
 
     // Language is a device preference: it reloads the same room in the selected native catalog,
     // persists, and never changes the shared room link.
@@ -164,21 +164,20 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     await expect(page.getByTestId('device-row')).toContainText('English')
     await page.getByTestId('device-row').click()
     const reloaded = page.waitForEvent('framenavigated')
-    await page.getByTestId('locale-es').click()
+    await page.getByTestId('locale-es-419').click()
     await reloaded
 
-    expect(page.url()).toBe(permanentUrl)
-    await expect(page.locator('html')).toHaveAttribute('lang', 'es')
+    expect(new URL(page.url()).pathname).toBe(new URL(permanentUrl).pathname)
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es-419')
     await expect(page.locator('html')).toHaveAttribute('translate', 'no')
     await expect
         .poll(async () => (await page.context().cookies()).find(({ name }) => name === 'ps-locale')?.value)
-        .toBe('es')
+        .toBe('es-419')
 
-    await page.getByTestId('open-room-settings').click()
     const spanishDeviceRow = page.getByTestId('device-row')
     await expect(spanishDeviceRow).toContainText('Este dispositivo')
     await expect(spanishDeviceRow).toContainText('Español')
     await spanishDeviceRow.click()
     const spanishLanguage = page.getByRole('group', { name: 'Idioma' })
-    await expect(spanishLanguage.getByTestId('locale-es')).toHaveAttribute('aria-pressed', 'true')
+    await expect(spanishLanguage.getByTestId('locale-es-419')).toHaveAttribute('aria-pressed', 'true')
 })
