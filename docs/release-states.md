@@ -24,7 +24,8 @@ rollback can move a capability back.
 
 - Source base: `9d4b6f5` (`main` on 2026-07-29).
 - Working release branch: `feat/product-audit-roadmap`.
-- Deployed SHA: **not recorded yet**. Capture it after this branch is deployed.
+- Deployed feature SHA: `aadc868` (`main` on 2026-08-02). The following
+  test-coverage and release-record commits do not change the runtime feature set.
 - Public V2 gate: **off in the 2026-07-29 production audit**.
 - Push delivery: UI and delivery infrastructure exist; the required real
   subscribe → notify → open loop on two devices has **not** been recorded.
@@ -40,6 +41,7 @@ rollback can move a capability back.
 | Themes and expense reactions                                | user-visible        | Present on the public room surface                                                                                      |
 | Push notifications                                          | user-visible        | Do not call production-verified until the two-device loop passes                                                        |
 | Splitwise import                                            | production-verified | Production Chromium + Firefox evidence recorded below, 2026-08-02                                                       |
+| Percentage and share-weighted expense splits                | production-verified | Production mobile create, edit and persisted-weight verification, 2026-08-02                                            |
 | Natural-language expense entry                              | deployed dark       | V2 gate is off                                                                                                          |
 | Receipt scanning                                            | held                | Consent and real-device gates remain open; do not expose                                                                |
 | Payer lifecycle, settlement correction and quiet provenance | code-complete       | Atomic staged payer, narrow cleanup, documentary Peanut receipt and settlement undo are verified on this feature branch |
@@ -49,7 +51,7 @@ rollback can move a capability back.
 | Landing/accessibility/recent-room recovery                  | code-complete       | Mobile/desktop continuity and reduced-motion checks pass on this feature branch                                         |
 | Room-link recovery by paste                                 | code-complete       | Valid links are verified before local save; invalid, unreachable and storage-denied paths are covered                   |
 | CSV and JSON room export                                    | production-verified | Production mobile export evidence recorded below, 2026-08-02                                                            |
-| Group-chat-ready room share package                         | code-complete       | Chromium and Firefox verify private SVG/text handoff, fallbacks, cleanup and bounded rendered geometry                  |
+| Group-chat-ready room share package                         | production-verified | Production mobile share handoff decoded the generated 1200×630 PNG, 2026-08-02                                          |
 
 ### Import/export V1 — 2026-08-02
 
@@ -60,6 +62,20 @@ rollback can move a capability back.
 - Chromium and Firefox verified invalid-file no-write behavior, reduced motion, mixed-currency and
   700-row previews, and confirmed that receipt scanning and natural-language entry remained behind
   their V2 boundary.
+
+### Finished feature wave — 2026-08-02
+
+- Runtime feature SHA: `aadc868`; the canonical-locale E2E reconciliation followed at `46582f3`.
+- Production mobile created and edited percentage and share-weighted expenses, then read their
+  persisted split modes and weights back through the public room API.
+- Production mobile exercised the denied-notification state without losing the opt-in control,
+  destructive slide/keyboard confirmations, and a real invite share carrying a decoded 1200×630
+  PNG. Push remains `user-visible`, not `production-verified`, until its separate two-device gate.
+- The production importer recognized a Split Pro account backup, offered its groups, previewed
+  balances, honored `es-419` and `pt-br`, and kept the upload action inside a 320×700 viewport.
+- Both production images run `prisma migrate deploy` before accepting traffic; the weighted-split
+  schema migration was also applied and exercised against the production database by the journey
+  above.
 
 ## Release reconciliation checklist
 
