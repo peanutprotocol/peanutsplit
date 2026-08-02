@@ -190,8 +190,7 @@
                 "label": "Instalar Split",
                 "labelIos": "Agregar a pantalla de inicio",
                 "installed": "Ya está en este dispositivo.",
-                "dismissed": "No se agregó. Abre Split otra vez para intentarlo.",
-                "unsupported": "Este navegador no lo ofrece."
+                "dismissed": "No se agregó. Abre Split otra vez para intentarlo."
             },
             "ios": {
                 "title": "Agrega Split a tu pantalla de inicio",

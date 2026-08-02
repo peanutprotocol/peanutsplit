@@ -13,14 +13,12 @@ import { useFeedback } from '@/lib/use-settings'
 import { IosInstallSteps } from './IosInstallSteps'
 
 /**
- * Installing Split, as a permanent row in the device sheet.
+ * Installing Split from the device sheet.
  *
- * The deferred banner asks once and then snoozes itself for up to thirty days. This is the place
- * somebody who wants it can go and get it, so it has to be honest in all five states and dead-end
- * in none of them — including the two that are easy to get wrong. After Chrome's prompt is
- * declined the event is spent, and falling back to "this browser can't add apps" would say that
- * one second after the browser offered; after it is accepted, the tab that did the installing is
- * still a tab, so nothing about `display-mode` has changed and only `installedHere` knows.
+ * Chrome can emit `beforeinstallprompt` well after hydration. Until then, the browser has given us
+ * no negative result. The row waits instead of making an unsupported-browser claim. After Chrome's
+ * prompt is declined, the event is spent. After it is accepted, only `installedHere` knows because
+ * the browser tab stays in browser display mode.
  *
  * No leading glyph: `SettingRow` draws its own chevron and the neighbouring rows carry none, so one
  * here would make this the only decorated row in the sheet.
@@ -39,7 +37,7 @@ export function InstallRow() {
     const reported = useRef(false)
 
     useEffect(() => {
-        if (reported.current || state === null) return
+        if (reported.current || state === null || state === 'waiting') return
         reported.current = true
         // The state is a fact about a browser, not about a person — the same shape as
         // `push_optin_shown`'s `{ status }`.
@@ -54,8 +52,8 @@ export function InstallRow() {
         if (outcome === 'accepted') feedback('pop')
     }
 
-    // Nothing painted before the first browser read: every state below is a claim about a device.
-    if (state === null) return null
+    // Show only a browser-provided action or a resolved state. No event yet is not "unsupported".
+    if (state === null || state === 'waiting') return null
 
     // Safe here and not a line earlier: `state` is null until the store's first browser read, so
     // this never runs on the server.
@@ -67,10 +65,6 @@ export function InstallRow() {
     if (state === 'dismissed') {
         return <StateRow label={label} line={t('row.dismissed')} testId="install-row-dismissed" />
     }
-    if (state === 'unsupported') {
-        return <StateRow label={label} line={t('row.unsupported')} testId="install-row-unsupported" />
-    }
-
     if (state === 'ios') {
         return (
             <>

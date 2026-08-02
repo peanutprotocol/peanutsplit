@@ -3,14 +3,9 @@
 /**
  * The install opportunity, held in one place.
  *
- * `beforeinstallprompt` fires once per page load and is gone if nobody catches it — long before
- * anyone opens a settings sheet. So the capture happens once, from Providers' mount effect, and
- * both the deferred banner and the settings row read the same store. Two live listeners for one
- * event is the bug this module exists to prevent.
- *
- * Providers is not the earliest code in the app — the motion preflight script beats it — but
- * Chromium only fires `beforeinstallprompt` after its own installability check finishes, which is
- * well after hydration, and Providers is strictly earlier than the banner's own mount was.
+ * `beforeinstallprompt` fires once per page load and is gone if nobody catches it. The root layout
+ * buffers it before React hydrates, then Providers connects that buffer to this store. Both the
+ * deferred banner and the settings row read the same event from here.
  *
  * One deliberate behaviour change came with the move: the event is now `preventDefault()`-ed on
  * every page load, including ones where the banner is snoozed. The settings row has to be able to
@@ -32,7 +27,7 @@ export interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-export type InstallState = 'installed' | 'promptable' | 'dismissed' | 'ios' | 'unsupported'
+export type InstallState = 'installed' | 'promptable' | 'dismissed' | 'ios' | 'waiting'
 
 export interface InstallEnvironment {
     isStandalone: boolean
@@ -58,7 +53,9 @@ export function deriveInstallState(env: InstallEnvironment): InstallState {
     if (env.hasPrompt) return 'promptable'
     if (env.promptSpent) return 'dismissed'
     if (env.isIOS) return 'ios'
-    return 'unsupported'
+    // Chrome can wait for its engagement threshold before it fires `beforeinstallprompt`.
+    // The absence of that event is not a negative installability result.
+    return 'waiting'
 }
 
 // ------------------------------------------------------------------ the snooze
@@ -126,15 +123,18 @@ let state: InstallState | null = null
 
 const listeners = new Set<() => void>()
 
+type InstallWindow = Window & {
+    __splitInstallPrompt?: BeforeInstallPromptEvent | null
+}
+
 /**
  * `isIOSDevice` asked of the live navigator.
  *
  * Exported because the settings row's LABEL follows the device rather than the state. Apple has no
  * install verb — Safari's own share sheet says "Add to Home Screen" — and the browsers that do say
  * install have no home screen to add to. Every state but `installed` implies its platform anyway
- * (`promptable` and `dismissed` need a `beforeinstallprompt` no Apple browser fires; `ios` and
- * `unsupported` are the two halves of this same check), so asking the device once is both shorter
- * than a per-state table and the only thing that gets `installed` right.
+ * (`promptable` and `dismissed` need a `beforeinstallprompt` no Apple browser fires), so asking the
+ * device once is both shorter than a per-state table and the only thing that gets `installed` right.
  *
  * A Mac answers false, which is correct rather than a gap: macOS Safari's affordance is "Add to
  * Dock", an install, not a home-screen add. Only an iPad pretending to be a Mac flips it back.
@@ -172,10 +172,16 @@ export function captureInstallPrompt(): void {
     if (captured || typeof window === 'undefined') return
     captured = true
 
+    const takeBufferedPrompt = () => {
+        const event = (window as InstallWindow).__splitInstallPrompt
+        if (!event || event === deferred) return
+        deferred = event
+        publish()
+    }
     window.addEventListener('beforeinstallprompt', (event) => {
         event.preventDefault()
-        deferred = event as BeforeInstallPromptEvent
-        publish()
+        ;(window as InstallWindow).__splitInstallPrompt = event as BeforeInstallPromptEvent
+        takeBufferedPrompt()
     })
 
     // The ONE place `pwa_installed` is counted. It used to fire from here and from the accepted
@@ -183,13 +189,15 @@ export function captureInstallPrompt(): void {
     // for the same reason iOS install conversion is unmeasurable: Safari never fires this.
     window.addEventListener('appinstalled', () => {
         deferred = null
+        ;(window as InstallWindow).__splitInstallPrompt = null
         installedHere = true
         clearInstallSnooze()
         track('pwa_installed')
         publish()
     })
 
-    publish()
+    takeBufferedPrompt()
+    if (deferred === null) publish()
 }
 
 export function subscribeInstall(listener: () => void): () => void {
@@ -207,6 +215,7 @@ export async function promptInstall(): Promise<'accepted' | 'dismissed' | 'unava
     // Cleared before the await: the event is single-use, and a second tap while the browser's own
     // dialog is up would replay a spent event.
     deferred = null
+    ;(window as InstallWindow).__splitInstallPrompt = null
     publish()
 
     await event.prompt()

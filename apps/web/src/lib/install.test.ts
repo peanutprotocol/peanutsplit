@@ -26,9 +26,9 @@ describe('deriveInstallState', () => {
         expect(deriveInstallState(env({ promptSpent: true }))).toBe('dismissed')
     })
 
-    it('sends iOS to the how-to sheet, and everything else to the honest sentence', () => {
+    it('sends iOS to the how-to sheet without treating a pending browser check as unsupported', () => {
         expect(deriveInstallState(env({ isIOS: true }))).toBe('ios')
-        expect(deriveInstallState(env())).toBe('unsupported')
+        expect(deriveInstallState(env())).toBe('waiting')
     })
 })
 
@@ -102,12 +102,47 @@ describe('the install store', () => {
         subscribeInstall(notified)
         captureInstallPrompt()
 
-        expect(readInstallState()).toBe('unsupported')
+        expect(readInstallState()).toBe('waiting')
         expect(notified).toHaveBeenCalledTimes(1)
 
         win.fire('beforeinstallprompt')
         expect(readInstallState()).toBe('promptable')
         expect(notified).toHaveBeenCalledTimes(2)
+    })
+
+    it('waits for Android Chrome instead of calling it unsupported before its event arrives', async () => {
+        const win = fakeWindow({
+            ua: 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36',
+            platform: 'Linux armv8l',
+            maxTouchPoints: 5,
+        })
+        const { captureInstallPrompt, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+        expect(readInstallState()).toBe('waiting')
+
+        win.fire('beforeinstallprompt')
+        expect(readInstallState()).toBe('promptable')
+    })
+
+    it('uses an Android Chrome prompt that arrived before React mounted', async () => {
+        fakeWindow({
+            ua: 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36',
+            platform: 'Linux armv8l',
+            maxTouchPoints: 5,
+        })
+        ;(
+            window as typeof window & {
+                __splitInstallPrompt?: { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
+            }
+        ).__splitInstallPrompt = {
+            prompt: () => Promise.resolve(),
+            userChoice: Promise.resolve({ outcome: 'accepted' }),
+        }
+        const { captureInstallPrompt, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+        expect(readInstallState()).toBe('promptable')
     })
 
     it('registers its listeners once however often the mount effect runs', async () => {

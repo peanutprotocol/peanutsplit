@@ -85,6 +85,18 @@ try {
 `
 
 /**
+ * Chrome can finish its installability check before React hydrates on a fast returning device.
+ * Keep that single-use event until the install store mounts, or the install action is lost.
+ */
+const installPromptPreflight = `
+window.__splitInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function (event) {
+  event.preventDefault();
+  window.__splitInstallPrompt = event;
+});
+`
+
+/**
  * The locale is a per-request fact, so this layout reads a dynamic API and every route under it
  * renders per request rather than at build time. That is inherent to "one URL per room, in any
  * language" — there is no static HTML that can be correct for three languages at once.
@@ -104,6 +116,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <head>
                 <Script id="split-motion-preflight" strategy="beforeInteractive">
                     {motionPreferencePreflight}
+                </Script>
+                <Script id="split-install-preflight" strategy="beforeInteractive">
+                    {installPromptPreflight}
                 </Script>
             </head>
             <body

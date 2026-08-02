@@ -104,17 +104,26 @@ test.describe('the install row', () => {
         await snoozeInstallBanner(page)
     })
 
-    test('says so plainly where the browser offers nothing', async ({ page }) => {
-        onlyOn('desktop')
+    test('waits for Android Chrome instead of claiming it cannot install', async ({ page }) => {
+        onlyOn('mobile')
         test.setTimeout(60_000)
-        await openDeviceSheet(page, 'Install unsupported')
+        await page.addInitScript(() => {
+            Object.defineProperties(window.navigator, {
+                userAgent: {
+                    value: 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36',
+                },
+                platform: { value: 'Linux armv8l' },
+            })
+        })
+        await openDeviceSheet(page, 'Install Android Chrome')
 
-        const row = page.getByTestId('install-row-unsupported')
-        await expect(row).toBeVisible()
-        // Not a button: there is nothing behind it, and a tap that does nothing is a dead end.
-        expect(await row.evaluate((element) => element.tagName)).not.toBe('BUTTON')
-        // A desktop keeps the install wording, a Mac included — nothing here has a home screen.
-        await expect(row).toContainText('Install Split')
+        // Chrome decides installability after hydration and may wait for its engagement threshold.
+        // No event yet is not a negative result, so the row must not make that claim.
+        await expect(page.getByText('This browser doesn’t offer it.')).toHaveCount(0)
+        await expect(page.locator('[data-testid^="install-row-"]')).toHaveCount(0)
+
+        await offerTheBrowserPrompt(page, 'accepted')
+        await expect(page.getByTestId('install-row-prompt')).toContainText('Install Split')
     })
 
     test('opens the Safari steps on iOS', async ({ page }) => {
@@ -156,7 +165,7 @@ test.describe('the install row', () => {
 
         await expect(page.getByTestId('install-row-dismissed')).toBeVisible()
         await expect(page.getByTestId('install-row-prompt')).toHaveCount(0)
-        await expect(page.getByTestId('install-row-unsupported')).toHaveCount(0)
+        await expect(page.getByText('This browser doesn’t offer it.')).toHaveCount(0)
     })
 
     test('never offers to install an app that is already installed', async ({ page }) => {
