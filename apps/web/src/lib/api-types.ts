@@ -6,7 +6,7 @@
  * number: JSON has no BigInt and floats lose cents.
  */
 
-export type SplitMode = 'EQUAL' | 'EXACT'
+export type SplitMode = 'EQUAL' | 'EXACT' | 'PERCENTAGE' | 'SHARES'
 
 /** Free-form on the wire; the UI knows about these three. */
 export type SettlementMethod = 'cash' | 'bank' | 'peanut'
@@ -50,6 +50,8 @@ export interface ApiShare {
     amountMinor: string
     /** EXACT splits: as typed, in the expense currency. null for EQUAL. */
     enteredAmountMinor: string | null
+    /** PERCENTAGE: basis points. SHARES: relative integer weight. null for EQUAL/EXACT. */
+    splitWeight: string | null
 }
 
 /** One person's one emoji. Counts and "is one of these mine" are derived on the
@@ -163,8 +165,17 @@ export interface ExpenseInput {
     participantIds?: string[]
     /** EXACT: must add up to amountMinor, in the expense currency. */
     exactShares?: { memberId: string; amountMinor: string }[]
+    /** PERCENTAGE or SHARES: positive integer weights as decimal strings.
+     *  Percentage weights are basis points and must total exactly 10000. */
+    weightedShares?: { memberId: string; weight: string }[]
     date?: string
     category?: string | null
+}
+
+/** PATCH /api/rooms/:slug/expenses/:id. The server uses expectedSplitMode as
+ *  an optimistic compatibility guard before replacing the stored shares. */
+export interface ExpenseUpdateInput extends ExpenseInput {
+    expectedSplitMode?: SplitMode
 }
 
 /** POST and DELETE /api/expenses/:id/reactions. The token is proof, not
@@ -309,7 +320,7 @@ export interface ImportedExpenseInput {
      * below are the truth either way, and this only decides which mode the
      * expense opens in when somebody edits it later.
      */
-    splitMode?: SplitMode
+    splitMode?: 'EQUAL' | 'EXACT'
     /** Must add up to `costMinor` exactly. */
     shares: ImportedShareInput[]
 }

@@ -7,7 +7,8 @@ import type { ApiExpense, ApiMember, ApiRoom, ApiSettlement, ApiTransfer, RoomSt
  */
 export interface PortableRoom {
     schema: 'peanut-split-room'
-    version: 1
+    /** V2 adds first-class PERCENTAGE/SHARES modes and per-share splitWeight. */
+    version: 2
     exportedAt: string
     room: Omit<ApiRoom, 'id' | 'slug' | 'coverUrl'>
     members: ApiMember[]
@@ -22,7 +23,7 @@ export function portableRoom(state: RoomState, exportedAt = new Date().toISOStri
 
     return {
         schema: 'peanut-split-room',
-        version: 1,
+        version: 2,
         exportedAt,
         room,
         members: state.members,
@@ -59,6 +60,7 @@ const CSV_HEADERS = [
     'currency',
     'base_amount_minor',
     'entered_amount_minor',
+    'split_weight',
     'fx_rate',
     'split_mode',
     'paid_by_id',
@@ -101,6 +103,7 @@ export function roomCsv(state: RoomState): string {
             '',
             '',
             '',
+            '',
             state.room.createdAt,
             ''
         )
@@ -114,6 +117,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 member.id,
                 spreadsheetText(member.name),
+                '',
                 '',
                 '',
                 '',
@@ -145,6 +149,7 @@ export function roomCsv(state: RoomState): string {
                 expense.currency,
                 expense.baseAmountMinor,
                 '',
+                '',
                 expense.fxRate,
                 expense.splitMode,
                 expense.paidById,
@@ -170,6 +175,7 @@ export function roomCsv(state: RoomState): string {
                     state.room.currency,
                     '',
                     share.enteredAmountMinor,
+                    share.splitWeight,
                     expense.fxRate,
                     expense.splitMode,
                     '',
@@ -196,6 +202,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 settlement.amountMinor,
                 state.room.currency,
+                '',
                 '',
                 '',
                 '',
@@ -235,6 +242,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 '',
                 '',
+                '',
                 ''
             )
         )
@@ -250,6 +258,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 transfer.amountMinor,
                 state.room.currency,
+                '',
                 '',
                 '',
                 '',

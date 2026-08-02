@@ -12,10 +12,9 @@
  * latecomer added only when their absence was an accident of timing rather than
  * a decision. Three things have to hold:
  *
- *  1. **It is EQUAL.** An EXACT split is a set of numbers a person typed. There
- *     is no reading of "add one more" that does not overwrite somebody's
- *     deliberate arithmetic, so EXACT expenses are never offered and never
- *     touched — not here, not silently, not at all.
+ *  1. **It is EQUAL.** Exact amounts, percentages and shares are deliberate
+ *     arithmetic. There is no reading of "add one more" that does not overwrite
+ *     that choice, so non-EQUAL expenses are never offered or touched.
  *  2. **It predates them.** `expense.createdAt < member.createdAt`. If they were
  *     already on the roster when it was written, leaving them out was a choice
  *     somebody made in the drawer, and choices are not accidents.

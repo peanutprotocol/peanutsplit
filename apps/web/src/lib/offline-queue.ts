@@ -235,7 +235,10 @@ export function draftExpenseRow(
     const participants =
         input.splitMode === 'EXACT'
             ? (input.exactShares ?? []).map((share) => share.memberId)
-            : (input.participantIds ?? context.members.map((member) => member.id))
+            : input.splitMode === 'PERCENTAGE' || input.splitMode === 'SHARES'
+              ? (input.weightedShares ?? []).map((share) => share.memberId)
+              : (input.participantIds ?? context.members.map((member) => member.id))
+    const splitWeights = new Map((input.weightedShares ?? []).map((share) => [share.memberId, share.weight]))
 
     return {
         id: context.id,
@@ -254,7 +257,12 @@ export function draftExpenseRow(
         createdAt: new Date(context.at).toISOString(),
         // Shares are zeroed, not guessed: a draft moves no money, and the
         // authoritative RoomState brings the real split back in one commit.
-        shares: participants.map((memberId) => ({ memberId, amountMinor: '0', enteredAmountMinor: null })),
+        shares: participants.map((memberId) => ({
+            memberId,
+            amountMinor: '0',
+            enteredAmountMinor: null,
+            splitWeight: splitWeights.get(memberId) ?? null,
+        })),
         // Nobody can react to an expense that has not reached the server yet.
         reactions: [],
     }

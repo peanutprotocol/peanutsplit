@@ -152,6 +152,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
                 memberId: s.memberId,
                 amountMinor: s.amountMinor.toString(),
                 enteredAmountMinor: s.enteredAmountMinor?.toString() ?? null,
+                splitWeight: s.splitWeight?.toString() ?? null,
             })),
             // Flat rows, grouped into pills client-side — the count and the
             // "did I react" flag are a rendering decision, not a wire fact.

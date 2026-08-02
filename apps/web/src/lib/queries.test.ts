@@ -66,8 +66,8 @@ const roomState = (expenseIds: string[] = ['e1']): RoomState => ({
         createdAt: '2026-07-01T00:00:00.000Z',
         reactions: [],
         shares: [
-            { memberId: 'ana', amountMinor: '5000', enteredAmountMinor: null },
-            { memberId: 'bea', amountMinor: '5000', enteredAmountMinor: null },
+            { memberId: 'ana', amountMinor: '5000', enteredAmountMinor: null, splitWeight: null },
+            { memberId: 'bea', amountMinor: '5000', enteredAmountMinor: null, splitWeight: null },
         ],
     })),
     settlements: [],
@@ -265,6 +265,46 @@ describe('adding an expense', () => {
         await expect(observer.mutate({ ...staged, amountMinor: '5000' })).rejects.toMatchObject({
             code: NETWORK_ERROR_CODE,
         })
+
+        expect(sent[1].clientKey).not.toBe(sent[0].clientKey)
+    })
+
+    it('mints a new key when only weighted shares change', async () => {
+        const requestRef: ExpenseRequestRef = { current: null }
+        const sent: Array<ExpenseInput & { clientKey: string }> = []
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+                sent.push(JSON.parse(init?.body as string) as ExpenseInput & { clientKey: string })
+                throw new TypeError('offline')
+            })
+        )
+        const observer = new MutationObserver(
+            queryClient,
+            addExpenseMutationOptions(queryClient, SLUG, 'token-1', requestRef)
+        )
+        const staged: ExpenseInput = {
+            description: 'Dinner',
+            amountMinor: '4000',
+            currency: 'EUR',
+            newPaidByName: 'Carla',
+            splitMode: 'PERCENTAGE',
+            weightedShares: [
+                { memberId: 'ana', weight: '2500' },
+                { memberId: 'bea', weight: '7500' },
+            ],
+        }
+
+        await expect(observer.mutate(staged)).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
+        await expect(
+            observer.mutate({
+                ...staged,
+                weightedShares: [
+                    { memberId: 'ana', weight: '5000' },
+                    { memberId: 'bea', weight: '5000' },
+                ],
+            })
+        ).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
 
         expect(sent[1].clientKey).not.toBe(sent[0].clientKey)
     })

@@ -143,6 +143,62 @@ describe('public wire money', () => {
     })
 })
 
+describe('weighted expense request shapes', () => {
+    const weighted = (splitMode: 'PERCENTAGE' | 'SHARES', weight: unknown = '1') => ({
+        ...expense('1200'),
+        splitMode,
+        weightedShares: [
+            { memberId: 'member-a', weight },
+            { memberId: 'member-b', weight: splitMode === 'PERCENTAGE' ? '9999' : '2' },
+        ],
+    })
+
+    it('accepts percentage and share modes with positive decimal-string integer weights', () => {
+        expect(expenseSchema.safeParse(weighted('PERCENTAGE')).success).toBe(true)
+        expect(expenseSchema.safeParse(weighted('SHARES')).success).toBe(true)
+        expect(expenseSchema.parse(weighted('SHARES')).weightedShares?.[0].weight).toBe('1')
+    })
+
+    it('rejects numeric, zero, negative, fractional and out-of-range weights', () => {
+        for (const weight of [1, '0', '-1', '1.5', '9223372036854775808']) {
+            expect(expenseSchema.safeParse(weighted('SHARES', weight)).success).toBe(false)
+        }
+    })
+
+    it('exposes expectedSplitMode only on the update contract', () => {
+        const update = expenseUpdateSchema.parse({ ...weighted('PERCENTAGE'), expectedSplitMode: 'PERCENTAGE' })
+        expect(update.expectedSplitMode).toBe('PERCENTAGE')
+
+        const create = expenseSchema.parse({ ...weighted('PERCENTAGE'), expectedSplitMode: 'PERCENTAGE' })
+        expect('expectedSplitMode' in create).toBe(false)
+    })
+
+    it('rejects payload fields that belong to another split mode', () => {
+        expect(expenseSchema.safeParse({ ...expense('100'), weightedShares: [] }).success).toBe(false)
+        expect(expenseSchema.safeParse({ ...weighted('PERCENTAGE'), exactShares: [] }).success).toBe(false)
+        expect(expenseSchema.safeParse({ ...weighted('SHARES'), participantIds: ['member-a'] }).success).toBe(false)
+        expect(
+            expenseSchema.safeParse({
+                ...expense('100'),
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: 'member-a', amountMinor: '100' }],
+                weightedShares: [],
+            }).success
+        ).toBe(false)
+    })
+
+    it('keeps structured import modes limited to EQUAL and EXACT', () => {
+        const input = imported('100')
+        expect(
+            importRoomSchema.safeParse({ ...input, expenses: [{ ...input.expenses[0], splitMode: 'EQUAL' }] }).success
+        ).toBe(true)
+        expect(
+            importRoomSchema.safeParse({ ...input, expenses: [{ ...input.expenses[0], splitMode: 'PERCENTAGE' }] })
+                .success
+        ).toBe(false)
+    })
+})
+
 describe('structured import dates', () => {
     it('accepts real leap days and rejects impossible calendar dates', () => {
         const withDate = (date: string) => {

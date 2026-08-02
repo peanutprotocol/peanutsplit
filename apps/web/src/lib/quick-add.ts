@@ -82,6 +82,8 @@ export function draftToFormValues(
         // different total and different people; carrying it forward would leave
         // the form unsaveable for a reason nothing on screen explains.
         exactInputs: {},
+        percentageInputs: {},
+        shareInputs: {},
         // The stated day when there was one, keeping the time of day from the
         // form's current value so same-day ordering survives.
         date: draft.date ? fromDateInputValue(draft.date, opts.base.date) : opts.base.date,

@@ -15,6 +15,7 @@ import type {
     CreateRoomInput,
     CurrencyInfo,
     ExpenseInput,
+    ExpenseUpdateInput,
     ImportRoomInput,
     RoomState,
     RoomStateWithAddedMember,
@@ -371,6 +372,7 @@ const expenseRequestSignature = (input: ExpenseInput): string =>
         input.splitMode,
         input.participantIds ?? null,
         input.exactShares ?? null,
+        input.weightedShares ?? null,
         input.date ?? null,
         input.category ?? null,
     ])
@@ -504,7 +506,8 @@ export function useAddExpense(slug: string, token?: string | null, requestRef?: 
 export function useUpdateExpense(slug: string, token?: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: ({ id, input }: { id: string; input: ExpenseInput }) => api.updateExpense(slug, id, input, token),
+        mutationFn: ({ id, input }: { id: string; input: ExpenseUpdateInput }) =>
+            api.updateExpense(slug, id, input, token),
         onSuccess: (state) => seed(queryClient, slug, state),
     })
 }

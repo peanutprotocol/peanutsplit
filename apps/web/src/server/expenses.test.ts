@@ -40,15 +40,20 @@ const tableOf = (usdPerUnit: Record<string, number>): RateTable => ({
 
 const STATIC_TABLE = tableOf({ ...STATIC_USD_PER_UNIT })
 
-const body = (over: Partial<ExpenseBody> & { paidById?: string } = {}): ExpenseBody & { paidById: string } => ({
-    description: 'Dinner',
-    amountMinor: '10000',
-    currency: 'USD',
-    paidById: 'ana',
-    splitMode: 'EQUAL',
-    participantIds: ['ana', 'bea'],
-    ...over,
-})
+const body = (over: Partial<ExpenseBody> & { paidById?: string } = {}): ExpenseBody & { paidById: string } => {
+    const result = {
+        description: 'Dinner',
+        amountMinor: '10000',
+        currency: 'USD',
+        paidById: 'ana',
+        splitMode: 'EQUAL' as const,
+        participantIds: ['ana', 'bea'],
+        ...over,
+    }
+    if (result.splitMode !== 'EQUAL' && !Object.prototype.hasOwnProperty.call(over, 'participantIds'))
+        delete (result as { participantIds?: string[] }).participantIds
+    return result as ExpenseBody & { paidById: string }
+}
 
 /** The row a create wrote, in the shape the edit path hands back to `buildExpense`. */
 const rowOf = (write: { amountMinor: bigint; currency: string; baseAmountMinor: bigint; fxRate: string }) =>
@@ -193,6 +198,155 @@ describe('a description-only edit does not move the money', () => {
             rowOf(created),
             STATIC_TABLE
         )
+        expect(edited.baseAmountMinor).toBe(created.baseAmountMinor)
+        expect(edited.shares).toEqual(created.shares)
+        expect(sumShares(edited.shares)).toBe(edited.baseAmountMinor)
+    })
+})
+
+describe('weighted expense modes', () => {
+    it('apportions percentage basis points exactly and persists the weights', async () => {
+        const write = await buildExpense(
+            roomIn('USD'),
+            body({
+                amountMinor: '1001',
+                splitMode: 'PERCENTAGE',
+                weightedShares: [
+                    { memberId: 'ana', weight: '3333' },
+                    { memberId: 'bea', weight: '3333' },
+                    { memberId: 'caro', weight: '3334' },
+                ],
+            }),
+            undefined,
+            STATIC_TABLE
+        )
+
+        expect(write.splitMode).toBe('PERCENTAGE')
+        expect(write.shares.map((share) => share.amountMinor)).toEqual([334n, 333n, 334n])
+        expect(write.shares.map((share) => share.splitWeight)).toEqual([3333n, 3333n, 3334n])
+        expect(write.shares.every((share) => share.enteredAmountMinor === null)).toBe(true)
+        expect(sumShares(write.shares)).toBe(write.baseAmountMinor)
+    })
+
+    it('apportions arbitrary shares exactly by relative integer weight', async () => {
+        const write = await buildExpense(
+            roomIn('USD'),
+            body({
+                amountMinor: '1001',
+                splitMode: 'SHARES',
+                weightedShares: [
+                    { memberId: 'ana', weight: '1' },
+                    { memberId: 'bea', weight: '2' },
+                    { memberId: 'caro', weight: '3' },
+                ],
+            }),
+            undefined,
+            STATIC_TABLE
+        )
+
+        expect(write.shares.map((share) => share.amountMinor)).toEqual([167n, 334n, 500n])
+        expect(write.shares.map((share) => share.splitWeight)).toEqual([1n, 2n, 3n])
+        expect(sumShares(write.shares)).toBe(write.baseAmountMinor)
+    })
+
+    it('requires percentage weights to total exactly 10000 basis points', async () => {
+        await expect(
+            buildExpense(
+                roomIn('USD'),
+                body({
+                    splitMode: 'PERCENTAGE',
+                    weightedShares: [
+                        { memberId: 'ana', weight: '4999' },
+                        { memberId: 'bea', weight: '5000' },
+                    ],
+                }),
+                undefined,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'PERCENTAGES_DO_NOT_ADD_UP', status: 400 })
+    })
+
+    it('requires at least one positive weighted participant', async () => {
+        await expect(
+            buildExpense(roomIn('USD'), body({ splitMode: 'SHARES', weightedShares: [] }), undefined, STATIC_TABLE)
+        ).rejects.toMatchObject({ code: 'WEIGHTED_SHARES_REQUIRED', status: 400 })
+        await expect(
+            buildExpense(
+                roomIn('USD'),
+                body({ splitMode: 'SHARES', weightedShares: [{ memberId: 'ana', weight: '0' }] }),
+                undefined,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'SPLIT_WEIGHT_NOT_POSITIVE', status: 400 })
+    })
+
+    it('rejects duplicate and out-of-room weighted participants', async () => {
+        await expect(
+            buildExpense(
+                roomIn('USD'),
+                body({
+                    splitMode: 'SHARES',
+                    weightedShares: [
+                        { memberId: 'ana', weight: '1' },
+                        { memberId: 'ana', weight: '2' },
+                    ],
+                }),
+                undefined,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'DUPLICATE_PARTICIPANT', status: 400 })
+        await expect(
+            buildExpense(
+                roomIn('USD'),
+                body({ splitMode: 'SHARES', weightedShares: [{ memberId: 'outsider', weight: '1' }] }),
+                undefined,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'NOT_A_MEMBER', status: 400 })
+    })
+
+    it('rejects split payload fields that do not belong to the selected mode', async () => {
+        await expect(
+            buildExpense(
+                roomIn('USD'),
+                body({ splitMode: 'EQUAL', weightedShares: [{ memberId: 'ana', weight: '1' }] }),
+                undefined,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'SPLIT_FIELDS_DO_NOT_MATCH_MODE', status: 400 })
+        await expect(
+            buildExpense(
+                roomIn('USD'),
+                body({
+                    splitMode: 'SHARES',
+                    exactShares: [{ memberId: 'ana', amountMinor: '10000' }],
+                    weightedShares: [{ memberId: 'ana', weight: '1' }],
+                }),
+                undefined,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'SPLIT_FIELDS_DO_NOT_MATCH_MODE', status: 400 })
+    })
+
+    it('re-saving a weighted split is deterministic and does not move its total', async () => {
+        const weighted = {
+            currency: 'THB',
+            amountMinor: '300012',
+            splitMode: 'SHARES' as const,
+            weightedShares: [
+                { memberId: 'ana', weight: '7' },
+                { memberId: 'bea', weight: '5' },
+                { memberId: 'caro', weight: '3' },
+            ],
+        }
+        const created = await buildExpense(roomIn('EUR'), body(weighted), undefined, STATIC_TABLE)
+        const edited = await buildExpense(
+            roomIn('EUR'),
+            body({ ...weighted, description: 'renamed' }),
+            rowOf(created),
+            STATIC_TABLE
+        )
+
         expect(edited.baseAmountMinor).toBe(created.baseAmountMinor)
         expect(edited.shares).toEqual(created.shares)
         expect(sumShares(edited.shares)).toBe(edited.baseAmountMinor)

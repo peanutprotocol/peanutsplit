@@ -207,6 +207,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await page.getByTestId('expense-payer-summary').click()
     await page.locator('[data-testid="payer-chip"][data-member="Ana"]').click()
     await page.getByTestId('expense-split-summary').click()
+    await page.getByTestId('more-split-options').click()
     await page.getByTestId('split-exact').click()
 
     // Switching to EXACT opens EMPTY: the whole amount is still to allocate, and

@@ -46,6 +46,20 @@ const minorAmount = z
         { message: 'amount is too large' }
     )
 
+/** A relative split weight on the wire. It is stored as BIGINT and therefore
+ *  follows the same signed-column ceiling as money, but zero is never a
+ *  participant: callers omit somebody instead of assigning no weight. */
+const splitWeight = minorAmount.refine(
+    (s) => {
+        try {
+            return BigInt(s) > 0n
+        } catch {
+            return false
+        }
+    },
+    { message: 'must be greater than zero' }
+)
+
 const id = z.string().min(1).max(64)
 const clientKey = z
     .string()
@@ -82,6 +96,7 @@ export const createMemberSchema = z.object({
 })
 
 const expenseName = z.string().trim().max(MAX_DESCRIPTION_CHARS)
+const splitMode = z.enum(['EQUAL', 'EXACT', 'PERCENTAGE', 'SHARES'])
 
 /** Everything an expense request carries except its name, which is the one field
  *  a create and an edit have to treat differently — see the two schemas below. */
@@ -93,9 +108,10 @@ const expenseFields = {
     /** A payer typed inside a new expense stays a draft until the expense
      *  transaction commits. It is mutually exclusive with an existing id. */
     newPaidByName: personName.optional(),
-    splitMode: z.enum(['EQUAL', 'EXACT']),
+    splitMode,
     participantIds: z.array(id).optional(),
     exactShares: z.array(z.object({ memberId: id, amountMinor: minorAmount })).optional(),
+    weightedShares: z.array(z.object({ memberId: id, weight: splitWeight })).optional(),
     date: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
     category: z.string().trim().max(MAX_CATEGORY_CHARS).nullish(),
 }
@@ -110,6 +126,36 @@ const onePayer = (body: { paidById?: string; newPaidByName?: string }, ctx: z.Re
     }
 }
 
+const splitPayloadMatchesMode = (
+    body: {
+        splitMode: 'EQUAL' | 'EXACT' | 'PERCENTAGE' | 'SHARES'
+        participantIds?: string[]
+        exactShares?: unknown[]
+        weightedShares?: unknown[]
+    },
+    ctx: z.RefinementCtx
+): void => {
+    const reject = (field: 'participantIds' | 'exactShares' | 'weightedShares') => {
+        if (body[field] !== undefined)
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [field],
+                message: `does not belong to a ${body.splitMode} split`,
+            })
+    }
+
+    if (body.splitMode === 'EQUAL') {
+        reject('exactShares')
+        reject('weightedShares')
+    } else if (body.splitMode === 'EXACT') {
+        reject('participantIds')
+        reject('weightedShares')
+    } else {
+        reject('participantIds')
+        reject('exactShares')
+    }
+}
+
 export const expenseSchema = z
     .object({
         ...expenseFields,
@@ -119,6 +165,7 @@ export const expenseSchema = z
         description: expenseName.default(''),
     })
     .superRefine(onePayer)
+    .superRefine(splitPayloadMatchesMode)
 
 /**
  * The same request, for a PATCH.
@@ -131,8 +178,16 @@ export const expenseSchema = z
  * means untouched, and `''` still means clear it.
  */
 export const expenseUpdateSchema = z
-    .object({ ...expenseFields, description: expenseName.optional() })
+    .object({
+        ...expenseFields,
+        description: expenseName.optional(),
+        /** Optimistic compatibility marker. The PATCH route compares this with
+         *  the stored mode before it replaces weighted shares. Optional here so
+         *  pre-feature clients can continue editing EQUAL and EXACT rows. */
+        expectedSplitMode: splitMode.optional(),
+    })
     .superRefine(onePayer)
+    .superRefine(splitPayloadMatchesMode)
 
 const receiptUrl = z
     .string()

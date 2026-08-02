@@ -859,6 +859,74 @@ describe('the full room lifecycle', () => {
         expect(status).toBe(409)
         expect(body.error.code).toBe('EXPENSE_DELETED')
     })
+
+    it('requires the saved weighted mode before replacing its shares', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const ana = created.memberId
+        const bea = (await join(slug, 'Bea')).body.memberId
+        const { body: afterAdd } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Cabin',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: ana,
+                splitMode: 'PERCENTAGE',
+                weightedShares: [
+                    { memberId: ana, weight: '2500' },
+                    { memberId: bea, weight: '7500' },
+                ],
+            },
+        })
+        const saved = afterAdd.expenses[0]
+
+        // An older cached client knows nothing about expectedSplitMode. It must
+        // not flatten a newer weighted split into its default EQUAL payload.
+        const legacy = await call<ApiError>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${saved.id}`,
+            method: 'PATCH',
+            params: { slug, id: saved.id },
+            body: {
+                description: 'Cabin from old tab',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: ana,
+                splitMode: 'EQUAL',
+            },
+        })
+        expect(legacy.status).toBe(409)
+        expect(legacy.body.error.code).toBe('SPLIT_MODE_CONFLICT')
+
+        const unchanged = await prisma.expense.findUniqueOrThrow({
+            where: { id: saved.id },
+            include: { shares: { orderBy: { memberId: 'asc' } } },
+        })
+        expect(unchanged.splitMode).toBe('PERCENTAGE')
+        expect(unchanged.shares.map((share) => share.splitWeight).sort()).toEqual([2500n, 7500n])
+
+        const guarded = await call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${saved.id}`,
+            method: 'PATCH',
+            params: { slug, id: saved.id },
+            body: {
+                description: 'Cabin by shares',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: ana,
+                splitMode: 'SHARES',
+                weightedShares: [
+                    { memberId: ana, weight: '1' },
+                    { memberId: bea, weight: '3' },
+                ],
+                expectedSplitMode: 'PERCENTAGE',
+            },
+        })
+        expect(guarded.status).toBe(200)
+        expect(guarded.body.expenses[0].splitMode).toBe('SHARES')
+    })
 })
 
 describe('write validation', () => {
@@ -1211,7 +1279,9 @@ describe('adding a latecomer to the expenses that predate them', () => {
 
         // The EXACT row is not offered and did not move.
         const ferry = repaired.expenses.find((expense) => expense.description === 'Ana covered the ferry')!
-        expect(ferry.shares).toEqual([{ memberId: bea, amountMinor: '1000', enteredAmountMinor: '1000' }])
+        expect(ferry.shares).toEqual([
+            { memberId: bea, amountMinor: '1000', enteredAmountMinor: '1000', splitWeight: null },
+        ])
 
         // Idempotent by nature: with the share now present, there is nothing left
         // to offer, so pressing again is not a thing that can happen.

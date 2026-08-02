@@ -29,7 +29,12 @@ const expense = (
     date: iso(minute),
     category: null,
     createdAt: iso(minute),
-    shares: shareHolders.map((memberId) => ({ memberId, amountMinor: '3000', enteredAmountMinor: null })),
+    shares: shareHolders.map((memberId) => ({
+        memberId,
+        amountMinor: '3000',
+        enteredAmountMinor: null,
+        splitWeight: null,
+    })),
     reactions: [],
     ...overrides,
 })
@@ -64,10 +69,13 @@ describe('backfillableFor', () => {
         expect(backfillableFor(state, 'dani').map((e) => e.id)).toEqual(['e1'])
     })
 
-    it('never offers an EXACT split — somebody chose those numbers', () => {
-        const exact = expense('e1', 10, ['ana', 'bea'], { splitMode: 'EXACT' })
-        expect(backfillableFor(room([ana, bea, dani], [exact]), 'dani')).toEqual([])
-    })
+    it.each(['EXACT', 'PERCENTAGE', 'SHARES'] as const)(
+        'never offers a %s split — somebody chose that arithmetic',
+        (splitMode) => {
+            const deliberate = expense('e1', 10, ['ana', 'bea'], { splitMode })
+            expect(backfillableFor(room([ana, bea, dani], [deliberate]), 'dani')).toEqual([])
+        }
+    )
 
     it('leaves an expense written after they joined alone — that omission was a choice', () => {
         const afterwards = expense('e1', 40, ['ana', 'bea'])
@@ -198,7 +206,10 @@ describe('runBackfill', () => {
         const eve = member('eve', 40)
         const withEve = {
             ...second,
-            shares: [...second.shares, { memberId: 'eve', amountMinor: '2000', enteredAmountMinor: null }],
+            shares: [
+                ...second.shares,
+                { memberId: 'eve', amountMinor: '2000', enteredAmountMinor: null, splitWeight: null },
+            ],
         }
         const sent = await run({
             between: (written) => (written === 1 ? room([ana, bea, dani, eve], [first, withEve]) : undefined),
