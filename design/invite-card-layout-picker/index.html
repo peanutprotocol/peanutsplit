@@ -118,7 +118,7 @@
 				z-index: 20;
 				top: 12px;
 				display: flex;
-				align-items: center;
+				align-items: flex-start;
 				justify-content: space-between;
 				gap: 20px;
 				margin: 26px 0 38px;
@@ -132,6 +132,8 @@
 
 			.state-switch {
 				display: flex;
+				flex: 1;
+				flex-wrap: wrap;
 				gap: 7px;
 			}
 
@@ -151,12 +153,39 @@
 			}
 
 			.selected {
+				flex: 0 0 auto;
+				padding: 11px 8px;
 				color: var(--muted);
 				font-size: 13px;
 			}
 
 			.selected strong {
 				color: var(--ink);
+			}
+
+			.case-review {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr);
+				gap: 10px 18px;
+				align-items: baseline;
+				margin: -17px 0 38px;
+				padding: 15px 18px;
+				border: 2px solid var(--ink);
+				border-radius: 14px;
+				background: var(--yellow-soft);
+			}
+
+			.case-review strong {
+				font-size: 12px;
+				font-weight: 950;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+
+			.case-review span {
+				color: var(--muted);
+				font-size: 14px;
+				line-height: 1.45;
 			}
 
 			.grid {
@@ -188,11 +217,218 @@
 			.art-button {
 				display: block;
 				width: 100%;
-				padding: 0;
+				padding: 18px;
 				border: 0;
 				border-bottom: var(--border);
-				background: var(--yellow);
+				background: #dfe5df;
 				cursor: zoom-in;
+			}
+
+			.chat-window {
+				overflow: hidden;
+				border: 2px solid #b8c0b9;
+				border-radius: 18px;
+				background: #f2f5f2;
+				box-shadow: 0 3px 12px rgba(33, 28, 23, 0.14);
+				text-align: left;
+			}
+
+			.chat-bar {
+				display: grid;
+				grid-template-columns: 56px minmax(0, 1fr) 56px;
+				align-items: center;
+				min-height: 58px;
+				padding: 8px 12px;
+				border-bottom: 1px solid #d3d9d4;
+				background: rgba(255, 255, 255, 0.92);
+			}
+
+			.chat-back,
+			.chat-more {
+				color: #386c53;
+				font-size: 19px;
+				font-weight: 800;
+			}
+
+			.chat-more {
+				text-align: right;
+				letter-spacing: 0.12em;
+			}
+
+			.chat-heading {
+				min-width: 0;
+				text-align: center;
+			}
+
+			.chat-heading strong,
+			.chat-heading span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.chat-heading strong {
+				font-size: 14px;
+				font-weight: 850;
+			}
+
+			.chat-heading span {
+				margin-top: 2px;
+				color: #788079;
+				font-size: 11px;
+			}
+
+			.chat-feed {
+				padding: 12px 14px 15px;
+				background:
+					linear-gradient(rgba(244, 247, 244, 0.93), rgba(244, 247, 244, 0.93)),
+					repeating-linear-gradient(45deg, #e6ebe6 0, #e6ebe6 1px, transparent 1px, transparent 16px);
+			}
+
+			.day-chip {
+				width: fit-content;
+				margin: 0 auto 10px;
+				padding: 4px 9px;
+				border-radius: 999px;
+				background: #e5eae5;
+				color: #6f7770;
+				font-size: 10px;
+				font-weight: 750;
+			}
+
+			.chat-message {
+				display: grid;
+				grid-template-columns: 34px minmax(0, 1fr);
+				gap: 9px;
+				align-items: end;
+			}
+
+			.message-avatar {
+				display: grid;
+				width: 34px;
+				aspect-ratio: 1;
+				place-items: center;
+				border-radius: 999px;
+				background: var(--purple);
+				font-size: 12px;
+				font-weight: 900;
+			}
+
+			.message-body {
+				min-width: 0;
+				max-width: 92%;
+			}
+
+			.message-meta {
+				display: flex;
+				align-items: baseline;
+				gap: 7px;
+				margin: 0 0 4px 2px;
+			}
+
+			.message-meta strong {
+				font-size: 12px;
+				font-weight: 850;
+			}
+
+			.message-meta span {
+				color: #858c86;
+				font-size: 10px;
+			}
+
+			.bubble-copy {
+				width: fit-content;
+				max-width: 90%;
+				margin-bottom: 6px;
+				padding: 8px 11px;
+				border-radius: 5px 14px 14px 14px;
+				background: white;
+				box-shadow: 0 1px 2px rgba(33, 28, 23, 0.12);
+				font-size: 12px;
+				line-height: 1.35;
+			}
+
+			.link-preview {
+				container-type: inline-size;
+				overflow: hidden;
+				border-radius: 6px 14px 14px 14px;
+				background: white;
+				box-shadow: 0 1px 3px rgba(33, 28, 23, 0.18);
+			}
+
+			.link-meta {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+				min-height: 42px;
+				padding: 7px 10px;
+				border-top: 1px solid #e6e8e6;
+				background: white;
+			}
+
+			.link-meta strong {
+				display: block;
+				font-size: 11px;
+				font-weight: 900;
+			}
+
+			.link-copy {
+				min-width: 0;
+			}
+
+			.link-meta span,
+			.link-meta small {
+				display: block;
+				overflow: hidden;
+				color: #788079;
+				font-size: 10px;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.link-meta small {
+				margin-top: 2px;
+				color: #9aa09b;
+				font-size: 9px;
+			}
+
+			.link-open {
+				flex: 0 0 auto;
+				color: #386c53 !important;
+				font-weight: 850;
+			}
+
+			.composer {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				min-height: 54px;
+				padding: 8px 10px 8px 14px;
+				border-top: 1px solid #d3d9d4;
+				background: rgba(255, 255, 255, 0.95);
+			}
+
+			.composer span {
+				flex: 1;
+				padding: 8px 12px;
+				border: 1px solid #d6dbd7;
+				border-radius: 999px;
+				color: #9ba19c;
+				font-size: 11px;
+			}
+
+			.composer b {
+				display: grid;
+				width: 30px;
+				aspect-ratio: 1;
+				place-items: center;
+				border-radius: 999px;
+				background: #386c53;
+				color: white;
+				font-size: 15px;
 			}
 
 			.canvas {
@@ -210,9 +446,9 @@
 			}
 
 			.brand {
-				font-size: 3.15cqw;
+				font-size: 4.8cqw;
 				font-weight: 950;
-				letter-spacing: -0.045em;
+				letter-spacing: -0.04em;
 			}
 
 			.inviter {
@@ -225,22 +461,31 @@
 
 			.room-name {
 				font-size: 9.5cqw;
-				font-weight: 1000;
-				letter-spacing: -0.075em;
-				line-height: 0.86;
+				font-weight: 950;
+				letter-spacing: -0.05em;
+				line-height: 0.94;
+				overflow-wrap: anywhere;
 			}
 
 			.category {
 				color: var(--muted);
-				font-size: 3.1cqw;
+				font-size: 3.55cqw;
 				font-weight: 750;
 				letter-spacing: -0.02em;
 			}
 
 			.proof {
 				color: var(--ink);
-				font-size: 2.45cqw;
+				font-size: 3.1cqw;
 				font-weight: 750;
+			}
+
+			.mechanic {
+				color: var(--ink);
+				font-size: 3.15cqw;
+				font-weight: 720;
+				letter-spacing: -0.015em;
+				line-height: 1.2;
 			}
 
 			.crew-line {
@@ -255,7 +500,7 @@
 
 			.empty-line {
 				color: var(--ink);
-				font-size: 2.95cqw;
+				font-size: 3.1cqw;
 				font-weight: 780;
 				letter-spacing: -0.025em;
 			}
@@ -296,14 +541,79 @@
 				background: var(--pink);
 			}
 
-			.populated .when-empty,
-			.empty .when-populated {
+			.avatar.more {
+				z-index: 0;
+				background: var(--cream);
+				font-size: 1.9cqw;
+			}
+
+			.avatar-stack[data-count='1'] .avatar {
+				margin-right: 0;
+			}
+
+			.avatar-stack[data-count='2'] .avatar {
+				margin-right: -0.6cqw;
+			}
+
+			[hidden] {
 				display: none !important;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .room-name {
+				font-size: 7.1cqw;
+				line-height: 0.93;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v2 .room-name,
+			body:is([data-case='long'], [data-case='unbroken']) .v5 .room-name {
+				font-size: 8cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .room-name {
+				font-size: 5cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .category {
+				font-size: 2.8cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .mechanic {
+				font-size: 2.6cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .group-panel {
+				padding: 3cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .group-label {
+				font-size: 2cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .avatar-stack {
+				margin: 1.5cqw 0 1.3cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .avatar {
+				width: 7.3cqw;
+				font-size: 2.6cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .names {
+				font-size: 3cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .v3 .proof {
+				margin-top: 2cqw;
+				font-size: 2.7cqw;
+			}
+
+			body:is([data-case='long'], [data-case='unbroken']) .inviter {
+				font-size: 3.5cqw;
 			}
 
 			/* 01 — the landing link card, translated directly to a share asset. */
 			.v1 {
-				padding: 5.4cqw;
+				padding: 3.6cqw;
 			}
 
 			.v1 .sheet {
@@ -329,7 +639,7 @@
 				border-radius: 999px;
 				background: var(--yellow-soft);
 				color: var(--ink);
-				font-size: 2.4cqw;
+				font-size: 3.1cqw;
 			}
 
 			.v1 .main-copy {
@@ -338,6 +648,10 @@
 
 			.v1 .room-name {
 				margin-top: 1.2cqw;
+			}
+
+			.v1 .mechanic {
+				margin-top: 1.4cqw;
 			}
 
 			.v1 .join-row {
@@ -379,7 +693,7 @@
 			}
 
 			.v2 .inviter {
-				margin-top: 4.5cqw;
+				margin-top: 2.8cqw;
 			}
 
 			.v2 .room-name {
@@ -393,6 +707,10 @@
 				padding-bottom: 0.7cqw;
 				border-bottom: 0.45cqw solid var(--ink);
 				color: var(--ink);
+			}
+
+			.v2 .mechanic {
+				margin-top: 1.4cqw;
 			}
 
 			.v2 .footer-line {
@@ -432,8 +750,12 @@
 			}
 
 			.v3 .category {
-				margin: 2.2cqw 0 auto;
+				margin-top: 1.8cqw;
 				color: var(--ink);
+			}
+
+			.v3 .mechanic {
+				margin: 1.3cqw 0 auto;
 			}
 
 			.v3 .group-panel {
@@ -532,7 +854,7 @@
 				display: flex;
 				flex: 1;
 				flex-direction: column;
-				margin-top: 2.4cqw;
+				margin-top: 0;
 				padding: 3.5cqw 4cqw;
 				overflow: hidden;
 				border: 0.43cqw solid var(--ink);
@@ -560,6 +882,11 @@
 				gap: 2cqw;
 			}
 
+			.v4 .shared-card > .inviter {
+				margin-bottom: 1.8cqw;
+				font-size: 3.5cqw;
+			}
+
 			.v4 .room-name {
 				font-size: 9cqw;
 			}
@@ -567,6 +894,10 @@
 			.v4 .category {
 				margin-top: 1cqw;
 				color: var(--ink);
+			}
+
+			.v4 .mechanic {
+				margin-top: 1.2cqw;
 			}
 
 			.v4 .join-row {
@@ -606,10 +937,7 @@
 			}
 
 			.v5 .title-row {
-				display: grid;
-				grid-template-columns: 1fr auto;
-				gap: 3cqw;
-				align-items: end;
+				display: block;
 				margin-top: 3.2cqw;
 			}
 
@@ -617,9 +945,8 @@
 				font-size: 11cqw;
 			}
 
-			.v5 .big-stack .avatar {
-				width: 9.5cqw;
-				font-size: 3.5cqw;
+			.v5 .mechanic {
+				margin-top: 1.5cqw;
 			}
 
 			.v5 .invite-bar {
@@ -638,6 +965,11 @@
 
 			.v5 .crew-line {
 				font-size: 3.3cqw;
+			}
+
+			.v5 .invite-bar .avatar {
+				width: 7.5cqw;
+				font-size: 2.7cqw;
 			}
 
 			.v5 .proof {
@@ -703,6 +1035,28 @@
 				line-height: 1.5;
 			}
 
+			.type-review {
+				display: grid;
+				gap: 5px;
+				margin-top: 16px;
+				padding: 12px 13px;
+				border-left: 4px solid var(--green);
+				background: #f1f8f1;
+			}
+
+			.type-review strong {
+				font-size: 11px;
+				font-weight: 950;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+
+			.type-review span {
+				color: var(--muted);
+				font-size: 13px;
+				line-height: 1.4;
+			}
+
 			.pick {
 				width: 100%;
 				margin-top: 18px;
@@ -722,6 +1076,7 @@
 			dialog {
 				width: min(1220px, calc(100% - 24px));
 				max-width: none;
+				max-height: calc(100dvh - 24px);
 				padding: 0;
 				overflow: hidden;
 				border: 4px solid var(--ink);
@@ -759,14 +1114,14 @@
 
 			.dialog-art {
 				width: 100%;
-				aspect-ratio: 1200 / 630;
-				overflow: hidden;
-				container-type: inline-size;
+				max-height: calc(100dvh - 91px);
+				overflow: auto;
+				background: #dfe5df;
 			}
 
-			.dialog-art .canvas {
-				width: 100%;
-				height: 100%;
+			.dialog-art .chat-window {
+				width: min(1120px, calc(100% - 32px));
+				margin: 16px auto;
 			}
 
 			@media (max-width: 920px) {
@@ -790,38 +1145,82 @@
 				}
 
 				.toolbar {
+					position: static;
 					align-items: stretch;
 					flex-direction: column;
+				}
+
+				.selected {
+					padding: 3px 8px 8px;
+				}
+
+				.case-review {
+					grid-template-columns: 1fr;
+					gap: 4px;
+				}
+
+				.art-button {
+					padding: 8px;
+				}
+
+				.chat-bar {
+					grid-template-columns: 42px minmax(0, 1fr) 42px;
+					min-height: 50px;
+				}
+
+				.chat-feed {
+					padding: 9px 8px 11px;
+				}
+
+				.chat-message {
+					grid-template-columns: 28px minmax(0, 1fr);
+					gap: 6px;
+				}
+
+				.message-avatar {
+					width: 28px;
+				}
+
+				.message-body {
+					max-width: 96%;
 				}
 			}
 		</style>
 	</head>
-	<body class="populated">
+	<body data-case="three">
 		<main class="shell">
 			<header class="page-head">
 				<div>
-					<span class="eyebrow">Invitation card · round two</span>
-					<h1>The invite comes from a person.</h1>
+					<span class="eyebrow">Invitation card · round three</span>
+					<h1>Test the invite where people see it.</h1>
 					<p class="intro">
-						Five layouts using the landing page’s Roboto Flex, flat yellow field, hard black outlines, pale
-						cards, and purposeful pink/green accents. No Knerd. No decorative background circles.
+						Five layouts inside the same realistic group-chat frame. Switch between room sizes and the
+						long-copy stress case to judge hierarchy at actual link-preview scale.
 					</p>
 				</div>
 				<div class="brief">
 					<strong>Fixed content hierarchy</strong>
-					<span
-						>Konrad invites you → Ski trip → Expense sharing → who is already inside → free/no-signup
-						proof.</span
-					>
+					<span>Inviter → room → shared expenses → what to do → who is inside → trust proof.</span>
 				</div>
 			</header>
 
 			<div class="toolbar">
-				<div class="state-switch" aria-label="Room state">
-					<button type="button" data-state="populated" aria-pressed="true">3 people already inside</button>
-					<button type="button" data-state="empty" aria-pressed="false">Empty room</button>
+				<div class="state-switch" aria-label="Content stress test">
+					<button type="button" data-case="empty" aria-pressed="false">Empty</button>
+					<button type="button" data-case="one" aria-pressed="false">1 person</button>
+					<button type="button" data-case="two" aria-pressed="false">2 people</button>
+					<button type="button" data-case="three" aria-pressed="true">3 people</button>
+					<button type="button" data-case="five" aria-pressed="false">5 people</button>
+					<button type="button" data-case="twelve" aria-pressed="false">12 people</button>
+					<button type="button" data-case="long" aria-pressed="false">Long names + title</button>
+					<button type="button" data-case="unbroken" aria-pressed="false">Unbroken title</button>
 				</div>
 				<div class="selected">Your pick: <strong id="selected-name">None yet</strong></div>
+			</div>
+
+			<div class="case-review" aria-live="polite">
+				<strong>Current stress case</strong>
+				<span id="case-review-copy">Three short names can be shown without sacrificing the action.</span>
 			</div>
 
 			<section class="grid">
@@ -831,23 +1230,24 @@
 							<div class="sheet">
 								<div class="topline">
 									<span class="brand">Peanut Split</span>
-									<span class="category">Expense sharing</span>
+									<span class="category">Shared group expenses</span>
 								</div>
 								<div class="main-copy">
-									<div class="inviter">Konrad invites you to</div>
-									<div class="room-name">Ski trip</div>
+									<div class="inviter" data-inviter>Konrad invites you to</div>
+									<div class="room-name" data-room-name>Ski trip</div>
+									<div class="mechanic">Everyone adds. We sort who owes.</div>
 								</div>
 								<div class="join-row">
 									<div class="crew-line when-populated">
-										<span>Join</span>
-										<span class="avatar-stack">
+										<span data-roster-prefix>Join</span>
+										<span class="avatar-stack" data-avatars>
 											<span class="avatar">A</span><span class="avatar">B</span
 											><span class="avatar">C</span>
 										</span>
-										<span>Ana, Bea &amp; Chris</span>
+										<span data-member-copy>Ana, Bea &amp; Chris</span>
 									</div>
 									<div class="empty-line when-empty">Open the link and add what you paid</div>
-									<div class="proof">No signup needed. Free forever.</div>
+									<div class="proof">No signup · free forever</div>
 								</div>
 							</div>
 						</div>
@@ -862,6 +1262,13 @@
 							The landing page’s shared-link object, expanded into a complete invitation. Balanced,
 							familiar, and safest.
 						</p>
+						<div class="type-review">
+							<strong>Type/layout review · strong</strong>
+							<span
+								>Best all-round container. Reduced yellow moat and capped roster keep the final row
+								readable.</span
+							>
+						</div>
 						<button class="pick" type="button">Pick this direction</button>
 					</div>
 				</article>
@@ -871,20 +1278,21 @@
 						<div class="canvas v2">
 							<div class="content">
 								<div class="brand">Peanut Split</div>
-								<div class="inviter">Konrad invites you to</div>
-								<div class="room-name">Ski trip</div>
-								<div class="category">Expense sharing</div>
+								<div class="inviter" data-inviter>Konrad invites you to</div>
+								<div class="room-name" data-room-name>Ski trip</div>
+								<div class="category">Shared group expenses</div>
+								<div class="mechanic">Everyone adds. We sort who owes.</div>
 								<div class="footer-line">
 									<div class="crew-line when-populated">
-										<span>Join</span>
-										<span class="avatar-stack">
+										<span data-roster-prefix>Join</span>
+										<span class="avatar-stack" data-avatars>
 											<span class="avatar">A</span><span class="avatar">B</span
 											><span class="avatar">C</span>
 										</span>
-										<span>Ana, Bea &amp; Chris</span>
+										<span data-member-copy>Ana, Bea &amp; Chris</span>
 									</div>
 									<div class="empty-line when-empty">Open the link and add what you paid</div>
-									<div class="proof">No signup needed.<br />Free forever.</div>
+									<div class="proof">No signup · free forever</div>
 								</div>
 							</div>
 						</div>
@@ -892,13 +1300,20 @@
 					<div class="option-body">
 						<div class="option-meta">
 							<span class="number" data-number="2">Layout</span>
-							<span class="tag">Boldest hierarchy</span>
+							<span class="tag">Best typography</span>
 						</div>
 						<h2>Editorial invitation</h2>
 						<p>
 							Flat landing yellow with a ruled composition and pink edge. The room name gets maximum scale
 							without feeling like a logo.
 						</p>
+						<div class="type-review">
+							<strong>Type/layout review · best</strong>
+							<span
+								>Clearest thumbnail hierarchy and widest title measure. Most resilient from empty
+								through long copy.</span
+							>
+						</div>
 						<button class="pick" type="button">Pick this direction</button>
 					</div>
 				</article>
@@ -908,20 +1323,24 @@
 						<div class="canvas v3">
 							<div class="copy-panel">
 								<div class="brand">Peanut Split</div>
-								<div class="inviter">Konrad invites you to</div>
-								<div class="room-name">Ski trip</div>
-								<div class="category">Expense sharing</div>
+								<div class="inviter" data-inviter>Konrad invites you to</div>
+								<div class="room-name" data-room-name>Ski trip</div>
+								<div class="category">Shared group expenses</div>
+								<div class="mechanic">Everyone adds. We sort who owes.</div>
 							</div>
 							<div class="group-panel">
-								<div class="group-label when-populated">Already in the split</div>
+								<div class="group-label when-populated" data-group-label>3 people already in</div>
 								<div class="group-label when-empty">Start the split together</div>
-								<div class="avatar-stack when-populated">
+								<div class="avatar-stack when-populated" data-avatars>
 									<span class="avatar">A</span><span class="avatar">B</span
 									><span class="avatar">C</span>
 								</div>
-								<div class="names when-populated">Join Ana, Bea &amp; Chris</div>
+								<div class="names when-populated">
+									<span data-roster-prefix>Join</span>
+									<span data-member-copy>Ana, Bea &amp; Chris</span>
+								</div>
 								<div class="empty-line when-empty">Open the link and add what you paid</div>
-								<div class="proof">No signup needed. Free forever.</div>
+								<div class="proof">No signup · free forever</div>
 							</div>
 						</div>
 					</button>
@@ -935,37 +1354,42 @@
 							The invitation and the existing group get equal weight. Strongest when the social proof is
 							the reason to open.
 						</p>
+						<div class="type-review">
+							<strong>Type/layout review · conditional</strong>
+							<span
+								>Excellent at 2–5 people. The half-width title measure is the first to strain with long
+								room names.</span
+							>
+						</div>
 						<button class="pick" type="button">Pick this direction</button>
 					</div>
 				</article>
 
-				<article class="option" data-name="Chat handoff">
-					<button class="art-button" type="button" aria-label="Expand chat handoff">
+				<article class="option" data-name="Compact action card">
+					<button class="art-button" type="button" aria-label="Expand compact action card">
 						<div class="canvas v4">
 							<div class="chat-shell">
-								<div class="sender-row">
-									<span class="sender-avatar">K</span>
-									<span class="inviter">Konrad invites you to</span>
-								</div>
 								<div class="shared-card">
+									<div class="inviter" data-inviter>Konrad invites you to</div>
 									<div class="shared-top">
 										<div>
-											<div class="room-name">Ski trip</div>
-											<div class="category">Expense sharing</div>
+											<div class="room-name" data-room-name>Ski trip</div>
+											<div class="category">Shared group expenses</div>
+											<div class="mechanic">Everyone adds. We sort who owes.</div>
 										</div>
 										<span class="brand">Peanut Split</span>
 									</div>
 									<div class="join-row">
 										<div class="crew-line when-populated">
-											<span>Join</span>
-											<span class="avatar-stack">
+											<span data-roster-prefix>Join</span>
+											<span class="avatar-stack" data-avatars>
 												<span class="avatar">A</span><span class="avatar">B</span
 												><span class="avatar">C</span>
 											</span>
-											<span>Ana, Bea &amp; Chris</span>
+											<span data-member-copy>Ana, Bea &amp; Chris</span>
 										</div>
 										<div class="empty-line when-empty">Open the link and add what you paid</div>
-										<div class="proof">No signup needed. Free forever.</div>
+										<div class="proof">No signup · free forever</div>
 									</div>
 								</div>
 							</div>
@@ -974,13 +1398,20 @@
 					<div class="option-body">
 						<div class="option-meta">
 							<span class="number" data-number="4">Layout</span>
-							<span class="tag">Most contextual</span>
+							<span class="tag">Best compact</span>
 						</div>
-						<h2>Chat handoff</h2>
+						<h2>Compact action card</h2>
 						<p>
-							The sender sits outside the shared-link object, just like the landing story. It reads
-							naturally where the asset appears.
+							The chat client supplies the sender context, so the asset spends its space on the room and
+							the action instead of drawing chat inside chat.
 						</p>
+						<div class="type-review">
+							<strong>Type/layout review · strong</strong>
+							<span
+								>Efficient at thumbnail size. Top-right branding needs stepped titles to avoid
+								collision.</span
+							>
+						</div>
 						<button class="pick" type="button">Pick this direction</button>
 					</div>
 				</article>
@@ -990,22 +1421,28 @@
 						<div class="canvas v5">
 							<div class="topline">
 								<span class="brand">Peanut Split</span>
-								<span class="category">Expense sharing</span>
+								<span class="category">Shared group expenses</span>
 							</div>
 							<div class="title-row">
 								<div>
-									<div class="inviter">Konrad invites you to</div>
-									<div class="room-name">Ski trip</div>
-								</div>
-								<div class="avatar-stack big-stack when-populated">
-									<span class="avatar">A</span><span class="avatar">B</span
-									><span class="avatar">C</span>
+									<div class="inviter" data-inviter>Konrad invites you to</div>
+									<div class="room-name" data-room-name>Ski trip</div>
+									<div class="mechanic">Everyone adds. We sort who owes.</div>
 								</div>
 							</div>
 							<div class="invite-bar">
-								<div class="crew-line when-populated">Join Ana, Bea &amp; Chris</div>
+								<div class="crew-line when-populated">
+									<span class="avatar-stack" data-avatars>
+										<span class="avatar">A</span><span class="avatar">B</span
+										><span class="avatar">C</span>
+									</span>
+									<span
+										><span data-roster-prefix>Join</span>
+										<span data-member-copy>Ana, Bea &amp; Chris</span></span
+									>
+								</div>
 								<div class="empty-line when-empty">Open the link and add what you paid</div>
-								<div class="proof">No signup needed. Free forever.</div>
+								<div class="proof">No signup · free forever</div>
 							</div>
 						</div>
 					</button>
@@ -1019,6 +1456,13 @@
 							The people already inside become the visual anchor. Best if recognisable member avatars are
 							the main click reason.
 						</p>
+						<div class="type-review">
+							<strong>Type/layout review · social, less universal</strong>
+							<span
+								>Great with recognisable people. Moving avatars below preserves title width; empty rooms
+								still feel quieter.</span
+							>
+						</div>
 						<button class="pick" type="button">Pick this direction</button>
 					</div>
 				</article>
@@ -1034,20 +1478,206 @@
 		</dialog>
 
 		<script>
-			const stateButtons = [...document.querySelectorAll('[data-state]')]
+			const cases = {
+				empty: {
+					inviter: 'Konrad',
+					room: 'Ski trip',
+					members: [],
+					review: 'No roster should leave a hole in the composition. The action expands to fill that space.',
+				},
+				one: {
+					inviter: 'Konrad',
+					room: 'Ski trip',
+					members: ['Ana'],
+					review: 'A single avatar stands alone—no artificial overlap—and the person is named directly.',
+				},
+				two: {
+					inviter: 'Konrad',
+					room: 'Ski trip',
+					members: ['Ana', 'Bea'],
+					review: 'Two short names fit naturally. The avatar overlap stays restrained and recognisable.',
+				},
+				three: {
+					inviter: 'Konrad',
+					room: 'Ski trip',
+					members: ['Ana', 'Bea', 'Chris'],
+					review: 'Three short names can be shown without sacrificing the action or trust line.',
+				},
+				five: {
+					inviter: 'Konrad',
+					room: 'Ski trip',
+					members: ['Ana', 'Bea', 'Chris', 'Diego', 'Eli'],
+					review: 'After three people, the roster collapses to two names, a count, and a +N avatar.',
+				},
+				twelve: {
+					inviter: 'Konrad',
+					room: 'Ski trip',
+					members: [
+						'Ana',
+						'Bea',
+						'Chris',
+						'Diego',
+						'Eli',
+						'Farah',
+						'Gabriel',
+						'Hana',
+						'Ivo',
+						'Jules',
+						'Kat',
+						'Luis',
+					],
+					review: 'Large rooms keep a fixed footprint: three avatars, a +9 disc, and count-based copy.',
+				},
+				long: {
+					inviter: 'Alexandria Montgomery',
+					room: "New Year's cabin weekend in Chamonix",
+					members: ['Ana-María', 'Christopher', 'Maximilian', 'Saoirse', 'Mohammed'],
+					review: 'The title steps down and wraps to two lines; the long roster collapses instead of shrinking.',
+				},
+				unbroken: {
+					inviter: 'Konrad',
+					room: 'VeryVeryLongUnbrokenWeekendTripName2026',
+					members: ['Ana', 'Bea'],
+					review: 'A 40-character unbroken title uses safe breaking and stepped type instead of clipping the card.',
+				},
+			}
+
+			const caseButtons = [...document.querySelectorAll('.state-switch [data-case]')]
 			const options = [...document.querySelectorAll('.option')]
 			const selectedName = document.querySelector('#selected-name')
+			const caseReviewCopy = document.querySelector('#case-review-copy')
 			const dialog = document.querySelector('#preview-dialog')
 			const dialogArt = document.querySelector('#dialog-art')
 			const dialogTitle = document.querySelector('#dialog-title')
 			const savedPick = localStorage.getItem('split-invite-layout-pick')
 
-			function setRoomState(state) {
-				document.body.classList.toggle('populated', state === 'populated')
-				document.body.classList.toggle('empty', state === 'empty')
-				stateButtons.forEach((button) =>
-					button.setAttribute('aria-pressed', String(button.dataset.state === state))
+			function memberCopy(members) {
+				if (members.length === 0) return ''
+				if (members.length === 1) return members[0]
+				if (members.length === 2) return `${members[0]} & ${members[1]}`
+				if (members.length === 3) return `${members[0]}, ${members[1]} & ${members[2]}`
+				return `${members.length} people already in`
+			}
+
+			function populateAvatars(container, members) {
+				container.replaceChildren()
+				container.dataset.count = String(members.length)
+				members.slice(0, 3).forEach((name) => {
+					const avatar = document.createElement('span')
+					avatar.className = 'avatar'
+					avatar.textContent = name.charAt(0).toUpperCase()
+					avatar.title = name
+					container.append(avatar)
+				})
+
+				if (members.length > 3) {
+					const more = document.createElement('span')
+					more.className = 'avatar more'
+					more.textContent = `+${members.length - 3}`
+					more.title = `${members.length - 3} more people`
+					container.append(more)
+				}
+			}
+
+			function buildChatWindow(canvas) {
+				const chat = document.createElement('div')
+				chat.className = 'chat-window'
+				chat.innerHTML = `
+					<div class="chat-bar">
+						<span class="chat-back">‹</span>
+						<div class="chat-heading">
+							<strong data-chat-room>Ski trip crew</strong>
+							<span data-chat-subtitle>group chat</span>
+						</div>
+						<span class="chat-more">•••</span>
+					</div>
+					<div class="chat-feed">
+						<div class="day-chip">Today</div>
+						<div class="chat-message">
+							<span class="message-avatar" data-message-avatar>K</span>
+							<div class="message-body">
+								<div class="message-meta"><strong data-message-name>Konrad</strong><span>10:42</span></div>
+								<div class="bubble-copy" data-message-copy>Made a split for the trip 👇</div>
+								<div class="link-preview">
+									<div class="link-meta">
+										<div class="link-copy">
+											<strong data-link-title>Ski trip · Peanut Split</strong>
+											<span data-link-description>Konrad invited you to a shared group-expense room.</span>
+											<small>peanutsplit.com</small>
+										</div>
+										<span class="link-open">Open ›</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="composer"><span data-composer-copy>Message Ski trip crew</span><b>↑</b></div>`
+				chat.querySelector('.link-preview').prepend(canvas)
+				return chat
+			}
+
+			function setCase(caseName) {
+				const testCase = cases[caseName]
+				const isEmpty = testCase.members.length === 0
+				document.body.dataset.case = caseName
+				caseButtons.forEach((button) =>
+					button.setAttribute('aria-pressed', String(button.dataset.case === caseName))
 				)
+				caseReviewCopy.textContent = testCase.review
+
+				document.querySelectorAll('[data-inviter]').forEach((element) => {
+					element.textContent = `${testCase.inviter} invites you to`
+				})
+				document.querySelectorAll('[data-room-name]').forEach((element) => {
+					element.textContent = testCase.room
+				})
+				document.querySelectorAll('[data-member-copy]').forEach((element) => {
+					element.textContent = memberCopy(testCase.members)
+				})
+				document.querySelectorAll('[data-roster-prefix]').forEach((element) => {
+					element.textContent = 'Join'
+					element.hidden = testCase.members.length > 3
+				})
+				document.querySelectorAll('[data-group-label]').forEach((element) => {
+					element.textContent =
+						testCase.members.length > 3
+							? 'Already in the split'
+							: `${testCase.members.length} ${testCase.members.length === 1 ? 'person' : 'people'} already in`
+				})
+				document.querySelectorAll('[data-avatars]').forEach((element) => {
+					populateAvatars(element, testCase.members)
+				})
+				document.querySelectorAll('.when-populated').forEach((element) => {
+					element.hidden = isEmpty
+				})
+				document.querySelectorAll('.when-empty').forEach((element) => {
+					element.hidden = !isEmpty
+				})
+
+				document.querySelectorAll('[data-chat-room]').forEach((element) => {
+					element.textContent = `${testCase.room} crew`
+				})
+				document.querySelectorAll('[data-chat-subtitle]').forEach((element) => {
+					element.textContent = `${Math.max(testCase.members.length + 2, 3)} members`
+				})
+				document.querySelectorAll('[data-message-avatar]').forEach((element) => {
+					element.textContent = testCase.inviter.charAt(0)
+				})
+				document.querySelectorAll('[data-message-name]').forEach((element) => {
+					element.textContent = testCase.inviter
+				})
+				document.querySelectorAll('[data-message-copy]').forEach((element) => {
+					element.textContent = `Made a split for ${testCase.room.toLowerCase()} 👇`
+				})
+				document.querySelectorAll('[data-link-title]').forEach((element) => {
+					element.textContent = `${testCase.room} · Peanut Split`
+				})
+				document.querySelectorAll('[data-link-description]').forEach((element) => {
+					element.textContent = `${testCase.inviter} invited you to a shared group-expense room.`
+				})
+				document.querySelectorAll('[data-composer-copy]').forEach((element) => {
+					element.textContent = `Message ${testCase.room} crew`
+				})
 			}
 
 			function pick(option, scroll = true) {
@@ -1057,18 +1687,25 @@
 				if (scroll) option.scrollIntoView({ behavior: 'smooth', block: 'center' })
 			}
 
-			stateButtons.forEach((button) => button.addEventListener('click', () => setRoomState(button.dataset.state)))
+			options.forEach((option) => {
+				const artButton = option.querySelector('.art-button')
+				artButton.replaceChildren(buildChatWindow(option.querySelector('.canvas')))
+			})
+
+			caseButtons.forEach((button) => button.addEventListener('click', () => setCase(button.dataset.case)))
 
 			options.forEach((option) => {
 				option.querySelector('.pick').addEventListener('click', () => pick(option))
 				option.querySelector('.art-button').addEventListener('click', () => {
-					const canvas = option.querySelector('.canvas').cloneNode(true)
-					dialogArt.replaceChildren(canvas)
+					const chat = option.querySelector('.chat-window').cloneNode(true)
+					dialogArt.replaceChildren(chat)
 					dialogTitle.textContent = option.dataset.name
 					dialog.showModal()
 				})
 				if (option.dataset.name === savedPick) pick(option, false)
 			})
+
+			setCase('three')
 
 			dialog.querySelector('.close').addEventListener('click', () => dialog.close())
 			dialog.addEventListener('click', (event) => {
