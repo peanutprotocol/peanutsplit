@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Peanut Split — invitation card directions</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght@8..144,75..125,400..1000&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			:root {
+				color-scheme: light;
+				--ink: #211c17;
+				--yellow: #ffc900;
+				--yellow-soft: #fff4cc;
+				--paper: #fffdf8;
+				--cream: #fff9ed;
+				--pink: #ff90e8;
+				--green: #98e9ab;
+				--blue: #90a8ed;
+				--purple: #c7a6ff;
+				--muted: #5f646d;
+				--border: 3px solid var(--ink);
+				--font: 'Roboto Flex', Roboto, Arial, sans-serif;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				background: #faf4f0;
+				color: var(--ink);
+				font-family: var(--font);
+				font-variation-settings: 'wdth' 100;
+			}
+
+			button {
+				color: inherit;
+				font: inherit;
+			}
+
+			.shell {
+				width: min(1460px, calc(100% - 32px));
+				margin: 0 auto;
+				padding: 48px 0 110px;
+			}
+
+			.page-head {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto;
+				gap: 40px;
+				align-items: end;
+				padding: 0 6px 32px;
+				border-bottom: 3px solid var(--ink);
+			}
+
+			.eyebrow {
+				display: inline-flex;
+				margin-bottom: 14px;
+				padding: 8px 12px;
+				border: 2px solid var(--ink);
+				border-radius: 999px;
+				background: var(--pink);
+				font-size: 12px;
+				font-weight: 900;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
+			h1 {
+				max-width: 930px;
+				margin: 0;
+				font-size: clamp(48px, 7vw, 94px);
+				font-weight: 950;
+				letter-spacing: -0.065em;
+				line-height: 0.9;
+			}
+
+			.intro {
+				max-width: 760px;
+				margin: 22px 0 0;
+				color: var(--muted);
+				font-size: 19px;
+				line-height: 1.5;
+			}
+
+			.brief {
+				display: grid;
+				max-width: 400px;
+				gap: 9px;
+				padding: 20px;
+				border: var(--border);
+				border-radius: 18px;
+				background: var(--paper);
+				box-shadow: 7px 7px 0 var(--ink);
+			}
+
+			.brief strong {
+				font-size: 13px;
+				font-weight: 950;
+				letter-spacing: 0.07em;
+				text-transform: uppercase;
+			}
+
+			.brief span {
+				color: var(--muted);
+				font-size: 14px;
+				line-height: 1.4;
+			}
+
+			.toolbar {
+				position: sticky;
+				z-index: 20;
+				top: 12px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 20px;
+				margin: 26px 0 38px;
+				padding: 10px;
+				border: var(--border);
+				border-radius: 18px;
+				background: rgba(255, 253, 248, 0.93);
+				box-shadow: 5px 5px 0 var(--ink);
+				backdrop-filter: blur(16px);
+			}
+
+			.state-switch {
+				display: flex;
+				gap: 7px;
+			}
+
+			.state-switch button {
+				border: 0;
+				border-radius: 12px;
+				background: transparent;
+				padding: 11px 15px;
+				cursor: pointer;
+				font-size: 14px;
+				font-weight: 900;
+			}
+
+			.state-switch button[aria-pressed='true'] {
+				background: var(--ink);
+				color: white;
+			}
+
+			.selected {
+				color: var(--muted);
+				font-size: 13px;
+			}
+
+			.selected strong {
+				color: var(--ink);
+			}
+
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 32px;
+			}
+
+			.option {
+				overflow: hidden;
+				border: var(--border);
+				border-radius: 24px;
+				background: var(--paper);
+				box-shadow: 0 9px 0 var(--ink);
+				transition:
+					transform 170ms ease,
+					outline-color 170ms ease;
+			}
+
+			.option:hover {
+				transform: translateY(-3px);
+			}
+
+			.option.picked {
+				outline: 6px solid var(--pink);
+				outline-offset: 4px;
+			}
+
+			.art-button {
+				display: block;
+				width: 100%;
+				padding: 0;
+				border: 0;
+				border-bottom: var(--border);
+				background: var(--yellow);
+				cursor: zoom-in;
+			}
+
+			.canvas {
+				position: relative;
+				width: 100%;
+				aspect-ratio: 1200 / 630;
+				overflow: hidden;
+				background: var(--yellow);
+				container-type: inline-size;
+				text-align: left;
+			}
+
+			.canvas * {
+				box-sizing: border-box;
+			}
+
+			.brand {
+				font-size: 3.15cqw;
+				font-weight: 950;
+				letter-spacing: -0.045em;
+			}
+
+			.inviter {
+				color: var(--ink);
+				font-size: 4.15cqw;
+				font-weight: 650;
+				letter-spacing: -0.035em;
+				line-height: 1;
+			}
+
+			.room-name {
+				font-size: 9.5cqw;
+				font-weight: 1000;
+				letter-spacing: -0.075em;
+				line-height: 0.86;
+			}
+
+			.category {
+				color: var(--muted);
+				font-size: 3.1cqw;
+				font-weight: 750;
+				letter-spacing: -0.02em;
+			}
+
+			.proof {
+				color: var(--ink);
+				font-size: 2.45cqw;
+				font-weight: 750;
+			}
+
+			.crew-line {
+				display: flex;
+				align-items: center;
+				gap: 1.25cqw;
+				color: var(--ink);
+				font-size: 3.1cqw;
+				font-weight: 820;
+				letter-spacing: -0.025em;
+			}
+
+			.empty-line {
+				color: var(--ink);
+				font-size: 2.95cqw;
+				font-weight: 780;
+				letter-spacing: -0.025em;
+			}
+
+			.avatar-stack {
+				display: flex;
+				align-items: center;
+				padding-right: 0.9cqw;
+			}
+
+			.avatar {
+				position: relative;
+				display: grid;
+				width: 6.8cqw;
+				aspect-ratio: 1;
+				place-items: center;
+				margin-right: -1.25cqw;
+				border: 0.38cqw solid var(--ink);
+				border-radius: 999px;
+				color: var(--ink);
+				font-size: 2.55cqw;
+				font-weight: 950;
+				box-shadow: 0.22cqw 0.22cqw 0 var(--ink);
+			}
+
+			.avatar:nth-child(1) {
+				z-index: 3;
+				background: var(--green);
+			}
+
+			.avatar:nth-child(2) {
+				z-index: 2;
+				background: var(--blue);
+			}
+
+			.avatar:nth-child(3) {
+				z-index: 1;
+				background: var(--pink);
+			}
+
+			.populated .when-empty,
+			.empty .when-populated {
+				display: none !important;
+			}
+
+			/* 01 — the landing link card, translated directly to a share asset. */
+			.v1 {
+				padding: 5.4cqw;
+			}
+
+			.v1 .sheet {
+				display: flex;
+				height: 100%;
+				flex-direction: column;
+				padding: 4.5cqw 5cqw;
+				border: 0.43cqw solid var(--ink);
+				border-radius: 3.1cqw 3.1cqw 1.1cqw;
+				background: var(--paper);
+				box-shadow: 1.05cqw 1.05cqw 0 var(--ink);
+			}
+
+			.v1 .topline {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+
+			.v1 .category {
+				padding: 1.2cqw 1.8cqw;
+				border: 0.3cqw solid var(--ink);
+				border-radius: 999px;
+				background: var(--yellow-soft);
+				color: var(--ink);
+				font-size: 2.4cqw;
+			}
+
+			.v1 .main-copy {
+				margin-top: 3.1cqw;
+			}
+
+			.v1 .room-name {
+				margin-top: 1.2cqw;
+			}
+
+			.v1 .join-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 2cqw;
+				margin-top: auto;
+			}
+
+			.v1 .proof {
+				padding: 1.35cqw 1.7cqw;
+				border: 0.28cqw solid var(--ink);
+				border-radius: 1.35cqw;
+				background: var(--green);
+			}
+
+			/* 02 — editorial: no floating sheet, flat landing-yellow field and ruled hierarchy. */
+			.v2 {
+				display: grid;
+				grid-template-columns: 1fr 0.08fr;
+				padding: 4.7cqw 5.4cqw;
+			}
+
+			.v2::after {
+				position: absolute;
+				top: 0;
+				right: 0;
+				width: 2.4cqw;
+				height: 100%;
+				background: var(--pink);
+				content: '';
+			}
+
+			.v2 .content {
+				display: flex;
+				min-width: 0;
+				flex-direction: column;
+			}
+
+			.v2 .inviter {
+				margin-top: 4.5cqw;
+			}
+
+			.v2 .room-name {
+				margin-top: 1.1cqw;
+				font-size: 11cqw;
+			}
+
+			.v2 .category {
+				width: fit-content;
+				margin-top: 2cqw;
+				padding-bottom: 0.7cqw;
+				border-bottom: 0.45cqw solid var(--ink);
+				color: var(--ink);
+			}
+
+			.v2 .footer-line {
+				display: flex;
+				align-items: flex-end;
+				justify-content: space-between;
+				gap: 2.4cqw;
+				margin-top: auto;
+				padding-top: 2cqw;
+				border-top: 0.35cqw solid var(--ink);
+			}
+
+			.v2 .proof {
+				max-width: 28cqw;
+				text-align: right;
+			}
+
+			/* 03 — split panel: invitation on yellow, the real group on a white roster panel. */
+			.v3 {
+				display: grid;
+				grid-template-columns: 1.05fr 0.95fr;
+			}
+
+			.v3 .copy-panel {
+				display: flex;
+				min-width: 0;
+				flex-direction: column;
+				padding: 5.2cqw 4.8cqw;
+			}
+
+			.v3 .inviter {
+				margin-top: auto;
+			}
+
+			.v3 .room-name {
+				margin-top: 1.2cqw;
+			}
+
+			.v3 .category {
+				margin: 2.2cqw 0 auto;
+				color: var(--ink);
+			}
+
+			.v3 .group-panel {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				margin: 3.7cqw 3.7cqw 3.7cqw 0;
+				padding: 4.4cqw;
+				border: 0.42cqw solid var(--ink);
+				border-radius: 2.6cqw;
+				background: var(--paper);
+				box-shadow: 0.9cqw 0.9cqw 0 var(--ink);
+			}
+
+			.v3 .group-panel::before {
+				position: absolute;
+				top: 0;
+				right: 0;
+				left: 0;
+				height: 1.3cqw;
+				border-bottom: 0.35cqw solid var(--ink);
+				border-radius: 2.1cqw 2.1cqw 0 0;
+				background: var(--green);
+				content: '';
+			}
+
+			.v3 .group-label {
+				color: var(--muted);
+				font-size: 2.3cqw;
+				font-weight: 800;
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
+			}
+
+			.v3 .avatar-stack {
+				margin: 2.5cqw 0 2.3cqw;
+			}
+
+			.v3 .avatar {
+				width: 9cqw;
+				font-size: 3.2cqw;
+			}
+
+			.v3 .names {
+				font-size: 3.6cqw;
+				font-weight: 900;
+				letter-spacing: -0.045em;
+				line-height: 1.05;
+			}
+
+			.v3 .proof {
+				margin-top: 3.3cqw;
+				padding-top: 2cqw;
+				border-top: 0.28cqw solid var(--ink);
+				color: var(--muted);
+			}
+
+			/* 04 — chat handoff: a compact sender line above the yellow shared-link object. */
+			.v4 {
+				padding: 4.4cqw 5.1cqw;
+				background: var(--cream);
+			}
+
+			.v4 .chat-shell {
+				display: flex;
+				height: 100%;
+				flex-direction: column;
+			}
+
+			.v4 .sender-row {
+				display: flex;
+				align-items: center;
+				gap: 1.3cqw;
+			}
+
+			.v4 .sender-avatar {
+				display: grid;
+				width: 6cqw;
+				aspect-ratio: 1;
+				place-items: center;
+				border: 0.34cqw solid var(--ink);
+				border-radius: 999px;
+				background: var(--purple);
+				font-size: 2.3cqw;
+				font-weight: 950;
+			}
+
+			.v4 .sender-row .inviter {
+				font-size: 3.3cqw;
+				font-weight: 720;
+			}
+
+			.v4 .shared-card {
+				position: relative;
+				display: flex;
+				flex: 1;
+				flex-direction: column;
+				margin-top: 2.4cqw;
+				padding: 3.5cqw 4cqw;
+				overflow: hidden;
+				border: 0.43cqw solid var(--ink);
+				border-radius: 2.6cqw 2.6cqw 0.8cqw;
+				background: var(--yellow);
+				box-shadow: 0.85cqw 0.85cqw 0 var(--ink);
+			}
+
+			.v4 .shared-card::before {
+				position: absolute;
+				top: 0;
+				right: 0;
+				width: 21cqw;
+				height: 1.25cqw;
+				border-bottom: 0.32cqw solid var(--ink);
+				border-left: 0.32cqw solid var(--ink);
+				background: var(--pink);
+				content: '';
+			}
+
+			.v4 .shared-top {
+				display: flex;
+				align-items: flex-start;
+				justify-content: space-between;
+				gap: 2cqw;
+			}
+
+			.v4 .room-name {
+				font-size: 9cqw;
+			}
+
+			.v4 .category {
+				margin-top: 1cqw;
+				color: var(--ink);
+			}
+
+			.v4 .join-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 2cqw;
+				margin-top: auto;
+				padding-top: 2.1cqw;
+				border-top: 0.3cqw solid var(--ink);
+			}
+
+			.v4 .proof {
+				max-width: 29cqw;
+				text-align: right;
+			}
+
+			/* 05 — roster-forward: people already inside are the visual invitation. */
+			.v5 {
+				display: flex;
+				flex-direction: column;
+				padding: 4.2cqw 5.2cqw;
+			}
+
+			.v5 .topline {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+
+			.v5 .category {
+				padding: 1cqw 1.5cqw;
+				border: 0.28cqw solid var(--ink);
+				border-radius: 1cqw;
+				background: var(--paper);
+				color: var(--ink);
+			}
+
+			.v5 .title-row {
+				display: grid;
+				grid-template-columns: 1fr auto;
+				gap: 3cqw;
+				align-items: end;
+				margin-top: 3.2cqw;
+			}
+
+			.v5 .room-name {
+				font-size: 11cqw;
+			}
+
+			.v5 .big-stack .avatar {
+				width: 9.5cqw;
+				font-size: 3.5cqw;
+			}
+
+			.v5 .invite-bar {
+				display: flex;
+				min-height: 12.8cqw;
+				align-items: center;
+				justify-content: space-between;
+				gap: 2.4cqw;
+				margin-top: auto;
+				padding: 2.4cqw 2.8cqw;
+				border: 0.42cqw solid var(--ink);
+				border-radius: 1.8cqw;
+				background: var(--paper);
+				box-shadow: 0.75cqw 0.75cqw 0 var(--ink);
+			}
+
+			.v5 .crew-line {
+				font-size: 3.3cqw;
+			}
+
+			.v5 .proof {
+				max-width: 27cqw;
+				color: var(--muted);
+				text-align: right;
+			}
+
+			.option-body {
+				padding: 22px 23px 20px;
+			}
+
+			.option-meta {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+			}
+
+			.number {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				font-size: 12px;
+				font-weight: 950;
+				letter-spacing: 0.07em;
+				text-transform: uppercase;
+			}
+
+			.number::before {
+				display: grid;
+				width: 30px;
+				height: 30px;
+				place-items: center;
+				border: 2px solid var(--ink);
+				border-radius: 999px;
+				background: var(--yellow);
+				content: attr(data-number);
+				font-size: 12px;
+			}
+
+			.tag {
+				padding: 7px 10px;
+				border: 2px solid var(--ink);
+				border-radius: 999px;
+				background: var(--green);
+				font-size: 11px;
+				font-weight: 950;
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+			}
+
+			.option h2 {
+				margin: 17px 0 8px;
+				font-size: 27px;
+				font-weight: 950;
+				letter-spacing: -0.045em;
+			}
+
+			.option-body p {
+				margin: 0;
+				color: var(--muted);
+				line-height: 1.5;
+			}
+
+			.pick {
+				width: 100%;
+				margin-top: 18px;
+				padding: 12px 14px;
+				border: 2px solid var(--ink);
+				border-radius: 12px;
+				background: white;
+				cursor: pointer;
+				font-weight: 900;
+			}
+
+			.pick:hover,
+			.option.picked .pick {
+				background: var(--pink);
+			}
+
+			dialog {
+				width: min(1220px, calc(100% - 24px));
+				max-width: none;
+				padding: 0;
+				overflow: hidden;
+				border: 4px solid var(--ink);
+				border-radius: 22px;
+				background: var(--paper);
+				box-shadow: 12px 12px 0 var(--ink);
+			}
+
+			dialog::backdrop {
+				background: rgba(33, 28, 23, 0.72);
+				backdrop-filter: blur(5px);
+			}
+
+			.dialog-bar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 12px 15px 12px 20px;
+				border-bottom: 3px solid var(--ink);
+				font-weight: 900;
+			}
+
+			.close {
+				display: grid;
+				width: 40px;
+				height: 40px;
+				place-items: center;
+				border: 2px solid var(--ink);
+				border-radius: 999px;
+				background: var(--pink);
+				cursor: pointer;
+				font-size: 22px;
+				font-weight: 900;
+			}
+
+			.dialog-art {
+				width: 100%;
+				aspect-ratio: 1200 / 630;
+				overflow: hidden;
+				container-type: inline-size;
+			}
+
+			.dialog-art .canvas {
+				width: 100%;
+				height: 100%;
+			}
+
+			@media (max-width: 920px) {
+				.page-head {
+					grid-template-columns: 1fr;
+				}
+
+				.brief {
+					max-width: none;
+				}
+
+				.grid {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			@media (max-width: 620px) {
+				.shell {
+					width: calc(100% - 18px);
+					padding-top: 28px;
+				}
+
+				.toolbar {
+					align-items: stretch;
+					flex-direction: column;
+				}
+			}
+		</style>
+	</head>
+	<body class="populated">
+		<main class="shell">
+			<header class="page-head">
+				<div>
+					<span class="eyebrow">Invitation card · round two</span>
+					<h1>The invite comes from a person.</h1>
+					<p class="intro">
+						Five layouts using the landing page’s Roboto Flex, flat yellow field, hard black outlines, pale
+						cards, and purposeful pink/green accents. No Knerd. No decorative background circles.
+					</p>
+				</div>
+				<div class="brief">
+					<strong>Fixed content hierarchy</strong>
+					<span
+						>Konrad invites you → Ski trip → Expense sharing → who is already inside → free/no-signup
+						proof.</span
+					>
+				</div>
+			</header>
+
+			<div class="toolbar">
+				<div class="state-switch" aria-label="Room state">
+					<button type="button" data-state="populated" aria-pressed="true">3 people already inside</button>
+					<button type="button" data-state="empty" aria-pressed="false">Empty room</button>
+				</div>
+				<div class="selected">Your pick: <strong id="selected-name">None yet</strong></div>
+			</div>
+
+			<section class="grid">
+				<article class="option" data-name="Landing link card">
+					<button class="art-button" type="button" aria-label="Expand landing link card">
+						<div class="canvas v1">
+							<div class="sheet">
+								<div class="topline">
+									<span class="brand">Peanut Split</span>
+									<span class="category">Expense sharing</span>
+								</div>
+								<div class="main-copy">
+									<div class="inviter">Konrad invites you to</div>
+									<div class="room-name">Ski trip</div>
+								</div>
+								<div class="join-row">
+									<div class="crew-line when-populated">
+										<span>Join</span>
+										<span class="avatar-stack">
+											<span class="avatar">A</span><span class="avatar">B</span
+											><span class="avatar">C</span>
+										</span>
+										<span>Ana, Bea &amp; Chris</span>
+									</div>
+									<div class="empty-line when-empty">Open the link and add what you paid</div>
+									<div class="proof">No signup needed. Free forever.</div>
+								</div>
+							</div>
+						</div>
+					</button>
+					<div class="option-body">
+						<div class="option-meta">
+							<span class="number" data-number="1">Layout</span>
+							<span class="tag">Closest to landing</span>
+						</div>
+						<h2>Landing link card</h2>
+						<p>
+							The landing page’s shared-link object, expanded into a complete invitation. Balanced,
+							familiar, and safest.
+						</p>
+						<button class="pick" type="button">Pick this direction</button>
+					</div>
+				</article>
+
+				<article class="option" data-name="Editorial invitation">
+					<button class="art-button" type="button" aria-label="Expand editorial invitation">
+						<div class="canvas v2">
+							<div class="content">
+								<div class="brand">Peanut Split</div>
+								<div class="inviter">Konrad invites you to</div>
+								<div class="room-name">Ski trip</div>
+								<div class="category">Expense sharing</div>
+								<div class="footer-line">
+									<div class="crew-line when-populated">
+										<span>Join</span>
+										<span class="avatar-stack">
+											<span class="avatar">A</span><span class="avatar">B</span
+											><span class="avatar">C</span>
+										</span>
+										<span>Ana, Bea &amp; Chris</span>
+									</div>
+									<div class="empty-line when-empty">Open the link and add what you paid</div>
+									<div class="proof">No signup needed.<br />Free forever.</div>
+								</div>
+							</div>
+						</div>
+					</button>
+					<div class="option-body">
+						<div class="option-meta">
+							<span class="number" data-number="2">Layout</span>
+							<span class="tag">Boldest hierarchy</span>
+						</div>
+						<h2>Editorial invitation</h2>
+						<p>
+							Flat landing yellow with a ruled composition and pink edge. The room name gets maximum scale
+							without feeling like a logo.
+						</p>
+						<button class="pick" type="button">Pick this direction</button>
+					</div>
+				</article>
+
+				<article class="option" data-name="Split-panel roster">
+					<button class="art-button" type="button" aria-label="Expand split-panel roster">
+						<div class="canvas v3">
+							<div class="copy-panel">
+								<div class="brand">Peanut Split</div>
+								<div class="inviter">Konrad invites you to</div>
+								<div class="room-name">Ski trip</div>
+								<div class="category">Expense sharing</div>
+							</div>
+							<div class="group-panel">
+								<div class="group-label when-populated">Already in the split</div>
+								<div class="group-label when-empty">Start the split together</div>
+								<div class="avatar-stack when-populated">
+									<span class="avatar">A</span><span class="avatar">B</span
+									><span class="avatar">C</span>
+								</div>
+								<div class="names when-populated">Join Ana, Bea &amp; Chris</div>
+								<div class="empty-line when-empty">Open the link and add what you paid</div>
+								<div class="proof">No signup needed. Free forever.</div>
+							</div>
+						</div>
+					</button>
+					<div class="option-body">
+						<div class="option-meta">
+							<span class="number" data-number="3">Layout</span>
+							<span class="tag">Best group proof</span>
+						</div>
+						<h2>Split-panel roster</h2>
+						<p>
+							The invitation and the existing group get equal weight. Strongest when the social proof is
+							the reason to open.
+						</p>
+						<button class="pick" type="button">Pick this direction</button>
+					</div>
+				</article>
+
+				<article class="option" data-name="Chat handoff">
+					<button class="art-button" type="button" aria-label="Expand chat handoff">
+						<div class="canvas v4">
+							<div class="chat-shell">
+								<div class="sender-row">
+									<span class="sender-avatar">K</span>
+									<span class="inviter">Konrad invites you to</span>
+								</div>
+								<div class="shared-card">
+									<div class="shared-top">
+										<div>
+											<div class="room-name">Ski trip</div>
+											<div class="category">Expense sharing</div>
+										</div>
+										<span class="brand">Peanut Split</span>
+									</div>
+									<div class="join-row">
+										<div class="crew-line when-populated">
+											<span>Join</span>
+											<span class="avatar-stack">
+												<span class="avatar">A</span><span class="avatar">B</span
+												><span class="avatar">C</span>
+											</span>
+											<span>Ana, Bea &amp; Chris</span>
+										</div>
+										<div class="empty-line when-empty">Open the link and add what you paid</div>
+										<div class="proof">No signup needed. Free forever.</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</button>
+					<div class="option-body">
+						<div class="option-meta">
+							<span class="number" data-number="4">Layout</span>
+							<span class="tag">Most contextual</span>
+						</div>
+						<h2>Chat handoff</h2>
+						<p>
+							The sender sits outside the shared-link object, just like the landing story. It reads
+							naturally where the asset appears.
+						</p>
+						<button class="pick" type="button">Pick this direction</button>
+					</div>
+				</article>
+
+				<article class="option" data-name="Roster-forward invitation">
+					<button class="art-button" type="button" aria-label="Expand roster-forward invitation">
+						<div class="canvas v5">
+							<div class="topline">
+								<span class="brand">Peanut Split</span>
+								<span class="category">Expense sharing</span>
+							</div>
+							<div class="title-row">
+								<div>
+									<div class="inviter">Konrad invites you to</div>
+									<div class="room-name">Ski trip</div>
+								</div>
+								<div class="avatar-stack big-stack when-populated">
+									<span class="avatar">A</span><span class="avatar">B</span
+									><span class="avatar">C</span>
+								</div>
+							</div>
+							<div class="invite-bar">
+								<div class="crew-line when-populated">Join Ana, Bea &amp; Chris</div>
+								<div class="empty-line when-empty">Open the link and add what you paid</div>
+								<div class="proof">No signup needed. Free forever.</div>
+							</div>
+						</div>
+					</button>
+					<div class="option-body">
+						<div class="option-meta">
+							<span class="number" data-number="5">Layout</span>
+							<span class="tag">Most social</span>
+						</div>
+						<h2>Roster-forward invitation</h2>
+						<p>
+							The people already inside become the visual anchor. Best if recognisable member avatars are
+							the main click reason.
+						</p>
+						<button class="pick" type="button">Pick this direction</button>
+					</div>
+				</article>
+			</section>
+		</main>
+
+		<dialog id="preview-dialog">
+			<div class="dialog-bar">
+				<span id="dialog-title">Preview</span>
+				<button class="close" type="button" aria-label="Close preview">×</button>
+			</div>
+			<div class="dialog-art" id="dialog-art"></div>
+		</dialog>
+
+		<script>
+			const stateButtons = [...document.querySelectorAll('[data-state]')]
+			const options = [...document.querySelectorAll('.option')]
+			const selectedName = document.querySelector('#selected-name')
+			const dialog = document.querySelector('#preview-dialog')
+			const dialogArt = document.querySelector('#dialog-art')
+			const dialogTitle = document.querySelector('#dialog-title')
+			const savedPick = localStorage.getItem('split-invite-layout-pick')
+
+			function setRoomState(state) {
+				document.body.classList.toggle('populated', state === 'populated')
+				document.body.classList.toggle('empty', state === 'empty')
+				stateButtons.forEach((button) =>
+					button.setAttribute('aria-pressed', String(button.dataset.state === state))
+				)
+			}
+
+			function pick(option, scroll = true) {
+				options.forEach((item) => item.classList.toggle('picked', item === option))
+				selectedName.textContent = option.dataset.name
+				localStorage.setItem('split-invite-layout-pick', option.dataset.name)
+				if (scroll) option.scrollIntoView({ behavior: 'smooth', block: 'center' })
+			}
+
+			stateButtons.forEach((button) => button.addEventListener('click', () => setRoomState(button.dataset.state)))
+
+			options.forEach((option) => {
+				option.querySelector('.pick').addEventListener('click', () => pick(option))
+				option.querySelector('.art-button').addEventListener('click', () => {
+					const canvas = option.querySelector('.canvas').cloneNode(true)
+					dialogArt.replaceChildren(canvas)
+					dialogTitle.textContent = option.dataset.name
+					dialog.showModal()
+				})
+				if (option.dataset.name === savedPick) pick(option, false)
+			})
+
+			dialog.querySelector('.close').addEventListener('click', () => dialog.close())
+			dialog.addEventListener('click', (event) => {
+				if (event.target === dialog) dialog.close()
+			})
+		</script>
+	</body>
+</html>
