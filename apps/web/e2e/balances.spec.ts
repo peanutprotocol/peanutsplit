@@ -64,6 +64,14 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await page.getByTestId('save-expense').click()
     // Ana's own +3000, stated as Bea's −3000 on the single pair card.
     await expectBalance(page, 'Bea', '-3000')
+    await expect(balance(page, 'Bea')).toHaveAttribute('data-balance-direction', 'incoming')
+    await expect(balance(page, 'Bea')).toContainText('Bea owes you')
+
+    // The same debt must read in the opposite direction on Bea's device. The arrow, sentence
+    // and stable state attribute all agree; none of the meaning depends on the red band alone.
+    await expectBalance(bea, 'Ana', '3000')
+    await expect(balance(bea, 'Ana')).toHaveAttribute('data-balance-direction', 'outgoing')
+    await expect(balance(bea, 'Ana')).toContainText('You owe Ana')
 
     // ── The sheet ─────────────────────────────────────────────────────────
     // The card is about Bea in every part of it, so the tap opens Bea's working.
@@ -106,6 +114,7 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await page.getByTestId('record-settlement').click()
     // Still two people, so still the one card about Bea — Ana's own zero read off her name.
     await expectBalance(page, 'Bea', '0')
+    await expect(balance(page, 'Bea')).toHaveAttribute('data-balance-direction', 'neutral')
 
     await balance(page, 'Bea').click()
     // Bea is the payer, so the payment lands on her sheet as money handed over: +3000 against

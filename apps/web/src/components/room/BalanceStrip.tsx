@@ -70,14 +70,13 @@ const byDebtFirst = (balances: Record<string, string>) => (a: { id: string }, b:
 interface PairMember {
     id: string
     name: string
-    avatar?: string | null
 }
 
 export interface PairCard {
     /**
-     * The one subject of the card: whose avatar it shows, whose name the sentence carries,
-     * whose net it publishes, and whose derivation the tap opens. There is deliberately no
-     * second member here. A card about Bea that opened Ana's working — and told a screen
+     * The one subject of the card: whose name the sentence carries, whose net it publishes,
+     * and whose derivation the tap opens. There is deliberately no second member here. A card
+     * about Bea that opened Ana's working — and told a screen
      * reader "See how Ana's balance adds up" — shared no word with what the card said, which
      * is WCAG 2.5.3, and told Ana a sentence about Ana in the third person, which is the very
      * thing `toneFor`'s `mine` branch exists to prevent.
@@ -86,8 +85,11 @@ export interface PairCard {
     /** `about`'s raw server net, unchanged — the same value the per-member card carries. */
     net: string
     label: string
-    card: string
     labelClass: string
+    /** Redundant visual cue beside the complete relationship sentence. */
+    mark: '←' | '→' | '—'
+    /** Stable state for visual and browser tests; never inferred from colour. */
+    direction: 'incoming' | 'outgoing' | 'neutral' | 'between-members'
 }
 
 /**
@@ -106,8 +108,8 @@ export interface PairCard {
  * holds 20 of the widest capital (W) there, so a capped name plus its phrase always fits.
  *
  * This is a character count standing in for a width, so it is sized on Latin metrics. Only the
- * sentence is capped: the avatar, the roster, the people list, the derivation sheet, the
- * accessible name and `data-member` all keep the name in full.
+ * sentence is capped: the roster, the people list, the derivation sheet, the accessible name
+ * and `data-member` all keep the name in full.
  */
 export const MAX_SENTENCE_NAME_CHARS = 20
 
@@ -160,16 +162,17 @@ export function pairCard(
     // debt that got paid, so a room the server holds no expense for has to say "nothing yet".
     //
     // Named, because the state itself is not: every brand-new two-person room opens here, and
-    // an avatar over "settled up" over "$0.00" says whose settled-up it is nowhere. The strip
-    // prints the name beside the tone word on every other card; this prints the same two parts
-    // in the same order, with the separator the expense rows already use.
+    // "settled up" over "$0.00" says whose settled-up it is nowhere. The strip prints the name
+    // beside the tone word on every other card; this prints the same two parts in the same
+    // order, with the separator the expense rows already use.
     if (isZeroMinor(net))
         return {
             about,
             net,
             label: `${forSentence(about.name)} · ${anySavedExpenses ? t('settled') : t('nothingYet')}`,
-            card: 'bg-[var(--split-theme-tint,#FFFFFF)]',
-            labelClass: 'text-n-3',
+            labelClass: 'bg-[var(--split-theme-tint,#FFFFFF)] text-n-3',
+            mark: '—',
+            direction: 'neutral',
         }
 
     if (!me)
@@ -181,8 +184,9 @@ export function pairCard(
             // Both names are capped. Two long ones can still reach a third line, but the verb
             // sits right after the debtor in all three locales, so the clamp never removes it.
             label: t('pair.owes', { debtor: forSentence(debtor.name), creditor: forSentence(creditor.name) }),
-            card: 'bg-error-1',
-            labelClass: 'text-n-1',
+            labelClass: 'bg-error-3 text-white',
+            mark: '→',
+            direction: 'between-members',
         }
 
     if (net.startsWith('-'))
@@ -190,16 +194,18 @@ export function pairCard(
             about,
             net,
             label: t('pair.owesYou', { name: forSentence(about.name) }),
-            card: 'bg-green-1',
-            labelClass: 'text-n-1',
+            labelClass: 'bg-green-1 text-n-1',
+            mark: '←',
+            direction: 'incoming',
         }
 
     return {
         about,
         net,
         label: t('pair.youOwe', { name: forSentence(about.name) }),
-        card: 'bg-error-1',
-        labelClass: 'text-n-1',
+        labelClass: 'bg-error-3 text-white',
+        mark: '→',
+        direction: 'outgoing',
     }
 }
 
@@ -253,7 +259,8 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                     data-pair="true"
                     data-member={pair.about.name}
                     data-net={pair.net}
-                    className={cn('shadow-4 mx-4 mb-3 mt-1 flex rounded-sm border border-n-1', pair.card)}
+                    data-balance-direction={pair.direction}
+                    className="shadow-4 mx-4 mb-3 mt-1 flex overflow-hidden rounded-sm border border-n-1 bg-white"
                 >
                     {/* The whole card is the target — a balance you cannot
                         interrogate is the thing this product is against. One subject
@@ -267,17 +274,24 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                         }}
                         aria-label={tDerivation('openLabel', { name: pair.about.name })}
                         data-testid="open-balance"
-                        className="flex w-full items-center gap-3 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
+                        className="flex w-full flex-col text-left transition-transform duration-100 active:scale-[0.97]"
                     >
-                        <MemberAvatar name={pair.about.name} avatar={pair.about.avatar} size={40} />
-                        {/* The sentence sits over the amount rather than beside it, so a long
-                            name has the width of the card and is not cut into half a sentence.
-                            A sentence is also not uppercased the way the strip's two-word tone
-                            labels are. */}
-                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                        {/* Direction has one fixed, high-contrast place. The arrow and complete
+                            sentence repeat the meaning, so red/green only speed up the scan.
+                            The two-person card does not need an avatar to repeat the one name
+                            already in the sentence. */}
+                        <span
+                            className={cn(
+                                'flex min-h-10 w-full items-center gap-2 border-b border-n-1 px-3 py-2',
+                                pair.labelClass
+                            )}
+                        >
+                            <span aria-hidden="true" className="shrink-0 text-h5 leading-none">
+                                {pair.mark}
+                            </span>
                             {/* Wraps rather than truncates. "{name} owes you" puts the verb
                                 LAST, so an ellipsis eats the whole relationship and leaves a
-                                clipped name over an amount, with only the green tint saying
+                                clipped name over an amount, with only the green signal saying
                                 which way the money runs — it started at about 23 characters at
                                 375px. Two lines is the cap. The name is already cut to
                                 MAX_SENTENCE_NAME_CHARS where the sentence is built, so those two
@@ -286,15 +300,17 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                 element is not an option, because Spanish puts the name last in
                                 the other direction ("Le debes a {name}") and the order is the
                                 translator's to choose. */}
-                            <span className={cn('line-clamp-2 break-words text-h8 leading-snug', pair.labelClass)}>
-                                {pair.label}
-                            </span>
+                            <span className="line-clamp-2 min-w-0 break-words text-h8 leading-snug">{pair.label}</span>
+                        </span>
+                        {/* One quiet field, one dominant number. The tap target still opens the
+                            same auditable working, but no third label competes with the balance. */}
+                        <span className="flex min-h-16 w-full items-center px-3 py-3">
                             <AnimatedMoney
                                 minor={pair.net}
                                 currency={state.room.currency}
                                 catalog={currencies}
                                 absolute
-                                className="text-h5"
+                                className="text-h3"
                             />
                         </span>
                     </button>
