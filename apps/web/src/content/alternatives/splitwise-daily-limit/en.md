@@ -11,7 +11,7 @@ faqs:
     - question: Does a Split room have a daily limit?
       answer: No. No cap on expenses, no ads, and no paid tier to upgrade to. Nothing counts what you add, so a whole week of receipts in one sitting works the same way one dinner does.
     - question: Can I move my group over in the middle of a trip?
-      answer: Yes, and you do not have to close anything down. The Splitwise group keeps its balances exactly as they are. The one thing to agree out loud is that nothing more goes into it, because a trip split across two ledgers is worse than either ledger on its own.
+      answer: Yes. Export the Splitwise group as a spreadsheet, import the CSV into a new Split room, check the warnings and balances, then send the new room link to the group. Leave the old group in place until everyone agrees the balances match.
 ---
 
 {/* Every Splitwise claim on this page is a verbatim quote from a Splitwise page, re-opened and
@@ -25,8 +25,8 @@ checked against the page text on 2026-07-31:
   appears on no Splitwise page. Splitwise publishes no price anywhere on its own site: do not add
   one, from any third-party source.
 
-FLAG-COUPLED: the no-import claims on this page become false when NEXT_PUBLIC_SPLIT_V2_ENABLED
-flips (Splitwise CSV importer). Rewrite or add v2Only variants before/when the flag ships. */}
+The Splitwise CSV importer became part of v1 on 2026-08-02. Keep the migration steps below aligned
+with the importer rather than the AI-entry v2 flag. */}
 
 <Hero
   eyebrow="splitwise daily limit"
@@ -89,16 +89,16 @@ Splitwise rows are taken from splitwise.com, kb.splitwise.com and feedback.split
 
 ## Moving your group mid-trip
 
-You do not have to reconstruct the holiday. Move the balances, not the history.
+You do not have to reconstruct the holiday. Splitwise's spreadsheet export can become a new room.
 
-<Steps title="About a minute, in the group chat">
-<Step title="Start a room and set the currency">Pick what the room counts in. Add expenses in whatever you actually spent, and the room converts.</Step>
-<Step title="Paste the link in the chat">Everyone in the chat can add to the room from the moment the link is in it. No app store and no signup. Keep the link pinned there: it is the key, and the room lives wherever the link does.</Step>
-<Step title="Add each open balance as one catch-up expense">Splitwise leaves you a line per person. One owes you 84, you owe another 12. Each of those is one expense in the room.</Step>
+<Steps title="A few minutes, then one link in the group chat">
+<Step title="Export the Splitwise group">Open the group settings on splitwise.com and choose "Export as spreadsheet." That gives you the CSV the importer reads.</Step>
+<Step title="Import and review">Open the import page, drop in the CSV, pick the room currency and your name, then read any warnings before creating the room.</Step>
+<Step title="Paste the new link in the chat">Everyone can add to the room from the moment the link is there. No app store and no signup. Keep the link pinned: it is the key.</Step>
 <Step title="Carry on">From here nothing is counted. Add the taxi at the moment you pay for it.</Step>
 </Steps>
 
-Be clear-eyed about what you lose. Nothing imports. The itemised history stays in Splitwise, and the fair thing to do is leave that group where it is as the record of the first half of the trip.
+Be clear-eyed about what stays behind. Receipt photos do not come across, and the importer flags any row it cannot read before it creates the room. Leave the Splitwise group in place until everyone agrees the balances match.
 
 ## When Splitwise is the better tool
 
@@ -114,14 +114,14 @@ Split does not move money and cannot check whether anyone paid. It nets the debt
 
 <CTA
   title="Add the fifth expense"
-  body="Start a room, paste the link in the group chat, and put today's balances in. No cap, no account, no download."
+  body="Import the group, check the balances, and paste the new room link in the chat. No cap and no account."
   text="Start a split" />
 
 <FAQ>
 <FAQItem question="How many expenses can I add to Splitwise for free?">Four a day. Splitwise's help centre says free users can add up to 4 expenses each day, and it is the only Splitwise page that gives a number at all.</FAQItem>
 <FAQItem question="How much does Splitwise Pro cost?">Splitwise does not publish a price on its own site. Its terms say the price may vary due to date of subscription, country, local taxes and regulations, promotions. Your own figure appears at checkout once you have signed in, which is why no two write-ups elsewhere agree.</FAQItem>
 <FAQItem question="Does a Split room have a daily limit?">No. No cap on expenses, no ads, and no paid tier to upgrade to. Nothing counts what you add, so a whole week of receipts in one sitting works the same way one dinner does.</FAQItem>
-<FAQItem question="Can I move my group over in the middle of a trip?">Yes, and you do not have to close anything down. The Splitwise group keeps its balances exactly as they are. The one thing to agree out loud is that nothing more goes into it, because a trip split across two ledgers is worse than either ledger on its own.</FAQItem>
+<FAQItem question="Can I move my group over in the middle of a trip?">Yes. Export the Splitwise group as a spreadsheet, import the CSV into a new Split room, check the warnings and balances, then send the new room link to the group. Leave the old group in place until everyone agrees the balances match.</FAQItem>
 </FAQ>
 
 <RelatedPages>

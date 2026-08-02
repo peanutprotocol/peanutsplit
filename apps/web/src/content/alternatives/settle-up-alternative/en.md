@@ -72,7 +72,7 @@ Settle Up rows are taken from settleup.io (homepage, /tips, /tos, /privacy_polic
 
 ## What moves across, and what stays
 
-Nothing imports into a room. Settle Up will pull the members and balances of a Splitwise group in for you; there is no equivalent coming the other way, no file to upload and nothing to connect.
+Settle Up data does not import into a room. Settle Up will pull the members and balances of a Splitwise group in for you; there is no equivalent coming the other way, no file to upload and nothing to connect.
 
 What you carry over is the position: what each person is up or down today, one line per person, so four people is four lines. The people themselves carry nothing at all, because there is no account for them to make.
 

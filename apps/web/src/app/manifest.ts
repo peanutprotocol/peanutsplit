@@ -33,9 +33,7 @@ export default function manifest(): MetadataRoute.Manifest {
             // The one thing somebody opens the app cold to do, and the only screen that works with
             // no room on this device at all. `start_url` already covers "take me to my rooms".
             { name: 'New split', url: '/new' },
-            // Only on a deployment that opted into v2 — /import calls notFound() otherwise, and a
-            // launcher shortcut to a 404 is the definition of a dead end.
-            ...(splitV2Enabled() ? [{ name: 'Import from Splitwise', url: '/import' }] : []),
+            { name: 'Import from Splitwise', url: '/import' },
         ],
         /**
          * Split in the OS share sheet, for a photo of a bill — v2 only.

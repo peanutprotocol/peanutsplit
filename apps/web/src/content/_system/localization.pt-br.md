@@ -430,13 +430,13 @@ known-wrong spelling is absent. Accent correctness stays with the cold read (sty
 ## 12. Not-yet and coming-soon
 
 Split ships nothing country-gated, so mono's country coming-soon block (`localization.pt-br.md` §8)
-does not transfer. What does transfer is its shape, for the one Split case that needs it — a feature
-behind a flag (`NEXT_PUBLIC_SPLIT_V2_ENABLED`, the CSV importer):
+does not transfer. What does transfer is its shape, for Split features behind
+`NEXT_PUBLIC_SPLIT_V2_ENABLED`, such as receipt scanning and natural-language entry:
 
 - Future tense, `Em breve:` prefix before the action verb. Never present tense for something that is
   not live.
 - Never write step-by-step instructions for a feature that is not live.
-- State the absence plainly once: _"Ainda não dá para importar do Splitwise."_
+- State the absence plainly once: _"Ainda não dá para escanear um recibo."_
 - Stylebook §7.3 governs which claim strings are legal; nothing here loosens them.
 
 ---

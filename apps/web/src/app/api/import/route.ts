@@ -1,10 +1,9 @@
-import { badRequest, notFound, readJsonCapped, respond } from '@/server/http'
+import { badRequest, readJsonCapped, respond } from '@/server/http'
 import { CREATE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { toRoomState } from '@/server/roomState'
 import { importRoom } from '@/server/splitwiseImport'
 import { importRoomSchema } from '@/server/validation'
 import type { RoomStateWithMember } from '@/lib/api-types'
-import { splitV2Enabled } from '@/lib/flags'
 import { MAX_EXPENSES, MAX_MEMBERS } from '@/lib/splitwise-csv'
 
 export const dynamic = 'force-dynamic'
@@ -62,7 +61,6 @@ export function assertImportCardinality(raw: unknown): void {
  */
 export const POST = (request: Request) =>
     respond(async (): Promise<RoomStateWithMember> => {
-        if (!splitV2Enabled()) throw notFound('not found')
         enforceRateLimit(request, CREATE_LIMIT, 'create')
 
         const raw = await readJsonCapped(

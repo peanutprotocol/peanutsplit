@@ -78,7 +78,7 @@ As linhas do Settle Up vêm de settleup.io (página inicial, /tips, /tos, /priva
 
 ## O que atravessa e o que fica
 
-Nada entra importado numa sala. O Settle Up puxa os membros e os saldos de um grupo do Splitwise para dentro dele; no sentido contrário não existe equivalente, não tem arquivo para subir e não tem nada para conectar.
+Os dados do Settle Up não são importados numa sala. O Settle Up puxa os membros e os saldos de um grupo do Splitwise para dentro dele; no sentido contrário não existe equivalente, não tem arquivo para subir e não tem nada para conectar.
 
 O que você leva é a posição: quanto cada pessoa está para cima ou para baixo hoje, uma linha por pessoa, então quatro pessoas são quatro linhas. As pessoas em si não levam nada, porque não existe conta para elas criarem.
 
