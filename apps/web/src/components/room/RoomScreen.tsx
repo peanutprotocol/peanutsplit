@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError } from '@/lib/api'
 import { roomProps, track } from '@/lib/analytics'
@@ -85,7 +86,14 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
-    const drawerOpen = params.add || params.settle || params.share || !!params.expense || !!params.balance
+    const drawerOpen =
+        params.add ||
+        params.settle ||
+        params.share ||
+        params.settings ||
+        !!params.expense ||
+        !!params.balance ||
+        !!params.character
 
     /**
      * Is the latecomer offer on screen? Derived from the same two functions the banner itself
@@ -163,6 +171,15 @@ export function RoomScreen({ slug }: { slug: string }) {
             data-theme={state?.room.theme ?? 'classic'}
             className="relative mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background"
         >
+            <PullToRefresh
+                enabled={!!state && !drawerOpen && !needsJoin}
+                labels={{
+                    pull: tStates('pullToRefresh.pull'),
+                    release: tStates('pullToRefresh.release'),
+                    refreshing: tStates('pullToRefresh.refreshing'),
+                }}
+                onRefresh={refetch}
+            />
             {state ? (
                 <RoomHeader
                     room={state.room}
