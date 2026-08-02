@@ -53,7 +53,14 @@ export type AchievementCardData =
           /** The ROOM's name, display-font-safe and already truncated. */
           name: string
           emblem: DoodleName
-          tagline: string
+          /** What this object is, before the room name asks for attention. */
+          label: string
+          /** What the invitee does after they open the link. */
+          line: string
+          /** The action the image points back to in the share package. */
+          action: string
+          /** Secondary trust proof; never the card's only explanation. */
+          proof: string
       })
     | (CardFrame & {
           kind: 'crew'
@@ -88,6 +95,12 @@ export async function toInviteCard(
     room: { name: string; emoji: string | null; theme: string | null },
     t: Copy
 ): Promise<AchievementCardData> {
+    const [label, line, action, proof] = await Promise.all([
+        t('card.invite.label'),
+        t('card.invite.line'),
+        t('card.invite.action'),
+        t('preview.tagline'),
+    ])
     return {
         kind: 'invite',
         theme: themeFor(room.theme),
@@ -95,7 +108,10 @@ export async function toInviteCard(
         // Resolved from the RAW name, like every other emblem surface: an unset
         // emblem follows what the room is actually called.
         emblem: roomEmblemDoodle(room.emoji, room.name),
-        tagline: bodySafe(await t('preview.tagline')),
+        label: bodySafe(label),
+        line: bodySafe(line),
+        action: displaySafe(action),
+        proof: bodySafe(proof),
     }
 }
 

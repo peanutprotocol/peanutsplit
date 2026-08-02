@@ -1029,6 +1029,11 @@
         "open": "Open Split"
     },
     "card": {
+        "invite": {
+            "label": "SHARED EXPENSE ROOM",
+            "line": "Open the link. Add what you paid.",
+            "action": "JOIN THE SPLIT"
+        },
         "crew": {
             "title": "CREW",
             "line": "One link, everybody in."

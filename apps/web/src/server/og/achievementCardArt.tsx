@@ -64,22 +64,28 @@ const Line = ({ text, marginTop = 18 }: { text: string; marginTop?: number }) =>
  * Deliberately thinner than the `/r/[slug]` unfurl, which prints "3 expenses ·
  * $128.50 so far": that image travels WITH the link and its numbers are read in
  * the same breath as the invitation. This one is a file, and a file gets
- * forwarded on without the text that justified it — so it carries the room's
- * name, its drawing and a held-open seat, and nothing that counts anything.
+ * forwarded on without the text that justified it. It must identify the
+ * product, explain the handoff and carry the room's identity by itself.
  */
 function InviteCard(card: Extract<AchievementCardData, { kind: 'invite' }>): ReactElement {
     return (
         <Field field={card.theme.field} tint={card.theme.fieldTint} blobs={BLOBS_RIGHT}>
-            <Sheet torn tornOffset={186} notchColor={card.theme.field} innerPadding="44px 46px 56px 46px">
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Sheet outerPadding="30px 54px 0 46px" innerPadding="32px 40px">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 48, color: INK }}>
+                        PEANUT SPLIT
+                    </div>
+                    <div style={{ display: 'flex', fontSize: 25, fontWeight: 800, color: MUTED }}>{card.label}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 26 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={doodleDataUri(card.emblem)} width={128} height={128} alt="" style={{ flexShrink: 0 }} />
+                    <img src={doodleDataUri(card.emblem)} width={112} height={112} alt="" style={{ flexShrink: 0 }} />
                     <div
                         style={{
                             // `block`, not flex: satori only honours `lineClamp` on
                             // block text, and this leaf holds nothing but the name.
                             display: 'block',
-                            marginLeft: 30,
+                            marginLeft: 28,
                             maxWidth: 780,
                             fontFamily: DISPLAY_FONT,
                             fontSize: nameFontSize(card.name),
@@ -98,19 +104,48 @@ function InviteCard(card: Extract<AchievementCardData, { kind: 'invite' }>): Rea
                         {card.name}
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: 40 }}>
-                    {/* The empty seat, lifted from the unfurl: the card ends with a
-                        chair held open for the person looking at it — the
-                        invitation drawn rather than written. Dashed on purpose: a
-                        seat, not a member. */}
-                    <div style={{ ...disc(96, '#FFFFFF'), border: `4px dashed ${INK}` }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={doodleDataUri('question')} width={52} height={52} alt="" />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28 }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {/* The held-open seat still makes this an invitation before
+                            a word is read. The sentence now says what the seat
+                            alone could not: open the link and add what you paid. */}
+                        <div style={{ ...disc(72, '#FFFFFF'), border: `4px dashed ${INK}` }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={doodleDataUri('question')} width={40} height={40} alt="" />
+                        </div>
+                        <div style={{ display: 'flex', marginLeft: 20, fontSize: 30, color: MUTED }}>{card.line}</div>
                     </div>
-                    <div style={{ display: 'flex', marginLeft: 26, fontSize: 34, color: MUTED }}>{card.tagline}</div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '14px 22px',
+                            border: `4px solid ${INK}`,
+                            borderRadius: 999,
+                            backgroundColor: '#FF90E8',
+                            boxShadow: `5px 5px 0 ${INK}`,
+                            fontFamily: DISPLAY_FONT,
+                            fontSize: 29,
+                            color: INK,
+                        }}
+                    >
+                        {card.action}
+                    </div>
                 </div>
             </Sheet>
-            <Footer ink={card.theme.fieldInk} />
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    height: 82,
+                    padding: '0 56px',
+                    color: card.theme.fieldInk,
+                }}
+            >
+                <div style={{ display: 'flex', fontSize: 25, fontWeight: 800 }}>{card.proof}</div>
+                <div style={{ display: 'flex', fontSize: 27 }}>{cardDomain()}</div>
+            </div>
         </Field>
     )
 }
