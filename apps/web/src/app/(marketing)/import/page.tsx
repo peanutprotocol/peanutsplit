@@ -82,7 +82,7 @@ export default async function ImportPage() {
 
             <section>
                 <div className="border-b border-n-1 bg-primary-1">
-                    <div className="mx-auto w-full max-w-xl px-5 pb-8 pt-10">
+                    <div className="mx-auto w-full max-w-xl px-5 pb-6 pt-8 sm:pb-8 sm:pt-10">
                         <span className="inline-flex items-center rounded-sm border border-n-1 bg-white px-3 py-1 text-h9 uppercase tracking-wide text-n-1">
                             {importPage.hero.eyebrow}
                         </span>
