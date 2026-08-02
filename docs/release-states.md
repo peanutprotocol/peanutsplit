@@ -39,7 +39,7 @@ rollback can move a capability back.
 | Landing group-chat handoff                                  | user-visible        | Production/mobile review still precedes a production-verified label                                                     |
 | Themes and expense reactions                                | user-visible        | Present on the public room surface                                                                                      |
 | Push notifications                                          | user-visible        | Do not call production-verified until the two-device loop passes                                                        |
-| Splitwise import                                            | user-visible        | Promoted independently into V1; production verification follows the 2026-08-02 deploy                                   |
+| Splitwise import                                            | production-verified | Production Chromium + Firefox evidence recorded below, 2026-08-02                                                       |
 | Natural-language expense entry                              | deployed dark       | V2 gate is off                                                                                                          |
 | Receipt scanning                                            | held                | Consent and real-device gates remain open; do not expose                                                                |
 | Payer lifecycle, settlement correction and quiet provenance | code-complete       | Atomic staged payer, narrow cleanup, documentary Peanut receipt and settlement undo are verified on this feature branch |
@@ -48,8 +48,18 @@ rollback can move a capability back.
 | Concurrent expense-edit conflict protection                 | held                | Two-client discovery and a bounded recovery design remain required before implementation                                |
 | Landing/accessibility/recent-room recovery                  | code-complete       | Mobile/desktop continuity and reduced-motion checks pass on this feature branch                                         |
 | Room-link recovery by paste                                 | code-complete       | Valid links are verified before local save; invalid, unreachable and storage-denied paths are covered                   |
-| CSV and JSON room export                                    | code-complete       | Feature-branch tests pass; deploy not implied                                                                           |
+| CSV and JSON room export                                    | production-verified | Production mobile export evidence recorded below, 2026-08-02                                                            |
 | Group-chat-ready room share package                         | code-complete       | Chromium and Firefox verify private SVG/text handoff, fallbacks, cleanup and bounded rendered geometry                  |
+
+### Import/export V1 — 2026-08-02
+
+- Deployed SHA: `801e3b5`.
+- Chromium exercised a real Splitwise import through the production API and verified the resulting
+  room's exact balances, history and creator identity. It also downloaded both CSV and JSON from
+  the combined room-settings surface without exposing the room credential.
+- Chromium and Firefox verified invalid-file no-write behavior, reduced motion, mixed-currency and
+  700-row previews, and confirmed that receipt scanning and natural-language entry remained behind
+  their V2 boundary.
 
 ## Release reconciliation checklist
 

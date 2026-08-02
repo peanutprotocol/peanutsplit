@@ -630,4 +630,12 @@ test('a link holder can export the room without exporting the room credential', 
     await page.getByTestId('open-splitwise-import').click()
     await page.waitForURL('/import')
     await expect(page.getByTestId('import-choose')).toBeVisible()
+
+    // Import creates another room, so backing out returns to the exact room
+    // settings context where the detour began rather than dropping the user on
+    // the room or the landing page.
+    await page.goBack()
+    await page.waitForURL(/\/r\/[^?]+\?settings=1$/)
+    await expect(page.getByTestId('settings-sheet')).toBeVisible()
+    await expect(page.getByTestId('export-sheet')).toHaveCount(0)
 })

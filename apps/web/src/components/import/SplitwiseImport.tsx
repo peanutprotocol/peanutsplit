@@ -300,6 +300,11 @@ export function SplitwiseImport() {
                         ref={inputRef}
                         type="file"
                         accept=".csv,text/csv"
+                        // The visible button below is the only chooser in the accessibility tree.
+                        // This input remains programmatically clickable without adding an invisible
+                        // keyboard stop or announcing a second, unlabeled "Choose File" control.
+                        tabIndex={-1}
+                        aria-hidden="true"
                         className="sr-only"
                         data-testid="import-file"
                         onChange={(event) => {
