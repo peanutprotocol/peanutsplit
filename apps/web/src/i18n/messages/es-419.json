@@ -434,6 +434,11 @@
             "staleTitle": "Esta sala puede estar desactualizada",
             "staleBody": "Mostramos la última sala cargada. Editar o eliminar gastos guardados y saldar cuentas queda pausado hasta actualizar. Aún puedes agregar un gasto.",
             "retry": "Intentar de nuevo",
+            "pullToRefresh": {
+                "pull": "Desliza hacia abajo para actualizar",
+                "release": "Suelta para actualizar",
+                "refreshing": "Actualizando la sala…"
+            },
             "notFoundTitle": "Esta sala no existe",
             "notFoundBody": "O la eliminaron, o al link le falta la última parte — además, los links distinguen mayúsculas.",
             "notFoundCta": "Crear una sala nueva"

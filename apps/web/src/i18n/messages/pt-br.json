@@ -434,6 +434,11 @@
             "staleTitle": "Esta sala pode estar desatualizada",
             "staleBody": "Estamos mostrando a última sala carregada. Editar ou excluir gastos salvos e acertar as contas fica pausado até atualizar. Você ainda pode lançar uma despesa.",
             "retry": "Tentar de novo",
+            "pullToRefresh": {
+                "pull": "Puxe para baixo para atualizar",
+                "release": "Solte para atualizar",
+                "refreshing": "Atualizando a sala…"
+            },
             "notFoundTitle": "Esta sala não existe",
             "notFoundBody": "Ou ela foi excluída, ou falta o último pedaço do link — os links também diferenciam maiúsculas.",
             "notFoundCta": "Criar uma sala nova"
