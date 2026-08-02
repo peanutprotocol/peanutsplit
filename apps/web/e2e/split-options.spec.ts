@@ -14,6 +14,44 @@ const openSplitEditor = async (page: Page) => {
     await expect(page.getByTestId('split-editor')).toBeVisible()
 }
 
+const drawerHeight = async (page: Page) => {
+    const box = await page.getByTestId('expense-drawer').boundingBox()
+    if (!box) throw new Error('expense drawer has no visible bounding box')
+    return box.height
+}
+
+const installVisualViewportMock = async (page: Page) => {
+    await page.addInitScript(() => {
+        const viewport = window.visualViewport
+        if (!viewport) return
+
+        let mockedHeight = viewport.height
+        Object.defineProperty(viewport, 'height', {
+            configurable: true,
+            get: () => mockedHeight,
+        })
+        Object.defineProperty(window, '__setE2EVisualViewportHeight', {
+            configurable: true,
+            value: (height: number) => {
+                mockedHeight = height
+                viewport.dispatchEvent(new Event('resize'))
+            },
+        })
+    })
+}
+
+const setVisualViewportHeight = async (page: Page, height: number) => {
+    await page.evaluate((nextHeight) => {
+        const setHeight = (
+            window as typeof window & {
+                __setE2EVisualViewportHeight?: (height: number) => void
+            }
+        ).__setE2EVisualViewportHeight
+        if (!setHeight) throw new Error('visualViewport mock was not installed')
+        setHeight(nextHeight)
+    }, height)
+}
+
 const expectWeightedExpense = async (page: Page, description: string, splitMode: string, weights: string[]) => {
     await expect
         .poll(
@@ -37,6 +75,63 @@ const expectWeightedExpense = async (page: Page, description: string, splitMode:
         )
         .toEqual({ splitMode, weights: [...weights].sort() })
 }
+
+test('typed amount lets the drawer grow when payer and sharing settings open', async ({ page }, testInfo) => {
+    test.skip(
+        testInfo.project.name !== 'mobile',
+        'The regression needs a mobile visual viewport and software keyboard.'
+    )
+
+    await page.setViewportSize({ width: 375, height: 667 })
+    await installVisualViewportMock(page)
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill(`Drawer resize ${Date.now()}`)
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('go-to-room').click()
+
+    await page.getByTestId('share-room').click()
+    await expect(page.getByRole('dialog', { name: 'Invite the rest' })).toBeVisible()
+    await page.getByTestId('add-people-toggle').click()
+    await page.getByTestId('add-person-name').fill('Bea')
+    await page.getByTestId('add-person').click()
+    await expect(page.locator('[data-testid="roster-chip"][data-member="Bea"]')).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    await page.getByTestId('open-add-expense').click()
+    await page.getByTestId('expense-amount').fill('42')
+    await expect(page.getByTestId('expense-amount')).toBeFocused()
+    const collapsedHeight = await drawerHeight(page)
+    const fullViewportHeight = await page.evaluate(() => window.innerHeight)
+
+    // This is the order that exposed the stale Vaul height: type while the
+    // keyboard is open, tap a setting, then let the keyboard close.
+    await setVisualViewportHeight(page, fullViewportHeight - 300)
+    await page.getByTestId('expense-payer-summary').click()
+    await setVisualViewportHeight(page, fullViewportHeight)
+
+    await expect(page.getByTestId('payer-editor')).toBeVisible()
+    await expect.poll(() => page.getByTestId('expense-drawer').evaluate((element) => element.style.height)).toBe('')
+    await expect.poll(() => drawerHeight(page)).toBeGreaterThan(collapsedHeight + 40)
+    await page.locator('[data-testid="payer-chip"][data-member="Bea"]').click()
+    await expect(page.getByTestId('expense-payer-summary')).toHaveAccessibleName('Bea paid')
+    await expect(page.getByTestId('payer-editor')).toHaveCount(0)
+
+    const beforeSplitHeight = await drawerHeight(page)
+    await page.getByTestId('expense-split-summary').click()
+    await expect(page.getByTestId('split-editor')).toBeVisible()
+    await expect.poll(() => drawerHeight(page)).toBeGreaterThan(beforeSplitHeight + 40)
+
+    // The expanded section is not only mounted: its controls can be reached
+    // and changed, while the stable action area remains usable.
+    await page.locator('[data-testid="participant-toggle"][data-member="Bea"]').click()
+    await expect(page.locator('[data-testid="participant-toggle"][data-member="Bea"]')).toHaveAttribute(
+        'aria-checked',
+        'false'
+    )
+    await expect(page.getByTestId('save-expense')).toBeVisible()
+})
 
 test('More options reveals percentage and shares splits, which survive create and edit', async ({ page }) => {
     test.setTimeout(60_000)

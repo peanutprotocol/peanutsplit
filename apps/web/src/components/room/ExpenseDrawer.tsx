@@ -817,7 +817,15 @@ export function ExpenseDrawer({
     const pending = addExpense.isPending || updateExpense.isPending
 
     return (
-        <Drawer open={open} onOpenChange={(next) => !next && close()}>
+        <Drawer
+            open={open}
+            onOpenChange={(next) => !next && close()}
+            // Vaul snapshots the sheet's height when the software keyboard opens.
+            // If an editor mounts while that keyboard closes, it restores the old
+            // pixel height and clips the new section. Fall back to native input
+            // positioning so the sheet can return to its intrinsic height.
+            repositionInputs={false}
+        >
             <DrawerContent
                 data-testid="expense-drawer"
                 className="bg-background"
