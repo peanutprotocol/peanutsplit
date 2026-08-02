@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { SIMPLE_GROUP } from '../src/lib/__fixtures__/splitwise'
+import { SPLITPRO_ACCOUNT_EXPORT } from '../src/lib/__fixtures__/splitpro'
 
 /**
  * The switch, end to end: a real Splitwise export goes in through the real file input, and the
@@ -64,6 +65,27 @@ test('a file that is not a Splitwise export says so, and writes nothing', async 
 
     await expect(page.getByTestId('import-error')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('import-room-name')).toHaveCount(0)
+})
+
+test('a Split Pro account backup offers its groups and previews their balances', async ({ page }) => {
+    await page.goto('/import')
+
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'splitpro_data.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(SPLITPRO_ACCOUNT_EXPORT, 'utf8'),
+    })
+
+    const choices = page.getByTestId('import-group-choice')
+    await expect(choices).toBeVisible({ timeout: 15_000 })
+    await expect(choices.locator('option')).toHaveText(['Summer trip', 'The flat'])
+    await expect(page.getByTestId('import-room-name')).toHaveValue('Summer trip')
+    await expect(page.getByTestId('import-member-name')).toHaveCount(3)
+    await expect(page.getByText(/current balances, but not expense history/i)).toBeVisible()
+
+    await choices.selectOption({ label: 'The flat' })
+    await expect(page.getByTestId('import-room-name')).toHaveValue('The flat')
+    await expect(page.getByTestId('import-currency')).toHaveValue('GBP')
 })
 
 test('the importer follows the saved app language without changing the English page shell', async ({ page }) => {

@@ -34,13 +34,17 @@ import { useMotionAllowed } from '@/lib/use-motion'
 import {
     MAX_FILE_CHARS,
     SplitwiseParseError,
-    parseSplitwiseCsv,
     reconcileTotalBalance,
-    roomNameFromFilename,
     type ImportWarning,
     type ParseErrorCode,
     type SplitwiseImport as ParsedFile,
 } from '@/lib/splitwise-csv'
+import {
+    parseImportFile,
+    type ImportChoice,
+    type ParsedImportFile,
+    type SkippedImportChoice,
+} from '@/lib/splitpro-import'
 import { useFeedback } from '@/lib/use-settings'
 
 /** Enough to see what came in without turning the preview into the room itself. */
@@ -58,6 +62,8 @@ export function SplitwiseImport() {
     const inputRef = useRef<HTMLInputElement>(null)
 
     const [parsed, setParsed] = useState<ParsedFile | null>(null)
+    const [parsedFile, setParsedFile] = useState<ParsedImportFile | null>(null)
+    const [choiceIndex, setChoiceIndex] = useState(0)
     const [roomName, setRoomName] = useState('')
     const [currency, setCurrency] = useState('EUR')
     const [names, setNames] = useState<string[]>([])
@@ -86,6 +92,10 @@ export function SplitwiseImport() {
         switch (code) {
             case 'NOT_SPLITWISE_CSV':
                 return t('errors.NOT_SPLITWISE_CSV')
+            case 'MALFORMED_JSON':
+                return t('errors.MALFORMED_JSON')
+            case 'SPLITPRO_DIRECT_UNRESOLVED':
+                return t('errors.SPLITPRO_DIRECT_UNRESOLVED')
             case 'NO_MEMBERS':
                 return t('errors.NO_MEMBERS')
             case 'NO_EXPENSES':
@@ -133,8 +143,31 @@ export function SplitwiseImport() {
                 return t('warnings.DUPLICATE_MEMBER_NAME', { detail })
             case 'TRUNCATED_HISTORY':
                 return t('warnings.TRUNCATED_HISTORY', { count: Number(detail) || 0 })
+            case 'SPLITPRO_BALANCES_ONLY':
+                return t('warnings.SPLITPRO_BALANCES_ONLY')
+            case 'SPLITPRO_PAIR_HISTORY':
+                return t('warnings.SPLITPRO_PAIR_HISTORY')
+            case 'SPLITPRO_MISSING_NAMES':
+                return t('warnings.SPLITPRO_MISSING_NAMES', { count: Number(detail) || 0 })
+            case 'SPLITPRO_BALANCES_SKIPPED':
+                return t('warnings.SPLITPRO_BALANCES_SKIPPED', { count: Number(detail) || 0 })
+            case 'SPLITPRO_UNSUPPORTED_CURRENCY':
+                return t('warnings.SPLITPRO_UNSUPPORTED_CURRENCY', { detail })
         }
     }
+
+    const applyChoice = useCallback(
+        (choice: ImportChoice, index: number) => {
+            setChoiceIndex(index)
+            setParsed(choice.parsed)
+            setRoomName(choice.roomName || t('preview.fallbackName'))
+            setCurrency(choice.parsed.suggestedCurrency)
+            setNames(choice.parsed.members)
+            setMeIndex(null)
+            setError(null)
+        },
+        [t]
+    )
 
     const accept = useCallback(
         async (file: File) => {
@@ -157,15 +190,17 @@ export function SplitwiseImport() {
             }
 
             try {
-                const result = parseSplitwiseCsv(text)
-                setParsed(result)
-                setRoomName(roomNameFromFilename(file.name) || t('preview.fallbackName'))
-                setCurrency(result.suggestedCurrency)
-                setNames(result.members)
-                setMeIndex(null)
+                const result = parseImportFile(text, file.name)
+                setParsedFile(result)
+                applyChoice(result.choices[0], 0)
                 feedback('pop')
                 // Counts only. Not the group's name, not a member's, not an amount.
-                track('import_parsed', { expenses: result.expenses.length, members: result.members.length })
+                track('import_parsed', {
+                    source: result.source,
+                    groups: result.choices.length,
+                    expenses: result.choices[0].parsed.expenses.length,
+                    members: result.choices[0].parsed.members.length,
+                })
             } catch (err) {
                 const code = err instanceof SplitwiseParseError ? err.code : null
                 setError(code ? parseErrorMessage(code) : t('errors.READ_FAILED'))
@@ -173,7 +208,7 @@ export function SplitwiseImport() {
                 track('import_failed', { reason: code ?? 'PARSE_FAILED' })
             }
         },
-        [t, feedback]
+        [t, feedback, applyChoice]
     )
 
     const onDrop = (event: React.DragEvent) => {
@@ -299,7 +334,7 @@ export function SplitwiseImport() {
                     <input
                         ref={inputRef}
                         type="file"
-                        accept=".csv,text/csv"
+                        accept=".csv,.json,text/csv,application/json"
                         // The visible button below is the only chooser in the accessibility tree.
                         // This input remains programmatically clickable without adding an invisible
                         // keyboard stop or announcing a second, unlabeled "Choose File" control.
@@ -348,6 +383,9 @@ export function SplitwiseImport() {
     const shownWarnings = parsed.warnings.slice(0, WARNINGS_SHOWN)
     const hiddenWarnings = parsed.warnings.length - shownWarnings.length
 
+    const skippedChoiceMessage = (choice: SkippedImportChoice) =>
+        t('groups.skipped', { name: choice.roomName, reason: parseErrorMessage(choice.reason) })
+
     return (
         <motion.div
             initial={motionAllowed ? { opacity: 0, y: 12 } : false}
@@ -369,6 +407,40 @@ export function SplitwiseImport() {
                     </p>
                 )}
             </div>
+
+            {parsedFile && parsedFile.choices.length > 1 && (
+                <label className="flex flex-col gap-2">
+                    <span className="text-h8 uppercase tracking-wide text-grey-1">{t('groups.label')}</span>
+                    <select
+                        value={choiceIndex}
+                        onChange={(event) => {
+                            const index = Number(event.target.value)
+                            const choice = parsedFile.choices[index]
+                            if (choice) applyChoice(choice, index)
+                        }}
+                        className="h-12 rounded-sm border border-n-1 bg-white px-3 text-base font-bold text-n-1 shadow-[2px_2px_0_#111] focus:outline-none focus:ring-2 focus:ring-primary-1"
+                        data-testid="import-group-choice"
+                    >
+                        {parsedFile.choices.map((choice, index) => (
+                            <option key={choice.id} value={index}>
+                                {choice.roomName}
+                            </option>
+                        ))}
+                    </select>
+                    <span className="text-sm text-grey-1">{t('groups.hint')}</span>
+                </label>
+            )}
+
+            {parsedFile && parsedFile.skipped.length > 0 && (
+                <div className="rounded-sm border border-n-1 bg-yellow-1 p-4" data-testid="import-skipped-groups">
+                    <h2 className="text-h7">{t('groups.skippedTitle')}</h2>
+                    <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-sm leading-5 text-n-1">
+                        {parsedFile.skipped.map((choice, index) => (
+                            <li key={`${choice.roomName}-${choice.reason}-${index}`}>{skippedChoiceMessage(choice)}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
 
             {/* Louder than the warnings box, and above it: every other warning is about a row, this
                 one is about the numbers people will argue over. */}
@@ -516,6 +588,8 @@ export function SplitwiseImport() {
                     className="justify-center"
                     onClick={() => {
                         setParsed(null)
+                        setParsedFile(null)
+                        setChoiceIndex(0)
                         setError(null)
                     }}
                 >
