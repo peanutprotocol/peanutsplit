@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
@@ -35,20 +36,21 @@ function download(contents: string, filename: string, type: string) {
 export function RoomExport({ state }: { state: RoomState }) {
     const t = useTranslations('room.export')
     const tHeader = useTranslations('room.header')
+    const router = useRouter()
     const [open, setOpen] = useState(false)
 
     return (
         <>
             <SettingRow
-                label={tHeader('export')}
-                value={tHeader('exportFormats')}
+                label={tHeader('importExport')}
+                value={tHeader('importExportFormats')}
                 onClick={() => setOpen(true)}
                 testId="export-row"
             />
             <Drawer open={open} onOpenChange={setOpen}>
                 <DrawerContent className={drawerContentClass} data-testid="export-sheet">
                     <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
-                        <DrawerTitle className="text-h5">{tHeader('export')}</DrawerTitle>
+                        <DrawerTitle className="text-h5">{tHeader('importExport')}</DrawerTitle>
                         <CloseButton
                             onClick={() => setOpen(false)}
                             label={tHeader('closeSheet')}
@@ -56,39 +58,60 @@ export function RoomExport({ state }: { state: RoomState }) {
                         />
                     </DrawerHeader>
                     <DrawerBody>
-                        <p className="text-sm text-grey-1">{t('disclosure')}</p>
-                        <div className="grid grid-cols-2 gap-2">
+                        <section className="flex flex-col gap-3">
+                            <h2 className="text-h7">{t('importTitle')}</h2>
+                            <p className="text-sm leading-5 text-grey-1">{t('importBody')}</p>
                             <Button
                                 type="button"
-                                variant="stroke"
-                                size="small"
-                                className={`${BTN_SMALL} justify-center`}
-                                onClick={() =>
-                                    download(
-                                        roomCsv(state),
-                                        exportFilename(state.room.name, 'csv'),
-                                        'text/csv;charset=utf-8'
-                                    )
-                                }
+                                variant="primary"
+                                shadowSize="4"
+                                className="justify-center"
+                                data-testid="open-splitwise-import"
+                                onClick={() => {
+                                    setOpen(false)
+                                    router.push('/import')
+                                }}
                             >
-                                {t('csv')}
+                                {t('openImporter')}
                             </Button>
-                            <Button
-                                type="button"
-                                variant="stroke"
-                                size="small"
-                                className={`${BTN_SMALL} justify-center`}
-                                onClick={() =>
-                                    download(
-                                        roomJson(state),
-                                        exportFilename(state.room.name, 'json'),
-                                        'application/json;charset=utf-8'
-                                    )
-                                }
-                            >
-                                {t('json')}
-                            </Button>
-                        </div>
+                        </section>
+
+                        <section className="flex flex-col gap-3 border-t border-n-1 pt-5">
+                            <h2 className="text-h7">{t('exportTitle')}</h2>
+                            <p className="text-sm leading-5 text-grey-1">{t('disclosure')}</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                    type="button"
+                                    variant="stroke"
+                                    size="small"
+                                    className={`${BTN_SMALL} justify-center`}
+                                    onClick={() =>
+                                        download(
+                                            roomCsv(state),
+                                            exportFilename(state.room.name, 'csv'),
+                                            'text/csv;charset=utf-8'
+                                        )
+                                    }
+                                >
+                                    {t('csv')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="stroke"
+                                    size="small"
+                                    className={`${BTN_SMALL} justify-center`}
+                                    onClick={() =>
+                                        download(
+                                            roomJson(state),
+                                            exportFilename(state.room.name, 'json'),
+                                            'application/json;charset=utf-8'
+                                        )
+                                    }
+                                >
+                                    {t('json')}
+                                </Button>
+                            </div>
+                        </section>
                     </DrawerBody>
                 </DrawerContent>
             </Drawer>

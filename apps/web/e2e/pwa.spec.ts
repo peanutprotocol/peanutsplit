@@ -12,7 +12,7 @@ import { expect, test, type Page } from '@playwright/test'
  */
 test.use({ extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.20' } })
 
-test('the manifest names the app Split, offers one shortcut, and carries no room', async ({ request }) => {
+test('the manifest names the app Split, offers v1 creation shortcuts, and carries no room', async ({ request }) => {
     const response = await request.get('/manifest.webmanifest')
     expect(response.status()).toBe(200)
 
@@ -25,7 +25,7 @@ test('the manifest names the app Split, offers one shortcut, and carries no room
 
     expect(manifest.name).toBe('Split')
     expect(manifest.short_name).toBe('Split')
-    expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new'])
+    expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
     // The share sheet is v2's, and this build is v1. An entry here would put Split in every
     // Android photo share sheet and then decline the photo.
     expect(manifest.share_target).toBeUndefined()

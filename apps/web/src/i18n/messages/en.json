@@ -371,14 +371,18 @@
             "link": "Link",
             "linkCopied": "Link copied",
             "copyFailed": "Your browser blocked the copy.",
-            "export": "Export",
-            "exportFormats": "CSV · JSON",
+            "importExport": "Import / export",
+            "importExportFormats": "Splitwise · CSV · JSON",
             "device": "This device",
             "sound": "Sound",
             "haptics": "Haptics",
             "privacyNote": "Free forever, no signup. Anyone with a room’s link can open it."
         },
         "export": {
+            "importTitle": "Bring over a Splitwise group",
+            "importBody": "This creates a new room. Your current room stays as it is.",
+            "openImporter": "Import from Splitwise",
+            "exportTitle": "Export this room",
             "disclosure": "The file has everyone’s names and every expense and payment.",
             "csv": "Download CSV",
             "json": "Download JSON"

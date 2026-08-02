@@ -38,14 +38,11 @@ describe('the installed app is named Split', () => {
 })
 
 describe('shortcuts', () => {
-    it('offers only the screen that works with no room on the device', async () => {
-        const manifest = await manifestWith(false)
-        expect(manifest.shortcuts).toEqual([{ name: 'New split', url: '/new' }])
-    })
-
-    it('adds the importer only where /import is not a 404', async () => {
-        const manifest = await manifestWith(true)
-        expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
+    it('offers new-room and import entry points in both flag states', async () => {
+        for (const v2 of [false, true]) {
+            const manifest = await manifestWith(v2)
+            expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
+        }
     })
 })
 

@@ -7,7 +7,6 @@ import { motion } from 'motion/react'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
-import { splitV2Enabled } from '@/lib/flags'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { LANDING_CAST, LandingPersona } from './LandingPersona'
@@ -194,10 +193,7 @@ export function ReadMore() {
                         <Fold key={question} title={t(`faq.${question}.q`)} onToggle={onToggle}>
                             <p className="max-w-xl text-sm leading-6 text-grey-1">
                                 {t(`faq.${question}.a`)}
-                                {/* The importer is v2-only surface: /import 404s in a v1 build,
-                                    so pointing at it there would send the one reader who raised
-                                    this objection to a dead page. */}
-                                {question === 'retype' && splitV2Enabled() && ` ${t('faq.retype.import')}`}
+                                {question === 'retype' && ` ${t('faq.retype.import')}`}
                             </p>
                         </Fold>
                     ))}

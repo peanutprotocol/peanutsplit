@@ -371,14 +371,18 @@
             "link": "Link",
             "linkCopied": "Link copiado",
             "copyFailed": "Seu navegador bloqueou a cópia.",
-            "export": "Exportar",
-            "exportFormats": "CSV · JSON",
+            "importExport": "Importar / exportar",
+            "importExportFormats": "Splitwise · CSV · JSON",
             "device": "Este aparelho",
             "sound": "Som",
             "haptics": "Vibração",
             "privacyNote": "Grátis para sempre, sem cadastro. Qualquer pessoa com o link de uma sala pode abri-la."
         },
         "export": {
+            "importTitle": "Trazer um grupo do Splitwise",
+            "importBody": "Isso cria uma sala nova. Sua sala atual fica como está.",
+            "openImporter": "Importar do Splitwise",
+            "exportTitle": "Exportar esta sala",
             "disclosure": "O arquivo tem os nomes de todo mundo e cada gasto e pagamento.",
             "csv": "Baixar CSV",
             "json": "Baixar JSON"

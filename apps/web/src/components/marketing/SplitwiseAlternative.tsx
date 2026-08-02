@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { HREFLANG, LOCALES, type Locale } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
-import { splitV2Enabled } from '@/lib/flags'
 import { breadcrumbSchema, pageMetadata } from '@/lib/seo'
 
 const BASE_PATH = '/splitwise-alternative'
@@ -41,13 +40,13 @@ export function splitwiseAlternativeMetadata(locale: Locale): Metadata {
  * The hand-built comparison page, bound to a locale by three tiny route files.
  *
  * The importer remains English-only in this batch. Its link and migration sentence are therefore
- * hidden on translated pages even when v2 is on; rendering translated copy around an English-only
+ * hidden on translated pages; rendering translated copy around an English-only
  * destination would create a dead-end language switch in the highest-intent flow.
  */
 export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
     const compare = comparisonCopy[locale]
     const t = await getTranslations({ locale, namespace: 'content' })
-    const showImporter = locale === 'en' && splitV2Enabled()
+    const showImporter = locale === 'en'
     const compareFaqItems = compare.faq.items.filter((item) => !('v2Only' in item && item.v2Only) || showImporter)
     const migrationBody = compare.migration.body.map((paragraph, index) =>
         index === 1 && showImporter ? `${paragraph} ${compare.migration.importSentence}` : paragraph

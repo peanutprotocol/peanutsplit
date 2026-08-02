@@ -579,20 +579,33 @@ test('a link holder can export the room without exporting the room credential', 
     const url = (await roomLink.innerText()).trim()
     await page.getByTestId('go-to-room').click()
 
-    // Export is a row in Settings now, not a top-bar menu. The row says what you
-    // would get; the sheet behind it says who is in the file, and hands it over.
+    // Import/export is one row in Settings. It names both jobs without implying
+    // that a Splitwise file will be merged into the room currently open.
     await page.getByTestId('open-room-settings').click()
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 15_000 })
     const exportRow = page.getByTestId('export-row')
-    await expect(exportRow).toContainText('CSV · JSON')
+    await expect(exportRow).toContainText('Import / export')
+    await expect(exportRow).toContainText('Splitwise · CSV · JSON')
     await exportRow.click()
 
     const exportSheet = page.getByTestId('export-sheet')
     await expect(exportSheet).toBeVisible()
+    await expect(exportSheet).toContainText('Bring over a Splitwise group')
+    await expect(exportSheet).toContainText('This creates a new room. Your current room stays as it is.')
+    await expect(page.getByTestId('open-splitwise-import')).toBeVisible()
     // One disclosure sentence, and it does not claim to be the whole money
     // history — deleted records are left out, so that wording would be false.
+    await expect(exportSheet).toContainText('Export this room')
     await expect(exportSheet).toContainText('The file has everyone’s names and every expense and payment.')
     await expect(exportSheet).not.toContainText('money history')
+
+    const csvDownloadPromise = page.waitForEvent('download')
+    await exportSheet.getByRole('button', { name: 'Download CSV' }).click()
+    const csvDownload = await csvDownloadPromise
+    expect(csvDownload.suggestedFilename()).toBe('export-room.csv')
+    const csvPath = await csvDownload.path()
+    expect(csvPath).not.toBeNull()
+    expect(await readFile(csvPath!, 'utf8')).not.toContain(new URL(url).pathname)
 
     const jsonDownloadPromise = page.waitForEvent('download')
     await exportSheet.getByRole('button', { name: 'Download JSON' }).click()
@@ -612,4 +625,9 @@ test('a link holder can export the room without exporting the room credential', 
     await page.getByTestId('close-export-sheet').click()
     await expect(exportSheet).toHaveAttribute('data-state', 'closed')
     await expect(page.getByTestId('settings-sheet')).toBeVisible()
+
+    await exportRow.click()
+    await page.getByTestId('open-splitwise-import').click()
+    await page.waitForURL('/import')
+    await expect(page.getByTestId('import-choose')).toBeVisible()
 })

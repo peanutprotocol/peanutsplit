@@ -65,7 +65,6 @@ export const STATIC_PAGES: StaticPage[] = [
         description: 'Turn a Splitwise group export into a Split room — expenses, payers and balances intact.',
         priority: 0.8,
         inHub: false,
-        v2Only: true,
     },
 ]
 

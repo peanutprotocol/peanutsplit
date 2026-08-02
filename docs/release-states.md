@@ -39,7 +39,7 @@ rollback can move a capability back.
 | Landing group-chat handoff                                  | user-visible        | Production/mobile review still precedes a production-verified label                                                     |
 | Themes and expense reactions                                | user-visible        | Present on the public room surface                                                                                      |
 | Push notifications                                          | user-visible        | Do not call production-verified until the two-device loop passes                                                        |
-| Splitwise import                                            | deployed dark       | V2 gate is off; integrity gate remains held                                                                             |
+| Splitwise import                                            | user-visible        | Promoted independently into V1; production verification follows the 2026-08-02 deploy                                   |
 | Natural-language expense entry                              | deployed dark       | V2 gate is off                                                                                                          |
 | Receipt scanning                                            | held                | Consent and real-device gates remain open; do not expose                                                                |
 | Payer lifecycle, settlement correction and quiet provenance | code-complete       | Atomic staged payer, narrow cleanup, documentary Peanut receipt and settlement undo are verified on this feature branch |

@@ -1,8 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { SIMPLE_GROUP } from '../src/lib/__fixtures__/splitwise'
 
-test.skip(process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED !== '1', 'Splitwise import belongs to the v2 surface')
-
 /**
  * The switch, end to end: a real Splitwise export goes in through the real file input, and the
  * room that comes out is asserted against the balances the file itself states.

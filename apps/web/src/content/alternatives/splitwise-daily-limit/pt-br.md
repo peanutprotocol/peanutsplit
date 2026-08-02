@@ -11,7 +11,7 @@ faqs:
     - question: Uma sala do Split tem limite diário?
       answer: 'Não. Sem limite de despesas, sem anúncio e sem plano pago para assinar. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.'
     - question: Dá para mudar o grupo no meio da viagem?
-      answer: Dá, e você não precisa fechar nada. O grupo do Splitwise mantém os saldos exatamente como estão. A única coisa a combinar em voz alta é que nada mais entra lá, porque uma viagem partida em dois registros é pior do que qualquer um dos dois sozinho.
+      answer: Dá. Exporte o grupo do Splitwise como planilha, importe o CSV em uma sala nova do Split, confira os avisos e os saldos e mande o link novo para o grupo. Deixe o grupo antigo aberto até todo mundo confirmar que os saldos batem.
 ---
 
 {/* Toda afirmação sobre o Splitwise nesta página é uma citação literal de uma página do
@@ -27,9 +27,8 @@ Splitwise, reaberta e conferida contra o texto da página em 2026-07-31:
 
 As citações ficam em inglês de propósito: elas são a prova.
 
-ACOPLADA A FLAG: as afirmações de que nada é importado ficam falsas quando
-NEXT_PUBLIC_SPLIT_V2_ENABLED for ligada (importador de CSV do Splitwise). Reescreva ou crie
-variantes v2Only antes disso.
+O importador de CSV do Splitwise passou a fazer parte da v1 em 2026-08-02. Mantenha os passos de
+migração abaixo alinhados com o importador, não com a flag v2 das ferramentas com IA.
 
 ENTRAM JUNTAS: o RelatedLink para /pt-br/splitwise-alternative depende da tarefa de engenharia
 que cria essa rota (copy.ts por locale + rota própria e autocanônica). Esta página e essa rota
@@ -97,16 +96,16 @@ As linhas do Splitwise vêm de splitwise.com, kb.splitwise.com e feedback.splitw
 
 ## Como mudar o grupo no meio da viagem
 
-Você não precisa reconstruir a viagem inteira. Mova os saldos, não o histórico.
+Você não precisa reconstruir a viagem inteira. A planilha exportada pelo Splitwise pode virar uma sala nova.
 
-<Steps title="Um minuto, no grupo do WhatsApp">
-<Step title="Crie uma sala e escolha a moeda">Escolha em que a sala conta. Lance as despesas no que vocês gastaram de verdade, e a sala converte.</Step>
-<Step title="Cole o link no grupo">Todo mundo que está no grupo lança na sala a partir do momento em que o link está lá. Sem loja de aplicativos e sem cadastro. Deixe o link fixado ali: ele é a chave, e a sala mora onde o link estiver.</Step>
-<Step title="Lance cada saldo aberto como uma despesa de acerto">O Splitwise deixa uma linha por pessoa. Uma te deve 84, você deve 12 para outra. Cada uma dessas é uma despesa na sala.</Step>
+<Steps title="Alguns minutos, depois um link no grupo do WhatsApp">
+<Step title="Exporte o grupo do Splitwise">Abra as configurações do grupo em splitwise.com e escolha "Export as spreadsheet". Esse é o CSV que o importador lê.</Step>
+<Step title="Importe e confira">Abra a página de importação, solte o CSV, escolha a moeda da sala e o seu nome e leia os avisos antes de criar a sala.</Step>
+<Step title="Cole o link novo no grupo">Todo mundo pode lançar na sala a partir do momento em que o link está lá. Sem loja de aplicativos e sem cadastro. Deixe o link fixado: ele é a chave.</Step>
 <Step title="Siga em frente">Daqui para a frente nada é contado. Lance o táxi no momento em que você paga.</Step>
 </Steps>
 
-Tenha clareza sobre o que se perde. Nada é importado. O histórico item a item fica no Splitwise, e o justo é deixar aquele grupo onde está, como o registro da primeira metade da viagem.
+Tenha clareza sobre o que fica para trás. As fotos dos recibos não passam, e o importador mostra qualquer linha que não consiga ler antes de criar a sala. Deixe o grupo do Splitwise aberto até todo mundo confirmar que os saldos batem.
 
 ## Quando o Splitwise é a ferramenta melhor
 
@@ -122,14 +121,14 @@ O Split não movimenta dinheiro e não consegue conferir se alguém pagou. Ele r
 
 <CTA
   title="Lance a quinta despesa"
-  body="Crie uma sala, cole o link no grupo do WhatsApp e ponha os saldos de hoje. Sem limite, sem conta, sem download."
+  body="Importe o grupo, confira os saldos e cole o link da sala nova no grupo. Sem limite e sem conta."
   text="Criar um split" />
 
 <FAQ title="Perguntas">
 <FAQItem question="Quantas despesas dá para lançar de graça no Splitwise?">Quatro por dia. O centro de ajuda do Splitwise diz que quem usa o plano grátis lança até 4 despesas por dia, e essa é a única página do Splitwise que dá algum número.</FAQItem>
 <FAQItem question="Quanto custa o Splitwise Pro?">O Splitwise não publica preço no site deles. Os termos dizem que o preço pode variar por data de assinatura, país, impostos e regulação locais e promoções. O seu valor aparece no checkout depois que você entra na conta, e é por isso que dois textos na internet nunca batem.</FAQItem>
 <FAQItem question="Uma sala do Split tem limite diário?">Não. Sem limite de despesas, sem anúncio e sem plano pago para assinar. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.</FAQItem>
-<FAQItem question="Dá para mudar o grupo no meio da viagem?">Dá, e você não precisa fechar nada. O grupo do Splitwise mantém os saldos exatamente como estão. A única coisa a combinar em voz alta é que nada mais entra lá, porque uma viagem partida em dois registros é pior do que qualquer um dos dois sozinho.</FAQItem>
+<FAQItem question="Dá para mudar o grupo no meio da viagem?">Dá. Exporte o grupo do Splitwise como planilha, importe o CSV em uma sala nova do Split, confira os avisos e os saldos e mande o link novo para o grupo. Deixe o grupo antigo aberto até todo mundo confirmar que os saldos batem.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Continue lendo">
