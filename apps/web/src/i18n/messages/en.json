@@ -190,8 +190,7 @@
                 "label": "Install Split",
                 "labelIos": "Add to home screen",
                 "installed": "Already on this device.",
-                "dismissed": "Not added. Open Split again to try.",
-                "unsupported": "This browser doesn’t offer it."
+                "dismissed": "Not added. Open Split again to try."
             },
             "ios": {
                 "title": "Add Split to your home screen",
