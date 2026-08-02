@@ -1029,6 +1029,11 @@
         "open": "Abrir Split"
     },
     "card": {
+        "invite": {
+            "label": "GASTOS COMPARTIDOS",
+            "line": "Abre el link. Agrega lo que pagaste.",
+            "action": "ENTRAR AL SPLIT"
+        },
         "crew": {
             "title": "EL GRUPO",
             "line": "Un solo link, y estamos todos."

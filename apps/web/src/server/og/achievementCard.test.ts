@@ -91,6 +91,39 @@ describe('achievement cards', () => {
 
     // ------------------------------------------------------------ shaping
 
+    it.each([
+        [
+            'en',
+            {
+                label: 'SHARED EXPENSE ROOM',
+                line: 'Open the link. Add what you paid.',
+                action: 'JOIN THE SPLIT',
+                proof: 'no signup · free forever',
+            },
+        ],
+        [
+            'es-419',
+            {
+                label: 'GASTOS COMPARTIDOS',
+                line: 'Abre el link. Agrega lo que pagaste.',
+                action: 'ENTRAR AL SPLIT',
+                proof: 'sin registro · gratis para siempre',
+            },
+        ],
+        [
+            'pt-br',
+            {
+                label: 'DESPESAS EM GRUPO',
+                line: 'Abra o link. Adicione o que pagou.',
+                action: 'ENTRAR NO SPLIT',
+                proof: 'sem cadastro · grátis para sempre',
+            },
+        ],
+    ])('makes the %s invite explain the product and the next action', async (locale, copy) => {
+        const card = (await buildFixtureCard('invite', locale)) as Extract<AchievementCardData, { kind: 'invite' }>
+        expect(card).toMatchObject(copy)
+    })
+
     it('draws the crew as characters, never as names', async () => {
         const card = (await buildFixtureCard('crew')) as Extract<AchievementCardData, { kind: 'crew' }>
         expect(card.count).toBe(5)

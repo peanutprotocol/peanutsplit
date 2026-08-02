@@ -1029,6 +1029,11 @@
         "open": "Abrir o Split"
     },
     "card": {
+        "invite": {
+            "label": "DESPESAS EM GRUPO",
+            "line": "Abra o link. Adicione o que pagou.",
+            "action": "ENTRAR NO SPLIT"
+        },
         "crew": {
             "title": "A TURMA",
             "line": "Um link só, e todo mundo dentro."
