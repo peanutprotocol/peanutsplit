@@ -74,7 +74,7 @@ export function RoomSwitcher({ currentSlug }: { currentSlug: string }) {
                     {/* Not a "+". A plus reads as "new room", and this goes to the
                         page that owns the full list and the paste-a-link recovery. */}
                     <Link
-                        href="/"
+                        href="/app"
                         data-testid="room-switcher-all"
                         className="flex w-24 shrink-0 flex-col items-center gap-1 rounded-sm border border-dashed border-n-1 bg-white p-2 transition-transform duration-100 active:translate-y-[2px]"
                     >

@@ -17,6 +17,9 @@ test('the manifest names the app Split, offers v1 creation shortcuts, and carrie
     expect(response.status()).toBe(200)
 
     const manifest = (await response.json()) as {
+        id: string
+        start_url: string
+        scope: string
         name: string
         short_name: string
         shortcuts?: { name: string; url: string }[]
@@ -25,6 +28,7 @@ test('the manifest names the app Split, offers v1 creation shortcuts, and carrie
 
     expect(manifest.name).toBe('Split')
     expect(manifest.short_name).toBe('Split')
+    expect(manifest).toMatchObject({ id: '/', start_url: '/app', scope: '/' })
     expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
     // The share sheet is v2's, and this build is v1. An entry here would put Split in every
     // Android photo share sheet and then decline the photo.
@@ -35,7 +39,7 @@ test('the manifest names the app Split, offers v1 creation shortcuts, and carrie
 test('iOS is offered "Split" as the home-screen name', async ({ page }) => {
     // The tag lives in the root layout, so every route under it carries the same value — these two
     // are the routes that need no room and therefore no creation budget.
-    for (const path of ['/', '/new']) {
+    for (const path of ['/', '/app', '/new']) {
         await page.goto(path)
         await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute('content', 'Split')
     }
@@ -248,5 +252,5 @@ test('the share landing says scanning is off and offers the way back', async ({ 
 
     expect(response?.status()).toBe(200)
     await expect(page.getByText('Scanning bills isn’t on yet.')).toBeVisible()
-    await expect(page.getByTestId('share-target-open')).toHaveAttribute('href', '/')
+    await expect(page.getByTestId('share-target-open')).toHaveAttribute('href', '/app')
 })

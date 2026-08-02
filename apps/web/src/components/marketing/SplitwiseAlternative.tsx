@@ -85,7 +85,7 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                 </div>
 
                 <div className="mx-auto w-full max-w-xl px-5 pt-6">
-                    <Link href="/new" className="block">
+                    <Link href="/app" className="block">
                         <Button variant="primary" shadowSize="4" className="justify-center text-h6">
                             {compare.hero.cta}
                         </Button>
@@ -173,7 +173,7 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                 <div className="rounded-sm border border-n-1 bg-white p-5">
                     <h2 className="text-h5">{compare.cta.title}</h2>
                     <p className="mt-2 text-sm leading-5 text-grey-1">{compare.cta.body}</p>
-                    <Link href="/new" className="mt-4 block">
+                    <Link href="/app" className="mt-4 block">
                         <Button variant="primary" shadowSize="4" className="justify-center text-h6">
                             {compare.cta.button}
                         </Button>

@@ -94,6 +94,7 @@ describe('the language a URL states', () => {
 
     it('states nothing for the app shell, where the cookie answers', () => {
         expect(localeFromPathname('/')).toBeNull()
+        expect(localeFromPathname('/app')).toBeNull()
         expect(localeFromPathname('/new')).toBeNull()
         expect(localeFromPathname('/r/loud-otter-42')).toBeNull()
         expect(localeFromPathname('/r/loud-otter-42/recap')).toBeNull()

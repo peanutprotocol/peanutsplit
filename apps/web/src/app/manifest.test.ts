@@ -2,8 +2,8 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * The manifest is the one file this app publishes to the operating system, uncredentialed and
- * cached by the browser for as long as it likes. Two things therefore have to hold mechanically:
- * the installed app is called "Split", and nothing per-room is ever in it.
+ * cached by the browser for as long as it likes. Three things therefore have to hold mechanically:
+ * the installed app is called "Split", it launches the app home, and nothing per-room is ever in it.
  *
  * `splitV2Enabled()` reads `process.env` at call time, but Next inlines the value at BUILD time —
  * hence `vi.resetModules()` around each flag state, the same shape `flags.test.ts` uses.
@@ -33,6 +33,15 @@ describe('the installed app is named Split', () => {
             const manifest = await manifestWith(v2)
             expect(manifest.name).toBe('Split')
             expect(manifest.short_name).toBe('Split')
+        }
+    })
+
+    it('keeps its existing identity but launches the operational app home', async () => {
+        for (const v2 of [false, true]) {
+            const manifest = await manifestWith(v2)
+            expect(manifest.id).toBe('/')
+            expect(manifest.start_url).toBe('/app')
+            expect(manifest.scope).toBe('/')
         }
     })
 })

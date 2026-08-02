@@ -152,7 +152,7 @@ self.addEventListener('push', (event) => {
         badge: '/icons/badge-96.png',
         // No `image` and no `actions`: both are set only when they have a
         // value, because some browsers warn on an explicit undefined.
-        data: { url: payload.url ?? '/', template: payload.template, sendId: payload.sendId },
+        data: { url: payload.url ?? '/app', template: payload.template, sendId: payload.sendId },
         requireInteraction: false,
         ...(payload.tag ? { tag: payload.tag } : {}),
     }
@@ -166,7 +166,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close()
     const data = (event.notification.data ?? {}) as SplitPushPayload
-    const url = data.url ?? '/'
+    const url = data.url ?? '/app'
     // We ship no action buttons, so `event.action` is always ''. If any are ever
     // added, an id nobody handles falls through to this same body-click path
     // rather than doing nothing.

@@ -69,8 +69,8 @@ function resolveDoc(collections: RouteCollections, slug: string, locale: Locale)
 /** Crumb labels come from the catalog so the trail is not English inside a Spanish page. */
 async function crumbsFor(locale: Locale, collection: Collection, title: string, href: string) {
     const t = await getTranslations({ locale, namespace: 'content' })
-    // Bare `/`, never `localizedPath('/', locale)`: the landing is app shell, so it answers at one
-    // URL in every language (see `@/i18n/paths`) and there is no route at `/es-419` or `/pt-br`. The
+    // Bare `/`, never `localizedPath('/', locale)`: the landing answers at one URL in every
+    // language (see `@/i18n/paths`) and there is no route at `/es-419` or `/pt-br`. The
     // prefixed version 404s — in the rendered trail AND in the BreadcrumbList it feeds.
     const home = { name: t('home'), href: '/' }
     const article = { name: title, href }

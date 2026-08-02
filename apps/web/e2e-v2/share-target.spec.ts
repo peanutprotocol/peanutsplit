@@ -55,9 +55,13 @@ const rememberDecoyRoom = (page: Page) =>
 test('the manifest offers Split to the OS share sheet, and still carries no room', async ({ request }) => {
     const response = await request.get('/manifest.webmanifest')
     const manifest = (await response.json()) as {
+        id: string
+        start_url: string
+        scope: string
         share_target?: unknown
         shortcuts?: { url: string }[]
     }
+    expect(manifest).toMatchObject({ id: '/', start_url: '/app', scope: '/' })
 
     expect(manifest.share_target).toEqual({
         action: '/api/share-target',
@@ -127,6 +131,6 @@ test('a share that did not arrive says so instead of opening an empty scan', asy
     await page.goto('/share-target')
 
     await expect(page.getByText('That photo didn’t make it. Share it again.')).toBeVisible()
-    await expect(page.getByTestId('share-target-open')).toHaveAttribute('href', '/')
+    await expect(page.getByTestId('share-target-open')).toHaveAttribute('href', '/app')
     expect(new URL(page.url()).pathname).toBe('/share-target')
 })

@@ -39,8 +39,8 @@ export function CreateRoomForm() {
     const motionAllowed = useMotionAllowed()
 
     const [name, setName] = useState('')
-    // null means "follow the name" — see the same state in HeroCreateForm. The emblem used to
-    // be rolled at random after mount, which needed an effect purely to dodge a hydration
+    // null means "follow the name". The emblem used to be rolled at random after mount, which
+    // needed an effect purely to dodge a hydration
     // mismatch; reading the name is deterministic and right far more often.
     const [emblem, setEmblem] = useState<DoodleName | null>(null)
     const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
@@ -110,7 +110,7 @@ export function CreateRoomForm() {
         <form onSubmit={submit} className="flex min-h-dvh flex-col pb-[max(2.5rem,env(safe-area-inset-bottom))]">
             <div className="flex items-end justify-between gap-3 px-4 pb-2 pt-6">
                 <h1 className="text-h5">{t('title')}</h1>
-                <CloseButton href="/" label={t('back')} data-testid="close-create-room" />
+                <CloseButton href="/app" label={t('back')} data-testid="close-create-room" />
             </div>
 
             <motion.div

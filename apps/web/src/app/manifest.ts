@@ -14,7 +14,10 @@ export default function manifest(): MetadataRoute.Manifest {
         name: 'Split',
         short_name: 'Split',
         description: 'Split expenses with a link. No signup.',
-        start_url: '/',
+        // Pin the identity the old implicit manifest had while moving only its launch surface.
+        // Without `id`, some browsers derive it from start_url and can treat this as a second app.
+        id: '/',
+        start_url: '/app',
         scope: '/',
         display: 'standalone',
         display_override: ['standalone'],

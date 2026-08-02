@@ -129,7 +129,7 @@ export function ShareTarget({ enabled }: { enabled: boolean }) {
                                 </Button>
                             </Link>
                         ) : (
-                            <Link href="/" data-testid="share-target-open">
+                            <Link href="/app" data-testid="share-target-open">
                                 <Button variant="stroke" className="justify-center">
                                     {t('open')}
                                 </Button>

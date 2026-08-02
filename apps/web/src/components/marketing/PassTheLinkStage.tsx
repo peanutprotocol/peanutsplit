@@ -21,7 +21,7 @@ const PEOPLE = [
 ] as const
 
 /**
- * A non-writing illustration of the handoff the real form creates.
+ * A non-writing illustration of the handoff the app creates.
  *
  * This is deliberately the distribution context, not a second product mockup: one recognisable
  * conversation, one dominant room card, and the people it reaches. The whole visible scene is
@@ -43,7 +43,7 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
 
             <div data-testid="pass-link-stage" data-state={state} className="pass-link-stage">
                 <Link
-                    href="/new"
+                    href="/app"
                     aria-label={t('cta')}
                     data-testid="pass-link-chat-link"
                     className="pass-link-chat-link"

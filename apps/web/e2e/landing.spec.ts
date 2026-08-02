@@ -2,10 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es-419.json'
 import ptBRMessages from '../src/i18n/messages/pt-br.json'
-import { CURRENCY_CATALOG } from '../src/lib/currency-catalog'
-import { COMMON_COUNT } from '../src/components/room/CurrencySelect'
 import { HREFLANG } from '../src/i18n/locales'
-import { SLUG_TAIL_HINT } from '../src/lib/slugify'
 import { slideToConfirm } from './slide-to-confirm'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
@@ -17,24 +14,12 @@ type LandingMessages = {
             titleAccessible: string
             stageSummary: string
             cta: string
-            validation: {
-                roomRequired: string
-                creatorRequired: string
-            }
         }
         proof: {
             linkIdentity: { title: string }
             everyoneAdds: { title: string }
             suggestedPlan: { title: string }
             examples: { title: string }
-        }
-        linkExplainer: {
-            title: string
-            access: { title: string }
-            chat: { title: string }
-            remembered: { title: string }
-            money: { title: string }
-            done: string
         }
         rooms: {
             title: string
@@ -65,9 +50,8 @@ type LandingMessages = {
         }
     }
     room: {
-        create: {
-            emoji: string
-            currencyLabel: string
+        link: {
+            shareFailed: string
         }
     }
 }
@@ -115,43 +99,61 @@ async function openLanding(page: Page, locale: Locale = 'en') {
     await expect(page.locator('html')).toHaveAttribute('lang', HREFLANG[locale])
 }
 
-test('landing page keeps the real currency picker, detailed FAQ, and selected team portraits', async ({ page }) => {
+async function openApp(page: Page, locale: Locale = 'en') {
+    await page.goto('/app')
+    await page.context().addCookies([{ name: 'ps-locale', value: locale, url: page.url() }])
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('lang', HREFLANG[locale])
+}
+
+test('landing is a marketing-only handoff and app is the noindex operational home', async ({ page }) => {
     await openLanding(page)
 
-    const selectedCurrency = page.getByTestId('hero-currency')
-    // The hidden native select is the form/test bridge and carries the whole catalog; the visible
-    // list opens on five and expands by typing.
-    await expect(selectedCurrency.locator('option')).toHaveCount(CURRENCY_CATALOG.length)
-    const currencyTrigger = page.getByRole('button', {
-        name: new RegExp(`^${catalogs.en.room.create.currencyLabel}, [A-Z]{3}$`),
+    await expect(page.getByTestId('marketing-home')).toBeVisible()
+    await expect(page.getByTestId('landing-proof')).toBeVisible()
+    await expect(page.getByTestId('read-more')).toBeVisible()
+    await expect(page.locator('footer')).toBeVisible()
+    await expect(page.getByTestId('app-home')).toHaveCount(0)
+    await expect(page.getByTestId('hero-room-name')).toHaveCount(0)
+    await expect(page.getByTestId('hero-create-room')).toHaveCount(0)
+    await expect(page.getByTestId('room-link-recovery')).toHaveCount(0)
+
+    const appHandoffs = page.locator(
+        '[data-testid="landing-app-link"], [data-testid="pass-link-chat-link"], [data-testid^="proof-"][data-testid$="-link"], [data-testid="room-example-link"], [data-testid="final-cta-link"]'
+    )
+    await expect(appHandoffs).toHaveCount(controlBuild ? 9 : 10)
+    for (const handoff of await appHandoffs.all()) await expect(handoff).toHaveAttribute('href', '/app')
+    await expect(
+        page.locator('footer').getByRole('link', { name: catalogs.en.marketing.footer.createSplit })
+    ).toHaveAttribute('href', '/app')
+
+    await page.getByTestId('landing-app-link').click()
+    await expect(page).toHaveURL('/app')
+    await expect(page.getByTestId('app-home')).toBeVisible()
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/i)
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/app$/)
+    await expect(page.getByTestId('app-new-split')).toHaveAttribute('href', '/new')
+    await expect(page.getByTestId('app-import')).toHaveAttribute('href', '/import')
+    await expect(page.getByTestId('room-link-recovery')).toBeVisible()
+    await expect(page.getByTestId('marketing-home')).toHaveCount(0)
+    await expect(page.getByTestId('landing-proof')).toHaveCount(0)
+    await expect(page.getByTestId('read-more')).toHaveCount(0)
+    await expect(page.locator('footer')).toHaveCount(0)
+})
+
+test('an installed app never strands an old root launcher at the marketing page', async ({ page }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'standalone', { configurable: true, value: true })
     })
-    await currencyTrigger.focus()
-    if (!controlBuild) await expect(page.getByTestId('pass-link-stage')).toHaveAttribute('data-state', 'complete')
-    await currencyTrigger.click()
-    await expect(currencyTrigger).toHaveAttribute('aria-expanded', 'true')
-    const currencyOptions = page.getByRole('option')
-    await expect(currencyOptions).toHaveCount(COMMON_COUNT)
-    await expect(currencyOptions.locator('svg')).toHaveCount(COMMON_COUNT)
 
-    const tickers = (await currencyOptions.allTextContents()).map((text) => text.trim())
-    expect(tickers.every((ticker) => /^[A-Z]{3}$/.test(ticker))).toBe(true)
-    expect(new Set(tickers).size).toBe(tickers.length)
-    const originalCurrency = await selectedCurrency.inputValue()
-    const nextCurrency = tickers.find((ticker) => ticker !== originalCurrency)
-    expect(nextCurrency).toBeTruthy()
-    await page.getByRole('option', { name: nextCurrency, exact: true }).click()
-    await expect(selectedCurrency).toHaveValue(nextCurrency!)
+    await page.goto('/')
+    await expect(page).toHaveURL('/app')
+    await expect(page.getByTestId('app-home')).toBeVisible()
+    await expect(page.getByTestId('marketing-home')).toHaveCount(0)
+})
 
-    await page.getByTestId('hero-link-explainer').click()
-    const linkExplainer = page.getByRole('dialog')
-    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.title)
-    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.access.title)
-    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.chat.title)
-    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.remembered.title)
-    await expect(linkExplainer).toContainText(catalogs.en.marketing.linkExplainer.money.title)
-    await expect(linkExplainer.getByText(/loses it|room is gone/i)).toHaveCount(0)
-    await linkExplainer.getByRole('button', { name: catalogs.en.marketing.linkExplainer.done }).click()
-    await expect(linkExplainer).toBeHidden()
+test('landing keeps the detailed FAQ and selected team portraits', async ({ page }) => {
+    await openLanding(page)
 
     const readMore = page.locator('section').filter({
         has: page.getByRole('heading', { name: catalogs.en.marketing.readMore.toggle }),
@@ -238,23 +240,18 @@ test('a longer recent-room history has an explicit reversible reveal control', a
     await expect(reveal).toHaveAttribute('aria-expanded', 'false')
 })
 
-test('the rollback build keeps the compact real form and removes the theater', async ({ page }) => {
-    test.skip(!controlBuild, 'requires NEXT_PUBLIC_LANDING_VARIANT=control at server build/start')
+test('both landing variants hand off to the app without exposing a live room form', async ({ page }) => {
     await openLanding(page)
 
-    await expect(page.getByTestId('landing-hero-variant')).toHaveAttribute('data-variant', 'control')
-    await expect(page.getByTestId('pass-link-hero')).toHaveCount(0)
-    await expect(page.getByTestId('pass-link-stage')).toHaveCount(0)
-    await expect(page.getByTestId('hero-room-name')).toBeVisible()
-    await expect(page.getByTestId('hero-creator-name')).toBeVisible()
-    await expect(page.getByTestId('hero-create-room')).toBeVisible()
-
-    await page.getByTestId('hero-create-room').click()
-    const roomName = page.getByTestId('hero-room-name')
-    await expect(roomName).toBeFocused()
-    const roomDescription = await roomName.getAttribute('aria-describedby')
-    expect(roomDescription).toBeTruthy()
-    await expect(page.locator(`#${roomDescription}`)).toContainText(catalogs.en.marketing.hero.validation.roomRequired)
+    await expect(page.getByTestId('landing-hero-variant')).toHaveAttribute(
+        'data-variant',
+        controlBuild ? 'control' : 'pass_link'
+    )
+    await expect(page.getByTestId('pass-link-hero')).toHaveCount(controlBuild ? 0 : 1)
+    await expect(page.getByTestId('landing-app-link')).toHaveAttribute('href', '/app')
+    await expect(page.getByTestId('hero-room-name')).toHaveCount(0)
+    await expect(page.getByTestId('hero-creator-name')).toHaveCount(0)
+    await expect(page.getByTestId('hero-create-room')).toHaveCount(0)
 })
 
 test.describe('Pass-the-link default', () => {
@@ -268,18 +265,15 @@ test.describe('Pass-the-link default', () => {
             const hero = page.getByTestId('pass-link-hero')
             const headline = page.getByTestId('pass-link-headline')
             const stage = page.getByTestId('pass-link-stage')
-            const form = hero.locator('form')
-            const roomName = page.getByTestId('hero-room-name')
-            const creatorName = page.getByTestId('hero-creator-name')
-            const cta = page.getByTestId('hero-create-room')
+            const appLink = page.getByTestId('landing-app-link')
             const chatFrame = page.getByTestId('pass-link-chat-frame')
 
             await expect(hero).toBeVisible()
             await expect(headline).toBeVisible()
             await expect(stage).toBeVisible()
-            await expect(form).toBeVisible()
+            await expect(appLink).toBeVisible()
             await expect(chatFrame).toBeVisible()
-            await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
+            await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/app')
             await expect(chatFrame.locator('.pass-link-avatar svg')).toHaveCount(8)
             const [avatarBox, avatarDoodleBox] = await Promise.all([
                 chatFrame.locator('.pass-link-avatar').first().boundingBox(),
@@ -317,8 +311,8 @@ test.describe('Pass-the-link default', () => {
             }
 
             await expectNoOverlap(headline, stage)
-            await expectNoOverlap(stage, form)
-            await expectNoOverlap(headline, form)
+            await expectNoOverlap(stage, appLink)
+            await expectNoOverlap(headline, appLink)
 
             if (
                 (viewport.width === 390 && [720, 844].includes(viewport.height)) ||
@@ -326,9 +320,7 @@ test.describe('Pass-the-link default', () => {
             ) {
                 for (const [label, locator] of [
                     ['headline', headline],
-                    ['room name', roomName],
-                    ['creator name', creatorName],
-                    ['primary CTA', cta],
+                    ['app handoff', appLink],
                 ] as const) {
                     const box = await locator.boundingBox()
                     expect(
@@ -348,104 +340,34 @@ test.describe('Pass-the-link default', () => {
         }
     })
 
-    test('the right-hand messenger mockup opens the room creator', async ({ page }) => {
+    test('the right-hand messenger mockup opens the operational app home', async ({ page }) => {
         await openLanding(page)
         await page.getByTestId('pass-link-chat-link').click()
-        await expect(page).toHaveURL('/new')
-        await expect(page.getByTestId('room-composer')).toBeVisible()
+        await expect(page).toHaveURL('/app')
+        await expect(page.getByTestId('app-home')).toBeVisible()
     })
 
-    test('the room draft drives both honest URL previews without writing anything', async ({ page }) => {
-        const roomWrites: string[] = []
-        page.on('request', (request) => {
-            const url = new URL(request.url())
-            if (request.method() === 'POST' && url.pathname === '/api/rooms') roomWrites.push(request.url())
-        })
-        await openLanding(page)
-
-        for (const [name, stem] of [
-            ['Lisbon weekend', 'lisbon-weekend'],
-            ['Año Nuevo en Bariloche', 'ano-nuevo-en-bariloche'],
-            ['🎿🎿', 'room'],
-        ] as const) {
-            await page.getByTestId('hero-room-name').fill(name)
-            await expect(page.getByTestId('pass-link-url')).toContainText(`peanutsplit.com/r/${stem}${SLUG_TAIL_HINT}`)
-            await expect(page.getByTestId('hero-slug-preview')).toContainText(
-                `peanutsplit.com/r/${stem}${SLUG_TAIL_HINT}`
-            )
-        }
-
-        // The hint is imported so the two previews cannot drift, so pin its SHAPE here:
-        // the tail is three words, and a preview showing one run teaches the wrong URL.
-        expect(SLUG_TAIL_HINT.split('-').filter(Boolean)).toHaveLength(3)
-
-        expect(roomWrites).toEqual([])
-    })
-
-    test('validation is visible, announced, related to its field, and moves focus', async ({ page }) => {
-        await openLanding(page)
-        const hero = catalogs.en.marketing.hero
-        const roomName = page.getByTestId('hero-room-name')
-        const creatorName = page.getByTestId('hero-creator-name')
-
-        await page.getByTestId('hero-create-room').click()
-        await expect(roomName).toBeFocused()
-        await expect(roomName).toHaveAttribute('aria-invalid', 'true')
-        const roomDescription = await roomName.getAttribute('aria-describedby')
-        expect(roomDescription).toBeTruthy()
-        await expect(page.locator(`#${roomDescription}`)).toHaveRole('alert')
-        await expect(page.locator(`#${roomDescription}`)).toHaveText(hero.validation.roomRequired)
-
-        await roomName.fill('Lisbon weekend')
-        await page.getByTestId('hero-create-room').click()
-        await expect(creatorName).toBeFocused()
-        await expect(creatorName).toHaveAttribute('aria-invalid', 'true')
-        const creatorDescription = await creatorName.getAttribute('aria-describedby')
-        expect(creatorDescription).toBeTruthy()
-        await expect(page.locator(`#${creatorDescription}`)).toHaveRole('alert')
-        await expect(page.locator(`#${creatorDescription}`)).toHaveText(hero.validation.creatorRequired)
-    })
-
-    test('the complete form remains keyboard-operable on mobile', async ({ page }) => {
+    test('the app handoff remains keyboard-operable and touch-sized on mobile', async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 844 })
         await openLanding(page)
 
-        const roomName = page.getByTestId('hero-room-name')
-        const drawingPicker = page.getByTestId('pass-link-hero').locator('form summary')
-        await roomName.focus()
-        await expect(roomName).toBeFocused()
-        await page.keyboard.press('Tab')
-        await expect(drawingPicker).toBeFocused()
-        await page.keyboard.press('Tab')
-        await expect(page.getByTestId('hero-creator-name')).toBeFocused()
-        await page.keyboard.press('Tab')
-        const currencyTrigger = page.getByRole('button', {
-            name: new RegExp(`^${catalogs.en.room.create.currencyLabel}, [A-Z]{3}$`),
-        })
-        await expect(currencyTrigger).toBeFocused()
-
-        await page.keyboard.press('ArrowDown')
-        await expect(page.getByRole('listbox', { name: catalogs.en.room.create.currencyLabel })).toBeVisible()
-        // Focus lands on the search field rather than on an option: there is no roving focus any
-        // more, and `aria-activedescendant` is the only highlight.
-        await expect(page.getByTestId('hero-currency-search')).toBeFocused()
-        await page.keyboard.press('Escape')
-        await expect(currencyTrigger).toBeFocused()
-
-        for (const locator of [drawingPicker, currencyTrigger, page.getByTestId('hero-create-room')]) {
-            const box = await locator.boundingBox()
-            expect(box).not.toBeNull()
-            expect(box!.height).toBeGreaterThanOrEqual(44)
-            expect(box!.width).toBeGreaterThanOrEqual(44)
-        }
+        const appLink = page.getByTestId('landing-app-link')
+        await appLink.focus()
+        await expect(appLink).toBeFocused()
+        const box = await appLink.boundingBox()
+        expect(box).not.toBeNull()
+        expect(box!.height).toBeGreaterThanOrEqual(44)
+        expect(box!.width).toBeGreaterThanOrEqual(44)
+        await page.keyboard.press('Enter')
+        await expect(page).toHaveURL('/app')
     })
 
-    test('form interaction settles the one-shot story and the final state holds', async ({ page }) => {
+    test('handoff interaction settles the one-shot story and the final state holds', async ({ page }) => {
         await openLanding(page)
         const stage = page.getByTestId('pass-link-stage')
         await expect(stage).toHaveAttribute('data-state', /question|reply|link|complete/)
 
-        await page.getByTestId('hero-room-name').focus()
+        await page.getByTestId('landing-app-link').focus()
         await expect(stage).toHaveAttribute('data-state', 'complete')
         await page.waitForTimeout(1_000)
         await expect(stage).toHaveAttribute('data-state', 'complete')
@@ -600,20 +522,22 @@ test.describe('Pass-the-link default', () => {
         ).toEqual([])
     })
 
-    test('the real hero form creates a real room and retains the creator identity', async ({ page }, testInfo) => {
-        await openLanding(page)
-        const roomName = `Landing QA ${testInfo.project.name} ${Date.now()}`
-        const expectedStem = roomName.toLowerCase().replace(/\s+/g, '-')
-
-        await page.getByTestId('hero-room-name').fill(roomName)
-        await page.getByTestId('hero-creator-name').fill('Ana')
-        await page.getByTestId('hero-create-room').click()
-
-        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$`), {
-            timeout: 20_000,
+    test('landing and its app handoff do not write a room before creation is chosen', async ({ page }) => {
+        const roomWrites: string[] = []
+        page.on('request', (request) => {
+            const url = new URL(request.url())
+            if (request.method() === 'POST' && url.pathname === '/api/rooms') roomWrites.push(request.url())
         })
-        await expect(page.getByTestId('join-gate')).toHaveCount(0)
-        await expect(page.getByText(roomName, { exact: true }).first()).toBeVisible({ timeout: 15_000 })
+        await openLanding(page)
+        await expect(page.getByTestId('hero-room-name')).toHaveCount(0)
+        await page.getByTestId('landing-app-link').click()
+        await expect(page.getByTestId('app-home')).toBeVisible()
+        expect(roomWrites).toEqual([])
+
+        await page.getByTestId('app-new-split').click()
+        await expect(page).toHaveURL('/new')
+        await expect(page.getByTestId('room-composer')).toBeVisible()
+        expect(roomWrites).toEqual([])
     })
 
     test('the three product truths and specific room examples replace generic category cards', async ({ page }) => {
@@ -627,17 +551,17 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
 
         for (const testId of ['proof-link-identity-link', 'proof-everyone-adds-link', 'proof-suggested-plan-link']) {
-            await expect(page.getByTestId(testId)).toHaveAttribute('href', '/new')
+            await expect(page.getByTestId(testId)).toHaveAttribute('href', '/app')
         }
 
         const roomExampleLinks = page.getByTestId('room-example-link')
         await expect(roomExampleLinks).toHaveCount(4)
         for (const exampleLink of await roomExampleLinks.all()) {
-            await expect(exampleLink).toHaveAttribute('href', '/new')
+            await expect(exampleLink).toHaveAttribute('href', '/app')
         }
 
         const finalCtaLink = page.getByTestId('final-cta-link')
-        await expect(finalCtaLink).toHaveAttribute('href', '/new')
+        await expect(finalCtaLink).toHaveAttribute('href', '/app')
         await expect(finalCtaLink.locator('button')).toHaveCount(0)
 
         await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
@@ -660,7 +584,7 @@ test.describe('Pass-the-link default', () => {
         await expect(supportedCurrencies).toBeVisible()
     })
 
-    test('a room example opens the creator from the keyboard without creating a room', async ({ page }) => {
+    test('a room example opens the app home from the keyboard without creating a room', async ({ page }) => {
         await openLanding(page)
 
         const exampleLink = page.getByTestId('room-example-link').first()
@@ -668,8 +592,8 @@ test.describe('Pass-the-link default', () => {
         await expect(exampleLink).toBeFocused()
         await page.keyboard.press('Enter')
 
-        await expect(page).toHaveURL('/new')
-        await expect(page.getByTestId('room-composer')).toBeVisible()
+        await expect(page).toHaveURL('/app')
+        await expect(page.getByTestId('app-home')).toBeVisible()
     })
 
     test('every room example lifts and straightens on desktop hover', async ({ page }, testInfo) => {
@@ -718,18 +642,14 @@ test.describe('Pass-the-link default', () => {
     })
 
     for (const locale of ['en', 'es-419', 'pt-br'] as const) {
-        test(`${locale} localizes the headline, summary, CTA, validation, and proof scenes`, async ({ page }) => {
+        test(`${locale} localizes the headline, summary, CTA, and proof scenes`, async ({ page }) => {
             await page.setViewportSize({ width: 360, height: 740 })
             await openLanding(page, locale)
             const messages = catalogs[locale].marketing
 
             await expect(page.getByRole('heading', { level: 1 })).toHaveText(messages.hero.titleAccessible)
             await expect(page.getByTestId('pass-link-stage-summary')).toHaveText(messages.hero.stageSummary)
-            await expect(page.getByTestId('hero-create-room')).toContainText(messages.hero.cta)
-
-            await page.getByTestId('hero-create-room').click()
-            await expect(page.locator('#hero-room-required')).toHaveRole('alert')
-            await expect(page.locator('#hero-room-required')).toHaveText(messages.hero.validation.roomRequired)
+            await expect(page.getByTestId('landing-app-link')).toContainText(messages.hero.cta)
 
             await expect(page.getByTestId('proof-link-identity')).toContainText(messages.proof.linkIdentity.title)
             await expect(page.getByTestId('proof-everyone-adds')).toContainText(messages.proof.everyoneAdds.title)
@@ -739,7 +659,7 @@ test.describe('Pass-the-link default', () => {
                     name: `${messages.footer.createSplit}: ${messages.proof.linkIdentity.title}`,
                     exact: true,
                 })
-            ).toHaveAttribute('href', '/new')
+            ).toHaveAttribute('href', '/app')
 
             const returnFold = page.locator('details').filter({
                 has: page.getByText(messages.readMore.faq.lost.q, { exact: true }),
@@ -753,13 +673,13 @@ test.describe('Pass-the-link default', () => {
             const footer = page.locator('footer')
             await expect(footer.getByRole('link', { name: messages.footer.createSplit })).toHaveAttribute(
                 'href',
-                '/new'
+                '/app'
             )
             await expect(footer.getByRole('link', { name: messages.footer.logoLinkLabel })).toBeVisible()
         })
     }
 
-    test('zoom, selection, and a shrunken visual viewport keep the form reachable', async ({ page }) => {
+    test('zoom, selection, and a shrunken visual viewport keep the app handoff reachable', async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 844 })
         await openLanding(page)
 
@@ -768,21 +688,14 @@ test.describe('Pass-the-link default', () => {
         expect(viewportContent ?? '').not.toMatch(/maximum-scale\s*=\s*1(?:[,\\s]|$)/i)
         expect(await page.evaluate(() => getComputedStyle(document.body).userSelect)).not.toBe('none')
 
-        const creatorName = page.getByTestId('hero-creator-name')
-        await creatorName.focus()
+        const appLink = page.getByTestId('landing-app-link')
+        await appLink.focus()
         await page.setViewportSize({ width: 390, height: 500 })
-        await creatorName.evaluate((element) => element.scrollIntoView({ block: 'nearest' }))
-        const creatorBox = await creatorName.boundingBox()
-        expect(creatorBox).not.toBeNull()
-        expect(creatorBox!.y).toBeGreaterThanOrEqual(0)
-        expect(creatorBox!.y + creatorBox!.height).toBeLessThanOrEqual(500)
-
-        const cta = page.getByTestId('hero-create-room')
-        await cta.evaluate((element) => element.scrollIntoView({ block: 'nearest' }))
-        const ctaBox = await cta.boundingBox()
-        expect(ctaBox).not.toBeNull()
-        expect(ctaBox!.y).toBeGreaterThanOrEqual(0)
-        expect(ctaBox!.y + ctaBox!.height).toBeLessThanOrEqual(500)
+        await appLink.evaluate((element) => element.scrollIntoView({ block: 'nearest' }))
+        const appLinkBox = await appLink.boundingBox()
+        expect(appLinkBox).not.toBeNull()
+        expect(appLinkBox!.y).toBeGreaterThanOrEqual(0)
+        expect(appLinkBox!.y + appLinkBox!.height).toBeLessThanOrEqual(500)
         expect(
             await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
         ).toBe(true)
@@ -807,7 +720,7 @@ test('every retained room is reachable and can be forgotten only on this device'
     await page.addInitScript((seed) => {
         window.localStorage.setItem('ps:recent', JSON.stringify(seed))
     }, rooms)
-    await openLanding(page)
+    await openApp(page)
 
     const list = page.locator('#recent-room-list')
     await expect(list.getByRole('link')).toHaveCount(5)
@@ -893,7 +806,7 @@ test('pasting a valid room link verifies and saves it while invalid links leave 
             body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'room not found' } }),
         })
     })
-    await openLanding(page)
+    await openApp(page)
 
     const recovery = page.getByTestId('room-link-recovery')
     await recovery.locator('summary').click()
@@ -958,7 +871,7 @@ test('a verified pasted link still opens when localStorage is denied and says it
             }),
         })
     })
-    await openLanding(page)
+    await openApp(page)
 
     const recovery = page.getByTestId('room-link-recovery')
     await recovery.locator('summary').click()

@@ -73,10 +73,11 @@ export const STATIC_PAGES: StaticPage[] = [
  * unreachable — the static segment wins — while still being listed on the hub and in the
  * sitemap, which is worse than a plain 404 because it advertises a page that cannot be opened.
  *
- * STATIC_PAGES alone is not enough: it only knows about marketing pages, not about `/new`,
+ * STATIC_PAGES alone is not enough: it only knows about marketing pages, not about `/app`, `/new`,
  * `/api` or the metadata routes. Keep this in step with the top level of src/app/.
  */
 const RESERVED_ROOT_SEGMENTS = [
+    'app',
     'new',
     'r',
     'share-target',
