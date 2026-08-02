@@ -83,6 +83,11 @@ export type WarningCode =
     | 'MIXED_CURRENCY'
     | 'DUPLICATE_MEMBER_NAME'
     | 'TRUNCATED_HISTORY'
+    | 'SPLITPRO_BALANCES_ONLY'
+    | 'SPLITPRO_PAIR_HISTORY'
+    | 'SPLITPRO_MISSING_NAMES'
+    | 'SPLITPRO_BALANCES_SKIPPED'
+    | 'SPLITPRO_UNSUPPORTED_CURRENCY'
 
 export interface ImportWarning {
     code: WarningCode
@@ -106,7 +111,14 @@ export interface SplitwiseImport {
 }
 
 export type ParseErrorCode =
-    'NOT_SPLITWISE_CSV' | 'NO_MEMBERS' | 'NO_EXPENSES' | 'TOO_MANY_MEMBERS' | 'TOO_MANY_EXPENSES' | 'FILE_TOO_BIG'
+    | 'NOT_SPLITWISE_CSV'
+    | 'MALFORMED_JSON'
+    | 'SPLITPRO_DIRECT_UNRESOLVED'
+    | 'NO_MEMBERS'
+    | 'NO_EXPENSES'
+    | 'TOO_MANY_MEMBERS'
+    | 'TOO_MANY_EXPENSES'
+    | 'FILE_TOO_BIG'
 
 /** A file we cannot turn into a room. Carries a code so the UI can say something true in the
  *  reader's own language instead of rendering an English sentence from a parser. */

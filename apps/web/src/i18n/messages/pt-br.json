@@ -939,16 +939,22 @@
     },
     "import": {
         "drop": {
-            "title": "Solte aqui a sua exportação do Splitwise",
-            "body": "O arquivo .csv que o Splitwise te dá quando você exporta um grupo. Seu navegador lê ele aqui mesmo — o arquivo nunca sai do seu aparelho.",
+            "title": "Solte aqui sua exportação do Splitwise ou Split Pro",
+            "body": "Escolha o .csv de um grupo do Splitwise, o .csv de um contato do Split Pro ou splitpro_data.json. Seu navegador lê tudo aqui mesmo — o arquivo nunca sai do seu aparelho.",
             "cta": "Escolher um arquivo",
             "privacy": "O arquivo fica no seu aparelho. O que a gente recebe são os gastos que o seu navegador leu dele, e só quando você toca no botão."
         },
         "howto": {
-            "title": "Onde achar o arquivo",
-            "step1": "Abra o grupo no splitwise.com.",
-            "step2": "Entre nas configurações do grupo e escolha “Exportar como planilha”.",
-            "step3": "Volte com o .csv e solte aqui em cima."
+            "title": "Exportações aceitas",
+            "step1": "Splitwise: abra as configurações de um grupo e escolha “Exportar como planilha”.",
+            "step2": "Conta do Split Pro: abra Conta e escolha “Baixar dados do SplitPro”.",
+            "step3": "Contato do Split Pro: abra a página de saldos da pessoa e escolha “Exportar”."
+        },
+        "groups": {
+            "label": "Grupo do arquivo",
+            "hint": "Um download da conta do Split Pro pode ter vários grupos. Escolha qual sala criar agora.",
+            "skippedTitle": "Alguns grupos não podem ser importados",
+            "skipped": "{name}: {reason}"
         },
         "preview": {
             "found": "{expenses, plural, one {# gasto} other {# gastos}} · {members, plural, one {# pessoa} other {# pessoas}}",
@@ -990,19 +996,26 @@
             "PAYMENT_ROWS": "Pagamentos entre as pessoas entram como gastos, não como acertos já registrados. Os saldos dão no mesmo.",
             "MIXED_CURRENCY": "O arquivo mistura {detail}.",
             "DUPLICATE_MEMBER_NAME": "Tem duas pessoas chamadas {detail}, então a segunda aparece como “{detail} (2)”. Troque o nome aqui embaixo.",
-            "TRUNCATED_HISTORY": "Uma sala guarda 500 gastos, então {count, plural, one {o # mais antigo entra} other {os # mais antigos entram}} como um único “Saldo anterior” por pessoa. O saldo de cada um continua igual."
+            "TRUNCATED_HISTORY": "Uma sala guarda 500 gastos, então {count, plural, one {o # mais antigo entra} other {os # mais antigos entram}} como um único “Saldo anterior” por pessoa. O saldo de cada um continua igual.",
+            "SPLITPRO_BALANCES_ONLY": "O download da conta do Split Pro traz os saldos atuais, mas não o histórico de gastos. Eles entram como “Saldo anterior”: o total de cada pessoa é preservado, mas a lista de gastos antigos não.",
+            "SPLITPRO_PAIR_HISTORY": "O CSV de um contato do Split Pro não diz a qual grupo cada gasto pertencia. Todos os gastos do arquivo entram juntos nesta sala.",
+            "SPLITPRO_MISSING_NAMES": "O Split Pro deixou de fora {count, plural, one {o nome de uma pessoa} other {os nomes de # pessoas}}. Você verá o rótulo “Membro” abaixo — troque antes de criar a sala.",
+            "SPLITPRO_BALANCES_SKIPPED": "{count, plural, one {Um saldo do backup do Split Pro está incompleto e ficou de fora} other {# saldos do backup do Split Pro estão incompletos e ficaram de fora}}. Compare a prévia com o Split Pro antes de criar a sala.",
+            "SPLITPRO_UNSUPPORTED_CURRENCY": "O Split não consegue converter {detail}, então os saldos nessa moeda ficaram de fora. Use outra exportação se esses saldos importarem."
         },
         "errors": {
-            "NOT_SPLITWISE_CSV": "Isso não parece uma exportação do Splitwise. Tem que ser o arquivo .csv de “Exportar como planilha”.",
-            "NO_MEMBERS": "Essa exportação não tem ninguém dentro — confira se você exportou um grupo e não um gasto avulso.",
-            "NO_EXPENSES": "Não teve nada que a gente conseguisse ler nesse arquivo. Se os gastos estão em uma moeda que o Split não tem, pode ser por isso.",
-            "TOO_MANY_MEMBERS": "Esse grupo tem mais de 20 pessoas. As salas do Split são para uma viagem ou um apê, não para uma lista de e-mails.",
-            "TOO_MANY_EXPENSES": "Essa exportação tem mais de 500 gastos. Tente um grupo com menos histórico, ou comece uma sala nova.",
-            "FILE_TOO_BIG": "Esse arquivo é grande demais para ser uma exportação do Splitwise. Confira se você pegou o certo.",
-            "READ_FAILED": "Não deu para ler esse arquivo. Tente escolher de novo.",
+            "NOT_SPLITWISE_CSV": "A gente não reconhece este arquivo. Escolha o .csv de um grupo do Splitwise, o .csv de um contato do Split Pro ou splitpro_data.json na página Conta do Split Pro.",
+            "MALFORMED_JSON": "Esse arquivo JSON está incompleto ou danificado. Baixe “Dados do SplitPro” de novo na página Conta e use o arquivo novo sem editar.",
+            "SPLITPRO_DIRECT_UNRESOLVED": "Este backup do Split Pro não identifica qual integrante é você, então não dá para separar com segurança os saldos que estão fora dos grupos. Importe os grupos acima e use o CSV de cada contato para qualquer saldo restante.",
+            "NO_MEMBERS": "Esta exportação não tem a lista do grupo. No Splitwise, exporte um grupo; no Split Pro, use “Baixar dados do SplitPro” na página Conta.",
+            "NO_EXPENSES": "Este arquivo não tem nada que possa ser trazido. Talvez o grupo já esteja acertado ou todos os saldos usem uma moeda sem suporte. Confira os saldos no outro app e crie uma sala vazia se estiverem todos zerados.",
+            "TOO_MANY_MEMBERS": "Este grupo tem mais de 20 pessoas. Remova as pessoas inativas no outro app e exporte de novo, ou crie duas salas menores.",
+            "TOO_MANY_EXPENSES": "Esta exportação é grande demais para processar com segurança. Exporte um grupo menor ou use o backup da conta do Split Pro, que traz os saldos atuais em vez de cada gasto antigo.",
+            "FILE_TOO_BIG": "Este arquivo passa do limite de importação de 1 MB. Exporte um único grupo do Splitwise ou baixe um backup novo da conta do Split Pro.",
+            "READ_FAILED": "Seu navegador não conseguiu ler este arquivo. Baixe uma exportação nova, mantenha como .csv ou .json e tente com a nova cópia.",
             "EMPTY_NAME": "Todo mundo precisa de um nome.",
             "DUPLICATE_NAMES": "Tem duas pessoas com o mesmo nome — deixe os nomes diferentes para cada gasto cair na pessoa certa.",
-            "failed": "não deu para criar a sala — tente de novo"
+            "failed": "Não deu para criar a sala. Confira sua conexão e tente de novo; nada foi importado."
         },
         "ready": {
             "title": "Seu grupo entrou",
