@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Peanut Split balance-card directions</title>
+        <style>
+            :root {
+                color-scheme: light;
+                --ink: #211c17;
+                --muted: #5f646d;
+                --canvas: #faf4f0;
+                --white: #fff;
+                --red: #ff4a4a;
+                --red-soft: #ffd8d8;
+                --green: #98e9ab;
+                --green-soft: #eafbee;
+                --yellow: #ffc900;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--canvas);
+                color: var(--ink);
+                font-family: Inter, ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+            }
+
+            main {
+                width: min(100%, 1120px);
+                margin: 0 auto;
+                padding: 48px 24px 72px;
+            }
+
+            h1,
+            h2,
+            p {
+                margin: 0;
+            }
+
+            h1 {
+                max-width: 720px;
+                font-size: clamp(32px, 6vw, 58px);
+                line-height: 0.98;
+                letter-spacing: -0.045em;
+            }
+
+            .intro {
+                max-width: 650px;
+                margin-top: 16px;
+                color: var(--muted);
+                font-size: 17px;
+                line-height: 1.55;
+            }
+
+            .legend {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 24px;
+            }
+
+            .legend span,
+            .tag {
+                border: 1.5px solid var(--ink);
+                border-radius: 999px;
+                background: var(--white);
+                padding: 7px 11px;
+                font-size: 12px;
+                font-weight: 850;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 24px;
+                margin-top: 36px;
+            }
+
+            .option {
+                border: 1.5px solid var(--ink);
+                border-radius: 22px;
+                background: rgba(255, 255, 255, 0.62);
+                padding: 22px;
+                box-shadow: 5px 5px 0 var(--ink);
+            }
+
+            .option-head {
+                display: flex;
+                align-items: start;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 18px;
+            }
+
+            .option h2 {
+                font-size: 19px;
+                line-height: 1.1;
+            }
+
+            .option-copy {
+                margin-top: 5px;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+            .selected {
+                background: #fff9df;
+                outline: 4px solid var(--yellow);
+                outline-offset: 3px;
+            }
+
+            .selected .tag {
+                background: var(--yellow);
+            }
+
+            .phone {
+                display: grid;
+                gap: 13px;
+                border-radius: 18px;
+                background: var(--canvas);
+                padding: 15px;
+            }
+
+            .eyebrow {
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 850;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+            }
+
+            .card {
+                overflow: hidden;
+                border: 1.5px solid var(--ink);
+                border-radius: 12px;
+                background: var(--white);
+                box-shadow: 4px 4px 0 var(--ink);
+            }
+
+            .avatar {
+                display: inline-grid;
+                width: 36px;
+                height: 36px;
+                flex: 0 0 auto;
+                place-items: center;
+                border: 1.5px solid var(--ink);
+                border-radius: 999px;
+                background: #c8d4ff;
+                font-size: 17px;
+            }
+
+            .amount {
+                font-size: 29px;
+                font-weight: 900;
+                letter-spacing: -0.035em;
+                line-height: 1;
+            }
+
+            .amount small {
+                position: relative;
+                top: -0.1em;
+                font-size: 0.7em;
+                opacity: 0.68;
+            }
+
+            .label {
+                font-size: 15px;
+                font-weight: 850;
+                line-height: 1.15;
+            }
+
+            .subtle {
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            /* A — selected: a strong state header and one quiet amount field. */
+            .signal-head {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-height: 38px;
+                padding: 8px 13px;
+                font-size: 13px;
+                font-weight: 900;
+            }
+
+            .signal-head.owe {
+                background: var(--red);
+                color: var(--white);
+            }
+
+            .signal-head.owed {
+                background: var(--green);
+            }
+
+            .signal-arrow {
+                font-size: 19px;
+                line-height: 1;
+            }
+
+            .signal-body {
+                display: flex;
+                align-items: end;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 14px;
+            }
+
+            /* B — compact action rail. */
+            .edge-card {
+                display: grid;
+                grid-template-columns: 50px 1fr;
+                min-height: 92px;
+            }
+
+            .edge-signal {
+                display: grid;
+                place-items: center;
+                border-right: 1.5px solid var(--ink);
+                font-size: 25px;
+                font-weight: 900;
+            }
+
+            .edge-signal.owe {
+                background: var(--red);
+                color: var(--white);
+            }
+
+            .edge-signal.owed {
+                background: var(--green);
+            }
+
+            .edge-copy {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 14px;
+            }
+
+            .edge-copy .amount {
+                margin-top: 8px;
+                font-size: 24px;
+            }
+
+            /* C — literal money path. */
+            .path-card {
+                padding: 15px;
+            }
+
+            .path-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                align-items: center;
+                gap: 10px;
+                margin-top: 14px;
+            }
+
+            .person {
+                display: grid;
+                justify-items: center;
+                gap: 5px;
+                min-width: 0;
+                font-size: 12px;
+                font-weight: 850;
+            }
+
+            .path-money {
+                display: grid;
+                justify-items: center;
+                gap: 2px;
+                min-width: 94px;
+            }
+
+            .path-money .amount {
+                font-size: 21px;
+            }
+
+            .path-line {
+                display: flex;
+                width: 100%;
+                align-items: center;
+                color: var(--red);
+                font-size: 20px;
+                font-weight: 900;
+            }
+
+            .path-line::before {
+                height: 3px;
+                flex: 1;
+                background: currentColor;
+                content: "";
+            }
+
+            .path-card.owed .path-line {
+                color: #328a4a;
+                transform: scaleX(-1);
+            }
+
+            /* D — status capsule, familiar but quieter. */
+            .chip-card {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px;
+            }
+
+            .chip-copy {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                border: 1.5px solid var(--ink);
+                border-radius: 999px;
+                padding: 5px 8px;
+                font-size: 11px;
+                font-weight: 900;
+                text-transform: uppercase;
+            }
+
+            .chip.owe {
+                background: var(--red-soft);
+            }
+
+            .chip.owed {
+                background: var(--green-soft);
+            }
+
+            .chip-copy .amount {
+                margin-top: 8px;
+                font-size: 24px;
+            }
+
+            .footer {
+                margin-top: 34px;
+                border-top: 1.5px solid var(--ink);
+                padding-top: 18px;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            @media (max-width: 760px) {
+                main {
+                    padding: 30px 14px 56px;
+                }
+
+                .grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .option {
+                    padding: 17px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Make the money direction impossible to miss.</h1>
+            <p class="intro">
+                Four populated card approaches use the same amount and person. Each repeats direction with words and
+                shape; red and green only speed up the scan.
+            </p>
+            <div class="legend">
+                <span>375px-first</span><span>Tap opens the working</span><span>Color is redundant</span>
+            </div>
+
+            <section class="grid" aria-label="Balance card approaches">
+                <article class="option selected">
+                    <div class="option-head">
+                        <div>
+                            <h2>A. Signal band</h2>
+                            <p class="option-copy">One strong relationship line; the amount gets the quiet body.</p>
+                        </div>
+                        <span class="tag">Selected</span>
+                    </div>
+                    <div class="phone">
+                        <p class="eyebrow">Outgoing</p>
+                        <div class="card">
+                            <div class="signal-head owe"><span class="signal-arrow">→</span> You owe Bea</div>
+                            <div class="signal-body">
+                                <span class="amount"><small>€</small>42.50</span><span class="subtle">tap for details</span>
+                            </div>
+                        </div>
+                        <p class="eyebrow">Incoming</p>
+                        <div class="card">
+                            <div class="signal-head owed"><span class="signal-arrow">←</span> Bea owes you</div>
+                            <div class="signal-body">
+                                <span class="amount"><small>€</small>42.50</span><span class="subtle">tap for details</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="option">
+                    <div class="option-head">
+                        <div>
+                            <h2>B. Action edge</h2>
+                            <p class="option-copy">The side rail makes a fast list scan; the sentence stays primary.</p>
+                        </div>
+                    </div>
+                    <div class="phone">
+                        <p class="eyebrow">Outgoing</p>
+                        <div class="card edge-card">
+                            <div class="edge-signal owe">→</div>
+                            <div class="edge-copy">
+                                <div><div class="label">You owe Bea</div><div class="amount"><small>€</small>42.50</div></div>
+                                <span class="avatar">●</span>
+                            </div>
+                        </div>
+                        <p class="eyebrow">Incoming</p>
+                        <div class="card edge-card">
+                            <div class="edge-signal owed">←</div>
+                            <div class="edge-copy">
+                                <div><div class="label">Bea owes you</div><div class="amount"><small>€</small>42.50</div></div>
+                                <span class="avatar">●</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="option">
+                    <div class="option-head">
+                        <div>
+                            <h2>C. Money path</h2>
+                            <p class="option-copy">Literal sender-to-receiver flow; clearest diagram, highest density.</p>
+                        </div>
+                    </div>
+                    <div class="phone">
+                        <p class="eyebrow">Outgoing</p>
+                        <div class="card path-card">
+                            <div class="label">You owe Bea</div>
+                            <div class="path-row">
+                                <span class="person"><span class="avatar">●</span>You</span>
+                                <span class="path-money"><span class="amount"><small>€</small>42.50</span><span class="path-line">›</span></span>
+                                <span class="person"><span class="avatar">●</span>Bea</span>
+                            </div>
+                        </div>
+                        <p class="eyebrow">Incoming</p>
+                        <div class="card path-card owed">
+                            <div class="label">Bea owes you</div>
+                            <div class="path-row">
+                                <span class="person"><span class="avatar">●</span>You</span>
+                                <span class="path-money"><span class="amount"><small>€</small>42.50</span><span class="path-line">›</span></span>
+                                <span class="person"><span class="avatar">●</span>Bea</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="option">
+                    <div class="option-head">
+                        <div>
+                            <h2>D. Action chip</h2>
+                            <p class="option-copy">Small status label preserves the current avatar-led pattern.</p>
+                        </div>
+                    </div>
+                    <div class="phone">
+                        <p class="eyebrow">Outgoing</p>
+                        <div class="card chip-card">
+                            <span class="avatar">●</span>
+                            <div class="chip-copy">
+                                <span class="chip owe">→ You owe Bea</span>
+                                <div class="amount"><small>€</small>42.50</div>
+                            </div>
+                        </div>
+                        <p class="eyebrow">Incoming</p>
+                        <div class="card chip-card">
+                            <span class="avatar">●</span>
+                            <div class="chip-copy">
+                                <span class="chip owed">← Bea owes you</span>
+                                <div class="amount"><small>€</small>42.50</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <p class="footer">
+                Decision: A wins because it gives direction a fixed location, removes the decorative identity layer from
+                the two-person card, and leaves one dominant number. B is the smallest rollback option. C is strongest in
+                a usability test but too dense for the room. D is familiar but puts the key words back into a small shape.
+            </p>
+        </main>
+    </body>
+</html>
