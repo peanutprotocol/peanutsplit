@@ -113,12 +113,18 @@ test.describe('the install row', () => {
         await expect(row).toBeVisible()
         // Not a button: there is nothing behind it, and a tap that does nothing is a dead end.
         expect(await row.evaluate((element) => element.tagName)).not.toBe('BUTTON')
+        // A desktop keeps the install wording, a Mac included — nothing here has a home screen.
+        await expect(row).toContainText('Install Split')
     })
 
     test('opens the Safari steps on iOS', async ({ page }) => {
         onlyOn('mobile')
         test.setTimeout(60_000)
         await openDeviceSheet(page, 'Install ios')
+
+        // The label is Safari's own words, so the row names the thing the person is then told to
+        // look for two lines further down. "Install" appears nowhere on an iPhone.
+        await expect(page.getByTestId('install-row-ios')).toContainText('Add to home screen')
 
         await page.getByTestId('install-row-ios').click()
         await expect(page.getByText('Tap the Share button in the Safari toolbar.')).toBeVisible()
