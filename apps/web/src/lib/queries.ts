@@ -30,17 +30,43 @@ import {
     enqueueWrite,
     isOfflineFailure,
     mergeQueuedExpenses,
+    parseQueue,
+    queuedExpenseId,
     refreshQueueSnapshot,
     requestDrain,
     setQueuePerformer,
     useQueuedWrites,
     useQueueNotices,
 } from './offline-queue'
-import { PENDING_ID_PREFIX, savedExpenses } from './pending'
 import { useRoomEvents } from './realtime'
 
 export const roomKey = (slug: string) => ['room', slug] as const
 export const currenciesKey = ['currencies'] as const
+
+/**
+ * Which rooms lost queued records in another tab.
+ *
+ * `null` means storage was cleared wholesale, so the caller must refresh every
+ * active room. The legacy array diff stays here while `PENDING_KEY` remains a
+ * supported upgrade path; otherwise an older tab can drain successfully while
+ * a newer tab removes its placeholder without fetching the saved expense.
+ */
+export function removedQueueSlugs(event: Pick<StorageEvent, 'key' | 'oldValue' | 'newValue'>): string[] | null {
+    if (event.key === null) return null
+
+    const removed = (() => {
+        if (event.key.startsWith(PENDING_ITEM_PREFIX)) {
+            return event.newValue === null && event.oldValue !== null ? parseQueue(`[${event.oldValue}]`) : []
+        }
+        if (event.key === PENDING_KEY) {
+            const remaining = new Set(parseQueue(event.newValue).map((item) => item.clientKey))
+            return parseQueue(event.oldValue).filter((item) => !remaining.has(item.clientKey))
+        }
+        return []
+    })()
+
+    return [...new Set(removed.map((item) => item.slug))]
+}
 
 /** Every mutation returns the full RoomState, so the cache is seeded in one hop
  *  and no screen ever derives money client-side. */
@@ -179,8 +205,20 @@ export function useOfflineQueueRunner(): void {
         requestDrain()
         const onStorage = (event: StorageEvent) => {
             if (event.key === null || event.key === PENDING_KEY || event.key.startsWith(PENDING_ITEM_PREFIX)) {
+                const removedSlugs = removedQueueSlugs(event)
                 refreshQueueSnapshot()
                 requestDrain()
+                // The tab that won the lock seeds its own cache from the replay response. Other
+                // tabs only see the storage removal, so explicitly fetch server truth there; just
+                // dropping the placeholder can otherwise leave a saved expense absent until the
+                // next SSE poke or poll.
+                if (removedSlugs === null) {
+                    void queryClient.refetchQueries({ queryKey: ['room'], type: 'active' })
+                } else {
+                    for (const slug of removedSlugs) {
+                        void queryClient.refetchQueries({ queryKey: roomKey(slug) })
+                    }
+                }
             }
         }
         window.addEventListener('storage', onStorage)
@@ -338,17 +376,18 @@ const expenseRequestSignature = (input: ExpenseInput): string =>
     ])
 
 /**
- * The cached room with any in-flight optimistic rows stripped out.
+ * The cached room with this write's in-flight optimistic row stripped out.
  *
  * Used as the resolved value when a write goes to the queue: handing back the
- * cache as-is would leave the `pending-…` placeholder from `onMutate` seeded
- * permanently, and it would then sit next to the queue's own row for the same
- * expense.
+ * cache as-is would leave the placeholder from `onMutate` seeded permanently,
+ * and it would then sit next to the queue's own row for the same expense. Other
+ * pending writes stay put: they are independent saves which may still succeed.
  */
-const authoritativeState = (queryClient: QueryClient, slug: string): RoomState | undefined => {
+const authoritativeState = (queryClient: QueryClient, slug: string, clientKey: string): RoomState | undefined => {
     const cached = queryClient.getQueryData<RoomState>(roomKey(slug))
     if (!cached) return undefined
-    return { ...cached, expenses: savedExpenses(cached.expenses) }
+    const pendingId = queuedExpenseId(clientKey)
+    return { ...cached, expenses: cached.expenses.filter((expense) => expense.id !== pendingId) }
 }
 
 /**
@@ -365,6 +404,23 @@ export function addExpenseMutationOptions(
     token?: string | null,
     requestRef?: ExpenseRequestRef
 ): UseMutationOptions<RoomState, Error, ExpenseInput, AddExpenseContext> {
+    let localRequest: ExpenseRequestState | null = null
+    const requestFor = (input: ExpenseInput): ExpenseRequestState => {
+        const signature = expenseRequestSignature(input)
+        const current = requestRef ? requestRef.current : localRequest
+        const next = {
+            signature,
+            clientKey: input.clientKey ?? (current?.signature === signature ? current.clientKey : createClientKey()),
+        }
+        localRequest = next
+        if (requestRef) requestRef.current = next
+        return next
+    }
+    const clearRequest = () => {
+        localRequest = null
+        if (requestRef) requestRef.current = null
+    }
+
     return {
         /**
          * The one write that survives having no network. On a transport failure
@@ -382,12 +438,8 @@ export function addExpenseMutationOptions(
             // Mint before the first network attempt. If the write commits but
             // its response is lost, the offline replay addresses that row
             // instead of creating a second expense.
-            const signature = expenseRequestSignature(input)
-            const clientKey =
-                input.clientKey ??
-                (requestRef?.current?.signature === signature ? requestRef.current.clientKey : createClientKey())
+            const { clientKey } = requestFor(input)
             const requestInput = { ...input, clientKey }
-            if (requestRef) requestRef.current = { signature, clientKey }
             try {
                 return await api.addExpense(slug, requestInput, token)
             } catch (error) {
@@ -398,7 +450,7 @@ export function addExpenseMutationOptions(
                 if (!isOfflineFailure(error)) throw error
                 // No cached room to hand back (a save before the first GET
                 // landed) — there is nothing honest to resolve with.
-                const authoritative = authoritativeState(queryClient, slug)
+                const authoritative = authoritativeState(queryClient, slug, clientKey)
                 if (!authoritative) throw error
                 const queued = enqueueWrite({
                     slug,
@@ -412,6 +464,7 @@ export function addExpenseMutationOptions(
             }
         },
         onMutate: async (input: ExpenseInput) => {
+            const { clientKey } = requestFor(input)
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
             if (previous && !input.newPaidByName) {
@@ -423,7 +476,7 @@ export function addExpenseMutationOptions(
                         // same function — an in-flight write and a held one look
                         // identical to the list, and only one shape may exist.
                         draftExpenseRow(input, {
-                            id: `${PENDING_ID_PREFIX}${now}`,
+                            id: queuedExpenseId(clientKey),
                             at: now,
                             members: previous.members,
                         }),
@@ -437,7 +490,7 @@ export function addExpenseMutationOptions(
             if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
         },
         onSuccess: (state) => {
-            if (requestRef) requestRef.current = null
+            clearRequest()
             seed(queryClient, slug, state)
         },
     }

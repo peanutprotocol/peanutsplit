@@ -193,14 +193,23 @@ export async function drainQueue(
  */
 export function mergeQueuedExpenses(state: RoomState, queued: readonly QueuedWrite[]): RoomState {
     if (queued.length === 0) return state
-    const rows = queued.map((item) =>
+    const savedIds = new Set(
+        state.expenses.filter((expense) => !expense.id.startsWith(PENDING_ID_PREFIX)).map((expense) => expense.id)
+    )
+    const waiting = queued.filter((item) => !savedIds.has(item.clientKey))
+    const queuedIds = new Set(queued.map((item) => queuedExpenseId(item.clientKey)))
+    const rows = waiting.map((item) =>
         draftExpenseRow(item.body, {
             id: queuedExpenseId(item.clientKey),
             at: item.addedAt,
             members: state.members,
         })
     )
-    return { ...state, expenses: [...rows, ...state.expenses] }
+    // Replace only this queue's optimistic rows. Another save may still be in flight, and stripping
+    // every `pending-…` row would make that unrelated expense disappear. A replay response can
+    // arrive while its storage record still exists; in that brief overlap the authoritative id is
+    // the client key, so `waiting` suppresses the stale queued placeholder as well.
+    return { ...state, expenses: [...rows, ...state.expenses.filter((expense) => !queuedIds.has(expense.id))] }
 }
 
 /** `pending-<clientKey>` — the prefix the expense list already treats as "not

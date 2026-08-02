@@ -288,6 +288,37 @@ describe('queued rows on screen', () => {
         expect(merged.expenses[0].shares.every((share) => share.amountMinor === '0')).toBe(true)
     })
 
+    it('replaces only the queued write’s matching optimistic row', () => {
+        const server = state()
+        const withOptimistic = {
+            ...server,
+            expenses: [
+                { ...server.expenses[0], id: 'pending-k1' },
+                { ...server.expenses[0], id: 'pending-other' },
+                ...server.expenses,
+            ],
+        }
+        const merged = mergeQueuedExpenses(withOptimistic, [item({ clientKey: 'k1' })])
+
+        expect(merged.expenses.filter((expense) => expense.id === 'pending-k1')).toHaveLength(1)
+        expect(merged.expenses[0].id).toBe('pending-k1')
+        expect(merged.expenses[1].id).toBe('pending-other')
+        expect(merged.expenses.slice(2)).toEqual(server.expenses)
+    })
+
+    it('suppresses the queued row once the replay response already contains its client key', () => {
+        const server = state()
+        const replayed = {
+            ...server,
+            expenses: [{ ...server.expenses[0], id: 'k1', description: 'Dinner' }, ...server.expenses],
+        }
+        const merged = mergeQueuedExpenses(replayed, [item({ clientKey: 'k1' })])
+
+        expect(merged.expenses.filter((expense) => expense.id === 'pending-k1')).toHaveLength(0)
+        expect(merged.expenses.filter((expense) => expense.id === 'k1')).toHaveLength(1)
+        expect(merged.expenses).toEqual(replayed.expenses)
+    })
+
     it('splits an EQUAL row across everyone and an EXACT row across who was named', () => {
         const equal = mergeQueuedExpenses(state(), [item()])
         expect(equal.expenses[0].shares.map((s) => s.memberId)).toEqual(['ana', 'bea'])
