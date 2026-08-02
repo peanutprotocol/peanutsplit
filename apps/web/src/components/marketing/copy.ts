@@ -235,7 +235,7 @@ export const marketingCopy = {
         hero: {
             eyebrow: 'splitwise import',
             title: 'Bring your group’s history with you',
-            body: 'Switching splitters normally means abandoning everything you already logged. Export your Splitwise group as a spreadsheet, drop it here, and Split rebuilds it — every expense, who paid, and the balances you had a minute ago — as a room link you can paste into the group chat.',
+            body: 'Export the group as a spreadsheet and drop it here. Split rebuilds every expense and balance as a room link you can paste into the group chat.',
         },
         honest: {
             title: 'What to expect',

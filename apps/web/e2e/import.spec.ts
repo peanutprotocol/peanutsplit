@@ -66,6 +66,51 @@ test('a file that is not a Splitwise export says so, and writes nothing', async 
     await expect(page.getByTestId('import-room-name')).toHaveCount(0)
 })
 
+test('the importer follows the saved app language without changing the English page shell', async ({ page }) => {
+    await page.goto('/')
+
+    for (const [locale, chooseFile] of [
+        ['es-419', 'Elegir un archivo'],
+        ['pt-br', 'Escolher um arquivo'],
+    ] as const) {
+        await page.context().addCookies([{ name: 'ps-locale', value: locale, url: page.url() }])
+        await page.goto('/import')
+
+        // The indexed article is English, while the product surface explicitly marks and renders
+        // its saved locale so a screen reader switches language for the interactive controls.
+        await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+        await expect(page.getByTestId('import-choose')).toHaveText(chooseFile)
+        await expect(page.getByTestId('import-choose').locator('xpath=ancestor::section')).toHaveAttribute(
+            'lang',
+            locale === 'pt-br' ? 'pt-BR' : locale
+        )
+    }
+})
+
+test('the custom file button is the only keyboard-accessible chooser', async ({ page }) => {
+    await page.goto('/import')
+
+    const nativeInput = page.getByTestId('import-file')
+    await expect(nativeInput).toHaveAttribute('tabindex', '-1')
+    await expect(nativeInput).toHaveAttribute('aria-hidden', 'true')
+
+    await page.keyboard.press('Home')
+    for (let attempt = 0; attempt < 12; attempt++) {
+        await page.keyboard.press('Tab')
+        if (await page.getByTestId('import-choose').evaluate((button) => button === document.activeElement)) break
+    }
+    await expect(page.getByTestId('import-choose')).toBeFocused()
+})
+
+test('the upload action fits in the initial small-phone viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 })
+    await page.goto('/import')
+
+    const button = await page.getByTestId('import-choose').boundingBox()
+    expect(button).not.toBeNull()
+    expect(button!.y + button!.height).toBeLessThanOrEqual(700)
+})
+
 test('the import preview is fully visible and still with reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/import')

@@ -2,7 +2,8 @@
  * Handler-level tests: the real route modules against the real `peanut_split_test`
  * database. No HTTP server — Next route handlers are plain functions.
  */
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { PrismaClient } from '@prisma/client'
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { STATIC_USD_PER_UNIT } from '@/server/money'
 import { resetRateLimits } from '@/server/rateLimit'
@@ -24,6 +25,17 @@ import { backfillPatch, latecomerOffer } from '@/lib/latecomer'
 import type { ApiError, RoomState, RoomStateWithAddedMember, RoomStateWithMember } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
+
+/**
+ * The two serialization tests below deliberately fill the application's pool:
+ * one connection owns the room lock while two route transactions queue behind
+ * it. CI gives Prisma a three-connection pool, so observing those waiters
+ * through the application client would itself wait forever for connection four.
+ * Keep the observer outside the pool under test and bound it to one connection.
+ */
+const observerUrl = new URL(process.env.DATABASE_URL as string)
+observerUrl.searchParams.set('connection_limit', '1')
+const lockObserver = new PrismaClient({ datasourceUrl: observerUrl.toString() })
 
 type Params = Record<string, string>
 type Handler = (request: Request, ctx: { params: Promise<Params> }) => Promise<Response>
@@ -83,7 +95,7 @@ const removeMember = (slug: string, memberId: string) =>
 
 const waitForAdvisoryWaiters = async (minimum: number): Promise<void> => {
     for (let attempt = 0; attempt < 100; attempt++) {
-        const [row] = await prisma.$queryRaw<[{ count: bigint }]>`
+        const [row] = await lockObserver.$queryRaw<[{ count: bigint }]>`
             SELECT count(*)::bigint AS count
             FROM pg_locks
             WHERE locktype = 'advisory' AND granted = false
@@ -133,6 +145,10 @@ beforeEach(async () => {
     // The limiter is process-wide: without this, the room a later test
     // creates fails for a reason belonging to an earlier one.
     resetRateLimits()
+})
+
+afterAll(async () => {
+    await lockObserver.$disconnect()
 })
 
 describe('ops endpoints', () => {
