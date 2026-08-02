@@ -33,11 +33,9 @@ interface PushOptInProps {
  * says: a subscription row is (room, endpoint, member). Nothing here ever asks on
  * its own — the row sits in a sheet somebody deliberately opened.
  *
- * At most one line ever renders under the toggle, and in the three states the
- * toggle cannot honestly work — iOS in a tab, an origin-level block, and a check
- * that could not reach the server — that line REPLACES it, inside a labelled row.
- * A live switch that does nothing, or that claims a position nobody verified, is
- * worse than no switch.
+ * The same row stays in place from tap through the browser's permission result.
+ * If the browser denies the request, the switch stays disabled and carries the
+ * reason as its hint instead of disappearing from under the person who tapped it.
  */
 export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptInProps) {
     const t = useTranslations('push')
@@ -115,15 +113,8 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
         )
     }
 
-    // No toggle: an origin-level block can only be lifted in browser settings,
-    // and requestPermission() from here would resolve 'denied' without showing
-    // anything. A labelled line is the entire honest answer.
-    if (displayed === 'denied') return <StateRow label={t('label')} line={t('denied')} />
-
-    // No toggle either: the per-room row lives on the server and the check for it
-    // did not come back. A switch has to sit somewhere, and both positions would
-    // be a claim — "off" is the one that contradicts a phone that is still
-    // buzzing. Say what happened; the next sheet open asks again.
+    // The per-room row lives on the server and the check for it did not come
+    // back. Neither switch position is honest, so show the state without one.
     if (displayed === 'unknown') return <StateRow label={t('label')} line={t('unknown')} />
 
     /**
@@ -134,6 +125,7 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
      */
     const provenIdentity = identity?.token ? identity : null
     const subscribed = displayed === 'subscribed'
+    const unavailableLine = displayed === 'denied' ? t('denied') : undefined
 
     const toggle = async (next: boolean) => {
         if (!provenIdentity?.token) return
@@ -154,9 +146,11 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
         <div className="flex flex-col gap-2">
             <SettingToggle
                 label={t('notifyMe', { room: roomName })}
+                hint={unavailableLine}
                 testId={subscribed ? 'push-disable' : 'push-enable'}
                 checked={subscribed}
-                disabled={!provenIdentity || busy}
+                disabled={!provenIdentity || unavailableLine !== undefined}
+                loading={busy}
                 onChange={(next) => void toggle(next)}
             />
             {provenIdentity ? (

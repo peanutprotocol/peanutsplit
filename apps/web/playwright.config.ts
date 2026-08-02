@@ -35,6 +35,10 @@ export default defineConfig({
                       process.env.E2E_DATABASE_URL ?? 'postgresql://peanut:peanut@localhost:5432/peanut_split_dev',
                   SPLIT_FX_MODE: 'static',
                   NEXT_PUBLIC_BASE_URL: baseURL,
+                  // Keep the notification control in the e2e surface. Tests that exercise it
+                  // stop at the browser permission result, so this short fixture key is never
+                  // passed to PushManager.
+                  NEXT_PUBLIC_VAPID_PUBLIC_KEY: 'aGkh',
               },
           },
     projects: [

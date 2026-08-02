@@ -22,6 +22,7 @@ export function SettingToggle({
     checked,
     onChange,
     disabled,
+    loading,
     testId,
 }: {
     label: string
@@ -29,6 +30,7 @@ export function SettingToggle({
     checked: boolean
     onChange: (next: boolean) => void
     disabled?: boolean
+    loading?: boolean
     /**
      * Passed in rather than derived from `label`. The test id used to be
      * `setting-${label.toLowerCase()}`, which meant translating "Sound" renamed the hook the e2e
@@ -43,12 +45,13 @@ export function SettingToggle({
             type="button"
             role="switch"
             aria-checked={checked}
-            disabled={disabled}
+            aria-busy={loading || undefined}
+            disabled={disabled || loading}
             onClick={() => onChange(!checked)}
             data-testid={testId}
             className={cn(
                 'flex min-h-11 w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-y-[2px]',
-                disabled && 'opacity-50'
+                (disabled || loading) && 'cursor-default active:translate-y-0'
             )}
         >
             <span className="min-w-0 flex-1">
@@ -61,7 +64,11 @@ export function SettingToggle({
                 data-motion-surface
                 className="flex size-6 shrink-0 items-center justify-center rounded-sm border border-n-1"
             >
-                {checked && <Icon name="check" size={16} />}
+                {loading ? (
+                    <span className="size-2 animate-pulse rounded-full bg-n-1 motion-reduce:animate-none" />
+                ) : (
+                    checked && <Icon name="check" size={16} />
+                )}
             </motion.span>
         </button>
     )
