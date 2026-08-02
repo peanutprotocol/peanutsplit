@@ -110,16 +110,23 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
 
     // The device preferences are one row and a nested sheet, and nothing per
     // room is inside it any more.
-    await page.getByTestId('device-row').click()
-    await expect(page.getByTestId('device-sheet')).toBeVisible()
+    const deviceRow = page.getByTestId('device-row')
+    await expect(deviceRow).toContainText('English')
+    await deviceRow.click()
+    const deviceSheet = page.getByTestId('device-sheet')
+    await expect(deviceSheet).toBeVisible()
     // Installing is per device too, and it is the first thing in the sheet. Matched by prefix
     // because which of the five states renders depends on the browser this project is running.
     await expect(
-        page
-            .locator('[data-testid="device-sheet"]')
-            .locator('[data-testid^="install-row-"], [data-testid="setting-sound"]')
+        deviceSheet
+            .locator('[data-testid^="install-row-"], [role="group"][aria-label="Language"]')
             .first()
-    ).toHaveAttribute('data-testid', /^install-row-/)
+    ).toBeVisible()
+    const language = deviceSheet.getByRole('group', { name: 'Language' })
+    await expect(language).toBeVisible()
+    await expect(language.getByTestId('locale-en')).toHaveAttribute('aria-pressed', 'true')
+    await expect(language.getByTestId('locale-es-419')).toHaveAttribute('aria-pressed', 'false')
+    await expect(language.getByTestId('locale-pt-br')).toHaveAttribute('aria-pressed', 'false')
     await expect(page.getByTestId('setting-sound')).toBeVisible()
     await expect(page.getByTestId('setting-haptics')).toBeVisible()
     await expect(page.getByTestId('setting-animations')).toBeVisible()
@@ -152,4 +159,28 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     await page.reload()
     await expect(page.locator('header h1')).toHaveText('The great escape', { timeout: 15_000 })
     expect(page.url()).toBe(permanentUrl)
+
+    // Language is a device preference: it reloads the same room in the selected native catalog,
+    // persists, and never changes the shared room link.
+    await page.getByTestId('open-room-settings').click()
+    await expect(page.getByTestId('device-row')).toContainText('English')
+    await page.getByTestId('device-row').click()
+    const reloaded = page.waitForEvent('framenavigated')
+    await page.getByTestId('locale-es').click()
+    await reloaded
+
+    expect(page.url()).toBe(permanentUrl)
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es')
+    await expect(page.locator('html')).toHaveAttribute('translate', 'no')
+    await expect
+        .poll(async () => (await page.context().cookies()).find(({ name }) => name === 'ps-locale')?.value)
+        .toBe('es')
+
+    await page.getByTestId('open-room-settings').click()
+    const spanishDeviceRow = page.getByTestId('device-row')
+    await expect(spanishDeviceRow).toContainText('Este dispositivo')
+    await expect(spanishDeviceRow).toContainText('Español')
+    await spanishDeviceRow.click()
+    const spanishLanguage = page.getByRole('group', { name: 'Idioma' })
+    await expect(spanishLanguage.getByTestId('locale-es')).toHaveAttribute('aria-pressed', 'true')
 })

@@ -50,13 +50,11 @@ export function FinalCta() {
                 <p className="mt-2 text-sm leading-5 text-grey-1">{t('subtitle')}</p>
                 {/*
                  * Not <Button>: a <button> inside an <a> is invalid HTML, and the whole card is the
-                 * link now. It borrows Button's classes and carries Button's translate guard, which
-                 * stops Google Translate rewriting the label. The press affordance lives on
-                 * .final-cta-link:active instead — this span is pointer-events: none.
+                 * link now. It borrows Button's classes. The document root owns the native-catalog
+                 * translation policy. The press affordance lives on .final-cta-link:active instead.
                  */}
                 <span
-                    translate="no"
-                    className="final-cta-button notranslate btn btn-primary btn-shadow-primary-4 mt-4 flex w-full justify-center text-h6"
+                    className="final-cta-button btn btn-primary btn-shadow-primary-4 mt-4 flex w-full justify-center text-h6"
                 >
                     {t('button')}
                 </span>

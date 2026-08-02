@@ -1,5 +1,5 @@
 'use client'
-import React, { forwardRef, useCallback, useEffect, useRef } from 'react'
+import React, { forwardRef, useCallback } from 'react'
 import { cn as twMerge } from '@/lib/cn'
 import { Icon, type IconName } from './Icon'
 import Loading from './Loading'
@@ -109,21 +109,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         },
         ref
     ) => {
-        const localRef = useRef<HTMLButtonElement>(null)
-        const buttonRef = (ref as React.RefObject<HTMLButtonElement>) || localRef
-
         // Every other cue in the app goes through use-settings, which owns the
         // one hidden iOS switch and the user's haptics preference. Calling the
         // `use-haptic` hook here instead ignored that toggle — a user who turned
         // haptics off still felt every button.
         const { settings } = useSettings()
         const { isLongPressed, pressProgress, handlers: longPressHandlers } = useLongPress(longPress)
-
-        useEffect(() => {
-            if (!buttonRef.current) return
-            buttonRef.current.setAttribute('translate', 'no')
-            buttonRef.current.classList.add('notranslate')
-        }, [buttonRef])
 
         const handleClick = useCallback(
             (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -141,7 +132,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )
 
         const buttonClasses = twMerge(
-            'btn flex w-full items-center gap-2 transition-all duration-100 active:translate-x-[3px] active:shadow-none notranslate',
+            'btn flex w-full items-center gap-2 transition-all duration-100 active:translate-x-[3px] active:shadow-none',
             buttonVariants[variant],
             variant === 'transparent' && disabled && 'disabled:bg-transparent disabled:border-transparent',
             size && buttonSizes[size],
@@ -167,9 +158,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         return (
             <button
-                className={twMerge(buttonClasses, 'notranslate', longPress && 'relative overflow-hidden')}
-                ref={buttonRef}
-                translate="no"
+                className={twMerge(buttonClasses, longPress && 'relative overflow-hidden')}
+                ref={ref}
                 onClick={handleClick}
                 onMouseDown={longPress ? longPressHandlers.onMouseDown : undefined}
                 onMouseUp={longPress ? longPressHandlers.onMouseUp : undefined}

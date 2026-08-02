@@ -7,9 +7,8 @@
  * cookie the server reads and reloads, which re-renders every server component in the new
  * language with no hydration mismatch to manage.
  *
- * The labels are endonyms and are NOT translated (see `LOCALE_LABELS`): someone who landed in a
- * language they can't read finds the way out by recognising "English", not by parsing the UI
- * around it.
+ * The labels are endonyms (see `LOCALE_LABELS`): someone who landed in a language they cannot
+ * read finds the way out by recognising "English", not by parsing the UI around it.
  */
 
 import { useLocale } from 'next-intl'
@@ -46,12 +45,11 @@ export function LocaleSwitcher({
                             key={locale}
                             type="button"
                             lang={locale}
-                            translate="no"
                             aria-pressed={active}
                             data-testid={`locale-${locale}`}
                             onClick={() => setLocaleAndReload(locale)}
                             className={cn(
-                                'notranslate min-h-9 text-sm transition-colors duration-150',
+                                'min-h-9 text-sm transition-colors duration-150',
                                 active ? 'font-bold text-white underline underline-offset-4' : 'text-white/70'
                             )}
                         >
@@ -74,14 +72,11 @@ export function LocaleSwitcher({
                             key={locale}
                             type="button"
                             lang={locale}
-                            // Endonyms must survive Chrome's auto-translate, or the escape
-                            // hatch gets rewritten into the language you are trying to leave.
-                            translate="no"
                             aria-pressed={active}
                             data-testid={`locale-${locale}`}
                             onClick={() => setLocaleAndReload(locale)}
                             className={cn(
-                                'notranslate min-h-11 flex-1 px-3 py-2 text-h8 transition-colors duration-150',
+                                'min-h-11 flex-1 px-3 py-2 text-h8 transition-colors duration-150',
                                 active ? 'bg-n-1 text-white' : 'bg-white text-n-1'
                             )}
                         >

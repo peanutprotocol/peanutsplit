@@ -39,6 +39,7 @@ export function DeviceSheet({ open, onClose }: { open: boolean; onClose: () => v
                 <DrawerBody>
                     {/* Installing is per device by construction, so the sheet's label stays true. */}
                     <InstallRow />
+                    <LocaleSwitcher label={tLocale('label')} />
                     <div className="flex flex-col gap-2">
                         <SettingToggle
                             label={t('sound')}
@@ -62,7 +63,6 @@ export function DeviceSheet({ open, onClose }: { open: boolean; onClose: () => v
                             onChange={setAnimationsEnabled}
                         />
                     </div>
-                    <LocaleSwitcher label={tLocale('label')} />
                 </DrawerBody>
             </DrawerContent>
         </Drawer>

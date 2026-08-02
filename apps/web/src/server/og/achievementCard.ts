@@ -87,7 +87,7 @@ export type AchievementCardData =
  * drawings instead of writing counts, which is what makes them free of plurals
  * in three languages.
  */
-type Copy = (key: string, params?: Record<string, string | number>) => Promise<string>
+type Copy = (key: string, params?: Record<string, string | number>) => string | Promise<string>
 
 // ---------------------------------------------------------------- pure shaping
 
@@ -273,7 +273,7 @@ export async function loadAchievementCard(
     const room = (await prisma.room.findUnique({ where: { slug }, select: SELECT[kind] })) as LoadedRoom | null
     if (!room) return null
 
-    const t = (await getTranslator(room.locale ?? 'en')) as Copy
+    const t: Copy = await getTranslator(room.locale ?? 'en')
     const theme = { theme: room.theme }
 
     switch (kind) {

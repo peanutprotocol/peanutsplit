@@ -68,7 +68,7 @@ export const PERSONAS = {
     'vampire-penguin': persona(
         'personavampirepenguin',
         'Vampire Penguin',
-        'avoids mornings on principle',
+        'Avoids mornings',
         '#F8D8ED',
         '#C9B8F4',
         '#50355F'
@@ -76,31 +76,17 @@ export const PERSONAS = {
     'pirate-parrot': persona(
         'personapirateparrot',
         'Pirate Parrot',
-        'confidently lost',
+        'Confidently lost',
         '#CDEDF2',
         '#FFD78A',
         '#185A67'
     ),
-    'cozy-ghost': persona(
-        'personacozyghost',
-        'Cozy Ghost',
-        'leaves without saying goodbye',
-        '#DDE2FF',
-        '#FFDBA6',
-        '#4A4D83'
-    ),
-    'wizard-frog': persona(
-        'personawizardfrog',
-        'Wizard Frog',
-        'has a trick for literally everything',
-        '#D6F1D4',
-        '#CDBCF5',
-        '#315E42'
-    ),
+    'cozy-ghost': persona('personacozyghost', 'Cozy Ghost', 'Ghosts the goodbye', '#DDE2FF', '#FFDBA6', '#4A4D83'),
+    'wizard-frog': persona('personawizardfrog', 'Wizard Frog', 'Has a trick for it', '#D6F1D4', '#CDBCF5', '#315E42'),
     'astronaut-avocado': persona(
         'personaastronautavocado',
         'Astronaut Avocado',
-        'off in another orbit, happily',
+        'In another orbit',
         '#CDEBF8',
         '#C8EDB5',
         '#27506B'
@@ -108,98 +94,35 @@ export const PERSONAS = {
     'disco-octopus': persona(
         'personadiscooctopus',
         'Disco Octopus',
-        'first on the dance floor, everywhere at once',
+        'Everywhere at once',
         '#F8D2E5',
         '#BDEBF2',
         '#713D68'
     ),
-    'tea-dragon': persona(
-        'personateadragon',
-        'Tea Dragon',
-        'puts the kettle on for everyone',
-        '#FFE4BB',
-        '#F5B9B3',
-        '#7B4532'
-    ),
-    'raincoat-duck': persona('personaraincoatduck', 'Raincoat Duck', 'hopes it rains', '#BFE3F2', '#FFE487', '#225D77'),
-    'skater-snail': persona(
-        'personaskatersnail',
-        'Skater Snail',
-        'ready in five minutes, since noon',
-        '#D9F2CF',
-        '#F7C5E6',
-        '#365D42'
-    ),
-    'moon-bunny': persona(
-        'personamoonbunny',
-        'Moon Bunny',
-        'says nothing, has the best time',
-        '#E6DEFA',
-        '#F9D3DC',
-        '#514875'
-    ),
+    'tea-dragon': persona('personateadragon', 'Tea Dragon', 'Kettle always on', '#FFE4BB', '#F5B9B3', '#7B4532'),
+    'raincoat-duck': persona('personaraincoatduck', 'Raincoat Duck', 'Hopes it rains', '#BFE3F2', '#FFE487', '#225D77'),
+    'skater-snail': persona('personaskatersnail', 'Skater Snail', 'Ready in five', '#D9F2CF', '#F7C5E6', '#365D42'),
+    'moon-bunny': persona('personamoonbunny', 'Moon Bunny', 'Quietly thrilled', '#E6DEFA', '#F9D3DC', '#514875'),
     // Keep the already-shipped storage key while adopting the approved name
     // and drawing. Existing rooms upgrade visually without a data migration.
     'rockstar-strawberry': persona(
         'personarockstarberry',
         'Rockstar Berry',
-        'gives every toast an encore',
+        'Toast earns encore',
         '#F9C9D4',
         '#C7E8C1',
         '#7A304A'
     ),
-    'baker-moon': persona(
-        'personabakermoon',
-        'Baker Moon',
-        'feeds the whole house at midnight',
-        '#FFF0B8',
-        '#D6C5F4',
-        '#6D5730'
-    ),
-    'party-bee': persona(
-        'personapartybee',
-        'Party Bee',
-        'turns a Tuesday into an occasion',
-        '#FFE69A',
-        '#F6C5E3',
-        '#665020'
-    ),
-    'garden-yeti': persona(
-        'personagardenyeti',
-        'Garden Yeti',
-        'waters your plants while you are away',
-        '#D5EDC6',
-        '#F9D38D',
-        '#3F6040'
-    ),
-    'pancake-bear': persona(
-        'personapancakebear',
-        'Pancake Bear',
-        'already knows where everyone is eating',
-        '#FFE0B8',
-        '#C7E8D0',
-        '#714A33'
-    ),
-    'pocket-robot': persona(
-        'personapocketrobot',
-        'Pocket Robot',
-        'has a charger, a plaster, and a backup plan',
-        '#CBE7ED',
-        '#FFD28E',
-        '#315B64'
-    ),
-    'snooze-sloth': persona(
-        'personasnoozesloth',
-        'Snooze Sloth',
-        'five more minutes, forever',
-        '#E8E4F8',
-        '#F9D3A8',
-        '#4E4468'
-    ),
+    'baker-moon': persona('personabakermoon', 'Baker Moon', 'Midnight snacks', '#FFF0B8', '#D6C5F4', '#6D5730'),
+    'party-bee': persona('personapartybee', 'Party Bee', 'Tuesday? Party.', '#FFE69A', '#F6C5E3', '#665020'),
+    'garden-yeti': persona('personagardenyeti', 'Garden Yeti', 'Waters the plants', '#D5EDC6', '#F9D38D', '#3F6040'),
+    'pancake-bear': persona('personapancakebear', 'Pancake Bear', 'Dinner scout', '#FFE0B8', '#C7E8D0', '#714A33'),
+    'pocket-robot': persona('personapocketrobot', 'Pocket Robot', 'Backup ready', '#CBE7ED', '#FFD28E', '#315B64'),
+    'snooze-sloth': persona('personasnoozesloth', 'Snooze Sloth', 'Five more minutes', '#E8E4F8', '#F9D3A8', '#4E4468'),
     'hangry-goblin': persona(
         'personahangrygoblin',
         'Hangry Goblin',
-        'sweet again four minutes after eating',
+        'Nice after a snack',
         '#D9F2CF',
         '#FFD78A',
         '#3A5E35'
@@ -207,23 +130,16 @@ export const PERSONAS = {
     'chaos-gremlin': persona(
         'personachaosgremlin',
         'Chaos Gremlin',
-        'no plan, incredible outcomes',
+        'No plan, all luck',
         '#FFD9C9',
         '#C9B8F4',
         '#6B4226'
     ),
-    'drama-prawn': persona(
-        'personadramaprawn',
-        'Drama Prawn',
-        'tiny inconvenience, full theatrical retelling',
-        '#F8D2E5',
-        '#BDEBF2',
-        '#7A3055'
-    ),
+    'drama-prawn': persona('personadramaprawn', 'Drama Prawn', 'Makes issues epic', '#F8D2E5', '#BDEBF2', '#7A3055'),
     'fomo-firefly': persona(
         'personafomofirefly',
         'FOMO Firefly',
-        'physically cannot leave early',
+        'Cannot leave early',
         '#FFF0B8',
         '#C8EDB5',
         '#665020'
@@ -231,7 +147,7 @@ export const PERSONAS = {
     'overpacker-hamster': persona(
         'personaoverpackerhamster',
         'Overpacker Hamster',
-        'packed for four seasons in one day',
+        'Packs every season',
         '#FFDFD0',
         '#BDECF5',
         '#71462B'
@@ -239,23 +155,16 @@ export const PERSONAS = {
     'spreadsheet-owl': persona(
         'personaspreadsheetowl',
         'Spreadsheet Owl',
-        'made a spreadsheet; the spreadsheet has tabs',
+        'Has a tab for that',
         '#DDE2FF',
         '#FAE184',
         '#41487E'
     ),
-    'snack-alpaca': persona(
-        'personasnackalpaca',
-        'Snack Alpaca',
-        'bag is 80% snacks, all shared',
-        '#FFEBC9',
-        '#F7C5E6',
-        '#6B4A2E'
-    ),
+    'snack-alpaca': persona('personasnackalpaca', 'Snack Alpaca', 'Bag is 80% snacks', '#FFEBC9', '#F7C5E6', '#6B4A2E'),
     'group-chat-magpie': persona(
         'personagroupchatmagpie',
         'Group-Chat Magpie',
-        'sends fourteen links before breakfast',
+        'Sends every link',
         '#CDEDF2',
         '#F6C7EC',
         '#1F5561'
@@ -263,7 +172,7 @@ export const PERSONAS = {
     'paparazzi-puffin': persona(
         'personapaparazzipuffin',
         'Paparazzi Puffin',
-        'takes 300 photos, sends the album unprompted',
+        'Takes 300 photos',
         '#CDEBF8',
         '#FFD78A',
         '#27506B'
@@ -271,23 +180,16 @@ export const PERSONAS = {
     'lost-duckling': persona(
         'personalostduckling',
         'Lost Duckling',
-        'was right behind you, promise',
+        'Right behind you',
         '#FFF4CC',
         '#BDECF5',
         '#6B5720'
     ),
-    'karaoke-newt': persona(
-        'personakaraokenewt',
-        'Karaoke Newt',
-        'first on the mic, last off it',
-        '#F8D8ED',
-        '#CDBCF5',
-        '#6B3560'
-    ),
+    'karaoke-newt': persona('personakaraokenewt', 'Karaoke Newt', 'First on the mic', '#F8D8ED', '#CDBCF5', '#6B3560'),
     'tupperware-turtle': persona(
         'personatupperwareturtle',
         'Tupperware Turtle',
-        'never lets a leftover die',
+        'Saves leftovers',
         '#C9EFE3',
         '#FFDBA6',
         '#2F5E45'
@@ -295,7 +197,7 @@ export const PERSONAS = {
     'thermostat-gremlin': persona(
         'personathermostatgremlin',
         'Thermostat Gremlin',
-        'permanently two degrees too cold',
+        'Always two degrees',
         '#CBE7ED',
         '#F5B9B3',
         '#35566B'
@@ -303,32 +205,18 @@ export const PERSONAS = {
     'detective-raccoon': persona(
         'personadetectiveraccoon',
         'Detective Raccoon',
-        'knows exactly who ate the last slice',
+        'Knows who took it',
         '#E6DEFA',
         '#FFE487',
         '#4A3F78'
     ),
-    'dj-dinosaur': persona(
-        'personadjdinosaur',
-        'DJ Dinosaur',
-        'controls the aux, takes requests, ignores them',
-        '#D5EDC6',
-        '#F6C7EC',
-        '#3C6033'
-    ),
-    'gamer-cat': persona('personagamercat', 'Gamer Cat', 'negotiating one more round', '#FFE69A', '#C9D3F3', '#66501C'),
-    'bookworm-bat': persona(
-        'personabookwormbat',
-        'Bookworm Bat',
-        'one more chapter, suddenly 3am',
-        '#EDE3FA',
-        '#FFE487',
-        '#52407A'
-    ),
+    'dj-dinosaur': persona('personadjdinosaur', 'DJ Dinosaur', 'Ignores requests', '#D5EDC6', '#F6C7EC', '#3C6033'),
+    'gamer-cat': persona('personagamercat', 'Gamer Cat', 'One more round', '#FFE69A', '#C9D3F3', '#66501C'),
+    'bookworm-bat': persona('personabookwormbat', 'Bookworm Bat', 'One more chapter', '#EDE3FA', '#FFE487', '#52407A'),
     'trickster-fox': persona(
         'personatricksterfox',
         'Trickster Fox',
-        'definitely behind the group chat rename',
+        'Renamed the chat',
         '#FFDCC2',
         '#BDEBF2',
         '#7A4526'
@@ -336,7 +224,7 @@ export const PERSONAS = {
     'punk-pineapple': persona(
         'personapunkpineapple',
         'Punk Pineapple',
-        'all spikes, zero menace',
+        'Spikes, no bite',
         '#FDF0A6',
         '#F7C5E6',
         '#6E5A1B'
@@ -351,18 +239,18 @@ export const PERSONA_KEYS = Object.keys(PERSONAS) as PersonaKey[]
  * the named cast they make forty-eight visible options.
  */
 export const CLASSIC_AVATARS = {
-    'doodle-dog': classic('dog', 'Good Dog', 'reliably delighted', '#FFF4CC', '#B8F0C5'),
-    'doodle-peanut': classic('peanut', 'Classic Peanut', 'keeps it simple', '#FAE184', '#F6C7EC'),
-    'doodle-sun': classic('sun', 'Little Sun', 'aggressively a morning person', '#FAE184', '#BDECF5'),
-    'doodle-wave': classic('wave', 'Big Wave', 'suggests swimming in all weather', '#BDECF5', '#FFF4CC'),
-    'doodle-leaf': classic('leaf', 'Fresh Leaf', 'touches grass', '#B8F0C5', '#FFF4CC'),
-    'doodle-crystal': classic('crystal', 'Lucky Crystal', 'trusts the vibes over the map', '#F6C7EC', '#C9D3F3'),
-    'doodle-guitar': classic('guitar', 'Tiny Guitar', 'brought it, will play it', '#FFF4CC', '#F6C7EC'),
-    'doodle-football': classic('football', 'Match Ball', 'keeps score', '#B8F0C5', '#C9D3F3'),
-    'doodle-pizza': classic('pizza', 'Pizza Slice', 'orders for the table', '#F6C7EC', '#FAE184'),
-    'doodle-coffee': classic('coffee', 'Coffee Cup', 'first one awake', '#FFF4CC', '#C9D3F3'),
-    'doodle-cake': classic('cake', 'Cake Slice', 'celebrates everything', '#F6C7EC', '#FFF4CC'),
-    'doodle-boat': classic('boat', 'Little Boat', 'gets everyone home, every time', '#BDECF5', '#FAE184'),
+    'doodle-dog': classic('dog', 'Good Dog', 'Reliably delighted', '#FFF4CC', '#B8F0C5'),
+    'doodle-peanut': classic('peanut', 'Classic Peanut', 'Keeps it simple', '#FAE184', '#F6C7EC'),
+    'doodle-sun': classic('sun', 'Little Sun', 'Aggressively awake', '#FAE184', '#BDECF5'),
+    'doodle-wave': classic('wave', 'Big Wave', 'Swims any weather', '#BDECF5', '#FFF4CC'),
+    'doodle-leaf': classic('leaf', 'Fresh Leaf', 'Touches grass', '#B8F0C5', '#FFF4CC'),
+    'doodle-crystal': classic('crystal', 'Lucky Crystal', 'Trusts the vibes', '#F6C7EC', '#C9D3F3'),
+    'doodle-guitar': classic('guitar', 'Tiny Guitar', 'Will play it', '#FFF4CC', '#F6C7EC'),
+    'doodle-football': classic('football', 'Match Ball', 'Keeps score', '#B8F0C5', '#C9D3F3'),
+    'doodle-pizza': classic('pizza', 'Pizza Slice', 'Table order boss', '#F6C7EC', '#FAE184'),
+    'doodle-coffee': classic('coffee', 'Coffee Cup', 'First one awake', '#FFF4CC', '#C9D3F3'),
+    'doodle-cake': classic('cake', 'Cake Slice', 'Celebrates it all', '#F6C7EC', '#FFF4CC'),
+    'doodle-boat': classic('boat', 'Little Boat', 'Gets everyone home', '#BDECF5', '#FAE184'),
 } as const satisfies Record<string, DoodleArt>
 
 /**

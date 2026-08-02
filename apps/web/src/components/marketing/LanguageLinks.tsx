@@ -43,8 +43,7 @@ export async function LanguageLinks({
                         href={localizedPath(path, locale)}
                         hrefLang={HREFLANG[locale]}
                         lang={HREFLANG[locale]}
-                        translate="no"
-                        className="notranslate text-xs text-n-1 underline underline-offset-2"
+                        className="text-xs text-n-1 underline underline-offset-2"
                     >
                         {LOCALE_LABELS[locale]}
                     </Link>

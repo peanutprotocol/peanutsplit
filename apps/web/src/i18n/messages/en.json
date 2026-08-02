@@ -33,6 +33,7 @@
             "confirmForgetTitle": "Remove {room} from this device?",
             "confirmForgetBody": "This list is the only place this device keeps the room. Split has no accounts, so you need the room link to get back in. Everyone else keeps the room, its expenses and its balances.",
             "confirmForget": "Remove from this device",
+            "slideForget": "Slide to remove from this device",
             "confirmForgetKeep": "Keep it",
             "confirmForgetClose": "Close without removing",
             "forgotten": "{room} was removed from this device. The shared room still works for anyone with its link.",
@@ -366,6 +367,7 @@
             "switchPersonTitle": "Switch person?",
             "switchPersonBody": "This device stops being {name}, and stops getting this room’s notifications. You’ll pick a name again.",
             "switchPerson": "Switch",
+            "slideSwitchPerson": "Slide to switch person",
             "cancel": "Cancel",
             "link": "Link",
             "linkCopied": "Link copied",
@@ -541,6 +543,8 @@
             "delete": "Delete",
             "confirmDelete": "Delete this expense? It leaves the room history and every balance changes.",
             "confirmDeleteYes": "Delete it",
+            "slideDelete": "Slide to delete",
+            "deleting": "Deleting…",
             "confirmDeleteNo": "Keep it",
             "deletedToast": "“{description}” deleted",
             "deletedToastUnnamed": "Expense deleted",
@@ -613,7 +617,13 @@
                 "add": "Add",
                 "note": "They still open the link and pick their own name — this only holds their place.",
                 "duplicate": "{name} is already in this room.",
-                "failed": "could not add them — try again"
+                "failed": "could not add them — try again",
+                "remove": "Remove untouched placeholder for {name}",
+                "confirmRemove": "Remove {name}? This deletes their untouched placeholder from this room.",
+                "slideRemove": "Slide to remove {name}",
+                "removing": "Removing…",
+                "keep": "Keep {name}",
+                "removeFailed": "could not remove that name — try again"
             }
         },
         "link": {
@@ -733,7 +743,6 @@
             "failed": "could not change that character — try again",
             "shuffle": "Shuffle",
             "shuffleLabel": "Shuffle the characters on offer",
-            "caption": "{label} — {vibe}",
             "firstOpen": "Anyone can change anyone’s character.",
             "close": "Close characters"
         },
@@ -772,6 +781,8 @@
             "remove": "Undo this payment record",
             "confirmRemove": "Undo this record? This changes the room balance, not any money already sent.",
             "confirmYes": "Undo record",
+            "slideRemove": "Slide to undo payment",
+            "removing": "Undoing…",
             "confirmNo": "Keep it",
             "removed": "Payment record undone. Room balances updated.",
             "removeFailed": "Could not remove that payment — try again."
@@ -834,6 +845,12 @@
             "cancel": "Cancel",
             "removeFailed": "could not take that name off — try again"
         }
+    },
+    "slideToConfirm": {
+        "release": "Release to confirm",
+        "working": "Working…",
+        "instructions": "Drag the handle to the end, use the arrow keys, or press Enter or Space to confirm.",
+        "progress": "{progress}% complete."
     },
     "push": {
         "label": "Notifications",

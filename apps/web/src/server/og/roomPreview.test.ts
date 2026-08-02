@@ -125,7 +125,16 @@ describe('every localized preview string is drawable', () => {
      */
     it.each(LOCALES)('%s draws with the shipped body font', async (locale) => {
         const copy = await cardCopy(locale)
-        for (const [key, value] of Object.entries(copy)) {
+        const samples = {
+            statNone: copy.statNone,
+            statOne: copy.statOne('€12.50'),
+            statMany: copy.statMany(4, '€12.50'),
+            peopleOne: copy.peopleOne,
+            peopleMany: copy.peopleMany(4),
+            emptyRoster: copy.emptyRoster,
+            tagline: copy.tagline,
+        }
+        for (const [key, value] of Object.entries(samples)) {
             expect(`${locale}.${key}: ${drawable(value).join('')}`).toBe(`${locale}.${key}: `)
         }
     })

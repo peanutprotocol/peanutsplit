@@ -17,6 +17,8 @@
  *      "Dani joined after 1 earlier expense" ships as "room.latecomer.title". A reader who has
  *      the value on screen right above it — the avatar, the name — sees a dotted identifier
  *      instead of the sentence. Caught for real on `room.latecomer.body`.
+ *   4. Translation suppression appears below the document root. Native catalogs own the page;
+ *      one root `translate="no"` policy replaces component-level translator workarounds.
  *
  * Computed keys (`t(someVariable)`, `t(\`a.${b}\`)`) cannot be resolved statically and are
  * reported as skipped rather than guessed at. Keep them rare: the code paths that use them
@@ -270,6 +272,29 @@ for (const file of sourceFiles(srcRoot)) {
     }
 }
 
+// ---------------------------------------------------------------- document policy
+
+const layoutPath = 'src/app/layout.tsx'
+const translationPolicyViolations = []
+for (const file of sourceFiles(srcRoot)) {
+    const path = relative(appRoot, file)
+    const source = stripComments(readFileSync(file, 'utf8'))
+    if (source.includes('notranslate')) translationPolicyViolations.push(`${path} uses notranslate`)
+
+    const attributes = [...source.matchAll(/translate\s*=\s*['"]no['"]/g)]
+    if (path !== layoutPath && attributes.length > 0) {
+        translationPolicyViolations.push(`${path} suppresses translation below the document root`)
+    }
+    if (path === layoutPath && attributes.length !== 1) {
+        translationPolicyViolations.push(`${path} must contain exactly one translate="no" policy`)
+    }
+}
+
+const layoutSource = stripComments(readFileSync(join(appRoot, layoutPath), 'utf8'))
+if (!/<html\s[^>]*lang=\{locale\}[^>]*translate="no"/.test(layoutSource)) {
+    translationPolicyViolations.push(`${layoutPath} must bind lang and the native-only policy on <html>`)
+}
+
 // ---------------------------------------------------------------- report
 
 const missingInEnglish = [...referenced].filter(([key]) => !englishKeys.has(key))
@@ -376,6 +401,12 @@ for (const { locale, key, wanted, has } of placeholderDrift) {
     failed = true
     console.error(`\n${locale}.json interpolates different arguments than ${DEFAULT_LOCALE}.json:`)
     console.error(`  ${key}  ${DEFAULT_LOCALE}: ${wanted.join(', ') || 'none'}  ${locale}: ${has.join(', ') || 'none'}`)
+}
+
+if (translationPolicyViolations.length > 0) {
+    failed = true
+    console.error('\ninvalid document translation policy:')
+    for (const violation of translationPolicyViolations) console.error(`  ${violation}`)
 }
 
 if (failed) {

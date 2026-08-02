@@ -56,6 +56,12 @@ describe('the catalog', () => {
         expect(new Set(PERSONA_KEYS.map((key) => PERSONAS[key].doodle)).size).toBe(PERSONA_KEYS.length)
     })
 
+    it('keeps every card description short enough for one line', () => {
+        for (const key of AVATAR_KEYS) {
+            expect(AVATARS[key].vibe.length, `${key}: ${AVATARS[key].vibe}`).toBeLessThanOrEqual(18)
+        }
+    })
+
     it('points every visible option at a real drawing and a complete color palette', () => {
         for (const key of AVATAR_KEYS) {
             const art = AVATARS[key]

@@ -15,7 +15,7 @@
  *    prevent.
  */
 
-import { DEFAULT_LOCALE, type Locale } from './locales'
+import type { Locale } from './locales'
 
 /** Arbitrarily nested; leaves are ICU MessageFormat strings. */
 export type Messages = { [key: string]: string | Messages }
@@ -50,9 +50,3 @@ export async function loadMessages(locale: Locale): Promise<Messages> {
     pending.set(locale, promise)
     return promise
 }
-
-/**
- * The English catalog, memoised at module level. `loadMessages` already memoises, so this is
- * only a name for "the fallback" — it is never fetched until something actually misses.
- */
-export const loadFallbackMessages = (): Promise<Messages> => loadMessages(DEFAULT_LOCALE)

@@ -6,6 +6,7 @@ import { CURRENCY_CATALOG } from '../src/lib/currency-catalog'
 import { COMMON_COUNT } from '../src/components/room/CurrencySelect'
 import { HREFLANG } from '../src/i18n/locales'
 import { SLUG_TAIL_HINT } from '../src/lib/slugify'
+import { slideToConfirm } from './slide-to-confirm'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
 
@@ -829,7 +830,12 @@ test('every retained room is reachable and can be forgotten only on this device'
     await expect(list.getByRole('link')).toHaveCount(7)
 
     await page.locator('[data-testid="forget-room"][data-room="room-seven-vwx345"]').click()
-    await page.getByTestId('confirm-forget-room').click()
+    const confirmForget = page.getByTestId('confirm-forget-room')
+    // A plain tap on the track cannot remove the only locally saved link.
+    await confirmForget.click()
+    await expect(page.getByTestId('forget-room-confirm')).toBeVisible()
+    await expect(list.locator('a')).toHaveCount(7)
+    await slideToConfirm(page, confirmForget)
     await expect(list.getByRole('link')).toHaveCount(6)
     await expect(page.getByTestId('recent-room-notice')).toContainText('shared room still works')
     expect(

@@ -29,7 +29,14 @@
 
 import { cookies, headers } from 'next/headers'
 import { getRequestConfig } from 'next-intl/server'
-import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, localeFromAcceptLanguage, type Locale } from './locales'
+import {
+    DEFAULT_LOCALE,
+    LOCALE_COOKIE,
+    isLocale,
+    localeFromAcceptLanguage,
+    localeFromStoredPreference,
+    type Locale,
+} from './locales'
 import { loadMessages } from './messages'
 import { LOCALE_HEADER } from './paths'
 
@@ -44,8 +51,10 @@ async function resolveLocale(requested: string | undefined): Promise<Locale> {
     if (isLocale(fromUrl)) return fromUrl
 
     const stored = (await cookies()).get(LOCALE_COOKIE)?.value
-    // A hand-edited or stale cookie ("fr", "es") must not be trusted into a failed import.
-    if (isLocale(stored)) return stored
+    // Legacy deployed values are normalized before the provider rewrites the canonical value.
+    // Anything else ("fr", "es-ES") must not be trusted into a failed catalog import.
+    const storedLocale = localeFromStoredPreference(stored)
+    if (storedLocale) return storedLocale
 
     return localeFromAcceptLanguage(requestHeaders.get('accept-language')) ?? DEFAULT_LOCALE
 }

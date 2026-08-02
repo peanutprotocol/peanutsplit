@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
+import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { BTN_MEDIUM } from '@/components/ui/control'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
@@ -61,6 +62,7 @@ export function SettlementRow({
     const feedback = useFeedback()
     const deleteSettlement = useDeleteSettlement(slug, token)
     const [confirming, setConfirming] = useState(false)
+    const removeTriggerRef = useRef<HTMLButtonElement>(null)
 
     useEffect(() => {
         if (actionsDisabled) setConfirming(false)
@@ -88,18 +90,23 @@ export function SettlementRow({
         }
     }
 
-    const remove = async () => {
-        if (actionsDisabled) return
+    const remove = async (): Promise<boolean> => {
+        if (actionsDisabled) return false
         try {
             await deleteSettlement.mutateAsync(settlement.id)
             feedback('thunk')
             toast(t('removed'), { duration: TOAST_MS.actionable })
+            return true
         } catch (err) {
             feedback('error', { haptic: 'error' })
             toast.error(errorMessage(err, t('removeFailed')), { duration: TOAST_MS.actionable })
-        } finally {
-            setConfirming(false)
+            return false
         }
+    }
+
+    const cancelRemove = () => {
+        setConfirming(false)
+        window.requestAnimationFrame(() => removeTriggerRef.current?.focus())
     }
 
     const method = methodLabel()
@@ -141,6 +148,7 @@ export function SettlementRow({
                 />
                 {!confirming && (
                     <button
+                        ref={removeTriggerRef}
                         type="button"
                         disabled={actionsDisabled}
                         onClick={() => setConfirming(true)}
@@ -172,23 +180,26 @@ export function SettlementRow({
 
             {confirming && (
                 <div className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-2">
-                    <p className="text-sm text-n-1">{t('confirmRemove')}</p>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="stroke"
-                            size="medium"
-                            className={cn(BTN_MEDIUM, 'flex-1 justify-center')}
+                    <p id={`remove-settlement-warning-${settlement.id}`} className="text-sm text-n-1">
+                        {t('confirmRemove')}
+                    </p>
+                    <div className="flex flex-col gap-2">
+                        <SlideToConfirm
+                            autoFocus
+                            label={t('slideRemove')}
+                            loadingLabel={t('removing')}
                             loading={deleteSettlement.isPending}
-                            onClick={remove}
+                            disabled={actionsDisabled}
+                            onConfirm={remove}
+                            onCancel={cancelRemove}
+                            aria-describedby={`remove-settlement-warning-${settlement.id}`}
                             data-testid="confirm-remove-settlement"
-                        >
-                            {t('confirmYes')}
-                        </Button>
+                        />
                         <Button
                             variant="stroke"
                             size="medium"
-                            className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center')}
-                            onClick={() => setConfirming(false)}
+                            className={cn(BTN_MEDIUM, 'justify-center')}
+                            onClick={cancelRemove}
                         >
                             {t('confirmNo')}
                         </Button>
