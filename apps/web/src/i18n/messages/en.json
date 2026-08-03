@@ -863,9 +863,8 @@
         },
         "achievements": {
             "crew": {
-                "title": "{count, plural, other {The crew is # strong}}",
-                "body": "Who's missing?",
-                "invite": "Send the link"
+                "title": "{count, plural, one {# name in this ledger} other {# names in this ledger}}",
+                "body": "The people this room keeps track of, together."
             },
             "passport": {
                 "title": "{count, plural, other {# currencies}}",
@@ -882,7 +881,7 @@
             "share": "Share",
             "sharing": "Getting it ready…",
             "dismiss": "Not now",
-            "shelfTitle": "Unlocked on this trip",
+            "shelfTitle": "Cards from this trip",
             "copied": "Card copied — paste it anywhere.",
             "downloaded": "Card saved to your downloads.",
             "shareFailed": "We could not build that card. Try again.",
@@ -895,7 +894,7 @@
                 "hypeCrew": "Hype Crew"
             },
             "shareText": {
-                "crew": "Our split crew, assembled.",
+                "crew": "The people on our shared ledger.",
                 "passport": "Different currencies, one clean split.",
                 "alterego": "This is who I was on this trip.",
                 "stats": "The trip, in numbers.",
@@ -1145,7 +1144,7 @@
         },
         "crew": {
             "title": "CREW",
-            "line": "One link, everybody in."
+            "line": "The names on our shared ledger."
         },
         "passport": {
             "title": "PASSPORT",

@@ -43,6 +43,11 @@ concerns, not setup instructions.
 Roster setup is complete when the person editing it chooses to continue or
 skip. It is not completed by other people opening the link.
 
+Achievement thresholds may use the number of ledger participants as a factual
+room milestone. They do not measure joining: the moment must not say that
+somebody is missing, show roster progress, or turn invitation into a completion
+step. See [ACHIEVEMENTS.md](./ACHIEVEMENTS.md) for the product guardrails.
+
 ## Implementation consequence
 
 `Member` rows remain the durable identities used by expenses, shares,

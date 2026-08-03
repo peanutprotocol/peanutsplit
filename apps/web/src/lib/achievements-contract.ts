@@ -27,8 +27,9 @@ export type CardKind = (typeof CARD_KINDS)[number]
 export const ACHIEVEMENT_TYPES = ['crew', 'passport', 'alterego', 'wrapped'] as const
 export type AchievementType = (typeof ACHIEVEMENT_TYPES)[number]
 
-/** The six positive roles. Contribution and coordination only — never debt, spending power or
- *  payment speed. `lib/achievements.ts` owns the rules; this is only the closed set. */
+/** The six positive role labels. Contribution and coordination only — never debt, spending power
+ *  or payment speed. A label is not an exclusive rank: independently eligible members may receive
+ *  the same one. `lib/achievements.ts` owns the rules; this is only the closed set. */
 export const AWARD_IDS = [
     'tripStarter',
     'firstMover',
@@ -39,7 +40,7 @@ export const AWARD_IDS = [
 ] as const
 export type AwardId = (typeof AWARD_IDS)[number]
 
-/** Roster sizes worth a moment. Not every join — see `crewUnlock`. */
+/** Ledger-roster sizes worth a moment. This is not join progress — see `crewUnlock`. */
 export const CREW_THRESHOLDS = [3, 5, 8, 12] as const
 /** Distinct expense currencies worth a stamp. */
 export const PASSPORT_THRESHOLDS = [2, 3, 5] as const

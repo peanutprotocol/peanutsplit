@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
 import type { AwardId } from '@/lib/achievements-contract'
-import { claimSessionPrompt, markSeen, readSeen } from '@/lib/achievement-storage'
+import { claimSessionMoment, markSeen, readSeen } from '@/lib/achievement-storage'
 import { unlocksFor, type Unlock } from '@/lib/achievements'
 import { achievementProps, track } from '@/lib/analytics'
 import type { RoomState } from '@/lib/api-types'
@@ -33,18 +32,7 @@ import { MemberAvatar } from './MemberAvatar'
  * `AllSettled`, which rings a bell on arrival; that one is the terminal moment of the whole
  * product, and an achievement is not.
  */
-export function AchievementMoment({
-    slug,
-    state,
-    meId,
-    onInvite,
-}: {
-    slug: string
-    state: RoomState
-    meId: string | undefined
-    /** CREW's call to action drives the existing invite flow rather than inventing a second one. */
-    onInvite: () => void
-}) {
+export function AchievementMoment({ slug, state, meId }: { slug: string; state: RoomState; meId: string | undefined }) {
     const t = useTranslations('room.achievements')
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
@@ -61,7 +49,7 @@ export function AchievementMoment({
         // celebration is already the moment for that event.
         const fresh = unlocks.find((unlock) => unlock.type !== 'wrapped' && !seen.has(unlock.id))
         if (!fresh) return
-        if (!claimSessionPrompt(slug)) return
+        if (!claimSessionMoment(slug)) return
         claimed.current = true
         markSeen(slug, fresh.covers)
         track('achievement_seen', achievementProps(fresh.type))
@@ -101,18 +89,6 @@ export function AchievementMoment({
             </div>
 
             <div className="relative flex flex-col gap-2">
-                {shown.type === 'crew' ? (
-                    <Button
-                        variant="primary"
-                        shadowSize="4"
-                        icon="share"
-                        className="justify-center"
-                        onClick={onInvite}
-                        data-testid="achievement-invite"
-                    >
-                        {t('crew.invite')}
-                    </Button>
-                ) : null}
                 <CardShareButton
                     slug={slug}
                     kind={shown.type === 'crew' ? 'crew' : shown.type === 'passport' ? 'passport' : 'alterego'}
@@ -126,7 +102,7 @@ export function AchievementMoment({
                               }
                             : undefined
                     }
-                    variant={shown.type === 'crew' ? 'stroke' : 'primary'}
+                    variant="primary"
                 />
                 <button
                     type="button"

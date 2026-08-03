@@ -86,6 +86,7 @@ export function SettingsSheet({
     const [switchOpen, setSwitchOpen] = useState(false)
     const [pickerOpen, setPickerOpen] = useState(false)
     const pickerRef = useRef<HTMLDetailsElement>(null)
+    const pickerSummaryRef = useRef<HTMLElement>(null)
 
     /** A `<details>` has no light-dismiss of its own, so the grid would sit over the
      *  card — including over the name field beside it — until it was toggled again.
@@ -143,6 +144,10 @@ export function SettingsSheet({
      */
     const nameForDoodle = draft.trim() || room.name
 
+    const restorePickerFocus = () => {
+        window.requestAnimationFrame(() => pickerSummaryRef.current?.focus())
+    }
+
     /**
      * The drawing the tile is showing, which is what the picker has to highlight.
      * A room made before the drawings still stores an emoji character, and a room
@@ -162,6 +167,7 @@ export function SettingsSheet({
      */
     const chooseEmblem = (next: DoodleName) => {
         setPickerOpen(false)
+        restorePickerFocus()
         const choice = emblemChoice(next, room.emoji, nameForDoodle)
         if (!choice) return
         feedback('tick')
@@ -228,7 +234,9 @@ export function SettingsSheet({
                                     className="relative shrink-0"
                                 >
                                     <summary
+                                        ref={pickerSummaryRef}
                                         aria-label={t('drawing')}
+                                        tabIndex={0}
                                         data-testid="room-drawing"
                                         className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 [&::-webkit-details-marker]:hidden"
                                     >

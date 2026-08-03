@@ -175,7 +175,7 @@ describe('unlocksFor', () => {
     })
 
     it('has no alter-ego unlock for a device that received no award', () => {
-        // Seven people, six awards at most — and this one wrote nothing anyway.
+        // This person performed none of the positive roles, so there is no personal card.
         const room = settledState(['a', 'b', 'c'], [{ paidById: 'a' }])
         expect(ids(room, 'c')).toEqual(['crew-3', 'wrapped'])
         expect(ids(room, undefined)).toEqual(['crew-3', 'wrapped'])
@@ -205,7 +205,7 @@ describe('awardsFor', () => {
         expect(awardsFor(room)).toEqual({ ana: 'tripStarter' })
     })
 
-    it('spreads the six roles over the people who actually earned them', () => {
+    it("assigns positive roles only from each member's own recorded actions", () => {
         const room = state(
             ['ana', 'bruno', 'caro', 'dan'],
             [
@@ -220,11 +220,11 @@ describe('awardsFor', () => {
         expect(awards.ana).toBe('tripStarter')
         expect(awards.bruno).toBe('firstMover')
         expect(awards.caro).toBe('ledgerLegend')
-        // One award per member, never two.
-        expect(Object.keys(awards).length).toBe(new Set(Object.values(awards)).size)
+        expect(awards.dan).toBe('theCloser')
+        expect(Object.keys(awards)).toHaveLength(4)
     })
 
-    it('awards at most six, so a seventh member goes home empty-handed', () => {
+    it('does not make role labels exclusive or leave an eligible seventh member out', () => {
         const members = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         const room = state(
             members,
@@ -235,8 +235,9 @@ describe('awardsFor', () => {
             members.map((memberId) => ({ fromId: memberId, toId: 'a' }))
         )
         const awards = awardsFor(room)
-        expect(Object.keys(awards).length).toBeLessThanOrEqual(6)
-        expect(new Set(Object.values(awards)).size).toBe(Object.keys(awards).length)
+        expect(Object.keys(awards)).toHaveLength(7)
+        expect(awards.a).toBe('tripStarter')
+        for (const memberId of members.slice(1)) expect(awards[memberId]).toBe('ledgerLegend')
     })
 
     it('survives a pure Splitwise import, where every writer is null', () => {
@@ -270,9 +271,17 @@ describe('awardsFor', () => {
         for (let run = 0; run < 100; run += 1) expect(awardsFor(room)).toEqual(first)
     })
 
-    it('breaks a tie on the id, in code-unit order', () => {
-        // Two writers, two expenses each. `localeCompare` would be a container-build coin flip.
-        const room = state(
+    it("never ranks one member's qualifying contribution against another's", () => {
+        const anaQualifies = state(
+            ['host', 'Zed', 'ana'],
+            [
+                { paidById: 'ana', createdById: 'ana', currency: 'EUR' },
+                { paidById: 'ana', createdById: 'ana', currency: 'THB' },
+            ]
+        )
+        expect(awardsFor(anaQualifies).ana).toBe('firstMover')
+
+        const bothQualify = state(
             ['host', 'Zed', 'ana'],
             [
                 { paidById: 'ana', createdById: 'ana', currency: 'EUR' },
@@ -281,8 +290,9 @@ describe('awardsFor', () => {
                 { paidById: 'Zed', createdById: 'Zed', currency: 'THB' },
             ]
         )
-        // 'Z' (U+005A) sorts before 'a' (U+0061) by code unit, the other way round by locale.
-        expect(awardsFor(room).Zed).toBe('ledgerLegend')
+        // Zed becoming eligible for the same activity cannot take Ana's earlier role away.
+        expect(awardsFor(bothQualify).ana).toBe('firstMover')
+        expect(awardsFor(bothQualify).Zed).toBe('ledgerLegend')
     })
 })
 

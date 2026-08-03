@@ -5,7 +5,7 @@
  *
  *  - **durable** — `localStorage` under `ps:ach:<slug>`, so a threshold never re-celebrates on this
  *    device. Same shape and same per-room key as `ps:member:<slug>` (`lib/identity.ts`).
- *  - **session** — an in-memory set of slugs, so a room that unlocks two things in one sitting
+ *  - **session** — an in-memory set of slugs, so a room that qualifies for two things in one sitting
  *    shows one moment and the other lands quietly on the shelf.
  *
  * Per device rather than per person is the deliberate call: a celebration happens to a person
@@ -58,7 +58,7 @@ export function markSeen(slug: string, ids: readonly string[]): void {
 }
 
 /**
- * One share prompt per room per session.
+ * One in-room achievement moment per room per session.
  *
  * Keyed by slug rather than global: `RoomSwitcher` (`SettingsSheet`) moves between rooms without a
  * reload, so a single module-level boolean would silently mute the second room of a session
@@ -67,11 +67,11 @@ export function markSeen(slug: string, ids: readonly string[]): void {
  */
 const claimed = new Set<string>()
 
-export function claimSessionPrompt(slug: string): boolean {
+export function claimSessionMoment(slug: string): boolean {
     if (claimed.has(slug)) return false
     claimed.add(slug)
     return true
 }
 
 /** Test seam only. Nothing in the app resets a session. */
-export const resetSessionPrompts = (): void => claimed.clear()
+export const resetSessionMoments = (): void => claimed.clear()
