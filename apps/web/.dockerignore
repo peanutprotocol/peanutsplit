@@ -3,6 +3,7 @@ node_modules
 .git
 .github
 e2e
+e2e-v2
 docs
 local
 *.log
