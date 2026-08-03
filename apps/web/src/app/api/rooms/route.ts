@@ -14,6 +14,6 @@ export const POST = (request: Request) =>
         const body = createRoomSchema.parse(await readJson(request))
         // The room remembers the language it was started in, so its link preview
         // can speak it to somebody who has not tapped yet — see `server/locale.ts`.
-        const { room, memberId, memberToken } = await createRoom(body, await creationLocale())
+        const { room, memberId, memberToken } = await createRoom(body, await creationLocale(), request)
         return { ...toRoomState(room), memberId, memberToken }
     }, 201)

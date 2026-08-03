@@ -4,6 +4,7 @@ import { publish } from '@/server/events'
 import { badRequest, conflict, memberTokenOf, readJson, respond } from '@/server/http'
 import { parseMinor } from '@/server/money'
 import { notifyRoomWrite } from '@/server/push'
+import { actorFromToken, appendRoomAuditEvent, lockRoomWrite, type PushRoomWriteEvent } from '@/server/history'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { balancesOf, loadRoom, memberIdForToken, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -12,6 +13,13 @@ import { settlementSchema } from '@/server/validation'
 export const dynamic = 'force-dynamic'
 
 type Ctx = { params: Promise<{ slug: string }> }
+
+type SettlementWriteResult = {
+    settlementId: string
+    actorMemberId: string | null
+    fresh: Awaited<ReturnType<typeof loadRoom>>
+    state: ReturnType<typeof toRoomState>
+} & ({ created: true; event: PushRoomWriteEvent } | { created: false; event?: never })
 
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {
@@ -24,22 +32,17 @@ export const POST = (request: Request, ctx: Ctx) =>
         if (amountMinor <= 0n) throw badRequest('settlement amount must be greater than zero', 'AMOUNT_NOT_POSITIVE')
 
         const token = memberTokenOf(request)
-        let result: {
-            created: boolean
-            settlementId: string
-            actorMemberId: string | null
-            fresh: Awaited<ReturnType<typeof loadRoom>>
-            state: ReturnType<typeof toRoomState>
-        }
+        let result: SettlementWriteResult
         try {
             result = await prisma.$transaction(async (tx) => {
                 // The outstanding debt read and insert are one room-scoped
                 // critical section. Distinct keys cannot both spend the same
                 // pre-payment balance.
-                await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+                await lockRoomWrite(tx, room.id)
                 const lockedRoom = await loadRoom(slug, tx)
                 assertWritable(lockedRoom)
-                const actorMemberId = memberIdForToken(lockedRoom, token)
+                const actor = actorFromToken(lockedRoom.members, token)
+                const actorMemberId = actor.memberId
 
                 // Idempotency precedes the debt ceiling: after the first write
                 // the debt may be gone, but a lost-response retry is success.
@@ -89,6 +92,14 @@ export const POST = (request: Request, ctx: Ctx) =>
                         createdById: actorMemberId,
                     },
                 })
+                const event: PushRoomWriteEvent = {
+                    kind: 'settlement_recorded',
+                    settlementId: settlement.id,
+                    subjectType: 'settlement',
+                    subjectId: settlement.id,
+                    after: settlement,
+                }
+                await appendRoomAuditEvent({ tx, request, roomId: lockedRoom.id, actor, event })
                 const fresh = await loadRoom(slug, tx)
                 return {
                     created: true,
@@ -96,6 +107,7 @@ export const POST = (request: Request, ctx: Ctx) =>
                     actorMemberId,
                     fresh,
                     state: toRoomState(fresh),
+                    event,
                 }
             })
         } catch (error) {
@@ -134,7 +146,7 @@ export const POST = (request: Request, ctx: Ctx) =>
             room: result.fresh,
             state: result.state,
             actorMemberId: result.actorMemberId,
-            event: { kind: 'settlement_recorded', settlementId: result.settlementId },
+            event: result.event,
         })
         return result.state
     }, 201)

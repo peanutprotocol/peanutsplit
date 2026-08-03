@@ -1,9 +1,10 @@
 import { publish } from '@/server/events'
-import { readJson, respond } from '@/server/http'
+import { memberTokenOf, readJson, respond } from '@/server/http'
 import { CREATE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { addMember } from '@/server/rooms'
 import { loadRoom, toRoomState } from '@/server/roomState'
 import { createMemberSchema } from '@/server/validation'
+import { actorFromToken } from '@/server/history'
 import type { RoomStateWithAddedMember, RoomStateWithMember } from '@/lib/api-types'
 
 export const dynamic = 'force-dynamic'
@@ -16,7 +17,13 @@ export const POST = (request: Request, ctx: Ctx) =>
         const { slug } = await ctx.params
         const body = createMemberSchema.parse(await readJson(request))
         const room = await loadRoom(slug)
-        const { memberId, memberToken } = await addMember(room, body.name, body.intent === 'add')
+        const { memberId, memberToken } = await addMember(
+            room,
+            body.name,
+            body.intent === 'add',
+            request,
+            actorFromToken(room.members, memberTokenOf(request))
+        )
         publish(room.id)
         // Reload: the roster the client renders must already contain the joiner.
         const state = toRoomState(await loadRoom(slug))

@@ -108,6 +108,20 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     await expect(page.getByTestId('people-list')).toContainText('Bea')
     await expect(page.locator('[data-testid="person-row"][data-member="Bea"]')).toBeVisible()
 
+    // History stays out of the ordinary room payload and loads only when asked.
+    // This device created, renamed and edited the roster as Ana, so the audit
+    // wording carries both parts of that attribution without exposing its id.
+    await page.getByTestId('history-row').click()
+    const historySheet = page.getByTestId('history-sheet')
+    await expect(historySheet).toBeVisible()
+    await expect(historySheet.getByTestId('history-list')).toContainText(
+        'Device A acting as Ana edited the room settings'
+    )
+    await expect(historySheet.getByTestId('history-list')).toContainText('Device A acting as Ana added a person')
+    await expect(historySheet.getByTestId('history-list')).toContainText('Device A acting as Ana created the room')
+    await page.getByTestId('close-history-sheet').click()
+    await expect(historySheet).toHaveAttribute('data-state', 'closed')
+
     // The device preferences are one row and a nested sheet, and nothing per
     // room is inside it any more.
     const deviceRow = page.getByTestId('device-row')

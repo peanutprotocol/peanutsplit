@@ -47,17 +47,19 @@ export function CharacterSheet({
     onClose,
     slug,
     member,
+    token,
 }: {
     open: boolean
     onClose: () => void
     slug: string
     /** Null while the room reloads under an open sheet. */
     member: ApiMember | null
+    token?: string | null
 }) {
     const t = useTranslations('room.avatar')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
-    const setAvatar = useSetAvatar(slug, member?.id ?? '')
+    const setAvatar = useSetAvatar(slug, member?.id ?? '', token)
     const [firstOpen, setFirstOpen] = useState(false)
 
     useEffect(() => {

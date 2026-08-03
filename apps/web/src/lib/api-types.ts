@@ -119,6 +119,47 @@ export interface RoomState {
     suggestedTransfers: ApiTransfer[]
 }
 
+export type RoomHistoryAction =
+    | 'history_started'
+    | 'room_created'
+    | 'room_imported'
+    | 'room_settings_updated'
+    | 'member_joined'
+    | 'member_added'
+    | 'member_claimed'
+    | 'member_removed'
+    | 'member_avatar_updated'
+    | 'expense_added'
+    | 'expense_edited'
+    | 'expense_deleted'
+    | 'expense_restored'
+    | 'reaction_added'
+    | 'reaction_removed'
+    | 'settlement_recorded'
+    | 'settlement_deleted'
+    | 'push_subscribed'
+    | 'push_unsubscribed'
+
+export interface ApiRoomHistoryEvent {
+    id: string
+    action: RoomHistoryAction
+    subjectType: string | null
+    subjectId: string | null
+    /** A room-local alias such as A or AA. The underlying device hash never leaves the server. */
+    deviceLabel: string | null
+    actorMemberId: string | null
+    actorMemberName: string | null
+    before: unknown
+    after: unknown
+    detail: unknown
+    createdAt: string
+}
+
+export interface RoomHistoryPage {
+    events: ApiRoomHistoryEvent[]
+    nextCursor: string | null
+}
+
 /** Creating a room, joining as new, and claiming an existing roster entry
  *  return room state plus the member identity envelope. */
 export interface RoomStateWithMember extends RoomState {

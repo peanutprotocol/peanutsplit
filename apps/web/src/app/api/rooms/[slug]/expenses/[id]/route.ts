@@ -3,7 +3,14 @@ import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
 import { buildExpense } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
-import { badRequest, conflict, notFound, readJson, respond } from '@/server/http'
+import { badRequest, conflict, memberTokenOf, notFound, readJson, respond } from '@/server/http'
+import {
+    actorFromToken,
+    appendRoomAuditEvent,
+    expenseAuditSnapshot,
+    expenseAuditValues,
+    lockRoomWrite,
+} from '@/server/history'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState, type RoomWithRelations } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -37,8 +44,8 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         // the room's write lock.
         const rateTable = await getRateTable()
 
-        const state = await prisma.$transaction(async (tx) => {
-            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${initial.id}, 0))`
+        const result = await prisma.$transaction(async (tx) => {
+            await lockRoomWrite(tx, initial.id)
             const room = await loadRoom(slug, tx)
             assertWritable(room)
             const existing = await findExpense(room, id, tx)
@@ -62,6 +69,28 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                 existing,
                 rateTable
             )
+            const previous = room.expenses.find((expense) => expense.id === id)
+            if (!previous) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+            const after = expenseAuditSnapshot({
+                id,
+                roomId: room.id,
+                description: write.description,
+                amountMinor: write.amountMinor,
+                currency: write.currency,
+                baseAmountMinor: write.baseAmountMinor,
+                fxRate: write.fxRate,
+                paidById: write.paidById,
+                createdById: existing.createdById,
+                splitMode: write.splitMode,
+                date: write.date,
+                category: write.category,
+                createdAt: existing.createdAt,
+                deletedAt: existing.deletedAt,
+                shares: write.shares,
+                reactions: previous.reactions,
+            })
+            const changed = JSON.stringify(expenseAuditValues(previous)) !== JSON.stringify(expenseAuditValues(after))
+            if (!changed) return { changed: false, state: toRoomState(room) }
             // Shares are rebuilt wholesale: an edit must behave exactly like a
             // fresh write, or EQUAL splits keep stale per-member amounts.
             await tx.expenseShare.deleteMany({ where: { expenseId: id } })
@@ -80,10 +109,23 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                     shares: { createMany: { data: write.shares } },
                 },
             })
-            return toRoomState(await loadRoom(slug, tx))
+            await appendRoomAuditEvent({
+                tx,
+                request,
+                roomId: room.id,
+                actor: actorFromToken(room.members, memberTokenOf(request)),
+                event: {
+                    kind: 'expense_edited',
+                    subjectType: 'expense',
+                    subjectId: id,
+                    before: expenseAuditSnapshot(previous),
+                    after,
+                },
+            })
+            return { changed: true, state: toRoomState(await loadRoom(slug, tx)) }
         })
-        publish(initial.id)
-        return state
+        if (result.changed) publish(initial.id)
+        return result.state
     })
 
 /** Soft delete — the client shows a 6s Undo that calls /api/expenses/:id/restore.
@@ -92,11 +134,33 @@ export const DELETE = (request: Request, ctx: Ctx) =>
     respond(async () => {
         enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, id } = await ctx.params
-        const room = await loadRoom(slug)
-        const existing = await findExpense(room, id)
-        if (!existing.deletedAt) {
-            await prisma.expense.update({ where: { id }, data: { deletedAt: new Date() } })
-        }
-        publish(room.id)
-        return toRoomState(await loadRoom(slug))
+        const initial = await loadRoom(slug)
+        const result = await prisma.$transaction(async (tx) => {
+            await lockRoomWrite(tx, initial.id)
+            const room = await loadRoom(slug, tx)
+            const existing = await findExpense(room, id, tx)
+            if (!existing.deletedAt) {
+                const deletedAt = new Date()
+                const previous = room.expenses.find((expense) => expense.id === id)
+                if (!previous) throw conflict('restore this expense before deleting it', 'EXPENSE_DELETED')
+                await tx.expense.update({ where: { id }, data: { deletedAt } })
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorFromToken(room.members, memberTokenOf(request)),
+                    event: {
+                        kind: 'expense_deleted',
+                        subjectType: 'expense',
+                        subjectId: id,
+                        before: expenseAuditSnapshot(previous),
+                        after: expenseAuditSnapshot({ ...previous, deletedAt }),
+                    },
+                })
+                return { changed: true, state: toRoomState(await loadRoom(slug, tx)) }
+            }
+            return { changed: false, state: toRoomState(room) }
+        })
+        if (result.changed) publish(initial.id)
+        return result.state
     })

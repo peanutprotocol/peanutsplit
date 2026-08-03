@@ -102,7 +102,7 @@ export function ExpenseDrawer({
     const restoreExpense = useRestoreExpense(slug, token)
     /** Adding a participant is a real roster write (`intent: 'add'`), unlike the
      *  payer field, whose new name stays a draft until the expense commits. */
-    const addMember = useAddMember(slug)
+    const addMember = useAddMember(slug, token)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
     const { ref: formRef, shake } = useShake<HTMLDivElement>()
