@@ -28,5 +28,5 @@
         "types": ["@serwist/next/typings"]
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
-    "exclude": ["node_modules", "src/app/sw.ts", ".next", "e2e"]
+    "exclude": ["node_modules", "src/app/sw.ts", ".next", "e2e", "e2e-v2"]
 }
