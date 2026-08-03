@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiRequestError, EXPENSE_WRITE_TIMEOUT_MS, NETWORK_ERROR_CODE, api, isApiError } from './api'
+import {
+    ApiRequestError,
+    EXPENSE_WRITE_TIMEOUT_MS,
+    NETWORK_ERROR_CODE,
+    api,
+    isApiError,
+    isCatchUpRowChange,
+    isCatchUpReviewChange,
+} from './api'
 
 const respondWith = (status: number, body: unknown, ok = status < 400) => {
     const text = typeof body === 'string' ? body : JSON.stringify(body)
@@ -23,6 +31,26 @@ const hangUntilAborted = () =>
     })
 
 describe('api error paths', () => {
+    it('recognizes every stale catch-up row as a review change', () => {
+        for (const code of [
+            'CATCH_UP_REVIEW_CONFLICT',
+            'EXPENSE_DELETED',
+            'EXPENSE_NOT_FOUND',
+            'NOT_A_MEMBER',
+            'ROOM_ARCHIVED',
+        ]) {
+            expect(isCatchUpReviewChange(new ApiRequestError(409, code, 'changed'))).toBe(true)
+        }
+        expect(isCatchUpReviewChange(new ApiRequestError(500, 'UNKNOWN', 'failed'))).toBe(false)
+
+        for (const code of ['CATCH_UP_REVIEW_CONFLICT', 'EXPENSE_DELETED', 'EXPENSE_NOT_FOUND']) {
+            expect(isCatchUpRowChange(new ApiRequestError(409, code, 'changed'))).toBe(true)
+        }
+        for (const code of ['NOT_A_MEMBER', 'ROOM_ARCHIVED']) {
+            expect(isCatchUpRowChange(new ApiRequestError(409, code, 'changed'))).toBe(false)
+        }
+    })
+
     it('unwraps the { error: { code, message } } envelope', async () => {
         vi.stubGlobal(
             'fetch',
@@ -94,6 +122,48 @@ describe('api requests', () => {
         expect(init.method).toBe('POST')
         expect(init.headers['X-Member-Token']).toBe('tok_abc')
         expect(JSON.parse(init.body).amountMinor).toBe('12000')
+    })
+
+    it('patches a catch-up command through the existing expense endpoint', async () => {
+        const fetchMock = respondWith(200, {})
+        vi.stubGlobal('fetch', fetchMock)
+        await api.catchUpExpense(
+            'ski/trip',
+            'expense/1',
+            {
+                action: 'add',
+                memberId: 'm3',
+                expectedDescription: 'Dinner',
+                expectedAmountMinor: '3000',
+                expectedBaseAmountMinor: '3000',
+                expectedCurrency: 'EUR',
+                expectedFxRate: '1',
+                expectedPaidById: 'm1',
+                expectedDate: '2026-08-03T12:00:00.000Z',
+                expectedCategory: null,
+                expectedParticipantIds: ['m1', 'm2'],
+            },
+            'tok_abc'
+        )
+
+        const [url, init] = fetchMock.mock.calls[0]
+        expect(url).toBe('/api/rooms/ski%2Ftrip/expenses/expense%2F1')
+        expect(init.method).toBe('PATCH')
+        expect(init.headers['X-Member-Token']).toBe('tok_abc')
+        expect(JSON.parse(init.body)).toEqual({
+            operation: 'CATCH_UP_EQUAL_PARTICIPANT',
+            action: 'add',
+            memberId: 'm3',
+            expectedDescription: 'Dinner',
+            expectedAmountMinor: '3000',
+            expectedBaseAmountMinor: '3000',
+            expectedCurrency: 'EUR',
+            expectedFxRate: '1',
+            expectedPaidById: 'm1',
+            expectedDate: '2026-08-03T12:00:00.000Z',
+            expectedCategory: null,
+            expectedParticipantIds: ['m1', 'm2'],
+        })
     })
 
     it('omits the token header when this device has no token', async () => {

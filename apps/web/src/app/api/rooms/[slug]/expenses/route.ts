@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { buildExpense } from '@/server/expenses'
+import { buildExpense, latchFirstSharedBalance } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
 import { conflict, memberTokenOf, readJson, respond } from '@/server/http'
 import {
@@ -110,17 +110,13 @@ export const POST = (request: Request, ctx: Ctx) =>
                         shares: { createMany: { data: write.shares } },
                     },
                 })
-                const createdFirstSharedBalance =
-                    lockedRoom.firstSharedBalanceExpenseId === null &&
-                    write.shares.some((share) => share.memberId !== write.paidById && share.amountMinor > 0n)
-                if (createdFirstSharedBalance) {
-                    // Every expense create takes the room advisory lock above,
-                    // so exactly one write can set this immutable latch.
-                    await tx.room.update({
-                        where: { id: lockedRoom.id },
-                        data: { firstSharedBalanceExpenseId: expense.id },
-                    })
-                }
+                const createdFirstSharedBalance = await latchFirstSharedBalance(
+                    tx,
+                    lockedRoom,
+                    expense.id,
+                    write.paidById,
+                    write.shares
+                )
                 const newPayer = body.newPaidByName
                     ? (lockedRoom.members.find((member) => member.id === paidById) ?? null)
                     : null

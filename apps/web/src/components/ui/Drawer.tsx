@@ -17,9 +17,11 @@ import { Drawer as DrawerPrimitive } from 'vaul'
  *
  * The dialog's own marker attribute picks the elements rather than a hand-rolled
  * sweep of `document.body`: it already leaves out the live regions the toasts
- * announce through, and the sheet itself. The overlay is the one marked thing
- * that has to stay live — decorative to a screen reader, but it is also the
- * backdrop, and an inert backdrop cannot be tapped to close the sheet.
+ * announce through, and the sheet itself. Radix controls pointer events on a
+ * direct `<main>` without consistently marking it, so include that app root
+ * explicitly. The overlay is the one marked thing that has to stay live —
+ * decorative to a screen reader, but it is also the backdrop, and an inert
+ * backdrop cannot be tapped to close the sheet.
  *
  * This renders inside the content so it lives exactly as long as the sheet does.
  * The work waits a microtask because effects run child first: the dialog marks
@@ -33,7 +35,9 @@ function InertBackground() {
         queueMicrotask(() => {
             if (cancelled) return
             const background = Array.from(
-                document.querySelectorAll<HTMLElement>('body > [data-aria-hidden]:not([data-vaul-overlay])')
+                document.querySelectorAll<HTMLElement>(
+                    'body > [data-aria-hidden]:not([data-vaul-overlay]), body > main'
+                )
             )
             ours = background.filter((element) => !element.hasAttribute('inert'))
             for (const element of background) {

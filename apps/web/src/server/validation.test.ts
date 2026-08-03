@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
     createRoomSchema,
+    expensePatchSchema,
     expenseSchema,
     expenseUpdateSchema,
     importRoomSchema,
@@ -195,6 +196,37 @@ describe('weighted expense request shapes', () => {
         expect(
             importRoomSchema.safeParse({ ...input, expenses: [{ ...input.expenses[0], splitMode: 'PERCENTAGE' }] })
                 .success
+        ).toBe(false)
+    })
+})
+
+describe('catch-up request shapes', () => {
+    const command = {
+        operation: 'CATCH_UP_EQUAL_PARTICIPANT' as const,
+        action: 'add' as const,
+        memberId: 'late-member',
+        expectedDescription: 'Dinner',
+        expectedAmountMinor: '1000',
+        expectedBaseAmountMinor: '1000',
+        expectedCurrency: 'EUR',
+        expectedFxRate: '1',
+        expectedPaidById: 'payer',
+        expectedDate: '2026-08-03T12:00:00.000Z',
+        expectedCategory: null,
+    }
+
+    it('accepts a reviewed room roster larger than the import-only limit', () => {
+        expect(
+            expensePatchSchema.safeParse({
+                ...command,
+                expectedParticipantIds: Array.from({ length: 24 }, (_, index) => `member-${index}`),
+            }).success
+        ).toBe(true)
+    })
+
+    it('still rejects duplicate reviewed participants', () => {
+        expect(
+            expensePatchSchema.safeParse({ ...command, expectedParticipantIds: ['member-a', 'member-a'] }).success
         ).toBe(false)
     })
 })
