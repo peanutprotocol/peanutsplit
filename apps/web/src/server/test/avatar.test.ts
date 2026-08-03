@@ -5,7 +5,7 @@
  * twice: the target must belong to the room in the URL and the avatar must be a
  * key from the curated catalog. There is no free text or cross-room repaint.
  */
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetEvents, subscribe } from '@/server/events'
 import { resetRateLimits } from '@/server/rateLimit'
@@ -77,10 +77,16 @@ beforeEach(async () => {
     resetEvents()
 })
 
-afterEach(() => resetEvents())
+afterEach(() => {
+    resetEvents()
+    vi.restoreAllMocks()
+})
 
 describe('new member defaults', () => {
     it('persists random persona and palette pairs for both room creators and joiners', async () => {
+        // A constant RNG proves allocation is sampling the remaining room pool,
+        // rather than merely getting lucky with two independent draws.
+        vi.spyOn(Math, 'random').mockReturnValue(0)
         const fixture = await makeRoom()
         const members = await prisma.member.findMany({
             where: { id: { in: [fixture.anaId, fixture.brunoId] } },
@@ -92,6 +98,7 @@ describe('new member defaults', () => {
             expect(PERSONA_KEYS).toContain(member.avatar)
             expect(AVATAR_PALETTE_KEYS).toContain(member.avatarPalette)
         }
+        expect(new Set(members.map((member) => member.avatar)).size).toBe(members.length)
         expect(new Set(members.map((member) => member.avatarPalette)).size).toBe(members.length)
     })
 })

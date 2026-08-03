@@ -333,6 +333,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                         state={state}
                         currencies={currencies}
                         token={identity?.token}
+                        meId={meId}
                         expense={editing}
                         defaultPaidById={defaultPaidById}
                         sharedReceipt={params.shared}

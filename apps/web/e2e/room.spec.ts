@@ -234,10 +234,9 @@ test('create → share → join → split → settle → undo', async ({ page, b
 
     // Ana: +103.70 paid − 62.22 share − 30.00 dinner share = +11.48, so Bea is −11.48.
     await expectBalance(page, 'Bea', '-1148')
-    // The foreign row shows the room-currency conversion, labelled indicative.
-    await expect(page.locator('[data-testid="expense-row"][data-description="Lift passes"]')).toContainText(
-        'indicative'
-    )
+    // The compact row keeps what was actually paid in the expense currency;
+    // conversion and split mechanics live in the detail sheet.
+    await expect(page.locator('[data-testid="expense-row"][data-description="Lift passes"]')).toContainText('CHF')
 
     // ── 6. Re-opening the EXACT expense must not drift the balances ───────
     await page.locator('[data-testid="expense-row"][data-description="Lift passes"]').click()
@@ -533,12 +532,12 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(page.getByTestId('expense-fields-repaired')).toBeVisible()
     await page.getByTestId('save-expense').click()
 
-    await expect(
-        page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]:not([disabled])')
-    ).toContainText('Bea paid', { timeout: 15_000 })
-    await expect(page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]')).toContainText(
-        'Filed by you'
-    )
+    const dinnerRow = page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]:not([disabled])')
+    await expect(dinnerRow).toContainText('Bea paid', { timeout: 15_000 })
+    await expect(dinnerRow).not.toContainText('Filed by you')
+    await dinnerRow.click()
+    await expect(page.getByTestId('expense-filing-meta')).toContainText('Filed by you')
+    await page.getByTestId('close-expense').click()
     // Ana filed an expense Bea paid, so Ana is −3000 — the pair card states it as Bea +3000.
     await expectBalance(page, 'Bea', '3000')
 
@@ -564,11 +563,22 @@ test('one person can add a payer and submit an expense on their behalf', async (
 
     // The claimed token is functional, not merely persisted: the social write
     // that requires member proof is now enabled and reaches the real API.
-    const beaExpense = bea.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]').locator('..')
-    await expect(beaExpense.getByTestId('reaction-add')).toBeEnabled()
-    await beaExpense.getByTestId('reaction-add').click()
+    const beaRow = bea.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]')
+    const beaExpense = beaRow.locator('..')
+    // The explicit trigger is the keyboard/SR fallback. Pointer users get the
+    // chosen Telegram gesture: hold the expense itself, then pick a reaction.
+    await beaExpense.getByTestId('reaction-add').focus()
+    await expect(beaExpense.getByTestId('reaction-add')).toBeFocused()
+    const reactionTarget = await beaRow.boundingBox()
+    if (!reactionTarget) throw new Error('expense row has no pointer target')
+    await bea.mouse.move(reactionTarget.x + reactionTarget.width / 2, reactionTarget.y + reactionTarget.height / 2)
+    await bea.mouse.down()
+    await expect(beaExpense.getByTestId('reaction-strip')).toBeVisible({ timeout: 1_000 })
+    await bea.mouse.up()
     await beaExpense.getByTestId('reaction-option').first().click()
-    await expect(beaExpense.getByTestId('reaction-pill')).toHaveCount(1, { timeout: 15_000 })
+    const reactionPill = beaExpense.getByTestId('reaction-pill')
+    await expect(reactionPill).toHaveCount(1, { timeout: 15_000 })
+    await expect(reactionPill).toHaveAccessibleName(/Bea/)
     await second.close()
 })
 

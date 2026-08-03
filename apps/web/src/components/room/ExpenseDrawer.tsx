@@ -68,6 +68,8 @@ interface ExpenseDrawerProps {
     state: RoomState
     currencies: readonly CurrencyInfo[]
     token?: string | null
+    /** The member represented by this device, for first-person filing metadata. */
+    meId?: string
     /** Null = add mode. */
     expense: ApiExpense | null
     defaultPaidById: string
@@ -86,12 +88,14 @@ export function ExpenseDrawer({
     state,
     currencies,
     token,
+    meId,
     expense,
     defaultPaidById,
     sharedReceipt = false,
     onSharedReceiptConsumed,
 }: ExpenseDrawerProps) {
     const t = useTranslations('room.expenseDrawer')
+    const tExpenses = useTranslations('room.expenses')
     const tDates = useTranslations('dates')
     const locale = useLocale()
     const errorMessage = useErrorMessage()
@@ -791,6 +795,23 @@ export function ExpenseDrawer({
     yesterdayDate.setDate(yesterdayDate.getDate() - 1)
     const yesterdayInput = toDateInputValue(yesterdayDate.toISOString())
     const selectedDateInput = toDateInputValue(values.date)
+    const filingMeta = expense
+        ? {
+              by:
+                  expense.createdById === null
+                      ? tExpenses('filedByAnon')
+                      : expense.createdById === meId
+                        ? tExpenses('filedByYou')
+                        : tExpenses('filedBy', {
+                              name:
+                                  state.members.find((member) => member.id === expense.createdById)?.name ??
+                                  tExpenses('someone'),
+                          }),
+              when: new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
+                  new Date(expense.createdAt)
+              ),
+          }
+        : null
     /** Every `ExpenseFormError` code is a key under `validation`, so a new refusal
      *  reason cannot ship with no sentence to show for it. */
     const validationCopy = validation ? t(`validation.${validation}`) : null
@@ -874,6 +895,14 @@ export function ExpenseDrawer({
                     <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
                     <CloseButton onClick={close} label={t('close')} data-testid="close-expense" />
                 </DrawerHeader>
+                {filingMeta && (
+                    <p
+                        data-testid="expense-filing-meta"
+                        className="shrink-0 px-4 pb-1 text-h10 uppercase tracking-wide text-grey-1"
+                    >
+                        {filingMeta.by} · {filingMeta.when}
+                    </p>
+                )}
 
                 <DrawerBody ref={formRef} className="gap-3 pb-6 pt-2" data-testid="expense-scroll">
                     {/* One object, not four labelled sections: the receipt being created. */}

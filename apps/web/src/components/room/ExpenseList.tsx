@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -12,10 +13,9 @@ import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
 import { useMotionAllowed } from '@/lib/use-motion'
-import { dayLabel, expenseRowLabel, groupByDay, relativeTime } from '@/lib/dates'
+import { dayLabel, expenseRowLabel, groupByDay } from '@/lib/dates'
 import { Button } from '@/components/ui/Button'
 import { Money } from './Money'
-import { MemberAvatar } from './MemberAvatar'
 import { ReactionBar } from './ReactionBar'
 import { SettlementRow } from './SettlementRow'
 
@@ -40,6 +40,53 @@ const isPending = (expense: ApiExpense) => isPendingExpenseId(expense.id)
 
 /** Long enough to strip the class again; the animation itself is 100ms. */
 const POP_MS = 260
+const LONG_PRESS_MS = 450
+const LONG_PRESS_MOVE_PX = 8
+const SUPPRESS_CLICK_MS = 700
+
+export interface ExpensePersonalPosition {
+    direction: 'lent' | 'borrowed' | 'total'
+    amountMinor: string
+    currency: string
+}
+
+/**
+ * A saved expense's net effect on this viewer, in room currency. Drafts have no
+ * authoritative FX or shares yet, so they deliberately use the amount that was
+ * entered instead of inventing a room-currency position.
+ */
+export function getExpensePersonalPosition(
+    expense: ApiExpense,
+    roomCurrency: string,
+    meId: string | undefined,
+    memberIds: readonly string[],
+    unsaved: boolean
+): ExpensePersonalPosition {
+    if (unsaved) {
+        return { direction: 'total', amountMinor: expense.amountMinor, currency: expense.currency }
+    }
+
+    const validMeId = meId && memberIds.includes(meId) ? meId : undefined
+    const impact = personalExpenseImpact(expense, validMeId)
+    if (!impact || impact.direction === 'neutral') {
+        return { direction: 'total', amountMinor: expense.baseAmountMinor, currency: roomCurrency }
+    }
+    return {
+        direction: impact.direction === 'incoming' ? 'lent' : 'borrowed',
+        amountMinor: impact.amountMinor,
+        currency: roomCurrency,
+    }
+}
+
+interface ExpensePress {
+    expenseId: string
+    pointerId: number
+    startX: number
+    startY: number
+    timer: number
+    longPressed: boolean
+    moved: boolean
+}
 
 /**
  * Which row, if any, should pop right now.
@@ -95,9 +142,134 @@ export function ExpenseList({
     const motionAllowed = useMotionAllowed()
     const poppedId = usePoppedExpenseId(state.expenses)
     const queued = useQueuedWrites(slug)
+    const [openReactionExpenseId, setOpenReactionExpenseId] = useState<string | null>(null)
+    const press = useRef<ExpensePress | null>(null)
+    const suppressClickExpenseId = useRef<string | null>(null)
+    const suppressClickTimer = useRef<number | null>(null)
     /** Expenses and payments in one list, newest first — see `lib/timeline.ts`
      *  for why a settlement's `createdAt` is the date it interleaves on. */
     const timeline = useMemo(() => roomTimeline(state.expenses, state.settlements), [state.expenses, state.settlements])
+
+    const clearPress = () => {
+        if (press.current) window.clearTimeout(press.current.timer)
+        press.current = null
+    }
+
+    const clearClickSuppression = () => {
+        if (suppressClickTimer.current !== null) window.clearTimeout(suppressClickTimer.current)
+        suppressClickTimer.current = null
+        suppressClickExpenseId.current = null
+    }
+
+    const suppressNextClick = (expenseId: string) => {
+        clearClickSuppression()
+        suppressClickExpenseId.current = expenseId
+        suppressClickTimer.current = window.setTimeout(clearClickSuppression, SUPPRESS_CLICK_MS)
+    }
+
+    useEffect(
+        () => () => {
+            clearPress()
+            clearClickSuppression()
+        },
+        []
+    )
+
+    useEffect(() => {
+        if (!savedActionsDisabled) return
+        clearPress()
+        clearClickSuppression()
+        setOpenReactionExpenseId(null)
+    }, [savedActionsDisabled])
+
+    useEffect(() => {
+        if (!openReactionExpenseId) return
+        const closeOutside = (event: PointerEvent) => {
+            const target = event.target
+            if (!(target instanceof Element)) return
+            const item = target.closest('[data-expense-history-item]')
+            if (item?.getAttribute('data-expense-id') === openReactionExpenseId) return
+            setOpenReactionExpenseId(null)
+        }
+        document.addEventListener('pointerdown', closeOutside)
+        return () => document.removeEventListener('pointerdown', closeOutside)
+    }, [openReactionExpenseId])
+
+    const startPress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string, canLongPress: boolean) => {
+        if (!canLongPress || !event.isPrimary || event.button !== 0) return
+        clearPress()
+        const nextPress: ExpensePress = {
+            expenseId,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            timer: 0,
+            longPressed: false,
+            moved: false,
+        }
+        nextPress.timer = window.setTimeout(() => {
+            if (press.current !== nextPress) return
+            nextPress.longPressed = true
+            suppressClickExpenseId.current = expenseId
+            setOpenReactionExpenseId(expenseId)
+        }, LONG_PRESS_MS)
+        press.current = nextPress
+        event.currentTarget.setPointerCapture?.(event.pointerId)
+    }
+
+    const movePress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string) => {
+        const current = press.current
+        if (!current || current.expenseId !== expenseId || current.pointerId !== event.pointerId) return
+        if (
+            Math.abs(event.clientX - current.startX) <= LONG_PRESS_MOVE_PX &&
+            Math.abs(event.clientY - current.startY) <= LONG_PRESS_MOVE_PX
+        ) {
+            return
+        }
+        window.clearTimeout(current.timer)
+        current.moved = true
+        if (current.longPressed && openReactionExpenseId === expenseId) {
+            setOpenReactionExpenseId(null)
+        }
+    }
+
+    const finishPress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string) => {
+        const current = press.current
+        if (!current || current.expenseId !== expenseId || current.pointerId !== event.pointerId) return
+        const shouldSuppressClick = current.longPressed || current.moved
+        clearPress()
+        if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId)
+        }
+        if (!shouldSuppressClick) return
+
+        // Mobile browsers can synthesize the click well after pointer release.
+        // Keep the guard beyond that delay, but consume it as soon as the
+        // expected click arrives.
+        suppressNextClick(expenseId)
+    }
+
+    const cancelPress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string) => {
+        const current = press.current
+        if (!current || current.expenseId !== expenseId || current.pointerId !== event.pointerId) return
+        clearPress()
+        if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId)
+        }
+        if (suppressClickExpenseId.current === expenseId) clearClickSuppression()
+        if (current.longPressed && openReactionExpenseId === expenseId) {
+            setOpenReactionExpenseId(null)
+        }
+    }
+
+    const selectExpense = (expenseId: string) => {
+        if (suppressClickExpenseId.current === expenseId) {
+            clearClickSuppression()
+            return
+        }
+        setOpenReactionExpenseId(null)
+        onSelect(expenseId)
+    }
 
     // The empty state belongs to the whole history, not to the expenses alone: a
     // room holding a payment and no expenses has something to show.
@@ -133,26 +305,25 @@ export function ExpenseList({
 
     const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
     const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
-    const memberAvatar = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
-    const memberPalette = (id: string) => state.members.find((member) => member.id === id)?.avatarPalette ?? null
     // A stale device identity is not permission to call somebody in this room
     // "you". Spectators still see the expense totals, just without personal
-    // direction claims or colour.
+    // direction claims.
     const validMeId = meId && state.members.some((member) => member.id === meId) ? meId : undefined
-    const pairCounterparty =
-        validMeId && state.members.length === 2
-            ? state.members.find((member) => member.id !== validMeId)?.name
-            : undefined
+    const memberIds = state.members.map((member) => member.id)
+    const viewerIsMember = !!validMeId
     const groups = groupByDay(timeline, (entry) => entry.date)
 
     return (
         <section aria-label={t('title')} className="flex flex-col gap-5 px-4">
             {groups.map((group) => (
                 <div key={group.key} className="flex flex-col gap-2">
-                    <h3 className="text-h8 uppercase tracking-wide text-grey-1">
+                    <h3 id={`expense-day-${group.key}`} className="text-h8 uppercase tracking-wide text-grey-1">
                         {dayLabel(group.items[0].date, dayOptions)}
                     </h3>
-                    <ul className="flex flex-col gap-2">
+                    <ul
+                        aria-labelledby={`expense-day-${group.key}`}
+                        className="shadow-4 flex flex-col divide-y divide-grey-2 rounded-sm border border-n-1 bg-white"
+                    >
                         {/* Default (sync) mode, deliberately: an optimistic `pending-…`
                             row is replaced by the real one under a different key, and
                             popLayout would keep the placeholder mounted alongside its
@@ -195,6 +366,7 @@ export function ExpenseList({
                                                     : { duration: 0 }
                                             }
                                             data-motion-surface
+                                            className="p-2"
                                         >
                                             <SettlementRow
                                                 slug={slug}
@@ -210,35 +382,24 @@ export function ExpenseList({
                                 }
                                 const expense = entry.expense
                                 const payer = memberName(expense.paidById)
-                                const filedBy =
-                                    expense.createdById === null
-                                        ? t('filedByAnon')
-                                        : expense.createdById === meId
-                                          ? t('filedByYou')
-                                          : t('filedBy', { name: memberName(expense.createdById) })
-                                const foreign = expense.currency !== state.room.currency
-                                const impact = isQueuedExpenseId(expense.id, queued)
-                                    ? null
-                                    : personalExpenseImpact(expense, validMeId)
-                                const impactCopy = impact
-                                    ? impact.direction === 'outgoing'
-                                        ? pairCounterparty
-                                            ? t('personalImpact.outgoingNamed', { name: pairCounterparty })
-                                            : t('personalImpact.outgoing')
-                                        : impact.direction === 'incoming'
-                                          ? pairCounterparty
-                                              ? t('personalImpact.incomingNamed', { name: pairCounterparty })
-                                              : t('personalImpact.incoming')
-                                          : impact.neutralReason === 'not-in-split'
-                                            ? t('personalImpact.notInSplit')
-                                            : t('personalImpact.neutral')
-                                    : null
-                                // `createdAt`, not `date`: this line is about the row being
-                                // written — a dinner can be backdated, filing it cannot.
-                                const filedWhen = relativeTime(expense.createdAt, {
-                                    locale,
-                                    justNow: tDates('justNow'),
-                                })
+                                const queuedExpense = isQueuedExpenseId(expense.id, queued)
+                                const unsaved = isPending(expense) || queuedExpense
+                                const impact = unsaved ? null : personalExpenseImpact(expense, validMeId)
+                                const personalPosition = getExpensePersonalPosition(
+                                    expense,
+                                    state.room.currency,
+                                    validMeId,
+                                    memberIds,
+                                    unsaved
+                                )
+                                const personalDirection =
+                                    personalPosition.direction === 'lent'
+                                        ? t('youLent')
+                                        : personalPosition.direction === 'borrowed'
+                                          ? t('youBorrowed')
+                                          : t('total')
+                                const actionsDisabled = isPending(expense) || savedActionsDisabled
+                                const canReactToExpense = !unsaved && !savedActionsDisabled && !!validMeId && !!token
                                 return (
                                     <motion.li
                                         key={expense.id}
@@ -279,14 +440,34 @@ export function ExpenseList({
                                                 : { duration: 0 }
                                         }
                                         data-motion-surface
+                                        data-expense-history-item
+                                        data-expense-id={expense.id}
+                                        className="flex flex-col"
                                     >
                                         <button
                                             type="button"
-                                            disabled={isPending(expense) || savedActionsDisabled}
+                                            disabled={actionsDisabled}
                                             aria-describedby={
                                                 savedActionsDisabled ? 'room-stale-warning-copy' : undefined
                                             }
-                                            onClick={() => onSelect(expense.id)}
+                                            onPointerDown={(event) => startPress(event, expense.id, canReactToExpense)}
+                                            onPointerMove={(event) => movePress(event, expense.id)}
+                                            onPointerUp={(event) => finishPress(event, expense.id)}
+                                            onPointerCancel={(event) => cancelPress(event, expense.id)}
+                                            onLostPointerCapture={(event) => cancelPress(event, expense.id)}
+                                            onContextMenu={(event) => {
+                                                if (!canReactToExpense) return
+                                                event.preventDefault()
+                                                const current = press.current
+                                                if (current?.expenseId === expense.id) {
+                                                    current.longPressed = true
+                                                    suppressClickExpenseId.current = expense.id
+                                                } else {
+                                                    suppressNextClick(expense.id)
+                                                }
+                                                setOpenReactionExpenseId(expense.id)
+                                            }}
+                                            onClick={() => selectExpense(expense.id)}
                                             data-testid="expense-row"
                                             data-description={expense.description}
                                             data-personal-impact={impact?.direction}
@@ -296,112 +477,73 @@ export function ExpenseList({
                                             // owned by motion, and two writers on one
                                             // property is a fight nobody wins.
                                             className={cn(
-                                                'shadow-4 flex min-h-[3.5rem] w-full flex-col overflow-hidden rounded-sm border border-n-1 text-left transition-transform duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:active:translate-x-0 disabled:active:translate-y-0',
-                                                impact?.direction === 'outgoing' && 'bg-balance-outgoing',
-                                                impact?.direction === 'incoming' && 'bg-balance-incoming',
-                                                (!impact || impact.direction === 'neutral') && 'bg-white',
+                                                'flex min-h-[4.75rem] w-full touch-pan-y select-none items-start gap-3 px-3 pb-2 pt-3 text-left transition-colors duration-100 active:bg-grey-3 disabled:active:bg-transparent',
                                                 poppedId === expense.id && 'animate-pop'
                                             )}
                                         >
-                                            <span className="flex min-h-[3.5rem] w-full items-center gap-3 p-3">
-                                                <MemberAvatar
-                                                    name={payer}
-                                                    avatar={memberAvatar(expense.paidById)}
-                                                    palette={memberPalette(expense.paidById)}
-                                                    size={36}
-                                                />
-                                                <span className="min-w-0 flex-1">
-                                                    <span className="block truncate text-h8">
-                                                        {/* Row label, not plain `expenseLabel`: these rows
+                                            <span className="min-w-0 flex-1 pt-0.5">
+                                                <span className="block truncate text-h7">
+                                                    {/* Row label, not plain `expenseLabel`: these rows
                                                         sit under a day heading, so an unnamed one takes
                                                         the day AND its time — otherwise it reprints the
                                                         heading and two unnamed rows read identically. */}
-                                                        {expenseRowLabel(expense.description, expense.date, dayOptions)}
-                                                    </span>
-                                                    {isQueuedExpenseId(expense.id, queued) && (
-                                                        <span className="block text-sm text-grey-1">
-                                                            {tOffline('rowHint')}
-                                                        </span>
-                                                    )}
-                                                    <span className="block truncate text-sm text-grey-1">
-                                                        {/* Separate first-person key, not an interpolated "you":
-                                                        Spanish must conjugate — "Tú pagó" was a literal
-                                                        grammar error on the most-read line in the app.
-                                                        Truncated, not wrapped: the amount column next to
-                                                        this one is `shrink-0`, so a wide amount squeezes
-                                                        this flex-1 column narrow enough that "You paid ·
-                                                        1 person" wrapped mid-phrase and nearly doubled the
-                                                        row's height. */}
-                                                        {expense.paidById === meId
-                                                            ? t('paidByYou', { count: expense.shares.length })
-                                                            : t('paidBy', { payer, count: expense.shares.length })}
-                                                    </span>
-                                                    {!isPending(expense) && (
-                                                        <span className="block text-h10 uppercase tracking-wide text-grey-1">
-                                                            {filedBy} · {filedWhen}
-                                                        </span>
-                                                    )}
+                                                    {expenseRowLabel(expense.description, expense.date, dayOptions)}
                                                 </span>
-                                                <span className="flex shrink-0 flex-col items-end">
+                                                {queuedExpense && (
+                                                    <span className="block text-h10 uppercase tracking-wide text-grey-1">
+                                                        {tOffline('rowHint')}
+                                                    </span>
+                                                )}
+                                                <span className="mt-1 block truncate text-sm text-grey-1">
+                                                    {viewerIsMember && expense.paidById === validMeId
+                                                        ? t('paidByYouCompact')
+                                                        : t('paidByCompact', { payer })}{' '}
                                                     <Money
                                                         minor={expense.amountMinor}
                                                         currency={expense.currency}
                                                         catalog={currencies}
-                                                        className="text-h7"
                                                     />
-                                                    {foreign && !isPending(expense) && (
-                                                        <span className="text-h10 text-grey-1">
-                                                            ~{' '}
-                                                            <Money
-                                                                minor={expense.baseAmountMinor}
-                                                                currency={state.room.currency}
-                                                                catalog={currencies}
-                                                            />{' '}
-                                                            {t('indicative')}
-                                                        </span>
-                                                    )}
                                                 </span>
                                             </span>
-                                            {impact && impactCopy && (
-                                                <span
-                                                    data-testid="expense-personal-impact"
-                                                    className={cn(
-                                                        'flex w-full items-center justify-between gap-3 border-t border-n-1/20 px-3 py-2 text-h9',
-                                                        impact.direction === 'outgoing' &&
-                                                            'text-balance-outgoing-accent',
-                                                        impact.direction === 'incoming' &&
-                                                            'text-balance-incoming-accent',
-                                                        impact.direction === 'neutral' && 'text-n-3'
-                                                    )}
-                                                >
-                                                    <span className="flex min-w-0 items-center gap-1.5">
-                                                        {impact.direction !== 'neutral' && (
-                                                            <span
-                                                                aria-hidden="true"
-                                                                className="shrink-0 text-sm leading-none"
-                                                            >
-                                                                {impact.direction === 'outgoing' ? '→' : '←'}
-                                                            </span>
-                                                        )}
-                                                        <span>{impactCopy}</span>
-                                                    </span>
-                                                    {impact.direction !== 'neutral' && (
-                                                        <Money
-                                                            minor={impact.amountMinor}
-                                                            currency={state.room.currency}
-                                                            catalog={currencies}
-                                                            className="shrink-0 text-h8"
-                                                        />
-                                                    )}
+                                            <span className="flex shrink-0 flex-col items-end gap-0.5">
+                                                <span className="whitespace-nowrap text-h10 text-grey-1">
+                                                    {personalDirection}
                                                 </span>
-                                            )}
+                                                <Money
+                                                    minor={personalPosition.amountMinor}
+                                                    currency={personalPosition.currency}
+                                                    catalog={currencies}
+                                                    className="text-h5"
+                                                />
+                                            </span>
                                         </button>
                                         {/* Outside the row button, not inside
                                             it: a button cannot contain buttons,
                                             and the row's own tap target has to
                                             stay the whole row. */}
                                         {!isPending(expense) && (
-                                            <ReactionBar slug={slug} expense={expense} meId={meId} token={token} />
+                                            <div
+                                                className={cn(
+                                                    'flex justify-end px-3',
+                                                    (expense.reactions.length > 0 ||
+                                                        openReactionExpenseId === expense.id) &&
+                                                        'pb-3'
+                                                )}
+                                            >
+                                                <ReactionBar
+                                                    slug={slug}
+                                                    expense={expense}
+                                                    members={state.members}
+                                                    meId={validMeId}
+                                                    token={token}
+                                                    disabled={savedActionsDisabled}
+                                                    pickerOpen={openReactionExpenseId === expense.id}
+                                                    onPickerOpenChange={(open) => {
+                                                        if (open && savedActionsDisabled) return
+                                                        setOpenReactionExpenseId(open ? expense.id : null)
+                                                    }}
+                                                />
+                                            </div>
                                         )}
                                     </motion.li>
                                 )

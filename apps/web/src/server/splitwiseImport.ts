@@ -19,7 +19,7 @@
  */
 import { randomUUID } from 'node:crypto'
 import { Prisma } from '@prisma/client'
-import { randomPersonaKey } from '@/lib/avatars'
+import { dealPersonaKeys } from '@/lib/avatars'
 import { dealAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { prisma } from '@/server/db'
 import { buildExpense } from '@/server/expenses'
@@ -80,6 +80,7 @@ async function writeRoom(
 
     return prisma.$transaction(
         async (tx) => {
+            const avatars = dealPersonaKeys(body.members.length)
             const avatarPalettes = dealAvatarPaletteKeys(body.members.length)
             const created = await tx.room.create({
                 data: {
@@ -94,7 +95,7 @@ async function writeRoom(
                         createMany: {
                             data: body.members.map((name, index) => ({
                                 name,
-                                avatar: randomPersonaKey(),
+                                avatar: avatars[index],
                                 avatarPalette: avatarPalettes[index],
                                 // Case-insensitively, the same way the roster is checked for
                                 // duplicates — so exactly one member can ever match.

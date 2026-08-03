@@ -4,8 +4,8 @@
  * A member stores a palette KEY, never arbitrary colours. That keeps every
  * combination readable, lets a palette be retuned without migrating a room,
  * and prevents a room link-holder from introducing an unreadable value. The
- * white sticker keyline is deliberately not part of this catalog: it is the
- * common drawing treatment applied by `MemberAvatar`.
+ * avatar is deliberately only these two colours: a flat ground and one dark,
+ * readable drawing stroke.
  */
 
 export interface AvatarPalette {

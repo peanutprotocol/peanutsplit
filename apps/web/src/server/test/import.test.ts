@@ -154,6 +154,14 @@ describe('importing a group', () => {
         expect(new Set(tokens.map((t) => t.token)).size).toBe(3)
     })
 
+    it('deals every imported member a distinct mascot and colour', async () => {
+        const parsed = parseSplitwiseCsv(SIMPLE_GROUP)
+        const { body } = await post<RoomStateWithMember>(bodyFor(parsed))
+
+        expect(new Set(body.members.map((member) => member.avatar)).size).toBe(body.members.length)
+        expect(new Set(body.members.map((member) => member.avatarPalette)).size).toBe(body.members.length)
+    })
+
     it('keeps the date, the description and the category off the file', async () => {
         const parsed = parseSplitwiseCsv(SIMPLE_GROUP)
         const { body } = await post<RoomStateWithMember>(bodyFor(parsed))
