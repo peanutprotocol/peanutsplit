@@ -90,10 +90,14 @@ const pick = (random: () => number, count: number): number =>
 
 /** Draw one concrete palette key, excluding the current key when it is known. */
 export function randomAvatarPaletteKey(
-    exclude: string | null = null,
+    exclude: string | readonly string[] | null = null,
     random: () => number = Math.random
 ): AvatarPaletteKey {
-    const candidates = AVATAR_PALETTE_KEYS.filter((key) => key !== exclude)
+    const excluded = new Set(typeof exclude === 'string' ? [exclude] : (exclude ?? []))
+    const available = AVATAR_PALETTE_KEYS.filter((key) => !excluded.has(key))
+    // Once a room is larger than the reviewed pool, reuse is better than an
+    // undefined colour. The ordinary cap is twenty, so this is defensive.
+    const candidates = available.length > 0 ? available : AVATAR_PALETTE_KEYS
     return candidates[pick(random, candidates.length)]
 }
 
