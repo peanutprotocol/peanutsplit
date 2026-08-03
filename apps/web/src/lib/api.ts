@@ -5,6 +5,8 @@
  */
 
 import type {
+    CatchUpExpenseInput,
+    CatchUpExpenseResult,
     CreateMemberInput,
     CreateRoomInput,
     CurrencyInfo,
@@ -42,6 +44,17 @@ export class ApiRequestError extends Error {
 
 export const isApiError = (error: unknown, code?: string): error is ApiRequestError =>
     error instanceof ApiRequestError && (code === undefined || error.code === code)
+
+const CATCH_UP_ROW_CHANGE_CODES = new Set(['CATCH_UP_REVIEW_CONFLICT', 'EXPENSE_DELETED', 'EXPENSE_NOT_FOUND'])
+const CATCH_UP_REVIEW_CHANGE_CODES = new Set([...CATCH_UP_ROW_CHANGE_CODES, 'NOT_A_MEMBER', 'ROOM_ARCHIVED'])
+
+/** Row-scoped conflicts may be skipped while a reviewed batch continues. */
+export const isCatchUpRowChange = (error: unknown): boolean =>
+    isApiError(error) && CATCH_UP_ROW_CHANGE_CODES.has(error.code)
+
+/** Errors that mean the reviewed row no longer exists in the confirmed form. */
+export const isCatchUpReviewChange = (error: unknown): boolean =>
+    isApiError(error) && CATCH_UP_REVIEW_CHANGE_CODES.has(error.code)
 
 /** Transport failure — offline, DNS, connection reset. Status 0 by convention. */
 export const NETWORK_ERROR_CODE = 'NETWORK_ERROR'
@@ -189,6 +202,14 @@ export const api = {
             method: 'PATCH',
             body: input,
             token,
+        }),
+
+    catchUpExpense: (slug: string, id: string, input: CatchUpExpenseInput, token?: string | null) =>
+        request<CatchUpExpenseResult>(`/api/rooms/${encode(slug)}/expenses/${encode(id)}`, {
+            method: 'PATCH',
+            body: { operation: 'CATCH_UP_EQUAL_PARTICIPANT', ...input },
+            token,
+            timeoutMs: EXPENSE_WRITE_TIMEOUT_MS,
         }),
 
     deleteExpense: (slug: string, id: string, token?: string | null) =>

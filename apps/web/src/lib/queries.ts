@@ -10,9 +10,10 @@ import {
     type UseMutationOptions,
     type UseMutationResult,
 } from '@tanstack/react-query'
-import { api, expensesPath } from './api'
+import { api, expensesPath, isCatchUpReviewChange } from './api'
 import type {
     ApiReaction,
+    CatchUpExpenseInput,
     CreateRoomInput,
     CurrencyInfo,
     ExpenseCreateResult,
@@ -533,6 +534,30 @@ export function useUpdateExpense(slug: string, token?: string | null) {
             api.updateExpense(slug, id, input, token),
         onSuccess: (state) => seed(queryClient, slug, state),
     })
+}
+
+export const catchUpExpenseMutationOptions = (queryClient: QueryClient, slug: string, token?: string | null) =>
+    ({
+        mutationFn: ({ expenseId, ...input }: CatchUpExpenseInput & { expenseId: string }) =>
+            api.catchUpExpense(slug, expenseId, input, token),
+        onSuccess: ({ state }) => seed(queryClient, slug, state),
+        // A review conflict means another write won the room lock. Refresh
+        // before the sequential runner reads its next row so it never builds a
+        // second command from the same stale room snapshot.
+        onError: async (error) => {
+            if (isCatchUpReviewChange(error)) {
+                await queryClient.invalidateQueries({ queryKey: roomKey(slug) })
+            }
+        },
+    }) satisfies UseMutationOptions<
+        Awaited<ReturnType<typeof api.catchUpExpense>>,
+        Error,
+        CatchUpExpenseInput & { expenseId: string }
+    >
+
+export function useCatchUpExpense(slug: string, token?: string | null) {
+    const queryClient = useQueryClient()
+    return useMutation(catchUpExpenseMutationOptions(queryClient, slug, token))
 }
 
 export function useDeleteExpense(slug: string, token?: string | null) {

@@ -129,6 +129,149 @@ export function expenseAuditValues(expense: ExpenseAuditInput) {
     }
 }
 
+interface RestorableEqualShare {
+    memberId: string
+    amountMinor: bigint
+    enteredAmountMinor: null
+    splitWeight: null
+}
+
+const jsonRecord = (value: Prisma.JsonValue | null): Prisma.JsonObject | null =>
+    value !== null && typeof value === 'object' && !Array.isArray(value) ? value : null
+
+/** Keep this projection byte-for-byte aligned with `expenseAuditValues`. Audit
+ * snapshots contain identity and reaction fields too, but neither should make a
+ * safe share-only Undo fail after (for example) somebody reacted to the row. */
+const expenseValuesFromAudit = (snapshot: Prisma.JsonValue | null) => {
+    const record = jsonRecord(snapshot)
+    if (!record || !Array.isArray(record.shares)) return null
+    const shares: Prisma.JsonObject[] = []
+    for (const item of record.shares) {
+        const share = jsonRecord(item)
+        if (!share) return null
+        // PostgreSQL jsonb does not preserve object-key order. Re-project every
+        // share so structural comparison cannot depend on its storage order.
+        shares.push({
+            memberId: share.memberId ?? null,
+            amountMinor: share.amountMinor ?? null,
+            enteredAmountMinor: share.enteredAmountMinor ?? null,
+            splitWeight: share.splitWeight ?? null,
+        })
+    }
+    return {
+        description: record.description,
+        amountMinor: record.amountMinor,
+        currency: record.currency,
+        baseAmountMinor: record.baseAmountMinor,
+        fxRate: record.fxRate,
+        paidById: record.paidById,
+        splitMode: record.splitMode,
+        date: record.date,
+        category: record.category,
+        shares,
+    }
+}
+
+const restorableEqualShares = (value: Prisma.JsonValue): RestorableEqualShare[] | null => {
+    if (!Array.isArray(value) || value.length === 0) return null
+    const shares: RestorableEqualShare[] = []
+    const memberIds = new Set<string>()
+    for (const item of value) {
+        const share = jsonRecord(item)
+        if (
+            !share ||
+            typeof share.memberId !== 'string' ||
+            typeof share.amountMinor !== 'string' ||
+            !/^\d+$/.test(share.amountMinor) ||
+            share.enteredAmountMinor !== null ||
+            share.splitWeight !== null ||
+            memberIds.has(share.memberId)
+        ) {
+            return null
+        }
+        memberIds.add(share.memberId)
+        shares.push({
+            memberId: share.memberId,
+            amountMinor: BigInt(share.amountMinor),
+            enteredAmountMinor: null,
+            splitWeight: null,
+        })
+    }
+    return shares
+}
+
+const sameMemberSet = (left: readonly { memberId: string }[], right: readonly { memberId: string }[]): boolean => {
+    const rightIds = new Set(right.map((share) => share.memberId))
+    return rightIds.size === left.length && left.every((share) => rightIds.has(share.memberId))
+}
+
+/**
+ * Recover the exact pre-Add equal shares for conflict-safe Undo.
+ *
+ * Equal arithmetic alone cannot reconstruct an imported row's rounding owner:
+ * adding a fourth member to 1000/3 produces four identical 250 shares and loses
+ * which original member held 334. The immutable Add audit event is the one
+ * transactional record that still has that fact. We accept it only when its
+ * complete editable/money `after` state equals the locked expense, its scalar
+ * facts were unchanged by Add, and its participant delta is exactly `memberId`.
+ */
+export async function catchUpUndoSharesFromAudit(
+    tx: Pick<Prisma.TransactionClient, 'roomAuditEvent'>,
+    expense: ExpenseAuditInput,
+    memberId: string
+): Promise<RestorableEqualShare[] | null> {
+    const currentValues = expenseAuditValues(expense)
+    const events = await tx.roomAuditEvent.findMany({
+        where: {
+            roomId: expense.roomId,
+            action: 'expense_edited',
+            subjectType: 'expense',
+            subjectId: expense.id,
+            detail: {
+                equals: {
+                    operation: 'catch_up_equal_participant',
+                    action: 'add',
+                    memberId,
+                },
+            },
+        },
+        select: { before: true, after: true, detail: true },
+        orderBy: { id: 'desc' },
+    })
+
+    for (const event of events) {
+        const detail = jsonRecord(event.detail)
+        if (
+            detail?.operation !== 'catch_up_equal_participant' ||
+            detail.action !== 'add' ||
+            detail.memberId !== memberId
+        ) {
+            continue
+        }
+
+        const before = expenseValuesFromAudit(event.before)
+        const after = expenseValuesFromAudit(event.after)
+        if (!before || !after || JSON.stringify(after) !== JSON.stringify(currentValues)) continue
+
+        const { shares: beforeJson, ...beforeFacts } = before
+        const { shares: afterJson, ...afterFacts } = after
+        if (JSON.stringify(beforeFacts) !== JSON.stringify(afterFacts)) continue
+
+        const beforeShares = restorableEqualShares(beforeJson)
+        const afterShares = restorableEqualShares(afterJson)
+        if (!beforeShares || !afterShares || beforeFacts.splitMode !== 'EQUAL') continue
+        if (beforeShares.some((share) => share.memberId === memberId)) continue
+        if (!afterShares.some((share) => share.memberId === memberId)) continue
+        if (!sameMemberSet(afterShares, [...beforeShares, { memberId }])) continue
+        if (beforeShares.reduce((sum, share) => sum + share.amountMinor, 0n).toString() !== beforeFacts.baseAmountMinor)
+            continue
+
+        return beforeShares
+    }
+
+    return null
+}
+
 export const lockRoomWrite = async (tx: Pick<Prisma.TransactionClient, '$queryRaw'>, roomId: string): Promise<void> => {
     await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${roomId}, 0))`
 }

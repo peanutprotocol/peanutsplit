@@ -1,6 +1,18 @@
-import { describe, expect, it } from 'vitest'
-import type { ApiExpense, ApiMember, ExpenseInput, RoomState } from './api-types'
-import { backfillPatch, backfillableFor, latecomerOffer, runBackfill } from './latecomer'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ApiExpense, ApiMember, RoomState } from './api-types'
+import {
+    backfillableFor,
+    catchUpExpenseInput,
+    dismissLatecomerReview,
+    isLatecomerReviewDismissed,
+    latecomerReview,
+    projectedBalanceMinor,
+    runBackfill,
+    selectedImpactMinor,
+    suggestedExpenseIds,
+} from './latecomer'
+
+afterEach(() => vi.unstubAllGlobals())
 
 const iso = (minute: number) => new Date(Date.UTC(2026, 6, 1, 12, minute)).toISOString()
 
@@ -110,48 +122,102 @@ describe('backfillableFor', () => {
     })
 })
 
-describe('latecomerOffer', () => {
-    it('is null for a room where nobody arrived late', () => {
-        expect(latecomerOffer(room([ana, bea], [expense('e1', 10, ['ana', 'bea'])]))).toBeNull()
-        expect(latecomerOffer(undefined)).toBeNull()
+describe('latecomerReview', () => {
+    it('returns null for an empty history, so a new empty room gets no catch-up step', () => {
+        expect(latecomerReview(room([ana, bea, dani], []), 'dani')).toBeNull()
     })
 
-    it('offers the newest joiner who is missing from something', () => {
+    it('shows actual earlier rows and classifies suggestions, equal subsets, and custom maths separately', () => {
         const cai = member('cai', 20)
-        const state = room([ana, bea, cai, dani], [expense('e1', 10, ['ana', 'bea'])])
-        const offer = latecomerOffer(state)
-        // Cai is missing from e1 too, but Dani arrived last and one question at a
-        // time is a decision somebody can make.
-        expect(offer?.member.id).toBe('dani')
-        expect(offer?.expenses.map((e) => e.id)).toEqual(['e1'])
+        const exact = expense('exact', 27, ['ana', 'bea'], { splitMode: 'EXACT' })
+        const subset = expense('subset', 25, ['ana', 'bea'])
+        const wholeRoom = expense('whole', 10, ['ana', 'bea'])
+        const afterJoin = expense('after', 40, ['ana', 'bea', 'cai'])
+        const review = latecomerReview(room([ana, bea, cai, dani], [exact, subset, wholeRoom, afterJoin]), 'dani')!
+
+        expect(review.member.id).toBe('dani')
+        expect(review.items.map((item) => [item.expense.id, item.kind, item.impactMinor])).toEqual([
+            ['exact', 'manual', null],
+            ['subset', 'optional', '2000'],
+            ['whole', 'suggested', '2000'],
+        ])
+        expect(suggestedExpenseIds(review)).toEqual(['whole'])
+        expect(selectedImpactMinor(review, new Set(['whole', 'subset', 'exact']))).toBe('4000')
+    })
+
+    it('uses the server equal-split rounding position for the displayed impact', () => {
+        const uneven = expense('odd', 10, ['ana', 'bea'], { baseAmountMinor: '1000' })
+        const review = latecomerReview(room([ana, bea, dani], [uneven]), 'dani')!
+        // The existing two are first and absorb the 1-cent residue; Dani is
+        // appended last and receives floor(1000 / 3).
+        expect(review.items[0].impactMinor).toBe('333')
+    })
+
+    it('keeps a whole-room row suggested after an earlier latecomer was caught up', () => {
+        const eve = member('eve', 40)
+        const changed = expense('changed', 10, ['ana', 'bea', 'eve'])
+        const review = latecomerReview(room([ana, bea, dani, eve], [changed]), 'dani')!
+        expect(review.items[0].kind).toBe('suggested')
+    })
+
+    it('keeps an equal subset optional when it also contains a later member', () => {
+        const cai = member('cai', 5)
+        const eve = member('eve', 40)
+        const changed = expense('changed', 10, ['ana', 'bea', 'eve'])
+        const review = latecomerReview(room([ana, bea, cai, dani, eve], [changed]), 'dani')!
+        expect(review.items[0].kind).toBe('optional')
     })
 })
 
-describe('backfillPatch', () => {
-    it('names the existing share holders plus the one person, and nothing else moves', () => {
-        const row = expense('e1', 10, ['ana', 'bea'], { currency: 'CHF', amountMinor: '10000', category: 'Food' })
-
-        expect(backfillPatch(row, 'dani')).toEqual({
-            description: 'Dinner',
-            amountMinor: '10000',
-            currency: 'CHF',
-            paidById: 'ana',
-            splitMode: 'EQUAL',
-            participantIds: ['ana', 'bea', 'dani'],
-            date: iso(10),
-            category: 'Food',
+describe('local review dismissal', () => {
+    it('suppresses only the exact reviewed expense set on this device', () => {
+        const values = new Map<string, string>()
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: (key: string) => values.get(key) ?? null,
+                setItem: (key: string, value: string) => void values.set(key, value),
+            },
         })
+        const first = latecomerReview(room([ana, bea, dani], [expense('e1', 10, ['ana', 'bea'])]), 'dani')!
+        const changed = latecomerReview(
+            room([ana, bea, dani], [expense('e2', 12, ['ana', 'bea']), expense('e1', 10, ['ana', 'bea'])]),
+            'dani'
+        )!
+
+        expect(isLatecomerReviewDismissed('ski-trip', first)).toBe(false)
+        dismissLatecomerReview('ski-trip', first)
+        expect(isLatecomerReviewDismissed('ski-trip', first)).toBe(true)
+        expect(isLatecomerReviewDismissed('ski-trip', changed)).toBe(false)
     })
+})
 
-    /** The reason the list is spelled out. Two latecomers, and omitting
-     *  `participantIds` would have pulled the other one in as well. */
-    it('adds exactly one person even when two joined late', () => {
-        const cai = member('cai', 20)
-        const state = room([ana, bea, cai, dani], [expense('e1', 10, ['ana', 'bea'])])
-        const offer = latecomerOffer(state)!
+describe('projectedBalanceMinor', () => {
+    it.each([
+        ['5000', '2000', '3000'],
+        ['1000', '2000', '-1000'],
+        ['2000', '2000', '0'],
+        ['-1000', '2000', '-3000'],
+    ])('subtracts an added share from the current balance', (current, added, projected) => {
+        expect(projectedBalanceMinor(current, added)).toBe(projected)
+    })
+})
 
-        expect(backfillPatch(offer.expenses[0], offer.member.id).participantIds).toEqual(['ana', 'bea', 'dani'])
-        expect(cai.id).toBe('cai')
+describe('catchUpExpenseInput', () => {
+    it('pins every editable reviewed field and the participant set', () => {
+        const row = expense('e1', 10, ['ana', 'bea'], { category: 'food' })
+        expect(catchUpExpenseInput(row, 'dani')).toEqual({
+            action: 'add',
+            memberId: 'dani',
+            expectedDescription: 'Dinner',
+            expectedAmountMinor: '6000',
+            expectedBaseAmountMinor: '6000',
+            expectedCurrency: 'EUR',
+            expectedFxRate: '1',
+            expectedPaidById: 'ana',
+            expectedDate: iso(10),
+            expectedCategory: 'food',
+            expectedParticipantIds: ['ana', 'bea'],
+        })
     })
 })
 
@@ -160,69 +226,67 @@ describe('runBackfill', () => {
     const second = expense('e2', 12, ['ana', 'bea'])
     const start = room([ana, bea, dani], [first, second])
 
-    /**
-     * The loop over a room a test can move UNDER it, which is what the room's own
-     * eight-second poll does between two PATCHes in the real one. `between` is
-     * called after each write lands and its return value becomes what the next
-     * iteration reads.
-     */
-    const run = async (options: { between?: (written: number) => RoomState | undefined } = {}) => {
-        let live = start
-        const sent: { id: string; input: ExpenseInput }[] = []
+    it('sends the exact reviewed snapshots in order', async () => {
+        const reviewed = backfillableFor(start, 'dani')
+        const sent: ApiExpense[] = []
         await runBackfill({
             memberId: 'dani',
-            expenseIds: backfillableFor(start, 'dani').map((e) => e.id),
-            read: () => live,
-            patch: async (id, input) => {
-                sent.push({ id, input })
-            },
-            onWrote: (written) => {
-                live = options.between?.(written) ?? live
-            },
+            expenses: reviewed,
+            patch: async (snapshot) => void sent.push(snapshot),
+            onWrote: () => {},
             stopped: () => false,
         })
-        return sent
-    }
-
-    it('sends one patch per pinned expense while nothing moves', async () => {
-        const sent = await run()
-        expect(sent.map((s) => s.id)).toEqual(['e1', 'e2'])
-        expect(sent[0].input.participantIds).toEqual(['ana', 'bea', 'dani'])
+        expect(sent).toEqual(reviewed)
+        expect(sent.map((snapshot) => snapshot.id)).toEqual(['e1', 'e2'])
     })
 
-    it('skips a row somebody switched to EXACT while the run was working down the list', async () => {
-        // The clobber this guards: the pinned payload says EQUAL, so writing it
-        // would rewrite the numbers they had just typed.
-        const sent = await run({
-            between: (written) =>
-                written === 1 ? room([ana, bea, dani], [first, { ...second, splitMode: 'EXACT' }]) : undefined,
+    it('stops between atomic commands without discarding the reviewed remainder', async () => {
+        const sent: string[] = []
+        await runBackfill({
+            memberId: 'dani',
+            expenses: [first, second],
+            patch: async (snapshot) => void sent.push(snapshot.id),
+            onWrote: () => {},
+            stopped: () => sent.length === 1,
         })
-        expect(sent.map((s) => s.id)).toEqual(['e1'])
+        expect(sent).toEqual(['e1'])
     })
 
-    it('skips a row somebody added another person to, rather than dropping them', async () => {
-        // `participantIds` is spelled out from the snapshot, so the pinned patch
-        // would have named ana + bea + dani and quietly removed Eve.
-        const eve = member('eve', 40)
-        const withEve = {
-            ...second,
-            shares: [
-                ...second.shares,
-                { memberId: 'eve', amountMinor: '2000', enteredAmountMinor: null, splitWeight: null },
-            ],
-        }
-        const sent = await run({
-            between: (written) => (written === 1 ? room([ana, bea, dani, eve], [first, withEve]) : undefined),
+    it('marks a known review conflict skipped and continues with the exact next id', async () => {
+        const sent: string[] = []
+        const skipped: string[] = []
+        await runBackfill({
+            memberId: 'dani',
+            expenses: [first, second],
+            patch: async (snapshot) => {
+                if (snapshot.id === 'e1') throw new Error('conflict')
+                sent.push(snapshot.id)
+            },
+            onWrote: () => {},
+            onSkipped: (id) => skipped.push(id),
+            onPatchError: () => 'skip',
+            stopped: () => false,
         })
-        expect(sent.map((s) => s.id)).toEqual(['e1'])
+
+        expect(skipped).toEqual(['e1'])
+        expect(sent).toEqual(['e2'])
     })
 
-    it('carries an amount edited mid-run instead of writing the pinned one back', async () => {
-        const sent = await run({
-            between: (written) =>
-                written === 1 ? room([ana, bea, dani], [first, { ...second, amountMinor: '9900' }]) : undefined,
-        })
-        expect(sent.map((s) => s.id)).toEqual(['e1', 'e2'])
-        expect(sent[1].input.amountMinor).toBe('9900')
+    it('halts on a non-conflict failure without attempting later selected ids', async () => {
+        const sent: string[] = []
+        await expect(
+            runBackfill({
+                memberId: 'dani',
+                expenses: [first, second],
+                patch: async (snapshot) => {
+                    sent.push(snapshot.id)
+                    throw new Error('offline')
+                },
+                onWrote: () => {},
+                onPatchError: () => 'throw',
+                stopped: () => false,
+            })
+        ).rejects.toThrow('offline')
+        expect(sent).toEqual(['e1'])
     })
 })
