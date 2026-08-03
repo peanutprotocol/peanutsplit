@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
@@ -25,7 +26,7 @@ const LIVE_BUDGET_MS = 6_000
  */
 const balance = (page: Page, member: string) => page.locator(`[data-testid="balance-card"][data-member="${member}"]`)
 
-test('an expense on one device lands on the other without a refresh', async ({ page, browser }) => {
+test('an expense on one device lands on the other without a refresh', async ({ page, newDevice }) => {
     // Armed BEFORE the room exists, because the room screen opens its stream on
     // mount and a listener attached afterwards would miss it.
     const streamOpened = page.waitForResponse(
@@ -48,8 +49,7 @@ test('an expense on one device lands on the other without a refresh', async ({ p
     await streamOpened
 
     // ── Bea joins from a second device ────────────────────────────────────
-    const second = await browser.newContext({ viewport: { width: 390, height: 844 } })
-    const bea = await second.newPage()
+    const bea = await newDevice()
     await bea.goto(url)
     await bea.getByTestId('im-new').click()
     await bea.getByTestId('join-name').fill('Bea')
@@ -89,6 +89,4 @@ test('an expense on one device lands on the other without a refresh', async ({ p
 
     // Bea's device reads the same zero off the card about Ana.
     await expect(balance(bea, 'Ana')).toHaveAttribute('data-net', '0', { timeout: LIVE_BUDGET_MS })
-
-    await second.close()
 })

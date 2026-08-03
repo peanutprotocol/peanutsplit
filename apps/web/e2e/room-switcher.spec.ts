@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
@@ -9,8 +10,6 @@ import { enterCreatedRoom } from './helpers'
  * not pan the strip — while the scrollbar was hidden on both engines, leaving a mouse with nothing
  * either. Every room past the fifth tile was unreachable without clearing storage.
  */
-
-test.use({ extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.24' } })
 
 /** `RECENT_ROOMS_LIMIT`. Seeding past it also proves the read path still truncates. */
 const CAP = 12

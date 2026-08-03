@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { slideToConfirm } from './slide-to-confirm'
 
 test.setTimeout(60_000)
