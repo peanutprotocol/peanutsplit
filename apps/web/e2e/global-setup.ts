@@ -30,6 +30,19 @@ export default async function globalSetup(): Promise<void> {
             // Sequential on purpose: parallel cold compiles are the thing being avoided, not caused.
             await api.get(route, { timeout: 180_000 }).catch(() => undefined)
         }
+
+        // The room and its share card need a real slug to compile against, so the warmup makes one
+        // room of its own. `/r/[slug]/card/[kind]` renders a 1200×630 PNG and is the slowest route
+        // in the app to build: the invite-share spec waits 20s for it inside a 30s budget, which a
+        // cold compile alone can exhaust.
+        const created = await api
+            .post('/api/rooms', { data: { name: 'Warmup', currency: 'EUR', creatorName: 'Ana' } })
+            .catch(() => null)
+        const slug = created?.ok() ? ((await created.json()) as { room?: { slug?: string } }).room?.slug : undefined
+        if (slug) {
+            await api.get(`/r/${slug}`, { timeout: 180_000 }).catch(() => undefined)
+            await api.get(`/r/${slug}/card/invite`, { timeout: 180_000 }).catch(() => undefined)
+        }
     } finally {
         await api.dispose()
     }
