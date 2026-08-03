@@ -33,10 +33,16 @@
 				margin: 0;
 				background:
 					radial-gradient(circle at 6% 2%, rgba(255, 79, 163, 0.18), transparent 27rem),
-					radial-gradient(circle at 96% 6%, rgba(22, 214, 199, 0.22), transparent 30rem),
-					var(--canvas);
+					radial-gradient(circle at 96% 6%, rgba(22, 214, 199, 0.22), transparent 30rem), var(--canvas);
 				color: var(--ink);
-				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+				font-family:
+					Inter,
+					ui-sans-serif,
+					system-ui,
+					-apple-system,
+					BlinkMacSystemFont,
+					'Segoe UI',
+					sans-serif;
 				-webkit-font-smoothing: antialiased;
 			}
 
@@ -316,7 +322,9 @@
 				cursor: pointer;
 				font-size: 11px;
 				font-weight: 900;
-				transition: transform 100ms ease, box-shadow 100ms ease;
+				transition:
+					transform 100ms ease,
+					box-shadow 100ms ease;
 			}
 
 			.shuffle-button:active {
@@ -743,7 +751,9 @@
 				opacity: 0;
 				pointer-events: none;
 				transform: translateY(10px);
-				transition: opacity 140ms ease, transform 140ms ease;
+				transition:
+					opacity 140ms ease,
+					transform 140ms ease;
 			}
 
 			.toast.show {
@@ -838,8 +848,8 @@
 					<p class="eyebrow">Lagoon Sticker · cast system</p>
 					<h1>One family. Everyone different.</h1>
 					<p class="hero-copy">
-						Every mascot gets its own random, curated background and dark colored line. The close crop
-						keeps the group together, while you can compare the white sticker outline on or off.
+						Every mascot gets its own random, curated background and dark colored line. The close crop keeps
+						the group together, while you can compare the white sticker outline on or off.
 					</p>
 				</div>
 				<aside class="rule-card">
@@ -847,7 +857,9 @@
 					<ul class="rule-list">
 						<li><i>1</i><span>Inner lines are always dark and saturated—never near-white.</span></li>
 						<li><i>2</i><span>Every line/background pair passes at least 4.5:1 contrast.</span></li>
-						<li><i>3</i><span>The 104% crop unifies the cast; the white keyline is yours to toggle.</span></li>
+						<li>
+							<i>3</i><span>The 104% crop unifies the cast; the white keyline is yours to toggle.</span>
+						</li>
 					</ul>
 				</aside>
 			</section>
@@ -855,22 +867,35 @@
 			<section class="toolbar" aria-label="Cast controls">
 				<div class="toolbar-copy">
 					<strong>Curated randomness, not arbitrary RGB</strong>
-					<span>Each shuffle reassigns a unique safe pairing to every character and keeps it consistent below.</span>
+					<span
+						>Each shuffle reassigns a unique safe pairing to every character and keeps it consistent
+						below.</span
+					>
 				</div>
 				<div class="picker-controls">
 					<div class="control-set" role="group" aria-label="Preview mode">
 						<span>Preview</span>
 						<span class="segmented-control">
-							<button class="option-button" type="button" data-view="both" aria-pressed="true">Both</button>
-							<button class="option-button" type="button" data-view="cast" aria-pressed="false">Cast sheet</button>
-							<button class="option-button" type="button" data-view="room" aria-pressed="false">Real room</button>
+							<button class="option-button" type="button" data-view="both" aria-pressed="true">
+								Both
+							</button>
+							<button class="option-button" type="button" data-view="cast" aria-pressed="false">
+								Cast sheet
+							</button>
+							<button class="option-button" type="button" data-view="room" aria-pressed="false">
+								Real room
+							</button>
 						</span>
 					</div>
 					<div class="control-set" role="group" aria-label="White outline">
 						<span>White outline</span>
 						<span class="segmented-control">
-							<button class="option-button" type="button" data-keyline="true" aria-pressed="true">With outline</button>
-							<button class="option-button" type="button" data-keyline="false" aria-pressed="false">No outline</button>
+							<button class="option-button" type="button" data-keyline="true" aria-pressed="true">
+								With outline
+							</button>
+							<button class="option-button" type="button" data-keyline="false" aria-pressed="false">
+								No outline
+							</button>
 						</span>
 					</div>
 					<button id="shuffleButton" class="shuffle-button" type="button">↻ Shuffle colours</button>
@@ -894,7 +919,10 @@
 					<div>
 						<p class="eyebrow">Real room context</p>
 						<h2 id="contextTitle">Now put them all at the same table.</h2>
-						<p>The same assignments appear together in stacks, balances, expenses, people rows, and receipt chips.</p>
+						<p>
+							The same assignments appear together in stacks, balances, expenses, people rows, and receipt
+							chips.
+						</p>
 					</div>
 					<span class="pill">56 · 36 · 32 · 22 · 16px</span>
 				</div>
@@ -909,7 +937,24 @@
 
 		<script src="../persona-picker/canary-doodles.js"></script>
 		<script>
-			const memberNames = ['Maya', 'Inez', 'Sol', 'Bea', 'Jules', 'Mo', 'Ana', 'Leo', 'Kai', 'Nia', 'Remy', 'Luca', 'Zoe', 'Otis', 'Cleo', 'Noor']
+			const memberNames = [
+				'Maya',
+				'Inez',
+				'Sol',
+				'Bea',
+				'Jules',
+				'Mo',
+				'Ana',
+				'Leo',
+				'Kai',
+				'Nia',
+				'Remy',
+				'Luca',
+				'Zoe',
+				'Otis',
+				'Cleo',
+				'Noor',
+			]
 
 			const palettePool = [
 				{ name: 'Lagoon grape', bg: '#16D6C7', line: '#4C2BCD' },
@@ -1003,7 +1048,9 @@
 
 			function buildAssignments() {
 				const canaries = window.PERSONA_CANARIES || []
-				const safePalettes = palettePool.filter((palette) => contrast(palette.bg, palette.line) >= 4.5 && luminance(palette.line) < 0.18)
+				const safePalettes = palettePool.filter(
+					(palette) => contrast(palette.bg, palette.line) >= 4.5 && luminance(palette.line) < 0.18
+				)
 				const random = mulberry32(seed * 9973)
 				const colors = shuffled(safePalettes, random)
 				assignments = canaries.slice(0, 16).map((mascot, index) => ({
@@ -1019,7 +1066,9 @@
 				const compact = size <= 24
 				const style = `--disc-size:${size}px;--avatar-bg:${assignment.palette.bg};--avatar-line:${assignment.palette.line};--avatar-shadow:${compact ? 'none' : `2px 2px 0 ${assignment.palette.line}`}`
 				const accessibility = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'
-				const whiteLayer = options.keyline ? `<svg class="art-white" viewBox="0 0 32 32"><path d="${assignment.mascot.path}"></path></svg>` : ''
+				const whiteLayer = options.keyline
+					? `<svg class="art-white" viewBox="0 0 32 32"><path d="${assignment.mascot.path}"></path></svg>`
+					: ''
 				return `<span class="avatar-disc" data-compact="${compact}" data-keyline="${options.keyline}" style="${style}" ${accessibility}>
 					${whiteLayer}
 					<svg class="art-color" viewBox="0 0 32 32"><path d="${assignment.mascot.path}"></path></svg>
@@ -1037,16 +1086,19 @@
 			function renderCast() {
 				document.querySelector('#seedPill').textContent = `Cast shuffle ${String(seed).padStart(2, '0')}`
 				document.querySelector('#castGrid').innerHTML = assignments
-					.map((assignment) => `<article class="cast-card">
+					.map(
+						(assignment) => `<article class="cast-card">
 						<div class="cast-stage" style="--stage:${assignment.palette.bg}22">${avatarMarkup(assignment, 108, `${assignment.member}, ${assignment.mascot.name}`)}</div>
 						<div class="cast-copy"><strong>${assignment.member}</strong><span>${assignment.mascot.name}</span><small>${assignment.palette.name} · ${assignment.contrast.toFixed(1)}:1</small><span class="palette-bar" style="--bg:${assignment.palette.bg};--line:${assignment.palette.line}"><i></i><i></i></span></div>
-					</article>`)
+					</article>`
+					)
 					.join('')
 			}
 
 			function renderRoom() {
 				const at = (index) => assignments[index % assignments.length]
-				const stack = (start, count, size) => Array.from({ length: count }, (_, index) => avatarMarkup(at(start + index), size)).join('')
+				const stack = (start, count, size) =>
+					Array.from({ length: count }, (_, index) => avatarMarkup(at(start + index), size)).join('')
 				document.querySelector('#roomBar').innerHTML = `
 					<span class="room-icon">🍋</span>
 					<div class="room-copy"><strong>Weekend in Lisbon</strong><span>${avatarMarkup(at(0), 16)} EUR · YOU ARE ${at(0).member.toUpperCase()}</span></div>
@@ -1055,12 +1107,40 @@
 
 				const balanceStates = ['', 'negative', 'positive', '', 'positive']
 				const balanceAmounts = ['€0', '−€18', '+€42', '€0', '+€9']
-				const balances = Array.from({ length: 5 }, (_, index) => `<div class="balance-card ${balanceStates[index]}">${avatarMarkup(at(index), 32)}<div><strong>${at(index).member}</strong><span>${balanceAmounts[index]}</span></div></div>`).join('')
-				const expenses = ['Dinner at Prado', 'Airport taxi', 'Market picnic', 'Museum tickets', 'Pastéis', 'Late checkout']
+				const balances = Array.from(
+					{ length: 5 },
+					(_, index) =>
+						`<div class="balance-card ${balanceStates[index]}">${avatarMarkup(at(index), 32)}<div><strong>${at(index).member}</strong><span>${balanceAmounts[index]}</span></div></div>`
+				).join('')
+				const expenses = [
+					'Dinner at Prado',
+					'Airport taxi',
+					'Market picnic',
+					'Museum tickets',
+					'Pastéis',
+					'Late checkout',
+				]
 				const amounts = ['€128.40', '€36.00', '€24.60', '€52.00', '€18.20', '€31.00']
-				const expenseRows = expenses.map((expense, index) => `<div class="app-row">${avatarMarkup(at(index + 2), 36)}<div class="row-copy"><strong>${expense}</strong><span>${at(index + 2).member} paid · ${2 + (index % 4)} people</span></div><span class="amount">${amounts[index]}</span></div>`).join('')
-				const peopleRows = assignments.slice(0, 8).map((assignment) => `<div class="app-row">${avatarMarkup(assignment, 32)}<div class="row-copy"><strong>${assignment.member}</strong><span>${assignment.mascot.name}</span></div><span class="amount">›</span></div>`).join('')
-				const chips = assignments.slice(0, 10).map((assignment, index) => `<span class="person-chip ${index === 0 ? 'selected' : ''}">${avatarMarkup(assignment, 22)} ${assignment.member}</span>`).join('')
+				const expenseRows = expenses
+					.map(
+						(expense, index) =>
+							`<div class="app-row">${avatarMarkup(at(index + 2), 36)}<div class="row-copy"><strong>${expense}</strong><span>${at(index + 2).member} paid · ${2 + (index % 4)} people</span></div><span class="amount">${amounts[index]}</span></div>`
+					)
+					.join('')
+				const peopleRows = assignments
+					.slice(0, 8)
+					.map(
+						(assignment) =>
+							`<div class="app-row">${avatarMarkup(assignment, 32)}<div class="row-copy"><strong>${assignment.member}</strong><span>${assignment.mascot.name}</span></div><span class="amount">›</span></div>`
+					)
+					.join('')
+				const chips = assignments
+					.slice(0, 10)
+					.map(
+						(assignment, index) =>
+							`<span class="person-chip ${index === 0 ? 'selected' : ''}">${avatarMarkup(assignment, 22)} ${assignment.member}</span>`
+					)
+					.join('')
 
 				document.querySelector('#roomBody').innerHTML = `
 					<div class="context-block"><div class="context-label"><span>Group achievement</span><span>56px + mixed stack</span></div><div class="achievement">${avatarMarkup(at(0), 56)}<div class="achievement-copy"><strong>Room MVPs</strong><span>Sixteen different colors. Still obviously one cast.</span></div><div class="avatar-stack">${stack(4, 6, 34)}</div></div></div>
