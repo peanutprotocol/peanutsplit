@@ -354,7 +354,7 @@
 
             .directions {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: minmax(0, 520px);
                 gap: 18px;
             }
 
@@ -668,7 +668,7 @@
 
             .classifier-detail {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
                 gap: 8px;
                 margin-top: 24px;
             }
@@ -992,8 +992,8 @@
                     <span class="eyebrow">Expense card art direction</span>
                     <h1 id="page-title">Show the <em>thing</em>, not the payer.</h1>
                     <p class="hero-copy">
-                        Replace the character portrait on every expense row with a transparent doodle inferred from the
-                        description. The payer stays in the copy, where that information belongs.
+                        Replace the character portrait with a transparent doodle for the specific thing purchased. The
+                        payer stays in the copy; thirteen broad categories stay behind the scenes for grouping.
                     </p>
                 </div>
                 <aside class="brief" aria-label="Mock boundaries">
@@ -1001,41 +1001,46 @@
                     <div class="brief-list">
                         <div class="brief-row">
                             <span class="brief-number">1</span>
-                            <span>Which card treatment makes the purchase easiest to scan.</span>
+                            <span>Bare hero is locked: a 44px purchase doodle takes the avatar’s place.</span>
                         </div>
                         <div class="brief-row">
                             <span class="brief-number">2</span>
-                            <span>Whether forty categories feel broad enough without becoming vague.</span>
+                            <span>How 340 specific subjects collapse into thirteen useful categories.</span>
                         </div>
                         <div class="brief-row">
                             <span class="brief-number">3</span>
-                            <span>How the standalone local catalog behaves before card integration.</span>
+                            <span>How 2,000 terms and conservative typo recovery behave before card integration.</span>
                         </div>
                     </div>
                 </aside>
             </section>
 
             <div class="metrics" aria-label="Taxonomy summary">
-                <div class="metric"><strong id="metric-categories">40</strong><span>expense categories</span></div>
-                <div class="metric"><strong id="metric-terms">1,000</strong><span>unique matching terms</span></div>
-                <div class="metric"><strong>3</strong><span>languages mixed in one dictionary</span></div>
-                <div class="metric"><strong>0</strong><span>background fills inside doodle assets</span></div>
+                <div class="metric">
+                    <strong id="metric-categories">13</strong><span>broad expense categories</span>
+                </div>
+                <div class="metric"><strong id="metric-terms">2,000</strong><span>unique matching terms</span></div>
+                <div class="metric">
+                    <strong id="metric-subjects">340</strong><span>specific purchase subjects</span>
+                </div>
+                <div class="metric"><strong>300</strong><span>new transparent doodles</span></div>
             </div>
 
             <section aria-labelledby="directions-title">
                 <div class="section-head">
                     <div class="section-title">
-                        <span class="eyebrow">01 · Pick the card treatment</span>
-                        <h2 id="directions-title">Same data, different emphasis.</h2>
+                        <span class="eyebrow">01 · Locked direction</span>
+                        <h2 id="directions-title">Bare hero is the card treatment.</h2>
                         <p>
-                            Tap a direction to use it in the live classifier below. All three remove the payer portrait.
+                            The decision is closed: one prominent object drawing, no category caption, no payer
+                            portrait.
                         </p>
                     </div>
                     <span class="transparent-note"><span class="transparent-swatch"></span> Bare SVG doodles</span>
                 </div>
 
-                <div class="directions" role="radiogroup" aria-label="Expense card treatment">
-                    <button class="direction" type="button" role="radio" aria-checked="true" data-direction="hero">
+                <div class="directions" aria-label="Locked expense card treatment">
+                    <div class="direction" aria-checked="true" data-direction="hero">
                         <span class="direction-heading">
                             <span>
                                 <span class="direction-title display">A · Bare hero</span>
@@ -1043,7 +1048,7 @@
                                     >A 44px object drawing replaces the 36px character disc.</span
                                 >
                             </span>
-                            <span class="pick-state">Picked</span>
+                            <span class="pick-state">Locked</span>
                         </span>
                         <span class="phone-stage" aria-hidden="true">
                             <span class="day-label">Today</span>
@@ -1051,90 +1056,35 @@
                                 class="expense-card incoming"
                                 data-sample-card
                                 data-treatment="hero"
-                                data-category="fuel"
+                                data-subject="fuel"
                             ></span>
                             <span
                                 class="expense-card"
                                 data-sample-card
                                 data-treatment="hero"
-                                data-category="pizza"
+                                data-subject="pizza"
                             ></span>
                         </span>
-                    </button>
-
-                    <button class="direction" type="button" role="radio" aria-checked="false" data-direction="rail">
-                        <span class="direction-heading">
-                            <span>
-                                <span class="direction-title display">B · Named rail</span>
-                                <span class="direction-copy">The same bare drawing gains a tiny category caption.</span>
-                            </span>
-                            <span class="pick-state">Pick</span>
-                        </span>
-                        <span class="phone-stage" aria-hidden="true">
-                            <span class="day-label">Today</span>
-                            <span
-                                class="expense-card incoming"
-                                data-sample-card
-                                data-treatment="rail"
-                                data-category="fuel"
-                            ></span>
-                            <span
-                                class="expense-card"
-                                data-sample-card
-                                data-treatment="rail"
-                                data-category="pizza"
-                            ></span>
-                        </span>
-                    </button>
-
-                    <button class="direction" type="button" role="radio" aria-checked="false" data-direction="inline">
-                        <span class="direction-heading">
-                            <span>
-                                <span class="direction-title display">C · Inline mark</span>
-                                <span class="direction-copy"
-                                    >A quieter 26px drawing lets the description own the row.</span
-                                >
-                            </span>
-                            <span class="pick-state">Pick</span>
-                        </span>
-                        <span class="phone-stage" aria-hidden="true">
-                            <span class="day-label">Today</span>
-                            <span
-                                class="expense-card incoming"
-                                data-sample-card
-                                data-treatment="inline"
-                                data-category="fuel"
-                            ></span>
-                            <span
-                                class="expense-card"
-                                data-sample-card
-                                data-treatment="inline"
-                                data-category="pizza"
-                            ></span>
-                        </span>
-                    </button>
+                    </div>
                 </div>
 
                 <div class="decision-strip" aria-live="polite">
                     <p>
-                        Current pick: <strong id="selected-direction">A · Bare hero</strong> —
-                        <span id="selected-direction-copy"
-                            >the closest swap for the existing avatar, with no new label competing against the
-                            description.</span
-                        >
+                        Locked: <strong>A · Bare hero</strong> — the purchase subject owns the art while the payer
+                        remains plain text.
                     </p>
-                    <code>payer avatar → category doodle</code>
+                    <code>payer avatar → subject doodle</code>
                 </div>
             </section>
 
             <section aria-labelledby="classifier-title">
                 <div class="classifier">
                     <div class="classifier-controls">
-                        <span class="eyebrow">02 · Try the 1,000-term dictionary</span>
+                        <span class="eyebrow">02 · Try the 2,000-term dictionary</span>
                         <h2 id="classifier-title">Type what was paid for.</h2>
                         <p>
-                            This lightweight mock normalizes accents and punctuation, then prefers the longest matching
-                            phrase. It is deliberately local and deterministic.
+                            Exact words and phrases win first. If none match, conservative edit distance recovers a
+                            clear typo without guessing short or ambiguous words.
                         </p>
 
                         <label class="input-label" for="expense-description">Expense description</label>
@@ -1150,14 +1100,15 @@
                             <button class="quick-test" type="button">Pepperoni delivery</button>
                             <button class="quick-test" type="button">Posto de gasolina</button>
                             <button class="quick-test" type="button">Billete de ferry</button>
-                            <button class="quick-test" type="button">WiFi for August</button>
-                            <button class="quick-test" type="button">Hospital privado</button>
+                            <button class="quick-test" type="button">SIM</button>
+                            <button class="quick-test" type="button">Tiket</button>
                             <button class="quick-test" type="button">Mystery thing</button>
                         </div>
 
                         <div class="classifier-detail" aria-live="polite">
+                            <div class="detail-cell"><span>Subject</span><strong id="result-subject">Fuel</strong></div>
                             <div class="detail-cell">
-                                <span>Category</span><strong id="result-category">Fuel</strong>
+                                <span>Category</span><strong id="result-category">Transport</strong>
                             </div>
                             <div class="detail-cell"><span>Matched</span><strong id="result-term">fuel</strong></div>
                             <div class="detail-cell"><span>Rule</span><strong id="result-rule">phrase</strong></div>
@@ -1178,10 +1129,10 @@
                 <div class="section-head">
                     <div class="section-title">
                         <span class="eyebrow">03 · Review the category set</span>
-                        <h2 id="categories-title">Forty things people actually split.</h2>
+                        <h2 id="categories-title">Thirteen groups, 340 specific things.</h2>
                         <p>
-                            Click any card to send one of its terms into the classifier. Seven drawings are new for this
-                            taxonomy; the rest reuse Peanut Split’s current doodle set.
+                            Category count goes down while visual precision goes up. Click any subject to try its first
+                            term; filter by category, label or any of the 2,000 aliases.
                         </p>
                     </div>
                     <div class="category-tools">
@@ -1190,13 +1141,15 @@
                             class="category-search"
                             id="category-search"
                             type="search"
-                            placeholder="Try “ferry” or “saúde”"
+                            placeholder="Try “ticket”, “sim” or “saúde”"
                         />
                     </div>
                 </div>
 
                 <div class="category-groups" id="category-groups"></div>
-                <p class="empty-filter" id="empty-filter">No category or dictionary term matches that filter.</p>
+                <p class="empty-filter" id="empty-filter">
+                    No subject, category or dictionary term matches that filter.
+                </p>
             </section>
 
             <section aria-labelledby="rules-title">
@@ -1211,7 +1164,8 @@
                         <h3>What changes</h3>
                         <ul>
                             <li>The character portrait disappears from expense cards.</li>
-                            <li>A category doodle is derived from the description at display time.</li>
+                            <li>A specific subject doodle is derived from the description at display time.</li>
+                            <li>Reporting and filtering use one of thirteen broad categories.</li>
                             <li>The original description and “María paid” line remain untouched.</li>
                             <li>Unknown descriptions receive the neutral question doodle.</li>
                         </ul>
@@ -1220,6 +1174,7 @@
                         <h3>Guardrails for implementation</h3>
                         <ul>
                             <li>Specific phrases beat generic words: “gas bill” beats “gas.”</li>
+                            <li>Typo recovery runs only after exact matching and rejects ambiguous short guesses.</li>
                             <li>Normalize case, accents and punctuation; match on word boundaries.</li>
                             <li>Store no inferred personal data—the category describes the purchase only.</li>
                             <li>Add manual correction only in the expense editor, never on the scan surface.</li>
@@ -1236,15 +1191,9 @@
 
         <script>
             let categories = []
-            let byId = new Map()
-            const groupOrder = [
-                'Food & drink',
-                'Getting around',
-                'Trips & stays',
-                'Everyday life',
-                'Care & family',
-                'Money & admin',
-            ]
+            let subjects = []
+            let categoryById = new Map()
+            let subjectById = new Map()
 
             const FALLBACK_PATH =
                 'M12.2 10.4C12.5 7.8 14 6.2 16.6 6.2C19.4 6.2 21.2 7.8 21.2 10.2C21.2 12.4 20 13.5 18.2 14.7C16.8 15.7 16.2 16.7 16.2 18.4 M16.1 24.6C16.2 24.6 16.4 24.8 16.4 25C16.4 25.2 16.2 25.4 16 25.4C15.8 25.4 15.6 25.2 15.6 25C15.6 24.8 15.8 24.6 16.1 24.6Z'
@@ -1254,8 +1203,11 @@
             async function loadCatalog() {
                 const response = await fetch('../src/lib/expense-category-catalog.json')
                 if (!response.ok) throw new Error(`Could not load expense categories: HTTP ${response.status}`)
-                categories = await response.json()
-                byId = new Map(categories.map((category) => [category.id, category]))
+                const catalog = await response.json()
+                categories = catalog.categories
+                subjects = catalog.subjects
+                categoryById = new Map(categories.map((category) => [category.id, category]))
+                subjectById = new Map(subjects.map((subject) => [subject.id, subject]))
             }
 
             function normalize(value) {
@@ -1289,21 +1241,17 @@
                     const response = await fetch('../src/components/ui/doodles.ts')
                     if (!response.ok) throw new Error(`HTTP ${response.status}`)
                     const source = await response.text()
-                    const names = new Set(categories.map((category) => category.doodle).concat(['peanut', 'question']))
-                    names.forEach((name) => {
-                        const safeName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-                        const match = source.match(new RegExp(`\\n\\s{4}${safeName}:\\s*'([^']*)'`))
-                        if (match) doodlePaths[name] = match[1]
-                    })
+                    const names = new Set(subjects.map((subject) => subject.doodle).concat(['peanut', 'question']))
+                    for (const match of source.matchAll(/\n\s{4}([a-z0-9_]+):\s*'([^']*)'/g)) {
+                        if (names.has(match[1])) doodlePaths[match[1]] = match[2]
+                    }
                 } catch (error) {
                     console.warn('Native doodles unavailable; using question-mark fallbacks.', error)
                 }
             }
 
-            function art(category, size = 44, caption = false) {
-                const image = doodle(category.doodle, size, category.label)
-                if (!caption) return image
-                return `<span class="art-inner">${image}<span class="art-caption">${escapeHtml(category.label)}</span></span>`
+            function art(subject, size = 44) {
+                return doodle(subject.doodle, size, subject.label)
             }
 
             const sampleContent = {
@@ -1323,45 +1271,67 @@
                 },
             }
 
-            function expenseCardMarkup(category, treatment, content) {
-                const treatmentClass =
-                    treatment === 'rail'
-                        ? 'treatment-rail'
-                        : treatment === 'inline'
-                          ? 'treatment-inline'
-                          : 'treatment-hero'
-                if (treatment === 'inline') {
-                    return `<span class="expense-main ${treatmentClass}">
-                        <span class="expense-copy"><span class="expense-art">${art(category, 25)}</span><span class="expense-name">${escapeHtml(content.name)}</span></span>
-                        <span class="expense-amount">${escapeHtml(content.amount)}</span>
-                        <span class="expense-payer">${escapeHtml(content.payer)}</span>
-                    </span>
-                    <span class="impact-line"><span>${escapeHtml(content.impact)}</span><span>${escapeHtml(content.delta)}</span></span>`
-                }
-
-                return `<span class="expense-main ${treatmentClass}">
-                    <span class="expense-art">${art(category, treatment === 'rail' ? 34 : 43, treatment === 'rail')}</span>
+            function expenseCardMarkup(subject, content) {
+                return `<span class="expense-main treatment-hero">
+                    <span class="expense-art">${art(subject, 43)}</span>
                     <span class="expense-copy"><span class="expense-name">${escapeHtml(content.name)}</span><span class="expense-payer">${escapeHtml(content.payer)}</span></span>
                     <span class="expense-amount">${escapeHtml(content.amount)}</span>
                 </span>
                 <span class="impact-line"><span>${escapeHtml(content.impact)}</span><span>${escapeHtml(content.delta)}</span></span>`
             }
 
+            function distance(left, right) {
+                const row = Array.from({ length: right.length + 1 }, (_, index) => index)
+                for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+                    let diagonal = row[0]
+                    row[0] = leftIndex
+                    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+                        const above = row[rightIndex]
+                        row[rightIndex] = Math.min(
+                            row[rightIndex] + 1,
+                            row[rightIndex - 1] + 1,
+                            diagonal + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1)
+                        )
+                        diagonal = above
+                    }
+                }
+                return row[right.length]
+            }
+
+            function allowedEdits(value) {
+                const length = value.replaceAll(' ', '').length
+                if (length < 4) return 0
+                if (length <= 5) return 1
+                if (length <= 9) return 2
+                if (length <= 15) return 3
+                return 4
+            }
+
+            function result(subject, term, rule, edits = 0) {
+                return {
+                    subject,
+                    category: categoryById.get(subject.categoryId),
+                    term,
+                    rule,
+                    edits,
+                    matched: rule !== 'fallback',
+                }
+            }
+
             function classify(value) {
                 const description = normalize(value)
-                if (!description) return { category: byId.get('other'), term: '—', rule: 'fallback', matched: false }
+                const fallback = subjectById.get('other')
+                if (!description) return result(fallback, '—', 'fallback')
 
                 let best = null
                 const paddedDescription = ` ${description} `
-                for (const category of categories) {
-                    for (const originalTerm of category.terms) {
+                for (const subject of subjects) {
+                    for (const originalTerm of [...subject.terms, subject.label]) {
                         const term = normalize(originalTerm)
-                        const paddedTerm = ` ${term} `
-                        const position = paddedDescription.indexOf(paddedTerm)
+                        if (description === term) return result(subject, originalTerm, 'exact term')
+                        const position = paddedDescription.indexOf(` ${term} `)
                         if (position < 0) continue
                         const wordCount = term.split(' ').length
-                        const exact = description === term
-                        if (exact) return { category, term: originalTerm, rule: 'exact term', matched: true }
                         const isBetter =
                             !best ||
                             wordCount > best.wordCount ||
@@ -1369,18 +1339,66 @@
                             (wordCount === best.wordCount &&
                                 term.length === best.normalizedTerm.length &&
                                 position < best.position)
-                        if (isBetter) {
-                            best = { category, term: originalTerm, normalizedTerm: term, wordCount, position }
+                        if (isBetter) best = { subject, term: originalTerm, normalizedTerm: term, wordCount, position }
+                    }
+                }
+                if (best) return result(best.subject, best.term, best.wordCount > 1 ? 'longest phrase' : 'word match')
+
+                const words = description.split(' ')
+                const candidates = []
+                for (const subject of subjects) {
+                    for (const originalTerm of [...subject.terms, subject.label]) {
+                        const term = normalize(originalTerm)
+                        const wordCount = term.split(' ').length
+                        const allowed = allowedEdits(term)
+                        if (!allowed || wordCount > words.length) continue
+                        for (let position = 0; position <= words.length - wordCount; position += 1) {
+                            const candidate = words.slice(position, position + wordCount).join(' ')
+                            if (Math.abs(candidate.length - term.length) > allowed) continue
+                            const edits = distance(candidate, term)
+                            const ratio = edits / Math.max(candidate.length, term.length)
+                            if (edits <= allowed && ratio <= 0.25) {
+                                candidates.push({
+                                    subject,
+                                    term: originalTerm,
+                                    normalizedTerm: term,
+                                    wordCount,
+                                    position,
+                                    edits,
+                                    ratio,
+                                })
+                            }
                         }
                     }
                 }
-
-                if (!best)
-                    return { category: byId.get('other'), term: 'No dictionary hit', rule: 'fallback', matched: false }
-                return { ...best, rule: best.wordCount > 1 ? 'longest phrase' : 'word match', matched: true }
+                candidates.sort(
+                    (left, right) =>
+                        left.edits - right.edits ||
+                        left.ratio - right.ratio ||
+                        right.wordCount - left.wordCount ||
+                        right.normalizedTerm.length - left.normalizedTerm.length ||
+                        left.position - right.position
+                )
+                const fuzzy = candidates[0]
+                const ambiguous = candidates.some(
+                    (candidate) =>
+                        candidate !== fuzzy &&
+                        candidate.subject.id !== fuzzy?.subject.id &&
+                        candidate.edits === fuzzy?.edits &&
+                        candidate.ratio === fuzzy?.ratio &&
+                        candidate.wordCount === fuzzy?.wordCount &&
+                        candidate.normalizedTerm.length === fuzzy?.normalizedTerm.length
+                )
+                return fuzzy && !ambiguous
+                    ? result(
+                          fuzzy.subject,
+                          fuzzy.term,
+                          `typo · ${fuzzy.edits} edit${fuzzy.edits === 1 ? '' : 's'}`,
+                          fuzzy.edits
+                      )
+                    : result(fallback, 'No dictionary hit', 'fallback')
             }
 
-            let selectedTreatment = 'hero'
             let currentResult
 
             function renderStaticDoodles() {
@@ -1391,8 +1409,8 @@
 
             function renderSamples() {
                 document.querySelectorAll('[data-sample-card]').forEach((card) => {
-                    const category = byId.get(card.dataset.category)
-                    card.innerHTML = expenseCardMarkup(category, card.dataset.treatment, sampleContent[category.id])
+                    const subject = subjectById.get(card.dataset.subject)
+                    card.innerHTML = expenseCardMarkup(subject, sampleContent[subject.id])
                 })
             }
 
@@ -1407,7 +1425,8 @@
                     delta: '€12.05',
                 }
                 const card = document.querySelector('#live-card')
-                card.innerHTML = expenseCardMarkup(currentResult.category, selectedTreatment, content)
+                card.innerHTML = expenseCardMarkup(currentResult.subject, content)
+                document.querySelector('#result-subject').textContent = currentResult.subject.label
                 document.querySelector('#result-category').textContent = currentResult.category.label
                 document.querySelector('#result-term').textContent = currentResult.term
                 document.querySelector('#result-rule').textContent = currentResult.rule
@@ -1418,7 +1437,7 @@
                 document.querySelectorAll('.category-card').forEach((categoryCard) => {
                     categoryCard.classList.toggle(
                         'is-active',
-                        categoryCard.dataset.categoryId === currentResult.category.id
+                        categoryCard.dataset.subjectId === currentResult.subject.id
                     )
                 })
             }
@@ -1430,55 +1449,30 @@
                 renderLiveCard()
             }
 
-            function setTreatment(value) {
-                selectedTreatment = value
-                const labels = {
-                    hero: [
-                        'A · Bare hero',
-                        'the closest swap for the existing avatar, with no new label competing against the description.',
-                    ],
-                    rail: [
-                        'B · Named rail',
-                        'the most explicit category treatment, but it adds one more label to every row.',
-                    ],
-                    inline: [
-                        'C · Inline mark',
-                        'the quietest treatment, useful if a 44px doodle feels too prominent in a dense ledger.',
-                    ],
-                }
-                document.querySelectorAll('.direction').forEach((button) => {
-                    const selected = button.dataset.direction === value
-                    button.setAttribute('aria-checked', String(selected))
-                    button.querySelector('.pick-state').textContent = selected ? 'Picked' : 'Pick'
-                })
-                document.querySelector('#selected-direction').textContent = labels[value][0]
-                document.querySelector('#selected-direction-copy').textContent = labels[value][1]
-                renderLiveCard()
-            }
-
             function renderCategories(filter = '') {
                 const target = document.querySelector('#category-groups')
                 const needle = normalize(filter)
-                const visible = categories.filter((category) => {
+                const visible = subjects.filter((subject) => {
                     if (!needle) return true
-                    return normalize([category.label, category.group, ...category.terms].join(' ')).includes(needle)
+                    const category = categoryById.get(subject.categoryId)
+                    return normalize([subject.label, category.label, ...subject.terms].join(' ')).includes(needle)
                 })
 
-                target.innerHTML = groupOrder
-                    .map((group) => {
-                        const members = visible.filter((category) => category.group === group)
+                target.innerHTML = categories
+                    .map((category) => {
+                        const members = visible.filter((subject) => subject.categoryId === category.id)
                         if (!members.length) return ''
                         return `<div class="category-group">
-                            <div class="category-group-head"><h3>${escapeHtml(group)}</h3><span class="category-count">${members.length} categories</span></div>
+                            <div class="category-group-head"><h3>${escapeHtml(category.label)}</h3><span class="category-count">${members.length} subjects</span></div>
                             <div class="category-grid">
                                 ${members
                                     .map(
                                         (
-                                            category
-                                        ) => `<button class="category-card${category.id === currentResult.category.id ? ' is-active' : ''}" type="button" data-category-id="${category.id}" title="Try ${escapeHtml(category.terms[0])}">
-                                            ${art(category, 46)}
-                                            <strong>${escapeHtml(category.label)}</strong>
-                                            <small>25 terms · ${escapeHtml(category.terms.slice(0, 4).join(', '))}</small>
+                                            subject
+                                        ) => `<button class="category-card${subject.id === currentResult.subject.id ? ' is-active' : ''}" type="button" data-subject-id="${subject.id}" title="Try ${escapeHtml(subject.terms[0])}">
+                                            ${art(subject, 46)}
+                                            <strong>${escapeHtml(subject.label)}</strong>
+                                            <small>${subject.terms.length} terms · ${escapeHtml(subject.terms.slice(0, 4).join(', '))}</small>
                                         </button>`
                                     )
                                     .join('')}
@@ -1492,8 +1486,8 @@
 
                 target.querySelectorAll('.category-card').forEach((card) => {
                     card.addEventListener('click', () => {
-                        const category = byId.get(card.dataset.categoryId)
-                        setDescription(category.terms[0])
+                        const subject = subjectById.get(card.dataset.subjectId)
+                        setDescription(subject.terms[0])
                         document
                             .querySelector('#classifier-title')
                             .scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -1505,8 +1499,9 @@
                 await loadCatalog()
                 currentResult = classify('Tank refill before the coast')
                 document.querySelector('#metric-categories').textContent = categories.length.toLocaleString()
-                document.querySelector('#metric-terms').textContent = categories
-                    .reduce((total, category) => total + category.terms.length, 0)
+                document.querySelector('#metric-subjects').textContent = subjects.length.toLocaleString()
+                document.querySelector('#metric-terms').textContent = subjects
+                    .reduce((total, subject) => total + subject.terms.length, 0)
                     .toLocaleString()
 
                 await loadNativeDoodles()
@@ -1514,10 +1509,6 @@
                 renderSamples()
                 renderCategories()
                 renderLiveCard()
-
-                document.querySelectorAll('.direction').forEach((button) => {
-                    button.addEventListener('click', () => setTreatment(button.dataset.direction))
-                })
 
                 document.querySelector('#expense-description').addEventListener('input', (event) => {
                     currentResult = classify(event.target.value)

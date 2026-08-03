@@ -1,114 +1,86 @@
-# Expense category catalog
+# Expense subjects and categories
 
 ## Status and integration boundary
 
-The taxonomy, matcher and doodles are ready for review. Expense-card integration is deliberately deferred while the card work in progress lands. This work does not change `ExpenseList`, persisted expenses, APIs, database schema or analytics.
+The catalog, matcher, art and static review are ready. Expense-card integration remains deferred until the in-flight card work lands. This branch does not change `ExpenseList`, persisted expenses, APIs, database schema or analytics.
 
-The category is derived from the expense description at display time. The IDs below are stable enough to support a saved user override later, but this first pass does not add one.
+The visual direction is locked: **A · Bare hero**. A 44px subject doodle replaces the payer character. The card does not gain a category caption; payer information remains in text.
 
 Canonical sources:
 
-- `src/lib/expense-category-catalog.json` — 40 categories and 1,000 terms
-- `src/lib/expense-category.ts` — validation, normalization and deterministic matching
-- `design/doodles/parts/13-expense-categories.json` — seven new source drawings
-- `src/components/ui/doodles.ts` — generated doodle paths
-- `docs/expense-category-picker.html` — card-treatment and category picker
+- `src/lib/expense-category-catalog.json` — 13 categories, 340 subjects and 2,000 unique terms
+- `src/lib/expense-category.ts` — validation, exact matching and typo recovery
+- `design/doodles/expense-subjects.tsv` — the 300-subject expansion and its 1,000 added terms
+- `design/doodles/parts/14-expense-subjects.json` — imported clean geometry for 300 new doodles
+- `design/doodles/import_lucide_expense_subjects.py` — deterministic vector importer
+- `docs/expense-category-picker.html` — locked Bare hero review, classifier and doodle wall
 
-## Product choices
+## Why subjects and categories are separate
 
-### Card treatment
+Forty categories made each drawing meaningful, but made the taxonomy too granular. The revised model has two levels:
 
-The picker keeps three implementation options open until the card branch lands:
+- A **subject** answers “what was paid for?” and owns the doodle. Examples: SIM card, ticket, parking meter, sandwich and blood test.
+- A **category** is a broad grouping for filtering and reporting. Examples: Tech & connectivity, Transport and Health & wellness.
 
-1. **A · Bare hero — recommended.** Replace the payer’s 36px character disc with a 44px category doodle. It is the clearest direct swap and adds no secondary label to the row.
-2. **B · Named rail.** Use the same doodle with a small category caption. This is the most explicit treatment, but it competes with the expense description.
-3. **C · Inline mark.** Put a quieter 26px doodle beside the description. It preserves density, but makes the new semantic cue less prominent.
+There are 340 subjects inside 13 categories. The 40 original subjects retain their 1,000 terms. Three hundred new subjects add exactly 1,000 unique terms and 300 new drawings.
 
-The recommendation is intentionally a mock decision, not an implementation commitment. Re-check spacing, tap targets and loading behavior against the landed card component before wiring it in.
+## Broad category set
 
-### Classification behavior
+| Stable ID               | Label               | Subjects | Boundary                                                  |
+| ----------------------- | ------------------- | -------: | --------------------------------------------------------- |
+| `food-drink`            | Food & drink        |       33 | Meals, ingredients, groceries and drinks                  |
+| `transport`             | Transport           |       32 | Moving people or goods, including fuel and fares          |
+| `travel-stays`          | Travel & stays      |       30 | Accommodation, holidays and destination activities        |
+| `home-bills`            | Home & bills        |       27 | Housing, utilities, appliances and household upkeep       |
+| `shopping`              | Shopping            |       26 | Retail goods without a stronger purpose                   |
+| `entertainment-leisure` | Fun & leisure       |       28 | Tickets, media, events, hobbies and games                 |
+| `health-wellness`       | Health & wellness   |       29 | Medical care, pharmacy, fitness and pet care              |
+| `family-education`      | Family & education  |       27 | Childcare, school and learning                            |
+| `work-services`         | Work & services     |       25 | Professional, trade, delivery and administrative services |
+| `tech-connectivity`     | Tech & connectivity |       26 | Devices, connectivity, hosting and phone service          |
+| `money-admin`           | Money & admin       |       29 | Cash, fees, transfers, documents and financial products   |
+| `gifts-giving`          | Gifts & giving      |       27 | Gifts, donations, community support and causes            |
+| `other`                 | Other               |        1 | Unknown or genuinely miscellaneous expenses               |
 
-- Normalize case, accents and punctuation, including Spanish and Brazilian Portuguese diacritics.
-- Match whole words and phrases, never arbitrary substrings. `gas` does not match `gastronomy`.
-- Prefer an exact description, then the phrase with the most words, then the longer term. This makes `gas bill` resolve to Utilities instead of Fuel.
-- Use the first occurrence only as a final tie-breaker. The catalog order is the last deterministic tie-breaker.
-- Fall back to Other when nothing matches. There is no network call and no probabilistic result.
-- Treat descriptions as one primary purpose. Mixed receipts are not split into multiple categories.
+## Matching behavior
 
-Every category has exactly 25 unique terms, for 1,000 normalized terms in total. The list mixes English, Spanish and Brazilian Portuguese. Labels are developer-facing English for now; user-facing labels should go through the existing message catalog when card integration happens.
+Matching remains local and deterministic:
 
-## Category set
+1. Normalize case, accents, punctuation and whitespace.
+2. Prefer a complete exact term.
+3. Otherwise match whole phrases or words. More words win, then the longer term, then the first occurrence.
+4. Only when no exact boundary match exists, compare equal-length word windows using `fastest-levenshtein`.
+5. Permit one edit for 4–5 characters, two for 6–9, three for 10–15 and four above 15, with a maximum 25% edit ratio.
+6. Do not typo-match terms shorter than four characters. Reject equally strong matches owned by different subjects.
+7. Fall back to Other when no clear match exists.
 
-| Group          | Stable ID          | Label                 | Doodle        | Boundary                                                   |
-| -------------- | ------------------ | --------------------- | ------------- | ---------------------------------------------------------- |
-| Food & drink   | `pizza`            | Pizza                 | pizza         | High-signal pizza terms; separate from general meals       |
-| Food & drink   | `restaurants`      | Restaurants           | restaurant    | General meals out, restaurants, burgers and barbecue       |
-| Food & drink   | `asian-food`       | Asian food            | noodles       | Noodles and broad East/Southeast Asian dishes              |
-| Food & drink   | `sushi`            | Sushi                 | sushi         | Sushi-specific dishes and venues                           |
-| Food & drink   | `groceries`        | Groceries             | cart          | Food shops and ingredients for home                        |
-| Food & drink   | `coffee-breakfast` | Coffee & breakfast    | coffee        | Cafés, coffee and breakfast food                           |
-| Food & drink   | `desserts-snacks`  | Desserts & snacks     | cake          | Sweet food and between-meal snacks                         |
-| Food & drink   | `drinks-nightlife` | Drinks & nightlife    | wine          | Alcohol, bars and nightlife tabs                           |
-| Getting around | `fuel`             | Fuel                  | fuel          | Petrol, diesel, charging and motor oil                     |
-| Getting around | `taxi-rides`       | Taxi & rides          | taxi          | Taxis, ride-hailing and private transfers                  |
-| Getting around | `public-transit`   | Public transit        | train         | Rail, bus and local mass transit                           |
-| Getting around | `flights`          | Flights               | plane         | Airfare plus airport and baggage fees                      |
-| Getting around | `parking-tolls`    | Parking & tolls       | parking       | Parking, road tolls and congestion charges                 |
-| Getting around | `car-hire`         | Car hire & road trips | van           | Vehicle rental and campervan trips                         |
-| Getting around | `boats-ferries`    | Boats & ferries       | boat          | Ferries, boats, cruises and sailing                        |
-| Trips & stays  | `accommodation`    | Accommodation         | hotel         | Short stays in hotels, hostels and rentals                 |
-| Trips & stays  | `rent-home`        | Rent & home           | house         | Primary housing rent, deposits and building fees           |
-| Trips & stays  | `holidays-trips`   | Holidays & trips      | suitcase      | General trip costs without a stronger purpose              |
-| Trips & stays  | `beach-water`      | Beach & water         | island        | Beaches, swimming, diving and water activities             |
-| Trips & stays  | `outdoors-camping` | Outdoors & camping    | tent          | Campsites, hiking and outdoor access                       |
-| Trips & stays  | `snow-sports`      | Snow sports           | ski           | Skiing, snowboarding, passes and equipment                 |
-| Everyday life  | `shopping`         | Shopping              | market        | General retail and online purchases                        |
-| Everyday life  | `gifts`            | Gifts                 | gift          | Presents and occasion-specific gifts                       |
-| Everyday life  | `entertainment`    | Entertainment         | cinema        | Cinema, theatre, games and attractions                     |
-| Everyday life  | `music-events`     | Music & events        | guitar        | Concerts, festivals, gigs and event tickets                |
-| Everyday life  | `parties`          | Parties               | party         | Hosted parties and celebration supplies                    |
-| Everyday life  | `sports-fitness`   | Sports & fitness      | football      | Gyms, sports, classes and equipment                        |
-| Everyday life  | `pets`             | Pets                  | dog           | Pet food, supplies, vets and care                          |
-| Everyday life  | `phone-internet`   | Phone & internet      | phone         | Mobile, broadband, Wi-Fi and data plans                    |
-| Everyday life  | `utilities`        | Utilities             | lightbulb     | Electricity, water, household gas and waste                |
-| Care & family  | `health`           | Health                | pulse         | Clinicians, treatment and medical care                     |
-| Care & family  | `pharmacy`         | Pharmacy              | pill          | Medicines, prescriptions and pharmacy goods                |
-| Care & family  | `education`        | Education             | book          | Schools, courses, tuition and learning materials           |
-| Care & family  | `childcare`        | Childcare             | teddy         | Daycare, babysitting and child-specific care               |
-| Money & admin  | `cash`             | Cash                  | cash          | Withdrawals and cash-only expenses                         |
-| Money & admin  | `banking-fees`     | Banking & fees        | bank          | Bank, card and currency conversion fees                    |
-| Money & admin  | `bills-receipts`   | Bills & receipts      | iconreceipt   | Generic invoices and shared bills with no stronger purpose |
-| Money & admin  | `transfers`        | Transfers             | swap          | Moving or repaying money rather than buying something      |
-| Money & admin  | `charity`          | Charity & causes      | iconhandcoins | Donations, fundraisers and community causes                |
-| Money & admin  | `other`            | Other                 | question      | Unknown or genuinely miscellaneous expenses                |
+This recovers `piza`, `restuarant`, `tiket`, `accomodation` and `pharamcy`. Short values such as `sim` must be exact, preventing guesses among many similar three-letter terms.
 
-## Deliberate overlaps
+Specific phrases still beat generic words: `gas bill` is Home & bills while `gas` is Transport. `train ticket` keeps the existing Public transit subject; bare `ticket` uses the new Ticket subject. `sim` now resolves directly to SIM card.
 
-| Ambiguity                           | Decision                                                                                                               |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Pizza vs Restaurants                | Pizza gets its own high-recognition category; other prepared meals use Restaurants.                                    |
-| Sushi vs Asian food                 | Sushi stays visually distinctive; ramen, pho, noodles and similar dishes use Asian food.                               |
-| `gas` vs `gas bill`                 | The longer phrase wins, so household gas is Utilities and vehicle gas is Fuel.                                         |
-| Airport shuttle vs airport transfer | Shuttle is grouped with Flights; private transfer is Taxi & rides.                                                     |
-| Accommodation vs Rent & home        | Short travel stays use Accommodation; primary housing costs use Rent & home.                                           |
-| Health vs Pharmacy                  | Care delivery uses Health; medicine and pharmacy purchases use Pharmacy.                                               |
-| Bills vs Banking vs Transfers       | Bills describe a document/payment, Banking covers fees, and Transfers cover moving money. A more specific phrase wins. |
-| Shopping vs Gifts                   | Gift intent wins when stated; otherwise a retail purchase remains Shopping.                                            |
+## Doodle expansion
 
-## Doodle choices
+The repository now ships 454 native doodles. Three hundred are new purchase subjects, giving every added subject its own drawing; existing subjects retain their reviewed art.
 
-All category art is a transparent, path-only 32×32 drawing using the existing roughened doodle generator. No fill rectangle or background color is embedded in the assets.
+The new drawings begin with clean 24×24 Lucide outlines from `lucide-static@1.28.0`. The importer scales and centers them in Peanut Split’s 32×32 box, then the existing seeded roughener redraws them in the native doodle hand. The result is deterministic, stroke-only and background-free. Lucide’s ISC/MIT notice is preserved in `design/doodles/LUCIDE-LICENSE.txt`.
 
-Thirty-three categories reuse a semantically close drawing from the current set. Seven needed a purpose-built drawing:
+Regeneration:
 
-| Doodle       | Used for        | Shape choice                           |
-| ------------ | --------------- | -------------------------------------- |
-| `restaurant` | Restaurants     | Plate framed by a fork and knife       |
-| `fuel`       | Fuel            | Petrol pump with a loose hose          |
-| `parking`    | Parking & tolls | Tall parking P on one ground stroke    |
-| `lightbulb`  | Utilities       | Bare bulb with three restrained rays   |
-| `pill`       | Pharmacy        | Single diagonal capsule and seam       |
-| `book`       | Education       | Open book with two falling page groups |
-| `teddy`      | Childcare       | Small round-eared teddy toy            |
+```sh
+node design/doodles/build-expense-catalog.mjs
+python3 design/doodles/import_lucide_expense_subjects.py --lucide-dir /path/to/lucide-static/icons
+python3 design/doodles/build.py --write
+```
 
-The drawings avoid faces, people and payer identity. Their job is to communicate what the expense was for at a glance.
+The import source is not a runtime dependency. Only Peanut Split’s roughened path data ships to the app.
+
+## Locked card treatment
+
+Bare hero remains the closest semantic replacement for the current avatar:
+
+- 44px subject drawing in the existing art position
+- no colored background embedded in the SVG
+- no category caption competing with the expense description
+- no change to payer copy, amount, settlement impact or card interaction
+
+Re-check spacing, loading and tap targets against the landed card component before integration. The category/subject matcher can be wired independently of persistence; a future manual override can store a stable subject ID without changing this inferred default.
