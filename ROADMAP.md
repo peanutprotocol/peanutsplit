@@ -210,6 +210,11 @@ NEVER rotate the VAPID pair in place — every subscription dies silently; a
 rotation needs a dual-key window.
 
 Still gated:
+- **Deploy-failure alert** [Hugo]: a failed web build is currently invisible —
+  the site stays healthy on the old image and nobody is told (cost ~5 dark
+  hours on 2026-08-03, `e2e-v2` dockerignore incident). The poller should
+  follow up its trigger by checking the deployment reaches `done` and ping
+  Discord on `error`.
 
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
