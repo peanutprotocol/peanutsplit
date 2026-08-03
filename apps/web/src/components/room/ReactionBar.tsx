@@ -1,21 +1,21 @@
 'use client'
 
 /**
- * Reactions on an expense row: the pills that are already there, plus a way to
- * add one.
+ * Reactions on an expense row. Each pill is one emoji plus the room characters
+ * of the people who chose it: identity, rather than a counter, is the useful
+ * social signal here.
  *
- * A "+" affordance rather than a long-press, even though the hook exists. The
- * row itself is a button that opens the expense drawer, and a long-press on a
- * button still fires its click on release — the two gestures would fight, and
- * the loser would be someone trying to react who gets an edit sheet instead. A
- * small explicit target is also the only version that works with a keyboard.
+ * The row owns the visible long-press gesture and controls this picker. A
+ * focus-only trigger remains here so keyboard and assistive-technology users
+ * have an equivalent path without putting a permanent add control under every
+ * expense.
  *
  * This is the room's social layer and deliberately its whole extent: reactions
  * are the allowed subset of "messaging in the room", and there is no thread
  * hanging off them.
  */
 
-import { useState } from 'react'
+import { type KeyboardEvent, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
@@ -23,7 +23,7 @@ import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
 import { roomProps, track } from '@/lib/analytics'
-import type { ApiExpense } from '@/lib/api-types'
+import type { ApiExpense, ApiMember } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useAddReaction, useRemoveReaction } from '@/lib/queries'
@@ -31,6 +31,7 @@ import { groupReactions, REACTION_EMOJIS } from '@/lib/reactions'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { MemberAvatar } from './MemberAvatar'
 
 const REACTION_ART = {
     '🔥': { doodle: 'reactionfire', label: 'wild' },
@@ -44,33 +45,74 @@ const REACTION_ART = {
 interface ReactionBarProps {
     slug: string
     expense: ApiExpense
+    members: ApiMember[]
     /** The reader, when this device is a member of the roster. */
     meId?: string
     /** The server-issued member token. Reacting is the one expense-level write
      *  that needs it — the API treats it as proof, not attribution. */
     token?: string | null
+    /** Prevent writes while the room state is stale or otherwise read-only. */
+    disabled?: boolean
+    /** Controlled by the expense row's long-press interaction. Omit both picker
+     *  props only when rendering ReactionBar outside an interactive row. */
+    pickerOpen?: boolean
+    onPickerOpenChange?: (open: boolean) => void
 }
 
-export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
+export function ReactionBar({
+    slug,
+    expense,
+    members,
+    meId,
+    token,
+    disabled = false,
+    pickerOpen: controlledPickerOpen,
+    onPickerOpenChange,
+}: ReactionBarProps) {
     const t = useTranslations('room.reactions')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
     const addReaction = useAddReaction(slug)
     const removeReaction = useRemoveReaction(slug)
-    const [pickerOpen, setPickerOpen] = useState(false)
+    const [uncontrolledPickerOpen, setUncontrolledPickerOpen] = useState(false)
+    const pickerOpen = !disabled && (controlledPickerOpen ?? uncontrolledPickerOpen)
+
+    useEffect(() => {
+        if (!disabled) return
+        setUncontrolledPickerOpen(false)
+        if (controlledPickerOpen) onPickerOpenChange?.(false)
+    }, [controlledPickerOpen, disabled, onPickerOpenChange])
+
+    const setPickerOpen = (open: boolean) => {
+        if (controlledPickerOpen === undefined) setUncontrolledPickerOpen(open)
+        onPickerOpenChange?.(open)
+    }
 
     const groups = groupReactions(expense.reactions, meId)
+    const memberById = new Map(members.map((member) => [member.id, member]))
+    const groupsWithReactors = groups.map((group) => {
+        const seen = new Set<string>()
+        const reactors = expense.reactions.flatMap((reaction) => {
+            if (reaction.emoji !== group.emoji || seen.has(reaction.memberId)) return []
+            const member = memberById.get(reaction.memberId)
+            if (!member) return []
+            seen.add(member.id)
+            return [member]
+        })
+        return { ...group, reactors }
+    })
     /** A legacy tokenless identity can read the room's reactions but not sign
      *  one — same rule, and same disabled-with-a-reason shape, as push. */
-    const canReact = !!meId && !!token
+    const needsToken = !meId || !token
+    const canReact = !disabled && !needsToken
 
     // Nothing to show and nothing to do: a disabled "+" under every row would be
     // a permanent apology on a screen that is mostly other people's dinners.
     if (!canReact && groups.length === 0) return null
 
     const react = (emoji: string, mine: boolean) => {
-        if (!meId || !token) return
+        if (!canReact || !meId || !token) return
         setPickerOpen(false)
         const variables = { expenseId: expense.id, emoji, memberId: meId, memberToken: token }
         const failed = (error: unknown) => {
@@ -90,46 +132,87 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
         }
     }
 
+    const handlePickerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Escape') {
+            event.preventDefault()
+            event.stopPropagation()
+            setPickerOpen(false)
+            return
+        }
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+
+        const options = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'))
+        if (options.length === 0) return
+        const current = options.indexOf(document.activeElement as HTMLButtonElement)
+        const next =
+            event.key === 'Home'
+                ? 0
+                : event.key === 'End'
+                  ? options.length - 1
+                  : (current + (event.key === 'ArrowLeft' ? -1 : 1) + options.length) % options.length
+        event.preventDefault()
+        options[next]?.focus()
+    }
+
     return (
-        <div className="flex flex-wrap items-center gap-1.5 pl-1 pt-1.5">
+        <div
+            className={cn(
+                'relative flex w-full flex-wrap items-center justify-end gap-1.5',
+                (groups.length > 0 || pickerOpen) && 'pt-1.5'
+            )}
+        >
             <AnimatePresence initial={false}>
-                {groups.map((group) => (
-                    <motion.button
-                        key={group.emoji}
-                        type="button"
-                        layout={motionAllowed}
-                        initial={motionAllowed ? { scale: 0.6, opacity: 0 } : false}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={motionAllowed ? { scale: 0.6, opacity: 0 } : undefined}
-                        transition={
-                            motionAllowed ? { type: 'spring', stiffness: 420, damping: 22, mass: 0.6 } : { duration: 0 }
-                        }
-                        data-motion-surface
-                        disabled={!canReact}
-                        onClick={() => react(group.emoji, group.mine)}
-                        aria-pressed={group.mine}
-                        aria-label={t('reacted', {
-                            emoji: t(`names.${REACTION_ART[group.emoji].label}`),
-                            count: group.count,
-                        })}
-                        data-testid="reaction-pill"
-                        data-emoji={group.emoji}
-                        data-mine={group.mine}
-                        className={cn(
-                            'flex min-h-7 items-center gap-1 rounded-sm border border-n-1 px-2 py-0.5 text-h9 transition-transform duration-100',
-                            // Own reaction reads as pressed-in: the room's tint
-                            // plus a shallower shadow, the same language the
-                            // selected currency chip already speaks.
-                            group.mine ? 'shadow-2 bg-[var(--split-theme-tint,#FFFFFF)]' : 'bg-white',
-                            canReact && 'active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
-                        )}
-                    >
-                        <Doodle name={REACTION_ART[group.emoji].doodle} size={17} weight={1.8} />
-                        <span aria-hidden="true" className="tabular-nums">
-                            {group.count}
-                        </span>
-                    </motion.button>
-                ))}
+                {groupsWithReactors.map((group) => {
+                    const reactionName = t(`names.${REACTION_ART[group.emoji].label}`)
+                    const reactorNames = group.reactors.map((member) => member.name).join(', ')
+                    const toggleName = group.mine
+                        ? t('remove', { emoji: reactionName })
+                        : t('pick', { emoji: reactionName })
+                    return (
+                        <motion.button
+                            key={group.emoji}
+                            type="button"
+                            layout={motionAllowed}
+                            initial={motionAllowed ? { scale: 0.6, opacity: 0 } : false}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={motionAllowed ? { scale: 0.6, opacity: 0 } : undefined}
+                            transition={
+                                motionAllowed
+                                    ? { type: 'spring', stiffness: 420, damping: 22, mass: 0.6 }
+                                    : { duration: 0 }
+                            }
+                            data-motion-surface
+                            disabled={!canReact}
+                            onClick={() => react(group.emoji, group.mine)}
+                            aria-pressed={group.mine}
+                            aria-label={`${toggleName}: ${reactorNames}${needsToken ? `. ${t('needsToken')}` : ''}`}
+                            data-testid="reaction-pill"
+                            data-emoji={group.emoji}
+                            data-mine={group.mine}
+                            className={cn(
+                                'flex min-h-7 items-center gap-1 rounded-full border border-n-1 bg-white py-0.5 pl-1.5 pr-1 text-h9 transition-transform duration-100',
+                                // Own reaction reads as pressed-in: the room's tint
+                                // plus a shallower shadow, the same language the
+                                // selected currency chip already speaks.
+                                group.mine ? 'shadow-2 bg-[var(--split-theme-tint,#FFFFFF)]' : 'bg-white',
+                                canReact && 'active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
+                            )}
+                        >
+                            <Doodle name={REACTION_ART[group.emoji].doodle} size={17} weight={1.8} />
+                            <span aria-hidden="true" className="flex -space-x-1">
+                                {group.reactors.map((member) => (
+                                    <MemberAvatar
+                                        key={member.id}
+                                        name={member.name}
+                                        avatar={member.avatar}
+                                        palette={member.avatarPalette}
+                                        size={20}
+                                    />
+                                ))}
+                            </span>
+                        </motion.button>
+                    )
+                })}
             </AnimatePresence>
 
             <button
@@ -137,23 +220,21 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                 disabled={!canReact}
                 onClick={() => {
                     feedback('blip')
-                    setPickerOpen((open) => !open)
+                    setPickerOpen(!pickerOpen)
                 }}
                 aria-expanded={pickerOpen}
                 aria-label={pickerOpen ? t('close') : t('add')}
                 // The reason lives on the control that is refusing, so a
                 // token-less reader finds out by touching it rather than by
                 // reading a paragraph nobody else needs.
-                title={canReact ? t('add') : t('needsToken')}
+                title={needsToken ? t('needsToken') : disabled ? undefined : t('add')}
                 data-testid="reaction-add"
                 className={cn(
-                    // The dashed square stays size-7 (28px) — any bigger and it
-                    // stops being the small deliberate thing the comment at the
-                    // top of this file promises. `before` pads the TAP target to
-                    // 40px instead: `absolute`, so it adds nothing to this row's
-                    // height and cannot steal a tap meant for a pill beside it.
-                    "relative flex size-7 items-center justify-center rounded-sm border border-dashed border-grey-1 text-h9 text-grey-1 transition-transform duration-100 before:absolute before:-inset-1.5 before:content-['']",
-                    canReact ? 'active:translate-y-[1px]' : 'opacity-50'
+                    // Not part of normal visual flow: touch users long-press the
+                    // expense row. It reveals itself on keyboard focus so this
+                    // interaction never becomes touch-only.
+                    'sr-only focus:not-sr-only focus:relative focus:flex focus:size-7 focus:items-center focus:justify-center focus:rounded-full focus:border focus:border-dashed focus:border-grey-1 focus:text-grey-1',
+                    !canReact && 'opacity-50'
                 )}
             >
                 {/* A faded drawn face rather than a "+". The dashed square already
@@ -176,6 +257,9 @@ export function ReactionBar({ slug, expense, meId, token }: ReactionBarProps) {
                         transition={motionAllowed ? { duration: 0.14, ease: 'easeOut' } : { duration: 0 }}
                         data-motion-surface
                         data-testid="reaction-strip"
+                        role="toolbar"
+                        aria-label={t('add')}
+                        onKeyDown={handlePickerKeyDown}
                         className="shadow-2 flex items-center gap-1 rounded-sm border border-n-1 bg-white px-1.5 py-1"
                     >
                         {REACTION_EMOJIS.map((emoji) => {
