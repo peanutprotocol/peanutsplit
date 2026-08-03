@@ -67,6 +67,15 @@ module.exports = {
                     1: '#98E9AB',
                     2: '#EAFBEE',
                 },
+                // Direction surfaces are intentionally separate from success/error.
+                // A balance is ordinary ledger state, not an alert: the pale wash
+                // supports the words and arrow without making debt look dangerous.
+                balance: {
+                    outgoing: '#FFF2EE',
+                    'outgoing-accent': '#94483E',
+                    incoming: '#EFFAF2',
+                    'incoming-accent': '#246C3D',
+                },
                 white: '#FFFFFF',
                 black: '#211C17',
                 red: '#FF0000',

@@ -66,12 +66,20 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await expectBalance(page, 'Bea', '-3000')
     await expect(balance(page, 'Bea')).toHaveAttribute('data-balance-direction', 'incoming')
     await expect(balance(page, 'Bea')).toContainText('Bea owes you')
+    await expect(balance(page, 'Bea')).toHaveCSS('background-color', 'rgb(239, 250, 242)')
+    await expect(balance(page, 'Bea').getByTestId('open-balance')).toHaveAccessibleName(
+        /Bea owes you.*€30\.00.*See how Bea’s balance adds up/
+    )
 
     // The same debt must read in the opposite direction on Bea's device. The arrow, sentence
     // and stable state attribute all agree; none of the meaning depends on the red band alone.
     await expectBalance(bea, 'Ana', '3000')
     await expect(balance(bea, 'Ana')).toHaveAttribute('data-balance-direction', 'outgoing')
     await expect(balance(bea, 'Ana')).toContainText('You owe Ana')
+    await expect(balance(bea, 'Ana')).toHaveCSS('background-color', 'rgb(255, 242, 238)')
+    await expect(balance(bea, 'Ana').getByTestId('open-balance')).toHaveAccessibleName(
+        /You owe Ana.*€30\.00.*See how Ana’s balance adds up/
+    )
 
     // ── The sheet ─────────────────────────────────────────────────────────
     // The card is about Bea in every part of it, so the tap opens Bea's working.

@@ -426,6 +426,14 @@
             "filedBy": "Anotado por {name}",
             "filedByYou": "Anotado por ti",
             "filedByAnon": "Anotado por Anon",
+            "personalImpact": {
+                "outgoingNamed": "Se sumó a lo que le debes a {name}",
+                "outgoing": "Se sumó a lo que debes",
+                "incomingNamed": "Se sumó a lo que {name} te debe",
+                "incoming": "Los demás te deben por este gasto",
+                "neutral": "No cambió tu saldo",
+                "notInSplit": "No participaste en la división"
+            },
             "emptyInvite": "Invita al resto"
         },
         "states": {

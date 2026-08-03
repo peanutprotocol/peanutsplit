@@ -30,11 +30,11 @@ interface BalanceStripProps {
  * which reads as a sentence about somebody else. The derivation sheet already branches this
  * way for "you paid"; this is the same branch on the balance itself.
  */
-const toneFor = (net: string, mine: boolean, t: (key: string) => string, anySavedExpenses: boolean) => {
-    // Only the settled card takes the room's tint. Red and green carry meaning —
-    // a theme is allowed to tint the neutral state and nothing else, or "owes"
-    // stops being a colour you can trust across two rooms. Classic's tint is
-    // white, so the default palette is unchanged.
+export const balanceTone = (net: string, mine: boolean, t: (key: string) => string, anySavedExpenses: boolean) => {
+    // Only the settled card takes the room's tint. The other two surfaces are
+    // semantic ledger washes, deliberately separate from the product's error
+    // and success colours. Words and arrows carry the direction; colour only
+    // makes a long row of cards faster to scan.
     if (isZeroMinor(net))
         return {
             card: 'bg-[var(--split-theme-tint,#FFFFFF)]',
@@ -45,10 +45,24 @@ const toneFor = (net: string, mine: boolean, t: (key: string) => string, anySave
             // room read "SETTLED UP" the moment they joined.
             label: anySavedExpenses ? t('settled') : t('nothingYet'),
             labelClass: 'text-n-3',
+            mark: '—' as const,
+            direction: 'neutral' as const,
         }
     if (net.startsWith('-'))
-        return { card: 'bg-error-1', label: mine ? t('youOwe') : t('owes'), labelClass: 'text-n-1' }
-    return { card: 'bg-green-1', label: mine ? t('youGetBack') : t('getsBack'), labelClass: 'text-n-1' }
+        return {
+            card: 'bg-balance-outgoing',
+            label: mine ? t('youOwe') : t('owes'),
+            labelClass: 'text-balance-outgoing-accent',
+            mark: '→' as const,
+            direction: 'outgoing' as const,
+        }
+    return {
+        card: 'bg-balance-incoming',
+        label: mine ? t('youGetBack') : t('getsBack'),
+        labelClass: 'text-balance-incoming-accent',
+        mark: '←' as const,
+        direction: 'incoming' as const,
+    }
 }
 
 /**
@@ -79,12 +93,13 @@ export interface PairCard {
      * about Bea that opened Ana's working — and told a screen
      * reader "See how Ana's balance adds up" — shared no word with what the card said, which
      * is WCAG 2.5.3, and told Ana a sentence about Ana in the third person, which is the very
-     * thing `toneFor`'s `mine` branch exists to prevent.
+     * thing `balanceTone`'s `mine` branch exists to prevent.
      */
     about: PairMember
     /** `about`'s raw server net, unchanged — the same value the per-member card carries. */
     net: string
     label: string
+    cardClass: string
     labelClass: string
     /** Redundant visual cue beside the complete relationship sentence. */
     mark: '←' | '→' | '—'
@@ -133,7 +148,7 @@ const forSentence = (name: string) => {
  *
  * Everything is decided off `about`'s net, which is also what the card publishes as `data-net`,
  * so the label and the number can never disagree. Takes the translator for the same reason
- * `toneFor` does: every key stays a literal where `pnpm i18n:audit` can see it.
+ * `balanceTone` does: every key stays a literal where `pnpm i18n:audit` can see it.
  */
 export function pairCard(
     members: readonly PairMember[],
@@ -170,7 +185,8 @@ export function pairCard(
             about,
             net,
             label: `${forSentence(about.name)} · ${anySavedExpenses ? t('settled') : t('nothingYet')}`,
-            labelClass: 'bg-[var(--split-theme-tint,#FFFFFF)] text-n-3',
+            cardClass: 'bg-[var(--split-theme-tint,#FFFFFF)]',
+            labelClass: 'text-n-3',
             mark: '—',
             direction: 'neutral',
         }
@@ -184,7 +200,8 @@ export function pairCard(
             // Both names are capped. Two long ones can still reach a third line, but the verb
             // sits right after the debtor in all three locales, so the clamp never removes it.
             label: t('pair.owes', { debtor: forSentence(debtor.name), creditor: forSentence(creditor.name) }),
-            labelClass: 'bg-error-3 text-white',
+            cardClass: 'bg-balance-outgoing',
+            labelClass: 'text-balance-outgoing-accent',
             mark: '→',
             direction: 'between-members',
         }
@@ -194,7 +211,8 @@ export function pairCard(
             about,
             net,
             label: t('pair.owesYou', { name: forSentence(about.name) }),
-            labelClass: 'bg-green-1 text-n-1',
+            cardClass: 'bg-balance-incoming',
+            labelClass: 'text-balance-incoming-accent',
             mark: '←',
             direction: 'incoming',
         }
@@ -203,7 +221,8 @@ export function pairCard(
         about,
         net,
         label: t('pair.youOwe', { name: forSentence(about.name) }),
-        labelClass: 'bg-error-3 text-white',
+        cardClass: 'bg-balance-outgoing',
+        labelClass: 'text-balance-outgoing-accent',
         mark: '→',
         direction: 'outgoing',
     }
@@ -260,7 +279,10 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                     data-member={pair.about.name}
                     data-net={pair.net}
                     data-balance-direction={pair.direction}
-                    className="shadow-4 mx-4 mb-3 mt-1 flex overflow-hidden rounded-sm border border-n-1 bg-white"
+                    className={cn(
+                        'shadow-4 mx-4 mb-3 mt-1 flex overflow-hidden rounded-sm border border-n-1',
+                        pair.cardClass
+                    )}
                 >
                     {/* The whole card is the target — a balance you cannot
                         interrogate is the thing this product is against. One subject
@@ -272,20 +294,14 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                             feedback('tick')
                             onSelect(pair.about.id)
                         }}
-                        aria-label={tDerivation('openLabel', { name: pair.about.name })}
                         data-testid="open-balance"
-                        className="flex w-full flex-col text-left transition-transform duration-100 active:scale-[0.97]"
+                        className="grid min-h-24 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                     >
                         {/* Direction has one fixed, high-contrast place. The arrow and complete
-                            sentence repeat the meaning, so red/green only speed up the scan.
+                            sentence repeat the meaning, so the faint wash only speeds up the scan.
                             The two-person card does not need an avatar to repeat the one name
                             already in the sentence. */}
-                        <span
-                            className={cn(
-                                'flex min-h-10 w-full items-center gap-2 border-b border-n-1 px-3 py-2',
-                                pair.labelClass
-                            )}
-                        >
+                        <span className={cn('flex min-w-0 items-start gap-2', pair.labelClass)}>
                             <span aria-hidden="true" className="shrink-0 text-h5 leading-none">
                                 {pair.mark}
                             </span>
@@ -302,17 +318,20 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                 translator's to choose. */}
                             <span className="line-clamp-2 min-w-0 break-words text-h8 leading-snug">{pair.label}</span>
                         </span>
-                        {/* One quiet field, one dominant number. The tap target still opens the
-                            same auditable working, but no third label competes with the balance. */}
-                        <span className="flex min-h-16 w-full items-center px-3 py-3">
+                        {/* AnimatedMoney emits an accessible text node and a visual NumberFlow.
+                            One wrapper keeps both in the amount column of this two-column grid. */}
+                        <span className="shrink-0">
                             <AnimatedMoney
                                 minor={pair.net}
                                 currency={state.room.currency}
                                 catalog={currencies}
                                 absolute
-                                className="text-h3"
+                                className="text-h4 sm:text-h3"
                             />
                         </span>
+                        {/* The visible sentence and amount now form the accessible name. Keep
+                            the action hint too, without replacing them with an aria-label. */}
+                        <span className="sr-only">{tDerivation('openLabel', { name: pair.about.name })}</span>
                     </button>
                 </div>
             </section>
@@ -329,7 +348,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                     <AnimatePresence initial={false}>
                         {ordered.map((member) => {
                             const net = state.balances[member.id] ?? '0'
-                            const tone = toneFor(net, member.id === meId, t, anySavedExpenses)
+                            const tone = balanceTone(net, member.id === meId, t, anySavedExpenses)
                             return (
                                 <motion.li
                                     key={member.id}
@@ -348,6 +367,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                     // Raw server truth, so e2e asserts the balance and not
                                     // the animated text mid-transition.
                                     data-net={net}
+                                    data-balance-direction={tone.direction}
                                     className={cn(
                                         'flex w-[8.5rem] shrink-0 rounded-sm border border-n-1',
                                         tone.card,
@@ -362,7 +382,6 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                             feedback('tick')
                                             onSelect(member.id)
                                         }}
-                                        aria-label={tDerivation('openLabel', { name: member.name })}
                                         data-testid="open-balance"
                                         className="flex w-full flex-col gap-2 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                                     >
@@ -381,7 +400,14 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                             rounds up to a full pixel on some glyph pairs and
                                             "SETTLED UP" starts reading "SET T LED UP"; 12px with
                                             natural spacing is both legible and stable. */}
-                                        <span className={cn('text-h9 uppercase', tone.labelClass)}>{tone.label}</span>
+                                        <span
+                                            className={cn('flex items-center gap-1 text-h9 uppercase', tone.labelClass)}
+                                        >
+                                            <span aria-hidden="true" className="text-sm leading-none">
+                                                {tone.mark}
+                                            </span>
+                                            {tone.label}
+                                        </span>
                                         <AnimatedMoney
                                             minor={net}
                                             currency={state.room.currency}
@@ -389,6 +415,9 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                             absolute
                                             className="text-h5"
                                         />
+                                        <span className="sr-only">
+                                            {tDerivation('openLabel', { name: member.name })}
+                                        </span>
                                     </button>
                                 </motion.li>
                             )
