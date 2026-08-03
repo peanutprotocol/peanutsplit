@@ -45,6 +45,16 @@ describe('the Telegram-style reaction pills', () => {
     it('aligns the compact social detail to the lower-right of its expense row', () => {
         expect(source).toContain("'relative flex w-full flex-wrap items-center justify-end gap-1.5'")
     })
+
+    it('overlays the open picker without adding height to the expense row', () => {
+        const pickerStart = source.indexOf('data-testid="reaction-strip"')
+        const pickerEnd = source.indexOf('</motion.div>', pickerStart)
+        const picker = source.slice(pickerStart, pickerEnd)
+
+        expect(source).toContain("groups.length > 0 && 'pt-1.5'")
+        expect(source).not.toContain("(groups.length > 0 || pickerOpen) && 'pt-1.5'")
+        expect(picker).toContain('absolute right-0 top-full z-30 mt-1.5')
+    })
 })
 
 describe('the reaction picker trigger', () => {
@@ -55,7 +65,8 @@ describe('the reaction picker trigger', () => {
 
         expect(triggerStart).toBeGreaterThan(-1)
         expect(triggerEnd).toBeGreaterThan(triggerStart)
-        expect(trigger).toContain("'sr-only focus:not-sr-only")
+        expect(trigger).toContain("'sr-only focus:not-sr-only focus:absolute")
+        expect(trigger).not.toContain('focus:relative')
         expect(trigger).toContain('<Doodle name="reactionlaugh"')
         expect(trigger).not.toMatch(/\p{Extended_Pictographic}/u)
     })
@@ -75,5 +86,6 @@ describe('the reaction picker trigger', () => {
         expect(source).toContain("aria-label={t('add')}")
         expect(source).toContain("if (event.key === 'Escape')")
         expect(source).toContain('setPickerOpen(false)')
+        expect(source).toContain('triggerRef.current?.focus()')
     })
 })
