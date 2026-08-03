@@ -1,4 +1,5 @@
-import { expect, test, type Locator, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es-419.json'
 import ptBRMessages from '../src/i18n/messages/pt-br.json'
@@ -435,12 +436,11 @@ test.describe('Pass-the-link default', () => {
     })
 
     test('reduced-motion CSS keeps server-rendered landing and creation surfaces visible without JavaScript', async ({
-        browser,
+        newDevice,
     }, testInfo) => {
         const baseURL = testInfo.project.use.baseURL
         if (typeof baseURL !== 'string') throw new Error('Playwright baseURL is required')
-        const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' })
-        const noJs = await context.newPage()
+        const noJs = await newDevice({ javaScriptEnabled: false, reducedMotion: 'reduce' })
 
         await noJs.goto(new URL('/', baseURL).href)
         await expect(noJs.getByTestId('proof-link-identity')).toBeVisible()
@@ -452,8 +452,6 @@ test.describe('Pass-the-link default', () => {
         await expect(noJs.getByTestId('room-composer')).toBeVisible()
         await expect(creationSurface).toHaveCSS('opacity', '1')
         await expect(creationSurface).toHaveCSS('transform', 'none')
-
-        await context.close()
     })
 
     test('in-app quiet settings keep the landing usable without motion, sound, or vibration', async ({ page }) => {

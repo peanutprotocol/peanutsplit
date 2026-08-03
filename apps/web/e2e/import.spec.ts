@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect } from '@playwright/test'
+import { test } from './fixtures'
 import { SIMPLE_GROUP } from '../src/lib/__fixtures__/splitwise'
 import { SPLITPRO_ACCOUNT_EXPORT } from '../src/lib/__fixtures__/splitpro'
 
@@ -55,10 +56,14 @@ test('import a Splitwise export → a room whose balances match the file', async
         page.locator(`[data-testid="expense-row"][data-description="${description}"]`)
     await expect(expense('Dinner')).toHaveAttribute('data-personal-impact', 'incoming')
     await expect(expense('Dinner')).toHaveAttribute('data-impact-minor', '4000')
-    await expect(expense('Dinner')).toContainText('Others owe you from this expense')
+    // The row states the direction in the short form it now uses. The long sentence this used to
+    // read ("Others owe you from this expense") is gone from the component — its `personalImpact`
+    // keys are still in all three message catalogues with nothing importing them.
+    await expect(expense('Dinner')).toContainText('you lent')
     await expect(expense('Taxi')).toHaveAttribute('data-personal-impact', 'outgoing')
     await expect(expense('Taxi')).toHaveAttribute('data-impact-minor', '-1000')
-    await expect(expense('Taxi')).toContainText('Added to what you owe')
+    // The other half of the same copy change — see the note on the Dinner row above.
+    await expect(expense('Taxi')).toContainText('you borrowed')
     await expect(expense('Groceries')).toHaveAttribute('data-personal-impact', 'outgoing')
     await expect(expense('Groceries')).toHaveAttribute('data-impact-minor', '-1500')
 

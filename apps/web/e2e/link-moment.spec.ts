@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect } from '@playwright/test'
+import { test } from './fixtures'
 
 const createRoom = async (page: import('@playwright/test').Page, name: string) => {
     await page.goto('/new')

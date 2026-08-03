@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect } from '@playwright/test'
+import { test } from './fixtures'
 
 test('the room emblem opens Settings, rename keeps the link, and people can be added in context', async ({ page }) => {
     test.setTimeout(60_000)

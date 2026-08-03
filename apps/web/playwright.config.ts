@@ -15,7 +15,19 @@ const browserName = process.env.E2E_BROWSER === 'firefox' ? 'firefox' : 'chromiu
  */
 export default defineConfig({
     testDir: './e2e',
+    // Compiles the on-demand dev routes once, so no test pays a cold start inside its own timeout.
+    globalSetup: './e2e/global-setup.ts',
     fullyParallel: true,
+    /**
+     * ONE `next dev` process serves every worker, so the server is the bottleneck and the CPU is
+     * not. Playwright's default (half the cores) oversubscribes it on a large box: the long
+     * two-device journeys then spend their wall clock waiting on a saturated server and fail as
+     * timeouts that read exactly like races — a click whose target is already "visible, enabled and
+     * stable" simply running out of budget. Six is measured, not guessed: on a 16-core box the
+     * default left 7 tests failing per run and 6 left none, at the same total runtime, because the
+     * server was always the limit.
+     */
+    workers: Number(process.env.E2E_WORKERS ?? 6),
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     reporter: process.env.CI ? 'html' : 'list',
@@ -46,24 +58,11 @@ export default defineConfig({
         // enables the focused cross-engine matrix without duplicating projects.
         // WebKit needs host GTK/GStreamer/image libraries that this VM and a
         // plain CI image do not ship; add it once those deps are provisioned.
-        {
-            name: 'mobile',
-            use: {
-                ...devices['iPhone 14'],
-                browserName,
-                // The two projects model independent visitors. Keeping their
-                // TEST-NET addresses distinct prevents one project's room/member
-                // creation budget from making the other project's QA order-dependent.
-                extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.10' },
-            },
-        },
-        {
-            name: 'desktop',
-            use: {
-                ...devices['Desktop Chrome'],
-                browserName,
-                extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.11' },
-            },
-        },
+        // Every context gets its OWN `x-forwarded-for` from `e2e/fixtures.ts`, so the
+        // server's 20-per-hour creation budget is per test rather than per project.
+        // A fixed address here would only have separated the two projects from each
+        // other, and the suite creates far more than 20 rooms per project.
+        { name: 'mobile', use: { ...devices['iPhone 14'], browserName } },
+        { name: 'desktop', use: { ...devices['Desktop Chrome'], browserName } },
     ],
 })

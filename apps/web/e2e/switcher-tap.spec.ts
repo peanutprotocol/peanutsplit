@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect } from '@playwright/test'
+import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
@@ -10,8 +11,6 @@ import { enterCreatedRoom } from './helpers'
  * closed the sheet, and because the sheet is a URL param that close was a second router
  * push in the same click. It won, and the room never changed.
  */
-
-test.use({ extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.77' } })
 
 async function createRoom(page: import('@playwright/test').Page, name: string) {
     await page.goto('/new')
@@ -47,10 +46,12 @@ test('the all-rooms tile leaves the room', async ({ page }) => {
 
     await page.getByTestId('open-room-settings').click()
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
-    await page.waitForTimeout(600)
 
+    // No sleep for the sheet's slide: `click()` already waits for the target to hold a stable
+    // bounding box, which is the condition the timeout was standing in for.
     await page.getByTestId('room-switcher-all').click()
-    await expect(page).toHaveURL(/\/$/, { timeout: 10_000 })
+    // The operational home is `/app`; `/` is the marketing landing this tile deliberately avoids.
+    await expect(page).toHaveURL(/\/app$/, { timeout: 10_000 })
 })
 
 test('tapping a theme swatch repaints the room', async ({ page }) => {
