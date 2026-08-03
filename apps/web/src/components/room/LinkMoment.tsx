@@ -12,7 +12,7 @@ import { CARD_FILE_NAME, achievementCardPath } from '@/lib/achievements-contract
 import { roomProps, sharePackageMeasureProps, track } from '@/lib/analytics'
 import { copyText } from '@/lib/clipboard'
 import { roomSharePackage } from '@/lib/share-package'
-import { useSharePng } from '@/lib/share-card'
+import { useInviteSharePng } from '@/lib/share-card'
 import { themeFor } from '@/lib/themes'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
@@ -23,6 +23,8 @@ interface LinkMomentProps {
     roomName: string
     emoji: string | null
     theme?: string | null
+    /** The active roster row, already cross-checked against live room state. */
+    sharerMemberId?: string
     /** Rendered under the buttons — "Go to room" after creation, nothing in the share drawer. */
     footer?: React.ReactNode
     /** Headline. The creation screen and the share drawer say different things. */
@@ -47,7 +49,8 @@ export const roomUrl = (slug: string): string =>
  * The bearer link appears only in user-directed text (native share and
  * clipboard). The visual attachment is the room's own invite card, rendered by
  * the same pipeline every other card goes through; it carries the room name,
- * palette and emblem, and no URL, roster or ledger data.
+ * the proven current sharer when available, and avatar/count-only social proof.
+ * It carries no URL, other member names or ledger data.
  *
  * Native share is an enhancement. Clipboard and manual copy remain available
  * independently.
@@ -57,6 +60,7 @@ export function LinkMoment({
     roomName,
     emoji,
     theme,
+    sharerMemberId,
     footer,
     title,
     subtitle,
@@ -79,7 +83,7 @@ export function LinkMoment({
      * activation and an `await fetch` in the gesture is what loses it on iOS. Both screens that
      * render this are on display for seconds before anyone taps.
      */
-    const { file } = useSharePng(achievementCardPath(slug, 'invite'), CARD_FILE_NAME.invite)
+    const { file } = useInviteSharePng(achievementCardPath(slug, 'invite'), CARD_FILE_NAME.invite, sharerMemberId)
     const palette = themeFor(theme)
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)

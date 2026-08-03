@@ -19,10 +19,9 @@
  */
 import type { ReactElement } from 'react'
 import type { CardKind } from '@/lib/achievements-contract'
-import { DISPLAY_FONT } from '@/server/og/fonts'
+import { DISPLAY_FONT, INVITE_FONT } from '@/server/og/fonts'
 import {
     BLOBS_LEFT,
-    BLOBS_RIGHT,
     cardDomain,
     ConfettiScatter,
     disc,
@@ -36,9 +35,10 @@ import {
     SettledStamp,
     Sheet,
     Wordmark,
+    YELLOW,
 } from '@/server/og/frame'
 import { doodleDataUri } from '@/server/og/emblem'
-import { BrandCard, nameFontSize } from '@/server/og/card'
+import { BrandCard } from '@/server/og/card'
 import type { AchievementCardData, CurrencyStamp } from '@/server/og/achievementCard'
 
 /** Every one of these images travels ALONE, as a file handed to the share sheet,
@@ -58,6 +58,19 @@ const Line = ({ text, marginTop = 18 }: { text: string; marginTop?: number }) =>
 
 // ---------------------------------------------------------------- invite
 
+export function inviteNameFontSize(name: string): number {
+    if (name.length <= 10) return 88
+    if (name.length <= 16) return 72
+    if (name.length <= 26) return 58
+    return 46
+}
+
+const inviterFontSize = (inviter: string): number => {
+    if (inviter.length <= 28) return 40
+    if (inviter.length <= 36) return 34
+    return 30
+}
+
 /**
  * The room handoff, replacing the client-built SVG.
  *
@@ -68,85 +81,176 @@ const Line = ({ text, marginTop = 18 }: { text: string; marginTop?: number }) =>
  * product, explain the handoff and carry the room's identity by itself.
  */
 function InviteCard(card: Extract<AchievementCardData, { kind: 'invite' }>): ReactElement {
+    const personaSize = card.count <= 1 ? 104 : card.count === 2 ? 100 : 92
     return (
-        <Field field={card.theme.field} tint={card.theme.fieldTint} blobs={BLOBS_RIGHT}>
-            <Sheet outerPadding="30px 54px 0 46px" innerPadding="32px 40px">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: 48, color: INK }}>
-                        PEANUT SPLIT
-                    </div>
-                    <div style={{ display: 'flex', fontSize: 25, fontWeight: 800, color: MUTED }}>{card.label}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: 26 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={doodleDataUri(card.emblem)} width={112} height={112} alt="" style={{ flexShrink: 0 }} />
+        <div
+            style={{
+                display: 'flex',
+                width: OG_SIZE.width,
+                height: OG_SIZE.height,
+                padding: '44px 48px 44px 54px',
+                backgroundColor: YELLOW,
+                color: INK,
+                fontFamily: INVITE_FONT,
+            }}
+        >
+            <div style={{ display: 'flex', width: 610, height: '100%', flexDirection: 'column', padding: '8px 0' }}>
+                <div style={{ display: 'flex', fontSize: 48, fontWeight: 800, letterSpacing: -2 }}>Peanut Split</div>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        marginTop: 'auto',
+                        marginBottom: 'auto',
+                    }}
+                >
                     <div
                         style={{
-                            // `block`, not flex: satori only honours `lineClamp` on
-                            // block text, and this leaf holds nothing but the name.
+                            display: 'flex',
+                            maxWidth: 570,
+                            fontSize: inviterFontSize(card.inviter),
+                            fontWeight: 800,
+                            letterSpacing: -1.4,
+                            lineHeight: 1.05,
+                        }}
+                    >
+                        {card.inviter}
+                    </div>
+                    <div
+                        style={{
                             display: 'block',
-                            marginLeft: 28,
-                            maxWidth: 780,
-                            fontFamily: DISPLAY_FONT,
-                            fontSize: nameFontSize(card.name),
-                            lineHeight: 1.1,
-                            color: INK,
+                            maxWidth: 570,
+                            marginTop: 10,
+                            fontSize: inviteNameFontSize(card.name),
+                            fontWeight: 800,
+                            letterSpacing: -3.2,
+                            lineHeight: 0.96,
                             lineClamp: 2,
-                            // A room name is one user-supplied string and it does not have to
-                            // contain a space. Without this, `maxWidth` and `lineClamp` both do
-                            // nothing to a single long word — it draws as one line straight off
-                            // the right edge of the sheet. That is the exact failure the deleted
-                            // SVG geometry test existed to catch, and neither the character cap
-                            // nor the font step reaches it.
                             wordBreak: 'break-word',
                         }}
                     >
                         {card.name}
                     </div>
+                    <div style={{ display: 'flex', marginTop: 20, fontSize: 36, fontWeight: 800, lineHeight: 1.05 }}>
+                        {card.label}
+                    </div>
+                    <div style={{ display: 'flex', maxWidth: 540, marginTop: 12, fontSize: 30, lineHeight: 1.18 }}>
+                        {card.line}
+                    </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28 }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        {/* The held-open seat still makes this an invitation before
-                            a word is read. The sentence now says what the seat
-                            alone could not: open the link and add what you paid. */}
-                        <div style={{ ...disc(72, '#FFFFFF'), border: `4px dashed ${INK}` }}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={doodleDataUri('question')} width={40} height={40} alt="" />
-                        </div>
-                        <div style={{ display: 'flex', marginLeft: 20, fontSize: 30, color: MUTED }}>{card.line}</div>
+            </div>
+
+            <div
+                style={{
+                    display: 'flex',
+                    width: 454,
+                    height: 542,
+                    flexDirection: 'column',
+                    marginLeft: 34,
+                    overflow: 'hidden',
+                    border: `5px solid ${INK}`,
+                    borderRadius: 28,
+                    backgroundColor: '#FFFDF8',
+                    boxShadow: `11px 11px 0 ${INK}`,
+                }}
+            >
+                <div
+                    style={{
+                        display: 'flex',
+                        width: '100%',
+                        height: 22,
+                        flexShrink: 0,
+                        borderBottom: `4px solid ${INK}`,
+                        backgroundColor: '#98E9AB',
+                    }}
+                />
+                <div style={{ display: 'flex', flex: 1, flexDirection: 'column', padding: '34px 32px 30px' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            fontSize: 25,
+                            fontWeight: 800,
+                            letterSpacing: 1.2,
+                            lineHeight: 1.05,
+                            color: MUTED,
+                        }}
+                    >
+                        {card.rosterLabel}
                     </div>
                     <div
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            padding: '14px 22px',
-                            border: `4px solid ${INK}`,
-                            borderRadius: 999,
-                            backgroundColor: '#FF90E8',
-                            boxShadow: `5px 5px 0 ${INK}`,
-                            fontFamily: DISPLAY_FONT,
-                            fontSize: 29,
-                            color: INK,
+                            minHeight: 112,
+                            marginTop: 22,
                         }}
                     >
-                        {card.action}
+                        {card.count === 0 ? (
+                            <div
+                                style={{
+                                    ...disc(104, '#FFFFFF'),
+                                    border: `4px dashed ${INK}`,
+                                    fontSize: 46,
+                                    fontWeight: 800,
+                                }}
+                            >
+                                ?
+                            </div>
+                        ) : (
+                            card.personas.map((persona, index) => (
+                                <PersonaDisc
+                                    key={index}
+                                    avatar={persona}
+                                    size={personaSize}
+                                    marginLeft={index === 0 ? 0 : -16}
+                                />
+                            ))
+                        )}
+                        {card.overflow > 0 ? (
+                            <div
+                                style={{
+                                    ...disc(personaSize, '#FFF9ED'),
+                                    marginLeft: -16,
+                                    fontSize: 32,
+                                    fontWeight: 800,
+                                }}
+                            >
+                                {`+${card.overflow}`}
+                            </div>
+                        ) : null}
+                    </div>
+                    <div
+                        style={{
+                            display: 'block',
+                            maxWidth: 380,
+                            marginTop: 16,
+                            fontSize: card.count === 0 ? 32 : 38,
+                            fontWeight: 800,
+                            letterSpacing: -1.2,
+                            lineHeight: 1.08,
+                            lineClamp: 2,
+                            wordBreak: 'break-word',
+                        }}
+                    >
+                        {card.rosterLine}
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            marginTop: 'auto',
+                            paddingTop: 22,
+                            borderTop: `3px solid ${INK}`,
+                            fontSize: 30,
+                            fontWeight: 800,
+                            lineHeight: 1.14,
+                            color: MUTED,
+                        }}
+                    >
+                        {card.proof}
                     </div>
                 </div>
-            </Sheet>
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    height: 82,
-                    padding: '0 56px',
-                    color: card.theme.fieldInk,
-                }}
-            >
-                <div style={{ display: 'flex', fontSize: 25, fontWeight: 800 }}>{card.proof}</div>
-                <div style={{ display: 'flex', fontSize: 27 }}>{cardDomain()}</div>
             </div>
-        </Field>
+        </div>
     )
 }
 

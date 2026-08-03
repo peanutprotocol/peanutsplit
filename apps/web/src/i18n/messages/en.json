@@ -1064,9 +1064,15 @@
     },
     "card": {
         "invite": {
-            "label": "SHARED EXPENSE ROOM",
-            "line": "Open the link. Add what you paid.",
-            "action": "JOIN THE SPLIT"
+            "label": "Shared group expenses",
+            "line": "Everyone adds. We sort who owes.",
+            "inviter": "{name} invites you to",
+            "inviterFallback": "You’re invited to",
+            "roster": "ALREADY IN THE SPLIT",
+            "rosterEmpty": "START THE SPLIT TOGETHER",
+            "personOne": "1 person already in",
+            "peopleMany": "{count} people already in",
+            "emptyAction": "Open the link and add what you paid"
         },
         "crew": {
             "title": "CREW",

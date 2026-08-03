@@ -21,17 +21,19 @@ import { type DoodleName } from '@/components/ui/doodles'
 import { AWARD_IDS, type AlterEgoCardParams, type AwardId, type CardKind } from '@/lib/achievements-contract'
 import { isAvatarKey } from '@/lib/avatars'
 import { currencyDoodle } from '@/lib/currency-doodle'
-import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { daySpan } from '@/lib/story'
 import { themeFor, type RoomTheme } from '@/lib/themes'
 import { getTranslator } from '@/i18n/t'
 import { prisma } from '@/server/db'
-import { bodySafe, displaySafe, hash, sanitizeDisplayName } from '@/server/og/roomCard'
+import { bodySafe, displaySafe, hash, sanitizeDisplayName, sanitizeMemberName } from '@/server/og/roomCard'
 
 /** Faces in the crew lineup. Higher than the unfurl's six on purpose: the crew
  *  card's whole subject is how many people are in the room, and it has the whole
  *  sheet rather than one row beside a headline. */
 export const MAX_LINEUP = 8
+/** The invite's roster sits in a half-width panel. Three real personas plus a
+ *  `+N` disc stay recognisable at chat-preview size; a fourth face does not. */
+export const MAX_INVITE_LINEUP = 3
 /** Stamps on the passport. Beyond six they stop being stamps and become a grid. */
 export const MAX_STAMPS = 6
 
@@ -52,13 +54,18 @@ export type AchievementCardData =
           kind: 'invite'
           /** The ROOM's name, display-font-safe and already truncated. */
           name: string
-          emblem: DoodleName
-          /** What this object is, before the room name asks for attention. */
+          /** The proven current sharer, or the localized anonymous fallback. */
+          inviter: string
+          /** What this object is, directly below the room name. */
           label: string
-          /** What the invitee does after they open the link. */
+          /** The mechanic in plain language. */
           line: string
-          /** The action the image points back to in the share package. */
-          action: string
+          /** Actual stored persona keys, never the other members' names. */
+          personas: (string | null)[]
+          count: number
+          overflow: number
+          rosterLabel: string
+          rosterLine: string
           /** Secondary trust proof; never the card's only explanation. */
           proof: string
       })
@@ -92,25 +99,35 @@ type Copy = (key: string, params?: Record<string, string | number>) => string | 
 // ---------------------------------------------------------------- pure shaping
 
 export async function toInviteCard(
-    room: { name: string; emoji: string | null; theme: string | null },
-    t: Copy
+    room: { name: string; theme: string | null; count: number; personas: (string | null)[] },
+    t: Copy,
+    inviterName?: string | null
 ): Promise<AchievementCardData> {
-    const [label, line, action, proof] = await Promise.all([
+    const [label, line, inviter, rosterLabel, rosterLine, proof] = await Promise.all([
         t('card.invite.label'),
         t('card.invite.line'),
-        t('card.invite.action'),
+        inviterName
+            ? t('card.invite.inviter', { name: sanitizeMemberName(inviterName) })
+            : t('card.invite.inviterFallback'),
+        t(room.count === 0 ? 'card.invite.rosterEmpty' : 'card.invite.roster'),
+        room.count === 0
+            ? t('card.invite.emptyAction')
+            : t(room.count === 1 ? 'card.invite.personOne' : 'card.invite.peopleMany', { count: room.count }),
         t('preview.tagline'),
     ])
+    const personas = room.personas.slice(0, MAX_INVITE_LINEUP)
     return {
         kind: 'invite',
         theme: themeFor(room.theme),
         name: sanitizeDisplayName(room.name),
-        // Resolved from the RAW name, like every other emblem surface: an unset
-        // emblem follows what the room is actually called.
-        emblem: roomEmblemDoodle(room.emoji, room.name),
+        inviter: bodySafe(inviter),
         label: bodySafe(label),
         line: bodySafe(line),
-        action: displaySafe(action),
+        personas,
+        count: room.count,
+        overflow: Math.max(0, room.count - personas.length),
+        rosterLabel: bodySafe(rosterLabel),
+        rosterLine: bodySafe(rosterLine),
         proof: bodySafe(proof),
     }
 }
@@ -230,8 +247,7 @@ export async function toLandingCard(
 
 /** What each kind draws, and nothing else. Six shapes rather than one wide
  *  select: the crew card has no business loading every expense date. */
-const SELECT: Record<CardKind, object> = {
-    invite: { name: true, emoji: true, theme: true, locale: true },
+const SELECT: Record<Exclude<CardKind, 'invite'>, object> = {
     crew: { theme: true, locale: true, members: { orderBy: { createdAt: 'asc' }, select: { avatar: true } } },
     passport: { theme: true, locale: true, expenses: { where: { deletedAt: null }, select: { currency: true } } },
     alterego: { theme: true, locale: true },
@@ -251,13 +267,59 @@ const SELECT: Record<CardKind, object> = {
 
 /** The row shapes above, as one type the shapers can read out of. */
 interface LoadedRoom {
-    name?: string
-    emoji?: string | null
     theme: string | null
     locale: string | null
     members?: { avatar?: string | null }[]
     expenses?: { currency?: string; date?: Date }[]
     settlements?: unknown[]
+}
+
+/**
+ * The personalized handoff is loaded separately from the achievement deck.
+ *
+ * `sharerMemberId` is a hint from this device, never trusted copy: the query
+ * proves the row belongs to this room and resolves its current name. The room
+ * query carries only persona keys and a count, so no other member name can
+ * accidentally cross into the forwardable card object.
+ */
+export async function loadInviteCard(
+    slug: string,
+    sharerMemberId?: string | null
+): Promise<AchievementCardData | null> {
+    const [room, sharer] = await Promise.all([
+        prisma.room.findUnique({
+            where: { slug },
+            select: {
+                name: true,
+                theme: true,
+                locale: true,
+                _count: { select: { members: true } },
+                members: {
+                    orderBy: { createdAt: 'asc' },
+                    take: MAX_INVITE_LINEUP,
+                    select: { avatar: true },
+                },
+            },
+        }),
+        sharerMemberId
+            ? prisma.member.findFirst({
+                  where: { id: sharerMemberId, room: { slug } },
+                  select: { name: true },
+              })
+            : Promise.resolve(null),
+    ])
+    if (!room) return null
+
+    return toInviteCard(
+        {
+            name: room.name,
+            theme: room.theme,
+            count: room._count.members,
+            personas: room.members.map((member) => member.avatar),
+        },
+        await getTranslator(room.locale ?? 'en'),
+        sharer?.name
+    )
 }
 
 /**
@@ -270,6 +332,8 @@ export async function loadAchievementCard(
     kind: CardKind,
     params?: AlterEgoCardParams
 ): Promise<AchievementCardData | null> {
+    if (kind === 'invite') return loadInviteCard(slug)
+
     const room = (await prisma.room.findUnique({ where: { slug }, select: SELECT[kind] })) as LoadedRoom | null
     if (!room) return null
 
@@ -277,8 +341,6 @@ export async function loadAchievementCard(
     const theme = { theme: room.theme }
 
     switch (kind) {
-        case 'invite':
-            return toInviteCard({ name: room.name ?? '', emoji: room.emoji ?? null, theme: room.theme }, t)
         case 'crew':
             return toCrewCard(
                 { theme: room.theme, members: (room.members ?? []).map((m) => ({ avatar: m.avatar ?? null })) },

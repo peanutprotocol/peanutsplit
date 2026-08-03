@@ -1064,9 +1064,15 @@
     },
     "card": {
         "invite": {
-            "label": "DESPESAS EM GRUPO",
-            "line": "Abra o link. Adicione o que pagou.",
-            "action": "ENTRAR NO SPLIT"
+            "label": "Despesas em grupo",
+            "line": "Todos adicionam. Calculamos quem deve.",
+            "inviter": "{name} convida você para",
+            "inviterFallback": "Você recebeu um convite para",
+            "roster": "JÁ ESTÃO NO SPLIT",
+            "rosterEmpty": "COMECEM O SPLIT JUNTOS",
+            "personOne": "1 pessoa já está",
+            "peopleMany": "{count} pessoas já estão",
+            "emptyAction": "Abra o link e adicione o que pagou"
         },
         "crew": {
             "title": "A TURMA",

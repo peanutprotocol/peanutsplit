@@ -14,11 +14,14 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const FONT_DIR = path.join(process.cwd(), 'public', 'fonts')
+const ROBOTO_DIR = path.join(process.cwd(), 'node_modules', '@fontsource', 'roboto', 'files')
 
 /** Display face — the Peanut hero font. Latin-1-ish, no `£`, no `·`, no `~`. */
 export const DISPLAY_FONT = 'Knerd'
 /** Body face — Sniglet, the app's `font-display`. Full ASCII + Latin-1. */
 export const BODY_FONT = 'Sniglet'
+/** Neutral app face used by the landing page and room UI. */
+export const INVITE_FONT = 'Roboto'
 
 const ASCII_NO_BACKTICK_TILDE =
     ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_abcdefghijklmnopqrstuvwxyz{|}'
@@ -50,6 +53,11 @@ const load = async (file: string): Promise<ArrayBuffer> => {
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer
 }
 
+const loadRoboto = async (file: string): Promise<ArrayBuffer> => {
+    const buf = await readFile(path.join(ROBOTO_DIR, file))
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer
+}
+
 /**
  * Read the three faces off disk. Deliberately not memoised: the SPEC forbids
  * process-lifetime OG caches (a leaked per-locale font/image cache has cost a prior app
@@ -65,5 +73,21 @@ export async function ogFonts(): Promise<OgFont[]> {
         { name: DISPLAY_FONT, data: display, weight: 400, style: 'normal' },
         { name: BODY_FONT, data: body, weight: 400, style: 'normal' },
         { name: BODY_FONT, data: bodyBold, weight: 800, style: 'normal' },
+    ]
+}
+
+/**
+ * The invite deliberately uses the product's neutral UI face, not either
+ * novelty display face. Fontsource is installed with the app so rendering is
+ * deterministic in the no-egress production container.
+ */
+export async function inviteFonts(): Promise<OgFont[]> {
+    const [regular, bold] = await Promise.all([
+        loadRoboto('roboto-latin-400-normal.woff'),
+        loadRoboto('roboto-latin-900-normal.woff'),
+    ])
+    return [
+        { name: INVITE_FONT, data: regular, weight: 400, style: 'normal' },
+        { name: INVITE_FONT, data: bold, weight: 800, style: 'normal' },
     ]
 }
