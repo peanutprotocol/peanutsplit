@@ -1,4 +1,5 @@
-import { expect, test, type Route } from '@playwright/test'
+import { expect, type Route } from '@playwright/test'
+import { test } from './fixtures'
 import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
 test('destructive ledger and identity actions require a slide or keyboard confirmation', async ({ page }, testInfo) => {

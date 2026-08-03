@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
@@ -13,8 +14,6 @@ import { enterCreatedRoom } from './helpers'
  * Every drawer in the room shares this primitive, so these assertions cover settings, share,
  * settle, expense and the character sheet at once.
  */
-
-test.use({ extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.22' } })
 
 const activeElement = (page: Page) =>
     page.evaluate(() => ({

@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
@@ -8,8 +9,6 @@ import { enterCreatedRoom } from './helpers'
  * assertions rather than measurements on purpose: each one failed before the fix, so a silent
  * return to the old behaviour fails the suite instead of only looking wrong in a screenshot.
  */
-
-test.use({ extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.21' } })
 
 /** A 75-character name. Absurd, but only one character class away from an ordinary one. */
 const LONG_NAME = 'Maximiliana Bartholomew Featherstonehaugh-Wintersgill the Third of Somewhere'

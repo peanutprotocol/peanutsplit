@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
@@ -25,7 +26,7 @@ const balance = (page: Page, member: string) => page.locator(`[data-testid="bala
 const expectBalance = async (page: Page, member: string, netMinor: string) =>
     expect(balance(page, member)).toHaveAttribute('data-net', netMinor, { timeout: 15_000 })
 
-test('a balance shows its own working, and the working adds up', async ({ page, browser }) => {
+test('a balance shows its own working, and the working adds up', async ({ page, newDevice }) => {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Audit trip')
     await page.getByTestId('room-currency').selectOption('EUR')
@@ -38,8 +39,7 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await expect(page.locator('[data-testid="balance-card"][data-pair]')).toHaveCount(0)
 
     // A second device, so there is a debt to derive.
-    const second = await browser.newContext({ viewport: { width: 390, height: 844 } })
-    const bea = await second.newPage()
+    const bea = await newDevice()
     await bea.goto(url)
     await bea.getByTestId('im-new').click()
     await bea.getByTestId('join-name').fill('Bea')
@@ -132,6 +132,4 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
         '3000'
     )
     await expect(drawer.getByTestId('derivation-total').first()).toHaveAttribute('data-total', '0')
-
-    await second.close()
 })
