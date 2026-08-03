@@ -37,14 +37,28 @@
  * that was correct is not.
  */
 
-import type { ApiExpense, ApiMember, ExpenseInput, RoomState } from './api-types'
+import type { ApiExpense, ApiMember, CatchUpExpenseInput, RoomState } from './api-types'
 import { savedExpenses } from './pending'
 
-/** What a banner needs to say, and what a confirm needs to send. */
-export interface LatecomerOffer {
+/** How one earlier row can be handled in the review UI. */
+export type LatecomerReviewKind = 'suggested' | 'optional' | 'manual'
+
+export interface LatecomerReviewItem {
+    expense: ApiExpense
+    /**
+     * suggested: an equal split that contained everyone who existed then;
+     * optional: an equal subset, safe to express but never safe to assume;
+     * manual: exact/weighted arithmetic that needs the expense editor.
+     */
+    kind: LatecomerReviewKind
+    /** The new member's room-currency share. Null when the app must not guess. */
+    impactMinor: string | null
+}
+
+export interface LatecomerReview {
     member: ApiMember
-    /** Newest first, exactly as the room lists them. Never empty. */
-    expenses: ApiExpense[]
+    /** Newest first, matching the room ledger. */
+    items: LatecomerReviewItem[]
 }
 
 const at = (iso: string): number => new Date(iso).getTime()
@@ -75,133 +89,176 @@ export function backfillableFor(state: RoomState, memberId: string): ApiExpense[
 }
 
 /**
- * Who to offer the repair for, or null when there is nothing to offer.
+ * The actual history a new member can review, including rows the conservative
+ * suggestion predicate intentionally excludes.
  *
- * Derived from the room state rather than handed down from the join, on purpose:
- * the banner is for ANY member, not only the person who just arrived. The people
- * who can best say "yes, Dani was at all of those" are the ones who were already
- * there, and they never see a join event — they see a new face on the balance
- * strip. Deriving it means both audiences get the same offer from the same rule.
- *
- * The newest joiner wins when several qualify. One banner at a time is a decision
- * somebody can actually make; a stack of them is a form.
+ * Equal subsets are safe to OFFER because adding the member can be represented
+ * without inventing weights or amounts: the participant set becomes the old
+ * set plus this one member. They start off because attendance is a human fact.
+ * Exact, percentage and shares rows are visible but manual; changing those
+ * automatically would overwrite deliberate arithmetic.
  */
-export function latecomerOffer(state: RoomState | undefined): LatecomerOffer | null {
-    if (!state) return null
+export function latecomerReview(state: RoomState, memberId: string): LatecomerReview | null {
+    const member = state.members.find((candidate) => candidate.id === memberId)
+    if (!member) return null
+    const joinedAt = at(member.createdAt)
 
-    const candidates = [...state.members]
-        .sort((a, b) =>
-            at(a.createdAt) === at(b.createdAt) ? b.id.localeCompare(a.id) : at(b.createdAt) - at(a.createdAt)
-        )
-        .map((member) => ({ member, expenses: backfillableFor(state, member.id) }))
+    const items = savedExpenses(state.expenses).flatMap((expense): LatecomerReviewItem[] => {
+        const writtenAt = at(expense.createdAt)
+        if (!(writtenAt < joinedAt)) return []
 
-    return candidates.find((candidate) => candidate.expenses.length > 0) ?? null
+        const shareHolders = new Set(expense.shares.map((share) => share.memberId))
+        if (shareHolders.has(memberId)) return []
+
+        if (expense.splitMode !== 'EQUAL') {
+            return [{ expense, kind: 'manual', impactMinor: null }]
+        }
+
+        // An empty or orphaned participant set is not safe to rewrite from the
+        // client. The ordinary editor can expose whatever repair is appropriate.
+        if (
+            shareHolders.size === 0 ||
+            expense.shares.some((share) => !state.members.some((candidate) => candidate.id === share.memberId))
+        ) {
+            return [{ expense, kind: 'manual', impactMinor: null }]
+        }
+
+        const presentThen = state.members.filter((candidate) => at(candidate.createdAt) <= writtenAt)
+        // Later-created holders are extras, not evidence that this stopped being
+        // a whole-room expense. This is how a second latecomer can review a row
+        // after the first latecomer was already caught up.
+        const wholeRoomThen = presentThen.every((candidate) => shareHolders.has(candidate.id))
+
+        // The new participant is appended by the atomic command. Equal apportionment
+        // gives rounding residue to earlier participant positions, so the final
+        // participant receives the floor exactly.
+        const impactMinor = (BigInt(expense.baseAmountMinor) / BigInt(expense.shares.length + 1)).toString()
+        return [{ expense, kind: wholeRoomThen ? 'suggested' : 'optional', impactMinor }]
+    })
+
+    return items.length > 0 ? { member, items } : null
 }
 
-/**
- * The PATCH body that adds one person to one EQUAL expense.
- *
- * `participantIds` is spelled out rather than omitted, and the difference
- * matters. Omitting it makes the server split across every member in the room —
- * which is a DIFFERENT edit as soon as two people joined late, because it would
- * quietly pull the second one in too. Naming exactly the existing share holders
- * plus this one person is the minimal change, and it is the change the banner
- * described.
- *
- * Everything else is the expense as it stands. The currency is unchanged, so the
- * server keeps the FX rate frozen at creation (see `server/expenses.ts`) and a
- * catch-up cannot re-price a foreign expense.
- */
-export function backfillPatch(expense: ApiExpense, memberId: string): ExpenseInput {
+/** IDs selected on first paint: conservative suggestions only. */
+export const suggestedExpenseIds = (review: LatecomerReview): string[] =>
+    review.items.filter((item) => item.kind === 'suggested').map((item) => item.expense.id)
+
+/** Exact personal balance impact for the selected equal rows. */
+export function selectedImpactMinor(review: LatecomerReview, selectedIds: ReadonlySet<string>): string {
+    return review.items
+        .filter((item) => selectedIds.has(item.expense.id) && item.impactMinor !== null)
+        .reduce((total, item) => total + BigInt(item.impactMinor!), 0n)
+        .toString()
+}
+
+/** Balances are positive when the room owes the member and negative when the
+ * member owes the room. Catch-up adds debt, so it subtracts the reviewed share. */
+export function projectedBalanceMinor(currentBalanceMinor: string, addedShareMinor: string): string {
+    return (BigInt(currentBalanceMinor) - BigInt(addedShareMinor)).toString()
+}
+
+/** Pin every user-editable fact shown by the review. The server compares this
+ * snapshot under the room lock before changing only the equal-share rows. */
+export function catchUpExpenseInput(
+    expense: ApiExpense,
+    memberId: string,
+    action: CatchUpExpenseInput['action'] = 'add'
+): CatchUpExpenseInput {
     return {
-        description: expense.description,
-        amountMinor: expense.amountMinor,
-        currency: expense.currency,
-        paidById: expense.paidById,
-        splitMode: 'EQUAL',
-        participantIds: [...expense.shares.map((share) => share.memberId), memberId],
-        date: expense.date,
-        category: expense.category,
+        action,
+        memberId,
+        expectedDescription: expense.description,
+        expectedAmountMinor: expense.amountMinor,
+        expectedBaseAmountMinor: expense.baseAmountMinor,
+        expectedCurrency: expense.currency,
+        expectedFxRate: expense.fxRate,
+        expectedPaidById: expense.paidById,
+        expectedDate: expense.date,
+        expectedCategory: expense.category,
+        expectedParticipantIds: expense.shares.map((share) => share.memberId),
     }
 }
 
 /** What one run of the repair needs to know, and how it talks to the room. */
 export interface BackfillRun {
     memberId: string
-    /** Pinned when the button is pressed: which rows this run is about, in order. */
-    expenseIds: readonly string[]
-    /** The room as it stands RIGHT NOW — the live query cache, not the snapshot
-     *  the banner was rendered from. */
-    read: () => RoomState | undefined
-    patch: (id: string, input: ExpenseInput) => Promise<unknown>
+    /** Pinned when Confirm is pressed: exact reviewed rows, in order. The
+     * server compares each snapshot under the room lock before changing it. */
+    expenses: readonly ApiExpense[]
+    patch: (expense: ApiExpense) => Promise<unknown>
     /** How many writes have actually landed. */
-    onWrote: (done: number) => void
+    onWrote: (done: number, expenseId: string, expense: ApiExpense) => void
+    /** A pinned row changed enough to become unsafe before its turn. */
+    onSkipped?: (expenseId: string) => void
+    /** Only known optimistic conflicts may be skipped. Every other failure
+     * halts so connectivity/auth/server errors cannot masquerade as review. */
+    onPatchError?: (error: unknown, expenseId: string) => 'skip' | 'throw'
     /** "Stop" was pressed. Read between writes, which is the only point in the
      *  run where the room is in a state worth leaving behind. */
     stopped: () => boolean
 }
 
 /**
- * The repair itself: one PATCH per expense, each one re-derived from the live
- * room immediately before it is sent.
- *
- * The ids are pinned at the tap; the BODIES deliberately are not. A room refetches
- * every eight seconds and each PATCH is its own round trip, so a run over a dozen
- * expenses spans a dozen windows in which somebody else's edit can land — and a
- * body built from the click-time snapshot would write that edit straight back
- * out: the old amount over their new one, a participant they just added dropped,
- * an EXACT split they just chose rewritten as EQUAL. Re-reading the cache per
- * expense means a landed edit either rides along (a changed amount is carried
- * into the patch verbatim) or disqualifies the row through the same predicate the
- * offer was built from, and it is skipped rather than overwritten.
- *
- * What is left is the single request in flight: an edit that lands after this row
- * was read and before its PATCH is applied. Closing that too needs an
- * optimistic-concurrency token on the expense — a version on the wire, a
- * migration, and a conflict branch in every writer — to protect one row in the
- * rare case where two people edit the same dinner in the same second. Narrowing
- * the race from "the whole run" to "one request" is the part worth paying for.
+ * The repair itself: one atomic command per expense. Each command carries the
+ * snapshot the person actually confirmed. The server owns the authoritative
+ * read and returns a review conflict if amount, currency, mode, or participants
+ * moved before that command acquired the room lock.
  */
 export async function runBackfill(run: BackfillRun): Promise<void> {
     let done = 0
-    for (const id of run.expenseIds) {
+    for (const expense of run.expenses) {
         if (run.stopped()) break
-        const live = run.read()
-        const expense = live ? backfillableFor(live, run.memberId).find((candidate) => candidate.id === id) : undefined
-        // Not eligible any more: edited under us, or already fixed by somebody else.
-        if (!expense) continue
-        await run.patch(id, backfillPatch(expense, run.memberId))
+        try {
+            await run.patch(expense)
+        } catch (error) {
+            if (run.onPatchError?.(error, expense.id) === 'skip') {
+                run.onSkipped?.(expense.id)
+                continue
+            }
+            throw error
+        }
         done += 1
-        run.onWrote(done)
+        run.onWrote(done, expense.id, expense)
     }
 }
 
-// ── dismissal ───────────────────────────────────────────────────────────────
-// Per room, per person, on this device. Not a server fact: "no, Dani was not on
-// that trip" is an answer this phone gave, and asking the rest of the room to
-// live with it would make one person's tap everyone's silence.
+// A review is a local reminder, never a claimed/unclaimed room fact. Remember
+// the exact expense set this device reviewed so a later or changed set can be
+// offered again without letting one recorder silence the rest of the room.
+const REVIEWED_KEY = (slug: string, memberId: string) => `ps:latecomer-reviewed:${slug}:${memberId}`
 
-const DISMISSED_KEY = (slug: string) => `ps:latecomer-dismissed:${slug}`
+export const latecomerReviewFingerprint = (
+    review: LatecomerReview,
+    excludedIds: ReadonlySet<string> = new Set()
+): string =>
+    JSON.stringify(
+        review.items
+            .map((item) => item.expense.id)
+            .filter((id) => !excludedIds.has(id))
+            .sort()
+    )
 
-export const dismissedMemberIds = (slug: string): string[] => {
-    if (typeof window === 'undefined') return []
+export function isLatecomerReviewDismissed(slug: string, review: LatecomerReview): boolean {
+    if (typeof window === 'undefined') return false
     try {
-        const raw = window.localStorage.getItem(DISMISSED_KEY(slug))
-        const parsed: unknown = raw ? JSON.parse(raw) : []
-        return Array.isArray(parsed) ? parsed.filter((entry): entry is string => typeof entry === 'string') : []
+        return window.localStorage.getItem(REVIEWED_KEY(slug, review.member.id)) === latecomerReviewFingerprint(review)
     } catch {
-        // A full or blocked localStorage must not cost somebody the room.
-        return []
+        return false
     }
 }
 
-export function dismiss(slug: string, memberId: string): void {
+export function dismissLatecomerReview(
+    slug: string,
+    review: LatecomerReview,
+    excludedIds: ReadonlySet<string> = new Set()
+): void {
     if (typeof window === 'undefined') return
     try {
-        const next = [...new Set([...dismissedMemberIds(slug), memberId])]
-        window.localStorage.setItem(DISMISSED_KEY(slug), JSON.stringify(next))
+        window.localStorage.setItem(
+            REVIEWED_KEY(slug, review.member.id),
+            latecomerReviewFingerprint(review, excludedIds)
+        )
     } catch {
-        // Same again: a banner that will not go away is annoying, a room that
-        // will not render is broken.
+        // A blocked localStorage may repeat a reminder, but never blocks the room.
     }
 }

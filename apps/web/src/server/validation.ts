@@ -190,6 +190,29 @@ export const expenseUpdateSchema = z
     .superRefine(onePayer)
     .superRefine(splitPayloadMatchesMode)
 
+export const catchUpExpenseSchema = z.object({
+    operation: z.literal('CATCH_UP_EQUAL_PARTICIPANT'),
+    action: z.enum(['add', 'remove']),
+    memberId: id,
+    expectedDescription: z.string().max(MAX_DESCRIPTION_CHARS),
+    expectedAmountMinor: minorAmount,
+    expectedBaseAmountMinor: minorAmount,
+    expectedCurrency: currencyCode,
+    expectedFxRate: z.string().min(1).max(64),
+    expectedPaidById: id,
+    expectedDate: z.string().datetime({ offset: true }).or(z.string().datetime()),
+    expectedCategory: z.string().max(MAX_CATEGORY_CHARS).nullable(),
+    expectedParticipantIds: z
+        .array(id)
+        .min(1)
+        .refine((ids) => new Set(ids).size === ids.length, 'must not contain duplicate members'),
+})
+
+/** The existing expense write surface also accepts the narrow, atomic catch-up
+ * command. This keeps catch-up inside the frozen money API instead of adding a
+ * second endpoint that can change balances. */
+export const expensePatchSchema = z.union([catchUpExpenseSchema, expenseUpdateSchema])
+
 const receiptUrl = z
     .string()
     .trim()
@@ -265,6 +288,7 @@ export type CreateRoomBody = z.infer<typeof createRoomSchema>
 export type CreateMemberBody = z.infer<typeof createMemberSchema>
 export type ExpenseBody = z.infer<typeof expenseSchema>
 export type ExpenseUpdateBody = z.infer<typeof expenseUpdateSchema>
+export type CatchUpExpenseBody = z.infer<typeof catchUpExpenseSchema>
 export type SettlementBody = z.infer<typeof settlementSchema>
 
 // ── what a model says ────────────────────────────────────────────────────────

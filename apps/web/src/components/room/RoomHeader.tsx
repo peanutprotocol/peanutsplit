@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref } from 'react'
 import { useTranslations } from 'next-intl'
 import { CharacterSheet } from '@/components/room/CharacterSheet'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
@@ -19,6 +20,8 @@ interface RoomHeaderProps {
     /** The roster row for `identity`, when this device is one of the members.
      *  Null while the room is still loading or when nobody has joined here. */
     me: ApiMember | null
+    /** Stable room landmark used when a transient sheet removes its opener. */
+    roomTitleRef?: Ref<HTMLHeadingElement>
     onShare: () => void
     onForgetIdentity: () => void
 }
@@ -31,7 +34,16 @@ interface RoomHeaderProps {
  * parts. What is left is the bar itself: the emblem opens Settings, your own
  * avatar chip opens YOUR character sheet, and share is share.
  */
-export function RoomHeader({ room, members, state, identity, me, onShare, onForgetIdentity }: RoomHeaderProps) {
+export function RoomHeader({
+    room,
+    members,
+    state,
+    identity,
+    me,
+    roomTitleRef,
+    onShare,
+    onForgetIdentity,
+}: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const tAvatar = useTranslations('room.avatar')
     const [sheets, setSheets] = useRoomParams()
@@ -57,7 +69,9 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                 </button>
 
                 <div className="min-w-0 flex-1">
-                    <h1 className="truncate text-h6">{room.name}</h1>
+                    <h1 ref={roomTitleRef} tabIndex={-1} data-testid="room-title" className="truncate text-h6">
+                        {room.name}
+                    </h1>
                     {/* Two taps to your own character, and the second one is the
                         grid — never the settings sheet with a member preselected. */}
                     {me ? (

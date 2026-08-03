@@ -10,7 +10,7 @@ import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError } from '@/lib/api'
 import { roomProps, track, type ShareSurface } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
-import { dismissedMemberIds, latecomerOffer } from '@/lib/latecomer'
+import { isLatecomerReviewDismissed, latecomerReview } from '@/lib/latecomer'
 import { isRoomSettled, savedExpenses } from '@/lib/pending'
 import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
@@ -77,7 +77,20 @@ export function RoomScreen({ slug }: { slug: string }) {
      * should not throw confetti at you.
      */
     const [celebrate, setCelebrate] = useState(false)
+    // Resolve at most one named catch-up per room visit. A tap on this device
+    // never cascades into a checklist of the room's other people.
+    const [latecomerPaused, setLatecomerPaused] = useState(false)
+    const [latecomerReviewOpen, setLatecomerReviewOpen] = useState(false)
+    const roomTitleRef = useRef<HTMLHeadingElement>(null)
     const sawUnsettled = useRef(false)
+
+    const resolveLatecomer = useCallback(() => {
+        setLatecomerPaused(true)
+        // Confirm and Not now remove the banner that opened the drawer, so the
+        // generic drawer restoration target is disconnected. Land on the room's
+        // real heading after React commits the close instead of dropping to body.
+        window.requestAnimationFrame(() => roomTitleRef.current?.focus({ preventScroll: true }))
+    }, [])
 
     useEffect(() => {
         if (!state) return
@@ -103,7 +116,7 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
-    const drawerOpen =
+    const roomDrawerOpen =
         params.add ||
         params.settle ||
         params.share ||
@@ -111,18 +124,23 @@ export function RoomScreen({ slug }: { slug: string }) {
         !!params.expense ||
         !!params.balance ||
         !!params.character
+    const drawerOpen = roomDrawerOpen || latecomerReviewOpen
 
-    /**
-     * Is the latecomer offer on screen? Derived from the same two functions the banner itself
-     * uses, so the two answers cannot drift. Reading storage per render is fine here — this only
-     * decides which of two banners renders, so a stale read costs one frame, not a decision.
-     */
-    const latecomerPending = useMemo(() => {
-        const offer = latecomerOffer(state)
-        return !!offer && !dismissedMemberIds(slug).includes(offer.member.id)
-    }, [slug, state])
     const needsJoin = loaded && !identity && !!state
     const staleState = !!state && isRefetchError
+    const latecomer = useMemo(() => {
+        if (!state || state.room.archivedAt || latecomerPaused) return null
+        const members = [...state.members].sort((a, b) => {
+            const byTime = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            return byTime || b.id.localeCompare(a.id)
+        })
+        for (const member of members) {
+            const review = latecomerReview(state, member.id)
+            if (review && !isLatecomerReviewDismissed(slug, review)) return review
+        }
+        return null
+    }, [latecomerPaused, slug, state])
+    const latecomerPending = latecomer !== null
 
     useEffect(() => {
         if (!state) return
@@ -204,6 +222,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                     state={state}
                     identity={identity}
                     me={me}
+                    roomTitleRef={roomTitleRef}
                     onShare={() => openRoomShare('header')}
                     onForgetIdentity={forget}
                 />
@@ -265,8 +284,17 @@ export function RoomScreen({ slug }: { slug: string }) {
                             {/* Above the history, below the balances: it is a
                                 statement about the numbers on the strip, and the
                                 fix it offers rewrites the rows underneath it. */}
-                            {!needsJoin && !staleState && (
-                                <LatecomerBanner slug={slug} state={state} token={identity?.token} />
+                            {!needsJoin && !staleState && !roomDrawerOpen && latecomer && (
+                                <LatecomerBanner
+                                    key={latecomer.member.id}
+                                    slug={slug}
+                                    state={state}
+                                    memberId={latecomer.member.id}
+                                    token={identity?.token}
+                                    onResolved={resolveLatecomer}
+                                    onOpenChange={setLatecomerReviewOpen}
+                                    onEditExpense={(expenseId) => setParams({ expense: expenseId })}
+                                />
                             )}
                             {/* One banner at a time, and the achievement card is the one that
                                 yields. The latecomer offer is a correction to the numbers directly
@@ -283,7 +311,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 />
                             )}
                             <AnimatePresence initial={false}>
-                                {settledUp && (
+                                {settledUp && !latecomerPending && (
                                     <AllSettled
                                         key="all-settled"
                                         celebrate={celebrate}

@@ -226,6 +226,32 @@ export interface ExpenseUpdateInput extends ExpenseInput {
     expectedSplitMode?: SplitMode
 }
 
+/**
+ * Add one late-joining member to one reviewed EQUAL expense.
+ *
+ * The expectations come from the review row the person confirmed. This is
+ * deliberately narrower than an ExpenseUpdateInput: catch-up may change only
+ * the equal shares, never replay a stale copy of the expense.
+ */
+export interface CatchUpExpenseInput {
+    action: 'add' | 'remove'
+    memberId: string
+    expectedDescription: string
+    expectedAmountMinor: string
+    expectedBaseAmountMinor: string
+    expectedCurrency: string
+    expectedFxRate: string
+    expectedPaidById: string
+    expectedDate: string
+    expectedCategory: string | null
+    expectedParticipantIds: string[]
+}
+
+export interface CatchUpExpenseResult {
+    changed: boolean
+    state: RoomState
+}
+
 /** POST and DELETE /api/expenses/:id/reactions. The token is proof, not
  *  attribution, which is why it rides the body — see the route. */
 export interface ReactionInput {
