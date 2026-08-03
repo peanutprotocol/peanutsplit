@@ -404,10 +404,10 @@
             "you": "You",
             "settled": "settled up",
             "owes": "owes",
-            "getsBack": "gets back",
+            "getsBack": "is owed",
             "nothingYet": "nothing yet",
             "youOwe": "you owe",
-            "youGetBack": "you get back",
+            "youGetBack": "you’re owed",
             "pair": {
                 "owesYou": "{name} owes you",
                 "youOwe": "You owe {name}",
@@ -426,6 +426,14 @@
             "filedBy": "Filed by {name}",
             "filedByYou": "Filed by you",
             "filedByAnon": "Filed by Anon",
+            "personalImpact": {
+                "outgoingNamed": "Added to what you owe {name}",
+                "outgoing": "Added to what you owe",
+                "incomingNamed": "Added to what {name} owes you",
+                "incoming": "Others owe you from this expense",
+                "neutral": "No change to your balance",
+                "notInSplit": "Not in your split"
+            },
             "emptyInvite": "Invite the rest"
         },
         "states": {

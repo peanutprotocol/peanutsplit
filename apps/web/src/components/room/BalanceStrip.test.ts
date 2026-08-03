@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_SENTENCE_NAME_CHARS, pairCard } from './BalanceStrip'
+import { balanceTone, MAX_SENTENCE_NAME_CHARS, pairCard } from './BalanceStrip'
 
 /**
  * The pair card makes a claim about somebody's money in words. A wrong key here says "You owe
@@ -13,12 +13,43 @@ const ana = { id: 'ana', name: 'Ana' }
 const bea = { id: 'bea', name: 'Bea' }
 const pair = [ana, bea]
 
+describe('balanceTone', () => {
+    it('gives debts a quiet outgoing surface plus words and an arrow', () => {
+        expect(balanceTone('-1200', true, t, true)).toEqual({
+            card: 'bg-balance-outgoing',
+            label: 'youOwe',
+            labelClass: 'text-balance-outgoing-accent',
+            mark: '→',
+            direction: 'outgoing',
+        })
+        expect(balanceTone('-1200', false, t, true).label).toBe('owes')
+    })
+
+    it('gives credits a quiet incoming surface plus words and an arrow', () => {
+        expect(balanceTone('1200', true, t, true)).toEqual({
+            card: 'bg-balance-incoming',
+            label: 'youGetBack',
+            labelClass: 'text-balance-incoming-accent',
+            mark: '←',
+            direction: 'incoming',
+        })
+        expect(balanceTone('1200', false, t, true).label).toBe('getsBack')
+    })
+
+    it('keeps signed zero neutral and distinguishes a fresh ledger', () => {
+        expect(balanceTone('-0', true, t, true).direction).toBe('neutral')
+        expect(balanceTone('0', true, t, true).label).toBe('settled')
+        expect(balanceTone('0', true, t, false).label).toBe('nothingYet')
+    })
+})
+
 describe('pairCard', () => {
     it('says the other person owes you when your own balance is up', () => {
         const card = pairCard(pair, { ana: '1100', bea: '-1100' }, 'ana', true, t)
 
         expect(card.label).toBe('pair.owesYou {"name":"Bea"}')
-        expect(card.labelClass).toBe('bg-green-1 text-n-1')
+        expect(card.cardClass).toBe('bg-balance-incoming')
+        expect(card.labelClass).toBe('text-balance-incoming-accent')
         expect(card.mark).toBe('←')
         expect(card.direction).toBe('incoming')
         // The sentence is about Bea, so the card publishes Bea's net — the negation of the
@@ -31,7 +62,8 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '-1100', bea: '1100' }, 'ana', true, t)
 
         expect(card.label).toBe('pair.youOwe {"name":"Bea"}')
-        expect(card.labelClass).toBe('bg-error-3 text-white')
+        expect(card.cardClass).toBe('bg-balance-outgoing')
+        expect(card.labelClass).toBe('text-balance-outgoing-accent')
         expect(card.mark).toBe('→')
         expect(card.direction).toBe('outgoing')
         expect(card.about).toBe(bea)
@@ -42,7 +74,8 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '1100', bea: '-1100' }, 'bea', true, t)
 
         expect(card.label).toBe('pair.youOwe {"name":"Ana"}')
-        expect(card.labelClass).toBe('bg-error-3 text-white')
+        expect(card.cardClass).toBe('bg-balance-outgoing')
+        expect(card.labelClass).toBe('text-balance-outgoing-accent')
         expect(card.mark).toBe('→')
         expect(card.direction).toBe('outgoing')
         expect(card.about).toBe(ana)
@@ -53,7 +86,8 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '0', bea: '0' }, 'ana', true, t)
 
         expect(card.label).toBe('Bea · settled')
-        expect(card.labelClass).toBe('bg-[var(--split-theme-tint,#FFFFFF)] text-n-3')
+        expect(card.cardClass).toBe('bg-[var(--split-theme-tint,#FFFFFF)]')
+        expect(card.labelClass).toBe('text-n-3')
         expect(card.mark).toBe('—')
         expect(card.direction).toBe('neutral')
         expect(card.net).toBe('0')
@@ -63,7 +97,8 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '0', bea: '0' }, 'ana', false, t)
 
         expect(card.label).toBe('Bea · nothingYet')
-        expect(card.labelClass).toBe('bg-[var(--split-theme-tint,#FFFFFF)] text-n-3')
+        expect(card.cardClass).toBe('bg-[var(--split-theme-tint,#FFFFFF)]')
+        expect(card.labelClass).toBe('text-n-3')
     })
 
     /**
@@ -87,7 +122,8 @@ describe('pairCard', () => {
         const card = pairCard(pair, { ana: '1100', bea: '-1100' }, undefined, true, t)
 
         expect(card.label).toBe('pair.owes {"debtor":"Bea","creditor":"Ana"}')
-        expect(card.labelClass).toBe('bg-error-3 text-white')
+        expect(card.cardClass).toBe('bg-balance-outgoing')
+        expect(card.labelClass).toBe('text-balance-outgoing-accent')
         expect(card.mark).toBe('→')
         expect(card.direction).toBe('between-members')
         // The debtor is the subject, so the net on the card is the negative one, and the tap

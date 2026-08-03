@@ -45,10 +45,22 @@ test('import a Splitwise export → a room whose balances match the file', async
     await expect(balance('Ana')).toHaveAttribute('data-net', '1500', { timeout: 20_000 })
     await expect(balance('Bruno')).toHaveAttribute('data-net', '-1500')
     await expect(balance('Carla')).toHaveAttribute('data-net', '0')
+    await expect(balance('Ana')).toHaveAttribute('data-balance-direction', 'incoming')
+    await expect(balance('Bruno')).toHaveAttribute('data-balance-direction', 'outgoing')
+    await expect(balance('Carla')).toHaveAttribute('data-balance-direction', 'neutral')
 
-    // The history came across too, not just the arithmetic.
-    await expect(page.getByText('Dinner')).toBeVisible()
-    await expect(page.getByText('Groceries')).toBeVisible()
+    // The history came across too, and each old expense explains its own effect
+    // on Ana rather than borrowing the room's current aggregate direction.
+    const expense = (description: string) =>
+        page.locator(`[data-testid="expense-row"][data-description="${description}"]`)
+    await expect(expense('Dinner')).toHaveAttribute('data-personal-impact', 'incoming')
+    await expect(expense('Dinner')).toHaveAttribute('data-impact-minor', '4000')
+    await expect(expense('Dinner')).toContainText('Others owe you from this expense')
+    await expect(expense('Taxi')).toHaveAttribute('data-personal-impact', 'outgoing')
+    await expect(expense('Taxi')).toHaveAttribute('data-impact-minor', '-1000')
+    await expect(expense('Taxi')).toContainText('Added to what you owe')
+    await expect(expense('Groceries')).toHaveAttribute('data-personal-impact', 'outgoing')
+    await expect(expense('Groceries')).toHaveAttribute('data-impact-minor', '-1500')
 
     // The importer never sees a join gate — the token came back with the room.
     await expect(page.getByTestId('join-gate')).toHaveCount(0)

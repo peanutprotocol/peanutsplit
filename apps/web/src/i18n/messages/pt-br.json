@@ -404,7 +404,7 @@
             "you": "Você",
             "settled": "sem dívidas",
             "owes": "deve",
-            "getsBack": "recebe",
+            "getsBack": "tem a receber",
             "nothingYet": "nada ainda",
             "youOwe": "você deve",
             "youGetBack": "te devem",
@@ -426,6 +426,14 @@
             "filedBy": "Lançado por {name}",
             "filedByYou": "Lançado por você",
             "filedByAnon": "Lançado por Anon",
+            "personalImpact": {
+                "outgoingNamed": "Somou ao que você deve a {name}",
+                "outgoing": "Somou ao que você deve",
+                "incomingNamed": "Somou ao que {name} deve a você",
+                "incoming": "Os outros devem a você por este gasto",
+                "neutral": "Não mudou seu saldo",
+                "notInSplit": "Você não participou da divisão"
+            },
             "emptyInvite": "Convide o resto"
         },
         "states": {

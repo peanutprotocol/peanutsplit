@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
+import { personalExpenseImpact } from '@/lib/expense-impact'
 import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
@@ -134,6 +135,14 @@ export function ExpenseList({
     const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
     const memberAvatar = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
     const memberPalette = (id: string) => state.members.find((member) => member.id === id)?.avatarPalette ?? null
+    // A stale device identity is not permission to call somebody in this room
+    // "you". Spectators still see the expense totals, just without personal
+    // direction claims or colour.
+    const validMeId = meId && state.members.some((member) => member.id === meId) ? meId : undefined
+    const pairCounterparty =
+        validMeId && state.members.length === 2
+            ? state.members.find((member) => member.id !== validMeId)?.name
+            : undefined
     const groups = groupByDay(timeline, (entry) => entry.date)
 
     return (
@@ -208,6 +217,22 @@ export function ExpenseList({
                                           ? t('filedByYou')
                                           : t('filedBy', { name: memberName(expense.createdById) })
                                 const foreign = expense.currency !== state.room.currency
+                                const impact = isQueuedExpenseId(expense.id, queued)
+                                    ? null
+                                    : personalExpenseImpact(expense, validMeId)
+                                const impactCopy = impact
+                                    ? impact.direction === 'outgoing'
+                                        ? pairCounterparty
+                                            ? t('personalImpact.outgoingNamed', { name: pairCounterparty })
+                                            : t('personalImpact.outgoing')
+                                        : impact.direction === 'incoming'
+                                          ? pairCounterparty
+                                              ? t('personalImpact.incomingNamed', { name: pairCounterparty })
+                                              : t('personalImpact.incoming')
+                                          : impact.neutralReason === 'not-in-split'
+                                            ? t('personalImpact.notInSplit')
+                                            : t('personalImpact.neutral')
+                                    : null
                                 // `createdAt`, not `date`: this line is about the row being
                                 // written — a dinner can be backdated, filing it cannot.
                                 const filedWhen = relativeTime(expense.createdAt, {
@@ -264,36 +289,42 @@ export function ExpenseList({
                                             onClick={() => onSelect(expense.id)}
                                             data-testid="expense-row"
                                             data-description={expense.description}
+                                            data-personal-impact={impact?.direction}
+                                            data-impact-minor={impact?.signedMinor}
                                             // The pop rides the inner button, not the
                                             // motion.li: the li's transform is already
                                             // owned by motion, and two writers on one
                                             // property is a fight nobody wins.
                                             className={cn(
-                                                'shadow-4 flex min-h-[3.5rem] w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-3 text-left transition-transform duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:active:translate-x-0 disabled:active:translate-y-0',
+                                                'shadow-4 flex min-h-[3.5rem] w-full flex-col overflow-hidden rounded-sm border border-n-1 text-left transition-transform duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:active:translate-x-0 disabled:active:translate-y-0',
+                                                impact?.direction === 'outgoing' && 'bg-balance-outgoing',
+                                                impact?.direction === 'incoming' && 'bg-balance-incoming',
+                                                (!impact || impact.direction === 'neutral') && 'bg-white',
                                                 poppedId === expense.id && 'animate-pop'
                                             )}
                                         >
-                                            <MemberAvatar
-                                                name={payer}
-                                                avatar={memberAvatar(expense.paidById)}
-                                                palette={memberPalette(expense.paidById)}
-                                                size={36}
-                                            />
-                                            <span className="min-w-0 flex-1">
-                                                <span className="block truncate text-h8">
-                                                    {/* Row label, not plain `expenseLabel`: these rows
+                                            <span className="flex min-h-[3.5rem] w-full items-center gap-3 p-3">
+                                                <MemberAvatar
+                                                    name={payer}
+                                                    avatar={memberAvatar(expense.paidById)}
+                                                    palette={memberPalette(expense.paidById)}
+                                                    size={36}
+                                                />
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="block truncate text-h8">
+                                                        {/* Row label, not plain `expenseLabel`: these rows
                                                         sit under a day heading, so an unnamed one takes
                                                         the day AND its time — otherwise it reprints the
                                                         heading and two unnamed rows read identically. */}
-                                                    {expenseRowLabel(expense.description, expense.date, dayOptions)}
-                                                </span>
-                                                {isQueuedExpenseId(expense.id, queued) && (
-                                                    <span className="block text-sm text-grey-1">
-                                                        {tOffline('rowHint')}
+                                                        {expenseRowLabel(expense.description, expense.date, dayOptions)}
                                                     </span>
-                                                )}
-                                                <span className="block truncate text-sm text-grey-1">
-                                                    {/* Separate first-person key, not an interpolated "you":
+                                                    {isQueuedExpenseId(expense.id, queued) && (
+                                                        <span className="block text-sm text-grey-1">
+                                                            {tOffline('rowHint')}
+                                                        </span>
+                                                    )}
+                                                    <span className="block truncate text-sm text-grey-1">
+                                                        {/* Separate first-person key, not an interpolated "you":
                                                         Spanish must conjugate — "Tú pagó" was a literal
                                                         grammar error on the most-read line in the app.
                                                         Truncated, not wrapped: the amount column next to
@@ -301,35 +332,69 @@ export function ExpenseList({
                                                         this flex-1 column narrow enough that "You paid ·
                                                         1 person" wrapped mid-phrase and nearly doubled the
                                                         row's height. */}
-                                                    {expense.paidById === meId
-                                                        ? t('paidByYou', { count: expense.shares.length })
-                                                        : t('paidBy', { payer, count: expense.shares.length })}
-                                                </span>
-                                                {!isPending(expense) && (
-                                                    <span className="block text-h10 uppercase tracking-wide text-grey-1">
-                                                        {filedBy} · {filedWhen}
+                                                        {expense.paidById === meId
+                                                            ? t('paidByYou', { count: expense.shares.length })
+                                                            : t('paidBy', { payer, count: expense.shares.length })}
                                                     </span>
-                                                )}
+                                                    {!isPending(expense) && (
+                                                        <span className="block text-h10 uppercase tracking-wide text-grey-1">
+                                                            {filedBy} · {filedWhen}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                <span className="flex shrink-0 flex-col items-end">
+                                                    <Money
+                                                        minor={expense.amountMinor}
+                                                        currency={expense.currency}
+                                                        catalog={currencies}
+                                                        className="text-h7"
+                                                    />
+                                                    {foreign && !isPending(expense) && (
+                                                        <span className="text-h10 text-grey-1">
+                                                            ~{' '}
+                                                            <Money
+                                                                minor={expense.baseAmountMinor}
+                                                                currency={state.room.currency}
+                                                                catalog={currencies}
+                                                            />{' '}
+                                                            {t('indicative')}
+                                                        </span>
+                                                    )}
+                                                </span>
                                             </span>
-                                            <span className="flex shrink-0 flex-col items-end">
-                                                <Money
-                                                    minor={expense.amountMinor}
-                                                    currency={expense.currency}
-                                                    catalog={currencies}
-                                                    className="text-h7"
-                                                />
-                                                {foreign && !isPending(expense) && (
-                                                    <span className="text-h10 text-grey-1">
-                                                        ~{' '}
+                                            {impact && impactCopy && (
+                                                <span
+                                                    data-testid="expense-personal-impact"
+                                                    className={cn(
+                                                        'flex w-full items-center justify-between gap-3 border-t border-n-1/20 px-3 py-2 text-h9',
+                                                        impact.direction === 'outgoing' &&
+                                                            'text-balance-outgoing-accent',
+                                                        impact.direction === 'incoming' &&
+                                                            'text-balance-incoming-accent',
+                                                        impact.direction === 'neutral' && 'text-n-3'
+                                                    )}
+                                                >
+                                                    <span className="flex min-w-0 items-center gap-1.5">
+                                                        {impact.direction !== 'neutral' && (
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className="shrink-0 text-sm leading-none"
+                                                            >
+                                                                {impact.direction === 'outgoing' ? '→' : '←'}
+                                                            </span>
+                                                        )}
+                                                        <span>{impactCopy}</span>
+                                                    </span>
+                                                    {impact.direction !== 'neutral' && (
                                                         <Money
-                                                            minor={expense.baseAmountMinor}
+                                                            minor={impact.amountMinor}
                                                             currency={state.room.currency}
                                                             catalog={currencies}
-                                                        />{' '}
-                                                        {t('indicative')}
-                                                    </span>
-                                                )}
-                                            </span>
+                                                            className="shrink-0 text-h8"
+                                                        />
+                                                    )}
+                                                </span>
+                                            )}
                                         </button>
                                         {/* Outside the row button, not inside
                                             it: a button cannot contain buttons,
