@@ -14,6 +14,7 @@ import {
     PERSONA_KEYS,
     avatarArt,
     avatarFamily,
+    dealPersonaKeys,
     isAvatarKey,
     randomPersonaKey,
 } from './avatars'
@@ -28,6 +29,30 @@ describe('the default alter ego', () => {
         const last = PERSONA_KEYS[PERSONA_KEYS.length - 1]
         expect(randomPersonaKey(PERSONA_KEYS[0], () => 0)).toBe(PERSONA_KEYS[1])
         expect(randomPersonaKey(last, () => 0.999999)).toBe(PERSONA_KEYS[PERSONA_KEYS.length - 2])
+    })
+
+    it('excludes every persona already used by a room', () => {
+        expect(randomPersonaKey(PERSONA_KEYS.slice(0, 3), () => 0)).toBe(PERSONA_KEYS[3])
+        expect(randomPersonaKey(PERSONA_KEYS, () => 0)).toBe(PERSONA_KEYS[0])
+    })
+
+    it('also excludes a current drawing stored under a compatibility alias', () => {
+        expect(randomPersonaKey([...PERSONA_KEYS.slice(0, 8), 'ninja-pear'], () => 0)).toBe('moon-bunny')
+    })
+
+    it('deals a distinct cast for a whole roster', () => {
+        for (const count of [0, 1, 7, 20, PERSONA_KEYS.length]) {
+            const dealt = dealPersonaKeys(count, () => 0.42)
+            expect(dealt).toHaveLength(count)
+            expect(new Set(dealt).size).toBe(count)
+            expect(dealt.every((key) => PERSONA_KEYS.includes(key))).toBe(true)
+        }
+    })
+
+    it('refuses impossible roster deals', () => {
+        for (const count of [-1, 1.5, PERSONA_KEYS.length + 1]) {
+            expect(() => dealPersonaKeys(count)).toThrow(RangeError)
+        }
     })
 })
 
