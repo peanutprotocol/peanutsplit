@@ -4,7 +4,10 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Peanut Split — expense category picker</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2215%22 fill=%22%23ffc900%22/><path d=%22M11 9c6-5 14 2 8 7 5 6-3 13-8 7-5-5-4-10 0-14Z%22 fill=%22none%22 stroke=%22%23211c17%22 stroke-width=%222%22/></svg>" />
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2215%22 fill=%22%23ffc900%22/><path d=%22M11 9c6-5 14 2 8 7 5 6-3 13-8 7-5-5-4-10 0-14Z%22 fill=%22none%22 stroke=%22%23211c17%22 stroke-width=%222%22/></svg>"
+        />
         <style>
             @font-face {
                 font-family: 'Sniglet';
@@ -54,8 +57,7 @@
             body {
                 margin: 0;
                 background:
-                    radial-gradient(circle at 14% 0%, rgba(255, 201, 0, 0.16), transparent 25rem),
-                    var(--canvas);
+                    radial-gradient(circle at 14% 0%, rgba(255, 201, 0, 0.16), transparent 25rem), var(--canvas);
                 color: var(--ink);
                 font-family: Inter, ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
             }
@@ -1007,7 +1009,7 @@
                         </div>
                         <div class="brief-row">
                             <span class="brief-number">3</span>
-                            <span>How a simple local dictionary behaves before production logic is written.</span>
+                            <span>How the standalone local catalog behaves before card integration.</span>
                         </div>
                     </div>
                 </aside>
@@ -1025,7 +1027,9 @@
                     <div class="section-title">
                         <span class="eyebrow">01 · Pick the card treatment</span>
                         <h2 id="directions-title">Same data, different emphasis.</h2>
-                        <p>Tap a direction to use it in the live classifier below. All three remove the payer portrait.</p>
+                        <p>
+                            Tap a direction to use it in the live classifier below. All three remove the payer portrait.
+                        </p>
                     </div>
                     <span class="transparent-note"><span class="transparent-swatch"></span> Bare SVG doodles</span>
                 </div>
@@ -1035,14 +1039,26 @@
                         <span class="direction-heading">
                             <span>
                                 <span class="direction-title display">A · Bare hero</span>
-                                <span class="direction-copy">A 44px object drawing replaces the 36px character disc.</span>
+                                <span class="direction-copy"
+                                    >A 44px object drawing replaces the 36px character disc.</span
+                                >
                             </span>
                             <span class="pick-state">Picked</span>
                         </span>
                         <span class="phone-stage" aria-hidden="true">
                             <span class="day-label">Today</span>
-                            <span class="expense-card incoming" data-sample-card data-treatment="hero" data-category="fuel"></span>
-                            <span class="expense-card" data-sample-card data-treatment="hero" data-category="pizza"></span>
+                            <span
+                                class="expense-card incoming"
+                                data-sample-card
+                                data-treatment="hero"
+                                data-category="fuel"
+                            ></span>
+                            <span
+                                class="expense-card"
+                                data-sample-card
+                                data-treatment="hero"
+                                data-category="pizza"
+                            ></span>
                         </span>
                     </button>
 
@@ -1056,8 +1072,18 @@
                         </span>
                         <span class="phone-stage" aria-hidden="true">
                             <span class="day-label">Today</span>
-                            <span class="expense-card incoming" data-sample-card data-treatment="rail" data-category="fuel"></span>
-                            <span class="expense-card" data-sample-card data-treatment="rail" data-category="pizza"></span>
+                            <span
+                                class="expense-card incoming"
+                                data-sample-card
+                                data-treatment="rail"
+                                data-category="fuel"
+                            ></span>
+                            <span
+                                class="expense-card"
+                                data-sample-card
+                                data-treatment="rail"
+                                data-category="pizza"
+                            ></span>
                         </span>
                     </button>
 
@@ -1065,14 +1091,26 @@
                         <span class="direction-heading">
                             <span>
                                 <span class="direction-title display">C · Inline mark</span>
-                                <span class="direction-copy">A quieter 26px drawing lets the description own the row.</span>
+                                <span class="direction-copy"
+                                    >A quieter 26px drawing lets the description own the row.</span
+                                >
                             </span>
                             <span class="pick-state">Pick</span>
                         </span>
                         <span class="phone-stage" aria-hidden="true">
                             <span class="day-label">Today</span>
-                            <span class="expense-card incoming" data-sample-card data-treatment="inline" data-category="fuel"></span>
-                            <span class="expense-card" data-sample-card data-treatment="inline" data-category="pizza"></span>
+                            <span
+                                class="expense-card incoming"
+                                data-sample-card
+                                data-treatment="inline"
+                                data-category="fuel"
+                            ></span>
+                            <span
+                                class="expense-card"
+                                data-sample-card
+                                data-treatment="inline"
+                                data-category="pizza"
+                            ></span>
                         </span>
                     </button>
                 </div>
@@ -1080,7 +1118,10 @@
                 <div class="decision-strip" aria-live="polite">
                     <p>
                         Current pick: <strong id="selected-direction">A · Bare hero</strong> —
-                        <span id="selected-direction-copy">the closest swap for the existing avatar, with no new label competing against the description.</span>
+                        <span id="selected-direction-copy"
+                            >the closest swap for the existing avatar, with no new label competing against the
+                            description.</span
+                        >
                     </p>
                     <code>payer avatar → category doodle</code>
                 </div>
@@ -1115,7 +1156,9 @@
                         </div>
 
                         <div class="classifier-detail" aria-live="polite">
-                            <div class="detail-cell"><span>Category</span><strong id="result-category">Fuel</strong></div>
+                            <div class="detail-cell">
+                                <span>Category</span><strong id="result-category">Fuel</strong>
+                            </div>
                             <div class="detail-cell"><span>Matched</span><strong id="result-term">fuel</strong></div>
                             <div class="detail-cell"><span>Rule</span><strong id="result-rule">phrase</strong></div>
                         </div>
@@ -1137,13 +1180,18 @@
                         <span class="eyebrow">03 · Review the category set</span>
                         <h2 id="categories-title">Forty things people actually split.</h2>
                         <p>
-                            Click any card to send one of its terms into the classifier. Four drawings are rough mock-only
-                            placeholders; the rest come directly from Peanut Split’s current doodle set.
+                            Click any card to send one of its terms into the classifier. Seven drawings are new for this
+                            taxonomy; the rest reuse Peanut Split’s current doodle set.
                         </p>
                     </div>
                     <div class="category-tools">
                         <label class="micro-label" for="category-search">Filter</label>
-                        <input class="category-search" id="category-search" type="search" placeholder="Try “ferry” or “saúde”" />
+                        <input
+                            class="category-search"
+                            id="category-search"
+                            type="search"
+                            placeholder="Try “ferry” or “saúde”"
+                        />
                     </div>
                 </div>
 
@@ -1181,38 +1229,41 @@
             </section>
 
             <p class="footer-note">
-                Mock branch: <strong>feat/expense-category-picker</strong> · This page changes no production expense data or UI.
+                Mock branch: <strong>feat/expense-category-picker</strong> · This page changes no production expense
+                data or UI.
             </p>
         </main>
 
-        <script src="expense-category-data.js"></script>
         <script>
-            const categories = window.EXPENSE_CATEGORY_MOCK
-            const byId = new Map(categories.map((category) => [category.id, category]))
-            const groupOrder = ['Food & drink', 'Getting around', 'Trips & stays', 'Everyday life', 'Care & family', 'Money & admin']
-
-            const MOCK_PATHS = {
-                // Rough-only category placeholders. Production would receive reviewed paths in doodles.ts.
-                'mock-parking':
-                    'M9 28V5.5C9 4.7 9.6 4 10.5 4H18C22.2 4 25 6.8 25 10.5C25 14.2 22.2 17 18 17H9 M12.5 7.5V14H17.8C19.9 14 21.4 12.7 21.4 10.6C21.4 8.5 19.9 7.5 17.8 7.5H12.5 M5 28H27',
-                'mock-pill':
-                    'M8.1 24.1C5.3 21.3 5.3 16.8 8.1 14L14 8.1C16.8 5.3 21.3 5.3 24.1 8.1C26.9 10.9 26.9 15.4 24.1 18.2L18.2 24.1C15.4 26.9 10.9 26.9 8.1 24.1Z M11 11L21.2 21.2 M18.8 9.5C20.4 9.2 22 10.7 22.4 12.2',
-                'mock-book':
-                    'M4.5 7.5C8.8 6.2 12.7 7 16 9.6V27C12.7 24.4 8.8 23.6 4.5 24.9V7.5Z M27.5 7.5C23.2 6.2 19.3 7 16 9.6V27C19.3 24.4 23.2 23.6 27.5 24.9V7.5Z M8 12C10.3 11.7 12.2 12.2 13.8 13.2 M19 13.2C20.8 12.2 22.6 11.7 24.6 12',
-                'mock-toy':
-                    'M9.5 11.2C7.3 11.2 5.8 9.7 5.8 7.7C5.8 5.7 7.4 4.2 9.3 4.2C11 4.2 12.3 5.2 12.8 6.7 M22.5 11.2C24.7 11.2 26.2 9.7 26.2 7.7C26.2 5.7 24.6 4.2 22.7 4.2C21 4.2 19.7 5.2 19.2 6.7 M16 6C10.4 6 7.2 10.2 7.2 15.7C7.2 22.4 11.1 27.6 16 27.6C20.9 27.6 24.8 22.4 24.8 15.7C24.8 10.2 21.6 6 16 6Z M12.5 14.4C12.6 14.5 12.7 14.6 12.8 14.6 M19.2 14.6C19.3 14.6 19.4 14.5 19.5 14.4 M14.2 19C15.3 20.2 16.7 20.2 17.8 19 M12 24L9 28 M20 24L23 28',
-            }
+            let categories = []
+            let byId = new Map()
+            const groupOrder = [
+                'Food & drink',
+                'Getting around',
+                'Trips & stays',
+                'Everyday life',
+                'Care & family',
+                'Money & admin',
+            ]
 
             const FALLBACK_PATH =
                 'M12.2 10.4C12.5 7.8 14 6.2 16.6 6.2C19.4 6.2 21.2 7.8 21.2 10.2C21.2 12.4 20 13.5 18.2 14.7C16.8 15.7 16.2 16.7 16.2 18.4 M16.1 24.6C16.2 24.6 16.4 24.8 16.4 25C16.4 25.2 16.2 25.4 16 25.4C15.8 25.4 15.6 25.2 15.6 25C15.6 24.8 15.8 24.6 16.1 24.6Z'
 
-            const doodlePaths = { ...MOCK_PATHS }
+            const doodlePaths = {}
+
+            async function loadCatalog() {
+                const response = await fetch('../src/lib/expense-category-catalog.json')
+                if (!response.ok) throw new Error(`Could not load expense categories: HTTP ${response.status}`)
+                categories = await response.json()
+                byId = new Map(categories.map((category) => [category.id, category]))
+            }
 
             function normalize(value) {
                 return value
-                    .normalize('NFD')
+                    .normalize('NFKD')
                     .replace(/[\u0300-\u036f]/g, '')
                     .toLowerCase()
+                    .replace(/&/g, ' and ')
                     .replace(/[^a-z0-9]+/g, ' ')
                     .trim()
                     .replace(/\s+/g, ' ')
@@ -1240,7 +1291,6 @@
                     const source = await response.text()
                     const names = new Set(categories.map((category) => category.doodle).concat(['peanut', 'question']))
                     names.forEach((name) => {
-                        if (name.startsWith('mock-')) return
                         const safeName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                         const match = source.match(new RegExp(`\\n\\s{4}${safeName}:\\s*'([^']*)'`))
                         if (match) doodlePaths[name] = match[1]
@@ -1257,12 +1307,29 @@
             }
 
             const sampleContent = {
-                fuel: { name: 'Tank refill', payer: 'You paid · 4 people', amount: '€62.10', impact: 'You get back', delta: '€46.58' },
-                pizza: { name: 'Pizza night', payer: 'María paid · 4 people', amount: '€38.40', impact: 'Your share', delta: '€9.60' },
+                fuel: {
+                    name: 'Tank refill',
+                    payer: 'You paid · 4 people',
+                    amount: '€62.10',
+                    impact: 'You get back',
+                    delta: '€46.58',
+                },
+                pizza: {
+                    name: 'Pizza night',
+                    payer: 'María paid · 4 people',
+                    amount: '€38.40',
+                    impact: 'Your share',
+                    delta: '€9.60',
+                },
             }
 
             function expenseCardMarkup(category, treatment, content) {
-                const treatmentClass = treatment === 'rail' ? 'treatment-rail' : treatment === 'inline' ? 'treatment-inline' : 'treatment-hero'
+                const treatmentClass =
+                    treatment === 'rail'
+                        ? 'treatment-rail'
+                        : treatment === 'inline'
+                          ? 'treatment-inline'
+                          : 'treatment-hero'
                 if (treatment === 'inline') {
                     return `<span class="expense-main ${treatmentClass}">
                         <span class="expense-copy"><span class="expense-art">${art(category, 25)}</span><span class="expense-name">${escapeHtml(content.name)}</span></span>
@@ -1287,24 +1354,34 @@
                 let best = null
                 const paddedDescription = ` ${description} `
                 for (const category of categories) {
-                    if (category.id === 'other') continue
                     for (const originalTerm of category.terms) {
                         const term = normalize(originalTerm)
                         const paddedTerm = ` ${term} `
-                        if (!paddedDescription.includes(paddedTerm)) continue
+                        const position = paddedDescription.indexOf(paddedTerm)
+                        if (position < 0) continue
                         const wordCount = term.split(' ').length
                         const exact = description === term
-                        const score = (exact ? 1000 : 0) + wordCount * 100 + term.length
-                        if (!best || score > best.score) best = { category, term: originalTerm, score, exact }
+                        if (exact) return { category, term: originalTerm, rule: 'exact term', matched: true }
+                        const isBetter =
+                            !best ||
+                            wordCount > best.wordCount ||
+                            (wordCount === best.wordCount && term.length > best.normalizedTerm.length) ||
+                            (wordCount === best.wordCount &&
+                                term.length === best.normalizedTerm.length &&
+                                position < best.position)
+                        if (isBetter) {
+                            best = { category, term: originalTerm, normalizedTerm: term, wordCount, position }
+                        }
                     }
                 }
 
-                if (!best) return { category: byId.get('other'), term: 'No dictionary hit', rule: 'fallback', matched: false }
-                return { ...best, rule: best.exact ? 'exact term' : best.term.includes(' ') ? 'longest phrase' : 'word match', matched: true }
+                if (!best)
+                    return { category: byId.get('other'), term: 'No dictionary hit', rule: 'fallback', matched: false }
+                return { ...best, rule: best.wordCount > 1 ? 'longest phrase' : 'word match', matched: true }
             }
 
             let selectedTreatment = 'hero'
-            let currentResult = classify('Tank refill before the coast')
+            let currentResult
 
             function renderStaticDoodles() {
                 document.querySelectorAll('[data-doodle]').forEach((element) => {
@@ -1339,7 +1416,10 @@
                 state.style.background = currentResult.matched ? 'var(--aqua)' : 'var(--pink)'
 
                 document.querySelectorAll('.category-card').forEach((categoryCard) => {
-                    categoryCard.classList.toggle('is-active', categoryCard.dataset.categoryId === currentResult.category.id)
+                    categoryCard.classList.toggle(
+                        'is-active',
+                        categoryCard.dataset.categoryId === currentResult.category.id
+                    )
                 })
             }
 
@@ -1353,9 +1433,18 @@
             function setTreatment(value) {
                 selectedTreatment = value
                 const labels = {
-                    hero: ['A · Bare hero', 'the closest swap for the existing avatar, with no new label competing against the description.'],
-                    rail: ['B · Named rail', 'the most explicit category treatment, but it adds one more label to every row.'],
-                    inline: ['C · Inline mark', 'the quietest treatment, useful if a 44px doodle feels too prominent in a dense ledger.'],
+                    hero: [
+                        'A · Bare hero',
+                        'the closest swap for the existing avatar, with no new label competing against the description.',
+                    ],
+                    rail: [
+                        'B · Named rail',
+                        'the most explicit category treatment, but it adds one more label to every row.',
+                    ],
+                    inline: [
+                        'C · Inline mark',
+                        'the quietest treatment, useful if a 44px doodle feels too prominent in a dense ledger.',
+                    ],
                 }
                 document.querySelectorAll('.direction').forEach((button) => {
                     const selected = button.dataset.direction === value
@@ -1384,7 +1473,9 @@
                             <div class="category-grid">
                                 ${members
                                     .map(
-                                        (category) => `<button class="category-card${category.id === currentResult.category.id ? ' is-active' : ''}" type="button" data-category-id="${category.id}" title="Try ${escapeHtml(category.terms[0])}">
+                                        (
+                                            category
+                                        ) => `<button class="category-card${category.id === currentResult.category.id ? ' is-active' : ''}" type="button" data-category-id="${category.id}" title="Try ${escapeHtml(category.terms[0])}">
                                             ${art(category, 46)}
                                             <strong>${escapeHtml(category.label)}</strong>
                                             <small>25 terms · ${escapeHtml(category.terms.slice(0, 4).join(', '))}</small>
@@ -1403,12 +1494,16 @@
                     card.addEventListener('click', () => {
                         const category = byId.get(card.dataset.categoryId)
                         setDescription(category.terms[0])
-                        document.querySelector('#classifier-title').scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        document
+                            .querySelector('#classifier-title')
+                            .scrollIntoView({ behavior: 'smooth', block: 'center' })
                     })
                 })
             }
 
             async function init() {
+                await loadCatalog()
+                currentResult = classify('Tank refill before the coast')
                 document.querySelector('#metric-categories').textContent = categories.length.toLocaleString()
                 document.querySelector('#metric-terms').textContent = categories
                     .reduce((total, category) => total + category.terms.length, 0)
