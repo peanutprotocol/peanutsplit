@@ -26,6 +26,11 @@ export const CREATE_LIMIT: Limit = { capacity: 20, windowMs: HOUR_MS }
 /** Expenses and settlements are the normal traffic of a busy trip, so the ceiling
  *  only has to stop a runaway loop. */
 export const WRITE_LIMIT: Limit = { capacity: 120, windowMs: HOUR_MS }
+/** One catch-up command rewrites shares but creates no ledger row. Imported
+ * rooms can legitimately contain 500 expenses. The allowance covers one full
+ * review, a full conflict-safe Undo, and retry headroom without making ordinary
+ * expense writes share that unusually large burst budget. */
+export const CATCH_UP_LIMIT: Limit = { capacity: 1200, windowMs: HOUR_MS }
 /** Missing room slugs are metered separately from normal polling. Once this
  *  budget is empty, preflight rejects every lookup so a caller cannot use the
  *  limiter response itself to distinguish an existing room from a missing one. */

@@ -21,7 +21,6 @@ import { POST as postSettlement } from '@/app/api/rooms/[slug]/settlements/route
 import { DELETE as deleteSettlement } from '@/app/api/rooms/[slug]/settlements/[id]/route'
 import { GET as readiness } from '@/app/readiness/route'
 import { GET as healthcheck } from '@/app/healthcheck/route'
-import { backfillPatch, latecomerOffer } from '@/lib/latecomer'
 import type {
     ApiError,
     ExpenseCreateResult,
@@ -1278,87 +1277,6 @@ describe('rate limiting', () => {
         const { status, body } = await newRoom()
         expect(status).toBe(429)
         expect((body as unknown as ApiError).error.code).toBe('RATE_LIMITED')
-    })
-})
-
-/**
- * The catch-up repair, end to end: the client's own predicate and payload
- * builder (`lib/latecomer.ts`) against the real PATCH route. Testing the two
- * together is the point — a predicate that agrees with a route that no longer
- * re-splits would pass twice and fix nothing.
- */
-describe('adding a latecomer to the expenses that predate them', () => {
-    it('re-splits an EQUAL expense to include the person who joined after it', async () => {
-        const { body: created } = await newRoom()
-        const slug = created.room.slug
-        const ana = created.memberId
-        const { body: withBea } = await join(slug, 'Bea')
-        const bea = withBea.memberId
-
-        // €30, two ways, before anybody else arrives.
-        await call<RoomState>(postExpense as Handler, {
-            path: `/api/rooms/${slug}/expenses`,
-            method: 'POST',
-            params: { slug },
-            token: created.memberToken,
-            body: {
-                description: 'Cabin deposit',
-                amountMinor: '3000',
-                currency: 'EUR',
-                paidById: ana,
-                splitMode: 'EQUAL',
-            },
-        })
-
-        // An EXACT expense from the same moment, to prove it is never touched.
-        await call<RoomState>(postExpense as Handler, {
-            path: `/api/rooms/${slug}/expenses`,
-            method: 'POST',
-            params: { slug },
-            token: created.memberToken,
-            body: {
-                description: 'Ana covered the ferry',
-                amountMinor: '1000',
-                currency: 'EUR',
-                paidById: ana,
-                splitMode: 'EXACT',
-                exactShares: [{ memberId: bea, amountMinor: '1000' }],
-            },
-        })
-
-        const { body: withDani } = await join(slug, 'Dani')
-        const dani = withDani.memberId
-        expect(withDani.balances).toEqual({ [ana]: '2500', [bea]: '-2500', [dani]: '0' })
-
-        const offer = latecomerOffer(withDani)
-        expect(offer?.member.id).toBe(dani)
-        expect(offer?.expenses.map((expense) => expense.description)).toEqual(['Cabin deposit'])
-
-        const target = offer!.expenses[0]
-        const { status, body: repaired } = await call<RoomState>(patchExpense as Handler, {
-            path: `/api/rooms/${slug}/expenses/${target.id}`,
-            method: 'PATCH',
-            params: { slug, id: target.id },
-            body: backfillPatch(target, dani),
-        })
-
-        expect(status).toBe(200)
-        const deposit = repaired.expenses.find((expense) => expense.description === 'Cabin deposit')!
-        expect(deposit.shares.map((share) => share.amountMinor)).toEqual(['1000', '1000', '1000'])
-        expect(deposit.shares.map((share) => share.memberId).sort()).toEqual([ana, bea, dani].sort())
-        // Ana fronted 30 and owes 10 of it; the ferry is untouched at 10 on Bea.
-        expect(repaired.balances).toEqual({ [ana]: '3000', [bea]: '-2000', [dani]: '-1000' })
-        expect(netsToZero(repaired)).toBe(true)
-
-        // The EXACT row is not offered and did not move.
-        const ferry = repaired.expenses.find((expense) => expense.description === 'Ana covered the ferry')!
-        expect(ferry.shares).toEqual([
-            { memberId: bea, amountMinor: '1000', enteredAmountMinor: '1000', splitWeight: null },
-        ])
-
-        // Idempotent by nature: with the share now present, there is nothing left
-        // to offer, so pressing again is not a thing that can happen.
-        expect(latecomerOffer(repaired)).toBeNull()
     })
 })
 

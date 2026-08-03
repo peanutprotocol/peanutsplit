@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { buildExpense } from '@/server/expenses'
+import { buildExpense, changeEqualExpenseParticipant, latchFirstSharedBalance } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
 import { badRequest, conflict, memberTokenOf, notFound, readJson, respond } from '@/server/http'
 import {
@@ -11,10 +11,10 @@ import {
     expenseAuditValues,
     lockRoomWrite,
 } from '@/server/history'
-import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
+import { CATCH_UP_LIMIT, WRITE_LIMIT, enforceRateLimit, enforceRateLimitPreflight } from '@/server/rateLimit'
 import { loadRoom, toRoomState, type RoomWithRelations } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
-import { expenseUpdateSchema } from '@/server/validation'
+import { expensePatchSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,16 +30,71 @@ const findExpense = async (room: RoomWithRelations, id: string, db: ExpenseReade
 
 export const PATCH = (request: Request, ctx: Ctx) =>
     respond(async () => {
-        enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, id } = await ctx.params
-        const body = expenseUpdateSchema.parse(await readJson(request))
-        if (!body.paidById || body.newPaidByName)
-            throw badRequest('a new payer can only be added with a new expense', 'NEW_PAYER_ON_EDIT')
-        const editBody = { ...body, paidById: body.paidById }
+        // The command discriminator lives in JSON. Invalid payloads spend from
+        // a tight pre-parse budget; valid requests spend from the appropriate
+        // ordinary or bulk-command budget after discrimination.
+        enforceRateLimitPreflight(request, WRITE_LIMIT, 'expense-patch-invalid')
+        let body: ReturnType<typeof expensePatchSchema.parse>
+        try {
+            body = expensePatchSchema.parse(await readJson(request))
+        } catch (error) {
+            enforceRateLimit(request, WRITE_LIMIT, 'expense-patch-invalid')
+            throw error
+        }
+        enforceRateLimit(
+            request,
+            'operation' in body ? CATCH_UP_LIMIT : WRITE_LIMIT,
+            'operation' in body ? 'catch-up' : 'write'
+        )
         const initial = await loadRoom(slug)
         assertWritable(initial)
         const initialExpense = await findExpense(initial, id)
         if (initialExpense.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+
+        if ('operation' in body) {
+            const result = await prisma.$transaction(async (tx) => {
+                await lockRoomWrite(tx, initial.id)
+                const room = await loadRoom(slug, tx)
+                assertWritable(room)
+                const previous = room.expenses.find((expense) => expense.id === id)
+                const changed = await changeEqualExpenseParticipant(tx, room, id, body)
+                if (!changed) return { changed: false, state: toRoomState(room) }
+                if (!previous) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+
+                const updatedRoom = await loadRoom(slug, tx)
+                const updated = updatedRoom.expenses.find((expense) => expense.id === id)
+                if (!updated) throw conflict('the expense changed during catch-up', 'CATCH_UP_REVIEW_CONFLICT')
+                if (body.action === 'add') {
+                    await latchFirstSharedBalance(tx, room, id, updated.paidById, updated.shares)
+                }
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorFromToken(room.members, memberTokenOf(request)),
+                    event: {
+                        kind: 'expense_edited',
+                        subjectType: 'expense',
+                        subjectId: id,
+                        before: expenseAuditSnapshot(previous),
+                        after: expenseAuditSnapshot(updated),
+                        detail: {
+                            operation: 'catch_up_equal_participant',
+                            action: body.action,
+                            memberId: body.memberId,
+                        },
+                    },
+                })
+                return { changed: true, state: toRoomState(updatedRoom) }
+            })
+            if (result.changed) publish(initial.id)
+            return result
+        }
+
+        if (!body.paidById || body.newPaidByName)
+            throw badRequest('a new payer can only be added with a new expense', 'NEW_PAYER_ON_EDIT')
+        const editBody = { ...body, paidById: body.paidById }
         // Resolve FX before the transaction so a slow rate source never holds
         // the room's write lock.
         const rateTable = await getRateTable()
@@ -109,6 +164,7 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                     shares: { createMany: { data: write.shares } },
                 },
             })
+            await latchFirstSharedBalance(tx, room, id, write.paidById, write.shares)
             await appendRoomAuditEvent({
                 tx,
                 request,

@@ -1,200 +1,489 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { motion } from 'motion/react'
-import { useTranslations } from 'next-intl'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
-import { BTN_MEDIUM } from '@/components/ui/control'
-import { cn } from '@/lib/cn'
+import { BTN_SMALL } from '@/components/ui/control'
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerActions, DrawerBody, drawerContentClass } from '@/components/ui/DrawerLayout'
+import { isCatchUpRowChange } from '@/lib/api'
 import { roomProps, track } from '@/lib/analytics'
-import type { RoomState } from '@/lib/api-types'
+import type { ApiExpense, RoomState } from '@/lib/api-types'
+import { cn } from '@/lib/cn'
+import { expenseLabel } from '@/lib/dates'
 import { useErrorMessage } from '@/lib/error-messages'
-import { dismiss, dismissedMemberIds, latecomerOffer, runBackfill, type LatecomerOffer } from '@/lib/latecomer'
-import { roomKey, useUpdateExpense } from '@/lib/queries'
-import { useMotionAllowed } from '@/lib/use-motion'
+import {
+    catchUpExpenseInput,
+    dismissLatecomerReview,
+    isLatecomerReviewDismissed,
+    latecomerReview,
+    projectedBalanceMinor,
+    runBackfill,
+    selectedImpactMinor,
+    suggestedExpenseIds,
+    type LatecomerReviewItem,
+} from '@/lib/latecomer'
+import { formatMoney } from '@/lib/money'
+import { isRoomSettled } from '@/lib/pending'
+import { useCatchUpExpense } from '@/lib/queries'
+import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from './MemberAvatar'
 
 interface LatecomerBannerProps {
     slug: string
     state: RoomState
+    memberId: string
     token?: string | null
+    onResolved?: () => void
+    onOpenChange?: (open: boolean) => void
+    onEditExpense?: (expenseId: string) => void
 }
 
+const selectable = (item: LatecomerReviewItem): boolean => item.kind !== 'manual'
+
 /**
- * "Dani wasn't in the four dinners before they joined — add them?"
- *
- * Offered to anybody in the room, not only to the person who arrived: the people
- * who can actually answer the question are the ones who were already there.
- * Dismissing is per device, and the offer still comes back for the NEXT
- * latecomer, because that is a different question about a different person.
- *
- * The repair runs one expense at a time rather than as a batch, and none of the
- * three reasons is caution for its own sake. Each PATCH returns the whole room,
- * so the balances count along with the progress. A failure halfway leaves the
- * rows it already fixed fixed, because every PATCH is complete on its own. And
- * eligibility re-derives from the room, so pressing the button again resumes
- * from wherever it stopped and cannot add anybody twice.
- *
- * The loop itself lives in `runBackfill`, which re-reads the query cache before
- * every write so a concurrent edit is skipped rather than reverted.
+ * A room fact, not an identity step. Any recorder can review the named person's
+ * earlier rows, and nothing is written until the single review sheet is
+ * confirmed. The server command still owns the important safety: every row is
+ * compared with the reviewed snapshot under the room lock before it changes.
  */
-export function LatecomerBanner({ slug, state, token }: LatecomerBannerProps) {
+export function LatecomerBanner({
+    slug,
+    state,
+    memberId,
+    token,
+    onResolved,
+    onOpenChange,
+    onEditExpense,
+}: LatecomerBannerProps) {
     const t = useTranslations('room.latecomer')
+    const tDates = useTranslations('dates')
+    const locale = useLocale()
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
-    const motionAllowed = useMotionAllowed()
-    const queryClient = useQueryClient()
-    const updateExpense = useUpdateExpense(slug, token)
-
-    /**
-     * Read once, then held in state: `localStorage` is not reactive, so reading
-     * it during render would make the banner's visibility depend on when React
-     * happened to re-run this function rather than on what somebody tapped.
-     */
-    const [dismissed, setDismissed] = useState<string[]>(() => dismissedMemberIds(slug))
-    /**
-     * The offer as it was when the button was pressed. Pinned for the duration of
-     * the run because the live one moves under it — each PATCH shrinks the
-     * remaining list and, in a room with two latecomers, the offer would switch
-     * to the other person halfway through, changing the name above a progress
-     * count that is still finishing the first one.
-     */
-    const [running, setRunning] = useState<LatecomerOffer | null>(null)
-    const [done, setDone] = useState(0)
-    const [error, setError] = useState<string | null>(null)
-    /** Flipped by "stop"; read between PATCHes, which is the only point in the
-     *  run where the room is in a state worth leaving behind. */
-    const abandoned = useRef(false)
+    const catchUpExpense = useCatchUpExpense(slug, token)
+    const review = useMemo(() => latecomerReview(state, memberId), [memberId, state])
     const offeredFor = useRef<string | null>(null)
-
-    // A stale-room transition removes this banner. Treat that exactly like the
-    // explicit stop button so a multi-expense repair cannot continue mutating
-    // cached history after the refresh failure is known.
-    useEffect(
-        () => () => {
-            abandoned.current = true
-        },
-        []
-    )
-
-    const live = latecomerOffer(state)
-    const offer = running ?? (live && !dismissed.includes(live.member.id) ? live : null)
+    const [open, setOpen] = useState(false)
+    const [resolved, setResolved] = useState(false)
+    const [selected, setSelected] = useState<Set<string>>(new Set())
+    const [submitting, setSubmitting] = useState(false)
+    const [conflicted, setConflicted] = useState<Set<string>>(new Set())
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        if (!offer) return
-        // Once per person, not once per render — the room polls every eight
-        // seconds and this would otherwise become an event stream.
-        if (offeredFor.current === offer.member.id) return
-        offeredFor.current = offer.member.id
-        track('latecomer_backfill_offered', roomProps(slug, { expenses: offer.expenses.length }))
-    }, [offer, slug])
+        if (!review || offeredFor.current === review.member.id) return
+        offeredFor.current = review.member.id
+        track('latecomer_backfill_offered', roomProps(slug, { expenses: review.items.length }))
+    }, [review, slug])
 
-    if (!offer) return null
+    useEffect(() => {
+        onOpenChange?.(open)
+        return () => {
+            if (open) onOpenChange?.(false)
+        }
+    }, [onOpenChange, open])
 
-    const total = offer.expenses.length
+    if (!review || state.room.archivedAt || resolved || isLatecomerReviewDismissed(slug, review)) return null
 
-    const run = async () => {
+    const safeItems = review.items.filter(selectable)
+    const selectedIds = [...selected].filter((id) => safeItems.some((item) => item.expense.id === id))
+    const selectedSet = new Set(selectedIds)
+    const impact = selectedImpactMinor(review, selectedSet)
+    const projectedBalance = projectedBalanceMinor(state.balances[memberId] ?? '0', impact)
+    const money = (minor: string) => formatMoney(minor, state.room.currency, undefined, locale)
+    const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
+
+    const resolveLocally = (excludedIds: ReadonlySet<string> = new Set()) => {
+        dismissLatecomerReview(slug, review, excludedIds)
+        setResolved(true)
+        setOpen(false)
+        onResolved?.()
+    }
+
+    const openReview = () => {
+        setSelected(new Set(suggestedExpenseIds(review)))
+        setConflicted(new Set())
         setError(null)
-        setRunning(offer)
-        setDone(0)
-        abandoned.current = false
-        let fixed = 0
+        setOpen(true)
+    }
+
+    const editManual = (expenseId: string) => {
+        if (submitting) return
+        setOpen(false)
+        onEditExpense?.(expenseId)
+    }
+
+    const apply = async () => {
+        if (selectedIds.length === 0) {
+            track('latecomer_backfill_accepted', roomProps(slug, { expenses: 0 }))
+            resolveLocally()
+            return
+        }
+
+        const snapshots = selectedIds.flatMap((id) => {
+            const item = review.items.find((candidate) => candidate.expense.id === id && selectable(candidate))
+            return item ? [item.expense] : []
+        })
+        if (snapshots.length !== selectedIds.length) {
+            setError(t('changedBeforeApply', { count: selectedIds.length - snapshots.length }))
+            return
+        }
+
+        setSubmitting(true)
+        setConflicted(new Set())
+        setError(null)
+        let wrote = 0
+        let skipped = 0
+        const applied = new Map<string, ApiExpense>()
+
         try {
             await runBackfill({
-                memberId: offer.member.id,
-                expenseIds: offer.expenses.map((expense) => expense.id),
-                // The cache, not `state`: the prop is the render this run started
-                // from, and by the third PATCH it is three round trips old.
-                read: () => queryClient.getQueryData<RoomState>(roomKey(slug)),
-                patch: (id, input) => updateExpense.mutateAsync({ id, input }),
-                onWrote: (done) => {
-                    fixed = done
-                    setDone(done)
+                memberId,
+                expenses: snapshots,
+                patch: async (expense) => {
+                    const result = await catchUpExpense.mutateAsync({
+                        expenseId: expense.id,
+                        ...catchUpExpenseInput(expense, memberId),
+                    })
+                    const updated = result.state.expenses.find((candidate) => candidate.id === expense.id)
+                    if (result.changed && updated) {
+                        wrote += 1
+                        applied.set(expense.id, updated)
+                    }
+                    return result
                 },
-                stopped: () => abandoned.current,
+                onWrote: (_done, id) => {
+                    setSelected((previous) => {
+                        const next = new Set(previous)
+                        next.delete(id)
+                        return next
+                    })
+                },
+                onSkipped: (id) => {
+                    skipped += 1
+                    setConflicted((previous) => new Set(previous).add(id))
+                    setSelected((previous) => {
+                        const next = new Set(previous)
+                        next.delete(id)
+                        return next
+                    })
+                },
+                onPatchError: (patchError) => (isCatchUpRowChange(patchError) ? 'skip' : 'throw'),
+                stopped: () => false,
             })
-            if (fixed > 0 && !abandoned.current) feedback('pop')
+
+            track('latecomer_backfill_accepted', roomProps(slug, { expenses: wrote }))
+            if (skipped > 0) {
+                feedback('error', { haptic: 'error' })
+                setError(t('changedBeforeApply', { count: skipped }))
+                return
+            }
+
+            feedback('pop')
+            resolveLocally(new Set(selectedIds))
+            toast(t('updated', { name: review.member.name, count: wrote }), {
+                duration: TOAST_MS.actionable,
+                ...(applied.size > 0
+                    ? {
+                          action: {
+                              label: t('undo'),
+                              onClick: () => {
+                                  const toastId = toast.loading(t('undoing'))
+                                  void (async () => {
+                                      try {
+                                          for (const expense of [...applied.values()].reverse()) {
+                                              await catchUpExpense.mutateAsync({
+                                                  expenseId: expense.id,
+                                                  ...catchUpExpenseInput(expense, memberId, 'remove'),
+                                              })
+                                          }
+                                          toast.success(t('undone'), { id: toastId, duration: TOAST_MS.state })
+                                      } catch {
+                                          toast.error(t('undoFailed'), {
+                                              id: toastId,
+                                              duration: TOAST_MS.actionable,
+                                          })
+                                      }
+                                  })()
+                              },
+                          },
+                      }
+                    : {}),
+            })
         } catch (err) {
             feedback('error', { haptic: 'error' })
-            setError(errorMessage(err, t('failed')))
+            track('latecomer_backfill_accepted', roomProps(slug, { expenses: wrote }))
+            setError(errorMessage(err, t('failed', { done: wrote })))
         } finally {
-            // Counts only, and the count is what actually landed — a run that was
-            // stopped or that failed on row three did three, and saying four
-            // would make the funnel a worse record than no funnel.
-            track('latecomer_backfill_accepted', roomProps(slug, { expenses: fixed }))
-            setRunning(null)
+            setSubmitting(false)
         }
     }
 
     return (
-        <motion.section
-            initial={motionAllowed ? { opacity: 0, y: -8 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
-            data-motion-surface
-            data-testid="latecomer-banner"
-            className="mx-4 flex flex-col gap-3 rounded-sm border border-n-1 bg-primary-3 p-4"
-        >
-            <div className="flex items-center gap-3">
+        <>
+            <section
+                data-testid="latecomer-banner"
+                className="mx-4 flex items-center gap-3 rounded-sm border border-n-1 bg-primary-3 p-4"
+            >
                 <MemberAvatar
-                    name={offer.member.name}
-                    avatar={offer.member.avatar}
-                    palette={offer.member.avatarPalette}
-                    size={32}
+                    name={review.member.name}
+                    avatar={review.member.avatar}
+                    palette={review.member.avatarPalette}
+                    size={36}
                 />
-                <p className="min-w-0 flex-1 text-h8">{t('title', { name: offer.member.name, count: total })}</p>
-            </div>
-            <p className="text-sm leading-5 text-n-1">{t('body', { name: offer.member.name })}</p>
-
-            {error && (
-                <p role="alert" className="text-sm font-bold text-error">
-                    {error}
-                </p>
-            )}
-
-            {running ? (
-                <div className="flex items-center gap-3">
-                    <span className="flex-1 text-sm tabular-nums text-n-1" data-testid="latecomer-progress">
-                        {t('progress', { done, count: total })}
-                    </span>
-                    <Button
-                        variant="stroke"
-                        size="medium"
-                        className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center')}
-                        onClick={() => {
-                            abandoned.current = true
-                        }}
-                        data-testid="latecomer-stop"
-                    >
-                        {t('stop')}
-                    </Button>
+                <div className="min-w-0 flex-1">
+                    <p className="break-words text-h8 [overflow-wrap:anywhere]">
+                        {t('promptTitle', { name: review.member.name })}
+                    </p>
+                    <p className="mt-1 break-words text-sm leading-5 text-grey-1 [overflow-wrap:anywhere]">
+                        {t('promptBody', { name: review.member.name, count: review.items.length })}
+                    </p>
                 </div>
-            ) : (
-                <div className="flex flex-col gap-3">
+                <div className="flex shrink-0 flex-col items-end gap-1">
                     <Button
                         variant="primary"
-                        shadowSize="4"
-                        className="justify-center text-h6"
-                        onClick={run}
-                        data-testid="latecomer-confirm"
+                        size="small"
+                        className={cn(BTN_SMALL, 'w-auto justify-center')}
+                        onClick={openReview}
+                        data-testid="latecomer-review"
                     >
-                        {t('confirm', { count: total })}
+                        {t('review')}
                     </Button>
                     <Button
-                        variant="stroke"
-                        className="justify-center"
-                        onClick={() => {
-                            dismiss(slug, offer.member.id)
-                            setDismissed((previous) => [...previous, offer.member.id])
-                        }}
+                        variant="transparent"
+                        size="small"
+                        className={cn(BTN_SMALL, 'w-auto justify-center underline')}
+                        onClick={() => resolveLocally()}
                         data-testid="latecomer-dismiss"
                     >
-                        {t('dismiss')}
+                        {t('notNow')}
                     </Button>
                 </div>
+            </section>
+
+            <Drawer
+                open={open}
+                dismissible={!submitting}
+                onOpenChange={(next) => {
+                    if (!next && !submitting) setOpen(false)
+                }}
+            >
+                <DrawerContent className={drawerContentClass} data-testid="latecomer-flow">
+                    <DrawerBody className="min-w-0 gap-4 pt-2">
+                        <div className="flex items-center gap-3">
+                            <MemberAvatar
+                                name={review.member.name}
+                                avatar={review.member.avatar}
+                                palette={review.member.avatarPalette}
+                                size={40}
+                            />
+                            <div className="min-w-0">
+                                <DrawerTitle className="break-words text-h5 [overflow-wrap:anywhere]">
+                                    {t('sheetTitle', { name: review.member.name })}
+                                </DrawerTitle>
+                                <p className="mt-1 break-words text-sm leading-5 text-grey-1 [overflow-wrap:anywhere]">
+                                    {t('reviewBody', { name: review.member.name })}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col divide-y divide-n-1 rounded-sm border border-n-1 bg-white">
+                            {review.items.map((item) => (
+                                <ExpenseReviewRow
+                                    key={item.expense.id}
+                                    item={item}
+                                    memberName={review.member.name}
+                                    selected={selectedSet.has(item.expense.id)}
+                                    conflicted={conflicted.has(item.expense.id)}
+                                    disabled={submitting}
+                                    room={state}
+                                    locale={locale}
+                                    dayOptions={dayOptions}
+                                    onToggle={() =>
+                                        setSelected((previous) => {
+                                            const next = new Set(previous)
+                                            if (next.has(item.expense.id)) next.delete(item.expense.id)
+                                            else next.add(item.expense.id)
+                                            return next
+                                        })
+                                    }
+                                    onEdit={() => editManual(item.expense.id)}
+                                />
+                            ))}
+                        </div>
+
+                        <ImpactSummary
+                            count={selectedIds.length}
+                            memberName={review.member.name}
+                            balance={projectedBalance}
+                            money={money}
+                        />
+
+                        {isRoomSettled(state) && selectedIds.length > 0 && (
+                            <p className="rounded-sm border border-n-1 bg-yellow-1 p-3 text-sm">
+                                <strong>{t('settledWarningTitle')}</strong> {t('settledWarningBody')}
+                            </p>
+                        )}
+
+                        {error && (
+                            <p
+                                role="alert"
+                                className="rounded-sm border border-error bg-white p-3 text-sm font-bold text-error"
+                            >
+                                {error}
+                            </p>
+                        )}
+
+                        <DrawerActions className="sticky bottom-0 -mx-1 border-t border-n-1 bg-background px-1 pt-3">
+                            <Button
+                                variant="primary"
+                                shadowSize="4"
+                                className="h-auto min-h-13 justify-center py-3 text-center text-h6"
+                                onClick={() => void apply()}
+                                loading={submitting}
+                                data-testid="latecomer-confirm"
+                            >
+                                {submitting
+                                    ? t('updating')
+                                    : selectedIds.length > 0
+                                      ? t('confirmSelection', { count: selectedIds.length })
+                                      : t('leaveUnchanged')}
+                            </Button>
+                            <Button
+                                variant="transparent"
+                                className="justify-center underline"
+                                onClick={() => resolveLocally()}
+                                disabled={submitting}
+                                data-testid="latecomer-not-now"
+                            >
+                                {t('notNow')}
+                            </Button>
+                        </DrawerActions>
+                    </DrawerBody>
+                </DrawerContent>
+            </Drawer>
+        </>
+    )
+}
+
+function ExpenseReviewRow({
+    item,
+    memberName,
+    selected,
+    conflicted,
+    disabled,
+    room,
+    locale,
+    dayOptions,
+    onToggle,
+    onEdit,
+}: {
+    item: LatecomerReviewItem
+    memberName: string
+    selected: boolean
+    conflicted: boolean
+    disabled: boolean
+    room: RoomState
+    locale: string
+    dayOptions: { locale: string; today: string; yesterday: string }
+    onToggle: () => void
+    onEdit: () => void
+}) {
+    const t = useTranslations('room.latecomer')
+    const expense = item.expense
+    const label = expenseLabel(expense.description, expense.date, dayOptions)
+
+    if (item.kind === 'manual') {
+        return (
+            <button
+                type="button"
+                className="flex min-h-14 w-full items-center gap-3 p-3 text-left disabled:opacity-60"
+                onClick={onEdit}
+                disabled={disabled}
+            >
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-grey-3">
+                    —
+                </span>
+                <span className="min-w-0 flex-1">
+                    <strong className="block truncate text-sm">{label}</strong>
+                    <span className="block text-xs text-grey-1">{t('manualSplit', { mode: expense.splitMode })}</span>
+                </span>
+                <span className="text-sm font-bold underline">{t('edit')}</span>
+            </button>
+        )
+    }
+
+    return (
+        <button
+            type="button"
+            aria-pressed={selected}
+            className={cn(
+                'flex min-h-14 w-full items-center gap-3 p-3 text-left disabled:opacity-60',
+                selected && 'bg-primary-3',
+                conflicted && 'bg-yellow-1'
             )}
-        </motion.section>
+            onClick={onToggle}
+            disabled={disabled}
+        >
+            <span
+                aria-hidden="true"
+                className={cn(
+                    'flex size-7 shrink-0 items-center justify-center rounded-sm border border-n-1 font-bold',
+                    selected ? 'bg-primary-1' : 'bg-white'
+                )}
+            >
+                {selected ? '✓' : ''}
+            </span>
+            <span className="min-w-0 flex-1">
+                <strong className="block truncate text-sm">{label}</strong>
+                <span className="block text-xs text-grey-1">
+                    {conflicted
+                        ? t('rowChanged')
+                        : item.kind === 'suggested'
+                          ? t('wholeGroup', { from: expense.shares.length, to: expense.shares.length + 1 })
+                          : t('subset', { count: expense.shares.length, name: memberName })}
+                </span>
+            </span>
+            <span className="min-w-0 max-w-24 break-words text-right text-xs font-bold [overflow-wrap:anywhere]">
+                {t('memberShare', {
+                    name: memberName,
+                    amount: formatMoney(item.impactMinor!, room.room.currency, undefined, locale),
+                })}
+            </span>
+        </button>
+    )
+}
+
+function ImpactSummary({
+    count,
+    memberName,
+    balance,
+    money,
+}: {
+    count: number
+    memberName: string
+    balance: string
+    money: (minor: string) => string
+}) {
+    const t = useTranslations('room.latecomer')
+    const value = BigInt(balance)
+    let outcome = t('noChange')
+    if (count > 0 && value < 0n) outcome = t('projectedOwe', { name: memberName, amount: money((-value).toString()) })
+    else if (count > 0 && value > 0n)
+        outcome = t('projectedBack', { name: memberName, amount: money(value.toString()) })
+    else if (count > 0) outcome = t('projectedSettled', { name: memberName })
+
+    return (
+        <div
+            role="status"
+            aria-live="polite"
+            className="flex min-w-0 items-center justify-between gap-4 rounded-sm border border-n-1 bg-white p-3 text-sm"
+        >
+            <span className="shrink-0">{t('selectedCount', { count })}</span>
+            <strong className="min-w-0 flex-1 break-words text-right [overflow-wrap:anywhere]">{outcome}</strong>
+        </div>
     )
 }

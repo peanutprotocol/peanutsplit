@@ -8,11 +8,12 @@
 import { MutationObserver, QueryClient } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EXPENSE_WRITE_TIMEOUT_MS, NETWORK_ERROR_CODE } from './api'
-import type { ExpenseCreateResult, ExpenseInput, RoomState } from './api-types'
+import type { CatchUpExpenseInput, ExpenseCreateResult, ExpenseInput, RoomState } from './api-types'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
 import {
     addExpenseMutationOptions,
     addMemberMutationOptions,
+    catchUpExpenseMutationOptions,
     claimMemberMutationOptions,
     removedQueueSlugs,
     roomKey,
@@ -103,6 +104,21 @@ const addMember = (queryClient: QueryClient) =>
 
 const claimMember = (queryClient: QueryClient) =>
     new MutationObserver(queryClient, claimMemberMutationOptions(queryClient, SLUG)).mutate({ memberId: 'bea' })
+
+const catchUpInput: CatchUpExpenseInput & { expenseId: string } = {
+    expenseId: 'e1',
+    action: 'add',
+    memberId: 'bea',
+    expectedDescription: 'Lift pass',
+    expectedAmountMinor: '10000',
+    expectedBaseAmountMinor: '10000',
+    expectedCurrency: 'EUR',
+    expectedFxRate: '1',
+    expectedPaidById: 'ana',
+    expectedDate: '2026-07-01T00:00:00.000Z',
+    expectedCategory: null,
+    expectedParticipantIds: ['ana'],
+}
 
 let queryClient: QueryClient
 
@@ -315,6 +331,23 @@ describe('adding an expense', () => {
         ).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
 
         expect(sent[1].clientKey).not.toBe(sent[0].clientKey)
+    })
+})
+
+describe('catching up an expense', () => {
+    it('seeds only the nested room state from the command response', async () => {
+        const state = roomState(['e1', 'e2'])
+        const served = { changed: true, state }
+        vi.stubGlobal('fetch', respondWith(200, served))
+        const result = await new MutationObserver(
+            queryClient,
+            catchUpExpenseMutationOptions(queryClient, SLUG, 'token-1')
+        ).mutate(catchUpInput)
+
+        expect(result).toEqual(served)
+        expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(state)
+        expect(queryClient.getQueryData(roomKey(SLUG))).not.toHaveProperty('changed')
+        expect(queryClient.getQueryData(roomKey(SLUG))).not.toHaveProperty('state')
     })
 })
 

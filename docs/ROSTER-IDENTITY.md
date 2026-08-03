@@ -56,3 +56,21 @@ Durable ledger history, not whether a person opened the room, protects the row.
 
 Name selection emits no product-funnel event. In particular, it is not product
 activation or collaboration success.
+
+## Earlier-expense review
+
+Adding a name after spending has started can create a separate ledger question:
+which earlier expenses included that person? This is not an identity or claim
+step.
+
+- The room derives the question from member and expense timestamps.
+- Any room-link holder may review it for the named person.
+- Choosing a name on a device never opens or completes the review.
+- Nothing changes until the recorder confirms specific expenses.
+- Equal whole-group splits may be suggested; subsets require an explicit choice,
+  and custom arithmetic is edited in the ordinary expense editor.
+- “Not now” and a completed review are device-local prompt decisions, not global
+  claimed/unclaimed state. A changed expense set can be offered again.
+
+Copy names the person—“Did Dani share any earlier expenses?”—rather than asking
+the recorder to prove who they are.

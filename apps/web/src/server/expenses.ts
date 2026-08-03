@@ -1,10 +1,11 @@
 /** Turning an expense request into rows: FX, share maths, and the invariants
  *  that keep balances honest. Shared by POST and PATCH so an edit behaves
  *  exactly like a fresh write. */
-import type { Expense } from '@prisma/client'
+import type { Expense, Prisma } from '@prisma/client'
 import type { SplitMode } from '@/lib/api-types'
 import { getRateTable, requireRate, type RateTable } from '@/server/fx'
-import { badRequest } from '@/server/http'
+import { catchUpUndoSharesFromAudit } from '@/server/history'
+import { badRequest, conflict, notFound } from '@/server/http'
 import { convertMinorAtRate, FX_RATE_DIGITS, MAX_SIGNED_MINOR, parseMinor, quantiseRate } from '@/server/money'
 import {
     equalShares,
@@ -14,7 +15,7 @@ import {
     type ShareDraft,
 } from '@/server/split'
 import type { RoomWithRelations } from '@/server/roomState'
-import type { ExpenseBody } from '@/server/validation'
+import type { CatchUpExpenseBody, ExpenseBody } from '@/server/validation'
 
 export interface ExpenseWrite {
     description: string
@@ -27,6 +28,117 @@ export interface ExpenseWrite {
     date: Date
     category: string | null
     shares: ShareDraft[]
+}
+
+/**
+ * Permanently mark the first expense that creates money between two people.
+ * Every caller already owns the room write lock, so the nullable marker is an
+ * immutable latch rather than a race between different write surfaces.
+ */
+export async function latchFirstSharedBalance(
+    tx: Pick<Prisma.TransactionClient, 'room'>,
+    room: Pick<RoomWithRelations, 'id' | 'firstSharedBalanceExpenseId'>,
+    expenseId: string,
+    paidById: string,
+    shares: readonly Pick<ShareDraft, 'memberId' | 'amountMinor'>[]
+): Promise<boolean> {
+    const activates = shares.some((share) => share.memberId !== paidById && share.amountMinor > 0n)
+    if (room.firstSharedBalanceExpenseId !== null || !activates) return false
+    await tx.room.update({ where: { id: room.id }, data: { firstSharedBalanceExpenseId: expenseId } })
+    return true
+}
+
+/**
+ * Add or remove exactly one late member on an EQUAL expense while the caller
+ * owns the room's advisory transaction lock. Remove is the conflict-safe,
+ * in-session Undo for the add command.
+ *
+ * A normal expense PATCH is intentionally the wrong primitive here: it replaces
+ * the whole row and all shares from a client copy, so two people catching up at
+ * once can erase each other. This command reads the authoritative participants
+ * under the lock, checks that they are the set the review showed, then appends
+ * the target. No descriptive, payer, date, category, amount, currency, or FX
+ * column is rewritten.
+ *
+ * `false` means the requested end state already exists. That is a successful
+ * no-op so a commit followed by a lost HTTP response is safe to retry.
+ */
+export async function changeEqualExpenseParticipant(
+    tx: Prisma.TransactionClient,
+    room: RoomWithRelations,
+    expenseId: string,
+    body: CatchUpExpenseBody
+): Promise<boolean> {
+    const member = room.members.find((candidate) => candidate.id === body.memberId)
+    if (!member) throw badRequest('participant is not a member of this room', 'NOT_A_MEMBER')
+
+    const expense = await tx.expense.findFirst({
+        where: { id: expenseId, roomId: room.id },
+        include: { shares: { orderBy: [{ member: { createdAt: 'asc' } }, { id: 'asc' }] } },
+    })
+    if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
+    if (expense.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+    if (expense.splitMode !== 'EQUAL') {
+        throw conflict('the expense is no longer an equal split — review it again', 'CATCH_UP_REVIEW_CONFLICT')
+    }
+    if (expense.createdAt.getTime() >= member.createdAt.getTime()) {
+        throw conflict('the expense is not from before this member joined', 'CATCH_UP_REVIEW_CONFLICT')
+    }
+
+    const participantIds = expense.shares.map((share) => share.memberId)
+
+    // Idempotency precedes the snapshot guard. The only effect this command is
+    // meant to achieve already exists, so a retry must not fail merely because
+    // another catch-up has since appended a second person. This branch writes
+    // nothing and therefore cannot accept a stale impact on somebody's behalf.
+    const alreadyIncluded = participantIds.includes(body.memberId)
+    if ((body.action === 'add' && alreadyIncluded) || (body.action === 'remove' && !alreadyIncluded)) return false
+
+    const expected = new Set(body.expectedParticipantIds)
+    const participantsMatch =
+        expected.size === participantIds.length && participantIds.every((memberId) => expected.has(memberId))
+    if (
+        expense.description !== body.expectedDescription ||
+        expense.amountMinor.toString() !== body.expectedAmountMinor ||
+        expense.baseAmountMinor.toString() !== body.expectedBaseAmountMinor ||
+        expense.currency !== body.expectedCurrency ||
+        expense.fxRate.toString() !== body.expectedFxRate ||
+        expense.paidById !== body.expectedPaidById ||
+        expense.date.toISOString() !== new Date(body.expectedDate).toISOString() ||
+        expense.category !== body.expectedCategory ||
+        !participantsMatch
+    ) {
+        throw conflict('the expense changed after review — review it again', 'CATCH_UP_REVIEW_CONFLICT')
+    }
+
+    // Rebuilding is one transaction under the room lock. It uses the current
+    // participant rows plus the target, never the client-provided snapshot, so
+    // this operation cannot drop a person even if that snapshot was reordered.
+    const nextParticipantIds =
+        body.action === 'add'
+            ? [...participantIds, body.memberId]
+            : participantIds.filter((memberId) => memberId !== body.memberId)
+    if (nextParticipantIds.length === 0) {
+        throw conflict('an equal expense must keep at least one participant', 'CATCH_UP_REVIEW_CONFLICT')
+    }
+    const shares =
+        body.action === 'add'
+            ? equalShares(expense.baseAmountMinor, nextParticipantIds)
+            : await catchUpUndoSharesFromAudit(tx, expense, body.memberId)
+    if (!shares) {
+        throw conflict('the original equal shares can no longer be restored safely', 'CATCH_UP_REVIEW_CONFLICT')
+    }
+    const restoredIds = new Set(shares.map((share) => share.memberId))
+    if (
+        restoredIds.size !== nextParticipantIds.length ||
+        !nextParticipantIds.every((memberId) => restoredIds.has(memberId)) ||
+        shares.some((share) => !room.members.some((candidate) => candidate.id === share.memberId))
+    ) {
+        throw conflict('the original equal shares can no longer be restored safely', 'CATCH_UP_REVIEW_CONFLICT')
+    }
+    await tx.expenseShare.deleteMany({ where: { expenseId } })
+    await tx.expenseShare.createMany({ data: shares.map((share) => ({ expenseId, ...share })) })
+    return true
 }
 
 /**
