@@ -11,11 +11,12 @@
  */
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { conflict, notFound, readJson, respond } from '@/server/http'
+import { conflict, memberTokenOf, notFound, readJson, respond } from '@/server/http'
+import { actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 import { randomPersonaKey } from '@/lib/avatars'
 import { randomAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
-import { canRemoveMember, loadRoom, loadRoomById, toRoomState } from '@/server/roomState'
+import { canRemoveMember, loadRoom, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { memberAvatarSchema } from '@/server/validation'
 
@@ -45,19 +46,40 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         // or edit. Its legacy null reroll is different: that explicitly asks for
         // a fresh identity, so both halves of the pair are renewed together.
         const avatarPalette = reroll ? randomAvatarPaletteKey(member.avatarPalette) : body.avatarPalette
-        await prisma.member.update({
-            where: { id: memberId },
-            data: {
-                avatar,
-                ...(avatarPalette === undefined ? {} : { avatarPalette }),
-            },
+        const result = await prisma.$transaction(async (tx) => {
+            await lockRoomWrite(tx, room.id)
+            const locked = await loadRoom(slug, tx)
+            assertWritable(locked)
+            const target = locked.members.find((candidate) => candidate.id === memberId)
+            if (!target) throw notFound('member not found')
+            const nextPalette = avatarPalette === undefined ? target.avatarPalette : avatarPalette
+            const changed = target.avatar !== avatar || target.avatarPalette !== nextPalette
+            if (changed) {
+                await tx.member.update({
+                    where: { id: memberId },
+                    data: { avatar, ...(avatarPalette === undefined ? {} : { avatarPalette }) },
+                })
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorFromToken(locked.members, memberTokenOf(request)),
+                    event: {
+                        kind: 'member_avatar_updated',
+                        subjectType: 'member',
+                        subjectId: target.id,
+                        before: { name: target.name, avatar: target.avatar, avatarPalette: target.avatarPalette },
+                        after: { name: target.name, avatar, avatarPalette: nextPalette },
+                    },
+                })
+            }
+            return { changed, state: toRoomState(await loadRoom(slug, tx)) }
         })
-        const state = toRoomState(await loadRoomById(room.id))
         // After the commit, like every other write — a persona that only travelled
         // on the poll would arrive up to 45s late on a phone holding an open
         // stream, slower than it managed before the stream existed.
-        publish(room.id)
-        return state
+        if (result.changed) publish(room.id)
+        return result.state
     })
 
 /**
@@ -73,7 +95,7 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         assertWritable(initial)
 
         const state = await prisma.$transaction(async (tx) => {
-            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${initial.id}, 0))`
+            await lockRoomWrite(tx, initial.id)
             const room = await loadRoom(slug, tx)
             assertWritable(room)
             const member = room.members.find((candidate) => candidate.id === memberId)
@@ -82,6 +104,24 @@ export const DELETE = (request: Request, ctx: Ctx) =>
                 throw conflict('this member has room history and cannot be removed', 'MEMBER_HAS_HISTORY')
 
             await tx.member.delete({ where: { id: member.id } })
+            await appendRoomAuditEvent({
+                tx,
+                request,
+                roomId: room.id,
+                actor: actorFromToken(room.members, memberTokenOf(request)),
+                event: {
+                    kind: 'member_removed',
+                    subjectType: 'member',
+                    subjectId: member.id,
+                    before: {
+                        id: member.id,
+                        name: member.name,
+                        avatar: member.avatar,
+                        avatarPalette: member.avatarPalette,
+                        provisional: member.provisional,
+                    },
+                },
+            })
             return toRoomState(await loadRoom(slug, tx))
         })
         publish(initial.id)

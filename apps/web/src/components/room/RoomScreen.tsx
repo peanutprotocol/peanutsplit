@@ -353,6 +353,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                         room={state.room}
                         members={state.members}
                         sharerMemberId={meId}
+                        token={identity?.token}
                     />
                     <BalanceDrawer
                         open={!!params.balance && !needsJoin}

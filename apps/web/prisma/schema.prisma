@@ -21,11 +21,11 @@ enum SplitMode {
 }
 
 model Room {
-  id          String       @id @default(uuid())
+  id          String           @id @default(uuid())
   // "ski-trip-brave-otter-lamp" — kebab name + 3 random words. Rooms minted
   // before the word list carry a 6-character base32 tail and keep it; nothing
   // reads the tail's shape, so both are valid forever.
-  slug        String       @unique
+  slug        String           @unique
   name        String
   emoji       String?
   currency    String // display/settle currency, ISO 4217
@@ -42,15 +42,44 @@ model Room {
   // existed holds; it is never inferred later, because the reader of a preview
   // is not the room.
   locale      String?
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime         @default(now())
   archivedAt  DateTime?
   members     Member[]
   expenses    Expense[]
   settlements Settlement[]
+  auditEvents RoomAuditEvent[]
 
   pushSubscriptions PushSubscription[]
   notificationSends NotificationSend[]
 
+  @@schema("split")
+}
+
+/// The room's append-only account of successful state changes. Event payloads
+/// are snapshots, not joins to mutable rows, so a later rename or removal cannot
+/// rewrite what an older event said. The database trigger in the migration
+/// refuses UPDATE and DELETE even if application code regresses.
+model RoomAuditEvent {
+  // Monotonic per database, so room-lock commit order remains readable even
+  // when PostgreSQL transaction timestamps tie or reflect time spent waiting.
+  id              BigInt   @id @default(autoincrement())
+  roomId          String
+  action          String
+  subjectType     String?
+  subjectId       String?
+  actorDeviceHash String? // SHA-256(roomId + device cookie); the raw cookie is never stored
+  deviceOrdinal   Int? // first device seen in this room is 1 ("Device A")
+  actorMemberId   String?
+  actorMemberName String? // immutable display snapshot
+  before          Json?
+  after           Json?
+  detail          Json?
+  createdAt       DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  @@index([roomId, id])
+  @@index([roomId, actorDeviceHash])
   @@schema("split")
 }
 

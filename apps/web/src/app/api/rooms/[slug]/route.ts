@@ -1,8 +1,9 @@
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { readJson, respond } from '@/server/http'
+import { memberTokenOf, readJson, respond } from '@/server/http'
+import { actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 import { WRITE_LIMIT, enforceRateLimit, meterRoomLookup } from '@/server/rateLimit'
-import { loadRoom, loadRoomById, roomStateBySlug, toRoomState } from '@/server/roomState'
+import { loadRoom, roomStateBySlug, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { roomSettingsSchema } from '@/server/validation'
 
@@ -33,22 +34,52 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug } = await ctx.params
         const body = roomSettingsSchema.parse(await readJson(request))
-        const room = await loadRoom(slug)
-        assertWritable(room)
-
-        await prisma.room.update({
-            where: { id: room.id },
-            data: {
-                ...(body.name !== undefined ? { name: body.name } : {}),
-                ...(body.theme !== undefined ? { theme: body.theme } : {}),
-                ...(body.emoji !== undefined ? { emoji: body.emoji } : {}),
-            },
+        const initial = await loadRoom(slug)
+        assertWritable(initial)
+        const result = await prisma.$transaction(async (tx) => {
+            await lockRoomWrite(tx, initial.id)
+            const room = await loadRoom(slug, tx)
+            assertWritable(room)
+            const before = { name: room.name, theme: room.theme, emoji: room.emoji }
+            const after = {
+                name: body.name ?? room.name,
+                theme: body.theme === undefined ? room.theme : body.theme,
+                emoji: body.emoji === undefined ? room.emoji : body.emoji,
+            }
+            const changed = before.name !== after.name || before.theme !== after.theme || before.emoji !== after.emoji
+            if (changed) {
+                const changedFields = (['name', 'theme', 'emoji'] as const).filter(
+                    (field) => before[field] !== after[field]
+                )
+                await tx.room.update({
+                    where: { id: room.id },
+                    data: {
+                        ...(body.name !== undefined ? { name: body.name } : {}),
+                        ...(body.theme !== undefined ? { theme: body.theme } : {}),
+                        ...(body.emoji !== undefined ? { emoji: body.emoji } : {}),
+                    },
+                })
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorFromToken(room.members, memberTokenOf(request)),
+                    event: {
+                        kind: 'room_settings_updated',
+                        subjectType: 'room',
+                        subjectId: room.id,
+                        before,
+                        after,
+                        detail: { changedFields },
+                    },
+                })
+            }
+            return { changed, state: toRoomState(await loadRoom(slug, tx)) }
         })
-        const state = toRoomState(await loadRoomById(room.id))
         // Same placement rule as every other write: after the row committed, so
         // the refetch it triggers can only see the new settings. Without it a
         // room edit is the SLOWEST write in the product — a peer holding an open
         // stream polls at 45s, where before the stream existed it polled at 8s.
-        publish(room.id)
-        return state
+        if (result.changed) publish(initial.id)
+        return result.state
     })

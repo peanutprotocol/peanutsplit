@@ -27,11 +27,11 @@ import { useFeedback } from '@/lib/use-settings'
  * IS the safety net — `member-removal-design.md` specifies a 10-second Undo and
  * a "Removed people" section, and both need `removedAt` to be honoured first.
  */
-export function RemovePerson({ slug, member }: { slug: string; member: ApiMember }) {
+export function RemovePerson({ slug, member, token }: { slug: string; member: ApiMember; token?: string | null }) {
     const t = useTranslations('room.people')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
-    const deleteMember = useDeleteMember(slug)
+    const deleteMember = useDeleteMember(slug, token)
     const [open, setOpen] = useState(false)
     const [error, setError] = useState<string | null>(null)
 

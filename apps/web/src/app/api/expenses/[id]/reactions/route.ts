@@ -27,7 +27,8 @@ import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
 import { conflict, notFound, readJson, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
-import { assertProvenMember, loadRoomById, toRoomState } from '@/server/roomState'
+import { assertProvenMember, loadRoom, loadRoomById, toRoomState } from '@/server/roomState'
+import { actorForMember, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 import { assertWritable } from '@/server/rooms'
 import { reactionSchema } from '@/server/validation'
 
@@ -66,15 +67,45 @@ async function authorize(request: Request, ctx: Ctx) {
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {
         const { expense, room, body } = await authorize(request, ctx)
-        await prisma.expenseReaction.createMany({
-            data: [{ expenseId: expense.id, memberId: body.memberId, emoji: body.emoji }],
-            skipDuplicates: true,
+        const result = await prisma.$transaction(async (tx) => {
+            await lockRoomWrite(tx, room.id)
+            const currentExpense = await tx.expense.findUnique({
+                where: { id: expense.id },
+                select: { id: true, deletedAt: true },
+            })
+            if (!currentExpense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
+            if (currentExpense.deletedAt) throw conflict('this expense was deleted', 'EXPENSE_DELETED')
+            const lockedRoom = await loadRoom(room.slug, tx)
+            assertWritable(lockedRoom)
+            assertProvenMember(lockedRoom, body.memberId, body.memberToken)
+            const created = await tx.expenseReaction.createMany({
+                data: [{ expenseId: expense.id, memberId: body.memberId, emoji: body.emoji }],
+                skipDuplicates: true,
+            })
+            if (created.count > 0) {
+                const member = lockedRoom.members.find(
+                    (candidate) => candidate.id === body.memberId
+                ) as (typeof lockedRoom.members)[number]
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorForMember(member),
+                    event: {
+                        kind: 'reaction_added',
+                        subjectType: 'reaction',
+                        subjectId: `${expense.id}:${body.memberId}:${body.emoji}`,
+                        after: { expenseId: expense.id, memberId: body.memberId, emoji: body.emoji },
+                    },
+                })
+            }
+            return { changed: created.count > 0 }
         })
         const state = toRoomState(await loadRoomById(room.id))
         // After the commit, like every other write. A reaction that only travels
         // on the poll arrives up to 45s late for anyone holding an open stream —
         // slower than it was before the stream existed.
-        publish(room.id)
+        if (result.changed) publish(room.id)
         return state
     })
 
@@ -83,11 +114,41 @@ export const POST = (request: Request, ctx: Ctx) =>
 export const DELETE = (request: Request, ctx: Ctx) =>
     respond(async () => {
         const { expense, room, body } = await authorize(request, ctx)
-        await prisma.expenseReaction.deleteMany({
-            where: { expenseId: expense.id, memberId: body.memberId, emoji: body.emoji },
+        const result = await prisma.$transaction(async (tx) => {
+            await lockRoomWrite(tx, room.id)
+            const currentExpense = await tx.expense.findUnique({
+                where: { id: expense.id },
+                select: { id: true, deletedAt: true },
+            })
+            if (!currentExpense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
+            if (currentExpense.deletedAt) throw conflict('this expense was deleted', 'EXPENSE_DELETED')
+            const lockedRoom = await loadRoom(room.slug, tx)
+            assertWritable(lockedRoom)
+            assertProvenMember(lockedRoom, body.memberId, body.memberToken)
+            const removed = await tx.expenseReaction.deleteMany({
+                where: { expenseId: expense.id, memberId: body.memberId, emoji: body.emoji },
+            })
+            if (removed.count > 0) {
+                const member = lockedRoom.members.find(
+                    (candidate) => candidate.id === body.memberId
+                ) as (typeof lockedRoom.members)[number]
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorForMember(member),
+                    event: {
+                        kind: 'reaction_removed',
+                        subjectType: 'reaction',
+                        subjectId: `${expense.id}:${body.memberId}:${body.emoji}`,
+                        before: { expenseId: expense.id, memberId: body.memberId, emoji: body.emoji },
+                    },
+                })
+            }
+            return { changed: removed.count > 0 }
         })
         const state = toRoomState(await loadRoomById(room.id))
         // Taking one back is as visible as leaving one — same poke, same reason.
-        publish(room.id)
+        if (result.changed) publish(room.id)
         return state
     })

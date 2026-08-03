@@ -32,6 +32,7 @@ import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
 import { DeviceSheet } from './DeviceSheet'
+import { HistorySheet } from './HistorySheet'
 
 interface SettingsSheetProps {
     open: boolean
@@ -76,11 +77,12 @@ export function SettingsSheet({
     const locale = asLocale(useLocale())
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
-    const setRoomName = useSetRoomName(room.slug)
-    const setTheme = useSetTheme(room.slug)
-    const setEmblem = useSetEmblem(room.slug)
+    const setRoomName = useSetRoomName(room.slug, identity?.token)
+    const setTheme = useSetTheme(room.slug, identity?.token)
+    const setEmblem = useSetEmblem(room.slug, identity?.token)
     const [draft, setDraft] = useState(room.name)
     const [deviceOpen, setDeviceOpen] = useState(false)
+    const [historyOpen, setHistoryOpen] = useState(false)
     const [switchOpen, setSwitchOpen] = useState(false)
     const [pickerOpen, setPickerOpen] = useState(false)
     const pickerRef = useRef<HTMLDetailsElement>(null)
@@ -255,7 +257,12 @@ export function SettingsSheet({
 
                             <ThemePicker value={room.theme} onChange={chooseTheme} disabled={setTheme.isPending} />
 
-                            <PeopleSection slug={room.slug} members={members} onOpenCharacter={onOpenCharacter} />
+                            <PeopleSection
+                                slug={room.slug}
+                                members={members}
+                                token={identity?.token}
+                                onOpenCharacter={onOpenCharacter}
+                            />
 
                             <PushOptIn
                                 slug={room.slug}
@@ -295,6 +302,13 @@ export function SettingsSheet({
                             />
 
                             <RoomExport state={state} />
+
+                            <SettingRow
+                                label={t('history')}
+                                value={t('historyHint')}
+                                onClick={() => setHistoryOpen(true)}
+                                testId="history-row"
+                            />
                         </section>
 
                         <SettingRow
@@ -312,6 +326,7 @@ export function SettingsSheet({
             </Drawer>
 
             <DeviceSheet open={deviceOpen} onClose={() => setDeviceOpen(false)} />
+            <HistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} slug={room.slug} />
 
             <Drawer open={switchOpen} onOpenChange={setSwitchOpen}>
                 <DrawerContent className={drawerContentClass} data-testid="switch-person-sheet">

@@ -4,6 +4,7 @@ import { notFound, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState } from '@/server/roomState'
 import type { RoomStateWithMember } from '@/lib/api-types'
+import { actorForMember, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,21 +24,35 @@ export const POST = (request: Request, ctx: Ctx) =>
         const { slug, memberId } = await ctx.params
         const result = await prisma.$transaction(async (tx) => {
             const room = await loadRoom(slug, tx)
-            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+            await lockRoomWrite(tx, room.id)
             const lockedRoom = await loadRoom(slug, tx)
             const member = lockedRoom.members.find((candidate) => candidate.id === memberId)
             if (!member) throw notFound('member not found')
 
             if (member.provisional) {
                 await tx.member.update({ where: { id: member.id }, data: { provisional: false } })
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorForMember(member),
+                    event: {
+                        kind: 'member_claimed',
+                        subjectType: 'member',
+                        subjectId: member.id,
+                        before: { provisional: true },
+                        after: { provisional: false },
+                        detail: { name: member.name },
+                    },
+                })
             }
             const fresh = member.provisional ? await loadRoom(slug, tx) : lockedRoom
             return {
                 response: { ...toRoomState(fresh), memberId: member.id, memberToken: member.token },
-                claimed: member.provisional,
+                changed: member.provisional,
                 roomId: room.id,
             }
         })
-        if (result.claimed) publish(result.roomId)
+        if (result.changed) publish(result.roomId)
         return result.response
     })

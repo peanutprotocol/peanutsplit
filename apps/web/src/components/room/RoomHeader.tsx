@@ -115,6 +115,7 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                 onClose={() => setSheets({ character: null })}
                 slug={room.slug}
                 member={characterMember}
+                token={identity?.token}
             />
         </header>
     )

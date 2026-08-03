@@ -20,6 +20,7 @@ import type {
     PushUnsubscribeInput,
     ReceiptParseInput,
     ReactionInput,
+    RoomHistoryPage,
     RoomState,
     RoomStateWithAddedMember,
     RoomStateWithMember,
@@ -148,20 +149,26 @@ export const api = {
 
     room: (slug: string, signal?: AbortSignal) => request<RoomState>(`/api/rooms/${encode(slug)}`, { signal }),
 
+    roomHistory: (slug: string, cursor?: string | null, signal?: AbortSignal) =>
+        request<RoomHistoryPage>(`/api/rooms/${encode(slug)}/history${cursor ? `?cursor=${encode(cursor)}` : ''}`, {
+            signal,
+        }),
+
     joinRoom: (slug: string, input: CreateMemberInput) =>
         request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members`, {
             method: 'POST',
             body: { ...input, intent: 'join' },
         }),
 
-    addMember: (slug: string, input: CreateMemberInput) =>
+    addMember: (slug: string, input: CreateMemberInput, token?: string | null) =>
         request<RoomStateWithAddedMember>(`/api/rooms/${encode(slug)}/members`, {
             method: 'POST',
             body: { ...input, intent: 'add' },
+            token,
         }),
 
-    deleteMember: (slug: string, memberId: string) =>
-        request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}`, { method: 'DELETE' }),
+    deleteMember: (slug: string, memberId: string, token?: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}`, { method: 'DELETE', token }),
 
     claimMember: (slug: string, memberId: string) =>
         request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}/claim`, {
@@ -249,24 +256,25 @@ export const api = {
     /** Room presentation. No token: the slug is the credential, same as every
      *  other room write — see the route for why. The display name changes
      *  without changing that slug. */
-    setRoomName: (slug: string, name: string) =>
-        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { name } }),
+    setRoomName: (slug: string, name: string, token?: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { name }, token }),
 
-    setTheme: (slug: string, theme: string | null) =>
-        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { theme } }),
+    setTheme: (slug: string, theme: string | null, token?: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { theme }, token }),
 
     /** The room's drawing. Same PATCH and same credential as the name, because in
      *  the sheet they are one control: the drawing follows the name until
      *  somebody overrules it, and `null` hands it back to the name. */
-    setEmblem: (slug: string, emoji: string | null) =>
-        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { emoji } }),
+    setEmblem: (slug: string, emoji: string | null, token?: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}`, { method: 'PATCH', body: { emoji }, token }),
 
     /** One member's playful persona. Like the roster and ledger, this is a
      *  shared-room edit: the room link is the credential. */
-    setMemberAvatar: (slug: string, memberId: string, input: MemberAvatarInput) =>
+    setMemberAvatar: (slug: string, memberId: string, input: MemberAvatarInput, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}`, {
             method: 'PATCH',
             body: input,
+            token,
         }),
 
     /** Slug-free, like restore: the expense id is all a row ever holds. The

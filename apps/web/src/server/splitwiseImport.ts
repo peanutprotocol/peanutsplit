@@ -25,6 +25,7 @@ import { prisma } from '@/server/db'
 import { buildExpense } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
 import { badRequest, conflict } from '@/server/http'
+import { actorForMember, appendRoomAuditEvent } from '@/server/history'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
 import { memberToken, roomSlug } from '@/server/slug'
 import type { ImportRoomBody } from '@/server/validation'
@@ -44,7 +45,10 @@ const isSlugCollision = (err: unknown) =>
  */
 const TRANSACTION_TIMEOUT_MS = 30_000
 
-export async function importRoom(body: ImportRoomBody): Promise<{ room: RoomWithRelations } & CreatedMember> {
+export async function importRoom(
+    body: ImportRoomBody,
+    request: Request = new Request('http://localhost')
+): Promise<{ room: RoomWithRelations } & CreatedMember> {
     // Read phase: the one external lookup the whole import needs, before the transaction opens so
     // a slow rate feed can never hold a write lock.
     const rateTable = await getRateTable()
@@ -52,7 +56,7 @@ export async function importRoom(body: ImportRoomBody): Promise<{ room: RoomWith
 
     for (let attempt = 0; attempt < SLUG_ATTEMPTS; attempt++) {
         try {
-            const slug = await writeRoom(body, rateTable, token)
+            const slug = await writeRoom(body, rateTable, token, request)
             const room = await loadRoom(slug)
             const creator = room.members.find((m) => m.token === token)
             // Unreachable: the creator is validated to be one of the members before we get here.
@@ -69,7 +73,8 @@ export async function importRoom(body: ImportRoomBody): Promise<{ room: RoomWith
 async function writeRoom(
     body: ImportRoomBody,
     rateTable: Awaited<ReturnType<typeof getRateTable>>,
-    token: string
+    token: string,
+    request: Request
 ): Promise<string> {
     const creatorKey = body.creatorName.toLowerCase()
 
@@ -179,6 +184,41 @@ async function writeRoom(
 
             await tx.expense.createMany({ data: expenseRows })
             await tx.expenseShare.createMany({ data: shareRows })
+
+            const creator = created.members.find(
+                (member) => member.id === creatorId
+            ) as (typeof created.members)[number]
+            await appendRoomAuditEvent({
+                tx,
+                request,
+                roomId: created.id,
+                actor: actorForMember(creator),
+                event: {
+                    kind: 'room_imported',
+                    subjectType: 'room',
+                    subjectId: created.id,
+                    after: {
+                        room: {
+                            id: created.id,
+                            slug: created.slug,
+                            name: created.name,
+                            emoji: created.emoji,
+                            currency: created.currency,
+                        },
+                        members: created.members.map((member) => ({
+                            id: member.id,
+                            name: member.name,
+                            avatar: member.avatar,
+                            avatarPalette: member.avatarPalette,
+                        })),
+                        expenses: expenseRows.map((expense) => ({
+                            ...expense,
+                            shares: shareRows.filter((share) => share.expenseId === expense.id),
+                        })),
+                    },
+                    detail: { memberCount: created.members.length, expenseCount: expenseRows.length },
+                },
+            })
 
             return created.slug
         },

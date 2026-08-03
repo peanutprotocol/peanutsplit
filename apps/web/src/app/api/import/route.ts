@@ -70,6 +70,6 @@ export const POST = (request: Request) =>
         )
         assertImportCardinality(raw)
         const body = importRoomSchema.parse(raw)
-        const { room, memberId, memberToken } = await importRoom(body)
+        const { room, memberId, memberToken } = await importRoom(body, request)
         return { ...toRoomState(room), memberId, memberToken }
     }, 201)

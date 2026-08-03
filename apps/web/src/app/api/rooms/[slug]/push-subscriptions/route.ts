@@ -14,6 +14,7 @@ import { assertProvenMember, loadRoom } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
 import { enforceRateLimit, meterRoomLookup, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushSubscribeSchema, pushUnsubscribeSchema } from '@/server/validation'
+import { actorForMember, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,11 +44,11 @@ export const POST = (request: Request, ctx: Ctx) =>
             // Count and insert are one room-scoped critical section. Without it,
             // several new devices can all observe 29 rows and push the room past
             // its hard ceiling.
-            await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+            await lockRoomWrite(tx, room.id)
 
             const existing = await tx.pushSubscription.findUnique({
                 where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
-                select: { id: true },
+                select: { id: true, memberId: true },
             })
             // The cap only applies to a NEW channel — a device re-subscribing
             // (the browser rotates its keys whenever it likes) must never be
@@ -79,6 +80,24 @@ export const POST = (request: Request, ctx: Ctx) =>
                     lastSeenAt: new Date(),
                 },
             })
+            if (!existing || existing.memberId !== body.memberId) {
+                const member = room.members.find(
+                    (candidate) => candidate.id === body.memberId
+                ) as (typeof room.members)[number]
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorForMember(member),
+                    event: {
+                        kind: 'push_subscribed',
+                        subjectType: 'push_subscription',
+                        subjectId: body.memberId,
+                        ...(existing ? { before: { memberId: existing.memberId } } : {}),
+                        after: { memberId: body.memberId },
+                    },
+                })
+            }
         })
 
         return { subscribed: true }
@@ -100,7 +119,31 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         // act on: a concurrent subscribe in another room either lands before the
         // count (still used) or after (and re-creates its own channel).
         const endpointStillUsed = await prisma.$transaction(async (tx) => {
-            await tx.pushSubscription.deleteMany({ where: { roomId: room.id, endpoint: body.endpoint } })
+            await lockRoomWrite(tx, room.id)
+            const existing = await tx.pushSubscription.findUnique({
+                where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
+                select: { id: true, memberId: true },
+            })
+            const removed = await tx.pushSubscription.deleteMany({
+                where: { roomId: room.id, endpoint: body.endpoint },
+            })
+            if (removed.count > 0 && existing) {
+                const member = room.members.find(
+                    (candidate) => candidate.id === body.memberId
+                ) as (typeof room.members)[number]
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: room.id,
+                    actor: actorForMember(member),
+                    event: {
+                        kind: 'push_unsubscribed',
+                        subjectType: 'push_subscription',
+                        subjectId: existing.memberId,
+                        before: { memberId: existing.memberId },
+                    },
+                })
+            }
             return (await tx.pushSubscription.count({ where: { endpoint: body.endpoint } })) > 0
         })
 

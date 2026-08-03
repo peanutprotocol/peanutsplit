@@ -3,6 +3,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { conflict } from '@/server/http'
+import { actorForMember, appendRoomAuditEvent, type AuditActor } from '@/server/history'
 import { randomPersonaKey } from '@/lib/avatars'
 import { randomAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { memberToken, roomSlug } from '@/server/slug'
@@ -30,35 +31,62 @@ export interface CreatedMember {
  */
 export async function createRoom(
     body: CreateRoomBody,
-    locale: string | null = null
+    locale: string | null = null,
+    request: Request = new Request('http://localhost')
 ): Promise<{ room: RoomWithRelations } & CreatedMember> {
     const token = memberToken()
 
     for (let attempt = 0; attempt < SLUG_ATTEMPTS; attempt++) {
         try {
-            const created = await prisma.room.create({
-                data: {
-                    slug: roomSlug(body.name),
-                    name: body.name,
-                    emoji: body.emoji ?? null,
-                    currency: body.currency,
-                    locale,
-                    members: {
-                        create: {
-                            name: body.creatorName,
-                            token,
-                            avatar: randomPersonaKey(),
-                            avatarPalette: randomAvatarPaletteKey(),
+            return await prisma.$transaction(async (tx) => {
+                const created = await tx.room.create({
+                    data: {
+                        slug: roomSlug(body.name),
+                        name: body.name,
+                        emoji: body.emoji ?? null,
+                        currency: body.currency,
+                        locale,
+                        members: {
+                            create: {
+                                name: body.creatorName,
+                                token,
+                                avatar: randomPersonaKey(),
+                                avatarPalette: randomAvatarPaletteKey(),
+                            },
                         },
                     },
-                },
-                include: { members: true },
+                    include: { members: true },
+                })
+                const creator = created.members[0]
+                await appendRoomAuditEvent({
+                    tx,
+                    request,
+                    roomId: created.id,
+                    actor: actorForMember(creator),
+                    event: {
+                        kind: 'room_created',
+                        subjectType: 'room',
+                        subjectId: created.id,
+                        after: {
+                            room: {
+                                id: created.id,
+                                slug: created.slug,
+                                name: created.name,
+                                emoji: created.emoji,
+                                currency: created.currency,
+                                theme: created.theme,
+                                locale: created.locale,
+                            },
+                            creator: { id: creator.id, name: creator.name },
+                        },
+                    },
+                })
+                return {
+                    room: await loadRoom(created.slug, tx),
+                    memberId: creator.id,
+                    memberToken: token,
+                }
             })
-            return {
-                room: await loadRoom(created.slug),
-                memberId: created.members[0].id,
-                memberToken: token,
-            }
         } catch (err) {
             // Two rooms named the same can collide on the random tail; just re-roll.
             if (isUniqueViolation(err, 'slug')) continue
@@ -68,13 +96,39 @@ export async function createRoom(
     throw conflict('could not allocate a room link, please try again', 'SLUG_EXHAUSTED')
 }
 
-export async function addMember(room: RoomWithRelations, name: string, provisional = false): Promise<CreatedMember> {
+export async function addMember(
+    room: RoomWithRelations,
+    name: string,
+    provisional = false,
+    request: Request = new Request('http://localhost'),
+    actor: AuditActor = { memberId: null, memberName: null }
+): Promise<CreatedMember> {
     if (room.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
     const token = memberToken()
 
     return prisma.$transaction(async (tx) => {
         await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
-        return addMemberInLockedTransaction(tx, room.id, name, token, provisional)
+        const added = await addMemberInLockedTransaction(tx, room.id, name, token, provisional)
+        const member = await tx.member.findUniqueOrThrow({ where: { id: added.memberId } })
+        await appendRoomAuditEvent({
+            tx,
+            request,
+            roomId: room.id,
+            actor: provisional ? actor : actorForMember(member),
+            event: {
+                kind: provisional ? 'member_added' : 'member_joined',
+                subjectType: 'member',
+                subjectId: member.id,
+                after: {
+                    id: member.id,
+                    name: member.name,
+                    avatar: member.avatar,
+                    avatarPalette: member.avatarPalette,
+                    provisional: member.provisional,
+                },
+            },
+        })
+        return added
     })
 }
 

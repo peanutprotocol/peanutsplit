@@ -20,6 +20,7 @@ import { Prisma, type PushSubscription as PushSubscriptionRow } from '@prisma/cl
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import webpush, { type RequestOptions, WebPushError } from 'web-push'
 import { prisma } from '@/server/db'
+import type { PushRoomWriteEvent } from '@/server/history'
 import {
     allSettledPayload,
     expenseAddedPayload,
@@ -235,9 +236,6 @@ export function isAllSettled(state: RoomState): boolean {
     return Object.values(state.balances).every((net) => BigInt(net) === 0n)
 }
 
-export type RoomWriteEvent =
-    { kind: 'expense_added'; expenseId: string } | { kind: 'settlement_recorded'; settlementId: string }
-
 /**
  * The one call the route handlers make. Synchronous and void by construction:
  * the response value is already built by the time this runs, and a push service
@@ -248,7 +246,7 @@ export function notifyRoomWrite(input: {
     room: RoomWithRelations
     state: RoomState
     actorMemberId: string | null
-    event: RoomWriteEvent
+    event: PushRoomWriteEvent
 }): void {
     const { room, state, actorMemberId, event } = input
     const nameOf = (id: string | null | undefined) => room.members.find((m) => m.id === id)?.name ?? null

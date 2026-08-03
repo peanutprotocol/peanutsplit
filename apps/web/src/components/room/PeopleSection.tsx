@@ -51,16 +51,18 @@ const writeOpen = (open: boolean): void => {
 export function PeopleSection({
     slug,
     members,
+    token,
     onOpenCharacter,
 }: {
     slug: string
     members: ApiMember[]
+    token?: string | null
     onOpenCharacter: (memberId: string) => void
 }) {
     const t = useTranslations('room.header')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
-    const addMember = useAddMember(slug)
+    const addMember = useAddMember(slug, token)
     // Server render must agree with the first client paint, so the stored choice
     // is read in an effect rather than during render.
     const [open, setOpen] = useState(true)
@@ -140,7 +142,7 @@ export function PeopleSection({
                                 </span>
                                 <Icon name="chevron-right" size={16} className="shrink-0" />
                             </button>
-                            <RemovePerson slug={slug} member={member} />
+                            <RemovePerson slug={slug} member={member} token={token} />
                         </li>
                     ))}
                     <li>

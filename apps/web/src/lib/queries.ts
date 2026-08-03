@@ -3,6 +3,7 @@
 import { useCallback, useEffect } from 'react'
 import {
     useMutation,
+    useInfiniteQuery,
     useQuery,
     useQueryClient,
     type QueryClient,
@@ -18,6 +19,7 @@ import type {
     ExpenseUpdateInput,
     ImportRoomInput,
     MemberAvatarInput,
+    RoomHistoryPage,
     RoomState,
     RoomStateWithAddedMember,
     RoomStateWithMember,
@@ -44,6 +46,18 @@ import { useRoomEvents } from './realtime'
 
 export const roomKey = (slug: string) => ['room', slug] as const
 export const currenciesKey = ['currencies'] as const
+export const historyKey = (slug: string) => ['room-history', slug] as const
+
+export function useRoomHistory(slug: string, enabled = true) {
+    return useInfiniteQuery<RoomHistoryPage>({
+        queryKey: historyKey(slug),
+        queryFn: ({ pageParam, signal }) =>
+            api.roomHistory(slug, typeof pageParam === 'string' ? pageParam : null, signal),
+        initialPageParam: null,
+        getNextPageParam: (page) => page.nextCursor ?? undefined,
+        enabled,
+    })
+}
 
 /**
  * Which rooms lost queued records in another tab.
@@ -162,6 +176,9 @@ export function useRoomState(slug: string) {
         // Refetch, not a hand-built patch: the poke carries no payload and the
         // GET is the only thing allowed to say what the balances are.
         void queryClient.refetchQueries({ queryKey: roomKey(slug) })
+        // History is lazy, so this only refetches while its drawer is open.
+        // The same poke keeps a peer's newly audited action visible there.
+        void queryClient.refetchQueries({ queryKey: historyKey(slug), type: 'active' })
     }, [queryClient, slug])
 
     const { connected } = useRoomEvents(slug, onPoke)
@@ -321,23 +338,27 @@ const addedMemberResult = (response: RoomStateWithAddedMember): AddedMemberResul
  * against react-query's real mutation machinery without a component renderer. */
 export function addMemberMutationOptions(
     queryClient: QueryClient,
-    slug: string
+    slug: string,
+    token?: string | null
 ): UseMutationOptions<AddedMemberResult, Error, { name: string }> {
     return {
-        mutationFn: async (input) => addedMemberResult(await api.addMember(slug, input)),
+        mutationFn: async (input) => addedMemberResult(await api.addMember(slug, input, token)),
         onSuccess: ({ state }) => seed(queryClient, slug, state),
     }
 }
 
-export function useAddMember(slug: string): UseMutationResult<AddedMemberResult, Error, { name: string }> {
+export function useAddMember(
+    slug: string,
+    token?: string | null
+): UseMutationResult<AddedMemberResult, Error, { name: string }> {
     const queryClient = useQueryClient()
-    return useMutation(addMemberMutationOptions(queryClient, slug))
+    return useMutation(addMemberMutationOptions(queryClient, slug, token))
 }
 
-export function useDeleteMember(slug: string) {
+export function useDeleteMember(slug: string, token?: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (memberId: string) => api.deleteMember(slug, memberId),
+        mutationFn: (memberId: string) => api.deleteMember(slug, memberId, token),
         onSuccess: (state) => seed(queryClient, slug, state),
     })
 }
@@ -579,10 +600,10 @@ export function useModelStatus(slug: string, enabled = true): { enabled: boolean
 
 /** A room rename is presentation only: update the shared cache immediately and
  * keep the slug (and therefore every saved room link) exactly as it was. */
-export function useSetRoomName(slug: string) {
+export function useSetRoomName(slug: string, token?: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (name: string) => api.setRoomName(slug, name),
+        mutationFn: (name: string) => api.setRoomName(slug, name, token),
         onMutate: async (name) => {
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
@@ -607,10 +628,10 @@ export function useSetRoomName(slug: string) {
  * waiting. So the cache takes the new key on the tap and the authoritative state
  * replaces it on response, with the snapshot going back on failure.
  */
-export function useSetTheme(slug: string) {
+export function useSetTheme(slug: string, token?: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (theme: string | null) => api.setTheme(slug, theme),
+        mutationFn: (theme: string | null) => api.setTheme(slug, theme, token),
         onMutate: async (theme) => {
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
@@ -641,10 +662,10 @@ export function useSetTheme(slug: string) {
  * room whenever the room state changes; that is the same path a rename and a
  * repaint already take, so there is no second write to keep in agreement here.
  */
-export function useSetEmblem(slug: string) {
+export function useSetEmblem(slug: string, token?: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (emoji: string | null) => api.setEmblem(slug, emoji),
+        mutationFn: (emoji: string | null) => api.setEmblem(slug, emoji, token),
         onMutate: async (emoji) => {
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
@@ -671,10 +692,10 @@ export function useSetEmblem(slug: string) {
  * the snapshot goes back, so a rejected pick never lingers as a persona the
  * room cannot see.
  */
-export function useSetAvatar(slug: string, memberId: string) {
+export function useSetAvatar(slug: string, memberId: string, token?: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (selection: MemberAvatarInput) => api.setMemberAvatar(slug, memberId, selection),
+        mutationFn: (selection: MemberAvatarInput) => api.setMemberAvatar(slug, memberId, selection, token),
         onMutate: async (selection) => {
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))

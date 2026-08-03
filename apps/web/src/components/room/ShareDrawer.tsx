@@ -29,16 +29,17 @@ interface ShareDrawerProps {
     members: readonly ApiMember[]
     /** The current device's roster id after RoomScreen verified it still exists. */
     sharerMemberId?: string
+    token?: string | null
 }
 
 /** The link moment again, on demand — same artefact, reachable from the header. */
-export function ShareDrawer({ open, onClose, room, members, sharerMemberId }: ShareDrawerProps) {
+export function ShareDrawer({ open, onClose, room, members, sharerMemberId, token }: ShareDrawerProps) {
     const t = useTranslations('room.share')
     const errorMessage = useErrorMessage()
     const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
-    const addMember = useAddMember(room.slug)
-    const deleteMember = useDeleteMember(room.slug)
+    const addMember = useAddMember(room.slug, token)
+    const deleteMember = useDeleteMember(room.slug, token)
     /**
      * Collapsed until asked for. The link is the hero of this sheet and the thing
      * that actually gets the room populated; typing four names is the fallback
