@@ -15,7 +15,7 @@
  * hanging off them.
  */
 
-import { type KeyboardEvent, useEffect, useState } from 'react'
+import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
@@ -76,6 +76,7 @@ export function ReactionBar({
     const addReaction = useAddReaction(slug)
     const removeReaction = useRemoveReaction(slug)
     const [uncontrolledPickerOpen, setUncontrolledPickerOpen] = useState(false)
+    const triggerRef = useRef<HTMLButtonElement>(null)
     const pickerOpen = !disabled && (controlledPickerOpen ?? uncontrolledPickerOpen)
 
     useEffect(() => {
@@ -137,6 +138,7 @@ export function ReactionBar({
             event.preventDefault()
             event.stopPropagation()
             setPickerOpen(false)
+            window.requestAnimationFrame(() => triggerRef.current?.focus())
             return
         }
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
@@ -158,7 +160,7 @@ export function ReactionBar({
         <div
             className={cn(
                 'relative flex w-full flex-wrap items-center justify-end gap-1.5',
-                (groups.length > 0 || pickerOpen) && 'pt-1.5'
+                groups.length > 0 && 'pt-1.5'
             )}
         >
             <AnimatePresence initial={false}>
@@ -216,6 +218,7 @@ export function ReactionBar({
             </AnimatePresence>
 
             <button
+                ref={triggerRef}
                 type="button"
                 disabled={!canReact}
                 onClick={() => {
@@ -233,7 +236,7 @@ export function ReactionBar({
                     // Not part of normal visual flow: touch users long-press the
                     // expense row. It reveals itself on keyboard focus so this
                     // interaction never becomes touch-only.
-                    'sr-only focus:not-sr-only focus:relative focus:flex focus:size-7 focus:items-center focus:justify-center focus:rounded-full focus:border focus:border-dashed focus:border-grey-1 focus:text-grey-1',
+                    'sr-only focus:not-sr-only focus:absolute focus:right-0 focus:top-full focus:z-30 focus:mt-1.5 focus:flex focus:size-7 focus:items-center focus:justify-center focus:rounded-full focus:border focus:border-dashed focus:border-grey-1 focus:text-grey-1',
                     !canReact && 'opacity-50'
                 )}
             >
@@ -260,7 +263,7 @@ export function ReactionBar({
                         role="toolbar"
                         aria-label={t('add')}
                         onKeyDown={handlePickerKeyDown}
-                        className="shadow-2 flex items-center gap-1 rounded-sm border border-n-1 bg-white px-1.5 py-1"
+                        className="shadow-2 absolute right-0 top-full z-30 mt-1.5 flex items-center gap-1 rounded-sm border border-n-1 bg-white px-1.5 py-1"
                     >
                         {REACTION_EMOJIS.map((emoji) => {
                             const mine = groups.some((group) => group.emoji === emoji && group.mine)

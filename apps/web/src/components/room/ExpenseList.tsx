@@ -573,9 +573,7 @@ export function ExpenseList({
                                             <div
                                                 className={cn(
                                                     'flex justify-end px-3',
-                                                    (expense.reactions.length > 0 ||
-                                                        openReactionExpenseId === expense.id) &&
-                                                        'pb-3'
+                                                    expense.reactions.length > 0 && 'pb-3'
                                                 )}
                                             >
                                                 <ReactionBar
