@@ -102,19 +102,19 @@ export async function addMemberInLockedTransaction(
         select: { id: true },
     })
     if (duplicate) throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
-    const usedPalettes = (
-        await tx.member.findMany({
-            where: { roomId, removedAt: null },
-            select: { avatarPalette: true },
-        })
-    ).flatMap((member) => (member.avatarPalette ? [member.avatarPalette] : []))
+    const existingMembers = await tx.member.findMany({
+        where: { roomId, removedAt: null },
+        select: { avatar: true, avatarPalette: true },
+    })
+    const usedAvatars = existingMembers.flatMap((member) => (member.avatar ? [member.avatar] : []))
+    const usedPalettes = existingMembers.flatMap((member) => (member.avatarPalette ? [member.avatarPalette] : []))
 
     const member = await tx.member.create({
         data: {
             roomId,
             name,
             token,
-            avatar: randomPersonaKey(),
+            avatar: randomPersonaKey(usedAvatars),
             avatarPalette: randomAvatarPaletteKey(usedPalettes),
             provisional,
         },
