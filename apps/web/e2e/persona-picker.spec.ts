@@ -60,10 +60,10 @@ test('your avatar chip opens your own character sheet and a pick persists', asyn
     // Every tile carries a scannable title and one short, secondary line.
     await expect(options.first().getByTestId('avatar-option-title')).toBeVisible()
     await expect(options.first().getByTestId('avatar-option-description')).toBeVisible()
-    // One SVG, two identical paths: warm-white sticker keyline underneath the
-    // dark reviewed ink. Keeping them in one SVG prevents the layers drifting.
-    await expect(options.first().locator('svg path')).toHaveCount(2)
-    await expect(options.first().locator('svg path').first()).toHaveAttribute('stroke', '#fffdf6')
+    // The approved treatment is strictly two-colour: one flat ground and one
+    // dark drawing stroke, with no white sticker keyline underneath it.
+    await expect(options.first().locator('svg path')).toHaveCount(1)
+    await expect(options.first().locator('svg path')).not.toHaveAttribute('stroke')
     const descriptions = AVATAR_KEYS.map((key) => AVATARS[key].vibe)
     expect(
         await options

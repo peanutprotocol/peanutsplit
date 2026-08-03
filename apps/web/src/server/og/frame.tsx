@@ -308,10 +308,9 @@ export function SettledStamp({ label }: { label?: string }) {
 /**
  * A member as their actual character, not as the first letter of their name.
  *
- * `MemberAvatar.tsx` ported to Satori: a reviewed two-colour ground and ink,
- * the warm-white sticker outline, and the same 104% close crop. Keeping the two
- * strokes in one data URI makes their geometry identical after Satori scales
- * the drawing for a chat card.
+ * `MemberAvatar.tsx` ported to Satori: a reviewed two-colour ground and ink
+ * with the same 104% close crop. The slightly heavier single stroke stays crisp
+ * when chat clients scale the card down.
  */
 export function PersonaDisc({
     avatar,
@@ -341,8 +340,7 @@ export function PersonaDisc({
             <img
                 src={doodleDataUri(art.doodle, {
                     ink: colors.ink,
-                    weight: 1.75,
-                    outline: { ink: '#FFFDF6', weight: 5.1 },
+                    weight: 2.15,
                 })}
                 width={drawing}
                 height={drawing}
