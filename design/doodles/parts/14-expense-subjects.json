@@ -1,0 +1,1650 @@
+{
+  "expense_accessibility": {
+    "d": "m21.6 22.8 l1.2 -8.4 l-7.2 1.2 m6 9.6 l3.6 -3.6 l6.6 3.6 l-2.832 4.2 M6.688 19 a6 6 0 0 0 8.256 7.2 M18.112 22.6 a6 6 0 0 0 -8.256 -7.2",
+    "note": "Accessibility — specific expense subject; clean geometry derived from Lucide accessibility",
+    "source": "lucide-static@1.28.0/icons/accessibility.svg",
+    "dots": [[20.8, 6.4, 1.2]]
+  },
+  "expense_activity": {
+    "d": "M28 16 h-2.976 a2.4 2.4 0 0 0 -2.316 1.752 l-2.82 10.032 a0.3 0.3 0 0 1 -0.576 0 L12.688 4.216 a0.3 0.3 0 0 0 -0.576 0 l-2.82 10.032 A2.4 2.4 0 0 1 6.988 16 H4",
+    "note": "Activity tracker — specific expense subject; clean geometry derived from Lucide activity",
+    "source": "lucide-static@1.28.0/icons/activity.svg"
+  },
+  "expense_air_vent": {
+    "d": "M23.2 22.6 a3 3 0 1 1 -4.8 2.436 V16 M8.8 16 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 V7.6 a2.4 2.4 0 0 1 2.4 -2.4 h19.2 a2.4 2.4 0 0 1 2.4 2.4 v6 a2.4 2.4 0 0 1 -2.4 2.4 h-2.4 M8.8 11.2 h14.4 M9.52 20.286 A2.4 2.4 0 1 0 13.6 22 v-6",
+    "note": "Air conditioning — specific expense subject; clean geometry derived from Lucide air-vent",
+    "source": "lucide-static@1.28.0/icons/air-vent.svg"
+  },
+  "expense_ambulance": {
+    "d": "M13.6 13.6 H8.8 M18.4 23.2 V8.8 a2.4 2.4 0 0 0 -2.4 -2.4 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 v13.2 a1.2 1.2 0 0 0 1.2 1.2 h2.4 M24.4 23.2 h2.4 a1.2 1.2 0 0 0 1.2 -1.2 v-3.936 a1.2 1.2 0 0 0 -0.821 -1.138 l-2.308 -0.769 a1.2 1.2 0 0 1 -0.694 -0.602 l-1.847 -3.691 A1.2 1.2 0 0 0 21.258 11.2 H18.4 M11.2 11.2 v4.8 M12.4 23.2 h7.2",
+    "note": "Medical transport — specific expense subject; clean geometry derived from Lucide ambulance",
+    "source": "lucide-static@1.28.0/icons/ambulance.svg",
+    "dots": [
+      [22.0, 23.2, 2.4],
+      [10.0, 23.2, 2.4]
+    ]
+  },
+  "expense_antenna": {
+    "d": "M4 16 L10 4 m8.4 14.4 l6 -12 m14.4 14.4 l6 -12 m20.4 14.4 l6 -12 M7 10 h18 M16 20.8 v7.2",
+    "note": "Antenna — specific expense subject; clean geometry derived from Lucide antenna",
+    "source": "lucide-static@1.28.0/icons/antenna.svg"
+  },
+  "expense_apple": {
+    "d": "M16 9.434 V5.2 a1.2 1.2 0 0 1 1.2 -1.2 h0 M23.484 26.8 A18 18 0 0 0 28 14.8 a7.2 7.2 0 0 0 -12 -5.366 A7.2 7.2 0 0 0 4 14.8 a18.12 18.12 0 0 0 4.516 12 a3.6 3.6 0 0 0 4.378 0.778 a6.6 6.6 0 0 1 6.214 0 A3.6 3.6 0 0 0 23.484 26.8",
+    "note": "Fruit — specific expense subject; clean geometry derived from Lucide apple",
+    "source": "lucide-static@1.28.0/icons/apple.svg"
+  },
+  "expense_armchair": {
+    "d": "M24.4 12.4 V8.8 a2.4 2.4 0 0 0 -2.4 -2.4 H10 a2.4 2.4 0 0 0 -2.4 2.4 v3.6 M5.2 20.8 a2.4 2.4 0 0 0 2.4 2.4 h16.8 a2.4 2.4 0 0 0 2.4 -2.4 v-6 a2.4 2.4 0 0 0 -4.8 0 v1.8 a0.6 0.6 0 0 1 -0.6 0.6 h-10.8 a0.6 0.6 0 0 1 -0.6 -0.6 V14.8 a2.4 2.4 0 0 0 -4.8 0 z M7.6 23.2 v2.4 M24.4 23.2 v2.4",
+    "note": "Furniture — specific expense subject; clean geometry derived from Lucide armchair",
+    "source": "lucide-static@1.28.0/icons/armchair.svg"
+  },
+  "expense_arrow_left_right": {
+    "d": "M11.2 5.2 L6.4 10 l4.8 4.8 M6.4 10 h19.2 m19.2 25.2 l4.8 -4.8 l-4.8 -4.8 M25.6 22 H6.4",
+    "note": "Currency exchange — specific expense subject; clean geometry derived from Lucide arrow-left-right",
+    "source": "lucide-static@1.28.0/icons/arrow-left-right.svg"
+  },
+  "expense_award": {
+    "d": "m18.572 15.468 l1.818 10.231 a0.6 0.6 0 0 1 -0.972 0.564 l-4.296 -3.224 a1.2 1.2 0 0 0 -1.436 0 l-4.303 3.223 a0.6 0.6 0 0 1 -0.972 -0.563 l1.817 -10.231",
+    "note": "Community award — specific expense subject; clean geometry derived from Lucide award",
+    "source": "lucide-static@1.28.0/icons/award.svg",
+    "dots": [[16.0, 11.2, 7.2]]
+  },
+  "expense_baby": {
+    "d": "M13.6 20.8 c0.6 0.36 1.44 0.6 2.4 0.6 s1.8 -0.24 2.4 -0.6 M19.6 16 h0.012 M24.856 9.776 A10.8 10.8 0 0 1 26.56 13.84 a2.4 2.4 0 0 1 0 4.32 a10.8 10.8 0 0 1 -21.12 0 a2.4 2.4 0 0 1 0 -4.32 A10.8 10.8 0 0 1 16 5.2 c2.4 0 4.2 1.32 4.2 3 s-1.08 3 -2.4 3 c-0.96 0 -1.8 -0.48 -1.8 -1.2 M12.4 16 h0.012",
+    "note": "Baby goods — specific expense subject; clean geometry derived from Lucide baby",
+    "source": "lucide-static@1.28.0/icons/baby.svg"
+  },
+  "expense_backpack": {
+    "d": "M6.4 13.6 a4.8 4.8 0 0 1 4.8 -4.8 h9.6 a4.8 4.8 0 0 1 4.8 4.8 v12 a2.4 2.4 0 0 1 -2.4 2.4 H8.8 a2.4 2.4 0 0 1 -2.4 -2.4 z M11.2 13.6 h9.6 M11.2 23.2 h9.6 M11.2 28 v-7.2 a2.4 2.4 0 0 1 2.4 -2.4 h4.8 a2.4 2.4 0 0 1 2.4 2.4 v7.2 M12.4 8.8 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v2.4",
+    "note": "School bag — specific expense subject; clean geometry derived from Lucide backpack",
+    "source": "lucide-static@1.28.0/icons/backpack.svg"
+  },
+  "expense_badge_cent": {
+    "d": "M6.22 11.944 a4.8 4.8 0 0 1 5.736 -5.724 a4.8 4.8 0 0 1 8.088 0 a4.8 4.8 0 0 1 5.736 5.736 a4.8 4.8 0 0 1 0 8.088 a4.8 4.8 0 0 1 -5.724 5.736 a4.8 4.8 0 0 1 -8.1 0 a4.8 4.8 0 0 1 -5.736 -5.724 a4.8 4.8 0 0 1 0 -8.112 Z M16 10 v12 M20.08 13.6 a4.8 4.8 0 1 0 0 4.8",
+    "note": "Small fee — specific expense subject; clean geometry derived from Lucide badge-cent",
+    "source": "lucide-static@1.28.0/icons/badge-cent.svg"
+  },
+  "expense_badge_check": {
+    "d": "M6.22 11.944 a4.8 4.8 0 0 1 5.736 -5.724 a4.8 4.8 0 0 1 8.088 0 a4.8 4.8 0 0 1 5.736 5.736 a4.8 4.8 0 0 1 0 8.088 a4.8 4.8 0 0 1 -5.724 5.736 a4.8 4.8 0 0 1 -8.1 0 a4.8 4.8 0 0 1 -5.736 -5.724 a4.8 4.8 0 0 1 0 -8.112 Z m10.8 14.4 l2.4 2.4 l4.8 -4.8",
+    "note": "Verified service — specific expense subject; clean geometry derived from Lucide badge-check",
+    "source": "lucide-static@1.28.0/icons/badge-check.svg"
+  },
+  "expense_badge_dollar_sign": {
+    "d": "M6.22 11.944 a4.8 4.8 0 0 1 5.736 -5.724 a4.8 4.8 0 0 1 8.088 0 a4.8 4.8 0 0 1 5.736 5.736 a4.8 4.8 0 0 1 0 8.088 a4.8 4.8 0 0 1 -5.724 5.736 a4.8 4.8 0 0 1 -8.1 0 a4.8 4.8 0 0 1 -5.736 -5.724 a4.8 4.8 0 0 1 0 -8.112 Z M20.8 11.2 h-7.2 a2.4 2.4 0 1 0 0 4.8 h4.8 a2.4 2.4 0 1 1 0 4.8 H11.2 M16 23.2 V8.8",
+    "note": "Dollar fee — specific expense subject; clean geometry derived from Lucide badge-dollar-sign",
+    "source": "lucide-static@1.28.0/icons/badge-dollar-sign.svg"
+  },
+  "expense_badge_percent": {
+    "d": "M6.22 11.944 a4.8 4.8 0 0 1 5.736 -5.724 a4.8 4.8 0 0 1 8.088 0 a4.8 4.8 0 0 1 5.736 5.736 a4.8 4.8 0 0 1 0 8.088 a4.8 4.8 0 0 1 -5.724 5.736 a4.8 4.8 0 0 1 -8.1 0 a4.8 4.8 0 0 1 -5.736 -5.724 a4.8 4.8 0 0 1 0 -8.112 Z m18 10.8 l-7.2 7.2 M12.4 12.4 h0.012 M19.6 19.6 h0.012",
+    "note": "Discount rate — specific expense subject; clean geometry derived from Lucide badge-percent",
+    "source": "lucide-static@1.28.0/icons/badge-percent.svg"
+  },
+  "expense_banana": {
+    "d": "M6.4 17.2 c4.2 -2.4 9.6 -2.4 12 2.4 a6.6 6.6 0 0 1 9.6 6 M7.78 23.068 c6.624 -1.824 10.38 -8.268 8.4 -14.4 C15.46 6.4 15.4 4 17.2 4 c3.864 0 6 6.6 6 9.6 c0 7.8 -5.04 14.4 -12.588 14.4 C7.732 28 4 28 4 25.6 c0 -1.8 1.368 -1.86 3.78 -2.532 Z",
+    "note": "Bananas — specific expense subject; clean geometry derived from Lucide banana",
+    "source": "lucide-static@1.28.0/icons/banana.svg"
+  },
+  "expense_bandage": {
+    "d": "M13.6 13.612 h0.012 M13.6 18.412 h0.012 M18.4 13.612 h0.012 M18.4 18.412 h0.012 M23.2 8.8 v14.4 M8.8 8.8 v14.4 M6.4 8.8 H25.6 A2.4 2.4 0 0 1 28 11.2 V20.8 A2.4 2.4 0 0 1 25.6 23.2 H6.4 A2.4 2.4 0 0 1 4 20.8 V11.2 A2.4 2.4 0 0 1 6.4 8.8 Z",
+    "note": "Bandages — specific expense subject; clean geometry derived from Lucide bandage",
+    "source": "lucide-static@1.28.0/icons/bandage.svg"
+  },
+  "expense_banknote": {
+    "d": "M6.4 8.8 H25.6 A2.4 2.4 0 0 1 28 11.2 V20.8 A2.4 2.4 0 0 1 25.6 23.2 H6.4 A2.4 2.4 0 0 1 4 20.8 V11.2 A2.4 2.4 0 0 1 6.4 8.8 Z M8.8 16 h0.012 M23.2 16 h0.012",
+    "note": "Cash note — specific expense subject; clean geometry derived from Lucide banknote",
+    "source": "lucide-static@1.28.0/icons/banknote.svg",
+    "dots": [[16.0, 16.0, 2.4]]
+  },
+  "expense_barcode": {
+    "d": "M5.2 7.6 v16.8 M11.2 7.6 v16.8 M16 7.6 v16.8 M22 7.6 v16.8 M26.8 7.6 v16.8",
+    "note": "Barcoded item — specific expense subject; clean geometry derived from Lucide barcode",
+    "source": "lucide-static@1.28.0/icons/barcode.svg"
+  },
+  "expense_bath": {
+    "d": "M13.6 6.4 L11.2 8.8 M22 24.4 v2.4 M4 16 h24 M10 24.4 v2.4 M12.4 7.6 L10.745 5.945 A2.545 2.545 0 0 0 6.4 7.6 v14.4 a2.4 2.4 0 0 0 2.4 2.4 h14.4 a2.4 2.4 0 0 0 2.4 -2.4 v-6",
+    "note": "Bathroom — specific expense subject; clean geometry derived from Lucide bath",
+    "source": "lucide-static@1.28.0/icons/bath.svg"
+  },
+  "expense_battery_charging": {
+    "d": "m13.2 8.4 l-3.6 6 h4.8 l-3.6 6 M19.427 8.8 H20.8 a2.4 2.4 0 0 1 2.4 2.4 v9.6 a2.4 2.4 0 0 1 -2.4 2.4 h-3.522 M28 18.4 v-4.8 M7.768 23.2 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 V11.2 a2.4 2.4 0 0 1 2.4 -2.4 h3.523",
+    "note": "Battery charging — specific expense subject; clean geometry derived from Lucide battery-charging",
+    "source": "lucide-static@1.28.0/icons/battery-charging.svg"
+  },
+  "expense_bed": {
+    "d": "M4 6.4 v19.2 M4 11.2 h21.6 a2.4 2.4 0 0 1 2.4 2.4 v12 M4 22 h24 M8.8 11.2 v10.8",
+    "note": "Bed — specific expense subject; clean geometry derived from Lucide bed",
+    "source": "lucide-static@1.28.0/icons/bed.svg"
+  },
+  "expense_bed_double": {
+    "d": "M4 25.6 v-9.6 a2.4 2.4 0 0 1 2.4 -2.4 h19.2 a2.4 2.4 0 0 1 2.4 2.4 v9.6 M6.4 13.6 V8.8 a2.4 2.4 0 0 1 2.4 -2.4 h14.4 a2.4 2.4 0 0 1 2.4 2.4 v4.8 M16 6.4 v7.2 M4 23.2 h24",
+    "note": "Double room — specific expense subject; clean geometry derived from Lucide bed-double",
+    "source": "lucide-static@1.28.0/icons/bed-double.svg"
+  },
+  "expense_beef": {
+    "d": "M21.28 18.04 A7.8 7.8 0 1 0 9.136 9.52 c-1.32 3.756 -0.936 4.68 -3.816 7.296 A3.6 3.6 0 0 0 7.6 23.2 c4.8 0 10.08 -2.16 13.68 -5.16 m22.2 7.2 l2.628 5.4 a7.776 7.776 0 0 1 -2.748 8.64 C20.08 25.84 14.8 28 10 28 a3.6 3.6 0 0 1 -3.216 -1.992 L4.48 21.4",
+    "note": "Steak & meat — specific expense subject; clean geometry derived from Lucide beef",
+    "source": "lucide-static@1.28.0/icons/beef.svg",
+    "dots": [[16.6, 11.8, 3.0]]
+  },
+  "expense_bike": {
+    "d": "M16 22.6 V18.4 l-3.6 -3.6 l4.8 -3.6 l2.4 3.6 h2.4",
+    "note": "Bicycle — specific expense subject; clean geometry derived from Lucide bike",
+    "source": "lucide-static@1.28.0/icons/bike.svg",
+    "dots": [
+      [23.8, 22.6, 4.2],
+      [8.2, 22.6, 4.2],
+      [19.6, 7.6, 1.2]
+    ]
+  },
+  "expense_binary": {
+    "d": "M20.8 18.4 H20.8 A2.4 2.4 0 0 1 23.2 20.8 V23.2 A2.4 2.4 0 0 1 20.8 25.6 H20.8 A2.4 2.4 0 0 1 18.4 23.2 V20.8 A2.4 2.4 0 0 1 20.8 18.4 Z M11.2 6.4 H11.2 A2.4 2.4 0 0 1 13.6 8.8 V11.2 A2.4 2.4 0 0 1 11.2 13.6 H11.2 A2.4 2.4 0 0 1 8.8 11.2 V8.8 A2.4 2.4 0 0 1 11.2 6.4 Z M8.8 25.6 h4.8 M18.4 13.6 h4.8 M8.8 18.4 h2.4 v7.2 M18.4 6.4 h2.4 v7.2",
+    "note": "Coding class — specific expense subject; clean geometry derived from Lucide binary",
+    "source": "lucide-static@1.28.0/icons/binary.svg"
+  },
+  "expense_binoculars": {
+    "d": "M13.6 13.6 h4.8 M24.4 10 V6.4 a1.2 1.2 0 0 0 -1.2 -1.2 h-2.4 a1.2 1.2 0 0 0 -1.2 1.2 v3.6 M25.6 26.8 a2.4 2.4 0 0 0 2.4 -2.4 v-4.621 c0 -1.668 -2.4 -3.554 -2.4 -5.795 V11.2 a1.2 1.2 0 0 0 -1.2 -1.2 h-4.8 a1.2 1.2 0 0 0 -1.2 1.2 v13.2 a2.4 2.4 0 0 0 2.4 2.4 z M28 20.8 L4 20.8 M6.4 26.8 a2.4 2.4 0 0 1 -2.4 -2.4 v-4.621 c0 -1.668 2.4 -3.554 2.4 -5.795 V11.2 a1.2 1.2 0 0 1 1.2 -1.2 h4.8 a1.2 1.2 0 0 1 1.2 1.2 v13.2 a2.4 2.4 0 0 1 -2.4 2.4 z M12.4 10 V6.4 a1.2 1.2 0 0 0 -1.2 -1.2 H8.8 a1.2 1.2 0 0 0 -1.2 1.2 v3.6",
+    "note": "Wildlife tour — specific expense subject; clean geometry derived from Lucide binoculars",
+    "source": "lucide-static@1.28.0/icons/binoculars.svg"
+  },
+  "expense_bird": {
+    "d": "M20.8 10 h0.012 M5.68 23.2 H16 a9.6 9.6 0 0 0 9.6 -9.6 V10 a4.8 4.8 0 0 0 -8.736 -2.76 L4 25.6 m24 8.4 l2.4 0.6 l-2.4 0.6 M13.6 23.2 v3.6 M18.4 22.9 V26.8 M10 23.2 a7.2 7.2 0 0 0 4.608 -12.732",
+    "note": "Wildlife fund — specific expense subject; clean geometry derived from Lucide bird",
+    "source": "lucide-static@1.28.0/icons/bird.svg"
+  },
+  "expense_bitcoin": {
+    "d": "M15.72 24.507 c5.909 1.042 7.368 -7.23 1.459 -8.273 m-1.459 8.273 L8.632 23.256 m7.09 1.25 l-0.416 2.364 m1.876 -10.637 c5.909 1.043 7.368 -7.23 1.458 -8.272 m-1.458 8.272 l-4.728 -0.833 m6.186 -7.44 L11.548 6.712 m7.09 1.25 l0.418 -2.364 M10.576 26.037 l3.751 -21.272",
+    "note": "Crypto payment — specific expense subject; clean geometry derived from Lucide bitcoin",
+    "source": "lucide-static@1.28.0/icons/bitcoin.svg"
+  },
+  "expense_blocks": {
+    "d": "M13.6 28 V10 a1.2 1.2 0 0 0 -1.2 -1.2 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 v14.4 a2.4 2.4 0 0 0 2.4 2.4 h14.4 a2.4 2.4 0 0 0 2.4 -2.4 v-6 a1.2 1.2 0 0 0 -1.2 -1.2 H4 M19.6 4 H26.8 A1.2 1.2 0 0 1 28 5.2 V12.4 A1.2 1.2 0 0 1 26.8 13.6 H19.6 A1.2 1.2 0 0 1 18.4 12.4 V5.2 A1.2 1.2 0 0 1 19.6 4 Z",
+    "note": "Building blocks — specific expense subject; clean geometry derived from Lucide blocks",
+    "source": "lucide-static@1.28.0/icons/blocks.svg"
+  },
+  "expense_bluetooth": {
+    "d": "m8.4 8.4 l12 12 l-6 6 V4 l6 6 L10 22",
+    "note": "Bluetooth — specific expense subject; clean geometry derived from Lucide bluetooth",
+    "source": "lucide-static@1.28.0/icons/bluetooth.svg"
+  },
+  "expense_bone": {
+    "d": "M22 13.6 c0.84 -0.84 2.028 0 3 0 a3 3 0 1 0 0 -6 a0.6 0.6 0 0 1 -0.6 -0.6 a3 3 0 1 0 -6 0 c0 0.972 0.84 2.16 0 3 l-8.4 8.4 c-0.84 0.84 -2.028 0 -3 0 a3 3 0 0 0 0 6 c0.336 0 0.6 0.264 0.6 0.6 a3 3 0 1 0 6 0 c0 -0.972 -0.84 -2.16 0 -3 Z",
+    "note": "Bone care — specific expense subject; clean geometry derived from Lucide bone",
+    "source": "lucide-static@1.28.0/icons/bone.svg"
+  },
+  "expense_book_heart": {
+    "d": "M6.4 25 v-18 A3 3 0 0 1 9.4 4 H24.4 a1.2 1.2 0 0 1 1.2 1.2 v21.6 a1.2 1.2 0 0 1 -1.2 1.2 H9.4 a1.2 1.2 0 0 1 0 -6 H25.6 M11.944 13.36 A2.7 2.7 0 1 1 16 9.803 a2.7 2.7 0 1 1 4.056 3.559 l-3.151 3.427 a1.198 1.198 0 0 1 -1.808 0 z",
+    "note": "Book donation — specific expense subject; clean geometry derived from Lucide book-heart",
+    "source": "lucide-static@1.28.0/icons/book-heart.svg"
+  },
+  "expense_book_open": {
+    "d": "M16 7.6 v19.2 M25.601 24.4 A2.4 2.4 0 0 0 28 22 V7.6 a2.4 2.4 0 0 0 -2.399 -2.4 L20.8 5.202 A6 6 0 0 0 16 7.6 a6 6 0 0 0 -4.8 -2.4 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 v14.4 a2.4 2.4 0 0 0 2.399 2.4 H11.2 a6 6 0 0 1 4.8 2.4 a6 6 0 0 1 4.8 -2.4 z",
+    "note": "Books — specific expense subject; clean geometry derived from Lucide book-open",
+    "source": "lucide-static@1.28.0/icons/book-open.svg"
+  },
+  "expense_book_open_text": {
+    "d": "M16 7.6 v19.2 M20.8 17.2 h2.4 M20.8 12.4 h2.4 M25.601 24.4 A2.4 2.4 0 0 0 28 22 V7.6 a2.4 2.4 0 0 0 -2.399 -2.4 L20.8 5.202 A6 6 0 0 0 16 7.6 a6 6 0 0 0 -4.8 -2.4 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 v14.4 a2.4 2.4 0 0 0 2.399 2.4 H11.2 a6 6 0 0 1 4.8 2.4 a6 6 0 0 1 4.8 -2.4 z M8.8 17.2 h2.4 M8.8 12.4 h2.4",
+    "note": "Textbooks — specific expense subject; clean geometry derived from Lucide book-open-text",
+    "source": "lucide-static@1.28.0/icons/book-open-text.svg"
+  },
+  "expense_book_user": {
+    "d": "M19.6 17.2 a3.6 3.6 0 1 0 -7.2 0 M6.4 25 v-18 A3 3 0 0 1 9.4 4 H24.4 a1.2 1.2 0 0 1 1.2 1.2 v21.6 a1.2 1.2 0 0 1 -1.2 1.2 H9.4 a1.2 1.2 0 0 1 0 -6 H25.6",
+    "note": "Passport — specific expense subject; clean geometry derived from Lucide book-user",
+    "source": "lucide-static@1.28.0/icons/book-user.svg",
+    "dots": [[16.0, 11.2, 2.4]]
+  },
+  "expense_bottle_wine": {
+    "d": "M13.6 5.2 a1.2 1.2 0 0 1 1.2 -1.2 h2.4 a1.2 1.2 0 0 1 1.2 1.2 v2.4 a7.2 7.2 0 0 0 1.44 4.32 l0.72 0.96 A7.2 7.2 0 0 1 22 17.2 v9.6 a1.2 1.2 0 0 1 -1.2 1.2 H11.2 a1.2 1.2 0 0 1 -1.2 -1.2 v-9.6 a7.2 7.2 0 0 1 1.44 -4.32 l0.72 -0.96 A7.2 7.2 0 0 0 13.6 7.6 z M22 17.2 h-4.8 a1.2 1.2 0 0 0 -1.2 1.2 v3.6 a1.2 1.2 0 0 0 1.2 1.2 h4.8",
+    "note": "Wine bottle — specific expense subject; clean geometry derived from Lucide bottle-wine",
+    "source": "lucide-static@1.28.0/icons/bottle-wine.svg"
+  },
+  "expense_box": {
+    "d": "M26.8 11.2 a2.4 2.4 0 0 0 -1.2 -2.076 l-8.4 -4.8 a2.4 2.4 0 0 0 -2.4 0 l-8.4 4.8 A2.4 2.4 0 0 0 5.2 11.2 v9.6 a2.4 2.4 0 0 0 1.2 2.076 l8.4 4.8 a2.4 2.4 0 0 0 2.4 0 l8.4 -4.8 A2.4 2.4 0 0 0 26.8 20.8 Z m3.96 8.4 l10.44 6 l10.44 -6 M16 28 V16",
+    "note": "Subscription box — specific expense subject; clean geometry derived from Lucide box",
+    "source": "lucide-static@1.28.0/icons/box.svg"
+  },
+  "expense_boxes": {
+    "d": "M5.164 17.104 A2.4 2.4 0 0 0 4 19.156 v3.888 a2.4 2.4 0 0 0 1.164 2.052 l3.6 2.16 a2.4 2.4 0 0 0 2.472 0 L16 24.4 v-6.6 l-6 -3.6 l-4.836 2.904 Z m8.4 19.8 l-5.688 -3.42 m8.4 19.8 l6 -3.6 M10 21.4 v6.204 M16 17.8 V24.4 l4.764 2.856 a2.4 2.4 0 0 0 2.472 0 l3.6 -2.16 a2.4 2.4 0 0 0 1.164 -2.052 v-3.888 a2.4 2.4 0 0 0 -1.164 -2.052 L22 14.2 l-6 3.6 Z m20.4 19.8 l-6 -3.6 m20.4 19.8 l5.688 -3.42 M22 21.4 v6.204 M11.164 6.904 A2.4 2.4 0 0 0 10 8.956 v5.244 l6 3.6 l6 -3.6 V8.956 a2.4 2.4 0 0 0 -1.164 -2.052 l-3.6 -2.16 a2.4 2.4 0 0 0 -2.472 0 l-3.6 2.16 Z M16 11.2 L10.312 7.78 m14.4 9.6 l5.688 -3.42 M16 17.8 V11.2",
+    "note": "Wholesale — specific expense subject; clean geometry derived from Lucide boxes",
+    "source": "lucide-static@1.28.0/icons/boxes.svg"
+  },
+  "expense_brain": {
+    "d": "M16 23.2 V7.6 M19.6 17.2 a5.004 5.004 0 0 1 -3.6 -4.8 a5.004 5.004 0 0 1 -3.6 4.8 M22.718 9.4 A3.6 3.6 0 1 0 16 7.6 a3.6 3.6 0 1 0 -6.718 1.8 M23.196 7.75 a4.8 4.8 0 0 1 3.031 6.924 M23.2 23.2 a4.8 4.8 0 0 0 2.4 -8.957 M25.56 22.58 A4.8 4.8 0 1 1 16 23.2 a4.8 4.8 0 1 1 -9.56 -0.62 M8.8 23.2 a4.8 4.8 0 0 1 -2.4 -8.957 M8.804 7.75 a4.8 4.8 0 0 0 -3.031 6.924",
+    "note": "Mental health — specific expense subject; clean geometry derived from Lucide brain",
+    "source": "lucide-static@1.28.0/icons/brain.svg"
+  },
+  "expense_briefcase": {
+    "d": "M20.8 25.6 V6.4 a2.4 2.4 0 0 0 -2.4 -2.4 h-4.8 a2.4 2.4 0 0 0 -2.4 2.4 v19.2 M6.4 8.8 H25.6 A2.4 2.4 0 0 1 28 11.2 V23.2 A2.4 2.4 0 0 1 25.6 25.6 H6.4 A2.4 2.4 0 0 1 4 23.2 V11.2 A2.4 2.4 0 0 1 6.4 8.8 Z",
+    "note": "Professional services — specific expense subject; clean geometry derived from Lucide briefcase",
+    "source": "lucide-static@1.28.0/icons/briefcase.svg"
+  },
+  "expense_briefcase_business": {
+    "d": "M16 16 h0.012 M20.8 8.8 V6.4 a2.4 2.4 0 0 0 -2.4 -2.4 h-4.8 a2.4 2.4 0 0 0 -2.4 2.4 v2.4 M28 17.2 a21.78 21.78 0 0 1 -24 0 M6.4 8.8 H25.6 A2.4 2.4 0 0 1 28 11.2 V23.2 A2.4 2.4 0 0 1 25.6 25.6 H6.4 A2.4 2.4 0 0 1 4 23.2 V11.2 A2.4 2.4 0 0 1 6.4 8.8 Z",
+    "note": "Business consulting — specific expense subject; clean geometry derived from Lucide briefcase-business",
+    "source": "lucide-static@1.28.0/icons/briefcase-business.svg"
+  },
+  "expense_briefcase_medical": {
+    "d": "M16 14.8 v4.8 M18.4 17.2 h-4.8 M20.8 8.8 V6.4 a2.4 2.4 0 0 0 -2.4 -2.4 h-4.8 a2.4 2.4 0 0 0 -2.4 2.4 v2.4 M23.2 8.8 v16.8 M8.8 8.8 v16.8 M6.4 8.8 H25.6 A2.4 2.4 0 0 1 28 11.2 V23.2 A2.4 2.4 0 0 1 25.6 25.6 H6.4 A2.4 2.4 0 0 1 4 23.2 V11.2 A2.4 2.4 0 0 1 6.4 8.8 Z",
+    "note": "Medical bag — specific expense subject; clean geometry derived from Lucide briefcase-medical",
+    "source": "lucide-static@1.28.0/icons/briefcase-medical.svg"
+  },
+  "expense_brush_cleaning": {
+    "d": "m19.2 26.4 l-1.2 -4.8 M24.4 18.4 a1.2 1.2 0 0 0 1.2 -1.2 v-1.2 a2.4 2.4 0 0 0 -2.4 -2.4 h-3.6 a1.2 1.2 0 0 1 -1.2 -1.2 V6.4 a2.4 2.4 0 0 0 -4.8 0 v6 a1.2 1.2 0 0 1 -1.2 1.2 H8.8 a2.4 2.4 0 0 0 -2.4 2.4 v1.2 a1.2 1.2 0 0 0 1.2 1.2 M24.4 18.4 H7.6 l-2.368 8.12 A1.2 1.2 0 0 0 6.4 28 h19.2 a1.2 1.2 0 0 0 1.168 -1.48 z m9.6 26.4 l1.2 -4.8",
+    "note": "Cleaning — specific expense subject; clean geometry derived from Lucide brush-cleaning",
+    "source": "lucide-static@1.28.0/icons/brush-cleaning.svg"
+  },
+  "expense_building": {
+    "d": "M16 13.6 h0.012 M16 18.4 h0.012 M16 8.8 h0.012 M20.8 13.6 h0.012 M20.8 18.4 h0.012 M20.8 8.8 h0.012 M11.2 13.6 h0.012 M11.2 18.4 h0.012 M11.2 8.8 h0.012 M12.4 28 v-3.6 a1.2 1.2 0 0 1 1.2 -1.2 h4.8 a1.2 1.2 0 0 1 1.2 1.2 v3.6 M8.8 4 H23.2 A2.4 2.4 0 0 1 25.6 6.4 V25.6 A2.4 2.4 0 0 1 23.2 28 H8.8 A2.4 2.4 0 0 1 6.4 25.6 V6.4 A2.4 2.4 0 0 1 8.8 4 Z",
+    "note": "Museum visit — specific expense subject; clean geometry derived from Lucide building",
+    "source": "lucide-static@1.28.0/icons/building.svg"
+  },
+  "expense_building_2": {
+    "d": "M13.6 16 h4.8 M13.6 11.2 h4.8 M18.4 26.8 v-3.6 a2.4 2.4 0 0 0 -4.8 0 v3.6 M8.8 13.6 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 v8.4 a2.4 2.4 0 0 0 2.4 2.4 h19.2 a2.4 2.4 0 0 0 2.4 -2.4 V12.4 a2.4 2.4 0 0 0 -2.4 -2.4 h-2.4 M8.8 26.8 V7.6 a2.4 2.4 0 0 1 2.4 -2.4 h9.6 a2.4 2.4 0 0 1 2.4 2.4 v19.2",
+    "note": "Office space — specific expense subject; clean geometry derived from Lucide building-2",
+    "source": "lucide-static@1.28.0/icons/building-2.svg"
+  },
+  "expense_bus_front": {
+    "d": "M6.4 8.8 L4 10 M13.6 8.8 h4.8 m26.4 8.4 l-2.4 -1.2 M8.8 5.2 H23.2 A2.4 2.4 0 0 1 25.6 7.6 V22 A2.4 2.4 0 0 1 23.2 24.4 H8.8 A2.4 2.4 0 0 1 6.4 22 V7.6 A2.4 2.4 0 0 1 8.8 5.2 Z M6.4 14.8 h19.2 M11.2 19.6 h0.012 M20.8 19.6 h0.012 M8.8 24.4 v2.4 M23.2 26.8 v-2.4",
+    "note": "Coach — specific expense subject; clean geometry derived from Lucide bus-front",
+    "source": "lucide-static@1.28.0/icons/bus-front.svg"
+  },
+  "expense_cable": {
+    "d": "M22 24.4 a1.2 1.2 0 0 1 -1.2 -1.2 v-2.4 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v2.4 a1.2 1.2 0 0 1 -1.2 1.2 z M22 26.8 v-2.4 M24.4 18.4 V9.4 a1.2 1.2 0 0 0 -8.4 0 v13.2 a1.2 1.2 0 0 1 -8.4 0 V13.6 M26.8 26.8 v-2.4 M5.2 7.6 V5.2 M6.4 13.6 a2.4 2.4 0 0 1 -2.4 -2.4 V8.8 a1.2 1.2 0 0 1 1.2 -1.2 h4.8 a1.2 1.2 0 0 1 1.2 1.2 v2.4 a2.4 2.4 0 0 1 -2.4 2.4 z M10 7.6 V5.2",
+    "note": "Data cable — specific expense subject; clean geometry derived from Lucide cable",
+    "source": "lucide-static@1.28.0/icons/cable.svg"
+  },
+  "expense_cable_car": {
+    "d": "M13.6 5.2 h0.012 M18.4 4 h0.012 m2.4 10.8 l24 -6 M16 16 V9.4 M10 16 H22 A3.6 3.6 0 0 1 25.6 19.6 V24.4 A3.6 3.6 0 0 1 22 28 H10 A3.6 3.6 0 0 1 6.4 24.4 V19.6 A3.6 3.6 0 0 1 10 16 Z M12.4 16 v6 M19.6 16 v6 M6.4 22 h19.2",
+    "note": "Cable car — specific expense subject; clean geometry derived from Lucide cable-car",
+    "source": "lucide-static@1.28.0/icons/cable-car.svg"
+  },
+  "expense_cake": {
+    "d": "M25.6 26.8 v-9.6 a2.4 2.4 0 0 0 -2.4 -2.4 H8.8 a2.4 2.4 0 0 0 -2.4 2.4 v9.6 M6.4 20.8 s0.6 -1.2 2.4 -1.2 s3 2.4 4.8 2.4 s3 -2.4 4.8 -2.4 s3 2.4 4.8 2.4 s2.4 -1.2 2.4 -1.2 M4 26.8 h24 M10 11.2 v3.6 M16 11.2 v3.6 M22 11.2 v3.6 M10 6.4 h0.012 M16 6.4 h0.012 M22 6.4 h0.012",
+    "note": "Celebration cake — specific expense subject; clean geometry derived from Lucide cake",
+    "source": "lucide-static@1.28.0/icons/cake.svg"
+  },
+  "expense_calculator": {
+    "d": "M8.8 4 H23.2 A2.4 2.4 0 0 1 25.6 6.4 V25.6 A2.4 2.4 0 0 1 23.2 28 H8.8 A2.4 2.4 0 0 1 6.4 25.6 V6.4 A2.4 2.4 0 0 1 8.8 4 Z M11.2 8.8 L20.8 8.8 M20.8 18.4 L20.8 23.2 M20.8 13.6 h0.012 M16 13.6 h0.012 M11.2 13.6 h0.012 M16 18.4 h0.012 M11.2 18.4 h0.012 M16 23.2 h0.012 M11.2 23.2 h0.012",
+    "note": "Maths tools — specific expense subject; clean geometry derived from Lucide calculator",
+    "source": "lucide-static@1.28.0/icons/calculator.svg"
+  },
+  "expense_calendar_check": {
+    "d": "M11.2 4 v3.6 M20.8 4 v3.6 M7.6 5.2 H24.4 A2.4 2.4 0 0 1 26.8 7.6 V24.4 A2.4 2.4 0 0 1 24.4 26.8 H7.6 A2.4 2.4 0 0 1 5.2 24.4 V7.6 A2.4 2.4 0 0 1 7.6 5.2 Z M5.2 12.4 h21.6 m10.8 18 l2.4 2.4 l4.8 -4.8",
+    "note": "Booked service — specific expense subject; clean geometry derived from Lucide calendar-check",
+    "source": "lucide-static@1.28.0/icons/calendar-check.svg"
+  },
+  "expense_calendar_clock": {
+    "d": "M20.8 18.4 v2.64 l1.92 1.2 M20.8 4 v3.6 M26.8 10.406 V7.6 a2.4 2.4 0 0 0 -2.4 -2.4 H7.6 a2.4 2.4 0 0 0 -2.4 2.4 v16.8 a2.4 2.4 0 0 0 2.4 2.4 h2.806 M5.2 12.4 h7.031 M11.2 4 v3.6",
+    "note": "Scheduled maintenance — specific expense subject; clean geometry derived from Lucide calendar-clock",
+    "source": "lucide-static@1.28.0/icons/calendar-clock.svg",
+    "dots": [[20.8, 20.8, 7.2]]
+  },
+  "expense_calendar_heart": {
+    "d": "M16.152 26.8 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 V7.6 a2.4 2.4 0 0 1 2.4 -2.4 h16.8 a2.4 2.4 0 0 1 2.4 2.4 v6.15 M19.144 22.96 A2.7 2.7 0 1 1 23.2 19.403 a2.7 2.7 0 1 1 4.056 3.559 l-3.151 3.427 a1.198 1.198 0 0 1 -1.808 0 z M20.8 4 v3.6 M5.2 12.4 h21.6 M11.2 4 v3.6",
+    "note": "Memorial date — specific expense subject; clean geometry derived from Lucide calendar-heart",
+    "source": "lucide-static@1.28.0/icons/calendar-heart.svg"
+  },
+  "expense_camera": {
+    "d": "M18.396 6.4 a2.4 2.4 0 0 1 2.112 1.26 l0.583 1.08 A2.4 2.4 0 0 0 23.204 10 H25.6 a2.4 2.4 0 0 1 2.4 2.4 v10.8 a2.4 2.4 0 0 1 -2.4 2.4 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 V12.4 a2.4 2.4 0 0 1 2.4 -2.4 h2.396 a2.4 2.4 0 0 0 2.111 -1.258 l0.587 -1.085 A2.4 2.4 0 0 1 13.605 6.4 z",
+    "note": "Travel photos — specific expense subject; clean geometry derived from Lucide camera",
+    "source": "lucide-static@1.28.0/icons/camera.svg",
+    "dots": [[16.0, 17.2, 3.6]]
+  },
+  "expense_candy": {
+    "d": "M13.6 10 v13.08 M18.4 8.92 V22 M20.8 10 V5.2 a1.2 1.2 0 0 1 2.048 -0.848 a3 3 0 0 0 2.582 0.86 a1.2 1.2 0 0 1 1.357 1.357 a3 3 0 0 0 0.86 2.582 A1.2 1.2 0 0 1 26.8 11.2 h-4.8 M21.443 10.558 a6 6 0 0 0 -8.486 0 l-2.4 2.4 a6 6 0 0 0 0 8.484 a6 6 0 0 0 8.486 0 l2.4 -2.4 a6 6 0 0 0 0 -8.484 M11.2 22 v4.8 a1.2 1.2 0 0 1 -2.048 0.848 a3 3 0 0 0 -2.582 -0.86 a1.2 1.2 0 0 1 -1.357 -1.357 a3 3 0 0 0 -0.86 -2.582 A1.2 1.2 0 0 1 5.2 20.8 h4.8",
+    "note": "Candy — specific expense subject; clean geometry derived from Lucide candy",
+    "source": "lucide-static@1.28.0/icons/candy.svg"
+  },
+  "expense_car_front": {
+    "d": "m25.2 9.6 l-2.4 2.4 l-1.8 -4.44 A2.4 2.4 0 0 0 20.375 7.6 H11.68 a2.4 2.4 0 0 0 -2.284 1.508 L7.6 13.6 L5.2 11.2 M10 18.4 h0.012 M22 18.4 h0.012 M7.6 13.6 H24.4 A2.4 2.4 0 0 1 26.8 16 V20.8 A2.4 2.4 0 0 1 24.4 23.2 H7.6 A2.4 2.4 0 0 1 5.2 20.8 V16 A2.4 2.4 0 0 1 7.6 13.6 Z M7.6 23.2 v2.4 M24.4 23.2 v2.4",
+    "note": "Car — specific expense subject; clean geometry derived from Lucide car-front",
+    "source": "lucide-static@1.28.0/icons/car-front.svg"
+  },
+  "expense_car_taxi_front": {
+    "d": "M13.6 4 h4.8 m25.2 9.6 l-2.4 2.4 l-1.8 -4.44 A2.4 2.4 0 0 0 20.375 7.6 H11.68 a2.4 2.4 0 0 0 -2.284 1.508 L7.6 13.6 L5.2 11.2 M10 18.4 h0.012 M22 18.4 h0.012 M7.6 13.6 H24.4 A2.4 2.4 0 0 1 26.8 16 V20.8 A2.4 2.4 0 0 1 24.4 23.2 H7.6 A2.4 2.4 0 0 1 5.2 20.8 V16 A2.4 2.4 0 0 1 7.6 13.6 Z M7.6 23.2 v2.4 M24.4 23.2 v2.4",
+    "note": "Ride-hailing — specific expense subject; clean geometry derived from Lucide car-taxi-front",
+    "source": "lucide-static@1.28.0/icons/car-taxi-front.svg"
+  },
+  "expense_caravan": {
+    "d": "M23.2 24.4 V12.4 a4.8 4.8 0 0 0 -4.8 -4.8 H8.8 a4.8 4.8 0 0 0 -4.8 4.8 v9.6 a2.4 2.4 0 0 0 2.4 2.4 h2.4 M4 12.4 h3.6 a1.2 1.2 0 0 1 1.2 1.2 v2.4 a1.2 1.2 0 0 1 -1.2 1.2 H4 M28 22 v1.2 a1.2 1.2 0 0 1 -1.2 1.2 H13.6 v-10.8 a1.2 1.2 0 0 1 1.2 -1.2 h2.4 a1.2 1.2 0 0 1 1.2 1.2 v10.8",
+    "note": "Motorhome — specific expense subject; clean geometry derived from Lucide caravan",
+    "source": "lucide-static@1.28.0/icons/caravan.svg",
+    "dots": [[11.2, 24.4, 2.4]]
+  },
+  "expense_card_sim": {
+    "d": "M16 18.4 v4.8 M18.606 4 a2.4 2.4 0 0 1 1.697 0.703 l4.594 4.594 A2.4 2.4 0 0 1 25.6 10.994 V25.6 a2.4 2.4 0 0 1 -2.4 2.4 H8.8 a2.4 2.4 0 0 1 -2.4 -2.4 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 z M11.2 18.4 h9.6 M12.4 13.6 H19.6 A1.2 1.2 0 0 1 20.8 14.8 V22 A1.2 1.2 0 0 1 19.6 23.2 H12.4 A1.2 1.2 0 0 1 11.2 22 V14.8 A1.2 1.2 0 0 1 12.4 13.6 Z",
+    "note": "SIM card — specific expense subject; clean geometry derived from Lucide card-sim",
+    "source": "lucide-static@1.28.0/icons/card-sim.svg"
+  },
+  "expense_carrot": {
+    "d": "M19.6 20.8 a1.2 1.2 0 0 0 -8.4 -8.4 q-4.8 4.8 -7.184 14.862 a0.6 0.6 0 0 0 0.722 0.722 Q14.8 25.6 19.6 20.8 l-3.6 -3.6 M19.6 12.4 q4.8 4.8 8.4 0 q-3.6 -4.8 -8.4 0 q4.8 -4.8 0 -8.4 q-4.8 3.6 0 8.4 m9.6 18 l-3.096 -3.096",
+    "note": "Vegetables — specific expense subject; clean geometry derived from Lucide carrot",
+    "source": "lucide-static@1.28.0/icons/carrot.svg"
+  },
+  "expense_castle": {
+    "d": "M13.6 7.6 V5.2 M18.4 7.6 V5.2 M19.6 26.8 v-3.6 a3.6 3.6 0 0 0 -7.2 0 v3.6 M23.2 5.2 v9.6 M23.2 7.6 H8.8 M28 14.8 H4 M28 12.4 v12 a2.4 2.4 0 0 1 -2.4 2.4 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 V12.4 M8.8 5.2 v9.6",
+    "note": "Castle visit — specific expense subject; clean geometry derived from Lucide castle",
+    "source": "lucide-static@1.28.0/icons/castle.svg"
+  },
+  "expense_cat": {
+    "d": "M16 7.6 c0.804 0 1.62 0.108 2.4 0.312 c2.136 -2.4 6.036 -3.408 7.704 -2.712 c1.68 0.696 -0.504 8.4 -0.504 8.4 c0.684 1.284 1.2 2.688 1.2 4.128 C26.8 23.08 21.964 26.8 16 26.8 s-10.8 -3.6 -10.8 -9.072 c0 -1.5 0.6 -2.88 1.2 -4.128 c0 0 -2.268 -7.704 -0.6 -8.4 c1.668 -0.696 5.664 0.276 7.8 2.676 A10.848 10.848 0 0 1 16 7.6 Z M11.2 18.4 v0.6 M20.8 18.4 v0.6 M15.1 21.1 h1.8 L16 22 l-0.9 -0.9 Z",
+    "note": "Cat rescue — specific expense subject; clean geometry derived from Lucide cat",
+    "source": "lucide-static@1.28.0/icons/cat.svg"
+  },
+  "expense_chart_no_axes_column_increasing": {
+    "d": "M7.6 26.8 v-7.2 M16 26.8 V12.4 M24.4 26.8 V5.2",
+    "note": "Investment growth — specific expense subject; clean geometry derived from Lucide chart-no-axes-column-increasing",
+    "source": "lucide-static@1.28.0/icons/chart-no-axes-column-increasing.svg"
+  },
+  "expense_chef_hat": {
+    "d": "M22 26.8 a1.2 1.2 0 0 0 1.2 -1.2 v-6.42 c0 -0.548 0.379 -1.013 0.872 -1.249 a4.8 4.8 0 0 0 -2.561 -9.107 a6 6 0 0 0 -11.023 0 a4.8 4.8 0 0 0 -2.561 9.106 c0.493 0.238 0.872 0.702 0.872 1.249 V25.6 a1.2 1.2 0 0 0 1.2 1.2 Z M8.8 22 h14.4",
+    "note": "Catering — specific expense subject; clean geometry derived from Lucide chef-hat",
+    "source": "lucide-static@1.28.0/icons/chef-hat.svg"
+  },
+  "expense_circle_dollar_sign": {
+    "d": "M20.8 11.2 h-7.2 a2.4 2.4 0 1 0 0 4.8 h4.8 a2.4 2.4 0 1 1 0 4.8 H11.2 M16 23.2 V8.8",
+    "note": "Dollar payment — specific expense subject; clean geometry derived from Lucide circle-dollar-sign",
+    "source": "lucide-static@1.28.0/icons/circle-dollar-sign.svg",
+    "dots": [[16.0, 16.0, 12.0]]
+  },
+  "expense_circle_euro": {
+    "d": "M19.6 12.88 a4.8 4.8 0 1 0 0 6.24 M10 16 h6",
+    "note": "Euro payment — specific expense subject; clean geometry derived from Lucide circle-euro",
+    "source": "lucide-static@1.28.0/icons/circle-euro.svg",
+    "dots": [[16.0, 16.0, 12.0]]
+  },
+  "expense_circle_pound_sterling": {
+    "d": "M13.6 20.8 V13 a1.2 1.2 0 0 1 6 0 M11.2 16 h4.8 M11.2 20.8 h8.4",
+    "note": "Pound payment — specific expense subject; clean geometry derived from Lucide circle-pound-sterling",
+    "source": "lucide-static@1.28.0/icons/circle-pound-sterling.svg",
+    "dots": [[16.0, 16.0, 12.0]]
+  },
+  "expense_citrus": {
+    "d": "M27.592 22.804 a1.296 1.296 0 0 1 -0.048 1.92 A14.4 14.4 0 0 1 7.276 4.456 a1.32 1.32 0 0 1 1.932 -0.048 z M25.18 20.392 A9.6 9.6 0 0 1 11.62 6.808 m16.8 12 l-6.6 6.6 M18.4 23.02 V13.6 H8.98",
+    "note": "Citrus — specific expense subject; clean geometry derived from Lucide citrus",
+    "source": "lucide-static@1.28.0/icons/citrus.svg"
+  },
+  "expense_clapperboard": {
+    "d": "m14.755 4.157 l3.624 4.747 M25.84 8.8 L5.2 14.8 l-1.08 -2.88 c-0.36 -1.32 0.36 -2.64 1.56 -3 l16.2 -4.8 c1.32 -0.36 2.64 0.36 3 1.56 z M5.2 14.8 h21.6 v9.6 a2.4 2.4 0 0 1 -2.4 2.4 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 z m7.416 6.331 l3.72 4.679",
+    "note": "Cinema — specific expense subject; clean geometry derived from Lucide clapperboard",
+    "source": "lucide-static@1.28.0/icons/clapperboard.svg"
+  },
+  "expense_clipboard_check": {
+    "d": "M12.4 4 H19.6 A1.2 1.2 0 0 1 20.8 5.2 V7.6 A1.2 1.2 0 0 1 19.6 8.8 H12.4 A1.2 1.2 0 0 1 11.2 7.6 V5.2 A1.2 1.2 0 0 1 12.4 4 Z M20.8 6.4 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v16.8 a2.4 2.4 0 0 1 -2.4 2.4 H8.8 a2.4 2.4 0 0 1 -2.4 -2.4 V8.8 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 m10.8 16.8 l2.4 2.4 l4.8 -4.8",
+    "note": "Inspection — specific expense subject; clean geometry derived from Lucide clipboard-check",
+    "source": "lucide-static@1.28.0/icons/clipboard-check.svg"
+  },
+  "expense_clipboard_list": {
+    "d": "M12.4 4 H19.6 A1.2 1.2 0 0 1 20.8 5.2 V7.6 A1.2 1.2 0 0 1 19.6 8.8 H12.4 A1.2 1.2 0 0 1 11.2 7.6 V5.2 A1.2 1.2 0 0 1 12.4 4 Z M20.8 6.4 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v16.8 a2.4 2.4 0 0 1 -2.4 2.4 H8.8 a2.4 2.4 0 0 1 -2.4 -2.4 V8.8 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 M16 14.8 h4.8 M16 20.8 h4.8 M11.2 14.8 h0.012 M11.2 20.8 h0.012",
+    "note": "Admin service — specific expense subject; clean geometry derived from Lucide clipboard-list",
+    "source": "lucide-static@1.28.0/icons/clipboard-list.svg"
+  },
+  "expense_clock": {
+    "d": "M16 8.8 v7.2 l4.8 2.4",
+    "note": "Hourly service — specific expense subject; clean geometry derived from Lucide clock",
+    "source": "lucide-static@1.28.0/icons/clock.svg",
+    "dots": [[16.0, 16.0, 12.0]]
+  },
+  "expense_cloud": {
+    "d": "M22.6 24.4 H12.4 a8.4 8.4 0 1 1 8.052 -10.8 h2.148 a5.4 5.4 0 1 1 0 10.8 Z",
+    "note": "Cloud storage — specific expense subject; clean geometry derived from Lucide cloud",
+    "source": "lucide-static@1.28.0/icons/cloud.svg"
+  },
+  "expense_coins": {
+    "d": "M18.093 22.883 a7.2 7.2 0 1 1 -8.976 -8.976 M19.6 8.8 h1.2 v4.8 m7.361 17.722 l1.039 -0.6 l2.4 4.157",
+    "note": "Coins — specific expense subject; clean geometry derived from Lucide coins",
+    "source": "lucide-static@1.28.0/icons/coins.svg",
+    "dots": [[20.8, 11.2, 7.2]]
+  },
+  "expense_compass": {
+    "d": "m19.488 9.312 l-2.165 6.493 a2.4 2.4 0 0 1 -1.518 1.518 L10.912 21.088 l2.165 -6.493 a2.4 2.4 0 0 1 1.518 -1.518 z",
+    "note": "Travel guide — specific expense subject; clean geometry derived from Lucide compass",
+    "source": "lucide-static@1.28.0/icons/compass.svg",
+    "dots": [[16.0, 16.0, 12.0]]
+  },
+  "expense_construction": {
+    "d": "M5.2 8.8 H26.8 A1.2 1.2 0 0 1 28 10 V17.2 A1.2 1.2 0 0 1 26.8 18.4 H5.2 A1.2 1.2 0 0 1 4 17.2 V10 A1.2 1.2 0 0 1 5.2 8.8 Z M22 18.4 v8.4 M10 18.4 v8.4 M22 5.2 v3.6 M10 5.2 v3.6 M13.6 18.4 L4.36 9.16 m16.8 7.2 l9.24 9.24 m9.6 7.2 l9.6 9.6",
+    "note": "Construction — specific expense subject; clean geometry derived from Lucide construction",
+    "source": "lucide-static@1.28.0/icons/construction.svg"
+  },
+  "expense_container": {
+    "d": "M28 10.84 c0 -0.72 -0.48 -1.44 -0.96 -1.8 l-7.56 -4.68 a2.064 2.064 0 0 0 -2.04 0 l-12.36 7.2 c-0.6 0.24 -1.08 0.96 -1.08 1.68 v7.92 c0 0.6 0.48 1.44 0.96 1.8 l7.56 4.68 a2.064 2.064 0 0 0 2.04 0 l12.36 -7.2 c0.6 -0.36 1.08 -1.2 1.08 -1.8 Z M13.6 27.88 V18.4 L4.12 12.52 m12 16.8 l14.28 -8.28 M18.4 25.36 v-9.72 M23.2 22.6 V12.88",
+    "note": "Freight — specific expense subject; clean geometry derived from Lucide container",
+    "source": "lucide-static@1.28.0/icons/container.svg"
+  },
+  "expense_cookie": {
+    "d": "M16 4 a12 12 0 1 0 12 12 a4.8 4.8 0 0 1 -6 -6 a4.8 4.8 0 0 1 -6 -6 M11.8 11.8 v0.012 M20.8 20.2 v0.012 M16 16 v0.012 M14.8 22 v0.012 M10 18.4 v0.012",
+    "note": "Cookies — specific expense subject; clean geometry derived from Lucide cookie",
+    "source": "lucide-static@1.28.0/icons/cookie.svg"
+  },
+  "expense_cooking_pot": {
+    "d": "M4 16 h24 M25.6 16 v9.6 a2.4 2.4 0 0 1 -2.4 2.4 H8.8 a2.4 2.4 0 0 1 -2.4 -2.4 v-9.6 m4.8 9.6 l19.2 -4.8 m10.632 8.136 l-0.54 -2.172 a2.4 2.4 0 0 1 1.74 -2.916 l2.328 -0.576 a2.4 2.4 0 0 1 2.916 1.752 l0.54 2.16",
+    "note": "Cooking supplies — specific expense subject; clean geometry derived from Lucide cooking-pot",
+    "source": "lucide-static@1.28.0/icons/cooking-pot.svg"
+  },
+  "expense_credit_card": {
+    "d": "M6.4 7.6 H25.6 A2.4 2.4 0 0 1 28 10 V22 A2.4 2.4 0 0 1 25.6 24.4 H6.4 A2.4 2.4 0 0 1 4 22 V10 A2.4 2.4 0 0 1 6.4 7.6 Z M4 13.6 L28 13.6",
+    "note": "Credit card — specific expense subject; clean geometry derived from Lucide credit-card",
+    "source": "lucide-static@1.28.0/icons/credit-card.svg"
+  },
+  "expense_croissant": {
+    "d": "M13.84 23.2 H7.329 a1.8 1.8 0 0 1 -1.622 -1.164 a13.2 13.2 0 0 1 0.158 -7.784 M23.2 13.84 V7.329 a1.8 1.8 0 0 0 -1.164 -1.622 a13.2 13.2 0 0 0 -7.783 0.158 M23.2 7.6 a4.8 3.6 0 0 1 4.8 3.6 a2.4 2.4 0 0 1 -2.4 2.4 a12 12 0 0 0 -6.167 1.704 M7.6 23.2 a3.6 4.8 0 0 0 3.6 4.8 a2.4 2.4 0 0 0 2.4 -2.4 a12 12 0 0 1 1.704 -6.168 M12.051 4.665 a12 12 0 0 0 -7.386 7.386 a1.8 1.8 0 0 0 0.811 1.951 l11.768 6.504 a2.4 2.4 0 0 0 3.262 -3.262 l-6.504 -11.768 a1.8 1.8 0 0 0 -1.951 -0.811",
+    "note": "Croissant — specific expense subject; clean geometry derived from Lucide croissant",
+    "source": "lucide-static@1.28.0/icons/croissant.svg"
+  },
+  "expense_cross": {
+    "d": "M6.4 12.4 a2.4 2.4 0 0 0 -2.4 2.4 v2.4 a2.4 2.4 0 0 0 2.4 2.4 h4.8 a1.2 1.2 0 0 1 1.2 1.2 v4.8 a2.4 2.4 0 0 0 2.4 2.4 h2.4 a2.4 2.4 0 0 0 2.4 -2.4 v-4.8 a1.2 1.2 0 0 1 1.2 -1.2 h4.8 a2.4 2.4 0 0 0 2.4 -2.4 v-2.4 a2.4 2.4 0 0 0 -2.4 -2.4 h-4.8 a1.2 1.2 0 0 1 -1.2 -1.2 V6.4 a2.4 2.4 0 0 0 -2.4 -2.4 h-2.4 a2.4 2.4 0 0 0 -2.4 2.4 v4.8 a1.2 1.2 0 0 1 -1.2 1.2 z",
+    "note": "First aid — specific expense subject; clean geometry derived from Lucide cross",
+    "source": "lucide-static@1.28.0/icons/cross.svg"
+  },
+  "expense_cup_soda": {
+    "d": "m7.2 9.6 l2.1 14.736 a2.4 2.4 0 0 0 2.4 2.064 h5.448 a2.4 2.4 0 0 0 2.4 -2.064 L23.2 11.2 M7.6 11.2 h16.8 M10 19.6 a7.764 7.764 0 0 1 6 0 a7.764 7.764 0 0 0 6 0 m14.4 9.6 l1.2 -7.2 h2.4",
+    "note": "Soft drinks — specific expense subject; clean geometry derived from Lucide cup-soda",
+    "source": "lucide-static@1.28.0/icons/cup-soda.svg"
+  },
+  "expense_diamond": {
+    "d": "M4.84 13.96 a2.892 2.892 0 0 0 0 4.092 l9.108 9.108 a2.892 2.892 0 0 0 4.092 0 l9.108 -9.108 a2.892 2.892 0 0 0 0 -4.092 l-9.108 -9.108 a2.892 2.892 0 0 0 -4.092 0 Z",
+    "note": "Luxury goods — specific expense subject; clean geometry derived from Lucide diamond",
+    "source": "lucide-static@1.28.0/icons/diamond.svg"
+  },
+  "expense_dices": {
+    "d": "M6.4 13.6 H16 A2.4 2.4 0 0 1 18.4 16 V25.6 A2.4 2.4 0 0 1 16 28 H6.4 A2.4 2.4 0 0 1 4 25.6 V16 A2.4 2.4 0 0 1 6.4 13.6 Z m21.504 16.8 l4.2 -4.2 a2.688 2.688 0 0 0 0 -3.6 l-6 -5.904 a2.688 2.688 0 0 0 -3.6 0 L13.6 8.8 M8.8 23.2 h0.012 M13.6 18.4 h0.012 M19.6 8.8 h0.012 M23.2 12.4 h0.012",
+    "note": "Board games — specific expense subject; clean geometry derived from Lucide dices",
+    "source": "lucide-static@1.28.0/icons/dices.svg"
+  },
+  "expense_disc_3": {
+    "d": "M8.8 16 c0 -2.04 0.84 -3.84 2.16 -5.04 M23.2 16 c0 2.04 -0.84 3.84 -2.16 5.04",
+    "note": "Records — specific expense subject; clean geometry derived from Lucide disc-3",
+    "source": "lucide-static@1.28.0/icons/disc-3.svg",
+    "dots": [
+      [16.0, 16.0, 12.0],
+      [16.0, 16.0, 2.4]
+    ]
+  },
+  "expense_dna": {
+    "d": "m12 19.2 l1.8 1.8 m16.8 9.6 l-1.8 -1.8 M19.6 4 c-2.158 2.398 -3.022 4.794 -3.368 7.192 m19.8 12.6 l1.2 1.2 m20.4 7.2 l-3.469 -3.469 M4 19.6 c8 -7.2 16 0 24 -7.2 m24 10.8 l1.069 1.069 M5.331 18.531 L6.4 19.6 m7.8 15 l1.2 1.2 m8.4 21.6 l3.469 3.469 M12.4 28 c2.158 -2.398 3.022 -4.794 3.368 -7.192",
+    "note": "Genetic test — specific expense subject; clean geometry derived from Lucide dna",
+    "source": "lucide-static@1.28.0/icons/dna.svg"
+  },
+  "expense_dog": {
+    "d": "M15.1 21.1 h1.8 L16 22 z M20.8 18.4 v0.6 M6.904 15.096 A15.782 15.782 0 0 0 6.4 19.067 C6.4 24.074 10.698 26.8 16 26.8 s9.6 -2.726 9.6 -7.733 a14.042 14.042 0 0 0 -0.592 -3.971 M11.2 18.4 v0.6 M11.8 11.8 c-0.461 1.26 -1.3 2.434 -2.813 3 c-2.317 0.866 -4.291 -0.356 -4.387 -1.2 c-0.136 -1.193 1.412 -7.836 4.8 -8.4 c2.308 -0.385 4.381 1.014 4.381 2.682 A8.996 8.996 0 0 1 18.4 7.932 c0 -1.668 2.213 -3.118 4.52 -2.732 c3.388 0.564 4.936 7.207 4.8 8.4 c-0.096 0.844 -2.07 2.066 -4.387 1.2 c-1.513 -0.566 -2.226 -1.74 -2.687 -3",
+    "note": "Dog rescue — specific expense subject; clean geometry derived from Lucide dog",
+    "source": "lucide-static@1.28.0/icons/dog.svg"
+  },
+  "expense_donut": {
+    "d": "M26.2 13.6 a3 3 0 0 1 -2.88 -3.6 H23.2 a3.54 3.54 0 0 1 -3.12 -5.28 a12 12 0 1 0 7.56 8.52 c-0.36 0.24 -0.96 0.36 -1.44 0.36",
+    "note": "Donuts — specific expense subject; clean geometry derived from Lucide donut",
+    "source": "lucide-static@1.28.0/icons/donut.svg",
+    "dots": [[16.0, 16.0, 3.6]]
+  },
+  "expense_door_open": {
+    "d": "M14.8 25.6 H4 M14.8 7.074 v19.388 a1.2 1.2 0 0 0 1.49 1.164 L24.4 25.6 V8.274 a2.4 2.4 0 0 0 -1.818 -2.328 l-4.8 -1.2 A2.4 2.4 0 0 0 14.8 7.073 z M14.8 6.4 H11.2 a2.4 2.4 0 0 0 -2.4 2.4 v16.8 M18.4 16 h0.012 M28 25.6 h-3.6",
+    "note": "Door — specific expense subject; clean geometry derived from Lucide door-open",
+    "source": "lucide-static@1.28.0/icons/door-open.svg"
+  },
+  "expense_drama": {
+    "d": "M13.6 14.8 h0.012 M18.4 8.8 h0.012 M23.2 8.8 h0.012 M9.4 17.32 h0.012 M28 7.6 c0 10.8 -4.8 14.4 -7.2 14.4 s-7.2 -3.6 -7.2 -14.4 c0 -2.4 2.4 -3.6 7.2 -3.6 s7.2 1.2 7.2 3.6 M22.48 13.48 c-0.96 0.96 -2.4 0.96 -3.36 0 M13.72 10.12 C12.4 10.24 10.84 10.84 8.8 11.92 c-4.2 2.4 -5.64 4.68 -4.44 6.72 c5.4 9.36 11.4 10.08 13.44 8.88 c1.08 -0.6 2.28 -2.52 2.28 -5.64 M12.52 21.4 c0.36 -1.32 1.68 -2.04 2.88 -1.68",
+    "note": "Theatre — specific expense subject; clean geometry derived from Lucide drama",
+    "source": "lucide-static@1.28.0/icons/drama.svg"
+  },
+  "expense_drill": {
+    "d": "M13.6 23.2 a1.2 1.2 0 0 1 1.2 1.2 v2.4 a1.2 1.2 0 0 1 -1.2 1.2 H7.6 a3.6 3.6 0 0 1 -3.6 -3.6 a1.2 1.2 0 0 1 1.2 -1.2 z M17.2 13.6 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 h10.8 a1.2 1.2 0 0 1 1.2 1.2 v7.2 a1.2 1.2 0 0 1 -1.2 1.2 l-0.972 3.89 a1.2 1.2 0 0 1 -1.164 0.91 H11.2 M18.4 6.4 h3.6 a1.2 1.2 0 0 1 1.2 1.2 v2.4 a1.2 1.2 0 0 1 -1.2 1.2 h-3.6 M23.2 8.8 h4.8 m6 12 l-2.4 9.6 m8.4 21.6 l2.4 -9.6",
+    "note": "Power tools — specific expense subject; clean geometry derived from Lucide drill",
+    "source": "lucide-static@1.28.0/icons/drill.svg"
+  },
+  "expense_droplet": {
+    "d": "M16 28 a8.4 8.4 0 0 0 8.4 -8.4 c0 -2.4 -1.2 -4.68 -3.6 -6.6 s-4.2 -4.8 -4.8 -7.8 c-0.6 3 -2.4 5.88 -4.8 7.8 C8.8 14.92 7.6 17.2 7.6 19.6 a8.4 8.4 0 0 0 8.4 8.4 z",
+    "note": "Blood donation — specific expense subject; clean geometry derived from Lucide droplet",
+    "source": "lucide-static@1.28.0/icons/droplet.svg"
+  },
+  "expense_droplets": {
+    "d": "M10 21.16 c2.64 0 4.8 -2.196 4.8 -4.86 c0 -1.392 -0.684 -2.712 -2.052 -3.828 S10.348 9.7 10 7.96 c-0.348 1.74 -1.368 3.408 -2.748 4.512 S5.2 14.92 5.2 16.3 c0 2.664 2.16 4.86 4.8 4.86 z M16.672 9.52 A13.164 13.164 0 0 0 18.4 5.224 c0.6 3 2.4 5.88 4.8 7.8 s3.6 4.2 3.6 6.6 a8.376 8.376 0 0 1 -14.292 5.964",
+    "note": "Water supply — specific expense subject; clean geometry derived from Lucide droplets",
+    "source": "lucide-static@1.28.0/icons/droplets.svg"
+  },
+  "expense_drumstick": {
+    "d": "M20.08 20.356 a9.45 7.2 135 1 1 7.476 -7.476 a5.4 4.116 135 0 0 -7.476 7.476 m9.948 15.252 l-3.12 3.12 a3 3 0 1 0 -1.98 5.58 A3 3 0 1 0 12.04 23.56 l3.108 -3.108",
+    "note": "Chicken — specific expense subject; clean geometry derived from Lucide drumstick",
+    "source": "lucide-static@1.28.0/icons/drumstick.svg"
+  },
+  "expense_dumbbell": {
+    "d": "M22.715 16.922 a2.4 2.4 0 1 0 3.395 -3.395 l-2.122 -2.12 a2.4 2.4 0 0 0 3.394 -3.395 l-3.394 -3.394 a2.4 2.4 0 0 0 -3.395 3.394 l-2.12 -2.122 a2.4 2.4 0 1 0 -3.395 3.395 z m3 25.8 l1.68 -1.68 m24.12 4.68 l1.68 -1.68 M8.012 27.382 a2.4 2.4 0 1 0 3.395 -3.394 l2.12 2.122 a2.4 2.4 0 1 0 3.395 -3.395 l-7.637 -7.637 a2.4 2.4 0 1 0 -3.395 3.395 l2.122 2.12 a2.4 2.4 0 0 0 -3.394 3.395 z m11.52 17.28 l5.76 -5.76",
+    "note": "Weights — specific expense subject; clean geometry derived from Lucide dumbbell",
+    "source": "lucide-static@1.28.0/icons/dumbbell.svg"
+  },
+  "expense_ear": {
+    "d": "M8.8 11.8 a7.8 7.8 0 1 1 15.6 0 c0 7.2 -7.2 7.2 -7.2 12 a4.2 4.2 0 1 1 -8.4 0 M19.6 11.8 a3 3 0 0 0 -6 0 v1.2 a2.4 2.4 0 1 1 0 4.8",
+    "note": "Hearing care — specific expense subject; clean geometry derived from Lucide ear",
+    "source": "lucide-static@1.28.0/icons/ear.svg"
+  },
+  "expense_earth": {
+    "d": "M27.448 19.6 H22 a2.4 2.4 0 0 0 -2.4 2.4 v5.448 M10 5.608 V7.6 a3.6 3.6 0 0 0 3.6 3.6 a2.4 2.4 0 0 1 2.4 2.4 c0 1.32 1.08 2.4 2.4 2.4 a2.4 2.4 0 0 0 2.4 -2.4 c0 -1.32 1.08 -2.4 2.4 -2.4 h3.804 M14.8 27.94 V23.2 a2.4 2.4 0 0 0 -2.4 -2.4 a2.4 2.4 0 0 1 -2.4 -2.4 v-1.2 a2.4 2.4 0 0 0 -2.4 -2.4 H4.06",
+    "note": "Geography class — specific expense subject; clean geometry derived from Lucide earth",
+    "source": "lucide-static@1.28.0/icons/earth.svg",
+    "dots": [[16.0, 16.0, 12.0]]
+  },
+  "expense_egg_fried": {
+    "d": "M5.2 11.2 c0 -4.2 3 -7.2 7.8 -7.2 c6 0 5.796 3.6 9 6 s6 2.4 6 7.2 c0 5.4 -3 7.8 -8.4 7.8 c-3 0 -3 3 -7.2 3 s-8.4 -2.4 -8.4 -6.6 c0 -3.6 1.8 -3.6 1.8 -6 C5.8 13.6 5.2 12.4 5.2 11.2 Z",
+    "note": "Eggs — specific expense subject; clean geometry derived from Lucide egg-fried",
+    "source": "lucide-static@1.28.0/icons/egg-fried.svg",
+    "dots": [[15.4, 16.6, 4.2]]
+  },
+  "expense_eye": {
+    "d": "M4.074 16.418 a1.2 1.2 0 0 1 0 -0.835 a12.9 12.9 0 0 1 23.851 0 a1.2 1.2 0 0 1 0 0.835 a12.9 12.9 0 0 1 -23.851 0",
+    "note": "Eye care — specific expense subject; clean geometry derived from Lucide eye",
+    "source": "lucide-static@1.28.0/icons/eye.svg",
+    "dots": [[16.0, 16.0, 3.6]]
+  },
+  "expense_fan": {
+    "d": "M14.592 21.255 a7.298 7.298 0 0 1 -10.342 -8.402 l6.494 1.74 a7.298 7.298 0 0 1 8.402 -10.342 l-1.74 6.494 a7.298 7.298 0 0 1 10.342 8.402 l-6.494 -1.74 a7.298 7.298 0 0 1 -8.402 10.342 l1.74 -6.494 Z M16 16 v0.012",
+    "note": "Fan — specific expense subject; clean geometry derived from Lucide fan",
+    "source": "lucide-static@1.28.0/icons/fan.svg"
+  },
+  "expense_ferris_wheel": {
+    "d": "M16 4 v4.8 m8.16 18 l-4.2 2.4 m24.84 8.4 l-4.2 2.4 M9.76 12.4 L5.56 10 m24.84 20.4 l-4.2 -2.4 m10.8 26.4 l3.6 -9.6 l3.6 9.6 M11.2 28 h9.6 M23.2 24.04 a10.8 10.8 0 1 0 -14.4 0",
+    "note": "Fairground — specific expense subject; clean geometry derived from Lucide ferris-wheel",
+    "source": "lucide-static@1.28.0/icons/ferris-wheel.svg",
+    "dots": [[16.0, 16.0, 2.4]]
+  },
+  "expense_file_check": {
+    "d": "M8.8 28 a2.4 2.4 0 0 1 -2.4 -2.4 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 h9.6 a2.88 2.88 0 0 1 2.045 0.847 l4.306 4.306 A2.88 2.88 0 0 1 25.6 11.2 v14.4 a2.4 2.4 0 0 1 -2.4 2.4 z M18.4 4 v6 a1.2 1.2 0 0 0 1.2 1.2 h6 m10.8 18 l2.4 2.4 l4.8 -4.8",
+    "note": "Approved file — specific expense subject; clean geometry derived from Lucide file-check",
+    "source": "lucide-static@1.28.0/icons/file-check.svg"
+  },
+  "expense_file_heart": {
+    "d": "M17.2 28 h6 a2.4 2.4 0 0 0 2.4 -2.4 V11.2 a2.88 2.88 0 0 0 -0.847 -2.047 l-4.306 -4.306 A2.88 2.88 0 0 0 18.4 4 H8.8 a2.4 2.4 0 0 0 -2.4 2.4 v8.4 M18.4 4 v6 a1.2 1.2 0 0 0 1.2 1.2 h6 M5.944 24.16 A2.7 2.7 0 1 1 10 20.603 a2.7 2.7 0 1 1 4.056 3.559 l-3.151 3.427 a1.2 1.2 0 0 1 -1.808 0 z",
+    "note": "Medical record — specific expense subject; clean geometry derived from Lucide file-heart",
+    "source": "lucide-static@1.28.0/icons/file-heart.svg"
+  },
+  "expense_file_signature": {
+    "d": "M18.837 17.961 a2.4 2.4 0 0 0 -0.607 1.025 l-1.004 3.444 a0.6 0.6 0 0 0 0.744 0.744 l3.444 -1.004 a2.4 2.4 0 0 0 1.025 -0.607 l4.816 -4.811 a1.2 1.2 0 0 0 -3.605 -3.605 z M18.984 11.03 A1.2 1.2 0 0 1 18.4 10 V4 M25.6 25.174 V25.6 a2.4 2.4 0 0 1 -2.4 2.4 H8.8 a2.4 2.4 0 0 1 -2.4 -2.4 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 h9.6 a2.88 2.88 0 0 1 2.045 0.847 l3.019 3.019 M11.2 23.2 h1.2",
+    "note": "Contract service — specific expense subject; clean geometry derived from Lucide file-signature",
+    "source": "lucide-static@1.28.0/icons/file-signature.svg"
+  },
+  "expense_file_text": {
+    "d": "M8.8 28 a2.4 2.4 0 0 1 -2.4 -2.4 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 h9.6 a2.88 2.88 0 0 1 2.045 0.847 l4.306 4.306 A2.88 2.88 0 0 1 25.6 11.2 v14.4 a2.4 2.4 0 0 1 -2.4 2.4 z M18.4 4 v6 a1.2 1.2 0 0 0 1.2 1.2 h6 M13.6 12.4 H11.2 M20.8 17.2 H11.2 M20.8 22 H11.2",
+    "note": "Financial document — specific expense subject; clean geometry derived from Lucide file-text",
+    "source": "lucide-static@1.28.0/icons/file-text.svg"
+  },
+  "expense_film": {
+    "d": "M7.6 5.2 H24.4 A2.4 2.4 0 0 1 26.8 7.6 V24.4 A2.4 2.4 0 0 1 24.4 26.8 H7.6 A2.4 2.4 0 0 1 5.2 24.4 V7.6 A2.4 2.4 0 0 1 7.6 5.2 Z M10 5.2 v21.6 M5.2 10.6 h4.8 M5.2 16 h21.6 M5.2 21.4 h4.8 M22 5.2 v21.6 M22 10.6 h4.8 M22 21.4 h4.8",
+    "note": "Movie — specific expense subject; clean geometry derived from Lucide film",
+    "source": "lucide-static@1.28.0/icons/film.svg"
+  },
+  "expense_fish": {
+    "d": "M9.4 16 c1.128 -4.152 5.928 -7.2 10.2 -7.2 c4.272 0 7.272 3.048 8.4 7.2 c-1.128 4.164 -4.128 7.2 -8.4 7.2 s-9.072 -3.036 -10.2 -7.2 Z M23.2 16 v0.6 M20.8 23.116 a11.724 11.724 0 0 1 0 -14.232 M10 14.404 C10 11.2 8.296 8.764 4.876 8.2 c-1.2 1.8 -1.2 6 0.276 7.8 c-1.488 1.8 -1.488 6 -0.276 7.8 C8.296 23.236 10 20.8 10 17.596 M14.152 10.312 C13.84 8.656 12.604 6.688 11.2 5.2 h6.96 a2.4 2.4 0 0 1 2.376 2.004 l0.276 1.68 m19.212 21.516 l-0.276 1.68 A2.4 2.4 0 0 1 18.16 26.8 H13 a7.152 7.152 0 0 0 1.788 -4.776",
+    "note": "Fish & seafood — specific expense subject; clean geometry derived from Lucide fish",
+    "source": "lucide-static@1.28.0/icons/fish.svg"
+  },
+  "expense_flag": {
+    "d": "M6.4 28 V6.4 a1.2 1.2 0 0 1 0.48 -0.96 A7.2 7.2 0 0 1 11.2 4 c3.6 0 6 2.4 8.8 2.4 q2.4 0 3.68 -0.96 A1.2 1.2 0 0 1 25.6 6.4 v12 a1.2 1.2 0 0 1 -0.48 0.96 A7.2 7.2 0 0 1 20.8 20.8 c-3.6 0 -6 -2.4 -9.6 -2.4 a7.2 7.2 0 0 0 -4.8 1.834",
+    "note": "Cause campaign — specific expense subject; clean geometry derived from Lucide flag",
+    "source": "lucide-static@1.28.0/icons/flag.svg"
+  },
+  "expense_flame": {
+    "d": "M16 5.2 q1.2 4.8 4.8 7.8 t3.6 6.6 a1.2 1.2 0 0 1 -16.8 0 a6 6 0 0 1 1.2 -3.6 a1.2 1.2 0 0 0 6 0 c0 -2.4 -1.8 -3.6 -1.8 -6 q0 -2.4 3 -4.8",
+    "note": "Cooking gas — specific expense subject; clean geometry derived from Lucide flame",
+    "source": "lucide-static@1.28.0/icons/flame.svg"
+  },
+  "expense_flame_kindling": {
+    "d": "M16 4 c1.2 3.6 3 4.2 4.2 5.4 A6 6 0 0 1 22 13.6 a6 6 0 1 1 -12 0 c0 -0.36 0 -0.72 0.12 -1.08 a2.4 2.4 0 1 0 3.96 -2.4 C11.2 7 14.8 4 16 4 Z m6 26.4 l16.8 -4.8 m6 21.6 l16.8 4.8",
+    "note": "Warmth donation — specific expense subject; clean geometry derived from Lucide flame-kindling",
+    "source": "lucide-static@1.28.0/icons/flame-kindling.svg"
+  },
+  "expense_flask_conical": {
+    "d": "M18.4 4 v7.2 a2.4 2.4 0 0 0 0.294 1.152 l6.612 12.096 A2.4 2.4 0 0 1 23.2 28 H8.8 a2.4 2.4 0 0 1 -2.106 -3.552 l6.612 -12.096 A2.4 2.4 0 0 0 13.6 11.2 V4 M9.344 19.6 h13.313 M11.8 4 h8.4",
+    "note": "Science class — specific expense subject; clean geometry derived from Lucide flask-conical",
+    "source": "lucide-static@1.28.0/icons/flask-conical.svg"
+  },
+  "expense_flower": {
+    "d": "M16 21.4 A5.4 5.4 0 1 1 10.6 16 A5.4 5.4 0 1 1 16 10.6 a5.4 5.4 0 1 1 5.4 5.4 a5.4 5.4 0 1 1 -5.4 5.4 M16 10.6 V12.4 M10.6 16 H12.4 M21.4 16 H19.6 M16 21.4 V19.6 m9.6 9.6 l2.256 2.256 M18.544 13.456 L20.8 11.2 m9.6 19.2 l2.256 -2.256 M18.544 18.544 L20.8 20.8",
+    "note": "Flower gift — specific expense subject; clean geometry derived from Lucide flower",
+    "source": "lucide-static@1.28.0/icons/flower.svg",
+    "dots": [[16.0, 16.0, 3.6]]
+  },
+  "expense_flower_2": {
+    "d": "M16 7.6 a3.6 3.6 0 1 1 3.6 3.6 m-3.6 -3.6 a3.6 3.6 0 1 0 -3.6 3.6 m3.6 -3.6 v1.2 M12.4 11.2 a3.6 3.6 0 1 0 3.6 3.6 M12.4 11.2 h1.2 m6 0 a3.6 3.6 0 1 1 -3.6 3.6 m3.6 -3.6 h-1.2 m-2.4 3.6 v-1.2 M16 13.6 v14.4 M16 28 c5.04 0 8.4 -2 8.4 -6 c-5.04 0 -8.4 2 -8.4 6 Z M16 28 c-5.04 0 -8.4 -2 -8.4 -6 c5.04 0 8.4 2 8.4 6 Z",
+    "note": "Flowers — specific expense subject; clean geometry derived from Lucide flower-2",
+    "source": "lucide-static@1.28.0/icons/flower-2.svg",
+    "dots": [[16.0, 11.2, 2.4]]
+  },
+  "expense_footprints": {
+    "d": "M6.4 20.8 v-2.856 C6.4 15.4 5.164 14.2 5.2 11.2 c0.036 -3.264 1.788 -7.2 5.4 -7.2 C12.844 4 13.6 6.16 13.6 8.2 c0 3.732 -2.4 6.792 -2.4 10.416 V20.8 a2.4 2.4 0 1 1 -4.8 0 Z M25.6 25.6 v-2.856 c0 -2.544 1.236 -3.744 1.2 -6.744 c-0.036 -3.264 -1.788 -7.2 -5.4 -7.2 C19.156 8.8 18.4 10.96 18.4 13 c0 3.732 2.4 6.792 2.4 10.416 V25.6 a2.4 2.4 0 1 0 4.8 0 Z M20.8 22 h4.8 M6.4 17.2 h4.8",
+    "note": "Footwear — specific expense subject; clean geometry derived from Lucide footprints",
+    "source": "lucide-static@1.28.0/icons/footprints.svg"
+  },
+  "expense_gamepad_2": {
+    "d": "M8.8 14.8 L13.6 14.8 M11.2 12.4 L11.2 17.2 M19.6 16 L19.612 16 M23.2 13.6 L23.212 13.6 M22.384 7.6 H9.616 a4.8 4.8 0 0 0 -4.774 4.308 c-0.007 0.062 -0.012 0.121 -0.02 0.182 C4.725 12.899 4 18.947 4 20.8 a3.6 3.6 0 0 0 3.6 3.6 c1.2 0 1.8 -0.6 2.4 -1.2 l1.697 -1.697 A2.4 2.4 0 0 1 13.394 20.8 h5.213 a2.4 2.4 0 0 1 1.697 0.703 L22 23.2 c0.6 0.6 1.2 1.2 2.4 1.2 a3.6 3.6 0 0 0 3.6 -3.6 c0 -1.854 -0.725 -7.901 -0.822 -8.71 c-0.008 -0.06 -0.013 -0.12 -0.02 -0.181 A4.8 4.8 0 0 0 22.384 7.6 z",
+    "note": "Video games — specific expense subject; clean geometry derived from Lucide gamepad-2",
+    "source": "lucide-static@1.28.0/icons/gamepad-2.svg"
+  },
+  "expense_gauge": {
+    "d": "m14.4 16.8 l4.8 -4.8 M5.608 24.4 a12 12 0 1 1 20.784 0",
+    "note": "Mileage — specific expense subject; clean geometry derived from Lucide gauge",
+    "source": "lucide-static@1.28.0/icons/gauge.svg"
+  },
+  "expense_gem": {
+    "d": "M14.2 5.2 L11.2 12.4 l4.8 15.6 l4.8 -15.6 l-3 -7.2 M22 5.2 a2.4 2.4 0 0 1 1.92 0.96 l3.6 4.8 a2.4 2.4 0 0 1 0.016 2.858 l-9.588 13.183 a2.4 2.4 0 0 1 -3.896 0 l-9.588 -13.183 A2.4 2.4 0 0 1 4.48 10.96 l3.598 -4.796 A2.4 2.4 0 0 1 10 5.2 z M4 12.4 h24",
+    "note": "Jewellery — specific expense subject; clean geometry derived from Lucide gem",
+    "source": "lucide-static@1.28.0/icons/gem.svg"
+  },
+  "expense_gift": {
+    "d": "M16 10 v16.8 M25.6 14.8 v9.6 a2.4 2.4 0 0 1 -2.4 2.4 H8.8 a2.4 2.4 0 0 1 -2.4 -2.4 v-9.6 M10.6 10 a1.2 1.2 0 0 1 0 -6 A5.76 9.6 0 0 1 16 10 a5.76 9.6 0 0 1 5.4 -6 a1.2 1.2 0 0 1 0 6 M6.4 10 H25.6 A1.2 1.2 0 0 1 26.8 11.2 V13.6 A1.2 1.2 0 0 1 25.6 14.8 H6.4 A1.2 1.2 0 0 1 5.2 13.6 V11.2 A1.2 1.2 0 0 1 6.4 10 Z",
+    "note": "Wrapped gift — specific expense subject; clean geometry derived from Lucide gift",
+    "source": "lucide-static@1.28.0/icons/gift.svg"
+  },
+  "expense_glasses": {
+    "d": "M18.4 19.6 a2.4 2.4 0 0 0 -2.4 -2.4 a2.4 2.4 0 0 0 -2.4 2.4 M4.6 17.2 L7.6 10 c0.84 -1.56 1.68 -2.4 3.6 -2.4 M27.4 17.2 L24.4 10 c-0.84 -1.56 -1.8 -2.4 -3.6 -2.4",
+    "note": "Eyewear — specific expense subject; clean geometry derived from Lucide glasses",
+    "source": "lucide-static@1.28.0/icons/glasses.svg",
+    "dots": [
+      [8.8, 19.6, 4.8],
+      [23.2, 19.6, 4.8]
+    ]
+  },
+  "expense_goal": {
+    "d": "M16 17.2 V4 l9.6 4.8 l-9.6 4.8 M26.273 13.866 a10.8 10.8 0 1 1 -15.06 -6.348 M11.202 13.596 a6 6 0 1 0 10.68 2.424",
+    "note": "Football — specific expense subject; clean geometry derived from Lucide goal",
+    "source": "lucide-static@1.28.0/icons/goal.svg"
+  },
+  "expense_graduation_cap": {
+    "d": "M27.304 14.706 a1.2 1.2 0 0 0 -0.023 -2.206 L16.996 7.816 a2.4 2.4 0 0 0 -1.992 0 L4.72 12.496 a1.2 1.2 0 0 0 0 2.198 l10.284 4.69 a2.4 2.4 0 0 0 1.992 0 z M28 13.6 v7.2 M8.8 16.6 V20.8 a7.2 3.6 0 0 0 14.4 0 v-4.2",
+    "note": "Graduation — specific expense subject; clean geometry derived from Lucide graduation-cap",
+    "source": "lucide-static@1.28.0/icons/graduation-cap.svg"
+  },
+  "expense_guitar": {
+    "d": "m14.28 14.52 l5.417 -5.417 M25.72 4.36 a1.2 1.2 0 0 0 -1.68 0 l-1.337 1.337 A2.4 2.4 0 0 0 22 7.394 v1.613 a2.4 2.4 0 0 1 -0.703 1.697 A2.4 2.4 0 0 1 22.994 10 h1.613 a2.4 2.4 0 0 0 1.697 -0.703 L27.64 7.96 a1.2 1.2 0 0 0 0 -1.68 z m7.2 19.2 l2.4 2.4 M11.476 13.42 A3.6 3.6 0 0 1 14.8 11.2 a6 6 0 0 1 6 6 a3.6 3.6 0 0 1 -2.22 3.324 l-1.104 0.456 A2.4 2.4 0 0 0 16 23.2 a4.8 4.8 0 0 1 -4.8 4.8 a7.2 7.2 0 0 1 -7.2 -7.2 a4.8 4.8 0 0 1 4.8 -4.8 a2.4 2.4 0 0 0 2.22 -1.476 z",
+    "note": "Guitar — specific expense subject; clean geometry derived from Lucide guitar",
+    "source": "lucide-static@1.28.0/icons/guitar.svg"
+  },
+  "expense_hamburger": {
+    "d": "M16 20.8 H6.4 a2.4 2.4 0 1 1 0 -4.8 h19.2 a2.4 2.4 0 1 1 0 4.8 h-5.1 M7.6 16 a2.4 2.4 0 0 1 -2.4 -2.4 a10.8 8.4 0 0 1 21.6 0 a2.4 2.4 0 0 1 -2.4 2.4 M7.6 20.8 a2.4 2.4 0 0 0 -2.4 2.4 a3.6 3.6 0 0 0 3.6 3.6 h14.4 a3.6 3.6 0 0 0 3.6 -3.6 a2.4 2.4 0 0 0 -2.4 -2.4 q0 0 0 0 m8.004 14.4 l7.356 5.52 a2.4 2.4 0 0 0 3.36 -0.48 l3.78 -5.04",
+    "note": "Hamburger — specific expense subject; clean geometry derived from Lucide hamburger",
+    "source": "lucide-static@1.28.0/icons/hamburger.svg"
+  },
+  "expense_hammer": {
+    "d": "m18 14.4 l-11.248 11.248 a1.2 1.2 0 0 1 -3.601 -3.6 L16 12.4 m21.6 18 l4.8 -4.8 m25.8 13.8 l-2.297 -2.297 A2.4 2.4 0 0 1 24.4 11.406 v-0.413 a2.4 2.4 0 0 0 -0.703 -1.697 l-1.988 -1.988 A7.2 7.2 0 0 0 16.619 5.2 H12.4 l1.492 1.492 A7.2 7.2 0 0 1 16 11.782 V13.6 l2.4 2.4 h1.406 a2.4 2.4 0 0 1 1.697 0.703 L23.8 19",
+    "note": "Home repair — specific expense subject; clean geometry derived from Lucide hammer",
+    "source": "lucide-static@1.28.0/icons/hammer.svg"
+  },
+  "expense_hand_coins": {
+    "d": "M14.8 19.6 h2.4 a2.4 2.4 0 1 0 0 -4.8 h-3.6 c-0.72 0 -1.32 0.24 -1.68 0.72 L5.2 22 m8.4 25.2 l1.92 -1.68 c0.36 -0.48 0.96 -0.72 1.68 -0.72 h4.8 c1.32 0 2.52 -0.48 3.36 -1.44 l5.52 -5.28 a2.4 2.4 0 0 0 -3.3 -3.492 l-5.04 4.68 m2.4 19.2 l7.2 7.2",
+    "note": "Cash giving — specific expense subject; clean geometry derived from Lucide hand-coins",
+    "source": "lucide-static@1.28.0/icons/hand-coins.svg",
+    "dots": [
+      [20.8, 12.4, 3.48],
+      [8.8, 7.6, 3.6]
+    ]
+  },
+  "expense_hand_heart": {
+    "d": "M14.8 18.4 h2.4 a2.4 2.4 0 0 0 0 -4.8 h-3.6 c-0.72 0 -1.32 0.24 -1.68 0.72 L5.2 20.8 m17.34 16.068 l6.06 -5.633 C25.835 11.2 26.8 9.82 26.8 8.5 a3.3 3.3 0 0 0 -5.756 -2.204 a0.331 0.331 0 0 1 -0.487 0 A3.3 3.3 0 0 0 14.8 8.5 c0 1.44 0.962 2.698 1.8 3.535 L20.8 15.94 m2.4 18 l7.2 7.2 m8.4 24 l1.92 -1.68 c0.36 -0.48 0.96 -0.72 1.68 -0.72 h4.8 c1.32 0 2.52 -0.48 3.36 -1.44 l5.52 -5.28 a1.2 1.2 0 0 0 -3.3 -3.492",
+    "note": "Care gift — specific expense subject; clean geometry derived from Lucide hand-heart",
+    "source": "lucide-static@1.28.0/icons/hand-heart.svg"
+  },
+  "expense_hand_helping": {
+    "d": "M14.8 16 h2.4 a2.4 2.4 0 1 0 0 -4.8 h-3.6 c-0.72 0 -1.32 0.24 -1.68 0.72 L5.2 18.4 m8.4 21.6 l1.92 -1.68 c0.36 -0.48 0.96 -0.72 1.68 -0.72 h4.8 c1.32 0 2.52 -0.48 3.36 -1.44 l5.52 -5.28 a2.4 2.4 0 0 0 -3.3 -3.492 l-5.04 4.68 m2.4 15.6 l7.2 7.2",
+    "note": "Helping hand — specific expense subject; clean geometry derived from Lucide hand-helping",
+    "source": "lucide-static@1.28.0/icons/hand-helping.svg"
+  },
+  "expense_handbag": {
+    "d": "M4.058 23.879 A2.4 2.4 0 0 0 6.4 26.8 h19.2 a2.4 2.4 0 0 0 2.342 -2.921 l-2.4 -10.8 A2.4 2.4 0 0 0 23.2 11.2 H8.8 a2.4 2.4 0 0 0 -2.342 1.879 z M11.2 14.8 V8.8 a4.8 4.8 0 0 1 9.6 0 v6",
+    "note": "Handbags — specific expense subject; clean geometry derived from Lucide handbag",
+    "source": "lucide-static@1.28.0/icons/handbag.svg"
+  },
+  "expense_handshake": {
+    "d": "m13.2 20.4 l2.4 2.4 a1.2 1.2 0 1 0 3.6 -3.6 m16.8 16.8 l3 3 a1.2 1.2 0 1 0 3.6 -3.6 l-4.656 -4.656 a3.6 3.6 0 0 0 -5.088 0 l-1.056 1.056 a1.2 1.2 0 1 1 -3.6 -3.6 l3.372 -3.372 a6.948 6.948 0 0 1 8.472 -1.044 l0.564 0.336 a2.4 2.4 0 0 0 1.704 0.3 L26.8 6.4 m25.2 3.6 l1.2 13.2 h-2.4 M5.2 5.2 L4 18.4 l7.8 7.8 a1.2 1.2 0 1 0 3.6 -3.6 M5.2 6.4 h9.6",
+    "note": "Charity partnership — specific expense subject; clean geometry derived from Lucide handshake",
+    "source": "lucide-static@1.28.0/icons/handshake.svg"
+  },
+  "expense_hard_drive": {
+    "d": "M13.6 20.8 h0.012 M4.254 15.492 a2.4 2.4 0 0 0 -0.254 1.075 V23.2 a2.4 2.4 0 0 0 2.4 2.4 h19.2 a2.4 2.4 0 0 0 2.4 -2.4 v-6.632 a2.4 2.4 0 0 0 -0.254 -1.075 L23.86 7.732 A2.4 2.4 0 0 0 21.712 6.4 H10.288 a2.4 2.4 0 0 0 -2.148 1.332 z M27.935 16.016 H4.065 M8.8 20.8 h0.012",
+    "note": "Hard drive — specific expense subject; clean geometry derived from Lucide hard-drive",
+    "source": "lucide-static@1.28.0/icons/hard-drive.svg"
+  },
+  "expense_hard_hat": {
+    "d": "M13.6 13.6 V7.6 a1.2 1.2 0 0 1 1.2 -1.2 h2.4 a1.2 1.2 0 0 1 1.2 1.2 v6 M18.4 8.8 a7.2 7.2 0 0 1 7.2 7.2 v3.6 M6.4 19.6 v-3.6 a7.2 7.2 0 0 1 7.2 -7.2 M5.2 19.6 H26.8 A1.2 1.2 0 0 1 28 20.8 V23.2 A1.2 1.2 0 0 1 26.8 24.4 H5.2 A1.2 1.2 0 0 1 4 23.2 V20.8 A1.2 1.2 0 0 1 5.2 19.6 Z",
+    "note": "Trade work — specific expense subject; clean geometry derived from Lucide hard-hat",
+    "source": "lucide-static@1.28.0/icons/hard-hat.svg"
+  },
+  "expense_headphones": {
+    "d": "M5.2 18.4 h3.6 a2.4 2.4 0 0 1 2.4 2.4 v3.6 a2.4 2.4 0 0 1 -2.4 2.4 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 v-8.4 a10.8 10.8 0 0 1 21.6 0 v8.4 a2.4 2.4 0 0 1 -2.4 2.4 h-1.2 a2.4 2.4 0 0 1 -2.4 -2.4 v-3.6 a2.4 2.4 0 0 1 2.4 -2.4 h3.6",
+    "note": "Audio — specific expense subject; clean geometry derived from Lucide headphones",
+    "source": "lucide-static@1.28.0/icons/headphones.svg"
+  },
+  "expense_headset": {
+    "d": "M5.2 14.8 h3.6 a2.4 2.4 0 0 1 2.4 2.4 v3.6 a2.4 2.4 0 0 1 -2.4 2.4 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 v-6 Z m0 0 a10.8 10.8 0 1 1 21.6 0 m0 0 v6 a2.4 2.4 0 0 1 -2.4 2.4 h-1.2 a2.4 2.4 0 0 1 -2.4 -2.4 v-3.6 a2.4 2.4 0 0 1 2.4 -2.4 h3.6 Z M26.8 20.8 v2.4 a4.8 4.8 0 0 1 -4.8 4.8 h-6",
+    "note": "Customer support — specific expense subject; clean geometry derived from Lucide headset",
+    "source": "lucide-static@1.28.0/icons/headset.svg"
+  },
+  "expense_heart_handshake": {
+    "d": "M24.897 18.897 C26.8 16.994 28 15.4 28 13 a6.6 6.6 0 0 0 -11.509 -4.411 a0.72 0.72 0 0 1 -0.982 0.001 A6.6 6.6 0 0 0 4 13 c0 2.76 1.8 4.8 3.6 6.6 l6.642 6.434 a2.4 2.4 0 0 0 3.455 0.062 a2.544 2.544 0 0 0 -0.005 -3.6 a2.549 2.549 0 1 0 3.6 -3.6 a2.549 2.549 0 0 0 3.605 0 a2.4 2.4 0 0 0 0 -3.394 l-2.257 -2.258 a2.892 2.892 0 0 0 -4.091 0 l-2.052 2.052 a2.4 2.4 0 0 1 -3.394 0 a2.4 2.4 0 0 1 0 -3.394 l3.388 -3.314",
+    "note": "Community support — specific expense subject; clean geometry derived from Lucide heart-handshake",
+    "source": "lucide-static@1.28.0/icons/heart-handshake.svg"
+  },
+  "expense_heart_plus": {
+    "d": "m17.375 23.249 l-1.165 1.127 a2.4 2.4 0 0 1 -3.6 0.023 L7.6 19.6 c-1.8 -1.8 -3.6 -3.84 -3.6 -6.6 a6.6 6.6 0 0 1 11.509 -4.411 a0.672 0.672 0 0 0 0.982 0 A6.588 6.588 0 0 1 28 13 a6.24 6.24 0 0 1 -0.263 1.788 M19.6 19.6 h7.2 M23.2 16 v7.2",
+    "note": "Heart support — specific expense subject; clean geometry derived from Lucide heart-plus",
+    "source": "lucide-static@1.28.0/icons/heart-plus.svg"
+  },
+  "expense_heart_pulse": {
+    "d": "M4 13 a6.6 6.6 0 0 1 11.509 -4.411 a0.672 0.672 0 0 0 0.982 0 A6.588 6.588 0 0 1 28 13 c0 2.748 -1.8 4.8 -3.6 6.6 l-6.59 6.376 a2.4 2.4 0 0 1 -3.6 0.023 L7.6 19.6 c-1.8 -1.8 -3.6 -3.84 -3.6 -6.6 M5.464 17.2 H13 l0.6 -1.2 l2.4 5.4 l2.4 -8.4 l1.8 4.2 h6.324",
+    "note": "Heart care — specific expense subject; clean geometry derived from Lucide heart-pulse",
+    "source": "lucide-static@1.28.0/icons/heart-pulse.svg"
+  },
+  "expense_heater": {
+    "d": "M14.8 11.2 c2.4 -3.6 -2.4 -3.6 0 -7.2 M20.2 11.2 c2.4 -3.6 -2.4 -3.6 0 -7.2 M8.8 13.6 h0.012 M8.8 18.4 h0.012 M13.6 20.8 v-4.8 M18.4 20.8 v-4.8 M23.2 20.8 v-4.8 M25.6 8.8 a2.4 2.4 0 0 1 2.4 2.4 v12 a2.4 2.4 0 0 1 -2.4 2.4 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 V11.2 a2.4 2.4 0 0 1 2.4 -2.4 h3.6 M7.6 25.6 v2.4 M24.4 25.6 v2.4",
+    "note": "Heating unit — specific expense subject; clean geometry derived from Lucide heater",
+    "source": "lucide-static@1.28.0/icons/heater.svg"
+  },
+  "expense_hospital": {
+    "d": "M16 10 v4.8 M18.4 26.8 v-3.6 a2.4 2.4 0 0 0 -4.8 0 v3.6 M18.4 12.4 h-4.8 M23.2 14.8 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v7.2 a2.4 2.4 0 0 1 -2.4 2.4 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 v-10.8 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 M23.2 26.8 V7.6 a2.4 2.4 0 0 0 -2.4 -2.4 H11.2 a2.4 2.4 0 0 0 -2.4 2.4 v19.2",
+    "note": "Hospital stay — specific expense subject; clean geometry derived from Lucide hospital",
+    "source": "lucide-static@1.28.0/icons/hospital.svg"
+  },
+  "expense_hotel": {
+    "d": "M13.6 28 v-7.884 M16 14.8 h0.012 M16 10 h0.012 M18.4 20.116 V28 M19.6 20.8 a6 6 0 0 0 -7.2 0 M20.8 14.8 h0.012 M20.8 10 h0.012 M11.2 14.8 h0.012 M11.2 10 h0.012 M8.8 4 H23.2 A2.4 2.4 0 0 1 25.6 6.4 V25.6 A2.4 2.4 0 0 1 23.2 28 H8.8 A2.4 2.4 0 0 1 6.4 25.6 V6.4 A2.4 2.4 0 0 1 8.8 4 Z",
+    "note": "Hotel booking — specific expense subject; clean geometry derived from Lucide hotel",
+    "source": "lucide-static@1.28.0/icons/hotel.svg"
+  },
+  "expense_house": {
+    "d": "M19.6 26.8 v-9.6 a1.2 1.2 0 0 0 -1.2 -1.2 h-4.8 a1.2 1.2 0 0 0 -1.2 1.2 v9.6 M5.2 13.6 a2.4 2.4 0 0 1 0.851 -1.834 l8.4 -7.2 a2.4 2.4 0 0 1 3.098 0 l8.4 7.2 A2.4 2.4 0 0 1 26.8 13.6 v10.8 a2.4 2.4 0 0 1 -2.4 2.4 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 z",
+    "note": "Household — specific expense subject; clean geometry derived from Lucide house",
+    "source": "lucide-static@1.28.0/icons/house.svg"
+  },
+  "expense_house_heart": {
+    "d": "M11.944 18.16 A2.7 2.7 0 1 1 16 14.603 a2.7 2.7 0 1 1 4.056 3.559 l-3.151 3.427 a1.198 1.198 0 0 1 -1.808 0 z M5.2 13.6 a2.4 2.4 0 0 1 0.851 -1.834 l8.4 -7.2 a2.4 2.4 0 0 1 3.098 0 l8.4 7.2 A2.4 2.4 0 0 1 26.8 13.6 v10.8 a2.4 2.4 0 0 1 -2.4 2.4 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 z",
+    "note": "Housing support — specific expense subject; clean geometry derived from Lucide house-heart",
+    "source": "lucide-static@1.28.0/icons/house-heart.svg"
+  },
+  "expense_house_plug": {
+    "d": "M13.6 16 V12.357 M18.4 16 V12.357 M19.6 16 a1.2 1.2 0 0 1 1.2 1.2 v2.4 a2.4 2.4 0 0 1 -2.4 2.4 h-4.8 a2.4 2.4 0 0 1 -2.4 -2.4 v-2.4 a1.2 1.2 0 0 1 1.2 -1.2 z M11.8 26.8 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 v-10.8 a2.4 2.4 0 0 1 0.851 -1.834 l8.4 -7.2 a2.4 2.4 0 0 1 3.098 0 l8.4 7.2 A2.4 2.4 0 0 1 26.8 13.6 v10.8 a2.4 2.4 0 0 1 -2.4 2.4 h-6 a2.4 2.4 0 0 1 -2.4 -2.4 v-2.4",
+    "note": "Home energy — specific expense subject; clean geometry derived from Lucide house-plug",
+    "source": "lucide-static@1.28.0/icons/house-plug.svg"
+  },
+  "expense_ice_cream_cone": {
+    "d": "m8.4 13.2 l4.896 12.42 a1.2 1.2 0 0 0 2.208 0 L22 14.8 M22 10 A6 6 0 0 0 10 10 M22 10 a2.4 2.4 0 0 1 0 4.8 H10 a2.4 2.4 0 0 1 0 -4.8",
+    "note": "Ice cream — specific expense subject; clean geometry derived from Lucide ice-cream-cone",
+    "source": "lucide-static@1.28.0/icons/ice-cream-cone.svg"
+  },
+  "expense_japanese_yen": {
+    "d": "M16 13 V26.8 m0 -13.8 L8.8 5.2 m7.2 7.8 L23.2 5.2 M8.8 19.6 h14.4 M8.8 14.8 h14.4",
+    "note": "Yen payment — specific expense subject; clean geometry derived from Lucide japanese-yen",
+    "source": "lucide-static@1.28.0/icons/japanese-yen.svg"
+  },
+  "expense_joystick": {
+    "d": "M26.8 22 a2.4 2.4 0 0 0 -2.4 -2.4 H7.6 a2.4 2.4 0 0 0 -2.4 2.4 v2.4 a2.4 2.4 0 0 0 2.4 2.4 h16.8 a2.4 2.4 0 0 0 2.4 -2.4 v-2.4 Z M8.8 19.6 v-2.4 M16 19.6 V12.4",
+    "note": "Joystick — specific expense subject; clean geometry derived from Lucide joystick",
+    "source": "lucide-static@1.28.0/icons/joystick.svg",
+    "dots": [[16.0, 8.8, 3.6]]
+  },
+  "expense_key": {
+    "d": "m18.6 9 l2.76 2.76 a1.2 1.2 0 0 0 1.68 0 l2.52 -2.52 a1.2 1.2 0 0 0 0 -1.68 L24.4 6.4 m25.2 2.4 l-11.52 11.52",
+    "note": "House key — specific expense subject; clean geometry derived from Lucide key",
+    "source": "lucide-static@1.28.0/icons/key.svg",
+    "dots": [[10.6, 20.2, 6.6]]
+  },
+  "expense_key_round": {
+    "d": "M4.703 22.497 A2.4 2.4 0 0 0 4 24.194 V26.8 a1.2 1.2 0 0 0 1.2 1.2 h3.6 a1.2 1.2 0 0 0 1.2 -1.2 v-1.2 a1.2 1.2 0 0 1 1.2 -1.2 h1.2 a1.2 1.2 0 0 0 1.2 -1.2 v-1.2 a1.2 1.2 0 0 1 1.2 -1.2 h0.206 a2.4 2.4 0 0 0 1.697 -0.703 l0.977 -0.977 a7.8 7.8 0 1 0 -4.8 -4.8 z",
+    "note": "Room key — specific expense subject; clean geometry derived from Lucide key-round",
+    "source": "lucide-static@1.28.0/icons/key-round.svg",
+    "dots": [[21.4, 10.6, 0.6]]
+  },
+  "expense_keyboard": {
+    "d": "M13.6 11.2 h0.012 M16 16 h0.012 M18.4 11.2 h0.012 M20.8 16 h0.012 M23.2 11.2 h0.012 M8.8 11.2 h0.012 M10 20.8 h12 M11.2 16 h0.012 M6.4 6.4 H25.6 A2.4 2.4 0 0 1 28 8.8 V23.2 A2.4 2.4 0 0 1 25.6 25.6 H6.4 A2.4 2.4 0 0 1 4 23.2 V8.8 A2.4 2.4 0 0 1 6.4 6.4 Z",
+    "note": "Keyboard — specific expense subject; clean geometry derived from Lucide keyboard",
+    "source": "lucide-static@1.28.0/icons/keyboard.svg"
+  },
+  "expense_lamp_ceiling": {
+    "d": "M16 4 v6 M19.395 20.798 a3.6 3.6 0 1 1 -6.79 0 M26.704 19.127 A1.2 1.2 0 0 1 25.6 20.8 H6.4 a1.2 1.2 0 0 1 -1.104 -1.673 l3.6 -8.4 A1.2 1.2 0 0 1 10 10 h12 a1.2 1.2 0 0 1 1.104 0.727 z",
+    "note": "Lighting — specific expense subject; clean geometry derived from Lucide lamp-ceiling",
+    "source": "lucide-static@1.28.0/icons/lamp-ceiling.svg"
+  },
+  "expense_landmark": {
+    "d": "M13.6 23.2 v-8.4 M14.943 4.246 a2.4 2.4 0 0 1 2.114 0 l9.408 4.615 A0.6 0.6 0 0 1 26.2 10 h-20.4 a0.6 0.6 0 0 1 -0.264 -1.139 z M18.4 23.2 v-8.4 M23.2 23.2 v-8.4 M5.2 28 h21.6 M8.8 23.2 v-8.4",
+    "note": "Bank branch — specific expense subject; clean geometry derived from Lucide landmark",
+    "source": "lucide-static@1.28.0/icons/landmark.svg"
+  },
+  "expense_languages": {
+    "d": "m6 9.6 l7.2 7.2 m4.8 16.8 l7.2 -7.2 l2.4 -3.6 M4 7.6 h14.4 M10 4 h1.2 m26.4 26.4 l-6 -12 l-6 12 M18.4 23.2 h7.2",
+    "note": "Language learning — specific expense subject; clean geometry derived from Lucide languages",
+    "source": "lucide-static@1.28.0/icons/languages.svg"
+  },
+  "expense_laptop": {
+    "d": "M23.2 7.6 a2.4 2.4 0 0 1 2.4 2.4 v10.231 a2.4 2.4 0 0 0 0.254 1.076 l1.282 2.552 a1.2 1.2 0 0 1 -1.08 1.74 H5.944 a1.2 1.2 0 0 1 -1.08 -1.74 l1.282 -2.552 A2.4 2.4 0 0 0 6.4 20.231 V10 a2.4 2.4 0 0 1 2.4 -2.4 z M25.665 20.784 H6.335",
+    "note": "Laptop — specific expense subject; clean geometry derived from Lucide laptop",
+    "source": "lucide-static@1.28.0/icons/laptop.svg"
+  },
+  "expense_leaf": {
+    "d": "M14.8 25.6 A8.4 8.4 0 0 1 13.36 8.92 C20.2 7.6 22 6.976 24.4 4 c1.2 2.4 2.4 5.016 2.4 9.6 c0 6.6 -5.736 12 -12 12 Z M4 26.8 c0 -3.6 2.22 -6.432 6.096 -7.2 C13 19.024 16 17.2 17.2 16",
+    "note": "Environmental cause — specific expense subject; clean geometry derived from Lucide leaf",
+    "source": "lucide-static@1.28.0/icons/leaf.svg"
+  },
+  "expense_library_big": {
+    "d": "M6.4 5.2 H13.6 A1.2 1.2 0 0 1 14.8 6.4 V25.6 A1.2 1.2 0 0 1 13.6 26.8 H6.4 A1.2 1.2 0 0 1 5.2 25.6 V6.4 A1.2 1.2 0 0 1 6.4 5.2 Z M10 5.2 v21.6 M26.08 24.28 c0.24 0.6 -0.12 1.32 -0.72 1.56 l-2.28 0.84 c-0.6 0.24 -1.32 -0.12 -1.56 -0.72 L14.92 7.72 c-0.24 -0.6 0.12 -1.32 0.72 -1.56 l2.28 -0.84 c0.6 -0.24 1.32 0.12 1.56 0.72 Z",
+    "note": "Library — specific expense subject; clean geometry derived from Lucide library-big",
+    "source": "lucide-static@1.28.0/icons/library-big.svg"
+  },
+  "expense_life_buoy": {
+    "d": "m5.916 5.916 l5.088 5.088 m17.796 11.004 l5.088 -5.088 m17.796 17.796 l5.088 5.088 m11.004 17.796 l-5.088 5.088",
+    "note": "Emergency relief — specific expense subject; clean geometry derived from Lucide life-buoy",
+    "source": "lucide-static@1.28.0/icons/life-buoy.svg",
+    "dots": [
+      [16.0, 16.0, 12.0],
+      [16.0, 16.0, 4.8]
+    ]
+  },
+  "expense_lightbulb": {
+    "d": "M19.6 18.4 c0.24 -1.2 0.84 -2.04 1.8 -3 c1.2 -1.08 1.8 -2.64 1.8 -4.2 A7.2 7.2 0 0 0 8.8 11.2 c0 1.2 0.24 2.64 1.8 4.2 c0.84 0.84 1.56 1.8 1.8 3 M12.4 23.2 h7.2 M13.6 28 h4.8",
+    "note": "Lightbulbs — specific expense subject; clean geometry derived from Lucide lightbulb",
+    "source": "lucide-static@1.28.0/icons/lightbulb.svg"
+  },
+  "expense_luggage": {
+    "d": "M8.8 25.6 a2.4 2.4 0 0 1 -2.4 -2.4 V11.2 a2.4 2.4 0 0 1 2.4 -2.4 h14.4 a2.4 2.4 0 0 1 2.4 2.4 v12 a2.4 2.4 0 0 1 -2.4 2.4 M11.2 23.2 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 h4.8 a2.4 2.4 0 0 1 2.4 2.4 v16.8 M13.6 25.6 h4.8",
+    "note": "Baggage — specific expense subject; clean geometry derived from Lucide luggage",
+    "source": "lucide-static@1.28.0/icons/luggage.svg",
+    "dots": [
+      [20.8, 25.6, 2.4],
+      [11.2, 25.6, 2.4]
+    ]
+  },
+  "expense_mail": {
+    "d": "m26.4 8.4 l-10.789 6.872 a2.4 2.4 0 0 1 -2.411 0 L4 10 M6.4 6.4 H25.6 A2.4 2.4 0 0 1 28 8.8 V23.2 A2.4 2.4 0 0 1 25.6 25.6 H6.4 A2.4 2.4 0 0 1 4 23.2 V8.8 A2.4 2.4 0 0 1 6.4 6.4 Z",
+    "note": "Mail service — specific expense subject; clean geometry derived from Lucide mail",
+    "source": "lucide-static@1.28.0/icons/mail.svg"
+  },
+  "expense_map_pin": {
+    "d": "M25.6 13.6 c0 5.992 -6.647 12.232 -8.879 14.159 a1.2 1.2 0 0 1 -1.442 0 C13.047 25.832 6.4 19.592 6.4 13.6 a9.6 9.6 0 0 1 19.2 0",
+    "note": "Local excursion — specific expense subject; clean geometry derived from Lucide map-pin",
+    "source": "lucide-static@1.28.0/icons/map-pin.svg",
+    "dots": [[16.0, 13.6, 3.6]]
+  },
+  "expense_map_pinned": {
+    "d": "M23.2 11.2 c0 4.336 -4.643 8.915 -6.472 10.554 a1.2 1.2 0 0 1 -1.457 0 C13.444 20.115 8.8 15.536 8.8 11.2 a7.2 7.2 0 0 1 14.4 0 M12.057 18.4 h-4.452 a1.2 1.2 0 0 0 -1.138 0.82 l-2.405 7.2 A1.2 1.2 0 0 0 5.2 28 h21.6 a1.2 1.2 0 0 0 1.138 -1.579 l-2.4 -7.2 a1.2 1.2 0 0 0 -1.139 -0.821 h-4.454",
+    "note": "Road map — specific expense subject; clean geometry derived from Lucide map-pinned",
+    "source": "lucide-static@1.28.0/icons/map-pinned.svg",
+    "dots": [[16.0, 11.2, 2.4]]
+  },
+  "expense_medal": {
+    "d": "M10.252 19.6 L4.792 10.168 a2.4 2.4 0 0 1 0.156 -2.64 L6.88 4.96 A2.4 2.4 0 0 1 8.8 4 h14.4 a2.4 2.4 0 0 1 1.92 0.96 l1.92 2.568 a2.4 2.4 0 0 1 0.168 2.64 L21.748 19.6 M14.8 16 L7.744 4.24 m15.6 14.4 l7.056 -11.76 M11.2 10 h9.6 M16 23.2 v-2.4 h-0.6",
+    "note": "Race entry — specific expense subject; clean geometry derived from Lucide medal",
+    "source": "lucide-static@1.28.0/icons/medal.svg",
+    "dots": [[16.0, 22.0, 6.0]]
+  },
+  "expense_mic_vocal": {
+    "d": "m13.2 9.121 l-7.193 9.828 a1.2 1.2 0 0 0 0.12 1.558 l0.98 0.982 a1.2 1.2 0 0 0 1.577 0.104 L19.708 16 M21.4 27.009 C20.2 26.2 18.846 25.6 17.2 25.6 c-2.47 0 -4.714 2.827 -7.2 2.4 c-2.486 -0.427 -3.33 -4.043 -1.8 -5.4",
+    "note": "Karaoke — specific expense subject; clean geometry derived from Lucide mic-vocal",
+    "source": "lucide-static@1.28.0/icons/mic-vocal.svg",
+    "dots": [[20.8, 10.0, 6.0]]
+  },
+  "expense_microchip": {
+    "d": "M13.6 16 h4.8 M13.6 22 h4.8 M13.6 10 h4.8 M23.2 16 h2.4 M23.2 23.2 h2.4 M23.2 8.8 h2.4 M6.4 16 h2.4 M6.4 23.2 h2.4 M6.4 8.8 h2.4 M11.2 4 H20.8 A2.4 2.4 0 0 1 23.2 6.4 V25.6 A2.4 2.4 0 0 1 20.8 28 H11.2 A2.4 2.4 0 0 1 8.8 25.6 V6.4 A2.4 2.4 0 0 1 11.2 4 Z",
+    "note": "Computer chip — specific expense subject; clean geometry derived from Lucide microchip",
+    "source": "lucide-static@1.28.0/icons/microchip.svg"
+  },
+  "expense_microscope": {
+    "d": "M8.8 23.2 h9.6 M5.2 28 h21.6 M18.4 28 a8.4 8.4 0 1 0 0 -16.8 h-1.2 M12.4 18.4 h2.4 M12.4 16 a2.4 2.4 0 0 1 -2.4 -2.4 V8.8 h7.2 v4.8 a2.4 2.4 0 0 1 -2.4 2.4 Z M16 8.8 V5.2 a1.2 1.2 0 0 0 -1.2 -1.2 H12.4 a1.2 1.2 0 0 0 -1.2 1.2 v3.6",
+    "note": "Lab work — specific expense subject; clean geometry derived from Lucide microscope",
+    "source": "lucide-static@1.28.0/icons/microscope.svg"
+  },
+  "expense_microwave": {
+    "d": "M6.4 6.4 H25.6 A2.4 2.4 0 0 1 28 8.8 V22 A2.4 2.4 0 0 1 25.6 24.4 H6.4 A2.4 2.4 0 0 1 4 22 V8.8 A2.4 2.4 0 0 1 6.4 6.4 Z M10 11.2 H17.2 A1.2 1.2 0 0 1 18.4 12.4 V18.4 A1.2 1.2 0 0 1 17.2 19.6 H10 A1.2 1.2 0 0 1 8.8 18.4 V12.4 A1.2 1.2 0 0 1 10 11.2 Z M23.2 11.2 v8.4 M8.8 24.4 v2.4 M23.2 24.4 v2.4",
+    "note": "Microwave — specific expense subject; clean geometry derived from Lucide microwave",
+    "source": "lucide-static@1.28.0/icons/microwave.svg"
+  },
+  "expense_milk": {
+    "d": "M11.2 4 h9.6 M12.4 4 v3.347 a4.8 4.8 0 0 1 -0.806 2.663 l-0.787 1.181 A4.8 4.8 0 0 0 10 13.854 V25.6 a2.4 2.4 0 0 0 2.4 2.4 h7.2 a2.4 2.4 0 0 0 2.4 -2.4 v-11.747 a4.8 4.8 0 0 0 -0.806 -2.663 l-0.787 -1.181 A4.8 4.8 0 0 1 19.6 7.346 V4 M10 19.6 a7.766 7.766 0 0 1 6 0 a7.764 7.764 0 0 0 6 0",
+    "note": "Milk & dairy — specific expense subject; clean geometry derived from Lucide milk",
+    "source": "lucide-static@1.28.0/icons/milk.svg"
+  },
+  "expense_monitor": {
+    "d": "M6.4 5.2 H25.6 A2.4 2.4 0 0 1 28 7.6 V19.6 A2.4 2.4 0 0 1 25.6 22 H6.4 A2.4 2.4 0 0 1 4 19.6 V7.6 A2.4 2.4 0 0 1 6.4 5.2 Z M11.2 26.8 L20.8 26.8 M16 22 L16 26.8",
+    "note": "Monitor — specific expense subject; clean geometry derived from Lucide monitor",
+    "source": "lucide-static@1.28.0/icons/monitor.svg"
+  },
+  "expense_monitor_up": {
+    "d": "m10.8 12 l3.6 -3.6 l3.6 3.6 M16 17.2 V10 M6.4 5.2 H25.6 A2.4 2.4 0 0 1 28 7.6 V19.6 A2.4 2.4 0 0 1 25.6 22 H6.4 A2.4 2.4 0 0 1 4 19.6 V7.6 A2.4 2.4 0 0 1 6.4 5.2 Z M16 22 v4.8 M11.2 26.8 h9.6",
+    "note": "Online class — specific expense subject; clean geometry derived from Lucide monitor-up",
+    "source": "lucide-static@1.28.0/icons/monitor-up.svg"
+  },
+  "expense_motorbike": {
+    "d": "m21.6 16.8 l-1.2 -3.6 m3.6 10.8 l7.2 2.4 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 a2.4 2.4 0 0 1 2.388 2.172 M11.2 22 h3.6 a1.2 1.2 0 0 0 1.2 -1.2 a7.2 7.2 0 0 1 7.2 -7.2 a1.2 1.2 0 0 0 1.2 -1.2 v-0.9 A6 6 0 0 0 22 7.6",
+    "note": "Motorcycle — specific expense subject; clean geometry derived from Lucide motorbike",
+    "source": "lucide-static@1.28.0/icons/motorbike.svg",
+    "dots": [
+      [24.4, 22.0, 3.6],
+      [7.6, 22.0, 3.6]
+    ]
+  },
+  "expense_mountain": {
+    "d": "m9.6 3.6 l4.8 9.6 l6 -6 l6 18 H4 L11.2 5.2 z",
+    "note": "Mountain trip — specific expense subject; clean geometry derived from Lucide mountain",
+    "source": "lucide-static@1.28.0/icons/mountain.svg"
+  },
+  "expense_mouse": {
+    "d": "M16 4 H16 A8.4 8.4 0 0 1 24.4 12.4 V19.6 A8.4 8.4 0 0 1 16 28 H16 A8.4 8.4 0 0 1 7.6 19.6 V12.4 A8.4 8.4 0 0 1 16 4 Z M16 8.8 v4.8",
+    "note": "Computer mouse — specific expense subject; clean geometry derived from Lucide mouse",
+    "source": "lucide-static@1.28.0/icons/mouse.svg"
+  },
+  "expense_music": {
+    "d": "M12.4 23.2 V7.6 l14.4 -2.4 v15.6",
+    "note": "Music — specific expense subject; clean geometry derived from Lucide music",
+    "source": "lucide-static@1.28.0/icons/music.svg",
+    "dots": [
+      [8.8, 23.2, 3.6],
+      [23.2, 20.8, 3.6]
+    ]
+  },
+  "expense_music_2": {
+    "d": "M16 23.2 V4 l8.4 4.8",
+    "note": "Music class — specific expense subject; clean geometry derived from Lucide music-2",
+    "source": "lucide-static@1.28.0/icons/music-2.svg",
+    "dots": [[11.2, 23.2, 4.8]]
+  },
+  "expense_navigation": {
+    "d": "M5.2 14.8 L28 4 L17.2 26.8 L14.8 17.2 L5.2 14.8 Z",
+    "note": "Navigation — specific expense subject; clean geometry derived from Lucide navigation",
+    "source": "lucide-static@1.28.0/icons/navigation.svg"
+  },
+  "expense_notebook_pen": {
+    "d": "M17.68 4 H8.8 a2.4 2.4 0 0 0 -2.4 2.4 v19.2 a2.4 2.4 0 0 0 2.4 2.4 h14.4 a2.4 2.4 0 0 0 2.4 -2.4 v-8.88 M4 8.8 h4.8 M4 13.6 h4.8 M4 18.4 h4.8 M4 23.2 h4.8 M27.254 8.351 a1.2 1.2 0 1 0 -3.605 -3.605 l-6.012 6.014 a2.4 2.4 0 0 0 -0.607 1.025 l-1.004 3.444 a0.6 0.6 0 0 0 0.744 0.744 l3.444 -1.004 a2.4 2.4 0 0 0 1.025 -0.607 z",
+    "note": "Study notes — specific expense subject; clean geometry derived from Lucide notebook-pen",
+    "source": "lucide-static@1.28.0/icons/notebook-pen.svg"
+  },
+  "expense_notebook_tabs": {
+    "d": "M4 8.8 h4.8 M4 13.6 h4.8 M4 18.4 h4.8 M4 23.2 h4.8 M8.8 4 H23.2 A2.4 2.4 0 0 1 25.6 6.4 V25.6 A2.4 2.4 0 0 1 23.2 28 H8.8 A2.4 2.4 0 0 1 6.4 25.6 V6.4 A2.4 2.4 0 0 1 8.8 4 Z M19.6 4 v24 M19.6 10 h6 M19.6 16 h6 M19.6 22 h6",
+    "note": "School notebook — specific expense subject; clean geometry derived from Lucide notebook-tabs",
+    "source": "lucide-static@1.28.0/icons/notebook-tabs.svg"
+  },
+  "expense_package": {
+    "d": "M14.8 27.676 a2.4 2.4 0 0 0 2.4 0 l8.4 -4.8 A2.4 2.4 0 0 0 26.8 20.8 V11.2 a2.4 2.4 0 0 0 -1.2 -2.076 l-8.4 -4.8 a2.4 2.4 0 0 0 -2.4 0 l-8.4 4.8 A2.4 2.4 0 0 0 5.2 11.2 v9.6 a2.4 2.4 0 0 0 1.2 2.076 z M16 28 V16 M5.548 10 L16 16 L26.452 10 m9 5.124 l10.8 6.18",
+    "note": "Parcel — specific expense subject; clean geometry derived from Lucide package",
+    "source": "lucide-static@1.28.0/icons/package.svg"
+  },
+  "expense_package_check": {
+    "d": "M16 28 V16 m19.2 20.4 l2.4 2.4 l4.8 -4.8 M26.8 14.952 V11.2 a2.4 2.4 0 0 0 -1.2 -2.076 l-8.4 -4.8 a2.4 2.4 0 0 0 -2.4 0 l-8.4 4.8 A2.4 2.4 0 0 0 5.2 11.2 v9.6 a2.4 2.4 0 0 0 1.2 2.075 l8.4 4.8 a2.4 2.4 0 0 0 2.4 0.001 l1.584 -0.904 M5.548 10 L16 16 l10.452 -6 m9 5.124 l10.796 6.178",
+    "note": "Courier — specific expense subject; clean geometry derived from Lucide package-check",
+    "source": "lucide-static@1.28.0/icons/package-check.svg"
+  },
+  "expense_package_open": {
+    "d": "M16 28 v-10.8 M19.804 4.252 a2.004 2.004 0 0 1 1.956 0 L26.8 7.084 a2.316 2.316 0 0 1 0 4.032 L12.184 19.348 a1.986 1.986 0 0 1 -1.968 0 L5.2 16.516 a2.316 2.316 0 0 1 0 -4.032 z M25.6 17.2 v4.644 a2.472 2.472 0 0 1 -1.332 2.196 l-7.2 3.696 a2.316 2.316 0 0 1 -2.136 0 l-7.2 -3.696 A2.472 2.472 0 0 1 6.4 21.844 V17.2 M26.8 16.516 a2.316 2.316 0 0 0 0 -4.032 L12.196 4.24 a1.968 1.968 0 0 0 -1.956 0 L5.2 7.084 a2.316 2.316 0 0 0 0 4.032 l14.616 8.232 a1.963 1.963 0 0 0 1.956 0 z",
+    "note": "Opened order — specific expense subject; clean geometry derived from Lucide package-open",
+    "source": "lucide-static@1.28.0/icons/package-open.svg"
+  },
+  "expense_paint_bucket": {
+    "d": "M14.8 10 L8.8 4 M24.39 16 H4.049 M26.974 23.656 A4.008 4.008 0 0 1 25.6 21.4 a3.96 3.96 0 0 1 -1.374 2.256 c-0.69 0.552 -1.026 1.224 -1.026 1.914 A2.4 2.4 0 0 0 25.6 28 a2.4 2.4 0 0 0 2.4 -2.43 c0 -0.696 -0.342 -1.356 -1.026 -1.914 m10.2 5.4 l2.578 -2.578 a1.446 1.446 0 0 1 2.045 0 l8.755 8.755 a1.446 1.446 0 0 1 0 2.045 l-9.11 9.11 a4.338 4.338 0 0 1 -6.134 0 l-4.666 -4.666 a4.338 4.338 0 0 1 0 -6.134 L8.404 10.396",
+    "note": "Decorator — specific expense subject; clean geometry derived from Lucide paint-bucket",
+    "source": "lucide-static@1.28.0/icons/paint-bucket.svg"
+  },
+  "expense_paint_roller": {
+    "d": "M6.4 4 H20.8 A2.4 2.4 0 0 1 23.2 6.4 V8.8 A2.4 2.4 0 0 1 20.8 11.2 H6.4 A2.4 2.4 0 0 1 4 8.8 V6.4 A2.4 2.4 0 0 1 6.4 4 Z M13.6 20.8 v-2.4 a2.4 2.4 0 0 1 2.4 -2.4 h9.6 a2.4 2.4 0 0 0 2.4 -2.4 V10 a2.4 2.4 0 0 0 -2.4 -2.4 h-2.4 M12.4 20.8 H14.8 A1.2 1.2 0 0 1 16 22 V26.8 A1.2 1.2 0 0 1 14.8 28 H12.4 A1.2 1.2 0 0 1 11.2 26.8 V22 A1.2 1.2 0 0 1 12.4 20.8 Z",
+    "note": "Painting — specific expense subject; clean geometry derived from Lucide paint-roller",
+    "source": "lucide-static@1.28.0/icons/paint-roller.svg"
+  },
+  "expense_paintbrush": {
+    "d": "m17.546 21.476 l-12.816 -3.496 M23.651 4.746 a1.2 1.2 0 1 1 3.602 3.602 L22.432 13.172 a0.6 0.6 0 0 0 0 0.848 l1.133 1.133 a2.892 2.892 0 0 1 0 4.09 l-1.133 1.133 a0.6 0.6 0 0 1 -0.848 0 L11.625 10.418 a0.6 0.6 0 0 1 0 -0.848 l1.133 -1.133 a2.892 2.892 0 0 1 4.09 0 l1.133 1.133 a0.6 0.6 0 0 0 0.848 0 z M12.4 11.2 c-2.165 3.252 -4.764 4.152 -7.9 4.738 a0.608 0.608 0 0 0 -0.362 0.983 l8.784 10.66 a1.2 1.2 0 0 0 1.422 0.245 C16.882 26.086 20.8 21.75 20.8 19.6",
+    "note": "Crafting — specific expense subject; clean geometry derived from Lucide paintbrush",
+    "source": "lucide-static@1.28.0/icons/paintbrush.svg"
+  },
+  "expense_paintbrush_vertical": {
+    "d": "M13.6 4 v2.4 M18.4 4 v4.8 M22 4 a1.2 1.2 0 0 1 1.2 1.2 v10.8 H8.8 V5.2 a1.2 1.2 0 0 1 1.2 -1.2 z M8.8 16 a1.2 1.2 0 0 0 -1.2 1.2 v1.2 a2.4 2.4 0 0 0 2.4 2.4 h2.4 a1.2 1.2 0 0 1 1.2 1.2 v3.48 a2.4 2.4 0 1 0 4.8 0 V22 a1.2 1.2 0 0 1 1.2 -1.2 h2.4 a2.4 2.4 0 0 0 2.4 -2.4 v-1.2 a1.2 1.2 0 0 0 -1.2 -1.2",
+    "note": "Painting class — specific expense subject; clean geometry derived from Lucide paintbrush-vertical",
+    "source": "lucide-static@1.28.0/icons/paintbrush-vertical.svg"
+  },
+  "expense_palette": {
+    "d": "M16 28 a1.2 1.2 0 0 1 0 -24 a12 10.8 0 0 1 12 10.8 a6 6 0 0 1 -6 6 h-2.7 a2.1 2.1 0 0 0 -1.68 3.36 l0.36 0.48 a2.1 2.1 0 0 1 -1.68 3.36 z",
+    "note": "Art class — specific expense subject; clean geometry derived from Lucide palette",
+    "source": "lucide-static@1.28.0/icons/palette.svg",
+    "dots": [
+      [17.8, 9.4, 0.6],
+      [22.6, 14.2, 0.6],
+      [9.4, 16.6, 0.6],
+      [11.8, 10.6, 0.6]
+    ]
+  },
+  "expense_parking_meter": {
+    "d": "M14.8 19.6 h2.4 M16 16 v3.6 M16 24.4 v3.6 M19.938 24.4 a1.2 1.2 0 0 0 1.138 -0.816 l2.844 -8.386 a8.4 8.4 0 1 0 -15.84 0 l2.844 8.386 a1.2 1.2 0 0 0 1.138 0.816 z M12.4 12.4 a3.6 3.6 0 1 1 7.2 0",
+    "note": "Parking meter — specific expense subject; clean geometry derived from Lucide parking-meter",
+    "source": "lucide-static@1.28.0/icons/parking-meter.svg"
+  },
+  "expense_party_popper": {
+    "d": "M8.56 15.16 L4 28 l12.84 -4.548 M6.4 5.2 h0.012 M28 11.2 h0.012 M19.6 4 h0.012 M28 25.6 h0.012 m26.4 2.4 l-2.688 0.9 a3.48 3.48 0 0 0 -2.352 3.744 c0.12 1.032 -0.684 1.956 -1.74 1.956 h-0.456 c-1.032 0 -1.92 0.72 -2.112 1.728 L18.4 13.6 m26.4 15.6 l-0.984 -0.396 c-1.032 -0.408 -2.184 0.24 -2.376 1.332 c-0.132 0.84 -0.864 1.464 -1.716 1.464 H22 m13.2 2.4 l0.396 0.984 c0.408 1.032 -0.24 2.184 -1.332 2.376 C13.024 7.48 12.4 8.224 12.4 9.076 V10 M14.8 17.2 c2.316 2.316 3.396 5.004 2.4 6 c-0.996 0.996 -3.684 -0.084 -6 -2.4 c-2.316 -2.316 -3.396 -5.004 -2.4 -6 c0.996 -0.996 3.684 0.084 6 2.4 Z",
+    "note": "Party supplies — specific expense subject; clean geometry derived from Lucide party-popper",
+    "source": "lucide-static@1.28.0/icons/party-popper.svg"
+  },
+  "expense_paw_print": {
+    "d": "M12.4 13.6 a6 6 0 0 1 6 6 v4.2 a4.2 4.2 0 0 1 -8.208 1.254 Q9.424 22.576 6.952 21.808 A4.2 4.2 0 0 1 8.2 13.6 Z",
+    "note": "Animal charity — specific expense subject; clean geometry derived from Lucide paw-print",
+    "source": "lucide-static@1.28.0/icons/paw-print.svg",
+    "dots": [
+      [14.8, 6.4, 2.4],
+      [23.2, 11.2, 2.4],
+      [25.6, 20.8, 2.4]
+    ]
+  },
+  "expense_pen_line": {
+    "d": "M17.2 26.8 h9.6 M27.009 9.774 a1.2 1.2 0 0 0 -4.783 -4.784 L6.21 21.009 a2.4 2.4 0 0 0 -0.6 0.996 l-1.585 5.222 a0.6 0.6 0 0 0 0.748 0.746 l5.224 -1.584 a2.4 2.4 0 0 0 0.996 -0.596 z",
+    "note": "Pens — specific expense subject; clean geometry derived from Lucide pen-line",
+    "source": "lucide-static@1.28.0/icons/pen-line.svg"
+  },
+  "expense_pencil": {
+    "d": "M27.009 9.774 a1.2 1.2 0 0 0 -4.783 -4.784 L6.21 21.009 a2.4 2.4 0 0 0 -0.6 0.996 l-1.585 5.222 a0.6 0.6 0 0 0 0.748 0.746 l5.224 -1.584 a2.4 2.4 0 0 0 0.996 -0.596 z m18 6 l4.8 4.8",
+    "note": "Pencils — specific expense subject; clean geometry derived from Lucide pencil",
+    "source": "lucide-static@1.28.0/icons/pencil.svg"
+  },
+  "expense_percent": {
+    "d": "M24.4 7.6 L7.6 24.4",
+    "note": "Percentage fee — specific expense subject; clean geometry derived from Lucide percent",
+    "source": "lucide-static@1.28.0/icons/percent.svg",
+    "dots": [
+      [9.4, 9.4, 3.0],
+      [22.6, 22.6, 3.0]
+    ]
+  },
+  "expense_person_standing": {
+    "d": "m10.8 24 l3.6 -7.2 l3.6 7.2 m7.2 9.6 l7.2 2.4 l7.2 -2.4 M16 13.6 v4.8",
+    "note": "Physiotherapy — specific expense subject; clean geometry derived from Lucide person-standing",
+    "source": "lucide-static@1.28.0/icons/person-standing.svg",
+    "dots": [[16.0, 7.6, 1.2]]
+  },
+  "expense_phone": {
+    "d": "M18.198 21.482 a1.2 1.2 0 0 0 1.456 -0.364 l0.426 -0.558 A2.4 2.4 0 0 1 22 19.6 h3.6 a2.4 2.4 0 0 1 2.4 2.4 v3.6 a2.4 2.4 0 0 1 -2.4 2.4 A21.6 21.6 0 0 1 4 6.4 a2.4 2.4 0 0 1 2.4 -2.4 h3.6 a2.4 2.4 0 0 1 2.4 2.4 v3.6 a2.4 2.4 0 0 1 -0.96 1.92 l-0.562 0.421 a1.2 1.2 0 0 0 -0.35 1.48 a16.8 16.8 0 0 0 7.67 7.661",
+    "note": "Telephone — specific expense subject; clean geometry derived from Lucide phone",
+    "source": "lucide-static@1.28.0/icons/phone.svg"
+  },
+  "expense_phone_call": {
+    "d": "M17.2 4 a10.8 10.8 0 0 1 10.8 10.8 M17.2 8.8 a6 6 0 0 1 6 6 M18.198 21.482 a1.2 1.2 0 0 0 1.456 -0.364 l0.426 -0.558 A2.4 2.4 0 0 1 22 19.6 h3.6 a2.4 2.4 0 0 1 2.4 2.4 v3.6 a2.4 2.4 0 0 1 -2.4 2.4 A21.6 21.6 0 0 1 4 6.4 a2.4 2.4 0 0 1 2.4 -2.4 h3.6 a2.4 2.4 0 0 1 2.4 2.4 v3.6 a2.4 2.4 0 0 1 -0.96 1.92 l-0.562 0.421 a1.2 1.2 0 0 0 -0.35 1.48 a16.8 16.8 0 0 0 7.67 7.661",
+    "note": "Phone support — specific expense subject; clean geometry derived from Lucide phone-call",
+    "source": "lucide-static@1.28.0/icons/phone-call.svg"
+  },
+  "expense_piggy_bank": {
+    "d": "M14.8 22 h3.6 v2.4 a1.2 1.2 0 0 0 1.2 1.2 h2.4 a1.2 1.2 0 0 0 1.2 -1.2 v-3.6 a3.792 3.792 0 0 0 2.4 -2.4 h1.2 a1.2 1.2 0 0 0 1.2 -1.2 v-2.4 a1.2 1.2 0 0 0 -1.2 -1.2 h-1.2 a6 6 0 0 0 -2.4 -4.8 V5.2 a4.8 4.8 0 0 0 -3.84 1.92 l-0.36 0.48 H14.8 a7.2 7.2 0 0 0 -7.2 7.2 v1.2 a6 6 0 0 0 2.4 4.8 v3.6 a1.2 1.2 0 0 0 1.2 1.2 h2.4 a1.2 1.2 0 0 0 1.2 -1.2 z M20.8 13.6 h0.012 M4 11.2 v1.2 a2.4 2.4 0 0 0 2.4 2.4 h1.2",
+    "note": "Savings — specific expense subject; clean geometry derived from Lucide piggy-bank",
+    "source": "lucide-static@1.28.0/icons/piggy-bank.svg"
+  },
+  "expense_pill_bottle": {
+    "d": "M23.2 14.8 h-4.8 a1.2 1.2 0 0 0 -1.2 1.2 v6 a1.2 1.2 0 0 0 1.2 1.2 h4.8 M8.8 10 v15.6 a2.4 2.4 0 0 0 2.4 2.4 h9.6 a2.4 2.4 0 0 0 2.4 -2.4 V10 M7.6 4 H24.4 A1.2 1.2 0 0 1 25.6 5.2 V8.8 A1.2 1.2 0 0 1 24.4 10 H7.6 A1.2 1.2 0 0 1 6.4 8.8 V5.2 A1.2 1.2 0 0 1 7.6 4 Z",
+    "note": "Medication — specific expense subject; clean geometry derived from Lucide pill-bottle",
+    "source": "lucide-static@1.28.0/icons/pill-bottle.svg"
+  },
+  "expense_plane_landing": {
+    "d": "M4 28 h24 M6.124 14.524 L4 12.4 l2.4 -5.4 l1.32 0.66 c0.66 0.336 1.08 1.008 1.08 1.74 s0.42 1.404 1.08 1.74 L11.2 11.8 l3.6 -7.2 l1.26 0.636 a2.4 2.4 0 0 1 1.308 1.824 l0.864 6.48 a2.4 2.4 0 0 0 1.308 1.824 l5.28 2.64 c0.504 0.264 0.936 0.66 1.212 1.152 l0.72 1.236 c0.588 1.056 -0.072 2.376 -1.272 2.52 l-1.416 0.18 c-0.564 0.072 -1.14 -0.024 -1.644 -0.288 L6.748 14.98 a2.4 2.4 0 0 1 -0.624 -0.456 Z",
+    "note": "Flight arrival — specific expense subject; clean geometry derived from Lucide plane-landing",
+    "source": "lucide-static@1.28.0/icons/plane-landing.svg"
+  },
+  "expense_plane_takeoff": {
+    "d": "M4 28 h24 M9.232 22.48 L6.4 22 l-2.4 -4.8 l1.32 -0.66 a2.4 2.4 0 0 1 2.16 0 l0.204 0.12 a2.4 2.4 0 0 0 2.16 0 L11.2 16 L7.6 8.8 l1.08 -0.54 a2.4 2.4 0 0 1 2.508 0.24 l4.824 3.6 a2.4 2.4 0 0 0 2.52 0.24 l5.028 -2.472 a2.892 2.892 0 0 1 2.076 -0.204 L26.8 10 a1.68 1.68 0 0 1 1.044 2.388 l-0.456 0.912 c-0.276 0.552 -0.72 1.008 -1.284 1.296 L10.696 22.24 a2.4 2.4 0 0 1 -1.464 0.216 Z",
+    "note": "Flight departure — specific expense subject; clean geometry derived from Lucide plane-takeoff",
+    "source": "lucide-static@1.28.0/icons/plane-takeoff.svg"
+  },
+  "expense_plug": {
+    "d": "M16 28 v-6 M19.6 11.2 V4 M22 11.2 a1.2 1.2 0 0 1 1.2 1.2 v4.8 a4.8 4.8 0 0 1 -4.8 4.8 h-4.8 a4.8 4.8 0 0 1 -4.8 -4.8 V12.4 a1.2 1.2 0 0 1 1.2 -1.2 z M12.4 11.2 V4",
+    "note": "Power plug — specific expense subject; clean geometry derived from Lucide plug",
+    "source": "lucide-static@1.28.0/icons/plug.svg"
+  },
+  "expense_plug_zap": {
+    "d": "M9.16 25.96 a2.88 2.88 0 0 0 4.08 0 L16 23.2 l-7.2 -7.2 l-2.76 2.76 a2.88 2.88 0 0 0 0 4.08 Z m2.4 26.4 l3.6 -3.6 M10.6 17.8 L13.6 14.8 M14.2 21.4 L17.2 18.4 m21.6 3.6 l-4.8 4.8 h7.2 l-4.8 4.8",
+    "note": "Power supply — specific expense subject; clean geometry derived from Lucide plug-zap",
+    "source": "lucide-static@1.28.0/icons/plug-zap.svg"
+  },
+  "expense_presentation": {
+    "d": "M4 5.2 h24 M26.8 5.2 v13.2 a2.4 2.4 0 0 1 -2.4 2.4 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 V5.2 m8.4 25.2 l6 -6 l6 6",
+    "note": "Presentation course — specific expense subject; clean geometry derived from Lucide presentation",
+    "source": "lucide-static@1.28.0/icons/presentation.svg"
+  },
+  "expense_printer": {
+    "d": "M8.8 23.2 H6.4 a2.4 2.4 0 0 1 -2.4 -2.4 v-6 a2.4 2.4 0 0 1 2.4 -2.4 h19.2 a2.4 2.4 0 0 1 2.4 2.4 v6 a2.4 2.4 0 0 1 -2.4 2.4 h-2.4 M8.8 12.4 V5.2 a1.2 1.2 0 0 1 1.2 -1.2 h12 a1.2 1.2 0 0 1 1.2 1.2 v7.2 M10 18.4 H22 A1.2 1.2 0 0 1 23.2 19.6 V26.8 A1.2 1.2 0 0 1 22 28 H10 A1.2 1.2 0 0 1 8.8 26.8 V19.6 A1.2 1.2 0 0 1 10 18.4 Z",
+    "note": "Printing — specific expense subject; clean geometry derived from Lucide printer",
+    "source": "lucide-static@1.28.0/icons/printer.svg"
+  },
+  "expense_puzzle": {
+    "d": "M20.068 6.868 a1.2 1.2 0 0 0 2.016 -0.569 a3 3 0 1 1 3.617 3.618 a1.2 1.2 0 0 0 -0.569 2.016 l2.02 2.018 a2.897 2.897 0 0 1 0 4.097 L25.132 20.068 a1.2 1.2 0 0 1 -2.016 -0.569 a3 3 0 1 0 -3.617 3.618 a1.2 1.2 0 0 1 0.569 2.016 l-2.02 2.018 a2.897 2.897 0 0 1 -4.097 0 L11.932 25.132 a1.2 1.2 0 0 0 -2.016 0.569 a3 3 0 1 1 -3.617 -3.618 a1.2 1.2 0 0 0 0.569 -2.016 l-2.02 -2.018 a2.897 2.897 0 0 1 0 -4.097 L6.868 11.932 a1.2 1.2 0 0 1 2.016 0.569 a3 3 0 1 0 3.617 -3.618 a1.2 1.2 0 0 1 -0.569 -2.016 l2.02 -2.018 a2.897 2.897 0 0 1 4.097 0 z",
+    "note": "Puzzles — specific expense subject; clean geometry derived from Lucide puzzle",
+    "source": "lucide-static@1.28.0/icons/puzzle.svg"
+  },
+  "expense_radio": {
+    "d": "M21.096 10.913 a7.2 7.2 0 0 1 0 10.174 M24.49 7.52 a12 12 0 0 1 0 16.961 M7.51 24.48 a12 12 0 0 1 0 -16.961 M10.904 21.087 a7.2 7.2 0 0 1 0 -10.174",
+    "note": "Radio — specific expense subject; clean geometry derived from Lucide radio",
+    "source": "lucide-static@1.28.0/icons/radio.svg",
+    "dots": [[16.0, 16.0, 2.4]]
+  },
+  "expense_receipt": {
+    "d": "M16 22 V10 M20.8 11.2 h-7.2 a2.4 2.4 0 0 0 0 4.8 h4.8 a2.4 2.4 0 0 1 0 4.8 H11.2 M6.4 5.2 a1.2 1.2 0 0 1 1.2 -1.2 a1.56 1.56 0 0 1 0.84 0.24 l1.12 0.72 a1.56 1.56 0 0 0 1.68 0 l1.121 -0.72 a1.56 1.56 0 0 1 1.68 0 l1.12 0.72 a1.56 1.56 0 0 0 1.68 0 l1.12 -0.72 a1.56 1.56 0 0 1 1.68 0 l1.121 0.72 a1.56 1.56 0 0 0 1.68 0 l1.12 -0.72 A1.56 1.56 0 0 1 24.4 4 a1.2 1.2 0 0 1 1.2 1.2 v21.6 a1.2 1.2 0 0 1 -1.2 1.2 a1.56 1.56 0 0 1 -0.84 -0.24 l-1.12 -0.72 a1.56 1.56 0 0 0 -1.68 0 l-1.121 0.72 a1.56 1.56 0 0 1 -1.68 0 l-1.12 -0.72 a1.56 1.56 0 0 0 -1.68 0 l-1.12 0.72 a1.56 1.56 0 0 1 -1.68 0 l-1.121 -0.72 a1.56 1.56 0 0 0 -1.68 0 l-1.12 0.72 a1.56 1.56 0 0 1 -0.84 0.24 a1.2 1.2 0 0 1 -1.2 -1.2 z",
+    "note": "Return & refund — specific expense subject; clean geometry derived from Lucide receipt",
+    "source": "lucide-static@1.28.0/icons/receipt.svg"
+  },
+  "expense_receipt_text": {
+    "d": "M17.2 20.8 H11.2 M18.4 11.2 H11.2 M20.8 16 H11.2 M6.4 5.2 a1.2 1.2 0 0 1 1.2 -1.2 a1.56 1.56 0 0 1 0.84 0.24 l1.12 0.72 a1.56 1.56 0 0 0 1.68 0 l1.121 -0.72 a1.56 1.56 0 0 1 1.68 0 l1.12 0.72 a1.56 1.56 0 0 0 1.68 0 l1.12 -0.72 a1.56 1.56 0 0 1 1.68 0 l1.121 0.72 a1.56 1.56 0 0 0 1.68 0 l1.12 -0.72 A1.56 1.56 0 0 1 24.4 4 a1.2 1.2 0 0 1 1.2 1.2 v21.6 a1.2 1.2 0 0 1 -1.2 1.2 a1.56 1.56 0 0 1 -0.84 -0.24 l-1.12 -0.72 a1.56 1.56 0 0 0 -1.68 0 l-1.121 0.72 a1.56 1.56 0 0 1 -1.68 0 l-1.12 -0.72 a1.56 1.56 0 0 0 -1.68 0 l-1.12 0.72 a1.56 1.56 0 0 1 -1.68 0 l-1.121 -0.72 a1.56 1.56 0 0 0 -1.68 0 l-1.12 0.72 a1.56 1.56 0 0 1 -0.84 0.24 a1.2 1.2 0 0 1 -1.2 -1.2 z",
+    "note": "Receipt record — specific expense subject; clean geometry derived from Lucide receipt-text",
+    "source": "lucide-static@1.28.0/icons/receipt-text.svg"
+  },
+  "expense_recycle": {
+    "d": "M10 24.4 H7.378 a2.196 2.196 0 0 1 -1.884 -1.057 a2.142 2.142 0 0 1 -0.005 -2.141 L10.235 13 M14.8 24.4 h9.844 a2.196 2.196 0 0 0 1.867 -1.068 a2.141 2.141 0 0 0 0 -2.13 l-1.471 -2.544 m16.8 19.2 l-3.6 3.6 l3.6 3.6 M11.552 17.915 L10.235 13 L5.32 14.318 m11.213 6.973 l1.312 -2.27 A2.196 2.196 0 0 1 15.982 5.2 a2.141 2.141 0 0 1 1.855 1.066 l4.732 8.212 m16.054 11.56 l4.915 1.318 l1.316 -4.915",
+    "note": "Recycling — specific expense subject; clean geometry derived from Lucide recycle",
+    "source": "lucide-static@1.28.0/icons/recycle.svg"
+  },
+  "expense_refrigerator": {
+    "d": "M7.6 8.8 a4.8 4.8 0 0 1 4.8 -4.8 h7.2 a4.8 4.8 0 0 1 4.8 4.8 v16.8 a2.4 2.4 0 0 1 -2.4 2.4 H10 a2.4 2.4 0 0 1 -2.4 -2.4 V8.8 Z M7.6 13.6 h16.8 M19.6 10 v7.2",
+    "note": "Fridge — specific expense subject; clean geometry derived from Lucide refrigerator",
+    "source": "lucide-static@1.28.0/icons/refrigerator.svg"
+  },
+  "expense_repeat_2": {
+    "d": "m2.4 10.8 l3.6 -3.6 l3.6 3.6 M17.2 23.2 H10 a2.4 2.4 0 0 1 -2.4 -2.4 V8.8 m26.4 18 l-3.6 3.6 l-3.6 -3.6 M14.8 8.8 h7.2 a2.4 2.4 0 0 1 2.4 2.4 v12",
+    "note": "Recurring payment — specific expense subject; clean geometry derived from Lucide repeat-2",
+    "source": "lucide-static@1.28.0/icons/repeat-2.svg"
+  },
+  "expense_ribbon": {
+    "d": "M16 15.064 C14.8 13.596 13.6 12.4 13.6 11.2 a2.4 2.4 0 0 1 4.8 0 c0 1.2 -1.198 2.402 -2.412 3.864 m14.4 21.6 l3.084 -4.2 M9.092 12.419 a8.4 8.4 0 0 1 13.808 -0.011 M12.82 19.036 L16 15.064 M12.82 19.036 C10.874 16.295 8.8 13.865 8.8 10 a7.2 6 0 0 1 14.4 0 c-0.006 3.864 -2.134 6.282 -4.116 9 l4.268 5.432 a1.2 1.2 0 0 1 -0.244 1.716 l-2.273 1.632 a1.2 1.2 0 0 1 -1.661 -0.258 L16 23.2 l-3.215 4.312 a1.2 1.2 0 0 1 -1.668 0.256 l-2.238 -1.624 a1.2 1.2 0 0 1 -0.244 -1.706 z",
+    "note": "Award ribbon — specific expense subject; clean geometry derived from Lucide ribbon",
+    "source": "lucide-static@1.28.0/icons/ribbon.svg"
+  },
+  "expense_route": {
+    "d": "M12.4 24.4 h10.2 a4.2 4.2 0 0 0 0 -8.4 h-13.2 a4.2 4.2 0 0 1 0 -8.4 H19.6",
+    "note": "Route planning — specific expense subject; clean geometry derived from Lucide route",
+    "source": "lucide-static@1.28.0/icons/route.svg",
+    "dots": [
+      [8.8, 24.4, 3.6],
+      [23.2, 7.6, 3.6]
+    ]
+  },
+  "expense_router": {
+    "d": "M6.4 18.4 H25.6 A2.4 2.4 0 0 1 28 20.8 V25.6 A2.4 2.4 0 0 1 25.6 28 H6.4 A2.4 2.4 0 0 1 4 25.6 V20.8 A2.4 2.4 0 0 1 6.4 18.4 Z M8.812 23.2 H8.8 M13.612 23.2 H13.6 M19.6 13.6 v4.8 M23.008 10.204 a4.8 4.8 0 0 0 -6.792 0 M26.392 6.808 a9.6 9.6 0 0 0 -13.572 0",
+    "note": "Router — specific expense subject; clean geometry derived from Lucide router",
+    "source": "lucide-static@1.28.0/icons/router.svg"
+  },
+  "expense_ruler": {
+    "d": "M27.16 19.96 a2.88 2.88 0 0 1 0 4.08 l-3.12 3.12 a2.88 2.88 0 0 1 -4.08 0 L4.84 12.04 a2.892 2.892 0 0 1 0 -4.08 l3.12 -3.12 a2.892 2.892 0 0 1 4.08 0 Z m17.4 15 l2.4 -2.4 m13.8 11.4 l2.4 -2.4 m10.2 7.8 l2.4 -2.4 m21 18.6 l2.4 -2.4",
+    "note": "Ruler set — specific expense subject; clean geometry derived from Lucide ruler",
+    "source": "lucide-static@1.28.0/icons/ruler.svg"
+  },
+  "expense_sailboat": {
+    "d": "M13.6 4 v18 M10 28 a4.8 4.8 0 0 1 -4.8 -4.8 a1.2 1.2 0 0 1 1.2 -1.2 h19.2 a1.2 1.2 0 0 1 1.2 1.2 a4.8 4.8 0 0 1 -4.8 4.8 z M12.591 4.552 a1.2 1.2 0 0 1 1.825 -0.232 l11.972 10.776 A1.2 1.2 0 0 1 25.6 17.2 H6.4 a1.2 1.2 0 0 1 -0.989 -1.88 z",
+    "note": "Sailing — specific expense subject; clean geometry derived from Lucide sailboat",
+    "source": "lucide-static@1.28.0/icons/sailboat.svg"
+  },
+  "expense_salad": {
+    "d": "M10 26.8 h12 M16 26.8 a10.8 10.8 0 0 0 10.8 -10.8 H5.2 a10.8 10.8 0 0 0 10.8 10.8 Z M15.256 16 a2.88 2.88 0 0 1 -0.48 -5.724 a2.88 2.88 0 0 1 3.84 -3.324 a2.88 2.88 0 0 1 4.164 -0.756 a2.88 2.88 0 0 1 4.044 4.044 a2.88 2.88 0 0 1 -1.32 4.44 a3.012 3.012 0 0 1 0.036 1.32 m15.6 14.4 l4.8 -4.8 M14.68 10.3 A4.788 4.788 0 0 0 6.4 13.6 c0 0.876 0.24 1.692 0.648 2.4",
+    "note": "Salad — specific expense subject; clean geometry derived from Lucide salad",
+    "source": "lucide-static@1.28.0/icons/salad.svg"
+  },
+  "expense_sandwich": {
+    "d": "m2.844 13.468 l10.046 -8.132 a2.4 2.4 0 0 1 3.019 0 l10.045 8.132 M26.8 19.6 a1.2 1.2 0 0 1 1.2 1.2 v2.4 a1.2 1.2 0 0 1 -1.2 1.2 h-6.3 M5.2 19.6 a1.2 1.2 0 0 0 -1.2 1.2 v2.4 a1.2 1.2 0 0 0 1.2 1.2 h10.8 m8.004 18 l7.356 5.52 a2.4 2.4 0 0 0 3.36 -0.48 l3.78 -5.04 M5.2 14.8 H26.8 A1.2 1.2 0 0 1 28 16 V18.4 A1.2 1.2 0 0 1 26.8 19.6 H5.2 A1.2 1.2 0 0 1 4 18.4 V16 A1.2 1.2 0 0 1 5.2 14.8 Z",
+    "note": "Sandwich — specific expense subject; clean geometry derived from Lucide sandwich",
+    "source": "lucide-static@1.28.0/icons/sandwich.svg"
+  },
+  "expense_satellite": {
+    "d": "m16.2 7.8 l-3.778 -3.778 a1.446 1.446 0 0 0 -2.045 0 L9.222 8.378 a1.446 1.446 0 0 0 0 2.045 L13 14.2 M21.4 10.6 L24.4 7.6 m21 12.6 l3.778 3.778 a1.446 1.446 0 0 1 0 2.045 l-2.755 2.755 a1.446 1.446 0 0 1 -2.045 0 L17.8 19 M12.4 26.8 a7.2 7.2 0 0 0 -7.2 -7.2 M12.822 14.378 a1.446 1.446 0 0 0 0 2.045 l2.755 2.755 a1.446 1.446 0 0 0 2.045 0 l5.155 -5.155 a1.446 1.446 0 0 0 0 -2.045 l-2.755 -2.755 a1.446 1.446 0 0 0 -2.045 0 z",
+    "note": "Satellite service — specific expense subject; clean geometry derived from Lucide satellite",
+    "source": "lucide-static@1.28.0/icons/satellite.svg"
+  },
+  "expense_scan": {
+    "d": "M5.2 10 V7.6 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 M22 5.2 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v2.4 M26.8 22 v2.4 a2.4 2.4 0 0 1 -2.4 2.4 h-2.4 M10 26.8 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 v-2.4",
+    "note": "Scanner — specific expense subject; clean geometry derived from Lucide scan",
+    "source": "lucide-static@1.28.0/icons/scan.svg"
+  },
+  "expense_scan_barcode": {
+    "d": "M5.2 10 V7.6 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 M22 5.2 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v2.4 M26.8 22 v2.4 a2.4 2.4 0 0 1 -2.4 2.4 h-2.4 M10 26.8 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 v-2.4 M11.2 10 v12 M16 10 v12 M22 10 v12",
+    "note": "Checkout — specific expense subject; clean geometry derived from Lucide scan-barcode",
+    "source": "lucide-static@1.28.0/icons/scan-barcode.svg"
+  },
+  "expense_scan_heart": {
+    "d": "M22 5.2 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v2.4 M26.8 22 v2.4 a2.4 2.4 0 0 1 -2.4 2.4 h-2.4 M5.2 10 V7.6 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 M10 26.8 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 v-2.4 M10.994 17.284 A3.6 3.6 0 0 1 16 12.117 a3.6 3.6 0 0 1 5.006 5.167 l-4.136 4.344 a1.2 1.2 0 0 1 -1.739 0 z",
+    "note": "Heart scan — specific expense subject; clean geometry derived from Lucide scan-heart",
+    "source": "lucide-static@1.28.0/icons/scan-heart.svg"
+  },
+  "expense_scan_qr_code": {
+    "d": "M22 16 v4.8 a1.2 1.2 0 0 1 -1.2 1.2 h-4.8 M22 5.2 h2.4 a2.4 2.4 0 0 1 2.4 2.4 v2.4 M22 11.2 V10 M26.8 22 v2.4 a2.4 2.4 0 0 1 -2.4 2.4 h-2.4 M5.2 10 V7.6 a2.4 2.4 0 0 1 2.4 -2.4 h2.4 M10 22 h0.012 M10 26.8 H7.6 a2.4 2.4 0 0 1 -2.4 -2.4 v-2.4 M11.2 10 H14.8 A1.2 1.2 0 0 1 16 11.2 V14.8 A1.2 1.2 0 0 1 14.8 16 H11.2 A1.2 1.2 0 0 1 10 14.8 V11.2 A1.2 1.2 0 0 1 11.2 10 Z",
+    "note": "QR payment — specific expense subject; clean geometry derived from Lucide scan-qr-code",
+    "source": "lucide-static@1.28.0/icons/scan-qr-code.svg"
+  },
+  "expense_school": {
+    "d": "M18.4 26.8 v-3.6 a2.4 2.4 0 0 0 -4.8 0 v3.6 M23.2 7.52 V26.8 m4.8 7.2 l8.527 -4.548 a2.4 2.4 0 0 1 2.146 0 L25.6 8.8 m7.2 13.2 l-4.224 2.576 a1.2 1.2 0 0 0 -0.576 1.025 V24.4 a2.4 2.4 0 0 0 2.4 2.4 h19.2 a2.4 2.4 0 0 0 2.4 -2.4 v-6 a1.2 1.2 0 0 0 -0.576 -1.024 L23.2 14.8 M8.8 7.52 V26.8",
+    "note": "School — specific expense subject; clean geometry derived from Lucide school",
+    "source": "lucide-static@1.28.0/icons/school.svg",
+    "dots": [[16.0, 12.4, 2.4]]
+  },
+  "expense_scissors": {
+    "d": "M11.344 11.344 L16 16 M25.6 6.4 L11.344 20.656 M19.36 19.36 L25.6 25.6",
+    "note": "Craft class — specific expense subject; clean geometry derived from Lucide scissors",
+    "source": "lucide-static@1.28.0/icons/scissors.svg",
+    "dots": [
+      [8.8, 8.8, 3.6],
+      [8.8, 23.2, 3.6]
+    ]
+  },
+  "expense_scooter": {
+    "d": "M26.8 6.4 h-4.2 l2.4 13.26 M9.94 22 h6.17 c0.628 0 1.14 -0.487 1.276 -1.099 a7.8 7.8 0 0 1 6.414 -6.011",
+    "note": "E-scooter — specific expense subject; clean geometry derived from Lucide scooter",
+    "source": "lucide-static@1.28.0/icons/scooter.svg",
+    "dots": [
+      [25.0, 22.6, 3.0],
+      [7.0, 22.6, 3.0]
+    ]
+  },
+  "expense_send": {
+    "d": "M19.043 27.623 a0.6 0.6 0 0 0 1.124 -0.029 l7.8 -22.8 a0.595 0.595 0 0 0 -0.762 -0.762 l-22.8 7.8 a0.6 0.6 0 0 0 -0.029 1.124 l9.516 3.816 a2.4 2.4 0 0 1 1.334 1.332 z m26.225 2.576 l-13.128 13.127",
+    "note": "Postage — specific expense subject; clean geometry derived from Lucide send",
+    "source": "lucide-static@1.28.0/icons/send.svg"
+  },
+  "expense_server": {
+    "d": "M6.4 4 H25.6 A2.4 2.4 0 0 1 28 6.4 V11.2 A2.4 2.4 0 0 1 25.6 13.6 H6.4 A2.4 2.4 0 0 1 4 11.2 V6.4 A2.4 2.4 0 0 1 6.4 4 Z M6.4 18.4 H25.6 A2.4 2.4 0 0 1 28 20.8 V25.6 A2.4 2.4 0 0 1 25.6 28 H6.4 A2.4 2.4 0 0 1 4 25.6 V20.8 A2.4 2.4 0 0 1 6.4 18.4 Z M8.8 8.8 L8.812 8.8 M8.8 23.2 L8.812 23.2",
+    "note": "Server hosting — specific expense subject; clean geometry derived from Lucide server",
+    "source": "lucide-static@1.28.0/icons/server.svg"
+  },
+  "expense_settings": {
+    "d": "M13.205 6.563 a2.808 2.808 0 0 1 5.591 0 a2.808 2.808 0 0 0 3.983 2.298 a2.808 2.808 0 0 1 2.796 4.84 a2.808 2.808 0 0 0 0 4.597 a2.808 2.808 0 0 1 -2.796 4.84 a2.808 2.808 0 0 0 -3.983 2.298 a2.808 2.808 0 0 1 -5.591 0 a2.808 2.808 0 0 0 -3.984 -2.298 a2.808 2.808 0 0 1 -2.796 -4.84 a2.808 2.808 0 0 0 0 -4.597 A2.808 2.808 0 0 1 9.22 8.861 a2.808 2.808 0 0 0 3.983 -2.298",
+    "note": "Setup service — specific expense subject; clean geometry derived from Lucide settings",
+    "source": "lucide-static@1.28.0/icons/settings.svg",
+    "dots": [[16.0, 16.0, 3.6]]
+  },
+  "expense_shapes": {
+    "d": "M11.56 13.6 a0.84 0.84 0 0 1 -0.751 -1.295 L15.28 5.2 a0.84 0.84 0 0 1 1.438 -0.052 L21.16 12.28 a0.84 0.84 0 0 1 -0.686 1.32 Z M6.4 18.4 H12.4 A1.2 1.2 0 0 1 13.6 19.6 V25.6 A1.2 1.2 0 0 1 12.4 26.8 H6.4 A1.2 1.2 0 0 1 5.2 25.6 V19.6 A1.2 1.2 0 0 1 6.4 18.4 Z",
+    "note": "Learning shapes — specific expense subject; clean geometry derived from Lucide shapes",
+    "source": "lucide-static@1.28.0/icons/shapes.svg",
+    "dots": [[22.6, 22.6, 4.2]]
+  },
+  "expense_shell": {
+    "d": "M18.4 14.8 a2.4 2.4 0 1 1 -4.8 0 a4.8 4.8 0 0 1 9.6 0 a7.2 7.2 0 0 1 -14.4 0 a9.6 9.6 0 0 1 19.2 0 a12 12 0 1 1 -24 0 a14.316 14.316 0 0 1 2.904 -8.664 a2.4 2.4 0 1 1 3.792 2.928",
+    "note": "Seaside souvenir — specific expense subject; clean geometry derived from Lucide shell",
+    "source": "lucide-static@1.28.0/icons/shell.svg"
+  },
+  "expense_shield_check": {
+    "d": "M25.6 17.2 c0 6 -4.2 9 -9.192 10.74 a1.2 1.2 0 0 1 -0.804 -0.012 C10.6 26.2 6.4 23.2 6.4 17.2 V8.8 a1.2 1.2 0 0 1 1.2 -1.2 c2.4 0 5.4 -1.44 7.488 -3.264 a1.404 1.404 0 0 1 1.824 0 C19.012 6.172 22 7.6 24.4 7.6 a1.2 1.2 0 0 1 1.2 1.2 z m10.8 14.4 l2.4 2.4 l4.8 -4.8",
+    "note": "Security service — specific expense subject; clean geometry derived from Lucide shield-check",
+    "source": "lucide-static@1.28.0/icons/shield-check.svg"
+  },
+  "expense_shield_plus": {
+    "d": "M25.6 17.2 c0 6 -4.2 9 -9.192 10.74 a1.2 1.2 0 0 1 -0.804 -0.012 C10.6 26.2 6.4 23.2 6.4 17.2 V8.8 a1.2 1.2 0 0 1 1.2 -1.2 c2.4 0 5.4 -1.44 7.488 -3.264 a1.404 1.404 0 0 1 1.824 0 C19.012 6.172 22 7.6 24.4 7.6 a1.2 1.2 0 0 1 1.2 1.2 z M12.4 16 h7.2 M16 12.4 v7.2",
+    "note": "Health insurance — specific expense subject; clean geometry derived from Lucide shield-plus",
+    "source": "lucide-static@1.28.0/icons/shield-plus.svg"
+  },
+  "expense_ship": {
+    "d": "M16 13.827 V18.4 M16 4 v3.6 M24.4 17.2 V10 a2.4 2.4 0 0 0 -2.4 -2.4 H10 a2.4 2.4 0 0 0 -2.4 2.4 v7.2 M24.856 25.6 A13.92 13.92 0 0 0 26.8 18.4 l-9.826 -4.367 a2.4 2.4 0 0 0 -1.949 0 L5.2 18.4 a13.92 13.92 0 0 0 3.372 9.312 M4 26.8 c0.72 0.6 1.44 1.2 3 1.2 c3 0 3 -2.4 6 -2.4 c1.56 0 2.28 0.6 3 1.2 s1.44 1.2 3 1.2 c3 0 3 -2.4 6 -2.4 c1.56 0 2.28 0.6 3 1.2",
+    "note": "Cargo ship — specific expense subject; clean geometry derived from Lucide ship",
+    "source": "lucide-static@1.28.0/icons/ship.svg"
+  },
+  "expense_ship_wheel": {
+    "d": "M16 4 v9 m22.8 6 l-6.276 6.276 M28 16 h-9 m22.8 22.8 l-6.276 -6.276 M16 19 V28 M13.876 18.124 L7.6 24.4 M13 16 H4 M13.876 13.876 L7.6 7.6",
+    "note": "Boat charter — specific expense subject; clean geometry derived from Lucide ship-wheel",
+    "source": "lucide-static@1.28.0/icons/ship-wheel.svg",
+    "dots": [
+      [16.0, 16.0, 9.6],
+      [16.0, 16.0, 3.0]
+    ]
+  },
+  "expense_shirt": {
+    "d": "M26.056 5.752 L20.8 4 a4.8 4.8 0 0 1 -9.6 0 L5.944 5.752 a2.4 2.4 0 0 0 -1.608 2.676 l0.696 4.164 a1.2 1.2 0 0 0 1.188 1.008 H8.8 v12 c0 1.32 1.08 2.4 2.4 2.4 h9.6 a2.4 2.4 0 0 0 2.4 -2.4 V13.6 h2.58 a1.2 1.2 0 0 0 1.188 -1.008 l0.696 -4.164 a2.4 2.4 0 0 0 -1.608 -2.676 z",
+    "note": "Clothing — specific expense subject; clean geometry derived from Lucide shirt",
+    "source": "lucide-static@1.28.0/icons/shirt.svg"
+  },
+  "expense_shopping_bag": {
+    "d": "M20.8 13.6 a4.8 4.8 0 0 1 -9.6 0 M5.324 8.841 h21.353 M5.68 8.16 a2.4 2.4 0 0 0 -0.48 1.44 V25.6 a2.4 2.4 0 0 0 2.4 2.4 h16.8 a2.4 2.4 0 0 0 2.4 -2.4 V9.6 a2.4 2.4 0 0 0 -0.48 -1.44 l-2.4 -3.2 A2.4 2.4 0 0 0 22 4 H10 a2.4 2.4 0 0 0 -1.92 0.96 z",
+    "note": "Shopping bags — specific expense subject; clean geometry derived from Lucide shopping-bag",
+    "source": "lucide-static@1.28.0/icons/shopping-bag.svg"
+  },
+  "expense_shopping_basket": {
+    "d": "m18 13.2 l-1.2 10.8 m22.8 13.2 l-4.8 -8.4 M4 14.8 h24 m4.2 13.2 l1.92 8.88 a2.4 2.4 0 0 0 2.4 1.92 h11.76 a2.4 2.4 0 0 0 2.4 -1.92 l2.04 -8.88 M7 20.2 h18 m6 13.2 l4.8 -8.4 m10.8 13.2 l1.2 10.8",
+    "note": "Small shop — specific expense subject; clean geometry derived from Lucide shopping-basket",
+    "source": "lucide-static@1.28.0/icons/shopping-basket.svg"
+  },
+  "expense_shopping_cart": {
+    "d": "M4.06 4.06 h2.4 l3.192 14.904 a2.4 2.4 0 0 0 2.4 1.896 h11.736 a2.4 2.4 0 0 0 2.34 -1.884 l1.98 -8.916 H7.744",
+    "note": "Big shop — specific expense subject; clean geometry derived from Lucide shopping-cart",
+    "source": "lucide-static@1.28.0/icons/shopping-cart.svg",
+    "dots": [
+      [11.2, 26.8, 1.2],
+      [24.4, 26.8, 1.2]
+    ]
+  },
+  "expense_shower_head": {
+    "d": "m4.8 4.8 l3 3 M17.8 9.4 a5.94 5.94 0 0 0 -8.4 8.4 M19.6 7.6 L7.6 19.6 M18.4 22 v0.012 M13.6 20.8 v0.012 M17.2 17.2 v0.012 M20.8 13.6 v0.012 M14.8 25.6 v0.012 M22 18.4 v0.012 M25.6 14.8 v0.012",
+    "note": "Shower — specific expense subject; clean geometry derived from Lucide shower-head",
+    "source": "lucide-static@1.28.0/icons/shower-head.svg"
+  },
+  "expense_sigma": {
+    "d": "M23.2 10 V7.6 a1.2 1.2 0 0 0 -1.2 -1.2 H9.4 a0.6 0.6 0 0 0 -0.48 0.96 l5.4 7.2 a2.4 2.4 0 0 1 0 2.88 l-5.4 7.2 a0.6 0.6 0 0 0 0.48 0.96 H22 a1.2 1.2 0 0 0 1.2 -1.2 v-2.4",
+    "note": "Maths class — specific expense subject; clean geometry derived from Lucide sigma",
+    "source": "lucide-static@1.28.0/icons/sigma.svg"
+  },
+  "expense_signature": {
+    "d": "m25.2 20.4 l-2.587 -2.242 A0.6 0.6 0 0 0 23.2 20.2 v0.6 a1.2 1.2 0 0 1 -1.2 1.2 h-2.4 a1.2 1.2 0 0 1 -1.2 -1.2 c0 -3.054 -4.789 -4.764 -10.2 -4.8 a1.2 1.2 0 0 0 0 6 c4.984 0 5.694 -13.554 6.85 -16.2 a3 3 0 1 1 3.972 3.941 M5.2 26.8 h21.6",
+    "note": "Signature fee — specific expense subject; clean geometry derived from Lucide signature",
+    "source": "lucide-static@1.28.0/icons/signature.svg"
+  },
+  "expense_slice": {
+    "d": "M14.8 21.503 V24.4 a1.2 1.2 0 0 1 -1.2 1.2 H4 L23.644 5.956 a1.2 1.2 0 1 1 3.6 3.6 l-11.596 11.596 a1.2 1.2 0 0 1 -1.697 0 L11.2 18.4",
+    "note": "Cheese — specific expense subject; clean geometry derived from Lucide slice",
+    "source": "lucide-static@1.28.0/icons/slice.svg"
+  },
+  "expense_smartphone": {
+    "d": "M10 4 H22 A2.4 2.4 0 0 1 24.4 6.4 V25.6 A2.4 2.4 0 0 1 22 28 H10 A2.4 2.4 0 0 1 7.6 25.6 V6.4 A2.4 2.4 0 0 1 10 4 Z M16 23.2 h0.012",
+    "note": "Smartphone — specific expense subject; clean geometry derived from Lucide smartphone",
+    "source": "lucide-static@1.28.0/icons/smartphone.svg"
+  },
+  "expense_smartphone_charging": {
+    "d": "M10 4 H22 A2.4 2.4 0 0 1 24.4 6.4 V25.6 A2.4 2.4 0 0 1 22 28 H10 A2.4 2.4 0 0 1 7.6 25.6 V6.4 A2.4 2.4 0 0 1 10 4 Z M16.8 11.2 L13.6 16 h4.8 l-3.2 4.8",
+    "note": "Phone charging — specific expense subject; clean geometry derived from Lucide smartphone-charging",
+    "source": "lucide-static@1.28.0/icons/smartphone-charging.svg"
+  },
+  "expense_snowflake": {
+    "d": "m12 24 l-1.5 -3 L8.8 23.2 M13.6 6.4 L12.1 9.4 L8.8 8.8 m16.8 24 l1.5 -3 L23.2 23.2 m16.8 4.8 l1.5 3 L23.2 8.8 m20.4 25.2 l-3.6 -7.2 h-4.8 m20.4 3.6 l-3.6 7.2 l1.8 3.6 M4 16 h7.8 L13.6 12.4 m24 12 l-1.8 2.4 l1.8 2.4 M28 16 h-7.8 L18.4 19.6 m4.8 12 l1.8 2.4 L6.4 18.4 m8.4 25.2 l3.6 -7.2 l-1.8 -3.6 m8.4 3.6 l3.6 7.2 h4.8",
+    "note": "Winter trip — specific expense subject; clean geometry derived from Lucide snowflake",
+    "source": "lucide-static@1.28.0/icons/snowflake.svg"
+  },
+  "expense_sofa": {
+    "d": "M25.6 12.4 V8.8 a2.4 2.4 0 0 0 -2.4 -2.4 H8.8 a2.4 2.4 0 0 0 -2.4 2.4 v3.6 M4 20.8 a2.4 2.4 0 0 0 2.4 2.4 h19.2 a2.4 2.4 0 0 0 2.4 -2.4 v-6 a2.4 2.4 0 0 0 -4.8 0 v1.8 a0.6 0.6 0 0 1 -0.6 0.6 h-13.2 a0.6 0.6 0 0 1 -0.6 -0.6 V14.8 a2.4 2.4 0 0 0 -4.8 0 z M6.4 23.2 v2.4 M25.6 23.2 v2.4 M16 6.4 v10.8",
+    "note": "Sofa — specific expense subject; clean geometry derived from Lucide sofa",
+    "source": "lucide-static@1.28.0/icons/sofa.svg"
+  },
+  "expense_soup": {
+    "d": "M16 26.8 a10.8 10.8 0 0 0 10.8 -10.8 H5.2 a10.8 10.8 0 0 0 10.8 10.8 Z M10 26.8 h12 M25 16 L28 8.8 M21.1 5.2 c0.324 0.12 0.96 0.636 0.9 1.632 c-0.072 0.996 -1.116 1.44 -1.2 2.424 c-0.06 0.936 0.408 1.488 0.876 1.944 M15.1 5.2 c0.324 0.12 0.96 0.636 0.888 1.632 c-0.06 0.996 -1.116 1.44 -1.176 2.424 c-0.072 0.936 0.396 1.488 0.864 1.944 M9.1 5.2 c0.324 0.12 0.96 0.636 0.9 1.632 c-0.072 0.996 -1.116 1.44 -1.2 2.424 c-0.06 0.936 0.408 1.488 0.888 1.944",
+    "note": "Soup — specific expense subject; clean geometry derived from Lucide soup",
+    "source": "lucide-static@1.28.0/icons/soup.svg"
+  },
+  "expense_spade": {
+    "d": "M16 23.2 v4.8 M4 18.999 a6.6 6.6 0 0 0 11.509 4.41 a0.72 0.72 0 0 1 0.982 0.001 A6.6 6.6 0 0 0 28 19 c0 -2.748 -1.8 -4.8 -3.6 -6.6 l-6.59 -6.374 a2.4 2.4 0 0 0 -3.6 -0.024 L7.6 12.399 c-1.8 1.8 -3.6 3.84 -3.6 6.6",
+    "note": "Card games — specific expense subject; clean geometry derived from Lucide spade",
+    "source": "lucide-static@1.28.0/icons/spade.svg"
+  },
+  "expense_speaker": {
+    "d": "M8.8 4 H23.2 A2.4 2.4 0 0 1 25.6 6.4 V25.6 A2.4 2.4 0 0 1 23.2 28 H8.8 A2.4 2.4 0 0 1 6.4 25.6 V6.4 A2.4 2.4 0 0 1 8.8 4 Z M16 8.8 h0.012 M16 18.4 h0.012",
+    "note": "Sound system — specific expense subject; clean geometry derived from Lucide speaker",
+    "source": "lucide-static@1.28.0/icons/speaker.svg",
+    "dots": [[16.0, 18.4, 4.8]]
+  },
+  "expense_spell_check": {
+    "d": "m7.2 19.2 l7.2 -14.4 l7.2 14.4 M11.2 16 h9.6 m19.2 24 l2.4 2.4 l4.8 -4.8",
+    "note": "Spelling — specific expense subject; clean geometry derived from Lucide spell-check",
+    "source": "lucide-static@1.28.0/icons/spell-check.svg"
+  },
+  "expense_spray_can": {
+    "d": "M5.2 5.2 h0.012 M10 7.6 h0.012 M14.8 10 h0.012 M5.2 10 h0.012 M10 12.4 h0.012 M5.2 14.8 h0.012 M19.6 7.6 H24.4 V12.4 H19.6 Z m22.8 10.8 l2.4 2.4 v12 c0 0.72 -0.48 1.2 -1.2 1.2 h-7.2 c-0.72 0 -1.2 -0.48 -1.2 -1.2 V14.8 l2.4 -2.4 m15.6 16.8 l9.6 -2.4 m15.6 22.8 l9.6 -2.4",
+    "note": "Maintenance supplies — specific expense subject; clean geometry derived from Lucide spray-can",
+    "source": "lucide-static@1.28.0/icons/spray-can.svg"
+  },
+  "expense_sprout": {
+    "d": "M18.4 13.043 V10 a4.8 4.8 0 0 1 4.8 -4.8 h1.8 a0.6 0.6 0 0 1 0.6 0.6 V7.6 a4.8 4.8 0 0 1 -4.8 4.8 a4.8 4.8 0 0 0 -4.8 4.8 c0 2.4 1.2 3.6 1.2 6 a6 6 0 0 1 -1.2 3.6 M6.4 12.4 a6 6 0 0 1 9.6 4.8 a6 6 0 0 1 -9.6 -4.8 M7.6 26.8 h16.8",
+    "note": "Planting fund — specific expense subject; clean geometry derived from Lucide sprout",
+    "source": "lucide-static@1.28.0/icons/sprout.svg"
+  },
+  "expense_stamp": {
+    "d": "M18.4 17.2 V11.8 C18.4 10 19.6 10 19.6 7.6 a3.6 3.6 0 0 0 -7.2 0 c0 2.4 1.2 2.4 1.2 4.2 V17.2 M25.6 20.2 a3 3 0 0 0 -3 -3 h-13.2 A3 3 0 0 0 6.4 20.2 V22 a1.2 1.2 0 0 0 1.2 1.2 h16.8 a1.2 1.2 0 0 0 1.2 -1.2 z M7.6 28 h16.8",
+    "note": "Stamp service — specific expense subject; clean geometry derived from Lucide stamp",
+    "source": "lucide-static@1.28.0/icons/stamp.svg"
+  },
+  "expense_stethoscope": {
+    "d": "M14.8 4 v2.4 M7.6 4 v2.4 M7.6 5.2 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 v4.8 a7.2 7.2 0 0 0 14.4 0 V7.6 a2.4 2.4 0 0 0 -2.4 -2.4 h-1.2 M11.2 19.6 a7.2 7.2 0 0 0 14.4 0 v-3.6",
+    "note": "Medical checkup — specific expense subject; clean geometry derived from Lucide stethoscope",
+    "source": "lucide-static@1.28.0/icons/stethoscope.svg",
+    "dots": [[25.6, 13.6, 2.4]]
+  },
+  "expense_store": {
+    "d": "M19.6 26.8 v-6 a1.2 1.2 0 0 0 -1.2 -1.2 h-4.8 a1.2 1.2 0 0 0 -1.2 1.2 v6 M22.929 13.972 a1.344 1.344 0 0 0 -1.859 0 a3 3 0 0 1 -4.141 0 a1.344 1.344 0 0 0 -1.858 0 a3 3 0 0 1 -4.142 0 a1.344 1.344 0 0 0 -1.859 0 a3 3 0 0 1 -4.524 -3.898 l3.467 -5.021 A2.4 2.4 0 0 1 10 4 h12 a2.4 2.4 0 0 1 1.984 1.048 l3.474 5.03 a3 3 0 0 1 -4.529 3.893 M6.4 14.74 V24.4 a2.4 2.4 0 0 0 2.4 2.4 h14.4 a2.4 2.4 0 0 0 2.4 -2.4 v-9.66",
+    "note": "Retail store — specific expense subject; clean geometry derived from Lucide store",
+    "source": "lucide-static@1.28.0/icons/store.svg"
+  },
+  "expense_sun_snow": {
+    "d": "M13.6 26.8 v-1.2 M13.6 6.4 V5.2 M13.6 12.4 a3.6 3.6 0 0 0 0 7.2 m16.8 24 l1.5 -3 L23.2 23.2 m16.8 4.8 l1.5 3 L23.2 8.8 m20.4 25.2 l-3.6 -7.2 l1.8 -3.6 H28 m20.4 3.6 l-3.6 7.2 l1.8 3.6 M4 16 h1.2 m24 12 l-1.8 2.4 l1.8 2.4 m4.368 22.032 l0.84 -0.84 m5.208 7.608 l-0.84 -0.84",
+    "note": "Ski resort — specific expense subject; clean geometry derived from Lucide sun-snow",
+    "source": "lucide-static@1.28.0/icons/sun-snow.svg"
+  },
+  "expense_sunset": {
+    "d": "M16 13.6 V4 m5.916 13.116 l1.692 1.692 M4 23.2 h2.4 M25.6 23.2 h2.4 m22.884 13.116 l-1.692 1.692 M28 28 H4 m19.2 7.2 l-4.8 4.8 l-4.8 -4.8 M20.8 23.2 a4.8 4.8 0 0 0 -9.6 0",
+    "note": "Sunset trip — specific expense subject; clean geometry derived from Lucide sunset",
+    "source": "lucide-static@1.28.0/icons/sunset.svg"
+  },
+  "expense_syringe": {
+    "d": "m21.6 2.4 l4.8 4.8 m20.4 8.4 l3.6 -3.6 M24.4 12.4 L12.04 24.76 c-1.2 1.2 -3 1.2 -4.08 0 l-0.72 -0.72 c-1.2 -1.2 -1.2 -3 0 -4.08 L19.6 7.6 m10.8 13.2 l4.8 4.8 m6 22.8 l-3.6 3.6 m16.8 4.8 l7.2 7.2",
+    "note": "Injection — specific expense subject; clean geometry derived from Lucide syringe",
+    "source": "lucide-static@1.28.0/icons/syringe.svg"
+  },
+  "expense_tablet": {
+    "d": "M8.8 4 H23.2 A2.4 2.4 0 0 1 25.6 6.4 V25.6 A2.4 2.4 0 0 1 23.2 28 H8.8 A2.4 2.4 0 0 1 6.4 25.6 V6.4 A2.4 2.4 0 0 1 8.8 4 Z M16 23.2 L16.012 23.2",
+    "note": "Tablet — specific expense subject; clean geometry derived from Lucide tablet",
+    "source": "lucide-static@1.28.0/icons/tablet.svg"
+  },
+  "expense_tablets": {
+    "d": "M16 22 h12 m4.152 12.648 l8.496 -8.496",
+    "note": "Tablets — specific expense subject; clean geometry derived from Lucide tablets",
+    "source": "lucide-static@1.28.0/icons/tablets.svg",
+    "dots": [
+      [10.0, 10.0, 6.0],
+      [22.0, 22.0, 6.0]
+    ]
+  },
+  "expense_tags": {
+    "d": "M17.406 4 a2.4 2.4 0 0 1 1.697 0.703 l8.052 8.052 a2.88 2.88 0 0 1 0 4.09 l-5.51 5.51 a2.88 2.88 0 0 1 -4.09 0 l-8.052 -8.052 A2.4 2.4 0 0 1 8.8 12.606 V5.2 a1.2 1.2 0 0 1 1.2 -1.2 z M4 10 v7.406 a2.4 2.4 0 0 0 0.703 1.697 l8.052 8.052 a2.88 2.88 0 0 0 3.829 0.232",
+    "note": "Sale items — specific expense subject; clean geometry derived from Lucide tags",
+    "source": "lucide-static@1.28.0/icons/tags.svg",
+    "dots": [[14.2, 9.4, 0.6]]
+  },
+  "expense_telescope": {
+    "d": "m12.078 14.992 l-7.416 1.582 a1.121 1.121 0 0 1 -1.33 -0.842 l-0.644 -2.58 a1.284 1.284 0 0 1 0.829 -1.518 l16.205 -5.328 m16.272 14.096 l5.198 -1.109 m19.2 25.2 l-3.726 -7.452 M21.382 8.728 a2.4 2.4 0 0 1 1.746 -2.91 l1.308 -0.326 a1.2 1.2 0 0 1 1.454 0.872 l1.818 7.272 a1.2 1.2 0 0 1 -0.872 1.456 l-1.308 0.326 a2.4 2.4 0 0 1 -2.91 -1.746 z m7.39 10.36 l1.337 5.347 m9.6 25.2 l3.726 -7.452",
+    "note": "Astronomy class — specific expense subject; clean geometry derived from Lucide telescope",
+    "source": "lucide-static@1.28.0/icons/telescope.svg",
+    "dots": [[16.0, 17.2, 2.4]]
+  },
+  "expense_tent": {
+    "d": "M5.8 26.8 L18.4 5.2 M26.2 26.8 L13.6 5.2 M20.2 26.8 L16 19.6 l-4.2 7.2 M4 26.8 h24",
+    "note": "Tent rental — specific expense subject; clean geometry derived from Lucide tent",
+    "source": "lucide-static@1.28.0/icons/tent.svg"
+  },
+  "expense_tent_tree": {
+    "d": "m16.8 6 l3.6 -3.6 l3.6 3.6 m16.8 12 l3.6 -3.6 l3.6 3.6 M22 18.4 V4 M22 18.4 H10 l-6 9.6 h24 Z M11.2 18.4 v9.6 m10.8 16.8 l6 9.6",
+    "note": "Glamping — specific expense subject; clean geometry derived from Lucide tent-tree",
+    "source": "lucide-static@1.28.0/icons/tent-tree.svg",
+    "dots": [[6.4, 6.4, 2.4]]
+  },
+  "expense_test_tube": {
+    "d": "M19 4 v21 c0 1.68 -1.32 3 -3 3 c-1.68 0 -3 -1.32 -3 -3 V4 M11.8 4 h8.4 M19 20.8 h-6",
+    "note": "Blood test — specific expense subject; clean geometry derived from Lucide test-tube",
+    "source": "lucide-static@1.28.0/icons/test-tube.svg"
+  },
+  "expense_thermometer": {
+    "d": "M18.4 6.4 v12.648 a4.8 4.8 0 1 1 -4.8 0 V6.4 a2.4 2.4 0 0 1 4.8 0 Z",
+    "note": "Temperature check — specific expense subject; clean geometry derived from Lucide thermometer",
+    "source": "lucide-static@1.28.0/icons/thermometer.svg"
+  },
+  "expense_ticket": {
+    "d": "M4 12.4 a3.6 3.6 0 0 1 0 7.2 v2.4 a2.4 2.4 0 0 0 2.4 2.4 h19.2 a2.4 2.4 0 0 0 2.4 -2.4 v-2.4 a3.6 3.6 0 0 1 0 -7.2 V10 a2.4 2.4 0 0 0 -2.4 -2.4 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 Z M17.2 7.6 v2.4 M17.2 22 v2.4 M17.2 14.8 v2.4",
+    "note": "Ticket — specific expense subject; clean geometry derived from Lucide ticket",
+    "source": "lucide-static@1.28.0/icons/ticket.svg"
+  },
+  "expense_tickets": {
+    "d": "m3.808 9.816 l13.2 -6 a2.4 2.4 0 0 1 3.176 1.192 L23.872 11.2 M8.8 13.6 V11.2 M8.8 18.4 v1.2 M8.8 24.4 v2.4 M6.4 11.2 H25.6 A2.4 2.4 0 0 1 28 13.6 V24.4 A2.4 2.4 0 0 1 25.6 26.8 H6.4 A2.4 2.4 0 0 1 4 24.4 V13.6 A2.4 2.4 0 0 1 6.4 11.2 Z",
+    "note": "Tickets — specific expense subject; clean geometry derived from Lucide tickets",
+    "source": "lucide-static@1.28.0/icons/tickets.svg"
+  },
+  "expense_tickets_plane": {
+    "d": "M14.2 22 h1.472 a2.4 2.4 0 0 0 1.614 -0.624 L23.2 16 m14.4 16.2 l4.553 0.607 m3.808 9.816 l13.2 -6 a2.4 2.4 0 0 1 3.176 1.192 L23.872 11.2 M8.8 13.6 V11.2 M8.8 18.4 v1.2 M8.8 24.4 v2.4 M6.4 11.2 H25.6 A2.4 2.4 0 0 1 28 13.6 V24.4 A2.4 2.4 0 0 1 25.6 26.8 H6.4 A2.4 2.4 0 0 1 4 24.4 V13.6 A2.4 2.4 0 0 1 6.4 11.2 Z",
+    "note": "Plane ticket — specific expense subject; clean geometry derived from Lucide tickets-plane",
+    "source": "lucide-static@1.28.0/icons/tickets-plane.svg"
+  },
+  "expense_toy_brick": {
+    "d": "M6.4 11.2 H25.6 A1.2 1.2 0 0 1 26.8 12.4 V24.4 A1.2 1.2 0 0 1 25.6 25.6 H6.4 A1.2 1.2 0 0 1 5.2 24.4 V12.4 A1.2 1.2 0 0 1 6.4 11.2 Z M13.6 11.2 V7.6 c0 -0.72 -0.48 -1.2 -1.2 -1.2 H8.8 a1.2 1.2 0 0 0 -1.2 1.2 v3.6 M24.4 11.2 V7.6 c0 -0.72 -0.48 -1.2 -1.2 -1.2 h-3.6 a1.2 1.2 0 0 0 -1.2 1.2 v3.6",
+    "note": "Toys — specific expense subject; clean geometry derived from Lucide toy-brick",
+    "source": "lucide-static@1.28.0/icons/toy-brick.svg"
+  },
+  "expense_traffic_cone": {
+    "d": "M20.86 14.759 a6 3 0 0 1 -9.72 0 m20.308 16.859 l5.376 2.448 a1.2 1.2 0 0 1 0.001 2.197 l-10.289 4.68 a2.4 2.4 0 0 1 -1.992 0 l-10.289 -4.692 a1.2 1.2 0 0 1 0 -2.196 l5.381 -2.448 M21.939 18.568 a6 3 0 1 1 -11.88 0 L13.676 5.8 a2.4 2.4 0 0 1 4.649 0 z M12.633 9.484 a6 3 0 0 0 6.732 0",
+    "note": "Roadworks — specific expense subject; clean geometry derived from Lucide traffic-cone",
+    "source": "lucide-static@1.28.0/icons/traffic-cone.svg"
+  },
+  "expense_train_front": {
+    "d": "M11.2 5.32 V10 a4.8 4.8 0 0 0 9.6 0 V5.32 m10.8 18 l-1.2 -1.2 m18 18 l1.2 -1.2 M12.4 24.4 c-3.36 0 -6 -2.64 -6 -6 v-4.8 a9.6 9.6 0 0 1 19.2 0 v4.8 c0 3.36 -2.64 6 -6 6 Z m9.6 22.8 l-2.4 3.6 m19.2 22.8 l2.4 3.6",
+    "note": "Intercity train — specific expense subject; clean geometry derived from Lucide train-front",
+    "source": "lucide-static@1.28.0/icons/train-front.svg"
+  },
+  "expense_train_front_tunnel": {
+    "d": "M4 28 V16 a12 12 0 1 1 24 0 v12 M19.6 9.76 v1.68 a3.6 3.36 0 1 1 -7.2 0 V9.76 M13.6 19.6 h0.012 M18.4 19.6 h0.012 M13.6 24.4 a4.8 4.8 0 0 1 -4.8 -4.8 v-3.6 a7.2 7.2 0 1 1 14.4 0 v3.6 a4.8 4.8 0 0 1 -4.8 4.8 Z m10.8 22.8 l-2.4 3.6 m18 22.8 l2.4 3.6",
+    "note": "Underground train — specific expense subject; clean geometry derived from Lucide train-front-tunnel",
+    "source": "lucide-static@1.28.0/icons/train-front-tunnel.svg"
+  },
+  "expense_tram_front": {
+    "d": "M8.8 5.2 H23.2 A2.4 2.4 0 0 1 25.6 7.6 V22 A2.4 2.4 0 0 1 23.2 24.4 H8.8 A2.4 2.4 0 0 1 6.4 22 V7.6 A2.4 2.4 0 0 1 8.8 5.2 Z M6.4 14.8 h19.2 M16 5.2 v9.6 m9.6 22.8 l-2.4 3.6 m21.6 26.4 l-2.4 -3.6 M11.2 19.6 h0.012 M20.8 19.6 h0.012",
+    "note": "Tram — specific expense subject; clean geometry derived from Lucide tram-front",
+    "source": "lucide-static@1.28.0/icons/tram-front.svg"
+  },
+  "expense_trash_2": {
+    "d": "M13.6 14.8 v7.2 M18.4 14.8 v7.2 M24.4 8.8 v16.8 a2.4 2.4 0 0 1 -2.4 2.4 H10 a2.4 2.4 0 0 1 -2.4 -2.4 V8.8 M5.2 8.8 h21.6 M11.2 8.8 V6.4 a2.4 2.4 0 0 1 2.4 -2.4 h4.8 a2.4 2.4 0 0 1 2.4 2.4 v2.4",
+    "note": "Waste — specific expense subject; clean geometry derived from Lucide trash-2",
+    "source": "lucide-static@1.28.0/icons/trash-2.svg"
+  },
+  "expense_tree_palm": {
+    "d": "M17.2 11.2 c0 -3.312 -2.952 -6 -6.6 -6 S4 7.888 4 11.2 h2.4 l1.2 -1.2 l1.2 1.2 h4.8 M17.2 10.168 A6.984 6.984 0 0 1 21.4 8.8 c3.648 0 6.6 2.688 6.6 6 h-3.6 l-1.2 -1.2 l-1.2 1.2 h-3.6 M8.668 13.252 c-2.58 2.58 -2.76 6.564 -0.42 8.916 l5.088 -5.1 l0.84 -0.84 l0.852 -0.852 l2.544 -2.544 c-2.34 -2.352 -6.324 -2.16 -8.904 0.42 M14.8 20.2 c0.6 3 -0.204 5.4 -1.2 7.8 h4.8 c2.4 -6.6 -0.6 -14.4 -1.2 -16.8",
+    "note": "Tropical trip — specific expense subject; clean geometry derived from Lucide tree-palm",
+    "source": "lucide-static@1.28.0/icons/tree-palm.svg"
+  },
+  "expense_tree_pine": {
+    "d": "m20.4 16.8 l3.6 3.96 a1.2 1.2 0 0 1 -0.84 2.04 H7.24 a1.2 1.2 0 0 1 -0.84 -2.04 L10 18.4 h-0.36 a1.2 1.2 0 0 1 -0.84 -2.04 L12.4 12.4 h-0.24 A1.2 1.2 0 0 1 11.2 10.36 L16 5.2 l4.8 5.16 a1.2 1.2 0 0 1 -0.96 2.04 H19.6 l3.6 3.96 a1.2 1.2 0 0 1 -0.84 2.04 H22 Z M16 28 v-3.6",
+    "note": "Holiday tree — specific expense subject; clean geometry derived from Lucide tree-pine",
+    "source": "lucide-static@1.28.0/icons/tree-pine.svg"
+  },
+  "expense_trees": {
+    "d": "M13.6 13.6 v0.24 A3.6 3.6 0 0 1 12.28 20.8 H7.6 a3.6 3.6 0 0 1 -1.2 -6.96 V13.6 a3.6 3.6 0 0 1 7.2 0 Z M10 20.8 v7.2 M17.2 24.4 v3.6 M16 24.4 h9.96 a1.2 1.2 0 0 0 0.84 -2.04 L23.2 18.4 h0.36 a1.2 1.2 0 0 0 0.84 -2.04 L20.8 12.4 h0.24 a1.2 1.2 0 0 0 0.96 -2.04 L17.2 5.2 l-1.68 1.8",
+    "note": "Forest trip — specific expense subject; clean geometry derived from Lucide trees",
+    "source": "lucide-static@1.28.0/icons/trees.svg"
+  },
+  "expense_trophy": {
+    "d": "M13.6 19.192 V22 a1.2 1.2 0 0 1 -1.2 1.2 a2.4 2.4 0 0 0 -2.4 2.4 v2.4 M18.4 19.192 V22 a1.2 1.2 0 0 0 1.2 1.2 a2.4 2.4 0 0 1 2.4 2.4 v2.4 M23.099 13.6 H25 A3 3 0 0 0 28 10.6 V7.6 a1.2 1.2 0 0 0 -1.2 -1.2 h-3.6 M6.4 28 h19.2 M8.8 12.4 a7.2 7.2 0 0 0 14.4 0 V5.2 a1.2 1.2 0 0 0 -1.2 -1.2 H10 a1.2 1.2 0 0 0 -1.2 1.2 z M8.901 13.6 H7 A3 3 0 0 1 4 10.6 V7.6 a1.2 1.2 0 0 1 1.2 -1.2 h3.6",
+    "note": "Competition — specific expense subject; clean geometry derived from Lucide trophy",
+    "source": "lucide-static@1.28.0/icons/trophy.svg"
+  },
+  "expense_truck": {
+    "d": "M18.4 23.2 V8.8 a2.4 2.4 0 0 0 -2.4 -2.4 H6.4 a2.4 2.4 0 0 0 -2.4 2.4 v13.2 a1.2 1.2 0 0 0 1.2 1.2 h2.4 M19.6 23.2 H12.4 M24.4 23.2 h2.4 a1.2 1.2 0 0 0 1.2 -1.2 v-4.38 a1.2 1.2 0 0 0 -0.264 -0.749 l-4.176 -5.22 A1.2 1.2 0 0 0 22.624 11.2 H18.4",
+    "note": "Delivery truck — specific expense subject; clean geometry derived from Lucide truck",
+    "source": "lucide-static@1.28.0/icons/truck.svg",
+    "dots": [
+      [22.0, 23.2, 2.4],
+      [10.0, 23.2, 2.4]
+    ]
+  },
+  "expense_truck_electric": {
+    "d": "M18.4 24.4 V10 a2.4 2.4 0 0 0 -2.4 -2.4 H12.4 M19.6 24.4 H12.4 M24.4 24.4 h2.4 a1.2 1.2 0 0 0 1.2 -1.2 v-4.38 a1.2 1.2 0 0 0 -0.264 -0.744 L23.56 12.856 a1.2 1.2 0 0 0 -0.936 -0.456 H18.4 M4 17.2 v6 a1.2 1.2 0 0 0 1.2 1.2 h2.4 M6.4 5.2 L4.18 7.78 a0.594 0.594 0 0 0 0.42 1.032 h2.58 a0.564 0.564 0 0 1 0.42 1.032 L5.2 12.424",
+    "note": "Electric truck — specific expense subject; clean geometry derived from Lucide truck-electric",
+    "source": "lucide-static@1.28.0/icons/truck-electric.svg",
+    "dots": [
+      [22.0, 24.4, 2.4],
+      [10.0, 24.4, 2.4]
+    ]
+  },
+  "expense_tv": {
+    "d": "m20.4 2.4 l-6 6 l-6 -6 M6.4 10 H25.6 A2.4 2.4 0 0 1 28 12.4 V25.6 A2.4 2.4 0 0 1 25.6 28 H6.4 A2.4 2.4 0 0 1 4 25.6 V12.4 A2.4 2.4 0 0 1 6.4 10 Z",
+    "note": "Television — specific expense subject; clean geometry derived from Lucide tv",
+    "source": "lucide-static@1.28.0/icons/tv.svg"
+  },
+  "expense_umbrella": {
+    "d": "M16 17.2 v8.4 a2.4 2.4 0 0 0 4.8 0 M16 4 v2.4 M26.79 17.2 a1.2 1.2 0 0 0 1.164 -1.529 a12.341 12.341 0 0 0 -23.908 0 A1.2 1.2 0 0 0 5.2 17.2 z",
+    "note": "Beach setup — specific expense subject; clean geometry derived from Lucide umbrella",
+    "source": "lucide-static@1.28.0/icons/umbrella.svg"
+  },
+  "expense_usb": {
+    "d": "M7.24 24.76 L24.4 7.6 m25.2 3.6 l-3.6 1.2 l2.4 2.4 Z M12.712 10.816 L7.6 16 l2.4 6 m12 16.8 l6 2.4 l4.2 -4.2 m21.6 14.4 l1.2 -1.2 l1.2 1.2 l-1.2 1.2 Z",
+    "note": "USB device — specific expense subject; clean geometry derived from Lucide usb",
+    "source": "lucide-static@1.28.0/icons/usb.svg",
+    "dots": [
+      [13.6, 10.0, 1.2],
+      [6.4, 25.6, 1.2]
+    ]
+  },
+  "expense_user_round_check": {
+    "d": "M4 26.8 a9.6 9.6 0 0 1 15.95 -7.2 m19.2 22.8 l2.4 2.4 l4.8 -4.8",
+    "note": "Staffing service — specific expense subject; clean geometry derived from Lucide user-round-check",
+    "source": "lucide-static@1.28.0/icons/user-round-check.svg",
+    "dots": [[13.6, 11.2, 6.0]]
+  },
+  "expense_users": {
+    "d": "M20.8 26.8 v-2.4 a4.8 4.8 0 0 0 -4.8 -4.8 H8.8 a4.8 4.8 0 0 0 -4.8 4.8 v2.4 M20.8 5.354 a4.8 4.8 0 0 1 0 9.293 M28 26.8 v-2.4 a4.8 4.8 0 0 0 -3.6 -4.644",
+    "note": "Group fund — specific expense subject; clean geometry derived from Lucide users",
+    "source": "lucide-static@1.28.0/icons/users.svg",
+    "dots": [[12.4, 10.0, 4.8]]
+  },
+  "expense_van": {
+    "d": "M17.2 8.8 v6 a1.2 1.2 0 0 0 1.2 1.2 h7.322 a1.2 1.2 0 0 1 0.854 0.358 l1.078 1.092 a1.2 1.2 0 0 1 0.346 0.842 V22 a1.2 1.2 0 0 1 -1.2 1.2 h-3.6 M7.6 23.2 H5.2 a1.2 1.2 0 0 1 -1.2 -1.2 V11.2 a2.4 2.4 0 0 1 2.4 -2.4 h14.4 c1.32 0 2.52 0.96 2.88 2.16 l1.411 5.04 M12.4 23.2 h6",
+    "note": "Minibus — specific expense subject; clean geometry derived from Lucide van",
+    "source": "lucide-static@1.28.0/icons/van.svg",
+    "dots": [
+      [20.8, 23.2, 2.4],
+      [10.0, 23.2, 2.4]
+    ]
+  },
+  "expense_vault": {
+    "d": "M7.6 5.2 H24.4 A2.4 2.4 0 0 1 26.8 7.6 V24.4 A2.4 2.4 0 0 1 24.4 26.8 H7.6 A2.4 2.4 0 0 1 5.2 24.4 V7.6 A2.4 2.4 0 0 1 7.6 5.2 Z m9.48 9.48 l3.24 3.24 m16.08 12.72 l3.24 -3.24 m9.48 19.32 l3.24 -3.24 m16.08 16.08 l3.24 3.24",
+    "note": "Safe deposit — specific expense subject; clean geometry derived from Lucide vault",
+    "source": "lucide-static@1.28.0/icons/vault.svg",
+    "dots": [
+      [10.6, 10.6, 0.6],
+      [21.4, 10.6, 0.6],
+      [10.6, 21.4, 0.6],
+      [21.4, 21.4, 0.6],
+      [16.0, 16.0, 2.4]
+    ]
+  },
+  "expense_vegan": {
+    "d": "M20.8 11.2 q7.2 0 7.2 -7.2 q-7.2 0 -7.2 7.2 M22.492 5.908 a12 12 0 1 0 3.6 3.6 M4 4 a31.92 31.92 0 0 1 12 24 c1.08 -8.184 1.8 -11.4 4.8 -16.8",
+    "note": "Vegan food — specific expense subject; clean geometry derived from Lucide vegan",
+    "source": "lucide-static@1.28.0/icons/vegan.svg"
+  },
+  "expense_volleyball": {
+    "d": "M14.8 10 a19.2 19.2 20 0 1 13.176 5.234 M16 16 a15.6 15.6 0 0 1 -10.392 6 M21.796 17.961 a19.2 19.2 0 0 1 -11.12 8.794 M26.392 22 A15.6 15.6 0 0 0 16 16 a15.6 15.6 0 0 1 0 -12 M11.404 20.039 a19.2 19.2 0 0 1 -2.056 -14.028",
+    "note": "Volleyball — specific expense subject; clean geometry derived from Lucide volleyball",
+    "source": "lucide-static@1.28.0/icons/volleyball.svg",
+    "dots": [[16.0, 16.0, 12.0]]
+  },
+  "expense_wallet": {
+    "d": "M24.4 10 V6.4 a1.2 1.2 0 0 0 -1.2 -1.2 H7.6 a2.4 2.4 0 0 0 0 4.8 h18 a1.2 1.2 0 0 1 1.2 1.2 v4.8 h-3.6 a2.4 2.4 0 0 0 0 4.8 h3.6 a1.2 1.2 0 0 0 1.2 -1.2 v-2.4 a1.2 1.2 0 0 0 -1.2 -1.2 M5.2 7.6 v16.8 a2.4 2.4 0 0 0 2.4 2.4 h18 a1.2 1.2 0 0 0 1.2 -1.2 v-4.8",
+    "note": "Wallet — specific expense subject; clean geometry derived from Lucide wallet",
+    "source": "lucide-static@1.28.0/icons/wallet.svg"
+  },
+  "expense_wallet_cards": {
+    "d": "M5.2 14.8 h4.5 a2.4 2.4 0 0 1 1.92 0.96 l0.54 0.72 a4.8 4.8 0 0 0 7.68 0 l0.54 -0.72 a2.4 2.4 0 0 1 1.92 -0.96 H26.8 M5.2 10 h21.6 M7.6 5.2 H24.4 A2.4 2.4 0 0 1 26.8 7.6 V24.4 A2.4 2.4 0 0 1 24.4 26.8 H7.6 A2.4 2.4 0 0 1 5.2 24.4 V7.6 A2.4 2.4 0 0 1 7.6 5.2 Z",
+    "note": "Card holder — specific expense subject; clean geometry derived from Lucide wallet-cards",
+    "source": "lucide-static@1.28.0/icons/wallet-cards.svg"
+  },
+  "expense_washing_machine": {
+    "d": "M5.2 8.8 h3.6 M22 8.8 h0.012 M7.6 4 H24.4 A2.4 2.4 0 0 1 26.8 6.4 V25.6 A2.4 2.4 0 0 1 24.4 28 H7.6 A2.4 2.4 0 0 1 5.2 25.6 V6.4 A2.4 2.4 0 0 1 7.6 4 Z M16 23.2 a3 3 0 0 0 0 -6 a3 3 0 0 1 0 -6",
+    "note": "Laundry machine — specific expense subject; clean geometry derived from Lucide washing-machine",
+    "source": "lucide-static@1.28.0/icons/washing-machine.svg",
+    "dots": [[16.0, 17.2, 6.0]]
+  },
+  "expense_watch": {
+    "d": "M16 13.6 v2.64 l1.92 1.2 m19.356 9.192 l-0.972 -4.86 a2.4 2.4 0 0 0 -2.4 -1.932 h-3.216 a2.4 2.4 0 0 0 -2.4 1.932 l-0.936 4.86 m9.456 19.632 l0.96 4.8 a2.4 2.4 0 0 0 2.4 1.932 h3.264 a2.4 2.4 0 0 0 2.4 -1.932 l0.972 -4.86",
+    "note": "Watches — specific expense subject; clean geometry derived from Lucide watch",
+    "source": "lucide-static@1.28.0/icons/watch.svg",
+    "dots": [[16.0, 16.0, 7.2]]
+  },
+  "expense_waves": {
+    "d": "M4 16 q3 2.4 6 0 t6 0 t6 0 t6 0 M4 24.4 q3 2.4 6 0 t6 0 t6 0 t6 0 M4 7.6 q3 2.4 6 0 t6 0 t6 0 t6 0",
+    "note": "Water activity — specific expense subject; clean geometry derived from Lucide waves",
+    "source": "lucide-static@1.28.0/icons/waves.svg"
+  },
+  "expense_webcam": {
+    "d": "M10 28 h12 M16 28 v-4.8",
+    "note": "Webcam — specific expense subject; clean geometry derived from Lucide webcam",
+    "source": "lucide-static@1.28.0/icons/webcam.svg",
+    "dots": [
+      [16.0, 13.6, 9.6],
+      [16.0, 13.6, 3.6]
+    ]
+  },
+  "expense_weight": {
+    "d": "M9.4 11.2 a2.4 2.4 0 0 0 -2.286 1.752 L4.12 23.8 A2.4 2.4 0 0 0 6.4 26.8 h19.2 a2.4 2.4 0 0 0 2.31 -3.048 L24.88 13 A2.4 2.4 0 0 0 22.576 11.2 Z",
+    "note": "Weigh-in — specific expense subject; clean geometry derived from Lucide weight",
+    "source": "lucide-static@1.28.0/icons/weight.svg",
+    "dots": [[16.0, 7.6, 3.6]]
+  },
+  "expense_wheat": {
+    "d": "M4 28 L20.8 11.2 M5.764 16.636 L7.6 14.8 l1.836 1.836 a4.2 4.2 0 0 1 0 5.928 L7.6 24.4 l-1.836 -1.836 a4.2 4.2 0 0 1 0 -5.928 Z M10.564 11.836 L12.4 10 l1.836 1.836 a4.2 4.2 0 0 1 0 5.928 L12.4 19.6 l-1.836 -1.836 a4.2 4.2 0 0 1 0 -5.928 Z M15.364 7.036 L17.2 5.2 l1.836 1.836 a4.2 4.2 0 0 1 0 5.928 L17.2 14.8 l-1.836 -1.836 a4.2 4.2 0 0 1 0 -5.928 Z M25.6 4 h2.4 v2.4 a4.8 4.8 0 0 1 -4.8 4.8 h-2.4 V8.8 a4.8 4.8 0 0 1 4.8 -4.8 Z M15.364 22.564 L17.2 24.4 l-1.836 1.836 a4.2 4.2 0 0 1 -5.928 0 L7.6 24.4 l1.836 -1.836 a4.2 4.2 0 0 1 5.928 0 Z M20.164 17.764 L22 19.6 l-1.836 1.836 a4.2 4.2 0 0 1 -5.928 0 L12.4 19.6 l1.836 -1.836 a4.2 4.2 0 0 1 5.928 0 Z M24.964 12.964 L26.8 14.8 l-1.836 1.836 a4.2 4.2 0 0 1 -5.928 0 L17.2 14.8 l1.836 -1.836 a4.2 4.2 0 0 1 5.928 0 Z",
+    "note": "Bread loaf — specific expense subject; clean geometry derived from Lucide wheat",
+    "source": "lucide-static@1.28.0/icons/wheat.svg"
+  },
+  "expense_wifi": {
+    "d": "M16 25.6 h0.012 M4 12.184 a18 18 0 0 1 24 0 M7.6 17.031 a12 12 0 0 1 16.8 0 M11.8 21.315 a6 6 0 0 1 8.4 0",
+    "note": "Wi-Fi — specific expense subject; clean geometry derived from Lucide wifi",
+    "source": "lucide-static@1.28.0/icons/wifi.svg"
+  },
+  "expense_wrench": {
+    "d": "M19.24 9.16 a1.2 1.2 0 0 0 0 1.68 l1.92 1.92 a1.2 1.2 0 0 0 1.68 0 l3.727 -3.726 c0.384 -0.386 1.036 -0.264 1.18 0.262 a7.2 7.2 0 0 1 -9.911 8.468 l-9.492 9.492 a1.2 1.2 0 0 1 -3.599 -3.6 l9.492 -9.492 a7.2 7.2 0 0 1 8.468 -9.911 c0.526 0.144 0.648 0.794 0.263 1.181 z",
+    "note": "Plumbing — specific expense subject; clean geometry derived from Lucide wrench",
+    "source": "lucide-static@1.28.0/icons/wrench.svg"
+  }
+}

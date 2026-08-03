@@ -1,0 +1,301 @@
+category	id	label	icon	terms
+food-drink	sandwich	Sandwich	sandwich	sandwich;sub sandwich;deli sandwich;club sandwich
+food-drink	hamburger	Hamburger	hamburger	cheeseburger;burger meal;burger joint;hamburger combo
+food-drink	croissant	Croissant	croissant	croissant pastry;butter croissant;bakery croissant;morning pastry
+food-drink	donuts	Donuts	donut	donut dozen;doughnut;donut box;glazed donut
+food-drink	cookies	Cookies	cookie	cookie;chocolate cookies;biscuit pack;cookie jar
+food-drink	soup	Soup	soup	soup bowl;noodle soup;homemade soup;soup lunch
+food-drink	salad	Salad	salad	salad bowl;green salad;salad bar;side salad
+food-drink	steak-meat	Steak & meat	beef	steak;meat plate;beef dinner;grilled meat
+food-drink	chicken	Chicken	drumstick	fried chicken;chicken meal;roast chicken;chicken wings
+food-drink	fish-seafood	Fish & seafood	fish	seafood;fish dinner;fresh fish;grilled fish
+food-drink	eggs	Eggs	egg-fried	eggs;fried egg;egg breakfast;dozen eggs
+food-drink	fruit-bowl	Fruit	apple	fruit bowl;fresh fruit;fruit basket;piece of fruit
+food-drink	bananas	Bananas	banana	banana;bananas;banana bunch;banana snack
+food-drink	citrus	Citrus	citrus	oranges;lemons;citrus fruit;orange bag
+food-drink	vegetables	Vegetables	carrot	veggies;fresh vegetables;vegetable box;carrot bag
+food-drink	vegan-food	Vegan food	vegan	vegan meal;plant based meal;vegan groceries;veggie dinner
+food-drink	bread-loaf	Bread loaf	wheat	fresh loaf;sourdough loaf;bread loaf;artisan bread
+food-drink	milk-dairy	Milk & dairy	milk	milk carton;dairy order;fresh milk;plant milk
+food-drink	cheese	Cheese	slice	cheese board;cheese block;cheese slices;artisan cheese
+food-drink	soft-drinks	Soft drinks	cup-soda	soft drink;soda can;fizzy drink;cola bottle
+food-drink	candy	Candy	candy	candy bag;sweets bag;gummy candy;confectionery
+food-drink	ice-cream-treat	Ice cream	ice-cream-cone	ice cream cone;ice lolly;frozen yogurt;ice cream tub
+food-drink	wine-bottle	Wine bottle	bottle-wine	wine bottle;house wine;red wine bottle;white wine bottle
+food-drink	catering	Catering	chef-hat	caterer;catering order;private chef;event catering
+food-drink	cooking-supplies	Cooking supplies	cooking-pot	cooking ingredients;pantry refill;meal ingredients;kitchen staples
+transport	bicycle-ride	Bicycle	bike	bicycle ride;bike rental;cycle hire;bike repair
+transport	e-scooter	E-scooter	scooter	e scooter;scooter rental;scooter ride;electric scooter
+transport	motorcycle	Motorcycle	motorbike	motorbike;motorcycle ride;motorcycle rental;bike taxi
+transport	personal-car	Car	car-front	car expense;personal car;car journey;vehicle cost
+transport	rideshare-car	Ride-hailing	car-taxi-front	ride hailing;app cab;ride app;private ride
+transport	coach-bus	Coach	bus-front	bus ticket;intercity coach;coach fare;long distance bus
+transport	tram	Tram	tram-front	tram ticket;streetcar fare;tram ride;light rail fare
+transport	intercity-train	Intercity train	train-front	rail ticket;intercity rail;express train;train journey
+transport	tunnel-train	Underground train	train-front-tunnel	underground train;tunnel rail;metro tunnel;subway train
+transport	cable-car-ride	Cable car	cable-car	cable car ticket;gondola ride;funicular fare;aerial tram
+transport	flight-departure	Flight departure	plane-takeoff	departure flight;outbound flight;takeoff fee;departing plane
+transport	flight-arrival	Flight arrival	plane-landing	arrival flight;inbound flight;landing fee;arriving plane
+transport	cargo-ship	Cargo ship	ship	cargo shipping;sea freight;container ship;ocean freight
+transport	sailing-trip	Sailing	sailboat	sailing trip;sailboat hire;yacht day;sailing lesson
+transport	delivery-truck	Delivery truck	truck	truck delivery;haulage;lorry delivery;delivery vehicle
+transport	electric-truck	Electric truck	truck-electric	electric lorry;electric truck charge;ev truck;zero emission truck
+transport	minibus	Minibus	van	minibus hire;passenger van;shuttle van;van transfer
+transport	motorhome	Motorhome	caravan	motorhome rental;rv park;recreational vehicle;caravan pitch
+transport	parking-meter	Parking meter	parking-meter	parking meter payment;metered parking;parking machine;street parking fee
+transport	roadworks	Roadworks	traffic-cone	roadworks charge;road closure;construction detour;traffic cone
+transport	route-planning	Route planning	route	route planner;journey plan;travel route;driving route
+transport	road-map	Road map	map-pinned	road map;offline map;map purchase;printed map
+transport	navigation-service	Navigation	navigation	navigation app;sat nav;gps service;driving directions
+transport	mileage	Mileage	gauge	mileage claim;odometer;distance allowance;kilometre claim
+transport	freight	Freight	container	freight charge;shipping container;cargo fee;freight forwarding
+travel-stays	double-room	Double room	bed-double	double room;hotel bed;room for two;overnight room
+travel-stays	hotel-booking	Hotel booking	hotel	hotel booking;hotel reservation;hotel night;hotel stay fee
+travel-stays	baggage	Baggage	luggage	baggage charge;luggage storage;travel luggage;bag drop
+travel-stays	glamping	Glamping	tent-tree	glamping stay;forest camp;luxury camping;camping cabin
+travel-stays	tent-rental	Tent rental	tent	tent rental;camping tent;tent pitch;tent equipment
+travel-stays	mountain-trip	Mountain trip	mountain	mountain tour;mountain lodge;alpine trip;peak excursion
+travel-stays	forest-trip	Forest trip	trees	forest tour;woodland stay;nature reserve;forest cabin
+travel-stays	tropical-trip	Tropical trip	tree-palm	tropical holiday;palm beach;island resort;tropical tour
+travel-stays	beach-umbrella	Beach setup	umbrella	beach umbrella;sun shade;beach chair rental;parasol hire
+travel-stays	water-activity	Water activity	waves	water activity;wave pool;watersports pass;ocean excursion
+travel-stays	winter-trip	Winter trip	snowflake	winter holiday;snowy getaway;winter resort;ice excursion
+travel-stays	travel-compass	Travel guide	compass	travel guidebook;city guide;travel compass;guided route
+travel-stays	local-excursion	Local excursion	map-pin	local excursion;day tour;local attraction;guided visit
+travel-stays	passport-service	Passport	book-user	passport renewal;passport fee;travel document;visa booklet
+travel-stays	flight-ticket	Plane ticket	tickets-plane	airline ticket;flight ticket;air ticket;e ticket flight
+travel-stays	castle-visit	Castle visit	castle	castle ticket;palace tour;historic castle;fortress visit
+travel-stays	museum-visit	Museum visit	building	museum ticket;gallery admission;museum shop;cultural visit
+travel-stays	travel-photos	Travel photos	camera	travel photos;holiday camera;photo tour;vacation pictures
+travel-stays	wildlife-tour	Wildlife tour	binoculars	wildlife tour;birdwatching trip;safari guide;nature watching
+travel-stays	boat-captain	Boat charter	ship-wheel	boat charter;skipper fee;captain hire;private boat
+travel-stays	fairground	Fairground	ferris-wheel	fairground ticket;theme park ride;amusement park;funfair pass
+travel-stays	sunset-cruise	Sunset trip	sunset	sunset cruise;sunset tour;evening excursion;golden hour trip
+travel-stays	ski-resort	Ski resort	sun-snow	ski village;winter sun;snow resort;piste pass
+travel-stays	seaside-souvenir	Seaside souvenir	shell	seashell souvenir;beach keepsake;coastal gift;shell shop
+travel-stays	room-key	Room key	key-round	room key;key deposit;hotel key;late checkout key
+home-bills	house-cost	Household	house	household cost;home expense;house upkeep;property expense
+home-bills	home-energy	Home energy	house-plug	home energy;household power;energy connection;home electricity
+home-bills	ceiling-light	Lighting	lamp-ceiling	ceiling light;light fitting;lamp shade;lighting fixture
+home-bills	lightbulb-replacement	Lightbulbs	lightbulb	light bulb pack;replacement bulb;led bulb;smart bulb
+home-bills	power-supply	Power supply	plug-zap	power supply;mains power;electric connection;power outlet
+home-bills	shower	Shower	shower-head	shower repair;shower head;bathroom shower;shower fitting
+home-bills	bathroom	Bathroom	bath	bathroom supplies;bathtub repair;bath fitting;bathroom charge
+home-bills	laundry-machine	Laundry machine	washing-machine	washing machine;laundry appliance;washer repair;coin laundry
+home-bills	fridge	Fridge	refrigerator	fridge repair;new refrigerator;fridge freezer;cooling appliance
+home-bills	microwave	Microwave	microwave	microwave oven;microwave repair;small oven;kitchen microwave
+home-bills	heating-unit	Heating unit	heater	heater repair;space heater;heating unit;boiler service
+home-bills	air-conditioning	Air conditioning	air-vent	air conditioning;aircon service;ventilation;ac repair
+home-bills	fan	Fan	fan	ceiling fan;desk fan;fan repair;ventilator
+home-bills	house-key	House key	key	spare key;key cutting;house key;lock key
+home-bills	door	Door	door-open	door repair;new door;door fitting;entry door
+home-bills	sofa	Sofa	sofa	sofa purchase;couch delivery;sofa cleaning;living room couch
+home-bills	bed-frame	Bed	bed	bed frame;mattress base;new bed;bed delivery
+home-bills	painting	Painting	paint-roller	wall paint;painting supplies;decorator paint;paint roller
+home-bills	home-repair	Home repair	hammer	home repair;handyman materials;repair supplies;fixing job
+home-bills	plumbing	Plumbing	wrench	plumber;plumbing repair;pipe repair;tap fitting
+home-bills	power-tools	Power tools	drill	power tool;electric drill;tool rental;drill bits
+home-bills	recycling	Recycling	recycle	recycling fee;recycling bin;recycled goods;waste sorting
+home-bills	waste	Waste	trash-2	waste charge;rubbish collection;trash bags;bin service
+home-bills	water-supply	Water supply	droplets	water supply;water usage;water meter;drinking water service
+home-bills	cooking-gas	Cooking gas	flame	cooking gas;gas cylinder;propane refill;stove gas
+shopping	general-shopping	Shopping bags	shopping-bag	shopping bag;retail purchase;high street shop
+shopping	large-shop	Big shop	shopping-cart	large shop;bulk shopping;big basket
+shopping	small-shop	Small shop	shopping-basket	small shop;basket purchase;local shop
+shopping	clothing	Clothing	shirt	clothing;new clothes;fashion purchase
+shopping	footwear	Footwear	footprints	shoes;footwear;new trainers
+shopping	handbags	Handbags	handbag	handbag;purse bag;shoulder bag
+shopping	eyewear	Eyewear	glasses	glasses frames;sunglasses;eyewear
+shopping	watches	Watches	watch	wristwatch;watch strap;new watch
+shopping	jewellery	Jewellery	gem	jewellery;necklace;bracelet
+shopping	luxury-goods	Luxury goods	diamond	luxury item;designer goods;premium accessory
+shopping	parcel	Parcel	package	parcel order;online parcel;delivery package
+shopping	opened-order	Opened order	package-open	unboxed order;open package;delivered order
+shopping	subscription-box	Subscription box	box	subscription box;monthly box;curated box
+shopping	wholesale	Wholesale	boxes	wholesale order;case purchase;bulk goods
+shopping	sale-items	Sale items	tags	sale item;discount tag;clearance purchase
+shopping	barcoded-item	Barcoded item	barcode	barcoded item;product code;retail barcode
+shopping	checkout	Checkout	scan-barcode	self checkout;checkout scan;shop till
+shopping	retail-store	Retail store	store	retail store;shop purchase;store order
+shopping	return-refund	Return & refund	receipt	store return;purchase return;refund receipt
+shopping	card-holder	Card holder	wallet-cards	card holder;wallet insert;card wallet
+shopping	books	Books	book-open	book purchase;bookshop order;reading book
+shopping	flowers	Flowers	flower-2	flower bouquet;florist order;fresh flowers
+shopping	baby-goods	Baby goods	baby	baby essentials;nursery goods;infant items
+shopping	toys	Toys	toy-brick	toy shop;building toy;children's toy
+shopping	furniture	Furniture	armchair	furniture order;new chair;home furniture
+entertainment-leisure	generic-ticket	Ticket	ticket	ticket;entry ticket;admission pass
+entertainment-leisure	multi-tickets	Tickets	tickets	tickets;ticket bundle;season tickets
+entertainment-leisure	movie-rental	Movie	film	movie rental;film pass;movie night
+entertainment-leisure	cinema-production	Cinema	clapperboard	cinema booking;movie premiere;film screening
+entertainment-leisure	theatre-show	Theatre	drama	theatre show;stage play;drama ticket
+entertainment-leisure	music-streaming	Music	music	music subscription;streaming music;music download
+entertainment-leisure	headphones-audio	Audio	headphones	audio rental;listening gear;audio experience
+entertainment-leisure	guitar-lesson	Guitar	guitar	guitar lesson;guitar strings;guitar hire
+entertainment-leisure	karaoke	Karaoke	mic-vocal	karaoke room;karaoke night;singing session
+entertainment-leisure	sound-system	Sound system	speaker	speaker hire;sound system;audio equipment
+entertainment-leisure	video-games	Video games	gamepad-2	video game;console game;gaming session
+entertainment-leisure	board-games	Board games	dices	board game;dice game;tabletop night
+entertainment-leisure	puzzles	Puzzles	puzzle	jigsaw puzzle;puzzle room;escape puzzle
+entertainment-leisure	party-supplies	Party supplies	party-popper	party decorations;celebration kit;confetti pack
+entertainment-leisure	art-class	Art class	palette	art class;painting session;art workshop
+entertainment-leisure	crafting	Crafting	paintbrush	craft supplies;creative workshop;paint brushes
+entertainment-leisure	competition	Competition	trophy	competition entry;tournament fee;contest ticket
+entertainment-leisure	race-entry	Race entry	medal	race entry;marathon fee;sports medal
+entertainment-leisure	weights-training	Weights	dumbbell	weights class;strength training;weight session
+entertainment-leisure	volleyball-game	Volleyball	volleyball	volleyball court;volleyball game;beach volleyball
+entertainment-leisure	football-game	Football	goal	football match;football ticket;football pitch
+entertainment-leisure	card-games	Card games	spade	card game;playing cards;card tournament
+entertainment-leisure	records	Records	disc-3	vinyl record;record shop;music record
+entertainment-leisure	radio-service	Radio	radio	radio subscription;radio service;broadcast pass
+entertainment-leisure	television	Television	tv	tv subscription;television rental;tv package
+health-wellness	medication-bottle	Medication	pill-bottle	medicine bottle;medication refill;pharmacy bottle
+health-wellness	tablets	Tablets	tablets	medicine tablets;tablet pack;daily tablets
+health-wellness	injection	Injection	syringe	injection;vaccination shot;medical syringe
+health-wellness	medical-checkup	Medical checkup	stethoscope	medical checkup;doctor examination;health consultation
+health-wellness	heart-care	Heart care	heart-pulse	heart clinic;cardiac care;heart check
+health-wellness	activity-tracker	Activity tracker	activity	activity tracking;fitness reading;health activity
+health-wellness	hospital-stay	Hospital stay	hospital	hospital stay;ward charge;medical admission
+health-wellness	first-aid	First aid	cross	emergency kit;medical kit;urgent care supplies
+health-wellness	bandages	Bandages	bandage	adhesive bandage;dressing supplies;wound care
+health-wellness	eye-care	Eye care	eye	vision test;optician visit;vision care
+health-wellness	hearing-care	Hearing care	ear	hearing test;ear clinic;hearing aid service
+health-wellness	mental-health	Mental health	brain	mental health;psychology session;brain health
+health-wellness	bone-care	Bone care	bone	bone scan;orthopaedic care;fracture clinic
+health-wellness	genetic-test	Genetic test	dna	genetic test;dna screening;ancestry health test
+health-wellness	lab-work	Lab work	microscope	lab work;laboratory fee;sample analysis
+health-wellness	blood-test	Blood test	test-tube	blood test;test sample;clinical test
+health-wellness	temperature-check	Temperature check	thermometer	thermometer;temperature check;fever supplies
+health-wellness	weigh-in	Weigh-in	weight	weigh in;body weight;health scale
+health-wellness	physiotherapy	Physiotherapy	person-standing	physiotherapy;physical therapy;mobility session
+health-wellness	accessibility-care	Accessibility	accessibility	accessibility service;mobility support;accessible care
+health-wellness	heart-scan	Heart scan	scan-heart	heart scan;cardiac scan;ecg test
+health-wellness	medical-transport	Medical transport	ambulance	ambulance ride;medical transport;emergency vehicle
+health-wellness	health-insurance	Health insurance	shield-plus	health insurance;medical cover;care policy
+health-wellness	medical-bag	Medical bag	briefcase-medical	medical supplies;doctor bag;clinic equipment
+health-wellness	medical-record	Medical record	file-heart	medical record;health file;patient document
+family-education	graduation	Graduation	graduation-cap	graduation fee;degree ceremony;graduation gown
+family-education	school-cost	School	school	school cost;school payment;school activity
+family-education	textbooks	Textbooks	book-open-text	textbook order;study book;course reading
+family-education	school-notebook	School notebook	notebook-tabs	school notebook;subject notebook;class notes
+family-education	pencils	Pencils	pencil	pencil pack;drawing pencils;school pencils
+family-education	pens	Pens	pen-line	pen set;writing pens;school pen
+family-education	ruler-set	Ruler set	ruler	ruler set;geometry tools;measuring ruler
+family-education	maths-tools	Maths tools	calculator	school calculator;maths tools;exam calculator
+family-education	school-bag	School bag	backpack	school bag;student backpack;book bag
+family-education	library	Library	library-big	library fee;library card;book loan
+family-education	language-learning	Language learning	languages	language learning;translation class;language app
+family-education	spelling	Spelling	spell-check	spelling course;writing practice;literacy lesson
+family-education	building-blocks	Building blocks	blocks	building blocks;learning blocks;preschool blocks
+family-education	learning-shapes	Learning shapes	shapes	shape toys;learning shapes;geometry set
+family-education	study-notes	Study notes	notebook-pen	study notes;revision notebook;study journal
+family-education	presentation-course	Presentation course	presentation	presentation class;public speaking;slide course
+family-education	online-class	Online class	monitor-up	online class;remote learning;virtual lesson
+family-education	craft-class	Craft class	scissors	craft class;school scissors;paper craft
+family-education	painting-class	Painting class	paintbrush-vertical	painting class;art materials;painting lesson
+family-education	music-class	Music class	music-2	music class;music tuition;theory lesson
+family-education	coding-class	Coding class	binary	coding class;programming course;computer lesson
+family-education	maths-class	Maths class	sigma	maths class;algebra lesson;math tutoring
+family-education	science-class	Science class	flask-conical	science class;chemistry kit;lab lesson
+family-education	astronomy-class	Astronomy class	telescope	astronomy class;telescope session;space lesson
+family-education	geography-class	Geography class	earth	geography class;world atlas;earth science
+work-services	professional-work	Professional services	briefcase	professional service;business service;consulting work
+work-services	office-space	Office space	building-2	office space;workspace rent;business premises
+work-services	trade-work	Trade work	hard-hat	trade worker;site labour;contractor work
+work-services	construction-service	Construction	construction	construction service;building work;site service
+work-services	decorating-service	Decorator	paint-bucket	decorator service;house painter;painting labour
+work-services	cleaning-service	Cleaning	brush-cleaning	cleaning service;house cleaner;deep clean
+work-services	maintenance-spray	Maintenance supplies	spray-can	maintenance spray;protective coating;repair aerosol
+work-services	courier	Courier	package-check	courier service;signed delivery;parcel courier
+work-services	postage	Postage	send	postage cost;send parcel;shipping label
+work-services	mail-service	Mail service	mail	mail service;letter postage;postal charge
+work-services	printing-service	Printing	printer	printing service;document printing;print shop
+work-services	stamp-service	Stamp service	stamp	official stamp;notary stamp;document seal
+work-services	verified-service	Verified service	badge-check	verified provider;certified service;service approval
+work-services	inspection	Inspection	clipboard-check	property inspection;safety inspection;quality check
+work-services	booked-service	Booked service	calendar-check	service booking;scheduled appointment;confirmed booking
+work-services	hourly-service	Hourly service	clock	hourly service;labour time;time charge
+work-services	phone-support	Phone support	phone-call	phone support;service call;telephone consultation
+work-services	customer-support	Customer support	headset	customer support;help desk;support agent
+work-services	setup-service	Setup service	settings	setup service;configuration work;installation service
+work-services	security-service	Security service	shield-check	security service;protection plan;guard service
+work-services	staffing-service	Staffing service	user-round-check	staffing service;temporary worker;hired assistant
+work-services	business-consulting	Business consulting	briefcase-business	business consulting;corporate advice;management service
+work-services	contract-service	Contract service	file-signature	contract service;signed contract;agreement fee
+work-services	scheduled-maintenance	Scheduled maintenance	calendar-clock	scheduled maintenance;service window;maintenance visit
+work-services	admin-service	Admin service	clipboard-list	admin service;office administration;clerical help
+tech-connectivity	sim-card	SIM card	card-sim	sim;mobile chip;mobile sim
+tech-connectivity	smartphone	Smartphone	smartphone	smartphone;mobile handset;new phone device
+tech-connectivity	telephone	Telephone	phone	telephone;landline phone;home phone
+tech-connectivity	internet-router	Router	router	internet router;wifi router;network router
+tech-connectivity	wifi-service	Wi-Fi	wifi	wifi service;wireless internet;home wifi
+tech-connectivity	data-cable	Data cable	cable	data cable;charging cable;network cable
+tech-connectivity	power-plug	Power plug	plug	power plug;travel adapter;wall charger
+tech-connectivity	battery-charge	Battery charging	battery-charging	battery charging;charger pack;rechargeable battery
+tech-connectivity	laptop	Laptop	laptop	laptop computer;notebook computer;new laptop
+tech-connectivity	computer-monitor	Monitor	monitor	computer monitor;display screen;desktop display
+tech-connectivity	tablet-device	Tablet	tablet	tablet device;tablet computer;new tablet
+tech-connectivity	keyboard	Keyboard	keyboard	computer keyboard;wireless keyboard;typing board
+tech-connectivity	computer-mouse	Computer mouse	mouse	computer mouse;wireless mouse;mouse device
+tech-connectivity	webcam	Webcam	webcam	web camera;video call camera;computer webcam
+tech-connectivity	scanner	Scanner	scan	document scanner;scan service;image scanner
+tech-connectivity	joystick	Joystick	joystick	joystick controller;flight controller;gaming joystick
+tech-connectivity	phone-charging	Phone charging	smartphone-charging	phone charging;mobile charger;fast charger
+tech-connectivity	cloud-storage	Cloud storage	cloud	cloud storage;online backup;cloud plan
+tech-connectivity	server-hosting	Server hosting	server	server hosting;web server;hosting plan
+tech-connectivity	hard-drive	Hard drive	hard-drive	hard drive;external drive;storage disk
+tech-connectivity	usb-device	USB device	usb	usb device;usb adapter;flash drive
+tech-connectivity	bluetooth-device	Bluetooth	bluetooth	bluetooth device;wireless accessory;bluetooth adapter
+tech-connectivity	satellite-service	Satellite service	satellite	satellite service;satellite internet;satellite plan
+tech-connectivity	antenna	Antenna	antenna	tv antenna;signal antenna;aerial installation
+tech-connectivity	computer-chip	Computer chip	microchip	computer chip;processor chip;electronic component
+money-admin	wallet	Wallet	wallet	wallet purchase;digital wallet;money wallet
+money-admin	cash-note	Cash note	banknote	bank note;paper money;cash note
+money-admin	credit-card	Credit card	credit-card	credit card;card payment;new bank card
+money-admin	coins	Coins	coins	loose change;coin payment;bag of coins
+money-admin	bank-branch	Bank branch	landmark	bank branch;financial institution;bank visit
+money-admin	cent-fee	Small fee	badge-cent	small fee;cent charge;minor charge
+money-admin	dollar-payment	Dollar payment	circle-dollar-sign	dollar payment;usd charge;dollar fee
+money-admin	receipt-record	Receipt record	receipt-text	receipt record;itemised receipt;receipt copy
+money-admin	financial-document	Financial document	file-text	financial document;account statement;finance file
+money-admin	cash-giving	Cash giving	hand-coins	cash handover;money contribution;cash support
+money-admin	currency-exchange	Currency exchange	arrow-left-right	currency exchange;money exchange;foreign exchange
+money-admin	recurring-payment	Recurring payment	repeat-2	recurring payment;repeat charge;automatic payment
+money-admin	percentage-fee	Percentage fee	percent	percentage fee;rate charge;commission percentage
+money-admin	investment-growth	Investment growth	chart-no-axes-column-increasing	investment growth;portfolio gain;market return
+money-admin	savings	Savings	piggy-bank	savings deposit;savings pot;rainy day fund
+money-admin	safe-deposit	Safe deposit	vault	safe deposit;bank vault;secure storage
+money-admin	discount-rate	Discount rate	badge-percent	discount rate;percentage discount;promo rate
+money-admin	pound-payment	Pound payment	circle-pound-sterling	pound payment;gbp charge;sterling fee
+money-admin	euro-payment	Euro payment	circle-euro	euro payment;eur charge;euro fee
+money-admin	yen-payment	Yen payment	japanese-yen	yen payment;jpy charge;yen fee
+money-admin	crypto-payment	Crypto payment	bitcoin	crypto payment;bitcoin purchase;digital currency
+money-admin	dollar-fee	Dollar fee	badge-dollar-sign	dollar processing;usd service fee;dollar charge
+money-admin	qr-payment	QR payment	scan-qr-code	qr payment;scan to pay;qr code charge
+money-admin	signature-fee	Signature fee	signature	signature fee;document signing;signing service
+money-admin	approved-file	Approved file	file-check	approved document;file verification;document approval
+gifts-giving	wrapped-gift	Wrapped gift	gift	wrapped gift;gift box;present box
+gifts-giving	community-support	Community support	heart-handshake	community support;mutual aid;support pledge
+gifts-giving	care-gift	Care gift	hand-heart	care package;kindness gift;support gift
+gifts-giving	celebration-cake	Celebration cake	cake	celebration cake;birthday cake order;occasion cake
+gifts-giving	flower-gift	Flower gift	flower	flower gift;gift bouquet;celebration flowers
+gifts-giving	award-ribbon	Award ribbon	ribbon	award ribbon;prize ribbon;ceremony ribbon
+gifts-giving	community-award	Community award	award	community award;recognition gift;honour prize
+gifts-giving	holiday-tree	Holiday tree	tree-pine	holiday tree;seasonal tree;festive tree
+gifts-giving	animal-charity	Animal charity	paw-print	animal charity;pet rescue gift;shelter donation
+gifts-giving	environmental-gift	Environmental cause	leaf	environmental cause;green donation;conservation gift
+gifts-giving	group-fund	Group fund	users	group fund;community collection;team contribution
+gifts-giving	helping-hand	Helping hand	hand-helping	helping hand;practical support;volunteer help
+gifts-giving	heart-calendar	Memorial date	calendar-heart	memorial date;care anniversary;remembrance gift
+gifts-giving	warmth-donation	Warmth donation	flame-kindling	warmth donation;heating support;firewood gift
+gifts-giving	blood-donation	Blood donation	droplet	blood donation;donor support;blood drive gift
+gifts-giving	charity-partnership	Charity partnership	handshake	charity partnership;nonprofit support;cause partnership
+gifts-giving	housing-support	Housing support	house-heart	housing support;shelter fund;home assistance
+gifts-giving	cause-flag	Cause campaign	flag	cause campaign;awareness flag;campaign contribution
+gifts-giving	book-donation	Book donation	book-heart	book donation;literacy gift;library contribution
+gifts-giving	heart-support	Heart support	heart-plus	heart support;care contribution;health charity
+gifts-giving	planting-fund	Planting fund	sprout	planting fund;tree planting;garden donation
+gifts-giving	wildlife-fund	Wildlife fund	bird	wildlife fund;bird rescue;nature charity
+gifts-giving	dog-rescue	Dog rescue	dog	dog rescue;kennel donation;canine charity
+gifts-giving	cat-rescue	Cat rescue	cat	cat rescue;cattery donation;feline charity
+gifts-giving	emergency-relief	Emergency relief	life-buoy	emergency relief;disaster support;crisis fund

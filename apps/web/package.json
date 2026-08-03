@@ -39,6 +39,7 @@
         "@sentry/nextjs": "^10.65.0",
         "@serwist/next": "^9.2.1",
         "@tanstack/react-query": "^5.85.0",
+        "fastest-levenshtein": "1.0.16",
         "gray-matter": "^4.0.3",
         "https-proxy-agent": "^9.1.0",
         "motion": "^12.23.12",
