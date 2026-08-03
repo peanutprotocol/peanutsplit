@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * The shared drawer primitive is modal for the keyboard, not only for the mouse.
@@ -26,9 +27,7 @@ test.beforeEach(async ({ page }) => {
     await page.getByTestId('room-name').fill('Focus behaviour')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-    await expect(page.getByTestId('open-room-settings')).toBeVisible({ timeout: 15_000 })
+    await enterCreatedRoom(page)
 })
 
 test('focus enters the sheet, stays inside it, and comes back to the trigger', async ({ page }) => {

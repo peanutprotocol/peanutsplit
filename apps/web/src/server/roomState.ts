@@ -40,7 +40,8 @@ export type RoomWithRelations = Omit<BaseRoomWithRelations, 'members'> & {
     members: MemberWithRemovalState[]
 }
 
-/** True only for an unclaimed on-behalf placeholder with no durable reference. */
+/** True only for a roster-added name with no durable ledger reference. Device
+ * selection never changes this cleanup decision. */
 export const canRemoveMember = (member: MemberWithRemovalState): boolean => member.provisional && member.canRemove
 
 /**
@@ -180,7 +181,7 @@ type RoomReader = Pick<Prisma.TransactionClient, 'room' | 'member'>
 /**
  * Count history separately from the room read. Adding `_count` to the ordered
  * member relation changes PostgreSQL's query plan and made equal-timestamp
- * imported rosters reorder themselves. A second query only for provisional
+ * imported rosters reorder themselves. A second query only for roster-added
  * names keeps roster order stable and still counts soft-deleted history.
  */
 async function withRemovalState(room: BaseRoomWithRelations, db: RoomReader): Promise<RoomWithRelations> {

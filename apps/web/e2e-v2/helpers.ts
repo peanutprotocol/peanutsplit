@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test'
+import { enterCreatedRoom } from '../e2e/helpers'
 
 /**
  * What `scan.spec.ts` and `share-target.spec.ts` both need: a real image, a stubbed model, a quiet
@@ -74,7 +75,6 @@ export async function makeRoom(page: Page, name: string) {
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await enterCreatedRoom(page)
     await expect(page.locator('[data-testid="balance-card"][data-member="Ana"]')).toBeVisible({ timeout: 15_000 })
 }

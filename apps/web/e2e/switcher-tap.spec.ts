@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * Tapping a tile in the other-rooms strip has to actually go to that room.
@@ -17,9 +18,7 @@ async function createRoom(page: import('@playwright/test').Page, name: string) {
     await page.getByTestId('room-name').fill(name)
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-    await expect(page.getByTestId('open-room-settings')).toBeVisible({ timeout: 15_000 })
+    await enterCreatedRoom(page)
     return new URL(page.url()).pathname.split('/')[2]
 }
 

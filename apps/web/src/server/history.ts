@@ -11,7 +11,6 @@ export const ROOM_ACTIONS = [
     'room_settings_updated',
     'member_joined',
     'member_added',
-    'member_claimed',
     'member_removed',
     'member_avatar_updated',
     'expense_added',

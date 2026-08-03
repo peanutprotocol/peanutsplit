@@ -15,6 +15,7 @@ import type {
     ApiReaction,
     CreateRoomInput,
     CurrencyInfo,
+    ExpenseCreateResult,
     ExpenseInput,
     ExpenseUpdateInput,
     ImportRoomInput,
@@ -427,7 +428,7 @@ export function addExpenseMutationOptions(
     slug: string,
     token?: string | null,
     requestRef?: ExpenseRequestRef
-): UseMutationOptions<RoomState, Error, ExpenseInput, AddExpenseContext> {
+): UseMutationOptions<ExpenseCreateResult, Error, ExpenseInput, AddExpenseContext> {
     let localRequest: ExpenseRequestState | null = null
     const requestFor = (input: ExpenseInput): ExpenseRequestState => {
         const signature = expenseRequestSignature(input)
@@ -458,7 +459,7 @@ export function addExpenseMutationOptions(
          * which is how the amount actually gets lost. Everything not queueable
          * (edits, deletes, settlements) still rejects; see offline-queue.ts.
          */
-        mutationFn: async (input: ExpenseInput): Promise<RoomState> => {
+        mutationFn: async (input: ExpenseInput): Promise<ExpenseCreateResult> => {
             // Mint before the first network attempt. If the write commits but
             // its response is lost, the offline replay addresses that row
             // instead of creating a second expense.
@@ -484,7 +485,7 @@ export function addExpenseMutationOptions(
                     token,
                 })
                 if (!queued) throw error
-                return authoritative
+                return { ...authoritative, createdFirstSharedBalance: false }
             }
         },
         onMutate: async (input: ExpenseInput) => {
@@ -513,9 +514,9 @@ export function addExpenseMutationOptions(
         onError: (_error, _input, context) => {
             if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
         },
-        onSuccess: (state) => {
+        onSuccess: (result) => {
             clearRequest()
-            seed(queryClient, slug, state)
+            seed(queryClient, slug, roomStateResult(result))
         },
     }
 }

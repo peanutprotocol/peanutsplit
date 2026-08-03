@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { CARD_FILE_NAME, achievementCardPath } from '@/lib/achievements-contract'
-import { roomProps, sharePackageMeasureProps, track } from '@/lib/analytics'
+import { roomProps, sharePackageMeasureProps, track, type ShareSurface } from '@/lib/analytics'
 import { copyText } from '@/lib/clipboard'
 import { roomSharePackage } from '@/lib/share-package'
 import { useInviteSharePng } from '@/lib/share-card'
@@ -25,8 +25,15 @@ interface LinkMomentProps {
     theme?: string | null
     /** The active roster row, already cross-checked against live room state. */
     sharerMemberId?: string
+    /** Closed, identity-free context for presented → completed measurement. */
+    surface: ShareSurface
+    /** Optional on-screen context for a particular share moment. */
+    context?: React.ReactNode
     /** Rendered under the buttons — "Go to room" after creation, nothing in the share drawer. */
     footer?: React.ReactNode
+    /** Put the actual share action ahead of the optional link ticket on short
+     *  post-aha sheets, so the business-critical action is visible immediately. */
+    compact?: boolean
     /** Headline. The creation screen and the share drawer say different things. */
     title: string
     subtitle: string
@@ -61,7 +68,10 @@ export function LinkMoment({
     emoji,
     theme,
     sharerMemberId,
+    surface,
+    context,
     footer,
+    compact = false,
     title,
     subtitle,
     headingLevel = 1,
@@ -97,6 +107,7 @@ export function LinkMoment({
      */
     const [waving, setWaving] = useState(false)
     const inputRef = useRef<HTMLTextAreaElement>(null)
+    const completedRef = useRef(false)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
 
@@ -105,12 +116,20 @@ export function LinkMoment({
     }, [motionAllowed])
 
     useEffect(() => {
-        track('share_package_presented', sharePackageMeasureProps())
-    }, [])
+        completedRef.current = false
+        track('share_package_presented', sharePackageMeasureProps(surface))
+    }, [surface])
 
-    const completed = useCallback((method: 'native' | 'clipboard') => {
-        track('share_completed', sharePackageMeasureProps(method))
-    }, [])
+    const completed = useCallback(
+        (method: 'native' | 'clipboard') => {
+            // One presentation can be acted on through both controls. The KPI is
+            // whether sharing succeeded, not how many buttons were tapped.
+            if (completedRef.current) return
+            completedRef.current = true
+            track('share_completed', sharePackageMeasureProps(surface, method))
+        },
+        [surface]
+    )
 
     const revealFallback = useCallback(() => {
         setCopyFailed(true)
@@ -179,8 +198,27 @@ export function LinkMoment({
         }
     }, [completed, copy, feedback, file, payload, slug, t, wave])
 
+    const actions = (
+        <div className="flex flex-col gap-3">
+            {/* Share stays the single primary action and is never hidden: on a
+                browser with no native sheet `share()` copies instead, so the
+                button always does the useful thing. */}
+            <Button
+                variant="primary"
+                shadowSize="4"
+                onClick={() => void share()}
+                icon="share"
+                className="justify-center"
+                data-testid="share-link"
+            >
+                {t('share')}
+            </Button>
+            {footer}
+        </div>
+    )
+
     return (
-        <div className="flex flex-col gap-6">
+        <div className={compact ? 'flex flex-col gap-4' : 'flex flex-col gap-6'}>
             <motion.div
                 initial={motionAllowed ? { opacity: 0, y: -8 } : false}
                 animate={{ opacity: 1, y: 0 }}
@@ -192,153 +230,141 @@ export function LinkMoment({
                 <p className="text-sm text-grey-1">{subtitle}</p>
             </motion.div>
 
-            <motion.div
-                // `relative` anchors the mascot's peek; it must stay even when
-                // nothing moves, or the absolute child escapes the ticket.
-                className="relative"
-                initial={motionAllowed ? { y: -56, opacity: 0, rotate: -4, scale: 0.94 } : false}
-                animate={{ y: 0, opacity: 1, rotate: motionAllowed ? [-4, 1.4, 0] : 0, scale: 1 }}
-                transition={
-                    motionAllowed
-                        ? {
-                              default: {
-                                  type: 'spring',
-                                  stiffness: 300,
-                                  damping: 17,
-                                  mass: 0.9,
-                                  delay: 0.06,
-                              },
-                              rotate: { duration: 0.62, delay: 0.06, times: [0, 0.55, 1], ease: 'easeOut' },
-                          }
-                        : { duration: 0 }
-                }
-                data-motion-surface
-                data-testid="room-share-card"
-            >
-                {/* Behind the opaque Card (negative z), so only what clears the top
+            {context}
+
+            {compact && actions}
+
+            {(!compact || copyFailed) && (
+                <motion.div
+                    // `relative` anchors the mascot's peek; it must stay even when
+                    // nothing moves, or the absolute child escapes the ticket.
+                    className="relative"
+                    initial={motionAllowed ? { y: -56, opacity: 0, rotate: -4, scale: 0.94 } : false}
+                    animate={{ y: 0, opacity: 1, rotate: motionAllowed ? [-4, 1.4, 0] : 0, scale: 1 }}
+                    transition={
+                        motionAllowed
+                            ? {
+                                  default: {
+                                      type: 'spring',
+                                      stiffness: 300,
+                                      damping: 17,
+                                      mass: 0.9,
+                                      delay: 0.06,
+                                  },
+                                  rotate: { duration: 0.62, delay: 0.06, times: [0, 0.55, 1], ease: 'easeOut' },
+                              }
+                            : { duration: 0 }
+                    }
+                    data-motion-surface
+                    data-testid="room-share-card"
+                >
+                    {/* Behind the opaque Card (negative z), so only what clears the top
                     edge is ever visible: rises, waves, ducks back down. A genuine
                     peek — zero layout shift, nothing to tap. */}
-                {waving && (
-                    <motion.div
-                        aria-hidden="true"
-                        data-decorative
-                        className="pointer-events-none absolute right-8 top-0 -z-10"
-                        initial={{ y: 48, rotate: 0 }}
-                        animate={{ y: [48, -26, -26, 48], rotate: [0, -5, 5, 0] }}
-                        transition={{ duration: 1.5, times: [0, 0.22, 0.78, 1], ease: 'easeInOut' }}
-                        onAnimationComplete={() => setWaving(false)}
-                    >
-                        <Image src={peanutWavingHello} alt="" unoptimized className="h-14 w-14 object-contain" />
-                    </motion.div>
-                )}
-                <Card shadowSize="6" className="overflow-hidden">
-                    <div
-                        className="flex items-center gap-3 border-b border-n-1 px-4 py-4"
-                        style={{ backgroundColor: palette.field }}
-                    >
-                        <motion.span
-                            initial={motionAllowed ? { scale: 0.4, rotate: -20 } : false}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={
-                                motionAllowed
-                                    ? { type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }
-                                    : { duration: 0 }
-                            }
-                            data-motion-surface
-                            data-testid="room-share-doodle"
-                            className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"
+                    {waving && (
+                        <motion.div
+                            aria-hidden="true"
+                            data-decorative
+                            className="pointer-events-none absolute right-8 top-0 -z-10"
+                            initial={{ y: 48, rotate: 0 }}
+                            animate={{ y: [48, -26, -26, 48], rotate: [0, -5, 5, 0] }}
+                            transition={{ duration: 1.5, times: [0, 0.22, 0.78, 1], ease: 'easeInOut' }}
+                            onAnimationComplete={() => setWaving(false)}
                         >
-                            <RoomEmblem value={emoji} name={roomName} size={30} />
-                        </motion.span>
-                        <div className="min-w-0">
-                            <p className="truncate text-h6">{roomName}</p>
-                            <p className="text-h10 uppercase tracking-wide text-n-1/70">{t('subtitle')}</p>
-                        </div>
-                    </div>
-
-                    <div className="relative h-0">
-                        <span className="absolute -left-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
-                        <span className="absolute -right-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
-                        <span className="absolute inset-x-4 -top-px block border-t border-dashed border-n-1/40" />
-                    </div>
-
-                    <div className="flex flex-col gap-3 px-4 py-5">
-                        <p className="text-h10 uppercase tracking-wide text-grey-1">{t('roomLink')}</p>
-                        {copyFailed ? (
-                            <div className="flex flex-col gap-2">
-                                <textarea
-                                    ref={inputRef}
-                                    readOnly
-                                    value={payload.fullText}
-                                    onFocus={(event) => event.currentTarget.select()}
-                                    aria-label={t('inviteText')}
-                                    data-testid="room-link-input"
-                                    rows={3}
-                                    className="input min-h-24 select-text px-3 py-3 text-sm"
-                                />
-                            </div>
-                        ) : (
-                            <div
-                                className="flex min-h-12 items-center gap-2 rounded-sm border border-dashed border-n-1 bg-grey-3 py-1 pl-3 pr-1"
-                                data-testid="room-link-row"
+                            <Image src={peanutWavingHello} alt="" unoptimized className="h-14 w-14 object-contain" />
+                        </motion.div>
+                    )}
+                    <Card shadowSize="6" className="overflow-hidden">
+                        <div
+                            className="flex items-center gap-3 border-b border-n-1 px-4 py-4"
+                            style={{ backgroundColor: palette.field }}
+                        >
+                            <motion.span
+                                initial={motionAllowed ? { scale: 0.4, rotate: -20 } : false}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={
+                                    motionAllowed
+                                        ? { type: 'spring', stiffness: 400, damping: 14, delay: 0.28 }
+                                        : { duration: 0 }
+                                }
+                                data-motion-surface
+                                data-testid="room-share-doodle"
+                                className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h4"
                             >
-                                <p
-                                    data-testid="room-link"
-                                    className="min-w-0 flex-1 select-text break-all text-sm font-bold"
-                                >
-                                    {url}
-                                </p>
-                                <motion.button
-                                    type="button"
-                                    onClick={copy}
-                                    aria-label={copied ? t('copied') : t('copy')}
-                                    data-testid="copy-link"
-                                    animate={
-                                        copied
-                                            ? { scale: [1, 1.08, 1], backgroundColor: '#98E9AB' }
-                                            : { scale: 1, backgroundColor: 'rgba(255,255,255,0)' }
-                                    }
-                                    transition={{ duration: 0.22 }}
-                                    className="flex size-10 shrink-0 items-center justify-center rounded-sm transition-transform active:translate-y-px"
-                                >
-                                    <AnimatePresence mode="popLayout" initial={false}>
-                                        <motion.span
-                                            key={copied ? 'check' : 'copy'}
-                                            initial={{ scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 }}
-                                            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                                            exit={{ scale: 0.3, opacity: 0 }}
-                                            transition={{ type: 'spring', stiffness: 520, damping: 20 }}
-                                            className="flex items-center justify-center"
-                                        >
-                                            <Icon name={copied ? 'check' : 'copy'} size={15} />
-                                        </motion.span>
-                                    </AnimatePresence>
-                                </motion.button>
+                                <RoomEmblem value={emoji} name={roomName} size={30} />
+                            </motion.span>
+                            <div className="min-w-0">
+                                <p className="truncate text-h6">{roomName}</p>
+                                <p className="text-h10 uppercase tracking-wide text-n-1/70">{t('subtitle')}</p>
                             </div>
-                        )}
-                    </div>
-                </Card>
-            </motion.div>
+                        </div>
 
-            <div className="flex flex-col gap-3">
-                {/* Share stays the single primary action and is never hidden: on a
-                    browser with no native sheet `share()` copies instead, so the
-                    button always does the useful thing. That answers what an earlier
-                    version of this screen solved by promoting Copy and gating Share
-                    on `navigator.share` — copy now lives inline in the link row, and
-                    one primary action beats two competing ones. */}
-                <Button
-                    variant="primary"
-                    shadowSize="4"
-                    onClick={() => void share()}
-                    icon="share"
-                    className="justify-center"
-                    data-testid="share-link"
-                >
-                    {t('share')}
-                </Button>
-                {footer}
-            </div>
+                        <div className="relative h-0">
+                            <span className="absolute -left-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
+                            <span className="absolute -right-2 -top-2 size-4 rounded-full border border-n-1 bg-background" />
+                            <span className="absolute inset-x-4 -top-px block border-t border-dashed border-n-1/40" />
+                        </div>
+
+                        <div className="flex flex-col gap-3 px-4 py-5">
+                            <p className="text-h10 uppercase tracking-wide text-grey-1">{t('roomLink')}</p>
+                            {copyFailed ? (
+                                <div className="flex flex-col gap-2">
+                                    <textarea
+                                        ref={inputRef}
+                                        readOnly
+                                        value={payload.fullText}
+                                        onFocus={(event) => event.currentTarget.select()}
+                                        aria-label={t('inviteText')}
+                                        data-testid="room-link-input"
+                                        rows={3}
+                                        className="input min-h-24 select-text px-3 py-3 text-sm"
+                                    />
+                                </div>
+                            ) : (
+                                <div
+                                    className="flex min-h-12 items-center gap-2 rounded-sm border border-dashed border-n-1 bg-grey-3 py-1 pl-3 pr-1"
+                                    data-testid="room-link-row"
+                                >
+                                    <p
+                                        data-testid="room-link"
+                                        className="min-w-0 flex-1 select-text break-all text-sm font-bold"
+                                    >
+                                        {url}
+                                    </p>
+                                    <motion.button
+                                        type="button"
+                                        onClick={copy}
+                                        aria-label={copied ? t('copied') : t('copy')}
+                                        data-testid="copy-link"
+                                        animate={
+                                            copied
+                                                ? { scale: [1, 1.08, 1], backgroundColor: '#98E9AB' }
+                                                : { scale: 1, backgroundColor: 'rgba(255,255,255,0)' }
+                                        }
+                                        transition={{ duration: 0.22 }}
+                                        className="flex size-10 shrink-0 items-center justify-center rounded-sm transition-transform active:translate-y-px"
+                                    >
+                                        <AnimatePresence mode="popLayout" initial={false}>
+                                            <motion.span
+                                                key={copied ? 'check' : 'copy'}
+                                                initial={{ scale: 0.3, rotate: copied ? -120 : 0, opacity: 0 }}
+                                                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                                                exit={{ scale: 0.3, opacity: 0 }}
+                                                transition={{ type: 'spring', stiffness: 520, damping: 20 }}
+                                                className="flex items-center justify-center"
+                                            >
+                                                <Icon name={copied ? 'check' : 'copy'} size={15} />
+                                            </motion.span>
+                                        </AnimatePresence>
+                                    </motion.button>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                </motion.div>
+            )}
+
+            {!compact && actions}
 
             {status && (
                 <p role="status" className="text-center text-sm font-bold text-grey-1" data-testid="share-status">
@@ -346,10 +372,12 @@ export function LinkMoment({
                 </p>
             )}
 
-            <p className="flex items-center justify-center gap-1.5 text-center text-sm text-grey-1">
-                <Icon name="users" size={16} />
-                {t('anyoneCanJoin')}
-            </p>
+            {!compact && (
+                <p className="flex items-center justify-center gap-1.5 text-center text-sm text-grey-1">
+                    <Icon name="users" size={16} />
+                    {t('anyoneCanJoin')}
+                </p>
+            )}
         </div>
     )
 }

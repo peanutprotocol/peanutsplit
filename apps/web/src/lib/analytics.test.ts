@@ -128,31 +128,51 @@ describe('landing analytics', () => {
     })
 })
 
+describe('first shared balance analytics', () => {
+    it('emits the activation milestone without ledger properties', async () => {
+        const { trackFirstSharedBalance } = await import('./analytics')
+
+        trackFirstSharedBalance()
+
+        expect(posthog.capture).toHaveBeenCalledWith('first_shared_balance', {})
+    })
+})
+
 describe('share-package measurement', () => {
     it('defines an honest completed-over-presented measure with an exact identifier-free allowlist', async () => {
-        const { SHARE_PACKAGE_MEASURE, SHARE_PACKAGE_METHODS, sharePackageMeasureProps } = await import('./analytics')
+        const { SHARE_PACKAGE_MEASURE, SHARE_PACKAGE_METHODS, SHARE_SURFACES, sharePackageMeasureProps } =
+            await import('./analytics')
 
         expect(SHARE_PACKAGE_MEASURE).toEqual({
             exposure: 'share_package_presented',
             success: 'share_completed',
             definition: 'completed user-directed share actions / presented share packages',
             allowedProperties: {
-                share_package_presented: ['variant'],
-                share_completed: ['variant', 'method'],
+                share_package_presented: ['variant', 'surface'],
+                share_completed: ['variant', 'surface', 'method'],
             },
         })
 
-        expect(sharePackageMeasureProps()).toEqual({ variant: 'group_chat_package_v1' })
-        expect(sharePackageMeasureProps('native')).toEqual({
+        expect(sharePackageMeasureProps('post_aha')).toEqual({
             variant: 'group_chat_package_v1',
+            surface: 'post_aha',
+        })
+        expect(sharePackageMeasureProps('post_aha', 'native')).toEqual({
+            variant: 'group_chat_package_v1',
+            surface: 'post_aha',
             method: 'native',
         })
         expect(SHARE_PACKAGE_METHODS).toEqual(['native', 'clipboard'])
-        expect(sharePackageMeasureProps('whatsapp' as never)).toEqual({ variant: 'group_chat_package_v1' })
+        expect(SHARE_SURFACES).toEqual(['room_ready', 'post_aha', 'header'])
+        expect(sharePackageMeasureProps('unknown' as never)).toEqual({ variant: 'group_chat_package_v1' })
+        expect(sharePackageMeasureProps('header', 'whatsapp' as never)).toEqual({
+            variant: 'group_chat_package_v1',
+            surface: 'header',
+        })
 
         for (const method of ['native', 'clipboard'] as const) {
-            const properties = sharePackageMeasureProps(method)
-            expect(Object.keys(properties)).toEqual(['variant', 'method'])
+            const properties = sharePackageMeasureProps('header', method)
+            expect(Object.keys(properties)).toEqual(['variant', 'surface', 'method'])
             expect(properties).not.toHaveProperty('room')
             expect(properties).not.toHaveProperty('slug')
             expect(properties).not.toHaveProperty('name')

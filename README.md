@@ -90,6 +90,10 @@ Peanut's design system, with `primary-1` swapped off Peanut pink so Split reads 
 - `docs-split-rooms-spike.md` — the original spike design doc and the 2026-07-06 review.
 - `docs/release-states.md` — the exact difference between code-complete,
   deployed dark, user-visible and production-verified.
+- `docs/ROSTER-IDENTITY.md` — roster names are ledger participants, with no
+  claimed/unclaimed lifecycle.
+- `docs/SHARE-SUCCESS.md` — a completed share is the key business success
+  moment: strongly encouraged, never required.
 
 ## Provenance
 

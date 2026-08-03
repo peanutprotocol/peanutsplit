@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * The auditable balance, end to end: a real room, real expenses, real settlement, and the
@@ -31,10 +32,7 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
 
-    const roomLink = page.getByTestId('room-link')
-    await expect(roomLink).toBeVisible({ timeout: 15_000 })
-    const url = (await roomLink.innerText()).trim()
-    await page.getByTestId('go-to-room').click()
+    const url = await enterCreatedRoom(page)
     await expectBalance(page, 'Ana', '0')
     // One member is one card per person, so nothing is claiming to be the pair shape yet.
     await expect(page.locator('[data-testid="balance-card"][data-pair]')).toHaveCount(0)
@@ -62,6 +60,8 @@ test('a balance shows its own working, and the working adds up', async ({ page, 
     await page.getByTestId('expense-payer-summary').click()
     await page.locator('[data-testid="payer-chip"][data-member="Ana"]').click()
     await page.getByTestId('save-expense').click()
+    await expect(page.getByTestId('skip-post-aha-share')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('skip-post-aha-share').click()
     // Ana's own +3000, stated as Bea's −3000 on the single pair card.
     await expectBalance(page, 'Bea', '-3000')
     await expect(balance(page, 'Bea')).toHaveAttribute('data-balance-direction', 'incoming')

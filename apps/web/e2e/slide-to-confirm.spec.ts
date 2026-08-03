@@ -97,20 +97,6 @@ test('destructive ledger and identity actions require a slide or keyboard confir
     await slideToConfirm(page, deleteExpense)
     await expect(page.getByTestId('expense-row')).toHaveCount(0)
 
-    await page.getByTestId('share-room').click()
-    await page.getByTestId('add-people-toggle').click()
-    await page.getByTestId('add-person-name').fill('Cara')
-    await page.getByTestId('add-person').click()
-    const cara = page.locator('[data-testid="roster-chip"][data-member="Cara"]')
-    await expect(cara).toBeVisible()
-    await cara.getByRole('button', { name: 'Remove untouched placeholder for Cara' }).click()
-    const removeMember = page.getByTestId('confirm-remove-member')
-    await removeMember.click()
-    await expect(cara).toBeVisible()
-    await slideToConfirm(page, removeMember)
-    await expect(cara).toHaveCount(0, { timeout: 15_000 })
-    await page.keyboard.press('Escape')
-
     const state = await addExpense('Settle me')
     const transfer = state.suggestedTransfers[0]
     expect(transfer).toBeTruthy()

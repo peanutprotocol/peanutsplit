@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * The other-rooms strip at the top of the settings sheet, at the storage cap.
@@ -19,9 +20,7 @@ async function roomWithNeighbours(page: Page) {
     await page.getByTestId('room-name').fill('Switcher')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-    await expect(page.getByTestId('open-room-settings')).toBeVisible({ timeout: 15_000 })
+    await enterCreatedRoom(page)
 
     const currentSlug = new URL(page.url()).pathname.split('/')[2]
     await page.evaluate(

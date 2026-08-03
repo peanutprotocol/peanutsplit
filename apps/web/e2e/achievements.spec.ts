@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import enMessages from '../src/i18n/messages/en.json'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * The crew moment, end to end.
@@ -33,8 +34,7 @@ test.beforeAll(async ({ browser }) => {
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    roomUrl = (await page.getByTestId('room-link').innerText()).trim()
+    roomUrl = await enterCreatedRoom(page)
 
     // Two more people, because CREW's first rung is three.
     const bea = await (await browser.newContext()).newPage()

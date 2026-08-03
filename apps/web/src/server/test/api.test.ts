@@ -22,7 +22,13 @@ import { DELETE as deleteSettlement } from '@/app/api/rooms/[slug]/settlements/[
 import { GET as readiness } from '@/app/readiness/route'
 import { GET as healthcheck } from '@/app/healthcheck/route'
 import { backfillPatch, latecomerOffer } from '@/lib/latecomer'
-import type { ApiError, RoomState, RoomStateWithAddedMember, RoomStateWithMember } from '@/lib/api-types'
+import type {
+    ApiError,
+    ExpenseCreateResult,
+    RoomState,
+    RoomStateWithAddedMember,
+    RoomStateWithMember,
+} from '@/lib/api-types'
 
 const BASE = 'http://localhost'
 
@@ -303,15 +309,14 @@ describe('rooms and members', () => {
         expect(await prisma.member.findUnique({ where: { id: added.memberId } })).toBeNull()
     })
 
-    it('permanently protects a placeholder as soon as that person claims it', async () => {
+    it('keeps device selection separate from roster cleanup status', async () => {
         const { body: created } = await newRoom()
         const { body: added } = await addPayer(created.room.slug, 'Bea')
         await claim(created.room.slug, added.memberId)
 
         const removal = await removeMember(created.room.slug, added.memberId)
-        expect(removal.status).toBe(409)
-        expect((removal.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
-        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).not.toBeNull()
+        expect(removal.status).toBe(200)
+        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).toBeNull()
     })
 
     it('protects a placeholder when even soft-deleted expense history references it', async () => {
@@ -1148,6 +1153,71 @@ describe('foreign EXACT share apportionment', () => {
     })
 })
 
+describe('first shared balance activation', () => {
+    const add = (slug: string, paidById: string, clientKey: string) =>
+        call<ExpenseCreateResult>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                clientKey,
+                description: 'Dinner',
+                amountMinor: '4000',
+                currency: 'EUR',
+                paidById,
+                splitMode: 'EQUAL',
+            },
+        })
+
+    it('fires once, and deleting the triggering expense does not re-arm it', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+
+        const solo = await add(slug, created.memberId, 'solo-expense-key-0001')
+        expect(solo.body.createdFirstSharedBalance).toBe(false)
+
+        await join(slug, 'Bea')
+        const firstId = 'first-shared-key-0001'
+        const first = await add(slug, created.memberId, firstId)
+        expect(first.body.createdFirstSharedBalance).toBe(true)
+        expect(first.body.expenses.some((expense) => expense.id === firstId)).toBe(true)
+
+        const second = await add(slug, created.memberId, 'second-shared-key-0001')
+        expect(second.body.createdFirstSharedBalance).toBe(false)
+        expect(
+            (await prisma.room.findUniqueOrThrow({ where: { id: created.room.id } })).firstSharedBalanceExpenseId
+        ).toBe(firstId)
+
+        await call<RoomState>(deleteExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${firstId}`,
+            method: 'DELETE',
+            params: { slug, id: firstId },
+        })
+        const afterDelete = await add(slug, created.memberId, 'after-delete-key-0001')
+        expect(afterDelete.body.createdFirstSharedBalance).toBe(false)
+        expect(
+            (await prisma.room.findUniqueOrThrow({ where: { id: created.room.id } })).firstSharedBalanceExpenseId
+        ).toBe(firstId)
+    })
+
+    it('serializes distinct first-balance candidates so exactly one fires', async () => {
+        const { body: created } = await newRoom()
+        await join(created.room.slug, 'Bea')
+
+        const results = await Promise.all([
+            add(created.room.slug, created.memberId, 'concurrent-shared-key-01'),
+            add(created.room.slug, created.memberId, 'concurrent-shared-key-02'),
+        ])
+
+        expect(results.filter((result) => result.body.createdFirstSharedBalance)).toHaveLength(1)
+        const marker = (await prisma.room.findUniqueOrThrow({ where: { id: created.room.id } }))
+            .firstSharedBalanceExpenseId
+        const winner = results.find((result) => result.body.createdFirstSharedBalance)
+        expect(marker).not.toBeNull()
+        expect(winner?.body.expenses.some((expense) => expense.id === marker)).toBe(true)
+    })
+})
+
 describe('expense request idempotency', () => {
     const key = 'expense-retry-key-0001'
 
@@ -1165,16 +1235,19 @@ describe('expense request idempotency', () => {
         const slug = created.room.slug
         await join(slug, 'Bea')
         const post = () =>
-            call<RoomState>(postExpense as Handler, {
+            call<ExpenseCreateResult>(postExpense as Handler, {
                 path: `/api/rooms/${slug}/expenses`,
                 method: 'POST',
                 params: { slug },
                 body: bodyFor(created.memberId),
             })
 
-        expect((await post()).status).toBe(201)
+        const first = await post()
+        expect(first.status).toBe(201)
+        expect(first.body.createdFirstSharedBalance).toBe(true)
         const retries = await Promise.all(Array.from({ length: 6 }, post))
         expect(retries.every((result) => result.status === 201)).toBe(true)
+        expect(retries.every((result) => result.body.createdFirstSharedBalance)).toBe(true)
         expect(await prisma.expense.count({ where: { id: key, roomId: created.room.id } })).toBe(1)
         expect(await prisma.expenseShare.count({ where: { expenseId: key } })).toBe(2)
     })

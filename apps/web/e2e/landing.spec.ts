@@ -3,6 +3,7 @@ import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es-419.json'
 import ptBRMessages from '../src/i18n/messages/pt-br.json'
 import { HREFLANG } from '../src/i18n/locales'
+import { enterCreatedRoom } from './helpers'
 import { slideToConfirm } from './slide-to-confirm'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
@@ -907,6 +908,8 @@ test('the room handoff shares a localized message, the link, and the room drawin
     await page.getByTestId('room-name').fill(roomName)
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
+    await enterCreatedRoom(page)
+    await page.getByTestId('empty-share').click()
 
     await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('room-share-doodle')).toBeVisible()
@@ -1017,9 +1020,10 @@ test('the invite share attaches a real 1200\u00d7630 PNG', async ({ page, reques
         // be reachable when the route is not there.
         .catch(() => null)
     await page.getByTestId('create-room').click()
-    const link = page.getByTestId('room-link')
-    await expect(link).toBeVisible({ timeout: 15_000 })
-    const slug = new URL((await link.innerText()).trim()).pathname.split('/')[2]
+    const roomUrl = await enterCreatedRoom(page)
+    const slug = new URL(roomUrl).pathname.split('/')[2]
+    await page.getByTestId('empty-share').click()
+    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
     await cardPrefetched
     // Two frames: the response is decoded and `setFile` has committed before the gesture.
     await page.evaluate(

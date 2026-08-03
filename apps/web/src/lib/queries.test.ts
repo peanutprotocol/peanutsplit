@@ -8,7 +8,7 @@
 import { MutationObserver, QueryClient } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EXPENSE_WRITE_TIMEOUT_MS, NETWORK_ERROR_CODE } from './api'
-import type { ExpenseInput, RoomState } from './api-types'
+import type { ExpenseCreateResult, ExpenseInput, RoomState } from './api-types'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
 import {
     addExpenseMutationOptions,
@@ -73,6 +73,11 @@ const roomState = (expenseIds: string[] = ['e1']): RoomState => ({
     settlements: [],
     balances: { ana: '5000', bea: '-5000' },
     suggestedTransfers: [{ fromId: 'bea', toId: 'ana', amountMinor: '5000' }],
+})
+
+const expenseResult = (state: RoomState, createdFirstSharedBalance = false): ExpenseCreateResult => ({
+    ...state,
+    createdFirstSharedBalance,
 })
 
 const input: ExpenseInput = {
@@ -154,20 +159,23 @@ describe('cross-tab queue removals', () => {
 
 describe('adding an expense', () => {
     it('seeds the room cache from the response, in one hop', async () => {
-        const served = roomState(['e1', 'e2'])
+        const state = roomState(['e1', 'e2'])
+        const served = expenseResult(state, true)
         const fetchMock = respondWith(201, served)
         vi.stubGlobal('fetch', fetchMock)
 
-        await addExpense(queryClient)
+        await expect(addExpense(queryClient)).resolves.toEqual(served)
 
-        expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(served)
+        expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(state)
+        expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).not.toHaveProperty('createdFirstSharedBalance')
         const sent = JSON.parse(fetchMock.mock.calls[0][1].body)
         expect(sent.clientKey).toMatch(/^[A-Za-z0-9-]{16,64}$/)
     })
 
     it('shows the row immediately and replaces it with the server truth', async () => {
         queryClient.setQueryData(roomKey(SLUG), roomState())
-        const served = roomState(['e2', 'e1'])
+        const state = roomState(['e2', 'e1'])
+        const served = expenseResult(state)
         let seenMidFlight: RoomState | undefined
         let sentClientKey: string | undefined
         vi.stubGlobal(
@@ -182,7 +190,7 @@ describe('adding an expense', () => {
         await addExpense(queryClient)
 
         expect(seenMidFlight?.expenses[0].id).toBe(`pending-${sentClientKey}`)
-        expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(served)
+        expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(state)
     })
 
     it('rolls the optimistic row back when the server refuses the write', async () => {
@@ -217,7 +225,7 @@ describe('adding an expense', () => {
                     // drawer stays open and sends the same draft again.
                     throw new TypeError('response lost after commit')
                 }
-                const served = roomState([body.clientKey])
+                const served = expenseResult(roomState([body.clientKey]), true)
                 return {
                     ok: true,
                     status: 201,
@@ -231,7 +239,7 @@ describe('adding an expense', () => {
         )
 
         await expect(observer.mutate(staged)).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
-        await expect(observer.mutate(staged)).resolves.toEqual(roomState([sent[0].clientKey]))
+        await expect(observer.mutate(staged)).resolves.toEqual(expenseResult(roomState([sent[0].clientKey]), true))
 
         expect(sent).toHaveLength(2)
         expect(sent[1].clientKey).toBe(sent[0].clientKey)
@@ -322,7 +330,7 @@ describe('adding an expense with no network', () => {
         queryClient.setQueryData(roomKey(SLUG), before)
         const fetchMock = offline()
 
-        await expect(addExpense(queryClient)).resolves.toEqual(before)
+        await expect(addExpense(queryClient)).resolves.toEqual(expenseResult(before))
 
         // No balance moved, no placeholder left seeded in the cache — the queued
         // row is merged in at read time by `useRoomState`, from the queue.
@@ -375,7 +383,7 @@ describe('adding an expense with no network', () => {
 
         const result = addExpense(queryClient)
         await vi.advanceTimersByTimeAsync(EXPENSE_WRITE_TIMEOUT_MS)
-        await expect(result).resolves.toEqual(before)
+        await expect(result).resolves.toEqual(expenseResult(before))
 
         const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1]?.body as string)
         expect(queueSnapshot()).toHaveLength(1)

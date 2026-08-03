@@ -1,10 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
+import { enterCreatedRoom } from './helpers'
 import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
 /**
  * The whole product in one journey, against the real API and the real database:
- * create → the link moment → a second device joins → an EQUAL expense → a
+ * create → optional roster → share → a second device joins → an EQUAL expense → a
  * foreign-currency EXACT expense → balances → settle → all settled → undo.
  *
  * Balances are asserted from `data-net` (raw minor units off the server) rather
@@ -59,28 +60,29 @@ const runStillRouteMatrix = async (page: Page) => {
     await page.getByTestId('room-name').fill(`Still room ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
     await expectStill(page)
 
+    await page.getByTestId('checkpoint-name').fill('Bea')
+    await page.getByTestId('checkpoint-add').click()
+    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await page.getByTestId('go-to-room').click()
     await expectBalance(page, 'Ana', '0')
     await expectStill(page)
 
     await page.getByTestId('share-room').click()
-    await expect(page.getByRole('dialog', { name: 'Invite the rest' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Share room' })).toBeVisible()
     await expectStill(page)
-    await page.getByTestId('add-people-toggle').click()
-    await expectStill(page)
-    await page.getByTestId('add-person-name').fill('Bea')
-    await page.getByTestId('add-person').click()
-    await expect(page.locator('[data-testid="roster-chip"][data-member="Bea"]')).toBeVisible()
-    await page.keyboard.press('Escape')
+    await page.getByTestId('close-share').click()
 
     await page.getByTestId('open-add-expense').click()
     await expectStill(page)
     await page.getByTestId('expense-amount').fill('20')
     await page.getByTestId('expense-description').fill('Dinner')
     await page.getByTestId('save-expense').click()
+    await expect(page.getByRole('dialog', { name: 'First split done' })).toBeVisible({ timeout: 15_000 })
+    await expectStill(page)
+    await page.getByTestId('skip-post-aha-share').click()
     await expect(page.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
     await expectStill(page)
 
@@ -112,13 +114,12 @@ test('the deferred install prompt is still when the OS requests reduced motion',
     await page.getByTestId('room-name').fill(`Still install ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    const roomUrl = (await page.getByTestId('room-link').innerText()).trim()
+    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
 
     // Install before the room navigation: InstallPrompt does not exist on /new,
     // so every timer in its mounted lifecycle belongs to the controlled clock.
     await page.clock.install()
-    await page.goto(roomUrl)
+    await enterCreatedRoom(page)
     await expectBalance(page, 'Ana', '0')
 
     await page.evaluate(() => {
@@ -144,6 +145,8 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
+    await enterCreatedRoom(page)
+    await page.getByTestId('empty-share').click()
 
     // ── 2. The link moment ────────────────────────────────────────────────
     const roomLink = page.getByTestId('room-link')
@@ -152,7 +155,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     expect(url).toContain('/r/ski-trip-')
     await expect(page.getByTestId('copy-link')).toBeVisible()
 
-    await page.getByTestId('go-to-room').click()
+    await page.getByTestId('close-share').click()
     await expectBalance(page, 'Ana', '0')
     // Identity was stored on creation — the creator never sees the join gate.
     await expect(page.getByTestId('join-gate')).toHaveCount(0)
@@ -191,6 +194,9 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await bea.locator('[data-testid="payer-chip"][data-member="Bea"]').click()
     await bea.getByTestId('save-expense').click()
 
+    await expect(bea.getByRole('dialog', { name: 'First split done' })).toBeVisible({ timeout: 15_000 })
+    await expect(bea.getByTestId('first-balance-context')).toBeVisible()
+    await bea.getByTestId('skip-post-aha-share').click()
     await expect(bea.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
     // Bea paid 60 and owes 30, so Bea is +3000 — stated once, on the card, as Ana's -3000.
     await expectBalance(bea, 'Ana', '-3000')
@@ -397,11 +403,7 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-
-    const roomLink = page.getByTestId('room-link')
-    await expect(roomLink).toBeVisible({ timeout: 15_000 })
-    const url = (await roomLink.innerText()).trim()
-    await page.getByTestId('go-to-room').click()
+    const url = await enterCreatedRoom(page)
 
     const expenseWrites: string[] = []
     page.on('request', (request) => {
@@ -532,6 +534,8 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(page.getByTestId('expense-fields-repaired')).toBeVisible()
     await page.getByTestId('save-expense').click()
 
+    await expect(page.getByTestId('skip-post-aha-share')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('skip-post-aha-share').click()
     const dinnerRow = page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]:not([disabled])')
     await expect(dinnerRow).toContainText('Bea paid', { timeout: 15_000 })
     await expect(dinnerRow).not.toContainText('Filed by you')
@@ -593,11 +597,7 @@ test('a link holder can export the room without exporting the room credential', 
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-
-    const roomLink = page.getByTestId('room-link')
-    await expect(roomLink).toBeVisible({ timeout: 15_000 })
-    const url = (await roomLink.innerText()).trim()
-    await page.getByTestId('go-to-room').click()
+    const url = await enterCreatedRoom(page)
 
     // Import/export is one row in Settings. It names both jobs without implying
     // that a Splitwise file will be merged into the room currently open.
