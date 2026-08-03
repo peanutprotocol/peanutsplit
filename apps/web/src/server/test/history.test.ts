@@ -344,7 +344,6 @@ describe('room history', () => {
         expect(counts).toMatchObject({
             room_created: 1,
             member_added: 2,
-            member_claimed: 1,
             member_avatar_updated: 1,
             member_removed: 1,
             expense_added: 1,

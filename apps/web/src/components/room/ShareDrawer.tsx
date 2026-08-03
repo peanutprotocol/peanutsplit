@@ -1,284 +1,99 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
+import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody, drawerContentClass } from '@/components/ui/DrawerLayout'
-import { Icon } from '@/components/ui/Icon'
-import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
-import { BTN_MEDIUM } from '@/components/ui/control'
-import { cn } from '@/lib/cn'
-import { isApiError } from '@/lib/api'
-import type { ApiMember, ApiRoom } from '@/lib/api-types'
-import { useErrorMessage } from '@/lib/error-messages'
-import { useAddMember, useDeleteMember } from '@/lib/queries'
-import { useMotionAllowed } from '@/lib/use-motion'
+import type { ShareSurface } from '@/lib/analytics'
+import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { useFeedback } from '@/lib/use-settings'
 import { LinkMoment } from './LinkMoment'
-import { MemberAvatar } from './MemberAvatar'
+import { Money } from './Money'
 
 interface ShareDrawerProps {
     open: boolean
     onClose: () => void
-    room: ApiRoom
-    /** The roster as it stands. Shown as chips so "who is already in" is a fact
-     *  on screen rather than something to remember. */
-    members: readonly ApiMember[]
+    state: RoomState
+    currencies: readonly CurrencyInfo[]
     /** The current device's roster id after RoomScreen verified it still exists. */
     sharerMemberId?: string
-    token?: string | null
+    surface: ShareSurface
 }
 
-/** The link moment again, on demand — same artefact, reachable from the header. */
-export function ShareDrawer({ open, onClose, room, members, sharerMemberId, token }: ShareDrawerProps) {
+/**
+ * The room's focused share moment. Roster editing lives in the creation
+ * checkpoint and room settings, so this sheet has one job and one primary
+ * action: get the room link into the group chat.
+ */
+export function ShareDrawer({ open, onClose, state, currencies, sharerMemberId, surface }: ShareDrawerProps) {
     const t = useTranslations('room.share')
-    const errorMessage = useErrorMessage()
-    const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
-    const addMember = useAddMember(room.slug, token)
-    const deleteMember = useDeleteMember(room.slug, token)
-    /**
-     * Collapsed until asked for. The link is the hero of this sheet and the thing
-     * that actually gets the room populated; typing four names is the fallback
-     * for the people who will not tap tonight, and a fallback that opens by
-     * default competes with the thing it is a fallback for.
-     */
-    const [expanded, setExpanded] = useState(false)
-    const [name, setName] = useState('')
-    const [error, setError] = useState<string | null>(null)
-    const [removingId, setRemovingId] = useState<string | null>(null)
-    const [pendingRemoval, setPendingRemoval] = useState<ApiMember | null>(null)
-    const removeTriggerRefs = useRef(new Map<string, HTMLButtonElement>())
+    const room = state.room
+    const transfer = surface === 'post_aha' ? state.suggestedTransfers[0] : undefined
+    const from = transfer ? state.members.find((member) => member.id === transfer.fromId) : undefined
+    const to = transfer ? state.members.find((member) => member.id === transfer.toId) : undefined
 
-    // The sheet opening gets the blip; the link leaving gets the whoosh, inside
-    // LinkMoment. Two different events, two different cues.
     useEffect(() => {
         if (open) feedback('blip')
-        else setPendingRemoval(null)
+        // The feedback function is stable; rerunning because its provider
+        // rendered would replay an opening cue that did not happen.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
-
-    const add = async (event: React.FormEvent) => {
-        event.preventDefault()
-        const trimmed = name.trim()
-        if (!trimmed) return
-        setError(null)
-        try {
-            await addMember.mutateAsync({ name: trimmed })
-            // Cleared rather than kept: the next name is a different name, and
-            // the chip that just appeared is the receipt for this one.
-            setName('')
-            feedback('pop')
-        } catch (err) {
-            feedback('error', { haptic: 'error' })
-            if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
-                // The roster is on screen directly above this field, so naming
-                // the collision is the whole message — there is nothing to do
-                // about it except look up.
-                setError(t('addPeople.duplicate', { name: trimmed }))
-                return
-            }
-            setError(errorMessage(err, t('addPeople.failed')))
-        }
-    }
-
-    const cancelRemoval = () => {
-        const memberId = pendingRemoval?.id
-        setPendingRemoval(null)
-        if (memberId) window.requestAnimationFrame(() => removeTriggerRefs.current.get(memberId)?.focus())
-    }
-
-    const remove = async (member: ApiMember): Promise<boolean> => {
-        if (!member.canRemove || deleteMember.isPending) return false
-        setError(null)
-        setRemovingId(member.id)
-        try {
-            await deleteMember.mutateAsync(member.id)
-            feedback('thunk')
-            setPendingRemoval(null)
-            return true
-        } catch (err) {
-            feedback('error', { haptic: 'error' })
-            setError(errorMessage(err, t('addPeople.removeFailed')))
-            return false
-        } finally {
-            setRemovingId(null)
-        }
-    }
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
             <DrawerContent className={drawerContentClass}>
-                <DrawerTitle className="sr-only">{t('title')}</DrawerTitle>
+                <DrawerTitle className="sr-only">{surface === 'post_aha' ? t('postAhaTitle') : t('title')}</DrawerTitle>
                 <DrawerBody>
+                    {surface !== 'post_aha' && (
+                        <div className="flex justify-end">
+                            <CloseButton onClick={onClose} label={t('close')} data-testid="close-share" />
+                        </div>
+                    )}
                     <LinkMoment
                         slug={room.slug}
                         roomName={room.name}
                         emoji={room.emoji}
                         theme={room.theme}
                         sharerMemberId={sharerMemberId}
-                        title={t('title')}
-                        subtitle={t('subtitle')}
-                        // The room page already has its `h1` in the header; this
-                        // is a sheet on top of it, not a second page.
+                        surface={surface}
+                        compact={surface === 'post_aha'}
+                        title={surface === 'post_aha' ? t('postAhaTitle') : t('title')}
+                        subtitle={surface === 'post_aha' ? t('postAhaSubtitle') : t('subtitle')}
+                        context={
+                            transfer && from && to ? (
+                                <div
+                                    className="flex items-center justify-between gap-3 rounded-sm border border-n-1 bg-green-1 px-4 py-3"
+                                    data-testid="first-balance-context"
+                                >
+                                    <span className="min-w-0 flex-1 break-words text-h7">
+                                        {t('postAhaBalance', { from: from.name, to: to.name })}
+                                    </span>
+                                    <Money
+                                        minor={transfer.amountMinor}
+                                        currency={room.currency}
+                                        catalog={currencies}
+                                        className="shrink-0 text-h6"
+                                    />
+                                </div>
+                            ) : undefined
+                        }
+                        footer={
+                            surface === 'post_aha' ? (
+                                <Button
+                                    variant="transparent"
+                                    className="justify-center"
+                                    onClick={onClose}
+                                    data-testid="skip-post-aha-share"
+                                >
+                                    {t('notNow')}
+                                </Button>
+                            ) : undefined
+                        }
                         headingLevel={2}
                     />
-
-                    <div className="border-t border-dashed border-n-1 pt-4">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setError(null)
-                                setExpanded((previous) => !previous)
-                                feedback('tick')
-                            }}
-                            aria-expanded={expanded}
-                            data-testid="add-people-toggle"
-                            className="flex min-h-11 w-full items-center gap-2 text-left"
-                        >
-                            <Icon name="users" size={18} className="shrink-0" />
-                            <span className="flex-1 text-h7">{t('addPeople.toggle')}</span>
-                            <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={18} className="shrink-0" />
-                        </button>
-
-                        <AnimatePresence initial={false}>
-                            {expanded && (
-                                <motion.div
-                                    key="add-people"
-                                    initial={motionAllowed ? { height: 0, opacity: 0 } : false}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={motionAllowed ? { height: 0, opacity: 0 } : undefined}
-                                    transition={
-                                        motionAllowed
-                                            ? { type: 'spring', stiffness: 320, damping: 34 }
-                                            : { duration: 0 }
-                                    }
-                                    data-motion-surface
-                                    data-motion-collapse
-                                    className="overflow-hidden"
-                                >
-                                    <div className="flex flex-col gap-3 pt-3">
-                                        <p className="text-sm leading-5 text-grey-1">{t('addPeople.body')}</p>
-
-                                        <ul className="flex flex-wrap gap-2" data-testid="add-people-roster">
-                                            {members.map((member) => (
-                                                <li
-                                                    key={member.id}
-                                                    data-testid="roster-chip"
-                                                    data-member={member.name}
-                                                    className="flex flex-wrap items-center gap-2 rounded-sm border border-n-1 bg-white p-1"
-                                                >
-                                                    <MemberAvatar
-                                                        name={member.name}
-                                                        avatar={member.avatar}
-                                                        palette={member.avatarPalette}
-                                                        size={24}
-                                                    />
-                                                    <span className="max-w-[10rem] truncate text-sm">
-                                                        {member.name}
-                                                    </span>
-                                                    {member.canRemove && (
-                                                        <button
-                                                            ref={(node) => {
-                                                                if (node) removeTriggerRefs.current.set(member.id, node)
-                                                                else removeTriggerRefs.current.delete(member.id)
-                                                            }}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setError(null)
-                                                                setPendingRemoval(member)
-                                                            }}
-                                                            disabled={deleteMember.isPending}
-                                                            aria-label={t('addPeople.remove', { name: member.name })}
-                                                            className="flex size-7 items-center justify-center rounded-sm text-grey-1 disabled:opacity-45"
-                                                        >
-                                                            <Icon
-                                                                name="x"
-                                                                size={14}
-                                                                className={
-                                                                    removingId === member.id
-                                                                        ? 'animate-pulse'
-                                                                        : undefined
-                                                                }
-                                                            />
-                                                        </button>
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                        {pendingRemoval && (
-                                            <div
-                                                className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-3"
-                                                data-testid="remove-member-confirm"
-                                            >
-                                                <p id="remove-member-warning" role="alert" className="text-sm text-n-1">
-                                                    {t('addPeople.confirmRemove', { name: pendingRemoval.name })}
-                                                </p>
-                                                <SlideToConfirm
-                                                    autoFocus
-                                                    label={t('addPeople.slideRemove', {
-                                                        name: pendingRemoval.name,
-                                                    })}
-                                                    loadingLabel={t('addPeople.removing')}
-                                                    loading={deleteMember.isPending && removingId === pendingRemoval.id}
-                                                    onConfirm={() => remove(pendingRemoval)}
-                                                    onCancel={cancelRemoval}
-                                                    aria-describedby="remove-member-warning"
-                                                    data-testid="confirm-remove-member"
-                                                />
-                                                <Button
-                                                    variant="stroke"
-                                                    size="medium"
-                                                    className="justify-center"
-                                                    onClick={cancelRemoval}
-                                                    disabled={deleteMember.isPending}
-                                                    data-testid="cancel-remove-member"
-                                                >
-                                                    {t('addPeople.keep', { name: pendingRemoval.name })}
-                                                </Button>
-                                            </div>
-                                        )}
-
-                                        <form onSubmit={add} className="flex items-start gap-2">
-                                            <BaseInput
-                                                variant="sm"
-                                                value={name}
-                                                onChange={(event) => setName(event.target.value)}
-                                                placeholder={t('addPeople.placeholder')}
-                                                maxLength={80}
-                                                aria-label={t('addPeople.placeholder')}
-                                                data-testid="add-person-name"
-                                            />
-                                            <Button
-                                                type="submit"
-                                                variant="stroke"
-                                                icon="plus"
-                                                disabled={name.trim().length === 0}
-                                                loading={addMember.isPending}
-                                                size="medium"
-                                                className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center')}
-                                                data-testid="add-person"
-                                            >
-                                                {t('addPeople.add')}
-                                            </Button>
-                                        </form>
-
-                                        {error && (
-                                            <p role="alert" className="text-sm font-bold text-error">
-                                                {error}
-                                            </p>
-                                        )}
-
-                                        <p className="text-sm leading-5 text-grey-1">{t('addPeople.note')}</p>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
                 </DrawerBody>
             </DrawerContent>
         </Drawer>

@@ -1,5 +1,11 @@
 # Removing a member from a PeanutSplit room
 
+> **Decision update — 2026-08-03:**
+> [`docs/ROSTER-IDENTITY.md`](docs/ROSTER-IDENTITY.md) supersedes any language
+> here that implies a roster entry is waiting to be claimed. A room name is a
+> ledger participant. Selecting it on a device is only a viewpoint, not
+> ownership, permission, activation, or roster completion.
+
 - **Status:** approved design as of 2026-07-29; not implemented
 - **Scope:** the live `apps/web` product first; `apps/api` parity is called out separately
 - **Primary goal:** protect a room from accidental member additions without changing its financial history

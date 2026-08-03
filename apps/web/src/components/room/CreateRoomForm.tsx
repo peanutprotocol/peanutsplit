@@ -17,17 +17,13 @@ import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
 import { DoodlePicker } from './DoodlePicker'
-import { LinkMoment } from './LinkMoment'
+import { RosterCheckpoint } from './RosterCheckpoint'
 
 /** The server-rendered seed only. The real default is the device's top hint, which cannot be
  *  known until after mount — see the effect below. */
 const DEFAULT_CURRENCY = 'EUR'
 
-/**
- * One screen, three fields, no account. The moment it succeeds the screen turns
- * into the link hand-off — creating a room and getting the link are the same
- * gesture, not two steps.
- */
+/** One screen, three fields, no account. */
 export function CreateRoomForm() {
     const t = useTranslations('room.create')
     const router = useRouter()
@@ -82,29 +78,7 @@ export function CreateRoomForm() {
     }
 
     if (created) {
-        return (
-            <div className="flex min-h-dvh flex-col justify-center px-5 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-10">
-                <LinkMoment
-                    slug={created.room.slug}
-                    roomName={created.room.name}
-                    emoji={created.room.emoji}
-                    theme={created.room.theme}
-                    sharerMemberId={created.memberId}
-                    title={t('readyTitle')}
-                    subtitle={t('readySubtitle')}
-                    footer={
-                        <Button
-                            variant="stroke"
-                            className="justify-center"
-                            onClick={() => router.push(`/r/${created.room.slug}`)}
-                            data-testid="go-to-room"
-                        >
-                            {t('goToRoom')}
-                        </Button>
-                    }
-                />
-            </div>
-        )
+        return <RosterCheckpoint created={created} onContinue={() => router.push(`/r/${created.room.slug}`)} />
     }
 
     return (

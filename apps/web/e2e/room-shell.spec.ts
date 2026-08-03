@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * The room shell, and the sheets its header opens.
@@ -20,9 +21,7 @@ async function openRoom(page: Page, roomName: string, creator: string) {
     await page.getByTestId('room-name').fill(roomName)
     await page.getByTestId('creator-name').fill(creator)
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-    await expect(page.getByTestId('open-room-settings')).toBeVisible({ timeout: 15_000 })
+    await enterCreatedRoom(page)
 }
 
 const documentOverflow = (page: Page) =>
@@ -66,22 +65,22 @@ test('Back closes the settings and avatar sheets rather than leaving the room', 
     await expect(page.getByTestId('open-room-settings')).toBeVisible()
 })
 
-test('every roster chip carries a removal control, and the add-people row is thumb-sized', async ({ page }) => {
+test('every person row carries a removal control, and the People disclosure is thumb-sized', async ({ page }) => {
     await openRoom(page, 'Roster controls', 'Ana')
-    await page.getByTestId('share-room').click()
+    await page.getByTestId('open-room-settings').click()
+    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
 
-    const toggle = page.getByTestId('add-people-toggle')
+    const toggle = page.getByTestId('people-toggle')
     await expect(toggle).toBeVisible({ timeout: 10_000 })
     // Was 356x20. A member who could not be removed used to render with no control at all, which
     // read as a rendering bug rather than a rule.
     expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(40)
 
-    await toggle.click()
-    await page.waitForTimeout(400)
-    const chips = await page.locator('[data-testid="roster-chip"]').count()
-    const controls = await page.locator('[data-testid="roster-chip"] button').count()
-    expect(chips).toBeGreaterThan(0)
-    expect(controls).toBeGreaterThanOrEqual(chips)
+    if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
+    const rows = await page.getByTestId('person-row').count()
+    const controls = await page.locator('[data-testid="remove-person"], [data-testid="remove-blocked"]').count()
+    expect(rows).toBeGreaterThan(0)
+    expect(controls).toBeGreaterThanOrEqual(rows)
 })
 
 test('the room paints without console errors or sideways scroll', async ({ page }) => {

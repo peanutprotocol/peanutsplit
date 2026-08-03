@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { isApiError } from '@/lib/api'
 import type { RoomState } from '@/lib/api-types'
-import { roomProps, track } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useClaimMember, useJoinRoom } from '@/lib/queries'
@@ -118,7 +117,6 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
         try {
             const next = await claimMember.mutateAsync({ memberId })
             feedback('pop')
-            track('room_joined', roomProps(slug, { kind: 'existing' }))
             onJoined({ memberId: next.memberId, token: next.memberToken, name: memberName })
         } catch (err) {
             feedback('error', { haptic: 'error' })
@@ -135,7 +133,6 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
         try {
             const next = await joinRoom.mutateAsync({ name: trimmed })
             feedback('pop')
-            track('room_joined', roomProps(slug, { kind: 'new' }))
             onJoined({ memberId: next.memberId, token: next.memberToken, name: trimmed })
         } catch (err) {
             // The card is the whole screen here; shaking it is the only motion

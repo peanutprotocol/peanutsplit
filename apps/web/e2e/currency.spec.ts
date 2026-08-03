@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { COMMON_COUNT } from '../src/components/room/CurrencySelect'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * The picker's three promises, end to end.
@@ -59,8 +60,7 @@ test('an invented ticker can be a room currency, and then it is the only one', a
 
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await enterCreatedRoom(page)
 
     await page.getByTestId('open-add-expense').click()
     await page.getByRole('button', { name: /Expense currency, BEER/ }).click()
@@ -80,8 +80,7 @@ test('a room that settles in a real currency is never offered an invented one', 
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await enterCreatedRoom(page)
 
     await page.getByTestId('open-add-expense').click()
     await page.getByRole('button', { name: /Expense currency, EUR/ }).click()

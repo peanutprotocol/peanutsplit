@@ -117,6 +117,7 @@ async function writeRoom(
 
             const expenseRows: Prisma.ExpenseCreateManyInput[] = []
             const shareRows: Prisma.ExpenseShareCreateManyInput[] = []
+            let firstSharedBalanceExpenseId: string | null = null
 
             for (const imported of body.expenses) {
                 const paidById = byName.get(imported.paidBy.toLowerCase())
@@ -166,6 +167,12 @@ async function writeRoom(
                 // The id is minted here rather than read back, which is what lets the shares be
                 // inserted in one statement instead of one round-trip per expense.
                 const expenseId = randomUUID()
+                if (
+                    firstSharedBalanceExpenseId === null &&
+                    shares.some((share) => share.memberId !== write.paidById && share.amountMinor > 0n)
+                ) {
+                    firstSharedBalanceExpenseId = expenseId
+                }
                 expenseRows.push({
                     id: expenseId,
                     roomId: created.id,
@@ -185,6 +192,12 @@ async function writeRoom(
 
             await tx.expense.createMany({ data: expenseRows })
             await tx.expenseShare.createMany({ data: shareRows })
+            if (firstSharedBalanceExpenseId !== null) {
+                await tx.room.update({
+                    where: { id: created.id },
+                    data: { firstSharedBalanceExpenseId },
+                })
+            }
 
             const creator = created.members.find(
                 (member) => member.id === creatorId

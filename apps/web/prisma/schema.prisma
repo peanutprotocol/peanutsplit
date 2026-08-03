@@ -21,19 +21,19 @@ enum SplitMode {
 }
 
 model Room {
-  id          String           @id @default(uuid())
+  id                          String           @id @default(uuid())
   // "ski-trip-brave-otter-lamp" — kebab name + 3 random words. Rooms minted
   // before the word list carry a 6-character base32 tail and keep it; nothing
   // reads the tail's shape, so both are valid forever.
-  slug        String           @unique
-  name        String
-  emoji       String?
-  currency    String // display/settle currency, ISO 4217
-  coverUrl    String?
+  slug                        String           @unique
+  name                        String
+  emoji                       String?
+  currency                    String // display/settle currency, ISO 4217
+  coverUrl                    String?
   // A KEY into the code-side catalog in `lib/themes.ts`, never a colour. Null is
   // the default palette, so a room written before themes existed and a room set
   // back to default are the same row.
-  theme       String?
+  theme                       String?
   // The language the room was STARTED in, and the only thing that can tell a
   // link preview which language to unfurl in. A crawler fetching /r/<slug> for
   // WhatsApp carries no cookie and no useful Accept-Language, so without this
@@ -41,13 +41,17 @@ model Room {
   // English. Null means English and is what every room written before this
   // existed holds; it is never inferred later, because the reader of a preview
   // is not the room.
-  locale      String?
-  createdAt   DateTime         @default(now())
-  archivedAt  DateTime?
-  members     Member[]
-  expenses    Expense[]
-  settlements Settlement[]
-  auditEvents RoomAuditEvent[]
+  locale                      String?
+  // Immutable activation latch: the first expense that created a balance
+  // between different members. Deliberately not a relation, so deleting that
+  // expense cannot make a mature room look new again.
+  firstSharedBalanceExpenseId String?
+  createdAt                   DateTime         @default(now())
+  archivedAt                  DateTime?
+  members                     Member[]
+  expenses                    Expense[]
+  settlements                 Settlement[]
+  auditEvents                 RoomAuditEvent[]
 
   pushSubscriptions PushSubscription[]
   notificationSends NotificationSend[]
@@ -87,7 +91,7 @@ model Member {
   id            String    @id @default(uuid())
   roomId        String
   name          String
-  token         String    @unique // stable server-issued secret, returned only to a device claiming this member
+  token         String    @unique // stable server-issued secret, returned when a device selects this member
   // A KEY into the code-side catalog in `lib/avatars.ts`, never artwork and never
   // a URL. Null is the persona derived from the name, so a member written before
   // the picker existed and a member who never opened it are the same row.
@@ -98,10 +102,10 @@ model Member {
   // only for rolling deploys and rows written before multicolour avatars; new
   // writes always choose a concrete allowlisted key.
   avatarPalette String?
-  userId        String? // claim hook — null until account linking ships
-  // True only for a name somebody added on another person's behalf. It flips
-  // false the first time that person claims the name, permanently protecting
-  // their access even if they have not entered money yet.
+  userId        String? // future account-linking hook
+  // Creation provenance only: true for a name added to an existing roster, so
+  // an untouched typo can be removed. Selecting the name on a device does not
+  // change it; durable ledger history is what makes the row non-removable.
   provisional   Boolean   @default(false)
   createdAt     DateTime  @default(now())
   removedAt     DateTime?

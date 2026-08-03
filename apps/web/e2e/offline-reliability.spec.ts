@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { EXPENSE_WRITE_TIMEOUT_MS } from '../src/lib/api'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * Every test here works by intercepting the room's own requests, and `page.route` cannot see a
@@ -20,12 +21,8 @@ async function createRoom(page: Page, name: string): Promise<{ url: string; slug
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-
-    const roomLink = page.getByTestId('room-link')
-    await expect(roomLink).toBeVisible({ timeout: 15_000 })
-    const url = (await roomLink.innerText()).trim()
+    const url = await enterCreatedRoom(page)
     const slug = new URL(url).pathname.split('/').at(-1)!
-    await page.getByTestId('go-to-room').click()
     await expect(page.getByTestId('open-add-expense')).toBeVisible({ timeout: 15_000 })
     return { url, slug }
 }

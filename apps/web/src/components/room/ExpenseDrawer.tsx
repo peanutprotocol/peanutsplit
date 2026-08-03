@@ -15,7 +15,7 @@ import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, ExpenseUpdateInput, RoomState, SplitMode } from '@/lib/api-types'
-import { roomProps, track } from '@/lib/analytics'
+import { roomProps, track, trackFirstSharedBalance } from '@/lib/analytics'
 import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
     allocatedMinor,
@@ -72,6 +72,9 @@ interface ExpenseDrawerProps {
     meId?: string
     /** Null = add mode. */
     expense: ApiExpense | null
+    /** The first actionable balance can hand straight to the existing, dismissible
+     *  Share drawer. Ordinary saves still close back to the room. */
+    onFirstSharedBalance?: () => void
     defaultPaidById: string
     /** `?shared=1` — a photo the OS share sheet parked for this room. */
     sharedReceipt?: boolean
@@ -90,6 +93,7 @@ export function ExpenseDrawer({
     token,
     meId,
     expense,
+    onFirstSharedBalance,
     defaultPaidById,
     sharedReceipt = false,
     onSharedReceiptConsumed,
@@ -623,11 +627,23 @@ export function ExpenseDrawer({
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
                 )
             } else {
-                await addExpense.mutateAsync(body)
+                const { createdFirstSharedBalance } = await addExpense.mutateAsync(body)
                 track(
                     'expense_added',
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
                 )
+                if (createdFirstSharedBalance) trackFirstSharedBalance()
+
+                // Save succeeded and the room has reached its first actionable
+                // balance. The existing Share drawer is itself skippable, so the
+                // callback changes the next moment without inventing a blocking
+                // onboarding step. If this surface has no handoff owner, close as
+                // an ordinary expense save.
+                if (createdFirstSharedBalance && onFirstSharedBalance) {
+                    feedback('tick', { haptic: 'confirm' })
+                    onFirstSharedBalance()
+                    return
+                }
             }
             // Moment #3, the audible half: pencil on paper as the row lands and
             // every affected balance starts counting. The haptic is the two-pulse

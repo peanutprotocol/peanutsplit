@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * The trip recap, and the PNG it shares.
@@ -12,24 +13,26 @@ import { expect, test, type Page } from '@playwright/test'
 
 test.use({ extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.23' } })
 
-async function roomWithPeople(page: Page, request: import('@playwright/test').APIRequestContext) {
+async function roomWithPeople(page: Page) {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Recap artefacts')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-    await expect(page.getByTestId('open-room-settings')).toBeVisible({ timeout: 15_000 })
+
+    for (const name of ['Bea', 'Cass']) {
+        await page.getByTestId('checkpoint-name').fill(name)
+        await page.getByTestId('checkpoint-add').click()
+        await expect(page.locator(`[data-testid="checkpoint-member"][data-member="${name}"]`)).toBeVisible()
+    }
+
+    await enterCreatedRoom(page)
 
     const slug = new URL(page.url()).pathname.split('/')[2]
-    for (const name of ['Bea', 'Cass']) {
-        await request.post(`/api/rooms/${slug}/members`, { data: { name } })
-    }
     return slug
 }
 
-test('the recap page has exactly one heading, like every other route', async ({ page, request }) => {
-    const slug = await roomWithPeople(page, request)
+test('the recap page has exactly one heading, like every other route', async ({ page }) => {
+    const slug = await roomWithPeople(page)
     await page.goto(`/r/${slug}/recap`)
 
     // Was zero: the room name and the total were both <p>.
@@ -42,7 +45,7 @@ test('the recap page has exactly one heading, like every other route', async ({ 
 })
 
 test('the recap share card renders as a PNG', async ({ page, request }) => {
-    const slug = await roomWithPeople(page, request)
+    const slug = await roomWithPeople(page)
 
     const card = await request.get(`/r/${slug}/recap/opengraph-image`)
     expect(card.status()).toBe(200)
@@ -51,8 +54,8 @@ test('the recap share card renders as a PNG', async ({ page, request }) => {
     expect((await card.body()).length).toBeGreaterThan(5_000)
 })
 
-test('each member on the recap draws their own face, not one shared fallback', async ({ page, request }) => {
-    const slug = await roomWithPeople(page, request)
+test('each member on the recap draws their own face, not one shared fallback', async ({ page }) => {
+    const slug = await roomWithPeople(page)
     await page.goto(`/r/${slug}/recap`)
     await page.waitForTimeout(600)
 

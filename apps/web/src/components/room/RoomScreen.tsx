@@ -8,7 +8,7 @@ import { Doodle } from '@/components/ui/Doodle'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError } from '@/lib/api'
-import { roomProps, track } from '@/lib/analytics'
+import { roomProps, track, type ShareSurface } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { dismissedMemberIds, latecomerOffer } from '@/lib/latecomer'
 import { isRoomSettled, savedExpenses } from '@/lib/pending'
@@ -47,6 +47,22 @@ export function RoomScreen({ slug }: { slug: string }) {
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
     const [params, setParams] = useRoomParams()
+    const [shareSurface, setShareSurface] = useState<ShareSurface>('header')
+    const openRoomShare = useCallback(
+        (surface: ShareSurface) => {
+            setShareSurface(surface)
+            void setParams({ share: true })
+        },
+        [setParams]
+    )
+    const closeRoomShare = useCallback(() => {
+        setShareSurface('header')
+        // A controlled drawer can report the same close twice: once for its
+        // explicit button and once as vaul observes `open=false`. Replace is
+        // deliberately idempotent, so neither path leaves a stale share entry
+        // for Back to reopen.
+        void setParams({ share: null }, { history: 'replace' })
+    }, [setParams])
     const consumeSharedReceipt = useCallback(
         // `replace`, not the hook's default `push`: the drawer clears this param the instant it
         // lands, and with a history entry the back button would return to a share already spent.
@@ -83,6 +99,7 @@ export function RoomScreen({ slug }: { slug: string }) {
      */
     const saved = useMemo(() => (state ? savedExpenses(state.expenses) : []), [state])
     const settledUp = isRoomSettled(state)
+    const historyEmpty = !!state && state.expenses.length === 0 && state.settlements.length === 0
 
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
@@ -187,7 +204,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                     state={state}
                     identity={identity}
                     me={me}
-                    onShare={() => setParams({ share: true })}
+                    onShare={() => openRoomShare('header')}
                     onForgetIdentity={forget}
                 />
             ) : (
@@ -217,7 +234,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                 </div>
             )}
 
-            <div className="flex flex-1 flex-col gap-6 pb-36 pt-4">
+            <div className={`flex flex-1 flex-col gap-6 pt-4 ${historyEmpty ? 'pb-6' : 'pb-36'}`}>
                 {/* Skeleton → content is a crossfade, not a cut: the shapes are
                     already in the right place, so anything harder reads as a flash. */}
                 <AnimatePresence mode="wait" initial={false}>
@@ -262,7 +279,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                     slug={slug}
                                     state={state}
                                     meId={meId}
-                                    onInvite={() => setParams({ share: true })}
+                                    onInvite={() => openRoomShare('header')}
                                 />
                             )}
                             <AnimatePresence initial={false}>
@@ -287,7 +304,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 slug={slug}
                                 token={identity?.token}
                                 onSelect={(expenseId) => setParams({ expense: expenseId })}
-                                onInvite={() => setParams({ share: true })}
+                                onShare={() => openRoomShare('room_ready')}
+                                onAdd={() => setParams({ add: true })}
                                 savedActionsDisabled={staleState}
                             />
                         </motion.div>
@@ -295,7 +313,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                 </AnimatePresence>
             </div>
 
-            {state && !needsJoin && (
+            {state && !needsJoin && !historyEmpty && (
                 <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-xl border-t border-n-1 bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
                     <div className="flex gap-3">
                         <Button
@@ -335,6 +353,10 @@ export function RoomScreen({ slug }: { slug: string }) {
                         token={identity?.token}
                         meId={meId}
                         expense={editing}
+                        onFirstSharedBalance={() => {
+                            setShareSurface('post_aha')
+                            void setParams({ add: null, expense: null, share: true }, { history: 'replace' })
+                        }}
                         defaultPaidById={defaultPaidById}
                         sharedReceipt={params.shared}
                         onSharedReceiptConsumed={consumeSharedReceipt}
@@ -350,11 +372,11 @@ export function RoomScreen({ slug }: { slug: string }) {
                     />
                     <ShareDrawer
                         open={params.share}
-                        onClose={() => setParams({ share: null })}
-                        room={state.room}
-                        members={state.members}
+                        onClose={closeRoomShare}
+                        state={state}
+                        currencies={currencies}
                         sharerMemberId={meId}
-                        token={identity?.token}
+                        surface={shareSurface}
                     />
                     <BalanceDrawer
                         open={!!params.balance && !needsJoin}

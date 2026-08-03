@@ -126,7 +126,6 @@ export type RoomHistoryAction =
     | 'room_settings_updated'
     | 'member_joined'
     | 'member_added'
-    | 'member_claimed'
     | 'member_removed'
     | 'member_avatar_updated'
     | 'expense_added'
@@ -160,12 +159,18 @@ export interface RoomHistoryPage {
     nextCursor: string | null
 }
 
-/** Creating a room, joining as new, and claiming an existing roster entry
+/** Expense-create-only metadata. The boolean describes this mutation, not the
+ * room snapshot, so callers must not persist it in the shared room cache. */
+export interface ExpenseCreateResult extends RoomState {
+    createdFirstSharedBalance: boolean
+}
+
+/** Creating a room, joining as new, and selecting an existing roster entry
  *  return room state plus the member identity envelope. */
 export interface RoomStateWithMember extends RoomState {
     memberId: string
     /** Returned to the member's device. Client stores it and sends it as
-     *  `X-Member-Token`; claiming reuses the existing value. */
+     *  `X-Member-Token`; selecting reuses the existing value. */
     memberToken: string
 }
 

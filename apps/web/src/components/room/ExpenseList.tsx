@@ -31,9 +31,10 @@ interface ExpenseListProps {
     /** Cached rows are useful offline, but mutating server-owned history from a
      *  room we could not refresh risks acting on an expense that changed. */
     savedActionsDisabled?: boolean
-    /** Opens the share drawer. The empty state's copy leads with the invite, so
-     *  the action it names has to be one tap away, not behind a header glyph. */
-    onInvite?: () => void
+    /** Empty rooms make both useful next steps explicit. Keeping these as
+     *  separate callbacks lets the room screen decide how each surface opens. */
+    onShare: () => void
+    onAdd: () => void
 }
 
 const isPending = (expense: ApiExpense) => isPendingExpenseId(expense.id)
@@ -132,7 +133,8 @@ export function ExpenseList({
     slug,
     token,
     onSelect,
-    onInvite,
+    onShare,
+    onAdd,
     savedActionsDisabled = false,
 }: ExpenseListProps) {
     const t = useTranslations('room.expenses')
@@ -280,7 +282,7 @@ export function ExpenseList({
                 animate={{ opacity: 1, y: 0 }}
                 transition={motionAllowed ? { type: 'spring', stiffness: 300, damping: 28 } : { duration: 0 }}
                 data-motion-surface
-                className="flex flex-col items-center gap-4 px-4 py-12 text-center"
+                className="flex flex-col items-center gap-4 px-4 py-6 text-center sm:py-12"
             >
                 <motion.div
                     initial={motionAllowed ? { scale: 0.7, rotate: -8, opacity: 0 } : false}
@@ -290,15 +292,36 @@ export function ExpenseList({
                     }
                     data-motion-surface
                 >
-                    <Image src={peanutThinking} alt="" unoptimized className="h-32 w-32 object-contain" />
+                    <Image
+                        src={peanutThinking}
+                        alt=""
+                        unoptimized
+                        className="h-20 w-20 object-contain sm:h-32 sm:w-32"
+                    />
                 </motion.div>
                 <p className="text-h6">{t('emptyTitle')}</p>
                 <p className="max-w-[18rem] text-sm text-grey-1">{t('emptyBody')}</p>
-                {onInvite && (
-                    <Button variant="stroke" icon="link" onClick={onInvite} data-testid="empty-invite">
-                        {t('emptyInvite')}
+                <div className="flex w-full max-w-[18rem] flex-col gap-3">
+                    <Button
+                        variant="primary"
+                        shadowSize="4"
+                        icon="share"
+                        className="justify-center text-h7"
+                        onClick={onShare}
+                        data-testid="empty-share"
+                    >
+                        {t('emptyShare')}
                     </Button>
-                )}
+                    <Button
+                        variant="stroke"
+                        icon="plus"
+                        className="justify-center"
+                        onClick={onAdd}
+                        data-testid="open-add-expense"
+                    >
+                        {t('emptyAdd')}
+                    </Button>
+                </div>
             </motion.section>
         )
     }

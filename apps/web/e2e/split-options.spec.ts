@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 const weightedState = async (page: Page) => {
     const slug = new URL(page.url()).pathname.split('/').filter(Boolean).at(-1)!
@@ -88,16 +89,10 @@ test('typed amount lets the drawer grow when payer and sharing settings open', a
     await page.getByTestId('room-name').fill(`Drawer resize ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-
-    await page.getByTestId('share-room').click()
-    await expect(page.getByRole('dialog', { name: 'Invite the rest' })).toBeVisible()
-    await page.getByTestId('add-people-toggle').click()
-    await page.getByTestId('add-person-name').fill('Bea')
-    await page.getByTestId('add-person').click()
-    await expect(page.locator('[data-testid="roster-chip"][data-member="Bea"]')).toBeVisible()
-    await page.keyboard.press('Escape')
+    await page.getByTestId('checkpoint-name').fill('Bea')
+    await page.getByTestId('checkpoint-add').click()
+    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
+    await enterCreatedRoom(page)
 
     await page.getByTestId('open-add-expense').click()
     await page.getByTestId('expense-amount').fill('42')
@@ -140,16 +135,10 @@ test('More options reveals percentage and shares splits, which survive create an
     await page.getByTestId('room-name').fill(`Weighted split ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-
-    await page.getByTestId('share-room').click()
-    await expect(page.getByRole('dialog', { name: 'Invite the rest' })).toBeVisible()
-    await page.getByTestId('add-people-toggle').click()
-    await page.getByTestId('add-person-name').fill('Bea')
-    await page.getByTestId('add-person').click()
-    await expect(page.locator('[data-testid="roster-chip"][data-member="Bea"]')).toBeVisible()
-    await page.keyboard.press('Escape')
+    await page.getByTestId('checkpoint-name').fill('Bea')
+    await page.getByTestId('checkpoint-add').click()
+    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
+    await enterCreatedRoom(page)
 
     // Equal is the only split type shown until the deliberate disclosure.
     await page.getByTestId('open-add-expense').click()
@@ -184,6 +173,8 @@ test('More options reveals percentage and shares splits, which survive create an
         timeout: 15_000,
     })
     await expectWeightedExpense(page, 'Cabin', 'PERCENTAGE', ['2500', '7500'])
+    await expect(page.getByTestId('skip-post-aha-share')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('skip-post-aha-share').click()
 
     // Editing restores the original weights, and a guarded PATCH persists the change.
     await page.locator('[data-testid="expense-row"][data-description="Cabin"]').click()

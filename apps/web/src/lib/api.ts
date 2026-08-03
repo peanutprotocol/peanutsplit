@@ -8,6 +8,7 @@ import type {
     CreateMemberInput,
     CreateRoomInput,
     CurrencyInfo,
+    ExpenseCreateResult,
     ExpenseInput,
     ExpenseUpdateInput,
     ImportRoomInput,
@@ -176,7 +177,7 @@ export const api = {
         }),
 
     addExpense: (slug: string, input: ExpenseInput, token?: string | null) =>
-        request<RoomState>(expensesPath(slug), {
+        request<ExpenseCreateResult>(expensesPath(slug), {
             method: 'POST',
             body: input,
             token,

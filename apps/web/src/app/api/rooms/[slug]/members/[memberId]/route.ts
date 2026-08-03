@@ -89,9 +89,10 @@ export const PATCH = (request: Request, ctx: Ctx) =>
     })
 
 /**
- * Remove only an untouched on-behalf placeholder. Any claim, subscription,
- * expense, share, settlement or reaction makes the identity permanent. Counts
- * include soft-deleted rows, so removal can never erase or redistribute history.
+ * Remove only an untouched roster-added name. Any subscription, expense,
+ * share, settlement or reaction makes the ledger identity permanent. Selecting
+ * the name on a device does not. Counts include soft-deleted rows, so removal
+ * can never erase or redistribute history.
  */
 export const DELETE = (request: Request, ctx: Ctx) =>
     respond(async () => {

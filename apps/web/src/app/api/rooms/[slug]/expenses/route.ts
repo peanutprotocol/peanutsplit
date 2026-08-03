@@ -26,6 +26,7 @@ type ExpenseWriteResult = {
     actorMemberId: string | null
     fresh: Awaited<ReturnType<typeof loadRoom>>
     state: ReturnType<typeof toRoomState>
+    createdFirstSharedBalance: boolean
 } & ({ created: true; event: PushRoomWriteEvent } | { created: false; event?: never })
 
 export const POST = (request: Request, ctx: Ctx) =>
@@ -70,6 +71,7 @@ export const POST = (request: Request, ctx: Ctx) =>
                             actorMemberId,
                             fresh: lockedRoom,
                             state: toRoomState(lockedRoom),
+                            createdFirstSharedBalance: lockedRoom.firstSharedBalanceExpenseId === existing.id,
                         }
                     }
                 }
@@ -108,6 +110,17 @@ export const POST = (request: Request, ctx: Ctx) =>
                         shares: { createMany: { data: write.shares } },
                     },
                 })
+                const createdFirstSharedBalance =
+                    lockedRoom.firstSharedBalanceExpenseId === null &&
+                    write.shares.some((share) => share.memberId !== write.paidById && share.amountMinor > 0n)
+                if (createdFirstSharedBalance) {
+                    // Every expense create takes the room advisory lock above,
+                    // so exactly one write can set this immutable latch.
+                    await tx.room.update({
+                        where: { id: lockedRoom.id },
+                        data: { firstSharedBalanceExpenseId: expense.id },
+                    })
+                }
                 const newPayer = body.newPaidByName
                     ? (lockedRoom.members.find((member) => member.id === paidById) ?? null)
                     : null
@@ -140,6 +153,7 @@ export const POST = (request: Request, ctx: Ctx) =>
                     fresh,
                     state: toRoomState(fresh),
                     event,
+                    createdFirstSharedBalance,
                 }
             })
         } catch (error) {
@@ -159,6 +173,7 @@ export const POST = (request: Request, ctx: Ctx) =>
                         actorMemberId: memberIdForToken(fresh, token),
                         fresh,
                         state: toRoomState(fresh),
+                        createdFirstSharedBalance: fresh.firstSharedBalanceExpenseId === body.clientKey,
                     }
                 } else if (existing) throw conflict('request key is already in use', 'IDEMPOTENCY_KEY_REUSED')
                 else throw error
@@ -167,7 +182,7 @@ export const POST = (request: Request, ctx: Ctx) =>
             }
         }
 
-        if (!result.created) return result.state
+        if (!result.created) return { ...result.state, createdFirstSharedBalance: result.createdFirstSharedBalance }
         // Everyone with the room open refetches now instead of up to 8s from now.
         // Same placement rule as the push below: after the write committed.
         publish(room.id)
@@ -180,5 +195,5 @@ export const POST = (request: Request, ctx: Ctx) =>
             actorMemberId: result.actorMemberId,
             event: result.event,
         })
-        return result.state
+        return { ...result.state, createdFirstSharedBalance: result.createdFirstSharedBalance }
     }, 201)

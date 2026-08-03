@@ -27,8 +27,8 @@ export type LandingEvent =
 export type AnalyticsEvent =
     | LandingEvent
     | 'room_created'
-    | 'room_joined'
     | 'expense_added'
+    | 'first_shared_balance'
     | 'expense_edited'
     | 'expense_deleted'
     | 'expense_restored'
@@ -202,8 +202,21 @@ export function trackLanding(event: LandingEvent, variant: LandingVariant): void
     track(event, { variant })
 }
 
+/**
+ * The room's first actionable debt, deliberately carrying no properties.
+ *
+ * The event is enough to measure activation in the current anonymous session.
+ * A room id, person, amount, currency, description, or roster size would make it
+ * easier to correlate a private ledger and buys nothing for this funnel.
+ */
+export function trackFirstSharedBalance(): void {
+    track('first_shared_balance')
+}
+
 export const SHARE_PACKAGE_METHODS = ['native', 'clipboard'] as const
 export type SharePackageMethod = (typeof SHARE_PACKAGE_METHODS)[number]
+export const SHARE_SURFACES = ['room_ready', 'post_aha', 'header'] as const
+export type ShareSurface = (typeof SHARE_SURFACES)[number]
 
 /**
  * The invite experiment's complete measurement contract.
@@ -219,16 +232,18 @@ export const SHARE_PACKAGE_MEASURE = {
     success: 'share_completed',
     definition: 'completed user-directed share actions / presented share packages',
     allowedProperties: {
-        share_package_presented: ['variant'],
-        share_completed: ['variant', 'method'],
+        share_package_presented: ['variant', 'surface'],
+        share_completed: ['variant', 'surface', 'method'],
     },
 } as const
 
-/** Exact allowlisted properties for the package metric — no identifiers. */
-export function sharePackageMeasureProps(method?: SharePackageMethod): Record<string, string> {
+/** Exact allowlisted properties for the package metric — one closed UI context,
+ *  no room, member, amount, description, currency, roster size or channel. */
+export function sharePackageMeasureProps(surface: ShareSurface, method?: SharePackageMethod): Record<string, string> {
+    if (!(SHARE_SURFACES as readonly string[]).includes(surface)) return { variant: SHARE_PACKAGE_VARIANT }
     return method && (SHARE_PACKAGE_METHODS as readonly string[]).includes(method)
-        ? { variant: SHARE_PACKAGE_VARIANT, method }
-        : { variant: SHARE_PACKAGE_VARIANT }
+        ? { variant: SHARE_PACKAGE_VARIANT, surface, method }
+        : { variant: SHARE_PACKAGE_VARIANT, surface }
 }
 
 /**

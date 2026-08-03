@@ -392,7 +392,7 @@
         },
         "history": {
             "title": "Room history",
-            "intro": "An append-only log of user-visible changes. A device label identifies one browser install in this room; acting as a name means that install claimed it, not that Split verified the person.",
+            "intro": "Changes made in this room.",
             "close": "Close room history",
             "loading": "Loading history…",
             "failed": "Could not load the room history.",
@@ -409,7 +409,6 @@
                 "room_settings_updated": "edited the room settings",
                 "member_joined": "joined the room",
                 "member_added": "added a person",
-                "member_claimed": "claimed a person on this device",
                 "member_removed": "removed a person",
                 "member_avatar_updated": "edited a person’s character",
                 "expense_added": "added an expense",
@@ -452,8 +451,8 @@
         },
         "expenses": {
             "title": "Expenses",
-            "emptyTitle": "No expenses yet",
-            "emptyBody": "Send the link first — expenses split between whoever’s in the room",
+            "emptyTitle": "Room ready",
+            "emptyBody": "Nothing here yet.",
             "someone": "Someone",
             "you": "You",
             "paidBy": "{payer} paid · {count, plural, one {# person} other {# people}}",
@@ -475,7 +474,9 @@
                 "neutral": "No change to your balance",
                 "notInSplit": "Not in your split"
             },
-            "emptyInvite": "Invite the rest"
+            "emptyInvite": "Invite the rest",
+            "emptyShare": "Share room",
+            "emptyAdd": "Add expense"
         },
         "states": {
             "errorTitle": "We could not load this room",
@@ -662,23 +663,13 @@
             "amountTooHighYou": "That is more than you owe."
         },
         "share": {
-            "title": "Invite the rest",
-            "subtitle": "One link. They tap it, pick their name, and they are in.",
-            "addPeople": {
-                "toggle": "Add their names now",
-                "body": "A split is worked out the moment the expense is saved, so anyone still in the group chat is not in it. Put their names in and the first round already divides the right way.",
-                "placeholder": "Their name",
-                "add": "Add",
-                "note": "They still open the link and pick their own name — this only holds their place.",
-                "duplicate": "{name} is already in this room.",
-                "failed": "could not add them — try again",
-                "remove": "Remove untouched placeholder for {name}",
-                "confirmRemove": "Remove {name}? This deletes their untouched placeholder from this room.",
-                "slideRemove": "Slide to remove {name}",
-                "removing": "Removing…",
-                "keep": "Keep {name}",
-                "removeFailed": "could not remove that name — try again"
-            }
+            "title": "Share room",
+            "subtitle": "Send the link to the group.",
+            "postAhaTitle": "First split done",
+            "postAhaSubtitle": "Share it with the group.",
+            "postAhaBalance": "{from} owes {to}",
+            "notNow": "Not now",
+            "close": "Close sharing"
         },
         "link": {
             "subtitle": "your split room",
@@ -710,9 +701,16 @@
             "creatorNamePlaceholder": "Your name…",
             "submit": "Create the room",
             "failed": "could not create the room — try again",
-            "readyTitle": "Your room is ready",
-            "readySubtitle": "Send this link to everyone splitting.",
-            "goToRoom": "Go to room",
+            "rosterCheckpoint": {
+                "title": "Who’s in?",
+                "subtitle": "This can be changed later.",
+                "namePlaceholder": "Name",
+                "add": "Add",
+                "done": "Done",
+                "skip": "Skip",
+                "duplicate": "{name} is already in this room.",
+                "failed": "could not add that person — try again"
+            },
             "namePlaceholderSlug": "your-trip",
             "currencyCustomHint": "“{code}” is your own currency. Every expense in this room is in it — nothing gets converted."
         },

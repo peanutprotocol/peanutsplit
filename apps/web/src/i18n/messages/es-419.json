@@ -392,7 +392,7 @@
         },
         "history": {
             "title": "Historial de la sala",
-            "intro": "Un registro inmutable de cambios visibles. La etiqueta identifica una instalación del navegador en esta sala; actuar con un nombre significa que esa instalación lo eligió, no que Split verificó a la persona.",
+            "intro": "Cambios realizados en esta sala.",
             "close": "Cerrar el historial de la sala",
             "loading": "Cargando historial…",
             "failed": "No se pudo cargar el historial de la sala.",
@@ -409,7 +409,6 @@
                 "room_settings_updated": "editó la configuración de la sala",
                 "member_joined": "se unió a la sala",
                 "member_added": "agregó a una persona",
-                "member_claimed": "eligió a una persona en este dispositivo",
                 "member_removed": "eliminó a una persona",
                 "member_avatar_updated": "editó el personaje de una persona",
                 "expense_added": "agregó un gasto",
@@ -452,8 +451,8 @@
         },
         "expenses": {
             "title": "Gastos",
-            "emptyTitle": "Todavía no hay gastos",
-            "emptyBody": "Manda el link primero — los gastos se dividen entre quienes estén en la sala",
+            "emptyTitle": "Sala lista",
+            "emptyBody": "Todavía no hay nada.",
             "someone": "Alguien",
             "you": "Tú",
             "paidBy": "{payer} pagó · {count, plural, one {# persona} other {# personas}}",
@@ -475,7 +474,9 @@
                 "neutral": "No cambió tu saldo",
                 "notInSplit": "No participaste en la división"
             },
-            "emptyInvite": "Invita al resto"
+            "emptyInvite": "Invita al resto",
+            "emptyShare": "Compartir sala",
+            "emptyAdd": "Agregar gasto"
         },
         "states": {
             "errorTitle": "No pudimos cargar esta sala",
@@ -662,23 +663,13 @@
             "amountTooHighYou": "Eso es más de lo que debes."
         },
         "share": {
-            "title": "Invita al resto",
-            "subtitle": "Un link. Lo tocan, eligen su nombre y ya están adentro.",
-            "addPeople": {
-                "toggle": "Agrega sus nombres ahora",
-                "body": "Un gasto se divide en el momento en que lo guardas, así que quien siga en el chat queda fuera. Agrega sus nombres y el primer gasto ya se divide bien.",
-                "placeholder": "Su nombre",
-                "add": "Agregar",
-                "note": "Igual van a abrir el link y elegir su nombre — esto solo les guarda el lugar.",
-                "duplicate": "{name} ya está en esta sala.",
-                "failed": "no se pudo agregar — intenta de nuevo",
-                "remove": "Quitar el nombre sin usar de {name}",
-                "confirmRemove": "¿Quitar a {name}? Esto elimina de la sala su nombre aún sin usar.",
-                "slideRemove": "Desliza para quitar a {name}",
-                "removing": "Quitando…",
-                "keep": "Mantener a {name}",
-                "removeFailed": "no se pudo quitar ese nombre — intenta de nuevo"
-            }
+            "title": "Compartir sala",
+            "subtitle": "Envía el link al grupo.",
+            "postAhaTitle": "Primera división lista",
+            "postAhaSubtitle": "Compartila con el grupo.",
+            "postAhaBalance": "{from} le debe a {to}",
+            "notNow": "Ahora no",
+            "close": "Cerrar compartir"
         },
         "link": {
             "subtitle": "tu sala para dividir",
@@ -710,9 +701,16 @@
             "creatorNamePlaceholder": "Tu nombre…",
             "submit": "Crear la sala",
             "failed": "no se pudo crear la sala — intenta de nuevo",
-            "readyTitle": "Tu sala está lista",
-            "readySubtitle": "Envía este link a todos los que dividen.",
-            "goToRoom": "Ir a la sala",
+            "rosterCheckpoint": {
+                "title": "¿Quiénes están?",
+                "subtitle": "Esto se puede cambiar después.",
+                "namePlaceholder": "Nombre",
+                "add": "Agregar",
+                "done": "Listo",
+                "skip": "Omitir",
+                "duplicate": "{name} ya está en esta sala.",
+                "failed": "no se pudo agregar a esa persona — intenta de nuevo"
+            },
             "namePlaceholderSlug": "tu-viaje",
             "currencyCustomHint": "«{code}» es tu propia moneda. Todos los gastos de esta sala van en ella — no se convierte nada."
         },

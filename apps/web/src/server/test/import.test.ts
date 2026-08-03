@@ -135,6 +135,13 @@ describe('importing a group', () => {
         expect(body.room.emoji).toBe('🧾')
         expect(body.members.map((m) => m.name)).toEqual(['Ana', 'Bruno', 'Carla'])
         expect(body.expenses).toHaveLength(3)
+
+        const storedRoom = await prisma.room.findUniqueOrThrow({ where: { id: body.room.id } })
+        const marked = body.expenses.find((expense) => expense.id === storedRoom.firstSharedBalanceExpenseId)
+        expect(storedRoom.firstSharedBalanceExpenseId).not.toBeNull()
+        expect(
+            marked?.shares.some((share) => share.memberId !== marked.paidById && BigInt(share.amountMinor) > 0n)
+        ).toBe(true)
     })
 
     it('hands the creator a member token, and nobody else’s', async () => {

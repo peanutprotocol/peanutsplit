@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
 
 /**
  * Two devices in one room, and the proof that the second one hears about a write
@@ -39,10 +40,7 @@ test('an expense on one device lands on the other without a refresh', async ({ p
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
 
-    const roomLink = page.getByTestId('room-link')
-    await expect(roomLink).toBeVisible({ timeout: 15_000 })
-    const url = (await roomLink.innerText()).trim()
-    await page.getByTestId('go-to-room').click()
+    const url = await enterCreatedRoom(page)
     await expect(balance(page, 'Ana')).toHaveAttribute('data-net', '0', { timeout: 15_000 })
 
     // The mechanism, observed. Everything below is a latency bound on a stream
