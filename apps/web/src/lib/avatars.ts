@@ -311,14 +311,43 @@ export const AVATAR_KEYS = [...PERSONA_KEYS, ...Object.keys(CLASSIC_AVATARS)] as
 export const isAvatarKey = (value: unknown): value is AvatarKey =>
     typeof value === 'string' && Object.prototype.hasOwnProperty.call(AVATARS, value)
 
+const pick = (random: () => number, count: number): number =>
+    count <= 1 ? 0 : Math.min(Math.max(Math.floor(random() * count), 0), count - 1)
+
 /**
- * Draw and persist one concrete key. The optional exclusion makes the re-roll
- * button visibly do something; injecting the RNG keeps tests deterministic.
+ * Draw and persist one concrete key. Room writers may exclude every persona
+ * already at the table; the single-string form keeps the picker re-roll API
+ * convenient. If the cast is ever exhausted, reuse is safer than returning an
+ * invalid key.
  */
-export function randomPersonaKey(exclude: string | null = null, random: () => number = Math.random): PersonaKey {
-    const candidates = PERSONA_KEYS.filter((key) => key !== exclude)
-    const index = Math.min(Math.floor(random() * candidates.length), candidates.length - 1)
-    return candidates[Math.max(0, index)]
+export function randomPersonaKey(
+    exclude: string | readonly string[] | null = null,
+    random: () => number = Math.random
+): PersonaKey {
+    const excluded = new Set(typeof exclude === 'string' ? [exclude] : (exclude ?? []))
+    // Compatibility aliases can point at a current drawing under an older key.
+    // Compare the artwork identity so a legacy room cannot receive two visually
+    // identical mascots with different storage values.
+    const excludedDoodles = new Set([...excluded].flatMap((key) => (isAvatarKey(key) ? [AVATARS[key].doodle] : [])))
+    const available = PERSONA_KEYS.filter((key) => !excludedDoodles.has(PERSONAS[key].doodle))
+    const candidates = available.length > 0 ? available : PERSONA_KEYS
+    return candidates[pick(random, candidates.length)]
+}
+
+/** Deal a room roster distinct personas instead of making independent draws. */
+export function dealPersonaKeys(count: number, random: () => number = Math.random): PersonaKey[] {
+    if (!Number.isInteger(count) || count < 0 || count > PERSONA_KEYS.length) {
+        throw new RangeError(`persona deal must be an integer from 0 to ${PERSONA_KEYS.length}`)
+    }
+
+    const pool = [...PERSONA_KEYS]
+    for (let index = pool.length - 1; index > 0; index--) {
+        const swap = pick(random, index + 1)
+        const held = pool[index]
+        pool[index] = pool[swap]
+        pool[swap] = held
+    }
+    return pool.slice(0, count)
 }
 
 /** A neutral defensive render fallback for null or unknown legacy values. */

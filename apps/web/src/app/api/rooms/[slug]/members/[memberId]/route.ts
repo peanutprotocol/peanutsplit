@@ -41,11 +41,17 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         // Older clients used null for "automatic". Preserve compatibility, but
         // make it a concrete random pick so every phone sees the same character.
         const reroll = body.avatar === null
-        const avatar = reroll ? randomPersonaKey(member.avatar) : body.avatar
+        const avatar = reroll
+            ? randomPersonaKey(room.members.flatMap((candidate) => (candidate.avatar ? [candidate.avatar] : [])))
+            : body.avatar
         // An older client sends only `avatar`; preserve the colour it cannot see
         // or edit. Its legacy null reroll is different: that explicitly asks for
         // a fresh identity, so both halves of the pair are renewed together.
-        const avatarPalette = reroll ? randomAvatarPaletteKey(member.avatarPalette) : body.avatarPalette
+        const avatarPalette = reroll
+            ? randomAvatarPaletteKey(
+                  room.members.flatMap((candidate) => (candidate.avatarPalette ? [candidate.avatarPalette] : []))
+              )
+            : body.avatarPalette
         const result = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, room.id)
             const locked = await loadRoom(slug, tx)
