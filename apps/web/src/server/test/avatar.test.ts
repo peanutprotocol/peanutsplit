@@ -92,6 +92,7 @@ describe('new member defaults', () => {
             expect(PERSONA_KEYS).toContain(member.avatar)
             expect(AVATAR_PALETTE_KEYS).toContain(member.avatarPalette)
         }
+        expect(new Set(members.map((member) => member.avatarPalette)).size).toBe(members.length)
     })
 })
 

@@ -93,6 +93,8 @@ describe('palette dealing', () => {
         expect(randomAvatarPaletteKey(null, () => 0.999999)).toBe(AVATAR_PALETTE_KEYS.at(-1))
         expect(randomAvatarPaletteKey(AVATAR_PALETTE_KEYS[0], () => 0)).toBe(AVATAR_PALETTE_KEYS[1])
         expect(randomAvatarPaletteKey(AVATAR_PALETTE_KEYS.at(-1), () => 0.999999)).toBe(AVATAR_PALETTE_KEYS.at(-2))
+        expect(randomAvatarPaletteKey(AVATAR_PALETTE_KEYS.slice(0, 3), () => 0)).toBe(AVATAR_PALETTE_KEYS[3])
+        expect(randomAvatarPaletteKey(AVATAR_PALETTE_KEYS, () => 0)).toBe(AVATAR_PALETTE_KEYS[0])
     })
 
     it('deals a requested number of unique reviewed palettes', () => {
