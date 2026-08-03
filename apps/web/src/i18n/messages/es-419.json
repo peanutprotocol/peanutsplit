@@ -863,9 +863,8 @@
         },
         "achievements": {
             "crew": {
-                "title": "{count, plural, other {Ya son # en el grupo}}",
-                "body": "¿Quién falta?",
-                "invite": "Enviar el link"
+                "title": "{count, plural, one {# nombre en esta cuenta} other {# nombres en esta cuenta}}",
+                "body": "Las personas de esta cuenta, juntas."
             },
             "passport": {
                 "title": "{count, plural, other {# monedas}}",
@@ -882,7 +881,7 @@
             "share": "Compartir",
             "sharing": "Preparándola…",
             "dismiss": "Ahora no",
-            "shelfTitle": "Desbloqueado en este viaje",
+            "shelfTitle": "Tarjetas de este viaje",
             "copied": "Tarjeta copiada — pégala donde quieras.",
             "downloaded": "Tarjeta guardada en tus descargas.",
             "shareFailed": "No pudimos armar esa tarjeta. Intenta otra vez.",
@@ -895,7 +894,7 @@
                 "hypeCrew": "La hinchada"
             },
             "shareText": {
-                "crew": "El grupo, completo.",
+                "crew": "Las personas de nuestra cuenta compartida.",
                 "passport": "Monedas distintas, una cuenta limpia.",
                 "alterego": "Este fui yo en este viaje.",
                 "stats": "El viaje, en números.",
@@ -1145,7 +1144,7 @@
         },
         "crew": {
             "title": "EL GRUPO",
-            "line": "Un solo link, y estamos todos."
+            "line": "Los nombres de nuestra cuenta compartida."
         },
         "passport": {
             "title": "PASAPORTE",

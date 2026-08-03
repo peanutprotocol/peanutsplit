@@ -1,4 +1,61 @@
 import { expect, test } from '@playwright/test'
+import { enterCreatedRoom } from './helpers'
+
+test('the drawing grid has one tab stop, radio arrow keys, and reliable focus return', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('Keyboard drawing')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await enterCreatedRoom(page)
+
+    await page.getByTestId('open-room-settings').click()
+    await expect(page.getByTestId('settings-sheet')).toBeVisible()
+
+    const summary = page.getByTestId('room-drawing')
+    const details = summary.locator('..')
+    await summary.focus()
+    await page.keyboard.press('Enter')
+    await expect(details).toHaveAttribute('open', '')
+
+    const picker = page.getByRole('radiogroup', { name: 'Room drawing' })
+    const radios = picker.getByRole('radio')
+    await expect(radios).toHaveCount(16)
+    await expect(picker.locator('[role="radio"][tabindex="0"]')).toHaveCount(1)
+    await expect(picker.locator('[role="radio"][tabindex="-1"]')).toHaveCount(15)
+
+    // Tab enters at the checked option. Arrow keys have native-radio semantics:
+    // move focus, change the selection, and wrap through the ordered set.
+    await page.keyboard.press('Tab')
+    const initial = picker.locator('[role="radio"][aria-checked="true"]')
+    await expect(initial).toBeFocused()
+    expect(await initial.getAttribute('data-doodle')).toBe('peanut')
+
+    const arrowSave = page.waitForResponse(
+        (response) =>
+            response.request().method() === 'PATCH' &&
+            /\/api\/rooms\/[^/]+$/.test(new URL(response.url()).pathname) &&
+            response.request().postDataJSON().emoji === 'mountain'
+    )
+    await page.keyboard.press('ArrowRight')
+    expect((await arrowSave).ok()).toBe(true)
+    await expect(details).not.toHaveAttribute('open', '')
+    await expect(summary).toBeFocused()
+
+    // The newly checked radio becomes the sole tab stop when the picker opens
+    // again, and End can select the last option without tabbing fifteen times.
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Tab')
+    await expect(picker.locator('[data-doodle="mountain"]')).toBeFocused()
+    const endSave = page.waitForResponse(
+        (response) =>
+            response.request().method() === 'PATCH' &&
+            /\/api\/rooms\/[^/]+$/.test(new URL(response.url()).pathname) &&
+            response.request().postDataJSON().emoji === 'cake'
+    )
+    await page.keyboard.press('End')
+    expect((await endSave).ok()).toBe(true)
+    await expect(summary).toBeFocused()
+})
 
 test('the room emblem opens Settings, rename keeps the link, and people can be added in context', async ({ page }) => {
     test.setTimeout(60_000)

@@ -107,7 +107,7 @@ async function openApp(page: Page, locale: Locale = 'en') {
     await expect(page.locator('html')).toHaveAttribute('lang', HREFLANG[locale])
 }
 
-test('landing is a marketing-only handoff and app is the noindex operational home', async ({ page }) => {
+test('creation-labelled marketing links bypass the noindex operational home', async ({ page }) => {
     await openLanding(page)
 
     await expect(page.getByTestId('marketing-home')).toBeVisible()
@@ -119,17 +119,21 @@ test('landing is a marketing-only handoff and app is the noindex operational hom
     await expect(page.getByTestId('hero-create-room')).toHaveCount(0)
     await expect(page.getByTestId('room-link-recovery')).toHaveCount(0)
 
-    const appHandoffs = page.locator(
+    const creationHandoffs = page.locator(
         '[data-testid="landing-app-link"], [data-testid="pass-link-chat-link"], [data-testid^="proof-"][data-testid$="-link"], [data-testid="room-example-link"], [data-testid="final-cta-link"]'
     )
-    await expect(appHandoffs).toHaveCount(controlBuild ? 9 : 10)
-    for (const handoff of await appHandoffs.all()) await expect(handoff).toHaveAttribute('href', '/app')
+    await expect(creationHandoffs).toHaveCount(controlBuild ? 9 : 10)
+    for (const handoff of await creationHandoffs.all()) await expect(handoff).toHaveAttribute('href', '/new')
     await expect(
         page.locator('footer').getByRole('link', { name: catalogs.en.marketing.footer.createSplit })
-    ).toHaveAttribute('href', '/app')
+    ).toHaveAttribute('href', '/new')
 
     await page.getByTestId('landing-app-link').click()
-    await expect(page).toHaveURL('/app')
+    await expect(page).toHaveURL('/new')
+    await expect(page.getByTestId('room-composer')).toBeVisible()
+    await expect(page.getByTestId('app-home')).toHaveCount(0)
+
+    await openApp(page)
     await expect(page.getByTestId('app-home')).toBeVisible()
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/i)
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/app$/)
@@ -140,6 +144,15 @@ test('landing is a marketing-only handoff and app is the noindex operational hom
     await expect(page.getByTestId('landing-proof')).toHaveCount(0)
     await expect(page.getByTestId('read-more')).toHaveCount(0)
     await expect(page.locator('footer')).toHaveCount(0)
+})
+
+test('supporting marketing surfaces route every creation-labelled link to the composer', async ({ page }) => {
+    for (const path of ['/blog', '/tools', '/splitwise-alternative', '/import', '/blog/split-bills-without-an-app']) {
+        await page.goto(path)
+        const creationLinks = page.getByRole('link', { name: /Start (?:a split|a room)/i })
+        expect(await creationLinks.count(), `${path} should expose at least one creation link`).toBeGreaterThan(0)
+        for (const link of await creationLinks.all()) await expect(link).toHaveAttribute('href', '/new')
+    }
 })
 
 test('an installed app never strands an old root launcher at the marketing page', async ({ page }) => {
@@ -241,7 +254,7 @@ test('a longer recent-room history has an explicit reversible reveal control', a
     await expect(reveal).toHaveAttribute('aria-expanded', 'false')
 })
 
-test('both landing variants hand off to the app without exposing a live room form', async ({ page }) => {
+test('both landing variants point creation intent at the room composer without embedding it', async ({ page }) => {
     await openLanding(page)
 
     await expect(page.getByTestId('landing-hero-variant')).toHaveAttribute(
@@ -249,7 +262,7 @@ test('both landing variants hand off to the app without exposing a live room for
         controlBuild ? 'control' : 'pass_link'
     )
     await expect(page.getByTestId('pass-link-hero')).toHaveCount(controlBuild ? 0 : 1)
-    await expect(page.getByTestId('landing-app-link')).toHaveAttribute('href', '/app')
+    await expect(page.getByTestId('landing-app-link')).toHaveAttribute('href', '/new')
     await expect(page.getByTestId('hero-room-name')).toHaveCount(0)
     await expect(page.getByTestId('hero-creator-name')).toHaveCount(0)
     await expect(page.getByTestId('hero-create-room')).toHaveCount(0)
@@ -274,7 +287,7 @@ test.describe('Pass-the-link default', () => {
             await expect(stage).toBeVisible()
             await expect(appLink).toBeVisible()
             await expect(chatFrame).toBeVisible()
-            await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/app')
+            await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
             await expect(chatFrame.locator('.pass-link-avatar svg')).toHaveCount(8)
             const [avatarBox, avatarDoodleBox] = await Promise.all([
                 chatFrame.locator('.pass-link-avatar').first().boundingBox(),
@@ -321,7 +334,7 @@ test.describe('Pass-the-link default', () => {
             ) {
                 for (const [label, locator] of [
                     ['headline', headline],
-                    ['app handoff', appLink],
+                    ['creation handoff', appLink],
                 ] as const) {
                     const box = await locator.boundingBox()
                     expect(
@@ -341,14 +354,14 @@ test.describe('Pass-the-link default', () => {
         }
     })
 
-    test('the right-hand messenger mockup opens the operational app home', async ({ page }) => {
+    test('the right-hand messenger mockup opens the room composer', async ({ page }) => {
         await openLanding(page)
         await page.getByTestId('pass-link-chat-link').click()
-        await expect(page).toHaveURL('/app')
-        await expect(page.getByTestId('app-home')).toBeVisible()
+        await expect(page).toHaveURL('/new')
+        await expect(page.getByTestId('room-composer')).toBeVisible()
     })
 
-    test('the app handoff remains keyboard-operable and touch-sized on mobile', async ({ page }) => {
+    test('the creation handoff remains keyboard-operable and touch-sized on mobile', async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 844 })
         await openLanding(page)
 
@@ -360,7 +373,7 @@ test.describe('Pass-the-link default', () => {
         expect(box!.height).toBeGreaterThanOrEqual(44)
         expect(box!.width).toBeGreaterThanOrEqual(44)
         await page.keyboard.press('Enter')
-        await expect(page).toHaveURL('/app')
+        await expect(page).toHaveURL('/new')
     })
 
     test('handoff interaction settles the one-shot story and the final state holds', async ({ page }) => {
@@ -523,7 +536,7 @@ test.describe('Pass-the-link default', () => {
         ).toEqual([])
     })
 
-    test('landing and its app handoff do not write a room before creation is chosen', async ({ page }) => {
+    test('landing creation links open the composer without writing a room', async ({ page }) => {
         const roomWrites: string[] = []
         page.on('request', (request) => {
             const url = new URL(request.url())
@@ -532,10 +545,6 @@ test.describe('Pass-the-link default', () => {
         await openLanding(page)
         await expect(page.getByTestId('hero-room-name')).toHaveCount(0)
         await page.getByTestId('landing-app-link').click()
-        await expect(page.getByTestId('app-home')).toBeVisible()
-        expect(roomWrites).toEqual([])
-
-        await page.getByTestId('app-new-split').click()
         await expect(page).toHaveURL('/new')
         await expect(page.getByTestId('room-composer')).toBeVisible()
         expect(roomWrites).toEqual([])
@@ -552,17 +561,17 @@ test.describe('Pass-the-link default', () => {
         await expect(page.getByTestId('proof-suggested-plan')).toContainText(/suggested payment plan/i)
 
         for (const testId of ['proof-link-identity-link', 'proof-everyone-adds-link', 'proof-suggested-plan-link']) {
-            await expect(page.getByTestId(testId)).toHaveAttribute('href', '/app')
+            await expect(page.getByTestId(testId)).toHaveAttribute('href', '/new')
         }
 
         const roomExampleLinks = page.getByTestId('room-example-link')
         await expect(roomExampleLinks).toHaveCount(4)
         for (const exampleLink of await roomExampleLinks.all()) {
-            await expect(exampleLink).toHaveAttribute('href', '/app')
+            await expect(exampleLink).toHaveAttribute('href', '/new')
         }
 
         const finalCtaLink = page.getByTestId('final-cta-link')
-        await expect(finalCtaLink).toHaveAttribute('href', '/app')
+        await expect(finalCtaLink).toHaveAttribute('href', '/new')
         await expect(finalCtaLink.locator('button')).toHaveCount(0)
 
         await expect(page.getByTestId('landing-proof').locator('.landing-persona svg')).toHaveCount(14)
@@ -585,7 +594,7 @@ test.describe('Pass-the-link default', () => {
         await expect(supportedCurrencies).toBeVisible()
     })
 
-    test('a room example opens the app home from the keyboard without creating a room', async ({ page }) => {
+    test('a room example opens the composer from the keyboard without creating a room', async ({ page }) => {
         await openLanding(page)
 
         const exampleLink = page.getByTestId('room-example-link').first()
@@ -593,8 +602,8 @@ test.describe('Pass-the-link default', () => {
         await expect(exampleLink).toBeFocused()
         await page.keyboard.press('Enter')
 
-        await expect(page).toHaveURL('/app')
-        await expect(page.getByTestId('app-home')).toBeVisible()
+        await expect(page).toHaveURL('/new')
+        await expect(page.getByTestId('room-composer')).toBeVisible()
     })
 
     test('every room example lifts and straightens on desktop hover', async ({ page }, testInfo) => {
@@ -660,7 +669,7 @@ test.describe('Pass-the-link default', () => {
                     name: `${messages.footer.createSplit}: ${messages.proof.linkIdentity.title}`,
                     exact: true,
                 })
-            ).toHaveAttribute('href', '/app')
+            ).toHaveAttribute('href', '/new')
 
             const returnFold = page.locator('details').filter({
                 has: page.getByText(messages.readMore.faq.lost.q, { exact: true }),
@@ -674,13 +683,13 @@ test.describe('Pass-the-link default', () => {
             const footer = page.locator('footer')
             await expect(footer.getByRole('link', { name: messages.footer.createSplit })).toHaveAttribute(
                 'href',
-                '/app'
+                '/new'
             )
             await expect(footer.getByRole('link', { name: messages.footer.logoLinkLabel })).toBeVisible()
         })
     }
 
-    test('zoom, selection, and a shrunken visual viewport keep the app handoff reachable', async ({ page }) => {
+    test('zoom, selection, and a shrunken visual viewport keep the creation handoff reachable', async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 844 })
         await openLanding(page)
 
