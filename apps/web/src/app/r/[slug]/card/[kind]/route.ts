@@ -24,6 +24,7 @@
  */
 import { ImageResponse } from 'next/og'
 import { CARD_KINDS, type AlterEgoCardParams, type CardKind } from '@/lib/achievements-contract'
+import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { isAvatarKey } from '@/lib/avatars'
 import { isAwardId, loadAchievementCard, loadInviteCard } from '@/server/og/achievementCard'
 import { renderAchievementCard } from '@/server/og/achievementCardArt'
@@ -76,7 +77,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     if (!isCardKind(kind)) return new Response(null, { status: 404 })
 
     // The alter-ego card's whole input, and deliberately not a member id: two
-    // closed sets, so the query string carries no identifier. Anything outside
+    // closed catalogs, so the query string carries no identifier. Anything outside
     // them is a 404 rather than a fallback — a card drawn for an award nobody
     // holds would be a false claim about a person.
     let alterEgo: AlterEgoCardParams | undefined
@@ -84,8 +85,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         const query = new URL(request.url).searchParams
         const award = query.get('a')
         const persona = query.get('p')
+        const palette = query.get('c')
         if (!isAwardId(award) || !isAvatarKey(persona)) return new Response(null, { status: 404 })
-        alterEgo = { award, persona }
+        if (palette !== null && !isAvatarPaletteKey(palette)) return new Response(null, { status: 404 })
+        alterEgo = { award, persona, palette }
     }
 
     return cardResponse(

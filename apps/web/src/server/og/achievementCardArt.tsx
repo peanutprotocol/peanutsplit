@@ -200,7 +200,8 @@ function InviteCard(card: Extract<AchievementCardData, { kind: 'invite' }>): Rea
                             card.personas.map((persona, index) => (
                                 <PersonaDisc
                                     key={index}
-                                    avatar={persona}
+                                    avatar={persona.avatar}
+                                    palette={persona.palette}
                                     size={personaSize}
                                     marginLeft={index === 0 ? 0 : -16}
                                 />
@@ -273,7 +274,13 @@ function CrewCard(card: Extract<AchievementCardData, { kind: 'crew' }>): ReactEl
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', marginTop: 26 }}>
                     {card.personas.map((persona, i) => (
-                        <PersonaDisc key={i} avatar={persona} size={size} marginLeft={i === 0 ? 0 : -20} />
+                        <PersonaDisc
+                            key={i}
+                            avatar={persona.avatar}
+                            palette={persona.palette}
+                            size={size}
+                            marginLeft={i === 0 ? 0 : -20}
+                        />
                     ))}
                     {card.overflow > 0 ? (
                         <div
@@ -365,7 +372,7 @@ function AlterEgoCard(card: Extract<AchievementCardData, { kind: 'alterego' }>):
         <Field field={card.theme.field} tint={card.theme.fieldTint} blobs={BLOBS_LEFT}>
             <Sheet innerPadding="40px 46px 46px 46px">
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <PersonaDisc avatar={card.persona} size={250} />
+                    <PersonaDisc avatar={card.persona} palette={card.palette} size={250} />
                     <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 44 }}>
                         <Title text={card.title} size={72} />
                         {/* Sniglet, not Knerd: `Leyenda de la cuenta` is four words,

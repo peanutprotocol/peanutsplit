@@ -7,6 +7,12 @@ export interface DoodleProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
     size?: number
     /** In 32-box units, not pixels. Lower it for anything drawn large. */
     weight?: number
+    /** A wider path painted underneath the normal ink, for sticker-style art. */
+    outline?: {
+        color: string
+        /** In the same 32-box units as `weight`. Must be wider to remain visible. */
+        weight: number
+    }
     /** Reads to a screen reader. Omit for decoration and the drawing goes silent. */
     label?: string
 }
@@ -25,7 +31,7 @@ export interface DoodleProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
  * Not a client component and it must not become one — these render inside server components
  * (the read-more fold, the use-case cards) and are static markup with no behaviour.
  */
-export function Doodle({ name, size = 28, weight = 2, label, className, style, ...props }: DoodleProps) {
+export function Doodle({ name, size = 28, weight = 2, outline, label, className, style, ...props }: DoodleProps) {
     return (
         <svg
             viewBox="0 0 32 32"
@@ -48,6 +54,7 @@ export function Doodle({ name, size = 28, weight = 2, label, className, style, .
             style={{ ...style, fill: 'none' }}
             {...props}
         >
+            {outline ? <path d={DOODLE[name]} stroke={outline.color} strokeWidth={outline.weight} /> : null}
             <path d={DOODLE[name]} />
         </svg>
     )

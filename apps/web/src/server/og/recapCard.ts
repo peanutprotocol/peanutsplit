@@ -26,7 +26,7 @@ export interface RecapRoomRow {
     name: string
     emoji: string | null
     currency: string
-    members: { id: string; name: string; avatar?: string | null }[]
+    members: { id: string; name: string; avatar?: string | null; avatarPalette?: string | null }[]
     expenses: {
         baseAmountMinor: bigint
         paidById: string
@@ -37,16 +37,17 @@ export interface RecapRoomRow {
 }
 
 /**
- * One face on the recap. The avatar travels WITH the name rather than being
- * looked up again per surface: the page draws the member's doodle and the OG
- * card draws a letter disc, and the two must at least be describing the same
- * roster in the same order.
+ * One face on the recap. Avatar and palette travel WITH the name rather than
+ * being looked up again per surface, so the HTML page and the generated card
+ * describe the same roster in the same colours and order.
  */
 export interface RecapMember {
     name: string
     /** A key into `lib/avatars.ts`, never artwork. Null on a legacy row — that is
      *  what `avatarArt` reads as "draw the neutral peanut". */
     avatar: string | null
+    /** A reviewed palette key. Null keeps legacy rows on the catalog default. */
+    avatarPalette: string | null
 }
 
 /** The derivation, in the units the page wants. No font sanitizing applied. */
@@ -80,12 +81,12 @@ export interface RecapCardData {
     /** "María fronted the most", or null when the line would be silly. */
     topPayer: string | null
     /**
-     * Avatar keys, in roster order, capped at `MAX_AVATARS` — NOT letters. The card draws the
-     * same personas the recap page draws, so the two halves of one artefact cannot disagree
-     * about what these people look like. It also sidesteps the glyph budget entirely: a doodle
-     * has no codepoint to be missing from the two shipped fonts.
+     * Avatar and reviewed palette keys, in roster order, capped at `MAX_AVATARS` — NOT letters.
+     * The card draws the same personas the recap page draws, so the two halves of one artefact
+     * cannot disagree about what these people look like. It also sidesteps the glyph budget
+     * entirely: a doodle has no codepoint to be missing from the two shipped fonts.
      */
-    personas: (string | null)[]
+    personas: { avatar: string | null; palette: string | null }[]
     overflow: number
     settled: boolean
 }
@@ -145,7 +146,11 @@ export function toRoomRecap(room: RecapRoomRow): RoomRecap {
         memberCount: room.members.length,
         dayCount: daySpan(room.expenses.map((e) => e.date)),
         settlementCount: room.settlements.length,
-        members: room.members.map((m) => ({ name: m.name, avatar: m.avatar ?? null })),
+        members: room.members.map((m) => ({
+            name: m.name,
+            avatar: m.avatar ?? null,
+            avatarPalette: m.avatarPalette ?? null,
+        })),
         topPayerName: topPayerName(room.members, room.expenses),
         settled: isSettled(room),
     }
@@ -168,7 +173,10 @@ export function recapStatLine(recap: Pick<RoomRecap, 'dayCount' | 'expenseCount'
  * a room where Ana is the only person is a true sentence that reads as a bug.
  */
 export function toRecapCard(recap: RoomRecap): RecapCardData {
-    const personas = recap.members.slice(0, MAX_AVATARS).map((member) => member.avatar)
+    const personas = recap.members.slice(0, MAX_AVATARS).map((member) => ({
+        avatar: member.avatar,
+        palette: member.avatarPalette,
+    }))
     const overflow = Math.max(0, recap.members.length - MAX_AVATARS)
     const topPayer =
         recap.topPayerName !== null && recap.memberCount > 1
@@ -205,7 +213,10 @@ export async function loadRecap(slug: string): Promise<RoomRecap | null> {
             currency: true,
             // `avatar` is what the page draws each face with. Without it every
             // member on the recap fell through to the neutral peanut.
-            members: { orderBy: { createdAt: 'asc' }, select: { id: true, name: true, avatar: true } },
+            members: {
+                orderBy: { createdAt: 'asc' },
+                select: { id: true, name: true, avatar: true, avatarPalette: true },
+            },
             expenses: {
                 where: { deletedAt: null },
                 select: {

@@ -367,7 +367,12 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                         className="flex w-full flex-col gap-2 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                                     >
                                         <span className="flex items-center gap-2">
-                                            <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
+                                            <MemberAvatar
+                                                name={member.name}
+                                                avatar={member.avatar}
+                                                palette={member.avatarPalette}
+                                                size={28}
+                                            />
                                             <span className="min-w-0 flex-1 truncate text-h8">
                                                 {member.id === meId ? t('you') : member.name}
                                             </span>

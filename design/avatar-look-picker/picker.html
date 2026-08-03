@@ -1,0 +1,1843 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>PeanutSplit — avatar system lab</title>
+		<style>
+			@font-face {
+				font-family: 'Knerd Filled';
+				src: url('../../apps/web/src/assets/fonts/knerd-filled.ttf') format('truetype');
+				font-display: swap;
+			}
+
+			:root {
+				--ink: #282832;
+				--paper: #fff9e9;
+				--canvas: #f5f0e5;
+				--white: #fffef9;
+				--yellow: #ffc900;
+				--pink: #ff4fa3;
+				--blue: #3155ff;
+				--cyan: #18cfe8;
+				--lime: #c8ff28;
+				--muted: #716f73;
+				--shadow: 4px 4px 0 var(--ink);
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			body {
+				margin: 0;
+				background:
+					radial-gradient(circle at 5% 4%, rgba(255, 79, 163, 0.17), transparent 29rem),
+					radial-gradient(circle at 96% 11%, rgba(24, 207, 232, 0.17), transparent 31rem),
+					var(--canvas);
+				color: var(--ink);
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+				-webkit-font-smoothing: antialiased;
+			}
+
+			button {
+				font: inherit;
+			}
+
+			button:focus-visible {
+				outline: 4px solid var(--cyan);
+				outline-offset: 3px;
+			}
+
+			h1,
+			h2,
+			h3,
+			p {
+				margin-top: 0;
+			}
+
+			.site-header {
+				position: sticky;
+				top: 0;
+				z-index: 30;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 18px;
+				min-height: 64px;
+				padding: 10px clamp(16px, 4vw, 62px);
+				border-bottom: 2px solid var(--ink);
+				background: rgba(255, 249, 233, 0.93);
+				backdrop-filter: blur(14px);
+			}
+
+			.brand {
+				display: flex;
+				align-items: center;
+				gap: 11px;
+			}
+
+			.brand-mark {
+				display: grid;
+				width: 36px;
+				height: 36px;
+				place-items: center;
+				border: 2px solid var(--ink);
+				border-radius: 50%;
+				background: var(--yellow);
+				font-size: 20px;
+				transform: rotate(-7deg);
+			}
+
+			.brand strong,
+			.display {
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-weight: 400;
+			}
+
+			.brand strong {
+				font-size: 20px;
+			}
+
+			.pill,
+			.recipe-badge,
+			.meta-chip {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				min-height: 27px;
+				padding: 4px 10px;
+				border: 1.5px solid var(--ink);
+				border-radius: 999px;
+				background: var(--white);
+				font-size: 9px;
+				font-weight: 900;
+				letter-spacing: 0.09em;
+				line-height: 1;
+				text-transform: uppercase;
+			}
+
+			.pill.hot {
+				background: var(--pink);
+			}
+
+			main {
+				width: min(1460px, calc(100% - 34px));
+				margin: 0 auto;
+				padding: clamp(46px, 7vw, 92px) 0 110px;
+			}
+
+			.hero {
+				display: grid;
+				grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.65fr);
+				gap: clamp(34px, 7vw, 100px);
+				align-items: end;
+				margin-bottom: 60px;
+			}
+
+			.eyebrow {
+				margin-bottom: 13px;
+				font-size: 11px;
+				font-weight: 950;
+				letter-spacing: 0.15em;
+				text-transform: uppercase;
+			}
+
+			h1 {
+				max-width: 900px;
+				margin-bottom: 19px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: clamp(52px, 7.2vw, 108px);
+				font-weight: 400;
+				letter-spacing: -0.035em;
+				line-height: 0.86;
+			}
+
+			.hero-copy {
+				max-width: 720px;
+				margin-bottom: 0;
+				color: var(--muted);
+				font-size: clamp(16px, 1.5vw, 20px);
+				line-height: 1.55;
+			}
+
+			.how-card {
+				position: relative;
+				padding: 26px;
+				border: 2px solid var(--ink);
+				border-radius: 22px;
+				background: var(--white);
+				box-shadow: var(--shadow);
+				transform: rotate(1deg);
+			}
+
+			.how-card::before {
+				position: absolute;
+				top: -14px;
+				right: 27px;
+				width: 66px;
+				height: 25px;
+				background: rgba(255, 201, 0, 0.75);
+				content: '';
+				transform: rotate(6deg);
+			}
+
+			.how-card h2 {
+				margin-bottom: 14px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 24px;
+				font-weight: 400;
+			}
+
+			.how-card ol {
+				display: grid;
+				gap: 11px;
+				margin: 0;
+				padding: 0;
+				counter-reset: steps;
+				list-style: none;
+			}
+
+			.how-card li {
+				display: grid;
+				grid-template-columns: 25px 1fr;
+				gap: 10px;
+				align-items: center;
+				font-size: 13px;
+				font-weight: 720;
+				line-height: 1.35;
+				counter-increment: steps;
+			}
+
+			.how-card li::before {
+				display: grid;
+				width: 24px;
+				height: 24px;
+				place-items: center;
+				border: 1.5px solid var(--ink);
+				border-radius: 50%;
+				background: var(--yellow);
+				content: counter(steps);
+				font-size: 10px;
+				font-weight: 950;
+			}
+
+			.section-head {
+				display: flex;
+				align-items: end;
+				justify-content: space-between;
+				gap: 22px;
+				margin: 0 3px 20px;
+			}
+
+			.section-head h2 {
+				margin-bottom: 6px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: clamp(34px, 4.5vw, 56px);
+				font-weight: 400;
+				line-height: 0.95;
+			}
+
+			.section-head p {
+				max-width: 680px;
+				margin-bottom: 0;
+				color: var(--muted);
+				font-size: 14px;
+				line-height: 1.5;
+			}
+
+			.builder-shell {
+				display: grid;
+				grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+				gap: 18px;
+				align-items: start;
+				margin-bottom: 60px;
+			}
+
+			.recipe-panel,
+			.draft-panel {
+				border: 2px solid var(--ink);
+				border-radius: 25px;
+				background: var(--white);
+				box-shadow: var(--shadow);
+			}
+
+			.recipe-panel {
+				padding: clamp(18px, 3vw, 30px);
+			}
+
+			.control-heading {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 15px;
+				margin-bottom: 15px;
+			}
+
+			.control-heading h3 {
+				margin-bottom: 0;
+				font-size: 13px;
+				font-weight: 950;
+				letter-spacing: 0.11em;
+				text-transform: uppercase;
+			}
+
+			.control-heading span {
+				color: var(--muted);
+				font-size: 11px;
+			}
+
+			.mascot-switcher {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				margin-bottom: 27px;
+			}
+
+			.mascot-button {
+				display: flex;
+				align-items: center;
+				gap: 7px;
+				min-height: 41px;
+				padding: 4px 11px 4px 5px;
+				border: 1.5px solid var(--ink);
+				border-radius: 999px;
+				background: var(--canvas);
+				color: var(--ink);
+				cursor: pointer;
+				font-size: 12px;
+				font-weight: 780;
+				transition: transform 120ms ease, box-shadow 120ms ease;
+			}
+
+			.mascot-button:hover {
+				transform: translateY(-2px);
+			}
+
+			.mascot-button[aria-pressed='true'] {
+				background: var(--yellow);
+				box-shadow: 2px 2px 0 var(--ink);
+			}
+
+			.recipe-grid {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 10px;
+			}
+
+			.recipe-card {
+				position: relative;
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr);
+				gap: 11px;
+				align-items: center;
+				min-height: 92px;
+				padding: 11px;
+				border: 1.5px solid var(--ink);
+				border-radius: 16px;
+				background: #f7f3eb;
+				color: var(--ink);
+				cursor: pointer;
+				text-align: left;
+				transition: transform 120ms ease, box-shadow 120ms ease;
+			}
+
+			.recipe-card:hover {
+				transform: translateY(-2px);
+			}
+
+			.recipe-card[aria-pressed='true'] {
+				background: white;
+				box-shadow: 3px 3px 0 var(--ink);
+				transform: translate(-1px, -1px);
+			}
+
+			.recipe-card[aria-pressed='true']::after {
+				position: absolute;
+				top: 7px;
+				right: 7px;
+				display: grid;
+				width: 21px;
+				height: 21px;
+				place-items: center;
+				border: 1.5px solid var(--ink);
+				border-radius: 50%;
+				background: var(--yellow);
+				content: '✓';
+				font-size: 11px;
+				font-weight: 950;
+			}
+
+			.recipe-copy {
+				min-width: 0;
+			}
+
+			.recipe-copy strong {
+				display: block;
+				margin-bottom: 5px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 17px;
+				font-weight: 400;
+				line-height: 0.95;
+			}
+
+			.recipe-badge {
+				min-height: 19px;
+				padding: 2px 7px;
+				border-width: 1px;
+				background: var(--badge, white);
+				font-size: 7px;
+			}
+
+			.draft-panel {
+				position: sticky;
+				top: 82px;
+				overflow: hidden;
+			}
+
+			.draft-stage {
+				position: relative;
+				display: grid;
+				min-height: 294px;
+				place-items: center;
+				overflow: hidden;
+				border-bottom: 2px solid var(--ink);
+				background:
+					linear-gradient(rgba(40, 40, 50, 0.055) 1px, transparent 1px),
+					linear-gradient(90deg, rgba(40, 40, 50, 0.055) 1px, transparent 1px),
+					var(--paper);
+				background-size: 24px 24px;
+			}
+
+			.draft-stage::before {
+				position: absolute;
+				top: 17px;
+				left: 18px;
+				content: 'LIVE DRAFT';
+				font-size: 9px;
+				font-weight: 950;
+				letter-spacing: 0.14em;
+			}
+
+			.draft-body {
+				padding: 22px;
+			}
+
+			.draft-body h3 {
+				margin-bottom: 7px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 29px;
+				font-weight: 400;
+				line-height: 0.95;
+			}
+
+			.draft-description {
+				min-height: 43px;
+				margin-bottom: 18px;
+				color: var(--muted);
+				font-size: 12px;
+				line-height: 1.45;
+			}
+
+			.crop-picker {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 5px;
+				margin-bottom: 15px;
+				padding: 5px;
+				border: 1.5px solid var(--ink);
+				border-radius: 14px;
+				background: #efebe2;
+			}
+
+			.crop-button {
+				min-height: 46px;
+				padding: 6px;
+				border: 0;
+				border-radius: 9px;
+				background: transparent;
+				color: var(--muted);
+				cursor: pointer;
+				font-size: 10px;
+				font-weight: 850;
+				line-height: 1.2;
+			}
+
+			.crop-button span {
+				display: block;
+				font-size: 8px;
+				font-weight: 700;
+			}
+
+			.crop-button[aria-pressed='true'] {
+				background: white;
+				box-shadow: 2px 2px 0 rgba(40, 40, 50, 0.2);
+				color: var(--ink);
+			}
+
+			.primary-button,
+			.text-button,
+			.winner-button,
+			.remove-button {
+				border: 1.5px solid var(--ink);
+				background: white;
+				color: var(--ink);
+				cursor: pointer;
+				font-weight: 850;
+			}
+
+			.primary-button {
+				width: 100%;
+				min-height: 51px;
+				border-radius: 13px;
+				background: var(--pink);
+				box-shadow: 3px 3px 0 var(--ink);
+				font-size: 13px;
+				transition: transform 100ms ease, box-shadow 100ms ease;
+			}
+
+			.primary-button:not(:disabled):active {
+				box-shadow: none;
+				transform: translate(3px, 3px);
+			}
+
+			.primary-button:disabled {
+				cursor: not-allowed;
+				filter: grayscale(0.8);
+				opacity: 0.48;
+			}
+
+			.shortlist-section {
+				margin-bottom: 62px;
+			}
+
+			.shortlist-strip {
+				display: flex;
+				gap: 10px;
+				overflow-x: auto;
+				padding: 2px 4px 7px 2px;
+				scrollbar-width: thin;
+			}
+
+			.shortlist-item {
+				display: grid;
+				grid-template-columns: auto minmax(112px, 1fr) auto;
+				gap: 10px;
+				align-items: center;
+				min-width: 255px;
+				padding: 9px;
+				border: 1.5px solid var(--ink);
+				border-radius: 15px;
+				background: white;
+				box-shadow: 2px 2px 0 var(--ink);
+			}
+
+			.shortlist-item[data-winner='true'] {
+				background: var(--yellow);
+			}
+
+			.shortlist-jump {
+				min-width: 0;
+				padding: 0;
+				border: 0;
+				background: transparent;
+				color: var(--ink);
+				cursor: pointer;
+				text-align: left;
+			}
+
+			.shortlist-jump strong,
+			.shortlist-jump span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.shortlist-jump strong {
+				margin-bottom: 3px;
+				font-size: 12px;
+			}
+
+			.shortlist-jump span {
+				color: var(--muted);
+				font-size: 9px;
+				font-weight: 800;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+
+			.remove-button {
+				display: grid;
+				width: 30px;
+				height: 30px;
+				place-items: center;
+				border-radius: 50%;
+				font-size: 15px;
+			}
+
+			.shortlist-empty {
+				width: 100%;
+				padding: 24px;
+				border: 2px dashed var(--ink);
+				border-radius: 17px;
+				background: rgba(255, 255, 255, 0.55);
+				color: var(--muted);
+				font-size: 13px;
+				text-align: center;
+			}
+
+			.comparison-section {
+				scroll-margin-top: 82px;
+			}
+
+			.compare-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+				gap: 14px;
+				align-items: start;
+			}
+
+			.compare-card {
+				scroll-margin-top: 82px;
+				overflow: hidden;
+				border: 2px solid var(--ink);
+				border-radius: 22px;
+				background: var(--paper);
+				box-shadow: var(--shadow);
+			}
+
+			.compare-card[data-winner='true'] {
+				box-shadow: 7px 7px 0 var(--pink);
+			}
+
+			.compare-head {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr);
+				gap: 15px;
+				align-items: center;
+				padding: 17px;
+				border-bottom: 2px solid var(--ink);
+				background: white;
+			}
+
+			.compare-title {
+				min-width: 0;
+			}
+
+			.compare-title h3 {
+				margin: 7px 0 5px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 26px;
+				font-weight: 400;
+				line-height: 0.95;
+			}
+
+			.compare-title p {
+				margin-bottom: 0;
+				color: var(--muted);
+				font-size: 10px;
+				line-height: 1.35;
+			}
+
+			.compare-actions {
+				display: grid;
+				grid-template-columns: 1fr auto;
+				gap: 7px;
+				padding: 0 17px 16px;
+				border-bottom: 2px solid var(--ink);
+				background: white;
+			}
+
+			.winner-button,
+			.text-button {
+				min-height: 39px;
+				border-radius: 10px;
+				font-size: 10px;
+			}
+
+			.winner-button {
+				background: var(--yellow);
+			}
+
+			.compare-card[data-winner='true'] .winner-button {
+				background: var(--pink);
+			}
+
+			.text-button {
+				padding: 0 11px;
+			}
+
+			.app-preview {
+				background: #f4efe5;
+			}
+
+			.room-bar {
+				display: grid;
+				grid-template-columns: 35px minmax(0, 1fr) 35px;
+				gap: 9px;
+				align-items: center;
+				padding: 11px;
+				border-bottom: 1.5px solid var(--ink);
+				background: var(--yellow);
+			}
+
+			.room-emblem,
+			.room-share {
+				display: grid;
+				width: 35px;
+				height: 35px;
+				place-items: center;
+				border: 1.5px solid var(--ink);
+				border-radius: 9px;
+				background: white;
+				font-size: 16px;
+			}
+
+			.room-copy {
+				min-width: 0;
+			}
+
+			.room-copy strong,
+			.room-copy span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.room-copy strong {
+				font-size: 13px;
+			}
+
+			.room-copy span {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				margin-top: 3px;
+				font-size: 7px;
+				font-weight: 850;
+				letter-spacing: 0.07em;
+				text-transform: uppercase;
+			}
+
+			.preview-body {
+				display: grid;
+				gap: 14px;
+				padding: 14px;
+			}
+
+			.context-label {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				margin-bottom: 7px;
+				color: var(--muted);
+				font-size: 8px;
+				font-weight: 950;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.achievement-card {
+				position: relative;
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr);
+				gap: 13px;
+				align-items: center;
+				min-height: 88px;
+				padding: 13px;
+				overflow: hidden;
+				border: 1.5px solid var(--ink);
+				border-radius: 14px;
+				background: var(--pink);
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.achievement-card::after {
+				position: absolute;
+				right: -13px;
+				top: -17px;
+				width: 55px;
+				height: 55px;
+				border: 9px solid rgba(255, 255, 255, 0.35);
+				border-radius: 50%;
+				content: '';
+			}
+
+			.achievement-card strong,
+			.achievement-card span {
+				display: block;
+			}
+
+			.achievement-card strong {
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 22px;
+				font-weight: 400;
+				line-height: 0.95;
+			}
+
+			.achievement-card span {
+				margin-top: 5px;
+				font-size: 9px;
+				font-weight: 730;
+			}
+
+			.balance-strip {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 6px;
+			}
+
+			.balance-card {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr);
+				gap: 6px;
+				align-items: center;
+				min-height: 54px;
+				padding: 7px;
+				border: 1.5px solid var(--ink);
+				border-radius: 10px;
+				background: white;
+			}
+
+			.balance-card.positive {
+				background: #b9f2c6;
+			}
+
+			.balance-card.negative {
+				background: #ffb7a7;
+			}
+
+			.balance-card strong,
+			.balance-card span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.balance-card strong {
+				font-size: 8px;
+			}
+
+			.balance-card span {
+				margin-top: 2px;
+				font-size: 8px;
+				font-weight: 800;
+			}
+
+			.app-row {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr) auto;
+				gap: 9px;
+				align-items: center;
+				min-height: 58px;
+				padding: 10px;
+				border: 1.5px solid var(--ink);
+				border-radius: 11px;
+				background: white;
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.app-row-copy {
+				min-width: 0;
+			}
+
+			.app-row-copy strong,
+			.app-row-copy span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.app-row-copy strong {
+				font-size: 11px;
+			}
+
+			.app-row-copy span {
+				margin-top: 3px;
+				color: var(--muted);
+				font-size: 8px;
+			}
+
+			.app-row-amount {
+				font-size: 11px;
+				font-weight: 850;
+			}
+
+			.chevron {
+				font-size: 16px;
+				font-weight: 800;
+			}
+
+			.assignment-box {
+				padding: 10px;
+				border: 1.5px solid var(--ink);
+				border-radius: 12px;
+				background: white;
+			}
+
+			.assignment-box > strong {
+				display: block;
+				margin-bottom: 8px;
+				font-size: 10px;
+			}
+
+			.assignment-chips {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+			}
+
+			.person-chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 5px;
+				min-height: 31px;
+				padding: 4px 8px 4px 4px;
+				border: 1.5px solid var(--ink);
+				border-radius: 999px;
+				background: white;
+				font-size: 8px;
+				font-weight: 800;
+			}
+
+			.person-chip.selected {
+				background: var(--yellow);
+			}
+
+			.compare-footer {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				padding: 12px 15px;
+				border-top: 2px solid var(--ink);
+				background: white;
+			}
+
+			.compare-footer code {
+				overflow: hidden;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 8px;
+				font-weight: 750;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.avatar-disc {
+				--disc-size: 56px;
+				--art-scale: 0.88;
+				position: relative;
+				display: inline-grid;
+				width: var(--disc-size);
+				height: var(--disc-size);
+				flex: 0 0 auto;
+				place-items: center;
+				overflow: hidden;
+				border: var(--border-width, 1.5px) solid var(--border, var(--ink));
+				border-radius: 50%;
+				background: var(--field, var(--paper));
+				box-shadow: var(--disc-shadow, none);
+				isolation: isolate;
+			}
+
+			.avatar-disc .disc-motif {
+				position: absolute;
+				z-index: 0;
+				pointer-events: none;
+			}
+
+			.avatar-disc[data-motif='blob'] .disc-motif {
+				right: 4%;
+				bottom: 5%;
+				width: 46%;
+				height: 46%;
+				border-radius: 44% 56% 60% 40%;
+				background: var(--motif, transparent);
+				transform: rotate(12deg);
+			}
+
+			.avatar-disc[data-motif='ring'] .disc-motif {
+				inset: 8%;
+				border: max(1px, calc(var(--disc-size) * 0.025)) solid var(--motif, var(--paper));
+				border-radius: 50%;
+			}
+
+			.avatar-disc[data-motif='stamp'] .disc-motif {
+				left: -26%;
+				top: 37%;
+				width: 152%;
+				height: 28%;
+				background: var(--motif, transparent);
+				transform: rotate(-16deg);
+			}
+
+			.avatar-disc[data-motif='sunburst'] .disc-motif {
+				inset: 0;
+				background: repeating-conic-gradient(
+					from -8deg,
+					transparent 0deg 15deg,
+					var(--motif, rgba(40, 40, 50, 0.11)) 15deg 24deg
+				);
+			}
+
+			.avatar-disc[data-motif='medallion'] .disc-motif {
+				width: 74%;
+				height: 74%;
+				border: 1px solid rgba(40, 40, 50, 0.25);
+				border-radius: 50%;
+				background: var(--motif, var(--paper));
+			}
+
+			.avatar-disc[data-compact='true'][data-motif='sunburst'] .disc-motif,
+			.avatar-disc[data-compact='true'][data-motif='stamp'] .disc-motif {
+				display: none;
+			}
+
+			.avatar-disc svg {
+				position: absolute;
+				z-index: 2;
+				width: calc(var(--disc-size) * var(--art-scale));
+				height: calc(var(--disc-size) * var(--art-scale));
+				overflow: visible;
+				fill: none;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+
+			.avatar-disc .art-main {
+				stroke: var(--ink-color, var(--ink));
+				stroke-width: var(--stroke, 1.7);
+			}
+
+			.avatar-disc .art-under {
+				z-index: 1;
+				stroke: var(--under-ink, var(--paper));
+				stroke-width: var(--under-width, 4.8);
+			}
+
+			.avatar-disc .art-riso-a,
+			.avatar-disc .art-riso-b {
+				stroke-width: var(--riso-width, 2.15);
+				mix-blend-mode: multiply;
+			}
+
+			.avatar-disc .art-riso-a {
+				stroke: var(--riso-a, var(--cyan));
+				transform: translateX(calc(var(--riso-offset, 0.7px) * -1));
+			}
+
+			.avatar-disc .art-riso-b {
+				stroke: var(--riso-b, var(--pink));
+				transform: translateX(var(--riso-offset, 0.7px));
+			}
+
+			.avatar-disc .art-split-left,
+			.avatar-disc .art-split-right {
+				stroke-width: var(--stroke, 1.8);
+			}
+
+			.avatar-disc .art-split-left {
+				stroke: var(--split-left-ink, var(--lime));
+				clip-path: inset(-10% 50% -10% -10%);
+			}
+
+			.avatar-disc .art-split-right {
+				stroke: var(--split-right-ink, var(--blue));
+				clip-path: inset(-10% -10% -10% 50%);
+			}
+
+			.avatar-disc .art-gradient {
+				stroke-width: var(--stroke, 1.85);
+			}
+
+			.empty-compare {
+				grid-column: 1 / -1;
+				padding: 50px 24px;
+				border: 2px dashed var(--ink);
+				border-radius: 22px;
+				background: rgba(255, 255, 255, 0.58);
+				color: var(--muted);
+				text-align: center;
+			}
+
+			.empty-compare strong {
+				display: block;
+				margin-bottom: 7px;
+				color: var(--ink);
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 25px;
+				font-weight: 400;
+			}
+
+			.toast {
+				position: fixed;
+				right: 20px;
+				bottom: 20px;
+				z-index: 50;
+				max-width: min(330px, calc(100% - 40px));
+				padding: 12px 16px;
+				border: 2px solid var(--ink);
+				border-radius: 13px;
+				background: var(--ink);
+				box-shadow: 4px 4px 0 var(--pink);
+				color: white;
+				font-size: 12px;
+				font-weight: 800;
+				opacity: 0;
+				pointer-events: none;
+				transform: translateY(10px);
+				transition: opacity 150ms ease, transform 150ms ease;
+			}
+
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+
+			@media (max-width: 1120px) {
+				.builder-shell {
+					grid-template-columns: 1fr;
+				}
+
+				.draft-panel {
+					position: static;
+					display: grid;
+					grid-template-columns: minmax(260px, 0.85fr) minmax(320px, 1.15fr);
+				}
+
+				.draft-stage {
+					min-height: 260px;
+					border-right: 2px solid var(--ink);
+					border-bottom: 0;
+				}
+			}
+
+			@media (max-width: 820px) {
+				.hero {
+					grid-template-columns: 1fr;
+				}
+
+				.recipe-grid {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+
+				.draft-panel {
+					display: block;
+				}
+
+				.draft-stage {
+					border-right: 0;
+					border-bottom: 2px solid var(--ink);
+				}
+
+				.compare-grid {
+					display: flex;
+					overflow-x: auto;
+					padding: 2px 4px 12px 2px;
+					scroll-snap-type: x mandatory;
+				}
+
+				.compare-card {
+					width: min(86vw, 360px);
+					min-width: min(86vw, 360px);
+					scroll-snap-align: start;
+				}
+			}
+
+			@media (max-width: 500px) {
+				.site-header .pill,
+				.site-header > .pill {
+					display: none;
+				}
+
+				main {
+					width: min(100% - 22px, 1460px);
+				}
+
+				.brand strong {
+					font-size: 17px;
+				}
+
+				.recipe-panel {
+					padding: 14px;
+				}
+
+				.recipe-grid {
+					grid-template-columns: 1fr 1fr;
+					gap: 7px;
+				}
+
+				.recipe-card {
+					grid-template-columns: auto minmax(0, 1fr);
+					gap: 8px;
+					min-height: 83px;
+					padding: 8px;
+				}
+
+				.recipe-copy strong {
+					font-size: 14px;
+				}
+
+				.section-head {
+					align-items: start;
+					flex-direction: column;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				*,
+				*::before,
+				*::after {
+					scroll-behavior: auto !important;
+					transition: none !important;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<header class="site-header">
+			<div class="brand">
+				<span class="brand-mark" aria-hidden="true">🥜</span>
+				<strong>PEANUTSPLIT</strong>
+				<span class="pill hot">Avatar lab 02</span>
+			</div>
+			<span class="pill">Build → shortlist → compare</span>
+		</header>
+
+		<main>
+			<section class="hero">
+				<div>
+					<p class="eyebrow">Avatar system exploration</p>
+					<h1>Build a few little weirdos. Then put them to work.</h1>
+					<p class="hero-copy">
+						Pick a complete color treatment and crop. Shortlist up to four, then compare them in the
+						actual cards where the avatars have to live.
+					</p>
+				</div>
+				<aside class="how-card">
+					<h2>How to use this</h2>
+					<ol>
+						<li>Choose a mascot and a whole visual recipe.</li>
+						<li>Add up to four crop + recipe combinations.</li>
+						<li>Pick a winner after the real UI stress test.</li>
+					</ol>
+				</aside>
+			</section>
+
+			<section id="builder" aria-labelledby="builderTitle">
+				<div class="section-head">
+					<div>
+						<p class="eyebrow">01 · Make a direction</p>
+						<h2 id="builderTitle">Choose the whole treatment</h2>
+						<p>Every recipe changes the ground, foreground ink, border, motif, and tiny-size behavior.</p>
+					</div>
+					<span class="pill">13 designed systems</span>
+				</div>
+
+				<div class="builder-shell">
+					<div class="recipe-panel">
+						<div class="control-heading">
+							<h3>Test character</h3>
+							<span>Updates every preview</span>
+						</div>
+						<div id="mascotSwitcher" class="mascot-switcher"></div>
+
+						<div class="control-heading">
+							<h3>Color + foreground recipe</h3>
+							<span>Pick one to draft</span>
+						</div>
+						<div id="recipeGrid" class="recipe-grid"></div>
+					</div>
+
+					<aside class="draft-panel" aria-live="polite">
+						<div id="draftStage" class="draft-stage"></div>
+						<div class="draft-body">
+							<span id="draftBadge" class="recipe-badge">2 colour</span>
+							<h3 id="draftTitle">Acid split</h3>
+							<p id="draftDescription" class="draft-description"></p>
+							<div id="cropPicker" class="crop-picker" aria-label="Mascot crop"></div>
+							<button id="addButton" class="primary-button" type="button">Add to comparison</button>
+						</div>
+					</aside>
+				</div>
+			</section>
+
+			<section class="shortlist-section" aria-labelledby="shortlistTitle">
+				<div class="section-head">
+					<div>
+						<p class="eyebrow">02 · Your shortlist</p>
+						<h2 id="shortlistTitle">Keep the interesting ones</h2>
+						<p>Add up to four. Each snapshot keeps its own treatment and crop.</p>
+					</div>
+					<span id="shortlistCount" class="pill">3 / 4 comparing</span>
+				</div>
+				<div id="shortlist" class="shortlist-strip"></div>
+			</section>
+
+			<section id="comparison" class="comparison-section" aria-labelledby="comparisonTitle">
+				<div class="section-head">
+					<div>
+						<p class="eyebrow">03 · Reality check</p>
+						<h2 id="comparisonTitle">Same people. Same cards. Different system.</h2>
+						<p>Every candidate is tested at 56, 36, 32, 22, and the brutal 16px room-header size.</p>
+					</div>
+					<span class="pill">Swipe on mobile</span>
+				</div>
+				<div id="compareGrid" class="compare-grid"></div>
+			</section>
+		</main>
+
+		<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+		<script src="../persona-picker/canary-doodles.js"></script>
+		<script>
+			const requestedMascots = [
+				'personawizardfrog',
+				'personavampirepenguin',
+				'personadiscooctopus',
+				'personamoonbunny',
+				'personapartybee',
+				'personapocketrobot',
+			]
+
+			const mascots = requestedMascots
+				.map((key) => (window.PERSONA_CANARIES || []).find((item) => item.key === key))
+				.filter(Boolean)
+
+			const scales = [
+				{ id: 'roomy', label: 'Roomy', value: 0.72, note: '72% · more air' },
+				{ id: 'balanced', label: 'Balanced', value: 0.88, note: '88% · current' },
+				{ id: 'close', label: 'Close', value: 1.04, note: '104% · face first' },
+			]
+
+			const recipes = [
+				{
+					id: 'soft-original',
+					name: 'Soft original',
+					badge: 'Baseline',
+					badgeColor: '#E8E3F5',
+					description: 'The production pastel ground, character ink, and one quiet accent blob.',
+					mode: 'solid',
+					motif: 'blob',
+					style: (mascot) => ({ field: mascot.bg, ink: mascot.ink, motif: mascot.accent, border: '#282832' }),
+				},
+				{
+					id: 'carbon-cut',
+					name: 'Carbon cut',
+					badge: '0 colour',
+					badgeColor: '#F1EEE7',
+					description: 'No chromatic color at all: paper, black ink, and a hard photocopy shadow.',
+					mode: 'solid',
+					motif: 'none',
+					style: () => ({ field: '#FFF9E9', ink: '#282832', border: '#282832', shadow: '2px 2px 0 #282832' }),
+				},
+				{
+					id: 'reverse-stamp',
+					name: 'Reverse stamp',
+					badge: '0 colour',
+					badgeColor: '#282832',
+					badgeInk: '#FFF9E9',
+					description: 'A dark badge with cream knockout art and an inner keyline. Tiny-size champion.',
+					mode: 'solid',
+					motif: 'ring',
+					style: () => ({ field: '#282832', ink: '#FFF9E9', motif: '#FFF9E9', border: '#282832' }),
+				},
+				{
+					id: 'violet-stamp',
+					name: 'Violet stamp',
+					badge: '1 colour',
+					badgeColor: '#E5DEFF',
+					description: 'One ink does everything: colored drawing, border, and a translucent stamp swipe.',
+					mode: 'solid',
+					motif: 'stamp',
+					style: () => ({ field: '#FFF9E9', ink: '#6B4EFF', motif: 'rgba(107,78,255,.17)', border: '#6B4EFF' }),
+				},
+				{
+					id: 'peanut-press',
+					name: 'Peanut press',
+					badge: '1 colour',
+					badgeColor: '#FFE98A',
+					description: 'Peanut yellow floods the disc; a tonal sunburst makes the field do more than sit there.',
+					mode: 'solid',
+					motif: 'sunburst',
+					style: () => ({ field: '#FFC900', ink: '#282832', motif: 'rgba(40,40,50,.11)', border: '#282832' }),
+				},
+				{
+					id: 'acid-split',
+					name: 'Acid split',
+					badge: 'True 2 colour',
+					badgeColor: '#DFFF4F',
+					description: 'Purple and acid lime swap roles at the center: field and foreground both split.',
+					mode: 'split',
+					motif: 'none',
+					style: () => ({
+						field: 'linear-gradient(90deg,#5A2DFF 0 50%,#C8FF28 50%)',
+						border: '#5A2DFF',
+						splitLeft: '#C8FF28',
+						splitRight: '#5A2DFF',
+					}),
+				},
+				{
+					id: 'lemonade-split',
+					name: 'Lemonade split',
+					badge: '2 colour',
+					badgeColor: '#FFB8D7',
+					description: 'A big diagonal brand split with dark ink and a cream sticker keyline.',
+					mode: 'keyline',
+					motif: 'none',
+					style: () => ({
+						field: 'linear-gradient(135deg,#FFD400 0 53%,#FF3D8D 53%)',
+						ink: '#282832',
+						under: '#FFF9E9',
+						border: '#282832',
+					}),
+				},
+				{
+					id: 'riso-jitter',
+					name: 'Riso jitter',
+					badge: '2 ink',
+					badgeColor: '#BFEFF8',
+					description: 'Cyan and magenta foreground copies deliberately miss each other like a Riso print.',
+					mode: 'riso',
+					motif: 'none',
+					style: () => ({ field: '#FFF2D8', border: '#282832', risoA: '#00BCEB', risoB: '#FF2B88' }),
+				},
+				{
+					id: 'candy-wire',
+					name: 'Candy wire',
+					badge: 'Gradient ink',
+					badgeColor: '#282832',
+					badgeInk: '#FFF9E9',
+					description: 'The ground goes dark so the actual doodle can carry a yellow–pink–cyan gradient.',
+					mode: 'gradient',
+					motif: 'none',
+					style: () => ({ field: '#201A36', border: '#201A36', gradient: ['#FFE548', '#FF4FA3', '#35E7FF'] }),
+				},
+				{
+					id: 'lagoon-sticker',
+					name: 'Lagoon sticker',
+					badge: '2 colour',
+					badgeColor: '#A8F2E9',
+					description: 'Teal field, purple foreground, and a thick cream cutout around the drawing.',
+					mode: 'keyline',
+					motif: 'none',
+					style: () => ({ field: '#16D6C7', ink: '#4C2BCD', under: '#FFF7E8', border: '#282832', shadow: '2px 2px 0 #4C2BCD' }),
+				},
+				{
+					id: 'arcade-checker',
+					name: 'Arcade checker',
+					badge: '2 colour',
+					badgeColor: '#DFFF4F',
+					description: 'Large purple–lime checks behind a cream drawing with a dark protective keyline.',
+					mode: 'keyline',
+					motif: 'none',
+					style: () => ({
+						field: 'conic-gradient(from 90deg,#6B35F3 25%,#C7FF37 0 50%,#6B35F3 0 75%,#C7FF37 0) 0 0 / 34% 34%',
+						ink: '#FFF8E8',
+						under: '#211C31',
+						border: '#211C31',
+					}),
+				},
+				{
+					id: 'night-race',
+					name: 'Night race',
+					badge: 'Wild 2 colour',
+					badgeColor: '#FF9CC8',
+					description: 'A night field crossed by two broad racing bands; cream keyline keeps the ink crisp.',
+					mode: 'keyline',
+					motif: 'none',
+					style: () => ({
+						field: 'linear-gradient(-36deg,#282832 0 31%,#FFC900 31% 50%,#FF4FA3 50% 65%,#282832 65%)',
+						ink: '#282832',
+						under: '#FFF9E9',
+						border: '#282832',
+						shadow: '2px 2px 0 #FFC900',
+					}),
+				},
+				{
+					id: 'party-quarters',
+					name: 'Party quarters',
+					badge: '4 colour',
+					badgeColor: '#BEEFDA',
+					description: 'Four loud, broad quadrants. No confetti dots—every color earns real territory.',
+					mode: 'solid',
+					motif: 'none',
+					style: () => ({
+						field: 'conic-gradient(from -8deg,#FFD400 0 25%,#FF4FA3 0 50%,#36CFEA 0 75%,#75E37B 0)',
+						ink: '#282832',
+						border: '#282832',
+					}),
+				},
+			]
+
+			const fallbackState = {
+				mascotKey: 'personawizardfrog',
+				draft: { recipeId: 'acid-split', scaleId: 'balanced' },
+				shortlist: [
+					{ recipeId: 'soft-original', scaleId: 'balanced' },
+					{ recipeId: 'acid-split', scaleId: 'balanced' },
+					{ recipeId: 'candy-wire', scaleId: 'close' },
+				],
+				winnerId: null,
+			}
+
+			let avatarSerial = 0
+			let toastTimer = 0
+			let state = readState()
+
+			function candidateId(candidate) {
+				return `${candidate.recipeId}:${candidate.scaleId}`
+			}
+
+			function recipeById(id) {
+				return recipes.find((item) => item.id === id) || recipes[0]
+			}
+
+			function scaleById(id) {
+				return scales.find((item) => item.id === id) || scales[1]
+			}
+
+			function mascotByKey(key) {
+				return mascots.find((item) => item.key === key) || mascots[0]
+			}
+
+			function readState() {
+				try {
+					const stored = JSON.parse(localStorage.getItem('peanutsplit-avatar-lab-v2') || 'null')
+					if (!stored || !recipes.some((item) => item.id === stored.draft?.recipeId)) return structuredClone(fallbackState)
+					const validShortlist = (stored.shortlist || [])
+						.filter((item) => recipes.some((recipe) => recipe.id === item.recipeId) && scales.some((scale) => scale.id === item.scaleId))
+						.slice(0, 4)
+					return {
+						mascotKey: requestedMascots.includes(stored.mascotKey) ? stored.mascotKey : fallbackState.mascotKey,
+						draft: {
+							recipeId: stored.draft.recipeId,
+							scaleId: scales.some((item) => item.id === stored.draft.scaleId) ? stored.draft.scaleId : 'balanced',
+						},
+						shortlist: validShortlist,
+						winnerId: validShortlist.some((item) => candidateId(item) === stored.winnerId) ? stored.winnerId : null,
+					}
+				} catch (_) {
+					return structuredClone(fallbackState)
+				}
+			}
+
+			function saveState() {
+				localStorage.setItem('peanutsplit-avatar-lab-v2', JSON.stringify(state))
+			}
+
+			function showToast(message) {
+				const toast = document.querySelector('#toast')
+				toast.textContent = message
+				toast.classList.add('show')
+				window.clearTimeout(toastTimer)
+				toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2200)
+			}
+
+			function pathSvg(className, mascot, extra = '') {
+				return `<svg class="${className}" viewBox="0 0 32 32" ${extra}><path d="${mascot.path}"></path></svg>`
+			}
+
+			function avatarMarkup({ mascot, recipe, scale, size, label = '' }) {
+				const visual = recipe.style(mascot)
+				const compact = size <= 24
+				const stroke = scale.value <= 0.72 ? (compact ? 2.15 : 1.95) : compact ? 1.9 : 1.7
+				const underWidth = compact ? 3.1 : 4.8
+				const risoOffset = compact ? 0.38 : Math.max(0.5, Math.min(1.25, size * 0.012))
+				const style = [
+					`--disc-size:${size}px`,
+					`--art-scale:${scale.value}`,
+					`--field:${visual.field}`,
+					`--ink-color:${visual.ink || '#282832'}`,
+					`--border:${visual.border || '#282832'}`,
+					`--motif:${visual.motif || 'transparent'}`,
+					`--disc-shadow:${compact ? 'none' : visual.shadow || 'none'}`,
+					`--stroke:${stroke}`,
+					`--under-ink:${visual.under || '#FFF9E9'}`,
+					`--under-width:${underWidth}`,
+					`--split-left-ink:${visual.splitLeft || '#C8FF28'}`,
+					`--split-right-ink:${visual.splitRight || '#5A2DFF'}`,
+					`--riso-a:${visual.risoA || '#00BCEB'}`,
+					`--riso-b:${visual.risoB || '#FF2B88'}`,
+					`--riso-offset:${risoOffset}px`,
+				].join(';')
+				const accessibility = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'
+				let art = ''
+
+				if (recipe.mode === 'keyline') {
+					art = pathSvg('art-under', mascot) + pathSvg('art-main', mascot)
+				} else if (recipe.mode === 'riso') {
+					art = pathSvg('art-riso-a', mascot) + pathSvg('art-riso-b', mascot)
+				} else if (recipe.mode === 'split') {
+					art = pathSvg('art-split-left', mascot) + pathSvg('art-split-right', mascot)
+				} else if (recipe.mode === 'gradient') {
+					avatarSerial += 1
+					const gradientId = `avatar-gradient-${avatarSerial}`
+					art = `<svg class="art-gradient" viewBox="0 0 32 32">
+						<defs><linearGradient id="${gradientId}" gradientUnits="userSpaceOnUse" x1="3" y1="3" x2="29" y2="29">
+							<stop offset="0" stop-color="${visual.gradient[0]}"></stop>
+							<stop offset=".5" stop-color="${visual.gradient[1]}"></stop>
+							<stop offset="1" stop-color="${visual.gradient[2]}"></stop>
+						</linearGradient></defs>
+						<path d="${mascot.path}" stroke="url(#${gradientId})"></path>
+					</svg>`
+				} else {
+					art = pathSvg('art-main', mascot)
+				}
+
+				return `<span class="avatar-disc" data-motif="${recipe.motif}" data-compact="${compact}" style="${style}" ${accessibility}>
+					<span class="disc-motif"></span>${art}
+				</span>`
+			}
+
+			function renderMascots() {
+				const root = document.querySelector('#mascotSwitcher')
+				const baseline = recipeById('soft-original')
+				const balanced = scaleById('balanced')
+				root.innerHTML = mascots
+					.map((mascot) => `<button class="mascot-button" type="button" data-mascot="${mascot.key}" aria-pressed="${mascot.key === state.mascotKey}">
+						${avatarMarkup({ mascot, recipe: baseline, scale: balanced, size: 30 })}<span>${mascot.name.replace(/ .*/, '')}</span>
+					</button>`)
+					.join('')
+
+				root.querySelectorAll('[data-mascot]').forEach((button) => {
+					button.addEventListener('click', () => {
+						state.mascotKey = button.dataset.mascot
+						saveState()
+						render()
+					})
+				})
+			}
+
+			function renderRecipes() {
+				const root = document.querySelector('#recipeGrid')
+				const mascot = mascotByKey(state.mascotKey)
+				const balanced = scaleById('balanced')
+				root.innerHTML = recipes
+					.map((recipe) => `<button class="recipe-card" type="button" data-recipe="${recipe.id}" aria-pressed="${recipe.id === state.draft.recipeId}">
+						${avatarMarkup({ mascot, recipe, scale: balanced, size: 52 })}
+						<span class="recipe-copy"><strong>${recipe.name}</strong><span class="recipe-badge" style="--badge:${recipe.badgeColor};background:${recipe.badgeColor};color:${recipe.badgeInk || '#282832'}">${recipe.badge}</span></span>
+					</button>`)
+					.join('')
+
+				root.querySelectorAll('[data-recipe]').forEach((button) => {
+					button.addEventListener('click', () => {
+						state.draft.recipeId = button.dataset.recipe
+						saveState()
+						renderRecipes()
+						renderDraft()
+					})
+				})
+			}
+
+			function renderDraft() {
+				const mascot = mascotByKey(state.mascotKey)
+				const recipe = recipeById(state.draft.recipeId)
+				const scale = scaleById(state.draft.scaleId)
+				document.querySelector('#draftStage').innerHTML = avatarMarkup({
+					mascot,
+					recipe,
+					scale,
+					size: 150,
+					label: `${mascot.name}, ${recipe.name}, ${scale.label} crop`,
+				})
+				const badge = document.querySelector('#draftBadge')
+				badge.textContent = recipe.badge
+				badge.style.background = recipe.badgeColor
+				badge.style.color = recipe.badgeInk || '#282832'
+				document.querySelector('#draftTitle').textContent = recipe.name
+				document.querySelector('#draftDescription').textContent = recipe.description
+
+				const cropRoot = document.querySelector('#cropPicker')
+				cropRoot.innerHTML = scales
+					.map((item) => `<button class="crop-button" type="button" data-scale="${item.id}" aria-pressed="${item.id === scale.id}">${item.label}<span>${item.note}</span></button>`)
+					.join('')
+				cropRoot.querySelectorAll('[data-scale]').forEach((button) => {
+					button.addEventListener('click', () => {
+						state.draft.scaleId = button.dataset.scale
+						saveState()
+						renderDraft()
+					})
+				})
+
+				const id = candidateId(state.draft)
+				const duplicate = state.shortlist.some((item) => candidateId(item) === id)
+				const full = state.shortlist.length >= 4
+				const addButton = document.querySelector('#addButton')
+				addButton.disabled = duplicate || full
+				addButton.textContent = duplicate ? 'Already comparing' : full ? 'Remove one to add another' : 'Add to comparison'
+				addButton.onclick = addDraft
+			}
+
+			function addDraft() {
+				const id = candidateId(state.draft)
+				if (state.shortlist.some((item) => candidateId(item) === id) || state.shortlist.length >= 4) return
+				const wasEmpty = state.shortlist.length === 0
+				state.shortlist.push({ ...state.draft })
+				saveState()
+				renderDraft()
+				renderShortlist()
+				renderComparison()
+				showToast(`${recipeById(state.draft.recipeId).name} added to comparison`)
+				if (wasEmpty) document.querySelector('#comparison').scrollIntoView({ behavior: 'smooth', block: 'start' })
+			}
+
+			function removeCandidate(id) {
+				const removed = state.shortlist.find((item) => candidateId(item) === id)
+				state.shortlist = state.shortlist.filter((item) => candidateId(item) !== id)
+				if (state.winnerId === id) state.winnerId = null
+				saveState()
+				renderDraft()
+				renderShortlist()
+				renderComparison()
+				if (removed) showToast(`${recipeById(removed.recipeId).name} removed`)
+			}
+
+			function renderShortlist() {
+				const root = document.querySelector('#shortlist')
+				const mascot = mascotByKey(state.mascotKey)
+				document.querySelector('#shortlistCount').textContent = `${state.shortlist.length} / 4 comparing`
+				if (!state.shortlist.length) {
+					root.innerHTML = '<div class="shortlist-empty">Your comparison is empty. Add a direction above.</div>'
+					return
+				}
+
+				root.innerHTML = state.shortlist
+					.map((candidate) => {
+						const recipe = recipeById(candidate.recipeId)
+						const scale = scaleById(candidate.scaleId)
+						const id = candidateId(candidate)
+						return `<div class="shortlist-item" data-winner="${state.winnerId === id}">
+							${avatarMarkup({ mascot, recipe, scale, size: 42 })}
+							<button class="shortlist-jump" type="button" data-jump="${id}"><strong>${recipe.name}</strong><span>${recipe.badge} · ${scale.label}</span></button>
+							<button class="remove-button" type="button" data-remove="${id}" aria-label="Remove ${recipe.name}">×</button>
+						</div>`
+					})
+					.join('')
+
+				root.querySelectorAll('[data-jump]').forEach((button) => {
+					button.addEventListener('click', () => document.getElementById(`candidate-${button.dataset.jump}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+				})
+				root.querySelectorAll('[data-remove]').forEach((button) => button.addEventListener('click', () => removeCandidate(button.dataset.remove)))
+			}
+
+			function renderComparison() {
+				const root = document.querySelector('#compareGrid')
+				const mainMascot = mascotByKey(state.mascotKey)
+				if (!state.shortlist.length) {
+					root.innerHTML = '<div class="empty-compare"><strong>No weirdos on duty yet.</strong>Add a direction above to start the reality check.</div>'
+					return
+				}
+
+				root.innerHTML = state.shortlist.map((candidate, index) => compareCard(candidate, index, mainMascot)).join('')
+				root.querySelectorAll('button[data-winner]').forEach((button) => {
+					button.addEventListener('click', () => {
+						state.winnerId = button.dataset.winner
+						saveState()
+						renderShortlist()
+						renderComparison()
+						showToast(`${recipeById(state.shortlist.find((item) => candidateId(item) === state.winnerId).recipeId).name} is the current winner`)
+					})
+				})
+				root.querySelectorAll('[data-edit]').forEach((button) => {
+					button.addEventListener('click', () => {
+						const candidate = state.shortlist.find((item) => candidateId(item) === button.dataset.edit)
+						if (!candidate) return
+						state.draft = { ...candidate }
+						saveState()
+						renderRecipes()
+						renderDraft()
+						document.querySelector('#builder').scrollIntoView({ behavior: 'smooth', block: 'start' })
+					})
+				})
+			}
+
+			function compareCard(candidate, index, mainMascot) {
+				const recipe = recipeById(candidate.recipeId)
+				const scale = scaleById(candidate.scaleId)
+				const id = candidateId(candidate)
+				const active = state.winnerId === id
+				const supportA = mascots[(mascots.indexOf(mainMascot) + 1 + index) % mascots.length]
+				const supportB = mascots[(mascots.indexOf(mainMascot) + 3 + index) % mascots.length]
+				const avatar = (mascot, size) => avatarMarkup({ mascot, recipe, scale, size })
+
+				return `<article id="candidate-${id}" class="compare-card" data-winner="${active}">
+					<header class="compare-head">
+						${avatar(mainMascot, 66)}
+						<div class="compare-title">
+							<span class="recipe-badge" style="background:${recipe.badgeColor};color:${recipe.badgeInk || '#282832'}">${recipe.badge}</span>
+							<h3>${recipe.name}</h3>
+							<p>${scale.label} crop · ${Math.round(scale.value * 100)}% mascot</p>
+						</div>
+					</header>
+					<div class="compare-actions">
+						<button class="winner-button" type="button" data-winner="${id}">${active ? '✓ Current winner' : 'Pick this one'}</button>
+						<button class="text-button" type="button" data-edit="${id}">Edit</button>
+					</div>
+					<div class="app-preview">
+						<div class="room-bar">
+							<span class="room-emblem">🍋</span>
+							<div class="room-copy"><strong>Weekend in Lisbon</strong><span>${avatar(mainMascot, 16)} EUR · YOU ARE MAYA</span></div>
+							<span class="room-share">↗</span>
+						</div>
+						<div class="preview-body">
+							<div>
+								<div class="context-label"><span>Achievement card</span><span>56px</span></div>
+								<div class="achievement-card">${avatar(mainMascot, 56)}<div><strong>Room MVP</strong><span>Ten expenses logged. Absolute machine.</span></div></div>
+							</div>
+							<div>
+								<div class="context-label"><span>Balance strip</span><span>32px</span></div>
+								<div class="balance-strip">
+									<div class="balance-card positive">${avatar(mainMascot, 30)}<div><strong>Maya</strong><span>+€42</span></div></div>
+									<div class="balance-card negative">${avatar(supportA, 30)}<div><strong>Inez</strong><span>−€18</span></div></div>
+									<div class="balance-card">${avatar(supportB, 30)}<div><strong>Sol</strong><span>€0</span></div></div>
+								</div>
+							</div>
+							<div>
+								<div class="context-label"><span>Expense card</span><span>36px</span></div>
+								<div class="app-row">${avatar(mainMascot, 36)}<div class="app-row-copy"><strong>Dinner at Prado</strong><span>Maya paid · 3 people</span></div><span class="app-row-amount">€128.40</span></div>
+							</div>
+							<div>
+								<div class="context-label"><span>People card</span><span>32px</span></div>
+								<div class="app-row">${avatar(mainMascot, 32)}<div class="app-row-copy"><strong>Maya</strong><span>${recipe.name}</span></div><span class="chevron">›</span></div>
+							</div>
+							<div>
+								<div class="context-label"><span>Receipt assignment</span><span>22px</span></div>
+								<div class="assignment-box"><strong>Who had what?</strong><div class="assignment-chips">
+									<span class="person-chip selected">${avatar(mainMascot, 22)} Maya</span>
+									<span class="person-chip">${avatar(supportA, 22)} Inez</span>
+									<span class="person-chip">${avatar(supportB, 22)} Sol</span>
+								</div></div>
+							</div>
+						</div>
+					</div>
+					<footer class="compare-footer"><code>${recipe.id} / ${Math.round(scale.value * 100)}%</code><span>${active ? '★' : '☆'}</span></footer>
+				</article>`
+			}
+
+			function render() {
+				if (!mascots.length) {
+					document.querySelector('#recipeGrid').innerHTML = '<div class="shortlist-empty">Mascot paths did not load. Use the local preview URL.</div>'
+					return
+				}
+				if (!mascots.some((item) => item.key === state.mascotKey)) state.mascotKey = mascots[0].key
+				renderMascots()
+				renderRecipes()
+				renderDraft()
+				renderShortlist()
+				renderComparison()
+			}
+
+			render()
+		</script>
+	</body>
+</html>

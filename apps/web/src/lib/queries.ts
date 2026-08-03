@@ -17,6 +17,7 @@ import type {
     ExpenseInput,
     ExpenseUpdateInput,
     ImportRoomInput,
+    MemberAvatarInput,
     RoomState,
     RoomStateWithAddedMember,
     RoomStateWithMember,
@@ -673,21 +674,29 @@ export function useSetEmblem(slug: string) {
 export function useSetAvatar(slug: string, memberId: string) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (avatar: string | null) => api.setMemberAvatar(slug, memberId, { avatar }),
-        onMutate: async (avatar) => {
+        mutationFn: (selection: MemberAvatarInput) => api.setMemberAvatar(slug, memberId, selection),
+        onMutate: async (selection) => {
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
             if (previous) {
                 queryClient.setQueryData<RoomState>(roomKey(slug), {
                     ...previous,
                     members: previous.members.map((member) =>
-                        member.id === memberId ? { ...member, avatar } : member
+                        member.id === memberId
+                            ? {
+                                  ...member,
+                                  avatar: selection.avatar,
+                                  ...(selection.avatarPalette === undefined
+                                      ? {}
+                                      : { avatarPalette: selection.avatarPalette }),
+                              }
+                            : member
                     ),
                 })
             }
             return { previous }
         },
-        onError: (_error, _avatar, context) => {
+        onError: (_error, _selection, context) => {
             if (context?.previous) queryClient.setQueryData(roomKey(slug), context.previous)
         },
         onSuccess: (state) => seed(queryClient, slug, state),

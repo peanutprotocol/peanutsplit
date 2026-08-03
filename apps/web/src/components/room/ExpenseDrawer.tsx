@@ -954,7 +954,14 @@ export function ExpenseDrawer({
                                     editor === 'payer' && 'bg-primary-3'
                                 )}
                             >
-                                {payer && <MemberAvatar name={payer.name} avatar={payer.avatar} size={25} />}
+                                {payer && (
+                                    <MemberAvatar
+                                        name={payer.name}
+                                        avatar={payer.avatar}
+                                        palette={payer.avatarPalette}
+                                        size={25}
+                                    />
+                                )}
                                 <span className="min-w-0">
                                     <span className="block truncate text-h9">{payerName ?? t('choosePayer')}</span>
                                     <span className="block text-h10 text-grey-1">{t('paid')}</span>
@@ -980,6 +987,7 @@ export function ExpenseDrawer({
                                             key={member.id}
                                             name={member.name}
                                             avatar={member.avatar}
+                                            palette={member.avatarPalette}
                                             size={23}
                                             className={index > 0 ? '-ml-2' : ''}
                                         />
@@ -1143,7 +1151,12 @@ export function ExpenseDrawer({
                                                     selected ? 'shadow-2 bg-primary-3' : 'bg-white'
                                                 )}
                                             >
-                                                <MemberAvatar name={member.name} avatar={member.avatar} size={27} />
+                                                <MemberAvatar
+                                                    name={member.name}
+                                                    avatar={member.avatar}
+                                                    palette={member.avatarPalette}
+                                                    size={27}
+                                                />
                                                 <span className="flex-1 truncate text-h8">{member.name}</span>
                                                 {selected && <Icon name="check" size={16} />}
                                             </button>
@@ -1332,6 +1345,7 @@ export function ExpenseDrawer({
                                                         <MemberAvatar
                                                             name={member.name}
                                                             avatar={member.avatar}
+                                                            palette={member.avatarPalette}
                                                             size={27}
                                                         />
                                                         <span className="flex-1 truncate text-h8">{member.name}</span>
@@ -1385,7 +1399,12 @@ export function ExpenseDrawer({
                                                     key={member.id}
                                                     className="flex items-center gap-2 rounded-md border border-n-1 bg-white p-2"
                                                 >
-                                                    <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
+                                                    <MemberAvatar
+                                                        name={member.name}
+                                                        avatar={member.avatar}
+                                                        palette={member.avatarPalette}
+                                                        size={28}
+                                                    />
                                                     <span className="w-20 shrink-0 truncate text-h8">
                                                         {member.name}
                                                     </span>
@@ -1515,7 +1534,12 @@ export function ExpenseDrawer({
                                                     key={member.id}
                                                     className="flex items-center gap-2 rounded-md border border-n-1 bg-white p-2"
                                                 >
-                                                    <MemberAvatar name={member.name} avatar={member.avatar} size={28} />
+                                                    <MemberAvatar
+                                                        name={member.name}
+                                                        avatar={member.avatar}
+                                                        palette={member.avatarPalette}
+                                                        size={28}
+                                                    />
                                                     <span className="w-20 shrink-0 truncate text-h8">
                                                         {member.name}
                                                     </span>

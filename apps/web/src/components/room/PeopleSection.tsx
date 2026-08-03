@@ -128,7 +128,12 @@ export function PeopleSection({
                                 data-member={member.name}
                                 className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-sm border border-n-1 bg-white p-2 text-left transition-transform duration-100 active:translate-y-[2px]"
                             >
-                                <MemberAvatar name={member.name} avatar={member.avatar} size={32} />
+                                <MemberAvatar
+                                    name={member.name}
+                                    avatar={member.avatar}
+                                    palette={member.avatarPalette}
+                                    size={32}
+                                />
                                 <span className="min-w-0 flex-1 truncate text-h8">{member.name}</span>
                                 <span className="min-w-0 shrink truncate text-sm text-grey-1">
                                     {avatarArt(member.avatar).label}

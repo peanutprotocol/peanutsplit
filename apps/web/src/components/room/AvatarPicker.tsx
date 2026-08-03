@@ -11,9 +11,12 @@ import {
     handAt,
     hasSettled,
     initialHand,
+    initialPaletteHand,
     isPopping,
+    planPaletteHand,
     planSpin,
 } from '@/lib/avatar-hand'
+import { isAvatarPaletteKey, type AvatarPaletteKey } from '@/lib/avatar-palettes'
 import { AVATARS, type AvatarKey } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -23,7 +26,9 @@ interface AvatarPickerProps {
     name: string
     /** Null is possible only while legacy rows are being backfilled. */
     value: string | null
-    onChange: (avatar: string | null) => void
+    /** Null is possible only during a rolling deploy or from an older cache. */
+    palette: string | null
+    onChange: (avatar: string, palette: AvatarPaletteKey) => void
     disabled?: boolean
 }
 
@@ -83,14 +88,21 @@ const DIE_TURN_DEGREES = 720
  *
  * The selected tile is marked, never enlarged, for the same reason.
  */
-export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerProps) {
+export function AvatarPicker({ name, value, palette, onChange, disabled }: AvatarPickerProps) {
     const t = useTranslations('room.avatar')
     const motionAllowed = useMotionAllowed()
 
     // Derived from `value` alone, so the server HTML and the first client render
     // are identical. Randomness starts at the first tap of the die, never here.
     const [hand, setHand] = useState<AvatarKey[]>(() => initialHand(value))
-    const [spin, setSpin] = useState<{ plan: SpinPlan; tick: number } | null>(null)
+    const [handPalettes, setHandPalettes] = useState<AvatarPaletteKey[]>(() =>
+        initialPaletteHand(initialHand(value), value, palette)
+    )
+    const [spin, setSpin] = useState<{
+        plan: SpinPlan
+        palettes: AvatarPaletteKey[]
+        tick: number
+    } | null>(null)
     // The die's angle outlives the spin, so nothing about starting or ending one
     // can make it jump. It only ever grows.
     const [dieAngle, setDieAngle] = useState(0)
@@ -111,15 +123,17 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
         // plan rather than racing it.
         stopSpin()
         const plan = planSpin(value)
+        const palettes = planPaletteHand(plan.hand, value, palette)
 
         if (!motionAllowed) {
             setSpin(null)
             setHand([...plan.hand])
+            setHandPalettes(palettes)
             return
         }
 
         setDieAngle((angle) => angle + DIE_TURN_DEGREES)
-        setSpin({ plan, tick: 0 })
+        setSpin({ plan, palettes, tick: 0 })
 
         // The wall clock decides which tick we are on, not a counter: a busy main
         // thread should make the spin SKIP ticks, never run long. A counter turns
@@ -134,17 +148,33 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                 stopSpin()
                 setSpin(null)
                 setHand([...plan.hand])
+                setHandPalettes(palettes)
                 return
             }
-            setSpin({ plan, tick })
+            setSpin({ plan, palettes, tick })
         }, TICK_MS)
     }
 
     const spinning = spin !== null
     const shown = spin ? handAt(spin.plan, spin.tick) : ensurePick(hand, value)
+    // `ensurePick` is reached only when room state changes outside this open
+    // picker. Keep palettes aligned by slot, and make the externally selected
+    // pair authoritative instead of leaving the inserted character in the
+    // colour of whichever tile it replaced.
+    const settledPalettes = shown.map((key, slot) => {
+        if (key === value && isAvatarPaletteKey(palette)) return palette
+        if (key === hand[slot] && handPalettes[slot]) return handPalettes[slot]
+        return initialPaletteHand([key], null, null)[0]
+    })
+    const shownPalettes = spin
+        ? shown.map((_, slot) =>
+              hasSettled(spin.plan, slot, spin.tick) ? spin.palettes[slot] : (handPalettes[slot] ?? spin.palettes[slot])
+          )
+        : settledPalettes
 
     const option = (key: AvatarKey, slot: number) => {
         const art = AVATARS[key]
+        const offerPalette = shownPalettes[slot]
         // Mid-spin nothing is "the selection": a tile is showing whatever its reel
         // is on, and flashing the selected treatment as that scrolls past would be
         // a lie told sixteen times a second.
@@ -163,9 +193,10 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                 aria-label={t('option', { name: art.label })}
                 // A tap that lands on a moving tile would select a character
                 // nobody chose to look at.
-                onClick={() => !spinning && onChange(key)}
+                onClick={() => !spinning && onChange(key, offerPalette)}
                 data-testid="avatar-option"
                 data-avatar={key}
+                data-avatar-palette={offerPalette}
                 className={cn(
                     tileClass,
                     selected ? 'shadow-4 bg-primary-1' : 'bg-white active:translate-y-[2px]',
@@ -176,7 +207,7 @@ export function AvatarPicker({ name, value, onChange, disabled }: AvatarPickerPr
                     disabled && 'opacity-50'
                 )}
             >
-                <MemberAvatar name={name} avatar={key} size={44} />
+                <MemberAvatar name={name} avatar={key} palette={offerPalette} size={44} />
                 {/* Nobody reads copy at sixteen changes a second, so both lines
                     fade in only when the reel settles. Opacity moves nothing:
                     the full copy block stays reserved throughout. */}

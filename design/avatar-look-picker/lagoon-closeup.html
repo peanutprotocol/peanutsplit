@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>PeanutSplit — multicolour Lagoon cast</title>
+		<style>
+			@font-face {
+				font-family: 'Knerd Filled';
+				src: url('../../apps/web/src/assets/fonts/knerd-filled.ttf') format('truetype');
+				font-display: swap;
+			}
+
+			:root {
+				--ink: #282832;
+				--paper: #fff9e9;
+				--canvas: #f4efe5;
+				--white: #fffef9;
+				--yellow: #ffc900;
+				--pink: #ff4fa3;
+				--muted: #706e72;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			body {
+				margin: 0;
+				background:
+					radial-gradient(circle at 6% 2%, rgba(255, 79, 163, 0.18), transparent 27rem),
+					radial-gradient(circle at 96% 6%, rgba(22, 214, 199, 0.22), transparent 30rem),
+					var(--canvas);
+				color: var(--ink);
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+				-webkit-font-smoothing: antialiased;
+			}
+
+			button {
+				font: inherit;
+			}
+
+			button:focus-visible {
+				outline: 4px solid #18cfe8;
+				outline-offset: 3px;
+			}
+
+			h1,
+			h2,
+			h3,
+			p {
+				margin-top: 0;
+			}
+
+			.site-header {
+				position: sticky;
+				top: 0;
+				z-index: 30;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 16px;
+				min-height: 64px;
+				padding: 10px clamp(16px, 4vw, 60px);
+				border-bottom: 2px solid var(--ink);
+				background: rgba(255, 249, 233, 0.93);
+				backdrop-filter: blur(14px);
+			}
+
+			.brand {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+
+			.brand-mark {
+				display: grid;
+				width: 36px;
+				height: 36px;
+				place-items: center;
+				border: 2px solid var(--ink);
+				border-radius: 50%;
+				background: var(--yellow);
+				font-size: 20px;
+				transform: rotate(-7deg);
+			}
+
+			.brand strong,
+			.display {
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-weight: 400;
+			}
+
+			.brand strong {
+				font-size: 20px;
+			}
+
+			.pill {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				min-height: 28px;
+				padding: 4px 10px;
+				border: 1.5px solid var(--ink);
+				border-radius: 999px;
+				background: var(--white);
+				font-size: 9px;
+				font-weight: 900;
+				letter-spacing: 0.09em;
+				text-transform: uppercase;
+			}
+
+			.pill.hot {
+				background: var(--pink);
+			}
+
+			main {
+				width: min(1450px, calc(100% - 34px));
+				margin: 0 auto;
+				padding: clamp(46px, 7vw, 88px) 0 100px;
+			}
+
+			.hero {
+				display: grid;
+				grid-template-columns: minmax(0, 1.12fr) minmax(310px, 0.58fr);
+				gap: clamp(34px, 7vw, 98px);
+				align-items: end;
+				margin-bottom: 50px;
+			}
+
+			.eyebrow {
+				margin-bottom: 12px;
+				font-size: 11px;
+				font-weight: 950;
+				letter-spacing: 0.15em;
+				text-transform: uppercase;
+			}
+
+			h1 {
+				max-width: 850px;
+				margin-bottom: 18px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: clamp(56px, 7.9vw, 116px);
+				font-weight: 400;
+				letter-spacing: -0.035em;
+				line-height: 0.84;
+			}
+
+			.hero-copy {
+				max-width: 710px;
+				margin-bottom: 0;
+				color: var(--muted);
+				font-size: clamp(16px, 1.5vw, 20px);
+				line-height: 1.55;
+			}
+
+			.rule-card {
+				position: relative;
+				padding: 25px;
+				border: 2px solid var(--ink);
+				border-radius: 22px;
+				background: var(--white);
+				box-shadow: 4px 4px 0 var(--ink);
+				transform: rotate(1deg);
+			}
+
+			.rule-card::before {
+				position: absolute;
+				top: -14px;
+				right: 25px;
+				width: 68px;
+				height: 25px;
+				background: rgba(255, 201, 0, 0.76);
+				content: '';
+				transform: rotate(6deg);
+			}
+
+			.rule-card h2 {
+				margin-bottom: 13px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 25px;
+				font-weight: 400;
+			}
+
+			.rule-list {
+				display: grid;
+				gap: 11px;
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+
+			.rule-list li {
+				display: grid;
+				grid-template-columns: 26px 1fr;
+				gap: 10px;
+				align-items: center;
+				font-size: 12px;
+				font-weight: 720;
+				line-height: 1.35;
+			}
+
+			.rule-list i {
+				display: grid;
+				width: 25px;
+				height: 25px;
+				place-items: center;
+				border: 1.5px solid var(--ink);
+				border-radius: 50%;
+				background: var(--yellow);
+				font-size: 10px;
+				font-style: normal;
+				font-weight: 950;
+			}
+
+			.toolbar {
+				display: grid;
+				grid-template-columns: minmax(220px, 1fr) auto;
+				align-items: center;
+				gap: 18px;
+				margin-bottom: 28px;
+				padding: 17px;
+				border: 2px solid var(--ink);
+				border-radius: 20px;
+				background: var(--ink);
+				box-shadow: 4px 4px 0 var(--pink);
+				color: white;
+			}
+
+			.toolbar-copy strong,
+			.toolbar-copy span {
+				display: block;
+			}
+
+			.toolbar-copy strong {
+				margin-bottom: 4px;
+				font-size: 13px;
+			}
+
+			.toolbar-copy span {
+				color: rgba(255, 255, 255, 0.68);
+				font-size: 10px;
+				line-height: 1.35;
+			}
+
+			.picker-controls {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+				align-items: end;
+				justify-content: flex-end;
+			}
+
+			.control-set > span {
+				display: block;
+				margin: 0 0 5px 4px;
+				color: rgba(255, 255, 255, 0.66);
+				font-size: 8px;
+				font-weight: 900;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
+			.segmented-control {
+				display: flex;
+				gap: 3px;
+				padding: 3px;
+				border: 1px solid rgba(255, 255, 255, 0.3);
+				border-radius: 12px;
+				background: rgba(255, 255, 255, 0.08);
+			}
+
+			.option-button {
+				min-height: 34px;
+				padding: 7px 10px;
+				border: 0;
+				border-radius: 8px;
+				background: transparent;
+				color: rgba(255, 255, 255, 0.78);
+				cursor: pointer;
+				font: inherit;
+				font-size: 9px;
+				font-weight: 850;
+				white-space: nowrap;
+			}
+
+			.option-button:hover {
+				background: rgba(255, 255, 255, 0.1);
+				color: white;
+			}
+
+			.option-button[aria-pressed='true'] {
+				background: white;
+				box-shadow: 2px 2px 0 var(--pink);
+				color: var(--ink);
+			}
+
+			.option-button:focus-visible,
+			.shuffle-button:focus-visible {
+				outline: 3px solid var(--yellow);
+				outline-offset: 3px;
+			}
+
+			.shuffle-button {
+				min-height: 44px;
+				padding: 8px 16px;
+				border: 1.5px solid white;
+				border-radius: 12px;
+				background: var(--yellow);
+				box-shadow: 3px 3px 0 white;
+				color: var(--ink);
+				cursor: pointer;
+				font-size: 11px;
+				font-weight: 900;
+				transition: transform 100ms ease, box-shadow 100ms ease;
+			}
+
+			.shuffle-button:active {
+				box-shadow: none;
+				transform: translate(3px, 3px);
+			}
+
+			.section-head {
+				display: flex;
+				align-items: end;
+				justify-content: space-between;
+				gap: 20px;
+				margin: 0 3px 18px;
+			}
+
+			.section-head h2 {
+				margin-bottom: 5px;
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: clamp(35px, 4.6vw, 57px);
+				font-weight: 400;
+				line-height: 0.95;
+			}
+
+			.section-head p {
+				margin-bottom: 0;
+				color: var(--muted);
+				font-size: 13px;
+				line-height: 1.45;
+			}
+
+			.cast-grid {
+				display: grid;
+				grid-template-columns: repeat(8, minmax(0, 1fr));
+				gap: 10px;
+				margin-bottom: 60px;
+			}
+
+			.cast-card {
+				min-width: 0;
+				overflow: hidden;
+				border: 1.5px solid var(--ink);
+				border-radius: 17px;
+				background: white;
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.cast-stage {
+				display: grid;
+				min-height: 144px;
+				place-items: center;
+				border-bottom: 1.5px solid var(--ink);
+				background: var(--stage);
+			}
+
+			.cast-copy {
+				padding: 11px;
+			}
+
+			.cast-copy strong,
+			.cast-copy span,
+			.cast-copy small {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.cast-copy strong {
+				margin-bottom: 3px;
+				font-size: 11px;
+			}
+
+			.cast-copy span {
+				color: var(--muted);
+				font-size: 8px;
+			}
+
+			.cast-copy small {
+				margin-top: 7px;
+				font-size: 7px;
+				font-weight: 900;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+
+			.palette-bar {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				height: 9px;
+				margin-top: 8px;
+				overflow: hidden;
+				border: 1px solid var(--ink);
+				border-radius: 999px;
+			}
+
+			.palette-bar i:first-child {
+				background: var(--bg);
+			}
+
+			.palette-bar i:last-child {
+				background: var(--line);
+			}
+
+			.context-shell {
+				overflow: hidden;
+				border: 2px solid var(--ink);
+				border-radius: 24px;
+				background: var(--canvas);
+				box-shadow: 5px 5px 0 var(--ink);
+			}
+
+			.room-bar {
+				display: grid;
+				grid-template-columns: 42px minmax(0, 1fr) auto 42px;
+				gap: 11px;
+				align-items: center;
+				padding: 12px;
+				border-bottom: 1.5px solid var(--ink);
+				background: var(--yellow);
+			}
+
+			.room-icon {
+				display: grid;
+				width: 42px;
+				height: 42px;
+				place-items: center;
+				border: 1.5px solid var(--ink);
+				border-radius: 10px;
+				background: white;
+			}
+
+			.room-copy {
+				min-width: 0;
+			}
+
+			.room-copy strong,
+			.room-copy span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.room-copy strong {
+				font-size: 14px;
+			}
+
+			.room-copy span {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				margin-top: 3px;
+				font-size: 7px;
+				font-weight: 850;
+				letter-spacing: 0.07em;
+				text-transform: uppercase;
+			}
+
+			.avatar-stack {
+				display: flex;
+				align-items: center;
+				padding-left: 9px;
+			}
+
+			.avatar-stack .avatar-disc {
+				margin-left: -9px;
+			}
+
+			.room-body {
+				display: grid;
+				gap: 20px;
+				padding: clamp(14px, 3vw, 26px);
+			}
+
+			.context-block {
+				min-width: 0;
+			}
+
+			.context-label {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+				margin-bottom: 8px;
+				color: var(--muted);
+				font-size: 9px;
+				font-weight: 950;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.achievement {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr) auto;
+				gap: 14px;
+				align-items: center;
+				min-height: 96px;
+				padding: 14px;
+				border: 1.5px solid var(--ink);
+				border-radius: 15px;
+				background: var(--pink);
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.achievement-copy strong,
+			.achievement-copy span {
+				display: block;
+			}
+
+			.achievement-copy strong {
+				font-family: 'Knerd Filled', Impact, sans-serif;
+				font-size: 23px;
+				font-weight: 400;
+				line-height: 0.95;
+			}
+
+			.achievement-copy span {
+				margin-top: 5px;
+				font-size: 9px;
+				font-weight: 750;
+			}
+
+			.balance-grid {
+				display: grid;
+				grid-template-columns: repeat(5, minmax(0, 1fr));
+				gap: 8px;
+			}
+
+			.balance-card {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr);
+				gap: 8px;
+				align-items: center;
+				min-height: 63px;
+				padding: 8px;
+				border: 1.5px solid var(--ink);
+				border-radius: 11px;
+				background: white;
+			}
+
+			.balance-card.positive {
+				background: #b9f2c6;
+			}
+
+			.balance-card.negative {
+				background: #ffb7a7;
+			}
+
+			.balance-card strong,
+			.balance-card span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.balance-card strong {
+				font-size: 9px;
+			}
+
+			.balance-card span {
+				margin-top: 3px;
+				font-size: 9px;
+				font-weight: 850;
+			}
+
+			.rows-grid,
+			.people-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 9px;
+			}
+
+			.app-row {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr) auto;
+				gap: 10px;
+				align-items: center;
+				min-height: 61px;
+				padding: 10px;
+				border: 1.5px solid var(--ink);
+				border-radius: 12px;
+				background: white;
+				box-shadow: 3px 3px 0 var(--ink);
+			}
+
+			.row-copy {
+				min-width: 0;
+			}
+
+			.row-copy strong,
+			.row-copy span {
+				display: block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.row-copy strong {
+				font-size: 11px;
+			}
+
+			.row-copy span {
+				margin-top: 3px;
+				color: var(--muted);
+				font-size: 8px;
+			}
+
+			.amount {
+				font-size: 10px;
+				font-weight: 850;
+			}
+
+			.assignment {
+				padding: 12px;
+				border: 1.5px solid var(--ink);
+				border-radius: 13px;
+				background: white;
+			}
+
+			.assignment > strong {
+				display: block;
+				margin-bottom: 9px;
+				font-size: 10px;
+			}
+
+			.chips {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+			}
+
+			.person-chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 5px;
+				min-height: 31px;
+				padding: 4px 8px 4px 4px;
+				border: 1.5px solid var(--ink);
+				border-radius: 999px;
+				background: white;
+				font-size: 8px;
+				font-weight: 800;
+			}
+
+			.person-chip.selected {
+				background: var(--yellow);
+			}
+
+			.avatar-disc {
+				--disc-size: 56px;
+				--art-scale: 1.04;
+				position: relative;
+				display: inline-grid;
+				width: var(--disc-size);
+				height: var(--disc-size);
+				flex: 0 0 auto;
+				place-items: center;
+				overflow: hidden;
+				border: 1.5px solid var(--ink);
+				border-radius: 50%;
+				background: var(--avatar-bg);
+				box-shadow: var(--avatar-shadow, 2px 2px 0 var(--avatar-line));
+				isolation: isolate;
+			}
+
+			.avatar-disc svg {
+				position: absolute;
+				width: calc(var(--disc-size) * var(--art-scale));
+				height: calc(var(--disc-size) * var(--art-scale));
+				overflow: visible;
+				fill: none;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+
+			.avatar-disc .art-white {
+				stroke: #fffdf6;
+				stroke-width: var(--white-width, 5.1);
+			}
+
+			.avatar-disc .art-color {
+				stroke: var(--avatar-line);
+				stroke-width: var(--line-width, 1.75);
+			}
+
+			.avatar-disc[data-compact='true'] {
+				box-shadow: none;
+			}
+
+			.avatar-disc[data-compact='true'] .art-white {
+				stroke-width: 3.15;
+			}
+
+			.avatar-disc[data-compact='true'] .art-color {
+				stroke-width: 1.9;
+			}
+
+			.avatar-disc[data-keyline='false'] .art-color {
+				stroke-width: 2.15;
+			}
+
+			.avatar-disc[data-compact='true'][data-keyline='false'] .art-color {
+				stroke-width: 2.05;
+			}
+
+			section[hidden] {
+				display: none !important;
+			}
+
+			.toast {
+				position: fixed;
+				right: 20px;
+				bottom: 20px;
+				z-index: 50;
+				padding: 12px 16px;
+				border: 2px solid white;
+				border-radius: 12px;
+				background: var(--ink);
+				box-shadow: 4px 4px 0 var(--pink);
+				color: white;
+				font-size: 11px;
+				font-weight: 850;
+				opacity: 0;
+				pointer-events: none;
+				transform: translateY(10px);
+				transition: opacity 140ms ease, transform 140ms ease;
+			}
+
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+
+			@media (max-width: 1200px) {
+				.cast-grid {
+					grid-template-columns: repeat(4, minmax(0, 1fr));
+				}
+
+				.balance-grid {
+					grid-template-columns: repeat(3, minmax(0, 1fr));
+				}
+			}
+
+			@media (max-width: 780px) {
+				.hero {
+					grid-template-columns: 1fr;
+				}
+
+				.toolbar {
+					grid-template-columns: 1fr;
+				}
+
+				.picker-controls {
+					justify-content: flex-start;
+				}
+
+				.cast-grid {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+
+				.balance-grid,
+				.rows-grid,
+				.people-grid {
+					grid-template-columns: 1fr;
+				}
+
+				.room-bar {
+					grid-template-columns: 42px minmax(0, 1fr) 42px;
+				}
+
+				.room-bar .avatar-stack {
+					display: none;
+				}
+			}
+
+			@media (max-width: 470px) {
+				.site-header .pill,
+				.site-header > .pill {
+					display: none;
+				}
+
+				main {
+					width: min(100% - 22px, 1450px);
+				}
+
+				.brand strong {
+					font-size: 17px;
+				}
+
+				.cast-stage {
+					min-height: 130px;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				*,
+				*::before,
+				*::after {
+					scroll-behavior: auto !important;
+					transition: none !important;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<header class="site-header">
+			<div class="brand">
+				<span class="brand-mark" aria-hidden="true">🥜</span>
+				<strong>PEANUTSPLIT</strong>
+				<span class="pill hot">Multicolour cast</span>
+			</div>
+			<span class="pill">Different combo per avatar</span>
+		</header>
+
+		<main>
+			<section class="hero">
+				<div>
+					<p class="eyebrow">Lagoon Sticker · cast system</p>
+					<h1>One family. Everyone different.</h1>
+					<p class="hero-copy">
+						Every mascot gets its own random, curated background and dark colored line. The close crop
+						keeps the group together, while you can compare the white sticker outline on or off.
+					</p>
+				</div>
+				<aside class="rule-card">
+					<h2>Readability rules</h2>
+					<ul class="rule-list">
+						<li><i>1</i><span>Inner lines are always dark and saturated—never near-white.</span></li>
+						<li><i>2</i><span>Every line/background pair passes at least 4.5:1 contrast.</span></li>
+						<li><i>3</i><span>The 104% crop unifies the cast; the white keyline is yours to toggle.</span></li>
+					</ul>
+				</aside>
+			</section>
+
+			<section class="toolbar" aria-label="Cast controls">
+				<div class="toolbar-copy">
+					<strong>Curated randomness, not arbitrary RGB</strong>
+					<span>Each shuffle reassigns a unique safe pairing to every character and keeps it consistent below.</span>
+				</div>
+				<div class="picker-controls">
+					<div class="control-set" role="group" aria-label="Preview mode">
+						<span>Preview</span>
+						<span class="segmented-control">
+							<button class="option-button" type="button" data-view="both" aria-pressed="true">Both</button>
+							<button class="option-button" type="button" data-view="cast" aria-pressed="false">Cast sheet</button>
+							<button class="option-button" type="button" data-view="room" aria-pressed="false">Real room</button>
+						</span>
+					</div>
+					<div class="control-set" role="group" aria-label="White outline">
+						<span>White outline</span>
+						<span class="segmented-control">
+							<button class="option-button" type="button" data-keyline="true" aria-pressed="true">With outline</button>
+							<button class="option-button" type="button" data-keyline="false" aria-pressed="false">No outline</button>
+						</span>
+					</div>
+					<button id="shuffleButton" class="shuffle-button" type="button">↻ Shuffle colours</button>
+				</div>
+			</section>
+
+			<section id="castSection" aria-labelledby="castTitle">
+				<div class="section-head">
+					<div>
+						<p class="eyebrow">The whole cast</p>
+						<h2 id="castTitle">Different next to different.</h2>
+						<p>Sixteen characters, sixteen distinct pairings. Dark inner lines keep every face readable.</p>
+					</div>
+					<span id="seedPill" class="pill">Cast shuffle 01</span>
+				</div>
+				<div id="castGrid" class="cast-grid"></div>
+			</section>
+
+			<section id="contextSection" aria-labelledby="contextTitle">
+				<div class="section-head">
+					<div>
+						<p class="eyebrow">Real room context</p>
+						<h2 id="contextTitle">Now put them all at the same table.</h2>
+						<p>The same assignments appear together in stacks, balances, expenses, people rows, and receipt chips.</p>
+					</div>
+					<span class="pill">56 · 36 · 32 · 22 · 16px</span>
+				</div>
+				<article class="context-shell">
+					<header id="roomBar" class="room-bar"></header>
+					<div id="roomBody" class="room-body"></div>
+				</article>
+			</section>
+		</main>
+
+		<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+		<script src="../persona-picker/canary-doodles.js"></script>
+		<script>
+			const memberNames = ['Maya', 'Inez', 'Sol', 'Bea', 'Jules', 'Mo', 'Ana', 'Leo', 'Kai', 'Nia', 'Remy', 'Luca', 'Zoe', 'Otis', 'Cleo', 'Noor']
+
+			const palettePool = [
+				{ name: 'Lagoon grape', bg: '#16D6C7', line: '#4C2BCD' },
+				{ name: 'Bubble navy', bg: '#FF77B7', line: '#173B63' },
+				{ name: 'Acid violet', bg: '#C8FF28', line: '#5A2DFF' },
+				{ name: 'Tomato navy', bg: '#FF6B5B', line: '#172B63' },
+				{ name: 'Sun berry', bg: '#FFD400', line: '#7A2455' },
+				{ name: 'Lilac forest', bg: '#C9B8FF', line: '#0D4933' },
+				{ name: 'Coral teal', bg: '#FF9A8B', line: '#03494D' },
+				{ name: 'Sky cherry', bg: '#68D9FF', line: '#A60F4C' },
+				{ name: 'Orange cobalt', bg: '#FF9A3C', line: '#1E2E89' },
+				{ name: 'Mint rust', bg: '#92F0CD', line: '#8A2828' },
+				{ name: 'Banana cobalt', bg: '#FFE36E', line: '#2941A3' },
+				{ name: 'Powder brown', bg: '#A8D8FF', line: '#6B351F' },
+				{ name: 'Rose forest', bg: '#FF9DC7', line: '#174D35' },
+				{ name: 'Lime burgundy', bg: '#B7F34A', line: '#6F2345' },
+				{ name: 'Peach navy', bg: '#FFB06E', line: '#183C67' },
+				{ name: 'Aqua maroon', bg: '#67E2D1', line: '#7A2447' },
+				{ name: 'Lavender teal', bg: '#BBA8FF', line: '#03494D' },
+				{ name: 'Guava slate', bg: '#FF7B8A', line: '#26364F' },
+				{ name: 'Cerulean brown', bg: '#4FC3F7', line: '#65351F' },
+				{ name: 'Leaf violet', bg: '#A8E88B', line: '#5A2D8C' },
+				{ name: 'Candy cobalt', bg: '#FF8DA1', line: '#223A93' },
+				{ name: 'Gold forest', bg: '#F8C64E', line: '#174F3A' },
+				{ name: 'Periwinkle plum', bg: '#91A7FF', line: '#5B254F' },
+				{ name: 'Watermelon green', bg: '#FF6E91', line: '#0D322A' },
+			]
+
+			let toastTimer = 0
+			let seed = readSeed()
+			let options = readOptions()
+			let assignments = []
+
+			function readSeed() {
+				const stored = Number(localStorage.getItem('peanutsplit-multicolour-cast-seed'))
+				return Number.isInteger(stored) && stored > 0 ? stored : 1
+			}
+
+			function saveSeed() {
+				localStorage.setItem('peanutsplit-multicolour-cast-seed', String(seed))
+			}
+
+			function readOptions() {
+				try {
+					const stored = JSON.parse(localStorage.getItem('peanutsplit-multicolour-cast-options') || 'null')
+					return {
+						view: ['both', 'cast', 'room'].includes(stored?.view) ? stored.view : 'both',
+						keyline: stored?.keyline !== false,
+					}
+				} catch {
+					return { view: 'both', keyline: true }
+				}
+			}
+
+			function saveOptions() {
+				localStorage.setItem('peanutsplit-multicolour-cast-options', JSON.stringify(options))
+			}
+
+			function luminance(hex) {
+				const channels = hex
+					.match(/\w\w/g)
+					.map((part) => parseInt(part, 16) / 255)
+					.map((value) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4))
+				return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+			}
+
+			function contrast(left, right) {
+				const a = luminance(left)
+				const b = luminance(right)
+				return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+			}
+
+			function mulberry32(value) {
+				return function () {
+					value |= 0
+					value = (value + 0x6d2b79f5) | 0
+					let result = Math.imul(value ^ (value >>> 15), 1 | value)
+					result = (result + Math.imul(result ^ (result >>> 7), 61 | result)) ^ result
+					return ((result ^ (result >>> 14)) >>> 0) / 4294967296
+				}
+			}
+
+			function shuffled(items, random) {
+				const copy = [...items]
+				for (let index = copy.length - 1; index > 0; index -= 1) {
+					const next = Math.floor(random() * (index + 1))
+					;[copy[index], copy[next]] = [copy[next], copy[index]]
+				}
+				return copy
+			}
+
+			function buildAssignments() {
+				const canaries = window.PERSONA_CANARIES || []
+				const safePalettes = palettePool.filter((palette) => contrast(palette.bg, palette.line) >= 4.5 && luminance(palette.line) < 0.18)
+				const random = mulberry32(seed * 9973)
+				const colors = shuffled(safePalettes, random)
+				assignments = canaries.slice(0, 16).map((mascot, index) => ({
+					id: `${mascot.key}-${index}`,
+					member: memberNames[index],
+					mascot,
+					palette: colors[index],
+					contrast: contrast(colors[index].bg, colors[index].line),
+				}))
+			}
+
+			function avatarMarkup(assignment, size, label = '') {
+				const compact = size <= 24
+				const style = `--disc-size:${size}px;--avatar-bg:${assignment.palette.bg};--avatar-line:${assignment.palette.line};--avatar-shadow:${compact ? 'none' : `2px 2px 0 ${assignment.palette.line}`}`
+				const accessibility = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'
+				const whiteLayer = options.keyline ? `<svg class="art-white" viewBox="0 0 32 32"><path d="${assignment.mascot.path}"></path></svg>` : ''
+				return `<span class="avatar-disc" data-compact="${compact}" data-keyline="${options.keyline}" style="${style}" ${accessibility}>
+					${whiteLayer}
+					<svg class="art-color" viewBox="0 0 32 32"><path d="${assignment.mascot.path}"></path></svg>
+				</span>`
+			}
+
+			function showToast(message) {
+				const toast = document.querySelector('#toast')
+				toast.textContent = message
+				toast.classList.add('show')
+				window.clearTimeout(toastTimer)
+				toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1800)
+			}
+
+			function renderCast() {
+				document.querySelector('#seedPill').textContent = `Cast shuffle ${String(seed).padStart(2, '0')}`
+				document.querySelector('#castGrid').innerHTML = assignments
+					.map((assignment) => `<article class="cast-card">
+						<div class="cast-stage" style="--stage:${assignment.palette.bg}22">${avatarMarkup(assignment, 108, `${assignment.member}, ${assignment.mascot.name}`)}</div>
+						<div class="cast-copy"><strong>${assignment.member}</strong><span>${assignment.mascot.name}</span><small>${assignment.palette.name} · ${assignment.contrast.toFixed(1)}:1</small><span class="palette-bar" style="--bg:${assignment.palette.bg};--line:${assignment.palette.line}"><i></i><i></i></span></div>
+					</article>`)
+					.join('')
+			}
+
+			function renderRoom() {
+				const at = (index) => assignments[index % assignments.length]
+				const stack = (start, count, size) => Array.from({ length: count }, (_, index) => avatarMarkup(at(start + index), size)).join('')
+				document.querySelector('#roomBar').innerHTML = `
+					<span class="room-icon">🍋</span>
+					<div class="room-copy"><strong>Weekend in Lisbon</strong><span>${avatarMarkup(at(0), 16)} EUR · YOU ARE ${at(0).member.toUpperCase()}</span></div>
+					<div class="avatar-stack" aria-label="Room member avatars">${stack(0, 6, 30)}</div>
+					<span class="room-icon">↗</span>`
+
+				const balanceStates = ['', 'negative', 'positive', '', 'positive']
+				const balanceAmounts = ['€0', '−€18', '+€42', '€0', '+€9']
+				const balances = Array.from({ length: 5 }, (_, index) => `<div class="balance-card ${balanceStates[index]}">${avatarMarkup(at(index), 32)}<div><strong>${at(index).member}</strong><span>${balanceAmounts[index]}</span></div></div>`).join('')
+				const expenses = ['Dinner at Prado', 'Airport taxi', 'Market picnic', 'Museum tickets', 'Pastéis', 'Late checkout']
+				const amounts = ['€128.40', '€36.00', '€24.60', '€52.00', '€18.20', '€31.00']
+				const expenseRows = expenses.map((expense, index) => `<div class="app-row">${avatarMarkup(at(index + 2), 36)}<div class="row-copy"><strong>${expense}</strong><span>${at(index + 2).member} paid · ${2 + (index % 4)} people</span></div><span class="amount">${amounts[index]}</span></div>`).join('')
+				const peopleRows = assignments.slice(0, 8).map((assignment) => `<div class="app-row">${avatarMarkup(assignment, 32)}<div class="row-copy"><strong>${assignment.member}</strong><span>${assignment.mascot.name}</span></div><span class="amount">›</span></div>`).join('')
+				const chips = assignments.slice(0, 10).map((assignment, index) => `<span class="person-chip ${index === 0 ? 'selected' : ''}">${avatarMarkup(assignment, 22)} ${assignment.member}</span>`).join('')
+
+				document.querySelector('#roomBody').innerHTML = `
+					<div class="context-block"><div class="context-label"><span>Group achievement</span><span>56px + mixed stack</span></div><div class="achievement">${avatarMarkup(at(0), 56)}<div class="achievement-copy"><strong>Room MVPs</strong><span>Sixteen different colors. Still obviously one cast.</span></div><div class="avatar-stack">${stack(4, 6, 34)}</div></div></div>
+					<div class="context-block"><div class="context-label"><span>Balance strip</span><span>Five different 32px avatars</span></div><div class="balance-grid">${balances}</div></div>
+					<div class="context-block"><div class="context-label"><span>Expense cards</span><span>Six different 36px avatars</span></div><div class="rows-grid">${expenseRows}</div></div>
+					<div class="context-block"><div class="context-label"><span>People cards</span><span>Eight different 32px avatars</span></div><div class="people-grid">${peopleRows}</div></div>
+					<div class="context-block"><div class="context-label"><span>Receipt assignment</span><span>Ten different 22px avatars</span></div><div class="assignment"><strong>Who had what?</strong><div class="chips">${chips}</div></div></div>`
+			}
+
+			function renderOptions() {
+				document.querySelectorAll('[data-view]').forEach((button) => {
+					button.setAttribute('aria-pressed', String(button.dataset.view === options.view))
+				})
+				document.querySelectorAll('[data-keyline]').forEach((button) => {
+					button.setAttribute('aria-pressed', String(button.dataset.keyline === String(options.keyline)))
+				})
+				document.querySelector('#castSection').hidden = options.view === 'room'
+				document.querySelector('#contextSection').hidden = options.view === 'cast'
+			}
+
+			function render() {
+				buildAssignments()
+				if (!assignments.length) return
+				renderCast()
+				renderRoom()
+				renderOptions()
+			}
+
+			document.querySelectorAll('[data-view]').forEach((button) => {
+				button.addEventListener('click', () => {
+					options.view = button.dataset.view
+					saveOptions()
+					renderOptions()
+				})
+			})
+
+			document.querySelectorAll('[data-keyline]').forEach((button) => {
+				button.addEventListener('click', () => {
+					options.keyline = button.dataset.keyline === 'true'
+					saveOptions()
+					render()
+					showToast(options.keyline ? 'White outline on' : 'White outline removed')
+				})
+			})
+
+			document.querySelector('#shuffleButton').addEventListener('click', () => {
+				seed += 1
+				saveSeed()
+				render()
+				showToast('New readable colour cast assigned')
+			})
+
+			render()
+		</script>
+	</body>
+</html>

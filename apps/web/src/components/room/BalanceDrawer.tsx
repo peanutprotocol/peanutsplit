@@ -77,6 +77,7 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
             : tBalances('getsBack')
     const nameOf = (id: string) => state.members.find((candidate) => candidate.id === id)?.name ?? t('someone')
     const avatarOf = (id: string) => state.members.find((candidate) => candidate.id === id)?.avatar ?? null
+    const paletteOf = (id: string) => state.members.find((candidate) => candidate.id === id)?.avatarPalette ?? null
     const transfers = state.suggestedTransfers.filter(
         (transfer) => transfer.fromId === memberId || transfer.toId === memberId
     )
@@ -86,7 +87,12 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
             <DrawerContent className={drawerContentClass} data-testid="balance-drawer" data-member-id={memberId}>
                 <DrawerHeader className={drawerHeaderClass}>
                     <DrawerTitle className="flex items-center gap-2 text-h5">
-                        <MemberAvatar name={member.name} avatar={member.avatar} size={32} />
+                        <MemberAvatar
+                            name={member.name}
+                            avatar={member.avatar}
+                            palette={member.avatarPalette}
+                            size={32}
+                        />
                         <span className="min-w-0 truncate">{member.id === meId ? tBalances('you') : member.name}</span>
                     </DrawerTitle>
                     <p className="text-sm text-grey-1">{t('title')}</p>
@@ -149,6 +155,7 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                                                 <MemberAvatar
                                                     name={nameOf(otherId)}
                                                     avatar={avatarOf(otherId)}
+                                                    palette={paletteOf(otherId)}
                                                     size={28}
                                                 />
                                                 <span className="min-w-0 flex-1 truncate text-h8">

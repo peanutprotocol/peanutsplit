@@ -28,7 +28,11 @@ import { LOCALES } from '@/i18n/locales'
 
 const FIXTURE_ROOM_NAME = 'Kraken cabin weekender'
 const FIXTURE_MEMBER_NAMES = ['Anastasiya', 'Bartholomew', 'Clementina', 'Dorotheus', 'Eusebio']
-const ALTER_EGO: AlterEgoCardParams = { award: 'theCloser', persona: 'wizard-frog' }
+const ALTER_EGO: AlterEgoCardParams = {
+    award: 'theCloser',
+    persona: 'wizard-frog',
+    palette: 'lagoon-grape',
+}
 const fixtureMemberIds = new Map<string, string[]>()
 
 const slugOf = (locale: string) => `card-fixture-${locale.toLowerCase()}`
@@ -64,6 +68,8 @@ describe('achievement cards', () => {
                             // rows, and the lineup has to draw one.
                             avatar:
                                 i === 2 ? null : ['wizard-frog', 'disco-octopus', null, 'tea-dragon', 'cozy-ghost'][i],
+                            avatarPalette:
+                                i === 2 ? null : ['lagoon-grape', 'bubble-navy', null, 'tomato-navy', 'sun-berry'][i],
                         })),
                     },
                 },
@@ -142,6 +148,7 @@ describe('achievement cards', () => {
         const card = (await buildFixtureCard('invite', locale)) as Extract<AchievementCardData, { kind: 'invite' }>
         expect(card).toMatchObject(copy)
         expect(card.personas).toHaveLength(MAX_INVITE_LINEUP)
+        expect(card.personas[0]).toEqual({ avatar: 'wizard-frog', palette: 'lagoon-grape' })
     })
 
     it('personalizes only from a member who actually belongs to this room', async () => {
@@ -185,7 +192,10 @@ describe('achievement cards', () => {
                 name: 'Ski trip',
                 theme: null,
                 count,
-                personas: Array.from({ length: count }, (_, index) => `avatar-${index}`),
+                personas: Array.from({ length: count }, (_, index) => ({
+                    avatar: `avatar-${index}`,
+                    palette: index % 2 === 0 ? 'lagoon-grape' : 'bubble-navy',
+                })),
             },
             t,
             'Konrad'
@@ -207,6 +217,8 @@ describe('achievement cards', () => {
         const card = (await buildFixtureCard('crew')) as Extract<AchievementCardData, { kind: 'crew' }>
         expect(card.count).toBe(5)
         expect(card.personas).toHaveLength(5)
+        expect(card.personas[0]).toEqual({ avatar: 'wizard-frog', palette: 'lagoon-grape' })
+        expect(card.personas[2]).toEqual({ avatar: null, palette: null })
         expect(card.overflow).toBe(0)
         for (const name of FIXTURE_MEMBER_NAMES) expect(JSON.stringify(card)).not.toContain(name)
     })
@@ -260,8 +272,11 @@ describe('achievement cards', () => {
         expect(card.line).toContain('3')
     })
 
-    it('refuses an alter ego outside its two closed sets', async () => {
-        await expect(loadAchievementCard(slugOf('en'), 'alterego', ALTER_EGO)).resolves.not.toBeNull()
+    it('refuses an alter ego outside its closed sets', async () => {
+        await expect(loadAchievementCard(slugOf('en'), 'alterego', ALTER_EGO)).resolves.toMatchObject({
+            persona: 'wizard-frog',
+            palette: 'lagoon-grape',
+        })
         await expect(
             loadAchievementCard(slugOf('en'), 'alterego', { award: 'theCloser', persona: 'not-a-persona' })
         ).resolves.toBeNull()
@@ -269,6 +284,13 @@ describe('achievement cards', () => {
             loadAchievementCard(slugOf('en'), 'alterego', {
                 award: 'bestPayer' as AlterEgoCardParams['award'],
                 persona: 'wizard-frog',
+            })
+        ).resolves.toBeNull()
+        await expect(
+            loadAchievementCard(slugOf('en'), 'alterego', {
+                award: 'theCloser',
+                persona: 'wizard-frog',
+                palette: 'not-a-palette',
             })
         ).resolves.toBeNull()
     })

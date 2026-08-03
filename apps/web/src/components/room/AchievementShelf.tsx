@@ -46,7 +46,11 @@ export function AchievementShelf({ slug, deckShown = false }: { slug: string; de
             type: unlock.type,
             params:
                 unlock.detail.award && unlock.detail.persona
-                    ? ({ award: unlock.detail.award, persona: unlock.detail.persona } satisfies AlterEgoCardParams)
+                    ? ({
+                          award: unlock.detail.award,
+                          persona: unlock.detail.persona,
+                          palette: unlock.detail.palette,
+                      } satisfies AlterEgoCardParams)
                     : undefined,
         }))
 

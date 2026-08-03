@@ -8,7 +8,7 @@
  *
  * Different call shape from `recapRoute.test.ts`, which invokes a default export
  * with `params`. This is a Route Handler, so each case builds a real `Request` —
- * it is the only way to carry `?a=&p=` and the only way the miss budget sees a
+ * it is the only way to carry `?a=&p=&c=` and the only way the miss budget sees a
  * caller at all.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -101,7 +101,7 @@ describe('achievement card route', () => {
     it.each(CARD_KINDS)(
         'rasterizes the %s card',
         async (kind) => {
-            const query = kind === 'alterego' ? '?a=theCloser&p=wizard-frog' : ''
+            const query = kind === 'alterego' ? '?a=theCloser&p=wizard-frog&c=lagoon-grape' : ''
             const { response, bytes } = await call(SLUG, kind, query)
             expectPng(response, bytes)
         },
@@ -141,6 +141,7 @@ describe('achievement card route', () => {
             '?p=wizard-frog',
             '?a=bestPayer&p=wizard-frog',
             '?a=theCloser&p=nope',
+            '?a=theCloser&p=wizard-frog&c=nope',
         ]) {
             const url = `http://localhost:3000/r/${SLUG}/card/alterego${query}`
             const response = await GET(new Request(url), {

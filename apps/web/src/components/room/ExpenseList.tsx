@@ -133,6 +133,7 @@ export function ExpenseList({
     const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
     const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
     const memberAvatar = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
+    const memberPalette = (id: string) => state.members.find((member) => member.id === id)?.avatarPalette ?? null
     const groups = groupByDay(timeline, (entry) => entry.date)
 
     return (
@@ -275,6 +276,7 @@ export function ExpenseList({
                                             <MemberAvatar
                                                 name={payer}
                                                 avatar={memberAvatar(expense.paidById)}
+                                                palette={memberPalette(expense.paidById)}
                                                 size={36}
                                             />
                                             <span className="min-w-0 flex-1">

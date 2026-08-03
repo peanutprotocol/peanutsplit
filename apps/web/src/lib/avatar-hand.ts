@@ -24,6 +24,12 @@
  */
 
 import { AVATAR_KEYS, type AvatarKey } from './avatars'
+import {
+    AVATAR_PALETTE_KEYS,
+    avatarPaletteForIdentity,
+    isAvatarPaletteKey,
+    type AvatarPaletteKey,
+} from './avatar-palettes'
 
 /** Eight characters plus the dice tile: one full 3×3 grid. */
 export const HAND_SIZE = 8
@@ -145,7 +151,7 @@ export const isOfferable = (value: string | null | undefined): value is AvatarKe
 const pick = (random: () => number, count: number): number =>
     count <= 1 ? 0 : Math.min(Math.max(Math.floor(random() * count), 0), count - 1)
 
-const shuffle = (keys: readonly AvatarKey[], random: () => number): AvatarKey[] => {
+const shuffle = <Key>(keys: readonly Key[], random: () => number): Key[] => {
     const pool = [...keys]
     for (let index = pool.length - 1; index > 0; index--) {
         const swap = pick(random, index + 1)
@@ -193,6 +199,77 @@ export function initialHand(value: string | null | undefined): AvatarKey[] {
     const start = isOfferable(value) ? AVATAR_KEYS.indexOf(value) : 0
     const size = Math.min(HAND_SIZE, AVATAR_KEYS.length)
     return Array.from({ length: size }, (_, slot) => AVATAR_KEYS[(start + slot) % AVATAR_KEYS.length])
+}
+
+/**
+ * Stable colours for the server-rendered first hand.
+ *
+ * The selected pair comes from the member row. Every other offer starts from
+ * its catalog index and walks to the next unused reviewed palette, which keeps
+ * the eight tiles different without asking for randomness during hydration.
+ */
+export function initialPaletteHand(
+    hand: readonly AvatarKey[],
+    value: string | null | undefined,
+    valuePalette: string | null | undefined
+): AvatarPaletteKey[] {
+    const palettes = new Array<AvatarPaletteKey>(hand.length)
+    const used = new Set<AvatarPaletteKey>()
+    const selectedSlot = isOfferable(value) ? hand.indexOf(value) : -1
+
+    if (selectedSlot >= 0) {
+        const selectedPalette = isAvatarPaletteKey(valuePalette)
+            ? valuePalette
+            : avatarPaletteForIdentity(value ?? hand[selectedSlot]).key
+        palettes[selectedSlot] = selectedPalette
+        used.add(selectedPalette)
+    }
+
+    for (let slot = 0; slot < hand.length; slot++) {
+        if (slot === selectedSlot && palettes[slot]) continue
+        const start = Math.max(0, AVATAR_KEYS.indexOf(hand[slot])) % AVATAR_PALETTE_KEYS.length
+        const palette = Array.from(
+            { length: AVATAR_PALETTE_KEYS.length },
+            (_, offset) => AVATAR_PALETTE_KEYS[(start + offset) % AVATAR_PALETTE_KEYS.length]
+        ).find((candidate) => !used.has(candidate))
+        // The picker has eight slots and the reviewed pool has twenty-four.
+        // This fallback is defensive if those product constants ever diverge.
+        const chosen = palette ?? AVATAR_PALETTE_KEYS[start]
+        palettes[slot] = chosen
+        used.add(chosen)
+    }
+    return palettes
+}
+
+/**
+ * Deal one unique reviewed colour to each landing character.
+ *
+ * Like the character hand, this is only an offer. The selected member pair is
+ * forced into its landing slot so pressing the die never edits or visually
+ * repaints the member; another pair is persisted only when its tile is tapped.
+ */
+export function planPaletteHand(
+    hand: readonly AvatarKey[],
+    value: string | null | undefined,
+    valuePalette: string | null | undefined,
+    random: () => number = Math.random
+): AvatarPaletteKey[] {
+    const palettes = shuffle(AVATAR_PALETTE_KEYS, random).slice(0, hand.length)
+    const selectedSlot = isOfferable(value) ? hand.indexOf(value) : -1
+    if (selectedSlot < 0) return palettes
+    const selectedPalette = isAvatarPaletteKey(valuePalette)
+        ? valuePalette
+        : avatarPaletteForIdentity(value ?? hand[selectedSlot]).key
+
+    const heldSlot = palettes.indexOf(selectedPalette)
+    if (heldSlot >= 0) {
+        const held = palettes[selectedSlot]
+        palettes[selectedSlot] = selectedPalette
+        palettes[heldSlot] = held
+    } else {
+        palettes[selectedSlot] = selectedPalette
+    }
+    return palettes
 }
 
 /**

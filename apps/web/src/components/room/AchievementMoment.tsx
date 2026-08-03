@@ -119,7 +119,11 @@ export function AchievementMoment({
                     type={shown.type}
                     params={
                         shown.type === 'alterego' && shown.detail.award && shown.detail.persona
-                            ? { award: shown.detail.award, persona: shown.detail.persona }
+                            ? {
+                                  award: shown.detail.award,
+                                  persona: shown.detail.persona,
+                                  palette: shown.detail.palette,
+                              }
                             : undefined
                     }
                     variant={shown.type === 'crew' ? 'stroke' : 'primary'}
@@ -159,6 +163,7 @@ function Subject({
                         key={member.id}
                         name={member.name}
                         avatar={member.avatar}
+                        palette={member.avatarPalette}
                         size={40}
                         className="-mr-2"
                     />
@@ -195,7 +200,7 @@ function Subject({
     const me = state.members.find((member) => member.id === meId)
     return (
         <div className="flex items-center gap-3" data-testid="achievement-award">
-            <MemberAvatar name={me?.name ?? ''} avatar={me?.avatar} size={56} />
+            <MemberAvatar name={me?.name ?? ''} avatar={me?.avatar} palette={me?.avatarPalette} size={56} />
             <p className="text-h5">{t(`award.${unlock.detail.award as AwardId}`)}</p>
         </div>
     )
