@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 
 /**
  * What this deployment tells the operating system about itself, on a v1 build.
@@ -10,8 +11,6 @@ import { expect, test, type Page } from '@playwright/test'
  * Room creation is metered per IP (20/hour), so this file takes its own TEST-NET address rather
  * than sharing either project's budget.
  */
-test.use({ extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.20' } })
-
 test('the manifest names the app Split, offers v1 creation shortcuts, and carries no room', async ({ request }) => {
     const response = await request.get('/manifest.webmanifest')
     expect(response.status()).toBe(200)
@@ -144,6 +143,8 @@ test.describe('the install row', () => {
     })
 
     test('replays the browser prompt, and reads as installed once it is accepted', async ({ page }) => {
+        // Same reason as its siblings above: the row only exists on a device that can install.
+        onlyOn('mobile')
         test.setTimeout(60_000)
         await openDeviceSheet(page, 'Install accept')
 
@@ -160,6 +161,8 @@ test.describe('the install row', () => {
     })
 
     test('says the prompt was declined, not that the browser cannot install', async ({ page }) => {
+        // Same reason as its siblings above: the row only exists on a device that can install.
+        onlyOn('mobile')
         test.setTimeout(60_000)
         await openDeviceSheet(page, 'Install decline')
 

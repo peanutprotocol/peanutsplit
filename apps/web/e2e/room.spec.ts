@@ -1,6 +1,7 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { readFile } from 'node:fs/promises'
-import { enterCreatedRoom } from './helpers'
+import { balanceCard as balance, enterCreatedRoom, expectBalance } from './helpers'
 import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
 /**
@@ -14,26 +15,22 @@ import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
  */
 
 /**
- * `data-member` names the member the card is ABOUT, which is not always the person holding the
- * phone. A room with three or more people gets one card each. A TWO-person room gets ONE pair
- * card, and it is about the counterparty — balances sum to zero, so the second card would be the
- * first one negated, and a reader adding both sees twice the real debt (see `pairCard` in
- * `BalanceStrip.tsx`).
- *
- * So in a two-person room a fact about the viewer is asserted as its negation, on the other name.
- * These assertions used to name the viewer and predate that change.
+ * `balanceCard` / `expectBalance` live in `./helpers` — the pair-card convention they encode is
+ * shared with every other spec that reads a balance, and the guard inside `expectBalance` is what
+ * turns "named a card that cannot exist" back into a readable failure.
  */
-const balance = (page: Page, member: string) => page.locator(`[data-testid="balance-card"][data-member="${member}"]`)
 
 /** Scoped to the page body: the settle drawer briefly shows the same celebration
  *  while it animates closed. */
 const allSettled = (page: Page) => page.locator('main [data-testid="all-settled"]')
 
-const expectBalance = async (page: Page, member: string, netMinor: string) =>
-    expect(balance(page, member)).toHaveAttribute('data-net', netMinor, { timeout: 15_000 })
-
 const expectStill = async (page: Page) => {
-    await expect(page.locator('[data-motion-surface]').first()).toHaveCSS('opacity', '1')
+    // A screen may legitimately animate nothing — the roster checkpoint draws no motion surface at
+    // all — and stillness is then trivially true with no opacity to read. Every caller waits for a
+    // visible anchor on the screen first, so the count below is taken on a settled page. The real
+    // guarantee is the body-wide check underneath, which runs either way.
+    const surfaces = page.locator('[data-motion-surface]')
+    if (await surfaces.count()) await expect(surfaces.first()).toHaveCSS('opacity', '1')
     expect(
         await page.locator('body').evaluate((element) => ({
             running: element
@@ -67,7 +64,8 @@ const runStillRouteMatrix = async (page: Page) => {
     await page.getByTestId('checkpoint-add').click()
     await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await page.getByTestId('go-to-room').click()
-    await expectBalance(page, 'Ana', '0')
+    // Bea was added at the checkpoint, so this is a two-person room and the one card is about her.
+    await expectBalance(page, 'Bea', '0')
     await expectStill(page)
 
     await page.getByTestId('share-room').click()
@@ -136,7 +134,7 @@ test('the deferred install prompt is still when the OS requests reduced motion',
     await expectStill(page)
 })
 
-test('create → share → join → split → settle → undo', async ({ page, browser }) => {
+test('create → share → join → split → settle → undo', async ({ page, newDevice }) => {
     test.setTimeout(60_000)
 
     // ── 1. Create the room ────────────────────────────────────────────────
@@ -161,8 +159,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(page.getByTestId('join-gate')).toHaveCount(0)
 
     // ── 3. A second device opens the link and joins ───────────────────────
-    const second = await browser.newContext({ viewport: { width: 390, height: 844 } })
-    const bea = await second.newPage()
+    const bea = await newDevice()
     await bea.goto(url)
 
     await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
@@ -276,7 +273,9 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await slideToConfirm(page, removePayment, 0.5)
     await expectSlideReset(removePayment)
     await expect(page.getByTestId('settlement-row')).toHaveCount(1)
-    await expectBalance(page, 'Ana', '0')
+    // Still square: a half-slide moved no money. Stated on Bea's card, the only one a
+    // two-person room draws — naming Ana here asserted a card that cannot exist.
+    await expectBalance(page, 'Bea', '0')
     await slideToConfirm(page, removePayment)
     await expect(page.getByTestId('settlement-row')).toHaveCount(0)
     await expectBalance(page, 'Bea', '-1148')
@@ -298,8 +297,6 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await expect(page.getByTestId('expense-row')).toHaveCount(2, { timeout: 15_000 })
     await expectBalance(page, 'Bea', '0')
     await expect(allSettled(page)).toBeVisible()
-
-    await second.close()
 })
 
 test('receipt links belong only to Peanut settlements', async ({ page }) => {
@@ -362,8 +359,9 @@ test('receipt links belong only to Peanut settlements', async ({ page }) => {
     await payment.getByTestId('remove-settlement').click()
     // Native button semantics keep a direct keyboard/assistive-tech path.
     await payment.getByTestId('confirm-remove-settlement').press('Enter')
+    // Ana's own −500 IS this card: a two-person room prints the one fact once, on Bea. Asserting
+    // it a second time under Ana's name asserted a card the strip never draws.
     await expectBalance(page, 'Bea', '500')
-    await expectBalance(page, 'Ana', '-500')
 
     await page.getByTestId('open-settle').click()
     await page.getByTestId('transfer-row').click()
@@ -385,7 +383,7 @@ test('receipt links belong only to Peanut settlements', async ({ page }) => {
     )
 })
 
-test('one person can add a payer and submit an expense on their behalf', async ({ page, browser }) => {
+test('one person can add a payer and submit an expense on their behalf', async ({ page, newDevice }) => {
     test.setTimeout(60_000)
     await page.goto('/new')
     await expect(page.getByTestId('room-composer')).toBeVisible()
@@ -547,8 +545,7 @@ test('one person can add a payer and submit an expense on their behalf', async (
 
     // Adding Bea did not switch Ana's device identity. On another device the
     // room link exposes the trusted roster, and Bea can simply claim herself.
-    const second = await browser.newContext({ viewport: { width: 390, height: 844 } })
-    const bea = await second.newPage()
+    const bea = await newDevice()
     await bea.goto(url)
     await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
     await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
@@ -583,7 +580,6 @@ test('one person can add a payer and submit an expense on their behalf', async (
     const reactionPill = beaExpense.getByTestId('reaction-pill')
     await expect(reactionPill).toHaveCount(1, { timeout: 15_000 })
     await expect(reactionPill).toHaveAccessibleName(/Bea/)
-    await second.close()
 })
 
 test('an unknown slug says so instead of spinning', async ({ page }) => {

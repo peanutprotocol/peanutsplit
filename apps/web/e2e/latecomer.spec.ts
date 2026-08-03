@@ -1,6 +1,5 @@
-import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test'
-
-test.use({ extraHTTPHeaders: { 'x-forwarded-for': '203.0.113.61' } })
+import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test'
+import { test } from './fixtures'
 
 interface CreatedRoom {
     room: { slug: string }

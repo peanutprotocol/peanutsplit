@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
+import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
@@ -10,8 +11,6 @@ import { enterCreatedRoom } from './helpers'
  * members' real avatar keys, and the card draws the personas rather than letters, which also means
  * no member's face depends on a codepoint the two shipped OG fonts might not carry.
  */
-
-test.use({ extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.23' } })
 
 async function roomWithPeople(page: Page) {
     await page.goto('/new')
