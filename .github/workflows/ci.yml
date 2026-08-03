@@ -75,3 +75,16 @@ jobs:
       - run: pnpm test
 
       - run: pnpm build
+
+  # Builds the exact artifact Dokploy deploys. The 2026-08-03 incident class:
+  # the Docker context is the repo minus .dockerignore, so a file that
+  # typechecks on a full checkout can fail inside the image (e2e-v2 importing
+  # the stripped e2e/). Every step above runs on the full checkout and is
+  # structurally blind to that. Advisory like the rest of CI — Dokploy polls
+  # git, not this workflow — but it turns a silent prod stall into a red X on
+  # the commit, and on a PR it fires before merge.
+  docker-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build apps/web
