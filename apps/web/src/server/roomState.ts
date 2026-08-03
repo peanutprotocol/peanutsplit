@@ -132,6 +132,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             id: m.id,
             name: m.name,
             avatar: m.avatar,
+            avatarPalette: m.avatarPalette,
             createdAt: m.createdAt.toISOString(),
             canRemove: m.canRemove,
         })),

@@ -39,6 +39,8 @@ export interface ApiMember {
     name: string
     /** A key from `lib/avatars.ts`. Null exists only for legacy/pre-migration rows. */
     avatar: string | null
+    /** A key from `lib/avatar-palettes.ts`. Optional only for older cached responses. */
+    avatarPalette?: string | null
     createdAt: string
     /** Only untouched names added on somebody else's behalf can be removed. */
     canRemove?: boolean
@@ -190,6 +192,8 @@ export interface ReactionInput {
 export interface MemberAvatarInput {
     /** A key from `lib/avatars.ts`, or null for the name-derived persona. */
     avatar: string | null
+    /** A key from `lib/avatar-palettes.ts`. Omitted by older clients. */
+    avatarPalette?: string
 }
 
 export interface SettlementInput {

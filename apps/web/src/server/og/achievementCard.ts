@@ -19,6 +19,7 @@
  */
 import { type DoodleName } from '@/components/ui/doodles'
 import { AWARD_IDS, type AlterEgoCardParams, type AwardId, type CardKind } from '@/lib/achievements-contract'
+import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { isAvatarKey } from '@/lib/avatars'
 import { currencyDoodle } from '@/lib/currency-doodle'
 import { daySpan } from '@/lib/story'
@@ -49,6 +50,12 @@ interface CardFrame {
     theme: RoomTheme
 }
 
+/** One stored member identity as card-safe keys, with no name attached. */
+export interface CardPersona {
+    avatar: string | null
+    palette: string | null
+}
+
 export type AchievementCardData =
     | (CardFrame & {
           kind: 'invite'
@@ -60,8 +67,8 @@ export type AchievementCardData =
           label: string
           /** The mechanic in plain language. */
           line: string
-          /** Actual stored persona keys, never the other members' names. */
-          personas: (string | null)[]
+          /** Actual stored persona and palette keys, never the other members' names. */
+          personas: CardPersona[]
           count: number
           overflow: number
           rosterLabel: string
@@ -74,14 +81,21 @@ export type AchievementCardData =
           title: string
           line: string
           count: number
-          /** Avatar KEYS, never names. Null is a legacy row and draws the fallback. */
-          personas: (string | null)[]
+          /** Avatar and palette KEYS, never names. Null is a legacy row and draws the fallback. */
+          personas: CardPersona[]
           overflow: number
           /** `hash(slug)`, so the confetti is the same on every render and every box. */
           seed: number
       })
     | (CardFrame & { kind: 'passport'; title: string; line: string; stamps: CurrencyStamp[] })
-    | (CardFrame & { kind: 'alterego'; title: string; line: string; award: string; persona: string })
+    | (CardFrame & {
+          kind: 'alterego'
+          title: string
+          line: string
+          award: string
+          persona: string
+          palette: string | null
+      })
     | (CardFrame & { kind: 'stats'; title: string; days: number; expenses: number; people: number })
     | (CardFrame & { kind: 'landing'; title: string; people: number; settlements: number })
 
@@ -99,7 +113,7 @@ type Copy = (key: string, params?: Record<string, string | number>) => string | 
 // ---------------------------------------------------------------- pure shaping
 
 export async function toInviteCard(
-    room: { name: string; theme: string | null; count: number; personas: (string | null)[] },
+    room: { name: string; theme: string | null; count: number; personas: CardPersona[] },
     t: Copy,
     inviterName?: string | null
 ): Promise<AchievementCardData> {
@@ -133,7 +147,7 @@ export async function toInviteCard(
 }
 
 export async function toCrewCard(
-    room: { theme: string | null; members: { avatar: string | null }[] },
+    room: { theme: string | null; members: { avatar: string | null; avatarPalette: string | null }[] },
     seed: number,
     t: Copy
 ): Promise<AchievementCardData> {
@@ -144,7 +158,7 @@ export async function toCrewCard(
         title: displaySafe(await t('card.crew.title')),
         line: bodySafe(await t('card.crew.line')),
         count: room.members.length,
-        personas: shown.map((m) => m.avatar),
+        personas: shown.map((m) => ({ avatar: m.avatar, palette: m.avatarPalette })),
         overflow: Math.max(0, room.members.length - shown.length),
         seed,
     }
@@ -202,6 +216,7 @@ export async function toAlterEgoCard(
 ): Promise<AchievementCardData | null> {
     if (!isAwardId(params.award)) return null
     if (!isAvatarKey(params.persona)) return null
+    if (params.palette != null && !isAvatarPaletteKey(params.palette)) return null
     return {
         kind: 'alterego',
         theme: themeFor(room.theme),
@@ -211,6 +226,7 @@ export async function toAlterEgoCard(
         // words, and the display face stops being a headline past two.
         award: bodySafe(await t(`card.award.${params.award}`)),
         persona: params.persona,
+        palette: params.palette ?? null,
     }
 }
 
@@ -248,7 +264,11 @@ export async function toLandingCard(
 /** What each kind draws, and nothing else. Six shapes rather than one wide
  *  select: the crew card has no business loading every expense date. */
 const SELECT: Record<Exclude<CardKind, 'invite'>, object> = {
-    crew: { theme: true, locale: true, members: { orderBy: { createdAt: 'asc' }, select: { avatar: true } } },
+    crew: {
+        theme: true,
+        locale: true,
+        members: { orderBy: { createdAt: 'asc' }, select: { avatar: true, avatarPalette: true } },
+    },
     passport: { theme: true, locale: true, expenses: { where: { deletedAt: null }, select: { currency: true } } },
     alterego: { theme: true, locale: true },
     stats: {
@@ -269,7 +289,7 @@ const SELECT: Record<Exclude<CardKind, 'invite'>, object> = {
 interface LoadedRoom {
     theme: string | null
     locale: string | null
-    members?: { avatar?: string | null }[]
+    members?: { avatar?: string | null; avatarPalette?: string | null }[]
     expenses?: { currency?: string; date?: Date }[]
     settlements?: unknown[]
 }
@@ -297,7 +317,7 @@ export async function loadInviteCard(
                 members: {
                     orderBy: { createdAt: 'asc' },
                     take: MAX_INVITE_LINEUP,
-                    select: { avatar: true },
+                    select: { avatar: true, avatarPalette: true },
                 },
             },
         }),
@@ -315,7 +335,10 @@ export async function loadInviteCard(
             name: room.name,
             theme: room.theme,
             count: room._count.members,
-            personas: room.members.map((member) => member.avatar),
+            personas: room.members.map((member) => ({
+                avatar: member.avatar,
+                palette: member.avatarPalette,
+            })),
         },
         await getTranslator(room.locale ?? 'en'),
         sharer?.name
@@ -343,7 +366,13 @@ export async function loadAchievementCard(
     switch (kind) {
         case 'crew':
             return toCrewCard(
-                { theme: room.theme, members: (room.members ?? []).map((m) => ({ avatar: m.avatar ?? null })) },
+                {
+                    theme: room.theme,
+                    members: (room.members ?? []).map((m) => ({
+                        avatar: m.avatar ?? null,
+                        avatarPalette: m.avatarPalette ?? null,
+                    })),
+                },
                 hash(slug),
                 t
             )

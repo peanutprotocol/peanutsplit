@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { isValidCode, MAX_SIGNED_MINOR, normaliseCode } from '@/server/money'
 import { isAvatarKey } from '@/lib/avatars'
+import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isThemeKey } from '@/lib/themes'
 import {
@@ -433,6 +434,10 @@ export const memberAvatarSchema = z.object({
         .max(40)
         .nullable()
         .refine((value) => value === null || isAvatarKey(value), { message: 'unknown avatar' }),
+    // Optional keeps a rolling deploy compatible with clients that only know
+    // the character key. Explicit null is not a reset; `avatar: null` is the
+    // legacy reroll request and the route chooses a fresh pair for it.
+    avatarPalette: z.string().max(40).refine(isAvatarPaletteKey, { message: 'unknown avatar palette' }).optional(),
 })
 
 export type RoomSettingsBody = z.infer<typeof roomSettingsSchema>

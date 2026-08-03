@@ -8,6 +8,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { AVATAR_KEYS } from './avatars'
+import { AVATAR_PALETTE_KEYS } from './avatar-palettes'
 import {
     HAND_SIZE,
     REELS_STOP_MS,
@@ -19,8 +20,10 @@ import {
     handAt,
     hasSettled,
     initialHand,
+    initialPaletteHand,
     isOfferable,
     isPopping,
+    planPaletteHand,
     planSpin,
 } from './avatar-hand'
 
@@ -58,6 +61,14 @@ describe('the first hand', () => {
         }
     })
 
+    it('gives the selected character its stored colour without hydration randomness', () => {
+        const hand = initialHand('tea-dragon')
+        const first = initialPaletteHand(hand, 'tea-dragon', 'lagoon-grape')
+        expect(first[hand.indexOf('tea-dragon')]).toBe('lagoon-grape')
+        expect(first).toEqual(initialPaletteHand(hand, 'tea-dragon', 'lagoon-grape'))
+        expect(new Set(first).size).toBe(first.length)
+    })
+
     it('opens on the top of the catalog for a member with no pick yet', () => {
         expect(initialHand(null)).toEqual(AVATAR_KEYS.slice(0, HAND_SIZE))
     })
@@ -88,6 +99,26 @@ describe('a dealt hand', () => {
                 expect(planSpin(value, random).hand).toContain(value)
             }
         }
+    })
+
+    it('deals distinct reviewed colours and never repaints the current pick', () => {
+        const random = seeded(37)
+        for (let roll = 0; roll < 100; roll++) {
+            const hand = planSpin('spreadsheet-owl', random).hand
+            const palettes = planPaletteHand(hand, 'spreadsheet-owl', 'watermelon-green', random)
+            expect(palettes).toHaveLength(hand.length)
+            expect(new Set(palettes).size).toBe(palettes.length)
+            expect(palettes.every((palette) => AVATAR_PALETTE_KEYS.includes(palette))).toBe(true)
+            expect(palettes[hand.indexOf('spreadsheet-owl')]).toBe('watermelon-green')
+        }
+    })
+
+    it('changes the offered colours on another seeded deal', () => {
+        const hand = initialHand('party-bee')
+        const first = planPaletteHand(hand, 'party-bee', 'sun-berry', seeded(41))
+        const second = planPaletteHand(hand, 'party-bee', 'sun-berry', seeded(43))
+        expect(second).not.toEqual(first)
+        expect(second[hand.indexOf('party-bee')]).toBe('sun-berry')
     })
 
     it('moves the pick around the grid instead of pinning it to one slot', () => {

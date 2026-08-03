@@ -85,8 +85,14 @@ function StoryStrip({ emblem }: { emblem: DoodleName }) {
 function AvatarRow({ card }: { card: RecapCardData }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-            {card.personas.map((avatar, i) => (
-                <PersonaDisc key={i} avatar={avatar} size={64} marginLeft={i === 0 ? 0 : -16} />
+            {card.personas.map((persona, i) => (
+                <PersonaDisc
+                    key={i}
+                    avatar={persona.avatar}
+                    palette={persona.palette}
+                    size={64}
+                    marginLeft={i === 0 ? 0 : -16}
+                />
             ))}
             {card.overflow > 0 ? (
                 <div style={{ ...disc(64, '#FFFFFF'), marginLeft: -16, fontSize: 25, fontWeight: 800 }}>

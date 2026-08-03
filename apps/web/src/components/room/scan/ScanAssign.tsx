@@ -143,7 +143,12 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                                     : 'bg-white active:translate-x-[2px] active:translate-y-[2px]'
                                             )}
                                         >
-                                            <MemberAvatar name={member.name} avatar={member.avatar} size={22} />
+                                            <MemberAvatar
+                                                name={member.name}
+                                                avatar={member.avatar}
+                                                palette={member.avatarPalette}
+                                                size={22}
+                                            />
                                             {member.name}
                                         </button>
                                     )
@@ -194,7 +199,12 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                     .map((member) => (
                         <div key={member.id} className="flex items-center justify-between gap-3">
                             <span className="flex min-w-0 items-center gap-2">
-                                <MemberAvatar name={member.name} avatar={member.avatar} size={22} />
+                                <MemberAvatar
+                                    name={member.name}
+                                    avatar={member.avatar}
+                                    palette={member.avatarPalette}
+                                    size={22}
+                                />
                                 <span className="truncate">{member.name}</span>
                             </span>
                             <Money minor={totals[member.id]} currency={state.currency} catalog={currencies} />

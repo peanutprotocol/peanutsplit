@@ -68,7 +68,7 @@ export function WrappedDeck({ slug }: { slug: string }) {
     const award = meId ? awardsFor(state)[meId] : undefined
     const me = state.members.find((member) => member.id === meId)
     const params: AlterEgoCardParams | undefined = award
-        ? { award, persona: me?.avatar ?? FALLBACK_AVATAR_KEY }
+        ? { award, persona: me?.avatar ?? FALLBACK_AVATAR_KEY, palette: me?.avatarPalette }
         : undefined
 
     const renders = (card: WrappedCard): boolean => {

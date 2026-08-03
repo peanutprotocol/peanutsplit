@@ -2,6 +2,7 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { isAvatarKey } from '@/lib/avatars'
+import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { type RoomWithRelations } from '@/server/roomState'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
 import { MEMBER_FALLBACK } from '@/server/og/roomCard'
@@ -236,7 +237,10 @@ describe('toRecapCard', () => {
         expect(card.topPayer).toBe('María fronted the most')
         // A legacy row carries no avatar key; the card passes the null through and the disc
         // falls back, rather than inventing a face the recap page would not draw.
-        expect(card.personas).toEqual([null, null])
+        expect(card.personas).toEqual([
+            { avatar: null, palette: null },
+            { avatar: null, palette: null },
+        ])
         expect(card.overflow).toBe(0)
     })
 
@@ -244,12 +248,15 @@ describe('toRecapCard', () => {
         const card = toRecapCard(
             recapOf({
                 members: [
-                    { id: 'a', name: 'Ana', avatar: 'wizard-frog' },
-                    { id: 'm', name: 'María', avatar: 'moon-bunny' },
+                    { id: 'a', name: 'Ana', avatar: 'wizard-frog', avatarPalette: 'lagoon-grape' },
+                    { id: 'm', name: 'María', avatar: 'moon-bunny', avatarPalette: 'bubble-navy' },
                 ],
             })
         )
-        expect(card.personas).toEqual(['wizard-frog', 'moon-bunny'])
+        expect(card.personas).toEqual([
+            { avatar: 'wizard-frog', palette: 'lagoon-grape' },
+            { avatar: 'moon-bunny', palette: 'bubble-navy' },
+        ])
     })
 
     it('sanitizes a hostile room name instead of drawing blank boxes', () => {
@@ -428,6 +435,7 @@ describe('loadRecap', () => {
         // the recap drew the same fallback peanut. Reading a real persona key back proves the
         // avatar survives the round trip.
         expect(recap?.members.every((member) => isAvatarKey(member.avatar))).toBe(true)
+        expect(recap?.members.every((member) => isAvatarPaletteKey(member.avatarPalette))).toBe(true)
         expect(recap?.topPayerName).toBe('Maria')
         expect(recap?.settled).toBe(false)
     })

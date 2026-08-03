@@ -55,25 +55,29 @@ model Room {
 }
 
 model Member {
-  id        String    @id @default(uuid())
-  roomId    String
-  name      String
-  token     String    @unique // stable server-issued secret, returned only to a device claiming this member
+  id            String    @id @default(uuid())
+  roomId        String
+  name          String
+  token         String    @unique // stable server-issued secret, returned only to a device claiming this member
   // A KEY into the code-side catalog in `lib/avatars.ts`, never artwork and never
   // a URL. Null is the persona derived from the name, so a member written before
   // the picker existed and a member who never opened it are the same row.
   // Like the roster itself, this is shared table banter: any room link-holder
   // may cast any room member, but only with an allowlisted key.
-  avatar    String?
-  userId    String? // claim hook — null until account linking ships
+  avatar        String?
+  // A KEY into the curated color pairs in `lib/avatar-palettes.ts`. Nullable
+  // only for rolling deploys and rows written before multicolour avatars; new
+  // writes always choose a concrete allowlisted key.
+  avatarPalette String?
+  userId        String? // claim hook — null until account linking ships
   // True only for a name somebody added on another person's behalf. It flips
   // false the first time that person claims the name, permanently protecting
   // their access even if they have not entered money yet.
-  provisional Boolean @default(false)
-  createdAt DateTime  @default(now())
-  removedAt DateTime?
-  room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  provisional   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  removedAt     DateTime?
+  room          Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   paidExpenses       Expense[]         @relation("ExpensePaidBy")
   createdExpenses    Expense[]         @relation("ExpenseCreatedBy")

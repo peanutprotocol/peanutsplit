@@ -73,7 +73,7 @@ export function RoomHeader({ room, members, state, identity, me, onShare, onForg
                             // margin, so the bar keeps the height it had.
                             className="-my-3 flex max-w-full items-center gap-1.5 py-3"
                         >
-                            <MemberAvatar name={me.name} avatar={me.avatar} size={16} />
+                            <MemberAvatar name={me.name} avatar={me.avatar} palette={me.avatarPalette} size={16} />
                             <span className="truncate text-h10 uppercase tracking-wide text-n-1/70">
                                 {`${room.currency} · ${t('youAre', { name: me.name })}`}
                             </span>

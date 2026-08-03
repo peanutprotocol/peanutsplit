@@ -47,9 +47,9 @@ export const PASSPORT_THRESHOLDS = [2, 3, 5] as const
 /**
  * The alter-ego card's whole input, and deliberately not a member id.
  *
- * Both fields are closed sets — six awards, and every avatar key `isAvatarKey` accepts — so the
- * query string carries no identifier and nothing a Sentry breadcrumb could tie to a person. The
- * server validates both against their catalogs and 404s otherwise.
+ * All fields are closed sets — six awards, every accepted avatar key, and an optional reviewed
+ * palette key — so the query string carries no identifier and nothing a Sentry breadcrumb could
+ * tie to a person. The server validates them against their catalogs and 404s otherwise.
  */
 export interface AlterEgoCardParams {
     award: AwardId
@@ -57,6 +57,8 @@ export interface AlterEgoCardParams {
      *  `member.avatar ?? FALLBACK_AVATAR_KEY` — a null would 404 the card of the one legacy
      *  member who earned it. */
     persona: string
+    /** A key from `lib/avatar-palettes.ts`; omitted by older cached clients. */
+    palette?: string | null
 }
 
 /**
@@ -69,7 +71,9 @@ export interface AlterEgoCardParams {
 export function achievementCardPath(slug: string, kind: CardKind, params?: AlterEgoCardParams): string {
     const base = `/r/${slug}/card/${kind}`
     if (kind !== 'alterego' || !params) return base
-    return `${base}?a=${encodeURIComponent(params.award)}&p=${encodeURIComponent(params.persona)}`
+    const query = new URLSearchParams({ a: params.award, p: params.persona })
+    if (params.palette) query.set('c', params.palette)
+    return `${base}?${query.toString()}`
 }
 
 /** No slug in a filename — it would put the credential in a Downloads folder, a screenshot of a

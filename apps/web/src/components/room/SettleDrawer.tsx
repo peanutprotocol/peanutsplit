@@ -152,6 +152,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
 
     const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
     const avatarOf = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
+    const paletteOf = (id: string) => state.members.find((member) => member.id === id)?.avatarPalette ?? null
 
     const decimals = decimalsOf(state.room.currency, currencies)
 
@@ -409,6 +410,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                                         <MemberAvatar
                                                             name={nameOf(transfer.fromId)}
                                                             avatar={avatarOf(transfer.fromId)}
+                                                            palette={paletteOf(transfer.fromId)}
                                                             size={32}
                                                         />
                                                         <span className="min-w-0 truncate text-h8">
@@ -424,6 +426,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                                         <MemberAvatar
                                                             name={nameOf(transfer.toId)}
                                                             avatar={avatarOf(transfer.toId)}
+                                                            palette={paletteOf(transfer.toId)}
                                                             size={32}
                                                         />
                                                         <span className="min-w-0 truncate text-h8">
@@ -482,6 +485,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                             <MemberAvatar
                                                 name={nameOf(settlement.fromId)}
                                                 avatar={avatarOf(settlement.fromId)}
+                                                palette={paletteOf(settlement.fromId)}
                                                 size={28}
                                             />
                                             <span className="min-w-0 truncate text-h8">
@@ -491,6 +495,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                             <MemberAvatar
                                                 name={nameOf(settlement.toId)}
                                                 avatar={avatarOf(settlement.toId)}
+                                                palette={paletteOf(settlement.toId)}
                                                 size={28}
                                             />
                                             <span className="min-w-0 truncate text-h8">{nameOf(settlement.toId)}</span>
@@ -523,6 +528,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                     <MemberAvatar
                                         name={nameOf(selected.fromId)}
                                         avatar={avatarOf(selected.fromId)}
+                                        palette={paletteOf(selected.fromId)}
                                         size={36}
                                     />
                                     <span className="truncate text-h8">{nameOf(selected.fromId)}</span>
@@ -532,6 +538,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                     <MemberAvatar
                                         name={nameOf(selected.toId)}
                                         avatar={avatarOf(selected.toId)}
+                                        palette={paletteOf(selected.toId)}
                                         size={36}
                                     />
                                     <span className="truncate text-h8">{nameOf(selected.toId)}</span>

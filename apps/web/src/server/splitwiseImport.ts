@@ -20,6 +20,7 @@
 import { randomUUID } from 'node:crypto'
 import { Prisma } from '@prisma/client'
 import { randomPersonaKey } from '@/lib/avatars'
+import { randomAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { prisma } from '@/server/db'
 import { buildExpense } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
@@ -88,6 +89,7 @@ async function writeRoom(
                             data: body.members.map((name) => ({
                                 name,
                                 avatar: randomPersonaKey(),
+                                avatarPalette: randomAvatarPaletteKey(),
                                 // Case-insensitively, the same way the roster is checked for
                                 // duplicates — so exactly one member can ever match.
                                 token: name.toLowerCase() === creatorKey ? token : memberToken(),

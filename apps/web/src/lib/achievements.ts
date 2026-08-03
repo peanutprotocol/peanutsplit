@@ -41,7 +41,7 @@ export interface Unlock {
      */
     covers: readonly string[]
     /** What the moment draws. Never a name, never an amount. */
-    detail: { count?: number; award?: AwardId; persona?: string }
+    detail: { count?: number; award?: AwardId; persona?: string; palette?: string | null }
 }
 
 /** Highest crossed threshold, plus everything below it. Null when none is crossed. */
@@ -219,7 +219,11 @@ export function unlocksFor(state: RoomState, meId: string | undefined): Unlock[]
                     type: 'alterego',
                     id: 'alterego',
                     covers: ['alterego'],
-                    detail: { award, persona: me?.avatar ?? FALLBACK_AVATAR_KEY },
+                    detail: {
+                        award,
+                        persona: me?.avatar ?? FALLBACK_AVATAR_KEY,
+                        palette: me?.avatarPalette ?? null,
+                    },
                 })
             }
         }

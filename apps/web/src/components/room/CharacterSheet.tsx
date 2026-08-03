@@ -9,6 +9,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember } from '@/lib/api-types'
+import type { AvatarPaletteKey } from '@/lib/avatar-palettes'
 import { avatarFamily } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -63,18 +64,21 @@ export function CharacterSheet({
         if (open) setFirstOpen(claimFirstOpen())
     }, [open])
 
-    const chooseAvatar = (avatar: string | null) => {
-        if (!member || avatar === member.avatar) return
+    const chooseAvatar = (avatar: string, avatarPalette: AvatarPaletteKey) => {
+        if (!member || (avatar === member.avatar && avatarPalette === member.avatarPalette)) return
         feedback('tick')
         // The FAMILY, never the key or target member: both are social detail that
         // analytics.ts exists to keep out of a funnel.
         track('avatar_changed', roomProps(slug, { family: avatarFamily(avatar) }))
-        setAvatar.mutate(avatar, {
-            onError: (error) => {
-                feedback('error')
-                toast.error(errorMessage(error, t('failed')), { duration: TOAST_MS.actionable })
-            },
-        })
+        setAvatar.mutate(
+            { avatar, avatarPalette },
+            {
+                onError: (error) => {
+                    feedback('error')
+                    toast.error(errorMessage(error, t('failed')), { duration: TOAST_MS.actionable })
+                },
+            }
+        )
     }
 
     return (
@@ -90,6 +94,7 @@ export function CharacterSheet({
                         <AvatarPicker
                             name={member.name}
                             value={member.avatar}
+                            palette={member.avatarPalette ?? null}
                             onChange={chooseAvatar}
                             disabled={setAvatar.isPending}
                         />

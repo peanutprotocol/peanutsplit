@@ -117,7 +117,13 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
             <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                     {faces.map((member) => (
-                        <MemberAvatar key={member.name} name={member.name} avatar={member.avatar} size={40} />
+                        <MemberAvatar
+                            key={member.name}
+                            name={member.name}
+                            avatar={member.avatar}
+                            palette={member.avatarPalette}
+                            size={40}
+                        />
                     ))}
                     {overflow > 0 && <span className="text-sm font-bold text-grey-1">{`+${overflow}`}</span>}
                 </div>

@@ -23,6 +23,7 @@
  *  - text lives in a leaf element, never as a sibling of another element
  */
 import type { DoodleName } from '@/components/ui/doodles'
+import { avatarPalette, avatarPaletteForIdentity, isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { avatarArt } from '@/lib/avatars'
 import { siteUrl } from '@/lib/site'
 import { doodleDataUri } from '@/server/og/emblem'
@@ -307,49 +308,42 @@ export function SettledStamp({ label }: { label?: string }) {
 /**
  * A member as their actual character, not as the first letter of their name.
  *
- * `MemberAvatar.tsx` ported to Satori: the coloured ground, the one deliberately
- * wonky accent blob, and the persona's own drawing in the persona's own ink and
- * weight. That last part is why `doodleDataUri` takes options — drawn in the
- * unfurl's flat black at the unfurl's heavy weight, all thirty-six personas come
- * out as the same silhouette, which is the opposite of the point.
+ * `MemberAvatar.tsx` ported to Satori: a reviewed two-colour ground and ink,
+ * the warm-white sticker outline, and the same 104% close crop. Keeping the two
+ * strokes in one data URI makes their geometry identical after Satori scales
+ * the drawing for a chat card.
  */
 export function PersonaDisc({
     avatar,
+    palette,
     size,
     marginLeft = 0,
 }: {
     avatar: string | null | undefined
+    palette?: string | null
     size: number
     marginLeft?: number
 }) {
     const art = avatarArt(avatar)
-    const drawing = Math.round(size * (art.kind === 'persona' ? 0.88 : 0.72))
+    const colors = isAvatarPaletteKey(palette) ? avatarPalette(palette) : avatarPaletteForIdentity(avatar ?? art.doodle)
+    const drawing = Math.round(size * 1.04)
     return (
         <div
             style={{
-                ...disc(size, art.background),
+                ...disc(size, colors.background),
                 borderWidth: Math.max(3, Math.round(size * 0.045)),
                 marginLeft,
                 position: 'relative',
                 overflow: 'hidden',
             }}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    position: 'absolute',
-                    bottom: size * 0.05,
-                    right: size * 0.04,
-                    width: size * 0.46,
-                    height: size * 0.46,
-                    backgroundColor: art.accent,
-                    borderRadius: '44% 56% 60% 40%',
-                    transform: 'rotate(12deg)',
-                }}
-            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-                src={doodleDataUri(art.doodle, { ink: art.ink, weight: art.kind === 'persona' ? 2.0 : 2.4 })}
+                src={doodleDataUri(art.doodle, {
+                    ink: colors.ink,
+                    weight: 1.75,
+                    outline: { ink: '#FFFDF6', weight: 5.1 },
+                })}
                 width={drawing}
                 height={drawing}
                 alt=""
