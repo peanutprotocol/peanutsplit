@@ -21,11 +21,7 @@ interface Seeded {
     token: string
 }
 
-const seedRoom = async (
-    request: APIRequestContext,
-    label: string,
-    currency = 'EUR'
-): Promise<Seeded> => {
+const seedRoom = async (request: APIRequestContext, label: string, currency = 'EUR'): Promise<Seeded> => {
     const created = await request.post('/api/rooms', {
         data: { name: `${label} ${Date.now()}`, currency, creatorName: 'Ana' },
     })

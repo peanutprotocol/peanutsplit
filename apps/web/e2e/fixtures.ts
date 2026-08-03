@@ -1,4 +1,10 @@
-import { test as base, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from '@playwright/test'
+import {
+    test as base,
+    type Browser,
+    type BrowserContext,
+    type BrowserContextOptions,
+    type Page,
+} from '@playwright/test'
 
 /**
  * One client IP per browser context, so the server's rate limiter can never make one test fail for
