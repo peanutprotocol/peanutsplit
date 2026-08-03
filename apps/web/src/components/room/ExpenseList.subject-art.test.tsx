@@ -40,7 +40,7 @@ vi.mock('next-intl', () => ({
 
 vi.mock('@/components/ui/Doodle', () => ({
     Doodle: ({ name, label, size, weight }: { name: string; label?: string; size?: number; weight?: number }) =>
-        createElement('svg', {
+        createElement('span', {
             'aria-label': label,
             'aria-hidden': label ? undefined : true,
             'data-doodle-name': name,
@@ -140,7 +140,7 @@ describe('ExpenseList subject art', () => {
 
     it('uses the locked bare-hero size and keeps inferred art decorative', () => {
         const card = renderExpense('Pizza')
-        const doodle = card.match(/<svg[^>]*data-doodle-name="pizza"[^>]*>/)?.[0]
+        const doodle = card.match(/<span[^>]*data-doodle-name="pizza"[^>]*>/)?.[0]
 
         expect(doodle).toContain('aria-hidden="true"')
         expect(doodle).not.toContain('aria-label')
