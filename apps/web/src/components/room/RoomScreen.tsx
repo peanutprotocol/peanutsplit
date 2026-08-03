@@ -352,6 +352,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                         onClose={() => setParams({ share: null })}
                         room={state.room}
                         members={state.members}
+                        sharerMemberId={meId}
                     />
                     <BalanceDrawer
                         open={!!params.balance && !needsJoin}

@@ -34,7 +34,7 @@ import type { RecapShareTier } from '@/lib/recap'
  * A missing route answers 404 and this returns null. That is the designed degradation — the
  * calling surface shares text, or hides its button, and never shows a broken one.
  */
-export function useSharePng(path: string, filename: string): { file: File | null } {
+function useFetchedPng(path: string, filename: string, method: 'GET' | 'POST', body?: string): { file: File | null } {
     const [file, setFile] = useState<File | null>(null)
 
     useEffect(() => {
@@ -42,7 +42,11 @@ export function useSharePng(path: string, filename: string): { file: File | null
         setFile(null)
         void (async () => {
             try {
-                const response = await fetch(path, { cache: 'no-store' })
+                const response = await fetch(path, {
+                    method,
+                    cache: 'no-store',
+                    ...(body ? { headers: { 'Content-Type': 'application/json' }, body } : {}),
+                })
                 if (!response.ok) return
                 const blob = await response.blob()
                 if (!live) return
@@ -54,9 +58,24 @@ export function useSharePng(path: string, filename: string): { file: File | null
         return () => {
             live = false
         }
-    }, [path, filename])
+    }, [path, filename, method, body])
 
     return { file }
+}
+
+export function useSharePng(path: string, filename: string): { file: File | null } {
+    return useFetchedPng(path, filename, 'GET')
+}
+
+/**
+ * The invite is personalized to the active room member, so it must never share
+ * the cached GET representation used by the achievement shelf. The member id is
+ * sent only in a POST body; the server verifies that it belongs to the room and
+ * resolves the current name. No name, token or identifier enters the URL.
+ */
+export function useInviteSharePng(path: string, filename: string, sharerMemberId?: string): { file: File | null } {
+    const body = JSON.stringify(sharerMemberId ? { memberId: sharerMemberId } : {})
+    return useFetchedPng(path, filename, 'POST', body)
 }
 
 /**

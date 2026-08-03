@@ -27,10 +27,12 @@ interface ShareDrawerProps {
     /** The roster as it stands. Shown as chips so "who is already in" is a fact
      *  on screen rather than something to remember. */
     members: readonly ApiMember[]
+    /** The current device's roster id after RoomScreen verified it still exists. */
+    sharerMemberId?: string
 }
 
 /** The link moment again, on demand — same artefact, reachable from the header. */
-export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) {
+export function ShareDrawer({ open, onClose, room, members, sharerMemberId }: ShareDrawerProps) {
     const t = useTranslations('room.share')
     const errorMessage = useErrorMessage()
     const motionAllowed = useMotionAllowed()
@@ -116,6 +118,7 @@ export function ShareDrawer({ open, onClose, room, members }: ShareDrawerProps) 
                         roomName={room.name}
                         emoji={room.emoji}
                         theme={room.theme}
+                        sharerMemberId={sharerMemberId}
                         title={t('title')}
                         subtitle={t('subtitle')}
                         // The room page already has its `h1` in the header; this

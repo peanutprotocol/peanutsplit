@@ -13,12 +13,14 @@ import { CARD_KINDS, type AlterEgoCardParams, type CardKind } from '@/lib/achiev
 import { prisma, truncateAll } from '@/server/test/db'
 import {
     currencyStamps,
+    loadInviteCard,
     loadAchievementCard,
+    MAX_INVITE_LINEUP,
+    toInviteCard,
     toPassportCard,
     type AchievementCardData,
 } from '@/server/og/achievementCard'
-import { ART_BY_KIND } from '@/server/og/achievementCardArt'
-import { nameFontSize } from '@/server/og/card'
+import { ART_BY_KIND, inviteNameFontSize } from '@/server/og/achievementCardArt'
 import { MAX_NAME_CHARS } from '@/server/og/roomCard'
 // The real list, not a copy: a private locale array in a test is how a fourth locale
 // ships with no card coverage and nothing red to say so.
@@ -27,6 +29,7 @@ import { LOCALES } from '@/i18n/locales'
 const FIXTURE_ROOM_NAME = 'Kraken cabin weekender'
 const FIXTURE_MEMBER_NAMES = ['Anastasiya', 'Bartholomew', 'Clementina', 'Dorotheus', 'Eusebio']
 const ALTER_EGO: AlterEgoCardParams = { award: 'theCloser', persona: 'wizard-frog' }
+const fixtureMemberIds = new Map<string, string[]>()
 
 const slugOf = (locale: string) => `card-fixture-${locale.toLowerCase()}`
 
@@ -67,6 +70,10 @@ describe('achievement cards', () => {
                 include: { members: { orderBy: { createdAt: 'asc' } } },
             })
             const [first, second] = room.members
+            fixtureMemberIds.set(
+                locale,
+                room.members.map((member) => member.id)
+            )
             for (const [i, currency] of ['EUR', 'JPY', 'THB', 'EUR'].entries()) {
                 await prisma.expense.create({
                     data: {
@@ -95,33 +102,105 @@ describe('achievement cards', () => {
         [
             'en',
             {
-                label: 'SHARED EXPENSE ROOM',
-                line: 'Open the link. Add what you paid.',
-                action: 'JOIN THE SPLIT',
+                inviter: 'You’re invited to',
+                label: 'Shared group expenses',
+                line: 'Everyone adds. We sort who owes.',
+                rosterLabel: 'ALREADY IN THE SPLIT',
+                rosterLine: '5 people already in',
+                count: 5,
+                overflow: 2,
                 proof: 'no signup · free forever',
             },
         ],
         [
             'es-419',
             {
-                label: 'GASTOS COMPARTIDOS',
-                line: 'Abre el link. Agrega lo que pagaste.',
-                action: 'ENTRAR AL SPLIT',
+                inviter: 'Te invitaron a',
+                label: 'Gastos compartidos',
+                line: 'Todos agregan. Calculamos quién debe.',
+                rosterLabel: 'YA ESTÁN EN EL SPLIT',
+                rosterLine: '5 personas ya están',
+                count: 5,
+                overflow: 2,
                 proof: 'sin registro · gratis para siempre',
             },
         ],
         [
             'pt-br',
             {
-                label: 'DESPESAS EM GRUPO',
-                line: 'Abra o link. Adicione o que pagou.',
-                action: 'ENTRAR NO SPLIT',
+                inviter: 'Você recebeu um convite para',
+                label: 'Despesas em grupo',
+                line: 'Todos adicionam. Calculamos quem deve.',
+                rosterLabel: 'JÁ ESTÃO NO SPLIT',
+                rosterLine: '5 pessoas já estão',
+                count: 5,
+                overflow: 2,
                 proof: 'sem cadastro · grátis para sempre',
             },
         ],
     ])('makes the %s invite explain the product and the next action', async (locale, copy) => {
         const card = (await buildFixtureCard('invite', locale)) as Extract<AchievementCardData, { kind: 'invite' }>
         expect(card).toMatchObject(copy)
+        expect(card.personas).toHaveLength(MAX_INVITE_LINEUP)
+    })
+
+    it('personalizes only from a member who actually belongs to this room', async () => {
+        const [sharerId] = fixtureMemberIds.get('en') ?? []
+        const personalized = (await loadInviteCard(slugOf('en'), sharerId)) as Extract<
+            AchievementCardData,
+            { kind: 'invite' }
+        >
+        expect(personalized.inviter).toBe('Anastasiya invites you to')
+
+        const serialized = JSON.stringify(personalized)
+        expect(serialized).not.toContain(sharerId)
+        for (const otherName of FIXTURE_MEMBER_NAMES.slice(1)) expect(serialized).not.toContain(otherName)
+
+        const [foreignId] = fixtureMemberIds.get('es-419') ?? []
+        const foreign = (await loadInviteCard(slugOf('en'), foreignId)) as Extract<
+            AchievementCardData,
+            { kind: 'invite' }
+        >
+        expect(foreign.inviter).toBe('You’re invited to')
+    })
+
+    it.each([0, 1, 2, 3, 5, 12])('caps the %i-person invite roster without changing its count', async (count) => {
+        const t = async (key: string, params?: Record<string, string | number>) => {
+            const copy: Record<string, string> = {
+                'card.invite.label': 'Shared group expenses',
+                'card.invite.line': 'Everyone adds. We sort who owes.',
+                'card.invite.inviter': `${String(params?.name)} invites you to`,
+                'card.invite.inviterFallback': 'You’re invited to',
+                'card.invite.roster': 'ALREADY IN THE SPLIT',
+                'card.invite.rosterEmpty': 'START THE SPLIT TOGETHER',
+                'card.invite.personOne': '1 person already in',
+                'card.invite.peopleMany': `${String(params?.count)} people already in`,
+                'card.invite.emptyAction': 'Open the link and add what you paid',
+                'preview.tagline': 'no signup · free forever',
+            }
+            return copy[key] ?? key
+        }
+        const card = (await toInviteCard(
+            {
+                name: 'Ski trip',
+                theme: null,
+                count,
+                personas: Array.from({ length: count }, (_, index) => `avatar-${index}`),
+            },
+            t,
+            'Konrad'
+        )) as Extract<AchievementCardData, { kind: 'invite' }>
+
+        expect(card.count).toBe(count)
+        expect(card.personas).toHaveLength(Math.min(count, MAX_INVITE_LINEUP))
+        expect(card.overflow).toBe(Math.max(0, count - MAX_INVITE_LINEUP))
+        expect(card.rosterLine).toBe(
+            count === 0
+                ? 'Open the link and add what you paid'
+                : count === 1
+                  ? '1 person already in'
+                  : `${count} people already in`
+        )
     })
 
     it('draws the crew as characters, never as names', async () => {
@@ -209,7 +288,7 @@ describe('achievement cards', () => {
         await prisma.room.update({ where: { slug: slugOf('en') }, data: { name: long } })
         const card = (await buildFixtureCard('invite')) as Extract<AchievementCardData, { kind: 'invite' }>
         expect(card.name.length).toBeLessThanOrEqual(MAX_NAME_CHARS + 3)
-        expect(nameFontSize(card.name)).toBe(48)
+        expect(inviteNameFontSize(card.name)).toBe(46)
         await prisma.room.update({ where: { slug: slugOf('en') }, data: { name: FIXTURE_ROOM_NAME } })
     })
 

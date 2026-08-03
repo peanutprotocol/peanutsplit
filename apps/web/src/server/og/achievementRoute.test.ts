@@ -16,15 +16,29 @@ import sharp from 'sharp'
 import { CARD_KINDS } from '@/lib/achievements-contract'
 import { prisma, truncateAll } from '@/server/test/db'
 import { enforceRateLimitPreflight, LOOKUP_MISS_LIMIT, LOOKUP_MISS_SCOPE, resetRateLimits } from '@/server/rateLimit'
-import { GET } from '@/app/r/[slug]/card/[kind]/route'
+import { GET, POST } from '@/app/r/[slug]/card/[kind]/route'
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47]
 const SLUG = 'card-route-tests1'
 const GEOMETRY_SLUG = 'card-geometry-test'
+let SHARER_ID = ''
 
 const call = async (slug: string, kind: string, query = '') => {
     const url = `http://localhost:3000/r/${slug}/card/${kind}${query}`
     const response = await GET(new Request(url), { params: Promise.resolve({ slug, kind }) })
+    return { response, bytes: new Uint8Array(await response.arrayBuffer()) }
+}
+
+const postInvite = async (slug: string, memberId?: string) => {
+    const url = `http://localhost:3000/r/${slug}/card/invite`
+    const response = await POST(
+        new Request(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(memberId ? { memberId } : {}),
+        }),
+        { params: Promise.resolve({ slug, kind: 'invite' }) }
+    )
     return { response, bytes: new Uint8Array(await response.arrayBuffer()) }
 }
 
@@ -60,6 +74,7 @@ describe('achievement card route', () => {
             include: { members: { orderBy: { createdAt: 'asc' } } },
         })
         const [first, second] = room.members
+        SHARER_ID = first.id
         for (const [i, currency] of ['EUR', 'JPY', 'THB', 'BRL'].entries()) {
             await prisma.expense.create({
                 data: {
@@ -92,6 +107,25 @@ describe('achievement card route', () => {
         },
         30_000
     )
+
+    it('rasterizes a personalized invite without leaving a cacheable representation', async () => {
+        const { response, bytes } = await postInvite(SLUG, SHARER_ID)
+        expect(response.status).toBe(200)
+        expect([...bytes.slice(0, 4)]).toEqual(PNG_MAGIC)
+        expect(bytes.byteLength).toBeGreaterThan(5_000)
+        expect(response.headers.get('Cache-Control')).toBe('private, no-store')
+    })
+
+    it('accepts an anonymous invite POST and refuses POST for achievement cards', async () => {
+        const anonymous = await postInvite(SLUG)
+        expect(anonymous.response.status).toBe(200)
+
+        const response = await POST(new Request(`http://localhost:3000/r/${SLUG}/card/crew`, { method: 'POST' }), {
+            params: Promise.resolve({ slug: SLUG, kind: 'crew' }),
+        })
+        expect(response.status).toBe(405)
+        expect(response.headers.get('Allow')).toBe('GET')
+    })
 
     it('404s a kind that is not in the catalog', async () => {
         const response = await GET(new Request('http://localhost:3000/r/x/card/streak'), {

@@ -5,7 +5,15 @@ test('the room hand-off keeps copy inline and makes sharing the primary action',
     await page.getByTestId('room-name').fill('Beer trip')
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
+    const inviteRequestPromise = page.waitForRequest((request) => request.url().includes('/card/invite'))
     await page.getByTestId('create-room').click()
+
+    const inviteRequest = await inviteRequestPromise
+    expect(inviteRequest.method()).toBe('POST')
+    expect(new URL(inviteRequest.url()).search).toBe('')
+    expect(Object.keys(inviteRequest.postDataJSON() as Record<string, unknown>)).toEqual(['memberId'])
+    expect((inviteRequest.postDataJSON() as { memberId: unknown }).memberId).toEqual(expect.any(String))
+    expect(inviteRequest.headers()).not.toHaveProperty('x-member-token')
 
     const row = page.getByTestId('room-link-row')
     await expect(row).toBeVisible({ timeout: 15_000 })

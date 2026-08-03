@@ -297,6 +297,7 @@ export function SplitwiseImport() {
                 roomName={created.room.name}
                 emoji={created.room.emoji}
                 theme={created.room.theme}
+                sharerMemberId={created.memberId}
                 title={t('ready.title')}
                 subtitle={t('ready.subtitle')}
                 footer={
