@@ -11,11 +11,11 @@
  * chain, which is this:
  *
  *   1. `errors.<CODE>` from the catalog, if the code is one we know.
- *   2. the server's own English message, for a code shipped by a backend newer than this build.
- *   3. `errors.generic`, when there is no message at all (a thrown non-ApiError).
+ *   2. the surface-specific fallback, when the caller has one.
+ *   3. `errors.generic` for an unknown code or thrown non-ApiError.
  *
- * Step 2 is the important one: a new backend code must degrade to "English but accurate", never
- * to "Something went wrong" — losing the only sentence that says what actually happened.
+ * The server message stays in trusted logs. It can contain a path, identifier or implementation
+ * detail, so rolling-deploy compatibility must never turn it into UI copy.
  */
 
 'use client'
@@ -33,6 +33,7 @@ export const KNOWN_ERROR_CODES = [
     'INTERNAL',
     'VALIDATION_ERROR',
     'MALFORMED_JSON',
+    'REQUEST_TOO_LARGE',
     'NOT_FOUND',
     'EXPENSE_NOT_FOUND',
     'SETTLEMENT_NOT_FOUND',
@@ -41,6 +42,9 @@ export const KNOWN_ERROR_CODES = [
     'DUPLICATE_MEMBER_NAME',
     'MEMBER_HAS_HISTORY',
     'EXPENSE_DELETED',
+    'NEW_PAYER_ON_EDIT',
+    'CATCH_UP_REVIEW_CONFLICT',
+    'HISTORY_CURSOR_INVALID',
     'NOT_A_MEMBER',
     'AMOUNT_NOT_POSITIVE',
     'AMOUNT_TOO_LARGE',
@@ -77,6 +81,9 @@ export const KNOWN_ERROR_CODES = [
     'NL_ROOM_LIMIT',
     'NL_FAILED',
     'IMPORT_TOO_LARGE',
+    'IMPORT_UNAVAILABLE',
+    'UNSUPPORTED_PUSH_HOST',
+    'PUSH_SUBSCRIPTION_LIMIT',
     'RATE_LIMITED',
 ] as const
 
@@ -84,23 +91,23 @@ export type KnownErrorCode = (typeof KNOWN_ERROR_CODES)[number]
 
 const isKnownCode = (code: string): code is KnownErrorCode => (KNOWN_ERROR_CODES as readonly string[]).includes(code)
 
+type ErrorTranslator = (key: KnownErrorCode | 'generic') => string
+
+/** Pure half of the hook, exported so the raw-message boundary has a canary test. */
+export function errorMessageFor(error: unknown, translate: ErrorTranslator, fallback?: string): string {
+    if (error instanceof ApiRequestError && isKnownCode(error.code)) return translate(error.code)
+    return fallback ?? translate('generic')
+}
+
 /**
  * Returns a stable `(error) => string`. Every drawer that catches a mutation calls this instead
  * of reaching for `err.message`.
  *
  * `fallback` is for the cases where the surface knows better than a generic sentence — the
- * create-room form saying "could not create the room" beats "something went wrong" — and is used
- * only when the error carries no usable message of its own.
+ * create-room form saying "could not create the room" beats "something went wrong".
  */
 export function useErrorMessage(): (error: unknown, fallback?: string) => string {
     const t = useTranslations('errors')
 
-    return (error: unknown, fallback?: string): string => {
-        if (error instanceof ApiRequestError) {
-            if (isKnownCode(error.code)) return t(error.code)
-            // Unknown code: the server's English sentence is more useful than a generic one.
-            if (error.message) return error.message
-        }
-        return fallback ?? t('generic')
-    }
+    return (error: unknown, fallback?: string): string => errorMessageFor(error, t, fallback)
 }

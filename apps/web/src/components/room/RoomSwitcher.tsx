@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiRoom } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
@@ -54,8 +54,8 @@ export function RoomSwitcher({ open, onClose, room }: RoomSwitcherProps) {
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className={drawerContentClass} data-testid="room-switcher-sheet">
-                <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+            <DrawerContent data-testid="room-switcher-sheet">
+                <DrawerHeader className="flex flex-row items-end justify-between">
                     <DrawerTitle className="text-h5">{t('roomsTitle')}</DrawerTitle>
                     <CloseButton onClick={onClose} label={t('closeRoomSwitcher')} />
                 </DrawerHeader>

@@ -181,6 +181,17 @@ describe('api requests', () => {
         expect(fetchMock.mock.calls[0][0]).toBe('/api/rooms/weird%2Fslug')
     })
 
+    it('bypasses browser caches for private room state and history reads', async () => {
+        const fetchMock = respondWith(200, {})
+        vi.stubGlobal('fetch', fetchMock)
+
+        await api.room('ski-trip-aaa')
+        await api.roomHistory('ski-trip-aaa')
+
+        expect(fetchMock.mock.calls[0][1].cache).toBe('no-store')
+        expect(fetchMock.mock.calls[1][1].cache).toBe('no-store')
+    })
+
     /** The drawing rides the room PATCH, and it must send ONLY the drawing: a
      *  body carrying the name too would rename the room on every pick. */
     it('sends the room drawing as an emoji-only PATCH, including the null reset', async () => {

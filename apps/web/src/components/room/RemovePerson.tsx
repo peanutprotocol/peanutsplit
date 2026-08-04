@@ -86,9 +86,10 @@ export function RemovePerson({ slug, member, token }: { slug: string; member: Ap
                                 <Button
                                     variant="stroke"
                                     size="small"
+                                    width="auto"
                                     onClick={() => void remove()}
                                     loading={deleteMember.isPending}
-                                    className={cn(BTN_SMALL, 'w-auto justify-center')}
+                                    className={cn(BTN_SMALL, 'justify-center')}
                                     data-testid="remove-person-confirm"
                                 >
                                     {t('confirm')}
@@ -96,8 +97,9 @@ export function RemovePerson({ slug, member, token }: { slug: string; member: Ap
                                 <Button
                                     variant="stroke"
                                     size="small"
+                                    width="auto"
                                     onClick={() => setOpen(false)}
-                                    className={cn(BTN_SMALL, 'w-auto justify-center')}
+                                    className={cn(BTN_SMALL, 'justify-center')}
                                     data-testid="remove-person-cancel"
                                 >
                                     {t('cancel')}

@@ -6,6 +6,12 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
+import {
+    COMPOSER_CURRENCY_SLOT,
+    composerBareInputClassName,
+    composerRowClassName,
+    composerSurfaceClassName,
+} from '@/components/ui/composer-style'
 import { Icon } from '@/components/ui/Icon'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCurrencies } from '@/lib/queries'
@@ -103,10 +109,7 @@ export function CreateRoomForm() {
                 {/* Same receipt-like object as add expense: the primary value and
                     currency share the first line, supporting information lives
                     beneath it, and optional detail expands outside the card. */}
-                <div
-                    data-testid="room-composer"
-                    className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
-                >
+                <div data-testid="room-composer" className={composerSurfaceClassName()}>
                     <div className="flex min-w-0 items-center gap-2 px-3 py-2">
                         <label className="min-w-0 flex-1">
                             <span className="sr-only">{t('name')}</span>
@@ -118,10 +121,10 @@ export function CreateRoomForm() {
                                 maxLength={80}
                                 autoFocus
                                 data-testid="room-name"
-                                className="h-16 w-full min-w-0 border-0 bg-transparent px-1 text-h5 font-extrabold outline-none placeholder:text-grey-2"
+                                className={composerBareInputClassName('h-16 px-1 text-h5 font-extrabold')}
                             />
                         </label>
-                        <div className="w-[7.25rem] shrink-0">
+                        <div className={COMPOSER_CURRENCY_SLOT}>
                             <CurrencySelect
                                 value={currency}
                                 onChange={chooseCurrency}
@@ -134,7 +137,7 @@ export function CreateRoomForm() {
                         </div>
                     </div>
 
-                    <label className="block border-t border-dashed border-grey-1">
+                    <label className={composerRowClassName('block')}>
                         <span className="sr-only">{t('creatorName')}</span>
                         <input
                             value={creatorName}
@@ -143,7 +146,8 @@ export function CreateRoomForm() {
                             aria-label={t('creatorName')}
                             maxLength={80}
                             data-testid="creator-name"
-                            className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
+                            data-focus-contained
+                            className={composerBareInputClassName('h-14 px-4 text-sm font-bold')}
                         />
                     </label>
 
@@ -155,7 +159,8 @@ export function CreateRoomForm() {
                         aria-controls={drawingOpen ? 'room-drawing-editor' : undefined}
                         aria-label={t('emojiGroup')}
                         data-testid="room-drawing-summary"
-                        className="flex min-h-14 w-full items-center gap-3 border-t border-dashed border-grey-1 px-4 text-left"
+                        data-focus-contained
+                        className={composerRowClassName('flex min-h-14 w-full items-center gap-3 px-4 text-left')}
                     >
                         <RoomEmblem value={shownEmblem} name={name} size={30} />
                         <span className="min-w-0 flex-1">
@@ -196,7 +201,7 @@ export function CreateRoomForm() {
                                 event.stopPropagation()
                                 closeDrawing()
                             }}
-                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
+                            className={composerSurfaceClassName()}
                         >
                             <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
                                 <h2 className="text-h8">{t('emoji')}</h2>
@@ -216,6 +221,10 @@ export function CreateRoomForm() {
                                     onChange={(next) => {
                                         setEmblem(next)
                                         closeDrawing()
+                                        feedback('tick')
+                                    }}
+                                    onKeyboardChange={(next) => {
+                                        setEmblem(next)
                                         feedback('tick')
                                     }}
                                 />

@@ -1,17 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
-import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { CloseButton } from '@/components/ui/CloseButton'
-import { Doodle } from '@/components/ui/Doodle'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
+import { useRovingRadioGroup } from '@/components/ui/use-roving-radio-group'
 import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, ExpenseUpdateInput, RoomState, SplitMode } from '@/lib/api-types'
@@ -58,6 +57,10 @@ import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
 import { QuickAdd } from './QuickAdd'
+import { ExpenseComposer } from './expense-drawer/ExpenseComposer'
+import { ExpenseDateEditor } from './expense-drawer/ExpenseDateEditor'
+import { ExpenseDrawerActions } from './expense-drawer/ExpenseDrawerActions'
+import { expenseDrawerWorkflowReducer, initialExpenseDrawerWorkflowState } from './expense-drawer/workflow-state'
 import { ScanButton } from './scan/ScanButton'
 import { ScanFlow } from './scan/ScanFlow'
 
@@ -83,6 +86,7 @@ interface ExpenseDrawerProps {
 
 const ADVANCED_SPLIT_MODES = ['EXACT', 'PERCENTAGE', 'SHARES'] as const
 const ALL_SPLIT_MODES = ['EQUAL', ...ADVANCED_SPLIT_MODES] as const
+const DRAFT_PAYER_OPTION = '__draft-payer__'
 
 export function ExpenseDrawer({
     open,
@@ -119,26 +123,22 @@ export function ExpenseDrawer({
     const [values, setValues] = useState<ExpenseFormValues>(() =>
         emptyExpenseForm({ currency: state.room.currency, members: state.members, paidById: defaultPaidById })
     )
-    const [submitted, setSubmitted] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-    /**
-     * The picked photo. Its presence IS the scan flow's open state — a separate
-     * boolean would let the two disagree, and "the overlay is up with no image"
-     * is a stuck screen with no way back.
-     */
-    const [scanFile, setScanFile] = useState<File | null>(null)
-    const [addingPayer, setAddingPayer] = useState(false)
-    const [newPayerName, setNewPayerName] = useState('')
-    const [payerError, setPayerError] = useState<string | null>(null)
-    const [addingParticipant, setAddingParticipant] = useState(false)
-    const [newParticipantName, setNewParticipantName] = useState('')
-    const [participantError, setParticipantError] = useState<string | null>(null)
-    const [fieldRepairNotice, setFieldRepairNotice] = useState<string | null>(null)
-    const [editor, setEditor] = useState<'payer' | 'split' | 'date' | null>(null)
-    const [moreSplitOptionsOpen, setMoreSplitOptionsOpen] = useState(false)
-    /** Delete asks first, like undoing a payment record does. The row is the
-     *  room's shared history, so a mis-tap costs everyone a balance. */
-    const [confirmingDelete, setConfirmingDelete] = useState(false)
+    const [workflow, dispatchWorkflow] = useReducer(
+        expenseDrawerWorkflowReducer,
+        undefined,
+        initialExpenseDrawerWorkflowState
+    )
+    const {
+        submitted,
+        error,
+        scanFile,
+        payerDraft: { open: addingPayer, name: newPayerName, error: payerError },
+        participantDraft: { open: addingParticipant, name: newParticipantName, error: participantError },
+        fieldRepairNotice,
+        editor,
+        advancedOptionsOpen: moreSplitOptionsOpen,
+        confirmingDelete,
+    } = workflow
     const deleteTriggerRef = useRef<HTMLButtonElement>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
@@ -158,21 +158,12 @@ export function ExpenseDrawer({
     // money bug waiting to happen.
     useEffect(() => {
         if (!open) return
-        setSubmitted(false)
-        setError(null)
-        // A half-finished scan must not survive the drawer closing: reopening
-        // would drop the user back into someone else's receipt.
-        setScanFile(null)
-        setAddingPayer(false)
-        setNewPayerName('')
-        setPayerError(null)
-        setAddingParticipant(false)
-        setNewParticipantName('')
-        setParticipantError(null)
-        setFieldRepairNotice(null)
-        setEditor(null)
-        setMoreSplitOptionsOpen(Boolean(expense && expense.splitMode !== 'EQUAL'))
-        setConfirmingDelete(false)
+        // One transition owns all ephemeral reset behavior, including clearing
+        // a half-finished scan so reopening cannot show somebody else's receipt.
+        dispatchWorkflow({
+            type: 'reset-on-open',
+            advancedOptionsOpen: Boolean(expense && expense.splitMode !== 'EQUAL'),
+        })
         expenseRequestRef.current = null
         setValues(
             expense
@@ -229,7 +220,7 @@ export function ExpenseDrawer({
 
         let cancelled = false
         void takeSharedReceipt(caches).then((file) => {
-            if (!cancelled && file) setScanFile(file)
+            if (!cancelled && file) dispatchWorkflow({ type: 'scan-selected', file })
             onSharedReceiptConsumed?.()
         })
         return () => {
@@ -270,14 +261,22 @@ export function ExpenseDrawer({
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
 
-    const choosePayer = (memberId: string) => {
+    const choosePayer = (memberId: string, close = true) => {
         patch({ paidById: memberId, newPaidByName: '' })
-        setAddingPayer(false)
-        setNewPayerName('')
-        setPayerError(null)
-        setEditor(null)
+        if (close) dispatchWorkflow({ type: 'payer-committed' })
         feedback('tick')
     }
+    const payerOptions = [
+        ...(values.newPaidByName ? [DRAFT_PAYER_OPTION] : []),
+        ...state.members.map((member) => member.id),
+    ]
+    const { getRadioProps: getPayerRadioProps } = useRovingRadioGroup({
+        options: payerOptions,
+        value: values.newPaidByName ? DRAFT_PAYER_OPTION : values.paidById,
+        onChange: (option) => {
+            if (option !== DRAFT_PAYER_OPTION) choosePayer(option, false)
+        },
+    })
 
     /**
      * This creates a roster entry, not a new identity for this device. The room
@@ -298,10 +297,7 @@ export function ExpenseDrawer({
         // Draft only. The server creates this member in the same transaction as
         // the expense, so cancelling or a rejected save cannot alter the roster.
         patch({ paidById: '', newPaidByName: name })
-        setPayerError(null)
-        setAddingPayer(false)
-        setNewPayerName('')
-        setEditor(null)
+        dispatchWorkflow({ type: 'payer-committed' })
         feedback('pop')
     }
 
@@ -353,31 +349,17 @@ export function ExpenseDrawer({
         patch({ splitMode: mode, shareInputs })
     }
 
-    /** The split methods expose radio semantics, including the arrow-key
-     *  behavior native radios provide. Moving to a hidden advanced option also
-     *  opens the disclosure before focus follows the selection. */
-    const moveSplitMode = (event: React.KeyboardEvent<HTMLButtonElement>, mode: SplitMode) => {
-        const key = event.key
-        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) return
-        event.preventDefault()
-
-        const current = ALL_SPLIT_MODES.indexOf(mode)
-        const nextIndex =
-            key === 'Home'
-                ? 0
-                : key === 'End'
-                  ? ALL_SPLIT_MODES.length - 1
-                  : key === 'ArrowLeft' || key === 'ArrowUp'
-                    ? (current - 1 + ALL_SPLIT_MODES.length) % ALL_SPLIT_MODES.length
-                    : (current + 1) % ALL_SPLIT_MODES.length
-        const next = ALL_SPLIT_MODES[nextIndex]
-        if (next !== 'EQUAL') setMoreSplitOptionsOpen(true)
-        setSplitMode(next)
-        feedback('tick')
-        requestAnimationFrame(() => {
-            document.querySelector<HTMLButtonElement>(`[data-testid="split-${next.toLowerCase()}"]`)?.focus()
-        })
-    }
+    /** Moving to a collapsed advanced option reveals it before the shared
+     *  radio helper transfers focus. */
+    const { getRadioProps: getSplitModeRadioProps } = useRovingRadioGroup({
+        options: ALL_SPLIT_MODES,
+        value: values.splitMode,
+        onChange: (next) => {
+            if (next !== 'EQUAL') dispatchWorkflow({ type: 'advanced-options-opened' })
+            setSplitMode(next)
+            feedback('tick')
+        },
+    })
 
     const toggleParticipant = (memberId: string) => {
         // First touch materialises "everyone right now"; until then the form's
@@ -416,9 +398,7 @@ export function ExpenseDrawer({
             } else if (values.splitMode === 'SHARES' && values.shareInputs[memberId] === undefined) {
                 patch({ shareInputs: { ...values.shareInputs, [memberId]: '' } })
             }
-            setAddingParticipant(false)
-            setNewParticipantName('')
-            setParticipantError(null)
+            dispatchWorkflow({ type: 'participant-draft-closed' })
         }
 
         const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
@@ -428,7 +408,7 @@ export function ExpenseDrawer({
             return
         }
 
-        setParticipantError(null)
+        dispatchWorkflow({ type: 'participant-error-cleared' })
         try {
             const next = await addMember.mutateAsync({ name })
             select(next.memberId)
@@ -436,10 +416,10 @@ export function ExpenseDrawer({
         } catch (err) {
             feedback('error', { haptic: 'error' })
             if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
-                setParticipantError(t('payerDuplicate', { name }))
+                dispatchWorkflow({ type: 'participant-failed', error: t('payerDuplicate', { name }) })
                 return
             }
-            setParticipantError(errorMessage(err, t('payerAddFailed')))
+            dispatchWorkflow({ type: 'participant-failed', error: errorMessage(err, t('payerAddFailed')) })
         }
     }
 
@@ -519,15 +499,14 @@ export function ExpenseDrawer({
         const normalised = formatAmountInput(minor, decimals, locale)
         if (normalised === raw) return
         patch({ amountInput: normalised })
-        setSubmitted(false)
-        setFieldRepairNotice(t('amountNormalised', { amount: normalised }))
+        dispatchWorkflow({ type: 'amount-normalised', notice: t('amountNormalised', { amount: normalised }) })
     }
 
     const chooseRelativeDate = (daysAgo: number) => {
         const date = new Date()
         date.setDate(date.getDate() - daysAgo)
         patch({ date: fromDateInputValue(toDateInputValue(date.toISOString()), values.date) })
-        setEditor(null)
+        dispatchWorkflow({ type: 'editor-closed' })
         feedback('tick')
     }
 
@@ -573,15 +552,14 @@ export function ExpenseDrawer({
         const repaired = repairMisplacedExpenseFields(candidate, currencies, locale)
         if (!repaired) return candidate
         setValues(repaired)
-        if (clearSubmitted) setSubmitted(false)
-        setFieldRepairNotice(t('fieldsSwapped'))
+        dispatchWorkflow({ type: 'fields-repaired', notice: t('fieldsSwapped'), clearSubmitted })
         feedback('tick')
         return repaired
     }
 
     const save = async () => {
         if (savingRef.current) return
-        setSubmitted(true)
+        dispatchWorkflow({ type: 'submission-attempted' })
         const valuesToSave = repairFieldRoles(values, false)
         const validationToSave = validateExpenseForm(valuesToSave, currencies, locale)
         if (validationToSave) {
@@ -596,7 +574,10 @@ export function ExpenseDrawer({
             ) {
                 amountRef.current?.focus()
             } else {
-                setEditor(validationToSave === 'PAYER_REQUIRED' ? 'payer' : 'split')
+                dispatchWorkflow({
+                    type: 'editor-opened',
+                    editor: validationToSave === 'PAYER_REQUIRED' ? 'payer' : 'split',
+                })
                 /**
                  * The reason renders under a section this tap just opened, which on a
                  * phone puts it a screen and a half below the fold: the sheet shook,
@@ -616,7 +597,7 @@ export function ExpenseDrawer({
             return
         }
         savingRef.current = true
-        setError(null)
+        dispatchWorkflow({ type: 'error-cleared' })
         const body = buildExpenseBody(valuesToSave, currencies, locale)
         try {
             if (expense) {
@@ -655,15 +636,18 @@ export function ExpenseDrawer({
             feedback('error', { haptic: 'error' })
             shake()
             if (isApiError(err, 'DUPLICATE_MEMBER_NAME') && valuesToSave.newPaidByName) {
-                setError(t('payerDuplicate', { name: valuesToSave.newPaidByName }))
-                setEditor('payer')
+                dispatchWorkflow({
+                    type: 'error-set',
+                    error: t('payerDuplicate', { name: valuesToSave.newPaidByName }),
+                })
+                dispatchWorkflow({ type: 'editor-opened', editor: 'payer' })
                 return
             }
             if (isApiError(err, 'EXPENSE_DELETED')) {
-                setError(t('wasDeleted'))
+                dispatchWorkflow({ type: 'error-set', error: t('wasDeleted') })
                 return
             }
-            setError(errorMessage(err, t('saveFailed')))
+            dispatchWorkflow({ type: 'error-set', error: errorMessage(err, t('saveFailed')) })
         } finally {
             savingRef.current = false
         }
@@ -702,13 +686,13 @@ export function ExpenseDrawer({
             return true
         } catch (err) {
             feedback('error', { haptic: 'error' })
-            setError(errorMessage(err, t('deleteFailed')))
+            dispatchWorkflow({ type: 'error-set', error: errorMessage(err, t('deleteFailed')) })
             return false
         }
     }
 
     const cancelDelete = () => {
-        setConfirmingDelete(false)
+        dispatchWorkflow({ type: 'delete-confirmation-cancelled' })
         window.requestAnimationFrame(() => deleteTriggerRef.current?.focus())
     }
 
@@ -921,177 +905,64 @@ export function ExpenseDrawer({
                 )}
 
                 <DrawerBody ref={formRef} className="gap-3 pb-6 pt-2" data-testid="expense-scroll">
-                    {/* One object, not four labelled sections: the receipt being created. */}
-                    <div
-                        data-testid="expense-composer"
-                        className={cn(
-                            'shadow-4 overflow-hidden rounded-lg border-2 bg-white transition-colors',
-                            amountInvalid ? 'border-error' : 'border-n-1'
-                        )}
-                    >
-                        <div className="flex min-w-0 items-center gap-2 px-3 py-2">
-                            <label className="min-w-0 flex-1">
-                                <span className="sr-only">{t('amount')}</span>
-                                <input
-                                    ref={amountRef}
-                                    value={values.amountInput}
-                                    onChange={(event) => {
-                                        patch({ amountInput: event.target.value })
-                                        setSubmitted(false)
-                                        setFieldRepairNotice(null)
-                                    }}
-                                    onBlur={() => {
-                                        repairFieldRoles()
-                                        normaliseAmount()
-                                    }}
-                                    inputMode="decimal"
-                                    autoComplete="off"
-                                    placeholder={decimals === 0 ? '0' : '0.00'}
-                                    aria-invalid={amountInvalid || undefined}
-                                    aria-describedby={amountInvalid ? 'expense-amount-error' : undefined}
-                                    data-testid="expense-amount"
-                                    className={cn(
-                                        'h-16 w-full min-w-0 border-0 bg-transparent px-1 font-extrabold tabular-nums outline-none placeholder:text-grey-2',
-                                        amountTextSize
-                                    )}
-                                />
-                            </label>
-                            <div className="w-[7.25rem] shrink-0">
-                                <CurrencySelect
-                                    value={values.currency}
-                                    onChange={(code) => patch({ currency: code })}
-                                    currencies={currencies}
-                                    suggested={suggestedCurrencies}
-                                    requireRateTo={state.room.currency}
-                                    variant="sm"
-                                    aria-label={t('currency')}
-                                    data-testid="expense-currency"
-                                />
-                            </div>
-                        </div>
-
-                        <label className="block border-t border-dashed border-grey-1">
-                            <span className="sr-only">{t('description')}</span>
-                            <input
-                                value={values.description}
-                                onChange={(event) => {
-                                    patch({ description: event.target.value })
-                                    setSubmitted(false)
-                                    setFieldRepairNotice(null)
-                                }}
-                                onBlur={() => repairFieldRoles()}
-                                placeholder={t('descriptionPlaceholder')}
-                                maxLength={255}
-                                data-testid="expense-description"
-                                className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
-                            />
-                        </label>
-
-                        <div className="grid grid-cols-[1.1fr_1.45fr_.85fr] border-t border-dashed border-grey-1 p-1.5">
-                            <button
-                                type="button"
-                                onClick={() => setEditor((current) => (current === 'payer' ? null : 'payer'))}
-                                aria-pressed={editor === 'payer'}
-                                aria-label={payerName ? t('paidBySummary', { name: payerName }) : t('paidBy')}
-                                data-testid="expense-payer-summary"
-                                className={cn(
-                                    'flex min-h-12 min-w-0 items-center justify-center gap-1.5 rounded-sm border-r border-dashed border-grey-2 px-1 text-left',
-                                    editor === 'payer' && 'bg-primary-3'
-                                )}
-                            >
-                                {payer && (
-                                    <MemberAvatar
-                                        name={payer.name}
-                                        avatar={payer.avatar}
-                                        palette={payer.avatarPalette}
-                                        size={25}
-                                    />
-                                )}
-                                <span className="min-w-0">
-                                    <span className="block truncate text-h9">{payerName ?? t('choosePayer')}</span>
-                                    <span className="block text-h10 text-grey-1">{t('paid')}</span>
-                                </span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setEditor((current) => (current === 'split' ? null : 'split'))}
-                                aria-pressed={editor === 'split'}
-                                aria-label={t('splitSummary', {
-                                    people: participantSummary,
-                                    mode: splitModeSummary,
-                                })}
-                                data-testid="expense-split-summary"
-                                className={cn(
-                                    'flex min-h-12 min-w-0 items-center justify-center gap-1 rounded-sm border-r border-dashed border-grey-2 px-1 text-left',
-                                    editor === 'split' && 'bg-primary-3'
-                                )}
-                            >
-                                <span className="flex shrink-0 pl-1.5">
-                                    {participants.slice(0, 3).map((member, index) => (
-                                        <MemberAvatar
-                                            key={member.id}
-                                            name={member.name}
-                                            avatar={member.avatar}
-                                            palette={member.avatarPalette}
-                                            size={23}
-                                            className={index > 0 ? '-ml-2' : ''}
-                                        />
-                                    ))}
-                                </span>
-                                <span className="min-w-0">
-                                    <span className="block truncate text-h9">{participantSummary}</span>
-                                    <span className="block truncate text-h10 text-grey-1">{splitModeCaption}</span>
-                                </span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setEditor((current) => (current === 'date' ? null : 'date'))}
-                                aria-pressed={editor === 'date'}
-                                aria-label={t('dateSummary', { date: dateSummary })}
-                                data-testid="expense-date-summary"
-                                className={cn(
-                                    'flex min-h-12 min-w-0 items-center justify-center gap-1 rounded-sm px-1',
-                                    editor === 'date' && 'bg-primary-3'
-                                )}
-                            >
-                                <Doodle name="iconcalendar" size={19} weight={1.8} className="shrink-0" />
-                                <span className="min-w-0">
-                                    <span className="block truncate text-h9">{dateSummary}</span>
-                                    <span className="block text-h10 text-grey-1">{t('dateShort')}</span>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <AnimatePresence initial={false}>
-                        {fieldRepairNotice && (
-                            <motion.p
-                                key={fieldRepairNotice}
-                                role="status"
-                                aria-live="polite"
-                                initial={motionAllowed ? { opacity: 0, y: -4 } : false}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={motionAllowed ? { opacity: 0, y: -4 } : undefined}
-                                transition={motionAllowed ? undefined : { duration: 0 }}
-                                data-motion-surface
-                                className="px-1 text-xs font-bold text-grey-1"
-                                data-testid="expense-fields-repaired"
-                            >
-                                {fieldRepairNotice}
-                            </motion.p>
-                        )}
-                    </AnimatePresence>
-
-                    {amountInvalid && (
-                        <p
-                            id="expense-amount-error"
-                            role="alert"
-                            className="flex items-center gap-2 text-sm font-bold text-error"
-                        >
-                            <Icon name="x" size={16} />
-                            {validationCopy ?? t('validation.AMOUNT_REQUIRED')}
-                        </p>
-                    )}
+                    <ExpenseComposer
+                        amount={{
+                            inputRef: amountRef,
+                            value: values.amountInput,
+                            decimals,
+                            invalid: amountInvalid,
+                            textSizeClass: amountTextSize,
+                            onChange: (value) => {
+                                patch({ amountInput: value })
+                                dispatchWorkflow({ type: 'form-field-edited' })
+                            },
+                            onBlur: () => {
+                                repairFieldRoles()
+                                normaliseAmount()
+                            },
+                        }}
+                        currency={{
+                            value: values.currency,
+                            choices: currencies,
+                            suggested: suggestedCurrencies,
+                            roomCurrency: state.room.currency,
+                            onChange: (code) => patch({ currency: code }),
+                        }}
+                        description={{
+                            value: values.description,
+                            onChange: (value) => {
+                                patch({ description: value })
+                                dispatchWorkflow({ type: 'form-field-edited' })
+                            },
+                            onBlur: () => repairFieldRoles(),
+                        }}
+                        editor={editor}
+                        onToggleEditor={(next) => dispatchWorkflow({ type: 'editor-toggled', editor: next })}
+                        payer={payer}
+                        payerName={payerName}
+                        participants={participants}
+                        participantSummary={participantSummary}
+                        splitModeSummary={splitModeSummary}
+                        splitModeCaption={splitModeCaption}
+                        dateSummary={dateSummary}
+                        repairNotice={fieldRepairNotice}
+                        motionAllowed={motionAllowed}
+                        validationCopy={validationCopy}
+                        labels={{
+                            amount: t('amount'),
+                            currency: t('currency'),
+                            description: t('description'),
+                            descriptionPlaceholder: t('descriptionPlaceholder'),
+                            paidBy: t('paidBy'),
+                            paidBySummary: (name) => t('paidBySummary', { name }),
+                            choosePayer: t('choosePayer'),
+                            paid: t('paid'),
+                            splitSummary: (people, mode) => t('splitSummary', { people, mode }),
+                            dateSummary: (date) => t('dateSummary', { date }),
+                            dateShort: t('dateShort'),
+                            amountRequired: t('validation.AMOUNT_REQUIRED'),
+                        }}
+                    />
 
                     {/* Right under the composer, and only when adding: quick add
                         rewrites the receipt and its split. It remains progressive
@@ -1110,7 +981,7 @@ export function ExpenseDrawer({
                     )}
                     {!expense && modelResolved && modelEnabled && (
                         <div className="flex flex-wrap items-start gap-2">
-                            <ScanButton onFile={setScanFile} />
+                            <ScanButton onFile={(file) => dispatchWorkflow({ type: 'scan-selected', file })} />
                             <QuickAdd
                                 slug={slug}
                                 roomCurrency={state.room.currency}
@@ -1118,9 +989,7 @@ export function ExpenseDrawer({
                                 values={values}
                                 onApply={(next) => {
                                     setValues(next)
-                                    setSubmitted(false)
-                                    setError(null)
-                                    setEditor(null)
+                                    dispatchWorkflow({ type: 'quick-add-applied' })
                                 }}
                             />
                         </div>
@@ -1156,7 +1025,7 @@ export function ExpenseDrawer({
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => setEditor(null)}
+                                    onClick={() => dispatchWorkflow({ type: 'editor-closed' })}
                                     aria-label={t('collapseSection')}
                                     data-testid="collapse-payer-editor"
                                     className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
@@ -1171,6 +1040,7 @@ export function ExpenseDrawer({
                                             type="button"
                                             role="radio"
                                             aria-checked="true"
+                                            {...getPayerRadioProps(DRAFT_PAYER_OPTION)}
                                             data-testid="payer-chip"
                                             data-member={values.newPaidByName}
                                             className="shadow-2 flex min-h-12 min-w-0 items-center gap-2 rounded-md border border-n-1 bg-primary-3 px-2 text-left"
@@ -1188,6 +1058,7 @@ export function ExpenseDrawer({
                                                 type="button"
                                                 role="radio"
                                                 aria-checked={selected}
+                                                {...getPayerRadioProps(member.id)}
                                                 onClick={() => choosePayer(member.id)}
                                                 data-testid="payer-chip"
                                                 data-member={member.name}
@@ -1213,8 +1084,7 @@ export function ExpenseDrawer({
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setAddingPayer(true)
-                                            setPayerError(null)
+                                            dispatchWorkflow({ type: 'payer-draft-opened' })
                                             requestAnimationFrame(() => payerNameRef.current?.focus())
                                         }}
                                         className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-dashed border-n-1 bg-white px-3 py-2 text-h8"
@@ -1230,7 +1100,12 @@ export function ExpenseDrawer({
                                         <BaseInput
                                             ref={payerNameRef}
                                             value={newPayerName}
-                                            onChange={(event) => setNewPayerName(event.target.value)}
+                                            onChange={(event) =>
+                                                dispatchWorkflow({
+                                                    type: 'payer-name-changed',
+                                                    name: event.target.value,
+                                                })
+                                            }
                                             placeholder={t('payerNamePlaceholder')}
                                             aria-label={t('payerNamePlaceholder')}
                                             maxLength={80}
@@ -1249,11 +1124,7 @@ export function ExpenseDrawer({
                                         <button
                                             type="button"
                                             aria-label={t('cancelPayer')}
-                                            onClick={() => {
-                                                setAddingPayer(false)
-                                                setNewPayerName('')
-                                                setPayerError(null)
-                                            }}
+                                            onClick={() => dispatchWorkflow({ type: 'payer-draft-closed' })}
                                             className="flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-white"
                                         >
                                             <Icon name="x" size={19} />
@@ -1283,7 +1154,7 @@ export function ExpenseDrawer({
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => setEditor(null)}
+                                    onClick={() => dispatchWorkflow({ type: 'editor-closed' })}
                                     aria-label={t('collapseSection')}
                                     data-testid="collapse-split-editor"
                                     className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
@@ -1298,8 +1169,7 @@ export function ExpenseDrawer({
                                             type="button"
                                             role="radio"
                                             aria-checked={values.splitMode === 'EQUAL'}
-                                            tabIndex={values.splitMode === 'EQUAL' ? 0 : -1}
-                                            onKeyDown={(event) => moveSplitMode(event, 'EQUAL')}
+                                            {...getSplitModeRadioProps('EQUAL')}
                                             onClick={() => {
                                                 setSplitMode('EQUAL')
                                                 feedback('tick')
@@ -1331,8 +1201,7 @@ export function ExpenseDrawer({
                                                             type="button"
                                                             role="radio"
                                                             aria-checked={values.splitMode === mode}
-                                                            tabIndex={values.splitMode === mode ? 0 : -1}
-                                                            onKeyDown={(event) => moveSplitMode(event, mode)}
+                                                            {...getSplitModeRadioProps(mode)}
                                                             onClick={() => {
                                                                 setSplitMode(mode)
                                                                 feedback('tick')
@@ -1356,7 +1225,7 @@ export function ExpenseDrawer({
                                         type="button"
                                         aria-expanded={moreSplitOptionsOpen}
                                         aria-controls="expense-more-split-options"
-                                        onClick={() => setMoreSplitOptionsOpen((current) => !current)}
+                                        onClick={() => dispatchWorkflow({ type: 'advanced-options-toggled' })}
                                         data-testid="more-split-options"
                                         className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-dashed border-n-1 bg-white px-3 py-2 text-h9"
                                     >
@@ -1588,7 +1457,7 @@ export function ExpenseDrawer({
                                                     <span className="w-20 shrink-0 truncate text-h8">
                                                         {member.name}
                                                     </span>
-                                                    <div className="flex h-12 min-w-0 flex-1 items-center rounded-sm border border-n-1 bg-white focus-within:ring-2 focus-within:ring-n-1">
+                                                    <div className="flex h-12 min-w-0 flex-1 items-center rounded-sm border border-n-1 bg-white">
                                                         <input
                                                             value={weightedInputs[member.id] ?? ''}
                                                             onChange={(event) =>
@@ -1724,8 +1593,7 @@ export function ExpenseDrawer({
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setAddingParticipant(true)
-                                            setParticipantError(null)
+                                            dispatchWorkflow({ type: 'participant-draft-opened' })
                                             requestAnimationFrame(() => participantNameRef.current?.focus())
                                         }}
                                         className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-dashed border-n-1 bg-white px-3 py-2 text-h8"
@@ -1741,7 +1609,12 @@ export function ExpenseDrawer({
                                         <BaseInput
                                             ref={participantNameRef}
                                             value={newParticipantName}
-                                            onChange={(event) => setNewParticipantName(event.target.value)}
+                                            onChange={(event) =>
+                                                dispatchWorkflow({
+                                                    type: 'participant-name-changed',
+                                                    name: event.target.value,
+                                                })
+                                            }
                                             placeholder={t('payerNamePlaceholder')}
                                             aria-label={t('payerNamePlaceholder')}
                                             maxLength={80}
@@ -1761,11 +1634,7 @@ export function ExpenseDrawer({
                                         <button
                                             type="button"
                                             aria-label={t('cancelPayer')}
-                                            onClick={() => {
-                                                setAddingParticipant(false)
-                                                setNewParticipantName('')
-                                                setParticipantError(null)
-                                            }}
+                                            onClick={() => dispatchWorkflow({ type: 'participant-draft-closed' })}
                                             className="flex size-12 shrink-0 items-center justify-center rounded-md border border-n-1 bg-white"
                                         >
                                             <Icon name="x" size={19} />
@@ -1783,76 +1652,25 @@ export function ExpenseDrawer({
                     )}
 
                     {editor === 'date' && (
-                        <section
-                            data-testid="date-editor"
-                            aria-label={t('date')}
-                            className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
-                        >
-                            <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
-                                <div>
-                                    <h3 className="text-h8">{t('whenWasIt')}</h3>
-                                    <p className="mt-1 text-xs text-grey-1">{dateSummary}</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setEditor(null)}
-                                    aria-label={t('collapseSection')}
-                                    data-testid="collapse-date-editor"
-                                    className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
-                                >
-                                    <Icon name="chevron-up" size={24} />
-                                </button>
-                            </div>
-                            <div className="flex flex-col gap-2 p-3">
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => chooseRelativeDate(0)}
-                                        aria-pressed={selectedDateInput === todayInput}
-                                        className={cn(
-                                            'min-h-11 rounded-md border border-n-1 text-h8',
-                                            selectedDateInput === todayInput ? 'shadow-2 bg-primary-3' : 'bg-white'
-                                        )}
-                                    >
-                                        {tDates('today')}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => chooseRelativeDate(1)}
-                                        aria-pressed={selectedDateInput === yesterdayInput}
-                                        className={cn(
-                                            'min-h-11 rounded-md border border-n-1 text-h8',
-                                            selectedDateInput === yesterdayInput ? 'shadow-2 bg-primary-3' : 'bg-white'
-                                        )}
-                                    >
-                                        {tDates('yesterday')}
-                                    </button>
-                                </div>
-                                <label className="relative">
-                                    <span className="sr-only">{t('date')}</span>
-                                    <input
-                                        type="date"
-                                        value={selectedDateInput}
-                                        onChange={(event) => {
-                                            patch({
-                                                date: fromDateInputValue(event.target.value, values.date),
-                                            })
-                                            setEditor(null)
-                                        }}
-                                        aria-label={t('date')}
-                                        data-testid="expense-date"
-                                        data-doodle-date
-                                        className="input h-14 appearance-none px-4 pr-12"
-                                    />
-                                    <Doodle
-                                        name="iconcalendar"
-                                        size={21}
-                                        weight={1.7}
-                                        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2"
-                                    />
-                                </label>
-                            </div>
-                        </section>
+                        <ExpenseDateEditor
+                            summary={dateSummary}
+                            value={selectedDateInput}
+                            today={todayInput}
+                            yesterday={yesterdayInput}
+                            labels={{
+                                date: t('date'),
+                                whenWasIt: t('whenWasIt'),
+                                today: tDates('today'),
+                                yesterday: tDates('yesterday'),
+                                collapse: t('collapseSection'),
+                            }}
+                            onChooseRelative={chooseRelativeDate}
+                            onChange={(value) => {
+                                patch({ date: fromDateInputValue(value, values.date) })
+                                dispatchWorkflow({ type: 'editor-closed' })
+                            }}
+                            onClose={() => dispatchWorkflow({ type: 'editor-closed' })}
+                        />
                     )}
 
                     {submitted && validationCopy && !amountInvalid && (
@@ -1876,62 +1694,25 @@ export function ExpenseDrawer({
                     )}
                 </DrawerBody>
 
-                <DrawerActions className="border-t border-n-1 bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
-                    <Button
-                        variant="primary"
-                        shadowSize="4"
-                        onClick={save}
-                        loading={pending}
-                        className="justify-center text-h6"
-                        data-testid="save-expense"
-                    >
-                        {primaryLabel}
-                    </Button>
-                    {expense &&
-                        (confirmingDelete ? (
-                            <div
-                                className="flex flex-col gap-2 border-t border-dashed border-n-1 pt-3"
-                                data-testid="delete-expense-confirm"
-                            >
-                                {/* The question replaces the delete button in place, so a
-                                    screen reader is otherwise never told it was asked. */}
-                                <p id="delete-expense-warning" role="alert" className="text-sm text-n-1">
-                                    {t('confirmDelete')}
-                                </p>
-                                <div className="flex flex-col gap-2">
-                                    <SlideToConfirm
-                                        autoFocus
-                                        label={t('slideDelete')}
-                                        loadingLabel={t('deleting')}
-                                        onConfirm={remove}
-                                        onCancel={cancelDelete}
-                                        loading={deleteExpense.isPending}
-                                        aria-describedby="delete-expense-warning"
-                                        data-testid="confirm-delete-expense"
-                                    />
-                                    <Button
-                                        variant="stroke"
-                                        onClick={cancelDelete}
-                                        className="justify-center"
-                                        data-testid="cancel-delete-expense"
-                                    >
-                                        {t('confirmDeleteNo')}
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <Button
-                                ref={deleteTriggerRef}
-                                variant="stroke"
-                                icon="trash"
-                                onClick={() => setConfirmingDelete(true)}
-                                className="justify-center"
-                                data-testid="delete-expense"
-                            >
-                                {t('delete')}
-                            </Button>
-                        ))}
-                </DrawerActions>
+                <ExpenseDrawerActions
+                    editing={Boolean(expense)}
+                    pending={pending}
+                    deleting={deleteExpense.isPending}
+                    confirmingDelete={confirmingDelete}
+                    deleteTriggerRef={deleteTriggerRef}
+                    labels={{
+                        primary: primaryLabel,
+                        confirmDelete: t('confirmDelete'),
+                        slideDelete: t('slideDelete'),
+                        deleting: t('deleting'),
+                        cancelDelete: t('confirmDeleteNo'),
+                        delete: t('delete'),
+                    }}
+                    onSave={save}
+                    onStartDelete={() => dispatchWorkflow({ type: 'delete-confirmation-started' })}
+                    onConfirmDelete={remove}
+                    onCancelDelete={cancelDelete}
+                />
             </DrawerContent>
 
             {/* The scan overlay writes back into this sheet and creates nothing:
@@ -1946,14 +1727,12 @@ export function ExpenseDrawer({
                     roomCurrency={state.room.currency}
                     currencies={currencies}
                     baseValues={values}
-                    onCancel={() => setScanFile(null)}
+                    onCancel={() => dispatchWorkflow({ type: 'scan-cancelled' })}
                     onApply={(next) => {
                         setValues(next)
                         // The form is now reconciled by construction, so an error
                         // left over from before the scan is stale by definition.
-                        setSubmitted(false)
-                        setError(null)
-                        setScanFile(null)
+                        dispatchWorkflow({ type: 'scan-applied' })
                     }}
                 />
             )}

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import type { ShareSurface } from '@/lib/analytics'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { useFeedback } from '@/lib/use-settings'
@@ -44,7 +44,7 @@ export function ShareDrawer({ open, onClose, state, currencies, sharerMemberId, 
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className={drawerContentClass}>
+            <DrawerContent>
                 <DrawerTitle className="sr-only">{surface === 'post_aha' ? t('postAhaTitle') : t('title')}</DrawerTitle>
                 <DrawerBody>
                     {surface !== 'post_aha' && (

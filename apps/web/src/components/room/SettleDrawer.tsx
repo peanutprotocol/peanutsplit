@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiMember, ApiTransfer, CurrencyInfo, RoomState, SettlementMethod } from '@/lib/api-types'
 import { roomProps, track } from '@/lib/analytics'
@@ -300,8 +300,8 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className={drawerContentClass}>
-                <DrawerHeader className={drawerHeaderClass}>
+            <DrawerContent>
+                <DrawerHeader>
                     <DrawerTitle className="text-h5">{selected ? t('recordTitle') : t('listTitle')}</DrawerTitle>
                 </DrawerHeader>
 

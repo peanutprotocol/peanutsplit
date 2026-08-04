@@ -13,7 +13,7 @@ import { cn } from '@/lib/cn'
 import { isInstallSnoozed, noteInstallDismissed, promptInstall, useInstallState } from '@/lib/install'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { IosInstallSteps } from './IosInstallSteps'
 
 /** Wait this long without typing before asking. Never interrupt someone mid-expense. */
@@ -139,7 +139,8 @@ export function InstallPrompt({ onShown, onDismissed }: InstallPromptProps) {
                                         variant="primary"
                                         size="medium"
                                         shadowSize="3"
-                                        className={cn(BTN_MEDIUM, 'w-auto shrink-0 justify-center whitespace-nowrap')}
+                                        width="auto"
+                                        className={cn(BTN_MEDIUM, 'shrink-0 justify-center whitespace-nowrap')}
                                         onClick={install}
                                     >
                                         {t('cta')}
@@ -147,10 +148,8 @@ export function InstallPrompt({ onShown, onDismissed }: InstallPromptProps) {
                                     <Button
                                         variant="transparent"
                                         size="medium"
-                                        className={cn(
-                                            BTN_MEDIUM,
-                                            'w-auto justify-center whitespace-nowrap text-grey-1'
-                                        )}
+                                        width="auto"
+                                        className={cn(BTN_MEDIUM, 'justify-center whitespace-nowrap text-grey-1')}
                                         onClick={dismiss}
                                     >
                                         {t('dismiss')}
@@ -168,8 +167,8 @@ export function InstallPrompt({ onShown, onDismissed }: InstallPromptProps) {
             </AnimatePresence>
 
             <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
-                <DrawerContent className={drawerContentClass}>
-                    <DrawerHeader className={drawerHeaderClass}>
+                <DrawerContent>
+                    <DrawerHeader>
                         <DrawerTitle className="text-h5">{t('ios.title')}</DrawerTitle>
                         <DrawerDescription>{t('ios.body')}</DrawerDescription>
                     </DrawerHeader>

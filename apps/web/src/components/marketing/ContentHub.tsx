@@ -4,7 +4,7 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { LanguageLinks } from '@/components/marketing/LanguageLinks'
-import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import { comparisonCopy } from '@/components/marketing/compare-copy'
 import { STATIC_PAGES } from '@/data/static-pages'
 import { listAllDocs } from '@/lib/content'
@@ -95,7 +95,11 @@ export async function ContentHub({ locale }: { locale: Locale }) {
                     <ul className="flex flex-col gap-px overflow-hidden rounded-sm border border-n-1">
                         {entries.map((entry) => (
                             <li key={entry.href}>
-                                <Link href={entry.href} className="block bg-white px-4 py-4 hover:bg-grey-3">
+                                <Link
+                                    href={entry.href}
+                                    data-focus-contained
+                                    className="block bg-white px-4 py-4 hover:bg-grey-3"
+                                >
                                     <span className="block text-h7 text-n-1">{entry.title}</span>
                                     <span className="mt-1 block text-sm leading-5 text-grey-1">
                                         {entry.description}
@@ -120,10 +124,11 @@ export async function ContentHub({ locale }: { locale: Locale }) {
 
                 {/* `/new` is app shell too — one URL, cookie decides the language. `/es-419/new` and
                     `/pt-br/new` are not routes, so prefixing this made the hub's only CTA a 404. */}
-                <Link href="/new" className="mt-8 block">
-                    <Button variant="primary" shadowSize="4" className="justify-center text-h6">
-                        {t('startRoom')}
-                    </Button>
+                <Link
+                    href="/new"
+                    className={buttonClassName({ shadowSize: '4', className: 'mt-8 justify-center text-h6' })}
+                >
+                    {t('startRoom')}
                 </Link>
                 <p className="mt-3 text-center text-sm text-grey-1">{t('startRoomHint')}</p>
             </section>

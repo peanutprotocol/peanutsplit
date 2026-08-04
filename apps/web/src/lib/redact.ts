@@ -35,3 +35,32 @@ export function redactField(bag: Record<string, unknown> | undefined, key: strin
     const value = bag[key]
     if (typeof value === 'string') bag[key] = redactRoomSlugs(value)
 }
+
+/** The credential-bearing string fields Sentry can serialize on an error.
+ * Keep this helper SDK-free so the complete boundary is cheap to unit-test. */
+interface RedactableTelemetryEvent {
+    message?: string
+    transaction?: string
+    request?: { url?: string; headers?: Record<string, unknown> }
+    breadcrumbs?: Array<{ message?: string; data?: Record<string, unknown> }>
+    exception?: { values?: Array<{ value?: string }> }
+}
+
+export function redactTelemetryEvent<T extends RedactableTelemetryEvent>(event: T): T {
+    if (event.message) event.message = redactRoomSlugs(event.message)
+    if (event.transaction) event.transaction = redactRoomSlugs(event.transaction)
+    if (event.request?.url) event.request.url = redactRoomSlugs(event.request.url)
+    redactField(event.request?.headers, 'Referer')
+    redactField(event.request?.headers, 'referer')
+
+    for (const exception of event.exception?.values ?? []) {
+        if (exception.value) exception.value = redactRoomSlugs(exception.value)
+    }
+    for (const crumb of event.breadcrumbs ?? []) {
+        if (crumb.message) crumb.message = redactRoomSlugs(crumb.message)
+        redactField(crumb.data, 'url')
+        redactField(crumb.data, 'from')
+        redactField(crumb.data, 'to')
+    }
+    return event
+}

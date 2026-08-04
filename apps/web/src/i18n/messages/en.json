@@ -951,12 +951,34 @@
         "needsToken": "Pick your name again to turn this on.",
         "failed": "could not change notifications — try again"
     },
+    "routeStates": {
+        "error": {
+            "eyebrow": "Something slipped",
+            "title": "We could not open this page",
+            "body": "We could not show this page. Try once more, or return to your rooms.",
+            "retry": "Try again",
+            "exit": "Back to your rooms"
+        },
+        "notFound": {
+            "eyebrow": "Nothing at this link",
+            "title": "This page could not be found",
+            "body": "The link may be incomplete or the page may have moved.",
+            "action": "Back to your rooms"
+        },
+        "loading": {
+            "eyebrow": "Counting peanuts",
+            "title": "Opening your room…",
+            "body": "Balances and expenses are being brought up to date.",
+            "exit": "Back to your rooms"
+        }
+    },
     "errors": {
         "generic": "Something went wrong — try again.",
         "NETWORK_ERROR": "Could not reach the server — check your connection.",
         "INTERNAL": "Something went wrong on our side. Try again in a moment.",
         "VALIDATION_ERROR": "That does not look right — check the fields and try again.",
         "MALFORMED_JSON": "Something went wrong sending that — try again.",
+        "REQUEST_TOO_LARGE": "That request is too large to send.",
         "NOT_FOUND": "This room does not exist.",
         "EXPENSE_NOT_FOUND": "That expense is no longer here — refresh the room.",
         "SETTLEMENT_NOT_FOUND": "That payment is no longer here — refresh the room.",
@@ -964,6 +986,9 @@
         "ROOM_ARCHIVED": "This room is archived.",
         "DUPLICATE_MEMBER_NAME": "That name is already in this room — pick it from the list instead.",
         "EXPENSE_DELETED": "This expense was deleted. Undo the delete first, then edit it.",
+        "NEW_PAYER_ON_EDIT": "Choose an existing person when editing. Add a new payer with a new expense.",
+        "CATCH_UP_REVIEW_CONFLICT": "That expense changed after review — reopen it and try again.",
+        "HISTORY_CURSOR_INVALID": "That point in the room history is no longer available — reopen the history.",
         "NOT_A_MEMBER": "That person is not in this room — refresh and try again.",
         "AMOUNT_NOT_POSITIVE": "The amount has to be greater than zero.",
         "AMOUNT_TOO_LARGE": "That amount is too large to store safely.",
@@ -994,6 +1019,9 @@
         "NL_ROOM_LIMIT": "This room has used its quick adds for today — try again tomorrow.",
         "NL_FAILED": "Could not read that — try again.",
         "IMPORT_TOO_LARGE": "That import is too big to send. Try a group with less history.",
+        "IMPORT_UNAVAILABLE": "Imports are temporarily paused — try again later.",
+        "UNSUPPORTED_PUSH_HOST": "That notification service is not supported.",
+        "PUSH_SUBSCRIPTION_LIMIT": "This room has too many devices receiving notifications.",
         "RATE_LIMITED": "That was a lot of requests — give it a minute and try again.",
         "MEMBER_HAS_HISTORY": "That person is part of the room's history now — they cannot be taken off the list.",
         "NO_RATE": "There is no rate between that currency and the room’s, so it cannot be converted. Use the room currency."

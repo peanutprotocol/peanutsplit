@@ -71,10 +71,12 @@ interface RequestOptions {
     token?: string | null
     signal?: AbortSignal
     timeoutMs?: number
+    /** Explicit browser-cache policy for private GETs. */
+    cache?: RequestCache
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const { method = 'GET', body, token, signal, timeoutMs } = options
+    const { method = 'GET', body, token, signal, timeoutMs, cache } = options
     const headers: Record<string, string> = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
     if (token) headers['X-Member-Token'] = token
@@ -104,6 +106,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
             headers,
             body: body === undefined ? undefined : JSON.stringify(body),
             signal: timeoutController?.signal ?? signal,
+            cache,
         })
         // Keep the deadline through the body read too: response headers alone do
         // not mean the write has produced an answer the queue can act on.
@@ -161,11 +164,13 @@ export const api = {
     importRoom: (input: ImportRoomInput) =>
         request<RoomStateWithMember>('/api/import', { method: 'POST', body: input }),
 
-    room: (slug: string, signal?: AbortSignal) => request<RoomState>(`/api/rooms/${encode(slug)}`, { signal }),
+    room: (slug: string, signal?: AbortSignal) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}`, { signal, cache: 'no-store' }),
 
     roomHistory: (slug: string, cursor?: string | null, signal?: AbortSignal) =>
         request<RoomHistoryPage>(`/api/rooms/${encode(slug)}/history${cursor ? `?cursor=${encode(cursor)}` : ''}`, {
             signal,
+            cache: 'no-store',
         }),
 
     joinRoom: (slug: string, input: CreateMemberInput) =>

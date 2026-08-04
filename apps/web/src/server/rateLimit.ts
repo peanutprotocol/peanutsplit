@@ -23,6 +23,10 @@ const HOUR_MS = 60 * 60 * 1000
 
 /** SPEC: 20/hour on room and member creation — the rows nobody can delete. */
 export const CREATE_LIMIT: Limit = { capacity: 20, windowMs: HOUR_MS }
+/** Bulk imports create hundreds or thousands of related rows at once, so they
+ * get a separate, intentionally small courtesy bucket rather than borrowing
+ * the ordinary room-creation allowance. */
+export const IMPORT_LIMIT: Limit = { capacity: 5, windowMs: HOUR_MS }
 /** Expenses and settlements are the normal traffic of a busy trip, so the ceiling
  *  only has to stop a runaway loop. */
 export const WRITE_LIMIT: Limit = { capacity: 120, windowMs: HOUR_MS }

@@ -951,12 +951,34 @@
         "needsToken": "Elige tu nombre otra vez para activarlas.",
         "failed": "no se pudieron cambiar las notificaciones — inténtalo de nuevo"
     },
+    "routeStates": {
+        "error": {
+            "eyebrow": "Algo falló",
+            "title": "No pudimos abrir esta página",
+            "body": "No pudimos mostrar esta página. Intenta otra vez o vuelve a tus salas.",
+            "retry": "Intentar de nuevo",
+            "exit": "Volver a tus salas"
+        },
+        "notFound": {
+            "eyebrow": "No hay nada en este link",
+            "title": "No encontramos esta página",
+            "body": "Puede que el link esté incompleto o que la página haya cambiado de lugar.",
+            "action": "Volver a tus salas"
+        },
+        "loading": {
+            "eyebrow": "Contando cacahuates",
+            "title": "Abriendo tu sala…",
+            "body": "Estamos actualizando los saldos y los gastos.",
+            "exit": "Volver a tus salas"
+        }
+    },
     "errors": {
         "generic": "Algo salió mal — intenta de nuevo.",
         "NETWORK_ERROR": "No pudimos conectar con el servidor — revisa tu conexión.",
         "INTERNAL": "Algo salió mal de nuestro lado. Intenta en un momento.",
         "VALIDATION_ERROR": "Algo no cuadra — revisa los campos e intenta de nuevo.",
         "MALFORMED_JSON": "Algo salió mal al enviar eso — intenta de nuevo.",
+        "REQUEST_TOO_LARGE": "Esa solicitud es demasiado grande para enviarse.",
         "NOT_FOUND": "Esta sala no existe.",
         "EXPENSE_NOT_FOUND": "Ese gasto ya no está — recarga la sala.",
         "SETTLEMENT_NOT_FOUND": "Ese pago ya no está — recarga la sala.",
@@ -964,6 +986,9 @@
         "ROOM_ARCHIVED": "Esta sala está archivada.",
         "DUPLICATE_MEMBER_NAME": "Ese nombre ya está en la sala — elígelo de la lista.",
         "EXPENSE_DELETED": "Este gasto fue eliminado. Deshaz la eliminación antes de editarlo.",
+        "NEW_PAYER_ON_EDIT": "Al editar, elige a alguien que ya esté en la sala. Agrega un nuevo pagador con un gasto nuevo.",
+        "CATCH_UP_REVIEW_CONFLICT": "Ese gasto cambió después de revisarlo — vuelve a abrirlo e intenta de nuevo.",
+        "HISTORY_CURSOR_INVALID": "Ese punto del historial de la sala ya no está disponible — vuelve a abrir el historial.",
         "NOT_A_MEMBER": "Esa persona no está en la sala — recarga e intenta de nuevo.",
         "AMOUNT_NOT_POSITIVE": "El monto tiene que ser mayor que cero.",
         "AMOUNT_TOO_LARGE": "Ese monto es demasiado grande para guardarlo de forma segura.",
@@ -994,6 +1019,9 @@
         "NL_ROOM_LIMIT": "Esta sala ya usó sus agregados rápidos de hoy — intenta mañana.",
         "NL_FAILED": "No se pudo leer eso — intenta de nuevo.",
         "IMPORT_TOO_LARGE": "Esa importación es demasiado grande para enviarse. Prueba con un grupo con menos historial.",
+        "IMPORT_UNAVAILABLE": "Las importaciones están pausadas por ahora — intenta de nuevo más tarde.",
+        "UNSUPPORTED_PUSH_HOST": "Ese servicio de notificaciones no es compatible.",
+        "PUSH_SUBSCRIPTION_LIMIT": "Esta sala tiene demasiados dispositivos recibiendo notificaciones.",
         "RATE_LIMITED": "Fueron muchas solicitudes — espera un minuto e intenta de nuevo.",
         "MEMBER_HAS_HISTORY": "Esa persona ya es parte del historial de la sala — no se puede quitar de la lista.",
         "NO_RATE": "No hay cotización entre esa moneda y la de la sala, así que no se puede convertir. Usá la moneda de la sala."

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { deriveBalance, derivePair } from '@/lib/balance-derivation'
@@ -84,8 +84,8 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className={drawerContentClass} data-testid="balance-drawer" data-member-id={memberId}>
-                <DrawerHeader className={drawerHeaderClass}>
+            <DrawerContent data-testid="balance-drawer" data-member-id={memberId}>
+                <DrawerHeader>
                     <DrawerTitle className="flex items-center gap-2 text-h5">
                         <MemberAvatar
                             name={member.name}

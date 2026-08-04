@@ -213,7 +213,7 @@ export function SlideToConfirm({
             aria-describedby={[ariaDescribedBy, instructionId].filter(Boolean).join(' ')}
             data-progress={progressPercent}
             className={cn(
-                'relative h-13 w-full touch-pan-y select-none overflow-hidden rounded-sm border-2 border-n-1 bg-white text-n-1 shadow-[0.25rem_0.25rem_0_#211C17] outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2',
+                'relative h-13 w-full touch-pan-y select-none overflow-hidden rounded-sm border-2 border-n-1 bg-white text-n-1 shadow-[0.25rem_0.25rem_0_#211C17] outline-none',
                 (disabled || loading) && 'cursor-not-allowed opacity-60',
                 className
             )}

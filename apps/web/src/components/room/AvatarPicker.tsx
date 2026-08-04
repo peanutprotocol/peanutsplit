@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
+import { useRovingRadioGroup } from '@/components/ui/use-roving-radio-group'
 import {
     SPIN_MS,
     TICK_MS,
@@ -180,6 +181,20 @@ export function AvatarPicker({ name, value, palette, usedPalettes = [], onChange
     const shownPalettes = proposedPalettes.some((candidate, slot) => shown[slot] !== value && occupied.has(candidate))
         ? initialPaletteHand(shown, value, currentPalette, usedPalettes)
         : proposedPalettes
+    const { getRadioProps } = useRovingRadioGroup({
+        options: shown,
+        value: spinning ? null : (value as AvatarKey | null),
+        // A pending save rejects changes in onChange but keeps the selected
+        // option in the tab order, so focus is not dropped mid-interaction.
+        disabled: spinning,
+        onChange: (key) => {
+            if (disabled) return false
+            const slot = shown.indexOf(key)
+            const nextPalette = shownPalettes[slot]
+            if (nextPalette) onChange(key, nextPalette)
+            return Boolean(nextPalette)
+        },
+    })
 
     const option = (key: AvatarKey, slot: number) => {
         const art = AVATARS[key]
@@ -198,11 +213,12 @@ export function AvatarPicker({ name, value, palette, usedPalettes = [], onChange
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                disabled={disabled}
+                {...getRadioProps(key)}
+                aria-disabled={disabled || spinning || undefined}
                 aria-label={t('option', { name: art.label })}
                 // A tap that lands on a moving tile would select a character
                 // nobody chose to look at.
-                onClick={() => !spinning && onChange(key, offerPalette)}
+                onClick={() => !disabled && !spinning && onChange(key, offerPalette)}
                 data-testid="avatar-option"
                 data-avatar={key}
                 data-avatar-palette={offerPalette}

@@ -222,7 +222,7 @@ describe('rooms and members', () => {
     it('creates a room with a shareable slug and a creator token', async () => {
         const { status, body } = await newRoom()
         expect(status).toBe(201)
-        expect(body.room.slug).toMatch(/^ski-trip-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
+        expect(body.room.slug).toMatch(/^ski-trip-[A-Za-z0-9_-]{22}$/)
         expect(body.room.emoji).toBe('🎿')
         expect(body.members).toHaveLength(1)
         expect(body.memberId).toBe(body.members[0].id)
@@ -238,12 +238,14 @@ describe('rooms and members', () => {
         expect((await prisma.room.findUnique({ where: { id: body.room.id } }))?.emoji).toBe(custom)
     })
 
-    it('never leaks a member token through a room read', async () => {
+    it('never leaks or caches private room state', async () => {
         const { body: created } = await newRoom()
-        const { body } = await call<RoomState>(getRoom as Handler, {
-            path: `/api/rooms/${created.room.slug}`,
-            params: { slug: created.room.slug },
+        const response = await (getRoom as Handler)(new Request(`${BASE}/api/rooms/${created.room.slug}`), {
+            params: Promise.resolve({ slug: created.room.slug }),
         })
+        const body = (await response.json()) as RoomState
+        expect(response.status).toBe(200)
+        expect(response.headers.get('Cache-Control')).toBe('private, no-store')
         expect(JSON.stringify(body)).not.toContain(created.memberToken)
     })
 
@@ -1286,6 +1288,78 @@ describe('rate limiting', () => {
         const { status, body } = await newRoom()
         expect(status).toBe(429)
         expect((body as unknown as ApiError).error.code).toBe('RATE_LIMITED')
+    })
+})
+
+describe('archived-room write invariants', () => {
+    it('does not restore a deleted expense after its room is archived', async () => {
+        const { body: created } = await newRoom()
+        const { body: withExpense } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Train',
+                amountMinor: '1200',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        const expenseId = withExpense.expenses[0].id
+        await call<RoomState>(deleteExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses/${expenseId}`,
+            method: 'DELETE',
+            params: { slug: created.room.slug, id: expenseId },
+        })
+        await prisma.room.update({ where: { id: created.room.id }, data: { archivedAt: new Date() } })
+
+        const { status, body } = await call<ApiError>(restoreExpense as Handler, {
+            path: `/api/expenses/${expenseId}/restore`,
+            method: 'POST',
+            params: { id: expenseId },
+        })
+
+        expect(status).toBe(409)
+        expect(body.error.code).toBe('ROOM_ARCHIVED')
+        expect((await prisma.expense.findUniqueOrThrow({ where: { id: expenseId } })).deletedAt).not.toBeNull()
+    })
+
+    it('does not delete a settlement after its room is archived', async () => {
+        const { body: created } = await newRoom()
+        const { body: joined } = await join(created.room.slug, 'Bea')
+        const { body: withExpense } = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Cabin',
+                amountMinor: '4000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        const transfer = withExpense.suggestedTransfers[0]
+        const { body: settled } = await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${created.room.slug}/settlements`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            token: joined.memberToken,
+            body: transfer,
+        })
+        const settlementId = settled.settlements[0].id
+        await prisma.room.update({ where: { id: created.room.id }, data: { archivedAt: new Date() } })
+
+        const { status, body } = await call<ApiError>(deleteSettlement as Handler, {
+            path: `/api/rooms/${created.room.slug}/settlements/${settlementId}`,
+            method: 'DELETE',
+            params: { slug: created.room.slug, id: settlementId },
+        })
+
+        expect(status).toBe(409)
+        expect(body.error.code).toBe('ROOM_ARCHIVED')
+        expect((await prisma.settlement.findUniqueOrThrow({ where: { id: settlementId } })).deletedAt).toBeNull()
     })
 })
 

@@ -86,11 +86,17 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     const resolveLatecomer = useCallback(() => {
         setLatecomerPaused(true)
-        // Confirm and Not now remove the banner that opened the drawer, so the
-        // generic drawer restoration target is disconnected. Land on the room's
-        // real heading after React commits the close instead of dropping to body.
-        window.requestAnimationFrame(() => roomTitleRef.current?.focus({ preventScroll: true }))
     }, [])
+
+    useEffect(() => {
+        if (!latecomerPaused) return
+        // Confirm and Not now remove the banner that opened the drawer, so the
+        // generic drawer restoration target is disconnected. Wait for that
+        // committed close to remove the room's inert state, then land on its
+        // real heading instead of dropping focus on body.
+        const frame = window.requestAnimationFrame(() => roomTitleRef.current?.focus({ preventScroll: true }))
+        return () => window.cancelAnimationFrame(frame)
+    }, [latecomerPaused])
 
     useEffect(() => {
         if (!state) return
@@ -235,7 +241,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                 <div
                     role="alert"
                     data-testid="room-stale-warning"
-                    className="mx-4 mt-4 flex items-start gap-3 rounded-sm border border-n-1 bg-yellow-1 p-4"
+                    className="mx-4 mt-4 flex items-start gap-3 rounded-sm border border-n-1 bg-primary-1 p-4"
                 >
                     <Doodle name="pulse" size={28} weight={1.8} className="mt-0.5 shrink-0" aria-hidden />
                     <div id="room-stale-warning-copy" className="min-w-0 flex-1">
@@ -346,7 +352,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                         <Button
                             variant="stroke"
                             icon="hand-coins"
-                            className="w-auto shrink-0 justify-center px-4"
+                            width="auto"
+                            className="shrink-0 justify-center px-4"
                             onClick={() => setParams({ settle: true })}
                             disabled={staleState}
                             data-testid="open-settle"

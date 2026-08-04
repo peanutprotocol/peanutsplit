@@ -202,7 +202,12 @@ test('a character picked on one device reaches the other without a reload', asyn
     const before = (await anaRow.innerText()).trim()
 
     // Ana picks a character that is not the one she was dealt.
-    await page.getByTestId('open-avatar').click()
+    await page.getByTestId('open-room-settings').click()
+    const anaSettings = page.getByTestId('settings-sheet')
+    await expect(anaSettings).toBeVisible()
+    const peopleToggle = anaSettings.getByTestId('people-toggle')
+    if ((await peopleToggle.getAttribute('aria-expanded')) === 'false') await peopleToggle.click()
+    await anaSettings.locator('[data-testid="person-row"][data-member="Ana"]').click()
     await expect(page.getByTestId('character-sheet')).toBeVisible()
     const options = page.getByTestId('avatar-option')
     const unchosen = options.filter({ hasNot: page.locator('[aria-checked="true"]') })

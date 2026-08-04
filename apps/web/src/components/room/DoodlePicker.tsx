@@ -1,10 +1,11 @@
 'use client'
 
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { CustomRoomDrawing } from '@/components/ui/CustomRoomDrawing'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
+import { useRovingRadioGroup } from '@/components/ui/use-roving-radio-group'
 import { cn } from '@/lib/cn'
 import { decodeRoomDrawing, isRoomDrawing, type RoomDrawing } from '@/lib/room-drawing'
 import { RoomDrawingEditor } from './RoomDrawingEditor'
@@ -53,74 +54,61 @@ const DRAW_YOUR_OWN_PREVIEW: RoomDrawing = [
 interface DoodlePickerProps {
     value: string
     onChange: (value: string) => void
+    /** Keyboard radios stay open so Arrow/Home/End can continue moving. */
+    onKeyboardChange?: (value: string) => void
     /** Lets a containing picker keep itself mounted while the portaled editor is in use. */
     onDrawingOpenChange?: (open: boolean) => void
+    disabled?: boolean
 }
 
-export function DoodlePicker({ value, onChange, onDrawingOpenChange }: DoodlePickerProps) {
+export function DoodlePicker({
+    value,
+    onChange,
+    onKeyboardChange,
+    onDrawingOpenChange,
+    disabled = false,
+}: DoodlePickerProps) {
     const t = useTranslations('room.create')
     const [drawingOpen, setDrawingOpen] = useState(false)
-    const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
     const customSelected = isRoomDrawing(value)
     const customStrokes = customSelected ? (decodeRoomDrawing(value) ?? []) : []
-    const selectedDoodleIndex = ROOM_DOODLES.findIndex((name) => name === value)
-    const selectedIndex = customSelected ? ROOM_DOODLES.length : selectedDoodleIndex
-    const tabStopIndex = selectedIndex === -1 ? 0 : selectedIndex
-    const optionCount = ROOM_DOODLES.length + 1
+    const selectedOption = ROOM_DOODLES.find((name) => name === value)
+    const { getRadioProps } = useRovingRadioGroup({
+        options: ROOM_DOODLES,
+        value: selectedOption,
+        disabled,
+        onChange: (next) => {
+            if (disabled) return false
+            ;(onKeyboardChange ?? onChange)(next)
+            return true
+        },
+    })
 
     const setEditorOpen = (open: boolean) => {
         setDrawingOpen(open)
         onDrawingOpenChange?.(open)
     }
 
-    /**
-     * Buttons with radio roles do not inherit native radio keyboard behaviour.
-     * Keep one option in the page's Tab order, then make the radio-group keys
-     * move both focus and selection (including wrapping at either end).
-     */
-    const moveSelection = (event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
-        const { key } = event
-        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) return
-
-        event.preventDefault()
-        const nextIndex =
-            key === 'Home'
-                ? 0
-                : key === 'End'
-                  ? optionCount - 1
-                  : key === 'ArrowLeft' || key === 'ArrowUp'
-                    ? (currentIndex - 1 + optionCount) % optionCount
-                    : (currentIndex + 1) % optionCount
-        optionRefs.current[nextIndex]?.focus()
-        if (nextIndex === ROOM_DOODLES.length) {
-            setEditorOpen(true)
-            return
-        }
-        onChange(ROOM_DOODLES[nextIndex])
-    }
-
     return (
         <>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('emojiGroup')}>
-                {ROOM_DOODLES.map((name, index) => {
+                {ROOM_DOODLES.map((name) => {
                     const selected = name === value
                     return (
                         <button
                             key={name}
-                            ref={(option) => {
-                                optionRefs.current[index] = option
-                            }}
                             type="button"
                             role="radio"
                             aria-checked={selected}
+                            {...getRadioProps(name)}
+                            aria-disabled={disabled || undefined}
                             aria-label={t('emojiOption', { emoji: name })}
                             data-doodle={name}
-                            tabIndex={index === tabStopIndex ? 0 : -1}
-                            onKeyDown={(event) => moveSelection(event, index)}
-                            onClick={() => onChange(name)}
+                            onClick={() => !disabled && onChange(name)}
                             className={cn(
                                 'flex size-11 items-center justify-center rounded-sm border border-n-1 transition-transform active:translate-y-[2px]',
-                                selected ? 'shadow-4 bg-primary-1' : 'bg-white'
+                                selected ? 'shadow-4 bg-primary-1' : 'bg-white',
+                                disabled && 'opacity-50'
                             )}
                         >
                             <Doodle name={name} size={24} />
@@ -128,20 +116,16 @@ export function DoodlePicker({ value, onChange, onDrawingOpenChange }: DoodlePic
                     )
                 })}
                 <button
-                    ref={(option) => {
-                        optionRefs.current[ROOM_DOODLES.length] = option
-                    }}
                     type="button"
-                    role="radio"
-                    aria-checked={customSelected}
+                    aria-pressed={customSelected}
+                    aria-disabled={disabled || undefined}
                     aria-label={t('drawYourOwn')}
                     data-doodle="custom"
-                    tabIndex={ROOM_DOODLES.length === tabStopIndex ? 0 : -1}
-                    onKeyDown={(event) => moveSelection(event, ROOM_DOODLES.length)}
-                    onClick={() => setEditorOpen(true)}
+                    onClick={() => !disabled && setEditorOpen(true)}
                     className={cn(
                         'flex size-11 items-center justify-center rounded-sm border border-dashed border-n-1 bg-primary-2 transition-transform active:translate-y-[2px]',
-                        customSelected && 'shadow-4 border-solid bg-primary-1'
+                        customSelected && 'shadow-4 border-solid bg-primary-1',
+                        disabled && 'opacity-50'
                     )}
                 >
                     {customStrokes.length ? (

@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { BTN_SMALL } from '@/components/ui/control'
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { isCatchUpRowChange } from '@/lib/api'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiExpense, RoomState } from '@/lib/api-types'
@@ -246,7 +246,8 @@ export function LatecomerBanner({
                     <Button
                         variant="primary"
                         size="small"
-                        className={cn(BTN_SMALL, 'w-auto justify-center')}
+                        width="auto"
+                        className={cn(BTN_SMALL, 'justify-center')}
                         onClick={openReview}
                         data-testid="latecomer-review"
                     >
@@ -255,7 +256,8 @@ export function LatecomerBanner({
                     <Button
                         variant="transparent"
                         size="small"
-                        className={cn(BTN_SMALL, 'w-auto justify-center underline')}
+                        width="auto"
+                        className={cn(BTN_SMALL, 'justify-center underline')}
                         onClick={() => resolveLocally()}
                         data-testid="latecomer-dismiss"
                     >
@@ -271,7 +273,7 @@ export function LatecomerBanner({
                     if (!next && !submitting) setOpen(false)
                 }}
             >
-                <DrawerContent className={drawerContentClass} data-testid="latecomer-flow">
+                <DrawerContent data-testid="latecomer-flow">
                     <DrawerBody className="min-w-0 gap-4 pt-2">
                         <div className="flex items-center gap-3">
                             <MemberAvatar
@@ -323,7 +325,7 @@ export function LatecomerBanner({
                         />
 
                         {isRoomSettled(state) && selectedIds.length > 0 && (
-                            <p className="rounded-sm border border-n-1 bg-yellow-1 p-3 text-sm">
+                            <p className="rounded-sm border border-n-1 bg-primary-1 p-3 text-sm">
                                 <strong>{t('settledWarningTitle')}</strong> {t('settledWarningBody')}
                             </p>
                         )}
@@ -423,7 +425,7 @@ function ExpenseReviewRow({
             className={cn(
                 'flex min-h-14 w-full items-center gap-3 p-3 text-left disabled:opacity-60',
                 selected && 'bg-primary-3',
-                conflicted && 'bg-yellow-1'
+                conflicted && 'bg-primary-1'
             )}
             onClick={onToggle}
             disabled={disabled}

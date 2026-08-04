@@ -763,7 +763,7 @@ export function CurrencySelect({
                     }
                 }}
                 className={cn(
-                    'input flex w-full items-center justify-between gap-1 text-left focus-visible:border-primary-1 focus-visible:ring-2 focus-visible:ring-primary-1',
+                    'input flex w-full items-center justify-between gap-1 text-left',
                     fieldSizes[variant],
                     'pr-3'
                 )}

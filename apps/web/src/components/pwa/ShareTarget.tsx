@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
-import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import { Icon } from '@/components/ui/Icon'
 import { PageContainer } from '@/components/ui/PageContainer'
 import { track } from '@/lib/analytics'
@@ -123,16 +123,20 @@ export function ShareTarget({ enabled }: { enabled: boolean }) {
                                   : t('empty')}
                         </h1>
                         {phase === 'empty' ? (
-                            <Link href="/new" data-testid="share-target-start">
-                                <Button variant="primary" shadowSize="4" className="justify-center">
-                                    {t('start')}
-                                </Button>
+                            <Link
+                                href="/new"
+                                data-testid="share-target-start"
+                                className={buttonClassName({ shadowSize: '4', className: 'justify-center' })}
+                            >
+                                {t('start')}
                             </Link>
                         ) : (
-                            <Link href="/app" data-testid="share-target-open">
-                                <Button variant="stroke" className="justify-center">
-                                    {t('open')}
-                                </Button>
+                            <Link
+                                href="/app"
+                                data-testid="share-target-open"
+                                className={buttonClassName({ variant: 'stroke', className: 'justify-center' })}
+                            >
+                                {t('open')}
                             </Link>
                         )}
                     </>

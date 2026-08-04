@@ -39,14 +39,11 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
     )
     await page.keyboard.press('ArrowRight')
     expect((await arrowSave).ok()).toBe(true)
-    await expect(details).not.toHaveAttribute('open', '')
-    await expect(summary).toBeFocused()
-
-    // The newly checked radio becomes the sole tab stop when the picker opens
-    // again, and End can select the last option without tabbing fifteen times.
-    await page.keyboard.press('Enter')
-    await page.keyboard.press('Tab')
+    await expect(details).toHaveAttribute('open', '')
     await expect(picker.locator('[data-doodle="mountain"]')).toBeFocused()
+
+    // The newly checked radio becomes the sole tab stop without closing the
+    // group, and End can select the last option without tabbing fifteen times.
     const endSave = page.waitForResponse(
         (response) =>
             response.request().method() === 'PATCH' &&
@@ -55,6 +52,20 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
     )
     await page.keyboard.press('End')
     expect((await endSave).ok()).toBe(true)
+    await expect(picker.locator('[data-doodle="cake"]')).toBeFocused()
+    await expect(details).toHaveAttribute('open', '')
+
+    // Pointer selection keeps the existing compact picker behavior: commit,
+    // close, and return focus to the control that opened it.
+    const clickSave = page.waitForResponse(
+        (response) =>
+            response.request().method() === 'PATCH' &&
+            /\/api\/rooms\/[^/]+$/.test(new URL(response.url()).pathname) &&
+            response.request().postDataJSON().emoji === 'pizza'
+    )
+    await picker.locator('[data-doodle="pizza"]').click()
+    expect((await clickSave).ok()).toBe(true)
+    await expect(details).not.toHaveAttribute('open', '')
     await expect(summary).toBeFocused()
 })
 
@@ -143,7 +154,7 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     )
     await page.getByTestId('room-display-name').press('Enter')
     expect((await rename).ok()).toBe(true)
-    await expect(page.locator('header h1')).toHaveText('The great escape')
+    await expect(page.getByTestId('room-title')).toHaveText('The great escape')
     // The claim is that a rename does not move the room, so compare the path. The sheet itself is
     // a URL param now (`?settings=1`, like `?share=1` always was) so that the back gesture closes
     // it instead of leaving the room — and the link people actually share is built from the origin
@@ -226,7 +237,7 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     await page.getByTestId('close-expense').click()
     await page.waitForURL(permanentUrl)
     await page.reload()
-    await expect(page.locator('header h1')).toHaveText('The great escape', { timeout: 15_000 })
+    await expect(page.getByTestId('room-title')).toHaveText('The great escape', { timeout: 15_000 })
     expect(new URL(page.url()).pathname).toBe(new URL(permanentUrl).pathname)
 
     // Language is a device preference: it reloads the same room in the selected native catalog,

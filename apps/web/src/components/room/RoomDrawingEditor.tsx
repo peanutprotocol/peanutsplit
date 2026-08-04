@@ -6,7 +6,7 @@ import { CustomRoomDrawing } from '@/components/ui/CustomRoomDrawing'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import {
     decodeRoomDrawing,
     encodeRoomDrawing,
@@ -119,8 +119,8 @@ export function RoomDrawingEditor({ open, value, onChange, onOpenChange }: RoomD
 
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
-            <DrawerContent className={drawerContentClass} data-testid="custom-room-drawing-editor">
-                <DrawerHeader className={`${drawerHeaderClass} flex flex-row items-end justify-between`}>
+            <DrawerContent data-testid="custom-room-drawing-editor">
+                <DrawerHeader className="flex flex-row items-end justify-between">
                     <DrawerTitle className="text-h5">{t('drawTitle')}</DrawerTitle>
                     <CloseButton onClick={close} label={t('drawCancel')} />
                 </DrawerHeader>

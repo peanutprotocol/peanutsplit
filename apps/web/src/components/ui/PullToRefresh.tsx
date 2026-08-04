@@ -178,7 +178,7 @@ export function PullToRefresh({ enabled = true, labels, onRefresh }: PullToRefre
                 aria-hidden="true"
                 data-testid="pull-to-refresh-indicator"
                 data-phase={phase}
-                className="shadow-3 pointer-events-none fixed left-1/2 top-[max(0.5rem,env(safe-area-inset-top))] z-40 flex items-center gap-2 rounded-full border border-n-1 bg-white px-3 py-2 text-sm font-bold"
+                className="shadow-2 pointer-events-none fixed left-1/2 top-[max(0.5rem,env(safe-area-inset-top))] z-40 flex items-center gap-2 rounded-full border border-n-1 bg-white px-3 py-2 text-sm font-bold"
                 style={{
                     opacity: active ? 1 : 0,
                     transform: `translate(-50%, calc(-100% - 0.5rem + ${distance}px))`,
