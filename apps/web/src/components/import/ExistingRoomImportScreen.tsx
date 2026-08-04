@@ -78,7 +78,7 @@ export function ExistingRoomImportScreen({ slug }: { slug: string }) {
             </header>
 
             {state.room.archivedAt ? (
-                <section className="mt-6 rounded-sm border border-n-1 bg-yellow-1 p-5" data-testid="import-archived">
+                <section className="bg-yellow-1 mt-6 rounded-sm border border-n-1 p-5" data-testid="import-archived">
                     <h2 className="text-h6">{t('archivedTitle')}</h2>
                     <p className="mt-2 text-sm leading-5 text-n-1">{t('archivedBody')}</p>
                 </section>

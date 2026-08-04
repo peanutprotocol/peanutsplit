@@ -22,7 +22,7 @@ export function ExistingRoomImportContext({ room }: { room: ApiRoom }) {
                 </div>
             </section>
 
-            <section className="rounded-sm border border-n-1 bg-yellow-1 p-4" data-testid="import-repeat-warning">
+            <section className="bg-yellow-1 rounded-sm border border-n-1 p-4" data-testid="import-repeat-warning">
                 <h2 className="text-h7">{t('repeatTitle')}</h2>
                 <p className="mt-2 text-sm leading-5 text-n-1">{t('repeatBody')}</p>
             </section>
