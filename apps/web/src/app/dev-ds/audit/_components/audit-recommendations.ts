@@ -9,13 +9,8 @@ import type { AuditRecommendation } from './audit-model'
  */
 export const auditRecommendations = {
     'OPS-01': {
-        decision: 'fix-now',
-        note: 'Verified 2026-08-04: this baseline fix is actionable entirely from the current environment, without Hugo. The authenticated GitHub account has repository admin access; main has no branch protection or ruleset; and the existing check and docker-web jobs are passing on main. Require PRs plus both checks before main can advance. Dokploy can keep polling main. A Dokploy change is only needed later if we choose immutable CI-built artifacts or want to remove every admin bypass.',
-        priorConflict: {
-            decision: 'Defer',
-            explanation:
-                'This pulls in the wrong direction, and there is no external-access blocker: every planned refactor would still be able to reach production before its checks, while this environment can add the baseline gate directly.',
-        },
+        decision: 'defer',
+        note: 'Leadership decision recorded 2026-08-04: pushing to main should deploy directly. Do not add branch protection, required pull requests, or an immutable-artifact project to the roadmap. Revisit deployment gating only once Peanut Split has tens of thousands of users.',
     },
     'SEC-02': {
         decision: 'fix-now',

@@ -14,15 +14,16 @@ export const metadata: Metadata = {
 const findings: Finding[] = [
     {
         id: 'OPS-01',
-        severity: 'critical',
+        severity: 'low',
         area: 'Operations',
         effort: 'M',
-        horizon: 'Now',
-        title: 'Production deploys before CI can protect it',
+        horizon: 'Later',
+        status: 'accepted risk',
+        title: 'Direct-to-main deploys are an intentional pre-scale tradeoff',
         summary:
-            'Dokploy polls main independently. CI starts after a push and explicitly describes a red run as a roll-forward signal, not a deployment gate.',
-        impact: 'A type, migration, rendering or ledger regression can be live before the first automated signal. Deep refactors turn verification failures into incidents.',
-        action: 'Deploy an immutable artifact only after required checks pass, or make Dokploy consume a signed/tagged release produced by CI. Keep an explicit audited emergency bypass.',
+            'Dokploy polls main independently, so pushing to main deploys immediately while CI remains advisory. Leadership has explicitly chosen to keep that fast path before meaningful scale.',
+        impact: 'A faulty push can reach production before automated checks finish. With no users yet, that blast radius is accepted in exchange for a simpler and faster shipping loop.',
+        action: 'No roadmap work now. Keep direct-to-main deployment and revisit a CI deployment gate only once Peanut Split has tens of thousands of users.',
         evidence: [
             '.github/workflows/ci.yml:1 — workflow documents that it does not block deployment',
             '.github/workflows/ci.yml:7 — checks run after push to main',
