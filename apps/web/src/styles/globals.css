@@ -224,9 +224,7 @@
     .landing-room-examples,
     .landing-room-examples-heading,
     .landing-room-examples ul,
-    .landing-room-examples li,
-    [data-testid='read-more'],
-    [data-testid='final-cta'] {
+    .landing-room-examples li {
         animation: none !important;
         opacity: 1 !important;
         transform: none !important;
@@ -245,9 +243,7 @@
 .reduce-animations .landing-room-examples,
 .reduce-animations .landing-room-examples-heading,
 .reduce-animations .landing-room-examples ul,
-.reduce-animations .landing-room-examples li,
-.reduce-animations [data-testid='read-more'],
-.reduce-animations [data-testid='final-cta'] {
+.reduce-animations .landing-room-examples li {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
@@ -344,22 +340,6 @@
 .pass-link-form {
     gap: 0.5rem;
     padding: 0.75rem;
-}
-
-.pass-link-form .input,
-.pass-link-form [data-testid='hero-currency'] {
-    height: 3.25rem;
-}
-
-.pass-link-form > p:has([data-testid='hero-slug-preview']) {
-    min-width: 0;
-}
-
-.pass-link-form [data-testid='hero-slug-preview'] {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .pass-link-stage-shell {
@@ -1464,20 +1444,8 @@
     }
 }
 
-/* The hero's URL preview and the proof card's demo link both promise the same
-   room ("lisbon-weekend" — the proof card's own example) plus the dot-shaped
-   tail, in the same monospace line the ellipsis can eat into. At a real phone
-   width that string is wider than the placeholder-derived budget assumed. A
-   smaller mono size is the same fix the illustrated pass-link-stage card
-   already uses to keep its URL whole; applying it here too keeps what the
-   hero prints and what the proof card prints from disagreeing with each
-   other on a phone. Desktop and tablet already have room to spare, so this
-   stays scoped to the width where the string actually overflows. */
+/* Keep the proof card's demo URL whole at the narrowest supported phone width. */
 @media (max-width: 400px) {
-    .pass-link-form [data-testid='hero-slug-preview'] {
-        font-size: 0.625rem;
-    }
-
     .landing-proof-ticket b {
         font-size: 0.625rem;
     }
@@ -1500,15 +1468,6 @@
 
     .pass-link-form {
         padding: 0.6rem;
-    }
-
-    .pass-link-form .input,
-    .pass-link-form [data-testid='hero-currency'] {
-        height: 3rem;
-    }
-
-    .pass-link-form [data-testid='hero-currency'] {
-        width: 6.5rem;
     }
 
     .landing-proof-expenses li:nth-child(n) {

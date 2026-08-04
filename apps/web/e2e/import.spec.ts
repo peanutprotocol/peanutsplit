@@ -55,10 +55,10 @@ test('import a Splitwise export → a room whose balances match the file', async
         page.locator(`[data-testid="expense-row"][data-description="${description}"]`)
     await expect(expense('Dinner')).toHaveAttribute('data-personal-impact', 'incoming')
     await expect(expense('Dinner')).toHaveAttribute('data-impact-minor', '4000')
-    await expect(expense('Dinner')).toContainText('Others owe you from this expense')
+    await expect(expense('Dinner')).toContainText('you lent')
     await expect(expense('Taxi')).toHaveAttribute('data-personal-impact', 'outgoing')
     await expect(expense('Taxi')).toHaveAttribute('data-impact-minor', '-1000')
-    await expect(expense('Taxi')).toContainText('Added to what you owe')
+    await expect(expense('Taxi')).toContainText('you borrowed')
     await expect(expense('Groceries')).toHaveAttribute('data-personal-impact', 'outgoing')
     await expect(expense('Groceries')).toHaveAttribute('data-impact-minor', '-1500')
 

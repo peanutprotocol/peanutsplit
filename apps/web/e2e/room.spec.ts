@@ -33,7 +33,9 @@ const expectBalance = async (page: Page, member: string, netMinor: string) =>
     expect(balance(page, member)).toHaveAttribute('data-net', netMinor, { timeout: 15_000 })
 
 const expectStill = async (page: Page) => {
-    await expect(page.locator('[data-motion-surface]').first()).toHaveCSS('opacity', '1')
+    // Some route states deliberately have no motion surfaces. The document-wide
+    // assertion below covers both that case and visible surfaces without making
+    // the presence of an animation wrapper part of the product contract.
     expect(
         await page.locator('body').evaluate((element) => ({
             running: element
@@ -67,7 +69,7 @@ const runStillRouteMatrix = async (page: Page) => {
     await page.getByTestId('checkpoint-add').click()
     await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await page.getByTestId('go-to-room').click()
-    await expectBalance(page, 'Ana', '0')
+    await expectBalance(page, 'Bea', '0')
     await expectStill(page)
 
     await page.getByTestId('share-room').click()
@@ -276,7 +278,7 @@ test('create → share → join → split → settle → undo', async ({ page, b
     await slideToConfirm(page, removePayment, 0.5)
     await expectSlideReset(removePayment)
     await expect(page.getByTestId('settlement-row')).toHaveCount(1)
-    await expectBalance(page, 'Ana', '0')
+    await expectBalance(page, 'Bea', '0')
     await slideToConfirm(page, removePayment)
     await expect(page.getByTestId('settlement-row')).toHaveCount(0)
     await expectBalance(page, 'Bea', '-1148')

@@ -14,14 +14,13 @@ import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { asLocale, LOCALE_LABELS } from '@/i18n/locales'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
-import { cn } from '@/lib/cn'
 import { copyText } from '@/lib/clipboard'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
@@ -199,8 +198,8 @@ export function SettingsSheet({
     return (
         <>
             <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-                <DrawerContent className={drawerContentClass} data-testid="settings-sheet">
-                    <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+                <DrawerContent data-testid="settings-sheet">
+                    <DrawerHeader className="flex flex-row items-end justify-between">
                         <DrawerTitle className="text-h5">{t('title')}</DrawerTitle>
                         <CloseButton onClick={onClose} label={t('close')} data-testid="close-room-settings" />
                     </DrawerHeader>
@@ -328,8 +327,8 @@ export function SettingsSheet({
             <HistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} slug={room.slug} />
 
             <Drawer open={switchOpen} onOpenChange={setSwitchOpen}>
-                <DrawerContent className={drawerContentClass} data-testid="switch-person-sheet">
-                    <DrawerHeader className={drawerHeaderClass}>
+                <DrawerContent data-testid="switch-person-sheet">
+                    <DrawerHeader>
                         <DrawerTitle className="text-h5">{t('switchPersonTitle')}</DrawerTitle>
                     </DrawerHeader>
                     <DrawerBody>

@@ -6,6 +6,13 @@ import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { AnimatedMoney, Money } from '@/components/room/Money'
 import { Button } from '@/components/ui/Button'
+import {
+    COMPOSER_CURRENCY_SLOT,
+    composerBareInputClassName,
+    composerBoxedInputClassName,
+    composerRowClassName,
+    composerSurfaceClassName,
+} from '@/components/ui/composer-style'
 import { Doodle } from '@/components/ui/Doodle'
 import { Icon } from '@/components/ui/Icon'
 import { PERSONA_KEYS } from '@/lib/avatars'
@@ -41,14 +48,6 @@ import type { Tool, ToolChoiceField, ToolChoiceOption, ToolField, ToolInput } fr
  */
 
 const COLUMN = 'mx-auto w-full max-w-xl px-5'
-/** The app's composer object — two-pixel border, drop shadow, rows divided by a dashed rule. */
-const CARD = 'shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white'
-const ROW = 'border-t border-dashed border-grey-1'
-/** An input that lives inside the composer rather than beside it, as in the room and expense forms. */
-const BARE = 'w-full min-w-0 border-0 bg-transparent outline-none placeholder:text-grey-2'
-/** A boxed number, for the fields that sit at the right-hand end of their own row. */
-const BOXED = 'h-11 rounded-sm border border-n-1 bg-white px-3 text-right text-sm font-bold text-n-1 outline-none'
-
 /** A field's starting text. Amounts are typed in major units, so the default is shown as typed. */
 const initialText = (field: ToolField): string => (field.kind === 'toggle' ? '' : String(field.defaultValue))
 
@@ -201,7 +200,7 @@ function Calculator({ tool }: { tool: Tool }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={motionAllowed ? { type: 'spring', stiffness: 300, damping: 30 } : { duration: 0 }}
                 data-motion-surface
-                className={CARD}
+                className={composerSurfaceClassName()}
             >
                 {/* The headline number and the currency share the first line, exactly as they do on
                     the add-expense and create-room composers. Everything else is a row under it. */}
@@ -218,10 +217,10 @@ function Calculator({ tool }: { tool: Tool }) {
                             step={hero.step}
                             aria-label={hero.label}
                             data-testid={`tool-field-${hero.name}`}
-                            className={cn(BARE, 'h-12 px-1 text-h5 font-extrabold')}
+                            className={composerBareInputClassName('h-12 px-1 text-h5 font-extrabold')}
                         />
                     </label>
-                    <div className="w-[7.25rem] shrink-0">
+                    <div className={COMPOSER_CURRENCY_SLOT}>
                         <CurrencySelect
                             value={currency}
                             onChange={(code) => {
@@ -271,7 +270,7 @@ function Calculator({ tool }: { tool: Tool }) {
                             aria-expanded={builderOpen}
                             aria-controls="tool-builder"
                             data-testid="tool-builder-summary"
-                            className={cn(ROW, 'flex min-h-14 w-full items-center gap-3 px-4 text-left')}
+                            className={composerRowClassName('flex min-h-14 w-full items-center gap-3 px-4 text-left')}
                         >
                             <Doodle name={tool.doodle} size={28} weight={1.8} />
                             <span className="min-w-0 flex-1">
@@ -296,7 +295,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                     transition={motionAllowed ? { duration: 0.18, ease: 'easeOut' } : { duration: 0 }}
                                     data-motion-surface
                                     data-motion-collapse
-                                    className={cn(ROW, 'overflow-hidden bg-grey-3')}
+                                    className={composerRowClassName('overflow-hidden bg-grey-3')}
                                 >
                                     <p className="px-4 pb-1 pt-3 text-xs leading-4 text-n-1">{builder.intro}</p>
                                     {builder.fields.map((field) => (
@@ -344,9 +343,9 @@ function Calculator({ tool }: { tool: Tool }) {
             </motion.div>
 
             {rowSpec && rowCount > 0 && (
-                <ul className={CARD}>
+                <ul className={composerSurfaceClassName()}>
                     {visibleRows.map((row, index) => (
-                        <li key={index} className={index === 0 ? undefined : ROW}>
+                        <li key={index} className={index === 0 ? undefined : composerRowClassName()}>
                             <div className="flex min-w-0 items-center gap-2 px-3 py-2">
                                 {/* Drawn, the way a member is drawn everywhere else in the app. Art
                                     only: a calculator has nobody to speak and no persona to name. */}
@@ -365,7 +364,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                         maxLength={40}
                                         aria-label={`${rowSpec.nameLabel} ${index + 1}`}
                                         data-testid={`tool-row-name-${index}`}
-                                        className={cn(BARE, 'h-11 px-1 text-sm font-bold')}
+                                        className={composerBareInputClassName('h-11 px-1 text-sm font-bold')}
                                     />
                                 </label>
                             </div>
@@ -403,7 +402,7 @@ function Calculator({ tool }: { tool: Tool }) {
                 </ul>
             )}
 
-            <div className={cn(CARD, 'bg-primary-3')} data-testid="tool-result">
+            <div className={composerSurfaceClassName('bg-primary-3')} data-testid="tool-result">
                 <div className="flex items-center gap-3 px-4 pt-4">
                     <Doodle name={tool.doodle} size={26} weight={1.8} />
                     <h2 className="text-h6">{tool.copy.resultTitle}</h2>
@@ -422,7 +421,9 @@ function Calculator({ tool }: { tool: Tool }) {
                             {outcome.shares.map((share, index) => (
                                 <div
                                     key={index}
-                                    className={cn(ROW, 'flex items-center justify-between gap-3 px-4 py-2.5')}
+                                    className={composerRowClassName(
+                                        'flex items-center justify-between gap-3 px-4 py-2.5'
+                                    )}
                                 >
                                     <dt className="min-w-0">
                                         <span className="block truncate text-h7">{share.label}</span>
@@ -440,7 +441,7 @@ function Calculator({ tool }: { tool: Tool }) {
                             ))}
                         </dl>
 
-                        <ul className={cn(ROW, 'flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1')}>
+                        <ul className={composerRowClassName('flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1')}>
                             {outcome.workings.map((working) => (
                                 <li key={working.label} className="flex justify-between gap-3">
                                     <span>{working.label}</span>
@@ -500,7 +501,7 @@ function Picker({
 }) {
     const chosen = choice.options.find((option) => option.value === value)
     return (
-        <div className={cn(ROW, 'px-4 py-3')}>
+        <div className={composerRowClassName('px-4 py-3')}>
             <label className="block">
                 <span className="block text-h8">{choice.label}</span>
                 <span className="relative mt-1 block">
@@ -556,7 +557,7 @@ function FieldRow({
     return (
         <label
             className={cn(
-                plain ? 'border-t border-dashed border-grey-2' : ROW,
+                plain ? 'border-t border-dashed border-grey-2' : composerRowClassName(),
                 'flex min-h-14 items-center gap-3 px-4'
             )}
         >
@@ -574,7 +575,7 @@ function FieldRow({
                     max={field.max}
                     step={field.step}
                     data-testid={`tool-field-${field.name}`}
-                    className={cn(BOXED, 'w-24')}
+                    className={composerBoxedInputClassName('w-24')}
                 />
                 {field.unit && <span className="text-xs text-grey-1">{field.unit}</span>}
             </span>
@@ -585,7 +586,7 @@ function FieldRow({
 /** A yes-or-no as the app draws one: a track that fills with the brand colour when it is on. */
 function SwitchRow({ field, on, onChange }: { field: ToolField; on: boolean; onChange: (on: boolean) => void }) {
     return (
-        <label className={cn(ROW, 'flex min-h-14 cursor-pointer items-center gap-3 px-4')}>
+        <label className={composerRowClassName('flex min-h-14 cursor-pointer items-center gap-3 px-4')}>
             <span className="min-w-0 flex-1">
                 <span className="block text-h8">{field.label}</span>
                 {field.help && <span className="block text-xs leading-4 text-grey-1">{field.help}</span>}
@@ -627,7 +628,7 @@ function CompactInput({
                     max={field.max}
                     step={field.step}
                     data-testid={`tool-field-${field.name}`}
-                    className={cn(BOXED, 'w-full')}
+                    className={composerBoxedInputClassName('w-full')}
                 />
                 {field.unit && <span className="shrink-0 text-xs text-grey-1">{field.unit}</span>}
             </span>

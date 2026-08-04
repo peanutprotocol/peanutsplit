@@ -4,10 +4,9 @@ import { useTranslations } from 'next-intl'
 import { InstallRow } from '@/components/pwa/InstallRow'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { SettingToggle } from '@/components/ui/SettingToggle'
-import { cn } from '@/lib/cn'
 import { triggerHaptic, useSettings } from '@/lib/use-settings'
 
 /**
@@ -31,8 +30,8 @@ export function DeviceSheet({ open, onClose }: { open: boolean; onClose: () => v
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className={drawerContentClass} data-testid="device-sheet">
-                <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+            <DrawerContent data-testid="device-sheet">
+                <DrawerHeader className="flex flex-row items-end justify-between">
                     <DrawerTitle className="text-h5">{t('device')}</DrawerTitle>
                     <CloseButton onClick={onClose} label={t('closeSheet')} data-testid="close-device-sheet" />
                 </DrawerHeader>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { SettingToggle } from '@/components/ui/SettingToggle'
 import { StateRow } from '@/components/ui/StateRow'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
@@ -85,13 +85,13 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
                 <button
                     type="button"
                     onClick={() => setIosSheetOpen(true)}
-                    className="self-start text-sm text-black underline"
+                    className="self-start text-sm text-n-1 underline"
                 >
                     {t('iosHow')}
                 </button>
                 <Drawer open={iosSheetOpen} onOpenChange={setIosSheetOpen}>
-                    <DrawerContent className={drawerContentClass}>
-                        <DrawerHeader className={drawerHeaderClass}>
+                    <DrawerContent>
+                        <DrawerHeader>
                             <DrawerTitle className="text-h5">{tInstall('ios.title')}</DrawerTitle>
                             <DrawerDescription>{tInstall('ios.body')}</DrawerDescription>
                         </DrawerHeader>
@@ -156,7 +156,7 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
             {provenIdentity ? (
                 subscribed && <p className="text-sm text-grey-1">{t('on')}</p>
             ) : (
-                <button type="button" onClick={onSwitchPerson} className="self-start text-sm text-black underline">
+                <button type="button" onClick={onSwitchPerson} className="self-start text-sm text-n-1 underline">
                     {t('needsToken')}
                 </button>
             )}

@@ -354,7 +354,8 @@ export function SplitwiseImport() {
                     <Button
                         variant="primary"
                         shadowSize="4"
-                        className="mt-2 w-auto justify-center px-6"
+                        width="auto"
+                        className="mt-2 justify-center px-6"
                         onClick={() => inputRef.current?.click()}
                         data-testid="import-choose"
                     >
@@ -434,7 +435,7 @@ export function SplitwiseImport() {
             )}
 
             {parsedFile && parsedFile.skipped.length > 0 && (
-                <div className="rounded-sm border border-n-1 bg-yellow-1 p-4" data-testid="import-skipped-groups">
+                <div className="rounded-sm border border-n-1 bg-primary-1 p-4" data-testid="import-skipped-groups">
                     <h2 className="text-h7">{t('groups.skippedTitle')}</h2>
                     <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-sm leading-5 text-n-1">
                         {parsedFile.skipped.map((choice, index) => (
@@ -447,7 +448,7 @@ export function SplitwiseImport() {
             {/* Louder than the warnings box, and above it: every other warning is about a row, this
                 one is about the numbers people will argue over. */}
             {drift && drift.length > 0 && (
-                <div className="rounded-sm border border-n-1 bg-yellow-1 p-4" data-testid="import-balances-differ">
+                <div className="rounded-sm border border-n-1 bg-primary-1 p-4" data-testid="import-balances-differ">
                     <h2 className="text-h7">{t('preview.balancesDifferTitle')}</h2>
                     <p className="mt-2 text-sm leading-5 text-n-1">
                         {t('preview.balancesDiffer', { count: drift.length })}

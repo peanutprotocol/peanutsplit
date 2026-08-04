@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { StateRow } from '@/components/ui/StateRow'
 import { track } from '@/lib/analytics'
@@ -72,8 +72,8 @@ export function InstallRow() {
                 {/* The same sheet the deferred banner and the push row already open. There is no
                     second install explanation in this app. */}
                 <Drawer open={iosSheetOpen} onOpenChange={setIosSheetOpen}>
-                    <DrawerContent className={drawerContentClass}>
-                        <DrawerHeader className={drawerHeaderClass}>
+                    <DrawerContent>
+                        <DrawerHeader>
                             <DrawerTitle className="text-h5">{t('ios.title')}</DrawerTitle>
                             <DrawerDescription>{t('ios.body')}</DrawerDescription>
                         </DrawerHeader>

@@ -57,18 +57,3 @@ export const DrawerActions = ({ className, ...props }: React.HTMLAttributes<HTML
     <div className={cn('flex shrink-0 flex-col gap-3', className)} {...props} />
 )
 DrawerActions.displayName = 'DrawerActions'
-
-/**
- * What a sheet's `<DrawerContent>` and `<DrawerHeader>` must carry until those
- * defaults can move into `Drawer.tsx`.
- *
- * `drawerContentClass` supplies the border COLOUR: the base is a bare `border`,
- * which resolves to currentColor, so three sheets were outlined in black and
- * four in whatever the text colour happened to be.
- *
- * `drawerHeaderClass` cancels the base's `text-center sm:text-left`. Below
- * 640px that centred the title of every sheet whose body is left-aligned —
- * which is all of them.
- */
-export const drawerContentClass = 'border-n-1'
-export const drawerHeaderClass = 'px-4 pb-1 text-left'
