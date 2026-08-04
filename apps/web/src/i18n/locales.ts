@@ -5,7 +5,7 @@
  * config, the tiny server helper, the switcher, and the audit script. Anything that hardcodes a
  * locale string somewhere else is how a fourth locale ships half-wired.
  *
- * There is deliberately no routing here — no `[locale]` segment, no middleware. The locale is a
+ * There is deliberately no routing here — no `[locale]` segment, no routing proxy. The locale is a
  * cookie, resolved server-side, so a room link is one URL in every language.
  *
  * **Codes are lowercase BCP 47, and that is the only spelling used in a filename or a path.**
@@ -40,7 +40,7 @@ export const DEFAULT_LOCALE: Locale = 'en'
 /**
  * Read server-side on every request and re-written client-side on every boot. Not `NEXT_LOCALE`
  * (next-intl's routing default) on purpose — nothing here uses next-intl routing, and borrowing
- * its cookie name would imply middleware that does not exist.
+ * its cookie name would imply locale-routing machinery that does not exist.
  */
 export const LOCALE_COOKIE = 'ps-locale'
 

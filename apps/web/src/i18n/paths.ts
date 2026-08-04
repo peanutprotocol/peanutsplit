@@ -41,8 +41,8 @@ const LOCALE_BY_PREFIX = new Map<string, Locale>(
 )
 
 /**
- * How `middleware.ts` tells `request.ts` what language a URL is in. It lives here rather than in
- * the middleware so the server config does not have to import an edge-runtime module to read one
+ * How `proxy.ts` tells `request.ts` what language a URL is in. It lives here rather than in
+ * the proxy so the server config does not have to import an edge-runtime module to read one
  * string. Not a public contract — nothing outside those two files should reference it.
  */
 export const LOCALE_HEADER = 'x-split-locale'
