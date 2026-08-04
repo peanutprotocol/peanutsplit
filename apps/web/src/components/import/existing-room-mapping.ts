@@ -1,4 +1,6 @@
-import type { ApiMember, ImportMemberMapping } from '@/lib/api-types'
+import type { ApiMember, CurrencyInfo, ImportedExpenseInput, ImportMemberMapping } from '@/lib/api-types'
+import { canPrice } from '@/lib/currency-rules'
+import { currencyInfo } from '@/lib/money'
 
 /** `null` means this source person will be added atomically with the import. */
 export interface ExistingRoomMemberDraft {
@@ -15,6 +17,20 @@ export type ExistingRoomMappingProblem =
     | 'new-name-already-exists'
 
 const nameKey = (name: string): string => name.trim().toLowerCase()
+
+/** Distinct source currencies that cannot be converted into the fixed target
+ *  room currency. `canPrice` checks identity first, so an unrated catalog code
+ *  such as KPW remains valid when both the source row and room use KPW. */
+export function unsupportedImportCurrencies(
+    expenses: readonly Pick<ImportedExpenseInput, 'currencyCode'>[],
+    roomCurrency: string,
+    currencies?: readonly CurrencyInfo[]
+): string[] {
+    const target = currencyInfo(roomCurrency, currencies)
+    return [...new Set(expenses.map((expense) => expense.currencyCode))].filter(
+        (source) => !canPrice(currencyInfo(source, currencies), target)
+    )
+}
 
 /**
  * Exact display-name matches are useful enough to suggest and strict enough not to guess.

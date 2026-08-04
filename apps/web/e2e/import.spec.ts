@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test'
 import { test } from './fixtures'
 import { SIMPLE_GROUP } from '../src/lib/__fixtures__/splitwise'
-import { SPLITPRO_ACCOUNT_EXPORT } from '../src/lib/__fixtures__/splitpro'
+import { SPLITPRO_ACCOUNT_EXPORT, SPLITPRO_FRIEND_CSV } from '../src/lib/__fixtures__/splitpro'
 import { enterCreatedRoom, expectBalance } from './helpers'
 
 /**
@@ -202,6 +202,48 @@ test('import into an existing room appends in place and an exact retry is a no-o
     await expectBalance(page, 'Bea', '-3500')
     await expectBalance(page, 'Carla', '0')
     await expect(page.locator('[data-testid="balance-card"][data-member="Bruno"]')).toHaveCount(0)
+})
+
+test('an unrated KPW room blocks incompatible EUR history before submit', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('KPW import target')
+    await page.getByTestId('room-currency').selectOption('KPW')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    const roomPath = new URL(await enterCreatedRoom(page)).pathname
+
+    await page.goto(`${roomPath}/import`)
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'EUR group.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(SIMPLE_GROUP, 'utf8'),
+    })
+
+    const problem = page.getByTestId('import-currency-unsupported')
+    await expect(problem).toBeVisible({ timeout: 15_000 })
+    await expect(problem).toContainText('EUR')
+    await expect(problem).toContainText('KPW')
+    await expect(page.getByTestId('import-submit')).toBeDisabled()
+})
+
+test('an unrated KPW room accepts same-currency KPW history', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('KPW identity import')
+    await page.getByTestId('room-currency').selectOption('KPW')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    const roomPath = new URL(await enterCreatedRoom(page)).pathname
+
+    await page.goto(`${roomPath}/import`)
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'expenses_with_Natalia.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(SPLITPRO_FRIEND_CSV.replaceAll(',EUR,', ',KPW,'), 'utf8'),
+    })
+
+    await expect(page.getByTestId('import-member-mapping')).toHaveCount(2, { timeout: 15_000 })
+    await expect(page.getByTestId('import-currency-unsupported')).toHaveCount(0)
+    await expect(page.getByTestId('import-submit')).toBeEnabled()
 })
 
 test('a file that is not a Splitwise export says so, and writes nothing', async ({ page }) => {

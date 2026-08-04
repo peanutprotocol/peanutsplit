@@ -8,7 +8,8 @@ let openImporter: (() => void) | undefined
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 vi.mock('next-intl', () => ({
-    useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
+    useTranslations: (namespace: string) => (key: string, values?: Record<string, string>) =>
+        `${namespace}.${key}${values ? `:${Object.values(values).join(',')}` : ''}`,
 }))
 vi.mock('@/components/ui/Button', () => ({
     Button: ({
@@ -34,7 +35,7 @@ vi.mock('@/components/ui/DrawerLayout', () => ({
     drawerHeaderClass: '',
 }))
 vi.mock('@/components/ui/SettingRow', () => ({
-    SettingRow: ({ label }: { label: string }) => createElement('div', null, label),
+    SettingRow: ({ label, value }: { label: string; value: string }) => createElement('div', null, `${label}|${value}`),
 }))
 
 import { RoomExport } from './RoomExport'
@@ -72,5 +73,17 @@ describe('RoomExport current-room importer', () => {
         openImporter?.()
         expect(push).toHaveBeenCalledWith('/r/summer%2Ftrip%3Fsecret%3Dyes/import')
         expect(push).not.toHaveBeenCalledWith('/import')
+    })
+
+    it('presents a custom-currency room as export-only before opening any importer', () => {
+        const html = renderToStaticMarkup(
+            <RoomExport state={{ ...state, room: { ...state.room, currency: 'BEER' } }} />
+        )
+
+        expect(html).toContain('room.header.exportOnly|room.header.exportFormats')
+        expect(html).toContain('import.existing.customCurrencyUnsupportedTitle')
+        expect(html).toContain('import.existing.customCurrencyUnsupportedBody:BEER')
+        expect(html).not.toContain('data-testid="open-splitwise-import"')
+        expect(openImporter).toBeUndefined()
     })
 })
