@@ -14,7 +14,8 @@ vi.mock('next/link', () => ({
     default: ({ children, href, ...props }: ComponentProps<'a'>) => createElement('a', { ...props, href }, children),
 }))
 vi.mock('next-intl', () => ({
-    useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
+    useTranslations: (namespace: string) => (key: string, values?: Record<string, string>) =>
+        `${namespace}.${key}${values ? `:${Object.values(values).join(',')}` : ''}`,
 }))
 vi.mock('@/lib/queries', () => ({
     useRoomSnapshot: (...args: unknown[]) => mocks.snapshot(...args),
@@ -68,7 +69,7 @@ const state: RoomState = {
     suggestedTransfers: [],
 }
 
-const loaded = () => ({ data: state, error: null, isPending: false, refetch: mocks.refetch })
+const loaded = (data: RoomState = state) => ({ data, error: null, isPending: false, refetch: mocks.refetch })
 
 describe('ExistingRoomImportScreen room read', () => {
     beforeEach(() => {
@@ -86,6 +87,33 @@ describe('ExistingRoomImportScreen room read', () => {
         expect(mocks.snapshot).toHaveBeenCalledWith('summer-trip')
         expect(mocks.liveRoom).not.toHaveBeenCalled()
         expect(html).toContain('data-testid="splitwise-import-stub"')
+    })
+
+    it('explains a custom target currency before mounting the file importer', () => {
+        mocks.snapshot.mockReturnValue(loaded({ ...state, room: { ...state.room, currency: 'BEER' } }))
+
+        const html = renderToStaticMarkup(<ExistingRoomImportScreen slug="summer-trip" />)
+
+        expect(html).toContain('data-testid="import-custom-currency-unsupported"')
+        expect(html).toContain('role="alert"')
+        expect(html).toContain('import.existing.customCurrencyUnsupportedTitle')
+        expect(html).toContain('import.existing.customCurrencyUnsupportedBody:BEER')
+        expect(html).not.toContain('data-testid="splitwise-import-stub"')
+    })
+
+    it('keeps an archived custom room on the archived-room path', () => {
+        mocks.snapshot.mockReturnValue(
+            loaded({
+                ...state,
+                room: { ...state.room, currency: 'BEER', archivedAt: '2026-08-04T01:00:00.000Z' },
+            })
+        )
+
+        const html = renderToStaticMarkup(<ExistingRoomImportScreen slug="summer-trip" />)
+
+        expect(html).toContain('data-testid="import-archived"')
+        expect(html).not.toContain('data-testid="import-custom-currency-unsupported"')
+        expect(html).not.toContain('data-testid="splitwise-import-stub"')
     })
 
     it('keeps the recoverable load-error screen wired to an explicit retry', () => {

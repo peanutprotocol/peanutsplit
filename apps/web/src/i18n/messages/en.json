@@ -1033,6 +1033,7 @@
         "NL_FAILED": "Could not read that — try again.",
         "IMPORT_TOO_LARGE": "That import is too big to send. Try a group with less history.",
         "IMPORT_UNAVAILABLE": "Imports are temporarily paused — try again later.",
+        "IMPORT_TARGET_CURRENCY_UNSUPPORTED": "Imports cannot be added to a room with a custom currency. Add the expenses in the room currency manually instead.",
         "UNSUPPORTED_PUSH_HOST": "That notification service is not supported.",
         "PUSH_SUBSCRIPTION_LIMIT": "This room has too many devices receiving notifications.",
         "RATE_LIMITED": "That was a lot of requests — give it a minute and try again.",
@@ -1140,7 +1141,9 @@
             "loadFailed": "This room could not be loaded, so nothing can be imported into it.",
             "tryAgain": "Try again",
             "archivedTitle": "This room is archived",
-            "archivedBody": "Archived rooms can’t receive imports. Reopen the room before trying again."
+            "archivedBody": "Archived rooms can’t receive imports. Reopen the room before trying again.",
+            "customCurrencyUnsupportedTitle": "Imports aren’t available for custom-currency rooms",
+            "customCurrencyUnsupportedBody": "Splitwise and Split Pro exports use standard currencies, which this importer cannot convert into {currency}. Add those expenses in {currency} manually instead."
         },
         "preview": {
             "found": "{expenses, plural, one {# expense} other {# expenses}} · {members, plural, one {# person} other {# people}}",

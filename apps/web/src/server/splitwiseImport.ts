@@ -28,6 +28,7 @@ import { buildExpense } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
 import { badRequest, conflict } from '@/server/http'
 import { actorForMember, actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
+import { isCatalogCode } from '@/server/money'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
 import { addMemberInLockedTransaction, assertWritable } from '@/server/rooms'
 import { memberToken, roomSlug } from '@/server/slug'
@@ -249,6 +250,17 @@ export async function importIntoRoom(
     actorToken: string | null = null
 ): Promise<ImportIntoRoomOutcome> {
     assertWritable(initialRoom)
+    // Splitwise and Split Pro exports contain catalog currencies. A room that
+    // settles in an invented unit has no automatic conversion target, and the
+    // import contract intentionally has no manual-rate field. Refuse before the
+    // FX lookup and transaction so this unsupported pairing cannot stage people
+    // or touch the ledger. Ordinary manual-rate expense writes remain separate.
+    if (!isCatalogCode(initialRoom.currency)) {
+        throw badRequest(
+            `imports cannot be converted into custom room currency ${initialRoom.currency}`,
+            'IMPORT_TARGET_CURRENCY_UNSUPPORTED'
+        )
+    }
     const fingerprint = importSourceFingerprint(body)
 
     // A replay must not depend on today's FX table. This optimistic read only

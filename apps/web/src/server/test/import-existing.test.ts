@@ -575,8 +575,37 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(pokes).toBe(0)
     })
 
+    it('refuses a custom-currency target before adding people, ledger rows or notifications', async () => {
+        const { body: target } = await newRoom({ currency: 'BEER' })
+        const body = bodyFor(source(), [
+            { sourceName: 'Ana', memberId: target.members[0].id },
+            { sourceName: 'Bruno', newMemberName: 'Bruno' },
+            { sourceName: 'Carla', newMemberName: 'Carla' },
+        ])
+        let pokes = 0
+        const unsubscribe = subscribe(target.room.id, () => {
+            pokes += 1
+        })
+
+        const result = await append<ApiError>(target.room.slug, body, target.memberToken)
+        unsubscribe?.()
+
+        expect(result.status).toBe(400)
+        expect(result.body.error).toMatchObject({
+            code: 'IMPORT_TARGET_CURRENCY_UNSUPPORTED',
+            message: expect.stringContaining('BEER'),
+        })
+        expect(await prisma.member.count({ where: { roomId: target.room.id } })).toBe(1)
+        expect(await prisma.expense.count({ where: { roomId: target.room.id } })).toBe(0)
+        expect(await prisma.importBatch.count({ where: { roomId: target.room.id } })).toBe(0)
+        expect(await importEvents(target.room.id)).toHaveLength(0)
+        expect(pokes).toBe(0)
+    })
+
     it('refuses archived and missing targets without side effects', async () => {
-        const { body: target } = await newRoom()
+        // Archived remains the stronger state even when this room's custom
+        // currency would otherwise make the import unsupported.
+        const { body: target } = await newRoom({ currency: 'BEER' })
         const body = bodyFor(source(), [
             { sourceName: 'Ana', memberId: target.members[0].id },
             { sourceName: 'Bruno', newMemberName: 'Bruno' },
