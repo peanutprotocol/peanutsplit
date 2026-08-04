@@ -16,7 +16,7 @@ import {
     planPaletteHand,
     planSpin,
 } from '@/lib/avatar-hand'
-import { isAvatarPaletteKey, type AvatarPaletteKey } from '@/lib/avatar-palettes'
+import { effectiveAvatarPaletteKey, isAvatarPaletteKey, type AvatarPaletteKey } from '@/lib/avatar-palettes'
 import { AVATARS, type AvatarKey } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -28,6 +28,8 @@ interface AvatarPickerProps {
     value: string | null
     /** Null is possible only during a rolling deploy or from an older cache. */
     palette: string | null
+    /** Effective palette keys rendered by every other active room member. */
+    usedPalettes?: readonly string[]
     onChange: (avatar: string, palette: AvatarPaletteKey) => void
     disabled?: boolean
 }
@@ -88,15 +90,16 @@ const DIE_TURN_DEGREES = 720
  *
  * The selected tile is marked, never enlarged, for the same reason.
  */
-export function AvatarPicker({ name, value, palette, onChange, disabled }: AvatarPickerProps) {
+export function AvatarPicker({ name, value, palette, usedPalettes = [], onChange, disabled }: AvatarPickerProps) {
     const t = useTranslations('room.avatar')
     const motionAllowed = useMotionAllowed()
+    const currentPalette = effectiveAvatarPaletteKey(palette, value ?? name)
 
-    // Derived from `value` alone, so the server HTML and the first client render
-    // are identical. Randomness starts at the first tap of the die, never here.
+    // Derived only from stable member and room props, so the server HTML and the
+    // first client render are identical. Randomness starts at the first die tap.
     const [hand, setHand] = useState<AvatarKey[]>(() => initialHand(value))
     const [handPalettes, setHandPalettes] = useState<AvatarPaletteKey[]>(() =>
-        initialPaletteHand(initialHand(value), value, palette)
+        initialPaletteHand(initialHand(value), value, currentPalette, usedPalettes)
     )
     const [spin, setSpin] = useState<{
         plan: SpinPlan
@@ -123,7 +126,7 @@ export function AvatarPicker({ name, value, palette, onChange, disabled }: Avata
         // plan rather than racing it.
         stopSpin()
         const plan = planSpin(value)
-        const palettes = planPaletteHand(plan.hand, value, palette)
+        const palettes = planPaletteHand(plan.hand, value, currentPalette, Math.random, usedPalettes)
 
         if (!motionAllowed) {
             setSpin(null)
@@ -162,15 +165,21 @@ export function AvatarPicker({ name, value, palette, onChange, disabled }: Avata
     // pair authoritative instead of leaving the inserted character in the
     // colour of whichever tile it replaced.
     const settledPalettes = shown.map((key, slot) => {
-        if (key === value && isAvatarPaletteKey(palette)) return palette
+        if (key === value) return currentPalette
         if (key === hand[slot] && handPalettes[slot]) return handPalettes[slot]
-        return initialPaletteHand([key], null, null)[0]
+        return initialPaletteHand([key], null, null, usedPalettes)[0]
     })
-    const shownPalettes = spin
+    const proposedPalettes = spin
         ? shown.map((_, slot) =>
               hasSettled(spin.plan, slot, spin.tick) ? spin.palettes[slot] : (handPalettes[slot] ?? spin.palettes[slot])
           )
         : settledPalettes
+    // A realtime room update can change the occupied set while this sheet is
+    // open. Never leave one stale frame offering another member's new colour.
+    const occupied = new Set(usedPalettes.filter(isAvatarPaletteKey))
+    const shownPalettes = proposedPalettes.some((candidate, slot) => shown[slot] !== value && occupied.has(candidate))
+        ? initialPaletteHand(shown, value, currentPalette, usedPalettes)
+        : proposedPalettes
 
     const option = (key: AvatarKey, slot: number) => {
         const art = AVATARS[key]

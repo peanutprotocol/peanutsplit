@@ -6,10 +6,14 @@ import {
     avatarColorLuminance,
     avatarPalette,
     avatarPaletteContrast,
+    avatarPaletteDistance,
     avatarPaletteForIdentity,
     dealAvatarPaletteKeys,
+    effectiveAvatarPaletteKey,
     isAvatarPaletteKey,
     randomAvatarPaletteKey,
+    separatedAvatarPaletteKeys,
+    type AvatarPaletteKey,
 } from './avatar-palettes'
 
 /** A seeded generator so repeat deals remain repeatable. */
@@ -85,6 +89,12 @@ describe('the reviewed avatar palette', () => {
                 .size
         ).toBeGreaterThan(1)
     })
+
+    it('resolves the same effective fallback key that member avatars render', () => {
+        expect(effectiveAvatarPaletteKey('sun-berry', 'tea-dragon')).toBe('sun-berry')
+        expect(effectiveAvatarPaletteKey(null, 'tea-dragon')).toBe(avatarPaletteForIdentity('tea-dragon').key)
+        expect(effectiveAvatarPaletteKey('unknown', 'Ana')).toBe(avatarPaletteForIdentity('Ana').key)
+    })
 })
 
 describe('palette dealing', () => {
@@ -111,5 +121,43 @@ describe('palette dealing', () => {
         for (const count of [-1, 1.5, AVATAR_PALETTE_KEYS.length + 1]) {
             expect(() => dealAvatarPaletteKeys(count)).toThrow(RangeError)
         }
+    })
+})
+
+describe('perceptually separated room offers', () => {
+    it('measures both halves of a palette symmetrically in OKLab', () => {
+        expect(avatarPaletteDistance('lagoon-grape', 'lagoon-grape')).toBe(0)
+        expect(avatarPaletteDistance('lagoon-grape', 'bubble-navy')).toBeCloseTo(
+            avatarPaletteDistance('bubble-navy', 'lagoon-grape')
+        )
+        expect(avatarPaletteDistance('lagoon-grape', 'bubble-navy')).toBeGreaterThan(0)
+    })
+
+    it('takes the maximin candidate against occupied room colours', () => {
+        const occupied = ['lagoon-grape'] as const
+        const expected = AVATAR_PALETTE_KEYS.filter(
+            (key) => !occupied.includes(key as (typeof occupied)[number])
+        ).reduce((best, key) =>
+            avatarPaletteDistance(key, occupied[0]) > avatarPaletteDistance(best, occupied[0]) ? key : best
+        )
+        expect(separatedAvatarPaletteKeys(1, occupied)).toEqual([expected])
+    })
+
+    it('never offers an occupied key and repeats only the few room-free keys', () => {
+        const occupied = AVATAR_PALETTE_KEYS.slice(0, 20)
+        const free = AVATAR_PALETTE_KEYS.slice(20)
+        const freeSet = new Set<AvatarPaletteKey>(free)
+        const offers = separatedAvatarPaletteKeys(8, occupied)
+        expect(offers).toHaveLength(8)
+        expect(offers.every((key) => freeSet.has(key))).toBe(true)
+        expect(new Set(offers)).toEqual(new Set(free))
+        expect(offers).toEqual(separatedAvatarPaletteKeys(8, occupied))
+    })
+
+    it('degrades gracefully once every catalog key is already occupied', () => {
+        const offers = separatedAvatarPaletteKeys(AVATAR_PALETTE_KEYS.length + 5, AVATAR_PALETTE_KEYS)
+        expect(offers).toHaveLength(AVATAR_PALETTE_KEYS.length + 5)
+        expect(new Set(offers).size).toBe(AVATAR_PALETTE_KEYS.length)
+        expect(offers.every(isAvatarPaletteKey)).toBe(true)
     })
 })

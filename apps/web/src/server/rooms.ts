@@ -5,7 +5,7 @@ import { prisma } from '@/server/db'
 import { conflict } from '@/server/http'
 import { actorForMember, appendRoomAuditEvent, type AuditActor } from '@/server/history'
 import { randomPersonaKey } from '@/lib/avatars'
-import { randomAvatarPaletteKey } from '@/lib/avatar-palettes'
+import { effectiveAvatarPaletteKey, randomAvatarPaletteKey, separatedAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { memberToken, roomSlug } from '@/server/slug'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
 import type { CreateRoomBody } from '@/server/validation'
@@ -158,10 +158,12 @@ export async function addMemberInLockedTransaction(
     if (duplicate) throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
     const existingMembers = await tx.member.findMany({
         where: { roomId, removedAt: null },
-        select: { avatar: true, avatarPalette: true },
+        select: { name: true, avatar: true, avatarPalette: true },
     })
     const usedAvatars = existingMembers.flatMap((member) => (member.avatar ? [member.avatar] : []))
-    const usedPalettes = existingMembers.flatMap((member) => (member.avatarPalette ? [member.avatarPalette] : []))
+    const usedPalettes = existingMembers.map((member) =>
+        effectiveAvatarPaletteKey(member.avatarPalette, member.avatar ?? member.name)
+    )
 
     const member = await tx.member.create({
         data: {
@@ -169,7 +171,7 @@ export async function addMemberInLockedTransaction(
             name,
             token,
             avatar: randomPersonaKey(usedAvatars),
-            avatarPalette: randomAvatarPaletteKey(usedPalettes),
+            avatarPalette: separatedAvatarPaletteKeys(1, usedPalettes)[0],
             provisional,
         },
     })
