@@ -11,13 +11,13 @@ import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
  * `setRequestLocale`, the locale is already decided. The only place early enough to say "this URL
  * is Spanish" — or English — is here.
  *
- * `localeFromPathname` is the whole reason this is acceptable next to the no-middleware rule in
+ * `localeFromPathname` is the whole reason this is acceptable next to the no-proxy rule in
  * `request.ts`. It returns null for the app shell, so `/`, `/new`, `/r/*` and `/share-target` fall
  * through untouched and keep their cookie-decided locale. WHICH pages get a header is that
  * function's call, not the matcher's — one rule, one place. `/app` is the operational home;
  * `/` remains cookie-localized public marketing.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const locale = localeFromPathname(request.nextUrl.pathname)
     if (!locale) return NextResponse.next()
 

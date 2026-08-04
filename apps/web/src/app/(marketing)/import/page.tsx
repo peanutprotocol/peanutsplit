@@ -58,7 +58,7 @@ const faqJsonLd = {
 
 /**
  * The canonical page remains English, but its embedded product tool follows the reader's app
- * preference. The request-level locale cannot answer this because middleware correctly pins the
+ * preference. The request-level locale cannot answer this because the proxy correctly pins the
  * English marketing shell to `en`; resolving the preference locally keeps the indexed prose and
  * `<html lang="en">` truthful while the tool itself speaks the language the reader chose.
  */

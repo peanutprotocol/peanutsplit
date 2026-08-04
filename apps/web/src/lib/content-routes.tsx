@@ -31,7 +31,7 @@ import { LOCALES, type Locale } from '@/i18n/locales'
  * know which collection a slug belongs to — it asks the tree.
  *
  * The shared chrome — footer, switcher, anything on `useTranslations` — follows the URL's language
- * because `middleware.ts` puts it in a header that `i18n/request.ts` reads. Nothing here has to
+ * because `proxy.ts` puts it in a header that `i18n/request.ts` reads. Nothing here has to
  * pass a locale down; `getTranslations({ locale })` is used only where this module already knows
  * the language and wants to be explicit about it.
  */

@@ -544,12 +544,12 @@ const findings: Finding[] = [
         horizon: 'Later',
         title: 'No security-header policy is defined in the repository',
         summary:
-            'Next config and middleware define no CSP, frame-ancestors, Referrer-Policy or Permissions-Policy. The app persists member tokens and the room URL is a credential.',
+            'Next config and the request proxy define no CSP, frame-ancestors, Referrer-Policy or Permissions-Policy. The app persists member tokens and the room URL is a credential.',
         impact: 'An XSS or hostile embed has a larger blast radius and broader browser capabilities than needed.',
         action: 'Check the live edge and add only cheap non-breaking defaults opportunistically. Defer CSP reporting, nonces and enforcement until roughly 1,000 rooms, before user-authored HTML, or when a privileged third-party script is added.',
         evidence: [
             'apps/web/next.config.js:11 — no headers() policy',
-            'apps/web/src/middleware.ts:20 — only locale injection',
+            'apps/web/src/proxy.ts:20 — only locale injection',
             'apps/web/src/lib/identity.ts:41 — token stored locally',
         ],
         status: 'conditional',
