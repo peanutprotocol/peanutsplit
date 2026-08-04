@@ -333,7 +333,7 @@ module.exports = {
                     '@apply border-2 border-n-1': {},
                 },
                 '.input': {
-                    '@apply h-16 w-full rounded-sm border border-n-1 bg-white px-5 text-sm font-bold text-n-1 outline-none transition-colors placeholder:text-n-3 focus:border-primary-1':
+                    '@apply h-16 w-full rounded-sm border border-n-1 bg-white px-5 text-sm font-bold text-n-1 outline-none transition-colors placeholder:text-n-3':
                         {},
                 },
                 '.bg-peanut-repeat-normal': {

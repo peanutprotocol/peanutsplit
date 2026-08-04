@@ -7,7 +7,7 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { marketingCopy } from '@/components/marketing/copy'
 import { SplitwiseImport } from '@/components/import/SplitwiseImport'
-import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import {
     DEFAULT_LOCALE,
     HREFLANG,
@@ -126,10 +126,11 @@ export default async function ImportPage() {
                 <div className="rounded-sm border border-n-1 bg-white p-5">
                     <h2 className="text-h5">{importPage.cta.title}</h2>
                     <p className="mt-2 text-sm leading-5 text-grey-1">{importPage.cta.body}</p>
-                    <Link href="/new" className="mt-4 block">
-                        <Button variant="primary" shadowSize="4" className="justify-center text-h6">
-                            {importPage.cta.button}
-                        </Button>
+                    <Link
+                        href="/new"
+                        className={buttonClassName({ shadowSize: '4', className: 'mt-4 justify-center text-h6' })}
+                    >
+                        {importPage.cta.button}
                     </Link>
                 </div>
             </section>

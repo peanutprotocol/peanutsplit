@@ -101,6 +101,7 @@ export default function ToolsHubPage() {
                         <li key={tool.slug}>
                             <Link
                                 href={toolPath(tool)}
+                                data-focus-contained
                                 className="flex items-start gap-3 bg-white px-4 py-4 hover:bg-grey-3"
                             >
                                 <Doodle name={tool.doodle} size={28} weight={1.8} className="mt-0.5" />

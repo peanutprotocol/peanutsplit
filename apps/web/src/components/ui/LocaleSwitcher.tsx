@@ -74,6 +74,8 @@ export function LocaleSwitcher({
                             lang={locale}
                             aria-pressed={active}
                             data-testid={`locale-${locale}`}
+                            data-focus-contained
+                            data-focus-tone={active ? 'dark' : 'light'}
                             onClick={() => setLocaleAndReload(locale)}
                             className={cn(
                                 'min-h-11 flex-1 px-3 py-2 text-h8 transition-colors duration-150',

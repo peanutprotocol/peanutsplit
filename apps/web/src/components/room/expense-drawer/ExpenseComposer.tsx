@@ -6,7 +6,12 @@ import { cn } from '@/lib/cn'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
 import { Doodle } from '@/components/ui/Doodle'
 import { Icon } from '@/components/ui/Icon'
-import { COMPOSER_CURRENCY_SLOT, composerRowClassName, composerSurfaceClassName } from '@/components/ui/composer-style'
+import {
+    COMPOSER_CURRENCY_SLOT,
+    composerBareInputClassName,
+    composerRowClassName,
+    composerSurfaceClassName,
+} from '@/components/ui/composer-style'
 import { CurrencySelect } from '../CurrencySelect'
 import { MemberAvatar } from '../MemberAvatar'
 
@@ -109,9 +114,8 @@ export function ExpenseComposer({
                             aria-invalid={amount.invalid || undefined}
                             aria-describedby={amount.invalid ? 'expense-amount-error' : undefined}
                             data-testid="expense-amount"
-                            className={cn(
-                                'h-16 w-full min-w-0 border-0 bg-transparent px-1 font-extrabold tabular-nums outline-none placeholder:text-grey-2',
-                                amount.textSizeClass
+                            className={composerBareInputClassName(
+                                cn('h-16 px-1 font-extrabold tabular-nums', amount.textSizeClass)
                             )}
                         />
                     </label>
@@ -138,7 +142,8 @@ export function ExpenseComposer({
                         placeholder={labels.descriptionPlaceholder}
                         maxLength={255}
                         data-testid="expense-description"
-                        className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
+                        data-focus-contained
+                        className={composerBareInputClassName('h-14 px-4 text-sm font-bold')}
                     />
                 </label>
 

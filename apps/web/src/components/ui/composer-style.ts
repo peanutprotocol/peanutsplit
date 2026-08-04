@@ -7,7 +7,7 @@ export const composerSurfaceClassName = (className?: string) =>
 export const composerRowClassName = (className?: string) => cn('border-t border-dashed border-grey-1', className)
 
 export const composerBareInputClassName = (className?: string) =>
-    cn('w-full min-w-0 border-0 bg-transparent outline-none placeholder:text-grey-2', className)
+    cn('w-full min-w-0 border-0 bg-transparent outline-none placeholder:text-n-3', className)
 
 export const composerBoxedInputClassName = (className?: string) =>
     cn('h-11 rounded-sm border border-n-1 bg-white px-3 text-right text-sm font-bold text-n-1 outline-none', className)

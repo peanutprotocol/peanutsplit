@@ -97,6 +97,16 @@ const componentContracts = [
     ['MemberAvatar', 'Anonymous room identity', 'Allowlisted character + allowlisted high-contrast palette'],
     ['Money', 'Any amount shown to a person', 'Minor-unit string, locale-aware, tabular; never hand-format'],
     ['Loading', 'Inline pending status', 'Doodle spinner plus a screen-reader status label'],
+    [
+        'RouteState',
+        'Page-level error/loading/missing fallback',
+        'Translated safe copy; no raw error, URL or credential',
+    ],
+    [
+        'useRovingRadioGroup',
+        'Button-shaped visual choices',
+        'One tab stop; Arrow/Home/End; appearance stays caller-owned',
+    ],
 ] as const
 
 const nav = [
@@ -249,7 +259,7 @@ export default function DesignSystemPage() {
                         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.7fr)]">
                             <Specimen
                                 title="Room themes"
-                                note="A room stores a key, never arbitrary colour. Black ink remains invariant."
+                                note="A room stores a key, never arbitrary colour. Ordinary text always uses black ink."
                             >
                                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                                     {ROOM_THEMES.map((theme) => (
@@ -268,6 +278,11 @@ export default function DesignSystemPage() {
                                         </div>
                                     ))}
                                 </div>
+                                <p className="mt-4 text-sm leading-6 text-grey-1">
+                                    <Code>fieldInk</Code> is restricted to large or decorative generated artwork. The
+                                    classic, bubblegum and coral pairs are not body-text colours; changing those
+                                    palettes requires a new visual review.
+                                </p>
                             </Specimen>
                             <Specimen
                                 title="Balance direction"
@@ -494,6 +509,10 @@ export default function DesignSystemPage() {
                                     label.
                                 </Rule>
                                 <Rule>
+                                    Placeholder copy keeps the approved wording and uses <Code>n-3</Code>; never use a
+                                    pale decorative token for meaningful hint text.
+                                </Rule>
+                                <Rule>
                                     Error copy follows the field and is announced; it does not rely on a red border
                                     alone.
                                 </Rule>
@@ -709,7 +728,7 @@ export default function DesignSystemPage() {
                             ],
                             [
                                 'Focus',
-                                'Every action has a visible focus state. Modal focus enters the surface and returns to the opener.',
+                                'Keyboard focus uses one 2px ink outline with 2px offset. Explicit dark surfaces use the white inverse. Modal focus enters the surface and returns to the opener.',
                             ],
                             [
                                 'Names',
@@ -872,7 +891,10 @@ export default function DesignSystemPage() {
                             </li>
                         </ol>
                     </div>
-                    <div className="mt-8 flex flex-col items-start justify-between gap-5 rounded-sm border border-n-1 bg-n-1 p-6 text-white sm:flex-row sm:items-center">
+                    <div
+                        data-focus-surface="dark"
+                        className="mt-8 flex flex-col items-start justify-between gap-5 rounded-sm border border-n-1 bg-n-1 p-6 text-white sm:flex-row sm:items-center"
+                    >
                         <div>
                             <p className="text-h5">The system is extracted. The audit names the debt.</p>
                             <p className="mt-2 text-sm text-grey-2">

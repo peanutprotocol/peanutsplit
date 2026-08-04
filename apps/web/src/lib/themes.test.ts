@@ -4,6 +4,19 @@ import { DEFAULT_THEME, DEFAULT_THEME_KEY, isThemeKey, ROOM_THEMES, themeFor, th
 
 const HEX = /^#[0-9A-F]{6}$/
 
+const luminance = (hex: string) => {
+    const channel = (offset: number) => {
+        const value = parseInt(hex.slice(offset, offset + 2), 16) / 255
+        return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+    }
+    return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
+}
+
+const contrast = (first: string, second: string) => {
+    const [light, dark] = [luminance(first), luminance(second)].sort((a, b) => b - a)
+    return (light + 0.05) / (dark + 0.05)
+}
+
 describe('the theme catalog', () => {
     it('has a unique key per entry', () => {
         expect(new Set(ROOM_THEMES.map((theme) => theme.key)).size).toBe(ROOM_THEMES.length)
@@ -24,19 +37,23 @@ describe('the theme catalog', () => {
      * is no inverted theme in the catalog.
      */
     it('keeps every field light enough to carry black ink', () => {
-        const luminance = (hex: string) => {
-            const channel = (offset: number) => {
-                const value = parseInt(hex.slice(offset, offset + 2), 16) / 255
-                return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
-            }
-            return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
-        }
-        // Contrast against black is (L + 0.05) / 0.05; WCAG AA large text wants
-        // 3:1, and the header title is 18px bold. Every field clears 4.5:1.
+        // Ordinary room text uses the shared ink, never `fieldInk`.
         for (const theme of ROOM_THEMES) {
-            const contrast = (luminance(theme.field) + 0.05) / 0.05
-            expect(contrast, `${theme.key} field vs black ink`).toBeGreaterThanOrEqual(4.5)
+            expect(contrast(theme.field, '#211C17'), `${theme.key} field vs black ink`).toBeGreaterThanOrEqual(4.5)
         }
+    })
+
+    it('limits muted field ink to large or decorative OG copy', () => {
+        // Every current use is at least 26px in generated artwork, so 3:1 is the
+        // intended floor. The three named pairs must not be treated as an AA
+        // body-text palette; changing that set is a visual-design decision.
+        const bodyTextFailures: string[] = []
+        for (const theme of ROOM_THEMES) {
+            const ratio = contrast(theme.field, theme.fieldInk)
+            expect(ratio, `${theme.key} field vs muted display ink`).toBeGreaterThanOrEqual(3)
+            if (ratio < 4.5) bodyTextFailures.push(theme.key)
+        }
+        expect(bodyTextFailures).toEqual(['classic', 'bubblegum', 'coral'])
     })
 
     it('reproduces today’s look exactly under the default key', () => {

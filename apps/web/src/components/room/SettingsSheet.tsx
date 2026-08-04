@@ -158,8 +158,8 @@ export function SettingsSheet({
      * instead of freezing it. Blur has already committed any rename by the time a
      * tile can be tapped, so the draft and the stored name agree here.
      */
-    const chooseEmblem = (next: string) => {
-        setPickerOpen(false)
+    const chooseEmblem = (next: string, close = true) => {
+        if (close) setPickerOpen(false)
         const choice = emblemChoice(next, room.emoji, nameForDoodle)
         if (!choice) return
         feedback('tick')
@@ -233,7 +233,12 @@ export function SettingsSheet({
                                         <RoomEmblem value={room.emoji} name={nameForDoodle} size={24} />
                                     </summary>
                                     <div className="shadow-4 absolute left-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
-                                        <DoodlePicker value={shownEmblem} onChange={chooseEmblem} />
+                                        <DoodlePicker
+                                            value={shownEmblem}
+                                            onChange={chooseEmblem}
+                                            onKeyboardChange={(next) => chooseEmblem(next, false)}
+                                            disabled={setEmblem.isPending}
+                                        />
                                     </div>
                                 </details>
                                 <BaseInput

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { peanutSad } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 
 /** The bar is the room's first 69px and it only exists once the state does, so
  *  without a stand-in of the same height everything below it drops when the data
@@ -66,10 +67,8 @@ export function RoomNotFound() {
             <Image src={peanutSad} alt="" unoptimized priority className="h-32 w-32 object-contain" />
             <p className="text-h5">{t('notFoundTitle')}</p>
             <p className="max-w-[22rem] text-sm text-grey-1">{t('notFoundBody')}</p>
-            <Link href="/app" className="w-full max-w-xs">
-                <Button variant="stroke" className="justify-center">
-                    {t('notFoundCta')}
-                </Button>
+            <Link href="/app" className={buttonClassName({ variant: 'stroke', className: 'max-w-xs justify-center' })}>
+                {t('notFoundCta')}
             </Link>
         </div>
     )

@@ -8,7 +8,7 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { LanguageLinks } from '@/components/marketing/LanguageLinks'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { comparisonCopy } from '@/components/marketing/compare-copy'
-import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import { Icon } from '@/components/ui/Icon'
 import { HREFLANG, LOCALES, type Locale } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
@@ -85,10 +85,11 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                 </div>
 
                 <div className="mx-auto w-full max-w-xl px-5 pt-6">
-                    <Link href="/app" className="block">
-                        <Button variant="primary" shadowSize="4" className="justify-center text-h6">
-                            {compare.hero.cta}
-                        </Button>
+                    <Link
+                        href="/app"
+                        className={buttonClassName({ shadowSize: '4', className: 'justify-center text-h6' })}
+                    >
+                        {compare.hero.cta}
                     </Link>
                     <p className="mt-3 text-center text-sm text-grey-1">{compare.hero.ctaHint}</p>
                     {showImporter && (
@@ -173,10 +174,11 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                 <div className="rounded-sm border border-n-1 bg-white p-5">
                     <h2 className="text-h5">{compare.cta.title}</h2>
                     <p className="mt-2 text-sm leading-5 text-grey-1">{compare.cta.body}</p>
-                    <Link href="/app" className="mt-4 block">
-                        <Button variant="primary" shadowSize="4" className="justify-center text-h6">
-                            {compare.cta.button}
-                        </Button>
+                    <Link
+                        href="/app"
+                        className={buttonClassName({ shadowSize: '4', className: 'mt-4 justify-center text-h6' })}
+                    >
+                        {compare.cta.button}
                     </Link>
                 </div>
             </section>

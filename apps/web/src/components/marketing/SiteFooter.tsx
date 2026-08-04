@@ -62,7 +62,7 @@ export function SiteFooter({
     const linkClass = 'flex min-h-9 items-center text-sm leading-5 text-white/70 transition-colors hover:text-white'
 
     return (
-        <footer className="mt-auto bg-n-1 pb-[env(safe-area-inset-bottom)] text-white">
+        <footer data-focus-surface="dark" className="mt-auto bg-n-1 pb-[env(safe-area-inset-bottom)] text-white">
             <div className="mx-auto w-full max-w-xl px-5 py-8">
                 <a
                     href="https://peanut.me?utm_source=split&utm_medium=footer"

@@ -3,7 +3,8 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { extname, join, resolve } from 'node:path'
 import ts from 'typescript'
 import en from '@/i18n/messages/en.json'
-import { KNOWN_ERROR_CODES } from './error-messages'
+import { ApiRequestError } from './api'
+import { errorMessageFor, KNOWN_ERROR_CODES } from './error-messages'
 
 /**
  * The one thing the i18n audit script cannot check about this module: it maps a code to a key at
@@ -27,6 +28,22 @@ describe('error message coverage', () => {
     it('recognizes every literal error code emitted by server and API code', () => {
         const known = new Set<string>(KNOWN_ERROR_CODES)
         expect([...emittedErrorCodes()].filter((code) => !known.has(code)).sort()).toEqual([])
+    })
+})
+
+describe('errorMessageFor', () => {
+    const translate = (key: string) => `translated:${key}`
+
+    it('uses the localized catalog for a known server code', () => {
+        expect(errorMessageFor(new ApiRequestError(404, 'NOT_FOUND', 'raw English'), translate)).toBe(
+            'translated:NOT_FOUND'
+        )
+    })
+
+    it('never exposes an unknown raw server message or room credential', () => {
+        const error = new ApiRequestError(500, 'FUTURE_CODE', 'failed while reading /r/secret-room-capability')
+        expect(errorMessageFor(error, translate)).toBe('translated:generic')
+        expect(errorMessageFor(error, translate, 'Could not save this expense.')).toBe('Could not save this expense.')
     })
 })
 

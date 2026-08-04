@@ -59,6 +59,7 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
                                 title={name}
                                 data-testid="theme-swatch"
                                 data-theme={theme.key}
+                                data-focus-contained
                                 onClick={() => onChange(theme.key === DEFAULT_THEME_KEY ? null : theme.key)}
                                 className={cn(
                                     'flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 text-h7 transition-transform duration-100',

@@ -31,19 +31,19 @@ export const auditRecommendations = {
     },
     'A11Y-01': {
         decision: 'fix-now',
-        note: 'Ship one compliant focus-visible treatment centrally. It is a launch-quality baseline and does not change normal layouts.',
+        note: 'Implemented centrally: a 2px offset ink outline on light surfaces and the white inverse on explicit dark surfaces. Resting UI is unchanged.',
     },
     'A11Y-02': {
-        decision: 'mockup-review',
-        note: 'The accessibility requirement is real, but changing Button and reaction target sizes affects density across the app. Review representative mobile screens before migration.',
+        decision: 'defer',
+        note: 'Leadership chose Keep current in the UX review. Do not migrate target sizes or add an IconButton now; reopen only with a concrete usability problem or a future reviewed density pass.',
     },
     'A11Y-03': {
         decision: 'fix-now',
-        note: 'Improve placeholder contrast and preserve visible labels. This is a small, obvious readability correction.',
+        note: 'Implemented to the revised decision: improve contrast through the shared n-3 recipe without changing placeholder wording, field hierarchy or flow.',
     },
     'A11Y-04': {
         decision: 'fix-now',
-        note: 'Extract the already-proven roving radio behavior. It corrects keyboard interaction without changing the visual design.',
+        note: 'Implemented through one headless roving helper across doodle, avatar, payer and split-mode groups. Visuals and click-close behavior are unchanged.',
     },
     'I18N-01': {
         decision: 'plan',
@@ -136,8 +136,8 @@ export const auditRecommendations = {
         note: 'A full CSP reporting/nonce/enforcement project is production machinery while integrations are still changing. Add only cheap non-breaking headers opportunistically after checking the live edge. Reopen CSP at roughly 1,000 rooms, before user-authored HTML, or when adding a privileged third-party script.',
     },
     'RES-01': {
-        decision: 'plan',
-        note: 'Add restrained translated error, loading and not-found boundaries. Review the copy, but do not build an elaborate recovery system.',
+        decision: 'fix-now',
+        note: 'Implemented as one restrained translated family: retry/safe navigation, no raw errors or room credentials, and no recovery framework.',
     },
     'DOMAIN-01': {
         decision: 'fix-now',
@@ -157,11 +157,11 @@ export const auditRecommendations = {
     },
     'DS-10': {
         decision: 'fix-now',
-        note: 'Correct and test the documented contract as large/decorative-only. Any actual theme-color retuning should return for visual review.',
+        note: 'Implemented through documentation, contrast tests and a UI source guard. Theme colors are unchanged; any retuning returns for visual review.',
     },
     'I18N-03': {
-        decision: 'fix-now',
-        note: 'Remove the root-wide translation prohibition and retain it only on exact brand or data fragments. This is a small accessibility and discovery win.',
+        decision: 'defer',
+        note: 'Keep the current exact-copy policy for the three shipped locales. Revisit browser translation when unsupported-language demand appears or during a deliberate localization policy pass; this is not launch work for an unvalidated product.',
     },
     'PERF-05': {
         decision: 'defer',

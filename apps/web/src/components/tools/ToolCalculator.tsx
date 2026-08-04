@@ -270,6 +270,7 @@ function Calculator({ tool }: { tool: Tool }) {
                             aria-expanded={builderOpen}
                             aria-controls="tool-builder"
                             data-testid="tool-builder-summary"
+                            data-focus-contained
                             className={composerRowClassName('flex min-h-14 w-full items-center gap-3 px-4 text-left')}
                         >
                             <Doodle name={tool.doodle} size={28} weight={1.8} />
@@ -596,9 +597,13 @@ function SwitchRow({ field, on, onChange }: { field: ToolField; on: boolean; onC
                 checked={on}
                 onChange={(event) => onChange(event.target.checked)}
                 data-testid={`tool-field-${field.name}`}
+                data-focus-proxy
                 className="peer sr-only"
             />
-            <span className="relative h-7 w-12 shrink-0 rounded-full border-2 border-n-1 bg-white transition-colors peer-checked:bg-primary-1">
+            <span
+                data-focus-proxy-target
+                className="relative h-7 w-12 shrink-0 rounded-full border-2 border-n-1 bg-white transition-colors peer-checked:bg-primary-1"
+            >
                 <span className="absolute left-0.5 top-0.5 size-5 rounded-full border-2 border-n-1 bg-white transition-transform peer-checked:translate-x-5" />
             </span>
         </label>
