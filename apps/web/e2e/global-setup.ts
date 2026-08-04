@@ -41,6 +41,10 @@ export default async function globalSetup(): Promise<void> {
         const slug = created?.ok() ? ((await created.json()) as { room?: { slug?: string } }).room?.slug : undefined
         if (slug) {
             await api.get(`/r/${slug}`, { timeout: 180_000 }).catch(() => undefined)
+            // Existing-room import is a nested dynamic route and has its own
+            // client tree. Compile it against the same disposable room before
+            // an append journey starts its test clock.
+            await api.get(`/r/${slug}/import`, { timeout: 180_000 }).catch(() => undefined)
             await api.get(`/r/${slug}/card/invite`, { timeout: 180_000 }).catch(() => undefined)
         }
     } finally {
