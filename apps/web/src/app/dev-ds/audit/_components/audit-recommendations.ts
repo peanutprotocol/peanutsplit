@@ -10,11 +10,11 @@ import type { AuditRecommendation } from './audit-model'
 export const auditRecommendations = {
     'OPS-01': {
         decision: 'fix-now',
-        note: 'Gate production deploys on the existing checks. This protects every later cleanup and is release hygiene, not scale engineering.',
+        note: 'Verified 2026-08-04: this baseline fix is actionable entirely from the current environment, without Hugo. The authenticated GitHub account has repository admin access; main has no branch protection or ruleset; and the existing check and docker-web jobs are passing on main. Require PRs plus both checks before main can advance. Dokploy can keep polling main. A Dokploy change is only needed later if we choose immutable CI-built artifacts or want to remove every admin bypass.',
         priorConflict: {
             decision: 'Defer',
             explanation:
-                'This pulls in the wrong direction: every planned refactor would still be able to reach production before its checks. Pre-user is the cheapest time to make the existing verification meaningful.',
+                'This pulls in the wrong direction, and there is no external-access blocker: every planned refactor would still be able to reach production before its checks, while this environment can add the baseline gate directly.',
         },
     },
     'SEC-02': {
