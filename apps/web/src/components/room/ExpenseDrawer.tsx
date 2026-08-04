@@ -15,6 +15,7 @@ import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, ExpenseUpdateInput, RoomState, SplitMode } from '@/lib/api-types'
 import { roomProps, track, trackFirstSharedBalance } from '@/lib/analytics'
+import { canPrice } from '@/lib/currency-rules'
 import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
     allocatedMinor,
@@ -35,6 +36,13 @@ import {
 } from '@/lib/expense-form'
 import { useErrorMessage } from '@/lib/error-messages'
 import { splitV2Enabled } from '@/lib/flags'
+import {
+    convertMinorAtManualRate,
+    formatManualFxRateInput,
+    isManualFxRateInputAcceptable,
+    MANUAL_FX_RATE_MAX_LENGTH,
+    parseManualFxRateInput,
+} from '@/lib/manual-fx-rate'
 import { discardSharedReceipt, takeSharedReceipt } from '@/lib/shared-receipt'
 import { currencyInfo, formatAmountInput, formatMoney, isAmountInputAcceptable, parseAmountToMinor } from '@/lib/money'
 import {
@@ -52,7 +60,6 @@ import { convertMinorForPreview, useRate } from '@/lib/use-rate'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { useShake } from '@/hooks/useShake'
-import { CurrencySelect } from './CurrencySelect'
 import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
@@ -87,6 +94,7 @@ interface ExpenseDrawerProps {
 const ADVANCED_SPLIT_MODES = ['EXACT', 'PERCENTAGE', 'SHARES'] as const
 const ALL_SPLIT_MODES = ['EQUAL', ...ADVANCED_SPLIT_MODES] as const
 const DRAFT_PAYER_OPTION = '__draft-payer__'
+type ManualFxRateSource = 'expense' | 'typed' | null
 
 export function ExpenseDrawer({
     open,
@@ -139,10 +147,13 @@ export function ExpenseDrawer({
         advancedOptionsOpen: moreSplitOptionsOpen,
         confirmingDelete,
     } = workflow
+    const [manualFxRateInput, setManualFxRateInput] = useState('')
+    const [manualFxRateSource, setManualFxRateSource] = useState<ManualFxRateSource>(null)
     const deleteTriggerRef = useRef<HTMLButtonElement>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
+    const manualFxRateRef = useRef<HTMLInputElement>(null)
     const validationAlertRef = useRef<HTMLParagraphElement>(null)
     // React does not disable the button until the mutation state renders. A
     // second tap in that gap would mint a second clientKey and create a second
@@ -165,6 +176,13 @@ export function ExpenseDrawer({
             advancedOptionsOpen: Boolean(expense && expense.splitMode !== 'EQUAL'),
         })
         expenseRequestRef.current = null
+        const expenseNeedsManualRate = Boolean(
+            expense &&
+            expense.currency !== state.room.currency &&
+            !currencies.some((info) => info.code === expense.currency)
+        )
+        setManualFxRateInput(expenseNeedsManualRate ? formatManualFxRateInput(expense!.fxRate, locale) : '')
+        setManualFxRateSource(expenseNeedsManualRate ? 'expense' : null)
         setValues(
             expense
                 ? expenseToFormValues(expense, currencies, locale)
@@ -238,6 +256,12 @@ export function ExpenseDrawer({
 
     const decimals = currencyInfo(values.currency, currencies).decimals
     const isForeign = values.currency !== state.room.currency
+    const expenseCurrencyInfo = currencyInfo(values.currency, currencies)
+    const roomCurrencyInfo = currencyInfo(state.room.currency, currencies)
+    const feedCanPricePair = isForeign && canPrice(expenseCurrencyInfo, roomCurrencyInfo)
+    const isInventedExpenseCurrency = !currencies.some((info) => info.code === values.currency)
+    const requiresManualFxRate = isForeign && isInventedExpenseCurrency
+    const manualFxRate = requiresManualFxRate ? parseManualFxRateInput(manualFxRateInput, locale) : null
     /** The room's own currency leads: most expenses are in it, and it is the one code that is
      *  certainly relevant here. The device guess follows, for the traveller paying in their own. */
     const suggestedCurrencies = [state.room.currency, ...hints.map((hint) => hint.currency)].filter(
@@ -258,8 +282,54 @@ export function ExpenseDrawer({
     const percentageSettled =
         percentageRemaining === '0' && percentageHasInput && !hasUnreadablePercentage(values, locale)
     const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
+    const manualFxConversion =
+        requiresManualFxRate && manualFxRate !== null && totalMinor !== null
+            ? convertMinorAtManualRate(totalMinor, manualFxRate, decimals, roomCurrencyInfo.decimals)
+            : null
+    const manualFxConversionError =
+        manualFxConversion?.status === 'zero' || manualFxConversion?.status === 'overflow'
+            ? manualFxConversion.status
+            : null
+    const manualFxValidationError = requiresManualFxRate && (manualFxRate === null || manualFxConversionError !== null)
+    const manualFxValidationErrorCopy = (() => {
+        if (manualFxRate === null) {
+            return manualFxRateInput.trim() === ''
+                ? t('manualRateRequired', {
+                      currency: values.currency,
+                      roomCurrency: state.room.currency,
+                  })
+                : t('manualRateInvalid')
+        }
+        if (manualFxConversionError === 'zero') {
+            return t('manualRateRoundsToZero', { roomCurrency: state.room.currency })
+        }
+        if (manualFxConversionError === 'overflow') {
+            return t('manualRateOverflow')
+        }
+        return t('manualRateInvalid')
+    })()
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
+
+    /** A rate belongs to one exact pair, never to "the rate field" in general. Switching therefore
+     * clears it. Returning to the currency of the expense being edited is the one deliberate seed:
+     * that row's frozen rate is ledger history; another row with the same ticker is not. */
+    const chooseCurrency = (code: string) => {
+        const needsManualRate = code !== state.room.currency && !currencies.some((info) => info.code === code)
+        let seed: string | null = null
+        let source: ManualFxRateSource = null
+
+        if (needsManualRate && expense?.currency === code) {
+            seed = expense.fxRate
+            source = 'expense'
+        }
+
+        patch({ currency: code })
+        setManualFxRateInput(seed ? formatManualFxRateInput(seed, locale) : '')
+        setManualFxRateSource(source)
+        dispatchWorkflow({ type: 'form-field-edited' })
+        dispatchWorkflow({ type: 'error-cleared' })
+    }
 
     const choosePayer = (memberId: string, close = true) => {
         patch({ paidById: memberId, newPaidByName: '' })
@@ -596,9 +666,36 @@ export function ExpenseDrawer({
             }
             return
         }
+        const totalMinorToSave = parseAmountToMinor(
+            valuesToSave.amountInput,
+            currencyInfo(valuesToSave.currency, currencies).decimals,
+            locale
+        ) as string
+        const manualFxConversionToSave =
+            requiresManualFxRate && manualFxRate !== null
+                ? convertMinorAtManualRate(
+                      totalMinorToSave,
+                      manualFxRate,
+                      currencyInfo(valuesToSave.currency, currencies).decimals,
+                      roomCurrencyInfo.decimals
+                  )
+                : null
+        if (
+            requiresManualFxRate &&
+            (manualFxRate === null || manualFxConversionToSave === null || manualFxConversionToSave.status !== 'ok')
+        ) {
+            feedback('error', { haptic: 'error' })
+            shake()
+            manualFxRateRef.current?.focus()
+            manualFxRateRef.current?.scrollIntoView({ block: 'center' })
+            return
+        }
         savingRef.current = true
         dispatchWorkflow({ type: 'error-cleared' })
-        const body = buildExpenseBody(valuesToSave, currencies, locale)
+        const body = {
+            ...buildExpenseBody(valuesToSave, currencies, locale),
+            ...(manualFxRate ? { manualFxRate } : {}),
+        }
         try {
             if (expense) {
                 const input: ExpenseUpdateInput = { ...body, expectedSplitMode: expense.splitMode }
@@ -706,13 +803,27 @@ export function ExpenseDrawer({
      * the feed does not carry) or no amount typed yet and the note renders exactly
      * as it did before this existed.
      */
-    const { data: rateQuote } = useRate(values.currency, state.room.currency)
-    const convertedPreview = useMemo(() => {
-        if (!isForeign || !rateQuote || !totalMinor) return null
-        const roomDecimals = currencyInfo(state.room.currency, currencies).decimals
-        const minor = convertMinorForPreview(totalMinor, rateQuote.rate, decimals, roomDecimals)
+    const { data: rateQuote } = useRate(values.currency, state.room.currency, feedCanPricePair)
+    const automaticConvertedPreview = useMemo(() => {
+        if (!isForeign || requiresManualFxRate || !totalMinor || !rateQuote) return null
+        const minor = convertMinorForPreview(totalMinor, rateQuote.rate, decimals, roomCurrencyInfo.decimals)
         return minor === null ? null : formatMoney(minor, state.room.currency, currencies, locale)
-    }, [isForeign, rateQuote, totalMinor, state.room.currency, currencies, decimals, locale])
+    }, [
+        isForeign,
+        requiresManualFxRate,
+        rateQuote,
+        totalMinor,
+        state.room.currency,
+        currencies,
+        decimals,
+        roomCurrencyInfo.decimals,
+        locale,
+    ])
+    const convertedPreview = requiresManualFxRate
+        ? manualFxConversion?.status === 'ok'
+            ? formatMoney(manualFxConversion.minor, state.room.currency, currencies, locale)
+            : null
+        : automaticConvertedPreview
 
     /** Rows the EXACT editor puts on screen. Having a field is what makes someone
      *  visible here — the blank field IS how you give them an amount — which is a
@@ -926,7 +1037,8 @@ export function ExpenseDrawer({
                             choices: currencies,
                             suggested: suggestedCurrencies,
                             roomCurrency: state.room.currency,
-                            onChange: (code) => patch({ currency: code }),
+                            onChange: chooseCurrency,
+                            allowCustomWithManualRate: true,
                         }}
                         description={{
                             value: values.description,
@@ -989,6 +1101,8 @@ export function ExpenseDrawer({
                                 values={values}
                                 onApply={(next) => {
                                     setValues(next)
+                                    setManualFxRateInput('')
+                                    setManualFxRateSource(null)
                                     dispatchWorkflow({ type: 'quick-add-applied' })
                                 }}
                             />
@@ -1004,11 +1118,88 @@ export function ExpenseDrawer({
                             <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
                             <CurrencyTag code={state.room.currency} catalog={currencies} />
                             {convertedPreview && (
-                                <span data-testid="expense-foreign-preview" className="text-h8 tabular-nums">
-                                    ≈ {convertedPreview}
+                                <span
+                                    data-testid="expense-foreign-preview"
+                                    aria-label={
+                                        requiresManualFxRate && totalMinor
+                                            ? t('manualRatePreview', {
+                                                  amount: formatMoney(totalMinor, values.currency, currencies, locale),
+                                                  converted: convertedPreview,
+                                              })
+                                            : undefined
+                                    }
+                                    className="text-h8 tabular-nums"
+                                >
+                                    {requiresManualFxRate ? '= ' : '≈ '}
+                                    {convertedPreview}
                                 </span>
                             )}
-                            <span className="text-grey-1">{t('foreignHint')}</span>
+                            {!requiresManualFxRate && <span className="text-grey-1">{t('foreignHint')}</span>}
+
+                            {requiresManualFxRate && (
+                                <div className="mt-1 w-full border-t border-dashed border-n-1 pt-3">
+                                    <p className="mb-2 text-h8">{t('manualRateTitle')}</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-h8 tabular-nums">1</span>
+                                        <CurrencyTag code={values.currency} catalog={currencies} />
+                                        <span aria-hidden="true" className="font-bold">
+                                            =
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <BaseInput
+                                                ref={manualFxRateRef}
+                                                value={manualFxRateInput}
+                                                onChange={(event) => {
+                                                    if (!isManualFxRateInputAcceptable(event.target.value, locale))
+                                                        return
+                                                    setManualFxRateInput(event.target.value)
+                                                    setManualFxRateSource('typed')
+                                                    dispatchWorkflow({ type: 'form-field-edited' })
+                                                    dispatchWorkflow({ type: 'error-cleared' })
+                                                }}
+                                                onBlur={() => {
+                                                    const canonical = parseManualFxRateInput(manualFxRateInput, locale)
+                                                    if (canonical) {
+                                                        setManualFxRateInput(formatManualFxRateInput(canonical, locale))
+                                                    }
+                                                }}
+                                                inputMode="decimal"
+                                                autoComplete="off"
+                                                maxLength={MANUAL_FX_RATE_MAX_LENGTH}
+                                                aria-label={t('manualRateInputLabel', {
+                                                    currency: values.currency,
+                                                    roomCurrency: state.room.currency,
+                                                })}
+                                                aria-invalid={submitted && manualFxValidationError ? true : undefined}
+                                                aria-describedby={
+                                                    submitted && manualFxValidationError
+                                                        ? 'expense-manual-rate-hint expense-manual-rate-error'
+                                                        : 'expense-manual-rate-hint'
+                                                }
+                                                data-testid="expense-manual-fx-rate"
+                                                variant="sm"
+                                                className="text-right font-bold tabular-nums"
+                                            />
+                                        </div>
+                                        <CurrencyTag code={state.room.currency} catalog={currencies} />
+                                    </div>
+                                    <p id="expense-manual-rate-hint" className="mt-2 text-xs leading-5 text-grey-1">
+                                        {manualFxRateSource === 'expense'
+                                            ? t('manualRateFromExpense')
+                                            : t('manualRateHint')}
+                                    </p>
+                                    {submitted && manualFxValidationError && (
+                                        <p
+                                            id="expense-manual-rate-error"
+                                            role="alert"
+                                            className="mt-2 flex items-center gap-2 text-sm font-bold text-error"
+                                        >
+                                            <Icon name="x" size={16} />
+                                            {manualFxValidationErrorCopy}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -1421,9 +1612,13 @@ export function ExpenseDrawer({
                                         <p className="text-sm text-grey-1">
                                             {t('amountsAreIn', { currency: values.currency })}
                                             {values.currency !== state.room.currency &&
-                                                t('convertedAt', {
-                                                    roomCurrency: state.room.currency,
-                                                })}
+                                                (requiresManualFxRate
+                                                    ? t('convertedAtManual', {
+                                                          roomCurrency: state.room.currency,
+                                                      })
+                                                    : t('convertedAt', {
+                                                          roomCurrency: state.room.currency,
+                                                      }))}
                                             {t('allocatedOf', {
                                                 allocated: formatMoney(
                                                     allocatedMinor(values, currencies, locale),
@@ -1730,6 +1925,8 @@ export function ExpenseDrawer({
                     onCancel={() => dispatchWorkflow({ type: 'scan-cancelled' })}
                     onApply={(next) => {
                         setValues(next)
+                        setManualFxRateInput('')
+                        setManualFxRateSource(null)
                         // The form is now reconciled by construction, so an error
                         // left over from before the scan is stale by definition.
                         dispatchWorkflow({ type: 'scan-applied' })

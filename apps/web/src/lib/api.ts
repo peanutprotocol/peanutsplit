@@ -142,6 +142,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 const encode = encodeURIComponent
 
+export interface IndicativeRateQuote {
+    from: string
+    to: string
+    rate: number | null
+    source: string
+    indicative: true
+}
+
 /** Exported because the offline queue stores the endpoint it is holding a write
  *  for, and two places building the same path is how they drift apart. */
 export const expensesPath = (slug: string): string => `/api/rooms/${encode(slug)}/expenses`
@@ -152,10 +160,7 @@ export const api = {
 
     /** Indicative only — every surface that renders this must say so. */
     rate: (from: string, to: string, signal?: AbortSignal) =>
-        request<{ from: string; to: string; rate: number; source: string; indicative: true }>(
-            `/api/rate?from=${encode(from)}&to=${encode(to)}`,
-            { signal }
-        ),
+        request<IndicativeRateQuote>(`/api/rate?from=${encode(from)}&to=${encode(to)}`, { signal }),
 
     createRoom: (input: CreateRoomInput) => request<RoomStateWithMember>('/api/rooms', { method: 'POST', body: input }),
 

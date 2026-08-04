@@ -204,6 +204,9 @@ export interface ExpenseInput {
     description?: string
     amountMinor: string
     currency: string
+    /** Room-currency major units per one invented-currency major unit. Required
+     *  when creating an expense the catalog cannot price; frozen on the row. */
+    manualFxRate?: string
     paidById?: string
     /** New-expense-only draft. The server creates this member in the same
      *  transaction as the expense, so a cancelled or failed form leaves no row. */

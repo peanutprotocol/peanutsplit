@@ -25,6 +25,11 @@ interface CurrencySelectProps {
     /** Offer only currencies that can be converted into this one. `ExpenseDrawer` passes the room
      *  currency, so the picker cannot offer a pair the server would refuse with `NO_RATE`. */
     requireRateTo?: string
+    /** Let the reader invent a ticker even when `requireRateTo` is set. This is deliberately a
+     *  separate promise from `allowCustom`: the call site must collect an explicit manual rate
+     *  before it can safely write the otherwise-unpriceable pair. ExpenseDrawer is that call site;
+     *  imports and calculators are not. */
+    allowCustomWithManualRate?: boolean
     className?: string
     variant?: FieldSize
     id?: string
@@ -267,17 +272,22 @@ export function matchCurrencies(query: string, currencies: readonly CurrencyInfo
  * nothing is corrected for the reader. `EUR` suppresses it outright: a joke currency must never be
  * able to shadow a real one.
  *
- * `requireRateTo` suppresses it too, and that is the rule that keeps the picker honest. An invented
- * code has no rate, so it can never convert into a room that settles in a real currency — offering
- * it would promise something the write refuses with a 400.
+ * `requireRateTo` suppresses it unless the call site opts into collecting a manual rate. An
+ * invented code has no feed rate, so that opt-in is a promise: choosing this row will be followed
+ * by an explicit rate before anything can be saved.
  */
 export function customTickerFor(
     query: string,
     currencies: readonly CurrencyInfo[],
-    options: { value?: string; allowCustom?: boolean; requireRateTo?: string } = {}
+    options: {
+        value?: string
+        allowCustom?: boolean
+        requireRateTo?: string
+        allowCustomWithManualRate?: boolean
+    } = {}
 ): string | null {
     if (options.allowCustom === false) return null
-    if (options.requireRateTo !== undefined) return null
+    if (options.requireRateTo !== undefined && !options.allowCustomWithManualRate) return null
     const code = normaliseTicker(query)
     if (!TICKER_SHAPE.test(code)) return null
     if (code === options.value) return null
@@ -286,6 +296,12 @@ export function customTickerFor(
 }
 
 type MenuRow = { kind: 'currency' | 'custom'; code: string }
+
+/** Keep the explicit action first while retaining the consequence that would otherwise be hidden
+ *  by `aria-label`. The hint is already localized and is the same copy drawn under the ticker. */
+export function customOptionAccessibleName(action: string, hint: string): string {
+    return `${action}. ${hint}`
+}
 
 /**
  * Compact currency picker: one drawn sign and one ticker, everywhere.
@@ -307,6 +323,7 @@ export function CurrencySelect({
     suggested,
     allowCustom = true,
     requireRateTo,
+    allowCustomWithManualRate = false,
     className,
     variant = 'md',
     id,
@@ -346,7 +363,12 @@ export function CurrencySelect({
         () => (trimmedQuery === '' ? common : matchCurrencies(trimmedQuery, ordered)),
         [trimmedQuery, common, ordered]
     )
-    const customCode = customTickerFor(query, currencies, { value, allowCustom, requireRateTo })
+    const customCode = customTickerFor(query, currencies, {
+        value,
+        allowCustom,
+        requireRateTo,
+        allowCustomWithManualRate,
+    })
 
     const rows: MenuRow[] = useMemo(() => {
         const currencyRows: MenuRow[] = matches.map((info) => ({ kind: 'currency', code: info.code }))
@@ -361,6 +383,10 @@ export function CurrencySelect({
 
     const roomInfo = requireRateTo === undefined ? null : currencyInfo(requireRateTo, currencies)
     const roomOnly = roomInfo !== null && !roomInfo.hasRate
+    const customHint = (code: string) =>
+        requireRateTo !== undefined && allowCustomWithManualRate
+            ? t('useCustomManualHint', { code, roomCurrency: requireRateTo })
+            : t('useCustomHint')
 
     const updatePlacement = useCallback(() => {
         const trigger = triggerRef.current
@@ -551,7 +577,11 @@ export function CurrencySelect({
     const showAll = trimmedQuery === '' && ordered.length > common.length
     const status = (() => {
         if (trimmedQuery === '') {
-            if (roomOnly) return t('roomOnly', { roomCurrency: roomInfo?.code ?? '' })
+            if (roomOnly) {
+                return allowCustomWithManualRate
+                    ? t('roomOnlyManual', { roomCurrency: roomInfo?.code ?? '' })
+                    : t('roomOnly', { roomCurrency: roomInfo?.code ?? '' })
+            }
             return showAll ? '' : t('results', { count: matches.length })
         }
         if (matches.length > 0) return t('results', { count: matches.length })
@@ -658,9 +688,17 @@ export function CurrencySelect({
                                 }}
                                 role="option"
                                 aria-selected={selected}
-                                // The row draws a sign and a ticker like every other row; the
-                                // label is where it says what choosing it does.
-                                aria-label={row.kind === 'custom' ? t('useCustom', { code: row.code }) : undefined}
+                                // The row draws a sign and a ticker like every other row. Its
+                                // explicit label includes both the action and the consequence;
+                                // otherwise aria-label would hide the manual-rate hint below.
+                                aria-label={
+                                    row.kind === 'custom'
+                                        ? customOptionAccessibleName(
+                                              t('useCustom', { code: row.code }),
+                                              customHint(row.code)
+                                          )
+                                        : undefined
+                                }
                                 data-active={index === active ? 'true' : undefined}
                                 data-testid={row.kind === 'custom' ? 'currency-custom' : undefined}
                                 // A tabIndex=-1 button still takes pointer focus in Safari, which
@@ -686,7 +724,7 @@ export function CurrencySelect({
                                                 {t('noRateChip')}
                                             </span>
                                         </span>
-                                        <span className="text-xs leading-4 text-grey-1">{t('useCustomHint')}</span>
+                                        <span className="text-xs leading-4 text-grey-1">{customHint(row.code)}</span>
                                     </>
                                 )}
                             </div>

@@ -122,6 +122,46 @@ describe('currency codes', () => {
     })
 })
 
+describe('manual FX rate request shape', () => {
+    it('accepts and trims a positive plain decimal on creates and edits', () => {
+        for (const manualFxRate of ['5', '0.000000000001', '5.123456789012', '999999999999', '  2.5  ']) {
+            const create = expenseSchema.safeParse({ ...expense('1200'), currency: 'BEER', manualFxRate })
+            const update = expenseUpdateSchema.safeParse({ ...expense('1200'), currency: 'BEER', manualFxRate })
+            expect(create.success).toBe(true)
+            expect(update.success).toBe(true)
+        }
+        expect(
+            expenseSchema.parse({ ...expense('1200'), currency: 'BEER', manualFxRate: '  2.5  ' }).manualFxRate
+        ).toBe('2.5')
+    })
+
+    it('rejects values the frozen Decimal(24,12) rate cannot represent safely', () => {
+        for (const manualFxRate of [
+            5,
+            '',
+            '0',
+            '-1',
+            '+1',
+            '.5',
+            '1.',
+            '1e3',
+            '1,5',
+            '0.0000000000001',
+            '1.0000000000001',
+            '1000000000000',
+        ]) {
+            expect(expenseSchema.safeParse({ ...expense('1200'), currency: 'BEER', manualFxRate }).success).toBe(false)
+        }
+    })
+
+    it('leaves pair-specific permission and requirement checks to the room-aware domain', () => {
+        // The request schema cannot know the room currency. `buildExpense` is
+        // what refuses this field for a catalog or same-currency pair.
+        expect(expenseSchema.safeParse({ ...expense('1200'), currency: 'EUR', manualFxRate: '5' }).success).toBe(true)
+        expect(expenseSchema.safeParse({ ...expense('1200'), currency: 'BEER' }).success).toBe(true)
+    })
+})
+
 describe('public wire money', () => {
     it('accepts decimal strings through the signed BIGINT ceiling', () => {
         const max = '9223372036854775807'

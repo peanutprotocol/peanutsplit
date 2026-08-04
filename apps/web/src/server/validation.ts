@@ -1,7 +1,7 @@
 /** Request-shape validation. Cross-field rules that need the room (membership,
  *  exact shares adding up) live in the domain modules, not here. */
 import { z } from 'zod'
-import { isValidCode, MAX_SIGNED_MINOR, normaliseCode } from '@/server/money'
+import { isValidCode, MAX_SIGNED_MINOR, normaliseCode, parseManualFxRate } from '@/server/money'
 import { isAvatarKey } from '@/lib/avatars'
 import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { isReactionEmoji } from '@/lib/reactions'
@@ -20,8 +20,9 @@ import {
  *
  * The shape is the whole gate: three or four ASCII letters after NFKC, trim and uppercase. That
  * is deliberately not "is it in the catalog", because a made-up ticker is a supported room
- * currency now. What stops a made-up code from being netted against a real one is FX, not this —
- * `requireRate` refuses any pair it cannot price.
+ * currency now. What stops a made-up code from being netted against a real one is the room-aware
+ * expense domain, not this shape: a foreign invented code needs an explicit manual rate, while
+ * catalog pairs continue through `requireRate`.
  *
  * `.max(16)` bounds the input before normalising it. NFKC on unbounded text is work an
  * unauthenticated request should not be able to ask for.
@@ -104,6 +105,13 @@ export const createMemberSchema = z.object({
 
 const expenseName = z.string().trim().max(MAX_DESCRIPTION_CHARS)
 const splitMode = z.enum(['EQUAL', 'EXACT', 'PERCENTAGE', 'SHARES'])
+const manualFxRate = z
+    .string()
+    .max(64)
+    .transform((value) => value.trim())
+    .refine((value) => parseManualFxRate(value) !== null, {
+        message: 'must be a positive decimal rate with at most 12 whole and 12 fractional digits',
+    })
 
 /** Everything an expense request carries except its name, which is the one field
  *  a create and an edit have to treat differently — see the two schemas below. */
@@ -111,6 +119,9 @@ const expenseFields = {
     clientKey: clientKey.optional(),
     amountMinor: minorAmount,
     currency: currencyCode,
+    /** Room-currency major units per one custom-currency major unit. Whether the
+     *  pair permits or requires it needs the room and is enforced by buildExpense. */
+    manualFxRate: manualFxRate.optional(),
     paidById: id.optional(),
     /** A payer typed inside a new expense stays a draft until the expense
      *  transaction commits. It is mutually exclusive with an existing id. */

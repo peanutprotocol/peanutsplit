@@ -17,8 +17,9 @@
  *
  * No database: `buildExpense` takes the room and the rate table as arguments.
  */
+import { Prisma } from '@prisma/client'
 import { describe, expect, it } from 'vitest'
-import { buildExpense, type ExistingExpense } from '@/server/expenses'
+import { buildExpense, expenseNeedsRateTable, type ExistingExpense } from '@/server/expenses'
 import type { RateTable } from '@/server/fx'
 import { ApiError } from '@/server/http'
 import { convertMinorAtRate, decimalsOf, quantiseRate, STATIC_USD_PER_UNIT } from '@/server/money'
@@ -60,7 +61,7 @@ const rowOf = (write: { amountMinor: bigint; currency: string; baseAmountMinor: 
     ({
         date: new Date('2026-07-01T00:00:00.000Z'),
         currency: write.currency,
-        fxRate: write.fxRate,
+        fxRate: new Prisma.Decimal(write.fxRate),
         amountMinor: write.amountMinor,
         baseAmountMinor: write.baseAmountMinor,
     }) as unknown as ExistingExpense
@@ -99,6 +100,174 @@ const amountsFor = (seed: number, pair: readonly [string, string]): bigint[] => 
     const rand = rng(seed + PAIRS.findIndex(([f, t]) => f === pair[0] && t === pair[1]))
     return Array.from({ length: DRAWS }, () => BigInt(Math.floor(rand() * 5_000_000) + 1))
 }
+
+describe('manual rates for invented expense currencies', () => {
+    it('loads catalog FX only for a new real-currency pair', () => {
+        expect(expenseNeedsRateTable('EUR', 'USD')).toBe(true)
+        expect(expenseNeedsRateTable('EUR', 'USD', 'USD')).toBe(false)
+        expect(expenseNeedsRateTable('EUR', 'EUR')).toBe(false)
+        expect(expenseNeedsRateTable('EUR', 'BEER')).toBe(false)
+        expect(expenseNeedsRateTable('EUR', 'USD', undefined, '7')).toBe(false)
+        expect(expenseNeedsRateTable('BEER', 'USD')).toBe(false)
+    })
+
+    it('converts at the supplied room-major-units rate and freezes it at 12dp', async () => {
+        const write = await buildExpense(
+            roomIn('EUR'),
+            body({ currency: 'BEER', amountMinor: '10000', manualFxRate: '5.123456789012' }),
+            undefined,
+            // A made-up cache row must not be what makes the write possible.
+            tableOf({ ...STATIC_USD_PER_UNIT, BEER: 99 })
+        )
+
+        expect(write.fxRate).toBe('5.123456789012')
+        expect(write.baseAmountMinor).toBe(51_235n)
+        expect(write.shares.map((share) => share.amountMinor)).toEqual([25_618n, 25_617n])
+        expect(sumShares(write.shares)).toBe(write.baseAmountMinor)
+    })
+
+    it('stores and uses a large 12dp manual rate exactly, including EXACT-share remainders', async () => {
+        const rawRate = '123456789012.123456789012'
+        const write = await buildExpense(
+            roomIn('EUR'),
+            body({
+                currency: 'BEER',
+                amountMinor: '3001',
+                manualFxRate: rawRate,
+                splitMode: 'EXACT',
+                exactShares: [
+                    { memberId: 'ana', amountMinor: '1000' },
+                    { memberId: 'bea', amountMinor: '1001' },
+                    { memberId: 'caro', amountMinor: '1000' },
+                ],
+            }),
+            undefined,
+            tableOf({})
+        )
+
+        expect(write.fxRate).toBe(rawRate)
+        expect(write.baseAmountMinor).toBe(370_493_823_825_382n)
+        expect(write.shares.map((share) => share.amountMinor)).toEqual([
+            123_456_789_012_123n,
+            123_580_245_801_136n,
+            123_456_789_012_123n,
+        ])
+        expect(sumShares(write.shares)).toBe(write.baseAmountMinor)
+    })
+
+    it('requires a manual rate for a new custom pair, even if a rate table contains the ticker', async () => {
+        await expect(
+            buildExpense(
+                roomIn('EUR'),
+                body({ currency: 'BEER', amountMinor: '10000' }),
+                undefined,
+                tableOf({ ...STATIC_USD_PER_UNIT, BEER: 99 })
+            )
+        ).rejects.toMatchObject({ code: 'MANUAL_FX_RATE_REQUIRED', status: 400 })
+    })
+
+    it('never permits a manual value to override catalog FX or an identity rate', async () => {
+        await expect(
+            buildExpense(roomIn('EUR'), body({ currency: 'USD', manualFxRate: '7' }), undefined, STATIC_TABLE)
+        ).rejects.toMatchObject({ code: 'MANUAL_FX_RATE_NOT_ALLOWED', status: 400 })
+        await expect(
+            buildExpense(roomIn('BEER'), body({ currency: 'BEER', manualFxRate: '7' }), undefined, STATIC_TABLE)
+        ).rejects.toMatchObject({ code: 'MANUAL_FX_RATE_NOT_ALLOWED', status: 400 })
+
+        const identity = await buildExpense(
+            roomIn('BEER'),
+            body({ currency: 'BEER', amountMinor: '1234' }),
+            undefined,
+            STATIC_TABLE
+        )
+        expect(identity.fxRate).toBe('1.000000000000')
+        expect(identity.baseAmountMinor).toBe(1234n)
+    })
+
+    it('refuses malformed direct-domain rates as a 400 instead of storing or pricing them', async () => {
+        for (const manualFxRate of ['0', '1e3', '0.0000000000001', '1000000000000']) {
+            await expect(
+                buildExpense(roomIn('EUR'), body({ currency: 'BEER', manualFxRate }), undefined, STATIC_TABLE)
+            ).rejects.toMatchObject({ code: 'MANUAL_FX_RATE_INVALID', status: 400 })
+        }
+    })
+
+    it('refuses a custom expense whose positive amount converts to zero room-minor units', async () => {
+        await expect(
+            buildExpense(
+                roomIn('EUR'),
+                body({ currency: 'BEER', amountMinor: '1', manualFxRate: '0.000000000001' }),
+                undefined,
+                tableOf({})
+            )
+        ).rejects.toMatchObject({ code: 'MANUAL_FX_RATE_INVALID', status: 400 })
+    })
+
+    it('keeps the frozen rate when omitted on edit and reprices only for an explicit change', async () => {
+        const room = roomIn('EUR')
+        const created = await buildExpense(
+            room,
+            body({ currency: 'BEER', amountMinor: '10000', manualFxRate: '5' }),
+            undefined,
+            STATIC_TABLE
+        )
+
+        const renamed = await buildExpense(
+            room,
+            body({ currency: 'BEER', amountMinor: '10000', description: 'renamed' }),
+            rowOf(created),
+            tableOf({})
+        )
+        expect(renamed.fxRate).toBe(created.fxRate)
+        expect(renamed.baseAmountMinor).toBe(created.baseAmountMinor)
+        expect(renamed.shares).toEqual(created.shares)
+
+        const larger = await buildExpense(
+            room,
+            body({ currency: 'BEER', amountMinor: '12000' }),
+            rowOf(renamed),
+            tableOf({})
+        )
+        expect(larger.fxRate).toBe(created.fxRate)
+        expect(larger.baseAmountMinor).toBe(60_000n)
+
+        const repriced = await buildExpense(
+            room,
+            body({ currency: 'BEER', amountMinor: '12000', manualFxRate: '6' }),
+            rowOf(larger),
+            tableOf({})
+        )
+        expect(repriced.fxRate).toBe('6.000000000000')
+        expect(repriced.baseAmountMinor).toBe(72_000n)
+
+        // A different textual spelling that freezes to the same rate is not a
+        // money change and therefore carries the authoritative stored total.
+        const same = await buildExpense(
+            room,
+            body({ currency: 'BEER', amountMinor: '12000', manualFxRate: '6.000000000000' }),
+            rowOf(repriced),
+            tableOf({})
+        )
+        expect(same.baseAmountMinor).toBe(repriced.baseAmountMinor)
+    })
+
+    it('requires a new agreement when an edit changes to a different invented currency', async () => {
+        const room = roomIn('EUR')
+        const created = await buildExpense(room, body({ currency: 'BEER', manualFxRate: '5' }), undefined, STATIC_TABLE)
+        await expect(
+            buildExpense(room, body({ currency: 'SODA' }), rowOf(created), STATIC_TABLE)
+        ).rejects.toMatchObject({ code: 'MANUAL_FX_RATE_REQUIRED', status: 400 })
+
+        const changed = await buildExpense(
+            room,
+            body({ currency: 'SODA', manualFxRate: '2.5' }),
+            rowOf(created),
+            STATIC_TABLE
+        )
+        expect(changed.fxRate).toBe('2.500000000000')
+        expect(changed.baseAmountMinor).toBe(25_000n)
+    })
+})
 
 describe('a description-only edit does not move the money', () => {
     it('reproduces the created total across every legacy pair and 52 800 amounts', async () => {

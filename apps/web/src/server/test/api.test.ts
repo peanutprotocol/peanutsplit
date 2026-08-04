@@ -1047,6 +1047,140 @@ describe('write validation', () => {
     })
 })
 
+describe('manual custom-currency conversion', () => {
+    const customExpense = (paidById: string, overrides: Record<string, unknown> = {}) => ({
+        description: 'Friday round',
+        amountMinor: '1000',
+        currency: 'BEER',
+        manualFxRate: '5',
+        paidById,
+        splitMode: 'EQUAL',
+        ...overrides,
+    })
+
+    it('persists and prices all 24 digits of a large Decimal manual rate', async () => {
+        const { body: created } = await newRoom()
+        const rawRate = '123456789012.123456789012'
+        const result = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: customExpense(created.memberId, { amountMinor: '3001', manualFxRate: rawRate }),
+        })
+
+        expect(result.status).toBe(201)
+        expect(result.body.expenses[0].baseAmountMinor).toBe('370493823825382')
+        const stored = await prisma.expense.findUniqueOrThrow({ where: { id: result.body.expenses[0].id } })
+        expect(stored.fxRate.toFixed(12)).toBe(rawRate)
+        expect(stored.baseAmountMinor).toBe(370_493_823_825_382n)
+    })
+
+    it('returns and reuses the smallest stored rate as a plain decimal', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const added = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: customExpense(created.memberId, {
+                amountMinor: '1000000000000',
+                manualFxRate: '0.000000000001',
+            }),
+        })
+
+        expect(added.status).toBe(201)
+        expect(added.body.expenses[0].fxRate).toBe('0.000000000001')
+        expect(added.body.expenses[0].baseAmountMinor).toBe('1')
+
+        const renamed = await call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${added.body.expenses[0].id}`,
+            method: 'PATCH',
+            params: { slug, id: added.body.expenses[0].id },
+            body: customExpense(created.memberId, {
+                description: 'Tiny frozen rate',
+                amountMinor: '1000000000000',
+                manualFxRate: undefined,
+            }),
+        })
+
+        expect(renamed.status).toBe(200)
+        expect(renamed.body.expenses[0].fxRate).toBe('0.000000000001')
+        expect(renamed.body.expenses[0].baseAmountMinor).toBe('1')
+    })
+
+    it('persists the frozen rate and keeps it on rename, then reprices for an explicit change', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const ana = created.memberId
+        const bea = (await join(slug, 'Bea')).body.memberId
+
+        const added = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: customExpense(ana),
+        })
+        expect(added.status).toBe(201)
+        const expense = added.body.expenses[0]
+        expect(expense.fxRate).toBe('5')
+        expect(expense.baseAmountMinor).toBe('5000')
+        expect(added.body.balances).toEqual({ [ana]: '2500', [bea]: '-2500' })
+        expect(netsToZero(added.body)).toBe(true)
+
+        const renamed = await call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${expense.id}`,
+            method: 'PATCH',
+            params: { slug, id: expense.id },
+            body: customExpense(ana, { description: 'Friday round (final)', manualFxRate: undefined }),
+        })
+        expect(renamed.status).toBe(200)
+        expect(renamed.body.expenses[0].fxRate).toBe(expense.fxRate)
+        expect(renamed.body.expenses[0].baseAmountMinor).toBe(expense.baseAmountMinor)
+        expect(renamed.body.balances).toEqual(added.body.balances)
+
+        const repriced = await call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${expense.id}`,
+            method: 'PATCH',
+            params: { slug, id: expense.id },
+            body: customExpense(ana, { description: 'Friday round (final)', manualFxRate: '6' }),
+        })
+        expect(repriced.status).toBe(200)
+        expect(repriced.body.expenses[0].fxRate).toBe('6')
+        expect(repriced.body.expenses[0].baseAmountMinor).toBe('6000')
+        expect(repriced.body.balances).toEqual({ [ana]: '3000', [bea]: '-3000' })
+        expect(netsToZero(repriced.body)).toBe(true)
+
+        const stored = await prisma.expense.findUniqueOrThrow({ where: { id: expense.id } })
+        expect(stored.fxRate.toFixed(12)).toBe('6.000000000000')
+        expect(stored.baseAmountMinor).toBe(6000n)
+    })
+
+    it('requires the custom agreement, forbids catalog overrides, and refuses a zero room total', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const post = (overrides: Record<string, unknown>) =>
+            call<ApiError>(postExpense as Handler, {
+                path: `/api/rooms/${slug}/expenses`,
+                method: 'POST',
+                params: { slug },
+                body: customExpense(created.memberId, overrides),
+            })
+
+        const missing = await post({ manualFxRate: undefined })
+        expect(missing.status).toBe(400)
+        expect(missing.body.error.code).toBe('MANUAL_FX_RATE_REQUIRED')
+
+        const catalogOverride = await post({ currency: 'USD', manualFxRate: '7' })
+        expect(catalogOverride.status).toBe(400)
+        expect(catalogOverride.body.error.code).toBe('MANUAL_FX_RATE_NOT_ALLOWED')
+
+        const roundedToZero = await post({ amountMinor: '1', manualFxRate: '0.000000000001' })
+        expect(roundedToZero.status).toBe(400)
+        expect(roundedToZero.body.error.code).toBe('MANUAL_FX_RATE_INVALID')
+        expect(await prisma.expense.count({ where: { roomId: created.room.id } })).toBe(0)
+    })
+})
+
 describe('fx is locked at creation', () => {
     /** The static table is deterministic but immovable, and these tests need the
      *  rate to MOVE between a write and an edit. Seeding a complete, fresh cache

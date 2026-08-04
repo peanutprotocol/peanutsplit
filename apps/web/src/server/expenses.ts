@@ -6,7 +6,18 @@ import type { SplitMode } from '@/lib/api-types'
 import { getRateTable, requireRate, type RateTable } from '@/server/fx'
 import { catchUpUndoSharesFromAudit } from '@/server/history'
 import { badRequest, conflict, notFound } from '@/server/http'
-import { convertMinorAtRate, FX_RATE_DIGITS, MAX_SIGNED_MINOR, parseMinor, quantiseRate } from '@/server/money'
+import {
+    convertMinorAtManualFxRate,
+    convertMinorAtRate,
+    formatStoredFxRate,
+    FX_RATE_DIGITS,
+    isCatalogCode,
+    MAX_SIGNED_MINOR,
+    parseManualFxRate,
+    parseMinor,
+    quantiseRate,
+    type ManualFxRate,
+} from '@/server/money'
 import {
     equalShares,
     exactShares,
@@ -102,7 +113,7 @@ export async function changeEqualExpenseParticipant(
         expense.amountMinor.toString() !== body.expectedAmountMinor ||
         expense.baseAmountMinor.toString() !== body.expectedBaseAmountMinor ||
         expense.currency !== body.expectedCurrency ||
-        expense.fxRate.toString() !== body.expectedFxRate ||
+        formatStoredFxRate(expense.fxRate) !== body.expectedFxRate ||
         expense.paidById !== body.expectedPaidById ||
         expense.date.toISOString() !== new Date(body.expectedDate).toISOString() ||
         expense.category !== body.expectedCategory ||
@@ -157,6 +168,25 @@ const requireMember = (room: RoomWithRelations, id: string, label: string): stri
  *  stored total forward instead of converting it again; `date` is reused when the body omits one. */
 export type ExistingExpense = Pick<Expense, 'date' | 'currency' | 'fxRate' | 'amountMinor' | 'baseAmountMinor'>
 
+/**
+ * Whether a write needs a fresh catalog table before it takes the room lock.
+ *
+ * Same-pair edits already have their frozen rate, identity pairs are 1, and an
+ * invented pair must use the explicit manual contract. Keeping this predicate
+ * beside `buildExpense` stops route handlers from waking the remote/cache path
+ * for writes that cannot use its answer.
+ */
+export function expenseNeedsRateTable(
+    roomCurrency: string,
+    expenseCurrency: string,
+    existingCurrency?: string,
+    manualFxRate?: string
+): boolean {
+    if (manualFxRate !== undefined) return false
+    if (existingCurrency === expenseCurrency || expenseCurrency === roomCurrency) return false
+    return isCatalogCode(expenseCurrency) && isCatalogCode(roomCurrency)
+}
+
 export async function buildExpense(
     room: RoomWithRelations,
     body: ExpenseBody & { paidById: string },
@@ -185,14 +215,60 @@ export async function buildExpense(
     // quote and storing a rounded copy of it made a create and an edit two different sums:
     // `RATE_SCALE` is finer than the column, so the two disagree on about 0.5% of realistic
     // amounts by one minor unit, and the direction is unpredictable.
-    const lockedRate = existing && existing.currency === body.currency ? quantiseRate(Number(existing.fxRate)) : null
-    const rate =
-        lockedRate ?? quantiseRate(requireRate(rateTable ?? (await getRateTable()), body.currency, room.currency))
+    const samePair = existing !== undefined && existing.currency === body.currency
+    const customPair = !isCatalogCode(body.currency) && body.currency !== room.currency
+    const lockedManualRate =
+        samePair && customPair && existing ? parseManualFxRate(formatStoredFxRate(existing.fxRate)) : null
+    const lockedRate = samePair && !customPair && existing ? quantiseRate(Number(existing.fxRate)) : null
+    const suppliedManualRate = body.manualFxRate === undefined ? null : parseManualFxRate(body.manualFxRate)
+
+    // A manual rate is an explicit valuation of an invented unit, not a second
+    // way to quote real money. Refusing it on catalog and identity pairs keeps a
+    // stale form field from silently overriding the feed (or turning 1 BEER
+    // into something other than 1 BEER inside a BEER room).
+    if (body.manualFxRate !== undefined && !customPair) {
+        throw badRequest(
+            'a manual exchange rate is only allowed for an invented expense currency',
+            'MANUAL_FX_RATE_NOT_ALLOWED'
+        )
+    }
+    if (body.manualFxRate !== undefined && suppliedManualRate === null) {
+        throw badRequest('manual exchange rate is invalid', 'MANUAL_FX_RATE_INVALID')
+    }
+
+    let manualRate: ManualFxRate | null = null
+    let rate: number | null = null
+    if (customPair) {
+        // A same-pair edit may omit the field: the existing column is the frozen
+        // agreement. A create or currency change has no such agreement and must
+        // carry one explicitly. Never consult RateTable for an invented code,
+        // even if a malformed or stale cache happened to contain it.
+        if (suppliedManualRate !== null) manualRate = suppliedManualRate
+        else if (lockedManualRate !== null) manualRate = lockedManualRate
+        else {
+            throw badRequest(
+                `a manual exchange rate is required for ${body.currency} → ${room.currency}`,
+                'MANUAL_FX_RATE_REQUIRED'
+            )
+        }
+    } else {
+        if (lockedRate !== null) rate = lockedRate
+        else if (body.currency === room.currency) rate = 1
+        else if (!isCatalogCode(room.currency)) {
+            // A catalog expense cannot be priced into an invented room unit,
+            // and its catalog status means a manual override is forbidden.
+            throw badRequest(`no exchange rate for ${body.currency} → ${room.currency}`, 'NO_RATE')
+        } else {
+            rate = quantiseRate(requireRate(rateTable ?? (await getRateTable()), body.currency, room.currency))
+        }
+    }
     // A rate below 5e-13 rounds to zero in the column, and a zero rate converts the whole expense
     // to nothing. The smallest cross rate the feed can produce is about 3e-7, so this is a cliff
     // nothing reaches — but converting money at a rate the ledger cannot hold has to be a refusal
     // rather than a silent zero.
-    if (!(rate > 0)) throw badRequest(`no exchange rate for ${body.currency} → ${room.currency}`, 'NO_RATE')
+    if (!customPair && !(rate !== null && rate > 0)) {
+        throw badRequest(`no exchange rate for ${body.currency} → ${room.currency}`, 'NO_RATE')
+    }
 
     // An edit that leaves the amount and the currency alone carries the stored total forward
     // rather than converting again. Converting again is what let a description-only PATCH move a
@@ -200,10 +276,21 @@ export async function buildExpense(
     // unit the first time anybody touched it. The stored total is the room's history: only a
     // change to the money it describes may replace it. The room currency cannot change, so the
     // total still means what it meant when it was written.
-    const moneyUnchanged = existing !== undefined && lockedRate !== null && existing.amountMinor === total
+    const rateUnchanged = customPair
+        ? lockedManualRate !== null && manualRate !== null && manualRate.scaled === lockedManualRate.scaled
+        : lockedRate !== null && rate === lockedRate
+    const moneyUnchanged = existing !== undefined && samePair && existing.amountMinor === total && rateUnchanged
     const baseAmountMinor = moneyUnchanged
         ? existing.baseAmountMinor
-        : convertMinorAtRate(total, body.currency, room.currency, rate)
+        : customPair
+          ? convertMinorAtManualFxRate(total, body.currency, room.currency, manualRate!)
+          : convertMinorAtRate(total, body.currency, room.currency, rate!)
+    if (customPair && baseAmountMinor === 0n) {
+        throw badRequest(
+            'manual exchange rate is too small for this amount; it converts to zero in the room currency',
+            'MANUAL_FX_RATE_INVALID'
+        )
+    }
     if (baseAmountMinor > MAX_SIGNED_MINOR)
         throw badRequest('converted amount is too large to store', 'AMOUNT_TOO_LARGE')
 
@@ -217,7 +304,7 @@ export async function buildExpense(
         const parsed = entered.map((s) => ({ memberId: s.memberId, amountMinor: parseMinor(s.amountMinor) }))
         const sum = parsed.reduce((a, s) => a + s.amountMinor, 0n)
         if (sum !== total) throw badRequest('exact shares must add up to the expense total', 'SHARES_DO_NOT_ADD_UP')
-        shares = exactShares(parsed, body.currency, room.currency, baseAmountMinor, rate)
+        shares = exactShares(parsed, body.currency, room.currency, baseAmountMinor, customPair ? manualRate! : rate!)
     } else if (body.splitMode === 'PERCENTAGE' || body.splitMode === 'SHARES') {
         const entered = body.weightedShares ?? []
         if (entered.length === 0)
@@ -246,7 +333,7 @@ export async function buildExpense(
         amountMinor: total,
         currency: body.currency,
         baseAmountMinor,
-        fxRate: rate.toFixed(FX_RATE_DIGITS),
+        fxRate: customPair ? manualRate!.decimal : rate!.toFixed(FX_RATE_DIGITS),
         paidById: body.paidById,
         splitMode: body.splitMode,
         date: body.date ? new Date(body.date) : (existing?.date ?? new Date()),

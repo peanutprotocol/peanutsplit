@@ -3,11 +3,20 @@ import type { CurrencyInfo } from '@/lib/api-types'
 import {
     commonCurrencies,
     currencyMenuPlacement,
+    customOptionAccessibleName,
     customTickerFor,
     matchCurrencies,
     offerableCurrencies,
     orderCurrencies,
 } from './CurrencySelect'
+
+describe('customOptionAccessibleName', () => {
+    it('includes the manual-rate consequence hidden by an explicit aria-label', () => {
+        expect(customOptionAccessibleName('Use “BEER”', 'Set what 1 BEER is worth in EUR for this expense.')).toBe(
+            'Use “BEER”. Set what 1 BEER is worth in EUR for this expense.'
+        )
+    })
+})
 
 const trigger = (top: number, bottom: number, left = 24, width = 136) => ({
     top,
@@ -162,6 +171,15 @@ describe('customTickerFor', () => {
     it('is off in a room that settles in a real currency, because it could never convert into it', () => {
         expect(customTickerFor('BEER', CATALOG, { requireRateTo: 'EUR' })).toBeNull()
         expect(customTickerFor('BEER', CATALOG, { requireRateTo: 'BEER' })).toBeNull()
+    })
+
+    it('can be explicitly offered when the call site promises to collect a manual rate', () => {
+        expect(
+            customTickerFor('BEER', CATALOG, {
+                requireRateTo: 'EUR',
+                allowCustomWithManualRate: true,
+            })
+        ).toBe('BEER')
     })
 })
 

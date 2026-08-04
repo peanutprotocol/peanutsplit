@@ -1,15 +1,14 @@
 import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 import { COMMON_COUNT } from '../src/components/room/CurrencySelect'
-import { enterCreatedRoom } from './helpers'
+import { enterCreatedRoom, expectBalance } from './helpers'
 
 /**
  * The picker's three promises, end to end.
  *
  * 1. It opens on five rows and expands by typing, not by scrolling 162 of them.
- * 2. It never offers a currency the write would refuse. A room settling in an invented ticker
- *    converts nothing, so the only currency its expenses can be in is that same ticker — and the
- *    picker is where that is enforced, not a 400 after the amount has been typed.
+ * 2. A market currency can accept an invented expense ticker only through an explicit manual
+ *    rate. The field, preview and frozen edit value all agree on direction.
  * 3. Every row it does show is whole. The search field and the footer sit outside the scroller and
  *    neither shrinks, so a height budget that forgets one of them takes the difference out of the
  *    rows — which is how the invent-a-ticker row, the whole point of the feature, came to render
@@ -34,7 +33,7 @@ const clippedRows = (page: Page) =>
             .map((row) => row.id.split('-options-')[1])
     })
 
-test('an invented ticker can be a room currency, and then it is the only one', async ({ page }) => {
+test('an invented ticker can be a room currency and remains its only automatic option', async ({ page }) => {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Beer fund')
 
@@ -75,12 +74,27 @@ test('an invented ticker can be a room currency, and then it is the only one', a
     await expect(page.getByRole('option')).toHaveCount(0)
 })
 
-test('a room that settles in a real currency is never offered an invented one', async ({ page }) => {
+test('a real-currency room can price an invented expense with a frozen manual rate', async ({ page }) => {
+    const customRateProbes: string[] = []
+    const expenseWrites: string[] = []
+    page.on('request', (request) => {
+        if (request.url().includes('/api/rate?') && request.url().includes('from=BEER')) {
+            customRateProbes.push(request.url())
+        }
+        if (request.method() === 'POST' && /\/api\/rooms\/[^/]+\/expenses$/.test(new URL(request.url()).pathname)) {
+            expenseWrites.push(request.url())
+        }
+    })
+
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Ski trip')
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('checkpoint-name').fill('Bea')
+    await page.getByTestId('checkpoint-add').click()
+    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await enterCreatedRoom(page)
 
     await page.getByTestId('open-add-expense').click()
@@ -95,21 +109,80 @@ test('a room that settles in a real currency is never offered an invented one', 
 
     await search.fill('BEER')
     await expect(search).toHaveValue('BEER')
-    // The custom row is suppressed here: an invented code could never convert into a EUR room.
-    await expect(page.getByTestId('currency-custom')).toHaveCount(0)
+    const custom = page.getByTestId('currency-custom')
+    await expect(custom).toContainText('Set what 1 BEER is worth in EUR')
+    await custom.click()
+
+    const rate = page.getByTestId('expense-manual-fx-rate')
+    await expect(rate).toBeVisible()
+    await expect(rate).toHaveAccessibleName('Value of 1 BEER in EUR')
+    await expect(page.getByTestId('expense-foreign-note')).not.toContainText('indicative')
+    await page.getByTestId('expense-amount').fill('4')
+    await page.getByTestId('expense-description').fill('First round')
+
+    // The write is refused locally while the equation is incomplete.
+    await page.getByTestId('save-expense').click()
+    await expect(rate).toBeFocused()
+    await expect(page.locator('#expense-manual-rate-error')).toContainText('Enter how much 1 BEER is worth in EUR')
+    expect(expenseWrites).toEqual([])
+
+    // Positive inputs can still be outside the ledger: this pair rounds below one EUR cent, while
+    // the next pair converts beyond signed BIGINT. Both stop before mutation/offline enqueue.
+    await rate.fill('0.000000000001')
+    await page.getByTestId('save-expense').click()
+    await expect(page.locator('#expense-manual-rate-error')).toContainText('rounds this expense to zero in EUR')
+    expect(expenseWrites).toEqual([])
+
+    await page.getByTestId('expense-amount').fill('92233720368547758.07')
+    await rate.fill('2')
+    await page.getByTestId('save-expense').click()
+    await expect(page.locator('#expense-manual-rate-error')).toContainText('too large for the ledger')
+    expect(expenseWrites).toEqual([])
+
+    await page.getByTestId('expense-amount').fill('4')
+    await rate.fill('0.5')
+    await expect(page.getByTestId('expense-foreign-preview')).toContainText('= €2.00')
+    await expect(page.getByTestId('expense-foreign-preview')).not.toContainText('≈')
+
+    // A manual rate belongs to this exact pair. Leaving BEER clears it; returning before any BEER
+    // history exists starts blank instead of reviving stale text.
+    await page.getByRole('button', { name: /Expense currency, BEER/ }).click()
+    await page.getByRole('option', { name: 'EUR', exact: true }).click()
+    await expect(page.getByTestId('expense-manual-fx-rate')).toHaveCount(0)
+    await page.getByRole('button', { name: /Expense currency, EUR/ }).click()
+    await page.getByTestId('expense-currency-search').fill('BEER')
+    await page.getByTestId('currency-custom').click()
+    await expect(rate).toHaveValue('')
+    await rate.fill('0.5')
+    await page.getByTestId('save-expense').click()
+    await expect(page.getByTestId('skip-post-aha-share')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('skip-post-aha-share').click()
+    await expect(page.locator('[data-testid="expense-row"][data-description="First round"]')).toContainText('4.00 BEER')
+    await expectBalance(page, 'Bea', '-100')
+
+    // Editing starts from this expense's own frozen rate. Changing it explicitly reprices the room
+    // amount; a different expense never inherits that agreement implicitly.
+    await page.locator('[data-testid="expense-row"][data-description="First round"]').click()
+    await expect(rate).toHaveValue('0.5')
+    await rate.fill('0.75')
+    await expect(page.getByTestId('expense-foreign-preview')).toContainText('= €3.00')
+    await page.getByTestId('save-expense').click()
+    await expectBalance(page, 'Bea', '-150')
+
+    await page.getByTestId('open-add-expense').click()
+    await page.getByRole('button', { name: /Expense currency, EUR/ }).click()
+    await page.getByTestId('expense-currency-search').fill('BEER')
+    await page.getByTestId('currency-custom').click()
+    await expect(rate).toHaveValue('')
+    expect(customRateProbes).toEqual([])
+
+    // Catalog currencies with no configured market rate remain unavailable; the manual escape
+    // hatch is intentionally for invented tickers, not an override for real-currency pricing.
+    await page.getByRole('button', { name: /Expense currency, BEER/ }).click()
+    await page.getByTestId('expense-currency-search').fill('chilean')
     await expect(page.getByRole('option')).toHaveCount(0)
 
-    // CHANGED BY DESIGN: this used to assert that a EUR room offers CLP. It does not, and must not.
-    // `SPLIT_FX_MODE=static` — which is how this suite runs — prices the twelve legacy codes and
-    // nothing else, so there is no EUR↔CLP rate and the write would come back 400 NO_RATE. The
-    // picker filtering CLP out is SPEC D2 working; the old assertion described the build in which
-    // the client never fetched `/api/currencies` and believed all 158 catalog codes were rated.
-    await search.fill('chilean')
-    await expect(page.getByRole('option')).toHaveCount(0)
-
-    // Typing still expands past the five — the catalog is there, it is just filtered to what this
-    // room can actually price. CHF is priceable and is not one of the five this room opens on.
-    await search.fill('swiss')
+    await page.getByTestId('expense-currency-search').fill('swiss')
     await expect(page.getByRole('option', { name: 'CHF', exact: true })).toBeVisible()
     expect(await clippedRows(page)).toEqual([])
 })
