@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
 import type { CurrencyInfo, RoomHistoryPage, RoomState } from '../api-types'
 import { FALLBACK_CURRENCIES } from '../money'
@@ -46,6 +46,34 @@ const withTimeout = (signal: AbortSignal | undefined, ms: number): AbortSignal |
     return signal ? AbortSignal.any([signal, timeout]) : timeout
 }
 
+const retryRoomRead = (failureCount: number, error: unknown): boolean => {
+    const status = (error as { status?: number }).status
+    if (status === 404) return false
+    return failureCount < 2
+}
+
+/**
+ * One authoritative snapshot for secondary room surfaces.
+ *
+ * It deliberately shares the ordinary room cache key so a successful import
+ * still refreshes the room people return to. Unlike `useRoomState`, this observer
+ * owns no EventSource and has no background triggers: one no-store GET on mount,
+ * bounded transient retries, and an explicit `refetch` for the error screen.
+ */
+export const roomSnapshotQueryOptions = (slug: string) =>
+    queryOptions({
+        queryKey: roomKey(slug),
+        queryFn: ({ signal }) => api.room(slug, withTimeout(signal, ROOM_FETCH_TIMEOUT_MS)),
+        refetchInterval: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        retry: retryRoomRead,
+    })
+
+export function useRoomSnapshot(slug: string) {
+    return useQuery(roomSnapshotQueryOptions(slug))
+}
+
 /**
  * The catalog. Seeded from the bundled table so first paint can format money, then revalidated.
  *
@@ -87,11 +115,7 @@ export function useRoomState(slug: string) {
         select,
         refetchInterval: connected ? LIVE_POLL_MS : FALLBACK_POLL_MS,
         refetchOnWindowFocus: true,
-        retry: (failureCount, error) => {
-            const status = (error as { status?: number }).status
-            if (status === 404) return false
-            return failureCount < 2
-        },
+        retry: retryRoomRead,
     })
 }
 

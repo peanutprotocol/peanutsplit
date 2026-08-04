@@ -9,13 +9,13 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
 import { importedRoomPath } from '@/lib/import-routes'
-import { useRoomState } from '@/lib/queries'
+import { useRoomSnapshot } from '@/lib/queries'
 import { themeVars } from '@/lib/themes'
 import { useRoomIdentity } from '@/lib/use-identity'
 
 export function ExistingRoomImportScreen({ slug }: { slug: string }) {
     const t = useTranslations('import.existing')
-    const { data: state, error, isPending, refetch } = useRoomState(slug)
+    const { data: state, error, isPending, refetch } = useRoomSnapshot(slug)
     const { identity } = useRoomIdentity(slug)
 
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} />
