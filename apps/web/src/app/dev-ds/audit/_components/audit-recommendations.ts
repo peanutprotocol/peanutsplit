@@ -81,7 +81,7 @@ export const auditRecommendations = {
     },
     'QUAL-02': {
         decision: 'defer',
-        note: "Keep the existing Playwright journeys runnable, but do not create a browser CI program while main intentionally deploys directly. Release QA passed 20/23 focused Firefox checks; the other three use an invalid iPhone-descriptor/Firefox combination and fail only at viewport resizing or synthetic drag/long-press input. Before claiming Firefox mobile coverage, use native Desktop Firefox with a narrow viewport, isolate gesture checks, and spot-check real hardware. Reopen after an escaped browser-only critical-flow regression, recurring manual-test pain, or around 1,000 rooms.",
+        note: 'Keep the existing Playwright journeys runnable, but do not create a browser CI program while main intentionally deploys directly. Release QA passed 20/23 focused Firefox checks; the other three use an invalid iPhone-descriptor/Firefox combination and fail only at viewport resizing or synthetic drag/long-press input. Before claiming Firefox mobile coverage, use native Desktop Firefox with a narrow viewport, isolate gesture checks, and spot-check real hardware. Reopen after an escaped browser-only critical-flow regression, recurring manual-test pain, or around 1,000 rooms.',
     },
     'DS-01': {
         decision: 'defer',
