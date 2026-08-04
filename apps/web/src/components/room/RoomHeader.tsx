@@ -129,6 +129,7 @@ export function RoomHeader({
                 onClose={() => setSheets({ character: null })}
                 slug={room.slug}
                 member={characterMember}
+                members={members}
                 token={identity?.token}
             />
         </header>
