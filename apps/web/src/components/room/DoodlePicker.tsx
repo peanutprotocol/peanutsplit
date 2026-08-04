@@ -5,9 +5,8 @@ import { useTranslations } from 'next-intl'
 import { CustomRoomDrawing } from '@/components/ui/CustomRoomDrawing'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
-import { Icon } from '@/components/ui/Icon'
 import { cn } from '@/lib/cn'
-import { decodeRoomDrawing, isRoomDrawing } from '@/lib/room-drawing'
+import { decodeRoomDrawing, isRoomDrawing, type RoomDrawing } from '@/lib/room-drawing'
 import { RoomDrawingEditor } from './RoomDrawingEditor'
 
 /**
@@ -41,7 +40,24 @@ export const ROOM_DOODLES = [
     'cake',
 ] as const satisfies readonly DoodleName[]
 
-export function DoodlePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+const DRAW_YOUR_OWN_PREVIEW: RoomDrawing = [
+    [
+        { x: 0.14, y: 0.64 },
+        { x: 0.28, y: 0.36 },
+        { x: 0.43, y: 0.62 },
+        { x: 0.58, y: 0.32 },
+        { x: 0.78, y: 0.57 },
+    ],
+]
+
+interface DoodlePickerProps {
+    value: string
+    onChange: (value: string) => void
+    /** Lets a containing picker keep itself mounted while the portaled editor is in use. */
+    onDrawingOpenChange?: (open: boolean) => void
+}
+
+export function DoodlePicker({ value, onChange, onDrawingOpenChange }: DoodlePickerProps) {
     const t = useTranslations('room.create')
     const [drawingOpen, setDrawingOpen] = useState(false)
     const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -51,6 +67,11 @@ export function DoodlePicker({ value, onChange }: { value: string; onChange: (va
     const selectedIndex = customSelected ? ROOM_DOODLES.length : selectedDoodleIndex
     const tabStopIndex = selectedIndex === -1 ? 0 : selectedIndex
     const optionCount = ROOM_DOODLES.length + 1
+
+    const setEditorOpen = (open: boolean) => {
+        setDrawingOpen(open)
+        onDrawingOpenChange?.(open)
+    }
 
     /**
      * Buttons with radio roles do not inherit native radio keyboard behaviour.
@@ -72,7 +93,7 @@ export function DoodlePicker({ value, onChange }: { value: string; onChange: (va
                     : (currentIndex + 1) % optionCount
         optionRefs.current[nextIndex]?.focus()
         if (nextIndex === ROOM_DOODLES.length) {
-            setDrawingOpen(true)
+            setEditorOpen(true)
             return
         }
         onChange(ROOM_DOODLES[nextIndex])
@@ -117,7 +138,7 @@ export function DoodlePicker({ value, onChange }: { value: string; onChange: (va
                     data-doodle="custom"
                     tabIndex={ROOM_DOODLES.length === tabStopIndex ? 0 : -1}
                     onKeyDown={(event) => moveSelection(event, ROOM_DOODLES.length)}
-                    onClick={() => setDrawingOpen(true)}
+                    onClick={() => setEditorOpen(true)}
                     className={cn(
                         'flex size-11 items-center justify-center rounded-sm border border-dashed border-n-1 bg-primary-2 transition-transform active:translate-y-[2px]',
                         customSelected && 'shadow-4 border-solid bg-primary-1'
@@ -126,11 +147,16 @@ export function DoodlePicker({ value, onChange }: { value: string; onChange: (va
                     {customStrokes.length ? (
                         <CustomRoomDrawing strokes={customStrokes} weight={1.6} className="size-8" />
                     ) : (
-                        <Icon name="pencil" size={24} aria-hidden="true" />
+                        <CustomRoomDrawing
+                            strokes={DRAW_YOUR_OWN_PREVIEW}
+                            weight={2.8}
+                            className="size-8"
+                            aria-hidden="true"
+                        />
                     )}
                 </button>
             </div>
-            <RoomDrawingEditor open={drawingOpen} value={value} onChange={onChange} onOpenChange={setDrawingOpen} />
+            <RoomDrawingEditor open={drawingOpen} value={value} onChange={onChange} onOpenChange={setEditorOpen} />
         </>
     )
 }
