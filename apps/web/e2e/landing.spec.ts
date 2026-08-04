@@ -923,7 +923,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
     const payload = await page.evaluate(
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
-    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
+    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[A-Za-z0-9_-]{22}$/)
     await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.evaluate(() => {

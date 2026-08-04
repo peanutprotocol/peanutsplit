@@ -3,13 +3,16 @@ import { encodeRoomDrawing } from './room-drawing'
 import { forgetRoom, readRecentRooms, RECENT_ROOMS_KEY, rememberRoom, roomSlugFromLink } from './recent-rooms'
 
 const ORIGIN = 'http://localhost:3000'
-const SLUG = 'lisbon-weekend-brave-otter-lamp'
+const SLUG = 'lisbon-weekend-R7LxQ3TBJV_uQ2PMhzc8rw'
+/** Rooms minted with the former word list keep working too. */
+const WORD_SLUG = 'lisbon-weekend-brave-otter-lamp'
 /** Rooms minted before the word list. They keep their slugs, so paste still has to take them. */
 const LEGACY_SLUG = 'lisbon-weekend-x7k2m9'
 
 describe('roomSlugFromLink', () => {
-    it('takes both tail shapes, because a room keeps the slug it was issued', () => {
+    it('takes current and both legacy tail shapes, because a room keeps the slug it was issued', () => {
         expect(roomSlugFromLink(`/r/${SLUG}`, ORIGIN)).toBe(SLUG)
+        expect(roomSlugFromLink(`/r/${WORD_SLUG}`, ORIGIN)).toBe(WORD_SLUG)
         expect(roomSlugFromLink(`/r/${LEGACY_SLUG}`, ORIGIN)).toBe(LEGACY_SLUG)
     })
 
