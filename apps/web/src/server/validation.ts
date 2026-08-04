@@ -5,6 +5,7 @@ import { isValidCode, MAX_SIGNED_MINOR, normaliseCode } from '@/server/money'
 import { isAvatarKey } from '@/lib/avatars'
 import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { isReactionEmoji } from '@/lib/reactions'
+import { isRoomDrawing } from '@/lib/room-drawing'
 import { isThemeKey } from '@/lib/themes'
 import {
     MAX_CATEGORY_CHARS,
@@ -70,16 +71,21 @@ const clientKey = z
 const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
 
 /**
- * The room's emblem. 8 was sized for an emoji grapheme cluster; the column now also takes a
- * doodle name (`mountain`, `suitcase`). 24 leaves room for a longer one without becoming a
- * text field.
+ * The room's emblem. Presets and legacy emoji remain short strings. A custom
+ * drawing is the bounded, strictly parsed `drawing:v1:` stroke format; arbitrary
+ * long strings never become room data merely because the database column can
+ * hold them.
  *
  * One definition for all three ways a room gets an emblem — create, import, and the settings
  * PATCH — so a room cannot be renamed into holding a value it could never have been created
  * with. Deliberately NOT an enum of the drawing names: rooms made before the drawings still
  * hold an emoji character, and `lib/room-emblem.ts` is where that reading happens.
  */
-const roomEmblem = z.string().max(24)
+const roomEmblem = z
+    .string()
+    .refine((value) => (value.startsWith('drawing:') ? isRoomDrawing(value) : value.length <= 24), {
+        message: 'must be a room drawing or a short emblem',
+    })
 
 export const createRoomSchema = z.object({
     name: z.string().trim().min(1, 'is required').max(80),

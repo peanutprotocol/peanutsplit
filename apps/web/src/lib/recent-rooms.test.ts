@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { encodeRoomDrawing } from './room-drawing'
 import { forgetRoom, readRecentRooms, RECENT_ROOMS_KEY, rememberRoom, roomSlugFromLink } from './recent-rooms'
 
 const ORIGIN = 'http://localhost:3000'
@@ -54,6 +55,25 @@ describe('recent-room persistence results', () => {
         ])
         expect(forgetRoom(SLUG)).toBe(true)
         expect(JSON.parse(values.get(RECENT_ROOMS_KEY) ?? '[]')).toEqual([])
+    })
+
+    it('round-trips a custom room drawing without changing its geometry', () => {
+        const values = new Map<string, string>()
+        const drawing = encodeRoomDrawing([
+            [
+                { x: 0.1, y: 0.2 },
+                { x: 0.9, y: 0.8 },
+            ],
+        ])
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: (key: string) => values.get(key) ?? null,
+                setItem: (key: string, value: string) => values.set(key, value),
+            },
+        })
+
+        expect(rememberRoom({ slug: SLUG, name: 'Lisbon weekend', emoji: drawing, lastSeenAt: 1 })).toBe(true)
+        expect(readRecentRooms()[0]?.emoji).toBe(drawing)
     })
 
     it('reports storage failures instead of claiming a credential was saved or removed', () => {

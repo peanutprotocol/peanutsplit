@@ -21,8 +21,7 @@
  * The `disc`/field/sheet/stamp helpers that used to be duplicated here now live
  * in `frame.tsx`, which is what the note this file carried asked for.
  */
-import type { DoodleName } from '@/components/ui/doodles'
-import { doodleDataUri } from '@/server/og/emblem'
+import { doodleDataUri, emblemDataUri } from '@/server/og/emblem'
 import { DISPLAY_FONT } from '@/server/og/fonts'
 import { BLOBS_LEFT, disc, Field, INK, MUTED, PersonaDisc, SettledStamp, Sheet, Wordmark } from '@/server/og/frame'
 import type { RecapCardData } from '@/server/og/recapCard'
@@ -47,11 +46,11 @@ function totalFontSize(total: string): number {
     return 76
 }
 
-function Panel({ name, size, first = false }: { name: DoodleName; size: number; first?: boolean }) {
+function Panel({ name, size, first = false }: { name: string; size: number; first?: boolean }) {
     return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-            src={doodleDataUri(name)}
+            src={emblemDataUri(name) ?? doodleDataUri('peanut')}
             width={size}
             height={size}
             alt=""
@@ -67,7 +66,7 @@ function Panel({ name, size, first = false }: { name: DoodleName; size: number; 
  * question. The room's own character leads, so a ski trip's story starts with
  * the skis and a pizza night's with the pizza.
  */
-function StoryStrip({ emblem }: { emblem: DoodleName }) {
+function StoryStrip({ emblem }: { emblem: string }) {
     // 52px panels: present enough to read next to the 64px avatar discs, small
     // enough that the sheet's 146px hero number stays the headline and the
     // tallest card (long name + top payer + avatars) stays inside 630px.

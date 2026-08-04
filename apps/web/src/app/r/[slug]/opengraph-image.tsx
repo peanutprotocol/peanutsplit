@@ -5,7 +5,7 @@
  */
 import { ImageResponse } from 'next/og'
 import { BrandCard, OG_CACHE_CONTROL, OG_CONTENT_TYPE, OG_SIZE, RoomCard } from '@/server/og/card'
-import { doodleDataUri } from '@/server/og/emblem'
+import { emblemDataUri } from '@/server/og/emblem'
 import { ogFonts } from '@/server/og/fonts'
 import { loadRoomCard } from '@/server/og/roomCard'
 
@@ -23,7 +23,7 @@ export default async function RoomOgImage({ params }: { params: Promise<{ slug: 
     // A dead link still gets pasted into a chat: an unknown slug renders the
     // brand card, never a 500 that every crawler in the group would cache.
     const [fonts, card] = await Promise.all([ogFonts(), loadRoomCard(slug).catch(() => null)])
-    const emojiSrc = card ? doodleDataUri(card.emblem) : null
+    const emojiSrc = card ? emblemDataUri(card.emblem) : null
 
     return new ImageResponse(
         card ? (
