@@ -24,6 +24,11 @@ export const FALLBACK_CURRENCIES: readonly CurrencyInfo[] = CURRENCY_CATALOG
 
 const UNKNOWN = (code: string): CurrencyInfo => ({ code, symbol: '', name: code, decimals: 2, hasRate: false })
 
+/** Whether a code belongs to the generated real-currency catalog. Custom room
+ *  tickers deliberately return false even though `currencyInfo` can still
+ *  synthesize enough metadata to render them. */
+export const isCatalogCode = (code: string): boolean => CATALOG_BY_CODE.has(code)
+
 /** Look a currency up in the catalog, falling back to the bundled table and then
  *  to a 2-decimal placeholder — formatting must never throw mid-render. */
 export function currencyInfo(code: string, catalog: readonly CurrencyInfo[] = FALLBACK_CURRENCIES): CurrencyInfo {

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
 import { importedRoomPath } from '@/lib/import-routes'
+import { isCatalogCode } from '@/lib/money'
 import { useRoomSnapshot } from '@/lib/queries'
 import { themeVars } from '@/lib/themes'
 import { useRoomIdentity } from '@/lib/use-identity'
@@ -81,6 +82,17 @@ export function ExistingRoomImportScreen({ slug }: { slug: string }) {
                 <section className="bg-yellow-1 mt-6 rounded-sm border border-n-1 p-5" data-testid="import-archived">
                     <h2 className="text-h6">{t('archivedTitle')}</h2>
                     <p className="mt-2 text-sm leading-5 text-n-1">{t('archivedBody')}</p>
+                </section>
+            ) : !isCatalogCode(state.room.currency) ? (
+                <section
+                    className="bg-yellow-1 mt-6 rounded-sm border border-n-1 p-5"
+                    role="alert"
+                    data-testid="import-custom-currency-unsupported"
+                >
+                    <h2 className="text-h6">{t('customCurrencyUnsupportedTitle')}</h2>
+                    <p className="mt-2 text-sm leading-5 text-n-1">
+                        {t('customCurrencyUnsupportedBody', { currency: state.room.currency })}
+                    </p>
                 </section>
             ) : (
                 <section className="mt-6">

@@ -1033,6 +1033,7 @@
         "NL_FAILED": "No se pudo leer eso — intenta de nuevo.",
         "IMPORT_TOO_LARGE": "Esa importación es demasiado grande para enviarse. Prueba con un grupo con menos historial.",
         "IMPORT_UNAVAILABLE": "Las importaciones están pausadas por ahora — intenta de nuevo más tarde.",
+        "IMPORT_TARGET_CURRENCY_UNSUPPORTED": "No se pueden agregar importaciones a una sala con una moneda personalizada. Agrega los gastos manualmente en la moneda de la sala.",
         "UNSUPPORTED_PUSH_HOST": "Ese servicio de notificaciones no es compatible.",
         "PUSH_SUBSCRIPTION_LIMIT": "Esta sala tiene demasiados dispositivos recibiendo notificaciones.",
         "RATE_LIMITED": "Fueron muchas solicitudes — espera un minuto e intenta de nuevo.",
@@ -1140,7 +1141,9 @@
             "loadFailed": "No se pudo cargar esta sala, así que no se puede importar nada en ella.",
             "tryAgain": "Intentar de nuevo",
             "archivedTitle": "Esta sala está archivada",
-            "archivedBody": "Las salas archivadas no pueden recibir importaciones. Vuelve a abrir la sala antes de intentarlo otra vez."
+            "archivedBody": "Las salas archivadas no pueden recibir importaciones. Vuelve a abrir la sala antes de intentarlo otra vez.",
+            "customCurrencyUnsupportedTitle": "Las importaciones no están disponibles para salas con monedas personalizadas",
+            "customCurrencyUnsupportedBody": "Las exportaciones de Splitwise y Split Pro usan monedas estándar, que este importador no puede convertir a {currency}. Agrega esos gastos manualmente en {currency}."
         },
         "preview": {
             "found": "{expenses, plural, one {# gasto} other {# gastos}} · {members, plural, one {# persona} other {# personas}}",
