@@ -1,4 +1,4 @@
-import type { FindingDecision } from './audit-model'
+import type { AuditRecommendation } from './audit-model'
 
 /**
  * Opinionated pre-user triage.
@@ -11,14 +11,19 @@ export const auditRecommendations = {
     'OPS-01': {
         decision: 'fix-now',
         note: 'Gate production deploys on the existing checks. This protects every later cleanup and is release hygiene, not scale engineering.',
+        priorConflict: {
+            decision: 'Defer',
+            explanation:
+                'This pulls in the wrong direction: every planned refactor would still be able to reach production before its checks. Pre-user is the cheapest time to make the existing verification meaningful.',
+        },
     },
     'SEC-02': {
         decision: 'fix-now',
         note: 'Replace the 30-bit room secret before durable links exist, while migration is cheapest. Keep the no-account sharing experience; ownership or revocation UI is a separate product decision.',
     },
     'SEC-03': {
-        decision: 'defer',
-        note: 'Do not build weighted quotas and global breakers before usage exists. Keep the risk documented and reopen before promotion, or when import volume or database growth becomes material.',
+        decision: 'fix-now',
+        note: 'Match the optional-utility decision with lean protection only: strict caps, efficient share indexing, a low-maintenance rate limit or kill switch, and basic monitoring. Defer distributed quotas and lifecycle machinery.',
     },
     'ARCH-01': {
         decision: 'plan',
@@ -47,6 +52,11 @@ export const auditRecommendations = {
     'I18N-01': {
         decision: 'plan',
         note: 'Finish catalog localization if Spanish and Portuguese remain launch commitments. Keep the work bounded to stable translation keys and accessibility labels.',
+        priorConflict: {
+            decision: 'Defer',
+            explanation:
+                'This now conflicts with the Peanut-domain localized-SEO decision. If localized acquisition is launch scope, product catalog and accessibility labels cannot remain partly English.',
+        },
     },
     'PERF-01': {
         decision: 'plan',
@@ -55,6 +65,11 @@ export const auditRecommendations = {
     'PERF-02': {
         decision: 'defer',
         note: 'Full-ledger synchronization is acceptable before large rooms exist. Reopen at a measured payload, query-latency, expense-count, or polling-load threshold.',
+        priorConflict: {
+            decision: 'Plan',
+            explanation:
+                'A snapshot/delta ledger rewrite is the clearest overengineering risk in the sheet. Keep the finding documented, but do not design the replacement until room size or latency crosses a measured threshold.',
+        },
     },
     'SEC-04': {
         decision: 'fix-now',
@@ -63,6 +78,11 @@ export const auditRecommendations = {
     'DATA-01': {
         decision: 'mockup-review',
         note: 'Partitioning and retention machinery can wait, but archive, deletion, ownership and expiry semantics affect visible flows and user trust. Agree on the promise with a simple flow mockup first.',
+        priorConflict: {
+            decision: 'Defer',
+            explanation:
+                'Anonymous + manageable requires a visible rotate/delete lifecycle promise. Heavy retention infrastructure can still wait, but the management flow can no longer be deferred wholesale.',
+        },
     },
     'QUAL-01': {
         decision: 'fix-now',
@@ -172,4 +192,4 @@ export const auditRecommendations = {
         decision: 'fix-now',
         note: 'Reuse the existing formatter cache. This is trivial, behavior-preserving DRY cleanup.',
     },
-} as const satisfies Record<string, FindingDecision>
+} as const satisfies Record<string, AuditRecommendation>

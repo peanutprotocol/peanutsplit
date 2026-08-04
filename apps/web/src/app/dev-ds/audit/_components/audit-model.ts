@@ -8,6 +8,15 @@ export interface FindingDecision {
     updatedAt?: string
 }
 
+export interface PriorConflict {
+    decision: string
+    explanation: string
+}
+
+export interface AuditRecommendation extends FindingDecision {
+    priorConflict?: PriorConflict
+}
+
 export interface Finding {
     id: string
     severity: Severity

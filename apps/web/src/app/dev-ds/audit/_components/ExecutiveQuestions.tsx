@@ -17,6 +17,7 @@ interface ExecutiveQuestion {
     question: string
     consequence: string
     recommendation: string
+    recordedChoice?: string
     choices: ExecutiveChoice[]
 }
 
@@ -29,7 +30,7 @@ interface ExecutiveAnswer {
 type AnswerRecords = Record<string, ExecutiveAnswer>
 type SaveState = 'loading' | 'saving' | 'saved' | 'error'
 
-const STORAGE_KEY = 'peanutsplit:dev-ds:executive-decisions:v1'
+const STORAGE_KEY = 'peanutsplit:dev-ds:executive-decisions:v2'
 const NOTE_LIMIT = 2_000
 
 const questions: ExecutiveQuestion[] = [
@@ -40,7 +41,8 @@ const questions: ExecutiveQuestion[] = [
         consequence:
             'This decides whether the product needs owners, management credentials, link rotation, account recovery, and a visible delete/archive flow.',
         recommendation:
-            'Stay no-account and possession-of-link before product-market fit, but use a strong opaque room capability and a separate management capability that can rotate or delete the room. Do not introduce accounts without demand.',
+            'Decision recorded: stay no-account and possession-of-link before product-market fit, with a strong room capability plus a separate management capability that can rotate or delete. Do not introduce accounts without demand.',
+        recordedChoice: 'anonymous-managed',
         choices: [
             {
                 id: 'anonymous-managed',
@@ -67,7 +69,8 @@ const questions: ExecutiveQuestion[] = [
         consequence:
             'This controls the public/app route split, static rendering priority, canonical URLs, redirects, and whether the three locale catalogs remain launch scope.',
         recommendation:
-            'Keep peanutsplit.com canonical and treat localized SEO as a real acquisition surface because the content and translations already exist. Change domains only for an explicit Peanut brand consolidation, not as a technical cleanup.',
+            'Decision recorded: consolidate under the Peanut domain and keep localized SEO as a launch acquisition surface. Execute this as an intentional canonical migration; the exact host/path split remains the one open call below.',
+        recordedChoice: 'peanut-domain-seo',
         choices: [
             {
                 id: 'peanutsplit-seo',
@@ -94,7 +97,8 @@ const questions: ExecutiveQuestion[] = [
         consequence:
             'The answer determines whether to retain a public write-heavy endpoint, add lean safeguards before promotion, or remove a large abuse and lifecycle surface for now.',
         recommendation:
-            'Keep import as a core differentiator, but use lean pre-launch safeguards: strict cardinality caps, efficient snapshot construction, monitoring, and a kill switch. Defer distributed quota machinery until volume exists.',
+            'Decision recorded: keep import available but quiet. Add only lean safeguards—strict caps, efficient snapshot construction, monitoring, and a kill switch—and defer distributed quota machinery.',
+        recordedChoice: 'quiet-import',
         choices: [
             {
                 id: 'core-import',
@@ -114,9 +118,43 @@ const questions: ExecutiveQuestion[] = [
             },
         ],
     },
+    {
+        id: 'EXEC-04',
+        title: 'Peanut domain topology',
+        question: 'Where exactly should the product and SEO content live under the Peanut domain?',
+        consequence:
+            '“Peanut domain + SEO” resolves the strategy but not the canonical URLs. This choice determines redirects, cookie scope, sitemap ownership, analytics boundaries, and the route architecture.',
+        recommendation:
+            'Use split.peanut.me for the product and peanut.me/split for editorial SEO, matching the existing domain decision document. It keeps the app operationally isolated while content inherits the parent brand.',
+        choices: [
+            {
+                id: 'split-surfaces',
+                label: 'Split product and content',
+                description: 'App at split.peanut.me; SEO content at peanut.me/split.',
+                recommended: true,
+            },
+            {
+                id: 'subdomain-all',
+                label: 'Everything on subdomain',
+                description: 'Product and content both live at split.peanut.me.',
+            },
+            {
+                id: 'subpath-all',
+                label: 'Everything on subpath',
+                description: 'Product and content both live below peanut.me/split.',
+            },
+        ],
+    },
 ]
 
 const emptyAnswer = (): ExecutiveAnswer => ({ choice: '', note: '' })
+const recordedAnswers: AnswerRecords = Object.fromEntries(
+    questions.flatMap((question) =>
+        question.recordedChoice
+            ? [[question.id, { choice: question.recordedChoice, note: '' } satisfies ExecutiveAnswer]]
+            : []
+    )
+)
 
 function readStoredAnswers(): AnswerRecords {
     try {
@@ -166,7 +204,7 @@ function buildExecutiveBrief(records: AnswerRecords): string {
             `Decision: ${choice?.label ?? 'Unanswered'}`,
             `Note: ${answer.note.trim() || '—'}`,
             '',
-            `Engineering recommendation: ${question.recommendation}`,
+            `Engineering read: ${question.recommendation}`,
             ''
         )
     }
@@ -192,7 +230,7 @@ export function ExecutiveQuestions() {
             try {
                 window.localStorage.setItem(
                     STORAGE_KEY,
-                    JSON.stringify({ version: 1, savedAt: new Date().toISOString(), answers: records })
+                    JSON.stringify({ version: 2, savedAt: new Date().toISOString(), answers: records })
                 )
                 setSaveState('saved')
             } catch {
@@ -202,23 +240,35 @@ export function ExecutiveQuestions() {
         return () => window.clearTimeout(timeout)
     }, [hydrated, records])
 
-    const answeredCount = useMemo(
-        () => questions.filter((question) => Boolean(records[question.id]?.choice)).length,
+    const effectiveRecords = useMemo(
+        () =>
+            Object.fromEntries(
+                questions.map((question) => [
+                    question.id,
+                    records[question.id] ?? recordedAnswers[question.id] ?? emptyAnswer(),
+                ])
+            ) as AnswerRecords,
         [records]
     )
+
+    const answeredCount = useMemo(
+        () => questions.filter((question) => Boolean(effectiveRecords[question.id]?.choice)).length,
+        [effectiveRecords]
+    )
+    const remainingCount = questions.length - answeredCount
 
     const updateAnswer = (questionId: string, patch: Partial<ExecutiveAnswer>) =>
         setRecords((current) => ({
             ...current,
             [questionId]: {
-                ...(current[questionId] ?? emptyAnswer()),
+                ...(current[questionId] ?? recordedAnswers[questionId] ?? emptyAnswer()),
                 ...patch,
                 updatedAt: new Date().toISOString(),
             },
         }))
 
     const reset = () => {
-        if (!window.confirm('Clear all three leadership answers and notes saved in this browser?')) return
+        if (!window.confirm('Remove manual changes and restore the recorded leadership decisions?')) return
         window.localStorage.removeItem(STORAGE_KEY)
         setRecords({})
     }
@@ -231,11 +281,13 @@ export function ExecutiveQuestions() {
                     <div className="mt-2 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-3xl">
                             <h2 id="executive-title" className="font-display text-4xl font-extrabold">
-                                Only three calls need you
+                                {remainingCount === 1
+                                    ? 'Only one call still needs you'
+                                    : `${remainingCount} calls remain`}
                             </h2>
                             <p className="mt-3 text-sm leading-6 text-grey-2 sm:text-base">
-                                The implementation findings are already triaged below. These remain open because they
-                                change the product promise, not just the code.
+                                Three leadership decisions are recorded. The remaining question turns “Peanut domain +
+                                SEO” into an exact canonical architecture.
                             </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
@@ -244,7 +296,10 @@ export function ExecutiveQuestions() {
                                 variant="primary"
                                 className="w-auto"
                                 onClick={() =>
-                                    downloadMarkdown('peanutsplit-executive-decisions.md', buildExecutiveBrief(records))
+                                    downloadMarkdown(
+                                        'peanutsplit-executive-decisions.md',
+                                        buildExecutiveBrief(effectiveRecords)
+                                    )
                                 }
                                 disableHaptics
                             >
@@ -256,7 +311,7 @@ export function ExecutiveQuestions() {
                                 disabled={Object.keys(records).length === 0}
                                 className="min-h-11 px-2 text-sm font-bold text-white underline decoration-2 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Clear answers
+                                Restore recorded decisions
                             </button>
                         </div>
                     </div>
@@ -273,18 +328,36 @@ export function ExecutiveQuestions() {
                     </p>
                 </div>
 
-                <div className="grid gap-px border-t border-n-1 bg-n-1 lg:grid-cols-3">
+                <div className="grid gap-px border-t border-n-1 bg-n-1 lg:grid-cols-2 2xl:grid-cols-4">
                     {questions.map((question) => {
-                        const answer = records[question.id] ?? emptyAnswer()
+                        const answer = effectiveRecords[question.id] ?? emptyAnswer()
+                        const manuallyAnswered = Boolean(records[question.id]?.choice)
                         return (
                             <article key={question.id} className="bg-white p-5 text-n-1 sm:p-6">
-                                <p className="text-h9 uppercase tracking-[0.18em] text-grey-1">{question.id}</p>
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-h9 uppercase tracking-[0.18em] text-grey-1">{question.id}</p>
+                                    <span
+                                        className={`rounded-full border px-2.5 py-1 text-[0.65rem] font-extrabold uppercase tracking-wider ${
+                                            manuallyAnswered
+                                                ? 'border-n-1 bg-primary-1'
+                                                : question.recordedChoice
+                                                  ? 'border-n-1 bg-primary-3'
+                                                  : 'border-error bg-error-1 text-error'
+                                        }`}
+                                    >
+                                        {manuallyAnswered
+                                            ? 'Manual decision'
+                                            : question.recordedChoice
+                                              ? 'Decision recorded'
+                                              : 'Needs decision'}
+                                    </span>
+                                </div>
                                 <h3 className="mt-2 text-h5">{question.title}</h3>
                                 <p className="mt-3 text-base font-bold leading-6">{question.question}</p>
                                 <p className="mt-3 text-sm leading-6 text-grey-1">{question.consequence}</p>
 
                                 <div className="mt-4 rounded-sm border border-n-1 bg-primary-3 p-4">
-                                    <p className="text-h9 uppercase tracking-wider">Engineering recommendation</p>
+                                    <p className="text-h9 uppercase tracking-wider">Engineering read</p>
                                     <p className="mt-2 text-sm leading-6">{question.recommendation}</p>
                                 </div>
 
@@ -311,7 +384,11 @@ export function ExecutiveQuestions() {
                                                 <span>
                                                     <span className="block text-sm font-extrabold">
                                                         {choice.label}
-                                                        {choice.recommended ? ' · Recommended' : ''}
+                                                        {choice.id === question.recordedChoice
+                                                            ? ' · Recorded decision'
+                                                            : !question.recordedChoice && choice.recommended
+                                                              ? ' · Recommended'
+                                                              : ''}
                                                     </span>
                                                     <span className="mt-1 block text-xs leading-4">
                                                         {choice.description}
