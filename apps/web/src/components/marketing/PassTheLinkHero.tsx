@@ -17,7 +17,7 @@ const STORY_STEPS: Array<{ state: PassTheLinkStageState; after: number }> = [
  * The room's viral loop in one fold: make the real link, pass it to the chat, let the group in.
  *
  * The stage is a one-shot illustration, not another version of the product. The only action hands
- * off to `/app`; the public page cannot write room data.
+ * off to `/new`; the public page cannot write room data.
  */
 export function PassTheLinkHero() {
     const t = useTranslations('marketing.hero')

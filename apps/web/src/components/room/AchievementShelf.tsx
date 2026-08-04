@@ -1,13 +1,13 @@
 'use client'
 
 /**
- * What this trip unlocked, kept.
+ * The achievement cards this trip produced, kept.
  *
  * Each tile IS the card — the same PNG the share button hands to the operating system, drawn with
  * an `<img>`. No second art system in HTML, and the shelf is WYSIWYG with what gets shared.
  *
- * Locked achievements are deliberately absent. A grid of grey padlocks turns a ledger into a game,
- * and Split is not one.
+ * Unmet achievements are deliberately absent. A grid of grey padlocks would turn a finite set of
+ * keepsakes into completion pressure, which the product guardrails prohibit.
  *
  * Built the same way `RecapPersonalLine` is: a client component that reads the device identity and
  * the shared react-query cache rather than being fed by the server page, with no polling — a recap

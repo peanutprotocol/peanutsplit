@@ -8,7 +8,7 @@ import { trackLanding } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useFeedback } from '@/lib/use-settings'
 
-/** The landing explains the product; this single handoff enters it without mutating room data. */
+/** The landing explains the product; this creation-labelled handoff opens the room composer. */
 export function LandingAppLink({ variant = 'pass-link' }: { variant?: 'compact' | 'pass-link' }) {
     const t = useTranslations('marketing.hero')
     const feedback = useFeedback()
@@ -19,7 +19,7 @@ export function LandingAppLink({ variant = 'pass-link' }: { variant?: 'compact' 
 
     return (
         <Link
-            href="/app"
+            href="/new"
             data-testid="landing-app-link"
             onClick={() => feedback('whoosh')}
             className={cn(

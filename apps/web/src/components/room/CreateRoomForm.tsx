@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -46,6 +46,7 @@ export function CreateRoomForm() {
     const [currencyChosen, setCurrencyChosen] = useState(false)
     const [creatorName, setCreatorName] = useState('')
     const [drawingOpen, setDrawingOpen] = useState(false)
+    const drawingSummaryRef = useRef<HTMLButtonElement>(null)
 
     /** Seeded after mount, not during render: `Intl` and `navigator` do not exist on the server,
      *  and a currency that differs across hydration is a mismatch React will not patch up. */
@@ -61,6 +62,11 @@ export function CreateRoomForm() {
         setCurrencyChosen(true)
         rememberCurrencyChoice(code)
         feedback('tick')
+    }
+
+    const closeDrawing = () => {
+        setDrawingOpen(false)
+        window.requestAnimationFrame(() => drawingSummaryRef.current?.focus())
     }
 
     /** The guess, until somebody overrules it with the grid below. */
@@ -143,6 +149,7 @@ export function CreateRoomForm() {
                     </label>
 
                     <button
+                        ref={drawingSummaryRef}
                         type="button"
                         onClick={() => setDrawingOpen((current) => !current)}
                         aria-expanded={drawingOpen}
@@ -184,13 +191,19 @@ export function CreateRoomForm() {
                             transition={motionAllowed ? { duration: 0.18, ease: 'easeOut' } : { duration: 0 }}
                             data-motion-surface
                             data-motion-collapse
+                            onKeyDown={(event) => {
+                                if (event.key !== 'Escape') return
+                                event.preventDefault()
+                                event.stopPropagation()
+                                closeDrawing()
+                            }}
                             className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
                         >
                             <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
                                 <h2 className="text-h8">{t('emoji')}</h2>
                                 <button
                                     type="button"
-                                    onClick={() => setDrawingOpen(false)}
+                                    onClick={closeDrawing}
                                     aria-label={t('collapseDrawing')}
                                     data-testid="collapse-room-drawing"
                                     className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
@@ -203,7 +216,7 @@ export function CreateRoomForm() {
                                     value={shownEmblem}
                                     onChange={(next) => {
                                         setEmblem(next)
-                                        setDrawingOpen(false)
+                                        closeDrawing()
                                         feedback('tick')
                                     }}
                                 />

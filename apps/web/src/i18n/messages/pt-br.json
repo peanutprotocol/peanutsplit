@@ -863,9 +863,8 @@
         },
         "achievements": {
             "crew": {
-                "title": "{count, plural, other {A turma já tem #}}",
-                "body": "Quem está faltando?",
-                "invite": "Enviar o link"
+                "title": "{count, plural, one {# nome nessa conta} other {# nomes nessa conta}}",
+                "body": "As pessoas dessa conta, juntas."
             },
             "passport": {
                 "title": "{count, plural, other {# moedas}}",
@@ -882,7 +881,7 @@
             "share": "Compartilhar",
             "sharing": "Preparando…",
             "dismiss": "Agora não",
-            "shelfTitle": "Desbloqueado nessa viagem",
+            "shelfTitle": "Cartões dessa viagem",
             "copied": "Cartão copiado — cole onde quiser.",
             "downloaded": "Cartão salvo nos seus downloads.",
             "shareFailed": "Não conseguimos montar esse cartão. Tente de novo.",
@@ -895,7 +894,7 @@
                 "hypeCrew": "A torcida"
             },
             "shareText": {
-                "crew": "A turma, montada.",
+                "crew": "As pessoas da nossa conta compartilhada.",
                 "passport": "Moedas diferentes, uma divisão limpa.",
                 "alterego": "Esse fui eu nessa viagem.",
                 "stats": "A viagem, em números.",
@@ -1145,7 +1144,7 @@
         },
         "crew": {
             "title": "A TURMA",
-            "line": "Um link só, e todo mundo dentro."
+            "line": "Os nomes da nossa conta compartilhada."
         },
         "passport": {
             "title": "PASSAPORTE",

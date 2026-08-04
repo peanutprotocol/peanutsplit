@@ -224,9 +224,10 @@ Rate limiting (deploy wave): per-IP token bucket on room/member creation — 20/
 - **Identity:** `src/lib/identity.ts` — localStorage `ps:member:<slug>` =
   `{memberId, token, name}`; `ps:recent` is the device-local room list. The
   shared room link, not an account or device cookie, is the recovery mechanism.
-- **Join gate:** first visit to `/r/[slug]` with no stored identity → join UI _over a live preview
-  of the room_ (see the balances behind a soft scrim — you know what you're joining). Pick an
-  existing unclaimed member ("I'm Bea") or add yourself. This is the room page, not a separate route.
+- **Name selection:** first visit to `/r/[slug]` with no stored identity → selection UI _over a
+  live preview of the room_. Choose which existing ledger name is yours on this device or add a
+  name. This is a local viewpoint, not ownership, permission, or a claimed/unclaimed lifecycle.
+  The room page remains the route; see `docs/ROSTER-IDENTITY.md`.
 - **URL state (nuqs):** open drawers/steps/selected expense are URL params — every mid-flow state
   shareable and back-button correct. `useState` only for ephemeral UI.
 - **React Query:** mutations return RoomState → `setQueryData` immediately; 8s
@@ -254,6 +255,21 @@ always tabular (`font-variant-numeric: tabular-nums`).
 4. Split detail — per-person cents visibly reconcile to the total (the anti-"trust me" moment).
 5. Settle — the debt row collapses with weight; settled state feels physical.
 6. All settled up — full celebration moment (mascot/confetti), explicitly screenshot-worthy.
+
+## Achievements
+
+Achievements are a bounded product surface: optional, shareable keepsakes
+derived from coordination already recorded in the room. Crew milestones count
+ledger names rather than joins; Passport counts saved expense currencies; and
+personal awards reflect positive administrative or social actions. They never
+read amounts, balances, debts, payment speed, or spending power.
+
+There are no points, rankings, leaderboards, streaks, levels, negative awards,
+locked-item grids, or prompts to do more work for the next reward. Only one
+achievement moment may interrupt a room per browser session. Ledger correction
+prompts take precedence, and All settled remains the primary completion
+celebration and the lead recap card. The full product contract is
+`docs/ACHIEVEMENTS.md`.
 
 Every screen has designed loading (skeletons), empty (illustrated, with a next action), and error
 states. 60fps target on mid-range Android: animate `transform`/`opacity` only.
