@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { YourRooms } from '@/components/marketing/YourRooms'
 import { Doodle } from '@/components/ui/Doodle'
+import { buttonClassName } from '@/components/ui/button-style'
 
 export const metadata: Metadata = {
     title: 'Split',
@@ -25,7 +26,7 @@ export default async function AppHomePage() {
                 <Link
                     href="/new"
                     data-testid="app-new-split"
-                    className="btn btn-primary btn-shadow-primary-4 flex w-full items-center justify-center gap-2 text-h6 no-underline"
+                    className={buttonClassName({ shadowSize: '4', className: 'justify-center text-h6 no-underline' })}
                 >
                     {tCreate('title')}
                     <Doodle name="iconarrowright" size={22} weight={2.2} />
@@ -33,7 +34,10 @@ export default async function AppHomePage() {
                 <Link
                     href="/import"
                     data-testid="app-import"
-                    className="btn btn-stroke flex w-full items-center justify-center text-sm font-bold no-underline"
+                    className={buttonClassName({
+                        variant: 'stroke',
+                        className: 'justify-center text-sm font-bold no-underline',
+                    })}
                 >
                     {tFooter('importLink')}
                 </Link>

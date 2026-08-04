@@ -6,11 +6,10 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { BTN_SMALL } from '@/components/ui/control'
 import type { RoomState } from '@/lib/api-types'
-import { cn } from '@/lib/cn'
 import { exportFilename, roomCsv, roomJson } from '@/lib/room-export'
 
 function download(contents: string, filename: string, type: string) {
@@ -48,8 +47,8 @@ export function RoomExport({ state }: { state: RoomState }) {
                 testId="export-row"
             />
             <Drawer open={open} onOpenChange={setOpen}>
-                <DrawerContent className={drawerContentClass} data-testid="export-sheet">
-                    <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+                <DrawerContent data-testid="export-sheet">
+                    <DrawerHeader className="flex flex-row items-end justify-between">
                         <DrawerTitle className="text-h5">{tHeader('importExport')}</DrawerTitle>
                         <CloseButton
                             onClick={() => setOpen(false)}

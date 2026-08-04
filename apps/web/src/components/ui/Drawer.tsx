@@ -89,7 +89,7 @@ const DrawerOverlay = React.forwardRef<
     React.ElementRef<typeof DrawerPrimitive.Overlay>,
     React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
-    <DrawerPrimitive.Overlay ref={ref} className={twMerge('fixed inset-0 z-50 bg-black/80', className)} {...props} />
+    <DrawerPrimitive.Overlay ref={ref} className={twMerge('fixed inset-0 z-50 bg-n-1/80', className)} {...props} />
 ))
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
@@ -112,7 +112,7 @@ const DrawerContent = React.forwardRef<
                     // only backdrop a phone has to tap on, and it is where you watch
                     // the room repaint behind a theme change. At full height there is
                     // no "behind" and no way out but the close button.
-                    'fixed inset-x-0 bottom-0 z-50 mt-6 flex max-h-[90dvh] flex-col overflow-hidden rounded-t-2xl border bg-background',
+                    'fixed inset-x-0 bottom-0 z-50 mt-6 flex max-h-[90dvh] flex-col overflow-hidden rounded-t-2xl border border-n-1 bg-background',
                     className
                 )}
                 aria-describedby={undefined}
@@ -130,7 +130,7 @@ const DrawerContent = React.forwardRef<
                 {...props}
             >
                 <InertBackground />
-                <div className="mx-auto my-3 h-1.5 w-10 shrink-0 rounded-full bg-black" />
+                <div className="mx-auto my-3 h-1.5 w-10 shrink-0 rounded-full bg-n-1" />
                 <div className="flex min-h-0 w-full justify-center">
                     {/* vaul animates the sheet; this is the content settling inside it.
                         A mount-time CSS animation rather than a transition, because the
@@ -147,7 +147,7 @@ const DrawerContent = React.forwardRef<
 DrawerContent.displayName = 'DrawerContent'
 
 const DrawerHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className={twMerge('grid gap-1.5 p-4 text-center sm:text-left', className)} {...props} />
+    <div className={twMerge('grid gap-1.5 px-4 pb-1 pt-4 text-left', className)} {...props} />
 )
 DrawerHeader.displayName = 'DrawerHeader'
 

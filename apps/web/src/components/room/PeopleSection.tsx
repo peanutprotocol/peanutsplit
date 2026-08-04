@@ -168,7 +168,8 @@ export function PeopleSection({
                                     icon="plus"
                                     disabled={!personName.trim()}
                                     loading={addMember.isPending}
-                                    className="h-12 w-auto shrink-0 justify-center"
+                                    width="auto"
+                                    className="h-12 shrink-0 justify-center"
                                     data-testid="add-person-submit"
                                 >
                                     {t('addPerson')}

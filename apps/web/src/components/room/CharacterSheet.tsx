@@ -6,12 +6,11 @@ import { useTranslations } from 'next-intl'
 import { AvatarPicker } from '@/components/room/AvatarPicker'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember } from '@/lib/api-types'
 import type { AvatarPaletteKey } from '@/lib/avatar-palettes'
 import { avatarFamily } from '@/lib/avatars'
-import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useSetAvatar } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
@@ -85,8 +84,8 @@ export function CharacterSheet({
 
     return (
         <Drawer open={open && !!member} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className={drawerContentClass} data-testid="character-sheet">
-                <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+            <DrawerContent data-testid="character-sheet">
+                <DrawerHeader className="flex flex-row items-end justify-between">
                     <DrawerTitle className="text-h5">{member?.name ?? ''}</DrawerTitle>
                     <CloseButton onClick={onClose} label={t('close')} data-testid="close-character-sheet" />
                 </DrawerHeader>

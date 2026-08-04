@@ -13,7 +13,7 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { SettingToggle } from '@/components/ui/SettingToggle'
 import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
@@ -78,8 +78,8 @@ export function DrawerSample() {
                     Open canonical sheet
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className={drawerContentClass}>
-                <DrawerHeader className={drawerHeaderClass}>
+            <DrawerContent>
+                <DrawerHeader>
                     <div className="flex items-start justify-between gap-3">
                         <div>
                             <DrawerTitle>One scroll owner</DrawerTitle>

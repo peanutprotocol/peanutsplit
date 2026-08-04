@@ -11,11 +11,10 @@ import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { api, isApiError } from '@/lib/api'
-import { cn } from '@/lib/cn'
 import { forgetRoom, readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
@@ -264,7 +263,7 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                             aria-expanded={expanded}
                             aria-controls="recent-room-list"
                             data-testid="more-rooms"
-                            className="rounded-xs mt-4 inline-flex min-h-11 items-center gap-1.5 px-1 py-1 text-sm font-bold text-n-1 underline decoration-2 underline-offset-4 transition-transform active:translate-y-px"
+                            className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-sm px-1 py-1 text-sm font-bold text-n-1 underline decoration-2 underline-offset-4 transition-transform active:translate-y-px"
                         >
                             {expanded ? t('showLess') : t('showMore', { count: overflow })}
                             <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={17} aria-hidden="true" />
@@ -333,8 +332,8 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                 this device. So it asks, and it says what the cost is. */}
             <Drawer open={pendingForget !== null} onOpenChange={(next) => !next && closeForget()}>
                 {forgetSubject && (
-                    <DrawerContent className={drawerContentClass} data-testid="forget-room-confirm">
-                        <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+                    <DrawerContent data-testid="forget-room-confirm">
+                        <DrawerHeader className="flex flex-row items-end justify-between">
                             <DrawerTitle className="text-h5">
                                 {t('confirmForgetTitle', { room: forgetSubject.name })}
                             </DrawerTitle>

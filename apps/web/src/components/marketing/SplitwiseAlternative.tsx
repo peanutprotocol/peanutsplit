@@ -93,7 +93,7 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                     <p className="mt-3 text-center text-sm text-grey-1">{compare.hero.ctaHint}</p>
                     {showImporter && (
                         <p className="mt-2 text-center text-sm text-grey-1">
-                            <Link href="/import" className="text-black underline">
+                            <Link href="/import" className="text-n-1 underline">
                                 {compare.hero.importLink}
                             </Link>
                         </p>
@@ -129,7 +129,7 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                             {paragraph}
                         </p>
                     ))}
-                    <Link href={compare.migration.moreHref} className="mt-4 inline-block text-sm text-black underline">
+                    <Link href={compare.migration.moreHref} className="mt-4 inline-block text-sm text-n-1 underline">
                         {compare.migration.moreLabel}
                     </Link>
                 </div>
