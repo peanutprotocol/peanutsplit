@@ -2,15 +2,16 @@ import Link from 'next/link'
 import { Doodle } from '@/components/ui/Doodle'
 
 const links = [
-    { href: '/dev-ds', label: 'System' },
-    { href: '/dev-ds/audit', label: 'Audit picker' },
+    { href: '/dev-ds', label: 'System', id: 'system' },
+    { href: '/dev-ds/audit', label: 'Audit', id: 'audit' },
+    { href: '/dev-ds/review', label: 'Review', id: 'review' },
 ] as const
 
-export function DocChrome({ children, page }: { children: React.ReactNode; page: 'system' | 'audit' }) {
+export function DocChrome({ children, page }: { children: React.ReactNode; page: 'system' | 'audit' | 'review' }) {
     return (
         <main className="min-h-dvh bg-background text-n-1">
             <header className="sticky top-0 z-40 border-b border-n-1 bg-primary-1">
-                <div className="mx-auto flex min-h-16 max-w-[90rem] items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
+                <div className="mx-auto flex min-h-16 max-w-[90rem] flex-wrap items-center justify-between gap-2 px-4 py-2 sm:gap-4 sm:px-6 lg:px-8">
                     <Link href="/dev-ds" className="flex items-center gap-2 font-display text-xl font-extrabold">
                         <Doodle name="peanut" size={30} weight={1.8} />
                         <span>Split / system</span>
@@ -18,7 +19,7 @@ export function DocChrome({ children, page }: { children: React.ReactNode; page:
                     <nav aria-label="Design system">
                         <ul className="shadow-2 flex items-center gap-1 rounded-sm border border-n-1 bg-white p-1">
                             {links.map((link) => {
-                                const active = page === (link.href.endsWith('audit') ? 'audit' : 'system')
+                                const active = page === link.id
                                 return (
                                     <li key={link.href}>
                                         <Link

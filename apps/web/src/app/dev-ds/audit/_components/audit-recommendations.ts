@@ -15,11 +15,11 @@ export const auditRecommendations = {
     },
     'SEC-02': {
         decision: 'fix-now',
-        note: 'Keep the readable slug and append strong non-human-friendly random bits before durable links exist. This is cheap first-room privacy, not an account/access-control project; rotation and revocation UI remain separate.',
+        note: 'Implemented for new rooms: readable stem plus a 128-bit opaque tail. Legacy weak links remain compatible as an explicit residual risk; do not rotate them through a hidden link-breaking migration.',
     },
     'SEC-03': {
         decision: 'fix-now',
-        note: 'Match the optional-utility decision with lean protection only: strict caps, efficient share indexing, a low-maintenance rate limit or kill switch, and basic monitoring. Defer distributed quotas and lifecycle machinery.',
+        note: 'Implemented with the documented hard envelope, five-import process-local budget, configuration kill switch and O(n) audit snapshot construction. The IP bucket remains a courtesy layer; distributed quotas stay deferred.',
     },
     'ARCH-01': {
         decision: 'defer',
@@ -69,7 +69,7 @@ export const auditRecommendations = {
     },
     'SEC-04': {
         decision: 'fix-now',
-        note: 'Add private, no-store defaults and route tests now. The change is small, invisible, and protects financial-data correctness.',
+        note: 'Implemented: private, no-store is the JSON default, room/history client reads opt out of caching and focused tests cover behavior and public overrides.',
     },
     'DATA-01': {
         decision: 'defer',
@@ -77,7 +77,7 @@ export const auditRecommendations = {
     },
     'QUAL-01': {
         decision: 'fix-now',
-        note: 'Add semantic linting with a ratcheted baseline so cleanup does not become a repository-wide rewrite. The current command gives misleading assurance.',
+        note: 'Partly implemented without a dependency project: formatting is named honestly and lint now includes a source-aware Tailwind/test-selector audit. Defer Hooks/a11y lint until a real defect justifies a ratcheted baseline.',
     },
     'QUAL-02': {
         decision: 'defer',
@@ -89,11 +89,11 @@ export const auditRecommendations = {
     },
     'ARCH-02': {
         decision: 'plan',
-        note: 'Take this on soon as a bounded standalone refactor: extract pure state, reducer and money seams first, then split coherent sections incrementally. Preserve the current flow exactly; any intentional visual or flow change requires mockups.',
+        note: 'Two bounded slices implemented: composer/date/action-zone views are isolated with parity, and one tested reducer owns all ephemeral workflow state and reset. Continue with payer/split orchestration only in focused passes; the drawer remains large and visual changes still require mockups.',
     },
     'ARCH-03': {
         decision: 'plan',
-        note: 'Take this on soon as a bounded standalone refactor. Split reads, offline orchestration and mutation domains behind unchanged hooks, cache keys and behavior, with focused contract tests around the moved seams.',
+        note: 'Implemented: the 830-line module is a 47-line compatibility barrel over independent read, offline and mutation domains. Existing imports, cache keys and behavior remain unchanged.',
     },
     'PERF-03': {
         decision: 'plan',
@@ -101,15 +101,15 @@ export const auditRecommendations = {
     },
     'DS-02': {
         decision: 'plan',
-        note: 'Schedule a bounded token cleanup soon: make the documented design system canonical, publish the deprecation map and remove dead aliases mechanically. Keep the ontology small and verify rendered parity.',
+        note: 'First bounded cleanup implemented: unused gray/yellow/black and duplicate four-pixel surface aliases are removed mechanically. Stop before broad grey/n churn without product work.',
     },
     'DS-03': {
         decision: 'plan',
-        note: 'Schedule extraction of the stable, already-proven repeated recipes soon. Use the rule of three, migrate callers incrementally and stop before inventing universal components that the live product has not demonstrated.',
+        note: 'Implemented for the proven rule-of-three composer family across room creation, expenses and tools. Do not generalize unrelated white cards.',
     },
     'DS-04': {
         decision: 'fix-now',
-        note: 'Fold the explicitly temporary shims into their owners only where computed dimensions and drawer geometry remain identical. Any visible geometry change moves to mockup review.',
+        note: 'Drawer class shims are folded into owner defaults with parity. Button-size overrides remain until the 44px TARGETS mockup is reviewed because that fold visibly changes density.',
     },
     'DS-05': {
         decision: 'defer',
@@ -117,15 +117,15 @@ export const auditRecommendations = {
     },
     'DS-06': {
         decision: 'plan',
-        note: 'Unify Button and link-button styling in the near-term component cleanup. Make width intent explicit, migrate proven duplicates and preserve anchor semantics and rendered layouts.',
+        note: 'Implemented with a server-safe shared style recipe, typed width intent and explicit non-interactive styling for decorative inner spans. Anchor semantics remain intact.',
     },
     'DS-07': {
         decision: 'fix-now',
-        note: 'Replace the two nonexistent classes and add class validation. This is certain, tiny cleanup.',
+        note: 'Implemented: both invalid names use reviewed tokens and classes:audit now validates named radius, shadow and z-index scales.',
     },
     'I18N-02': {
         decision: 'fix-now',
-        note: 'Keep this small: add the missing error-code parity and one contract test. A generator or catalog framework is optional and should exist only if it is simpler than the test.',
+        note: 'Implemented: missing codes are translated in all three catalogs and one AST contract test compares literal server emissions with the typed client catalog.',
     },
     'PERF-04': {
         decision: 'plan',
@@ -141,7 +141,7 @@ export const auditRecommendations = {
     },
     'DOMAIN-01': {
         decision: 'fix-now',
-        note: 'Fix only the two known archived-room omissions and add focused regression tests. Do not build the generic room-command pipeline now; extract it later only if repeated omissions or product work justify the abstraction.',
+        note: 'Implemented: restore and settlement deletion now assert archived-room writability under lock with regression tests. The generic command pipeline remains deferred.',
     },
     'DOMAIN-02': {
         decision: 'defer',
@@ -153,7 +153,7 @@ export const auditRecommendations = {
     },
     'DS-09': {
         decision: 'fix-now',
-        note: 'Remove test IDs from styling selectors and enforce the boundary. No intentional UI change is required.',
+        note: 'Implemented: no production CSS selects a test ID and classes:audit enforces that boundary.',
     },
     'DS-10': {
         decision: 'fix-now',
