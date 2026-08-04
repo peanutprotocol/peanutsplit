@@ -22,12 +22,11 @@ const roomArgs = {
                 // and an undo brings them back untouched.
                 reactions: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
             },
-            // Id last, for the same reason the two relations above carry one: a
-            // bulk import writes five hundred rows in one `createMany` and every
-            // one of them gets the same `createdAt` to the millisecond, so with
-            // only date and createdAt the order falls through to heap position —
-            // and an unrelated edit re-shuffles a room's whole history under the
-            // reader. Uuids make it arbitrary, but arbitrary and STABLE.
+            // Id last, for the same reason the two relations above carry one:
+            // legacy bulk imports and concurrent ordinary writes can share a
+            // `createdAt` millisecond. Without a final key, ties fall through to
+            // heap position and an unrelated edit can reshuffle room history.
+            // Uuids make that final order arbitrary, but arbitrary and STABLE.
             orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
         },
         settlements: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' } },

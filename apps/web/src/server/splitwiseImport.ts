@@ -1,10 +1,12 @@
 /**
- * A whole room in one write: roster, history and balances, from a validated import payload.
+ * Parsed history in one atomic bulk write, either creating a room or appending
+ * to one that already exists.
  *
  * This is a bulk migration wearing a route's clothes, so it follows migration rules rather than
- * request rules. No query runs inside a loop — the FX table is read once before anything starts,
- * the roster comes back from the room's own `create`, and the expenses and their shares each go in
- * with a single `createMany`. Four statements for five hundred expenses, not fifteen hundred.
+ * request rules. No expense query runs inside the build loop: the FX table is read once before
+ * anything starts, and all expenses and shares land through one `createMany` each. Creating the
+ * bounded set of newly mapped people may do roster queries, but five hundred expense rows never
+ * become fifteen hundred round trips.
  *
  * All of it is one `$transaction`. A room that half-imported would be the worst possible outcome:
  * the link works, the balances are wrong, and nobody can tell which rows are missing. Either the
@@ -59,7 +61,7 @@ const compareText = (left: string, right: string): number => (left < right ? -1 
  * order is still the same roster and expense multiset; duplicate identical
  * rows remain duplicate strings in the sorted array, so multiplicity survives.
  */
-export function importSourceFingerprint(body: ImportIntoRoomBody): string {
+export function importSourceFingerprint(body: ImportIntoRoomBody | ImportRoomBody): string {
     const canonicalExpenses = body.expenses
         .map((expense) =>
             JSON.stringify({
@@ -84,7 +86,9 @@ export function importSourceFingerprint(body: ImportIntoRoomBody): string {
         )
         .sort()
     const canonical = JSON.stringify({
-        members: body.members.map((mapping) => sourceNameKey(mapping.sourceName)).sort(),
+        members: body.members
+            .map((member) => sourceNameKey(typeof member === 'string' ? member : member.sourceName))
+            .sort(),
         expenses: canonicalExpenses,
     })
     return createHash('sha256').update(canonical).digest('hex')
@@ -109,7 +113,7 @@ interface ImportedExpenseRows {
 interface ImportRowProvenance {
     batchId: string
     /** Distinct millisecond ordering timestamps. Source calendar days remain
-     * in `date`; this sequence says precisely when each append row landed. */
+     * in `date`; this sequence says precisely when each imported row landed. */
     timestampBase: Date
 }
 
@@ -211,10 +215,11 @@ export async function importRoom(
     // a slow rate feed can never hold a write lock.
     const rateTable = await getRateTable()
     const token = memberToken()
+    const fingerprint = importSourceFingerprint(body)
 
     for (let attempt = 0; attempt < SLUG_ATTEMPTS; attempt++) {
         try {
-            const slug = await writeRoom(body, rateTable, token, request)
+            const slug = await writeRoom(body, rateTable, fingerprint, token, request)
             const room = await loadRoom(slug)
             const creator = room.members.find((m) => m.token === token)
             // Unreachable: the creator is validated to be one of the members before we get here.
@@ -431,6 +436,7 @@ export async function importIntoRoom(
 async function writeRoom(
     body: ImportRoomBody,
     rateTable: Awaited<ReturnType<typeof getRateTable>>,
+    fingerprint: string,
     token: string,
     request: Request
 ): Promise<string> {
@@ -473,7 +479,25 @@ async function writeRoom(
             // expenses and no settlements, so the empty arrays are the truth, not a stub.
             const room = { ...created, expenses: [], settlements: [] } as unknown as RoomWithRelations
 
-            const rows = await buildImportedExpenseRows(room, body.expenses, byName, creatorId, rateTable)
+            // Seed the same provenance ledger the nested append route reads. A
+            // room created from this source can therefore recognise an exact
+            // later delivery as a replay rather than duplicating its balances.
+            const batchId = randomUUID()
+            const importedAt = new Date()
+            const rows = await buildImportedExpenseRows(room, body.expenses, byName, creatorId, rateTable, {
+                batchId,
+                timestampBase: importedAt,
+            })
+            await tx.importBatch.create({
+                data: {
+                    id: batchId,
+                    roomId: created.id,
+                    fingerprint,
+                    importedAt,
+                    expenseCount: rows.expenses.length,
+                    addedMemberCount: created.members.length,
+                },
+            })
             await tx.expense.createMany({ data: rows.expenses })
             await tx.expenseShare.createMany({ data: rows.shares })
             if (rows.firstSharedBalanceExpenseId !== null) {
@@ -503,6 +527,12 @@ async function writeRoom(
                             emoji: created.emoji,
                             currency: created.currency,
                         },
+                        batch: {
+                            id: batchId,
+                            importedAt,
+                            expenseCount: rows.expenses.length,
+                            addedMemberCount: created.members.length,
+                        },
                         members: created.members.map((member) => ({
                             id: member.id,
                             name: member.name,
@@ -514,7 +544,12 @@ async function writeRoom(
                             shares: rows.sharesByExpenseId.get(expense.id) ?? [],
                         })),
                     },
-                    detail: { memberCount: created.members.length, expenseCount: rows.expenses.length },
+                    detail: {
+                        batchId,
+                        importedAt,
+                        memberCount: created.members.length,
+                        expenseCount: rows.expenses.length,
+                    },
                 },
             })
 

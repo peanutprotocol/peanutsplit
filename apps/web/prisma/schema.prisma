@@ -166,7 +166,10 @@ model Expense {
   @@schema("split")
 }
 
-/// One atomic append of imported history into an existing room.
+/// One atomic parsed-source import, whether it created the room or appended to
+/// an existing one. `addedMemberCount` is the number of roster rows that the
+/// write created: the full initial roster for a global import, or only new
+/// mappings for an append.
 ///
 /// `fingerprint` describes only the canonical source roster and expense
 /// multiset, never the chosen room-member mappings. Its room-scoped unique key
