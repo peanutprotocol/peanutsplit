@@ -53,6 +53,8 @@ scripts reach it with `--dir apps/web` rather than a filter. If you add an app, 
 `typecheck`/`test` the same way — a gate that silently covers nothing is worse
 than no gate.
 
+**The Playwright webServer ignores `DATABASE_URL`.** It pins its own database — `E2E_DATABASE_URL ?? peanut_split_dev` (see `playwright.config.ts`) — so prefixing `playwright test` with `DATABASE_URL=…` silently does nothing, and an unmigrated `peanut_split_dev` makes every room-creating spec fail with server 500s that read like app bugs. Pass `E2E_DATABASE_URL`, and keep `peanut_split_dev` migrated.
+
 **Prefix every Prisma command with `env -u DATABASE_URL`.** The mono QA harness exports `DATABASE_URL` pointing at the shared `peanut_dev`, and Prisma prefers the process env over `apps/api/.env` — a migration will silently aim at the wrong database. It refuses (P3005) rather than corrupting anything, but the failure is confusing.
 
 ## Deploy
