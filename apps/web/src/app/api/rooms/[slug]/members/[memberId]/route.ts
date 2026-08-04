@@ -14,7 +14,7 @@ import { publish } from '@/server/events'
 import { conflict, memberTokenOf, notFound, readJson, respond } from '@/server/http'
 import { actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 import { randomPersonaKey } from '@/lib/avatars'
-import { randomAvatarPaletteKey } from '@/lib/avatar-palettes'
+import { effectiveAvatarPaletteKey, separatedAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { canRemoveMember, loadRoom, toRoomState } from '@/server/roomState'
 import { assertWritable } from '@/server/rooms'
@@ -47,23 +47,40 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         // An older client sends only `avatar`; preserve the colour it cannot see
         // or edit. Its legacy null reroll is different: that explicitly asks for
         // a fresh identity, so both halves of the pair are renewed together.
-        const avatarPalette = reroll
-            ? randomAvatarPaletteKey(
-                  room.members.flatMap((candidate) => (candidate.avatarPalette ? [candidate.avatarPalette] : []))
-              )
-            : body.avatarPalette
         const result = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, room.id)
             const locked = await loadRoom(slug, tx)
             assertWritable(locked)
             const target = locked.members.find((candidate) => candidate.id === memberId)
             if (!target) throw notFound('member not found')
-            const nextPalette = avatarPalette === undefined ? target.avatarPalette : avatarPalette
+            // Palette choice is a room invariant, so derive it only after taking
+            // the same advisory lock used by member creation. Nullable legacy
+            // rows still render a deterministic palette and must reserve it too.
+            const usedPalettes = locked.members
+                .filter((candidate) => candidate.id !== target.id && candidate.removedAt === null)
+                .map((candidate) =>
+                    effectiveAvatarPaletteKey(candidate.avatarPalette, candidate.avatar ?? candidate.name)
+                )
+            const paletteWasRequested = reroll || body.avatarPalette !== undefined
+            const requestedPalette = reroll
+                ? separatedAvatarPaletteKeys(1, [
+                      ...usedPalettes,
+                      effectiveAvatarPaletteKey(target.avatarPalette, target.avatar ?? target.name),
+                  ])[0]
+                : body.avatarPalette
+            const nextPalette =
+                requestedPalette === undefined
+                    ? target.avatarPalette
+                    : usedPalettes.includes(requestedPalette)
+                      ? separatedAvatarPaletteKeys(1, usedPalettes, [
+                            effectiveAvatarPaletteKey(target.avatarPalette, target.avatar ?? target.name),
+                        ])[0]
+                      : requestedPalette
             const changed = target.avatar !== avatar || target.avatarPalette !== nextPalette
             if (changed) {
                 await tx.member.update({
                     where: { id: memberId },
-                    data: { avatar, ...(avatarPalette === undefined ? {} : { avatarPalette }) },
+                    data: { avatar, ...(paletteWasRequested ? { avatarPalette: nextPalette } : {}) },
                 })
                 await appendRoomAuditEvent({
                     tx,

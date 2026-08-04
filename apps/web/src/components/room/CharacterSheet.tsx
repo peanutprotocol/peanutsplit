@@ -9,7 +9,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember } from '@/lib/api-types'
-import type { AvatarPaletteKey } from '@/lib/avatar-palettes'
+import { effectiveAvatarPaletteKey, type AvatarPaletteKey } from '@/lib/avatar-palettes'
 import { avatarFamily } from '@/lib/avatars'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -47,6 +47,7 @@ export function CharacterSheet({
     onClose,
     slug,
     member,
+    members,
     token,
 }: {
     open: boolean
@@ -54,6 +55,8 @@ export function CharacterSheet({
     slug: string
     /** Null while the room reloads under an open sheet. */
     member: ApiMember | null
+    /** Active roster; removed members never appear in the room state. */
+    members: readonly ApiMember[]
     token?: string | null
 }) {
     const t = useTranslations('room.avatar')
@@ -61,6 +64,14 @@ export function CharacterSheet({
     const feedback = useFeedback()
     const setAvatar = useSetAvatar(slug, member?.id ?? '', token)
     const [firstOpen, setFirstOpen] = useState(false)
+    const currentPalette = member ? effectiveAvatarPaletteKey(member.avatarPalette, member.avatar ?? member.name) : null
+    const usedPalettes = member
+        ? members
+              .filter((candidate) => candidate.id !== member.id)
+              .map((candidate) =>
+                  effectiveAvatarPaletteKey(candidate.avatarPalette, candidate.avatar ?? candidate.name)
+              )
+        : []
 
     useEffect(() => {
         if (open) setFirstOpen(claimFirstOpen())
@@ -96,7 +107,8 @@ export function CharacterSheet({
                         <AvatarPicker
                             name={member.name}
                             value={member.avatar}
-                            palette={member.avatarPalette ?? null}
+                            palette={currentPalette}
+                            usedPalettes={usedPalettes}
                             onChange={chooseAvatar}
                             disabled={setAvatar.isPending}
                         />

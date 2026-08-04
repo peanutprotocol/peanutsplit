@@ -69,6 +69,28 @@ describe('the first hand', () => {
         expect(new Set(first).size).toBe(first.length)
     })
 
+    it('deterministically excludes other room members while preserving the current colour', () => {
+        const hand = initialHand('tea-dragon')
+        const occupied = AVATAR_PALETTE_KEYS.slice(0, 19)
+        // This deliberately models an old collision: the current member keeps
+        // their colour, but no other tile is allowed to offer it.
+        const first = initialPaletteHand(hand, 'tea-dragon', occupied[0], occupied)
+        expect(first[hand.indexOf('tea-dragon')]).toBe(occupied[0])
+        expect(
+            first.filter((_, slot) => slot !== hand.indexOf('tea-dragon')).every((key) => !occupied.includes(key))
+        ).toBe(true)
+        expect(first).toEqual(initialPaletteHand(hand, 'tea-dragon', occupied[0], occupied))
+    })
+
+    it('repeats only room-free colours when a large room leaves fewer than eight', () => {
+        const hand = initialHand('tea-dragon')
+        const occupied = AVATAR_PALETTE_KEYS.slice(0, 20)
+        const free = new Set(AVATAR_PALETTE_KEYS.slice(20))
+        const palettes = initialPaletteHand(hand, 'tea-dragon', AVATAR_PALETTE_KEYS[23], occupied)
+        expect(palettes.every((key) => free.has(key))).toBe(true)
+        expect(new Set(palettes).size).toBeLessThan(palettes.length)
+    })
+
     it('opens on the top of the catalog for a member with no pick yet', () => {
         expect(initialHand(null)).toEqual(AVATAR_KEYS.slice(0, HAND_SIZE))
     })
@@ -119,6 +141,16 @@ describe('a dealt hand', () => {
         const second = planPaletteHand(hand, 'party-bee', 'sun-berry', seeded(43))
         expect(second).not.toEqual(first)
         expect(second[hand.indexOf('party-bee')]).toBe('sun-berry')
+    })
+
+    it('keeps shuffled offers clear of occupied room colours', () => {
+        const hand = initialHand('party-bee')
+        const occupied = AVATAR_PALETTE_KEYS.slice(0, 17)
+        const palettes = planPaletteHand(hand, 'party-bee', 'watermelon-green', seeded(45), occupied)
+        expect(palettes[hand.indexOf('party-bee')]).toBe('watermelon-green')
+        expect(
+            palettes.filter((_, slot) => slot !== hand.indexOf('party-bee')).every((key) => !occupied.includes(key))
+        ).toBe(true)
     })
 
     it('moves the pick around the grid instead of pinning it to one slot', () => {
