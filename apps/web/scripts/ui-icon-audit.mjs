@@ -9,6 +9,7 @@ const sourceRoots = [resolve(root, 'src')]
 const codeExtensions = new Set(['.ts', '.tsx'])
 const rawSvgExceptions = new Map([
     ['src/components/ui/Doodle.tsx', 'the single generated doodle renderer'],
+    ['src/components/ui/CustomRoomDrawing.tsx', 'renders strictly decoded custom room geometry'],
     ['src/server/og/emblem.ts', 'wraps a generated doodle path as a link-preview image'],
 ])
 const forbiddenImports = [

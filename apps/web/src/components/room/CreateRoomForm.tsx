@@ -6,8 +6,6 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
-import { Doodle } from '@/components/ui/Doodle'
-import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCurrencies } from '@/lib/queries'
@@ -18,6 +16,7 @@ import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
 import { DoodlePicker } from './DoodlePicker'
 import { RosterCheckpoint } from './RosterCheckpoint'
+import { RoomEmblem } from './RoomEmblem'
 
 /** The server-rendered seed only. The real default is the device's top hint, which cannot be
  *  known until after mount — see the effect below. */
@@ -38,7 +37,7 @@ export function CreateRoomForm() {
     // null means "follow the name". The emblem used to be rolled at random after mount, which
     // needed an effect purely to dodge a hydration
     // mismatch; reading the name is deterministic and right far more often.
-    const [emblem, setEmblem] = useState<DoodleName | null>(null)
+    const [emblem, setEmblem] = useState<string | null>(null)
     const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
     // A guess is only ever allowed to fill an empty field. The moment someone picks a currency
     // themselves, the inference is done talking — a hint that overwrites a deliberate choice is
@@ -151,7 +150,7 @@ export function CreateRoomForm() {
                         data-testid="room-drawing-summary"
                         className="flex min-h-14 w-full items-center gap-3 border-t border-dashed border-grey-1 px-4 text-left"
                     >
-                        <Doodle name={shownEmblem} size={30} weight={1.8} />
+                        <RoomEmblem value={shownEmblem} name={name} size={30} />
                         <span className="min-w-0 flex-1">
                             <span className="block text-h8">{t('emojiGroup')}</span>
                             <span className="block truncate text-xs text-grey-1">{t('emoji')}</span>

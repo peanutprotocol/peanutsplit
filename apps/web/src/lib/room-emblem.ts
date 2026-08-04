@@ -1,4 +1,5 @@
 import { isDoodleName, type DoodleName } from '@/components/ui/doodles'
+import { isRoomDrawing } from '@/lib/room-drawing'
 import { FALLBACK_DOODLE, roomDoodleFor } from '@/lib/room-doodle'
 
 /** The old sixteen-option room picker, translated at render time. The stored
@@ -66,6 +67,18 @@ export function roomEmblemDoodle(stored: string | null | undefined, name: string
 }
 
 /**
+ * The exact emblem value an interactive surface should render and select.
+ *
+ * Presets still resolve through the legacy/name-following chain above. A custom
+ * drawing is already a complete, validated emblem, so it must survive that
+ * resolution instead of being reduced to the peanut fallback used by
+ * doodle-only decoration such as confetti.
+ */
+export function roomEmblemValue(stored: string | null | undefined, name: string): string {
+    return isRoomDrawing(stored) ? stored : roomEmblemDoodle(stored, name)
+}
+
+/**
  * What a tap in the drawing picker must store, or `null` when it must store nothing.
  *
  * Two things the picker got wrong, both fixed here. It compared the tapped drawing against the
@@ -81,10 +94,12 @@ export function roomEmblemDoodle(stored: string | null | undefined, name: string
  * is pinned — which is what makes tapping what you can already see do nothing at all.
  */
 export function emblemChoice(
-    tapped: DoodleName,
+    tapped: string,
     stored: string | null | undefined,
     name: string
-): { emblem: DoodleName | null } | null {
+): { emblem: string | null } | null {
+    if (isRoomDrawing(tapped)) return tapped === stored ? null : { emblem: tapped }
+    if (!isDoodleName(tapped)) return null
     const emblem = tapped === roomDoodleFor(name) ? null : tapped
     const pinned = Boolean(stored)
     const pinChanged = (emblem === null) === pinned

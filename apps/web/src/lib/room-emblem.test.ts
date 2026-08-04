@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { DOODLE } from '@/components/ui/doodles'
-import { emblemChoice, emblemDoodle, roomEmblemDoodle } from '@/lib/room-emblem'
-import { doodleDataUri } from '@/server/og/emblem'
+import { emblemChoice, emblemDoodle, roomEmblemDoodle, roomEmblemValue } from '@/lib/room-emblem'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
+import { doodleDataUri, emblemDataUri } from '@/server/og/emblem'
+
+const custom = encodeRoomDrawing([
+    [
+        { x: 0.1, y: 0.2 },
+        { x: 0.9, y: 0.8 },
+    ],
+])
 
 describe('emblemDoodle', () => {
     it('recognises a drawn emblem', () => {
@@ -58,6 +66,9 @@ describe('emblemChoice', () => {
     it('pins the tapped drawing', () => {
         expect(emblemChoice('pizza', null, 'Ski trip')).toEqual({ emblem: 'pizza' })
         expect(emblemChoice('cake', 'pizza', 'Ski trip')).toEqual({ emblem: 'cake' })
+        expect(emblemChoice(custom, null, 'Ski trip')).toEqual({ emblem: custom })
+        expect(emblemChoice(custom, custom, 'Ski trip')).toBeNull()
+        expect(roomEmblemValue(custom, 'Ski trip')).toBe(custom)
     })
 
     it('releases the pin when the tapped drawing is the one the name gives', () => {
@@ -95,5 +106,15 @@ describe('doodleDataUri', () => {
         for (const name of Object.keys(DOODLE)) {
             expect(doodleDataUri(name as keyof typeof DOODLE).length).toBeLessThan(8000)
         }
+    })
+
+    it('renders custom geometry as fixed black SVG rather than stored markup', () => {
+        const uri = emblemDataUri(custom)
+        expect(uri?.startsWith('data:image/svg+xml;utf8,')).toBe(true)
+        const svg = decodeURIComponent(uri!.slice('data:image/svg+xml;utf8,'.length))
+        expect(svg).toContain('M3.191 6.413 L28.809 25.587')
+        expect(svg).toContain('stroke="#211C17"')
+        expect(svg).not.toContain(custom)
+        expect(emblemDataUri('drawing:v1:not-valid')).toBeNull()
     })
 })
