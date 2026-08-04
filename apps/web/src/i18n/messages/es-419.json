@@ -1114,7 +1114,7 @@
             "currencyLabel": "Moneda de los saldos",
             "currencyHint": "Esta sala salda en {currency}. Los gastos importados conservan la moneda en que se pagaron y se convierten para calcular los saldos.",
             "repeatTitle": "Antes de volver a importar",
-            "repeatBody": "Importar otra vez exactamente los mismos datos de origen no cambia nada, aunque cambies la asignación de personas. Una exportación modificada se agrega completa. Si se superpone con el historial anterior, algunos gastos pueden aparecer dos veces porque las exportaciones traen fechas de calendario, no IDs estables de cada gasto.",
+            "repeatBody": "Después de completar una importación en esta pantalla, volver a enviar aquí exactamente los mismos datos de origen revisados no cambia nada, aunque cambies la asignación de personas. Es posible que los gastos que ya están en la sala no tengan un registro de importación coincidente, por lo que la primera importación adicional puede repetirlos. Una exportación modificada se agrega completa. Si se superpone con el historial anterior, algunos gastos pueden aparecer dos veces porque las exportaciones traen fechas de calendario, no IDs estables de cada gasto.",
             "membersTitle": "Asigna las personas",
             "membersBody": "Elige a alguien que ya está en {room} o agrega una persona nueva. Las coincidencias exactas de nombre quedan seleccionadas para que las revises.",
             "sourceLabel": "En el archivo",

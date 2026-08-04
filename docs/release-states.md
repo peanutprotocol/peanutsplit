@@ -41,6 +41,7 @@ rollback can move a capability back.
 | Themes and expense reactions                                | user-visible        | Present on the public room surface                                                                                      |
 | Push notifications                                          | user-visible        | Do not call production-verified until the two-device loop passes                                                        |
 | Splitwise import                                            | production-verified | Production Chromium + Firefox evidence recorded below, 2026-08-02                                                       |
+| Existing-room repeated import                               | code-complete       | Atomic append, replay/concurrency, populated-ledger preservation and browser journeys verified on the feature branch    |
 | Percentage and share-weighted expense splits                | production-verified | Production mobile create, edit and persisted-weight verification, 2026-08-02                                            |
 | Natural-language expense entry                              | deployed dark       | V2 gate is off                                                                                                          |
 | Receipt scanning                                            | held                | Consent and real-device gates remain open; do not expose                                                                |
