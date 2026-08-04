@@ -81,7 +81,7 @@ export function RoomScreen({ slug }: { slug: string }) {
     // never cascades into a checklist of the room's other people.
     const [latecomerPaused, setLatecomerPaused] = useState(false)
     const [latecomerReviewOpen, setLatecomerReviewOpen] = useState(false)
-    const roomTitleRef = useRef<HTMLHeadingElement>(null)
+    const roomTitleRef = useRef<HTMLButtonElement>(null)
     const sawUnsettled = useRef(false)
 
     const resolveLatecomer = useCallback(() => {
@@ -121,6 +121,7 @@ export function RoomScreen({ slug }: { slug: string }) {
         params.settle ||
         params.share ||
         params.settings ||
+        params.rooms ||
         !!params.expense ||
         !!params.balance ||
         !!params.character

@@ -3,13 +3,9 @@ import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
- * Tapping a tile in the other-rooms strip has to actually go to that room.
- *
- * Scrolling the strip was fixed by handing horizontal panning back to the browser
- * (`data-vaul-no-drag` + `touch-action: pan-x`). This spec covers the other half of the
- * gesture — the tap — which nothing asserted before, and which was broken: the tile also
- * closed the sheet, and because the sheet is a URL param that close was a second router
- * push in the same click. It won, and the room never changed.
+ * Navigation from the title switcher has to win over sheet dismissal. The
+ * sheet is URL-backed, so these cases guard against competing router updates
+ * that leave the person in the room they were trying to leave.
  */
 
 async function createRoom(page: import('@playwright/test').Page, name: string) {
@@ -26,9 +22,8 @@ test('tapping a room tile navigates to that room', async ({ page }) => {
     const beta = await createRoom(page, 'Beta')
     expect(beta).not.toBe(alpha)
 
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
-    await page.waitForTimeout(600)
+    await page.getByTestId('open-room-switcher').click()
+    await expect(page.getByTestId('room-switcher-sheet')).toBeVisible({ timeout: 10_000 })
 
     const tile = page.locator(`[data-testid="room-switcher-tile"][data-slug="${alpha}"]`)
     await expect(tile).toBeVisible()
@@ -36,16 +31,16 @@ test('tapping a room tile navigates to that room', async ({ page }) => {
     await tile.click()
     await expect(page).toHaveURL(new RegExp(`/r/${alpha}$`), { timeout: 10_000 })
     // Arriving is what closes the sheet — nothing calls onClose.
-    await expect(page.getByTestId('settings-sheet')).toBeHidden({ timeout: 10_000 })
-    await expect(page.locator('h1').first()).toHaveText('Alpha')
+    await expect(page.getByTestId('room-switcher-sheet')).toBeHidden({ timeout: 10_000 })
+    await expect(page.getByTestId('room-title')).toHaveText('Alpha')
 })
 
 test('the all-rooms tile leaves the room', async ({ page }) => {
     await createRoom(page, 'Alpha')
     await createRoom(page, 'Beta')
 
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    await page.getByTestId('open-room-switcher').click()
+    await expect(page.getByTestId('room-switcher-sheet')).toBeVisible({ timeout: 10_000 })
 
     // No sleep for the sheet's slide: `click()` already waits for the target to hold a stable
     // bounding box, which is the condition the timeout was standing in for.

@@ -4,85 +4,118 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
+import { CloseButton } from '@/components/ui/CloseButton'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
+import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
+import type { ApiRoom } from '@/lib/api-types'
+import { cn } from '@/lib/cn'
 import { readRecentRooms, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 
+interface RoomSwitcherProps {
+    open: boolean
+    onClose: () => void
+    room: ApiRoom
+}
+
 /**
- * The other rooms on this device, across the top of the settings sheet.
+ * A deliberately small navigation sheet, not a second room chooser.
  *
- * The room you are in is never a tile here — it is the card directly below, and
- * two representations of one room on one screen is exactly the confusion this
- * layout exists to remove.
- *
- * With nothing to switch to there is no strip, no empty state and no apology.
- * `readRecentRooms()` also returns `[]` when storage is blocked, which is the
- * same branch and the same right answer: a device that cannot remember rooms has
- * no list to offer.
- *
- * Nothing here closes the sheet, and that is deliberate. Every drawer in the room
- * is a URL param (`?settings=1`), so closing one is itself a router push — and a
- * tile that both closed the sheet and followed its `href` fired two router pushes
- * from one click, where the query-param one won and the room never changed. The
- * targets carry no `settings` param, so arriving is what closes the sheet.
+ * The loaded room is always present and inert, even when local storage is empty
+ * or blocked. At most two other rooms follow it, then one stable route to the
+ * full chooser where creation, import and link recovery already live.
  */
-export function RoomSwitcher({ currentSlug }: { currentSlug: string }) {
+export function RoomSwitcher({ open, onClose, room }: RoomSwitcherProps) {
     const t = useTranslations('room.header')
-    // Read after mount: the list is localStorage, and rendering it during the
-    // server pass would be a hydration mismatch on every device that has one.
-    const [rooms, setRooms] = useState<RecentRoom[]>([])
+    // Storage is client-only. Keeping the server/first-client render empty also
+    // avoids a hydration mismatch on every device with remembered rooms.
+    const [recent, setRecent] = useState<RecentRoom[]>([])
 
     useEffect(() => {
-        setRooms(readRecentRooms().filter((room) => room.slug !== currentSlug))
-    }, [currentSlug])
+        if (!open) return
+        setRecent(
+            readRecentRooms()
+                .filter((candidate) => candidate.slug !== room.slug)
+                .slice(0, 2)
+        )
+    }, [open, room.slug])
 
-    if (rooms.length === 0) return null
+    const roomMark = (candidate: { name: string; emoji?: string | null; theme?: string | null }) => (
+        <span
+            style={{ backgroundColor: themeFor(candidate.theme).field }}
+            className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1"
+            aria-hidden="true"
+        >
+            <RoomEmblem value={candidate.emoji} name={candidate.name} size={25} />
+        </span>
+    )
+
+    const rowClass =
+        'flex min-h-16 w-full items-center gap-3 rounded-sm border border-n-1 bg-white p-2.5 text-left transition-transform duration-100'
 
     return (
-        <section data-testid="room-switcher">
-            {/* No heading. A row of rooms above the room you are in does not need a
-                word to say what it is, and the label cost a line of the sheet. */}
-            <ul
-                // vaul owns the pointer inside a sheet: it sets `touch-action: none` on the drawer,
-                // and touch-action resolves up the ancestor chain, so this strip could not be
-                // panned by a finger at all. `data-vaul-no-drag` is vaul's own opt-out, and the
-                // explicit `pan-x` hands horizontal panning back to the browser.
-                data-vaul-no-drag
-                // The scrollbar used to be hidden on both engines. On a phone that was survivable
-                // once panning worked, but a mouse has no gesture to fall back on — the rooms past
-                // the edge were simply unreachable. A thin bar is the affordance.
-                className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:thin] [touch-action:pan-x]"
-            >
-                {rooms.map((room) => (
-                    <li key={room.slug}>
-                        <Link
-                            href={`/r/${room.slug}`}
-                            data-testid="room-switcher-tile"
-                            data-slug={room.slug}
-                            // Inline for the same reason the theme picker does it:
-                            // the palette is data, so eight arbitrary Tailwind
-                            // classes would have to be safelisted by hand.
-                            style={{ backgroundColor: themeFor(room.theme).field }}
-                            className="flex w-24 shrink-0 flex-col items-center gap-1 rounded-sm border border-n-1 p-2 transition-transform duration-100 active:translate-y-[2px]"
+        <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
+            <DrawerContent className={drawerContentClass} data-testid="room-switcher-sheet">
+                <DrawerHeader className={cn(drawerHeaderClass, 'flex flex-row items-end justify-between')}>
+                    <DrawerTitle className="text-h5">{t('roomsTitle')}</DrawerTitle>
+                    <CloseButton onClick={onClose} label={t('closeRoomSwitcher')} />
+                </DrawerHeader>
+                <DrawerBody>
+                    <p className="text-sm text-grey-1">{t('switchRoomsHint')}</p>
+
+                    <div className="flex flex-col gap-2">
+                        <div
+                            aria-current="page"
+                            data-testid="room-switcher-current"
+                            className={cn(rowClass, 'bg-primary-3')}
                         >
-                            <RoomEmblem value={room.emoji} name={room.name} size={26} />
-                            <span className="w-full truncate text-center text-xs">{room.name}</span>
+                            {roomMark(room)}
+                            <span className="min-w-0 flex-1">
+                                <span className="block truncate font-bold">{room.name}</span>
+                                <span className="block text-sm text-grey-1">{t('currentRoom')}</span>
+                            </span>
+                            <Icon name="check" size={18} className="shrink-0" aria-hidden="true" />
+                        </div>
+
+                        {recent.map((candidate) => (
+                            <Link
+                                key={candidate.slug}
+                                href={`/r/${candidate.slug}`}
+                                data-testid="room-switcher-tile"
+                                data-slug={candidate.slug}
+                                className={cn(rowClass, 'active:translate-y-[2px]')}
+                            >
+                                {roomMark(candidate)}
+                                <span className="min-w-0 flex-1 truncate font-bold">{candidate.name}</span>
+                                <Icon name="chevron-right" size={18} className="shrink-0" aria-hidden="true" />
+                            </Link>
+                        ))}
+
+                        <Link
+                            href="/app"
+                            data-testid="room-switcher-all"
+                            className={cn(
+                                rowClass,
+                                'mt-1 bg-[var(--split-theme-field,#FFC900)] shadow-[3px_3px_0_var(--split-theme-ink,#211C17)] active:translate-y-[2px]'
+                            )}
+                        >
+                            <span className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white">
+                                <Icon name="arrow-right" size={22} aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                                <span className="block truncate font-bold">{t('allRooms')}</span>
+                                <span className="block truncate text-sm text-grey-1">{t('allRoomsHint')}</span>
+                            </span>
+                            <Icon name="chevron-right" size={18} className="shrink-0" aria-hidden="true" />
                         </Link>
-                    </li>
-                ))}
-                <li>
-                    {/* Not a "+". A plus reads as "new room", and this goes to the
-                        page that owns the full list and the paste-a-link recovery. */}
-                    <Link
-                        href="/app"
-                        data-testid="room-switcher-all"
-                        className="flex w-24 shrink-0 flex-col items-center gap-1 rounded-sm border border-dashed border-n-1 bg-white p-2 transition-transform duration-100 active:translate-y-[2px]"
-                    >
-                        <Icon name="arrow-right" size={26} />
-                        <span className="w-full truncate text-center text-xs">{t('allRooms')}</span>
-                    </Link>
-                </li>
-            </ul>
-        </section>
+                    </div>
+
+                    <p className="text-sm text-grey-1">
+                        {recent.length > 0 ? t('recentRoomsNote') : t('noOtherRoomsNote')}
+                    </p>
+                </DrawerBody>
+            </DrawerContent>
+        </Drawer>
     )
 }

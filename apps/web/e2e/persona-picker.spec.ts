@@ -31,11 +31,29 @@ async function openOwnCharacterSheet(page: Page, room: string) {
     await page.getByTestId('create-room').click()
     await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
     await page.getByTestId('go-to-room').click()
-    await page.getByTestId('open-avatar').click()
+    await openOwnCharacterFromSettings(page)
     return page.getByTestId('avatar-picker')
 }
 
-test('your avatar chip opens your own character sheet and a pick persists', async ({ page }, testInfo) => {
+async function openOwnCharacterFromSettings(page: Page) {
+    // A reload can restore `?settings=1` before the client portal has mounted.
+    // Wait for that URL-owned sheet instead of racing its overlay with a second
+    // click on the header trigger.
+    if (new URL(page.url()).searchParams.has('settings')) {
+        await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    } else {
+        await page.getByTestId('open-room-settings').click()
+        await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    }
+
+    const settings = page.getByTestId('settings-sheet')
+    const peopleToggle = settings.getByTestId('people-toggle')
+    if ((await peopleToggle.getAttribute('aria-expanded')) === 'false') await peopleToggle.click()
+    await settings.locator('[data-testid="person-row"][data-member="Ana"]').click()
+    await expect(page.getByTestId('character-sheet')).toBeVisible()
+}
+
+test('your Settings row opens your own character sheet and a pick persists', async ({ page }, testInfo) => {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Persona picnic')
     await page.getByTestId('room-currency').selectOption('EUR')
@@ -44,11 +62,11 @@ test('your avatar chip opens your own character sheet and a pick persists', asyn
     await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
     await page.getByTestId('go-to-room').click()
 
-    // Two taps, and the second one is the grid — the chip must not detour
-    // through the settings sheet with a member preselected.
-    await page.getByTestId('open-avatar').click()
+    // The header's whole middle target now belongs to room navigation. Character
+    // editing remains attached to the person it edits, in Settings > People.
+    await openOwnCharacterFromSettings(page)
     await expect(page.getByTestId('character-sheet')).toBeVisible()
-    await expect(page.getByTestId('settings-sheet')).toHaveCount(0)
+    await expect(page.getByTestId('settings-sheet')).toBeVisible()
     await expect(page.getByTestId('character-sheet')).toContainText('Ana')
 
     const picker = page.getByTestId('avatar-picker')
@@ -112,12 +130,12 @@ test('your avatar chip opens your own character sheet and a pick persists', asyn
 
     // Close it first. The sheet is `?character=<id>` now, so it survives a reload the way the
     // share and settle sheets always have — leaving it open would reload straight back into it and
-    // the chip would be behind the overlay, which is not what this test is about.
+    // the People row would be behind the overlay, which is not what this test is about.
     await page.getByTestId('close-character-sheet').click()
     await expect(page.getByTestId('character-sheet')).toHaveCount(0)
 
     await page.reload()
-    await page.getByTestId('open-avatar').click()
+    await openOwnCharacterFromSettings(page)
     await expect(page.getByTestId('avatar-picker').locator(`[data-avatar="${targetKey}"]`)).toHaveAttribute(
         'aria-checked',
         'true'
