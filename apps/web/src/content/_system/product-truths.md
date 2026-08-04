@@ -39,16 +39,19 @@ rate" · "real-time rate" · anything implying the number moves after the expens
 
 ## room-size-20
 
-**claim:** Copy says up to twenty people. The cap is real on the import path only: a Splitwise
-import over twenty members is rejected, and over 500 expenses is truncated. Joining through the room
-link has no member cap at all — `POST /api/rooms/[slug]/members` does not check one.
+**claim:** Copy says up to twenty people. The cap is real per imported source file only: a Splitwise
+import over twenty source members is rejected, and over 500 expenses is truncated. Appending a
+valid file to an existing room does not impose a 20-person cap on that room's accumulated roster.
+Joining through the room link has no member cap at all — `POST /api/rooms/[slug]/members` does not
+check one.
 
 **safe:** "up to twenty people" · "a group, not a conference"
 
 **unsafe:** "unlimited" · "any size group" · "no limit on people" · a number above twenty
 
 **source:** `apps/web/src/lib/splitwise-csv.ts` (`MAX_MEMBERS = 20`, `MAX_EXPENSES = 500`) ·
-`apps/web/src/app/api/import/route.ts` (enforces both) ·
+`apps/web/src/app/api/import/route.ts` and `apps/web/src/app/api/rooms/[slug]/import/route.ts`
+(enforce both per-file limits) ·
 `apps/web/src/app/api/rooms/[slug]/members/route.ts` (no cap — open dev item, and the reason "up to
 twenty" is a copy promise rather than a product guarantee)
 

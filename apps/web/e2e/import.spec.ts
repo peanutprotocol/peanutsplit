@@ -76,16 +76,17 @@ test('import into an existing room appends in place and an exact retry is a no-o
     test.setTimeout(60_000)
 
     // Start with a real populated target. Its existing row is the sentinel that
-    // append-import must preserve, and Ana/Bruno exercise exact-name mapping.
+    // append-import must preserve. Bea deliberately does not match source-person
+    // Bruno, so this journey also exercises an explicit select remapping.
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Existing import target')
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
     await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('checkpoint-name').fill('Bruno')
+    await page.getByTestId('checkpoint-name').fill('Bea')
     await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bruno"]')).toBeVisible()
+    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     const roomUrl = await enterCreatedRoom(page)
     const roomPath = new URL(roomUrl).pathname
 
@@ -117,7 +118,10 @@ test('import into an existing room appends in place and an exact retry is a no-o
 
     const memberTarget = (name: string) => page.locator(`[data-testid="import-member-target"][data-member="${name}"]`)
     await expect(memberTarget('Ana').locator('option:checked')).toHaveText('Ana')
-    await expect(memberTarget('Bruno').locator('option:checked')).toHaveText('Bruno')
+    await expect(memberTarget('Bruno')).toHaveValue('__new_room_member__')
+    await memberTarget('Bruno').selectOption({ label: 'Bea' })
+    await expect(memberTarget('Bruno').locator('option:checked')).toHaveText('Bea')
+    await expect(page.locator('[data-testid="import-new-member-name"][data-member="Bruno"]')).toHaveCount(0)
     await expect(memberTarget('Carla')).toHaveValue('__new_room_member__')
     await expect(page.locator('[data-testid="import-new-member-name"][data-member="Carla"]')).toHaveValue('Carla')
     await expect(page.getByTestId('import-submit')).toBeEnabled()
@@ -136,11 +140,13 @@ test('import into an existing room appends in place and an exact retry is a no-o
         await expect(page.locator(`[data-testid="expense-row"][data-description="${description}"]`)).toBeVisible()
     }
     await expectBalance(page, 'Ana', '2000')
-    await expectBalance(page, 'Bruno', '-2000')
+    await expectBalance(page, 'Bea', '-2000')
     await expectBalance(page, 'Carla', '0')
+    await expect(page.locator('[data-testid="balance-card"][data-member="Bruno"]')).toHaveCount(0)
 
-    // The second preview maps Carla to the member created by the first append.
-    // The target mapping shape therefore changes, but source identity does not.
+    // The second preview maps Carla to the member created by the first append,
+    // while Bruno again defaults to a proposed new person. Submitting that
+    // changed target mapping still has to replay before creating Bruno.
     await page.goto(`${roomPath}/import`)
     await page.getByTestId('import-file').setInputFiles({
         name: 'Existing group retry.csv',
@@ -149,7 +155,8 @@ test('import into an existing room appends in place and an exact retry is a no-o
     })
     await expect(page.getByTestId('import-member-mapping')).toHaveCount(3, { timeout: 15_000 })
     await expect(memberTarget('Carla').locator('option:checked')).toHaveText('Carla')
-    await expect(page.getByTestId('import-new-member-name')).toHaveCount(0)
+    await expect(memberTarget('Bruno')).toHaveValue('__new_room_member__')
+    await expect(page.locator('[data-testid="import-new-member-name"][data-member="Bruno"]')).toHaveValue('Bruno')
     await page.getByTestId('import-submit').click()
 
     await expect(page.getByTestId('import-existing-success')).toHaveAttribute('data-already-imported', 'true', {
@@ -161,8 +168,9 @@ test('import into an existing room appends in place and an exact retry is a no-o
     await page.waitForURL(roomPath)
     await expect(page.getByTestId('expense-row')).toHaveCount(4, { timeout: 20_000 })
     await expectBalance(page, 'Ana', '2000')
-    await expectBalance(page, 'Bruno', '-2000')
+    await expectBalance(page, 'Bea', '-2000')
     await expectBalance(page, 'Carla', '0')
+    await expect(page.locator('[data-testid="balance-card"][data-member="Bruno"]')).toHaveCount(0)
 
     // A genuinely changed export is a new batch. Because the source does not
     // carry stable expense ids, its overlapping rows append in full too.
@@ -173,6 +181,8 @@ test('import into an existing room appends in place and an exact retry is a no-o
         buffer: Buffer.from(SIMPLE_GROUP.replace(',Taxi,Transportation,', ',Taxi corrected,Transportation,'), 'utf8'),
     })
     await expect(page.getByTestId('import-member-mapping')).toHaveCount(3, { timeout: 15_000 })
+    await memberTarget('Bruno').selectOption({ label: 'Bea' })
+    await expect(memberTarget('Bruno').locator('option:checked')).toHaveText('Bea')
     await expect(page.getByTestId('import-new-member-name')).toHaveCount(0)
     await page.getByTestId('import-submit').click()
     await expect(page.getByTestId('import-existing-success')).toHaveAttribute('data-already-imported', 'false', {
@@ -189,8 +199,9 @@ test('import into an existing room appends in place and an exact retry is a no-o
     await expect(page.locator('[data-testid="expense-row"][data-description="Taxi corrected"]')).toHaveCount(1)
     await expect(page.locator('[data-testid="expense-row"][data-description="Groceries"]')).toHaveCount(2)
     await expectBalance(page, 'Ana', '3500')
-    await expectBalance(page, 'Bruno', '-3500')
+    await expectBalance(page, 'Bea', '-3500')
     await expectBalance(page, 'Carla', '0')
+    await expect(page.locator('[data-testid="balance-card"][data-member="Bruno"]')).toHaveCount(0)
 })
 
 test('a file that is not a Splitwise export says so, and writes nothing', async ({ page }) => {

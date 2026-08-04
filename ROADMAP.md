@@ -7,6 +7,30 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-04.
 
+## Code-complete 2026-08-04 — append imports to an existing room
+
+- Room settings now opens `/r/[slug]/import`, where a reviewed Splitwise or
+  Split Pro export can be appended without replacing the room link, currency,
+  roster, or existing ledger. Source people must be mapped one-to-one to an
+  existing person or to a new provisional person created atomically with the
+  expenses. The global `/import` create-a-new-room flow is unchanged.
+- Each successful append gets an immutable `ImportBatch`, a server timestamp,
+  and millisecond-distinct expense timestamps. A room-scoped canonical source
+  fingerprint makes exact and concurrent retries successful no-ops while
+  allowing genuinely different imports into the same room. Changed exports are
+  appended in full; the review warns that partially overlapping history can
+  therefore duplicate because the supported source projections have no stable
+  expense IDs.
+- The append path uses the ordinary exact-money/FX builder inside one
+  room-locked transaction and emits one audit/realtime event only after a real
+  commit. PostgreSQL integration coverage includes populated-ledger
+  preservation, rollback, concurrency, replay, archive/missing-room refusal,
+  target-currency conversion, audit attribution, precise ordering, and rooms
+  whose existing roster already exceeds the per-file 20-person parser cap.
+
+**State:** code-complete on `feat/import-existing-room`; production verification
+and deployment remain separate release gates.
+
 ## V1 hold — receipt scanning
 
 The scan implementation remains in `src/components/room/scan/` for a future
