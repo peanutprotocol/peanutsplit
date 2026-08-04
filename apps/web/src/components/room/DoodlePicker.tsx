@@ -6,6 +6,7 @@ import { CustomRoomDrawing } from '@/components/ui/CustomRoomDrawing'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
+import { useRovingRadioGroup } from '@/components/ui/use-roving-radio-group'
 import { cn } from '@/lib/cn'
 import { decodeRoomDrawing, isRoomDrawing } from '@/lib/room-drawing'
 import { RoomDrawingEditor } from './RoomDrawingEditor'
@@ -41,11 +42,32 @@ export const ROOM_DOODLES = [
     'cake',
 ] as const satisfies readonly DoodleName[]
 
-export function DoodlePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+export function DoodlePicker({
+    value,
+    onChange,
+    onKeyboardChange,
+    disabled = false,
+}: {
+    value: string
+    onChange: (value: string) => void
+    /** Keyboard radios stay open so Arrow/Home/End can continue moving. */
+    onKeyboardChange?: (value: string) => void
+    disabled?: boolean
+}) {
     const t = useTranslations('room.create')
     const [drawingOpen, setDrawingOpen] = useState(false)
     const customSelected = isRoomDrawing(value)
     const customStrokes = customSelected ? (decodeRoomDrawing(value) ?? []) : []
+    const selectedOption = ROOM_DOODLES.find((name) => name === value)
+    const { getRadioProps } = useRovingRadioGroup({
+        options: ROOM_DOODLES,
+        value: selectedOption,
+        onChange: (next) => {
+            if (disabled) return false
+            ;(onKeyboardChange ?? onChange)(next)
+            return true
+        },
+    })
 
     return (
         <>
@@ -58,11 +80,14 @@ export function DoodlePicker({ value, onChange }: { value: string; onChange: (va
                             type="button"
                             role="radio"
                             aria-checked={selected}
+                            {...getRadioProps(name)}
+                            aria-disabled={disabled || undefined}
                             aria-label={t('emojiOption', { emoji: name })}
-                            onClick={() => onChange(name)}
+                            onClick={() => !disabled && onChange(name)}
                             className={cn(
                                 'flex size-11 items-center justify-center rounded-sm border border-n-1 transition-transform active:translate-y-[2px]',
-                                selected ? 'shadow-4 bg-primary-1' : 'bg-white'
+                                selected ? 'shadow-4 bg-primary-1' : 'bg-white',
+                                disabled && 'opacity-50'
                             )}
                         >
                             <Doodle name={name} size={24} />
@@ -71,13 +96,14 @@ export function DoodlePicker({ value, onChange }: { value: string; onChange: (va
                 })}
                 <button
                     type="button"
-                    role="radio"
-                    aria-checked={customSelected}
+                    aria-pressed={customSelected}
+                    aria-disabled={disabled || undefined}
                     aria-label={t('drawYourOwn')}
-                    onClick={() => setDrawingOpen(true)}
+                    onClick={() => !disabled && setDrawingOpen(true)}
                     className={cn(
                         'flex size-11 items-center justify-center rounded-sm border border-dashed border-n-1 bg-primary-2 transition-transform active:translate-y-[2px]',
-                        customSelected && 'shadow-4 border-solid bg-primary-1'
+                        customSelected && 'shadow-4 border-solid bg-primary-1',
+                        disabled && 'opacity-50'
                     )}
                 >
                     {customStrokes.length ? (

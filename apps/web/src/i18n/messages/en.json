@@ -944,6 +944,27 @@
         "needsToken": "Pick your name again to turn this on.",
         "failed": "could not change notifications — try again"
     },
+    "routeStates": {
+        "error": {
+            "eyebrow": "Something slipped",
+            "title": "We could not open this page",
+            "body": "We could not show this page. Try once more, or return to your rooms.",
+            "retry": "Try again",
+            "exit": "Back to your rooms"
+        },
+        "notFound": {
+            "eyebrow": "Nothing at this link",
+            "title": "This page could not be found",
+            "body": "The link may be incomplete or the page may have moved.",
+            "action": "Back to your rooms"
+        },
+        "loading": {
+            "eyebrow": "Counting peanuts",
+            "title": "Opening your room…",
+            "body": "Balances and expenses are being brought up to date.",
+            "exit": "Back to your rooms"
+        }
+    },
     "errors": {
         "generic": "Something went wrong — try again.",
         "NETWORK_ERROR": "Could not reach the server — check your connection.",

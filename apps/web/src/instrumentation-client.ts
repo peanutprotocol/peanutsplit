@@ -11,7 +11,7 @@
  * silence rather than console noise.
  */
 import * as Sentry from '@sentry/nextjs'
-import { redactField, redactRoomSlugs } from '@/lib/redact'
+import { redactField, redactRoomSlugs, redactTelemetryEvent } from '@/lib/redact'
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
 
@@ -26,17 +26,9 @@ if (dsn) {
 
         /** The slug is the room's credential and it lives in every URL we touch. */
         beforeSend(event) {
-            if (event.request?.url) event.request.url = redactRoomSlugs(event.request.url)
-            redactField(event.request?.headers, 'Referer')
-            redactField(event.request?.headers, 'referer')
-            // Breadcrumbs attached before init's beforeBreadcrumb ran (or by an
-            // integration that bypasses it) still reach us here.
-            for (const crumb of event.breadcrumbs ?? []) {
-                redactField(crumb.data, 'url')
-                redactField(crumb.data, 'from')
-                redactField(crumb.data, 'to')
-            }
-            return event
+            // This defensive pass covers SDK/integration fields that can bypass
+            // beforeBreadcrumb, including exception and transaction strings.
+            return redactTelemetryEvent(event)
         },
 
         /** Navigation and fetch crumbs carry the full path; scrub at capture time

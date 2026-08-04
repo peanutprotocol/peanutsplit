@@ -43,6 +43,56 @@
     }
 
     /*
+     * One keyboard-focus language for the whole product. Resting borders,
+     * shadows and geometry stay owned by each component; focus adds only this
+     * ink outline, and only for keyboard-style navigation. `!important` is
+     * deliberate: several legacy composers use `outline-none` to suppress the
+     * browser default, and a local utility must not be able to erase the shared
+     * accessibility state.
+     */
+    :where(a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
+        outline: 2px solid var(--split-ink) !important;
+        outline-offset: 2px !important;
+    }
+
+    /* A transparent link on the ink footer would otherwise draw ink on ink.
+     * Filled dark controls on a light surface still use the normal ink ring. */
+    [data-focus-surface='dark']
+        :where(a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
+        outline-color: white !important;
+    }
+
+    /* Edge-flush controls inside rounded overflow shells cannot show an
+     * outward ring—the shell clips it. Pull only those explicitly marked rings
+     * inside the control. This is the contained variant of the same recipe,
+     * not a second component-level focus style. */
+    [data-focus-contained]:focus-visible {
+        outline-offset: -2px !important;
+    }
+
+    /* Contained rings sit against the control fill rather than the parent
+     * surface, so mixed light/dark segmented controls name that local tone. */
+    [data-focus-contained][data-focus-tone='light']:focus-visible {
+        outline-color: var(--split-ink) !important;
+    }
+
+    [data-focus-contained][data-focus-tone='dark']:focus-visible {
+        outline-color: white !important;
+    }
+
+    /* Some native controls are visually replaced while remaining the real
+     * keyboard/AT target. Draw the same central recipe on their visible
+     * adjacent proxy instead of leaving focus on an sr-only pixel. */
+    [data-focus-proxy]:focus-visible + [data-focus-proxy-target] {
+        outline: 2px solid var(--split-ink) !important;
+        outline-offset: 2px !important;
+    }
+
+    [data-focus-surface='dark'] [data-focus-proxy]:focus-visible + [data-focus-proxy-target] {
+        outline-color: white !important;
+    }
+
+    /*
      * Native date controls paint their own platform calendar glyph. It is the
      * one icon we cannot draw or theme, so date inputs hide it and place the
      * same calendar doodle as every other surface in the field.
@@ -377,15 +427,6 @@
     background: #fffdf8;
     box-shadow: 0.65rem 0.65rem 0 #211c17;
     transform: rotate(-1deg);
-}
-
-.pass-link-chat-link:focus-visible {
-    outline: none;
-}
-
-.pass-link-chat-link:focus-visible .pass-link-chat-frame {
-    outline: 3px solid #211c17;
-    outline-offset: 0.3rem;
 }
 
 .pass-link-chat-header {
@@ -861,13 +902,6 @@
 
 .landing-proof-object-link-plan {
     --landing-link-hover-tilt: 1deg;
-}
-
-.landing-proof-object-link:focus-visible,
-.landing-room-example-link:focus-visible,
-.final-cta-link:focus-visible {
-    outline: 3px solid #211c17;
-    outline-offset: 0.35rem;
 }
 
 .landing-proof-ticket {

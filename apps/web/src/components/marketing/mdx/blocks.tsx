@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { LandingPersona } from '@/components/marketing/LandingPersona'
-import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import { Icon } from '@/components/ui/Icon'
 import { castPersona } from '@/lib/cast'
 
@@ -51,10 +51,11 @@ export function Hero({
             </div>
             {cta && (
                 <div className={`${COLUMN} pt-6`}>
-                    <Link href={ctaHref} className="block">
-                        <Button variant="primary" shadowSize="4" className="justify-center text-h6">
-                            {cta}
-                        </Button>
+                    <Link
+                        href={ctaHref}
+                        className={buttonClassName({ shadowSize: '4', className: 'justify-center text-h6' })}
+                    >
+                        {cta}
                     </Link>
                     {ctaHint && <p className="mt-3 text-center text-sm text-grey-1">{ctaHint}</p>}
                 </div>
@@ -79,10 +80,11 @@ export function CTA({
             <div className="rounded-sm border border-n-1 bg-white p-5">
                 {title && <h2 className="text-h5">{title}</h2>}
                 {body && <p className="mt-2 text-sm leading-5 text-grey-1">{body}</p>}
-                <Link href={href} className="mt-4 block">
-                    <Button variant="primary" shadowSize="4" className="justify-center text-h6">
-                        {text}
-                    </Button>
+                <Link
+                    href={href}
+                    className={buttonClassName({ shadowSize: '4', className: 'mt-4 justify-center text-h6' })}
+                >
+                    {text}
                 </Link>
             </div>
         </section>
@@ -232,7 +234,11 @@ export function RelatedPages({ title = 'Keep reading', children }: { title?: str
 export function RelatedLink({ href, children }: { href: string; children: ReactNode }) {
     return (
         <li>
-            <Link href={href} className="flex min-h-11 items-center gap-2 bg-white px-4 py-3 hover:bg-grey-3">
+            <Link
+                href={href}
+                data-focus-contained
+                className="flex min-h-11 items-center gap-2 bg-white px-4 py-3 hover:bg-grey-3"
+            >
                 <span className="flex-1 text-sm font-medium text-n-1">{children}</span>
                 <Icon name="arrow-right" size={16} className="shrink-0 text-grey-1" />
             </Link>

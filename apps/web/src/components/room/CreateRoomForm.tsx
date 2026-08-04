@@ -6,7 +6,12 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
-import { COMPOSER_CURRENCY_SLOT, composerRowClassName, composerSurfaceClassName } from '@/components/ui/composer-style'
+import {
+    COMPOSER_CURRENCY_SLOT,
+    composerBareInputClassName,
+    composerRowClassName,
+    composerSurfaceClassName,
+} from '@/components/ui/composer-style'
 import { Icon } from '@/components/ui/Icon'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCurrencies } from '@/lib/queries'
@@ -110,7 +115,7 @@ export function CreateRoomForm() {
                                 maxLength={80}
                                 autoFocus
                                 data-testid="room-name"
-                                className="h-16 w-full min-w-0 border-0 bg-transparent px-1 text-h5 font-extrabold outline-none placeholder:text-grey-2"
+                                className={composerBareInputClassName('h-16 px-1 text-h5 font-extrabold')}
                             />
                         </label>
                         <div className={COMPOSER_CURRENCY_SLOT}>
@@ -135,7 +140,8 @@ export function CreateRoomForm() {
                             aria-label={t('creatorName')}
                             maxLength={80}
                             data-testid="creator-name"
-                            className="h-14 w-full border-0 bg-transparent px-4 text-sm font-bold outline-none placeholder:text-grey-1"
+                            data-focus-contained
+                            className={composerBareInputClassName('h-14 px-4 text-sm font-bold')}
                         />
                     </label>
 
@@ -146,6 +152,7 @@ export function CreateRoomForm() {
                         aria-controls={drawingOpen ? 'room-drawing-editor' : undefined}
                         aria-label={t('emojiGroup')}
                         data-testid="room-drawing-summary"
+                        data-focus-contained
                         className={composerRowClassName('flex min-h-14 w-full items-center gap-3 px-4 text-left')}
                     >
                         <RoomEmblem value={shownEmblem} name={name} size={30} />
@@ -201,6 +208,10 @@ export function CreateRoomForm() {
                                     onChange={(next) => {
                                         setEmblem(next)
                                         setDrawingOpen(false)
+                                        feedback('tick')
+                                    }}
+                                    onKeyboardChange={(next) => {
+                                        setEmblem(next)
                                         feedback('tick')
                                     }}
                                 />

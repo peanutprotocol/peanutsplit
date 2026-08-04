@@ -1,7 +1,7 @@
 /** A regex that silently stops matching would leak room credentials to Sentry
  *  without anything failing — so every shape it has to catch is pinned here. */
 import { describe, expect, it } from 'vitest'
-import { redactField, redactRoomSlugs } from '@/lib/redact'
+import { redactField, redactRoomSlugs, redactTelemetryEvent } from '@/lib/redact'
 
 describe('redactRoomSlugs', () => {
     it('scrubs the room page URL', () => {
@@ -44,5 +44,39 @@ describe('redactField', () => {
         redactField(data, 'missing')
         redactField(undefined, 'url')
         expect(data).toEqual({ url: '/r/[slug]', status: 200 })
+    })
+})
+
+describe('redactTelemetryEvent', () => {
+    it('scrubs a room capability from every string-bearing Sentry boundary', () => {
+        const capability = 'ski-trip-x7k2m9'
+        const event = redactTelemetryEvent({
+            message: `Could not load /r/${capability}`,
+            transaction: `/r/${capability}`,
+            request: {
+                url: `https://peanutsplit.com/r/${capability}`,
+                headers: { Referer: `https://peanutsplit.com/r/${capability}`, referer: `/r/${capability}` },
+            },
+            exception: { values: [{ value: `Fetch failed at /api/rooms/${capability}/expenses` }] },
+            breadcrumbs: [
+                {
+                    message: `Navigated from /r/${capability}`,
+                    data: {
+                        url: `/api/rooms/${capability}`,
+                        from: `/r/${capability}`,
+                        to: `/r/${capability}/recap`,
+                    },
+                },
+            ],
+        })
+
+        expect(JSON.stringify(event)).not.toContain(capability)
+        expect(event).toMatchObject({
+            message: 'Could not load /r/[slug]',
+            transaction: '/r/[slug]',
+            request: { url: 'https://peanutsplit.com/r/[slug]' },
+            exception: { values: [{ value: 'Fetch failed at /api/rooms/[slug]/expenses' }] },
+            breadcrumbs: [{ message: 'Navigated from /r/[slug]' }],
+        })
     })
 })

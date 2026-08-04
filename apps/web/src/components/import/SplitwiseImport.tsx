@@ -421,7 +421,7 @@ export function SplitwiseImport() {
                             const choice = parsedFile.choices[index]
                             if (choice) applyChoice(choice, index)
                         }}
-                        className="h-12 rounded-sm border border-n-1 bg-white px-3 text-base font-bold text-n-1 shadow-[2px_2px_0_#111] focus:outline-none focus:ring-2 focus:ring-primary-1"
+                        className="h-12 rounded-sm border border-n-1 bg-white px-3 text-base font-bold text-n-1 shadow-[2px_2px_0_#111] outline-none"
                         data-testid="import-group-choice"
                     >
                         {parsedFile.choices.map((choice, index) => (

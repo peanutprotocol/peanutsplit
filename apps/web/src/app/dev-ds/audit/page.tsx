@@ -114,16 +114,16 @@ const findings: Finding[] = [
         area: 'Accessibility',
         effort: 'M',
         horizon: 'Now',
-        title: 'Focus visibility is absent or below contrast requirements',
+        status: 'resolved',
+        title: 'Keyboard focus is now central and contrast-safe',
         summary:
-            'The canonical input removes the browser outline and substitutes a #FFC900 border with roughly 1.54:1 contrast on white. Nine-plus hand-rolled controls also use outline-none without a consistent replacement.',
-        impact: 'Keyboard and switch users lose their position in the most important forms. Copying the shared input copies the defect.',
-        action: 'Create one ink-based 2–3px focus-visible outline/ring with offset and ≥3:1 adjacent contrast. Apply it centrally, remove unpaired outline-none, and add keyboard-focus screenshots.',
+            'Every interactive control inherits one 2px focus-visible outline with a 2px offset. Light surfaces use ink; explicitly dark surfaces use its white inverse so the outline never becomes ink-on-ink.',
+        impact: 'Keyboard and switch users can keep their position without any change to resting borders, shadows or control geometry.',
+        action: 'Resolved. Keep focus styling central; mark any future dark interactive container with the semantic focus-surface attribute.',
         evidence: [
-            'apps/web/tailwind.config.js:358 — shared input uses outline-none + yellow focus border',
-            'apps/web/src/components/tools/ToolCalculator.tsx:48 — bare fields suppress outline',
-            'apps/web/src/components/marketing/ReadMore.tsx:28 — focus treatment is effectively unchanged ink',
-            'apps/web/src/components/room/ExpenseDrawer.tsx:954 — primary amount field suppresses outline',
+            'apps/web/src/styles/globals.css — central light/dark focus-visible recipes',
+            'apps/web/scripts/tailwind-class-audit.mjs — local focus ring/border drift is rejected',
+            'apps/web/src/components/marketing/SiteFooter.tsx — dark surface is explicitly marked',
         ],
     },
     {
@@ -132,11 +132,12 @@ const findings: Finding[] = [
         area: 'Accessibility',
         effort: 'M',
         horizon: 'Now',
-        title: 'Named button sizes and live controls miss the 44px tap floor',
+        status: 'accepted risk',
+        title: 'Compact tap targets are intentionally unchanged',
         summary:
             'Button small/medium/large are 32/36/40px. A temporary override exists, but several live callers still use the undersized props; reaction pills and options are 28–32px.',
         impact: 'Frequent social actions are harder to hit on a moving phone and violate the project’s documented floor.',
-        action: 'Correct Button at its source, add a shared IconButton, delete control.ts, and audit native buttons by computed target size.',
+        action: 'Leadership chose Keep current. Do not migrate sizes or add an IconButton now; reopen for a concrete usability problem or a reviewed density pass.',
         evidence: [
             'apps/web/tailwind.config.js:233 — small/medium/large are 32/36/40px',
             'apps/web/src/components/ui/control.ts:1 — temporary 44/48px patch layer',
@@ -151,16 +152,15 @@ const findings: Finding[] = [
         area: 'Accessibility',
         effort: 'S',
         horizon: 'Now',
-        title: 'Meaningful placeholders are almost invisible',
+        status: 'resolved',
+        title: 'Meaningful placeholders use readable muted ink',
         summary:
-            'Local composer fields override the canonical placeholder color with grey-2 (#E7E8E9), about 1.23:1 on white. Some of those placeholders effectively carry the visible label.',
-        impact: 'Room name, expense amount and calculator purpose can disappear for low-vision users and in glare.',
-        action: 'Use n-3/grey-1 and persistent visible labels. Prevent local placeholder colors below the contrast floor.',
+            'All live composer placeholders now use n-3. The approved wording and current composer hierarchy are unchanged; the pale before-state remains only in the review specimen.',
+        impact: 'Room name, expense amount and calculator hints remain readable in glare without changing copy or flow.',
+        action: 'Resolved to the reviewed boundary: contrast only. The class audit rejects grey-2 placeholders in live product code.',
         evidence: [
-            'apps/web/tailwind.config.js:39 — grey-2 is #E7E8E9',
-            'apps/web/src/components/room/CreateRoomForm.tsx:116 — room-name placeholder uses grey-2',
-            'apps/web/src/components/room/ExpenseDrawer.tsx:954 — amount placeholder uses grey-2',
-            'apps/web/src/components/tools/ToolCalculator.tsx:48 — shared bare recipe uses grey-2',
+            'apps/web/src/components/ui/composer-style.ts — shared placeholder:text-n-3 recipe',
+            'apps/web/scripts/tailwind-class-audit.mjs — below-contrast live placeholder guard',
         ],
     },
     {
@@ -169,16 +169,16 @@ const findings: Finding[] = [
         area: 'Accessibility',
         effort: 'M',
         horizon: 'Now',
-        title: 'ARIA radio groups omit radio-group keyboard behavior',
+        status: 'resolved',
+        title: 'Visual radio groups share the native keyboard model',
         summary:
-            'Doodle, avatar and payer pickers expose every option as a tab stop without Arrow/Home/End handling. A selected temporary payer can be focusable with no click handler. The split-mode picker already contains a correct roving-tabindex example.',
-        impact: 'Keyboard users traverse dozens of tabs and receive a widget role whose expected interaction does not work.',
-        action: 'Extract a radio-group primitive using native radios or roving tabindex, including Arrow keys, Home and End; migrate from the working split-mode implementation.',
+            'Doodle, avatar, payer and split-mode choices now use one headless roving helper: one tab stop, wrapped Arrow movement, Home and End. Custom drawing and avatar shuffle remain ordinary actions.',
+        impact: 'Keyboard users enter each choice group once and receive the behavior promised by its radio semantics, while touch visuals and click-close behavior stay unchanged.',
+        action: 'Resolved. Keep action tiles outside the radio option set and serialize persistence while keyboard focus remains in a picker.',
         evidence: [
-            'apps/web/src/components/room/DoodlePicker.tsx:39 — all options are focusable radios',
-            'apps/web/src/components/room/AvatarPicker.tsx:180 — repeats the pattern',
-            'apps/web/src/components/room/ExpenseDrawer.tsx:1168 — payer radios lack group navigation',
-            'apps/web/src/components/room/ExpenseDrawer.tsx:1296 — split modes show the correct pattern',
+            'apps/web/src/components/ui/use-roving-radio-group.ts — shared keyboard behavior',
+            'apps/web/src/components/ui/use-roving-radio-group.test.ts — direction, wrap and edge tests',
+            'apps/web/src/components/room/DoodlePicker.tsx — custom drawing remains a separate button',
         ],
     },
     {
@@ -304,7 +304,7 @@ const findings: Finding[] = [
         title: 'End-to-end suites are not part of CI',
         summary:
             'Two Playwright configurations and real product journeys exist, but CI runs typecheck, formatting, audits, tests and build only. No browser or visual path runs before/after deployment.',
-        impact: 'Focus traps, service-worker behavior, responsive overflow and the create/share/settle funnel can fail while 1,829 tests stay green.',
+        impact: 'Focus traps, service-worker behavior, responsive overflow and the create/share/settle funnel can fail while 1,836 tests stay green.',
         action: 'Keep Playwright journeys runnable for manual checks, but do not create a browser CI program now. Reopen after an escaped browser-only critical-flow regression, recurring manual-test pain, or around 1,000 rooms.',
         evidence: [
             '.github/workflows/ci.yml:51 — no Playwright command',
@@ -477,7 +477,7 @@ const findings: Finding[] = [
         evidence: [
             'apps/web/src/components/ui/button-style.ts — shared variant, shadow, width and press recipe',
             'apps/web/src/components/ui/Button.tsx — typed width API',
-            'apps/web/src/app/app/page.tsx — anchors use the shared recipe',
+            'apps/web/scripts/tailwind-class-audit.mjs — nested anchor/button controls are rejected',
             'apps/web/src/components/marketing/LandingAppLink.tsx — nested artwork disables duplicate press motion',
         ],
     },
@@ -510,11 +510,12 @@ const findings: Finding[] = [
         title: 'Every literal server error code has a translated client contract',
         summary:
             'The missing history, catch-up, edit, request-size, push and import-switch codes now exist in English, Spanish and Portuguese. A TypeScript-AST contract test discovers literal codes emitted by server/API code and checks the typed client catalog.',
-        impact: 'Known failures stay localized. Unknown future rolling-deploy codes still use the accurate English server fallback.',
+        impact: 'Known failures stay localized. Unknown future codes use safe localized/surface fallback copy rather than exposing a raw server message.',
         action: 'Resolved. Add a translated entry in the same change as each new literal server code.',
         evidence: [
             'apps/web/src/lib/error-messages.ts — typed known-code catalog',
             'apps/web/src/lib/error-messages.test.ts — emitted-code contract scan',
+            'apps/web/src/lib/error-messages.test.ts — unknown-code credential canary',
             'apps/web/src/i18n/messages/*.json — all three locale entries',
             'apps/web/src/app/api/import/route.ts — IMPORT_UNAVAILABLE is covered',
         ],
@@ -560,14 +561,17 @@ const findings: Finding[] = [
         area: 'Resilience',
         effort: 'M',
         horizon: 'Next',
-        title: 'No route-level error, loading or not-found boundaries exist',
+        status: 'resolved',
+        title: 'Routes have restrained translated fallback states',
         summary:
-            'The App Router contains no error.tsx, global-error.tsx, loading.tsx or not-found.tsx. Query states cover many room cases; server-render, metadata, content and provider failures fall to framework defaults.',
-        impact: 'Transient database/content errors can replace the product with a generic response and no safe retry or diagnostic path.',
-        action: 'Add minimal global and route-group boundaries with redacted correlation ids, retry/navigation, translated copy and no credential leakage.',
+            'Root error and not-found boundaries plus a room loading boundary now share one small product state family. Boundaries pass only catalog translations and never pass error objects, request paths or room credentials into the presentation component.',
+        impact: 'Ordinary route failures offer retry or a safe exit instead of framework copy, without introducing a recovery framework.',
+        action: 'Resolved for the current app. A root-layout global-error remains deliberately deferred because it cannot reuse the locale/provider shell safely.',
         evidence: [
-            'apps/web/src/app/layout.tsx:104 — root has no global-error sibling',
-            'apps/web/src/app/r/[slug]/page.tsx:1 — room metadata/server page has no route boundary',
+            'apps/web/src/app/error.tsx — reset plus safe /app exit; error object is never rendered',
+            'apps/web/src/app/not-found.tsx — translated 404 family',
+            'apps/web/src/app/r/[slug]/loading.tsx — localized room loading status',
+            'apps/web/src/components/ui/RouteState.tsx — safe presentation contract',
         ],
     },
     {
@@ -650,15 +654,16 @@ const findings: Finding[] = [
         area: 'Design system',
         effort: 'S',
         horizon: 'Next',
-        title: 'Room-theme contrast documentation overclaims legibility',
+        status: 'resolved',
+        title: 'Muted room-theme ink is constrained to display artwork',
         summary:
-            'themes.ts says fieldInk stays legible on field, but classic (3.97:1), bubblegum (3.80:1) and coral (4.17:1) miss the 4.5:1 text threshold. They currently render as large OG tagline text.',
-        impact: 'A later call site can trust the catalog comment and use those pairs at normal text size.',
-        action: 'Retune muted inks to 4.5:1 or encode/document a large/decorative-only constraint and test the actual intended threshold.',
+            'All palette colors are unchanged. fieldInk is explicitly large/decorative OG-only; ordinary room text uses shared black ink, which every field clears at 4.5:1.',
+        impact: 'Future UI code cannot mistake the three sub-4.5:1 pairs for body-text tokens, while current room themes and generated cards remain visually identical.',
+        action: 'Resolved through documentation, contrast tests and a source audit. Any palette retune returns for visual review.',
         evidence: [
-            'apps/web/src/lib/themes.ts:33 — fieldInk claimed legible',
-            'apps/web/src/server/og/frame.tsx:223 — field ink used for OG text',
-            'apps/web/src/server/og/card.tsx:110 — theme color reaches tagline',
+            'apps/web/src/lib/themes.ts — fieldInk usage contract',
+            'apps/web/src/lib/themes.test.ts — 4.5:1 ordinary ink and 3:1 display ink floors',
+            'apps/web/scripts/tailwind-class-audit.mjs — product UI cannot consume fieldInk',
         ],
     },
     {
@@ -768,7 +773,7 @@ const counts = Object.fromEntries(
 const metrics = [
     ['441', 'TypeScript source files'],
     ['106', 'React components'],
-    ['1,829', 'Passing tests'],
+    ['1,836', 'Local tests passed'],
     ['23', 'Next API routes'],
     ['1,742', 'Lines in ExpenseDrawer'],
     ['856KB', 'Doodle source module'],
@@ -788,9 +793,9 @@ const strengths = [
 
 const verification = [
     'TypeScript strict/noEmit',
-    '114 test files',
-    '1,829 tests passed',
-    '897 i18n keys × 3 locales',
+    '115 test files',
+    '1,836 local tests passed',
+    '924 i18n keys × 3 locales',
     'UI icon audit',
     'Marketing copy audit',
 ]
@@ -798,7 +803,7 @@ const verification = [
 export default function AuditPage() {
     return (
         <DocChrome page="audit">
-            <div className="border-b border-n-1 bg-n-1 text-white">
+            <div data-focus-surface="dark" className="border-b border-n-1 bg-n-1 text-white">
                 <div className="mx-auto max-w-[90rem] px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
                     <p className="text-h9 uppercase tracking-[0.18em] text-primary-1">
                         Deep implementation audit · 4 August 2026

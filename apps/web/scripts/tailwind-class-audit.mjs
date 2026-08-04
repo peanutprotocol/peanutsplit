@@ -75,6 +75,26 @@ function validateClasses(value, file, line) {
 for (const path of filesBelow(src)) {
     const source = readFileSync(path, 'utf8')
     const file = relative(root, path)
+    const isDevDs = file.startsWith('src/app/dev-ds/')
+
+    if (!isDevDs) {
+        for (const match of source.matchAll(/placeholder:text-grey-2/g)) {
+            const line = source.slice(0, match.index).split('\n').length
+            failures.push(`${file}:${line} uses the below-contrast placeholder token; use placeholder:text-n-3`)
+        }
+        for (const match of source.matchAll(
+            /(?:focus-visible:(?:ring|border)|focus-within:ring|focus:ring)[^'"\s]*/g
+        )) {
+            const line = source.slice(0, match.index).split('\n').length
+            failures.push(`${file}:${line} adds a local focus ring/border; use the central focus-visible recipe`)
+        }
+        if (/^src\/(?:app|components)\//.test(file)) {
+            for (const match of source.matchAll(/fieldInk/g)) {
+                const line = source.slice(0, match.index).split('\n').length
+                failures.push(`${file}:${line} consumes decorative-only fieldInk in product UI`)
+            }
+        }
+    }
 
     if (path.endsWith('.css')) {
         for (const match of source.matchAll(/\[data-testid(?:=|\])/g)) {
@@ -96,7 +116,44 @@ for (const path of filesBelow(src)) {
         path.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
     )
 
+    let nextLinkBinding
+    let buttonBinding
+    for (const statement of sourceFile.statements) {
+        if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) continue
+        const moduleName = statement.moduleSpecifier.text
+        if (moduleName === 'next/link') nextLinkBinding = statement.importClause?.name?.text
+        if (moduleName === '@/components/ui/Button') {
+            const imports = statement.importClause?.namedBindings
+            if (imports && ts.isNamedImports(imports)) {
+                buttonBinding = imports.elements.find(
+                    (element) => (element.propertyName ?? element.name).text === 'Button'
+                )?.name.text
+            }
+        }
+    }
+
     function visit(node) {
+        if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+            const tag = node.tagName.getText(sourceFile)
+            const isButton = tag === 'button' || (buttonBinding && tag === buttonBinding)
+            if (isButton) {
+                let ancestor = node.parent
+                while (ancestor) {
+                    if (ts.isJsxElement(ancestor)) {
+                        const ancestorTag = ancestor.openingElement.tagName.getText(sourceFile)
+                        const isAnchor = ancestorTag === 'a' || (nextLinkBinding && ancestorTag === nextLinkBinding)
+                        if (isAnchor) {
+                            const line = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1
+                            failures.push(
+                                `${file}:${line} nests an interactive button inside an anchor; style the anchor with buttonClassName instead`
+                            )
+                            break
+                        }
+                    }
+                    ancestor = ancestor.parent
+                }
+            }
+        }
         if (ts.isJsxAttribute(node) && node.name.getText(sourceFile) === 'className' && node.initializer) {
             const line = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1
             if (ts.isStringLiteral(node.initializer)) validateClasses(node.initializer.text, file, line)
@@ -121,4 +178,6 @@ if (failures.length) {
     process.exit(1)
 }
 
-console.log('Tailwind class audit clean: radius, shadow and z-index names resolve; test ids are not CSS hooks')
+console.log(
+    'Tailwind class audit clean: tokens resolve; focus and placeholder recipes are central; links do not nest controls; test ids are not CSS hooks'
+)

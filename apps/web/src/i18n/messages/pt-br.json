@@ -944,6 +944,27 @@
         "needsToken": "Escolha seu nome de novo para ativar.",
         "failed": "não deu para mudar as notificações — tente de novo"
     },
+    "routeStates": {
+        "error": {
+            "eyebrow": "Algo escapou",
+            "title": "Não conseguimos abrir esta página",
+            "body": "Não conseguimos mostrar esta página. Tente de novo ou volte para suas salas.",
+            "retry": "Tentar de novo",
+            "exit": "Voltar para suas salas"
+        },
+        "notFound": {
+            "eyebrow": "Não há nada neste link",
+            "title": "Não encontramos esta página",
+            "body": "O link pode estar incompleto ou a página pode ter mudado de lugar.",
+            "action": "Voltar para suas salas"
+        },
+        "loading": {
+            "eyebrow": "Contando amendoins",
+            "title": "Abrindo sua sala…",
+            "body": "Estamos atualizando os saldos e as despesas.",
+            "exit": "Voltar para suas salas"
+        }
+    },
     "errors": {
         "generic": "Algo deu errado — tente de novo.",
         "NETWORK_ERROR": "Não conseguimos falar com o servidor — confira sua conexão.",

@@ -25,7 +25,7 @@ function Fold({
             onToggle={onToggle}
             className="group/fold rounded-sm border border-n-1 bg-white px-4 transition-colors open:bg-primary-4/20 sm:px-5"
         >
-            <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-h6 outline-none transition-colors focus-visible:text-n-1 sm:text-h5 [&::-webkit-details-marker]:hidden">
+            <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-h6 outline-none transition-colors sm:text-h5 [&::-webkit-details-marker]:hidden">
                 <span>{title}</span>
                 <Icon
                     name="plus"

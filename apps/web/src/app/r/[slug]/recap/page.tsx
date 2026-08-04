@@ -8,7 +8,7 @@ import { RecapPersonalLine } from '@/components/room/RecapPersonalLine'
 import { WrappedDeck } from '@/components/room/WrappedDeck'
 import { RecapViewed } from '@/components/room/RecapViewed'
 import { RoomNotFound } from '@/components/room/RoomStates'
-import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import { Card } from '@/components/ui/Card'
 import { asLocale } from '@/i18n/locales'
 import { formatMoney } from '@/lib/money'
@@ -166,10 +166,11 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
             <div className="mt-auto flex flex-col gap-3 rounded-sm border border-n-1 bg-white px-4 py-6 text-center">
                 <p className="text-h6">{t('ctaTitle')}</p>
                 <p className="text-sm text-grey-1">{t('ctaBody')}</p>
-                <Link href="/app?utm_source=recap">
-                    <Button variant="stroke" className="justify-center">
-                        {t('cta')}
-                    </Button>
+                <Link
+                    href="/app?utm_source=recap"
+                    className={buttonClassName({ variant: 'stroke', className: 'justify-center' })}
+                >
+                    {t('cta')}
                 </Link>
             </div>
         </main>

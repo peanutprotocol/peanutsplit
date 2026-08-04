@@ -30,12 +30,14 @@ export interface RoomTheme {
     field: string
     /** The OG card's decorative blobs — one step off `field`, same hue. */
     fieldTint: string
-    /** Muted ink that stays legible ON `field`. Used by the OG wordmark line. */
+    /** Muted display ink used only by large/decorative OG copy. It is not a
+     *  general text token: classic, bubblegum and coral are below 4.5:1 on
+     *  `field`. Ordinary product text always inherits the shared black ink. */
     fieldInk: string
     /** The lightest member of the family, for a tint sitting on white — the
      *  settled balance card. Never carries meaning; red/green stay red/green. */
     tint: string
-    /** Small accents: the selected swatch, focus rings. Never a text colour. */
+    /** Small accents and selected swatches. Never a text or focus colour. */
     accent: string
     /** One drawing that gives the palette a name you can point at in the picker. */
     motif: DoodleName

@@ -215,6 +215,7 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                             >
                                 <Link
                                     href={`/r/${room.slug}`}
+                                    data-focus-contained
                                     onClick={() => feedback('whoosh')}
                                     aria-label={`${t('openLabel')}: ${room.name}`}
                                     className="flex min-w-0 flex-1 items-center gap-3 p-3 transition-colors hover:bg-primary-4/20"
@@ -245,6 +246,7 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                                     aria-label={t('forgetLabel', { room: room.name })}
                                     data-testid="forget-room"
                                     data-room={room.slug}
+                                    data-focus-contained
                                     className="flex min-w-12 shrink-0 items-center justify-center border-l border-n-1 text-grey-1 transition-colors hover:bg-primary-4/30 hover:text-n-1"
                                 >
                                     <Icon name="trash" size={19} aria-hidden="true" />

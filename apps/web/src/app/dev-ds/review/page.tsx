@@ -58,11 +58,12 @@ export default function ReviewPage() {
                             Manual review · representative mockups
                         </p>
                         <h1 className="mt-5 max-w-4xl font-display text-5xl font-extrabold leading-[0.95] tracking-[-0.045em] sm:text-7xl">
-                            Seven visible choices. No product code changed.
+                            Seven reviewed choices. Approved foundations implemented.
                         </h1>
                         <p className="mt-6 max-w-3xl text-lg leading-8">
-                            Compare the current pattern with a proposed direction, record a decision and leave the
-                            implementation team a note. These are design specimens—not a hidden rewrite of the live app.
+                            The specimens preserve the decision record. Focus, placeholder contrast, radio-keyboard
+                            behavior, theme constraints and restrained route states now follow the approved boundaries;
+                            targets and drawer placement remain unchanged.
                         </p>
                         <div className="mt-8 flex flex-wrap gap-3">
                             <a

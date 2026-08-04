@@ -10,6 +10,7 @@ import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
+import { useRovingRadioGroup } from '@/components/ui/use-roving-radio-group'
 import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, ExpenseUpdateInput, RoomState, SplitMode } from '@/lib/api-types'
@@ -85,6 +86,7 @@ interface ExpenseDrawerProps {
 
 const ADVANCED_SPLIT_MODES = ['EXACT', 'PERCENTAGE', 'SHARES'] as const
 const ALL_SPLIT_MODES = ['EQUAL', ...ADVANCED_SPLIT_MODES] as const
+const DRAFT_PAYER_OPTION = '__draft-payer__'
 
 export function ExpenseDrawer({
     open,
@@ -259,11 +261,22 @@ export function ExpenseDrawer({
 
     const patch = useCallback((next: Partial<ExpenseFormValues>) => setValues((prev) => ({ ...prev, ...next })), [])
 
-    const choosePayer = (memberId: string) => {
+    const choosePayer = (memberId: string, close = true) => {
         patch({ paidById: memberId, newPaidByName: '' })
-        dispatchWorkflow({ type: 'payer-committed' })
+        if (close) dispatchWorkflow({ type: 'payer-committed' })
         feedback('tick')
     }
+    const payerOptions = [
+        ...(values.newPaidByName ? [DRAFT_PAYER_OPTION] : []),
+        ...state.members.map((member) => member.id),
+    ]
+    const { getRadioProps: getPayerRadioProps } = useRovingRadioGroup({
+        options: payerOptions,
+        value: values.newPaidByName ? DRAFT_PAYER_OPTION : values.paidById,
+        onChange: (option) => {
+            if (option !== DRAFT_PAYER_OPTION) choosePayer(option, false)
+        },
+    })
 
     /**
      * This creates a roster entry, not a new identity for this device. The room
@@ -336,31 +349,17 @@ export function ExpenseDrawer({
         patch({ splitMode: mode, shareInputs })
     }
 
-    /** The split methods expose radio semantics, including the arrow-key
-     *  behavior native radios provide. Moving to a hidden advanced option also
-     *  opens the disclosure before focus follows the selection. */
-    const moveSplitMode = (event: React.KeyboardEvent<HTMLButtonElement>, mode: SplitMode) => {
-        const key = event.key
-        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) return
-        event.preventDefault()
-
-        const current = ALL_SPLIT_MODES.indexOf(mode)
-        const nextIndex =
-            key === 'Home'
-                ? 0
-                : key === 'End'
-                  ? ALL_SPLIT_MODES.length - 1
-                  : key === 'ArrowLeft' || key === 'ArrowUp'
-                    ? (current - 1 + ALL_SPLIT_MODES.length) % ALL_SPLIT_MODES.length
-                    : (current + 1) % ALL_SPLIT_MODES.length
-        const next = ALL_SPLIT_MODES[nextIndex]
-        if (next !== 'EQUAL') dispatchWorkflow({ type: 'advanced-options-opened' })
-        setSplitMode(next)
-        feedback('tick')
-        requestAnimationFrame(() => {
-            document.querySelector<HTMLButtonElement>(`[data-testid="split-${next.toLowerCase()}"]`)?.focus()
-        })
-    }
+    /** Moving to a collapsed advanced option reveals it before the shared
+     *  radio helper transfers focus. */
+    const { getRadioProps: getSplitModeRadioProps } = useRovingRadioGroup({
+        options: ALL_SPLIT_MODES,
+        value: values.splitMode,
+        onChange: (next) => {
+            if (next !== 'EQUAL') dispatchWorkflow({ type: 'advanced-options-opened' })
+            setSplitMode(next)
+            feedback('tick')
+        },
+    })
 
     const toggleParticipant = (memberId: string) => {
         // First touch materialises "everyone right now"; until then the form's
@@ -1041,6 +1040,7 @@ export function ExpenseDrawer({
                                             type="button"
                                             role="radio"
                                             aria-checked="true"
+                                            {...getPayerRadioProps(DRAFT_PAYER_OPTION)}
                                             data-testid="payer-chip"
                                             data-member={values.newPaidByName}
                                             className="shadow-2 flex min-h-12 min-w-0 items-center gap-2 rounded-md border border-n-1 bg-primary-3 px-2 text-left"
@@ -1058,6 +1058,7 @@ export function ExpenseDrawer({
                                                 type="button"
                                                 role="radio"
                                                 aria-checked={selected}
+                                                {...getPayerRadioProps(member.id)}
                                                 onClick={() => choosePayer(member.id)}
                                                 data-testid="payer-chip"
                                                 data-member={member.name}
@@ -1168,8 +1169,7 @@ export function ExpenseDrawer({
                                             type="button"
                                             role="radio"
                                             aria-checked={values.splitMode === 'EQUAL'}
-                                            tabIndex={values.splitMode === 'EQUAL' ? 0 : -1}
-                                            onKeyDown={(event) => moveSplitMode(event, 'EQUAL')}
+                                            {...getSplitModeRadioProps('EQUAL')}
                                             onClick={() => {
                                                 setSplitMode('EQUAL')
                                                 feedback('tick')
@@ -1201,8 +1201,7 @@ export function ExpenseDrawer({
                                                             type="button"
                                                             role="radio"
                                                             aria-checked={values.splitMode === mode}
-                                                            tabIndex={values.splitMode === mode ? 0 : -1}
-                                                            onKeyDown={(event) => moveSplitMode(event, mode)}
+                                                            {...getSplitModeRadioProps(mode)}
                                                             onClick={() => {
                                                                 setSplitMode(mode)
                                                                 feedback('tick')
@@ -1458,7 +1457,7 @@ export function ExpenseDrawer({
                                                     <span className="w-20 shrink-0 truncate text-h8">
                                                         {member.name}
                                                     </span>
-                                                    <div className="flex h-12 min-w-0 flex-1 items-center rounded-sm border border-n-1 bg-white focus-within:ring-2 focus-within:ring-n-1">
+                                                    <div className="flex h-12 min-w-0 flex-1 items-center rounded-sm border border-n-1 bg-white">
                                                         <input
                                                             value={weightedInputs[member.id] ?? ''}
                                                             onChange={(event) =>
