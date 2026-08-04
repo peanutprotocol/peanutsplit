@@ -107,9 +107,8 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     const slug = permanentPath.split('/').at(-1)
     expect(slug).toBeTruthy()
 
-    // The emblem is the settings entry point, and the top bar has no way out of
-    // the room any more: the old home link is gone and "All rooms" lives in the
-    // sheet's dock instead.
+    // The emblem is the settings entry point. Room navigation stays on the
+    // separate title control in the top bar, so the header has no links.
     await expect(page.getByTestId('open-room-settings')).toBeVisible()
     await expect(page.locator('header a')).toHaveCount(0)
     await page.getByTestId('open-room-settings').click()

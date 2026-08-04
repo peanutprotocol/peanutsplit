@@ -352,12 +352,12 @@
             "close": "Cerrar los ajustes",
             "closeSheet": "Cerrar",
             "youAre": "eres {name}",
-            "allRooms": "Todas las salas",
             "roomsTitle": "Salas",
             "closeRoomSwitcher": "Cerrar el selector de salas",
-            "switchRoomsHint": "Cambiá de sala o volvé a la lista completa.",
+            "switchRoomsHint": "Elegí cualquier sala guardada en este dispositivo.",
             "currentRoom": "Sala actual",
-            "allRoomsHint": "Crear, importar o unirse",
+            "roomOptions": "Opciones de salas",
+            "roomOptionsHint": "Crear, importar o unirse",
             "recentRoomsNote": "Las salas recientes se guardan solo en este dispositivo.",
             "noOtherRoomsNote": "No hay otras salas guardadas en este dispositivo.",
             "roomName": "Nombre de la sala",
@@ -499,7 +499,7 @@
             },
             "notFoundTitle": "Esta sala no existe",
             "notFoundBody": "O la eliminaron, o al link le falta la última parte — además, los links distinguen mayúsculas.",
-            "notFoundCta": "Crear una sala nueva"
+            "notFoundCta": "Abrir opciones de salas"
         },
         "allSettled": {
             "title": "Todo saldado",

@@ -48,7 +48,7 @@ const MAX_FACES = 8
 export default async function RecapPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
     const recap = await loadRecap(slug)
-    if (!recap) return <RoomNotFound />
+    if (!recap) return <RoomNotFound slug={slug} />
 
     const t = await getTranslations('room.recap')
     const tStory = await getTranslations('room.story')

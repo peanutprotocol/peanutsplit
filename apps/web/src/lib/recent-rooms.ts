@@ -103,7 +103,7 @@ const toEpochMs = (value: unknown): number => {
 const normalise = (value: unknown): RecentRoom | null => {
     if (typeof value !== 'object' || value === null) return null
     const { slug, name, emoji, theme, lastSeenAt } = value as Record<string, unknown>
-    if (typeof slug !== 'string' || slug.length === 0) return null
+    if (typeof slug !== 'string' || !ROOM_SLUG.test(slug)) return null
     return {
         slug,
         name: typeof name === 'string' && name.length > 0 ? name : slug,
@@ -131,6 +131,21 @@ export function readRecentRooms(): RecentRoom[] {
     } catch {
         return []
     }
+}
+
+/**
+ * The room route an operational home should open, or `null` when this device has
+ * no usable history.
+ *
+ * localStorage belongs to the browser, not to us: a person, extension or stale
+ * build can put any string in `slug`. Keep that untrusted value out of navigation
+ * by applying the same permanent room-slug contract used for pasted links, then
+ * encode the path segment even though today's contract contains only URL-safe
+ * characters.
+ */
+export function mostRecentRoomPath(): string | null {
+    const room = readRecentRooms().find((candidate) => ROOM_SLUG.test(candidate.slug))
+    return room ? `/r/${encodeURIComponent(room.slug)}` : null
 }
 
 /**
