@@ -15,6 +15,7 @@ export {
     useCurrencies,
     useModelStatus,
     useRoomHistory,
+    useRoomSnapshot,
     useRoomState,
 } from './queries/reads'
 export { removedQueueSlugs, useOfflineQueueRunner } from './queries/offline'
