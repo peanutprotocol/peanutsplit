@@ -83,6 +83,7 @@ export function SettingsSheet({
     const [historyOpen, setHistoryOpen] = useState(false)
     const [switchOpen, setSwitchOpen] = useState(false)
     const [pickerOpen, setPickerOpen] = useState(false)
+    const [drawingEditorOpen, setDrawingEditorOpen] = useState(false)
     const pickerRef = useRef<HTMLDetailsElement>(null)
     const pickerSummaryRef = useRef<HTMLElement>(null)
 
@@ -90,13 +91,13 @@ export function SettingsSheet({
      *  card — including over the name field beside it — until it was toggled again.
      *  Same fix, same reason, as the create form. */
     useEffect(() => {
-        if (!pickerOpen) return
+        if (!pickerOpen || drawingEditorOpen) return
         const onPointerDown = (event: PointerEvent) => {
             if (!pickerRef.current?.contains(event.target as Node)) setPickerOpen(false)
         }
         document.addEventListener('pointerdown', onPointerDown)
         return () => document.removeEventListener('pointerdown', onPointerDown)
-    }, [pickerOpen])
+    }, [drawingEditorOpen, pickerOpen])
 
     // The rename is optimistic, so the room's name is authoritative the instant
     // it commits — and a rename arriving from another device belongs in the
@@ -239,7 +240,11 @@ export function SettingsSheet({
                                         <RoomEmblem value={room.emoji} name={nameForDoodle} size={24} />
                                     </summary>
                                     <div className="shadow-4 absolute left-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
-                                        <DoodlePicker value={shownEmblem} onChange={chooseEmblem} />
+                                        <DoodlePicker
+                                            value={shownEmblem}
+                                            onChange={chooseEmblem}
+                                            onDrawingOpenChange={setDrawingEditorOpen}
+                                        />
                                     </div>
                                 </details>
                                 <BaseInput
