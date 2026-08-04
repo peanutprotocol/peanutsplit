@@ -71,7 +71,7 @@ export function LandingProof() {
 
                 <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
                     <Link
-                        href="/app"
+                        href="/new"
                         aria-label={`${tFooter('createSplit')}: ${t('linkIdentity.title')}`}
                         data-testid="proof-link-identity-link"
                         className="landing-proof-object-link landing-proof-object-link-identity"
@@ -123,7 +123,7 @@ export function LandingProof() {
 
                 <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
                     <Link
-                        href="/app"
+                        href="/new"
                         aria-label={`${tFooter('createSplit')}: ${t('everyoneAdds.title')}`}
                         data-testid="proof-everyone-adds-link"
                         className="landing-proof-object-link landing-proof-object-link-expenses"
@@ -172,7 +172,7 @@ export function LandingProof() {
 
                 <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
                     <Link
-                        href="/app"
+                        href="/new"
                         aria-label={`${tFooter('createSplit')}: ${t('suggestedPlan.title')}`}
                         data-testid="proof-suggested-plan-link"
                         className="landing-proof-object-link landing-proof-object-link-plan"
@@ -244,7 +244,7 @@ export function LandingProof() {
                     {examples.map((example) => (
                         <motion.li key={example.name} variants={popVariants} data-motion-surface>
                             <Link
-                                href="/app"
+                                href="/new"
                                 aria-label={`${tFooter('createSplit')}: ${example.name}: ${example.meta}`}
                                 data-testid="room-example-link"
                                 className="landing-room-example-link"

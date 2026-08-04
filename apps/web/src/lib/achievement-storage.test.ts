@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { ACHIEVEMENTS_KEY, claimSessionPrompt, markSeen, readSeen, resetSessionPrompts } from './achievement-storage'
+import { ACHIEVEMENTS_KEY, claimSessionMoment, markSeen, readSeen, resetSessionMoments } from './achievement-storage'
 
 /** vitest runs in the node environment here — give the module the one browser global it touches,
  *  and nothing else. Mirrors `identity.test.ts`. */
@@ -24,7 +24,7 @@ const installBrowser = (storage: unknown = new MemoryStorage()) => {
 
 beforeEach(() => {
     installBrowser()
-    resetSessionPrompts()
+    resetSessionMoments()
 })
 
 afterEach(() => {
@@ -83,17 +83,17 @@ describe('the seen set', () => {
     })
 })
 
-describe('claimSessionPrompt', () => {
+describe('claimSessionMoment', () => {
     it('claims once, then declines', () => {
-        expect(claimSessionPrompt('ski-trip-x7k2m9')).toBe(true)
-        expect(claimSessionPrompt('ski-trip-x7k2m9')).toBe(false)
+        expect(claimSessionMoment('ski-trip-x7k2m9')).toBe(true)
+        expect(claimSessionMoment('ski-trip-x7k2m9')).toBe(false)
     })
 
     it('does not mute the second room of a session', () => {
         // `RoomSwitcher` moves between rooms without a reload, so a global flag would silently
         // swallow every later room's moment until the tab was closed.
-        expect(claimSessionPrompt('ski-trip-x7k2m9')).toBe(true)
-        expect(claimSessionPrompt('beach-house-q4v8')).toBe(true)
-        expect(claimSessionPrompt('beach-house-q4v8')).toBe(false)
+        expect(claimSessionMoment('ski-trip-x7k2m9')).toBe(true)
+        expect(claimSessionMoment('beach-house-q4v8')).toBe(true)
+        expect(claimSessionMoment('beach-house-q4v8')).toBe(false)
     })
 })

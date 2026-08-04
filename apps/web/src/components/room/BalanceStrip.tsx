@@ -338,12 +338,12 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
         )
 
     return (
-        <section aria-label={t('title')} className="flex flex-col gap-2">
+        <section aria-label={t('title')} className="flex min-w-0 flex-col gap-2">
             <h2 className="px-4 text-h8 uppercase tracking-wide text-grey-1">{t('title')}</h2>
 
             {/* The right-edge mask tells you there is more to scroll without a
                 scrollbar, which mobile hides anyway. */}
-            <div className="relative">
+            <div className="relative min-w-0 overflow-hidden">
                 <ul className="flex gap-3 overflow-x-auto px-4 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <AnimatePresence initial={false}>
                         {ordered.map((member) => {

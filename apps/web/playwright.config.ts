@@ -2,7 +2,8 @@ import { defineConfig, devices } from '@playwright/test'
 
 const PORT = Number(process.env.E2E_PORT ?? 3100)
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`
-const browserName = process.env.E2E_BROWSER === 'firefox' ? 'firefox' : 'chromium'
+const browserName =
+    process.env.E2E_BROWSER === 'firefox' || process.env.E2E_BROWSER === 'webkit' ? process.env.E2E_BROWSER : 'chromium'
 
 /**
  * Mobile-first: 390x844 is the design target.
@@ -54,15 +55,33 @@ export default defineConfig({
               },
           },
     projects: [
-        // iPhone 14 geometry on Chromium by default. `E2E_BROWSER=firefox`
-        // enables the focused cross-engine matrix without duplicating projects.
-        // WebKit needs host GTK/GStreamer/image libraries that this VM and a
-        // plain CI image do not ship; add it once those deps are provisioned.
-        // Every context gets its OWN `x-forwarded-for` from `e2e/fixtures.ts`, so the
-        // server's 20-per-hour creation budget is per test rather than per project.
-        // A fixed address here would only have separated the two projects from each
-        // other, and the suite creates far more than 20 rooms per project.
-        { name: 'mobile', use: { ...devices['iPhone 14'], browserName } },
-        { name: 'desktop', use: { ...devices['Desktop Chrome'], browserName } },
+        // NOTE: these per-project addresses are a fallback tier only —
+        // `e2e/fixtures.ts` re-keys every context (default page, API request,
+        // second devices) with its own per-test address, because the server's
+        // 20-per-hour creation budget is per address and the suite creates far
+        // more than 20 rooms per project.
+        // iPhone 14 geometry on Chromium by default. `E2E_BROWSER=firefox` or
+        // `E2E_BROWSER=webkit` enables the deep cross-engine matrix without
+        // duplicating projects. The nightly workflow provisions each engine's
+        // host dependencies before it starts the suite.
+        {
+            name: 'mobile',
+            use: {
+                ...devices['iPhone 14'],
+                browserName,
+                // The two projects model independent visitors. Keeping their
+                // TEST-NET addresses distinct prevents one project's room/member
+                // creation budget from making the other project's QA order-dependent.
+                extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.10' },
+            },
+        },
+        {
+            name: 'desktop',
+            use: {
+                ...devices['Desktop Chrome'],
+                browserName,
+                extraHTTPHeaders: { 'x-forwarded-for': '192.0.2.11' },
+            },
+        },
     ],
 })

@@ -50,10 +50,10 @@ test('the crew moment fires once, then never again on this device', async ({ new
 
     const moment = page.getByTestId('achievement-moment')
     await expect(moment).toBeVisible({ timeout: 15_000 })
-    // The rung, not the roster: four people standing on the three-person rung.
+    // The rung, not the roster: four ledger names standing on the three-name rung.
     await expect(moment).toHaveAttribute('data-achievement', 'crew-3')
-    // Four people standing on the three-person rung, and the headline counts the room, not the rung.
-    await expect(moment).toContainText('The crew is 4 strong')
+    // The headline counts ledger participants, not devices that opened or claimed a name.
+    await expect(moment).toContainText('4 names in this ledger')
     await expect(moment).toContainText(copy.crew.body)
     // The persona lineup is drawn, and it is drawings — no names on a card that gets shared.
     await expect(page.getByTestId('achievement-lineup')).toBeVisible()
@@ -92,27 +92,26 @@ test.fixme('the moment reads without motion, and fits a 375px screen', async ({ 
     // nothing decorative left inside the card at all.
     await expect(moment.locator('[data-decorative]')).toHaveCount(0)
 
-    // Nothing pushes the page sideways, and the share control is a real tap target.
+    // Nothing pushes the page sideways, and the keepsake share control is a real tap target.
     const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
     )
     expect(overflow).toBe(true)
 
-    const shareBox = await page.getByTestId('achievement-invite').boundingBox()
+    const shareBox = await page.getByTestId('share-card-crew').boundingBox()
     expect(shareBox).not.toBeNull()
     expect(shareBox!.height).toBeGreaterThanOrEqual(44)
     expect(shareBox!.width).toBeLessThanOrEqual(375)
 })
 
-test("the crew card's own share button drives the invite flow, not a second one", async ({ newDevice }) => {
-    const page = await newDevice()
+test('the crew moment is a keepsake, not roster completion or an invitation prompt', async ({ browser }) => {
+    const context = await browser.newContext()
+    const page = await context.newPage()
     await join(page, roomUrl, 'Fede')
 
     await expect(page.getByTestId('achievement-moment')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('achievement-invite').click()
-
-    // The existing share drawer, with the existing room link in it — the one acquisition loop that
-    // already has a measure does not get a second event or a second surface.
-    await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByTestId('room-link')).toContainText('/r/crew-trip-')
+    await expect(page.getByTestId('achievement-invite')).toHaveCount(0)
+    await expect(page.getByTestId('share-card-crew')).toHaveAccessibleName(copy.shareLabel.crew)
+    await expect(page.getByTestId('achievement-moment')).not.toContainText(/missing|join|invite/i)
+    await context.close()
 })

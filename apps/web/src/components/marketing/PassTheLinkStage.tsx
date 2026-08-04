@@ -43,7 +43,7 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
 
             <div data-testid="pass-link-stage" data-state={state} className="pass-link-stage">
                 <Link
-                    href="/app"
+                    href="/new"
                     aria-label={t('cta')}
                     data-testid="pass-link-chat-link"
                     className="pass-link-chat-link"

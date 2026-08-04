@@ -303,12 +303,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 over the ledger on a 375px screen it pushes either of them below
                                 the fold. */}
                             {!needsJoin && !staleState && !drawerOpen && !latecomerPending && !settledUp && (
-                                <AchievementMoment
-                                    slug={slug}
-                                    state={state}
-                                    meId={meId}
-                                    onInvite={() => openRoomShare('header')}
-                                />
+                                <AchievementMoment slug={slug} state={state} meId={meId} />
                             )}
                             <AnimatePresence initial={false}>
                                 {settledUp && !latecomerPending && (

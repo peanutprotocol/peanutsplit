@@ -17,9 +17,8 @@
  *    throws on access, so the rule is mechanical rather than a code-review promise.
  *
  * Determinism matters more here than it looks: these outputs get screenshotted and pasted into a
- * group chat, so two phones must agree. Ties break on `member.id` in code-unit order, never
- * `localeCompare` — ICU collation varies by container build (`server/og/recapCard.ts` learned this
- * the same way).
+ * group chat, so two phones must agree. The closed rule order and server-ordered ledger inputs are
+ * the only ordering decisions; eligibility never uses locale-dependent collation.
  */
 import type { ApiExpense, RoomState } from './api-types'
 import { AWARD_IDS, CREW_THRESHOLDS, PASSPORT_THRESHOLDS } from './achievements-contract'
@@ -51,7 +50,7 @@ const crossed = (value: number, thresholds: readonly number[]): { top: number; a
     return { top: all[all.length - 1], all }
 }
 
-/** The roster moment. Not every join — only 3, 5, 8 and 12, and only the highest one crossed. */
+/** The ledger-roster moment. Not every name — only 3, 5, 8 and 12, and only the highest crossed. */
 export function crewUnlock(state: RoomState): Unlock | null {
     const count = state.members.length
     const hit = crossed(count, CREW_THRESHOLDS)
@@ -94,7 +93,7 @@ const earliestFirst = (a: ApiExpense, b: ApiExpense): number =>
               ? 1
               : 0
 
-/** One award's score per member, and the score a member must reach to receive it. */
+/** Evidence for one positive role, and the minimum a member must independently meet. */
 interface AwardRule {
     minimum: number
     score: (state: RoomState, expenses: readonly ApiExpense[]) => Map<string, number>
@@ -157,35 +156,30 @@ const RULES: Record<AwardId, AwardRule> = {
 }
 
 /**
- * One positive role per member per trip, or none.
+ * One positive role per member per trip, or none. Role labels are not exclusive: two people who
+ * both kept the ledger moving may both receive Ledger Legend.
  *
- * Iterate the six in a fixed order; each goes to the highest-scoring member who has not been
- * awarded yet, **and only if that member's own score meets the minimum**. The minimum is a fact
- * about the candidate, never about the room — otherwise the second-place member of a two-person
- * room where one person did everything gets handed "First Mover" for having done nothing, which is
- * a personal, shareable, false claim about a named human.
+ * The rules are checked in a fixed order, but a member is never compared with anybody else. They
+ * receive the first role whose evidence they independently meet. This makes the no-ranking
+ * guardrail structural: adding another member's activity can add that member's role, but cannot
+ * take an existing role away or turn it into second place.
  *
- * So a room can legitimately hand out fewer than six awards, and frequently does.
+ * A room can legitimately give no personal award to somebody who did none of these actions. That
+ * absence is never shown as a loss or a locked slot.
  */
 export function awardsFor(state: RoomState): Record<string, AwardId> {
     const expenses = savedExpenses(state.expenses)
-    const roster = new Set(state.members.map((member) => member.id))
     const awarded: Record<string, AwardId> = {}
+    const evidence = new Map(AWARD_IDS.map((award) => [award, RULES[award].score(state, expenses)]))
 
-    for (const award of AWARD_IDS) {
-        const rule = RULES[award]
-        const scores = rule.score(state, expenses)
-        let winner: string | null = null
-        let best = 0
-        for (const [memberId, score] of scores) {
-            if (!roster.has(memberId) || memberId in awarded) continue
-            // Code-unit order, not localeCompare: two phones must agree.
-            if (score > best || (score === best && winner !== null && memberId < winner)) {
-                winner = memberId
-                best = score
+    for (const member of state.members) {
+        for (const award of AWARD_IDS) {
+            const rule = RULES[award]
+            if ((evidence.get(award)?.get(member.id) ?? 0) >= rule.minimum) {
+                awarded[member.id] = award
+                break
             }
         }
-        if (winner !== null && best >= rule.minimum) awarded[winner] = award
     }
 
     return awarded
