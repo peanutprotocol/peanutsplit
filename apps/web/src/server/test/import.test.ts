@@ -281,14 +281,9 @@ describe('importing a group', () => {
         expect(Object.values(body.balances).reduce((a, b) => a + BigInt(b), 0n)).toBe(0n)
     })
 
-    /**
-     * A bulk import writes every row in one `createMany`, so a whole day's worth
-     * of expenses share a `createdAt` to the millisecond. With only date and
-     * createdAt to sort on, ties fell through to physical row order — and an
-     * edit anywhere rewrote the page, teleporting a row twenty places up the
-     * list under whoever was reading it. The id tiebreaker is what makes the
-     * order arbitrary but STABLE.
-     */
+    /** A bulk import still writes every row through one `createMany`. Whatever
+     * timestamp precision a writer carries, an unrelated edit must not reorder
+     * the room's history. */
     it('keeps the same order across an unrelated edit, with every row written in one batch', async () => {
         const parsed = parseSplitwiseCsv(generateGroup(60, ['Ana', 'Bruno']))
         const { body: created } = await post<RoomStateWithMember>(bodyFor(parsed))
