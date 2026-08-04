@@ -47,12 +47,17 @@ import {
     type SkippedImportChoice,
 } from '@/lib/splitpro-import'
 import { useFeedback } from '@/lib/use-settings'
-import { ExistingRoomImportContext, ExistingRoomImportFields } from './ExistingRoomImportFields'
+import {
+    ExistingRoomImportContext,
+    ExistingRoomImportCurrencyProblem,
+    ExistingRoomImportFields,
+} from './ExistingRoomImportFields'
 import {
     existingRoomMappingProblem,
     formatImportedAt,
     importMemberMappings,
     initialExistingRoomMemberDrafts,
+    unsupportedImportCurrencies,
     type ExistingRoomMappingProblem,
     type ExistingRoomMemberDraft,
 } from './existing-room-mapping'
@@ -272,6 +277,13 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
         () => (targetRoom ? existingRoomMappingProblem(memberDrafts, targetRoom.state.members) : null),
         [memberDrafts, targetRoom]
     )
+    const unsupportedCurrencies = useMemo(
+        () =>
+            parsed && targetRoom
+                ? unsupportedImportCurrencies(parsed.expenses, targetRoom.state.room.currency, currencies)
+                : [],
+        [parsed, targetRoom, currencies]
+    )
 
     const memberMappingProblemMessage = (problem: ExistingRoomMappingProblem | null): string | null => {
         switch (problem) {
@@ -293,7 +305,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
     const submit = async () => {
         if (!parsed) return
         if (targetRoom) {
-            if (memberMappingProblem) return
+            if (memberMappingProblem || unsupportedCurrencies.length > 0) return
         } else if (nameProblem || !roomName.trim() || meIndex === null) {
             return
         }
@@ -622,16 +634,22 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
             )}
 
             {targetRoom ? (
-                <div className="rounded-sm border border-n-1 bg-white p-4" data-testid="import-fixed-currency">
-                    <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-h8 uppercase tracking-wide text-grey-1">
-                            {tExisting('currencyLabel')}
-                        </span>
-                        <strong>{targetRoom.state.room.currency}</strong>
+                <div className="flex flex-col gap-3">
+                    <div className="rounded-sm border border-n-1 bg-white p-4" data-testid="import-fixed-currency">
+                        <div className="flex items-baseline justify-between gap-3">
+                            <span className="text-h8 uppercase tracking-wide text-grey-1">
+                                {tExisting('currencyLabel')}
+                            </span>
+                            <strong>{targetRoom.state.room.currency}</strong>
+                        </div>
+                        <p className="mt-2 text-sm leading-5 text-grey-1">
+                            {tExisting('currencyHint', { currency: targetRoom.state.room.currency })}
+                        </p>
                     </div>
-                    <p className="mt-2 text-sm leading-5 text-grey-1">
-                        {tExisting('currencyHint', { currency: targetRoom.state.room.currency })}
-                    </p>
+                    <ExistingRoomImportCurrencyProblem
+                        sourceCurrencies={unsupportedCurrencies}
+                        roomCurrency={targetRoom.state.room.currency}
+                    />
                 </div>
             ) : (
                 <>
@@ -748,7 +766,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                     className="justify-center"
                     disabled={
                         targetRoom
-                            ? !!memberMappingProblem || importIntoRoom.isPending
+                            ? !!memberMappingProblem || unsupportedCurrencies.length > 0 || importIntoRoom.isPending
                             : !roomName.trim() || !!nameProblem || meIndex === null || importRoom.isPending
                     }
                     loading={targetRoom ? importIntoRoom.isPending : importRoom.isPending}

@@ -24,11 +24,11 @@ import { Prisma } from '@prisma/client'
 import { dealPersonaKeys } from '@/lib/avatars'
 import { dealAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { prisma } from '@/server/db'
-import { buildExpense } from '@/server/expenses'
-import { getRateTable } from '@/server/fx'
+import { buildExpense, expenseNeedsRateTable } from '@/server/expenses'
+import { getRateTable, rateFrom } from '@/server/fx'
 import { badRequest, conflict } from '@/server/http'
 import { actorForMember, actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
-import { isCatalogCode } from '@/server/money'
+import { canPriceCode, isCatalogCode } from '@/server/money'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
 import { addMemberInLockedTransaction, assertWritable } from '@/server/rooms'
 import { memberToken, roomSlug } from '@/server/slug'
@@ -126,7 +126,7 @@ async function buildImportedExpenseRows(
     importedExpenses: ImportRoomBody['expenses'],
     bySourceName: ReadonlyMap<string, string>,
     createdById: string | null,
-    rateTable: Awaited<ReturnType<typeof getRateTable>>,
+    rateTable: Awaited<ReturnType<typeof getRateTable>> | undefined,
     provenance?: ImportRowProvenance
 ): Promise<ImportedExpenseRows> {
     const expenseRows: Array<Prisma.ExpenseCreateManyInput & { id: string }> = []
@@ -261,7 +261,23 @@ export async function importIntoRoom(
             'IMPORT_TARGET_CURRENCY_UNSUPPORTED'
         )
     }
+    const unsupportedCurrencies = [...new Set(body.expenses.map((expense) => expense.currencyCode))].filter(
+        (sourceCurrency) => !canPriceCode(sourceCurrency, initialRoom.currency)
+    )
+    if (unsupportedCurrencies.length > 0) {
+        throw badRequest(
+            `import currencies ${unsupportedCurrencies.join(', ')} cannot be converted into ${initialRoom.currency}`,
+            'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED'
+        )
+    }
     const fingerprint = importSourceFingerprint(body)
+
+    // Identity rows (including KPW → KPW and other catalog currencies without
+    // a feed rate) need no table. Keeping this decision before the optimistic
+    // replay lookup means an accepted same-currency import never wakes FX work.
+    const needsRateTable = body.expenses.some((expense) =>
+        expenseNeedsRateTable(initialRoom.currency, expense.currencyCode)
+    )
 
     // A replay must not depend on today's FX table. This optimistic read only
     // avoids that lookup; the authoritative replay decision still happens
@@ -270,7 +286,18 @@ export async function importIntoRoom(
         where: { roomId_fingerprint: { roomId: initialRoom.id, fingerprint } },
         select: { id: true },
     })
-    const rateTable = knownBatch ? null : await getRateTable()
+    const rateTable = knownBatch || !needsRateTable ? undefined : await getRateTable()
+    if (rateTable) {
+        const unavailableNow = [...new Set(body.expenses.map((expense) => expense.currencyCode))].filter(
+            (sourceCurrency) => rateFrom(rateTable, sourceCurrency, initialRoom.currency) === null
+        )
+        if (unavailableNow.length > 0) {
+            throw badRequest(
+                `import currencies ${unavailableNow.join(', ')} cannot be converted into ${initialRoom.currency}`,
+                'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED'
+            )
+        }
+    }
 
     return prisma.$transaction(
         async (tx) => {
@@ -297,7 +324,7 @@ export async function importIntoRoom(
             }
             // An ImportBatch has no delete path, so a positive optimistic read
             // cannot disappear while this request is waiting for the lock.
-            if (!rateTable) throw new Error('known import batch disappeared')
+            if (knownBatch) throw new Error('known import batch disappeared')
 
             const actor = actorFromToken(lockedRoom.members, actorToken)
             const bySourceName = new Map<string, string>()

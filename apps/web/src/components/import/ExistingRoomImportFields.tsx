@@ -7,6 +7,33 @@ import type { ExistingRoomMemberDraft } from './existing-room-mapping'
 
 export const NEW_ROOM_MEMBER_VALUE = '__new_room_member__'
 
+export function ExistingRoomImportCurrencyProblem({
+    sourceCurrencies,
+    roomCurrency,
+}: {
+    sourceCurrencies: readonly string[]
+    roomCurrency: string
+}) {
+    const t = useTranslations('import.existing')
+    if (sourceCurrencies.length === 0) return null
+
+    return (
+        <section
+            className="rounded-sm border border-n-1 bg-primary-1 p-4"
+            role="alert"
+            data-testid="import-currency-unsupported"
+        >
+            <h2 className="text-h7">{t('currencyUnsupportedTitle')}</h2>
+            <p className="mt-2 text-sm leading-5 text-n-1">
+                {t('currencyUnsupportedBody', {
+                    currencies: sourceCurrencies.join(', '),
+                    currency: roomCurrency,
+                })}
+            </p>
+        </section>
+    )
+}
+
 export function ExistingRoomImportContext({ room }: { room: ApiRoom }) {
     const t = useTranslations('import.existing')
 

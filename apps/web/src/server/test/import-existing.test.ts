@@ -526,7 +526,7 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(await importEvents(target.room.id)).toHaveLength(0)
     })
 
-    it('rolls back staged members when a later imported row has no FX rate', async () => {
+    it('refuses an unpriceable source currency before staging mapped members', async () => {
         const { body: target } = await newRoom()
         let pokes = 0
         const unsubscribe = subscribe(target.room.id, () => {
@@ -567,7 +567,7 @@ describe('POST /api/rooms/:slug/import', () => {
         unsubscribe?.()
 
         expect(result.status).toBe(400)
-        expect(result.body.error.code).toBe('NO_RATE')
+        expect(result.body.error.code).toBe('IMPORT_CURRENCY_CONVERSION_UNSUPPORTED')
         expect(await prisma.member.count({ where: { roomId: target.room.id } })).toBe(1)
         expect(await prisma.expense.count({ where: { roomId: target.room.id } })).toBe(0)
         expect(await prisma.importBatch.count({ where: { roomId: target.room.id } })).toBe(0)
@@ -600,6 +600,72 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(await prisma.importBatch.count({ where: { roomId: target.room.id } })).toBe(0)
         expect(await importEvents(target.room.id)).toHaveLength(0)
         expect(pokes).toBe(0)
+    })
+
+    it('refuses an EUR source into an unrated KPW target before any import side effect', async () => {
+        const { body: target } = await newRoom({ currency: 'KPW' })
+        const body = bodyFor(source(), [
+            { sourceName: 'Ana', memberId: target.members[0].id },
+            { sourceName: 'Bruno', newMemberName: 'Bruno' },
+            { sourceName: 'Carla', newMemberName: 'Carla' },
+        ])
+        let pokes = 0
+        const unsubscribe = subscribe(target.room.id, () => {
+            pokes += 1
+        })
+
+        const result = await append<ApiError>(target.room.slug, body, target.memberToken)
+        unsubscribe?.()
+
+        expect(result.status).toBe(400)
+        expect(result.body.error).toMatchObject({
+            code: 'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED',
+            message: expect.stringMatching(/EUR.*KPW/),
+        })
+        expect(await prisma.member.count({ where: { roomId: target.room.id } })).toBe(1)
+        expect(await prisma.expense.count({ where: { roomId: target.room.id } })).toBe(0)
+        expect(await prisma.importBatch.count({ where: { roomId: target.room.id } })).toBe(0)
+        expect(await importEvents(target.room.id)).toHaveLength(0)
+        expect(pokes).toBe(0)
+    })
+
+    it('imports same-currency KPW rows into an unrated KPW target at identity', async () => {
+        const { body: target } = await newRoom({ currency: 'KPW' })
+        const parsed = source()
+        const kpwSource: SplitwiseImport = {
+            ...parsed,
+            suggestedCurrency: 'KPW',
+            currencies: ['KPW'],
+            expenses: parsed.expenses.map((expense) => ({ ...expense, currencyCode: 'KPW' })),
+        }
+        const body = bodyFor(kpwSource, [
+            { sourceName: 'Ana', memberId: target.members[0].id },
+            { sourceName: 'Bruno', newMemberName: 'Bruno' },
+            { sourceName: 'Carla', newMemberName: 'Carla' },
+        ])
+        let pokes = 0
+        const unsubscribe = subscribe(target.room.id, () => {
+            pokes += 1
+        })
+
+        const result = await append(target.room.slug, body, target.memberToken)
+        unsubscribe?.()
+
+        expect(result.status).toBe(200)
+        expect(result.body).toMatchObject({ addedExpenses: 3, addedMembers: 2, alreadyImported: false })
+        expect(result.body.expenses).toHaveLength(3)
+        for (const expense of result.body.expenses) {
+            expect(expense).toMatchObject({
+                currency: 'KPW',
+                fxRate: '1',
+                baseAmountMinor: expense.amountMinor,
+            })
+        }
+        expect(await prisma.member.count({ where: { roomId: target.room.id } })).toBe(3)
+        expect(await prisma.expense.count({ where: { roomId: target.room.id } })).toBe(3)
+        expect(await prisma.importBatch.count({ where: { roomId: target.room.id } })).toBe(1)
+        expect(await importEvents(target.room.id)).toHaveLength(1)
+        expect(pokes).toBe(1)
     })
 
     it('refuses archived and missing targets without side effects', async () => {

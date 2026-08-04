@@ -13,7 +13,11 @@ vi.mock('@/components/ui/BaseInput', () => ({
         createElement('input', props),
 }))
 
-import { ExistingRoomImportContext, ExistingRoomImportFields } from './ExistingRoomImportFields'
+import {
+    ExistingRoomImportContext,
+    ExistingRoomImportCurrencyProblem,
+    ExistingRoomImportFields,
+} from './ExistingRoomImportFields'
 
 const room: ApiRoom = {
     id: 'room-1',
@@ -41,6 +45,25 @@ describe('ExistingRoomImportContext', () => {
         expect(html).toContain('data-testid="import-target-currency">USD')
         expect(html).toContain('data-testid="import-repeat-warning"')
         expect(html).toContain('import.existing.repeatBody')
+    })
+})
+
+describe('ExistingRoomImportCurrencyProblem', () => {
+    it('names an unconvertible EUR source before submission to a KPW room', () => {
+        const html = renderToStaticMarkup(
+            <ExistingRoomImportCurrencyProblem sourceCurrencies={['EUR']} roomCurrency="KPW" />
+        )
+
+        expect(html).toContain('data-testid="import-currency-unsupported"')
+        expect(html).toContain('role="alert"')
+        expect(html).toContain('import.existing.currencyUnsupportedTitle')
+        expect(html).toContain('import.existing.currencyUnsupportedBody:EUR,KPW')
+    })
+
+    it('renders nothing when every source currency is priceable', () => {
+        expect(
+            renderToStaticMarkup(<ExistingRoomImportCurrencyProblem sourceCurrencies={[]} roomCurrency="KPW" />)
+        ).toBe('')
     })
 })
 

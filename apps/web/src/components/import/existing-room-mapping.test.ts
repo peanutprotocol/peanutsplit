@@ -5,6 +5,7 @@ import {
     formatImportedAt,
     importMemberMappings,
     initialExistingRoomMemberDrafts,
+    unsupportedImportCurrencies,
     type ExistingRoomMemberDraft,
 } from './existing-room-mapping'
 
@@ -16,6 +17,18 @@ const member = (id: string, name: string): ApiMember => ({
 })
 
 describe('existing-room import member mapping', () => {
+    it('checks source-to-room priceability while preserving unrated identity pairs', () => {
+        const expense = (currencyCode: string) => ({ currencyCode })
+
+        expect(unsupportedImportCurrencies([expense('EUR')], 'KPW')).toEqual(['EUR'])
+        expect(unsupportedImportCurrencies([expense('KPW')], 'KPW')).toEqual([])
+        expect(unsupportedImportCurrencies([expense('EUR'), expense('EUR'), expense('USD')], 'KPW')).toEqual([
+            'EUR',
+            'USD',
+        ])
+        expect(unsupportedImportCurrencies([expense('EUR')], 'USD')).toEqual([])
+    })
+
     it('suggests only unambiguous exact names and proposes every other source person as new', () => {
         const drafts = initialExistingRoomMemberDrafts(
             [' ana ', 'Bruno', 'Alex'],
