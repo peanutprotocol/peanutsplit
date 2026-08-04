@@ -52,6 +52,7 @@ model Room {
   expenses                    Expense[]
   settlements                 Settlement[]
   auditEvents                 RoomAuditEvent[]
+  importBatches               ImportBatch[]
 
   pushSubscriptions PushSubscription[]
   notificationSends NotificationSend[]
@@ -146,13 +147,44 @@ model Expense {
   createdAt   DateTime  @default(now())
   deletedAt   DateTime? // soft delete → 6s Undo
 
-  room      Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  paidBy    Member            @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Cascade)
-  createdBy Member?           @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  shares    ExpenseShare[]
-  reactions ExpenseReaction[]
+  // Null for ordinary expenses and rooms created before append-imports. Imported
+  // rows retain both their immutable batch provenance and their position in the
+  // validated source payload. The compound unique key makes the row timestamp
+  // sequence an ordering aid rather than an identity mechanism.
+  importBatchId  String?
+  importRowIndex Int?
 
+  room        Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  importBatch ImportBatch?      @relation(fields: [importBatchId], references: [id], onDelete: Restrict)
+  paidBy      Member            @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Cascade)
+  createdBy   Member?           @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  shares      ExpenseShare[]
+  reactions   ExpenseReaction[]
+
+  @@unique([importBatchId, importRowIndex])
   @@index([roomId])
+  @@schema("split")
+}
+
+/// One atomic append of imported history into an existing room.
+///
+/// `fingerprint` describes only the canonical source roster and expense
+/// multiset, never the chosen room-member mappings. Its room-scoped unique key
+/// turns a repeated/concurrent delivery of the same source into a successful
+/// replay while still allowing later, genuinely different exports to append.
+model ImportBatch {
+  id               String   @id @default(uuid())
+  roomId           String
+  fingerprint      String
+  importedAt       DateTime @db.Timestamp(3)
+  expenseCount     Int
+  addedMemberCount Int
+
+  room     Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  expenses Expense[]
+
+  @@unique([roomId, fingerprint])
+  @@index([roomId, importedAt])
   @@schema("split")
 }
 

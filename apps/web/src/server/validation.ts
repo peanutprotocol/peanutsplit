@@ -530,6 +530,57 @@ const importedExpenseSchema = z.object({
         .max(MAX_MEMBERS),
 })
 
+type ImportedExpenseBody = z.infer<typeof importedExpenseSchema>
+
+/** Re-establish the source-ledger invariants for both import destinations. The
+ * source names are still the join key when appending; the room-member mapping
+ * is deliberately resolved only after this shape has proved self-consistent. */
+const refineImportedLedger = (
+    sourceNames: readonly string[],
+    expenses: readonly ImportedExpenseBody[],
+    ctx: z.RefinementCtx
+): void => {
+    const fail = (message: string, path: (string | number)[]) =>
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message, path })
+    // Zod still runs a parent superRefine when a child refinement has added an
+    // issue. Never let the cross-field sum turn an already-invalid wire string
+    // such as "12.00" into a thrown SyntaxError.
+    const parsedMinor = (value: unknown): bigint | null => {
+        if (typeof value !== 'string' || !/^\d{1,19}$/.test(value)) return null
+        try {
+            const amount = BigInt(value)
+            return amount <= MAX_SIGNED_MINOR ? amount : null
+        } catch {
+            return null
+        }
+    }
+
+    const roster = new Set(sourceNames.map((name) => name.toLowerCase()))
+    if (roster.size !== sourceNames.length) fail('every member needs a distinct name', ['members'])
+
+    expenses.forEach((expense, i) => {
+        if (!roster.has(expense.paidBy.toLowerCase())) fail('is not one of the members', ['expenses', i, 'paidBy'])
+
+        const seen = new Set<string>()
+        let total = 0n
+        let amountsParsed = true
+        expense.shares.forEach((share, s) => {
+            const key = share.member.toLowerCase()
+            if (!roster.has(key)) fail('is not one of the members', ['expenses', i, 'shares', s, 'member'])
+            if (seen.has(key)) fail('appears twice in this split', ['expenses', i, 'shares', s, 'member'])
+            seen.add(key)
+            const amount = parsedMinor(share.amountMinor)
+            if (amount === null) amountsParsed = false
+            else total += amount
+        })
+
+        const cost = parsedMinor(expense.costMinor)
+        if (cost === null || !amountsParsed) return
+        if (cost <= 0n) fail('must be greater than zero', ['expenses', i, 'costMinor'])
+        if (total !== cost) fail('the shares must add up to the expense total', ['expenses', i, 'shares'])
+    })
+}
+
 export const importRoomSchema = z
     .object({
         roomName: z.string().trim().min(1, 'is required').max(80),
@@ -540,48 +591,61 @@ export const importRoomSchema = z
         expenses: z.array(importedExpenseSchema).min(1).max(MAX_EXPENSES),
     })
     .superRefine((body, ctx) => {
-        const fail = (message: string, path: (string | number)[]) =>
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message, path })
-        // Zod still runs a parent superRefine when a child refinement has added
-        // an issue. Never let the cross-field sum turn an already-invalid wire
-        // string such as "12.00" into a thrown SyntaxError.
-        const parsedMinor = (value: unknown): bigint | null => {
-            if (typeof value !== 'string' || !/^\d{1,19}$/.test(value)) return null
-            try {
-                const amount = BigInt(value)
-                return amount <= MAX_SIGNED_MINOR ? amount : null
-            } catch {
-                return null
-            }
-        }
-
-        // Names are the join key between the roster and every expense, so they have to be unique
-        // the same way Split's own roster is: case-insensitively.
         const roster = new Set(body.members.map((name) => name.toLowerCase()))
-        if (roster.size !== body.members.length) fail('every member needs a distinct name', ['members'])
-        if (!roster.has(body.creatorName.toLowerCase())) fail('must be one of the members', ['creatorName'])
-
-        body.expenses.forEach((expense, i) => {
-            if (!roster.has(expense.paidBy.toLowerCase())) fail('is not one of the members', ['expenses', i, 'paidBy'])
-
-            const seen = new Set<string>()
-            let total = 0n
-            let amountsParsed = true
-            expense.shares.forEach((share, s) => {
-                const key = share.member.toLowerCase()
-                if (!roster.has(key)) fail('is not one of the members', ['expenses', i, 'shares', s, 'member'])
-                if (seen.has(key)) fail('appears twice in this split', ['expenses', i, 'shares', s, 'member'])
-                seen.add(key)
-                const amount = parsedMinor(share.amountMinor)
-                if (amount === null) amountsParsed = false
-                else total += amount
-            })
-
-            const cost = parsedMinor(expense.costMinor)
-            if (cost === null || !amountsParsed) return
-            if (cost <= 0n) fail('must be greater than zero', ['expenses', i, 'costMinor'])
-            if (total !== cost) fail('the shares must add up to the expense total', ['expenses', i, 'shares'])
-        })
+        if (!roster.has(body.creatorName.toLowerCase()))
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'must be one of the members', path: ['creatorName'] })
+        refineImportedLedger(body.members, body.expenses, ctx)
     })
 
 export type ImportRoomBody = z.infer<typeof importRoomSchema>
+
+const existingImportMember = z.object({ sourceName: personName, memberId: id }).strict()
+const newImportMember = z.object({ sourceName: personName, newMemberName: personName }).strict()
+
+export const importIntoRoomSchema = z
+    .object({
+        members: z
+            .array(z.union([existingImportMember, newImportMember]))
+            .min(1)
+            .max(MAX_MEMBERS),
+        expenses: z.array(importedExpenseSchema).min(1).max(MAX_EXPENSES),
+    })
+    .superRefine((body, ctx) => {
+        refineImportedLedger(
+            body.members.map((mapping) => mapping.sourceName),
+            body.expenses,
+            ctx
+        )
+
+        // Collapsing two source people onto one room identity would produce
+        // duplicate shares and, worse, change the source balances. New names
+        // are compared case-insensitively exactly like the room roster; ids are
+        // checked here and then proven to belong to this room under its lock.
+        const existingIds = new Set<string>()
+        const newNames = new Set<string>()
+        body.members.forEach((mapping, index) => {
+            if ('memberId' in mapping) {
+                if (existingIds.has(mapping.memberId)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'each source member needs a distinct room member',
+                        path: ['members', index, 'memberId'],
+                    })
+                }
+                existingIds.add(mapping.memberId)
+                return
+            }
+
+            const key = mapping.newMemberName.toLowerCase()
+            if (newNames.has(key)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'every new member needs a distinct name',
+                    path: ['members', index, 'newMemberName'],
+                })
+            }
+            newNames.add(key)
+        })
+    })
+
+export type ImportIntoRoomBody = z.infer<typeof importIntoRoomSchema>

@@ -17,7 +17,7 @@
  * the numbers are the ones that were already there. The `splitMode` a row arrives with is a label
  * applied afterwards, and the loop below says why the two are separable.
  */
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { Prisma } from '@prisma/client'
 import { dealPersonaKeys } from '@/lib/avatars'
 import { dealAvatarPaletteKeys } from '@/lib/avatar-palettes'
@@ -25,10 +25,11 @@ import { prisma } from '@/server/db'
 import { buildExpense } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
 import { badRequest, conflict } from '@/server/http'
-import { actorForMember, appendRoomAuditEvent } from '@/server/history'
+import { actorForMember, actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
+import { addMemberInLockedTransaction, assertWritable } from '@/server/rooms'
 import { memberToken, roomSlug } from '@/server/slug'
-import type { ImportRoomBody } from '@/server/validation'
+import type { ImportIntoRoomBody, ImportRoomBody } from '@/server/validation'
 import type { CreatedMember } from '@/server/rooms'
 
 /** Same re-roll as `createRoom` — two rooms with the same name can collide on the random tail. */
@@ -44,6 +45,163 @@ const isSlugCollision = (err: unknown) =>
  * default, and the failure mode is a rolled-back import that looked like it was working.
  */
 const TRANSACTION_TIMEOUT_MS = 30_000
+
+const sourceNameKey = (name: string): string => name.toLowerCase()
+const compareText = (left: string, right: string): number => (left < right ? -1 : left > right ? 1 : 0)
+
+/**
+ * A semantic identity for one parsed source export.
+ *
+ * Target-room choices are intentionally absent: once this source history has
+ * committed to a room, changing its mapping and posting it again must be a
+ * replay, not a second set of balances attributed to different people. Array
+ * order is absent too. A CSV re-serialized with columns or rows in another
+ * order is still the same roster and expense multiset; duplicate identical
+ * rows remain duplicate strings in the sorted array, so multiplicity survives.
+ */
+export function importSourceFingerprint(body: ImportIntoRoomBody): string {
+    const canonicalExpenses = body.expenses
+        .map((expense) =>
+            JSON.stringify({
+                date: expense.date,
+                description: expense.description,
+                category: expense.category?.trim() || null,
+                currencyCode: expense.currencyCode,
+                costMinor: BigInt(expense.costMinor).toString(),
+                paidBy: sourceNameKey(expense.paidBy),
+                splitMode: expense.splitMode ?? 'EXACT',
+                shares: expense.shares
+                    .map((share) => ({
+                        member: sourceNameKey(share.member),
+                        amountMinor: BigInt(share.amountMinor).toString(),
+                    }))
+                    .sort((left, right) =>
+                        left.member === right.member
+                            ? compareText(left.amountMinor, right.amountMinor)
+                            : compareText(left.member, right.member)
+                    ),
+            })
+        )
+        .sort()
+    const canonical = JSON.stringify({
+        members: body.members.map((mapping) => sourceNameKey(mapping.sourceName)).sort(),
+        expenses: canonicalExpenses,
+    })
+    return createHash('sha256').update(canonical).digest('hex')
+}
+
+export interface ImportIntoRoomOutcome {
+    room: RoomWithRelations
+    batchId: string
+    importedAt: Date
+    addedExpenses: number
+    addedMembers: number
+    alreadyImported: boolean
+}
+
+interface ImportedExpenseRows {
+    expenses: Array<Prisma.ExpenseCreateManyInput & { id: string }>
+    shares: Prisma.ExpenseShareCreateManyInput[]
+    sharesByExpenseId: ReadonlyMap<string, Prisma.ExpenseShareCreateManyInput[]>
+    firstSharedBalanceExpenseId: string | null
+}
+
+interface ImportRowProvenance {
+    batchId: string
+    /** Distinct millisecond ordering timestamps. Source calendar days remain
+     * in `date`; this sequence says precisely when each append row landed. */
+    timestampBase: Date
+}
+
+/** Build all money rows without writing them. Both import destinations pass
+ * through the ordinary expense builder so FX and exact-share reconciliation
+ * keep one definition. */
+async function buildImportedExpenseRows(
+    room: RoomWithRelations,
+    importedExpenses: ImportRoomBody['expenses'],
+    bySourceName: ReadonlyMap<string, string>,
+    createdById: string | null,
+    rateTable: Awaited<ReturnType<typeof getRateTable>>,
+    provenance?: ImportRowProvenance
+): Promise<ImportedExpenseRows> {
+    const expenseRows: Array<Prisma.ExpenseCreateManyInput & { id: string }> = []
+    const shareRows: Prisma.ExpenseShareCreateManyInput[] = []
+    const sharesByExpenseId = new Map<string, Prisma.ExpenseShareCreateManyInput[]>()
+    let firstSharedBalanceExpenseId: string | null = null
+
+    for (const [rowIndex, imported] of importedExpenses.entries()) {
+        const paidById = bySourceName.get(sourceNameKey(imported.paidBy))
+        if (!paidById) throw badRequest(`${imported.paidBy} is not a member of this room`, 'NOT_A_MEMBER')
+
+        const write = await buildExpense(
+            room,
+            {
+                description: imported.description,
+                amountMinor: imported.costMinor,
+                currency: imported.currencyCode,
+                paidById,
+                splitMode: 'EXACT',
+                exactShares: imported.shares.map((share) => ({
+                    // Both schemas prove every share source name is on their
+                    // source roster. Append imports additionally prove every
+                    // roster entry resolves to one distinct room member.
+                    memberId: bySourceName.get(sourceNameKey(share.member)) as string,
+                    amountMinor: share.amountMinor,
+                })),
+                date: `${imported.date}T00:00:00.000Z`,
+                category: imported.category ?? null,
+            },
+            undefined,
+            rateTable
+        )
+
+        /**
+         * Built through EXACT arithmetic whatever the row calls itself, and then labelled.
+         *
+         * The two are separable because `splitMode` is an EDITING fact, not an arithmetic
+         * one: the shares are always the truth. Recomputing an "equal" row through
+         * `equalShares` would put the rounding residue wherever Split puts it rather than
+         * where the source put it. `enteredAmountMinor` goes with that label: nobody typed
+         * an imported equal row, so its entered amounts are null.
+         */
+        const equal = imported.splitMode === 'EQUAL'
+        const shares = equal ? write.shares.map((share) => ({ ...share, enteredAmountMinor: null })) : write.shares
+
+        const expenseId = randomUUID()
+        if (
+            firstSharedBalanceExpenseId === null &&
+            shares.some((share) => share.memberId !== write.paidById && share.amountMinor > 0n)
+        ) {
+            firstSharedBalanceExpenseId = expenseId
+        }
+        expenseRows.push({
+            id: expenseId,
+            roomId: room.id,
+            description: write.description,
+            amountMinor: write.amountMinor,
+            currency: write.currency,
+            baseAmountMinor: write.baseAmountMinor,
+            fxRate: write.fxRate,
+            paidById: write.paidById,
+            createdById,
+            splitMode: equal ? 'EQUAL' : write.splitMode,
+            date: write.date,
+            category: write.category,
+            ...(provenance
+                ? {
+                      importBatchId: provenance.batchId,
+                      importRowIndex: rowIndex,
+                      createdAt: new Date(provenance.timestampBase.getTime() + rowIndex),
+                  }
+                : {}),
+        })
+        const expenseShares = shares.map((share) => ({ ...share, expenseId }))
+        shareRows.push(...expenseShares)
+        sharesByExpenseId.set(expenseId, expenseShares)
+    }
+
+    return { expenses: expenseRows, shares: shareRows, sharesByExpenseId, firstSharedBalanceExpenseId }
+}
 
 export async function importRoom(
     body: ImportRoomBody,
@@ -68,6 +226,206 @@ export async function importRoom(
         }
     }
     throw conflict('could not allocate a room link, please try again', 'SLUG_EXHAUSTED')
+}
+
+/**
+ * Append a parsed source export to an existing room.
+ *
+ * Exact semantic replays are successful no-ops. Different fingerprints append
+ * in full, even when a newer export overlaps an older one; there is no honest
+ * stable source-expense id in the supported formats with which to do partial
+ * overlap detection. The batch fingerprint only protects retries and identical
+ * concurrent deliveries.
+ */
+export async function importIntoRoom(
+    initialRoom: RoomWithRelations,
+    body: ImportIntoRoomBody,
+    request: Request = new Request('http://localhost'),
+    actorToken: string | null = null
+): Promise<ImportIntoRoomOutcome> {
+    assertWritable(initialRoom)
+    const fingerprint = importSourceFingerprint(body)
+
+    // A replay must not depend on today's FX table. This optimistic read only
+    // avoids that lookup; the authoritative replay decision still happens
+    // under the room lock below, so a concurrent first delivery is safe.
+    const knownBatch = await prisma.importBatch.findUnique({
+        where: { roomId_fingerprint: { roomId: initialRoom.id, fingerprint } },
+        select: { id: true },
+    })
+    const rateTable = knownBatch ? null : await getRateTable()
+
+    return prisma.$transaction(
+        async (tx) => {
+            await lockRoomWrite(tx, initialRoom.id)
+            let lockedRoom = await loadRoom(initialRoom.slug, tx)
+            assertWritable(lockedRoom)
+
+            // This comes before resolving ids or creating requested new names.
+            // In particular, replaying `{ newMemberName: "Bea" }` after the
+            // original import created Bea is still a clean no-op rather than a
+            // duplicate-name conflict.
+            const existing = await tx.importBatch.findUnique({
+                where: { roomId_fingerprint: { roomId: lockedRoom.id, fingerprint } },
+            })
+            if (existing) {
+                return {
+                    room: lockedRoom,
+                    batchId: existing.id,
+                    importedAt: existing.importedAt,
+                    addedExpenses: existing.expenseCount,
+                    addedMembers: existing.addedMemberCount,
+                    alreadyImported: true,
+                }
+            }
+            // An ImportBatch has no delete path, so a positive optimistic read
+            // cannot disappear while this request is waiting for the lock.
+            if (!rateTable) throw new Error('known import batch disappeared')
+
+            const actor = actorFromToken(lockedRoom.members, actorToken)
+            const bySourceName = new Map<string, string>()
+            const usedTargetIds = new Set<string>()
+
+            // Prove all existing targets before adding anything. The schema has
+            // already made source names and explicit ids one-to-one, while this
+            // locked read proves the ids belong to this room.
+            for (const mapping of body.members) {
+                if (!('memberId' in mapping)) continue
+                const target = lockedRoom.members.find((member) => member.id === mapping.memberId)
+                if (!target) {
+                    throw badRequest(`${mapping.sourceName} is not mapped to a member of this room`, 'NOT_A_MEMBER')
+                }
+                if (usedTargetIds.has(target.id)) {
+                    throw badRequest('each source member needs a distinct room member', 'VALIDATION_ERROR')
+                }
+                usedTargetIds.add(target.id)
+                bySourceName.set(sourceNameKey(mapping.sourceName), target.id)
+            }
+
+            // Reject every name collision against the authoritative roster
+            // before issuing member tokens. The eventual helper repeats the
+            // check by design; both happen under this same advisory lock.
+            const roomNames = new Set(lockedRoom.members.map((member) => sourceNameKey(member.name)))
+            for (const mapping of body.members) {
+                if (!('newMemberName' in mapping)) continue
+                if (roomNames.has(sourceNameKey(mapping.newMemberName))) {
+                    throw conflict(`${mapping.newMemberName} is already in this room`, 'DUPLICATE_MEMBER_NAME')
+                }
+                roomNames.add(sourceNameKey(mapping.newMemberName))
+            }
+
+            const addedMemberIds: string[] = []
+            for (const mapping of body.members) {
+                if (!('newMemberName' in mapping)) continue
+                const added = await addMemberInLockedTransaction(
+                    tx,
+                    lockedRoom.id,
+                    mapping.newMemberName,
+                    undefined,
+                    true
+                )
+                if (usedTargetIds.has(added.memberId)) throw new Error('import member mapping reused a target')
+                usedTargetIds.add(added.memberId)
+                addedMemberIds.push(added.memberId)
+                bySourceName.set(sourceNameKey(mapping.sourceName), added.memberId)
+            }
+
+            if (addedMemberIds.length > 0) lockedRoom = await loadRoom(initialRoom.slug, tx)
+            if (bySourceName.size !== body.members.length) throw new Error('import member mapping did not resolve')
+
+            // `importedAt` is provenance truth: the actual server clock after
+            // acquiring the room lock. Expense ordering has a separate
+            // monotonic base so a rapid previous 500-row batch cannot push this
+            // reported instant into the future.
+            const importedAt = new Date()
+            const latestExpense = await tx.expense.findFirst({
+                where: { roomId: lockedRoom.id },
+                select: { createdAt: true },
+                orderBy: { createdAt: 'desc' },
+            })
+            const timestampBase = new Date(
+                Math.max(importedAt.getTime(), (latestExpense?.createdAt.getTime() ?? importedAt.getTime() - 1) + 1)
+            )
+            const batchId = randomUUID()
+            const rows = await buildImportedExpenseRows(
+                lockedRoom,
+                body.expenses,
+                bySourceName,
+                actor.memberId,
+                rateTable,
+                { batchId, timestampBase }
+            )
+
+            await tx.importBatch.create({
+                data: {
+                    id: batchId,
+                    roomId: lockedRoom.id,
+                    fingerprint,
+                    importedAt,
+                    expenseCount: rows.expenses.length,
+                    addedMemberCount: addedMemberIds.length,
+                },
+            })
+            await tx.expense.createMany({ data: rows.expenses })
+            await tx.expenseShare.createMany({ data: rows.shares })
+            if (lockedRoom.firstSharedBalanceExpenseId === null && rows.firstSharedBalanceExpenseId !== null) {
+                await tx.room.update({
+                    where: { id: lockedRoom.id },
+                    data: { firstSharedBalanceExpenseId: rows.firstSharedBalanceExpenseId },
+                })
+            }
+
+            const addedMembers = lockedRoom.members
+                .filter((member) => addedMemberIds.includes(member.id))
+                .map((member) => ({
+                    id: member.id,
+                    name: member.name,
+                    avatar: member.avatar,
+                    avatarPalette: member.avatarPalette,
+                    provisional: member.provisional,
+                }))
+            const firstEntryAt = rows.expenses[0]?.createdAt
+            const lastEntryAt = rows.expenses.at(-1)?.createdAt
+            await appendRoomAuditEvent({
+                tx,
+                request,
+                roomId: lockedRoom.id,
+                actor,
+                event: {
+                    kind: 'room_import_appended',
+                    subjectType: 'room',
+                    subjectId: lockedRoom.id,
+                    after: {
+                        batch: {
+                            id: batchId,
+                            importedAt,
+                            expenseCount: rows.expenses.length,
+                            addedMemberCount: addedMembers.length,
+                        },
+                        members: addedMembers,
+                    },
+                    detail: {
+                        batchId,
+                        importedAt,
+                        expenseCount: rows.expenses.length,
+                        memberCount: addedMembers.length,
+                        firstEntryCreatedAt: firstEntryAt,
+                        lastEntryCreatedAt: lastEntryAt,
+                    },
+                },
+            })
+
+            return {
+                room: await loadRoom(initialRoom.slug, tx),
+                batchId,
+                importedAt,
+                addedExpenses: rows.expenses.length,
+                addedMembers: addedMembers.length,
+                alreadyImported: false,
+            }
+        },
+        { timeout: TRANSACTION_TIMEOUT_MS, maxWait: 10_000 }
+    )
 }
 
 async function writeRoom(
@@ -115,92 +473,13 @@ async function writeRoom(
             // expenses and no settlements, so the empty arrays are the truth, not a stub.
             const room = { ...created, expenses: [], settlements: [] } as unknown as RoomWithRelations
 
-            // IDs are minted below before insertion so audit snapshots can join
-            // their shares without a database round trip.
-            const expenseRows: Array<Prisma.ExpenseCreateManyInput & { id: string }> = []
-            const shareRows: Prisma.ExpenseShareCreateManyInput[] = []
-            const sharesByExpenseId = new Map<string, Prisma.ExpenseShareCreateManyInput[]>()
-            let firstSharedBalanceExpenseId: string | null = null
-
-            for (const imported of body.expenses) {
-                const paidById = byName.get(imported.paidBy.toLowerCase())
-                if (!paidById) throw badRequest(`${imported.paidBy} is not a member of this room`, 'NOT_A_MEMBER')
-
-                const write = await buildExpense(
-                    room,
-                    {
-                        description: imported.description,
-                        amountMinor: imported.costMinor,
-                        currency: imported.currencyCode,
-                        paidById,
-                        splitMode: 'EXACT',
-                        exactShares: imported.shares.map((share) => ({
-                            // Validated to exist: `importRoomSchema` refuses a share naming
-                            // somebody who is not on the roster.
-                            memberId: byName.get(share.member.toLowerCase()) as string,
-                            amountMinor: share.amountMinor,
-                        })),
-                        date: `${imported.date}T00:00:00.000Z`,
-                        category: imported.category ?? null,
-                    },
-                    undefined,
-                    rateTable
-                )
-
-                /**
-                 * Built through EXACT arithmetic whatever the row calls itself, and then labelled.
-                 *
-                 * The two are separable because `splitMode` is an EDITING fact, not an arithmetic
-                 * one: the shares are always the truth. Recomputing an "equal" row through
-                 * `equalShares` would put the rounding residue wherever Split puts it rather than
-                 * where Splitwise put it, which moves a cent between two people on every row that
-                 * has one — for a file of five hundred rows, a slow drift away from the balances
-                 * the group already agreed on, in exchange for nothing. So the numbers are kept
-                 * verbatim and only the label is honest, which is all the label is for: the drawer
-                 * opens in equal mode, and the first real edit is what canonicalises the shares.
-                 *
-                 * `enteredAmountMinor` goes with the label. It means "as typed" and nobody typed
-                 * these, so an EQUAL row carries nulls, exactly as the wire contract says it does.
-                 */
-                const equal = imported.splitMode === 'EQUAL'
-                const shares = equal
-                    ? write.shares.map((share) => ({ ...share, enteredAmountMinor: null }))
-                    : write.shares
-
-                // The id is minted here rather than read back, which is what lets the shares be
-                // inserted in one statement instead of one round-trip per expense.
-                const expenseId = randomUUID()
-                if (
-                    firstSharedBalanceExpenseId === null &&
-                    shares.some((share) => share.memberId !== write.paidById && share.amountMinor > 0n)
-                ) {
-                    firstSharedBalanceExpenseId = expenseId
-                }
-                expenseRows.push({
-                    id: expenseId,
-                    roomId: created.id,
-                    description: write.description,
-                    amountMinor: write.amountMinor,
-                    currency: write.currency,
-                    baseAmountMinor: write.baseAmountMinor,
-                    fxRate: write.fxRate,
-                    paidById: write.paidById,
-                    createdById: creatorId,
-                    splitMode: equal ? 'EQUAL' : write.splitMode,
-                    date: write.date,
-                    category: write.category,
-                })
-                const expenseShares = shares.map((share) => ({ ...share, expenseId }))
-                shareRows.push(...expenseShares)
-                sharesByExpenseId.set(expenseId, expenseShares)
-            }
-
-            await tx.expense.createMany({ data: expenseRows })
-            await tx.expenseShare.createMany({ data: shareRows })
-            if (firstSharedBalanceExpenseId !== null) {
+            const rows = await buildImportedExpenseRows(room, body.expenses, byName, creatorId, rateTable)
+            await tx.expense.createMany({ data: rows.expenses })
+            await tx.expenseShare.createMany({ data: rows.shares })
+            if (rows.firstSharedBalanceExpenseId !== null) {
                 await tx.room.update({
                     where: { id: created.id },
-                    data: { firstSharedBalanceExpenseId },
+                    data: { firstSharedBalanceExpenseId: rows.firstSharedBalanceExpenseId },
                 })
             }
 
@@ -230,12 +509,12 @@ async function writeRoom(
                             avatar: member.avatar,
                             avatarPalette: member.avatarPalette,
                         })),
-                        expenses: expenseRows.map((expense) => ({
+                        expenses: rows.expenses.map((expense) => ({
                             ...expense,
-                            shares: sharesByExpenseId.get(expense.id) ?? [],
+                            shares: rows.sharesByExpenseId.get(expense.id) ?? [],
                         })),
                     },
-                    detail: { memberCount: created.members.length, expenseCount: expenseRows.length },
+                    detail: { memberCount: created.members.length, expenseCount: rows.expenses.length },
                 },
             })
 
