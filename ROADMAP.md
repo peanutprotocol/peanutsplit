@@ -5,7 +5,7 @@ Product status/milestones/decision log stay in the Notion project (linked from
 `mono/projects/peanut-split/`); this file is what's built, building, queued, and
 deliberately not built — with enough context to pick any item up cold.
 
-Owner of record for each open item is in brackets. Last full update: 2026-07-30.
+Owner of record for each open item is in brackets. Last full update: 2026-08-04.
 
 ## V1 hold — receipt scanning
 
@@ -210,15 +210,27 @@ NEVER rotate the VAPID pair in place — every subscription dies silently; a
 rotation needs a dual-key window.
 
 Still gated:
-- **Deploy-failure alert** [Hugo]: a failed web build is currently invisible —
-  the site stays healthy on the old image and nobody is told (cost ~5 dark
-  hours on 2026-08-03, `e2e-v2` dockerignore incident). The poller should
-  follow up its trigger by checking the deployment reaches `done` and ping
-  Discord on `error`.
 
 - **Push exercise** [next session]: infra + UI are live; nobody has completed a
   real two-device subscribe→notify loop in prod yet. Run one before telling
   users about it.
+
+## Deferred until demand or measured scale — decision 2026-08-04
+
+Peanut Split is an experiment with almost no users. Do not build production
+machinery for hypothetical scale. Reopen these items only at the stated trigger.
+
+- **Deployment gates and deploy-failure automation:** `main` must deploy
+  directly. Revisit gates or a release-control project at tens of thousands of
+  users, or after repeated missed failures make the cost real.
+- **Anonymous room management:** a separate capability could rotate a share
+  link or delete a room without accounts. Keep this as an idea until roughly
+  1,000 rooms, product-market fit, a real user request or a legal obligation.
+  Review mockups before adding the flow.
+- **Scale machinery:** defer distributed quotas, data retention and
+  partitioning, full CSP enforcement, browser CI, multi-replica realtime,
+  database-wide integrity redesign and full telemetry. Reopen at roughly 1,000
+  rooms or when measurements show the specific bottleneck.
 
 ## Shipped 2026-07-28, third wave
 
@@ -389,16 +401,15 @@ Remaining candidates, ordered by expected value per effort:
 6. **Verified settle receipts** — reopens the 2026-07-27 decision (Peanut emits
    no signed charge webhook; polling public `GET /charges/:id` is the cheapest
    route). Revisit only if day-30 shows conversion is what's broken.
-7. ~~**Cute slugs**~~ — shipped 2026-07-30: a room now reads
-   `ski-trip-brave-otter-lamp`. Three words from a frozen 1,024-word list, an
-   exact swap for the six Crockford base32 characters because 32⁶ and 1024³ are
-   the same number. Rooms minted before it keep their tails; nothing reads the
-   tail's shape. The word list and how it was screened live in
-   `apps/web/src/server/slugWords.ts`.
+7. ~~**Readable, strong room links**~~ — updated 2026-08-04: a room keeps the
+   readable name stem and appends a 128-bit opaque base64url capability, for
+   example `ski-trip-R7LxQ3TBJV_uQ2PMhzc8rw`. This replaces the 30-bit
+   three-word tail for new rooms. Existing three-word and six-character links
+   still resolve so issued links do not break.
 
-   The preview caught up 2026-07-30: the hero, the pass-the-link stage and the
-   proof rail all read one `SLUG_TAIL_HINT` constant and show three dashed runs,
-   checked at 375px against a production build.
+   The hero, pass-the-link stage and proof rail read one `SLUG_TAIL_HINT`
+   constant. They show a short opaque run so the readable stem remains visible
+   at 375px. The share screen shows and copies the complete link.
 
    Left open, found in review: the settings link row now ellipsises. Its
    `truncate` is load-bearing — `SettingRow.tsx` documents the overflow it fixed
