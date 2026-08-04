@@ -13,6 +13,7 @@
  * Nothing is re-implemented: every number in here comes from the code that produces it in
  * production. A re-implementation would drift with the thing it is meant to police.
  */
+import { Prisma } from '@prisma/client'
 import { describe, expect, it } from 'vitest'
 import { balancesOf, toRoomState, type RoomWithRelations } from '@/server/roomState'
 import { equalShares } from '@/server/split'
@@ -113,7 +114,7 @@ const asRoom = (built: ReturnType<typeof growingRoom>): RoomWithRelations =>
             description: expense.id,
             amountMinor: expense.baseAmountMinor,
             currency: 'EUR',
-            fxRate: '1',
+            fxRate: new Prisma.Decimal(1),
             createdById: null,
             date: expense.createdAt,
             category: null,

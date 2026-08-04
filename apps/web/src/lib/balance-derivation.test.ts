@@ -10,6 +10,7 @@
  * meant to police, the actual server function cannot.
  */
 
+import { Prisma } from '@prisma/client'
 import { describe, expect, it } from 'vitest'
 import { toRoomState, type RoomWithRelations } from '@/server/roomState'
 import type { ApiExpense, ApiSettlement, RoomState } from './api-types'
@@ -207,7 +208,9 @@ function randomRoom(rng: () => number, seed: number) {
 const asServerWouldLoad = (room: ReturnType<typeof randomRoom>): RoomWithRelations =>
     ({
         ...room,
-        expenses: room.expenses.filter((expense) => expense.deletedAt === null),
+        expenses: room.expenses
+            .filter((expense) => expense.deletedAt === null)
+            .map((expense) => ({ ...expense, fxRate: new Prisma.Decimal(expense.fxRate) })),
         settlements: room.settlements.filter((settlement) => settlement.deletedAt === null),
     }) as unknown as RoomWithRelations
 
