@@ -8,10 +8,11 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
-import { resetRateLimits } from '@/server/rateLimit'
+import { IMPORT_LIMIT, resetRateLimits } from '@/server/rateLimit'
 import { importRoom } from '@/server/splitwiseImport'
 import { roomStateBySlug } from '@/server/roomState'
-import { POST as postImport } from '@/app/api/import/route'
+import { assertImportCardinality, MAX_IMPORT_SHARE_ROWS, POST as postImport } from '@/app/api/import/route'
+import { POST as postRoom } from '@/app/api/rooms/route'
 import { MAX_EXPENSES, MAX_MEMBERS, parseSplitwiseCsv, type SplitwiseImport } from '@/lib/splitwise-csv'
 import {
     LOCALISED_DECIMALS,
@@ -81,6 +82,22 @@ const bodyFor = (parsed: SplitwiseImport, overrides: Record<string, unknown> = {
 const balancesByName = (state: RoomState): Map<string, bigint> =>
     new Map(state.members.map((m) => [m.name, BigInt(state.balances[m.id] ?? '0')]))
 
+interface ComparableShare {
+    expenseId: string
+    memberId: string
+    amountMinor: unknown
+    enteredAmountMinor: unknown
+    splitWeight: unknown
+}
+
+const comparableShare = (share: ComparableShare) => ({
+    expenseId: share.expenseId,
+    memberId: share.memberId,
+    amountMinor: String(share.amountMinor),
+    enteredAmountMinor: share.enteredAmountMinor === null ? null : String(share.enteredAmountMinor),
+    splitWeight: share.splitWeight === null ? null : String(share.splitWeight),
+})
+
 beforeEach(async () => {
     await truncateAll()
     resetRateLimits()
@@ -131,7 +148,7 @@ describe('importing a group', () => {
         const { status, body } = await post<RoomStateWithMember>(bodyFor(parsed, { roomName: 'Ski trip' }))
 
         expect(status).toBe(201)
-        expect(body.room.slug).toMatch(/^ski-trip-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
+        expect(body.room.slug).toMatch(/^ski-trip-[A-Za-z0-9_-]{22}$/)
         expect(body.room.emoji).toBe('🧾')
         expect(body.members.map((m) => m.name)).toEqual(['Ana', 'Bruno', 'Carla'])
         expect(body.expenses).toHaveLength(3)
@@ -142,6 +159,30 @@ describe('importing a group', () => {
         expect(
             marked?.shares.some((share) => share.memberId !== marked.paidById && BigInt(share.amountMinor) > 0n)
         ).toBe(true)
+
+        // The import audit event is a durable snapshot, not a join back to the
+        // live rows. Pin the O(n) expense→shares map to the persisted truth so
+        // an indexing regression cannot silently write empty or crossed history.
+        const event = await prisma.roomAuditEvent.findFirstOrThrow({
+            where: { roomId: body.room.id, action: 'room_imported' },
+        })
+        const after = event.after as unknown as {
+            expenses: Array<{ id: string; shares: ComparableShare[] }>
+        }
+        const persisted = await prisma.expense.findMany({
+            where: { roomId: body.room.id },
+            include: { shares: true },
+        })
+        const sharesByExpense = (expenses: Array<{ id: string; shares: ComparableShare[] }>) =>
+            Object.fromEntries(
+                expenses.map((expense) => [
+                    expense.id,
+                    expense.shares.map(comparableShare).sort((a, b) => a.memberId.localeCompare(b.memberId)),
+                ])
+            )
+
+        expect(after.expenses).toHaveLength(persisted.length)
+        expect(sharesByExpense(after.expenses)).toEqual(sharesByExpense(persisted))
     })
 
     it('hands the creator a member token, and nobody else’s', async () => {
@@ -307,6 +348,24 @@ describe('what the route refuses', () => {
         expect(body.error.code).toBe('IMPORT_TOO_LARGE')
     })
 
+    it('pins the aggregate ceiling to the full 500-expense × 20-share product envelope', () => {
+        expect(MAX_IMPORT_SHARE_ROWS).toBe(10_000)
+        const atCeiling = Array.from({ length: MAX_EXPENSES }, () => ({
+            shares: Array.from({ length: MAX_MEMBERS }, () => null),
+        }))
+
+        expect(() => assertImportCardinality({ members: [], expenses: atCeiling })).not.toThrow()
+
+        // 10,001 necessarily exceeds one of the two dimensions as well: 500 ×
+        // 20 is their mathematical maximum. This pins the exact next row at the
+        // cheapest pre-schema seam without creating ten thousand database rows.
+        const oneOver = [...atCeiling]
+        oneOver[0] = { shares: Array.from({ length: MAX_MEMBERS + 1 }, () => null) }
+        expect(() => assertImportCardinality({ members: [], expenses: oneOver })).toThrowError(
+            expect.objectContaining({ code: 'IMPORT_TOO_LARGE' })
+        )
+    })
+
     it('refuses shares that do not add up to the expense', async () => {
         const file = parsed()
         file.expenses[0].shares[0].amountMinor = '1'
@@ -419,14 +478,50 @@ describe('what the route refuses', () => {
         expect(await prisma.room.count()).toBe(0)
     })
 
-    it('rate-limits imports as the room creations they are', async () => {
-        for (let i = 0; i < 20; i++) {
+    it('rate-limits bulk imports in their own small bucket', async () => {
+        for (let i = 0; i < IMPORT_LIMIT.capacity; i++) {
             const { status } = await post<RoomStateWithMember>(bodyFor(parsed()))
             expect(status).toBe(201)
         }
         const { status, body } = await post<ApiError>(bodyFor(parsed()))
         expect(status).toBe(429)
         expect(body.error.code).toBe('RATE_LIMITED')
+    })
+
+    it('can pause imports without spending their bucket or blocking ordinary room creation', async () => {
+        const previous = process.env.SPLIT_IMPORT_ENABLED
+        process.env.SPLIT_IMPORT_ENABLED = 'off'
+        try {
+            // More disabled calls than the bucket can hold must all remain 503;
+            // if the switch spent tokens first, the last one would become 429.
+            for (let i = 0; i <= IMPORT_LIMIT.capacity; i++) {
+                const { status, body } = await post<ApiError>(bodyFor(parsed()))
+                expect(status).toBe(503)
+                expect(body.error.code).toBe('IMPORT_UNAVAILABLE')
+            }
+            expect(await prisma.room.count()).toBe(0)
+
+            const createPayload = JSON.stringify({
+                name: 'Ordinary room',
+                currency: 'EUR',
+                creatorName: 'Ana',
+            })
+            const created = await postRoom(
+                new Request(`${BASE}/api/rooms`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: createPayload,
+                })
+            )
+            expect(created.status).toBe(201)
+
+            process.env.SPLIT_IMPORT_ENABLED = '1'
+            const enabled = await post<RoomStateWithMember>(bodyFor(parsed()))
+            expect(enabled.status).toBe(201)
+        } finally {
+            if (previous === undefined) delete process.env.SPLIT_IMPORT_ENABLED
+            else process.env.SPLIT_IMPORT_ENABLED = previous
+        }
     })
 })
 

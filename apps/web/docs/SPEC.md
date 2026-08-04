@@ -93,7 +93,7 @@ in your final report instead.
 ```prisma
 model Room {
   id         String   @id @default(uuid())
-  slug       String   @unique            // e.g. "ski-trip-brave-otter-lamp" — kebab name + 3 rand words
+  slug       String   @unique            // e.g. "ski-trip-R7x..." — readable stem + 128-bit opaque tail
   name       String
   emoji      String?                     // room emoji, default 🥜-adjacent fun set
   currency   String                      // display/settle currency, ISO 4217

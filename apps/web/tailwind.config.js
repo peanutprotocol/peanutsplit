@@ -42,13 +42,6 @@ module.exports = {
                     3: '#FAF4F0',
                     4: '#EFEFF0',
                 },
-                gray: {
-                    1: '#5F646D',
-                    2: '#9CA3AF',
-                    3: '#e5e7eb',
-                    4: '#d1d5db',
-                    5: '#60646C',
-                },
                 outline: {
                     1: '#98E9AB',
                     2: '#AE7AFF',
@@ -59,9 +52,6 @@ module.exports = {
                     2: '#2B251F',
                     3: '#5F646D',
                     4: '#E7E8E9',
-                },
-                yellow: {
-                    1: '#FFC900',
                 },
                 green: {
                     1: '#98E9AB',
@@ -77,7 +67,6 @@ module.exports = {
                     'incoming-accent': '#246C3D',
                 },
                 white: '#FFFFFF',
-                black: '#211C17',
                 red: '#FF0000',
 
                 'primary-base': 'var(--primary-color)',
@@ -212,9 +201,6 @@ module.exports = {
                 '.btn-primary': {
                     '@apply btn bg-primary-1 text-n-1 fill-n-1 hover:bg-primary-1/90': {},
                 },
-                '.btn-yellow': {
-                    '@apply btn bg-primary-1 text-n-1 fill-n-1 hover:bg-primary-1/90': {},
-                },
                 '.btn-dark': {
                     '@apply btn bg-n-1 text-white fill-white hover:bg-n-1/80': {},
                 },
@@ -222,7 +208,7 @@ module.exports = {
                     '@apply btn hover:bg-n-1 hover:text-white hover:fill-white': {},
                 },
                 '.btn-shadow': {
-                    '@apply shadow-primary-4': {},
+                    '@apply shadow-4': {},
                 },
                 '.btn-square': {
                     '@apply !px-0': {},
@@ -257,14 +243,8 @@ module.exports = {
                 '.label-stroke': {
                     '@apply label border-n-1': {},
                 },
-                '.label-stroke-yellow': {
-                    '@apply label border-primary-1 text-primary-1': {},
-                },
                 '.label-stroke-pink': {
                     '@apply label border-secondary-1 text-secondary-1': {},
-                },
-                '.label-yellow': {
-                    '@apply label border-primary-1 bg-primary-1': {},
                 },
                 '.label-pink': {
                     '@apply label border-secondary-1 bg-secondary-1': {},
@@ -310,9 +290,6 @@ module.exports = {
                 '.shadow-4': {
                     '@apply shadow-[0.25rem_0.25rem_0_#211C17]': {},
                 },
-                '.shadow-primary-4': {
-                    '@apply shadow-[0.25rem_0.25rem_0_#211C17]': {},
-                },
                 '.shadow-primary-6': {
                     '@apply shadow-[0.375rem_0.375rem_0_#211C17]': {},
                 },
@@ -353,10 +330,10 @@ module.exports = {
                     '@apply shadow-[0.5rem_-0.5rem_0_#211C17]': {},
                 },
                 '.brutal-border': {
-                    '@apply border-2 border-black': {},
+                    '@apply border-2 border-n-1': {},
                 },
                 '.input': {
-                    '@apply h-16 w-full rounded-sm border border-n-1 bg-white px-5 text-sm font-bold text-n-1 outline-none transition-colors placeholder:text-n-3 focus:border-primary-1':
+                    '@apply h-16 w-full rounded-sm border border-n-1 bg-white px-5 text-sm font-bold text-n-1 outline-none transition-colors placeholder:text-n-3':
                         {},
                 },
                 '.bg-peanut-repeat-normal': {

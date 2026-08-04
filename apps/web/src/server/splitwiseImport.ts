@@ -115,8 +115,11 @@ async function writeRoom(
             // expenses and no settlements, so the empty arrays are the truth, not a stub.
             const room = { ...created, expenses: [], settlements: [] } as unknown as RoomWithRelations
 
-            const expenseRows: Prisma.ExpenseCreateManyInput[] = []
+            // IDs are minted below before insertion so audit snapshots can join
+            // their shares without a database round trip.
+            const expenseRows: Array<Prisma.ExpenseCreateManyInput & { id: string }> = []
             const shareRows: Prisma.ExpenseShareCreateManyInput[] = []
+            const sharesByExpenseId = new Map<string, Prisma.ExpenseShareCreateManyInput[]>()
             let firstSharedBalanceExpenseId: string | null = null
 
             for (const imported of body.expenses) {
@@ -187,7 +190,9 @@ async function writeRoom(
                     date: write.date,
                     category: write.category,
                 })
-                for (const share of shares) shareRows.push({ ...share, expenseId })
+                const expenseShares = shares.map((share) => ({ ...share, expenseId }))
+                shareRows.push(...expenseShares)
+                sharesByExpenseId.set(expenseId, expenseShares)
             }
 
             await tx.expense.createMany({ data: expenseRows })
@@ -227,7 +232,7 @@ async function writeRoom(
                         })),
                         expenses: expenseRows.map((expense) => ({
                             ...expense,
-                            shares: shareRows.filter((share) => share.expenseId === expense.id),
+                            shares: sharesByExpenseId.get(expense.id) ?? [],
                         })),
                     },
                     detail: { memberCount: created.members.length, expenseCount: expenseRows.length },

@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerBody, drawerContentClass, drawerHeaderClass } from '@/components/ui/DrawerLayout'
+import { DrawerBody } from '@/components/ui/DrawerLayout'
 import type { ApiRoomHistoryEvent } from '@/lib/api-types'
 import { useRoomHistory } from '@/lib/queries'
 
@@ -23,8 +23,8 @@ export function HistorySheet({ open, onClose, slug }: { open: boolean; onClose: 
 
     return (
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent className={drawerContentClass} data-testid="history-sheet">
-                <DrawerHeader className={drawerHeaderClass}>
+            <DrawerContent data-testid="history-sheet">
+                <DrawerHeader>
                     <div className="flex items-end justify-between gap-3">
                         <div>
                             <DrawerTitle className="text-h5">{t('title')}</DrawerTitle>

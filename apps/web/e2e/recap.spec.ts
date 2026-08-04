@@ -35,12 +35,9 @@ test('the recap page has exactly one heading, like every other route', async ({ 
     await page.goto(`/r/${slug}/recap`)
 
     // Was zero: the room name and the total were both <p>.
-    const headings = await page.evaluate(() => ({
-        h1: document.querySelectorAll('h1').length,
-        h2: document.querySelectorAll('h2').length,
-    }))
-    expect(headings.h1).toBe(1)
-    expect(headings.h2).toBeGreaterThanOrEqual(1)
+    await expect(page.getByRole('heading', { level: 1, name: 'Recap artefacts' })).toBeVisible()
+    await expect(page.locator('h1')).toHaveCount(1)
+    expect(await page.locator('h2').count()).toBeGreaterThanOrEqual(1)
 })
 
 test('the recap share card renders as a PNG', async ({ page, request }) => {

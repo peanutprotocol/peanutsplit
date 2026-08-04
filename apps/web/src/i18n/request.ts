@@ -12,9 +12,9 @@
  * URL states a language, the URL wins — and because the whole shell reads its strings through this
  * config, the footer and everything else follow with no prop-drilling.
  *
- * The URL arrives as a header set by `middleware.ts`. `setRequestLocale` cannot do it: this config
+ * The URL arrives as a header set by `proxy.ts`. `setRequestLocale` cannot do it: this config
  * is resolved by the root layout, which renders before any page could call it. `localeFromPathname`
- * is the rule the middleware applies, and it answers for the unprefixed pages too: `/blog` and
+ * is the rule the proxy applies, and it answers for the unprefixed pages too: `/blog` and
  * `/tricount-alternative` are the canonical ENGLISH URLs of those pages and state `en` as firmly
  * as `/es-419/blog` states `es-419`. Only the app shell — `/`, `/new`, `/r/*` — states nothing, and it is
  * the only thing the cookie still decides.
@@ -46,7 +46,7 @@ async function resolveLocale(requested: string | undefined): Promise<Locale> {
 
     const requestHeaders = await headers()
 
-    // Only ever set by the middleware, and only for a locale-prefixed path.
+    // Only ever set by the proxy, and only for a locale-prefixed path.
     const fromUrl = requestHeaders.get(LOCALE_HEADER)
     if (isLocale(fromUrl)) return fromUrl
 

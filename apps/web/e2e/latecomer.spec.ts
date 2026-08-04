@@ -92,7 +92,7 @@ test('any recorder gets a named room prompt and one review sheet that closes on 
     await dialog.getByTestId('latecomer-confirm').click()
     await expect(dialog).toHaveCount(0, { timeout: 15_000 })
     await expect(page.getByTestId('latecomer-banner')).toHaveCount(0)
-    await expect(page.getByTestId('room-title')).toBeFocused()
+    await expect(page.getByTestId('open-room-switcher')).toBeFocused()
     await expect(page.locator('[data-testid="balance-card"][data-member="Dani"]')).toHaveAttribute('data-net', '-1500')
 
     await page.getByRole('button', { name: 'Undo' }).click()
@@ -117,7 +117,7 @@ test('optional subsets start off and Not now changes neither identity nor ledger
     await dialog.getByTestId('latecomer-not-now').click()
     await expect(dialog).toHaveCount(0)
     await expect(page.getByTestId('latecomer-banner')).toHaveCount(0)
-    await expect(page.getByTestId('room-title')).toBeFocused()
+    await expect(page.getByTestId('open-room-switcher')).toBeFocused()
     await expect(page.locator('[data-testid="balance-card"][data-member="Dani"]')).toHaveAttribute('data-net', '0')
 
     // The defer is device-local and survives a refresh; no JoinGate or claim

@@ -12,14 +12,14 @@ export const RECENT_ROOMS_KEY = 'ps:recent'
 export const RECENT_ROOMS_LIMIT = 12
 const CANONICAL_ROOM_HOSTS = new Set(['peanutsplit.com', 'www.peanutsplit.com'])
 const ROOM_PATH = /^\/r\/([^/]+)\/?$/
-/** A stem, then a tail. The tail is three words for every room minted since the word
- *  list, and six Crockford base32 characters for every room minted before it. Both
- *  shapes stay valid forever: this reads a pasted link, it does not mint one, and a
- *  room keeps the slug it was issued. */
-const ROOM_SLUG = /^[a-z0-9](?:[a-z0-9-]{0,39})-(?:[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}|[0-9a-hjkmnp-tv-z]{6})$/
+/** A readable stem, then a capability. New rooms carry a 22-character base64url
+ * token (128 random bits); three-word and six-character tails remain accepted
+ * forever because a room keeps the credential it was issued. */
+const ROOM_SLUG =
+    /^[a-z0-9](?:[a-z0-9-]{0,39})-(?:[A-Za-z0-9_-]{22}|[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}|[0-9a-hjkmnp-tv-z]{6})$/
 
 export interface RecentRoom {
-    /** Room slug — the credential. e.g. "ski-trip-brave-otter-lamp" */
+    /** Room slug — the credential. e.g. "ski-trip-R7LxQ3TBJV_uQ2PMhzc8rw" */
     slug: string
     /** Display name at the time it was last seen. */
     name: string

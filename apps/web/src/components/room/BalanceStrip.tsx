@@ -295,6 +295,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                             onSelect(pair.about.id)
                         }}
                         data-testid="open-balance"
+                        data-focus-contained
                         className="grid min-h-24 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                     >
                         {/* Direction has one fixed, high-contrast place. The arrow and complete
@@ -383,6 +384,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                             onSelect(member.id)
                                         }}
                                         data-testid="open-balance"
+                                        data-focus-contained
                                         className="flex w-full flex-col gap-2 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                                     >
                                         <span className="flex items-center gap-2">

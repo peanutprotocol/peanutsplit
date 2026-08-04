@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
+import { buttonClassName } from '@/components/ui/button-style'
 import { trackLanding } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { useFeedback } from '@/lib/use-settings'
@@ -28,7 +29,13 @@ export function LandingAppLink({ variant = 'pass-link' }: { variant?: 'compact' 
             )}
         >
             <p className="text-sm leading-5 text-grey-1">{t('subtitle')}</p>
-            <span className="btn btn-primary btn-shadow-primary-4 flex w-full items-center justify-center gap-2 text-h6">
+            <span
+                className={buttonClassName({
+                    shadowSize: '4',
+                    interactive: false,
+                    className: 'justify-center text-h6',
+                })}
+            >
                 {t('cta')}
                 <Doodle name="iconarrowright" size={22} weight={2.2} />
             </span>

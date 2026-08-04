@@ -5,17 +5,22 @@ import { Icon, type IconName } from './Icon'
 import Loading from './Loading'
 import { triggerHaptic, useSettings } from '@/lib/use-settings'
 import { useLongPress } from '@/hooks/useLongPress'
+import {
+    buttonClassName,
+    type ButtonShape,
+    type ButtonShadowSize,
+    type ButtonShadowType,
+    type ButtonSize,
+    type ButtonVariant,
+    type ButtonWidth,
+} from './button-style'
+
+export type { ButtonSize, ButtonVariant } from './button-style'
 
 // Ported from peanut-ui's Bruddle Button, renamed for Split's palette:
 // variant="primary" shadowSize="4" is the primary CTA and paints YELLOW (#FFC900).
-export type ButtonVariant =
-    'primary' | 'dark' | 'stroke' | 'transparent-light' | 'transparent-dark' | 'transparent' | 'primary-soft'
-export type ButtonSize = 'small' | 'medium' | 'large'
 /** A tap is the lightest cue there is — the same duration use-settings gives 'tick'. */
 const TAP_HAPTIC_MS = 5
-type ButtonShape = 'default' | 'square'
-type ShadowSize = '3' | '4' | '6' | '8'
-type ShadowType = 'primary' | 'secondary'
 
 /**
  * Primary button component.
@@ -29,8 +34,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     variant?: ButtonVariant
     size?: ButtonSize
     shape?: ButtonShape
-    shadowSize?: ShadowSize
-    shadowType?: ShadowType
+    shadowSize?: ButtonShadowSize
+    shadowType?: ButtonShadowType
+    width?: ButtonWidth
     loading?: boolean
     icon?: IconName | React.ReactNode
     iconPosition?: 'left' | 'right'
@@ -46,43 +52,10 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     disableHaptics?: boolean
 }
 
-const buttonVariants: Record<ButtonVariant, string> = {
-    primary: 'btn-primary',
-    dark: 'btn-dark',
-    stroke: 'btn-stroke',
-    'transparent-light': 'btn-transparent-light',
-    'transparent-dark': 'btn-transparent-dark',
-    'primary-soft': 'bg-white',
-    transparent:
-        'bg-transparent border-none hover:bg-transparent !active:bg-transparent focus:bg-transparent disabled:bg-transparent disabled:hover:bg-transparent',
-}
-
-const buttonSizes: Record<ButtonSize, string> = {
-    small: 'btn-small',
-    medium: 'btn-medium',
-    /** @deprecated large (h-10) is shorter than default (h-13). Avoid for primary CTAs. */
-    large: 'btn-large',
-}
-
 const buttonIconSizes: Record<ButtonSize, number> = {
     small: 16,
     medium: 16,
     large: 18,
-}
-
-const buttonShadows: Record<ShadowType, Record<ShadowSize, string>> = {
-    primary: {
-        '3': 'btn-shadow-primary-3',
-        '4': 'btn-shadow-primary-4',
-        '6': 'btn-shadow-primary-6',
-        '8': 'btn-shadow-primary-8',
-    },
-    secondary: {
-        '3': 'btn-shadow-secondary-3',
-        '4': 'btn-shadow-secondary-4',
-        '6': 'btn-shadow-secondary-6',
-        '8': 'btn-shadow-secondary-8',
-    },
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -96,6 +69,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             shape,
             shadowSize,
             shadowType,
+            width,
             icon,
             iconPosition = 'left',
             iconSize,
@@ -131,15 +105,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             [longPress, isLongPressed, onClick, disableHaptics, settings.hapticsEnabled]
         )
 
-        const buttonClasses = twMerge(
-            'btn flex w-full items-center gap-2 transition-all duration-100 active:translate-x-[3px] active:shadow-none',
-            buttonVariants[variant],
-            variant === 'transparent' && disabled && 'disabled:bg-transparent disabled:border-transparent',
-            size && buttonSizes[size],
-            shape === 'square' && 'btn-square',
-            shadowSize && buttonShadows[shadowType || 'primary'][shadowSize],
-            className
-        )
+        const buttonClasses = buttonClassName({
+            variant,
+            size,
+            shape,
+            shadowSize,
+            shadowType,
+            width,
+            disabled,
+            className,
+        })
 
         const resolvedIconSize = iconSize ?? (size && buttonIconSizes[size]) ?? 18
 

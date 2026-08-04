@@ -9,6 +9,11 @@ import { slideToConfirm } from './slide-to-confirm'
 
 const controlBuild = process.env.NEXT_PUBLIC_LANDING_VARIANT === 'control'
 
+// These tests mock and delay browser room requests. A production Serwist worker
+// would own those requests before Playwright routing can observe them; worker
+// behavior has its dedicated coverage in pwa.spec.ts.
+test.use({ serviceWorkers: 'block' })
+
 type Locale = 'en' | 'es-419' | 'pt-br'
 type LandingMessages = {
     marketing: {
@@ -774,45 +779,27 @@ test('every retained room is reachable and can be forgotten only on this device'
 
 test('pasting a valid room link verifies and saves it while invalid links leave no credential behind', async ({
     page,
+    request,
 }) => {
+    const created = await request.post('/api/rooms', {
+        data: { name: 'Recovered room', currency: 'EUR', creatorName: 'Ana' },
+    })
+    expect(created.status()).toBe(201)
+    const recovered = (await created.json()) as { room: { slug: string } }
+    const recoveredPath = `/api/rooms/${recovered.room.slug}`
     const requested: string[] = []
     await page.route('**/api/rooms/*', async (route) => {
         const path = new URL(route.request().url()).pathname
         requested.push(path)
-        if (path.endsWith('/recovered-room-abc123')) {
+        if (path === recoveredPath) {
             // A real verification is asynchronous. Holding the 200 briefly lets
             // the test prove that neither persistence nor navigation happens
             // merely because the pasted string looked like a room URL.
             await new Promise((resolve) => setTimeout(resolve, 250))
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    room: {
-                        id: 'room-recovered',
-                        slug: 'recovered-room-abc123',
-                        name: 'Recovered room',
-                        emoji: 'peanut',
-                        currency: 'EUR',
-                        coverUrl: null,
-                        theme: 'mint',
-                        createdAt: new Date().toISOString(),
-                        archivedAt: null,
-                    },
-                    members: [],
-                    expenses: [],
-                    settlements: [],
-                    balances: {},
-                    suggestedTransfers: [],
-                }),
-            })
+            await route.continue()
             return
         }
-        await route.fulfill({
-            status: 404,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'room not found' } }),
-        })
+        await route.continue()
     })
     await openApp(page)
 
@@ -832,22 +819,30 @@ test('pasting a valid room link verifies and saves it while invalid links leave 
     await expect(recovery.getByRole('alert')).toHaveText(catalogs.en.marketing.rooms.recovery.notFound)
     expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
 
-    await input.fill('peanutsplit.com/r/recovered-room-abc123?from=group-chat#split')
+    await input.fill(`peanutsplit.com/r/${recovered.room.slug}?from=group-chat#split`)
     await submit.click()
-    await expect.poll(() => requested.includes('/api/rooms/recovered-room-abc123')).toBe(true)
-    await expect(page).not.toHaveURL(/\/r\/recovered-room-abc123$/)
+    await expect.poll(() => requested.includes(recoveredPath)).toBe(true)
+    await expect(page).not.toHaveURL(new RegExp(`/r/${recovered.room.slug}$`))
     expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
-    await expect(page).toHaveURL(/\/r\/recovered-room-abc123$/)
+    await expect(page).toHaveURL(new RegExp(`/r/${recovered.room.slug}$`))
     expect(requested[0]).toBe('/api/rooms/missing-room-def456')
-    expect(requested.filter((path) => path === '/api/rooms/recovered-room-abc123').length).toBeGreaterThanOrEqual(1)
+    expect(requested.filter((path) => path === recoveredPath).length).toBeGreaterThanOrEqual(1)
     expect(
         await page.evaluate(() =>
             JSON.parse(window.localStorage.getItem('ps:recent') ?? '[]').map((room: { slug: string }) => room.slug)
         )
-    ).toEqual(['recovered-room-abc123'])
+    ).toEqual([recovered.room.slug])
 })
 
-test('a verified pasted link still opens when localStorage is denied and says it was not saved', async ({ page }) => {
+test('a verified pasted link still opens when localStorage is denied and says it was not saved', async ({
+    page,
+    request,
+}) => {
+    const created = await request.post('/api/rooms', {
+        data: { name: 'Recovered room', currency: 'EUR', creatorName: 'Ana' },
+    })
+    expect(created.status()).toBe(201)
+    const recovered = (await created.json()) as { room: { slug: string } }
     await page.addInitScript(() => {
         const nativeSetItem = Storage.prototype.setItem
         Storage.prototype.setItem = function (key: string, value: string) {
@@ -855,38 +850,14 @@ test('a verified pasted link still opens when localStorage is denied and says it
             return nativeSetItem.call(this, key, value)
         }
     })
-    await page.route('**/api/rooms/recovered-room-abc123', async (route) => {
-        await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                room: {
-                    id: 'room-recovered',
-                    slug: 'recovered-room-abc123',
-                    name: 'Recovered room',
-                    emoji: 'peanut',
-                    currency: 'EUR',
-                    coverUrl: null,
-                    theme: 'mint',
-                    createdAt: new Date().toISOString(),
-                    archivedAt: null,
-                },
-                members: [],
-                expenses: [],
-                settlements: [],
-                balances: {},
-                suggestedTransfers: [],
-            }),
-        })
-    })
     await openApp(page)
 
     const recovery = page.getByTestId('room-link-recovery')
     await recovery.locator('summary').click()
-    await page.getByTestId('recover-room-input').fill('https://peanutsplit.com/r/recovered-room-abc123')
+    await page.getByTestId('recover-room-input').fill(`https://peanutsplit.com/r/${recovered.room.slug}`)
     await page.getByTestId('recover-room-submit').click()
 
-    await expect(page).toHaveURL(/\/r\/recovered-room-abc123$/)
+    await expect(page).toHaveURL(new RegExp(`/r/${recovered.room.slug}$`))
     await expect(
         page.getByText(catalogs.en.marketing.rooms.recovery.openingUnsaved.replace('{room}', 'Recovered room'), {
             exact: true,
@@ -930,7 +901,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
     const payload = await page.evaluate(
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
-    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[a-z]{3,7}-[a-z]{3,7}-[a-z]{3,7}$/)
+    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[A-Za-z0-9_-]{22}$/)
     await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.evaluate(() => {

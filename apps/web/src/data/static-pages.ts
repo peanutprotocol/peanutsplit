@@ -92,7 +92,7 @@ const RESERVED_ROOT_SEGMENTS = [
     'sitemap.xml',
     'manifest.webmanifest',
     'icon.png',
-    // The locale prefixes: middleware reads them as a language, so a page slugged
+    // The locale prefixes: the request proxy reads them as a language, so a page slugged
     // `es-419` would be served at /es-419 and then tagged Spanish.
     'es-419',
     'pt-br',
