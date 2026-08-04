@@ -41,7 +41,7 @@ const questions: ExecutiveQuestion[] = [
         consequence:
             'This decides whether the product needs owners, management credentials, link rotation, account recovery, and a visible delete/archive flow.',
         recommendation:
-            'Decision recorded: stay no-account and possession-of-link before product-market fit, with a strong room capability plus a separate management capability that can rotate or delete. Do not introduce accounts without demand.',
+            'Direction recorded, not active scope: stay no-account and possession-of-link before product-market fit. A separate capability could eventually rotate or delete, but that flow stays in ideas until roughly 1,000 rooms, PMF or real demand; require mockups when it reopens.',
         recordedChoice: 'anonymous-managed',
         choices: [
             {
@@ -294,7 +294,7 @@ export function ExecutiveQuestions() {
                             <Button
                                 type="button"
                                 variant="primary"
-                                className="w-auto"
+                                width="auto"
                                 onClick={() =>
                                     downloadMarkdown(
                                         'peanutsplit-executive-decisions.md',

@@ -1,5 +1,5 @@
 export type Severity = 'critical' | 'high' | 'medium' | 'low'
-export type Status = 'confirmed' | 'conditional' | 'accepted risk'
+export type Status = 'confirmed' | 'conditional' | 'accepted risk' | 'resolved'
 export type Decision = 'unreviewed' | 'fix-now' | 'plan' | 'mockup-review' | 'accept' | 'defer' | 'disagree'
 
 export interface FindingDecision {

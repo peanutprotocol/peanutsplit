@@ -879,7 +879,7 @@ export default function DesignSystemPage() {
                                 Findings are evidence-backed, ranked and sequenced for remediation.
                             </p>
                         </div>
-                        <Link href="/dev-ds/audit" className="btn btn-primary shadow-primary-4 w-auto shrink-0">
+                        <Link href="/dev-ds/audit" className="btn btn-primary shadow-4 w-auto shrink-0">
                             Open audit report
                             <Icon name="arrow-right" size={18} />
                         </Link>

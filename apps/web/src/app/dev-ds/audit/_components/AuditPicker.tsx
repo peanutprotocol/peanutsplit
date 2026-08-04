@@ -425,7 +425,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <Button type="button" variant="dark" className="w-auto" onClick={exportBrief} disableHaptics>
+                        <Button type="button" variant="dark" width="auto" onClick={exportBrief} disableHaptics>
                             Download decision brief
                         </Button>
                         <button
