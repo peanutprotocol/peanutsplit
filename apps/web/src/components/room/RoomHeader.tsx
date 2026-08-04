@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { CharacterSheet } from '@/components/room/CharacterSheet'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
+import { RoomSwitcher } from '@/components/room/RoomSwitcher'
 import { SettingsSheet } from '@/components/room/SettingsSheet'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
@@ -21,7 +22,7 @@ interface RoomHeaderProps {
      *  Null while the room is still loading or when nobody has joined here. */
     me: ApiMember | null
     /** Stable room landmark used when a transient sheet removes its opener. */
-    roomTitleRef?: Ref<HTMLHeadingElement>
+    roomTitleRef?: Ref<HTMLButtonElement>
     onShare: () => void
     onForgetIdentity: () => void
 }
@@ -31,8 +32,8 @@ interface RoomHeaderProps {
  *
  * Everything that used to live in this file — the roster, the character grid,
  * the device preferences, the export block — moved into `SettingsSheet` and its
- * parts. What is left is the bar itself: the emblem opens Settings, your own
- * avatar chip opens YOUR character sheet, and share is share.
+ * parts. What is left is the bar itself: the emblem opens Settings, the title
+ * opens room navigation, and share is share.
  */
 export function RoomHeader({
     room,
@@ -45,7 +46,6 @@ export function RoomHeader({
     onForgetIdentity,
 }: RoomHeaderProps) {
     const t = useTranslations('room.header')
-    const tAvatar = useTranslations('room.avatar')
     const [sheets, setSheets] = useRoomParams()
     // Resolved rather than held, so a member disappearing under an open sheet
     // closes it instead of leaving a sheet about nobody — which is also what an
@@ -63,42 +63,62 @@ export function RoomHeader({
                     onClick={() => setSheets({ settings: true })}
                     aria-label={t('openSettings')}
                     data-testid="open-room-settings"
-                    className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
+                    className="relative flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
                 >
                     <RoomEmblem value={room.emoji} name={room.name} size={26} />
+                    <span
+                        aria-hidden="true"
+                        className="absolute bottom-0 right-0 flex size-5 items-center justify-center rounded-full border border-n-1 bg-white"
+                    >
+                        <Icon name="settings" size={14} />
+                    </span>
                 </button>
 
-                <div className="min-w-0 flex-1">
-                    <h1 ref={roomTitleRef} tabIndex={-1} data-testid="room-title" className="truncate text-h6">
-                        {room.name}
-                    </h1>
-                    {/* Two taps to your own character, and the second one is the
-                        grid — never the settings sheet with a member preselected. */}
-                    {me ? (
-                        <button
-                            type="button"
-                            onClick={() => setSheets({ character: me.id })}
-                            aria-label={tAvatar('open')}
-                            data-testid="open-avatar"
-                            // `max-w-full` because a button shrink-wraps its content: without a
-                            // bounded box the `truncate` below has nothing to truncate against and
-                            // a long name widens the whole document instead.
-                            // The padding is 40px of tap target cancelled by an equal negative
-                            // margin, so the bar keeps the height it had.
-                            className="-my-3 flex max-w-full items-center gap-1.5 py-3"
-                        >
-                            <MemberAvatar name={me.name} avatar={me.avatar} palette={me.avatarPalette} size={16} />
-                            <span className="truncate text-h10 uppercase tracking-wide text-n-1/70">
-                                {`${room.currency} · ${t('youAre', { name: me.name })}`}
+                <h1 className="min-w-0 flex-1">
+                    <button
+                        ref={roomTitleRef}
+                        type="button"
+                        onClick={() => setSheets({ rooms: true })}
+                        aria-haspopup="dialog"
+                        aria-expanded={sheets.rooms}
+                        aria-describedby="room-switcher-description"
+                        data-testid="open-room-switcher"
+                        className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-sm px-1 text-left hover:bg-white/30"
+                    >
+                        <span className="min-w-0 flex-1">
+                            <span data-testid="room-title" className="block truncate text-h6">
+                                {room.name}
                             </span>
-                        </button>
-                    ) : (
-                        <p className="text-h10 uppercase tracking-wide text-n-1/70">
-                            {room.currency}
-                            {identity ? ` · ${t('youAre', { name: identity.name })}` : ''}
-                        </p>
-                    )}
-                </div>
+                            <span className="flex min-w-0 items-center gap-1.5">
+                                {me && (
+                                    <MemberAvatar
+                                        name={me.name}
+                                        avatar={me.avatar}
+                                        palette={me.avatarPalette}
+                                        size={16}
+                                    />
+                                )}
+                                <span className="truncate text-h10 uppercase tracking-wide text-n-1/70">
+                                    {room.currency}
+                                    {me
+                                        ? ` · ${t('youAre', { name: me.name })}`
+                                        : identity
+                                          ? ` · ${t('youAre', { name: identity.name })}`
+                                          : ''}
+                                </span>
+                            </span>
+                        </span>
+                        <Icon
+                            name={sheets.rooms ? 'chevron-up' : 'chevron-down'}
+                            size={18}
+                            className="shrink-0"
+                            aria-hidden="true"
+                        />
+                    </button>
+                </h1>
+                <span id="room-switcher-description" className="sr-only">
+                    {t('openRoomSwitcher')}
+                </span>
 
                 <button
                     type="button"
@@ -122,6 +142,12 @@ export function RoomHeader({
                 onShare={onShare}
                 onForgetIdentity={onForgetIdentity}
                 onOpenCharacter={(memberId) => setSheets({ character: memberId })}
+            />
+
+            <RoomSwitcher
+                open={sheets.rooms}
+                onClose={() => setSheets({ rooms: null }, { history: 'replace' })}
+                room={room}
             />
 
             <CharacterSheet

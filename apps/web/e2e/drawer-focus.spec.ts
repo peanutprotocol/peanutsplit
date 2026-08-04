@@ -69,6 +69,24 @@ test('closing with the X button also returns focus to the trigger', async ({ pag
     expect(await activeElement(page)).toMatchObject({ testid: 'open-room-settings' })
 })
 
+test('the title switcher traps focus and restores it to the title trigger', async ({ page }) => {
+    const trigger = page.getByTestId('open-room-switcher')
+    await trigger.focus()
+    await page.keyboard.press('Enter')
+    await expect(page.getByTestId('room-switcher-sheet')).toBeVisible({ timeout: 10_000 })
+    await page.waitForTimeout(600)
+
+    expect(await activeElement(page)).toMatchObject({ insideDialog: true })
+    await page.keyboard.press('Tab')
+    expect((await activeElement(page)).insideDialog).toBe(true)
+    await page.keyboard.press('Tab')
+    expect((await activeElement(page)).insideDialog).toBe(true)
+
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(800)
+    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-switcher', insideDialog: false })
+})
+
 test('the sheet leaves a tappable strip of room above it', async ({ page }) => {
     await page.getByTestId('open-room-settings').click()
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })

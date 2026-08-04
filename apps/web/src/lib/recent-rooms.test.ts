@@ -69,4 +69,16 @@ describe('recent-room persistence results', () => {
         expect(rememberRoom({ slug: SLUG, name: 'Lisbon weekend' })).toBe(false)
         expect(forgetRoom(SLUG)).toBe(false)
     })
+
+    it('treats a blocked localStorage getter as an empty, unwritable device', () => {
+        vi.stubGlobal('window', {
+            get localStorage() {
+                throw new DOMException('blocked', 'SecurityError')
+            },
+        })
+
+        expect(readRecentRooms()).toEqual([])
+        expect(rememberRoom({ slug: SLUG, name: 'Lisbon weekend' })).toBe(false)
+        expect(forgetRoom(SLUG)).toBe(false)
+    })
 })

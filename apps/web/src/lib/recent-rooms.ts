@@ -36,7 +36,15 @@ export interface RecentRoom {
     lastSeenAt: number
 }
 
-const isBrowser = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+/** Accessing the storage property itself can throw in privacy-restricted browsers. */
+const browserStorage = (): Storage | null => {
+    if (typeof window === 'undefined') return null
+    try {
+        return window.localStorage
+    } catch {
+        return null
+    }
+}
 
 /**
  * Pull a room credential out of a pasted Peanut Split link.
@@ -107,9 +115,10 @@ const normalise = (value: unknown): RecentRoom | null => {
 
 /** Read the recent-room list, newest first. Returns `[]` on the server or on malformed storage. */
 export function readRecentRooms(): RecentRoom[] {
-    if (!isBrowser()) return []
+    const storage = browserStorage()
+    if (!storage) return []
     try {
-        const raw = window.localStorage.getItem(RECENT_ROOMS_KEY)
+        const raw = storage.getItem(RECENT_ROOMS_KEY)
         if (!raw) return []
         const parsed: unknown = JSON.parse(raw)
         if (!Array.isArray(parsed)) return []
@@ -131,7 +140,8 @@ export function readRecentRooms(): RecentRoom[] {
  * distinguish a successful write from private-mode/quota failures.
  */
 export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt?: number }): boolean {
-    if (!isBrowser()) return false
+    const storage = browserStorage()
+    if (!storage) return false
     const entry: RecentRoom = {
         slug: room.slug,
         name: room.name,
@@ -144,7 +154,7 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
         RECENT_ROOMS_LIMIT
     )
     try {
-        window.localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(next))
+        storage.setItem(RECENT_ROOMS_KEY, JSON.stringify(next))
         return true
     } catch {
         return false
@@ -153,9 +163,10 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
 
 /** Drop a room from the list (archived, or the user asked us to forget it). */
 export function forgetRoom(slug: string): boolean {
-    if (!isBrowser()) return false
+    const storage = browserStorage()
+    if (!storage) return false
     try {
-        window.localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(readRecentRooms().filter((r) => r.slug !== slug)))
+        storage.setItem(RECENT_ROOMS_KEY, JSON.stringify(readRecentRooms().filter((r) => r.slug !== slug)))
         return true
     } catch {
         return false

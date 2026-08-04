@@ -33,34 +33,36 @@ for (const [label, name] of [
     test(`the header contains ${label} instead of widening the page`, async ({ page }) => {
         await openRoom(page, `Header ${label}`, name)
 
-        // The chip is a <button>, which shrink-wraps: without a bound, the `truncate` on its child
-        // span has nothing to truncate against and the name runs past the share button, widening
-        // the document and taking the fixed bottom bar with it.
-        const chip = await page.getByTestId('open-avatar').boundingBox()
+        // The whole middle zone is now a button. Its inner name and identity lines
+        // must shrink inside the space left by the fixed Settings and Share targets.
+        const switcher = await page.getByTestId('open-room-switcher').boundingBox()
         const viewport = await page.evaluate(() => document.documentElement.clientWidth)
 
         expect(await documentOverflow(page)).toBe(0)
-        expect(chip!.x + chip!.width).toBeLessThanOrEqual(viewport)
+        expect(switcher!.x + switcher!.width).toBeLessThanOrEqual(viewport)
     })
 }
 
-test('Back closes the settings and avatar sheets rather than leaving the room', async ({ page }) => {
+test('Back closes the settings and room-switcher sheets rather than leaving the room', async ({ page }) => {
     await openRoom(page, 'Back navigation', 'Ana')
     const roomPath = new URL(page.url()).pathname
 
-    // Both sheets used to be `useState`, so the back gesture — the primary dismiss on Android —
-    // skipped past them and exited the room entirely.
+    // Header sheets are URL state, so the back gesture — the primary dismiss on Android —
+    // closes the surface before it can leave the room.
     await page.getByTestId('open-room-settings').click()
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
     await page.goBack()
     await expect(page.getByTestId('settings-sheet')).toBeHidden({ timeout: 10_000 })
     expect(new URL(page.url()).pathname).toBe(roomPath)
 
-    await page.getByTestId('open-avatar').click()
-    await page.waitForTimeout(600)
+    const roomSwitcher = page.getByTestId('open-room-switcher')
+    await roomSwitcher.focus()
+    await page.keyboard.press('Enter')
+    await expect(page.getByTestId('room-switcher-sheet')).toBeVisible({ timeout: 10_000 })
     await page.goBack()
-    await page.waitForTimeout(600)
+    await expect(page.getByTestId('room-switcher-sheet')).toBeHidden({ timeout: 10_000 })
     expect(new URL(page.url()).pathname).toBe(roomPath)
+    await expect(roomSwitcher).toBeFocused()
     await expect(page.getByTestId('open-room-settings')).toBeVisible()
 })
 

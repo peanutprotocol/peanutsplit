@@ -8,7 +8,6 @@ import { DoodlePicker } from '@/components/room/DoodlePicker'
 import { PeopleSection } from '@/components/room/PeopleSection'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
 import { RoomExport } from '@/components/room/RoomExport'
-import { RoomSwitcher } from '@/components/room/RoomSwitcher'
 import { ThemePicker } from '@/components/room/ThemePicker'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
@@ -57,8 +56,8 @@ interface SettingsSheetProps {
  * for deleting every "everyone in this room sees this" sentence — the card says
  * it, in the same paint the header is wearing behind the sheet.
  *
- * Above the card sit the other rooms on this device; below it, the one row that
- * really is per device. Nothing about the room needs a second level.
+ * Below the card sits the one row that really is per device. Room navigation
+ * has its own focused sheet, opened by the title in the room header.
  */
 export function SettingsSheet({
     open,
@@ -212,8 +211,6 @@ export function SettingsSheet({
                         <CloseButton onClick={onClose} label={t('close')} data-testid="close-room-settings" />
                     </DrawerHeader>
                     <DrawerBody>
-                        <RoomSwitcher currentSlug={room.slug} />
-
                         <section
                             data-testid="room-card"
                             // The card wears the room's own field colour. This is the
