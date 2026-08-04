@@ -128,6 +128,10 @@ test('optional subsets start off and Not now changes neither identity nor ledger
 })
 
 test('Share keeps priority over the room prompt and an empty room has no catch-up', async ({ page, request }) => {
+    // Two rooms and a full UI pass in one test: the default 30s is enough on a
+    // warm server and not on a cold or saturated one — same budget precedent as
+    // room-settings.spec.
+    test.setTimeout(60_000)
     await page.setViewportSize({ width: 320, height: 568 })
     const longName = 'D'.repeat(80)
     const room = await createRoom(request, 'Share priority')
