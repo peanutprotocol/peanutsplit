@@ -74,6 +74,20 @@ for (const viewport of [
         await expect(picker).toHaveCount(0)
         await expect(expense.getByTestId('reaction-pill')).toHaveCount(1, { timeout: 15_000 })
 
+        // A saved reaction makes the card taller than its expense-row button.
+        // Holding that lower card area must still reopen the picker.
+        const cardTarget = await expense.boundingBox()
+        const rowTarget = await row.boundingBox()
+        if (!cardTarget || !rowTarget) throw new Error('expense card has no lower pointer target')
+        expect(cardTarget.height).toBeGreaterThan(rowTarget.height)
+        await page.mouse.move(cardTarget.x + 8, cardTarget.y + cardTarget.height - 6)
+        await page.mouse.down()
+        await expect(picker).toBeVisible({ timeout: 1_000 })
+        await page.mouse.up()
+        await picker.getByTestId('reaction-option').first().focus()
+        await page.keyboard.press('Escape')
+        await expect(picker).toHaveCount(0)
+
         const withReaction = await expense.boundingBox()
         if (!withReaction) throw new Error('expense has no layout box with a saved reaction')
         await trigger.focus()
@@ -92,5 +106,12 @@ for (const viewport of [
         await page.keyboard.press('Escape')
         await expect(picker).toHaveCount(0)
         await expect(trigger).toBeFocused()
+
+        const reactionPill = expense.getByTestId('reaction-pill')
+        await reactionPill.click()
+        await expect(reactionPill).toHaveCount(0, { timeout: 15_000 })
+        await row.click()
+        await expect(page.getByTestId('expense-drawer')).toBeVisible()
+        await page.getByTestId('close-expense').click()
     })
 }

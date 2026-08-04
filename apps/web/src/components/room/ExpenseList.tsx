@@ -46,6 +46,10 @@ const POP_MS = 260
 const LONG_PRESS_MS = 450
 const LONG_PRESS_MOVE_PX = 8
 const SUPPRESS_CLICK_MS = 700
+const EXPENSE_PRESS_CONTROL_SELECTOR = 'button, a, input, select, textarea, [role="button"]'
+
+const expensePressTarget = (target: EventTarget | null, card: Element): Element =>
+    target instanceof Element ? (target.closest(EXPENSE_PRESS_CONTROL_SELECTOR) ?? card) : card
 
 /**
  * Matching can include a conservative typo scan across the term catalog. Keeping the
@@ -103,11 +107,17 @@ export function getExpensePersonalPosition(
 interface ExpensePress {
     expenseId: string
     pointerId: number
+    captureTarget: Element
     startX: number
     startY: number
     timer: number
     longPressed: boolean
     moved: boolean
+}
+
+interface SuppressedExpenseClick {
+    expenseId: string
+    target: Element
 }
 
 /**
@@ -167,7 +177,7 @@ export function ExpenseList({
     const queued = useQueuedWrites(slug)
     const [openReactionExpenseId, setOpenReactionExpenseId] = useState<string | null>(null)
     const press = useRef<ExpensePress | null>(null)
-    const suppressClickExpenseId = useRef<string | null>(null)
+    const suppressedClick = useRef<SuppressedExpenseClick | null>(null)
     const suppressClickTimer = useRef<number | null>(null)
     /** Expenses and payments in one list, newest first — see `lib/timeline.ts`
      *  for why a settlement's `createdAt` is the date it interleaves on. */
@@ -181,12 +191,12 @@ export function ExpenseList({
     const clearClickSuppression = () => {
         if (suppressClickTimer.current !== null) window.clearTimeout(suppressClickTimer.current)
         suppressClickTimer.current = null
-        suppressClickExpenseId.current = null
+        suppressedClick.current = null
     }
 
-    const suppressNextClick = (expenseId: string) => {
+    const suppressNextClick = (expenseId: string, target: Element) => {
         clearClickSuppression()
-        suppressClickExpenseId.current = expenseId
+        suppressedClick.current = { expenseId, target }
         suppressClickTimer.current = window.setTimeout(clearClickSuppression, SUPPRESS_CLICK_MS)
     }
 
@@ -218,12 +228,15 @@ export function ExpenseList({
         return () => document.removeEventListener('pointerdown', closeOutside)
     }, [openReactionExpenseId])
 
-    const startPress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string, canLongPress: boolean) => {
+    const startPress = (event: ReactPointerEvent<HTMLElement>, expenseId: string, canLongPress: boolean) => {
         if (!canLongPress || !event.isPrimary || event.button !== 0) return
         clearPress()
+        clearClickSuppression()
+        const captureTarget = expensePressTarget(event.target, event.currentTarget)
         const nextPress: ExpensePress = {
             expenseId,
             pointerId: event.pointerId,
+            captureTarget,
             startX: event.clientX,
             startY: event.clientY,
             timer: 0,
@@ -233,14 +246,14 @@ export function ExpenseList({
         nextPress.timer = window.setTimeout(() => {
             if (press.current !== nextPress) return
             nextPress.longPressed = true
-            suppressClickExpenseId.current = expenseId
+            suppressedClick.current = { expenseId, target: captureTarget }
             setOpenReactionExpenseId(expenseId)
         }, LONG_PRESS_MS)
         press.current = nextPress
-        event.currentTarget.setPointerCapture?.(event.pointerId)
+        captureTarget.setPointerCapture?.(event.pointerId)
     }
 
-    const movePress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string) => {
+    const movePress = (event: ReactPointerEvent<HTMLElement>, expenseId: string) => {
         const current = press.current
         if (!current || current.expenseId !== expenseId || current.pointerId !== event.pointerId) return
         if (
@@ -256,40 +269,36 @@ export function ExpenseList({
         }
     }
 
-    const finishPress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string) => {
+    const finishPress = (event: ReactPointerEvent<HTMLElement>, expenseId: string) => {
         const current = press.current
         if (!current || current.expenseId !== expenseId || current.pointerId !== event.pointerId) return
         const shouldSuppressClick = current.longPressed || current.moved
         clearPress()
-        if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId)
+        if (current.captureTarget.hasPointerCapture?.(event.pointerId)) {
+            current.captureTarget.releasePointerCapture(event.pointerId)
         }
         if (!shouldSuppressClick) return
 
         // Mobile browsers can synthesize the click well after pointer release.
         // Keep the guard beyond that delay, but consume it as soon as the
         // expected click arrives.
-        suppressNextClick(expenseId)
+        suppressNextClick(expenseId, current.captureTarget)
     }
 
-    const cancelPress = (event: ReactPointerEvent<HTMLButtonElement>, expenseId: string) => {
+    const cancelPress = (event: ReactPointerEvent<HTMLElement>, expenseId: string) => {
         const current = press.current
         if (!current || current.expenseId !== expenseId || current.pointerId !== event.pointerId) return
         clearPress()
-        if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId)
+        if (current.captureTarget.hasPointerCapture?.(event.pointerId)) {
+            current.captureTarget.releasePointerCapture(event.pointerId)
         }
-        if (suppressClickExpenseId.current === expenseId) clearClickSuppression()
+        if (suppressedClick.current?.expenseId === expenseId) clearClickSuppression()
         if (current.longPressed && openReactionExpenseId === expenseId) {
             setOpenReactionExpenseId(null)
         }
     }
 
     const selectExpense = (expenseId: string) => {
-        if (suppressClickExpenseId.current === expenseId) {
-            clearClickSuppression()
-            return
-        }
         setOpenReactionExpenseId(null)
         onSelect(expenseId)
     }
@@ -486,7 +495,43 @@ export function ExpenseList({
                                         data-motion-surface
                                         data-expense-history-item
                                         data-expense-id={expense.id}
-                                        className="flex flex-col"
+                                        onPointerDown={(event) => startPress(event, expense.id, canReactToExpense)}
+                                        onPointerMove={(event) => movePress(event, expense.id)}
+                                        onPointerUp={(event) => finishPress(event, expense.id)}
+                                        onPointerCancel={(event) => cancelPress(event, expense.id)}
+                                        onLostPointerCapture={(event) => cancelPress(event, expense.id)}
+                                        onContextMenu={(event) => {
+                                            if (!canReactToExpense) return
+                                            event.preventDefault()
+                                            const current = press.current
+                                            if (current?.expenseId === expense.id) {
+                                                current.longPressed = true
+                                                suppressedClick.current = {
+                                                    expenseId: expense.id,
+                                                    target: current.captureTarget,
+                                                }
+                                            } else {
+                                                suppressNextClick(
+                                                    expense.id,
+                                                    expensePressTarget(event.target, event.currentTarget)
+                                                )
+                                            }
+                                            setOpenReactionExpenseId(expense.id)
+                                        }}
+                                        onClickCapture={(event) => {
+                                            const suppressed = suppressedClick.current
+                                            if (
+                                                suppressed?.expenseId !== expense.id ||
+                                                suppressed.target !==
+                                                    expensePressTarget(event.target, event.currentTarget)
+                                            ) {
+                                                return
+                                            }
+                                            event.preventDefault()
+                                            event.stopPropagation()
+                                            clearClickSuppression()
+                                        }}
+                                        className="flex touch-pan-y select-none flex-col"
                                     >
                                         <button
                                             type="button"
@@ -494,23 +539,6 @@ export function ExpenseList({
                                             aria-describedby={
                                                 savedActionsDisabled ? 'room-stale-warning-copy' : undefined
                                             }
-                                            onPointerDown={(event) => startPress(event, expense.id, canReactToExpense)}
-                                            onPointerMove={(event) => movePress(event, expense.id)}
-                                            onPointerUp={(event) => finishPress(event, expense.id)}
-                                            onPointerCancel={(event) => cancelPress(event, expense.id)}
-                                            onLostPointerCapture={(event) => cancelPress(event, expense.id)}
-                                            onContextMenu={(event) => {
-                                                if (!canReactToExpense) return
-                                                event.preventDefault()
-                                                const current = press.current
-                                                if (current?.expenseId === expense.id) {
-                                                    current.longPressed = true
-                                                    suppressClickExpenseId.current = expense.id
-                                                } else {
-                                                    suppressNextClick(expense.id)
-                                                }
-                                                setOpenReactionExpenseId(expense.id)
-                                            }}
                                             onClick={() => selectExpense(expense.id)}
                                             data-testid="expense-row"
                                             data-description={expense.description}
@@ -521,7 +549,7 @@ export function ExpenseList({
                                             // owned by motion, and two writers on one
                                             // property is a fight nobody wins.
                                             className={cn(
-                                                'flex min-h-[4.75rem] w-full touch-pan-y select-none items-start gap-3 px-3 pb-2 pt-3 text-left transition-colors duration-100 active:bg-grey-3 disabled:active:bg-transparent',
+                                                'flex min-h-[4.75rem] w-full items-start gap-3 px-3 pb-2 pt-3 text-left transition-colors duration-100 active:bg-grey-3 disabled:active:bg-transparent',
                                                 poppedId === expense.id && 'animate-pop'
                                             )}
                                         >
