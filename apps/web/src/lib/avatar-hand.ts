@@ -25,9 +25,9 @@
 
 import { AVATAR_KEYS, type AvatarKey } from './avatars'
 import {
-    AVATAR_PALETTE_KEYS,
     avatarPaletteForIdentity,
     isAvatarPaletteKey,
+    separatedAvatarPaletteKeys,
     type AvatarPaletteKey,
 } from './avatar-palettes'
 
@@ -204,45 +204,44 @@ export function initialHand(value: string | null | undefined): AvatarKey[] {
 /**
  * Stable colours for the server-rendered first hand.
  *
- * The selected pair comes from the member row. Every other offer starts from
- * its catalog index and walks to the next unused reviewed palette, which keeps
- * the eight tiles different without asking for randomness during hydration.
+ * The selected pair comes from the member row. Every other offer greedily
+ * maximizes OKLab distance from the room and the colours already dealt, without
+ * asking for randomness during hydration.
  */
 export function initialPaletteHand(
     hand: readonly AvatarKey[],
     value: string | null | undefined,
-    valuePalette: string | null | undefined
+    valuePalette: string | null | undefined,
+    occupied: readonly string[] = []
 ): AvatarPaletteKey[] {
     const palettes = new Array<AvatarPaletteKey>(hand.length)
-    const used = new Set<AvatarPaletteKey>()
     const selectedSlot = isOfferable(value) ? hand.indexOf(value) : -1
+    const selectedPalette =
+        selectedSlot >= 0
+            ? isAvatarPaletteKey(valuePalette)
+                ? valuePalette
+                : avatarPaletteForIdentity(value ?? hand[selectedSlot]).key
+            : null
 
-    if (selectedSlot >= 0) {
-        const selectedPalette = isAvatarPaletteKey(valuePalette)
-            ? valuePalette
-            : avatarPaletteForIdentity(value ?? hand[selectedSlot]).key
+    if (selectedSlot >= 0 && selectedPalette) {
         palettes[selectedSlot] = selectedPalette
-        used.add(selectedPalette)
     }
 
+    const offers = separatedAvatarPaletteKeys(hand.length - (selectedSlot >= 0 ? 1 : 0), occupied, [
+        ...(selectedPalette ? [selectedPalette] : []),
+    ])
+    let offer = 0
     for (let slot = 0; slot < hand.length; slot++) {
         if (slot === selectedSlot && palettes[slot]) continue
-        const start = Math.max(0, AVATAR_KEYS.indexOf(hand[slot])) % AVATAR_PALETTE_KEYS.length
-        const palette = Array.from(
-            { length: AVATAR_PALETTE_KEYS.length },
-            (_, offset) => AVATAR_PALETTE_KEYS[(start + offset) % AVATAR_PALETTE_KEYS.length]
-        ).find((candidate) => !used.has(candidate))
-        // The picker has eight slots and the reviewed pool has twenty-four.
-        // This fallback is defensive if those product constants ever diverge.
-        const chosen = palette ?? AVATAR_PALETTE_KEYS[start]
-        palettes[slot] = chosen
-        used.add(chosen)
+        palettes[slot] = offers[offer++]
     }
     return palettes
 }
 
 /**
- * Deal one unique reviewed colour to each landing character.
+ * Deal room-free reviewed colours to the landing characters. Offers stay
+ * unique while the remaining room-free pool is large enough; in a crowded room
+ * repeating a free colour is better than offering one another member wears.
  *
  * Like the character hand, this is only an offer. The selected member pair is
  * forced into its landing slot so pressing the die never edits or visually
@@ -252,22 +251,18 @@ export function planPaletteHand(
     hand: readonly AvatarKey[],
     value: string | null | undefined,
     valuePalette: string | null | undefined,
-    random: () => number = Math.random
+    random: () => number = Math.random,
+    occupied: readonly string[] = []
 ): AvatarPaletteKey[] {
-    const palettes = shuffle(AVATAR_PALETTE_KEYS, random).slice(0, hand.length)
     const selectedSlot = isOfferable(value) ? hand.indexOf(value) : -1
-    if (selectedSlot < 0) return palettes
-    const selectedPalette = isAvatarPaletteKey(valuePalette)
-        ? valuePalette
-        : avatarPaletteForIdentity(value ?? hand[selectedSlot]).key
-
-    const heldSlot = palettes.indexOf(selectedPalette)
-    if (heldSlot >= 0) {
-        const held = palettes[selectedSlot]
-        palettes[selectedSlot] = selectedPalette
-        palettes[heldSlot] = held
-    } else {
-        palettes[selectedSlot] = selectedPalette
+    const palettes = initialPaletteHand(hand, value, valuePalette, occupied)
+    const offerSlots = palettes.flatMap((_, slot) => (slot === selectedSlot ? [] : [slot]))
+    const shuffledOffers = shuffle(
+        offerSlots.map((slot) => palettes[slot]),
+        random
+    )
+    for (let index = 0; index < offerSlots.length; index++) {
+        palettes[offerSlots[index]] = shuffledOffers[index]
     }
     return palettes
 }

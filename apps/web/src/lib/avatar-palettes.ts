@@ -85,6 +85,11 @@ export function avatarPaletteForIdentity(identity: string): (typeof AVATAR_PALET
     return AVATAR_PALETTES[hash(identity) % AVATAR_PALETTES.length]
 }
 
+/** The stored colour, or the exact compatibility colour MemberAvatar renders. */
+export function effectiveAvatarPaletteKey(value: unknown, identity: string): AvatarPaletteKey {
+    return isAvatarPaletteKey(value) ? value : avatarPaletteForIdentity(identity).key
+}
+
 const pick = (random: () => number, count: number): number =>
     count <= 1 ? 0 : Math.min(Math.max(Math.floor(random() * count), 0), count - 1)
 
@@ -95,8 +100,8 @@ export function randomAvatarPaletteKey(
 ): AvatarPaletteKey {
     const excluded = new Set(typeof exclude === 'string' ? [exclude] : (exclude ?? []))
     const available = AVATAR_PALETTE_KEYS.filter((key) => !excluded.has(key))
-    // Once a room is larger than the reviewed pool, reuse is better than an
-    // undefined colour. The ordinary cap is twenty, so this is defensive.
+    // Once a caller excludes the whole reviewed pool, reuse is better than an
+    // undefined colour. Room-aware callers use the perceptual allocator below.
     const candidates = available.length > 0 ? available : AVATAR_PALETTE_KEYS
     return candidates[pick(random, candidates.length)]
 }
@@ -118,6 +123,113 @@ export function dealAvatarPaletteKeys(count: number, random: () => number = Math
         pool[swap] = held
     }
     return pool.slice(0, count)
+}
+
+interface OklabColor {
+    l: number
+    a: number
+    b: number
+}
+
+/** Convert a catalogued sRGB hex colour to perceptually uniform OKLab. */
+function avatarColorOklab(hex: string): OklabColor {
+    const red = channel(Number.parseInt(hex.slice(1, 3), 16))
+    const green = channel(Number.parseInt(hex.slice(3, 5), 16))
+    const blue = channel(Number.parseInt(hex.slice(5, 7), 16))
+    const l = Math.cbrt(0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue)
+    const m = Math.cbrt(0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue)
+    const s = Math.cbrt(0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue)
+    return {
+        l: 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+        a: 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+        b: 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+    }
+}
+
+const OKLAB_BY_KEY = new Map(
+    AVATAR_PALETTES.map((palette) => [
+        palette.key,
+        { background: avatarColorOklab(palette.background), ink: avatarColorOklab(palette.ink) },
+    ])
+)
+
+const colorDistanceSquared = (left: OklabColor, right: OklabColor): number =>
+    (left.l - right.l) ** 2 + (left.a - right.a) ** 2 + (left.b - right.b) ** 2
+
+/** OKLab distance across the dominant ground and the smaller drawing stroke. */
+export function avatarPaletteDistance(left: AvatarPaletteKey, right: AvatarPaletteKey): number {
+    const first = OKLAB_BY_KEY.get(left)!
+    const second = OKLAB_BY_KEY.get(right)!
+    return Math.sqrt(
+        0.8 * colorDistanceSquared(first.background, second.background) +
+            0.2 * colorDistanceSquared(first.ink, second.ink)
+    )
+}
+
+const greedySeparated = (
+    candidates: readonly AvatarPaletteKey[],
+    anchors: readonly AvatarPaletteKey[]
+): AvatarPaletteKey[] => {
+    const remaining = [...candidates]
+    const chosen: AvatarPaletteKey[] = []
+    while (remaining.length > 0) {
+        const references = [...anchors, ...chosen]
+        let bestIndex = 0
+        let bestDistance = -1
+        for (let index = 0; index < remaining.length; index++) {
+            const candidate = remaining[index]
+            const otherReferences = references.filter((key) => key !== candidate)
+            const distance =
+                otherReferences.length === 0
+                    ? Number.POSITIVE_INFINITY
+                    : Math.min(...otherReferences.map((key) => avatarPaletteDistance(candidate, key)))
+            if (distance > bestDistance) {
+                bestDistance = distance
+                bestIndex = index
+            }
+        }
+        chosen.push(remaining.splice(bestIndex, 1)[0])
+    }
+    return chosen
+}
+
+/**
+ * Room-aware offer colours, in deterministic greedy maximin order.
+ *
+ * Exact room matches are excluded while at least one catalog colour remains.
+ * If fewer colours remain than requested, those safe colours repeat. When a
+ * very large room occupies the whole catalog, exact reuse is unavoidable; the
+ * fallback still chooses the least visually crowded pairs first.
+ */
+export function separatedAvatarPaletteKeys(
+    count: number,
+    occupied: readonly string[] = [],
+    reserved: readonly string[] = []
+): AvatarPaletteKey[] {
+    if (!Number.isInteger(count) || count < 0) throw new RangeError('palette count must be a non-negative integer')
+    if (count === 0) return []
+
+    const occupiedKeys = occupied.filter(isAvatarPaletteKey)
+    const occupiedSet = new Set(occupiedKeys)
+    const reservedSet = new Set(reserved.filter(isAvatarPaletteKey))
+    const free = AVATAR_PALETTE_KEYS.filter((key) => !occupiedSet.has(key))
+
+    if (free.length === 0) {
+        const reusable = greedySeparated(AVATAR_PALETTE_KEYS, occupiedKeys)
+        return Array.from({ length: count }, (_, index) => reusable[index % reusable.length])
+    }
+
+    const anchors = [...occupiedKeys, ...reservedSet]
+    const firstPass = greedySeparated(
+        free.filter((key) => !reservedSet.has(key)),
+        anchors
+    )
+    const result = firstPass.slice(0, count)
+    if (result.length === count) return result
+
+    const repeatable = greedySeparated(free, occupiedKeys)
+    while (result.length < count) result.push(repeatable[(result.length - firstPass.length) % repeatable.length])
+    return result
 }
 
 function channel(value: number): number {
