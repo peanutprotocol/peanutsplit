@@ -4,6 +4,7 @@ import { memberTokenOf, notFound, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState } from '@/server/roomState'
 import { actorFromToken, appendRoomAuditEvent, expenseAuditSnapshot, lockRoomWrite } from '@/server/history'
+import { assertWritable } from '@/server/rooms'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,7 @@ export const POST = (request: Request, ctx: Ctx) =>
             if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
             const roomRow = await tx.room.findUniqueOrThrow({ where: { id: expense.roomId }, select: { slug: true } })
             const room = await loadRoom(roomRow.slug, tx)
+            assertWritable(room)
             if (expense.deletedAt) {
                 await tx.expense.update({ where: { id }, data: { deletedAt: null } })
                 await appendRoomAuditEvent({

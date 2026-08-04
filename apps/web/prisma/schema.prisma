@@ -22,9 +22,9 @@ enum SplitMode {
 
 model Room {
   id                          String           @id @default(uuid())
-  // "ski-trip-brave-otter-lamp" — kebab name + 3 random words. Rooms minted
-  // before the word list carry a 6-character base32 tail and keep it; nothing
-  // reads the tail's shape, so both are valid forever.
+  // "ski-trip-R7LxQ3TBJV_uQ2PMhzc8rw" — readable name + 128-bit capability.
+  // Earlier rooms keep their three-word or 6-character tails; nothing in the
+  // database lookup interprets tail shape, so every issued link remains valid.
   slug                        String           @unique
   name                        String
   emoji                       String?

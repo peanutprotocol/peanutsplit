@@ -1,5 +1,5 @@
-import { badRequest, readJsonCapped, respond } from '@/server/http'
-import { CREATE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
+import { ApiError, badRequest, readJsonCapped, respond } from '@/server/http'
+import { IMPORT_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { toRoomState } from '@/server/roomState'
 import { importRoom } from '@/server/splitwiseImport'
 import { importRoomSchema } from '@/server/validation'
@@ -15,6 +15,16 @@ export const dynamic = 'force-dynamic'
  * declared one is — the header alone would be a claim, and an absent one reads as zero.
  */
 const MAX_BODY_BYTES = 1_000_000
+/** Aggregate row-amplification ceiling, equal to the full documented product
+ * envelope. It is intentionally explicit even though the two dimension guards
+ * imply it today, so a future limit change cannot silently remove the overall
+ * hard stop before Zod or a transaction runs. */
+export const MAX_IMPORT_SHARE_ROWS = MAX_EXPENSES * MAX_MEMBERS
+
+/** Operational kill switch, deliberately process-local and configuration-only.
+ * Missing means enabled so existing deployments retain their behavior. */
+const importsEnabled = (): boolean =>
+    !['0', 'false', 'off'].includes(process.env.SPLIT_IMPORT_ENABLED?.trim().toLowerCase() ?? '')
 
 /**
  * Bound multiplicative collections before Zod traverses them. The byte cap protects buffering,
@@ -34,11 +44,18 @@ export function assertImportCardinality(raw: unknown): void {
         throw badRequest('that import has too many expenses', 'IMPORT_TOO_LARGE')
     }
 
+    let totalShares = 0
     for (const expense of record.expenses) {
         if (typeof expense !== 'object' || expense === null) continue
         const shares = (expense as Record<string, unknown>).shares
         if (Array.isArray(shares) && shares.length > MAX_MEMBERS) {
             throw badRequest('an imported expense has too many shares', 'IMPORT_TOO_LARGE')
+        }
+        if (Array.isArray(shares)) {
+            totalShares += shares.length
+            if (totalShares > MAX_IMPORT_SHARE_ROWS) {
+                throw badRequest('that import has too many total shares', 'IMPORT_TOO_LARGE')
+            }
         }
     }
 }
@@ -61,7 +78,10 @@ export function assertImportCardinality(raw: unknown): void {
  */
 export const POST = (request: Request) =>
     respond(async (): Promise<RoomStateWithMember> => {
-        enforceRateLimit(request, CREATE_LIMIT, 'create')
+        if (!importsEnabled()) {
+            throw new ApiError(503, 'IMPORT_UNAVAILABLE', 'imports are temporarily paused — try again later')
+        }
+        enforceRateLimit(request, IMPORT_LIMIT, 'import')
 
         const raw = await readJsonCapped(
             request,

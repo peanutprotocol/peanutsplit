@@ -24,10 +24,19 @@ export const conflict = (message: string, code = 'CONFLICT') => new ApiError(409
 /** BigInt has no JSON representation — every amount goes out as a string. */
 const replacer = (_key: string, value: unknown) => (typeof value === 'bigint' ? value.toString() : value)
 
+/** API JSON is private unless a genuinely public route explicitly opts into a
+ * cache policy. Most responses carry a room capability or financial state, and
+ * an omitted header should fail closed at browsers and intermediary proxies. */
+export const PRIVATE_JSON_CACHE_CONTROL = 'private, no-store'
+
 export function json(data: unknown, status = 200, headers: Record<string, string> = {}): Response {
     return new Response(JSON.stringify(data, replacer), {
         status,
-        headers: { 'Content-Type': 'application/json', ...headers },
+        headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': PRIVATE_JSON_CACHE_CONTROL,
+            ...headers,
+        },
     })
 }
 

@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { ApiError, DEFAULT_JSON_BODY_BYTES, badRequest, readJson, readJsonCapped, respond } from './http'
+import {
+    ApiError,
+    DEFAULT_JSON_BODY_BYTES,
+    PRIVATE_JSON_CACHE_CONTROL,
+    badRequest,
+    json,
+    readJson,
+    readJsonCapped,
+    respond,
+} from './http'
 
 const request = (body: BodyInit, headers: Record<string, string> = {}) =>
     new Request('https://example.test/api', {
@@ -8,6 +17,18 @@ const request = (body: BodyInit, headers: Record<string, string> = {}) =>
         headers: { 'content-type': 'application/json', ...headers },
         duplex: 'half',
     } as RequestInit & { duplex: 'half' })
+
+describe('JSON response caching', () => {
+    it('defaults API JSON to private no-store', () => {
+        expect(json({ room: 'private' }).headers.get('Cache-Control')).toBe(PRIVATE_JSON_CACHE_CONTROL)
+    })
+
+    it('lets an explicitly public endpoint override the private default', () => {
+        expect(
+            json({ public: true }, 200, { 'Cache-Control': 'public, max-age=60' }).headers.get('Cache-Control')
+        ).toBe('public, max-age=60')
+    })
+})
 
 describe('readJson', () => {
     it('parses an ordinary JSON request', async () => {
