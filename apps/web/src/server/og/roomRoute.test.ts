@@ -10,6 +10,7 @@
  * storefront rather than a type error.
  */
 import { beforeAll, describe, expect, it } from 'vitest'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { prisma, truncateAll } from '@/server/test/db'
 import RoomOgImage from '@/app/r/[slug]/opengraph-image'
 
@@ -33,7 +34,12 @@ describe('room opengraph-image', () => {
             data: {
                 slug: 'ski-trip-room01',
                 name: 'Ski trip 🎿 東京',
-                emoji: '🎿',
+                emoji: encodeRoomDrawing([
+                    [
+                        { x: 0.15, y: 0.2 },
+                        { x: 0.85, y: 0.8 },
+                    ],
+                ]),
                 currency: 'EUR',
                 theme: 'coral',
                 members: {

@@ -1,4 +1,5 @@
-import { DOODLE } from '@/components/ui/doodles'
+import { DOODLE, isDoodleName } from '@/components/ui/doodles'
+import { decodeRoomDrawing, roomDrawingPathData } from '@/lib/room-drawing'
 
 /** Ink for the unfurl. The card's own art sits on a coloured field, and the drawing has to read
  *  on all of them, so it always uses warm dark ink rather than the theme's accent. */
@@ -37,4 +38,17 @@ export function doodleDataUri(
         `stroke-width="${options?.weight ?? OG_WEIGHT}" ` +
         `stroke-linecap="round" stroke-linejoin="round"/></svg>`
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+/** A preset or somebody's custom black-ink drawing, ready for an OG `<img>`. */
+export function emblemDataUri(value: string): string | null {
+    const drawing = decodeRoomDrawing(value)
+    if (drawing) {
+        const svg =
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
+            `<path d="${roomDrawingPathData(drawing, 32)}" fill="none" stroke="${OG_INK}" ` +
+            `stroke-width="${OG_WEIGHT}" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+    }
+    return isDoodleName(value) ? doodleDataUri(value) : null
 }

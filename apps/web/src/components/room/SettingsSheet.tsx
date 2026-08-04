@@ -18,7 +18,6 @@ import { DrawerActions, DrawerBody, drawerContentClass, drawerHeaderClass } from
 import { Icon } from '@/components/ui/Icon'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
-import type { DoodleName } from '@/components/ui/doodles'
 import { asLocale, LOCALE_LABELS } from '@/i18n/locales'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
@@ -27,7 +26,7 @@ import { copyText } from '@/lib/clipboard'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { useSetEmblem, useSetRoomName, useSetTheme } from '@/lib/queries'
-import { emblemChoice, roomEmblemDoodle } from '@/lib/room-emblem'
+import { emblemChoice, roomEmblemValue } from '@/lib/room-emblem'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
@@ -146,10 +145,10 @@ export function SettingsSheet({
     /**
      * The drawing the tile is showing, which is what the picker has to highlight.
      * A room made before the drawings still stores an emoji character, and a room
-     * that never picked one follows its name; `roomEmblemDoodle` is the one place
-     * both of those readings happen.
+     * that never picked one follows its name; `roomEmblemValue` is the one place
+     * those readings and a custom drawing stay intact.
      */
-    const shownEmblem = roomEmblemDoodle(room.emoji, nameForDoodle)
+    const shownEmblem = roomEmblemValue(room.emoji, nameForDoodle)
 
     /**
      * Committed on the tap, like the theme: the picker closes, the tile is already
@@ -160,7 +159,7 @@ export function SettingsSheet({
      * instead of freezing it. Blur has already committed any rename by the time a
      * tile can be tapped, so the draft and the stored name agree here.
      */
-    const chooseEmblem = (next: DoodleName) => {
+    const chooseEmblem = (next: string) => {
         setPickerOpen(false)
         const choice = emblemChoice(next, room.emoji, nameForDoodle)
         if (!choice) return

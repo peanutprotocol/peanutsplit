@@ -1,4 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { isAvatarKey } from '@/lib/avatars'
@@ -268,6 +269,11 @@ describe('toRecapCard', () => {
     it('carries a stored doodle name through as the emblem', () => {
         const card = toRecapCard(recapOf({ emoji: 'pizza' }))
         expect(card.emblem).toBe('pizza')
+    })
+
+    it('preserves a custom drawing for the recap artwork', () => {
+        const custom = encodeRoomDrawing([[{ x: 0.5, y: 0.5 }]])
+        expect(toRecapCard(recapOf({ emoji: custom })).emblem).toBe(custom)
     })
 
     it('translates a legacy emoji emblem to its drawing', () => {

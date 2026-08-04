@@ -1,5 +1,7 @@
 import { Doodle } from '@/components/ui/Doodle'
+import { CustomRoomDrawing } from '@/components/ui/CustomRoomDrawing'
 import { roomEmblemDoodle } from '@/lib/room-emblem'
+import { decodeRoomDrawing } from '@/lib/room-drawing'
 
 interface RoomEmblemProps {
     /** The room's stored emblem: a doodle name, an emoji character, or nothing. */
@@ -27,6 +29,10 @@ interface RoomEmblemProps {
  * entirely.
  */
 export function RoomEmblem({ value, name, size = 28, className }: RoomEmblemProps) {
+    const drawing = decodeRoomDrawing(value)
+    if (drawing) {
+        return <CustomRoomDrawing strokes={drawing} width={size} height={size} className={className} />
+    }
     return <Doodle name={roomEmblemDoodle(value, name)} size={size} className={className} />
 }
 

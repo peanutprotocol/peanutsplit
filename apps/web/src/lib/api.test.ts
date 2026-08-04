@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { encodeRoomDrawing } from './room-drawing'
 import {
     ApiRequestError,
     EXPENSE_WRITE_TIMEOUT_MS,
@@ -193,6 +194,15 @@ describe('api requests', () => {
 
         await api.setEmblem('ski-trip-aaa', null)
         expect(fetchMock.mock.calls[1][1].body).toBe(JSON.stringify({ emoji: null }))
+    })
+
+    it('sends custom room geometry without rewriting it', async () => {
+        const fetchMock = respondWith(200, {})
+        const custom = encodeRoomDrawing([[{ x: 0.5, y: 0.5 }]])
+        vi.stubGlobal('fetch', fetchMock)
+
+        await api.setEmblem('ski-trip-aaa', custom)
+        expect(fetchMock.mock.calls[0][1].body).toBe(JSON.stringify({ emoji: custom }))
     })
 
     it('injects a stored queue key into legacy expense bodies on replay', async () => {
