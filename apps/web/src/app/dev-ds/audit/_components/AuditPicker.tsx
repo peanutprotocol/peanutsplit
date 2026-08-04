@@ -416,10 +416,12 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                             Turn findings into calls
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-grey-1 sm:text-base">
-                            Three specialist reviews prefilled every engineering call using the pre-user rule: fix cheap
-                            foundations, plan real quality debt, mock up broad UX changes, and defer speculative scale.
-                            The {conflictCount} older snap calls that materially pull elsewhere are marked in red;
-                            pacing differences are intentionally ignored. Your overrides autosave only in this browser.
+                            Three specialist reviews prefilled every engineering call using the experimental-product
+                            rule: fix cheap first-room correctness and UX, pursue SEO and simplification when they help
+                            an experiment, mock up broad visual changes, and defer production machinery until roughly
+                            1,000 rooms or measured pressure. The {conflictCount} older snap calls that materially pull
+                            elsewhere are marked in red; pacing differences are intentionally ignored. Your overrides
+                            autosave only in this browser.
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
