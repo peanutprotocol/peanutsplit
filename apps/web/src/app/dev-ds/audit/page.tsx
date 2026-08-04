@@ -2,27 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Icon } from '@/components/ui/Icon'
 import { DocChrome } from '../_components/DocChrome'
+import { AuditPicker } from './_components/AuditPicker'
+import { severityOrder, severityStyle, type Finding, type Severity } from './_components/audit-model'
 
 export const metadata: Metadata = {
     title: 'Implementation audit — Peanut Split',
-    description: 'Evidence-backed design-system, architecture, accessibility, performance and implementation audit.',
-}
-
-type Severity = 'critical' | 'high' | 'medium' | 'low'
-type Status = 'confirmed' | 'conditional' | 'accepted risk'
-
-interface Finding {
-    id: string
-    severity: Severity
-    area: string
-    title: string
-    summary: string
-    impact: string
-    action: string
-    evidence: string[]
-    effort: 'S' | 'M' | 'L' | 'XL'
-    horizon: 'Now' | 'Next' | 'Later'
-    status?: Status
+    description: 'Interactive decision workspace for the evidence-backed Peanut Split implementation audit.',
 }
 
 const findings: Finding[] = [
@@ -746,14 +731,6 @@ const findings: Finding[] = [
     },
 ]
 
-const severityStyle: Record<Severity, string> = {
-    critical: 'bg-error text-white',
-    high: 'bg-error-1 text-error border-error',
-    medium: 'bg-primary-3 text-n-1 border-n-1',
-    low: 'bg-grey-4 text-grey-1 border-grey-1',
-}
-
-const severityOrder: Severity[] = ['critical', 'high', 'medium', 'low']
 const counts = Object.fromEntries(
     severityOrder.map((severity) => [severity, findings.filter((item) => item.severity === severity).length])
 ) as Record<Severity, number>
@@ -788,57 +765,6 @@ const verification = [
     'Marketing copy audit',
 ]
 
-function FindingCard({ finding }: { finding: Finding }) {
-    return (
-        <article
-            id={finding.id.toLowerCase()}
-            className="shadow-2 scroll-mt-24 overflow-hidden rounded-sm border border-n-1 bg-white"
-        >
-            <div className="flex flex-wrap items-center gap-2 border-b border-n-1 bg-grey-3 px-4 py-3">
-                <span
-                    className={`rounded-full border px-2.5 py-1 text-[0.65rem] font-extrabold uppercase tracking-wider ${severityStyle[finding.severity]}`}
-                >
-                    {finding.severity}
-                </span>
-                <span className="text-xs font-bold text-grey-1">{finding.id}</span>
-                <span className="text-xs text-grey-1">{finding.area}</span>
-                <span className="ml-auto text-xs font-bold">
-                    {finding.horizon} · {finding.effort}
-                </span>
-                {finding.status && finding.status !== 'confirmed' ? (
-                    <span className="rounded-full border border-n-1 bg-white px-2 py-1 text-[0.65rem] font-bold uppercase">
-                        {finding.status}
-                    </span>
-                ) : null}
-            </div>
-            <div className="p-5 sm:p-6">
-                <h3 className="text-h5">{finding.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-grey-1">{finding.summary}</p>
-                <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                    <div className="rounded-sm border border-n-1 bg-error-1 p-4">
-                        <p className="text-h9 uppercase tracking-wider text-error">Why it matters</p>
-                        <p className="mt-2 text-sm leading-6">{finding.impact}</p>
-                    </div>
-                    <div className="rounded-sm border border-n-1 bg-primary-3 p-4">
-                        <p className="text-h9 uppercase tracking-wider">Recommended move</p>
-                        <p className="mt-2 text-sm leading-6">{finding.action}</p>
-                    </div>
-                </div>
-                <details className="mt-4 rounded-sm border border-n-1">
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden">
-                        Evidence <Icon name="chevron-down" size={16} />
-                    </summary>
-                    <ul className="space-y-2 border-t border-n-1 p-4 font-mono text-xs leading-5 text-grey-1">
-                        {finding.evidence.map((item) => (
-                            <li key={item}>• {item}</li>
-                        ))}
-                    </ul>
-                </details>
-            </div>
-        </article>
-    )
-}
-
 export default function AuditPage() {
     return (
         <DocChrome page="audit">
@@ -856,8 +782,8 @@ export default function AuditPage() {
                         separate confirmed defects from conditional risks and deliberately accepted boundaries.
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3">
-                        <Link href="#priority" className="btn btn-primary shadow-primary-4 w-auto">
-                            Start with priority
+                        <Link href="#decisions" className="btn btn-primary shadow-primary-4 w-auto">
+                            Open decision picker
                         </Link>
                         <Link
                             href="/dev-ds"
@@ -948,24 +874,7 @@ export default function AuditPage() {
                     </div>
                 </section>
 
-                <section className="pb-14">
-                    <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <p className="text-h9 uppercase tracking-[0.18em] text-grey-1">Evidence-backed findings</p>
-                            <h2 className="mt-2 font-display text-4xl font-extrabold">
-                                {findings.length} refactor and implementation findings
-                            </h2>
-                        </div>
-                        <p className="text-sm text-grey-1">Effort: S · M · L · XL</p>
-                    </div>
-                    <div className="space-y-5">
-                        {severityOrder.flatMap((severity) =>
-                            findings
-                                .filter((item) => item.severity === severity)
-                                .map((finding) => <FindingCard key={finding.id} finding={finding} />)
-                        )}
-                    </div>
-                </section>
+                <AuditPicker findings={findings} />
 
                 <section className="border-t border-n-1 py-14">
                     <div className="grid gap-6 lg:grid-cols-2">

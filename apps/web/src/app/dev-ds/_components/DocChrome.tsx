@@ -3,7 +3,7 @@ import { Doodle } from '@/components/ui/Doodle'
 
 const links = [
     { href: '/dev-ds', label: 'System' },
-    { href: '/dev-ds/audit', label: 'Audit report' },
+    { href: '/dev-ds/audit', label: 'Audit picker' },
 ] as const
 
 export function DocChrome({ children, page }: { children: React.ReactNode; page: 'system' | 'audit' }) {
