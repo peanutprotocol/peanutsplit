@@ -1,10 +1,12 @@
 'use client'
 
+import { useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { peanutSad } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
+import { forgetRoom } from '@/lib/recent-rooms'
 
 /** The bar is the room's first 69px and it only exists once the state does, so
  *  without a stand-in of the same height everything below it drops when the data
@@ -56,8 +58,21 @@ export function RoomErrorState({ onRetry }: { onRetry: () => void }) {
     )
 }
 
-export function RoomNotFound() {
+export function RoomNotFound({ slug }: { slug?: string }) {
     const t = useTranslations('room.states')
+    const forgetMissingRoom = useCallback(() => {
+        if (slug) forgetRoom(slug)
+    }, [slug])
+
+    // This state is rendered only after an authoritative miss: the room API
+    // answered NOT_FOUND, or the recap query found no row. Remove that dead
+    // destination before `/app` chooses the newest remembered room again.
+    // The click repeats the idempotent removal synchronously so even an
+    // immediate activation cannot race the passive effect. Its management URL
+    // bypasses automatic resume, so a blocked storage write cannot form a loop.
+    useEffect(() => {
+        forgetMissingRoom()
+    }, [forgetMissingRoom])
 
     return (
         <div className="flex flex-col items-center gap-4 px-4 py-16 text-center" data-testid="room-not-found">
@@ -66,7 +81,7 @@ export function RoomNotFound() {
             <Image src={peanutSad} alt="" unoptimized priority className="h-32 w-32 object-contain" />
             <p className="text-h5">{t('notFoundTitle')}</p>
             <p className="max-w-[22rem] text-sm text-grey-1">{t('notFoundBody')}</p>
-            <Link href="/app" className="w-full max-w-xs">
+            <Link href="/app?manage=1" replace onClick={forgetMissingRoom} className="w-full max-w-xs">
                 <Button variant="stroke" className="justify-center">
                     {t('notFoundCta')}
                 </Button>

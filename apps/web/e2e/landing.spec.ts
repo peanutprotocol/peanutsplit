@@ -101,8 +101,8 @@ async function openLanding(page: Page, locale: Locale = 'en') {
     await expect(page.locator('html')).toHaveAttribute('lang', HREFLANG[locale])
 }
 
-async function openApp(page: Page, locale: Locale = 'en') {
-    await page.goto('/app')
+async function openApp(page: Page, locale: Locale = 'en', path = '/app') {
+    await page.goto(path)
     await page.context().addCookies([{ name: 'ps-locale', value: locale, url: page.url() }])
     await page.reload()
     await expect(page.locator('html')).toHaveAttribute('lang', HREFLANG[locale])
@@ -205,7 +205,7 @@ test('a sixth recent room is shown instead of becoming orphaned footer copy', as
             'ps:recent',
             JSON.stringify(
                 Array.from({ length: 6 }, (_, index) => ({
-                    slug: `room-${index}`,
+                    slug: `room-${index}-brave-otter-lamp`,
                     name: `Room ${index + 1}`,
                     emoji: index === 0 ? 'boat' : 'ski',
                     lastSeenAt: now - index * 60_000,
@@ -229,7 +229,7 @@ test('a longer recent-room history has an explicit reversible reveal control', a
             'ps:recent',
             JSON.stringify(
                 Array.from({ length: 7 }, (_, index) => ({
-                    slug: `room-${index}`,
+                    slug: `room-${index}-brave-otter-lamp`,
                     name: `Room ${index + 1}`,
                     emoji: 'peanut',
                     lastSeenAt: now - index * 60_000,
@@ -728,7 +728,7 @@ test('every retained room is reachable and can be forgotten only on this device'
     await page.addInitScript((seed) => {
         window.localStorage.setItem('ps:recent', JSON.stringify(seed))
     }, rooms)
-    await openApp(page)
+    await openApp(page, 'en', '/app?manage=1')
 
     const list = page.locator('#recent-room-list')
     await expect(list.getByRole('link')).toHaveCount(5)

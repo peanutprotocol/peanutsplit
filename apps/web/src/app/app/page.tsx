@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { YourRooms } from '@/components/marketing/YourRooms'
+import { RecentRoomAppEntry } from '@/components/pwa/RecentRoomAppEntry'
 import { Doodle } from '@/components/ui/Doodle'
 
 export const metadata: Metadata = {
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
 }
 
 /** The accountless operational home: actions and device-local rooms, with no marketing journey. */
-export default async function AppHomePage() {
+export default async function AppHomePage({ searchParams }: { searchParams: Promise<{ manage?: string | string[] }> }) {
     const [tCreate, tFooter] = await Promise.all([getTranslations('room.create'), getTranslations('marketing.footer')])
 
-    return (
+    const fallback = (
         <main data-testid="app-home" className="mx-auto min-h-dvh w-full max-w-xl bg-background">
             <header className="border-b border-n-1 bg-primary-1 px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
                 <h1 className="text-h4">Split</h1>
@@ -42,4 +43,7 @@ export default async function AppHomePage() {
             <YourRooms surface="app" />
         </main>
     )
+
+    const { manage } = await searchParams
+    return manage === '1' ? fallback : <RecentRoomAppEntry>{fallback}</RecentRoomAppEntry>
 }

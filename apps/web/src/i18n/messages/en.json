@@ -352,12 +352,12 @@
             "close": "Close settings",
             "closeSheet": "Close",
             "youAre": "you are {name}",
-            "allRooms": "All rooms",
             "roomsTitle": "Rooms",
             "closeRoomSwitcher": "Close room switcher",
-            "switchRoomsHint": "Switch rooms or return to the full room list.",
+            "switchRoomsHint": "Choose any room saved on this device.",
             "currentRoom": "Current room",
-            "allRoomsHint": "Create, import or join",
+            "roomOptions": "Room options",
+            "roomOptionsHint": "Create, import or join",
             "recentRoomsNote": "Recent rooms are saved only on this device.",
             "noOtherRoomsNote": "No other rooms are saved on this device.",
             "roomName": "Room name",
@@ -499,7 +499,7 @@
             },
             "notFoundTitle": "This split doesn’t exist",
             "notFoundBody": "Either it was deleted, or the link is missing its last part — room links are case-sensitive too.",
-            "notFoundCta": "Start a new split"
+            "notFoundCta": "Open room options"
         },
         "allSettled": {
             "title": "All settled up",

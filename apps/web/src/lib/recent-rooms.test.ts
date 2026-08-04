@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { encodeRoomDrawing } from './room-drawing'
-import { forgetRoom, readRecentRooms, RECENT_ROOMS_KEY, rememberRoom, roomSlugFromLink } from './recent-rooms'
+import {
+    forgetRoom,
+    mostRecentRoomPath,
+    readRecentRooms,
+    RECENT_ROOMS_KEY,
+    rememberRoom,
+    roomSlugFromLink,
+} from './recent-rooms'
 
 const ORIGIN = 'http://localhost:3000'
 const SLUG = 'lisbon-weekend-brave-otter-lamp'
@@ -76,6 +83,39 @@ describe('recent-room persistence results', () => {
         expect(readRecentRooms()[0]?.emoji).toBe(drawing)
     })
 
+    it('routes to the newest valid room, regardless of storage order, and skips tampered slugs', () => {
+        const values = new Map<string, string>([
+            [
+                RECENT_ROOMS_KEY,
+                JSON.stringify([
+                    { slug: LEGACY_SLUG, name: 'Old room', lastSeenAt: 10 },
+                    { slug: '../../new', name: 'Tampered room', lastSeenAt: 30 },
+                    { slug: SLUG, name: 'Newest valid room', lastSeenAt: 20 },
+                ]),
+            ],
+        ])
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: (key: string) => values.get(key) ?? null,
+                setItem: (key: string, value: string) => values.set(key, value),
+            },
+        })
+
+        expect(readRecentRooms().map((room) => room.slug)).toEqual([SLUG, LEGACY_SLUG])
+        expect(mostRecentRoomPath()).toBe(`/r/${SLUG}`)
+    })
+
+    it('returns no room route for missing or malformed storage', () => {
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: () => '{not json',
+                setItem: () => undefined,
+            },
+        })
+
+        expect(mostRecentRoomPath()).toBeNull()
+    })
+
     it('reports storage failures instead of claiming a credential was saved or removed', () => {
         vi.stubGlobal('window', {
             localStorage: {
@@ -98,6 +138,7 @@ describe('recent-room persistence results', () => {
         })
 
         expect(readRecentRooms()).toEqual([])
+        expect(mostRecentRoomPath()).toBeNull()
         expect(rememberRoom({ slug: SLUG, name: 'Lisbon weekend' })).toBe(false)
         expect(forgetRoom(SLUG)).toBe(false)
     })

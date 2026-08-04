@@ -3,9 +3,9 @@ import { test } from './fixtures'
 import { enterCreatedRoom } from './helpers'
 
 /**
- * The title switcher stays deliberately smaller than the full room chooser.
- * Even at the recent-room storage cap it renders the current room, at most two
- * destinations, and one stable All rooms escape hatch in a vertical list.
+ * The title switcher is the retained-room chooser. Even at the storage cap it
+ * renders the current room plus every other retained destination in one
+ * vertically scrollable list.
  */
 
 /** `RECENT_ROOMS_LIMIT`. Seeding past it also proves the read path still truncates. */
@@ -40,38 +40,45 @@ async function openRoomSwitcher(page: Page) {
     return sheet
 }
 
-test('the title switcher caps its vertical recent list at two rooms', async ({ page }) => {
+test('the title switcher exposes every retained non-current room', async ({ page }) => {
     await roomWithNeighbours(page)
 
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ps:recent') ?? '[]').length)).toBe(CAP)
+    const retained = await page.evaluate(
+        () => JSON.parse(localStorage.getItem('ps:recent') ?? '[]') as Array<{ slug: string }>
+    )
+    expect(retained).toHaveLength(CAP)
+    const currentSlug = new URL(page.url()).pathname.split('/')[2]
+    const expectedSlugs = retained.filter((room) => room.slug !== currentSlug).map((room) => room.slug)
 
     const sheet = await openRoomSwitcher(page)
     const current = sheet.getByTestId('room-switcher-current')
     const recent = sheet.getByTestId('room-switcher-tile')
-    const allRooms = sheet.getByTestId('room-switcher-all')
+    const manage = sheet.getByTestId('room-switcher-manage')
 
     await expect(current).toBeVisible()
-    await expect(recent).toHaveCount(2)
-    await expect(allRooms).toBeVisible()
-
-    const [currentBox, firstBox, secondBox, allRoomsBox] = await Promise.all([
-        current.boundingBox(),
-        recent.nth(0).boundingBox(),
-        recent.nth(1).boundingBox(),
-        allRooms.boundingBox(),
-    ])
-    expect(currentBox!.y + currentBox!.height).toBeLessThanOrEqual(firstBox!.y)
-    expect(firstBox!.y + firstBox!.height).toBeLessThanOrEqual(secondBox!.y)
-    expect(secondBox!.y + secondBox!.height).toBeLessThanOrEqual(allRoomsBox!.y)
+    await expect(recent).toHaveCount(expectedSlugs.length)
+    await expect(sheet.getByRole('link')).toHaveCount(expectedSlugs.length + 1)
+    await expect(manage).toHaveAttribute('href', '/app?manage=1')
+    expect(await recent.evaluateAll((tiles) => tiles.map((tile) => (tile as HTMLElement).dataset.slug))).toEqual(
+        expectedSlugs
+    )
+    for (const slug of expectedSlugs) {
+        await expect(sheet.locator(`[data-testid="room-switcher-tile"][data-slug="${slug}"]`)).toHaveAttribute(
+            'href',
+            `/r/${slug}`
+        )
+    }
 })
 
-test('the compact switcher keeps All rooms reachable without horizontal overflow', async ({ page }) => {
+test('the full switcher scrolls to its final room without horizontal overflow', async ({ page }) => {
     await roomWithNeighbours(page)
     const sheet = await openRoomSwitcher(page)
 
-    const allRooms = sheet.getByTestId('room-switcher-all')
-    await expect(allRooms).toBeInViewport()
-    await expect(allRooms).toHaveAttribute('href', '/app')
+    const recent = sheet.getByTestId('room-switcher-tile')
+    const manage = sheet.getByTestId('room-switcher-manage')
+    await expect(recent).toHaveCount(CAP - 1)
+    await manage.scrollIntoViewIfNeeded()
+    await expect(manage).toBeInViewport()
 
     const overflow = await sheet.evaluate((element) => ({
         sheet: element.scrollWidth - element.clientWidth,

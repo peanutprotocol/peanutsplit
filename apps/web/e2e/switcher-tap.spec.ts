@@ -35,18 +35,23 @@ test('tapping a room tile navigates to that room', async ({ page }) => {
     await expect(page.getByTestId('room-title')).toHaveText('Alpha')
 })
 
-test('the all-rooms tile leaves the room', async ({ page }) => {
-    await createRoom(page, 'Alpha')
-    await createRoom(page, 'Beta')
+test('a room beyond the old compact limit is still a direct destination', async ({ page }) => {
+    const alpha = await createRoom(page, 'Alpha beyond limit')
+    await createRoom(page, 'Beta beyond limit')
+    await createRoom(page, 'Gamma beyond limit')
+    await createRoom(page, 'Delta beyond limit')
 
     await page.getByTestId('open-room-switcher').click()
     await expect(page.getByTestId('room-switcher-sheet')).toBeVisible({ timeout: 10_000 })
 
-    // No sleep for the sheet's slide: `click()` already waits for the target to hold a stable
-    // bounding box, which is the condition the timeout was standing in for.
-    await page.getByTestId('room-switcher-all').click()
-    // The operational home is `/app`; `/` is the marketing landing this tile deliberately avoids.
-    await expect(page).toHaveURL(/\/app$/, { timeout: 10_000 })
+    const rooms = page.getByTestId('room-switcher-tile')
+    await expect(rooms).toHaveCount(3)
+    const alphaTile = page.locator(`[data-testid="room-switcher-tile"][data-slug="${alpha}"]`)
+    await alphaTile.scrollIntoViewIfNeeded()
+    await alphaTile.click()
+
+    await expect(page).toHaveURL(new RegExp(`/r/${alpha}$`), { timeout: 10_000 })
+    await expect(page.getByTestId('room-title')).toHaveText('Alpha beyond limit')
 })
 
 test('tapping a theme swatch repaints the room', async ({ page }) => {

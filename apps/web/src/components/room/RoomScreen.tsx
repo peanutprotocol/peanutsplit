@@ -184,7 +184,7 @@ export function RoomScreen({ slug }: { slug: string }) {
         if (staleState && (params.settle || params.expense)) setParams({ settle: null, expense: null })
     }, [params.expense, params.settle, setParams, staleState])
 
-    if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound />
+    if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} />
     if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
 
     const closeDrawers = () => setParams({ add: null, expense: null, settle: null })

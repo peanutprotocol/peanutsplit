@@ -20,11 +20,13 @@ interface RoomSwitcherProps {
 }
 
 /**
- * A deliberately small navigation sheet, not a second room chooser.
+ * The room chooser opened by the title in the top bar.
  *
  * The loaded room is always present and inert, even when local storage is empty
- * or blocked. At most two other rooms follow it, then one stable route to the
- * full chooser where creation, import and link recovery already live.
+ * or blocked. Every other room retained on this device follows it; `DrawerBody`
+ * owns the vertical scroll when the list reaches the storage cap. The final row
+ * reaches creation, import and link recovery without making `/app` a room list
+ * on every normal launch.
  */
 export function RoomSwitcher({ open, onClose, room }: RoomSwitcherProps) {
     const t = useTranslations('room.header')
@@ -34,11 +36,7 @@ export function RoomSwitcher({ open, onClose, room }: RoomSwitcherProps) {
 
     useEffect(() => {
         if (!open) return
-        setRecent(
-            readRecentRooms()
-                .filter((candidate) => candidate.slug !== room.slug)
-                .slice(0, 2)
-        )
+        setRecent(readRecentRooms().filter((candidate) => candidate.slug !== room.slug))
     }, [open, room.slug])
 
     const roomMark = (candidate: { name: string; emoji?: string | null; theme?: string | null }) => (
@@ -93,19 +91,19 @@ export function RoomSwitcher({ open, onClose, room }: RoomSwitcherProps) {
                         ))}
 
                         <Link
-                            href="/app"
-                            data-testid="room-switcher-all"
+                            href="/app?manage=1"
+                            data-testid="room-switcher-manage"
                             className={cn(
                                 rowClass,
                                 'mt-1 bg-[var(--split-theme-field,#FFC900)] shadow-[3px_3px_0_var(--split-theme-ink,#211C17)] active:translate-y-[2px]'
                             )}
                         >
                             <span className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white">
-                                <Icon name="arrow-right" size={22} aria-hidden="true" />
+                                <Icon name="plus" size={22} aria-hidden="true" />
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className="block truncate font-bold">{t('allRooms')}</span>
-                                <span className="block truncate text-sm text-grey-1">{t('allRoomsHint')}</span>
+                                <span className="block truncate font-bold">{t('roomOptions')}</span>
+                                <span className="block truncate text-sm text-grey-1">{t('roomOptionsHint')}</span>
                             </span>
                             <Icon name="chevron-right" size={18} className="shrink-0" aria-hidden="true" />
                         </Link>

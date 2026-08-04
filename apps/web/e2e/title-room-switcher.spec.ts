@@ -30,8 +30,8 @@ async function openRoomSwitcher(page: Page) {
     return sheet
 }
 
-test('an only room can always return to All rooms', async ({ page }) => {
-    await createRoom(page, 'Only room')
+test('an only room remains an inert current-room row', async ({ page }) => {
+    const { path } = await createRoom(page, 'Only room')
 
     const sheet = await openRoomSwitcher(page)
     const current = sheet.getByTestId('room-switcher-current')
@@ -45,11 +45,10 @@ test('an only room can always return to All rooms', async ({ page }) => {
         )
     ).toHaveCount(0)
     await expect(sheet.getByTestId('room-switcher-tile')).toHaveCount(0)
-
-    const allRooms = sheet.getByTestId('room-switcher-all')
-    await expect(allRooms).toBeVisible()
-    await allRooms.click()
-    await expect(page).toHaveURL(/\/app(?:\?.*)?$/, { timeout: 10_000 })
+    await expect(sheet.getByRole('link')).toHaveCount(1)
+    await expect(sheet.getByTestId('room-switcher-manage')).toHaveAttribute('href', '/app?manage=1')
+    await expect(sheet.getByText('No other rooms are saved on this device.')).toBeVisible()
+    expect(new URL(page.url()).pathname).toBe(path)
 })
 
 test('Settings stays a separate header destination', async ({ page }) => {
