@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
 import {
     createRoomSchema,
     expensePatchSchema,
@@ -300,10 +301,20 @@ describe('room settings', () => {
     it('bounds the drawing exactly as room creation does', () => {
         const room = { name: 'Trip', currency: 'EUR', creatorName: 'Ana' }
         const long = 'x'.repeat(25)
+        const custom = encodeRoomDrawing([
+            [
+                { x: 0.1, y: 0.2 },
+                { x: 0.9, y: 0.8 },
+            ],
+        ])
 
         expect(roomSettingsSchema.safeParse({ emoji: 'x'.repeat(24) }).success).toBe(true)
         expect(roomSettingsSchema.safeParse({ emoji: long }).success).toBe(false)
         expect(createRoomSchema.safeParse({ ...room, emoji: long }).success).toBe(false)
+        expect(roomSettingsSchema.safeParse({ emoji: custom }).success).toBe(true)
+        expect(createRoomSchema.safeParse({ ...room, emoji: custom }).success).toBe(true)
+        expect(roomSettingsSchema.safeParse({ emoji: 'drawing:v1:not-a-drawing' }).success).toBe(false)
+        expect(createRoomSchema.safeParse({ ...room, emoji: `drawing:v1:${'0'.repeat(4096)}` }).success).toBe(false)
         expect(roomSettingsSchema.safeParse({ emoji: 12 }).success).toBe(false)
     })
 

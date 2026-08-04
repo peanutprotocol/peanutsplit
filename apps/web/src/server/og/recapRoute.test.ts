@@ -8,6 +8,7 @@
  * checks the status code proves nothing.
  */
 import { beforeAll, describe, expect, it } from 'vitest'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { prisma, truncateAll } from '@/server/test/db'
 import RecapOgImage from '@/app/r/[slug]/recap/opengraph-image'
 
@@ -30,7 +31,12 @@ describe('recap opengraph-image', () => {
             data: {
                 slug: 'ski-trip-recap1',
                 name: 'Ski trip 🎿 東京',
-                emoji: '🎿',
+                emoji: encodeRoomDrawing([
+                    [
+                        { x: 0.15, y: 0.2 },
+                        { x: 0.85, y: 0.8 },
+                    ],
+                ]),
                 currency: 'EUR',
                 members: {
                     create: [

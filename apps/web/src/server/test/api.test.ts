@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { STATIC_USD_PER_UNIT } from '@/server/money'
 import { resetRateLimits } from '@/server/rateLimit'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { GET as getCurrencies } from '@/app/api/currencies/route'
 import { GET as getRate } from '@/app/api/rate/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
@@ -227,6 +228,14 @@ describe('rooms and members', () => {
         expect(body.memberId).toBe(body.members[0].id)
         expect(body.memberToken).toBeTruthy()
         expect(body.balances[body.memberId]).toBe('0')
+    })
+
+    it('creates a room with a custom drawing intact', async () => {
+        const custom = encodeRoomDrawing([[{ x: 0.5, y: 0.5 }]])
+        const { status, body } = await newRoom({ emoji: custom })
+        expect(status).toBe(201)
+        expect(body.room.emoji).toBe(custom)
+        expect((await prisma.room.findUnique({ where: { id: body.room.id } }))?.emoji).toBe(custom)
     })
 
     it('never leaks a member token through a room read', async () => {

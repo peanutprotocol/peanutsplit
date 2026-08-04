@@ -317,6 +317,9 @@ export function RoomScreen({ slug }: { slug: string }) {
                                             expenses: saved.length,
                                             days: daySpan(saved.map((expense) => new Date(expense.date))),
                                         }}
+                                        // Confetti repeats catalog doodles at particle size. A custom
+                                        // room drawing stays the room emblem everywhere meaningful and
+                                        // deliberately uses the peanut for this decoration only.
                                         emblem={roomEmblemDoodle(state.room.emoji, state.room.name)}
                                     />
                                 )}

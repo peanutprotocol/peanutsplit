@@ -10,6 +10,7 @@ import { prisma, truncateAll } from '@/server/test/db'
 import { resetEvents, subscribe } from '@/server/events'
 import { resetRateLimits } from '@/server/rateLimit'
 import { DEFAULT_THEME, themeFor } from '@/lib/themes'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { loadRoomCard } from '@/server/og/roomCard'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import { GET as getRoom, PATCH as patchRoom } from '@/app/api/rooms/[slug]/route'
@@ -262,6 +263,28 @@ describe('the room drawing', () => {
         expect(fetched.room.emoji).toBe('mountain')
     })
 
+    it('round-trips a custom drawing through PATCH, fetch, and the database', async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const custom = encodeRoomDrawing([
+            [
+                { x: 0.1, y: 0.2 },
+                { x: 0.9, y: 0.8 },
+            ],
+        ])
+
+        const { status, body: patched } = await setEmblem(slug, custom)
+        expect(status).toBe(200)
+        expect(patched.room.emoji).toBe(custom)
+
+        const { body: fetched } = await call<RoomState>(getRoom as Handler, {
+            path: `/api/rooms/${slug}`,
+            params: { slug },
+        })
+        expect(fetched.room.emoji).toBe(custom)
+        expect((await prisma.room.findUnique({ where: { slug }, select: { emoji: true } }))?.emoji).toBe(custom)
+    })
+
     it('leaves the name and the palette exactly where they were', async () => {
         const { body: created } = await newRoom()
         const slug = created.room.slug
@@ -294,6 +317,14 @@ describe('the room drawing', () => {
 
         const row = await prisma.room.findUnique({ where: { slug }, select: { emoji: true } })
         expect(row?.emoji).toBe('🎿')
+    })
+
+    it('rejects malformed custom geometry and leaves the room alone', async () => {
+        const { body: created } = await newRoom()
+        const { status, body } = await setEmblem(created.room.slug, 'drawing:v1:not-valid')
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('VALIDATION_ERROR')
+        expect((await prisma.room.findUnique({ where: { id: created.room.id } }))?.emoji).toBe('🎿')
     })
 
     it('pokes the room so the other phones repaint the emblem too', async () => {

@@ -13,8 +13,7 @@
  * date span, the top-payer tie-break, the settled fold — are testable without a
  * rasterizer or a database.
  */
-import { type DoodleName } from '@/components/ui/doodles'
-import { roomEmblemDoodle } from '@/lib/room-emblem'
+import { roomEmblemValue } from '@/lib/room-emblem'
 import { daySpan } from '@/lib/story'
 import { prisma } from '@/server/db'
 import { balancesOf, type BalanceInput } from '@/server/roomState'
@@ -72,8 +71,8 @@ export interface RoomRecap {
 /** The same facts, drawable. */
 export interface RecapCardData {
     name: string
-    /** The room's character, for the story strip — always a drawable doodle. */
-    emblem: DoodleName
+    /** The room's character, for the story strip — a preset or custom drawing. */
+    emblem: string
     /** The hero number: "€2340.00". */
     total: string
     /** "9 days · 14 expenses · 6 people" */
@@ -188,7 +187,7 @@ export function toRecapCard(recap: RoomRecap): RecapCardData {
         // strip can never disagree with the emblem drawn beside the room name.
         // Resolved from the RAW name, not the sanitized one above: an unset
         // emblem follows what the room is actually called.
-        emblem: roomEmblemDoodle(recap.emoji, recap.name),
+        emblem: roomEmblemValue(recap.emoji, recap.name),
         total: safeAmount(BigInt(recap.totalMinor), recap.currency),
         stat: recapStatLine(recap),
         topPayer,

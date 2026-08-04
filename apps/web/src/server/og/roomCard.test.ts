@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
 import {
     MAX_AVATARS,
@@ -201,6 +202,12 @@ describe('toRoomCard', () => {
         expect(card.stat).toBe('No expenses yet')
         expect(card.avatars).toEqual([])
         expect(card.memberCount).toBe(0)
+    })
+
+    it('preserves a custom room drawing for the unfurl renderer', () => {
+        const custom = encodeRoomDrawing([[{ x: 0.5, y: 0.5 }]])
+        const card = toRoomCard({ name: 'Fresh', emoji: custom, currency: 'USD', members: [], expenses: [] })
+        expect(card.emblem).toBe(custom)
     })
 
     /**
