@@ -4,9 +4,9 @@ import type { AuditRecommendation } from './audit-model'
  * Opinionated pre-user triage.
  *
  * This is an experimental, near-zero-user product. Fix inexpensive first-room
- * correctness and UX; pursue SEO and code simplification only when they help an
- * experiment; require mockups for broad visual/flow changes; defer production
- * machinery until roughly 1,000 rooms or a measured bottleneck.
+ * correctness and UX; invest early in bounded code simplification that makes
+ * experiments easier; require mockups for broad visual/flow changes; defer
+ * production machinery until roughly 1,000 rooms or a measured bottleneck.
  */
 export const auditRecommendations = {
     'OPS-01': {
@@ -89,11 +89,11 @@ export const auditRecommendations = {
     },
     'ARCH-02': {
         decision: 'plan',
-        note: 'Opportunistic simplification only, not a standalone XL refactor: extract a pure state or reducer seam when an actual experiment touches the drawer and the extraction makes that product change smaller or safer.',
+        note: 'Take this on soon as a bounded standalone refactor: extract pure state, reducer and money seams first, then split coherent sections incrementally. Preserve the current flow exactly; any intentional visual or flow change requires mockups.',
     },
     'ARCH-03': {
         decision: 'plan',
-        note: 'Opportunistic simplification only: split query responsibilities when an actual mutation or cache change touches the module, or when repeated conflicts make the seam pay for itself. Do not reorganize it wholesale.',
+        note: 'Take this on soon as a bounded standalone refactor. Split reads, offline orchestration and mutation domains behind unchanged hooks, cache keys and behavior, with focused contract tests around the moved seams.',
     },
     'PERF-03': {
         decision: 'plan',
@@ -101,11 +101,11 @@ export const auditRecommendations = {
     },
     'DS-02': {
         decision: 'plan',
-        note: 'Use the design-system documentation as the canonical choice and remove aliases during touched-file work. Do not schedule a wholesale token migration or invent a larger ontology.',
+        note: 'Schedule a bounded token cleanup soon: make the documented design system canonical, publish the deprecation map and remove dead aliases mechanically. Keep the ontology small and verify rendered parity.',
     },
     'DS-03': {
         decision: 'plan',
-        note: 'Apply a rule-of-three threshold in new or touched flows. Extract only stable repeated recipes that make the current change smaller; do not create the proposed primitive catalog upfront.',
+        note: 'Schedule extraction of the stable, already-proven repeated recipes soon. Use the rule of three, migrate callers incrementally and stop before inventing universal components that the live product has not demonstrated.',
     },
     'DS-04': {
         decision: 'fix-now',
@@ -117,7 +117,7 @@ export const auditRecommendations = {
     },
     'DS-06': {
         decision: 'plan',
-        note: 'Opportunistic simplification: create the shared ButtonLink/style recipe the next time CTA or Button behavior changes, then migrate only the proven duplicates while preserving rendered layouts.',
+        note: 'Unify Button and link-button styling in the near-term component cleanup. Make width intent explicit, migrate proven duplicates and preserve anchor semantics and rendered layouts.',
     },
     'DS-07': {
         decision: 'fix-now',

@@ -334,7 +334,7 @@ const findings: Finding[] = [
         summary:
             'One client file owns create/edit/catch-up modes, validation, split math, scanning, quick add, payer creation, all sections and rendering. CurrencySelect (787), ToolCalculator (711), SettleDrawer (685) and ExpenseList (603) show similar concentration.',
         impact: 'Small domain or visual changes touch high-conflict files with huge state spaces; orchestration remains difficult to test adversarially.',
-        action: 'Do not schedule a big-bang decomposition. When a real experiment touches the drawer, extract only the pure reducer/state or money seam that makes that product change smaller and safer.',
+        action: 'Run a bounded standalone refactor soon: extract pure reducer/state and money seams first, then split coherent sections incrementally. Preserve the current flow exactly; intentional visual or flow changes require mockups.',
         evidence: [
             'apps/web/src/components/room/ExpenseDrawer.tsx:1 — 1,962 lines / 109.7KB',
             'apps/web/src/components/room/CurrencySelect.tsx:1 — 787 lines',
@@ -351,7 +351,7 @@ const findings: Finding[] = [
         summary:
             'queries.ts combines read/poll/SSE policy, offline draining, identity persistence, optimistic creation and every room/member/theme/reaction/import mutation.',
         impact: 'Unrelated features collide in one cache-policy file and subtle idempotency/token invariants are easy to disturb.',
-        action: 'Split responsibilities opportunistically when a real mutation/cache change touches the module or repeated conflicts justify the seam. Preserve current hooks and cache contracts; do not reorganize it wholesale.',
+        action: 'Run a bounded standalone refactor soon: split reads, offline orchestration and mutation domains behind unchanged hooks, cache keys and behavior, with focused contract tests around moved seams.',
         evidence: [
             'apps/web/src/lib/queries.ts:49 — keys/reads begin',
             'apps/web/src/lib/queries.ts:209 — offline engine',
@@ -386,7 +386,7 @@ const findings: Finding[] = [
         summary:
             'grey/gray, n/grey, yellow/primary, black/n-1 and multiple shadow families overlap. Several palette/component families have no live consumers; z-index usage bypasses the configured 1–5 scale.',
         impact: 'Call sites choose by memory, searches miss equivalent usage and tuning one alias leaves another behind.',
-        action: 'Treat the documented design system as canonical. Remove dead aliases in touched files and avoid a wholesale token migration or a larger speculative ontology.',
+        action: 'Schedule a bounded token cleanup soon: make the documented system canonical, publish the deprecation map and mechanically remove dead aliases. Keep the ontology small and verify rendered parity.',
         evidence: [
             'apps/web/tailwind.config.js:39 — grey and gray coexist',
             'apps/web/tailwind.config.js:57 — n duplicates ink/muted values',
@@ -404,7 +404,7 @@ const findings: Finding[] = [
         summary:
             'Before this documentation route, 69 components repeated the white/ink-border/rounded surface recipe. CreateRoom, ExpenseDrawer and ToolCalculator repeat composer cards, rows, dashed headers, collapse controls and a 7.25rem currency slot.',
         impact: 'Focus, padding, responsive and border fixes require dozens of edits and equivalent flows already drift.',
-        action: 'Apply a rule-of-three threshold in new or touched flows. Extract only stable repeated recipes that make the current product change smaller; do not create the whole proposed primitive catalog upfront.',
+        action: 'Extract the stable recipes already proven by three or more live call sites, migrate callers incrementally and stop before inventing universal components the product has not demonstrated.',
         evidence: [
             'apps/web/src/components/ui/Card.tsx:24 — a bounded surface primitive exists',
             'apps/web/src/components/room/CreateRoomForm.tsx:98 — composer recipe',
@@ -459,7 +459,7 @@ const findings: Finding[] = [
         summary:
             'Button always applies w-full and duplicate centering, forcing w-auto/justify-center overrides. CTA links independently copy button classes across app and marketing routes.',
         impact: 'Width intent is obscured and visual changes require editing both the component and raw link recipes.',
-        action: 'Create a shared ButtonLink/style recipe the next time CTA or Button behavior changes, then migrate only proven duplicates while preserving anchor semantics and rendered layouts.',
+        action: 'Unify Button and link-button styling in the near-term component cleanup. Make width intent explicit, migrate proven duplicates and preserve anchor semantics and rendered layouts.',
         evidence: [
             'apps/web/src/components/ui/Button.tsx:133 — w-full and repeated centering',
             'apps/web/src/app/app/page.tsx:24 — link duplicates button styling',
@@ -866,9 +866,9 @@ export default function AuditPage() {
                                 'Add real entropy to room links; keep import protection deliberately lightweight; prohibit RoomState caching; fix the two known write-invariant omissions. Pushing main continues to deploy.',
                             ],
                             [
-                                '2 · UX, SEO and useful simplification',
-                                'When it helps an experiment',
-                                'Correct focus, taps, placeholders and radio keyboards; improve localized acquisition; fix the measured doodle payload. Simplify components and spaghetti only in touched product areas.',
+                                '2 · UX, SEO and deliberate simplification',
+                                'Next engineering pass',
+                                'Correct focus, taps, placeholders and radio keyboards; improve localized acquisition; fix the measured doodle payload. Run bounded ExpenseDrawer, query-layer, token and proven component-recipe refactors with behavior and screenshot parity.',
                             ],
                             [
                                 '3 · Production machinery waits',
