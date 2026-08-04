@@ -40,7 +40,7 @@ const findings: Finding[] = [
         summary:
             'A room slug is the only read/write credential. Its secret portion is three words selected from a frozen 1,024-word list: exactly 2³⁰ possibilities. The readable, user-derived prefix is not secret entropy.',
         impact: 'Discovering a slug grants access to a private financial ledger and its mutations. The lookup throttle is not a sufficient compensating control, especially until production handling of X-Forwarded-For is verified.',
-        action: 'Separate the label from a 96–128-bit opaque capability. Preserve readable URLs with an independently generated token, support rotation/revocation, migrate old links, and verify that the edge replaces rather than trusts client-supplied forwarding headers.',
+        action: 'Keep the readable slug and append 96–128 bits of independently generated, non-human-friendly randomness. Verify that the edge replaces rather than trusts client-supplied forwarding headers. Treat rotation, revocation and ownership UI as separate product work.',
         evidence: [
             'apps/web/src/server/slug.ts:2 — explicitly declares the slug to be the credential',
             'apps/web/src/server/slug.ts:9 — three words from a 1,024-word list',
@@ -58,7 +58,7 @@ const findings: Finding[] = [
         summary:
             'The public import accepts up to 500 expenses, 20 members and 20 shares per expense. One request can persist about 10,000 shares plus expenses, members, a room and audit snapshots; the current limit permits 20 imports per hour per derived IP.',
         impact: 'A small anonymous request stream can create hundreds of thousands of durable rows per hour. The append-only audit model prevents ordinary cleanup, while audit construction can perform up to five million in-memory share comparisons per import.',
-        action: 'Add a weighted import-specific quota based on parsed cardinality, trusted edge identity, global circuit breaker and idempotency. Index shares by expense before audit construction and define a safe lifecycle for abandoned imports.',
+        action: 'Keep protection lightweight: lower hard cardinality/rate caps, index shares by expense before audit construction, and add a simple kill switch or circuit breaker. Do not build distributed quota or retention machinery before usage exists.',
         evidence: [
             'apps/web/src/app/api/import/route.ts:11 — public import limit and request path',
             'apps/web/src/server/validation.ts:498 — import cardinality constraints',
@@ -68,15 +68,16 @@ const findings: Finding[] = [
     },
     {
         id: 'ARCH-01',
-        severity: 'high',
+        severity: 'medium',
         area: 'Architecture',
         effort: 'XL',
-        horizon: 'Now',
+        horizon: 'Later',
+        status: 'accepted risk',
         title: 'Two incompatible backend architectures coexist',
         summary:
             'The root builds a Fastify/Prisma API in the app schema while the live Next application owns 23 route handlers, a direct Prisma client and a different split schema. The README still describes the older topology and a rewrite that next.config does not contain.',
         impact: 'There are two places to change money rules, API contracts, migrations and deployment assumptions. An engineer can test or patch the wrong system successfully.',
-        action: 'Declare the live target in an ADR, freeze the losing tree, port uniquely valuable tests/contracts, then delete it. Align root scripts, README, workspace and deployment topology around one executable system.',
+        action: 'Mark Next as authoritative and freeze Fastify. Do not schedule an XL retirement project; delete legacy pieces opportunistically when real product work touches them. Reopen on an actual wrong-tree change, repeated duplicated work, or around 1,000 rooms.',
         evidence: [
             'pnpm-workspace.yaml:2 — only apps/api is a workspace member; collapse is marked pending',
             'apps/web/src/server/db.ts:7 — Next owns a Prisma client',
@@ -86,20 +87,22 @@ const findings: Finding[] = [
     },
     {
         id: 'OPS-02',
-        severity: 'high',
+        severity: 'low',
         area: 'Operations',
         effort: 'S',
-        horizon: 'Now',
-        title: 'Fresh CI does not create the web suite’s database',
+        horizon: 'Later',
+        status: 'conditional',
+        title: 'The claimed fresh-CI database failure is not reproduced',
         summary:
-            'CI creates peanut_split_dev. Web test setup overwrites DATABASE_URL with peanut_split_test and immediately applies migrations; no workflow step creates that database.',
-        impact: 'All 1,719 web tests can pass on a prepared machine and fail before collection on a clean runner, removing meaningful merge verification.',
-        action: 'Create the test database in CI or inject TEST_DATABASE_URL to an isolated database/schema that the service actually creates. Correct the stale workflow comment.',
+            'The workflow names peanut_split_dev while web setup targets peanut_split_test, but the latest clean main run completed all 1,852 tests and the build successfully. The original predicted failure does not occur in current CI.',
+        impact: 'The configuration and comment are confusing, but there is no demonstrated broken check to place on the roadmap. The remaining risk is that database-backed tests might be silently bypassed, which needs proof before remediation.',
+        action: 'No roadmap work. Reopen only if a clean run fails or a focused check proves the database-backed handler suite is being skipped.',
         evidence: [
             '.github/workflows/ci.yml:16 — says web tests do not use the database',
             '.github/workflows/ci.yml:24 — creates only peanut_split_dev',
             'apps/web/src/server/test/env.ts:4 — defaults to peanut_split_test',
             'apps/web/src/server/test/globalSetup.ts:7 — applies migrations there',
+            'GitHub Actions run 30898139682 — clean main run passed 1,852 tests and the build on 2026-08-04',
         ],
     },
     {
@@ -251,15 +254,16 @@ const findings: Finding[] = [
     },
     {
         id: 'DATA-01',
-        severity: 'high',
+        severity: 'low',
         area: 'Data lifecycle',
         effort: 'L',
-        horizon: 'Next',
+        horizon: 'Later',
+        status: 'accepted risk',
         title: 'Append-only financial history has no erasure or retention path',
         summary:
             'Audit rows store before/after/detail snapshots, use a RESTRICT room foreign key and are protected from update/delete by a trigger. Every existing room receives a marker, while the product exposes no complete archive/delete/retention lifecycle.',
         impact: 'Abandoned, imported and user-requested data can accumulate indefinitely; ordinary hard deletion is structurally blocked. This is both an operational growth risk and a privacy/compliance design gap.',
-        action: 'Define the data lifecycle before scaling import: compact delta events, bounded queries, partitioning/retention, explicit room erasure semantics and a separate room-device table instead of scanning audit history.',
+        action: 'Document the anonymous-managed direction, but do not build retention, partitioning, expiry or deletion flows yet. Reopen around 1,000 rooms, on the first real erasure request, a concrete legal obligation, or measured audit-table growth.',
         evidence: [
             'apps/web/prisma/migrations/20260803150000_room_audit_history/migration.sql:27 — room foreign key restricts deletion',
             'apps/web/prisma/migrations/20260803150000_room_audit_history/migration.sql:32 — append-only trigger',
@@ -286,15 +290,16 @@ const findings: Finding[] = [
     },
     {
         id: 'QUAL-02',
-        severity: 'high',
+        severity: 'low',
         area: 'Quality',
         effort: 'M',
-        horizon: 'Now',
+        horizon: 'Later',
+        status: 'accepted risk',
         title: 'End-to-end suites are not part of CI',
         summary:
             'Two Playwright configurations and real product journeys exist, but CI runs typecheck, formatting, audits, tests and build only. No browser or visual path runs before/after deployment.',
         impact: 'Focus traps, service-worker behavior, responsive overflow and the create/share/settle funnel can fail while 1,719 tests stay green.',
-        action: 'Require a deterministic create → join → expense → settle smoke path plus one mobile accessibility path. Run cross-browser/PWA coverage nightly and before tagged releases.',
+        action: 'Keep Playwright journeys runnable for manual checks, but do not create a browser CI program now. Reopen after an escaped browser-only critical-flow regression, recurring manual-test pain, or around 1,000 rooms.',
         evidence: [
             '.github/workflows/ci.yml:51 — no Playwright command',
             'apps/web/package.json:19 — e2e scripts are opt-in',
@@ -303,15 +308,16 @@ const findings: Finding[] = [
     },
     {
         id: 'DS-01',
-        severity: 'high',
+        severity: 'medium',
         area: 'Design system',
         effort: 'L',
-        horizon: 'Next',
+        horizon: 'Later',
+        status: 'accepted risk',
         title: 'Landing CSS occupies 84% of the global stylesheet',
         summary:
             'globals.css is 1,561 lines; roughly 1,306 lines from the pass-the-link section onward are route-specific composition, keyframes and breakpoints delivered globally.',
         impact: 'Rooms, forms, tools and docs carry landing CSS. Global selectors create collision risk and make deletion and responsive tracing difficult.',
-        action: 'Move landing composition to colocated CSS modules, retain only reset/tokens/shared motion policy globally, and give reusable animations semantic names.',
+        action: 'Do not schedule a wholesale CSS-module migration. Move affected rules opportunistically during the next substantial landing experiment, or reopen on a real selector collision or measured CSS/CWV cost.',
         evidence: [
             'apps/web/src/styles/globals.css:256 — landing-specific block begins',
             'apps/web/src/styles/globals.css:1477 — late selectors still target landing elements',
@@ -328,7 +334,7 @@ const findings: Finding[] = [
         summary:
             'One client file owns create/edit/catch-up modes, validation, split math, scanning, quick add, payer creation, all sections and rendering. CurrencySelect (787), ToolCalculator (711), SettleDrawer (685) and ExpenseList (603) show similar concentration.',
         impact: 'Small domain or visual changes touch high-conflict files with huge state spaces; orchestration remains difficult to test adversarially.',
-        action: 'Extract explicit reducers/state machines first, then split amount/currency, payer, participant, allocation and submit sections. Keep money transforms pure and view layers thin.',
+        action: 'Do not schedule a big-bang decomposition. When a real experiment touches the drawer, extract only the pure reducer/state or money seam that makes that product change smaller and safer.',
         evidence: [
             'apps/web/src/components/room/ExpenseDrawer.tsx:1 — 1,962 lines / 109.7KB',
             'apps/web/src/components/room/CurrencySelect.tsx:1 — 787 lines',
@@ -345,7 +351,7 @@ const findings: Finding[] = [
         summary:
             'queries.ts combines read/poll/SSE policy, offline draining, identity persistence, optimistic creation and every room/member/theme/reaction/import mutation.',
         impact: 'Unrelated features collide in one cache-policy file and subtle idempotency/token invariants are easy to disturb.',
-        action: 'Keep shared keys/version/seed helpers small; split read, expense, member, settings, reactions and import modules. Give offline orchestration an explicit boundary.',
+        action: 'Split responsibilities opportunistically when a real mutation/cache change touches the module or repeated conflicts justify the seam. Preserve current hooks and cache contracts; do not reorganize it wholesale.',
         evidence: [
             'apps/web/src/lib/queries.ts:49 — keys/reads begin',
             'apps/web/src/lib/queries.ts:209 — offline engine',
@@ -363,7 +369,7 @@ const findings: Finding[] = [
         summary:
             'Marketing, tools, forms, rooms and docs all mount React Query, nuqs, Motion, offline runner, push navigation, analytics, device identity, cache sweeping, toasts and the active 897-key message catalog.',
         impact: 'Editorial visits pay app-runtime JavaScript and persistence/analytics side effects they do not need.',
-        action: 'Split route-group layouts into a server-first marketing/docs shell and an app shell. Supply only the message namespaces each client island needs.',
+        action: 'Treat this as conditional SEO work, not a provider-stack cleanup project. Use the smallest coarse route split needed for static indexed pages, or reopen on measured public-route JS/TTFB harm.',
         evidence: [
             'apps/web/src/app/layout.tsx:135 — all routes receive the same providers',
             'apps/web/src/lib/providers.tsx:45 — global application boot effects',
@@ -380,7 +386,7 @@ const findings: Finding[] = [
         summary:
             'grey/gray, n/grey, yellow/primary, black/n-1 and multiple shadow families overlap. Several palette/component families have no live consumers; z-index usage bypasses the configured 1–5 scale.',
         impact: 'Call sites choose by memory, searches miss equivalent usage and tuning one alias leaves another behind.',
-        action: 'Define a small primitive palette, semantic role aliases and named layers; publish a deprecation map and mechanically remove dead recipes.',
+        action: 'Treat the documented design system as canonical. Remove dead aliases in touched files and avoid a wholesale token migration or a larger speculative ontology.',
         evidence: [
             'apps/web/tailwind.config.js:39 — grey and gray coexist',
             'apps/web/tailwind.config.js:57 — n duplicates ink/muted values',
@@ -398,7 +404,7 @@ const findings: Finding[] = [
         summary:
             'Before this documentation route, 69 components repeated the white/ink-border/rounded surface recipe. CreateRoom, ExpenseDrawer and ToolCalculator repeat composer cards, rows, dashed headers, collapse controls and a 7.25rem currency slot.',
         impact: 'Focus, padding, responsive and border fixes require dozens of edits and equivalent flows already drift.',
-        action: 'Extract role-specific ComposerCard, ComposerRow, SectionHeader, FieldShell, CurrencySlot and SelectionTile patterns; ban only the displaced stable recipes.',
+        action: 'Apply a rule-of-three threshold in new or touched flows. Extract only stable repeated recipes that make the current product change smaller; do not create the whole proposed primitive catalog upfront.',
         evidence: [
             'apps/web/src/components/ui/Card.tsx:24 — a bounded surface primitive exists',
             'apps/web/src/components/room/CreateRoomForm.tsx:98 — composer recipe',
@@ -417,7 +423,7 @@ const findings: Finding[] = [
         summary:
             'control.ts overrides broken Button sizes at call sites. DrawerLayout exports classes every caller must remember until Drawer defaults are fixed. Both explicitly ask to be folded into their owners.',
         impact: 'Correct behavior depends on tribal knowledge; new callers naturally use public props and regress.',
-        action: 'Fix owner primitives, migrate all callers mechanically and delete each shim in the same change. Test computed sizes and sheet geometry.',
+        action: 'Fold each temporary shim into its owner only where computed dimensions and drawer geometry stay identical, then delete the duplicate. Any visible geometry change requires representative mockup review.',
         evidence: [
             'apps/web/src/components/ui/control.ts:1 — temporary correction/FOLD-IN plan',
             'apps/web/src/components/ui/DrawerLayout.tsx:5 — temporary separation',
@@ -426,15 +432,16 @@ const findings: Finding[] = [
     },
     {
         id: 'DS-05',
-        severity: 'medium',
+        severity: 'low',
         area: 'Design system',
         effort: 'L',
-        horizon: 'Next',
+        horizon: 'Later',
+        status: 'accepted risk',
         title: 'Drawer standardization is half-migrated and contradicted',
         summary:
             'DrawerLayout says actions should be a body sibling, yet seven of eight implementations nest them inside the scroll body. Callers also must remember border/header classes; ExpenseDrawer hand-authors most geometry.',
         impact: 'Long sheets have inconsistent scroll, safe-area and stable-action behavior.',
-        action: 'Create one DrawerScaffold with header/body/actions slots and baked-in border/alignment/inset defaults. Keep named variants only for proven exceptions.',
+        action: 'Do not standardize every drawer without a concrete product reason. Reopen for an observed scroll/safe-area defect or a deliberate drawer UX initiative; representative mockups are required before changing the shared flow.',
         evidence: [
             'apps/web/src/components/ui/DrawerLayout.tsx:48 — documents sibling action zone',
             'apps/web/src/components/room/SettleDrawer.tsx:664 — actions nested in body',
@@ -452,7 +459,7 @@ const findings: Finding[] = [
         summary:
             'Button always applies w-full and duplicate centering, forcing w-auto/justify-center overrides. CTA links independently copy button classes across app and marketing routes.',
         impact: 'Width intent is obscured and visual changes require editing both the component and raw link recipes.',
-        action: 'Make width explicit, remove redundant classes, and expose one typed button-style recipe or ButtonLink that preserves correct anchor semantics.',
+        action: 'Create a shared ButtonLink/style recipe the next time CTA or Button behavior changes, then migrate only proven duplicates while preserving anchor semantics and rendered layouts.',
         evidence: [
             'apps/web/src/components/ui/Button.tsx:133 — w-full and repeated centering',
             'apps/web/src/app/app/page.tsx:24 — link duplicates button styling',
@@ -487,7 +494,7 @@ const findings: Finding[] = [
         summary:
             'KNOWN_ERROR_CODES is manual. Emitted codes including HISTORY_CURSOR_INVALID, CATCH_UP_REVIEW_CONFLICT, NEW_PAYER_ON_EDIT, REQUEST_TOO_LARGE, UNSUPPORTED_PUSH_HOST and PUSH_SUBSCRIPTION_LIMIT are absent; unknown codes surface English.',
         impact: 'Localized flows regress to English precisely on failures. The current i18n audit checks catalog parity, not the server/client contract.',
-        action: 'Export one typed error catalog, derive translation keys from it and test every emitted ApiError code. Retain English only for rolling-deploy forward compatibility.',
+        action: 'Add the missing translated error codes and one contract test covering every emitted ApiError code. Keep English only for rolling-deploy forward compatibility; do not require a generator or new catalog framework.',
         evidence: [
             'apps/web/src/lib/error-messages.ts:31 — manual code list',
             'apps/web/src/lib/error-messages.ts:101 — unknown code falls back to English',
@@ -505,7 +512,7 @@ const findings: Finding[] = [
         summary:
             'RootLayout reads a dynamic locale API and its own comment notes every descendant becomes request-rendered, including path-localized editorial pages.',
         impact: 'Indexed content and internal docs give up static HTML/CDN caching to satisfy cookie-localized room URLs.',
-        action: 'Revisit with route-group providers: keep dynamic locale on app routes and static path locale for indexed content. Measure cache/TTFB before changing.',
+        action: 'If the recorded SEO strategy requires it, make indexed paths static with the smallest route/layout change possible. Do not redesign locale architecture without static-output or measured TTFB evidence.',
         evidence: [
             'apps/web/src/app/layout.tsx:99 — dynamic consequence documented',
             'apps/web/src/app/layout.tsx:112 — awaits getLocale at root',
@@ -514,15 +521,15 @@ const findings: Finding[] = [
     },
     {
         id: 'SEC-01',
-        severity: 'medium',
+        severity: 'low',
         area: 'Security',
         effort: 'M',
-        horizon: 'Next',
+        horizon: 'Later',
         title: 'No security-header policy is defined in the repository',
         summary:
             'Next config and middleware define no CSP, frame-ancestors, Referrer-Policy or Permissions-Policy. The app persists member tokens and the room URL is a credential.',
         impact: 'An XSS or hostile embed has a larger blast radius and broader browser capabilities than needed.',
-        action: 'Verify live proxy headers, inventory required PostHog/Sentry/push/font endpoints, deploy CSP report-only, then enforce nonces/hashes and least-privilege policies.',
+        action: 'Check the live edge and add only cheap non-breaking defaults opportunistically. Defer CSP reporting, nonces and enforcement until roughly 1,000 rooms, before user-authored HTML, or when a privileged third-party script is added.',
         evidence: [
             'apps/web/next.config.js:11 — no headers() policy',
             'apps/web/src/middleware.ts:20 — only locale injection',
@@ -556,7 +563,7 @@ const findings: Finding[] = [
         summary:
             'Writable-room checks, idempotency, locking, auditing, state reload, event publication and notification are assembled independently in route handlers. Expense restore and settlement deletion omit the archived-room assertion.',
         impact: 'A future archive flow can still accept these writes, and every new command must rediscover the same ordering and post-commit rules. The repetition creates correctness—not merely style—risk.',
-        action: 'Introduce a withRoomWrite/executeRoomCommand pipeline that owns locking, writable checks, payload-bound idempotency, audit, revision, publication and notification. Add invariant tests that enumerate every mutating route.',
+        action: 'Fix the two known archived-room omissions and add focused regression tests. Do not build the generic room-command pipeline until repeated omissions or real product work justify the abstraction.',
         evidence: [
             'apps/web/src/server/rooms.ts:179 — central assertWritable exists',
             'apps/web/src/app/api/expenses/[id]/restore/route.ts:13 — restore path omits it',
@@ -566,15 +573,16 @@ const findings: Finding[] = [
     },
     {
         id: 'DOMAIN-02',
-        severity: 'medium',
+        severity: 'low',
         area: 'Domain integrity',
         effort: 'M',
-        horizon: 'Next',
+        horizon: 'Later',
+        status: 'accepted risk',
         title: 'Idempotency and cross-room integrity stop at application conventions',
         summary:
             'Reusing an expense or settlement idempotency key with a changed body silently returns the old object. Independent foreign keys also do not prove that payer, share member and settlement members belong to the referenced room.',
         impact: 'Client retries can receive a success for a payload the server never applied, and a missed route validation can create cross-room references the database accepts.',
-        action: 'Persist and compare a canonical request hash, returning 409 on mismatch. Add composite room-scoped foreign keys or equivalent database triggers for all member-bearing records.',
+        action: 'Keep application validation for the experiment. Reopen request hashing and room-scoped database constraints around 1,000 rooms, on the first replay/cross-room defect, or during an adjacent schema migration that makes the work nearly free.',
         evidence: [
             'apps/web/src/app/api/rooms/[slug]/expenses/route.ts:58 — idempotency lookup is key-only',
             'apps/web/src/app/api/rooms/[slug]/settlements/route.ts:47 — same key-only replay',
@@ -584,15 +592,16 @@ const findings: Finding[] = [
     },
     {
         id: 'DS-08',
-        severity: 'medium',
+        severity: 'low',
         area: 'Design system',
         effort: 'M',
-        horizon: 'Next',
+        horizon: 'Later',
+        status: 'accepted risk',
         title: 'Motion and press feedback are catalogs in prose, not code',
         summary:
             'At least 34 call sites hand-enter press transforms. Equivalent raised controls move by 1/2/3px, x-only, x+y or scale; springs repeat near-identical stiffness/damping values. Generic Button haptics can also stack with semantic feedback.',
         impact: 'Equivalent controls feel mechanically different and feedback ownership is unclear.',
-        action: 'Define press-raised/flat/icon and enter/pop/settle/collapse presets, including reduced-motion behavior. Let semantic feedback replace generic tap feedback for one gesture.',
+        action: 'Do not build a global motion-token system for its own sake. Reopen during a deliberate delight pass or for a concrete feedback defect; representative prototypes are required before a broad migration.',
         evidence: [
             'apps/web/src/components/ui/Button.tsx:135 — x-only 3px press',
             'apps/web/src/components/room/JoinGate.tsx:206 — x+y raised press',
@@ -690,7 +699,7 @@ const findings: Finding[] = [
         summary:
             'Sentry is intentionally browser-only because the container has no egress. Server failures go to stdout; no repository-owned aggregation, alerting or correlation policy is documented.',
         impact: 'Migration, database, proxy and server-only failures may require manual log inspection.',
-        action: 'Use a platform log drain or internal collector; emit structured redacted request ids and alert on readiness/migration/error-rate changes.',
+        action: 'Keep platform stdout for the experiment. Reopen durable collection, request correlation and alerts around 1,000 rooms, after repeated undiagnosable server failures, or with a real on-call obligation.',
         evidence: [
             'apps/web/src/instrumentation-client.ts:6 — server SDK deliberately absent',
             'apps/web/src/server/http.ts:56 — unhandled errors go to console',
@@ -846,23 +855,25 @@ export default function AuditPage() {
 
                 <section id="priority" className="scroll-mt-24 py-14">
                     <p className="text-h9 uppercase tracking-[0.18em] text-grey-1">Recommended sequence</p>
-                    <h2 className="mt-2 font-display text-4xl font-extrabold">Stabilize, consolidate, then reshape</h2>
+                    <h2 className="mt-2 font-display text-4xl font-extrabold">
+                        Protect the experiment. Polish the product. Defer scale.
+                    </h2>
                     <div className="mt-6 grid gap-4 lg:grid-cols-3">
                         {[
                             [
-                                '1 · Close credential and release risk',
-                                'This week',
-                                'Replace the 30-bit room capability; contain anonymous import amplification; prohibit RoomState caching; gate deploys and repair CI database setup.',
+                                '1 · Cheap first-room correctness',
+                                'Now · small only',
+                                'Add real entropy to room links; keep import protection deliberately lightweight; prohibit RoomState caching; fix the two known write-invariant omissions. Pushing main continues to deploy.',
                             ],
                             [
-                                '2 · Repair user-facing foundations',
-                                'Next 2–4 weeks',
-                                'Correct focus, taps, placeholders and radio keyboards; finish Button/Drawer primitives; localize catalogs/errors; add semantic lint and a CI browser smoke path.',
+                                '2 · UX, SEO and useful simplification',
+                                'When it helps an experiment',
+                                'Correct focus, taps, placeholders and radio keyboards; improve localized acquisition; fix the measured doodle payload. Simplify components and spaghetti only in touched product areas.',
                             ],
                             [
-                                '3 · Consolidate and reshape',
-                                'Planned refactor',
-                                'Retire the second backend; define data retention; chunk doodles; version/paginate RoomState; split provider, workflow and query boundaries.',
+                                '3 · Production machinery waits',
+                                'At ~1,000 rooms or measured pressure',
+                                'Defer retention systems, CSP programs, browser CI, database hardening, telemetry, multi-replica work and large architecture rewrites. RoomState pagination waits for an actual payload or latency bottleneck; deploy gating waits for much larger scale.',
                             ],
                         ].map(([title, timing, body]) => (
                             <article key={title} className="shadow-4 rounded-sm border border-n-1 bg-white p-5">
