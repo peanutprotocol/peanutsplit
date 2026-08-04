@@ -1,7 +1,12 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { buildExpense, changeEqualExpenseParticipant, latchFirstSharedBalance } from '@/server/expenses'
+import {
+    buildExpense,
+    changeEqualExpenseParticipant,
+    expenseNeedsRateTable,
+    latchFirstSharedBalance,
+} from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
 import { badRequest, conflict, memberTokenOf, notFound, readJson, respond } from '@/server/http'
 import {
@@ -95,9 +100,17 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         if (!body.paidById || body.newPaidByName)
             throw badRequest('a new payer can only be added with a new expense', 'NEW_PAYER_ON_EDIT')
         const editBody = { ...body, paidById: body.paidById }
-        // Resolve FX before the transaction so a slow rate source never holds
-        // the room's write lock.
-        const rateTable = await getRateTable()
+        // Resolve a genuinely new catalog pair before the transaction. A
+        // same-pair edit owns the stored rate, while custom/manual and identity
+        // writes cannot use the feed and should not wait for it.
+        const rateTable = expenseNeedsRateTable(
+            initial.currency,
+            body.currency,
+            initialExpense.currency,
+            body.manualFxRate
+        )
+            ? await getRateTable()
+            : undefined
 
         const result = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, initial.id)

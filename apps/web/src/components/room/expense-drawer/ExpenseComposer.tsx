@@ -34,6 +34,7 @@ interface ExpenseComposerProps {
         suggested: string[]
         roomCurrency: string
         onChange: (value: string) => void
+        allowCustomWithManualRate?: boolean
     }
     description: {
         value: string
@@ -126,6 +127,7 @@ export function ExpenseComposer({
                             currencies={currency.choices}
                             suggested={currency.suggested}
                             requireRateTo={currency.roomCurrency}
+                            allowCustomWithManualRate={currency.allowCustomWithManualRate}
                             variant="sm"
                             aria-label={labels.currency}
                             data-testid="expense-currency"

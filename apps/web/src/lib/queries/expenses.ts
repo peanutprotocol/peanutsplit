@@ -31,6 +31,7 @@ const expenseRequestSignature = (input: ExpenseInput): string =>
         input.description,
         input.amountMinor,
         input.currency,
+        input.manualFxRate ?? null,
         input.newPaidByName ? ['new', input.newPaidByName] : ['member', input.paidById ?? null],
         input.splitMode,
         input.participantIds ?? null,

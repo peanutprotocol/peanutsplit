@@ -50,6 +50,9 @@ export const KNOWN_ERROR_CODES = [
     'AMOUNT_TOO_LARGE',
     // The expense's currency cannot be priced into the room's, so the amount has nowhere to go.
     'NO_RATE',
+    'MANUAL_FX_RATE_REQUIRED',
+    'MANUAL_FX_RATE_INVALID',
+    'MANUAL_FX_RATE_NOT_ALLOWED',
     'EXACT_SHARES_REQUIRED',
     'SHARES_DO_NOT_ADD_UP',
     'WEIGHTED_SHARES_REQUIRED',

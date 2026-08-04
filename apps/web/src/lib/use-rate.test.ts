@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { convertMinorForPreview } from './use-rate'
+import { availableRateQuote, convertMinorForPreview } from './use-rate'
+
+describe('availableRateQuote', () => {
+    it('turns a successful no-rate response into no preview', () => {
+        expect(
+            availableRateQuote({ from: 'EUR', to: 'DOGE', rate: null, source: 'static', indicative: true })
+        ).toBeNull()
+    })
+
+    it('preserves an available numeric quote', () => {
+        const quote = { from: 'USD', to: 'EUR', rate: 0.92, source: 'static', indicative: true } as const
+        expect(availableRateQuote(quote)).toEqual(quote)
+    })
+})
 
 /**
  * Display-only arithmetic, but it still puts a number in front of someone about

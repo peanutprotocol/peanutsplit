@@ -15,18 +15,29 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { api } from './api'
+import { api, type IndicativeRateQuote } from './api'
 
 /** An hour. A rate that moves under someone mid-form would make the preview
  *  jump for no reason they can see, and the server re-quotes on save anyway. */
 const RATE_STALE_MS = 60 * 60 * 1000
 
-export function useRate(from: string, to: string) {
+export type AvailableRateQuote = Omit<IndicativeRateQuote, 'rate'> & { rate: number }
+
+/** A missing feed quote is a successful probe with no preview, not an error and not a usable
+ *  numeric rate. Narrow it once at the query boundary so preview consumers cannot pass null into
+ *  money arithmetic. */
+export function availableRateQuote(quote: IndicativeRateQuote): AvailableRateQuote | null {
+    if (quote.rate === null) return null
+    return { ...quote, rate: quote.rate }
+}
+
+export function useRate(from: string, to: string, enabled = true) {
     return useQuery({
         queryKey: ['rate', from, to] as const,
         queryFn: ({ signal }) => api.rate(from, to, signal),
+        select: availableRateQuote,
         // Same-currency is not a conversion, and the route would reject it.
-        enabled: from !== to && from.length > 0 && to.length > 0,
+        enabled: enabled && from !== to && from.length > 0 && to.length > 0,
         staleTime: RATE_STALE_MS,
         // A failed probe means "no preview". Retrying would put a number on
         // screen seconds late, after the eye has already moved on.

@@ -293,6 +293,37 @@ describe('adding an expense', () => {
         expect(sent[1].clientKey).not.toBe(sent[0].clientKey)
     })
 
+    it('mints a new key when only the manual exchange rate changes', async () => {
+        const requestRef: ExpenseRequestRef = { current: null }
+        const sent: Array<ExpenseInput & { clientKey: string }> = []
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+                sent.push(JSON.parse(init?.body as string) as ExpenseInput & { clientKey: string })
+                throw new TypeError('offline')
+            })
+        )
+        const observer = new MutationObserver(
+            queryClient,
+            addExpenseMutationOptions(queryClient, SLUG, 'token-1', requestRef)
+        )
+        const custom: ExpenseInput = {
+            description: 'Round',
+            amountMinor: '4',
+            currency: 'BEER',
+            manualFxRate: '2.5',
+            newPaidByName: 'Carla',
+            splitMode: 'EQUAL',
+        }
+
+        await expect(observer.mutate(custom)).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
+        await expect(observer.mutate({ ...custom, manualFxRate: '3' })).rejects.toMatchObject({
+            code: NETWORK_ERROR_CODE,
+        })
+
+        expect(sent[1].clientKey).not.toBe(sent[0].clientKey)
+    })
+
     it('mints a new key when only weighted shares change', async () => {
         const requestRef: ExpenseRequestRef = { current: null }
         const sent: Array<ExpenseInput & { clientKey: string }> = []

@@ -34,10 +34,9 @@ export const STATIC_USD_PER_UNIT: Readonly<Record<string, number>> = {
  *  every amount still has to fit the signed column it will be stored in. */
 export const MAX_SIGNED_MINOR = 9_223_372_036_854_775_807n
 
-/** What a code the catalog does not know is worth per major unit. Two, and safely so: a custom
- *  code can never be converted, so its decimals only ever scale a value against itself. Parse and
- *  format use the same number, the round trip is exact, and no cross-currency arithmetic can be
- *  wrong because of the choice. */
+/** How many minor units a code outside the catalog has. Two is part of the invented-currency
+ *  contract: parse, format, exact shares, and manual conversion all use it consistently, so
+ *  `100` always means one whole BEER rather than changing meaning between surfaces. */
 export const CUSTOM_DECIMALS = 2
 
 /** A code is three or four uppercase ASCII letters. `[A-Z]` is ASCII by construction, which is
@@ -74,8 +73,9 @@ export function currency(code: string): Currency {
 
 export const decimalsOf = (code: string): number => currency(code).decimals
 
-/** Can an amount in `from` be written into a room settling in `to`? Catalog-level, so the picker
- *  and the receipt parser can ask it without a rate table. `rateFrom` is the gate. */
+/** Can an amount in `from` be automatically priced into `to`? Catalog-level, so the picker and
+ *  receipt parser can ask it without a rate table. Invented expense currencies use the separate
+ *  explicit manual-rate contract; `rateFrom` remains the automatic-FX gate. */
 export const canPriceCode = (from: string, to: string): boolean => canPrice(currency(from), currency(to))
 
 /**
@@ -117,6 +117,15 @@ export function scaleRate(rate: number): bigint {
  */
 export const FX_RATE_DIGITS = 12
 
+/** A stored Decimal rate as plain, compact text. Decimal.js switches to exponent notation for
+ *  values at or below 1e-7, but the public/manual-rate contract deliberately does not accept
+ *  exponent notation. Going through the column's fixed scale preserves every stored digit. */
+export function formatStoredFxRate(rate: { toFixed: (digits: number) => string }): string {
+    const fixed = rate.toFixed(FX_RATE_DIGITS)
+    const compact = fixed.replace(/0+$/, '')
+    return compact.endsWith('.') ? compact.slice(0, -1) : compact
+}
+
 /**
  * A rate rounded to what the `fxRate` column stores, so writing it and reading it back is exact.
  *
@@ -125,6 +134,55 @@ export const FX_RATE_DIGITS = 12
  * it. That fixed point is what lets an edit reproduce the number a create wrote.
  */
 export const quantiseRate = (rate: number): number => Number(rate.toFixed(FX_RATE_DIGITS))
+
+/**
+ * The public shape of a manually supplied FX rate.
+ *
+ * `Expense.fxRate` is Decimal(24,12): twelve whole digits and twelve fraction
+ * digits. Keep the wire format just as strict so an accepted request cannot
+ * become a Prisma overflow, and disallow exponent notation so the value a
+ * person reviewed is the value the ledger records. Manual rates never pass
+ * through JavaScript Number: a large 12dp decimal has more significant digits
+ * than a double can retain.
+ */
+const MANUAL_FX_RATE_SHAPE = /^\d{1,12}(?:\.\d{1,12})?$/
+export const MAX_MANUAL_FX_RATE = 999_999_999_999
+export const MANUAL_FX_RATE_SCALE = 10n ** BigInt(FX_RATE_DIGITS)
+const MAX_MANUAL_FX_RATE_SCALED = BigInt(MAX_MANUAL_FX_RATE) * MANUAL_FX_RATE_SCALE
+
+export interface ManualFxRate {
+    /** Exact Decimal(24,12)-compatible representation persisted on Expense. */
+    decimal: string
+    /** `decimal * 1e12`, used directly by money conversion. */
+    scaled: bigint
+}
+
+/** Parse and quantise room-major-units per one expense-major-unit without a float. */
+export function parseManualFxRate(value: string): ManualFxRate | null {
+    const raw = value.trim()
+    if (!MANUAL_FX_RATE_SHAPE.test(raw)) return null
+    const [whole, fraction = ''] = raw.split('.')
+    const scaled = BigInt(whole) * MANUAL_FX_RATE_SCALE + BigInt(fraction.padEnd(FX_RATE_DIGITS, '0'))
+    if (scaled <= 0n || scaled > MAX_MANUAL_FX_RATE_SCALED) return null
+    const canonicalWhole = scaled / MANUAL_FX_RATE_SCALE
+    const canonicalFraction = (scaled % MANUAL_FX_RATE_SCALE).toString().padStart(FX_RATE_DIGITS, '0')
+    return { decimal: `${canonicalWhole}.${canonicalFraction}`, scaled }
+}
+
+/**
+ * Convert at an exact manual Decimal(24,12) rate. This is deliberately separate
+ * from `convertMinorAtRate`: catalog FX keeps its existing Number/1e18 behavior,
+ * while a reviewed manual decimal is multiplied as the exact rational stored.
+ */
+export function convertMinorAtManualFxRate(amountMinor: bigint, from: string, to: string, rate: ManualFxRate): bigint {
+    if (from === to) return amountMinor
+    const num = amountMinor * rate.scaled * 10n ** BigInt(decimalsOf(to))
+    const den = MANUAL_FX_RATE_SCALE * 10n ** BigInt(decimalsOf(from))
+    const neg = num < 0n
+    const abs = neg ? -num : num
+    const q = (abs + den / 2n) / den
+    return neg ? -q : q
+}
 
 /**
  * Convert minor units between currencies at `rate` (major units of `to` per 1

@@ -548,6 +548,15 @@
             "amount": "Monto",
             "currency": "Moneda del gasto",
             "foreignHint": "convertido a un tipo de cambio indicativo",
+            "manualRateTitle": "Define un tipo de cambio manual",
+            "manualRateInputLabel": "Valor de 1 {currency} en {roomCurrency}",
+            "manualRateHint": "Este tipo se guarda con el gasto y no cambia automáticamente.",
+            "manualRateFromExpense": "Este es el tipo guardado para el gasto. Cámbialo para recalcularlo.",
+            "manualRateRequired": "Escribe cuánto vale 1 {currency} en {roomCurrency}.",
+            "manualRateInvalid": "Escribe un tipo positivo de hasta 999999999999, con un máximo de 12 decimales.",
+            "manualRateRoundsToZero": "Ese tipo redondea el gasto a cero en {roomCurrency}. Aumenta el tipo o el monto.",
+            "manualRateOverflow": "Ese tipo o monto es demasiado grande para el registro. Reduce uno de los dos.",
+            "manualRatePreview": "Con tu tipo manual, {amount} se convierte en {converted}.",
             "description": "¿De qué fue? (opcional)",
             "descriptionPlaceholder": "Cena, taxi, pase de esquí… (opcional)",
             "fieldsSwapped": "Listo: intercambiamos el importe y la descripción.",
@@ -587,6 +596,7 @@
             "leftToAllocate": "Falta repartir",
             "amountsAreIn": "Los montos están en {currency}",
             "convertedAt": " — convertidos a {roomCurrency} a un tipo de cambio indicativo",
+            "convertedAtManual": " — convertidos a {roomCurrency} con tu tipo manual",
             "allocatedOf": ". Repartido {allocated} de {total}.",
             "percentageAllocated": "100% repartido exactamente",
             "percentageOverBy": "Supera el 100% por",
@@ -739,8 +749,10 @@
             "noMatchLong": "No existe una moneda «{query}». Un ticker tiene tres o cuatro letras.",
             "useCustom": "Usar «{code}»",
             "useCustomHint": "Tu propia moneda — sin cotización, no se convierte nada.",
+            "useCustomManualHint": "Define cuánto vale 1 {code} en {roomCurrency} para este gasto.",
             "noRateChip": "sin cotización",
-            "roomOnly": "{roomCurrency} no tiene cotización, así que todos los gastos de esta sala van en {roomCurrency}."
+            "roomOnly": "{roomCurrency} no tiene cotización, así que todos los gastos de esta sala van en {roomCurrency}.",
+            "roomOnlyManual": "Solo {roomCurrency} — inventa un ticker con tipo manual."
         },
         "scan": {
             "cta": "Escanear una cuenta",
@@ -1024,7 +1036,10 @@
         "PUSH_SUBSCRIPTION_LIMIT": "Esta sala tiene demasiados dispositivos recibiendo notificaciones.",
         "RATE_LIMITED": "Fueron muchas solicitudes — espera un minuto e intenta de nuevo.",
         "MEMBER_HAS_HISTORY": "Esa persona ya es parte del historial de la sala — no se puede quitar de la lista.",
-        "NO_RATE": "No hay cotización entre esa moneda y la de la sala, así que no se puede convertir. Usá la moneda de la sala."
+        "NO_RATE": "No hay cotización entre esa moneda y la de la sala, así que no se puede convertir. Usá la moneda de la sala.",
+        "MANUAL_FX_RATE_REQUIRED": "Ingresa una cotización manual para esta moneda personalizada.",
+        "MANUAL_FX_RATE_INVALID": "Esa cotización manual no es válida o hace que el monto convertido se redondee a cero.",
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Las cotizaciones manuales solo están disponibles para monedas personalizadas del gasto."
     },
     "derivation": {
         "title": "Cómo sale este número",

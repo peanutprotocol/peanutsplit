@@ -548,6 +548,15 @@
             "amount": "Valor",
             "currency": "Moeda do gasto",
             "foreignHint": "convertido a uma taxa indicativa",
+            "manualRateTitle": "Defina uma taxa manual",
+            "manualRateInputLabel": "Valor de 1 {currency} em {roomCurrency}",
+            "manualRateHint": "Esta taxa fica salva com o gasto e não muda automaticamente.",
+            "manualRateFromExpense": "Esta é a taxa salva para o gasto. Altere para recalcular o valor.",
+            "manualRateRequired": "Digite quanto vale 1 {currency} em {roomCurrency}.",
+            "manualRateInvalid": "Digite uma taxa positiva de até 999999999999, com no máximo 12 casas decimais.",
+            "manualRateRoundsToZero": "Essa taxa arredonda o gasto para zero em {roomCurrency}. Aumente a taxa ou o valor.",
+            "manualRateOverflow": "Essa taxa ou valor é grande demais para o registro. Reduza um dos dois.",
+            "manualRatePreview": "Com a sua taxa manual, {amount} vira {converted}.",
             "description": "Foi com o quê? (opcional)",
             "descriptionPlaceholder": "Jantar, táxi, passe de esqui… (opcional)",
             "fieldsSwapped": "Pronto: trocamos o valor e a descrição.",
@@ -587,6 +596,7 @@
             "leftToAllocate": "Falta dividir",
             "amountsAreIn": "Os valores estão em {currency}",
             "convertedAt": " — convertidos para {roomCurrency} a uma taxa indicativa",
+            "convertedAtManual": " — convertidos para {roomCurrency} com a sua taxa manual",
             "allocatedOf": ". Dividido {allocated} de {total}.",
             "percentageAllocated": "100% dividido exatamente",
             "percentageOverBy": "Passou de 100% por",
@@ -739,8 +749,10 @@
             "noMatchLong": "Não existe moeda “{query}”. Um ticker tem três ou quatro letras.",
             "useCustom": "Usar “{code}”",
             "useCustomHint": "Sua própria moeda — sem cotação, nada é convertido.",
+            "useCustomManualHint": "Defina quanto vale 1 {code} em {roomCurrency} para este gasto.",
             "noRateChip": "sem cotação",
-            "roomOnly": "{roomCurrency} não tem cotação, então todo gasto desta sala fica em {roomCurrency}."
+            "roomOnly": "{roomCurrency} não tem cotação, então todo gasto desta sala fica em {roomCurrency}.",
+            "roomOnlyManual": "Só {roomCurrency} — invente um código com taxa manual."
         },
         "scan": {
             "cta": "Escanear uma conta",
@@ -1024,7 +1036,10 @@
         "PUSH_SUBSCRIPTION_LIMIT": "Esta sala tem dispositivos demais recebendo notificações.",
         "RATE_LIMITED": "Foram muitas tentativas — espere um minuto e tente de novo.",
         "MEMBER_HAS_HISTORY": "Essa pessoa já faz parte do histórico da sala — não dá para tirar da lista.",
-        "NO_RATE": "Não há cotação entre essa moeda e a da sala, então não dá para converter. Use a moeda da sala."
+        "NO_RATE": "Não há cotação entre essa moeda e a da sala, então não dá para converter. Use a moeda da sala.",
+        "MANUAL_FX_RATE_REQUIRED": "Insira uma cotação manual para esta moeda personalizada.",
+        "MANUAL_FX_RATE_INVALID": "Essa cotação manual é inválida ou faz o valor convertido arredondar para zero.",
+        "MANUAL_FX_RATE_NOT_ALLOWED": "As cotações manuais só estão disponíveis para moedas personalizadas do gasto."
     },
     "derivation": {
         "title": "De onde vem esse número",

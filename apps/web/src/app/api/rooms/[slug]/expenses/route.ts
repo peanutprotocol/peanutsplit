@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { publish } from '@/server/events'
-import { buildExpense, latchFirstSharedBalance } from '@/server/expenses'
+import { buildExpense, expenseNeedsRateTable, latchFirstSharedBalance } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
 import { conflict, memberTokenOf, readJson, respond } from '@/server/http'
 import {
@@ -37,10 +37,12 @@ export const POST = (request: Request, ctx: Ctx) =>
         const room = await loadRoom(slug)
         assertWritable(room)
         const token = memberTokenOf(request)
-        // Read once before entering the transaction. New-payer creation and the
-        // expense still commit together; this only avoids holding a room lock
-        // while the FX table is read.
-        const rateTable = await getRateTable()
+        // Read catalog FX before entering the transaction only when this pair
+        // needs it. Manual custom rates, identity pairs, and validation failures
+        // must not wake the cache/feed path merely to save an expense.
+        const rateTable = expenseNeedsRateTable(room.currency, body.currency, undefined, body.manualFxRate)
+            ? await getRateTable()
+            : undefined
 
         let result: ExpenseWriteResult
         try {

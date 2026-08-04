@@ -1,15 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { CURRENCY_CATALOG } from '@/lib/currency-catalog'
 import {
+    convertMinorAtManualFxRate,
     convertMinorAtRate,
     currency,
     CUSTOM_DECIMALS,
     decimalsOf,
     formatMinor,
+    formatStoredFxRate,
     FX_RATE_DIGITS,
     isCatalogCode,
     isValidCode,
     normaliseCode,
+    parseManualFxRate,
     parseMinor,
     publicCurrencies,
     quantiseRate,
@@ -226,6 +229,16 @@ describe('quantiseRate', () => {
     })
 })
 
+describe('formatStoredFxRate', () => {
+    it('keeps tiny stored decimals out of exponent notation without padding ordinary rates', () => {
+        expect(formatStoredFxRate({ toFixed: () => '0.000000000001' })).toBe('0.000000000001')
+        expect(formatStoredFxRate({ toFixed: () => '5.000000000000' })).toBe('5')
+        expect(formatStoredFxRate({ toFixed: () => '5.120000000000' })).toBe('5.12')
+        expect(formatStoredFxRate({ toFixed: () => '100.000000000000' })).toBe('100')
+        expect(formatStoredFxRate({ toFixed: () => '120.000000000000' })).toBe('120')
+    })
+})
+
 describe('convertMinorAtRate', () => {
     it('is the identity for same-currency conversion', () => {
         expect(convertMinorAtRate(12345n, 'EUR', 'EUR', 1)).toBe(12345n)
@@ -292,6 +305,30 @@ describe('convertMinorAtRate', () => {
         const jpy = convertMinorAtRate(eur, 'EUR', 'JPY', staticRate('EUR', 'JPY'))
         const back = convertMinorAtRate(jpy, 'JPY', 'EUR', staticRate('JPY', 'EUR'))
         expect(back - eur >= -2n && back - eur <= 2n).toBe(true)
+    })
+})
+
+describe('exact manual FX rates', () => {
+    it('preserves all 24 Decimal digits and converts without passing through Number', () => {
+        const raw = '123456789012.123456789012'
+        const rate = parseManualFxRate(raw)
+        expect(rate).toEqual({
+            decimal: raw,
+            scaled: 123_456_789_012_123_456_789_012n,
+        })
+
+        // At this amount the nearest double crosses the half-up boundary by one
+        // room minor unit. The exact 1e12-scaled path must stay on the stored
+        // decimal's side of that boundary.
+        expect(convertMinorAtManualFxRate(3001n, 'BEER', 'EUR', rate!)).toBe(370_493_823_825_382n)
+        expect(convertMinorAtRate(3001n, 'BEER', 'EUR', Number(raw))).toBe(370_493_823_825_383n)
+    })
+
+    it('canonicalises to 12dp and rounds negative conversions symmetrically', () => {
+        const rate = parseManualFxRate('  0.5  ')
+        expect(rate).toEqual({ decimal: '0.500000000000', scaled: 500_000_000_000n })
+        expect(convertMinorAtManualFxRate(1n, 'BEER', 'EUR', rate!)).toBe(1n)
+        expect(convertMinorAtManualFxRate(-1n, 'BEER', 'EUR', rate!)).toBe(-1n)
     })
 })
 

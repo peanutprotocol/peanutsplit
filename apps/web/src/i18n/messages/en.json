@@ -548,6 +548,15 @@
             "amount": "Amount",
             "currency": "Expense currency",
             "foreignHint": "converted at an indicative rate",
+            "manualRateTitle": "Set a manual rate",
+            "manualRateInputLabel": "Value of 1 {currency} in {roomCurrency}",
+            "manualRateHint": "This rate is saved with this expense. It does not change automatically.",
+            "manualRateFromExpense": "This expense’s saved rate. Change it to reprice the expense.",
+            "manualRateRequired": "Enter how much 1 {currency} is worth in {roomCurrency}.",
+            "manualRateInvalid": "Enter a positive rate up to 999999999999, with no more than 12 decimal places.",
+            "manualRateRoundsToZero": "That rate rounds this expense to zero in {roomCurrency}. Increase the rate or amount.",
+            "manualRateOverflow": "That rate or amount is too large for the ledger. Lower one of them.",
+            "manualRatePreview": "At your manual rate, {amount} becomes {converted}.",
             "description": "What for? (optional)",
             "descriptionPlaceholder": "Dinner, taxi, lift pass… (optional)",
             "fieldsSwapped": "Got it — amount and description swapped.",
@@ -587,6 +596,7 @@
             "leftToAllocate": "Left to allocate",
             "amountsAreIn": "Amounts are in {currency}",
             "convertedAt": " — converted to {roomCurrency} at an indicative rate",
+            "convertedAtManual": " — converted to {roomCurrency} at your manual rate",
             "allocatedOf": ". Allocated {allocated} of {total}.",
             "percentageAllocated": "Exactly 100% allocated",
             "percentageOverBy": "Over 100% by",
@@ -739,8 +749,10 @@
             "noMatchLong": "No currency called “{query}”. A ticker is three or four letters.",
             "useCustom": "Use “{code}”",
             "useCustomHint": "Your own currency — no rate, nothing converts.",
+            "useCustomManualHint": "Set what 1 {code} is worth in {roomCurrency} for this expense.",
             "noRateChip": "no rate",
-            "roomOnly": "{roomCurrency} has no rate, so every expense in this room is in {roomCurrency}."
+            "roomOnly": "{roomCurrency} has no rate, so every expense in this room is in {roomCurrency}.",
+            "roomOnlyManual": "{roomCurrency} only — invent a ticker for a manual rate."
         },
         "scan": {
             "cta": "Scan a bill",
@@ -1024,7 +1036,10 @@
         "PUSH_SUBSCRIPTION_LIMIT": "This room has too many devices receiving notifications.",
         "RATE_LIMITED": "That was a lot of requests — give it a minute and try again.",
         "MEMBER_HAS_HISTORY": "That person is part of the room's history now — they cannot be taken off the list.",
-        "NO_RATE": "There is no rate between that currency and the room’s, so it cannot be converted. Use the room currency."
+        "NO_RATE": "There is no rate between that currency and the room’s, so it cannot be converted. Use the room currency.",
+        "MANUAL_FX_RATE_REQUIRED": "Enter a manual rate for this custom currency.",
+        "MANUAL_FX_RATE_INVALID": "That manual rate is invalid or makes the converted amount round to zero.",
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Manual rates are only available for custom expense currencies."
     },
     "derivation": {
         "title": "How this adds up",

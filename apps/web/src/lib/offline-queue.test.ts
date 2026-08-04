@@ -408,6 +408,18 @@ describe('the queue end to end', () => {
         expect(notices).toEqual([{ kind: 'queued' }])
     })
 
+    it('keeps a custom currency manual rate intact for replay', () => {
+        const queued = enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input({ currency: 'BEER', amountMinor: '4', manualFxRate: '2.5' }),
+        })
+
+        expect(queued?.body.manualFxRate).toBe('2.5')
+        expect(queueSnapshot()[0].body).toMatchObject({ currency: 'BEER', manualFxRate: '2.5' })
+    })
+
     it('preserves an append from another tab even when this tab cached the old queue', () => {
         expect(queueSnapshot()).toEqual([])
         const other = item({

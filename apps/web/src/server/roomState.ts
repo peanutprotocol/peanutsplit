@@ -5,6 +5,7 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { ApiError, notFound } from '@/server/http'
+import { formatStoredFxRate } from '@/server/money'
 import type { ApiTransfer, RoomState } from '@/lib/api-types'
 
 const roomArgs = {
@@ -143,7 +144,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             amountMinor: e.amountMinor.toString(),
             currency: e.currency,
             baseAmountMinor: e.baseAmountMinor.toString(),
-            fxRate: e.fxRate.toString(),
+            fxRate: formatStoredFxRate(e.fxRate),
             splitMode: e.splitMode,
             paidById: e.paidById,
             createdById: e.createdById,
