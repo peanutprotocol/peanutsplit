@@ -23,12 +23,13 @@ import { Icon } from '@/components/ui/Icon'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { LinkMoment } from '@/components/room/LinkMoment'
 import { track } from '@/lib/analytics'
-import type { ImportedExpenseInput, RoomStateWithMember } from '@/lib/api-types'
+import type { ImportedExpenseInput, ImportIntoRoomResult, RoomState, RoomStateWithMember } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
+import { importedRoomPath } from '@/lib/import-routes'
 import { formatMoney } from '@/lib/money'
-import { useCurrencies, useImportRoom } from '@/lib/queries'
+import { useCurrencies, useImportIntoRoom, useImportRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { useMotionAllowed } from '@/lib/use-motion'
 import {
@@ -46,12 +47,28 @@ import {
     type SkippedImportChoice,
 } from '@/lib/splitpro-import'
 import { useFeedback } from '@/lib/use-settings'
+import { ExistingRoomImportContext, ExistingRoomImportFields } from './ExistingRoomImportFields'
+import {
+    existingRoomMappingProblem,
+    formatImportedAt,
+    importMemberMappings,
+    initialExistingRoomMemberDrafts,
+    type ExistingRoomMappingProblem,
+    type ExistingRoomMemberDraft,
+} from './existing-room-mapping'
 
 /** Enough to see what came in without turning the preview into the room itself. */
 const WARNINGS_SHOWN = 8
 
-export function SplitwiseImport() {
+export interface ExistingRoomImportTarget {
+    state: RoomState
+    /** Attribution only; holding the slug remains sufficient to write. */
+    memberToken?: string | null
+}
+
+export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImportTarget } = {}) {
     const t = useTranslations('import')
+    const tExisting = useTranslations('import.existing')
     const locale = useLocale()
     const router = useRouter()
     const feedback = useFeedback()
@@ -59,6 +76,7 @@ export function SplitwiseImport() {
     const errorMessage = useErrorMessage()
     const { data: currencies } = useCurrencies()
     const importRoom = useImportRoom()
+    const importIntoRoom = useImportIntoRoom(targetRoom?.state.room.slug ?? '', targetRoom?.memberToken)
     const inputRef = useRef<HTMLInputElement>(null)
 
     const [parsed, setParsed] = useState<ParsedFile | null>(null)
@@ -67,6 +85,7 @@ export function SplitwiseImport() {
     const [roomName, setRoomName] = useState('')
     const [currency, setCurrency] = useState('EUR')
     const [names, setNames] = useState<string[]>([])
+    const [memberDrafts, setMemberDrafts] = useState<ExistingRoomMemberDraft[]>([])
     /**
      * Null until somebody picks, and the submit button is disabled until they do.
      *
@@ -81,6 +100,7 @@ export function SplitwiseImport() {
     const [error, setError] = useState<string | null>(null)
     const [dragging, setDragging] = useState(false)
     const [created, setCreated] = useState<RoomStateWithMember | null>(null)
+    const [appended, setAppended] = useState<ImportIntoRoomResult | null>(null)
 
     /**
      * Every parse failure the parser can name, spelled out one literal at a time rather than
@@ -163,10 +183,13 @@ export function SplitwiseImport() {
             setRoomName(choice.roomName || t('preview.fallbackName'))
             setCurrency(choice.parsed.suggestedCurrency)
             setNames(choice.parsed.members)
+            setMemberDrafts(
+                targetRoom ? initialExistingRoomMemberDrafts(choice.parsed.members, targetRoom.state.members) : []
+            )
             setMeIndex(null)
             setError(null)
         },
-        [t]
+        [t, targetRoom]
     )
 
     const accept = useCallback(
@@ -245,10 +268,61 @@ export function SplitwiseImport() {
         return null
     }, [names, t])
 
+    const memberMappingProblem = useMemo(
+        () => (targetRoom ? existingRoomMappingProblem(memberDrafts, targetRoom.state.members) : null),
+        [memberDrafts, targetRoom]
+    )
+
+    const memberMappingProblemMessage = (problem: ExistingRoomMappingProblem | null): string | null => {
+        switch (problem) {
+            case 'empty-new-name':
+                return tExisting('emptyNewName')
+            case 'duplicate-existing-member':
+                return tExisting('duplicateExistingMember')
+            case 'missing-existing-member':
+                return tExisting('missingExistingMember')
+            case 'duplicate-new-name':
+                return tExisting('duplicateNewName')
+            case 'new-name-already-exists':
+                return tExisting('newNameAlreadyExists')
+            case null:
+                return null
+        }
+    }
+
     const submit = async () => {
-        if (!parsed || nameProblem || !roomName.trim() || meIndex === null) return
+        if (!parsed) return
+        if (targetRoom) {
+            if (memberMappingProblem) return
+        } else if (nameProblem || !roomName.trim() || meIndex === null) {
+            return
+        }
         setError(null)
-        const me = names[meIndex].trim()
+
+        if (targetRoom) {
+            try {
+                const result = await importIntoRoom.mutateAsync({
+                    members: importMemberMappings(memberDrafts),
+                    expenses: parsed.expenses,
+                })
+                track('import_completed', {
+                    expenses: result.addedExpenses,
+                    members: result.addedMembers,
+                    target: 'existing',
+                    alreadyImported: result.alreadyImported,
+                })
+                feedback('pop')
+                setAppended(result)
+            } catch (err) {
+                setError(errorMessage(err, tExisting('failed')))
+                feedback('error')
+                track('import_failed', { reason: 'POST_FAILED', target: 'existing' })
+            }
+            return
+        }
+
+        // Guarded above: fresh-room mode requires a creator selection.
+        const me = names[meIndex!].trim()
 
         // A renamed member has to be renamed everywhere: names are the only join key an import
         // has, so a rename that missed an expense would be an expense attributed to nobody.
@@ -289,6 +363,64 @@ export function SplitwiseImport() {
         }
     }
 
+    const startOver = () => {
+        setParsed(null)
+        setParsedFile(null)
+        setChoiceIndex(0)
+        setMemberDrafts([])
+        setAppended(null)
+        setError(null)
+    }
+
+    if (targetRoom && appended) {
+        const importedAt = formatImportedAt(appended.importedAt, locale)
+        return (
+            <div className="flex flex-col gap-5">
+                <ExistingRoomImportContext room={targetRoom.state.room} />
+                <section
+                    className="flex flex-col items-center rounded-sm border border-n-1 bg-green-1 p-5 text-center"
+                    data-testid="import-existing-success"
+                    data-already-imported={appended.alreadyImported ? 'true' : 'false'}
+                >
+                    <span className="flex size-12 items-center justify-center rounded-full border border-n-1 bg-white">
+                        <Icon name="check" size={24} aria-hidden="true" />
+                    </span>
+                    <h2 className="mt-3 text-h5">
+                        {appended.alreadyImported ? tExisting('replayTitle') : tExisting('readyTitle')}
+                    </h2>
+                    <p className="mt-2 text-sm leading-5 text-n-1" data-testid="imported-at">
+                        {appended.alreadyImported
+                            ? tExisting('replayBody', { time: importedAt })
+                            : tExisting('readyBody', {
+                                  expenses: appended.addedExpenses,
+                                  members: appended.addedMembers,
+                                  time: importedAt,
+                              })}
+                    </p>
+                </section>
+                <div className="flex flex-col gap-3">
+                    <Button
+                        variant="primary"
+                        shadowSize="4"
+                        className="justify-center"
+                        onClick={startOver}
+                        data-testid="import-another-file"
+                    >
+                        {tExisting('importAnother')}
+                    </Button>
+                    <Button
+                        variant="stroke"
+                        className="justify-center"
+                        onClick={() => router.push(importedRoomPath(targetRoom.state.room.slug))}
+                        data-testid="go-to-imported-room"
+                    >
+                        {tExisting('goToRoom')}
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
     if (created) {
         return (
             <LinkMoment
@@ -318,6 +450,7 @@ export function SplitwiseImport() {
     if (!parsed) {
         return (
             <div className="flex flex-col gap-5">
+                {targetRoom && <ExistingRoomImportContext room={targetRoom.state.room} />}
                 <div
                     onDragOver={(event) => {
                         event.preventDefault()
@@ -397,6 +530,8 @@ export function SplitwiseImport() {
             data-motion-surface
             className="flex flex-col gap-6"
         >
+            {targetRoom && <ExistingRoomImportContext room={targetRoom.state.room} />}
+
             <div className="rounded-sm border border-n-1 bg-green-1 p-4">
                 <p className="text-h7">
                     {t('preview.found', { expenses: parsed.expenses.length, members: parsed.members.length })}
@@ -430,7 +565,9 @@ export function SplitwiseImport() {
                             </option>
                         ))}
                     </select>
-                    <span className="text-sm text-grey-1">{t('groups.hint')}</span>
+                    <span className="text-sm text-grey-1">
+                        {targetRoom ? t('groups.existingHint') : t('groups.hint')}
+                    </span>
                 </label>
             )}
 
@@ -484,35 +621,51 @@ export function SplitwiseImport() {
                 </div>
             )}
 
-            <label className="flex flex-col gap-2">
-                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('preview.roomName')}</span>
-                <BaseInput
-                    value={roomName}
-                    onChange={(event) => setRoomName(event.target.value)}
-                    placeholder={t('preview.roomNamePlaceholder')}
-                    maxLength={80}
-                    data-testid="import-room-name"
-                />
-            </label>
+            {targetRoom ? (
+                <div className="rounded-sm border border-n-1 bg-white p-4" data-testid="import-fixed-currency">
+                    <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-h8 uppercase tracking-wide text-grey-1">
+                            {tExisting('currencyLabel')}
+                        </span>
+                        <strong>{targetRoom.state.room.currency}</strong>
+                    </div>
+                    <p className="mt-2 text-sm leading-5 text-grey-1">
+                        {tExisting('currencyHint', { currency: targetRoom.state.room.currency })}
+                    </p>
+                </div>
+            ) : (
+                <>
+                    <label className="flex flex-col gap-2">
+                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('preview.roomName')}</span>
+                        <BaseInput
+                            value={roomName}
+                            onChange={(event) => setRoomName(event.target.value)}
+                            placeholder={t('preview.roomNamePlaceholder')}
+                            maxLength={80}
+                            data-testid="import-room-name"
+                        />
+                    </label>
 
-            <div className="flex flex-col gap-2">
-                <span className="text-h8 uppercase tracking-wide text-grey-1">{t('preview.currency')}</span>
-                <CurrencySelect
-                    value={currency}
-                    onChange={(code) => {
-                        setCurrency(code)
-                        feedback('tick')
-                    }}
-                    currencies={currencies}
-                    suggested={parsed.currencies}
-                    // The room here has to be able to RECEIVE the file's currencies. An invented
-                    // ticker converts nothing, so every row of the import would have to be dropped.
-                    allowCustom={false}
-                    aria-label={t('preview.currencyLabel')}
-                    data-testid="import-currency"
-                />
-                <span className="text-sm text-grey-1">{t('preview.currencyHint')}</span>
-            </div>
+                    <div className="flex flex-col gap-2">
+                        <span className="text-h8 uppercase tracking-wide text-grey-1">{t('preview.currency')}</span>
+                        <CurrencySelect
+                            value={currency}
+                            onChange={(code) => {
+                                setCurrency(code)
+                                feedback('tick')
+                            }}
+                            currencies={currencies}
+                            suggested={parsed.currencies}
+                            // The room here has to be able to RECEIVE the file's currencies. An invented
+                            // ticker converts nothing, so every row of the import would have to be dropped.
+                            allowCustom={false}
+                            aria-label={t('preview.currencyLabel')}
+                            data-testid="import-currency"
+                        />
+                        <span className="text-sm text-grey-1">{t('preview.currencyHint')}</span>
+                    </div>
+                </>
+            )}
 
             {parsed.currencies.length > 1 && (
                 <div className="rounded-sm border border-n-1 bg-primary-3 p-4">
@@ -521,40 +674,54 @@ export function SplitwiseImport() {
                 </div>
             )}
 
-            <fieldset className="flex flex-col gap-3">
-                <legend className="text-h8 uppercase tracking-wide text-grey-1">{t('preview.members')}</legend>
-                <p className="text-sm leading-5 text-grey-1">{t('preview.whoAreYou')}</p>
-                {names.map((name, index) => (
-                    <div key={parsed.members[index]} className="flex items-center gap-3">
-                        <input
-                            type="radio"
-                            name="import-me"
-                            checked={meIndex === index}
-                            onChange={() => setMeIndex(index)}
-                            aria-label={t('preview.thatsMe', { name })}
-                            data-testid="import-me"
-                            data-member={name}
-                            className="size-5 shrink-0 accent-primary-1"
-                        />
-                        <BaseInput
-                            variant="sm"
-                            value={name}
-                            maxLength={80}
-                            onChange={(event) => {
-                                const next = [...names]
-                                next[index] = event.target.value
-                                setNames(next)
-                            }}
-                            data-testid="import-member-name"
-                        />
-                    </div>
-                ))}
-                {nameProblem && (
-                    <p role="alert" className="text-sm font-bold text-error">
-                        {nameProblem}
-                    </p>
-                )}
-            </fieldset>
+            {targetRoom ? (
+                <ExistingRoomImportFields
+                    roomName={targetRoom.state.room.name}
+                    members={targetRoom.state.members}
+                    drafts={memberDrafts}
+                    onChange={(index, next) => {
+                        const updated = [...memberDrafts]
+                        updated[index] = next
+                        setMemberDrafts(updated)
+                    }}
+                    problem={memberMappingProblemMessage(memberMappingProblem)}
+                />
+            ) : (
+                <fieldset className="flex flex-col gap-3">
+                    <legend className="text-h8 uppercase tracking-wide text-grey-1">{t('preview.members')}</legend>
+                    <p className="text-sm leading-5 text-grey-1">{t('preview.whoAreYou')}</p>
+                    {names.map((name, index) => (
+                        <div key={parsed.members[index]} className="flex items-center gap-3">
+                            <input
+                                type="radio"
+                                name="import-me"
+                                checked={meIndex === index}
+                                onChange={() => setMeIndex(index)}
+                                aria-label={t('preview.thatsMe', { name })}
+                                data-testid="import-me"
+                                data-member={name}
+                                className="size-5 shrink-0 accent-primary-1"
+                            />
+                            <BaseInput
+                                variant="sm"
+                                value={name}
+                                maxLength={80}
+                                onChange={(event) => {
+                                    const next = [...names]
+                                    next[index] = event.target.value
+                                    setNames(next)
+                                }}
+                                data-testid="import-member-name"
+                            />
+                        </div>
+                    ))}
+                    {nameProblem && (
+                        <p role="alert" className="text-sm font-bold text-error">
+                            {nameProblem}
+                        </p>
+                    )}
+                </fieldset>
+            )}
 
             {parsed.warnings.length > 0 && (
                 <div className="rounded-sm border border-n-1 bg-white p-4">
@@ -579,23 +746,23 @@ export function SplitwiseImport() {
                     variant="primary"
                     shadowSize="4"
                     className="justify-center"
-                    disabled={!roomName.trim() || !!nameProblem || meIndex === null || importRoom.isPending}
-                    loading={importRoom.isPending}
+                    disabled={
+                        targetRoom
+                            ? !!memberMappingProblem || importIntoRoom.isPending
+                            : !roomName.trim() || !!nameProblem || meIndex === null || importRoom.isPending
+                    }
+                    loading={targetRoom ? importIntoRoom.isPending : importRoom.isPending}
                     onClick={submit}
                     data-testid="import-submit"
                 >
-                    {t('preview.submit')}
+                    {targetRoom
+                        ? tExisting('submit', {
+                              count: parsed.expenses.length,
+                              room: targetRoom.state.room.name,
+                          })
+                        : t('preview.submit')}
                 </Button>
-                <Button
-                    variant="stroke"
-                    className="justify-center"
-                    onClick={() => {
-                        setParsed(null)
-                        setParsedFile(null)
-                        setChoiceIndex(0)
-                        setError(null)
-                    }}
-                >
+                <Button variant="stroke" className="justify-center" onClick={startOver}>
                     {t('preview.startOver')}
                 </Button>
             </div>

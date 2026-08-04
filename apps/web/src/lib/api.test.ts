@@ -104,6 +104,47 @@ describe('api error paths', () => {
 })
 
 describe('api requests', () => {
+    it('posts an append import to the encoded room route with attribution and no invented timestamp', async () => {
+        const fetchMock = respondWith(200, {})
+        vi.stubGlobal('fetch', fetchMock)
+
+        await api.importIntoRoom(
+            'ski/trip',
+            {
+                members: [
+                    { sourceName: 'Ana', memberId: 'ana' },
+                    { sourceName: 'Bruno', newMemberName: 'Bruno B.' },
+                ],
+                expenses: [
+                    {
+                        date: '2026-08-04',
+                        description: 'Dinner',
+                        currencyCode: 'EUR',
+                        costMinor: '4000',
+                        paidBy: 'Ana',
+                        shares: [
+                            { member: 'Ana', amountMinor: '2000' },
+                            { member: 'Bruno', amountMinor: '2000' },
+                        ],
+                    },
+                ],
+            },
+            'tok_abc'
+        )
+
+        const [url, init] = fetchMock.mock.calls[0]
+        const body = JSON.parse(init.body)
+        expect(url).toBe('/api/rooms/ski%2Ftrip/import')
+        expect(init.method).toBe('POST')
+        expect(init.headers['X-Member-Token']).toBe('tok_abc')
+        expect(body.members).toEqual([
+            { sourceName: 'Ana', memberId: 'ana' },
+            { sourceName: 'Bruno', newMemberName: 'Bruno B.' },
+        ])
+        expect(body.expenses[0]).not.toHaveProperty('createdAt')
+        expect(body.expenses[0]).not.toHaveProperty('clientKey')
+    })
+
     it('sends the member token as X-Member-Token and JSON-encodes the body', async () => {
         const fetchMock = respondWith(201, { room: {}, members: [] })
         vi.stubGlobal('fetch', fetchMock)

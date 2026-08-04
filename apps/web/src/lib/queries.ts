@@ -44,4 +44,4 @@ export {
 } from './queries/expenses'
 export { useAddSettlement, useDeleteSettlement } from './queries/settlements'
 export { useAddReaction, useRemoveReaction } from './queries/reactions'
-export { useImportRoom } from './queries/import'
+export { useImportIntoRoom, useImportRoom } from './queries/import'
