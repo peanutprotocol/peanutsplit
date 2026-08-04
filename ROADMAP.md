@@ -58,6 +58,15 @@ Verified as a real gate: reverting the `pointer-events-auto` fix fails it with
 all nine viewport probes landing outside the overlay. **A real-device pass is
 still outstanding** and is the remaining half of the written condition.
 
+**Release verification 2026-08-04.** The flag-on dark suite passed 7/8. The
+primary journey (`apps/web/e2e-v2/scan.spec.ts:78`) reaches the review screen,
+passes the full-viewport hit test and renders editable receipt rows, but focus
+does not remain on the first item label after a click. This is non-blocking only
+because scanning is disabled in the production build. Do not flip
+`NEXT_PUBLIC_SPLIT_V2_ENABLED` until the suite is 8/8 and the real-device pass
+above is complete; investigate this as a portal/drawer focus-lifecycle issue,
+not as part of an unrelated v1 release.
+
 ## Shipped (beyond the 07-25 launch state)
 
 - **Correctness wave (2026-07-28):** service worker never caches `/api/*`
@@ -232,6 +241,17 @@ machinery for hypothetical scale. Reopen these items only at the stated trigger.
   deployment, multi-replica realtime, database-wide integrity redesign and full
   telemetry. Reopen at roughly 1,000 rooms or when measurements show the
   specific bottleneck.
+- **Firefox mobile test harness:** the 2026-08-04 focused run passed 20/23. The
+  three remaining failures are not credible product regressions in the current
+  setup: one times out resizing the viewport before navigation, one misses a
+  synthetic slide gesture and one misses a synthetic long-press. The project
+  currently spreads Playwright's iPhone 14 descriptor and then overrides only
+  `browserName` to Firefox, even though Firefox does not support Playwright's
+  mobile emulation. Before claiming Firefox mobile coverage, use the native
+  Desktop Firefox descriptor with an explicit narrow viewport, separate
+  synthetic gesture tests from the semantic journeys, and spot-check the two
+  gestures on a real Firefox device. Reopen before browser CI becomes a gate or
+  when Firefox-specific user demand makes the coverage valuable.
 
 ## Shipped 2026-07-28, third wave
 
