@@ -595,8 +595,8 @@ test('a link holder can export the room without exporting the room credential', 
     await page.getByTestId('create-room').click()
     const url = await enterCreatedRoom(page)
 
-    // Import/export is one row in Settings. It names both jobs without implying
-    // that a Splitwise file will be merged into the room currently open.
+    // Import/export is one row in Settings. Import now names this room as the
+    // target and promises that its existing link/history survive the append.
     await page.getByTestId('open-room-settings').click()
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 15_000 })
     const exportRow = page.getByTestId('export-row')
@@ -607,7 +607,9 @@ test('a link holder can export the room without exporting the room credential', 
     const exportSheet = page.getByTestId('export-sheet')
     await expect(exportSheet).toBeVisible()
     await expect(exportSheet).toContainText('Bring over a Splitwise group')
-    await expect(exportSheet).toContainText('This creates a new room. Your current room stays as it is.')
+    await expect(exportSheet).toContainText(
+        'Add a Splitwise or Split Pro export to this room. Its link and existing expenses stay as they are.'
+    )
     await expect(page.getByTestId('open-splitwise-import')).toBeVisible()
     // One disclosure sentence, and it does not claim to be the whole money
     // history — deleted records are left out, so that wording would be false.
@@ -644,12 +646,17 @@ test('a link holder can export the room without exporting the room credential', 
 
     await exportRow.click()
     await page.getByTestId('open-splitwise-import').click()
-    await page.waitForURL('/import')
+    const roomPath = new URL(url).pathname
+    await page.waitForURL(`${roomPath}/import`)
     await expect(page.getByTestId('import-choose')).toBeVisible()
+    await expect(page.getByTestId('import-target-room')).toContainText('Export room')
+    await expect(page.getByTestId('import-target-currency')).toHaveText('EUR')
+    await expect(page.getByTestId('import-repeat-warning')).toContainText(
+        'Importing the exact same source data again changes nothing'
+    )
 
-    // Import creates another room, so backing out returns to the exact room
-    // settings context where the detour began rather than dropping the user on
-    // the room or the landing page.
+    // Backing out returns to the exact room settings context where this append
+    // detour began rather than dropping the user on the room or landing page.
     await page.goBack()
     await page.waitForURL(/\/r\/[^?]+\?settings=1$/)
     await expect(page.getByTestId('settings-sheet')).toBeVisible()

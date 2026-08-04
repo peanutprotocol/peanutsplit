@@ -2,6 +2,7 @@ import { expect } from '@playwright/test'
 import { test } from './fixtures'
 import { SIMPLE_GROUP } from '../src/lib/__fixtures__/splitwise'
 import { SPLITPRO_ACCOUNT_EXPORT } from '../src/lib/__fixtures__/splitpro'
+import { enterCreatedRoom, expectBalance } from './helpers'
 
 /**
  * The switch, end to end: a real Splitwise export goes in through the real file input, and the
@@ -69,6 +70,127 @@ test('import a Splitwise export → a room whose balances match the file', async
 
     // The importer never sees a join gate — the token came back with the room.
     await expect(page.getByTestId('join-gate')).toHaveCount(0)
+})
+
+test('import into an existing room appends in place and an exact retry is a no-op', async ({ page }) => {
+    test.setTimeout(60_000)
+
+    // Start with a real populated target. Its existing row is the sentinel that
+    // append-import must preserve, and Ana/Bruno exercise exact-name mapping.
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('Existing import target')
+    await page.getByTestId('room-currency').selectOption('EUR')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('checkpoint-name').fill('Bruno')
+    await page.getByTestId('checkpoint-add').click()
+    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bruno"]')).toBeVisible()
+    const roomUrl = await enterCreatedRoom(page)
+    const roomPath = new URL(roomUrl).pathname
+
+    await page.getByTestId('open-add-expense').click()
+    await page.getByTestId('expense-amount').fill('10')
+    await page.getByTestId('expense-description').fill('Already here')
+    await page.getByTestId('save-expense').click()
+    await expect(page.getByRole('dialog', { name: 'First split done' })).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('skip-post-aha-share').click()
+    await expect(page.locator('[data-testid="expense-row"][data-description="Already here"]')).toBeVisible({
+        timeout: 15_000,
+    })
+
+    await page.getByTestId('open-room-settings').click()
+    await page.getByTestId('export-row').click()
+    await page.getByTestId('open-splitwise-import').click()
+    await page.waitForURL(`${roomPath}/import`)
+    await expect(page.getByTestId('import-target-room')).toContainText('Existing import target')
+    await expect(page.getByTestId('import-target-currency')).toHaveText('EUR')
+    await expect(page.getByTestId('import-repeat-warning')).toContainText('A changed export is added in full')
+
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'Existing group.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(SIMPLE_GROUP, 'utf8'),
+    })
+    await expect(page.getByTestId('import-member-mapping')).toHaveCount(3, { timeout: 15_000 })
+    await expect(page.getByTestId('import-fixed-currency')).toContainText('EUR')
+
+    const memberTarget = (name: string) => page.locator(`[data-testid="import-member-target"][data-member="${name}"]`)
+    await expect(memberTarget('Ana').locator('option:checked')).toHaveText('Ana')
+    await expect(memberTarget('Bruno').locator('option:checked')).toHaveText('Bruno')
+    await expect(memberTarget('Carla')).toHaveValue('__new_room_member__')
+    await expect(page.locator('[data-testid="import-new-member-name"][data-member="Carla"]')).toHaveValue('Carla')
+    await expect(page.getByTestId('import-submit')).toBeEnabled()
+    await page.getByTestId('import-submit').click()
+
+    const appended = page.getByTestId('import-existing-success')
+    await expect(appended).toHaveAttribute('data-already-imported', 'false', { timeout: 20_000 })
+    await expect(page.getByTestId('imported-at')).toContainText('3 expenses and 1 new person were added at')
+    await expect(page.getByTestId('room-link')).toHaveCount(0)
+    await expect(page.getByTestId('join-gate')).toHaveCount(0)
+    await page.getByTestId('go-to-imported-room').click()
+    await page.waitForURL(roomPath)
+
+    await expect(page.getByTestId('expense-row')).toHaveCount(4, { timeout: 20_000 })
+    for (const description of ['Already here', 'Dinner', 'Taxi', 'Groceries']) {
+        await expect(page.locator(`[data-testid="expense-row"][data-description="${description}"]`)).toBeVisible()
+    }
+    await expectBalance(page, 'Ana', '2000')
+    await expectBalance(page, 'Bruno', '-2000')
+    await expectBalance(page, 'Carla', '0')
+
+    // The second preview maps Carla to the member created by the first append.
+    // The target mapping shape therefore changes, but source identity does not.
+    await page.goto(`${roomPath}/import`)
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'Existing group retry.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(SIMPLE_GROUP, 'utf8'),
+    })
+    await expect(page.getByTestId('import-member-mapping')).toHaveCount(3, { timeout: 15_000 })
+    await expect(memberTarget('Carla').locator('option:checked')).toHaveText('Carla')
+    await expect(page.getByTestId('import-new-member-name')).toHaveCount(0)
+    await page.getByTestId('import-submit').click()
+
+    await expect(page.getByTestId('import-existing-success')).toHaveAttribute('data-already-imported', 'true', {
+        timeout: 20_000,
+    })
+    await expect(page.getByTestId('imported-at')).toContainText('This exact source data was already imported at')
+    await expect(page.getByTestId('imported-at')).toContainText('Nothing was added')
+    await page.getByTestId('go-to-imported-room').click()
+    await page.waitForURL(roomPath)
+    await expect(page.getByTestId('expense-row')).toHaveCount(4, { timeout: 20_000 })
+    await expectBalance(page, 'Ana', '2000')
+    await expectBalance(page, 'Bruno', '-2000')
+    await expectBalance(page, 'Carla', '0')
+
+    // A genuinely changed export is a new batch. Because the source does not
+    // carry stable expense ids, its overlapping rows append in full too.
+    await page.goto(`${roomPath}/import`)
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'Existing group corrected.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(SIMPLE_GROUP.replace(',Taxi,Transportation,', ',Taxi corrected,Transportation,'), 'utf8'),
+    })
+    await expect(page.getByTestId('import-member-mapping')).toHaveCount(3, { timeout: 15_000 })
+    await expect(page.getByTestId('import-new-member-name')).toHaveCount(0)
+    await page.getByTestId('import-submit').click()
+    await expect(page.getByTestId('import-existing-success')).toHaveAttribute('data-already-imported', 'false', {
+        timeout: 20_000,
+    })
+    await expect(page.getByTestId('imported-at')).toContainText('3 expenses and no new people were added at')
+    await page.getByTestId('go-to-imported-room').click()
+    await page.waitForURL(roomPath)
+
+    await expect(page.getByTestId('expense-row')).toHaveCount(7, { timeout: 20_000 })
+    await expect(page.locator('[data-testid="expense-row"][data-description="Already here"]')).toHaveCount(1)
+    await expect(page.locator('[data-testid="expense-row"][data-description="Dinner"]')).toHaveCount(2)
+    await expect(page.locator('[data-testid="expense-row"][data-description="Taxi"]')).toHaveCount(1)
+    await expect(page.locator('[data-testid="expense-row"][data-description="Taxi corrected"]')).toHaveCount(1)
+    await expect(page.locator('[data-testid="expense-row"][data-description="Groceries"]')).toHaveCount(2)
+    await expectBalance(page, 'Ana', '3500')
+    await expectBalance(page, 'Bruno', '-3500')
+    await expectBalance(page, 'Carla', '0')
 })
 
 test('a file that is not a Splitwise export says so, and writes nothing', async ({ page }) => {
