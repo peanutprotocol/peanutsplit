@@ -8,9 +8,11 @@ import { auditRecommendations } from './audit-recommendations'
 import {
     severityOrder,
     severityStyle,
+    type AuditRecommendation,
     type Decision,
     type Finding,
     type FindingDecision,
+    type PriorConflict,
     type Severity,
 } from './audit-model'
 
@@ -19,7 +21,7 @@ type DecisionFilter = Decision | 'all'
 type SeverityFilter = Severity | 'all'
 type SaveState = 'loading' | 'saving' | 'saved' | 'error'
 
-const STORAGE_KEY = 'peanutsplit:dev-ds:audit-decisions:v1'
+const STORAGE_KEY = 'peanutsplit:dev-ds:audit-decisions:v2'
 const NOTE_LIMIT = 2_000
 
 const decisions = [
@@ -77,6 +79,7 @@ const decisionStyle: Record<Decision, string> = {
 
 const emptyDecision = (): FindingDecision => ({ decision: 'unreviewed', note: '' })
 const recommendationRecords: DecisionRecords = auditRecommendations
+const recommendationDetails: Record<string, AuditRecommendation> = auditRecommendations
 
 function isDecision(value: unknown): value is Decision {
     return typeof value === 'string' && Object.prototype.hasOwnProperty.call(decisionLabels, value)
@@ -162,12 +165,14 @@ function FindingCard({
     finding,
     record,
     overridden,
+    priorConflict,
     onChange,
     onRestore,
 }: {
     finding: Finding
     record: FindingDecision
     overridden: boolean
+    priorConflict?: PriorConflict
     onChange: (next: FindingDecision) => void
     onRestore: () => void
 }) {
@@ -209,6 +214,14 @@ function FindingCard({
             <div className="p-5 sm:p-6">
                 <h3 className="text-h5">{finding.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-grey-1">{finding.summary}</p>
+                {priorConflict ? (
+                    <div className="mt-4 rounded-sm border-2 border-error bg-error-1 p-4">
+                        <p className="text-h9 uppercase tracking-wider text-error">
+                            Previous intuition superseded · {priorConflict.decision}
+                        </p>
+                        <p className="mt-2 text-sm leading-6">{priorConflict.explanation}</p>
+                    </div>
+                ) : null}
                 <div className="mt-5 grid gap-4 lg:grid-cols-2">
                     <div className="rounded-sm border border-n-1 bg-error-1 p-4">
                         <p className="text-h9 uppercase tracking-wider text-error">Why it matters</p>
@@ -307,6 +320,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
     const [query, setQuery] = useState('')
     const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('all')
     const [decisionFilter, setDecisionFilter] = useState<DecisionFilter>('all')
+    const [conflictOnly, setConflictOnly] = useState(false)
 
     useEffect(() => {
         setRecords(readStoredDecisions(findingIds))
@@ -321,7 +335,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
             try {
                 window.localStorage.setItem(
                     STORAGE_KEY,
-                    JSON.stringify({ version: 1, savedAt: new Date().toISOString(), decisions: records })
+                    JSON.stringify({ version: 2, savedAt: new Date().toISOString(), decisions: records })
                 )
                 setSaveState('saved')
             } catch {
@@ -346,6 +360,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
     const reviewedCount = findings.filter((finding) => getRecord(finding.id).decision !== 'unreviewed').length
     const noteCount = findings.filter((finding) => getRecord(finding.id).note.trim()).length
     const overrideCount = Object.keys(records).length
+    const conflictCount = findings.filter((finding) => recommendationDetails[finding.id]?.priorConflict).length
     const progress = findings.length ? Math.round((reviewedCount / findings.length) * 100) : 0
 
     const decisionCounts = useMemo(
@@ -365,6 +380,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
             .sort((a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity))
             .filter((finding) => severityFilter === 'all' || finding.severity === severityFilter)
             .filter((finding) => decisionFilter === 'all' || effectiveRecords[finding.id]?.decision === decisionFilter)
+            .filter((finding) => !conflictOnly || Boolean(recommendationDetails[finding.id]?.priorConflict))
             .filter((finding) => {
                 if (!needle) return true
                 const record = effectiveRecords[finding.id]
@@ -373,7 +389,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                     .toLocaleLowerCase()
                     .includes(needle)
             })
-    }, [decisionFilter, effectiveRecords, findings, query, severityFilter])
+    }, [conflictOnly, decisionFilter, effectiveRecords, findings, query, severityFilter])
 
     const updateRecord = (id: string, next: FindingDecision) => setRecords((current) => ({ ...current, [id]: next }))
 
@@ -402,7 +418,8 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                         <p className="mt-3 text-sm leading-6 text-grey-1 sm:text-base">
                             Three specialist reviews prefilled every engineering call using the pre-user rule: fix cheap
                             foundations, plan real quality debt, mock up broad UX changes, and defer speculative scale.
-                            Your overrides autosave only in this browser.
+                            The {conflictCount} older snap calls that materially pull elsewhere are marked in red;
+                            pacing differences are intentionally ignored. Your overrides autosave only in this browser.
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -511,6 +528,16 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                             {decisionLabels[decision]} · {decisionCounts[decision]}
                         </button>
                     ))}
+                    <button
+                        type="button"
+                        onClick={() => setConflictOnly((current) => !current)}
+                        aria-pressed={conflictOnly}
+                        className={`min-h-11 rounded-full border px-3 text-xs font-extrabold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                            conflictOnly ? 'border-error bg-error-1 text-error' : 'border-n-1 bg-white'
+                        }`}
+                    >
+                        Previous conflicts · {conflictCount}
+                    </button>
                 </div>
             </div>
 
@@ -532,6 +559,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                             finding={finding}
                             record={getRecord(finding.id)}
                             overridden={Boolean(records[finding.id])}
+                            priorConflict={recommendationDetails[finding.id]?.priorConflict}
                             onChange={(next) => updateRecord(finding.id, next)}
                             onRestore={() =>
                                 setRecords((current) => {
@@ -552,6 +580,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                             setQuery('')
                             setSeverityFilter('all')
                             setDecisionFilter('all')
+                            setConflictOnly(false)
                         }}
                         className="mt-3 min-h-11 text-sm font-bold underline decoration-2 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                     >
