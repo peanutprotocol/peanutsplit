@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Icon } from '@/components/ui/Icon'
 import { DocChrome } from '../_components/DocChrome'
 import { AuditPicker } from './_components/AuditPicker'
+import { ExecutiveQuestions } from './_components/ExecutiveQuestions'
 import { severityOrder, severityStyle, type Finding, type Severity } from './_components/audit-model'
 
 export const metadata: Metadata = {
@@ -782,8 +783,8 @@ export default function AuditPage() {
                         separate confirmed defects from conditional risks and deliberately accepted boundaries.
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3">
-                        <Link href="#decisions" className="btn btn-primary shadow-primary-4 w-auto">
-                            Open decision picker
+                        <Link href="#executive-decisions" className="btn btn-primary shadow-primary-4 w-auto">
+                            Review 3 leadership calls
                         </Link>
                         <Link
                             href="/dev-ds"
@@ -874,6 +875,7 @@ export default function AuditPage() {
                     </div>
                 </section>
 
+                <ExecutiveQuestions />
                 <AuditPicker findings={findings} />
 
                 <section className="border-t border-n-1 py-14">

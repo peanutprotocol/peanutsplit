@@ -1,5 +1,12 @@
 export type Severity = 'critical' | 'high' | 'medium' | 'low'
 export type Status = 'confirmed' | 'conditional' | 'accepted risk'
+export type Decision = 'unreviewed' | 'fix-now' | 'plan' | 'mockup-review' | 'accept' | 'defer' | 'disagree'
+
+export interface FindingDecision {
+    decision: Decision
+    note: string
+    updatedAt?: string
+}
 
 export interface Finding {
     id: string

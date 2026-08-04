@@ -3,15 +3,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
-import { severityOrder, severityStyle, type Finding, type Severity } from './audit-model'
-
-type Decision = 'unreviewed' | 'fix-now' | 'plan' | 'accept' | 'defer' | 'disagree'
-
-interface FindingDecision {
-    decision: Decision
-    note: string
-    updatedAt?: string
-}
+import { downloadMarkdown } from './audit-browser'
+import { auditRecommendations } from './audit-recommendations'
+import {
+    severityOrder,
+    severityStyle,
+    type Decision,
+    type Finding,
+    type FindingDecision,
+    type Severity,
+} from './audit-model'
 
 type DecisionRecords = Record<string, FindingDecision>
 type DecisionFilter = Decision | 'all'
@@ -31,6 +32,11 @@ const decisions = [
         id: 'plan',
         label: 'Plan',
         description: 'Accepted; scope and schedule it.',
+    },
+    {
+        id: 'mockup-review',
+        label: 'Mockup review',
+        description: 'Approve the visual or flow direction first.',
     },
     {
         id: 'accept',
@@ -53,6 +59,7 @@ const decisionLabels: Record<Decision, string> = {
     unreviewed: 'Unreviewed',
     'fix-now': 'Fix now',
     plan: 'Plan',
+    'mockup-review': 'Mockup review',
     accept: 'Accept risk',
     defer: 'Defer',
     disagree: 'Disagree',
@@ -62,12 +69,14 @@ const decisionStyle: Record<Decision, string> = {
     unreviewed: 'border-grey-1 bg-grey-4 text-grey-1',
     'fix-now': 'border-error bg-error-1 text-error',
     plan: 'border-n-1 bg-primary-1 text-n-1',
+    'mockup-review': 'border-outline-2 bg-secondary-6 text-n-1',
     accept: 'border-n-1 bg-primary-3 text-n-1',
     defer: 'border-grey-1 bg-white text-grey-1',
     disagree: 'border-n-1 bg-n-1 text-white',
 }
 
 const emptyDecision = (): FindingDecision => ({ decision: 'unreviewed', note: '' })
+const recommendationRecords: DecisionRecords = auditRecommendations
 
 function isDecision(value: unknown): value is Decision {
     return typeof value === 'string' && Object.prototype.hasOwnProperty.call(decisionLabels, value)
@@ -105,7 +114,7 @@ function readStoredDecisions(findingIds: Set<string>): DecisionRecords {
     }
 }
 
-function buildDecisionBrief(findings: Finding[], records: DecisionRecords): string {
+function buildDecisionBrief(findings: Finding[], records: DecisionRecords, overriddenIds: Set<string>): string {
     const reviewed = findings.filter(
         (finding) => (records[finding.id]?.decision ?? 'unreviewed') !== 'unreviewed'
     ).length
@@ -136,6 +145,7 @@ function buildDecisionBrief(findings: Finding[], records: DecisionRecords): stri
             `### ${finding.id} — ${finding.title}`,
             '',
             `- Decision: ${decisionLabels[record.decision]}`,
+            `- Source: ${overriddenIds.has(finding.id) ? 'Manual override' : 'Agent recommendation'}`,
             `- Severity: ${finding.severity}`,
             `- Area: ${finding.area}`,
             `- Horizon / effort: ${finding.horizon} / ${finding.effort}`,
@@ -148,23 +158,18 @@ function buildDecisionBrief(findings: Finding[], records: DecisionRecords): stri
     return lines.join('\n')
 }
 
-function downloadText(filename: string, text: string) {
-    const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }))
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = filename
-    anchor.click()
-    window.setTimeout(() => URL.revokeObjectURL(url), 0)
-}
-
 function FindingCard({
     finding,
     record,
+    overridden,
     onChange,
+    onRestore,
 }: {
     finding: Finding
     record: FindingDecision
+    overridden: boolean
     onChange: (next: FindingDecision) => void
+    onRestore: () => void
 }) {
     const updateDecision = (decision: Decision) =>
         onChange({ ...record, decision, updatedAt: new Date().toISOString() })
@@ -196,6 +201,9 @@ function FindingCard({
                 >
                     {decisionLabels[record.decision]}
                 </span>
+                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-grey-1">
+                    {overridden ? 'Manual override' : 'Agent recommendation'}
+                </span>
             </div>
 
             <div className="p-5 sm:p-6">
@@ -214,11 +222,11 @@ function FindingCard({
 
                 <div className="mt-5 rounded-sm border-2 border-n-1 bg-grey-3 p-4 sm:p-5">
                     <fieldset>
-                        <legend className="text-h7">Your decision</legend>
+                        <legend className="text-h7">Disposition</legend>
                         <p className="mt-1 text-sm leading-5 text-grey-1">
-                            Choose a disposition. You can change it at any time.
+                            Prefilled by the audit triage. Override it only when your context changes the call.
                         </p>
-                        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
                             {decisions.map((option) => {
                                 const selected = record.decision === option.id
                                 return (
@@ -244,13 +252,13 @@ function FindingCard({
                                 )
                             })}
                         </div>
-                        {record.decision !== 'unreviewed' ? (
+                        {overridden ? (
                             <button
                                 type="button"
-                                onClick={() => updateDecision('unreviewed')}
+                                onClick={onRestore}
                                 className="mt-3 min-h-11 text-sm font-bold underline decoration-2 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                             >
-                                Clear decision
+                                Restore agent recommendation
                             </button>
                         ) : null}
                     </fieldset>
@@ -258,7 +266,7 @@ function FindingCard({
                     <div className="mt-4 border-t border-n-1 pt-4">
                         <div className="flex items-end justify-between gap-3">
                             <label htmlFor={`note-${finding.id}`} className="text-sm font-extrabold">
-                                Decision note
+                                Decision rationale
                             </label>
                             <span className="text-xs text-grey-1">
                                 {record.note.length}/{NOTE_LIMIT}
@@ -323,9 +331,21 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
         return () => window.clearTimeout(timeout)
     }, [hydrated, records])
 
-    const getRecord = (id: string) => records[id] ?? emptyDecision()
+    const effectiveRecords = useMemo(
+        () =>
+            Object.fromEntries(
+                findings.map((finding) => [
+                    finding.id,
+                    records[finding.id] ?? recommendationRecords[finding.id] ?? emptyDecision(),
+                ])
+            ) as DecisionRecords,
+        [findings, records]
+    )
+
+    const getRecord = (id: string) => effectiveRecords[id] ?? emptyDecision()
     const reviewedCount = findings.filter((finding) => getRecord(finding.id).decision !== 'unreviewed').length
     const noteCount = findings.filter((finding) => getRecord(finding.id).note.trim()).length
+    const overrideCount = Object.keys(records).length
     const progress = findings.length ? Math.round((reviewedCount / findings.length) * 100) : 0
 
     const decisionCounts = useMemo(
@@ -333,10 +353,10 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
             Object.fromEntries(
                 (Object.keys(decisionLabels) as Decision[]).map((decision) => [
                     decision,
-                    findings.filter((finding) => (records[finding.id]?.decision ?? 'unreviewed') === decision).length,
+                    findings.filter((finding) => effectiveRecords[finding.id]?.decision === decision).length,
                 ])
             ) as Record<Decision, number>,
-        [findings, records]
+        [effectiveRecords, findings]
     )
 
     const visibleFindings = useMemo(() => {
@@ -344,30 +364,30 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
         return [...findings]
             .sort((a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity))
             .filter((finding) => severityFilter === 'all' || finding.severity === severityFilter)
-            .filter(
-                (finding) =>
-                    decisionFilter === 'all' || (records[finding.id]?.decision ?? 'unreviewed') === decisionFilter
-            )
+            .filter((finding) => decisionFilter === 'all' || effectiveRecords[finding.id]?.decision === decisionFilter)
             .filter((finding) => {
                 if (!needle) return true
-                const record = records[finding.id]
+                const record = effectiveRecords[finding.id]
                 return [finding.id, finding.title, finding.area, finding.summary, finding.action, record?.note ?? '']
                     .join(' ')
                     .toLocaleLowerCase()
                     .includes(needle)
             })
-    }, [decisionFilter, findings, query, records, severityFilter])
+    }, [decisionFilter, effectiveRecords, findings, query, severityFilter])
 
     const updateRecord = (id: string, next: FindingDecision) => setRecords((current) => ({ ...current, [id]: next }))
 
     const resetDecisions = () => {
-        if (!window.confirm('Clear every audit decision and note saved in this browser?')) return
+        if (!window.confirm('Remove every manual override and restore the agent triage?')) return
         window.localStorage.removeItem(STORAGE_KEY)
         setRecords({})
     }
 
     const exportBrief = () => {
-        downloadText('peanutsplit-audit-decisions.md', buildDecisionBrief(findings, records))
+        downloadMarkdown(
+            'peanutsplit-audit-decisions.md',
+            buildDecisionBrief(findings, effectiveRecords, new Set(Object.keys(records)))
+        )
     }
 
     return (
@@ -380,8 +400,9 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                             Turn findings into calls
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-grey-1 sm:text-base">
-                            Decisions and notes autosave only in this browser. Nothing is sent to the product database.
-                            Download the brief when you want a durable or shareable record.
+                            Three specialist reviews prefilled every engineering call using the pre-user rule: fix cheap
+                            foundations, plan real quality debt, mock up broad UX changes, and defer speculative scale.
+                            Your overrides autosave only in this browser.
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -391,9 +412,10 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                         <button
                             type="button"
                             onClick={resetDecisions}
-                            className="min-h-11 px-2 text-sm font-bold underline decoration-2 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            disabled={overrideCount === 0}
+                            className="min-h-11 px-2 text-sm font-bold underline decoration-2 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Clear saved work
+                            Restore all recommendations
                         </button>
                     </div>
                 </div>
@@ -402,14 +424,14 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                     <div>
                         <div className="flex items-center justify-between gap-4 text-sm font-bold">
                             <span>
-                                {reviewedCount} of {findings.length} decided
+                                {reviewedCount} of {findings.length} triaged
                             </span>
                             <span>{progress}%</span>
                         </div>
                         <div
                             className="mt-2 h-3 overflow-hidden rounded-full border border-n-1 bg-white"
                             role="progressbar"
-                            aria-label="Audit decisions completed"
+                            aria-label="Audit findings triaged"
                             aria-valuemin={0}
                             aria-valuemax={findings.length}
                             aria-valuenow={reviewedCount}
@@ -418,7 +440,7 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                         </div>
                     </div>
                     <p className="text-sm font-bold" aria-live="polite">
-                        {noteCount} notes ·{' '}
+                        {noteCount} rationales · {overrideCount} manual overrides ·{' '}
                         {
                             {
                                 loading: 'Loading saved work…',
@@ -509,7 +531,15 @@ export function AuditPicker({ findings }: { findings: Finding[] }) {
                             key={finding.id}
                             finding={finding}
                             record={getRecord(finding.id)}
+                            overridden={Boolean(records[finding.id])}
                             onChange={(next) => updateRecord(finding.id, next)}
+                            onRestore={() =>
+                                setRecords((current) => {
+                                    const next = { ...current }
+                                    delete next[finding.id]
+                                    return next
+                                })
+                            }
                         />
                     ))}
                 </div>
