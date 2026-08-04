@@ -10,6 +10,7 @@ import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { BTN_SMALL } from '@/components/ui/control'
 import type { RoomState } from '@/lib/api-types'
+import { existingRoomImportPath } from '@/lib/import-routes'
 import { exportFilename, roomCsv, roomJson } from '@/lib/room-export'
 
 function download(contents: string, filename: string, type: string) {
@@ -68,7 +69,9 @@ export function RoomExport({ state }: { state: RoomState }) {
                                 data-testid="open-splitwise-import"
                                 onClick={() => {
                                     setOpen(false)
-                                    router.push('/import')
+                                    // The slug is the room credential. Keep it in the already-redacted
+                                    // `/r/...` path rather than leaking it through a marketing-page query.
+                                    router.push(existingRoomImportPath(state.room.slug))
                                 }}
                             >
                                 {t('openImporter')}

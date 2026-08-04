@@ -13,6 +13,8 @@ import type {
     ExpenseCreateResult,
     ExpenseInput,
     ExpenseUpdateInput,
+    ImportIntoRoomInput,
+    ImportIntoRoomResult,
     ImportRoomInput,
     MemberAvatarInput,
     ModelStatus,
@@ -168,6 +170,15 @@ export const api = {
      *  parses it and posts the result, so the file stays on the device that opened it. */
     importRoom: (input: ImportRoomInput) =>
         request<RoomStateWithMember>('/api/import', { method: 'POST', body: input }),
+
+    /** Append parsed source data to an existing room. New mapped people and every expense are
+     *  one atomic write; the optional member token is attribution, never authorization. */
+    importIntoRoom: (slug: string, input: ImportIntoRoomInput, token?: string | null) =>
+        request<ImportIntoRoomResult>(`/api/rooms/${encode(slug)}/import`, {
+            method: 'POST',
+            body: input,
+            token,
+        }),
 
     room: (slug: string, signal?: AbortSignal) =>
         request<RoomState>(`/api/rooms/${encode(slug)}`, { signal, cache: 'no-store' }),
