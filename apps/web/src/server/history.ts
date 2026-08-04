@@ -8,6 +8,7 @@ export const ROOM_ACTIONS = [
     'history_started',
     'room_created',
     'room_imported',
+    'room_import_appended',
     'room_settings_updated',
     'member_joined',
     'member_added',

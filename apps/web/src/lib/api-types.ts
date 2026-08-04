@@ -123,6 +123,7 @@ export type RoomHistoryAction =
     | 'history_started'
     | 'room_created'
     | 'room_imported'
+    | 'room_import_appended'
     | 'room_settings_updated'
     | 'member_joined'
     | 'member_added'
@@ -414,4 +415,27 @@ export interface ImportRoomInput {
     creatorName: string
     members: string[]
     expenses: ImportedExpenseInput[]
+}
+
+/** One source-person resolution for an append import. Existing ids and new
+ * room names are deliberately different shapes so a client cannot accidentally
+ * send both; new members are created in the same transaction as the history. */
+export type ImportMemberMapping =
+    { sourceName: string; memberId: string } | { sourceName: string; newMemberName: string }
+
+/** POST /api/rooms/:slug/import — append one parsed source export atomically. */
+export interface ImportIntoRoomInput {
+    members: ImportMemberMapping[]
+    expenses: ImportedExpenseInput[]
+}
+
+/** Metadata describes the durable batch. On an exact replay the counts remain
+ * the original batch counts while `alreadyImported` says this request wrote
+ * nothing; the RoomState portion is always current. */
+export interface ImportIntoRoomResult extends RoomState {
+    batchId: string
+    importedAt: string
+    addedExpenses: number
+    addedMembers: number
+    alreadyImported: boolean
 }
