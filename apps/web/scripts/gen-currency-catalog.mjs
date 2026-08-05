@@ -2,9 +2,9 @@
 /**
  * Writes `src/lib/currency-catalog.ts` from the ICU data this Node ships with.
  *
- * Run it by hand (`pnpm currencies:gen`), never at build or boot. Production has no egress, so
- * the catalog has to be a committed artifact — and a table regenerated silently by a Node upgrade
- * is a table whose decimals can move under rooms that already hold money.
+ * Run it by hand (`pnpm currencies:gen`), never at build or boot. The catalog is a committed
+ * artifact so a table regenerated silently by a Node upgrade cannot move decimals under rooms
+ * that already hold money.
  *
  * Re-running on one Node version produces a byte-identical file, so the git diff IS the review.
  * Read the diff. The report below names every code added and every decimals change, because both
@@ -31,10 +31,9 @@ const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'lib', 'c
  * verbatim and sorted. The backend builds its reference layer from Frankfurter v2
  * and overlays Peanut's provider display-sell rates.
  *
- * Committed rather than fetched for the reason the header gives: no egress at runtime, and a
- * boolean that changes without a deploy is a boolean nobody can reason about. `hasRate` only ever
- * describes a code ICU already knows. To refresh: fetch the Peanut snapshot, sort its codes, paste
- * them here, re-run, and read the diff.
+ * Committed rather than fetched so supported-code changes are reviewed and deployed deliberately;
+ * `hasRate` only ever describes a code ICU already knows. To refresh: fetch the Peanut snapshot,
+ * sort its codes, paste them here, re-run, and read the diff.
  */
 const RATE_CODES = new Set([
     'AED',
