@@ -6,7 +6,69 @@ import {
 	computeBalances,
 	simplifyDebts,
 	settleableAmount,
+	EXACT_SETTLEMENT_MAX_NONZERO_BALANCES,
 } from './math'
+
+const balancesAfterSuggestions = (balances: Map<string, bigint>) => {
+	const after = new Map(balances)
+	for (const transfer of simplifyDebts(balances)) {
+		after.set(transfer.fromMemberId, (after.get(transfer.fromMemberId) ?? 0n) + transfer.amountMinor)
+		after.set(transfer.toMemberId, (after.get(transfer.toMemberId) ?? 0n) - transfer.amountMinor)
+	}
+	return after
+}
+
+/** Independent exact oracle for small property cases. It chooses zero-sum
+ * groups containing the first remaining member instead of using the production
+ * solver's entry-order DP. */
+function exactMinimumTransferCount(amounts: readonly bigint[]): number {
+	const nonzero = amounts.filter((amount) => amount !== 0n)
+	if (nonzero.length === 0) return 0
+
+	const stateCount = 2 ** nonzero.length
+	const sums = new Array<bigint>(stateCount)
+	sums[0] = 0n
+	for (let mask = 1; mask < stateCount; mask++) {
+		const bit = mask & -mask
+		const index = 31 - Math.clz32(bit)
+		sums[mask] = sums[mask ^ bit] + nonzero[index]
+	}
+
+	const memo = new Map<number, number>([[0, 0]])
+	const maximumGroups = (mask: number): number => {
+		const remembered = memo.get(mask)
+		if (remembered !== undefined) return remembered
+
+		const first = mask & -mask
+		let best = Number.NEGATIVE_INFINITY
+		for (let subset = mask; subset !== 0; subset = (subset - 1) & mask) {
+			if ((subset & first) === 0 || sums[subset] !== 0n) continue
+			best = Math.max(best, 1 + maximumGroups(mask ^ subset))
+		}
+		memo.set(mask, best)
+		return best
+	}
+
+	return nonzero.length - maximumGroups(stateCount - 1)
+}
+
+function mulberry32(seed: number): () => number {
+	let state = seed >>> 0
+	return () => {
+		state = (state + 0x6d2b79f5) >>> 0
+		let mixed = Math.imul(state ^ (state >>> 15), 1 | state)
+		mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed
+		return ((mixed ^ (mixed >>> 14)) >>> 0) / 4_294_967_296
+	}
+}
+
+const randomBalancedAmounts = (seed: number): bigint[] => {
+	const random = mulberry32(seed)
+	const count = 2 + Math.floor(random() * 7)
+	const amounts = Array.from({ length: count - 1 }, () => BigInt(Math.floor(random() * 11) - 5))
+	amounts.push(-amounts.reduce((sum, amount) => sum + amount, 0n))
+	return amounts
+}
 
 describe('splitEqual', () => {
 	test('divides evenly when it divides cleanly', () => {
@@ -201,6 +263,164 @@ describe('simplifyDebts', () => {
 				])
 			)
 		).toEqual([])
+	})
+
+	test('finds the three-transfer optimum that greedy misses for five people', () => {
+		const balances = new Map([
+			['ada', -700n],
+			['bo', -600n],
+			['cora', 600n],
+			['dev', 400n],
+			['emi', 300n],
+		])
+
+		expect(simplifyDebts(balances)).toHaveLength(3)
+		expect([...balancesAfterSuggestions(balances).values()]).toEqual([0n, 0n, 0n, 0n, 0n])
+	})
+
+	test('matches an independent exact oracle across deterministic small balance maps', () => {
+		for (let seed = 1; seed <= 120; seed++) {
+			const amounts = randomBalancedAmounts(seed)
+			const balances = new Map(amounts.map((amount, index) => [`m${index}`, amount]))
+			const transfers = simplifyDebts(balances)
+
+			expect(`${seed}:${transfers.length}`).toBe(`${seed}:${exactMinimumTransferCount(amounts)}`)
+			expect(`${seed}:${[...balancesAfterSuggestions(balances).values()].every((amount) => amount === 0n)}`).toBe(
+				`${seed}:true`
+			)
+		}
+	})
+
+	test('is independent of balance-map insertion order when exact plans tie', () => {
+		const entries: [string, bigint][] = [
+			['ada', -700n],
+			['bo', -600n],
+			['cora', 600n],
+			['dev', 400n],
+			['emi', 300n],
+		]
+
+		expect(simplifyDebts(new Map(entries))).toEqual(simplifyDebts(new Map([...entries].reverse())))
+	})
+
+	test('preserves the greedy plan when exact search cannot remove a transfer', () => {
+		const balances = new Map([
+			['a', 1n],
+			['b', 1n],
+			['c', -9n],
+			['d', -2n],
+			['e', -1n],
+			['f', 10n],
+		])
+
+		expect(simplifyDebts(balances)).toEqual([
+			{ fromMemberId: 'c', toMemberId: 'f', amountMinor: 9n },
+			{ fromMemberId: 'd', toMemberId: 'f', amountMinor: 1n },
+			{ fromMemberId: 'd', toMemberId: 'a', amountMinor: 1n },
+			{ fromMemberId: 'e', toMemberId: 'b', amountMinor: 1n },
+		])
+	})
+
+	test('puts the largest payment first when an exact plan improves on greedy', () => {
+		const balances = new Map([
+			['a', -44n],
+			['b', 36n],
+			['c', 16n],
+			['d', -16n],
+			['e', 8n],
+		])
+
+		const transfers = simplifyDebts(balances)
+		expect(transfers).toHaveLength(3)
+		expect(transfers[0]).toEqual({ fromMemberId: 'a', toMemberId: 'b', amountMinor: 36n })
+		expect([...balancesAfterSuggestions(balances).values()].every((amount) => amount === 0n)).toBe(true)
+	})
+
+	test('keeps exact arithmetic above Number.MAX_SAFE_INTEGER', () => {
+		const unit = BigInt(Number.MAX_SAFE_INTEGER) + 2n
+		const balances = new Map([
+			['ada', -7n * unit],
+			['bo', -6n * unit],
+			['cora', 6n * unit],
+			['dev', 4n * unit],
+			['emi', 3n * unit],
+		])
+
+		expect(simplifyDebts(balances)).toHaveLength(3)
+		expect([...balancesAfterSuggestions(balances).values()].every((amount) => amount === 0n)).toBe(true)
+	})
+
+	test('uses deterministic greedy fallback for an unbalanced malformed map', () => {
+		expect(
+			simplifyDebts(
+				new Map([
+					['debtor', -7n],
+					['creditor-a', 5n],
+					['creditor-b', 1n],
+				])
+			)
+		).toEqual([
+			{ fromMemberId: 'debtor', toMemberId: 'creditor-a', amountMinor: 5n },
+			{ fromMemberId: 'debtor', toMemberId: 'creditor-b', amountMinor: 1n },
+		])
+	})
+
+	test('keeps the 18-balance exact search inside the RoomState serialization budget', () => {
+		const credits = [101n, 103n, 107n, 109n, 113n, 127n, 131n, 137n]
+		const debts = [-41n, -53n, -59n, -61n, -67n, -71n, -73n, -503n]
+		const balances = new Map<string, bigint>([
+			...credits.map((amount, index) => [`core-creditor-${index}`, amount] as const),
+			...debts.map((amount, index) => [`core-debtor-${index}`, amount] as const),
+			['padding-creditor', 10_000n],
+			['padding-debtor', -10_000n],
+		])
+		expect([...balances.values()].filter((amount) => amount !== 0n)).toHaveLength(
+			EXACT_SETTLEMENT_MAX_NONZERO_BALANCES
+		)
+
+		// Warm V8 before measuring the synchronous path used by buildRoomState.
+		expect(simplifyDebts(balances)).toHaveLength(15)
+		const started = performance.now()
+		for (let run = 0; run < 3; run++) simplifyDebts(balances)
+		const perCall = (performance.now() - started) / 3
+
+		expect(perCall).toBeLessThan(80)
+		expect([...balancesAfterSuggestions(balances).values()].every((amount) => amount === 0n)).toBe(true)
+	})
+
+	test('uses the established deterministic greedy plan above the exact-search ceiling', () => {
+		const padding = Array.from({ length: 7 }, (_, index) => {
+			const amount = BigInt((index + 1) * 10_000)
+			return [[`pad-debtor-${index}`, -amount] as const, [`pad-creditor-${index}`, amount] as const]
+		}).flat()
+		const balances = new Map<string, bigint>([
+			...padding,
+			['ada', -700n],
+			['bo', -600n],
+			['cora', 600n],
+			['dev', 400n],
+			['emi', 300n],
+		])
+		expect([...balances.values()].filter((amount) => amount !== 0n)).toHaveLength(
+			EXACT_SETTLEMENT_MAX_NONZERO_BALANCES + 1
+		)
+
+		const expectedPadding = Array.from({ length: 7 }, (_, position) => {
+			const index = 6 - position
+			return {
+				fromMemberId: `pad-debtor-${index}`,
+				toMemberId: `pad-creditor-${index}`,
+				amountMinor: BigInt((index + 1) * 10_000),
+			}
+		})
+		expect(simplifyDebts(balances)).toEqual([
+			...expectedPadding,
+			{ fromMemberId: 'ada', toMemberId: 'cora', amountMinor: 600n },
+			{ fromMemberId: 'ada', toMemberId: 'dev', amountMinor: 100n },
+			{ fromMemberId: 'bo', toMemberId: 'dev', amountMinor: 300n },
+			{ fromMemberId: 'bo', toMemberId: 'emi', amountMinor: 300n },
+		])
+		expect([...balancesAfterSuggestions(balances).values()].every((amount) => amount === 0n)).toBe(true)
 	})
 })
 

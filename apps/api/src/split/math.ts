@@ -109,39 +109,175 @@ export function computeBalances(input: BalanceInput): Map<string, bigint> {
 
 export type Transfer = { fromMemberId: string; toMemberId: string; amountMinor: bigint }
 
+type BalanceEntry = { id: string; amount: bigint }
+
 /**
- * Minimal-ish set of transfers that zeroes the balances (the "settle up"
- * suggestion). Greedy min-cash-flow: repeatedly pay the biggest debtor into the
- * biggest creditor. Produces at most n-1 transfers — the same heuristic
- * Splitwise uses (optimal partition is NP-hard and not worth it here).
+ * The exact solver is exponential and runs synchronously inside
+ * `buildRoomState`, which serves reads as well as writes. Eighteen nonzero
+ * balances require 262,144 subset states; twenty require 1,048,576. Keep the
+ * same bounded policy as the web room engine so both APIs suggest the same
+ * minimum-transfer plan for ordinary rooms and stay predictable for large
+ * imports.
  */
-export function simplifyDebts(balances: Map<string, bigint>): Transfer[] {
-	const net = new Map<string, bigint>()
-	for (const [id, amt] of balances) if (amt !== 0n) net.set(id, amt)
+export const EXACT_SETTLEMENT_MAX_NONZERO_BALANCES = 18
 
+const byAmountThenId = (a: BalanceEntry, b: BalanceEntry) =>
+	a.amount === b.amount ? a.id.localeCompare(b.id) : a.amount > b.amount ? -1 : 1
+
+const byTransferAmountThenParties = (a: Transfer, b: Transfer) => {
+	if (a.amountMinor !== b.amountMinor) return a.amountMinor > b.amountMinor ? -1 : 1
+	const from = a.fromMemberId.localeCompare(b.fromMemberId)
+	return from !== 0 ? from : a.toMemberId.localeCompare(b.toMemberId)
+}
+
+/**
+ * The bounded fallback: sort each side by amount and member id, then walk them
+ * linearly. It is deterministic regardless of Map insertion order and clears
+ * every valid balance map in at most n - 1 transfers.
+ */
+function greedyTransfers(balances: Map<string, bigint>): Transfer[] {
+	const entries = [...balances.entries()].map(([id, amount]) => ({ id, amount }))
+	const debtors = entries
+		.filter((entry) => entry.amount < 0n)
+		.map((entry) => ({ id: entry.id, amount: -entry.amount }))
+		.sort(byAmountThenId)
+	const creditors = entries
+		.filter((entry) => entry.amount > 0n)
+		.map((entry) => ({ id: entry.id, amount: entry.amount }))
+		.sort(byAmountThenId)
 	const transfers: Transfer[] = []
-	while (net.size > 0) {
-		let maxCreditor: string | null = null
-		let maxDebtor: string | null = null
-		for (const [id, amt] of net) {
-			if (amt > 0n && (maxCreditor === null || amt > net.get(maxCreditor)!)) maxCreditor = id
-			if (amt < 0n && (maxDebtor === null || amt < net.get(maxDebtor)!)) maxDebtor = id
+	let debtorIndex = 0
+	let creditorIndex = 0
+	while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+		const debtor = debtors[debtorIndex]
+		const creditor = creditors[creditorIndex]
+		const amount = debtor.amount < creditor.amount ? debtor.amount : creditor.amount
+		if (amount > 0n) {
+			transfers.push({ fromMemberId: debtor.id, toMemberId: creditor.id, amountMinor: amount })
 		}
-		if (maxCreditor === null || maxDebtor === null) break // residue (shouldn't happen when sum==0)
-
-		const credit = net.get(maxCreditor)!
-		const debt = -net.get(maxDebtor)!
-		const pay = credit < debt ? credit : debt
-		transfers.push({ fromMemberId: maxDebtor, toMemberId: maxCreditor, amountMinor: pay })
-
-		const newCredit = credit - pay
-		const newDebt = net.get(maxDebtor)! + pay
-		if (newCredit === 0n) net.delete(maxCreditor)
-		else net.set(maxCreditor, newCredit)
-		if (newDebt === 0n) net.delete(maxDebtor)
-		else net.set(maxDebtor, newDebt)
+		debtor.amount -= amount
+		creditor.amount -= amount
+		if (debtor.amount === 0n) debtorIndex++
+		if (creditor.amount === 0n) creditorIndex++
 	}
 	return transfers
+}
+
+/**
+ * Partition nonzero balances into as many zero-sum groups as possible.
+ *
+ * If K is that maximum and m people have nonzero balances, an exact plan needs
+ * m - K transfers: every zero-sum component of size s needs at least s - 1,
+ * and the greedy walk realizes that bound inside each reconstructed component.
+ *
+ * `groups[mask]` is the greatest number of zero-sum prefixes in an ordering of
+ * that subset. Appending one entry creates another group exactly when the whole
+ * subset sums to zero. This is O(m * 2^m) time and O(2^m) memory.
+ */
+function exactTransfers(entries: readonly BalanceEntry[]): Transfer[] {
+	if (entries.length === 0) return []
+
+	// Canonical input order makes DP tie-breaking and the resulting plan
+	// independent of Map insertion order.
+	const ordered = [...entries].sort((a, b) => a.id.localeCompare(b.id))
+	const stateCount = 2 ** ordered.length
+	// First this byte marks zero-sum subsets; the ascending DP can overwrite a
+	// mask with its group count after every smaller predecessor is final. A
+	// Gray-code walk finds those zero sums with one BigInt delta per mask, so the
+	// serialization hot path needs no 262k-element BigInt array.
+	const groups = new Uint8Array(stateCount)
+	let previousMask = 0
+	let runningSum = 0n
+	for (let step = 1; step < stateCount; step++) {
+		const grayMask = step ^ (step >>> 1)
+		const changedBit = grayMask ^ previousMask
+		const changedIndex = 31 - Math.clz32(changedBit)
+		runningSum += (grayMask & changedBit) !== 0 ? ordered[changedIndex].amount : -ordered[changedIndex].amount
+		if (runningSum === 0n) groups[grayMask] = 1
+		previousMask = grayMask
+	}
+
+	for (let mask = 1; mask < stateCount; mask++) {
+		const closesGroup = groups[mask]
+		let bestPreviousGroups = 0
+		let candidates = mask
+		while (candidates !== 0) {
+			const bit = candidates & -candidates
+			const previousGroups = groups[mask ^ bit]
+			if (previousGroups > bestPreviousGroups) bestPreviousGroups = previousGroups
+			candidates ^= bit
+		}
+		groups[mask] = bestPreviousGroups + closesGroup
+	}
+
+	// Recover a canonical predecessor that attains each stored optimum. Only m
+	// masks are revisited, so recomputing sums is O(m^2) and avoids storing a
+	// second BigInt table.
+	const order = new Array<number>(ordered.length)
+	let mask = stateCount - 1
+	for (let position = ordered.length - 1; position >= 0; position--) {
+		let sum = 0n
+		let summands = mask
+		while (summands !== 0) {
+			const bit = summands & -summands
+			sum += ordered[31 - Math.clz32(bit)].amount
+			summands ^= bit
+		}
+
+		const previousGroupCount = groups[mask] - (sum === 0n ? 1 : 0)
+		let candidates = mask
+		while (candidates !== 0) {
+			const bit = candidates & -candidates
+			if (groups[mask ^ bit] === previousGroupCount) {
+				order[position] = 31 - Math.clz32(bit)
+				mask ^= bit
+				break
+			}
+			candidates ^= bit
+		}
+	}
+
+	const zeroSumGroups: BalanceEntry[][] = []
+	let current: BalanceEntry[] = []
+	let currentSum = 0n
+	for (const index of order) {
+		const entry = ordered[index]
+		current.push(entry)
+		currentSum += entry.amount
+		if (currentSum === 0n) {
+			zeroSumGroups.push(current)
+			current = []
+		}
+	}
+
+	return zeroSumGroups.flatMap((group) => greedyTransfers(new Map(group.map((entry) => [entry.id, entry.amount]))))
+}
+
+/**
+ * An exact minimum-transfer plan for ordinary rooms, with deterministic greedy
+ * fallback for large or malformed balance maps. This matches the web room
+ * engine's bounded settlement policy while retaining the API Transfer shape.
+ */
+export function simplifyDebts(balances: Map<string, bigint>): Transfer[] {
+	const nonzero = [...balances.entries()]
+		.filter(([, amount]) => amount !== 0n)
+		.map(([id, amount]) => ({ id, amount }))
+	const total = nonzero.reduce((sum, entry) => sum + entry.amount, 0n)
+	const greedy = greedyTransfers(balances)
+
+	if (total !== 0n || nonzero.length > EXACT_SETTLEMENT_MAX_NONZERO_BALANCES) return greedy
+
+	// Every nonzero debtor and creditor must touch at least one transfer. When
+	// greedy reaches that lower bound, it is already proven exact and common
+	// one-payer rooms avoid allocating the subset table.
+	const debtorCount = nonzero.filter((entry) => entry.amount < 0n).length
+	const creditorCount = nonzero.length - debtorCount
+	if (greedy.length === Math.max(debtorCount, creditorCount)) return greedy
+
+	const exact = exactTransfers(nonzero)
+	// Keep the established deterministic plan when exact search cannot remove a
+	// step. Improved plans put the largest payment first for the settle UI.
+	return exact.length < greedy.length ? exact.sort(byTransferAmountThenParties) : greedy
 }
 
 /**
