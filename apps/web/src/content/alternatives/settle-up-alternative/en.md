@@ -9,7 +9,7 @@ faqs:
     - question: Is Split free forever?
       answer: Yes. Split is free forever, with nothing to upgrade to and no ads. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
     - question: Can we bring our Settle Up balances across?
-      answer: By typing them, not by importing them. There is no file to upload and nothing to connect. Put in what each person is up or down today as one line each, and anything already settled in Settle Up stays settled there.
+      answer: By typing them, not by importing them. Settle Up can export CSV, but Split does not accept that file yet or have a direct connection. Put in what each person is up or down today as one line each, and anything already settled in Settle Up stays settled there.
     - question: How do I get back into a room?
       answer: You reopen the link. Nothing to log in to, so the link is the key. Keep it in the group chat, and note that opening a room the first time needs a connection.
 ---
@@ -72,7 +72,7 @@ Settle Up rows are taken from settleup.io (homepage, /tips, /tos, /privacy_polic
 
 ## What moves across, and what stays
 
-Settle Up data does not import into a room. Settle Up will pull the members and balances of a Splitwise group in for you; there is no equivalent coming the other way, no file to upload and nothing to connect.
+Settle Up data does not currently import into a room. Settle Up can export CSV, but Split does not accept that export yet or have a direct Settle Up connection.
 
 What you carry over is the position: what each person is up or down today, one line per person, so four people is four lines. The people themselves carry nothing at all, because there is no account for them to make.
 
@@ -118,7 +118,7 @@ That is the trade. Less product, and nothing asked of anyone who opens the link.
 <FAQ>
 <FAQItem question="Do I need an account for Split?">No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email, no password.</FAQItem>
 <FAQItem question="Is Split free forever?">Yes. Split is free forever, with nothing to upgrade to and no ads. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
-<FAQItem question="Can we bring our Settle Up balances across?">By typing them, not by importing them. There is no file to upload and nothing to connect. Put in what each person is up or down today as one line each, and anything already settled in Settle Up stays settled there.</FAQItem>
+<FAQItem question="Can we bring our Settle Up balances across?">By typing them, not by importing them. Settle Up can export CSV, but Split does not accept that file yet or have a direct connection. Put in what each person is up or down today as one line each, and anything already settled in Settle Up stays settled there.</FAQItem>
 <FAQItem question="How do I get back into a room?">You reopen the link. Nothing to log in to, so the link is the key. Keep it in the group chat, and note that opening a room the first time needs a connection.</FAQItem>
 </FAQ>
 
