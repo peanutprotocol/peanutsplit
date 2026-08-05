@@ -3,6 +3,7 @@ export type ExpenseDrawerEditor = 'payer' | 'split' | 'date' | null
 export interface ExpenseDrawerWorkflowState {
     submitted: boolean
     error: string | null
+    scannerOpen: boolean
     scanFile: File | null
     payerDraft: {
         open: boolean
@@ -36,12 +37,12 @@ export type ExpenseDrawerWorkflowAction =
     | { type: 'participant-error-cleared' }
     | { type: 'participant-failed'; error: string }
     | { type: 'participant-draft-closed' }
+    | { type: 'scan-opened' }
     | { type: 'scan-selected'; file: File }
     | { type: 'scan-cancelled' }
     | { type: 'scan-applied' }
     | { type: 'submission-attempted' }
     | { type: 'form-field-edited' }
-    | { type: 'quick-add-applied' }
     | { type: 'error-cleared' }
     | { type: 'error-set'; error: string }
     | { type: 'amount-normalised'; notice: string }
@@ -52,6 +53,7 @@ export type ExpenseDrawerWorkflowAction =
 export const initialExpenseDrawerWorkflowState = (advancedOptionsOpen = false): ExpenseDrawerWorkflowState => ({
     submitted: false,
     error: null,
+    scannerOpen: false,
     scanFile: null,
     payerDraft: { open: false, name: '', error: null },
     participantDraft: { open: false, name: '', error: null },
@@ -100,18 +102,18 @@ export function expenseDrawerWorkflowReducer(
             return { ...state, participantDraft: { ...state.participantDraft, error: action.error } }
         case 'participant-draft-closed':
             return { ...state, participantDraft: { open: false, name: '', error: null } }
+        case 'scan-opened':
+            return { ...state, scannerOpen: true, scanFile: null }
         case 'scan-selected':
-            return { ...state, scanFile: action.file }
+            return { ...state, scannerOpen: true, scanFile: action.file }
         case 'scan-cancelled':
-            return { ...state, scanFile: null }
+            return { ...state, scannerOpen: false, scanFile: null }
         case 'scan-applied':
-            return { ...state, scanFile: null, submitted: false, error: null }
+            return { ...state, scannerOpen: false, scanFile: null, submitted: false, error: null }
         case 'submission-attempted':
             return { ...state, submitted: true }
         case 'form-field-edited':
             return { ...state, submitted: false, fieldRepairNotice: null }
-        case 'quick-add-applied':
-            return { ...state, submitted: false, error: null, editor: null }
         case 'error-cleared':
             return { ...state, error: null }
         case 'error-set':

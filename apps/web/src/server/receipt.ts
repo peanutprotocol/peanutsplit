@@ -218,7 +218,11 @@ export const enforceRoomScanLimit = (roomId: string): void =>
 
 /** The whole server side of a scan: send the image once, keep nothing, and hand
  *  back numbers we counted ourselves. */
-export async function parseReceipt(body: ReceiptParseBody, roomCurrency: string): Promise<ParsedReceipt> {
+export async function parseReceipt(
+    body: ReceiptParseBody,
+    roomCurrency: string,
+    signal?: AbortSignal
+): Promise<ParsedReceipt> {
     const config = modelConfig()
     // The route checks `modelEnabled()` first, so this is the belt to that brace
     // — and the only correct answer for a caller that skipped it.
@@ -230,6 +234,7 @@ export async function parseReceipt(body: ReceiptParseBody, roomCurrency: string)
             prompt: PROMPT,
             image: { base64: body.imageBase64, mimeType: body.mimeType },
             maxOutputTokens: MAX_ANSWER_TOKENS,
+            signal,
             failed: scanFailed,
         },
         config

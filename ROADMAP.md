@@ -38,10 +38,10 @@ stabilization pass, but its expense-drawer entry point is intentionally hidden
 in v1. A real-device post-scan review could become unresponsive while the
 underlying drawer remained reachable. Re-enable only after the image-decoding →
 review → assignment portal lifecycle has a mobile regression test and a
-real-device pass. Typed quick-add remains available.
+real-device pass.
 
 **Owner: Konrad.** Decided 2026-07-28 (Hugo): the v1/v2 boundary —
-`splitV2Enabled()` and everything behind it (scan, NL entry, Splitwise import)
+`splitV2Enabled()` and everything behind it (scan and Splitwise import)
 — is Konrad's call to flip, and nobody else's. The flip itself is one Dokploy
 build arg on the web app (`NEXT_PUBLIC_SPLIT_V2_ENABLED=1`) plus a redeploy —
 the marketing surface is already flag-aware and starts claiming the features

@@ -760,7 +760,20 @@
             "roomOnlyManual": "{roomCurrency} only — invent a ticker for a manual rate."
         },
         "scan": {
-            "cta": "Scan a bill",
+            "cta": "Scan receipt",
+            "cameraTitle": "Scan receipt",
+            "cameraStarting": "Starting camera…",
+            "cameraReady": "Camera ready",
+            "cameraBlocked": "Camera access is off. Upload a photo instead.",
+            "cameraUnavailable": "Camera is not available here. Upload a photo instead.",
+            "cameraFailed": "Camera could not start. Upload a photo instead.",
+            "cameraControls": "Receipt photo controls",
+            "takePhoto": "Take photo",
+            "upload": "Upload",
+            "framingHint": "Keep all four corners in frame",
+            "captureFailed": "That photo could not be captured. Try again or upload one.",
+            "termsNote": "You’re agreeing to OpenRouter and Gemini terms.",
+            "tryAgain": "Try another receipt",
             "step1": "Scan a bill · check the items",
             "step2": "Scan a bill · who had what",
             "reading": "Reading the bill…",
@@ -793,16 +806,6 @@
                 "unreadable": "That file could not be opened as an image.",
                 "generic": "Could not read that bill.",
                 "hint": "Take the photo straight on, with the whole bill in frame and the lights up."
-            }
-        },
-        "quickAdd": {
-            "cta": "Quick add",
-            "placeholder": "taxi 12€ — or paste from the chat",
-            "action": "Fill the form",
-            "reading": "Reading…",
-            "unmatched": "Couldn’t match: {names} — pick them below.",
-            "errors": {
-                "generic": "Could not read that."
             }
         },
         "theme": {
@@ -1029,11 +1032,6 @@
         "SCAN_NO_ITEMS": "No items could be read on that photo — try a straighter shot with more light.",
         "SCAN_ROOM_LIMIT": "This room has scanned a lot of bills today — try again tomorrow.",
         "SCAN_FAILED": "Could not read that bill — try again.",
-        "NL_UNAVAILABLE": "Quick add is not switched on here.",
-        "NL_TEXT_TOO_LONG": "That is more text than one expense — trim it down and try again.",
-        "NL_NO_AMOUNT": "No amount could be read in that — say what it cost.",
-        "NL_ROOM_LIMIT": "This room has used its quick adds for today — try again tomorrow.",
-        "NL_FAILED": "Could not read that — try again.",
         "IMPORT_TOO_LARGE": "That import is too big to send. Try a group with less history.",
         "IMPORT_UNAVAILABLE": "Imports are temporarily paused — try again later.",
         "IMPORT_TARGET_CURRENCY_UNSUPPORTED": "Imports cannot be added to a room with a custom currency. Add the expenses in the room currency manually instead.",

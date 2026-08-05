@@ -144,7 +144,8 @@ const DrawerContent = React.forwardRef<
                     onCloseAutoFocus?.(event)
                     // A caller with a stable semantic fallback can override the
                     // remembered opener (for example when that opener unmounted
-                    // while one drawer replaced another).
+                    // while one drawer replaced another). A replacing modal can
+                    // own that handoff before generic restoration races it.
                     if (event.defaultPrevented) {
                         openerRef.current = null
                         return

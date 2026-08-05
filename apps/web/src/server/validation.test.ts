@@ -365,7 +365,7 @@ describe('room settings', () => {
 })
 
 describe('model money normalization', () => {
-    it('keeps bounded safe numeric output working for receipt scan and quick add', () => {
+    it('keeps bounded safe numeric output working for receipt scans', () => {
         expect(receiptItemSchema.parse({ label: 'Coffee', amountMinor: 1250 }).amountMinor).toBe('1250')
         expect(modelAmountMinor.parse(1200)).toBe('1200')
         expect(modelAmountMinor.parse('007')).toBe('007')

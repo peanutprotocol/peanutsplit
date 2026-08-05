@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefObject } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '@/lib/cn'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
@@ -25,6 +25,7 @@ interface ExpenseComposerProps {
         decimals: number
         invalid: boolean
         textSizeClass: string
+        action?: ReactNode
         onChange: (value: string) => void
         onBlur: () => void
     }
@@ -120,6 +121,7 @@ export function ExpenseComposer({
                             )}
                         />
                     </label>
+                    {amount.action}
                     <div className={COMPOSER_CURRENCY_SLOT}>
                         <CurrencySelect
                             value={currency.value}

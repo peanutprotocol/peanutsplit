@@ -158,6 +158,21 @@ describe('api requests', () => {
         expect(JSON.parse(init.body).amountMinor).toBe('12000')
     })
 
+    it('forwards an optional abort signal with a receipt parse', async () => {
+        const fetchMock = respondWith(200, { items: [], suggestedTotalMinor: '0' })
+        vi.stubGlobal('fetch', fetchMock)
+        const controller = new AbortController()
+
+        await api.receipt.parse(
+            'ski-trip-x7k2m9',
+            { imageBase64: '/9j/AAAAAAAAAAAA', mimeType: 'image/jpeg' },
+            undefined,
+            controller.signal
+        )
+
+        expect(fetchMock.mock.calls[0]?.[1].signal).toBe(controller.signal)
+    })
+
     it('patches a catch-up command through the existing expense endpoint', async () => {
         const fetchMock = respondWith(200, {})
         vi.stubGlobal('fetch', fetchMock)

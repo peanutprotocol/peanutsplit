@@ -45,10 +45,4 @@ describe('meaningful motion surface coverage', () => {
         expect(source).toContain('transition={motionAllowed ?')
         expect(source).toContain('data-motion-surface')
     })
-
-    it('does not emit Quick Add’s hidden progress-bar frame when policy is still', () => {
-        const source = readFileSync(new URL('../components/room/QuickAdd.tsx', import.meta.url), 'utf8')
-        expect(source).toContain("initial={motionAllowed ? { x: '-100%' } : false}")
-        expect(source).toContain('data-motion-surface')
-    })
 })

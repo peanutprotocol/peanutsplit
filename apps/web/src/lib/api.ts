@@ -18,8 +18,6 @@ import type {
     ImportRoomInput,
     MemberAvatarInput,
     ModelStatus,
-    NlParseInput,
-    NlParseResult,
     ParsedReceipt,
     PushSubscribeInput,
     PushUnsubscribeInput,
@@ -269,32 +267,23 @@ export const api = {
         }),
 
     /**
-     * Whether this deployment can read a bill photo OR a typed line. A capability
-     * probe, not a feature flag: the key lives on the server, so a `NEXT_PUBLIC_`
-     * value baked at build time could not tell the truth about it.
-     *
-     * It is served off the receipt-parse path because one key gates both
-     * features — a second endpoint answering the same boolean would be a second
-     * thing to keep in agreement with this one.
+     * Whether this deployment can read a bill photo. A capability probe, not a
+     * feature flag: the key lives on the server, so a `NEXT_PUBLIC_` value baked
+     * at build time could not tell the truth about it.
      */
     modelStatus: (slug: string, signal?: AbortSignal) =>
         request<ModelStatus>(`/api/rooms/${encode(slug)}/receipt-parse`, { signal }),
 
     /** Bill photo → line items. */
     receipt: {
-        parse: (slug: string, input: ReceiptParseInput, token?: string | null) =>
+        parse: (slug: string, input: ReceiptParseInput, token?: string | null, signal?: AbortSignal) =>
             request<ParsedReceipt>(`/api/rooms/${encode(slug)}/receipt-parse`, {
                 method: 'POST',
                 body: input,
                 token,
+                signal,
             }),
     },
-
-    /** Typed line → one expense draft. Writes nothing, so it carries no member
-     *  token: there is no row for it to be attributed to. The draft prefills the
-     *  ordinary form and the ordinary save is still the only write. */
-    parseExpenseText: (slug: string, input: NlParseInput) =>
-        request<NlParseResult>(`/api/rooms/${encode(slug)}/parse-expense`, { method: 'POST', body: input }),
 
     /** Room presentation. No token: the slug is the credential, same as every
      *  other room write — see the route for why. The display name changes
