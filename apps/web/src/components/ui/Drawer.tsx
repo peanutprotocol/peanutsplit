@@ -5,6 +5,13 @@ import { cn as twMerge } from '@/lib/cn'
 import { Drawer as DrawerPrimitive } from 'vaul'
 
 /**
+ * Drawers can overlap while one URL-owned sheet replaces another. Every live
+ * sheet claims the background independently; the last owner restores only the
+ * inert state that existed before the first claim.
+ */
+const inertClaims = new WeakMap<HTMLElement, { count: number; initiallyInert: boolean }>()
+
+/**
  * A sheet is modal, so the room behind it is `inert`: nothing in it is tabbable,
  * reachable by a screen reader's own cursor, or findable.
  *
@@ -31,7 +38,7 @@ import { Drawer as DrawerPrimitive } from 'vaul'
 function InertBackground() {
     React.useEffect(() => {
         let cancelled = false
-        let ours: HTMLElement[] = []
+        let claimed: HTMLElement[] = []
         queueMicrotask(() => {
             if (cancelled) return
             const background = Array.from(
@@ -39,17 +46,30 @@ function InertBackground() {
                     'body > [data-aria-hidden]:not([data-vaul-overlay]), body > main'
                 )
             )
-            ours = background.filter((element) => !element.hasAttribute('inert'))
+            claimed = background
             for (const element of background) {
+                const claim = inertClaims.get(element)
+                if (claim) claim.count += 1
+                else {
+                    inertClaims.set(element, {
+                        count: 1,
+                        initiallyInert: element.hasAttribute('inert'),
+                    })
+                }
                 element.setAttribute('inert', '')
                 element.removeAttribute('aria-hidden')
             }
         })
         return () => {
             cancelled = true
-            // Only what this sheet made inert: a sheet opened on top of another one
-            // must not hand the first sheet's background back on the way out.
-            for (const element of ours) element.removeAttribute('inert')
+            for (const element of claimed) {
+                const claim = inertClaims.get(element)
+                if (!claim) continue
+                claim.count -= 1
+                if (claim.count > 0) continue
+                if (!claim.initiallyInert) element.removeAttribute('inert')
+                inertClaims.delete(element)
+            }
         }
     }, [])
     return null
@@ -122,6 +142,13 @@ const DrawerContent = React.forwardRef<
                 }}
                 onCloseAutoFocus={(event) => {
                     onCloseAutoFocus?.(event)
+                    // A caller with a stable semantic fallback can override the
+                    // remembered opener (for example when that opener unmounted
+                    // while one drawer replaced another).
+                    if (event.defaultPrevented) {
+                        openerRef.current = null
+                        return
+                    }
                     // Ours instead of the dialog's, which would go looking for a trigger.
                     event.preventDefault()
                     if (openerRef.current?.isConnected) openerRef.current.focus()

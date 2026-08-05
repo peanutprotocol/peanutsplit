@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test'
 import { test } from './fixtures'
+import { openCurrentRoomSettings } from './helpers'
 
 const createRoom = async (page: import('@playwright/test').Page, name: string) => {
     await page.goto('/new')
@@ -28,7 +29,7 @@ test('creation pauses at a concise roster checkpoint before entering the room', 
 
     await page.getByTestId('go-to-room').click()
     await page.waitForURL(/\/r\/roster-trip-/)
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await expect(page.locator('[data-testid="person-row"][data-member="Bea"]')).toBeVisible()
 })
 

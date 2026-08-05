@@ -33,7 +33,7 @@ const iconDoodles = {
     calendar: 'iconcalendar',
     link: 'link',
     undo: 'iconundo',
-    settings: 'iconsettings',
+    settings: 'expense_settings',
 } as const satisfies Record<string, DoodleName>
 
 export type IconName = keyof typeof iconDoodles

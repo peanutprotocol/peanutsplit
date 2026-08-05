@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { useRef, type RefObject } from 'react'
 import { useTranslations } from 'next-intl'
 import { CharacterSheet } from '@/components/room/CharacterSheet'
 import { MemberAvatar } from '@/components/room/MemberAvatar'
@@ -22,7 +22,7 @@ interface RoomHeaderProps {
      *  Null while the room is still loading or when nobody has joined here. */
     me: ApiMember | null
     /** Stable room landmark used when a transient sheet removes its opener. */
-    roomTitleRef?: Ref<HTMLButtonElement>
+    roomTitleRef?: RefObject<HTMLButtonElement | null>
     onShare: () => void
     onForgetIdentity: () => void
 }
@@ -32,8 +32,9 @@ interface RoomHeaderProps {
  *
  * Everything that used to live in this file — the roster, the character grid,
  * the device preferences, the export block — moved into `SettingsSheet` and its
- * parts. What is left is the bar itself: the emblem opens Settings, the title
- * opens room navigation, and share is share.
+ * parts. What is left is the bar itself: the emblem identifies the room, the
+ * title opens room navigation, and share is share. Settings lives beside each
+ * room in that navigation sheet, where its scope is explicit.
  */
 export function RoomHeader({
     room,
@@ -47,6 +48,9 @@ export function RoomHeader({
 }: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const [sheets, setSheets] = useRoomParams()
+    const internalRoomTitleRef = useRef<HTMLButtonElement>(null)
+    const stableRoomTitleRef = roomTitleRef ?? internalRoomTitleRef
+    const currentRoomSettingsRef = useRef<HTMLButtonElement>(null)
     // Resolved rather than held, so a member disappearing under an open sheet
     // closes it instead of leaving a sheet about nobody — which is also what an
     // unknown or stale id in the URL does.
@@ -58,25 +62,17 @@ export function RoomHeader({
         // this variable existed.
         <header className="sticky top-0 z-10 border-b border-n-1 bg-[var(--split-theme-field,#FFC900)]">
             <div className="flex items-center gap-3 px-4 py-3">
-                <button
-                    type="button"
-                    onClick={() => setSheets({ settings: true })}
-                    aria-label={t('openSettings')}
-                    data-testid="open-room-settings"
-                    className="relative flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white text-h5"
+                <span
+                    aria-hidden="true"
+                    data-testid="room-header-emblem"
+                    className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
                 >
                     <RoomEmblem value={room.emoji} name={room.name} size={26} />
-                    <span
-                        aria-hidden="true"
-                        className="absolute bottom-0 right-0 flex size-5 items-center justify-center rounded-full border border-n-1 bg-white"
-                    >
-                        <Icon name="settings" size={14} />
-                    </span>
-                </button>
+                </span>
 
                 <h1 className="min-w-0 flex-1">
                     <button
-                        ref={roomTitleRef}
+                        ref={stableRoomTitleRef}
                         type="button"
                         onClick={() => setSheets({ rooms: true })}
                         aria-haspopup="dialog"
@@ -133,7 +129,11 @@ export function RoomHeader({
 
             <SettingsSheet
                 open={sheets.settings}
-                onClose={() => setSheets({ settings: null })}
+                onClose={() => setSheets({ settings: null }, { history: 'replace' })}
+                onCloseFocus={() => {
+                    const target = sheets.rooms ? currentRoomSettingsRef.current : stableRoomTitleRef.current
+                    target?.focus({ preventScroll: true })
+                }}
                 room={room}
                 members={members}
                 state={state}
@@ -147,6 +147,8 @@ export function RoomHeader({
             <RoomSwitcher
                 open={sheets.rooms}
                 onClose={() => setSheets({ rooms: null }, { history: 'replace' })}
+                onOpenSettings={() => setSheets({ rooms: null, settings: true })}
+                currentSettingsRef={currentRoomSettingsRef}
                 room={room}
             />
 

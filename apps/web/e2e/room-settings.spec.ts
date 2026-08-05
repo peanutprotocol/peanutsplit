@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test'
 import { test } from './fixtures'
-import { enterCreatedRoom } from './helpers'
+import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
 test('the drawing grid has one tab stop, radio arrow keys, and reliable focus return', async ({ page }) => {
     await page.goto('/new')
@@ -9,8 +9,7 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
     await page.getByTestId('create-room').click()
     await enterCreatedRoom(page)
 
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible()
+    await openCurrentRoomSettings(page)
 
     const summary = page.getByTestId('room-drawing')
     const details = summary.locator('..')
@@ -69,7 +68,7 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
     await expect(summary).toBeFocused()
 })
 
-test('the room emblem opens Settings, rename keeps the link, and people can be added in context', async ({ page }) => {
+test('room-scoped Settings keeps the link through rename and adds people in context', async ({ page }) => {
     test.setTimeout(60_000)
 
     await page.addInitScript(() => {
@@ -118,11 +117,10 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
     const slug = permanentPath.split('/').at(-1)
     expect(slug).toBeTruthy()
 
-    // The emblem is the settings entry point. Room navigation stays on the
-    // separate title control in the top bar, so the header has no links.
-    await expect(page.getByTestId('open-room-settings')).toBeVisible()
+    // Room settings live with the room in the title picker, not in the header.
+    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
     await expect(page.locator('header a')).toHaveCount(0)
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
 
     await expect(page.getByTestId('settings-sheet')).toBeVisible()
     // The current room is the card, never also a tile in the dock — and with no
@@ -242,7 +240,7 @@ test('the room emblem opens Settings, rename keeps the link, and people can be a
 
     // Language is a device preference: it reloads the same room in the selected native catalog,
     // persists, and never changes the shared room link.
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await expect(page.getByTestId('device-row')).toContainText('English')
     await page.getByTestId('device-row').click()
     const reloaded = page.waitForEvent('framenavigated')

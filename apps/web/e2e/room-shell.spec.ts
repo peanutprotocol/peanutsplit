@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
-import { enterCreatedRoom } from './helpers'
+import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
 /**
  * The room shell, and the sheets its header opens.
@@ -34,7 +34,7 @@ for (const [label, name] of [
         await openRoom(page, `Header ${label}`, name)
 
         // The whole middle zone is now a button. Its inner name and identity lines
-        // must shrink inside the space left by the fixed Settings and Share targets.
+        // must shrink inside the space left by the fixed Share target.
         const switcher = await page.getByTestId('open-room-switcher').boundingBox()
         const viewport = await page.evaluate(() => document.documentElement.clientWidth)
 
@@ -49,11 +49,18 @@ test('Back closes the settings and room-switcher sheets rather than leaving the 
 
     // Header sheets are URL state, so the back gesture — the primary dismiss on Android —
     // closes the surface before it can leave the room.
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    await openCurrentRoomSettings(page)
     await page.goBack()
     await expect(page.getByTestId('settings-sheet')).toBeHidden({ timeout: 10_000 })
     expect(new URL(page.url()).pathname).toBe(roomPath)
+
+    // Settings was reached through Rooms, so browser Back may reveal that
+    // previous URL-owned sheet. Dismiss it before testing a fresh title open.
+    const reopenedSwitcher = page.getByTestId('room-switcher-sheet')
+    if (await reopenedSwitcher.isVisible()) {
+        await page.keyboard.press('Escape')
+        await expect(reopenedSwitcher).toBeHidden({ timeout: 10_000 })
+    }
 
     const roomSwitcher = page.getByTestId('open-room-switcher')
     await roomSwitcher.focus()
@@ -63,13 +70,12 @@ test('Back closes the settings and room-switcher sheets rather than leaving the 
     await expect(page.getByTestId('room-switcher-sheet')).toBeHidden({ timeout: 10_000 })
     expect(new URL(page.url()).pathname).toBe(roomPath)
     await expect(roomSwitcher).toBeFocused()
-    await expect(page.getByTestId('open-room-settings')).toBeVisible()
+    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
 })
 
 test('every person row carries a removal control, and the People disclosure is thumb-sized', async ({ page }) => {
     await openRoom(page, 'Roster controls', 'Ana')
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    await openCurrentRoomSettings(page)
 
     const toggle = page.getByTestId('people-toggle')
     await expect(toggle).toBeVisible({ timeout: 10_000 })

@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test'
 import { test } from './fixtures'
-import { enterCreatedRoom } from './helpers'
+import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
 /**
  * Navigation from the title switcher has to win over sheet dismissal. The
@@ -57,10 +57,10 @@ test('a room beyond the old compact limit is still a direct destination', async 
 test('tapping a theme swatch repaints the room', async ({ page }) => {
     await createRoom(page, 'Palette')
 
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    await openCurrentRoomSettings(page)
     await page.waitForTimeout(600)
 
+    await expect(page.locator('[data-testid="theme-swatch"] svg')).toHaveCount(0)
     const swatch = page.locator('[data-testid="theme-swatch"]').nth(2)
     const key = await swatch.getAttribute('data-theme')
     await swatch.click()

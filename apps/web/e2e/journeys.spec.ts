@@ -1,7 +1,7 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 import { test } from './fixtures'
-import { balanceCard, expectBalance } from './helpers'
+import { balanceCard, expectBalance, openCurrentRoomSettings } from './helpers'
 import { slideToConfirm } from './slide-to-confirm'
 
 /**
@@ -67,7 +67,7 @@ const openAsAna = async (page: Page, room: Seeded) => {
         { slug: room.slug, memberId: room.ana, token: room.token }
     )
     await page.goto(`/r/${room.slug}`)
-    await expect(page.getByTestId('open-room-settings')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
 }
 
 test('a settlement for less than the suggested amount leaves the rest owing, and removing it restores the debt', async ({
@@ -125,7 +125,7 @@ test('the exported CSV reconciles with the balances the room is showing', async 
     await expectBalance(page, 'Bea', '4000')
     const onScreen = await balanceCard(page, 'Bea').getAttribute('data-net')
 
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await page.getByTestId('export-row').click()
     const exportSheet = page.getByTestId('export-sheet')
     await expect(exportSheet).toBeVisible()
@@ -196,13 +196,13 @@ test('a character picked on one device reaches the other without a reload', asyn
         { slug: room.slug, memberId: room.bea }
     )
     await bea.goto(`/r/${room.slug}`)
-    await bea.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(bea)
     await expect(bea.getByTestId('people-list')).toBeVisible({ timeout: 15_000 })
     const anaRow = bea.locator('[data-testid="person-row"][data-member="Ana"]')
     const before = (await anaRow.innerText()).trim()
 
     // Ana picks a character that is not the one she was dealt.
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     const anaSettings = page.getByTestId('settings-sheet')
     await expect(anaSettings).toBeVisible()
     const peopleToggle = anaSettings.getByTestId('people-toggle')
@@ -235,7 +235,7 @@ test('a theme chosen on one device repaints the other without a reload', async (
     const painted = bea.locator('[data-theme]').first()
     await expect(painted).toHaveAttribute('data-theme', 'classic')
 
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
     const swatch = page.locator('[data-testid="theme-swatch"]').nth(2)
     const key = await swatch.getAttribute('data-theme')

@@ -1,7 +1,7 @@
 import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 import { readFile } from 'node:fs/promises'
-import { balanceCard as balance, enterCreatedRoom, expectBalance } from './helpers'
+import { balanceCard as balance, enterCreatedRoom, expectBalance, openCurrentRoomSettings } from './helpers'
 import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
 /**
@@ -599,7 +599,7 @@ test('a link holder can export the room without exporting the room credential', 
 
     // Import/export is one row in Settings. Import now names this room as the
     // target and promises that its existing link/history survive the append.
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 15_000 })
     const exportRow = page.getByTestId('export-row')
     await expect(exportRow).toContainText('Import / export')

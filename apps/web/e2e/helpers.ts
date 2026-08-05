@@ -38,6 +38,18 @@ export async function enterCreatedRoom(page: Page): Promise<string> {
     await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
     await page.getByTestId('go-to-room').click()
     await page.waitForURL(/\/r\/[^/?]+/)
-    await expect(page.getByTestId('open-room-settings')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
     return page.url()
+}
+
+/** Open Settings for the loaded room through its room-picker action. */
+export async function openCurrentRoomSettings(page: Page): Promise<void> {
+    await page.getByTestId('open-room-switcher').click()
+    const switcher = page.getByTestId('room-switcher-sheet')
+    await expect(switcher).toBeVisible({ timeout: 10_000 })
+
+    const settings = switcher.locator('[data-testid="room-switcher-settings"][data-current="true"]')
+    await expect(settings).toHaveCount(1)
+    await settings.click()
+    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
 }
