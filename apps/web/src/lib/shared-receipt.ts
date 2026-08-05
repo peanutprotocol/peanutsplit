@@ -28,25 +28,54 @@ const KEY = '/__shared-receipt'
 /**
  * How long a parked photo can wait for the room that will read it.
  *
- * The app tells people in three languages that a scanned photo "is read once and never stored".
  * A share somebody abandoned — backed out of the picker, closed the tab, landed on a join gate —
- * would otherwise sit here at full resolution for ever, which would make that sentence false.
+ * would otherwise remain locally parked indefinitely. Cache Storage cannot self-expire while the
+ * PWA is closed, so every read and every app boot rejects an entry after this window.
  */
 const SHARE_TTL_MS = 10 * 60 * 1000
 const STAMP = 'x-parked-at'
 
+const isFresh = (response: Response, now: number): boolean => {
+    const parkedAt = Number(response.headers.get(STAMP) ?? 0)
+    return Number.isFinite(parkedAt) && parkedAt > 0 && parkedAt <= now && now - parkedAt <= SHARE_TTL_MS
+}
+
 /** Worker side. Throws are the caller's to swallow: the SW turns any failure into the same
  *  "nothing arrived" screen the empty case produces. */
 export async function storeSharedReceipt(storage: CacheStorage, file: File): Promise<void> {
+    if (file.size === 0) throw new Error('shared receipt is empty')
     if (file.size > MAX_SHARED_RECEIPT_BYTES) throw new Error('shared receipt is too large to store')
+    if (file.type && (!file.type.startsWith('image/') || file.type.startsWith('image/svg'))) {
+        throw new Error('shared receipt is not a raster image')
+    }
+
+    const headers = new Headers({ [STAMP]: String(Date.now()) })
+    // Passing any explicit headers to Response stops it inheriting Blob.type. Preserve the
+    // Android content provider's real MIME so HEIC/PNG is decoded as itself, not as JPEG.
+    if (file.type) headers.set('content-type', file.type)
     const cache = await storage.open(CACHE)
-    await cache.put(KEY, new Response(file, { headers: { [STAMP]: String(Date.now()) } }))
+    await cache.put(KEY, new Response(file, { headers }))
+}
+
+/** Worker-side replacement boundary. Clear the prior share before even parsing the next one, so
+ *  a malformed/no-file/oversized request can never route somebody to the previous receipt. */
+export async function replaceSharedReceipt(storage: CacheStorage, readFile: () => Promise<File | null>): Promise<void> {
+    // Unlike the UI-facing discard helper, this must reject if Cache Storage cannot be cleared.
+    // The worker then stops without attempting to make an ambiguous replacement.
+    await storage.delete(CACHE)
+    const file = await readFile()
+    if (!file) throw new Error('shared receipt is missing')
+    await storeSharedReceipt(storage, file)
 }
 
 /** Page side, non-destructive: the picker asks whether there is anything to route. */
-export async function hasSharedReceipt(storage: CacheStorage): Promise<boolean> {
+export async function hasSharedReceipt(storage: CacheStorage, now = Date.now()): Promise<boolean> {
     try {
-        return (await (await storage.open(CACHE)).match(KEY)) !== undefined
+        const response = await (await storage.open(CACHE)).match(KEY)
+        if (!response) return false
+        if (isFresh(response, now)) return true
+        await storage.delete(CACHE)
+        return false
     } catch {
         // Storage blocked (private mode, no origin quota). "Nothing shared" is the true answer.
         return false
@@ -54,16 +83,19 @@ export async function hasSharedReceipt(storage: CacheStorage): Promise<boolean> 
 }
 
 /** Room side, one-shot: a receipt handed to one room must not be handed to the next one too. */
-export async function takeSharedReceipt(storage: CacheStorage): Promise<File | null> {
+export async function takeSharedReceipt(storage: CacheStorage, now = Date.now()): Promise<File | null> {
     try {
         const cache = await storage.open(CACHE)
         const response = await cache.match(KEY)
         if (!response) return null
+        if (!isFresh(response, now)) {
+            await storage.delete(CACHE)
+            return null
+        }
         await cache.delete(KEY)
         const blob = await response.blob()
-        // Explicit headers mean the Response no longer inherits the blob's own Content-Type, so
-        // the fallback below is load-bearing. The name is never read — ScanFlow keys on object
-        // identity and scan-image.ts on bytes.
+        // A blank MIME is allowed because some Android content providers omit it; the image
+        // decoder still checks the bytes. The name is never used as evidence of the file type.
         return new File([blob], 'receipt', { type: blob.type || 'image/jpeg' })
     } catch {
         return null
@@ -88,8 +120,7 @@ export async function sweepSharedReceipt(storage: CacheStorage, now = Date.now()
     try {
         const response = await (await storage.open(CACHE)).match(KEY)
         if (!response) return
-        const parkedAt = Number(response.headers.get(STAMP) ?? 0)
-        if (!Number.isFinite(parkedAt) || now - parkedAt > SHARE_TTL_MS) await storage.delete(CACHE)
+        if (!isFresh(response, now)) await storage.delete(CACHE)
     } catch {
         // Storage blocked. Nothing is parked and nothing is leaking.
     }

@@ -3,6 +3,7 @@ import {
     discardSharedReceipt,
     hasSharedReceipt,
     MAX_SHARED_RECEIPT_BYTES,
+    replaceSharedReceipt,
     storeSharedReceipt,
     sweepSharedReceipt,
     takeSharedReceipt,
@@ -55,6 +56,13 @@ describe('a shared receipt', () => {
         expect(await hasSharedReceipt(storage)).toBe(false)
     })
 
+    it('preserves a non-JPEG content provider MIME through Cache Storage', async () => {
+        const { storage } = fakeCacheStorage()
+        await storeSharedReceipt(storage, receipt('png bytes', 'image/png'))
+
+        expect((await takeSharedReceipt(storage))?.type).toBe('image/png')
+    })
+
     it('is replaced by the next share, because that is what sharing again means', async () => {
         const { storage } = fakeCacheStorage()
         await storeSharedReceipt(storage, receipt('first'))
@@ -70,6 +78,42 @@ describe('a shared receipt', () => {
 
         await expect(storeSharedReceipt(storage, oversized)).rejects.toThrow('too large')
         expect(caches.size).toBe(0)
+    })
+
+    it.each([
+        ['an empty image', receipt('', 'image/jpeg'), 'empty'],
+        ['a non-image file', receipt('text', 'text/plain'), 'raster image'],
+        ['an SVG image', receipt('vector image bytes', 'image/svg+xml'), 'raster image'],
+    ])('rejects %s before opening Cache Storage', async (_label, file, message) => {
+        const { storage, caches } = fakeCacheStorage()
+
+        await expect(storeSharedReceipt(storage, file)).rejects.toThrow(message)
+        expect(caches.size).toBe(0)
+    })
+
+    it.each([
+        ['a missing file', async () => null],
+        [
+            'an unreadable multipart body',
+            async () => {
+                throw new Error('malformed multipart')
+            },
+        ],
+        [
+            'an oversized file',
+            async () => {
+                const file = receipt('too large')
+                Object.defineProperty(file, 'size', { value: MAX_SHARED_RECEIPT_BYTES + 1 })
+                return file
+            },
+        ],
+    ])('clears the previous receipt before accepting %s', async (_label, readFile) => {
+        const { storage } = fakeCacheStorage()
+        await storeSharedReceipt(storage, receipt('old bill'))
+
+        await expect(replaceSharedReceipt(storage, readFile)).rejects.toThrow()
+
+        expect(await hasSharedReceipt(storage)).toBe(false)
     })
 
     it('is discarded whole', async () => {
@@ -130,5 +174,38 @@ describe('the boot sweep', () => {
         await sweepSharedReceipt(storage)
 
         expect(caches.get('ps:shared-receipt')?.size ?? 0).toBe(0)
+    })
+})
+
+describe('freshness at the routing and one-shot read boundaries', () => {
+    const MINUTE = 60 * 1000
+
+    it('does not route an expired receipt even when the boot sweep loses the race', async () => {
+        const { storage } = fakeCacheStorage()
+        const parkedAt = Date.now()
+        await storeSharedReceipt(storage, receipt('old bill'))
+
+        expect(await hasSharedReceipt(storage, parkedAt + 11 * MINUTE)).toBe(false)
+        expect(await takeSharedReceipt(storage, parkedAt + 11 * MINUTE)).toBeNull()
+    })
+
+    it('does not take a receipt that expires while a room or join decision is open', async () => {
+        const { storage } = fakeCacheStorage()
+        const parkedAt = Date.now()
+        await storeSharedReceipt(storage, receipt('old bill'))
+
+        expect(await takeSharedReceipt(storage, parkedAt + 11 * MINUTE)).toBeNull()
+        expect(await hasSharedReceipt(storage)).toBe(false)
+    })
+
+    it('rejects an unstamped cache entry wherever it is inspected', async () => {
+        const { storage, caches } = fakeCacheStorage()
+        caches.set(
+            'ps:shared-receipt',
+            new Map([['/__shared-receipt', new Response('the bill', { headers: { 'content-type': 'image/jpeg' } })]])
+        )
+
+        expect(await hasSharedReceipt(storage)).toBe(false)
+        expect(await takeSharedReceipt(storage)).toBeNull()
     })
 })

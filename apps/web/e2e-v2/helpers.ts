@@ -44,6 +44,7 @@ export interface StubbedModelResponse {
 export interface StubTheModelOptions {
     responses?: StubbedModelResponse[]
     capability?: unknown
+    capabilityDelayMs?: number
 }
 
 /**
@@ -54,6 +55,9 @@ export interface StubTheModelOptions {
 export async function stubTheModel(page: Page, posted: Posted, options: StubTheModelOptions = {}) {
     await page.route('**/api/rooms/*/receipt-parse', async (route) => {
         if (route.request().method() === 'GET') {
+            if (options.capabilityDelayMs) {
+                await new Promise((resolve) => setTimeout(resolve, options.capabilityDelayMs))
+            }
             await route.fulfill({ json: options.capability ?? { enabled: true } })
             return
         }

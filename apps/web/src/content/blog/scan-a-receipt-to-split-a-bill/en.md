@@ -8,7 +8,7 @@ faqs:
     - question: Is receipt scanning free forever?
       answer: Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.
     - question: Do you keep my receipt photo?
-      answer: Split sends the photo to Gemini for reading, either through OpenRouter or directly. Split does not write the image or extracted lines to its app storage or logs. What is saved is the expense you approve at the end.
+      answer: Split sends the photo to Gemini for reading, either through OpenRouter or directly. Its server does not save the image or extracted lines. If you share a photo into the installed Android app, your browser temporarily parks that one image on your device for the room handoff; it is single-use and rejected after ten minutes. What Split saves is the expense you approve at the end.
     - question: What if it reads a line wrong?
       answer: You see every line before anything is saved. Fix the text, fix the amount, delete what is not yours, add what it missed. If the lines do not add up to the printed total, it says so and shows the gap.
     - question: Do I have to scan to split by item?
@@ -39,7 +39,7 @@ What lands in the room at the end is an ordinary expense with exact amounts per 
 ## The honest part about the photo
 
 <Callout title="What happens to the image">
-Split sends the photo to Gemini for reading, either through OpenRouter or directly. Split does not write the image, merchant name or extracted lines to its app storage or logs; the only thing it saves is the expense you approve on the last screen. When OpenRouter is used, requests are restricted to providers that deny data collection and use zero data retention. Direct Gemini is enabled only for a paid-tier project; Google's terms allow temporary prompt and response logging for abuse monitoring. The model's arithmetic is not trusted either: the amounts are re-checked against the printed total before you are asked to assign anything.
+Split sends the photo to Gemini for reading, either through OpenRouter or directly. Split's server does not save the image, merchant name or extracted lines; the only thing it saves is the expense you approve on the last screen. If you share a photo into the installed Android app, your browser temporarily parks that one image in local Cache Storage while you choose or join a room. It is consumed once, rejected after ten minutes, and an expired copy is removed the next time Split runs. When OpenRouter is used, requests are restricted to providers that deny data collection and use zero data retention. Direct Gemini is enabled only for a paid-tier project; Google's terms allow temporary prompt and response logging for abuse monitoring. The model's arithmetic is not trusted either: the amounts are re-checked against the printed total before you are asked to assign anything.
 </Callout>
 
 That is also why scanning is not a login-gated feature dressed up as a premium one. There is no account, so there is nothing to attach a scan history to, and no history to sell back to you later.
@@ -67,7 +67,7 @@ There is one number worth knowing: a room can scan 30 bills a day. That is a cei
 
 <FAQ>
 <FAQItem question="Is receipt scanning free forever?">Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.</FAQItem>
-<FAQItem question="Do you keep my receipt photo?">Split sends the photo to Gemini for reading, either through OpenRouter or directly. Split does not write the image or extracted lines to its app storage or logs. What is saved is the expense you approve at the end.</FAQItem>
+<FAQItem question="Do you keep my receipt photo?">Split sends the photo to Gemini for reading, either through OpenRouter or directly. Its server does not save the image or extracted lines. If you share a photo into the installed Android app, your browser temporarily parks that one image on your device for the room handoff; it is single-use and rejected after ten minutes. What Split saves is the expense you approve at the end.</FAQItem>
 <FAQItem question="What if it reads a line wrong?">You see every line before anything is saved. Fix the text, fix the amount, delete what is not yours, add what it missed. If the lines do not add up to the printed total, it says so and shows the gap.</FAQItem>
 <FAQItem question="Do I have to scan to split by item?">No. For a short bill, enter one ordinary expense and set exact shares manually. The item-by-item assignment screen is part of receipt scanning.</FAQItem>
 </FAQ>
