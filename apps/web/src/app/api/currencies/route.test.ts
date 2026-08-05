@@ -6,7 +6,7 @@
  * Advertising the feed's 156 there hands the picker currencies the write path then refuses with a
  * 400 `NO_RATE` — the one failure the whole `hasRate` contract exists to make unreachable. So the
  * check below is the contract itself: every code this route says has a rate can be priced by the
- * table `getRateTable()` actually returns.
+ * EUR table `getRateTable('EUR')` actually returns.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { GET } from '@/app/api/currencies/route'
@@ -27,7 +27,7 @@ describe('GET /api/currencies', () => {
     })
 
     it('offers no rate the static table cannot serve', async () => {
-        const table = await getRateTable()
+        const table = await getRateTable('EUR')
         expect(table.source).toBe('static')
         const currencies = await served()
         for (const c of currencies) {

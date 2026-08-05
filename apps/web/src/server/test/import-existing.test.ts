@@ -713,12 +713,12 @@ describe('POST /api/rooms/:slug/import', () => {
         await prisma.fxRate.createMany({
             data: [
                 ...FX_CORE.map((quote) => ({
-                    base: 'USD',
+                    base: 'EUR',
                     quote,
-                    rate: STATIC_USD_PER_UNIT[quote],
+                    rate: STATIC_USD_PER_UNIT[quote] / STATIC_USD_PER_UNIT.EUR,
                     fetchedAt: new Date(),
                 })),
-                { base: 'USD', quote: 'PLN', rate: 0.25, fetchedAt: new Date() },
+                { base: 'EUR', quote: 'PLN', rate: 0.231481481481, fetchedAt: new Date() },
             ],
         })
         delete process.env.SPLIT_FX_MODE

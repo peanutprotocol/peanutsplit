@@ -259,7 +259,9 @@ export async function buildExpense(
             // and its catalog status means a manual override is forbidden.
             throw badRequest(`no exchange rate for ${body.currency} → ${room.currency}`, 'NO_RATE')
         } else {
-            rate = quantiseRate(requireRate(rateTable ?? (await getRateTable()), body.currency, room.currency))
+            rate = quantiseRate(
+                requireRate(rateTable ?? (await getRateTable(room.currency)), body.currency, room.currency)
+            )
         }
     }
     // A rate below 5e-13 rounds to zero in the column, and a zero rate converts the whole expense
