@@ -2,8 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { makeRoom, snoozeInstallPrompt, stubTheModel, TINY_JPEG } from './helpers'
 
 /**
- * The internal receipt handoff, retained as regression coverage while the first
- * public scanner release deliberately does not advertise a Web Share Target.
+ * The receipt handoff advertised to installed Android PWAs.
  *
  * WHAT THIS FILE CANNOT COVER, and why the seeding below is deliberate: `pnpm dev` builds no
  * service worker at all (next.config.js gates serwist on NODE_ENV), so the POST interception in
@@ -19,18 +18,18 @@ const KEY = '/__shared-receipt'
 
 /** What the worker would have parked. The stamp matters: the boot sweep drops an entry with no
  *  stamp, and this asserts a fresh share survives it. */
-const parkAReceipt = (page: Page) =>
+const parkAReceipt = (page: Page, ageMs = 0) =>
     page.evaluate(
-        async ([cache, key, bytes]) => {
+        async ([cache, key, bytes, age]) => {
             const store = await caches.open(cache as string)
             await store.put(
                 key as string,
                 new Response(new Uint8Array(bytes as number[]), {
-                    headers: { 'content-type': 'image/jpeg', 'x-parked-at': String(Date.now()) },
+                    headers: { 'content-type': 'image/jpeg', 'x-parked-at': String(Date.now() - (age as number)) },
                 })
             )
         },
-        [CACHE, KEY, Array.from(TINY_JPEG)] as const
+        [CACHE, KEY, Array.from(TINY_JPEG), ageMs] as const
     )
 
 const parkedReceiptExists = (page: Page) =>
@@ -53,18 +52,28 @@ const rememberDecoyRoom = (page: Page) =>
         )
     })
 
-test('the manifest keeps the unverified OS share path disabled', async ({ request }) => {
+test('the manifest advertises the exact image-only OS share contract', async ({ request }) => {
     const response = await request.get('/manifest.webmanifest')
     const manifest = (await response.json()) as {
         id: string
         start_url: string
         scope: string
-        share_target?: unknown
+        share_target?: {
+            action: string
+            method: string
+            enctype: string
+            params: { files: { name: string; accept: string[] }[] }
+        }
         shortcuts?: { url: string }[]
     }
     expect(manifest).toMatchObject({ id: '/', start_url: '/app', scope: '/' })
 
-    expect(manifest.share_target).toBeUndefined()
+    expect(manifest.share_target).toEqual({
+        action: '/api/share-target',
+        method: 'POST',
+        enctype: 'multipart/form-data',
+        params: { files: [{ name: 'receipt', accept: ['image/*'] }] },
+    })
     expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
     expect(JSON.stringify(manifest)).not.toContain('/r/')
 })
@@ -84,7 +93,8 @@ test('a share with no room to put it in offers to start one, and keeps nothing',
 
 test('one room needs no decision, so the photo goes straight into its scan', async ({ page }) => {
     test.setTimeout(90_000)
-    await stubTheModel(page, {})
+    const posted: { calls?: number } = {}
+    await stubTheModel(page, posted)
     await makeRoom(page, 'Share trip')
     await parkAReceipt(page)
 
@@ -98,6 +108,49 @@ test('one room needs no decision, so the photo goes straight into its scan', asy
     // reload or a back button cannot start the same scan again.
     expect(await parkedReceiptExists(page)).toBe(false)
     await expect.poll(() => new URL(page.url()).search).not.toContain('shared=1')
+
+    await page.getByTestId('scan-close').click()
+    await page.reload()
+    await expect(page.getByTestId('scan-flow')).toHaveCount(0)
+    expect(posted.calls).toBe(1)
+})
+
+test('closing before the model probe resolves discards the one-shot share', async ({ page }) => {
+    test.setTimeout(90_000)
+    const posted: { calls?: number } = {}
+    await stubTheModel(page, posted, { capabilityDelayMs: 2_000 })
+    await makeRoom(page, 'Dismissed share trip')
+    await parkAReceipt(page)
+
+    await page.goto('/share-target')
+    await expect(page.getByTestId('expense-drawer')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('scan-flow')).toHaveCount(0)
+    await page.getByTestId('close-expense').click()
+
+    await expect.poll(() => parkedReceiptExists(page)).toBe(false)
+    await expect.poll(() => new URL(page.url()).search).not.toContain('shared=1')
+    await expect(page.getByTestId('scan-flow')).toHaveCount(0)
+    expect(posted.calls ?? 0).toBe(0)
+})
+
+test('an unjoined recent room keeps the receipt through JoinGate, then scans once', async ({ page }) => {
+    test.setTimeout(90_000)
+    const posted: { calls?: number } = {}
+    await stubTheModel(page, posted)
+    await makeRoom(page, 'Join share trip')
+    const slug = new URL(page.url()).pathname.split('/').pop()
+    expect(slug).toBeTruthy()
+    await page.evaluate((roomSlug) => window.localStorage.removeItem(`ps:member:${roomSlug}`), slug)
+    await parkAReceipt(page)
+
+    await page.goto('/share-target')
+
+    await expect(page.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
+    expect(await parkedReceiptExists(page)).toBe(true)
+    await page.locator('[data-testid="claim-member"][data-member="Ana"]').click()
+    await expect(page.getByTestId('scan-item-label').first()).toBeVisible({ timeout: 15_000 })
+    expect(await parkedReceiptExists(page)).toBe(false)
+    expect(posted.calls).toBe(1)
 })
 
 test('two rooms is a decision, so the picker asks which bill this is', async ({ page }) => {
@@ -117,6 +170,33 @@ test('two rooms is a decision, so the picker asks which bill this is', async ({ 
     await rooms.first().click()
     await page.waitForURL(/\/r\/picker-trip-[^/]+\?add=1&shared=1/, { timeout: 15_000 })
     await expect(page.getByTestId('scan-item-label').first()).toBeVisible({ timeout: 15_000 })
+})
+
+test('a deleted room consumes both the photo and its one-shot URL flag', async ({ page }) => {
+    test.setTimeout(90_000)
+    await makeRoom(page, 'Missing picker trip')
+    await rememberDecoyRoom(page)
+    await parkAReceipt(page)
+
+    await page.goto('/share-target')
+    const rooms = page.getByTestId('share-target-room')
+    await expect(rooms).toHaveCount(2)
+    await rooms.filter({ hasText: 'Old trip' }).click()
+
+    await expect(page.getByTestId('room-not-found')).toBeVisible({ timeout: 15_000 })
+    await expect.poll(() => parkedReceiptExists(page)).toBe(false)
+    await expect.poll(() => new URL(page.url()).search).not.toContain('shared=1')
+})
+
+test('an expired parked receipt is rejected at the routing boundary', async ({ page }) => {
+    await snoozeInstallPrompt(page)
+    await page.goto('/')
+    await parkAReceipt(page, 11 * 60 * 1000)
+
+    await page.goto('/share-target')
+
+    await expect(page.getByText('That photo didn’t make it. Share it again.')).toBeVisible()
+    expect(await parkedReceiptExists(page)).toBe(false)
 })
 
 test('a share that did not arrive says so instead of opening an empty scan', async ({ page }) => {

@@ -5,7 +5,7 @@ Product status/milestones/decision log stay in the Notion project (linked from
 `mono/projects/peanut-split/`); this file is what's built, building, queued, and
 deliberately not built — with enough context to pick any item up cold.
 
-Owner of record for each open item is in brackets. Last full update: 2026-08-04.
+Owner of record for each open item is in brackets. Last full update: 2026-08-05.
 
 ## Code-complete 2026-08-04 — append imports to an existing room
 
@@ -36,9 +36,10 @@ and deployment remain separate release gates.
 The camera/gallery scanner is live in public production.
 Its expense-drawer entry point is the small camera/sparkle action inside the
 amount row; opening it requests the camera immediately and keeps upload in the
-bottom pullup. The installed-PWA Web Share Target is explicitly not part of
-this release because it bypasses the provider-terms camera screen and has not
-passed its real-device storage lifecycle gate.
+bottom pullup. An installed Android PWA also advertises an image-only share
+target, so a receipt can be sent from Photos, Gallery or Files directly into a
+room's scanner. That OS route intentionally bypasses the provider-terms note on
+the camera screen; Konrad accepted that product trade-off on 2026-08-05.
 
 **Owner: Konrad.** Decided 2026-07-28 (Hugo): the v1/v2 boundary —
 `splitV2Enabled()` and everything behind it (scan and Splitwise import)
@@ -90,8 +91,8 @@ gate.
 with data collection denied and zero data retention. Direct Gemini stays
 disabled unless the operator explicitly confirms paid-tier handling. The API
 accepts at most two scans concurrently, before body reading, and the prepared
-image ceiling is 4 MiB. The first public release advertises camera and gallery
-upload only; the manifest publishes no Web Share Target. Commit `3d02268` is
+image ceiling is 4 MiB. The installed Android app now advertises an image-only
+Web Share Target on the same build-time flag as the scanner. Commit `3d02268` is
 live, its public capability probe answers `enabled: true`, and a synthetic
 two-line EUR receipt passed the production provider/proxy path with the exact
 total while leaving the QA room with zero saved expenses. Real iOS/Android
@@ -351,9 +352,9 @@ passes below. The installed app is called Split rather than the repo's name;
 the launcher carries shortcuts; the install row lives permanently in settings
 with one owner for the `beforeinstallprompt` event and five honest states; and
 an app badge is raised when a push arrives for a device that was away. A
-receipt-photo OS share target was implemented, but is withheld from the
-manifest for the first public scanner release pending provider-terms and
-installed-PWA storage lifecycle verification.
+receipt-photo OS share target is now advertised to installed Android PWAs. Its
+provider-terms-screen bypass was explicitly accepted; physical OS share-sheet
+and killed-app lifecycle verification remain open.
 
 Still open, and NOT closed by any automated check:
 
@@ -364,9 +365,11 @@ Still open, and NOT closed by any automated check:
 - **Real-device share-target pass** [Konrad] — an OS share sheet handing a photo
   to an installed PWA cannot be exercised from Playwright at all.
 - **Push exercise** — unchanged, see "To light up" above.
-- A share abandoned at the room picker keeps the photo up to 10 minutes, until
-  the TTL sweep collects it. Bounded and in memory, but it is a receipt image
-  living longer than the interaction that produced it.
+- An OS share is parked in this device's Cache Storage while Split chooses a
+  room. Reads reject it after 10 minutes and the next app boot collects an
+  expired entry, but Cache Storage cannot physically self-delete while the PWA
+  never runs again. A killed-app retention check remains part of the Android
+  lifecycle gate.
 
 ## Achievement and shareable moments (proposed 2026-07-29)
 

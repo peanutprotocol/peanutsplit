@@ -20,5 +20,8 @@ export async function POST(request: NextRequest) {
     // The body is never consumed, so cancel it rather than leaving a full-size photo to be read
     // into memory by a handler that has no use for it.
     await request.body?.cancel().catch(() => {})
-    return NextResponse.redirect(new URL(SHARE_TARGET_LANDING, request.url), 303)
+    // Keep this relative. Behind the production proxy, request.url contains the standalone
+    // container's 0.0.0.0:3000 origin; reflecting it would send an un-intercepted share to an
+    // unreachable internal address.
+    return new NextResponse(null, { status: 303, headers: { Location: SHARE_TARGET_LANDING } })
 }

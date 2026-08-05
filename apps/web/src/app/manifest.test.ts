@@ -56,11 +56,17 @@ describe('shortcuts', () => {
 })
 
 describe('share_target', () => {
-    it('does not advertise the unverified OS handoff in either flag state', async () => {
-        for (const v2 of [false, true]) {
-            const manifest = await manifestWith(v2)
-            expect(manifest.share_target).toBeUndefined()
-        }
+    it('does not advertise a scanner destination in a rollback build', async () => {
+        expect((await manifestWith(false)).share_target).toBeUndefined()
+    })
+
+    it('offers Android an image-only receipt handoff in a scanner build', async () => {
+        expect((await manifestWith(true)).share_target).toEqual({
+            action: '/api/share-target',
+            method: 'POST',
+            enctype: 'multipart/form-data',
+            params: { files: [{ name: 'receipt', accept: ['image/*'] }] },
+        })
     })
 })
 

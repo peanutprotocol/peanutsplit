@@ -4,10 +4,10 @@ import { NetworkOnly, Serwist } from 'serwist'
 // Relative, not `@/lib/...`: the alias is a tsconfig path and this file is excluded from tsconfig,
 // so a relative specifier is the one that resolves however the serwist child compiler is set up.
 import {
+    replaceSharedReceipt,
     SHARE_TARGET_ACTION,
     SHARE_TARGET_FIELD,
     SHARE_TARGET_LANDING,
-    storeSharedReceipt,
 } from '../lib/shared-receipt'
 
 // Declares `injectionPoint` to TypeScript — replaced at build time by the precache manifest.
@@ -59,8 +59,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         (async () => {
             try {
-                const file = (await request.formData()).get(SHARE_TARGET_FIELD)
-                if (file instanceof File) await storeSharedReceipt(caches, file)
+                await replaceSharedReceipt(caches, async () => {
+                    const file = (await request.formData()).get(SHARE_TARGET_FIELD)
+                    return file instanceof File ? file : null
+                })
             } catch {
                 // Unreadable share. The landing page says so.
             }

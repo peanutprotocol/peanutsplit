@@ -267,8 +267,9 @@ export function ExpenseDrawer({
      *
      * Fires on the param rather than on the drawer, because the drawer is not always reachable.
      * A room can be in `ps:recent` and still need a join (recent-rooms is written on every visit
-     * and carries no identity), and RoomScreen gates the whole drawer on that. A photo parked for
-     * a screen that is not coming has to be thrown away, not left waiting.
+     * and carries no identity), and RoomScreen gates the whole drawer on that. Keep the one-shot
+     * photo while JoinGate is visible; once the person joins, `open` changes and this same effect
+     * resumes. `takeSharedReceipt` enforces freshness again at that point.
      *
      * The model probe is the second gate. This is a SECOND entry point into the scan flow — the
      * one ROADMAP's "V1 hold — receipt scanning" holds behind a real-device pass — and it reaches
@@ -286,12 +287,13 @@ export function ExpenseDrawer({
             void discardSharedReceipt(caches)
             onSharedReceiptConsumed?.()
         }
-        // Unjoined room, or a room whose state never loaded. Do not leave a receipt photo parked,
-        // and do not leave `shared=1` in a URL somebody may go on to share.
-        if (!open || !splitV2Enabled()) {
+        if (!splitV2Enabled()) {
             drop()
             return
         }
+        // The room is valid but this device has not joined it yet. JoinGate owns the screen; wait
+        // rather than silently losing the receipt. A NOT_FOUND room is cleaned up by RoomScreen.
+        if (!open) return
         // Still asking the server whether it can read a bill. Wait rather than guess.
         if (!modelResolved) return
         if (!modelEnabled) {
