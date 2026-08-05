@@ -40,7 +40,7 @@ export const POST = (request: Request, ctx: Ctx) =>
         // needs it. Manual custom rates, identity pairs, and validation failures
         // must not wake the cache/feed path merely to save an expense.
         const rateTable = expenseNeedsRateTable(room.currency, body.currency, undefined, body.manualFxRate)
-            ? await getRateTable()
+            ? await getRateTable(room.currency)
             : undefined
 
         let result: ExpenseWriteResult

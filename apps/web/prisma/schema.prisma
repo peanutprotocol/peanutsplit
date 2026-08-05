@@ -255,7 +255,7 @@ model Settlement {
   @@schema("split")
 }
 
-/// Cached indicative rates: one row per quote currency against USD.
+/// Cached indicative rates: direct base-units per quote, isolated by destination base.
 model FxRate {
   id        String   @id @default(uuid())
   base      String

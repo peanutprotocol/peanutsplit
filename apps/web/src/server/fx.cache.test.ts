@@ -1,23 +1,8 @@
-/**
- * `getRateTable`'s cache branch, against the real `peanut_split_test` database with the upstream
- * feed stubbed.
- *
- * This branch had no test and is the one most likely to be silently wrong at 162 codes: six
- * catalog codes are never in the feed, so a freshness test written against the whole catalog is
- * false forever — every request re-fetches, and one upstream blip drops all 150 new currencies to
- * the twelve-rate static table with nothing logged anywhere.
- *
- * Each test re-imports the module so `lastFailedFetchAt` and the single-flight promise start
- * empty. `@/server/db` caches its client on `globalThis`, so re-importing costs no connection.
- */
+/** Base-specific live/cache behavior against the real test database. */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { prisma } from '@/server/test/db'
 import { FX_CORE, type RateTable } from '@/server/fx'
 import { isCatalogCode, STATIC_USD_PER_UNIT } from '@/server/money'
-
-const { egressFetchSpy } = vi.hoisted(() => ({ egressFetchSpy: vi.fn() }))
-
-vi.mock('@/server/egress', () => ({ egressFetch: egressFetchSpy }))
 
 const freshFx = async () => {
     vi.resetModules()
@@ -26,65 +11,66 @@ const freshFx = async () => {
 
 const nowIso = () => new Date().toISOString()
 
-/** `unitsPerBase` on the wire is quote units per USD; the module stores the inverse. */
+const staticDirect = (base: string): Record<string, number> => {
+    const usdPerBase = STATIC_USD_PER_UNIT[base]
+    return Object.fromEntries(
+        Object.entries(STATIC_USD_PER_UNIT).map(([quote, usdPerQuote]) => [quote, usdPerQuote / usdPerBase])
+    )
+}
+
 const completeRates = (rates: Record<string, unknown>): Record<string, unknown> => {
     const complete = { ...rates }
     for (let index = 0; Object.keys(complete).length < 150; index++) {
         const code = `Q${String.fromCharCode(65 + Math.floor(index / 26))}${String.fromCharCode(65 + (index % 26))}`
-        if (!isCatalogCode(code) && !(code in complete)) complete[code] = '1'
+        if (!isCatalogCode(code) && !(code in complete)) complete[code] = 1
     }
     return complete
 }
 
-const feedBody = (rates: Record<string, unknown>) => ({
-    base: 'USD',
+/** Input values are direct base-units per quote; wire values are the inverse. */
+const feedBody = (base: string, directRates: Record<string, unknown>) => ({
+    base,
     basis: 'display_sell',
     indicative: true,
     generatedAt: nowIso(),
-    rates: Object.entries(completeRates(rates))
+    rates: Object.entries(completeRates(directRates))
         .sort(([left], [right]) => left.localeCompare(right))
-        .map(([code, unitsPerBase]) => ({
+        .map(([code, direct]) => ({
             code,
-            unitsPerBase,
-            source: code === 'USD' ? 'identity' : 'reference',
-            effectiveAt: code === 'USD' ? null : nowIso(),
+            unitsPerBase: typeof direct === 'number' ? (1 / direct).toString() : direct,
+            selection: code === base ? 'identity' : 'reference_pair',
+            baseSource: code === base ? 'identity' : base === 'USD' ? 'identity' : 'reference',
+            quoteSource: code === base ? 'identity' : code === 'USD' ? 'identity' : 'reference',
+            effectiveAt: code === base ? null : nowIso(),
         })),
 })
 
-const feed = (rates: Record<string, unknown>) => new Response(JSON.stringify(feedBody(rates)), { status: 200 })
-
 const payload = (body: unknown) => new Response(JSON.stringify(body), { status: 200 })
+const feed = (base: string, rates: Record<string, unknown>) => payload(feedBody(base, rates))
 
-const perUsd = Object.fromEntries(
-    Object.entries(STATIC_USD_PER_UNIT).map(([code, usd]) => [code, (1 / usd).toString()])
-)
-
-const seed = async (rows: { quote: string; usdPerUnit: number; fetchedAt?: Date }[]) => {
-    await prisma.fxRate.deleteMany()
+const seed = async (base: string, rows: { quote: string; basePerUnit: number; fetchedAt?: Date }[]): Promise<void> => {
     await prisma.fxRate.createMany({
         data: rows.map((row) => ({
-            base: 'USD',
+            base,
             quote: row.quote,
-            rate: row.usdPerUnit,
+            rate: row.basePerUnit,
             fetchedAt: row.fetchedAt ?? new Date(),
         })),
     })
 }
 
-const coreRows = (fetchedAt?: Date) =>
-    FX_CORE.map((quote) => ({ quote, usdPerUnit: STATIC_USD_PER_UNIT[quote], fetchedAt }))
+const coreRows = (base: string, fetchedAt?: Date) =>
+    Object.entries(staticDirect(base)).map(([quote, basePerUnit]) => ({ quote, basePerUnit, fetchedAt }))
 
 let fetchSpy: ReturnType<typeof vi.fn>
 
 beforeEach(async () => {
     process.env.SPLIT_FX_MODE = ''
-    delete process.env.SPLIT_FX_PROXY_URL
-    fetchSpy = vi.fn(async () => feed(perUsd))
+    fetchSpy = vi.fn(async (input: string | URL | Request) => {
+        const base = new URL(String(input)).searchParams.get('base') ?? 'EUR'
+        return feed(base, staticDirect(base))
+    })
     vi.stubGlobal('fetch', fetchSpy)
-    egressFetchSpy.mockReset()
-    egressFetchSpy.mockImplementation(
-        async (_proxyUrl: string | undefined, url: string, init: RequestInit) => await fetch(url, init)
-    )
     vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     await prisma.fxRate.deleteMany()
 })
@@ -94,353 +80,403 @@ afterEach(async () => {
     vi.restoreAllMocks()
     vi.resetModules()
     process.env.SPLIT_FX_MODE = 'static'
-    delete process.env.SPLIT_FX_PROXY_URL
     await prisma.fxRate.deleteMany()
 })
 
-describe('rate feed transport', () => {
-    it('delegates its dedicated proxy URL to a bodyless egress GET', async () => {
-        process.env.SPLIT_FX_PROXY_URL = 'http://split-egress.test:3128'
+describe('direct fixed-host transport', () => {
+    it('uses a bodyless credential-free GET and refuses redirects or implicit caching', async () => {
         const { getRateTable } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('live')
-        expect(egressFetchSpy).toHaveBeenCalledTimes(1)
-        expect(egressFetchSpy).toHaveBeenCalledWith(
-            'http://split-egress.test:3128',
-            'https://api.peanut.me/fx/rates?base=USD',
+        expect((await getRateTable('eur')).source).toBe('live')
+        expect(fetchSpy).toHaveBeenCalledTimes(1)
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://api.peanut.me/fx/rates?base=EUR',
             expect.objectContaining({
                 method: 'GET',
                 headers: { Accept: 'application/json' },
                 signal: expect.any(AbortSignal),
+                redirect: 'error',
+                credentials: 'omit',
+                cache: 'no-store',
             })
         )
-        expect(egressFetchSpy.mock.calls[0]?.[2]).not.toHaveProperty('body')
+        const init = fetchSpy.mock.calls[0]?.[1]
+        expect(init).not.toHaveProperty('body')
+        expect(init?.headers).not.toHaveProperty('Authorization')
+        expect(init?.headers).not.toHaveProperty('Cookie')
+    })
+
+    it('never puts an invented ticker into an outbound URL', async () => {
+        const { getRateTable } = await freshFx()
+        const table = await getRateTable('BEER')
+
+        expect(fetchSpy).not.toHaveBeenCalled()
+        expect(table).toMatchObject({ base: 'BEER', source: 'static', basePerUnit: { BEER: 1 } })
     })
 })
 
-describe('freshness is judged against FX_CORE, not the catalog', () => {
-    it('calls a cache with every core code fresh — even though some catalog codes are missing', async () => {
-        // CUC, BGN and other catalog codes are not in the provider snapshot. Judging
-        // completeness against all 162 makes `fresh` false forever.
-        await seed(coreRows())
+describe('the cache is isolated by destination base', () => {
+    it('uses a complete fresh cache for the requested base', async () => {
+        await seed('EUR', coreRows('EUR'))
         const { getRateTable } = await freshFx()
 
-        const table = await getRateTable()
-        expect(table.source).toBe('cache')
+        const table = await getRateTable('EUR')
+        expect(table).toMatchObject({ base: 'EUR', source: 'cache' })
         expect(fetchSpy).not.toHaveBeenCalled()
     })
 
-    it('refetches when one core code is missing from the cache', async () => {
-        await seed(coreRows().filter((row) => row.quote !== 'CHF'))
+    it('does not treat a complete USD table as an EUR table', async () => {
+        await seed('USD', coreRows('USD'))
         const { getRateTable } = await freshFx()
 
-        const table = await getRateTable()
-        expect(fetchSpy).toHaveBeenCalledTimes(1)
-        expect(table.source).toBe('live')
+        expect((await getRateTable('EUR')).source).toBe('live')
+        expect(fetchSpy).toHaveBeenCalledWith('https://api.peanut.me/fx/rates?base=EUR', expect.any(Object))
     })
 
-    it('is not aged by a non-core row nobody has refreshed in a year, and does not serve it either', async () => {
+    it('refetches when one required row is missing', async () => {
+        await seed(
+            'EUR',
+            coreRows('EUR').filter((row) => row.quote !== 'CHF')
+        )
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('live')
+    })
+
+    it('does not age the table with an old non-core row and does not serve that row', async () => {
         const ancient = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
-        await seed([...coreRows(), { quote: 'INR', usdPerUnit: 0.012, fetchedAt: ancient }])
+        await seed('EUR', [...coreRows('EUR'), { quote: 'INR', basePerUnit: 0.011, fetchedAt: ancient }])
         const { getRateTable } = await freshFx()
 
-        const table = await getRateTable()
+        const table = await getRateTable('EUR')
         expect(table.source).toBe('cache')
+        expect(table.basePerUnit).not.toHaveProperty('INR')
         expect(fetchSpy).not.toHaveBeenCalled()
-        // The two halves are separate rules and both matter. The old row does not drag the whole
-        // table into being refetched on every request — and it is not an answer either. "The only
-        // rate for INR there is" is not a reason to price money at a year-old number.
-        expect(table.usdPerUnit).not.toHaveProperty('INR')
     })
 
-    it('serves a non-core row that is merely old, up to the ceiling', async () => {
+    it('serves a non-core row only within the seven-day ceiling', async () => {
         const sixDays = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
-        await seed([...coreRows(), { quote: 'INR', usdPerUnit: 0.012, fetchedAt: sixDays }])
+        await seed('EUR', [...coreRows('EUR'), { quote: 'INR', basePerUnit: 0.011, fetchedAt: sixDays }])
         const { getRateTable } = await freshFx()
 
-        const table = await getRateTable()
-        expect(table.source).toBe('cache')
-        expect(table.usdPerUnit.INR).toBeCloseTo(0.012, 12)
+        expect((await getRateTable('EUR')).basePerUnit.INR).toBeCloseTo(0.011, 12)
     })
 
-    it('refetches once the core rows are older than the TTL', async () => {
+    it('refreshes when required rows cross the 24-hour TTL', async () => {
         const yesterday = new Date(Date.now() - 25 * 60 * 60 * 1000)
-        await seed(coreRows(yesterday))
+        await seed('EUR', coreRows('EUR', yesterday))
         const { getRateTable } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('live')
-        expect(fetchSpy).toHaveBeenCalledTimes(1)
-    })
-
-    it('drops a cached row for a code that has left the catalog', async () => {
-        await seed([...coreRows(), { quote: 'CNH', usdPerUnit: 0.14 }])
-        const { getRateTable } = await freshFx()
-
-        const table = await getRateTable()
-        expect(table.source).toBe('cache')
-        expect(table.usdPerUnit).not.toHaveProperty('CNH')
+        expect((await getRateTable('EUR')).source).toBe('live')
     })
 })
 
-describe('what counts as a usable payload', () => {
-    it('rejects a thin successful payload before it can erase broad cached coverage', async () => {
-        const thin = feedBody(perUsd)
-        thin.rates = thin.rates.slice(0, 149)
-        fetchSpy.mockResolvedValue(payload(thin))
-        const { getRateTable } = await freshFx()
+describe('base-specific payload validation', () => {
+    it('uses the selected direct PLN→EUR row without crossing other rows', async () => {
+        const direct: Record<string, number> = { ...staticDirect('EUR'), PLN: 0.231481481481 }
+        // Deliberately unrelated USD row: local crossing would produce a different answer.
+        direct.USD = 0.5
+        fetchSpy.mockResolvedValue(feed('EUR', direct))
+        const { getRateTable, rateFrom } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('static')
-        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+        const table = await getRateTable('EUR')
+        expect(rateFrom(table, 'PLN', 'EUR')).toBeCloseTo(0.231481481481, 12)
+        expect(rateFrom(table, 'PLN', 'USD')).toBeNull()
     })
 
-    it('accepts a payload missing only non-core codes, and leaves them out of the table', async () => {
-        const partial = { ...perUsd, INR: '88' }
-        delete (partial as Record<string, unknown>).SEK
-        fetchSpy.mockResolvedValue(feed(partial))
-        const { getRateTable } = await freshFx()
-
-        const table = await getRateTable()
-        expect(table.source).toBe('live')
-        expect(table.usdPerUnit.INR).toBeCloseTo(1 / 88, 12)
-        expect(table.usdPerUnit).not.toHaveProperty('SEK')
-    })
-
-    it('rejects a payload missing one core code, whole', async () => {
-        const truncated = { ...perUsd }
-        delete (truncated as Record<string, unknown>).THB
-        fetchSpy.mockResolvedValue(feed(truncated))
-        const { getRateTable } = await freshFx()
-
-        // Nothing cached and the payload refused → the static table, not a half-live one.
-        expect((await getRateTable()).source).toBe('static')
-        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed missing core currencies)')
-    })
-
-    it('drops a code the catalog does not know, so a made-up ticker cannot pick up a real rate', async () => {
-        // The feed carries CNH, IMP, JEP and five other non-ISO codes.
-        fetchSpy.mockResolvedValue(feed({ ...perUsd, CNH: '7.1', JEP: '0.79', KID: '1.5' }))
-        const { getRateTable } = await freshFx()
-
-        const table = await getRateTable()
-        expect(table.source).toBe('live')
-        for (const code of ['CNH', 'JEP', 'KID']) expect(table.usdPerUnit).not.toHaveProperty(code)
-    })
-
-    it.each([
-        ['a numeric rather than decimal-string rate', { ...perUsd, PLN: 4.1 }],
-        ['zero', { ...perUsd, PLN: '0' }],
-        ['a negative rate', { ...perUsd, PLN: '-4.1' }],
-        ['exponent notation', { ...perUsd, PLN: '4.1e0' }],
-        ['more than eighteen fractional digits', { ...perUsd, PLN: '4.1234567890123456789' }],
-    ])('rejects the whole provider payload when one row has %s', async (_label, rates) => {
-        fetchSpy.mockResolvedValue(feed(rates))
-        const { getRateTable } = await freshFx()
-
-        expect((await getRateTable()).source).toBe('static')
-        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
-    })
-
-    it.each([
-        ['the wrong base', { ...feedBody(perUsd), base: 'EUR' }],
-        ['the wrong basis', { ...feedBody(perUsd), basis: 'midmarket' }],
-        ['a non-indicative flag', { ...feedBody(perUsd), indicative: false }],
-        ['a malformed generated timestamp', { ...feedBody(perUsd), generatedAt: 'today' }],
-        [
-            'a generated timestamp too far in the future',
-            { ...feedBody(perUsd), generatedAt: new Date(Date.now() + 6 * 60 * 1000).toISOString() },
-        ],
-    ])('rejects %s', async (_label, body) => {
+    it('accepts provider-pair provenance, including Bridge↔Manteca', async () => {
+        const body = feedBody('EUR', { ...staticDirect('EUR'), BRL: 0.17 })
+        const index = body.rates.findIndex((row) => row.code === 'BRL')
+        body.rates[index] = {
+            ...body.rates[index],
+            selection: 'provider_pair',
+            baseSource: 'bridge',
+            quoteSource: 'manteca',
+        }
         fetchSpy.mockResolvedValue(payload(body))
         const { getRateTable } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('static')
-        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+        expect((await getRateTable('EUR')).source).toBe('live')
     })
 
-    it('rejects a generated snapshot older than the 24-hour upstream window', async () => {
-        fetchSpy.mockResolvedValue(
-            payload({ ...feedBody(perUsd), generatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() })
-        )
-        const { getRateTable } = await freshFx()
-
-        expect((await getRateTable()).source).toBe('static')
-    })
-
-    it('rejects duplicate, unsorted and malformed rows instead of picking an arbitrary value', async () => {
-        const duplicate = feedBody(perUsd)
-        duplicate.rates.push({ ...duplicate.rates[0] })
-        fetchSpy.mockResolvedValueOnce(payload(duplicate))
+    it('allows identity provenance only on the actual USD leg of a non-identity pair', async () => {
+        const valid = feedBody('USD', staticDirect('USD'))
+        fetchSpy.mockResolvedValueOnce(payload(valid))
         const first = await freshFx()
-        expect((await first.getRateTable()).source).toBe('static')
+        expect((await first.getRateTable('USD')).source).toBe('live')
 
         vi.resetModules()
-        const unsorted = feedBody(perUsd)
-        unsorted.rates = [...unsorted.rates].reverse()
-        fetchSpy.mockResolvedValueOnce(payload(unsorted))
+        const invalid = feedBody('EUR', staticDirect('EUR'))
+        const chf = invalid.rates.findIndex((row) => row.code === 'CHF')
+        invalid.rates[chf] = { ...invalid.rates[chf], baseSource: 'identity' }
+        fetchSpy.mockResolvedValueOnce(payload(invalid))
         const second = await import('@/server/fx')
-        expect((await second.getRateTable()).source).toBe('static')
-
-        vi.resetModules()
-        const malformed = feedBody(perUsd)
-        malformed.rates[0] = { ...malformed.rates[0], effectiveAt: 'not-an-instant' }
-        fetchSpy.mockResolvedValueOnce(payload(malformed))
-        const third = await import('@/server/fx')
-        expect((await third.getRateTable()).source).toBe('static')
+        expect((await second.getRateTable('EUR')).source).toBe('static')
     })
 
     it.each([
-        ['an unknown source', 'EUR', { source: 'oracle' }],
-        ['identity on a non-USD row', 'EUR', { source: 'identity' }],
-        ['a non-identity USD row', 'USD', { source: 'reference' }],
-        ['a non-unit USD value', 'USD', { unitsPerBase: '1.01' }],
-        ['an effective timestamp on identity', 'USD', { effectiveAt: nowIso() }],
-        ['a missing effective timestamp', 'EUR', { effectiveAt: null }],
+        ['the wrong selected base', (body: ReturnType<typeof feedBody>) => ({ ...body, base: 'GBP' })],
+        ['the wrong basis', (body: ReturnType<typeof feedBody>) => ({ ...body, basis: 'midmarket' })],
+        ['a non-indicative flag', (body: ReturnType<typeof feedBody>) => ({ ...body, indicative: false })],
+        ['a malformed generated timestamp', (body: ReturnType<typeof feedBody>) => ({ ...body, generatedAt: 'today' })],
         [
-            'an old effective timestamp',
-            'EUR',
-            { effectiveAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString() },
+            'a future generated timestamp',
+            (body: ReturnType<typeof feedBody>) => ({
+                ...body,
+                generatedAt: new Date(Date.now() + 6 * 60 * 1000).toISOString(),
+            }),
         ],
-        ['a future effective timestamp', 'EUR', { effectiveAt: new Date(Date.now() + 6 * 60 * 1000).toISOString() }],
-        ['a rate below the producer bound', 'EUR', { unitsPerBase: '0.0000000001' }],
-        ['a rate above the producer bound', 'EUR', { unitsPerBase: '10000000000' }],
+        [
+            'a generated snapshot older than the ingest window',
+            (body: ReturnType<typeof feedBody>) => ({
+                ...body,
+                generatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
+            }),
+        ],
+    ])('rejects %s', async (_label, mutate) => {
+        fetchSpy.mockResolvedValue(payload(mutate(feedBody('EUR', staticDirect('EUR')))))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('static')
+    })
+
+    it.each([
+        ['the removed mixed selection', 'CHF', { selection: 'mixed' }],
+        ['provider/reference mixing', 'BRL', { selection: 'provider_pair', baseSource: 'bridge' }],
+        ['identity on a non-base row', 'CHF', { selection: 'identity' }],
+        ['a non-unit identity value', 'EUR', { unitsPerBase: '1.01' }],
+        ['an effective timestamp on identity', 'EUR', { effectiveAt: nowIso() }],
+        ['a missing pair timestamp', 'CHF', { effectiveAt: null }],
+        ['an old pair timestamp', 'CHF', { effectiveAt: new Date(Date.now() - 31 * 86400_000).toISOString() }],
+        ['a future pair timestamp', 'CHF', { effectiveAt: new Date(Date.now() + 6 * 60_000).toISOString() }],
+        ['an unknown leg source', 'CHF', { quoteSource: 'oracle' }],
     ])('rejects %s', async (_label, code, replacement) => {
-        const body = feedBody(perUsd)
+        const body = feedBody('EUR', staticDirect('EUR'))
         const index = body.rates.findIndex((row) => row.code === code)
         body.rates[index] = { ...body.rates[index], ...replacement }
         fetchSpy.mockResolvedValue(payload(body))
         const { getRateTable } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('static')
-        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+        expect((await getRateTable('EUR')).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith('[fx] EUR rate feed refresh failed (rate feed payload unusable)')
     })
 
-    it('rejects more than 512 rows before attempting to build a table', async () => {
-        const rows = Array.from({ length: 513 }, (_, index) => ({
+    it.each([
+        ['a numeric rather than decimal-string rate', 4.1],
+        ['zero', '0'],
+        ['a negative rate', '-4.1'],
+        ['exponent notation', '4.1e0'],
+        ['more than eighteen fractional digits', '4.1234567890123456789'],
+        ['a value above the wire bound', '10000000000000000000'],
+    ])('rejects %s', async (_label, unitsPerBase) => {
+        const body = feedBody('EUR', staticDirect('EUR'))
+        const index = body.rates.findIndex((row) => row.code === 'CHF')
+        body.rates[index] = { ...body.rates[index], unitsPerBase }
+        fetchSpy.mockResolvedValue(payload(body))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('static')
+    })
+
+    it('rejects duplicate and unsorted rows instead of choosing one', async () => {
+        const duplicate = feedBody('EUR', staticDirect('EUR'))
+        duplicate.rates.push({ ...duplicate.rates[0] })
+        fetchSpy.mockResolvedValueOnce(payload(duplicate))
+        const first = await freshFx()
+        expect((await first.getRateTable('EUR')).source).toBe('static')
+
+        vi.resetModules()
+        const unsorted = feedBody('EUR', staticDirect('EUR'))
+        unsorted.rates.reverse()
+        fetchSpy.mockResolvedValueOnce(payload(unsorted))
+        const second = await import('@/server/fx')
+        expect((await second.getRateTable('EUR')).source).toBe('static')
+    })
+
+    it('rejects more than 512 rows before building a table', async () => {
+        const body = feedBody('EUR', staticDirect('EUR'))
+        body.rates = Array.from({ length: 513 }, (_, index) => ({
+            ...body.rates[0],
             code: `${String.fromCharCode(65 + Math.floor(index / 26 / 26))}${String.fromCharCode(
                 65 + (Math.floor(index / 26) % 26)
             )}${String.fromCharCode(65 + (index % 26))}`,
-            unitsPerBase: '1',
-            source: 'reference',
-            effectiveAt: nowIso(),
         }))
-        fetchSpy.mockResolvedValue(payload({ ...feedBody(perUsd), rates: rows }))
+        fetchSpy.mockResolvedValue(payload(body))
         const { getRateTable } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('static')
+        expect((await getRateTable('EUR')).source).toBe('static')
     })
 
-    it('stops reading a chunked response once its raw JSON crosses 256 KiB', async () => {
-        fetchSpy.mockResolvedValue(payload({ ...feedBody(perUsd), padding: 'x'.repeat(256 * 1024) }))
+    it('rejects a thin response before it can erase broad coverage', async () => {
+        const body = feedBody('EUR', staticDirect('EUR'))
+        body.rates = body.rates.slice(0, 149)
+        fetchSpy.mockResolvedValue(payload(body))
         const { getRateTable } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('static')
-        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+        expect((await getRateTable('EUR')).source).toBe('static')
     })
 
-    it('falls back to a complete cache when the fetch fails, rather than to the static table', async () => {
+    it('rejects a response missing one core currency', async () => {
+        const rates = { ...staticDirect('EUR') }
+        delete rates.THB
+        fetchSpy.mockResolvedValue(feed('EUR', rates))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith(
+            '[fx] EUR rate feed refresh failed (rate feed missing core currencies)'
+        )
+    })
+
+    it('validates unknown rows before filtering them from Split storage', async () => {
+        const body = feedBody('EUR', { ...staticDirect('EUR'), QZZ: 1 })
+        const index = body.rates.findIndex((row) => row.code === 'QZZ')
+        body.rates[index] = { ...body.rates[index], selection: 'mixed' }
+        fetchSpy.mockResolvedValue(payload(body))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('static')
+    })
+
+    it('omits a catalog cross the DB cannot persist, rather than deriving another route', async () => {
+        fetchSpy.mockResolvedValue(feed('EUR', { ...staticDirect('EUR'), INR: 1e-13 }))
+        const { getRateTable, rateFrom } = await freshFx()
+
+        const table = await getRateTable('EUR')
+        expect(table.source).toBe('live')
+        expect(rateFrom(table, 'INR', 'EUR')).toBeNull()
+    })
+
+    it('stops reading a chunked response after 256 KiB', async () => {
+        fetchSpy.mockResolvedValue(
+            payload({ ...feedBody('EUR', staticDirect('EUR')), padding: 'x'.repeat(256 * 1024) })
+        )
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('static')
+    })
+
+    it('rejects an oversized declared body before reading it', async () => {
+        fetchSpy.mockResolvedValue(
+            new Response(JSON.stringify(feedBody('EUR', staticDirect('EUR'))), {
+                status: 200,
+                headers: { 'Content-Length': String(256 * 1024 + 1) },
+            })
+        )
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('static')
+    })
+
+    it('uses a complete last-known table when refresh fails', async () => {
         const yesterday = new Date(Date.now() - 25 * 60 * 60 * 1000)
-        await seed([...coreRows(yesterday), { quote: 'INR', usdPerUnit: 0.012, fetchedAt: yesterday }])
+        await seed('EUR', [...coreRows('EUR', yesterday), { quote: 'INR', basePerUnit: 0.011, fetchedAt: yesterday }])
         fetchSpy.mockRejectedValue(new Error('upstream down'))
         const { getRateTable } = await freshFx()
 
-        const table = await getRateTable()
+        const table = await getRateTable('EUR')
         expect(table.source).toBe('cache')
-        expect(table.usdPerUnit.INR).toBeCloseTo(0.012, 12)
+        expect(table.basePerUnit.INR).toBeCloseTo(0.011, 12)
     })
-})
 
-/**
- * The failure this closes: nothing deleted an `FxRate` row, so a code the feed stopped carrying
- * kept pricing expenses from whatever it was last worth, while the one request that crossed the
- * TTL took the live branch and returned a 400 on the same input.
- */
-describe('a code the feed stops carrying', () => {
-    it('is never priced from a row past the ceiling, however fresh the core is', async () => {
+    it('does not serve a complete cache after its seven-day ceiling', async () => {
         const eightDays = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
-        await seed([...coreRows(), { quote: 'SEK', usdPerUnit: 0.095, fetchedAt: eightDays }])
-        const { getRateTable, rateFrom } = await freshFx()
+        await seed('EUR', coreRows('EUR', eightDays))
+        fetchSpy.mockRejectedValue(new Error('upstream down'))
+        const { getRateTable } = await freshFx()
 
-        const table = await getRateTable()
-        expect(table.source).toBe('cache')
-        expect(fetchSpy).not.toHaveBeenCalled()
-        // Null, not a rate. The room refuses the expense rather than netting it at a week-old number.
-        expect(rateFrom(table, 'SEK', 'EUR')).toBeNull()
-    })
-
-    it('gives the same answer on both sides of a TTL tick, instead of alternating', async () => {
-        const ageCore = (ms: number) =>
-            prisma.fxRate.updateMany({
-                where: { quote: { in: [...FX_CORE] } },
-                data: { fetchedAt: new Date(Date.now() - ms) },
-            })
-        const HOUR = 60 * 60 * 1000
-        // The feed carried SEK yesterday and does not carry it today.
-        await seed([...coreRows(new Date(Date.now() - 23 * HOUR)), { quote: 'SEK', usdPerUnit: 0.095 }])
-        const { getRateTable, rateFrom } = await freshFx()
-
-        // Inside the TTL: the cached SEK rate is less than a day old, so it is an honest answer.
-        const inside = await getRateTable()
-        expect(inside.source).toBe('cache')
-        expect(rateFrom(inside, 'SEK', 'EUR')).not.toBeNull()
-
-        // Crossing it: the live payload has no SEK, so the pair has no rate.
-        await ageCore(25 * HOUR)
-        const crossing = await getRateTable()
-        expect(crossing.source).toBe('live')
-        expect(rateFrom(crossing, 'SEK', 'EUR')).toBeNull()
-
-        // And after it. This is the assertion that matters: the refresh used to leave SEK's row
-        // in place, so the very next request served the old rate again and the answer alternated
-        // for as long as the feed stayed silent.
-        const after = await getRateTable()
-        expect(after.source).toBe('cache')
-        expect(rateFrom(after, 'SEK', 'EUR')).toBeNull()
-        expect(await prisma.fxRate.findFirst({ where: { quote: 'SEK' } })).toBeNull()
+        expect((await getRateTable('EUR')).source).toBe('static')
     })
 })
 
-describe('the write', () => {
-    it('lands every rate in one transaction', async () => {
-        fetchSpy.mockResolvedValue(feed({ ...perUsd, INR: '88', KWD: '0.306' }))
+describe('mirrored writes stay within one base', () => {
+    it('writes direct rates under the requested base and preserves another base', async () => {
+        await seed('USD', coreRows('USD'))
+        fetchSpy.mockResolvedValue(feed('EUR', { ...staticDirect('EUR'), INR: 0.011, KWD: 3.1 }))
         const { getRateTable } = await freshFx()
 
-        await getRateTable()
-        const rows = await prisma.fxRate.findMany({ where: { base: 'USD' } })
-        expect(rows).toHaveLength(FX_CORE.length + 2)
-        expect(rows.every((row) => row.id.length > 0)).toBe(true)
-        const inr = rows.find((row) => row.quote === 'INR')!
-        expect(Number(inr.rate)).toBeCloseTo(1 / 88, 9)
+        await getRateTable('EUR')
+        const eurRows = await prisma.fxRate.findMany({ where: { base: 'EUR' } })
+        expect(eurRows).toHaveLength(FX_CORE.length + 2)
+        expect(Number(eurRows.find((row) => row.quote === 'INR')!.rate)).toBeCloseTo(0.011, 12)
+        expect(await prisma.fxRate.count({ where: { base: 'USD' } })).toBe(FX_CORE.length)
     })
 
-    it('updates the row it already has rather than inserting a second one', async () => {
-        await seed(coreRows(new Date(Date.now() - 25 * 60 * 60 * 1000)))
-        fetchSpy.mockResolvedValue(feed({ ...perUsd, EUR: '2' }))
+    it('deletes a dropped quote only from the refreshed base', async () => {
+        const stale = new Date(Date.now() - 25 * 60 * 60 * 1000)
+        await seed('EUR', [...coreRows('EUR', stale), { quote: 'SEK', basePerUnit: 0.09, fetchedAt: stale }])
+        await seed('GBP', [...coreRows('GBP'), { quote: 'SEK', basePerUnit: 0.08 }])
         const { getRateTable } = await freshFx()
 
-        await getRateTable()
-        const eur = await prisma.fxRate.findMany({ where: { base: 'USD', quote: 'EUR' } })
-        expect(eur).toHaveLength(1)
-        expect(Number(eur[0].rate)).toBeCloseTo(0.5, 9)
+        await getRateTable('EUR')
+        expect(await prisma.fxRate.findFirst({ where: { base: 'EUR', quote: 'SEK' } })).toBeNull()
+        expect(await prisma.fxRate.findFirst({ where: { base: 'GBP', quote: 'SEK' } })).not.toBeNull()
     })
 })
 
-describe('single flight', () => {
-    it('serves concurrent cold requests from one fetch and one write', async () => {
+describe('single-flight and backoff are keyed by base', () => {
+    it('coalesces concurrent requests for one base', async () => {
         const { getRateTable } = await freshFx()
 
-        const tables = await Promise.all([getRateTable(), getRateTable(), getRateTable(), getRateTable()])
+        const tables = await Promise.all([
+            getRateTable('EUR'),
+            getRateTable('EUR'),
+            getRateTable('EUR'),
+            getRateTable('EUR'),
+        ])
         expect(fetchSpy).toHaveBeenCalledTimes(1)
-        expect(tables.every((table: RateTable) => table.source === 'live')).toBe(true)
+        expect(tables.every((table: RateTable) => table.base === 'EUR' && table.source === 'live')).toBe(true)
     })
 
-    it('does not pin later requests to a refresh that failed', async () => {
+    it('does not coalesce different destination bases', async () => {
+        const { getRateTable } = await freshFx()
+
+        const [eur, gbp] = await Promise.all([getRateTable('EUR'), getRateTable('GBP')])
+        expect(fetchSpy).toHaveBeenCalledTimes(2)
+        expect(eur.base).toBe('EUR')
+        expect(gbp.base).toBe('GBP')
+    })
+
+    it('does not let one base failure back off another base', async () => {
+        fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+            const base = new URL(String(input)).searchParams.get('base')!
+            if (base === 'EUR') throw new Error('EUR unavailable')
+            return feed(base, staticDirect(base))
+        })
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable('EUR')).source).toBe('static')
+        expect((await getRateTable('GBP')).source).toBe('live')
+        expect(fetchSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it('releases a failed flight so a later cache read can recover', async () => {
         fetchSpy.mockRejectedValueOnce(new Error('upstream down'))
         const { getRateTable } = await freshFx()
 
-        expect((await getRateTable()).source).toBe('static')
-        // The backoff, not the guard, is what stops the second call — but the guard must have
-        // released, or every later request would replay the same settled promise forever.
-        await seed(coreRows())
-        expect((await getRateTable()).source).toBe('cache')
+        expect((await getRateTable('EUR')).source).toBe('static')
+        await seed('EUR', coreRows('EUR'))
+        expect((await getRateTable('EUR')).source).toBe('cache')
+    })
+})
+
+describe('static fallback is materialized per base', () => {
+    it('prices every pinned quote directly into a pinned base', async () => {
+        process.env.SPLIT_FX_MODE = 'static'
+        const { getRateTable, rateFrom } = await freshFx()
+        const table = await getRateTable('EUR')
+
+        expect(table).toMatchObject({ base: 'EUR', source: 'static' })
+        expect(rateFrom(table, 'THB', 'EUR')).toBeCloseTo(0.028 / 1.08, 12)
+        expect(fetchSpy).not.toHaveBeenCalled()
+    })
+
+    it('gives a non-pinned catalog base identity but invents no cross', async () => {
+        process.env.SPLIT_FX_MODE = 'static'
+        const { getRateTable, rateFrom } = await freshFx()
+        const table = await getRateTable('PLN')
+
+        expect(rateFrom(table, 'PLN', 'PLN')).toBe(1)
+        expect(rateFrom(table, 'EUR', 'PLN')).toBeNull()
     })
 })

@@ -181,12 +181,14 @@ reconstruction (passes the original author's e2e 10/10). Port its semantics exac
   the largest share; re-opening and re-saving a foreign-currency expense must not drift balances.
 - Balances: sum over non-deleted expenses/settlements; suggested transfers via greedy
   minimal-transfer (≤ n−1 transfers).
-- Live FX: fetch Peanut's public `https://api.peanut.me/fx/rates?base=USD` display-sell snapshot
-  server-side through `SPLIT_FX_PROXY_URL`, invert its units-per-USD decimal strings into Split's
-  USD-per-unit table, and treat the last good result as fresh for 24h in FxRate. No Peanut secret
-  is sent. If refresh fails, cached rows remain usable only while the producer's `generatedAt` is
-  under seven days old; after that Split falls back to the mock's 12-rate static table. Rates are
-  indicative — label them so.
+- Live FX: directly fetch Peanut's public
+  `https://api.peanut.me/fx/rates?base=<room currency>` display-sell snapshot server-side. Each row
+  is the backend-selected quote-to-room pair, preserving Peanut UI's all-provider-or-all-reference
+  choice; Split inverts that row into room-units-per-quote and never crosses independently selected
+  live rows. The request is bodyless and sends no credential. Cache each base separately for 24h in
+  FxRate. If refresh fails, cached rows remain usable only while the producer's `generatedAt` is
+  under seven days old; after that Split materializes the mock's 12-rate static table in the target
+  base. Rates are indicative — label them so.
 
 ## Import compatibility boundary
 

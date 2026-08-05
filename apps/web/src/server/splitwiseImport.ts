@@ -285,7 +285,7 @@ export async function importRoom(
     // Read phase: the one external lookup the whole import needs, before the transaction opens so
     // a slow rate feed can never hold a write lock.
     assertImportCurrenciesPriceable(body.expenses, body.currency)
-    const rateTable = await getRateTable()
+    const rateTable = await getRateTable(body.currency)
     assertImportCurrenciesPriceable(body.expenses, body.currency, rateTable)
     const token = memberToken()
     const fingerprint = importSourceFingerprint(body)
@@ -370,7 +370,7 @@ export async function importIntoRoom(
     // A replay must not depend on today's FX table. This optimistic read only
     // avoids that lookup; the authoritative replay decision still happens
     // under the room lock below, so a concurrent first delivery is safe.
-    const rateTable = knownBatch || !needsRateTable ? undefined : await getRateTable()
+    const rateTable = knownBatch || !needsRateTable ? undefined : await getRateTable(initialRoom.currency)
     if (rateTable) assertImportCurrenciesPriceable(body.expenses, initialRoom.currency, rateTable)
 
     return prisma.$transaction(
