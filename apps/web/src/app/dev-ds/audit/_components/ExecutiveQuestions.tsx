@@ -39,7 +39,7 @@ const questions: ExecutiveQuestion[] = [
         title: 'Room ownership and lifecycle',
         question: 'What promise should a room link make about access, recovery, and deletion?',
         consequence:
-            'This decides whether the product needs owners, management credentials, link rotation, account recovery, and a visible delete/archive flow.',
+            'This decides whether the product needs owners, management credentials, link rotation, account recovery and a visible deletion flow.',
         recommendation:
             'Direction recorded, not active scope: stay no-account and possession-of-link before product-market fit. A separate capability could eventually rotate or delete, but that flow stays in ideas until roughly 1,000 rooms, PMF or real demand; require mockups when it reopens.',
         recordedChoice: 'anonymous-managed',

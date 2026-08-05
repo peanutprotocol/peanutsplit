@@ -141,8 +141,8 @@ export const marketingCopy = {
                     body: 'The link is the room. Anyone who has it is in, so keep it in the group chat and not somewhere public.',
                 },
                 {
-                    title: 'Twelve currencies, converted',
-                    body: 'Pick what the room counts in. Add an expense in any of the twelve and Split converts it at the rate on the day, which it then keeps — editing the line later does not re-price it.',
+                    title: '158 currencies, converted',
+                    body: 'Pick what the room counts in. Add an expense in any of the 158 and Split converts it at the rate on the day, which it then keeps — editing the line later does not re-price it.',
                 },
                 {
                     title: 'Maths that reconciles',

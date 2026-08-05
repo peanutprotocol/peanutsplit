@@ -24,7 +24,7 @@ Owner of record for each open item is in brackets. Last full update: 2026-08-04.
 - The append path uses the ordinary exact-money/FX builder inside one
   room-locked transaction and emits one audit/realtime event only after a real
   commit. PostgreSQL integration coverage includes populated-ledger
-  preservation, rollback, concurrency, replay, archive/missing-room refusal,
+  preservation, rollback, concurrency, replay, missing-room refusal,
   target-currency conversion, audit attribution, precise ordering, and rooms
   whose existing roster already exceeds the per-file 20-person parser cap.
 
@@ -259,7 +259,9 @@ machinery for hypothetical scale. Reopen these items only at the stated trigger.
 - **Anonymous room management:** a separate capability could rotate a share
   link or delete a room without accounts. Keep this as an idea until roughly
   1,000 rooms, product-market fit, a real user request or a legal obligation.
-  Review mockups before adding the flow.
+  Review mockups before adding the flow. This deferred idea does not authorize
+  schema fields, states, routes, guards or other scaffolding before the item is
+  reopened and approved for implementation.
 - **Scale machinery:** defer distributed quotas, data retention and
   partitioning, full CSP enforcement, a blocking browser matrix on every
   deployment, multi-replica realtime, database-wide integrity redesign and full
@@ -276,6 +278,38 @@ machinery for hypothetical scale. Reopen these items only at the stated trigger.
   synthetic gesture tests from the semantic journeys, and spot-check the two
   gestures on a real Firefox device. Reopen before browser CI becomes a gate or
   when Firefox-specific user demand makes the coverage valuable.
+
+## Deferred product-direction decisions — merge audit 2026-08-04
+
+The post-merge audit found five surfaces where separate releases now express
+different product directions. Do not resolve these as incidental bug fixes.
+Reopen each item in a product review with mobile mockups and the evidence named
+below.
+
+- **Yellow or pink as the primary brand field:** the design system assigns
+  yellow to primary actions and fields. It reserves pink for Peanut attribution
+  and rare delight. The default landing hero instead uses pink as its full
+  primary field. Decide which rule owns marketing surfaces before the next
+  landing redesign or wider brand review.
+- **Operational import or acquisition journey:** `/app` is the accountless
+  operational home, but its Import action opens the indexed `/import` marketing
+  page. Decide whether app users need a focused import shell or whether one
+  acquisition route should serve both contexts. Reopen before adding another
+  app-home tool or when import funnel data shows a navigation cost.
+- **Room scope or device scope in settings:** the room-coloured card groups
+  shared room settings with device-local push and identity controls. A separate
+  “This device” row sits below it. Decide whether the sheet groups by room
+  context or by who can see each change. Reopen before adding another setting
+  or after a user reports a scope surprise.
+- **Discoverable reactions or a hidden gesture:** reactions are available by a
+  long-press, while the explicit reaction control appears only on keyboard
+  focus. Decide whether reactions are a visible social feature or an optional
+  discovery. Reopen when reaction use can be measured or before adding another
+  gesture-only action.
+- **Return to the ledger or continue importing:** after an existing-room import,
+  “Import another file” is primary and “Go to room” is secondary, despite the
+  duplicate-history warning. Decide whether repeat batch import is the main
+  workflow. Reopen after initial import usage or before the next importer pass.
 
 ## Shipped 2026-07-28, third wave
 

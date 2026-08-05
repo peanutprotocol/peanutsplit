@@ -18,9 +18,8 @@ import type { ToolDataRow } from './types'
  *   marginal, so applying them the way the UK's or Canada's tiers work gives wrong answers.
  * - **Ireland**'s civil-service bands depend on how far the car has already gone this calendar
  *   year, and they rise before they fall. A single trip has no rate of its own.
- * - **Poland** publishes a per-kilometre maximum, but in złoty, which is not one of the twelve
- *   currencies this site converts. Pre-filling 1,15 into a box labelled in euros would be worse
- *   than pre-filling nothing.
+ * - **Poland** publishes a per-kilometre maximum in złoty, one of the 158 currencies this site
+ *   converts. The published value is still a useful note rather than a universal default.
  *
  * **Brazil is a verified negative, not a gap.** The federal instrument (Decreto 3.184/1999, art. 2)
  * pays a daily maximum with no distance term in it. There is no national per-kilometre rate to
@@ -151,7 +150,7 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
         label: 'Poland (kilometres)',
         unit: 'km',
         rate: null,
-        note: 'Poland’s published maximum is 1.15 PLN a kilometre for an engine over 900 cm³, and 0.89 PLN below it. The złoty is not one of the twelve currencies here, so the number goes in by hand in the currency you are settling in.',
+        note: 'Poland’s published maximum is 1.15 PLN a kilometre for an engine over 900 cm³, and 0.89 PLN below it. The złoty is one of the 158 currencies Split converts.',
         sourceLabel: 'Dziennik Ustaw 2023 poz. 5 (dziennikustaw.gov.pl)',
         sourceUrl: 'https://dziennikustaw.gov.pl/D2023000000501.pdf',
     },

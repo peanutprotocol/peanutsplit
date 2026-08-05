@@ -139,10 +139,6 @@ export const auditRecommendations = {
         decision: 'fix-now',
         note: 'Implemented as one restrained translated family: retry/safe navigation, no raw errors or room credentials, and no recovery framework.',
     },
-    'DOMAIN-01': {
-        decision: 'fix-now',
-        note: 'Implemented: restore and settlement deletion now assert archived-room writability under lock with regression tests. The generic command pipeline remains deferred.',
-    },
     'DOMAIN-02': {
         decision: 'defer',
         note: 'Application validation is adequate for the experiment. Reopen request hashing and room-scoped database constraints at roughly 1,000 rooms, on the first replay/cross-room defect, or when an adjacent schema change makes the work nearly free.',

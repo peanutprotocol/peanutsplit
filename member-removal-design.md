@@ -987,12 +987,6 @@ Block in V1.
 
 Reactivate the tombstone rather than creating another identical member ID.
 
-### Room archive
-
-Removal and member restore should explicitly reject an archived room. This is
-the desired policy even though existing delete/restore handlers do not enforce
-archive immutability consistently.
-
 ### Realtime on another device
 
 Publish after commit. Active rosters, payer choices, joins, and counts should
@@ -1026,7 +1020,6 @@ Money code requires tests before shipping. Minimum coverage:
 
 - unused member soft-removes and restores idempotently;
 - wrong room/member ID is rejected;
-- archived room is rejected;
 - last active member is rejected;
 - payer reference blocks, including a soft-deleted expense;
 - share reference blocks, including a soft-deleted expense;

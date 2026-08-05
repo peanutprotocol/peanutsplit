@@ -236,8 +236,8 @@
             "features": {
                 "title": "Qué hace Split",
                 "currency": {
-                    "title": "162 monedas disponibles",
-                    "body": "La sala cuenta en una moneda. Agregá un gasto en cualquiera de las 162 monedas disponibles y Split lo convierte al cambio del día."
+                    "title": "162 monedas para la sala",
+                    "body": "La sala cuenta en una moneda. Split convierte gastos entre 158 monedas al cambio del día; cuatro funcionan solo sin conversión."
                 },
                 "splits": {
                     "title": "Divisiones que no son parejas",
@@ -655,7 +655,7 @@
             "listTitle": "Quién le debe a quién",
             "recordTitle": "Registrar un pago",
             "nothingToSettle": "Nada que saldar todavía — agrega un gasto primero.",
-            "intro": "La menor cantidad de pagos que deja todo en cero. Paga como quieras — nosotros solo lo registramos.",
+            "intro": "Un plan corto de pagos que deja todo en cero. Paga como quieras — nosotros solo lo registramos.",
             "stillOutstanding": "Falta por saldar",
             "howPaid": "¿Cómo se pagó?",
             "cash": "Efectivo",
@@ -1060,7 +1060,7 @@
         "emptyTitle": "Todavía nada",
         "emptyBody": "Sin gastos ni pagos: nada ha tocado este saldo.",
         "suggestedTitle": "Para quedar a mano",
-        "suggestedNote": "Los pagos sugeridos dejan a toda la sala a mano con la menor cantidad de transferencias, así que quién le paga a quién no siempre es quién gastó con quién. Los dos saldos están acá para revisarlos.",
+        "suggestedNote": "Los pagos sugeridos condensan toda la sala en un plan corto, así que quién le paga a quién no siempre es quién gastó con quién. Los dos saldos están acá para revisarlos.",
         "sends": "Le paga a {name}",
         "receives": "{name} le paga",
         "showOther": "Ver el saldo de {name}",

@@ -18,22 +18,23 @@ the next person can check it rather than trust this file.
 
 ---
 
-## twelve-currencies
+## rated-currencies-158
 
-**claim:** Twelve currencies. An expense in one of them is converted to the room's currency at an
-indicative rate, and that rate is frozen onto the expense when it is created. Rates come from a
-public feed, are cached for 24 hours, and fall back to a static table when the fetch fails.
+**claim:** A room can use any of 162 catalog currencies. Split can automatically convert expenses
+across 158 of them. CUC, KPW, SVC and XSU have no feed rate and work only when the expense and room
+use the same currency. The indicative conversion rate is frozen onto the expense when it is created.
 
-**safe:** "twelve currencies" · "converted at the day's rate" · "the rate is indicative, not your
-bank's" · "the rate is fixed when the expense is added, so history does not move"
+**safe:** "162 room currencies" · "158 currencies, converted at the day's rate" · "the rate is
+indicative, not your bank's" · "the rate is fixed when the expense is added, so history does not
+move"
 
-**unsafe:** "multi-currency" (says nothing) · "any currency" · "all currencies" · "150+" · "live
-rate" · "real-time rate" · anything implying the number moves after the expense is saved
+**unsafe:** "any currency converts" · "all 162 currencies convert" · "150+" · "live rate" ·
+"real-time rate" · anything implying the number moves after the expense is saved
 
-**source:** `apps/web/src/server/money.ts` (`CURRENCIES`, twelve entries, each with a static
-`usdPerUnit`) · `apps/web/src/server/fx.ts` (live feed → 24h cache → static table; the module says
-"Rates are indicative — surfaces that show one must say so") · `apps/web/src/server/expenses.ts`
-(`fxRate` locked at creation and reused on edit)
+**source:** `apps/web/src/lib/currency-catalog.ts` (162 catalog entries, 158 with `hasRate`) ·
+`apps/web/src/lib/currency-rules.ts` (identity or two rated currencies) · `apps/web/src/server/fx.ts`
+(live feed → cache → static table) · `apps/web/src/server/expenses.ts` (`fxRate` locked at creation
+and reused on edit)
 
 ---
 
@@ -75,21 +76,20 @@ overwrites somebody silently, and a settlement replayed is a double payment reco
 
 ---
 
-## netting-is-greedy
+## netting-is-bounded-exact
 
-**claim:** The suggested payment plan is produced by a greedy walk — pay the biggest debtor into the
-biggest creditor, repeat. It gives at most one fewer transfer than there are people. It is
-near-minimal, not proven minimal.
+**claim:** For rooms with 18 or fewer non-zero balances, the suggested payment plan uses the minimum
+possible number of transfers. Above that boundary, it uses a deterministic greedy plan so settlement
+generation stays bounded as the exact search space doubles with every additional balance.
 
 **safe:** "two or three transfers instead of twenty" · "a short payment plan" · "it nets the debts
 down"
 
-**unsafe:** "fewest transfers" · "minimum number of transfers" · "optimal" · "the smallest possible
-number of payments"
+**unsafe:** Unqualified "fewest transfers" · "minimum number of transfers" · "optimal" · "the
+smallest possible number of payments" — the interface does not expose which solver path was used
 
-**source:** `apps/api/src/split/math.ts` (`simplifyDebts`, whose own docstring says "Minimal-ish …
-optimal partition is NP-hard and not worth it here") ·
-`apps/web/src/lib/balance-derivation.ts` (`suggestedTransfers`, the same walk on the live surface)
+**source:** `apps/web/src/server/settlement.ts` (`suggestedTransfers`, including the
+`EXACT_SETTLEMENT_MAX_NONZERO_BALANCES` boundary and deterministic greedy fallback)
 
 ---
 

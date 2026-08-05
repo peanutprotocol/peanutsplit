@@ -1,6 +1,6 @@
 # Peanut Split
 
-A link-based expense splitter. A room **is** its link: share it into a group chat, everyone picks a name, add expenses in any currency, settle up with the fewest transfers. No accounts, no sign-up, no KYC.
+A link-based expense splitter. A room **is** its link: share it into a group chat, everyone picks a name, add expenses in any currency, settle up with a short payment plan. No accounts, no sign-up, no KYC.
 
 Split makes the debts. Peanut settles them.
 
@@ -23,7 +23,7 @@ documentation, never provider verification. No new money-path endpoints.
 
 ```
 apps/api   Fastify + Prisma + its own Postgres, port 5051
-  src/split/       pure money math — splits, balances, minimal transfers, FX
+  src/split/       pure money math — splits, balances, settlement transfers, FX
   src/db/split.ts  every write. Two settlement paths, deliberately (see below)
   src/peanut/      the entire Peanut integration, mocked and documented
   src/routes/      /split/* (anonymous, proxied) and /webhooks/* (signed, not proxied)
