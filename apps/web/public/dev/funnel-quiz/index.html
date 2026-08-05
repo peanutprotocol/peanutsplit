@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>1337 SQU1RR3L SQU4D — training grounds</title>
+<meta name="robots" content="noindex" />
+<style>
+  :root {
+    --grn: #39ff14; --cyn: #00f0ff; --mag: #ff44d4; --ylw: #ffd23f;
+    --bg: #020803; --panel: #041108; --red: #ff3b3b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--grn); font-family: "Courier New", monospace; }
+  body { min-height: 100vh; overflow-x: hidden; }
+  #rain { position: fixed; inset: 0; z-index: 0; opacity: .28; }
+  .scanlines { position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.28) 2px 4px); }
+  .vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.75) 100%); }
+  .crt { animation: flick 6s infinite; }
+  @keyframes flick { 0%,100% {opacity:1} 92% {opacity:1} 93% {opacity:.86} 94% {opacity:1} 97% {opacity:.93} 98% {opacity:1} }
+
+  .wrap { position: relative; z-index: 3; max-width: 520px; margin: 0 auto; padding: 0 14px 60px; }
+
+  /* marquees */
+  .marq { overflow: hidden; white-space: nowrap; border-bottom: 1px solid var(--grn); background: rgba(0,0,0,.82); }
+  .marq span { display: inline-block; padding: 4px 0; font-size: 12px; animation: slide 16s linear infinite; }
+  .marq.rev { border-bottom: 0; border-top: 1px solid var(--mag); color: var(--mag); }
+  .marq.rev span { animation-direction: reverse; animation-duration: 20s; }
+  @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  .blink { animation: blink .9s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  h1.glitch { font-family: Impact, "Arial Black", sans-serif; font-size: clamp(30px, 9vw, 46px);
+    letter-spacing: 2px; color: #fff; position: relative; text-align: center; margin: 46px 0 4px;
+    text-shadow: 2px 0 var(--mag), -2px 0 var(--cyn); animation: gl 2.4s infinite; }
+  @keyframes gl { 0%,88%,100% { transform: none; text-shadow: 2px 0 var(--mag), -2px 0 var(--cyn); }
+    90% { transform: skewX(-8deg); text-shadow: -4px 0 var(--mag), 4px 0 var(--cyn); }
+    92% { transform: skewX(4deg) translateX(2px); }
+    94% { transform: none; text-shadow: 3px 2px var(--ylw), -3px -2px var(--cyn); } }
+
+  .kao { text-align: center; font-size: 15px; color: var(--mag); margin: 2px 0 10px; }
+
+  .panel { background: rgba(4,17,8,.92); border: 1px solid var(--grn); box-shadow: 0 0 12px rgba(57,255,20,.25), inset 0 0 24px rgba(57,255,20,.05);
+    padding: 14px; margin: 12px 0; }
+  .panel.mag { border-color: var(--mag); box-shadow: 0 0 12px rgba(255,68,212,.3); }
+  .panel.cyn { border-color: var(--cyn); box-shadow: 0 0 12px rgba(0,240,255,.25); }
+
+  .term { font-size: 13px; line-height: 1.55; min-height: 132px; }
+  .term .ok { color: var(--cyn); }
+  .term .warn { color: var(--ylw); }
+  .cursor::after { content: "█"; animation: blink .7s step-end infinite; }
+
+  button { font-family: inherit; cursor: pointer; }
+  .btn { display: block; width: 100%; background: var(--grn); color: #000; border: 0; font-weight: 700;
+    font-size: 15px; padding: 13px; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;
+    box-shadow: 0 0 14px rgba(57,255,20,.5); }
+  .btn:hover { background: var(--cyn); box-shadow: 0 0 18px rgba(0,240,255,.6); }
+  .btn.ghost { background: transparent; color: var(--grn); border: 1px solid var(--grn); box-shadow: none; }
+  .btn.ghost:hover { color: var(--cyn); border-color: var(--cyn); }
+
+  /* HUD */
+  .hud { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .hud .pts { position: relative; border: 1px solid var(--ylw); color: var(--ylw); padding: 2px 8px; }
+  .pop { position: absolute; right: 0; top: -18px; color: var(--grn); font-weight: 700; animation: pop .9s ease-out forwards; pointer-events: none; }
+  @keyframes pop { 0% { opacity: 0; transform: translateY(6px) scale(.4);} 40% { opacity: 1; transform: translateY(-2px) scale(1.3);} 100% { opacity: 0; transform: translateY(-14px) scale(1);} }
+  .combo { border: 1px solid var(--mag); color: var(--mag); padding: 2px 8px; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 12px rgba(255,68,212,.8); } }
+
+  .lvl { display: inline-block; font-size: 11px; padding: 2px 8px; border: 1px solid; margin-bottom: 8px; text-transform: uppercase; }
+  .lvl.easy { color: var(--grn); border-color: var(--grn); }
+  .lvl.mid { color: var(--ylw); border-color: var(--ylw); }
+  .lvl.hard { color: var(--red); border-color: var(--red); animation: pulse 1.2s infinite; }
+
+  .prompt-line { color: var(--cyn); font-size: 11px; margin-bottom: 6px; word-break: break-all; }
+  .q-text { color: #d8ffd8; font-size: 14px; line-height: 1.5; }
+
+  .opt { display: block; width: 100%; text-align: left; background: transparent; color: var(--grn);
+    border: 1px solid rgba(57,255,20,.55); padding: 11px 12px; margin-top: 8px; font-size: 13px; line-height: 1.45; }
+  .opt:hover:not(:disabled) { background: rgba(57,255,20,.14); border-color: var(--cyn); color: var(--cyn); }
+  .opt:disabled { cursor: default; opacity: .45; }
+  .opt.correct { opacity: 1; background: rgba(57,255,20,.18); border-color: var(--grn); color: #d8ffd8;
+    box-shadow: 0 0 14px rgba(57,255,20,.5); font-weight: 700; }
+  .opt.wrongpick { opacity: 1; background: rgba(255,59,59,.15); border-color: var(--red); color: #ffc9c9; }
+
+  .verdict { font-family: Impact, sans-serif; font-size: 16px; letter-spacing: 1px; margin-top: 12px; text-align: center; line-height: 1.4; }
+  .verdict.ok { color: var(--grn); text-shadow: 0 0 10px rgba(57,255,20,.8); }
+  .verdict.no { color: var(--red); text-shadow: 0 0 10px rgba(255,59,59,.8); }
+
+  .intel { border-left: 3px solid var(--cyn); padding: 8px 10px; margin-top: 10px; font-size: 12.5px; line-height: 1.55; color: #bdf6ff; background: rgba(0,240,255,.06); }
+  .quip { color: var(--mag); font-size: 12px; margin-top: 6px; }
+
+  .shake { animation: shake .45s; }
+  @keyframes shake { 0%,100%{transform:none} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+  .flash-red { animation: fred .45s; }
+  @keyframes fred { 0% { box-shadow: inset 0 0 60px rgba(255,59,59,.7); } 100% { box-shadow: none; } }
+
+  .lvlup { position: fixed; inset-inline: 0; top: 34%; z-index: 20; text-align: center; pointer-events: none; animation: lup 1.8s ease-in-out forwards; }
+  .lvlup span { display: inline-block; font-family: Impact, sans-serif; font-size: 26px; color: #000; background: var(--ylw);
+    padding: 8px 18px; border: 2px solid var(--mag); box-shadow: 0 0 30px var(--mag); }
+  @keyframes lup { 0% { opacity: 0; transform: scale(.3) rotate(-6deg);} 15% { opacity: 1; transform: scale(1.05);} 80% { opacity: 1; transform: scale(1);} 100% { opacity: 0; transform: scale(1.5);} }
+
+  .mascot { display: block; margin: 8px auto 0; background: transparent; border: 0; color: var(--grn);
+    font-size: 26px; text-shadow: 0 0 12px rgba(57,255,20,.6); }
+  .mascot small { display: block; font-size: 10px; color: var(--cyn); margin-top: 2px; }
+
+  .rank { font-family: Impact, sans-serif; font-size: 30px; text-align: center; color: #fff;
+    text-shadow: 2px 0 var(--mag), -2px 0 var(--cyn); margin: 8px 0 2px; }
+  .score-big { font-size: 44px; text-align: center; color: var(--grn); font-weight: 700; text-shadow: 0 0 16px rgba(57,255,20,.7); }
+
+  .stickers { position: absolute; z-index: 4; pointer-events: none; font-size: 10px; }
+  .stk { display: inline-block; border: 1px solid var(--mag); color: var(--mag); background: rgba(0,0,0,.8);
+    padding: 2px 6px; animation: wig 1.8s ease-in-out infinite; }
+  @keyframes wig { 0%,100% { transform: rotate(-3deg);} 50% { transform: rotate(3deg);} }
+
+  .footer { text-align: center; font-size: 11.5px; color: var(--grn); margin-top: 22px; line-height: 2; }
+  .footer a { color: var(--cyn); }
+  .counter { color: #000; background: var(--grn); padding: 0 5px; font-weight: 700; }
+  .trail-glyph { position: fixed; z-index: 50; pointer-events: none; font-size: 13px; color: var(--grn);
+    text-shadow: 0 0 8px rgba(57,255,20,.9); animation: fall .7s ease-out forwards; transform: translate(-50%,-50%); }
+  @keyframes fall { to { opacity: 0; transform: translate(-50%, 10px) scale(.4); } }
+  .nutfall { position: fixed; z-index: 49; pointer-events: none; font-size: 22px; animation: nfall 1.6s ease-in forwards; }
+  @keyframes nfall { from { transform: translateY(-40px) rotate(0); opacity: 1; } to { transform: translateY(105vh) rotate(360deg); opacity: .9; } }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body class="crt">
+<canvas id="rain"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<div class="stickers" style="top:32px;left:6px;"><span class="stk">☆ 3L1T3 0NLY ☆</span></div>
+<div class="stickers" style="top:32px;right:6px;"><span class="stk blink">⚠ N0 N00BS ⚠</span></div>
+
+<div class="marq"><span>
+  ☆*:.｡. o(≧▽≦)o .｡.:*☆ 1337 SQU1RR3L SQU4D ☆*:.｡. o(≧▽≦)o .｡.:*☆ TRAINING GROUNDS (❁´◡`❁) FUNNEL DEFINITIONS OR DEATH ✧ 100% FREE ✧ N0 D0WNL04D ✧ M0M S4YS 1M C00L ✧&nbsp;
+  ☆*:.｡. o(≧▽≦)o .｡.:*☆ 1337 SQU1RR3L SQU4D ☆*:.｡. o(≧▽≦)o .｡.:*☆ TRAINING GROUNDS (❁´◡`❁) FUNNEL DEFINITIONS OR DEATH ✧ 100% FREE ✧ N0 D0WNL04D ✧ M0M S4YS 1M C00L ✧&nbsp;
+</span></div>
+
+<div class="wrap">
+  <h1 class="glitch">1337 SQU1RR3L SQU4D</h1>
+  <div class="kao">☆*: .｡. o(≧▽≦)o .｡.:*☆ &nbsp;training grounds&nbsp; (❁´◡`❁)</div>
+
+  <button class="mascot" id="mascot" type="button" aria-label="squad mascot">
+    <span id="mascotFace">(⌐■_■)🐿️</span>
+    <small id="mascotSub">// cl1ck m3</small>
+  </button>
+
+  <!-- START -->
+  <section id="stStart">
+    <div class="panel">
+      <div class="term" id="bootTerm"></div>
+    </div>
+    <button class="btn hidden" id="btnStart" onclick="beginRun(null)">&gt;&gt; 3NT3R TH3 NUTR1X &lt;&lt;</button>
+  </section>
+
+  <!-- PLAY -->
+  <section id="stPlay" class="hidden">
+    <div class="hud">
+      <span id="prog"></span>
+      <span class="pts">PTS <b id="pts">0</b><span id="popHost"></span></span>
+      <span class="combo hidden" id="combo"></span>
+    </div>
+    <div class="panel" id="qPanel">
+      <span class="lvl" id="lvlChip"></span>
+      <div class="prompt-line" id="promptLine"></div>
+      <div class="q-text" id="qText"></div>
+      <div id="opts"></div>
+      <div id="verdict"></div>
+      <div id="intel"></div>
+      <button class="btn hidden" id="btnNext" onclick="next()"></button>
+    </div>
+  </section>
+
+  <!-- DONE -->
+  <section id="stDone" class="hidden">
+    <div class="panel mag">
+      <div class="term" id="evalTerm"></div>
+      <div id="resultBlock" class="hidden">
+        <div class="score-big" id="finalScore"></div>
+        <div class="rank" id="finalRank"></div>
+        <div class="kao" id="finalKao"></div>
+        <div style="text-align:center;font-size:13px;color:var(--ylw)" id="finalPts"></div>
+        <div style="text-align:center;font-size:12px;color:var(--cyn);margin-top:4px" id="finalStreak"></div>
+      </div>
+    </div>
+    <div id="doneBtns" class="hidden">
+      <button class="btn" onclick="shareCard('copy')" id="btnCopy">📋 C0PY SH4R3 C4RD</button>
+      <button class="btn ghost" onclick="shareCard('download')" id="btnDl">💾 D0WNL04D C4RD</button>
+      <button class="btn ghost hidden" id="btnRetry" onclick="beginRun(missed)"></button>
+      <button class="btn ghost" onclick="beginRun(null)">↻ R3PL4Y FR0M Z3R0</button>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div>☆ﾟ you are intruder <span class="counter" id="visitors">0x……</span> ﾟ☆</div>
+    <div class="blink" style="color:var(--ylw)">~*~ tH4nKs 4 h4xX1nG mY p4gE ~*~ (￣▽￣)ノ</div>
+    <div>[ <a href="/">← peanutsplit.com</a> ] [ SQU1RR3L W3BR1NG ] [ <a href="mailto:konrad@peanut.me?subject=s1gn%20my%20gu3stb00k">s1gn gu3stb00k</a> ]</div>
+    <div style="color:#1c7a2e">best viewed in Netscape Navigator inside a Faraday cage · W3C V4L1D4T3D (this is a lie)</div>
+  </div>
+</div>
+
+<div class="marq rev" style="position:fixed;bottom:0;left:0;right:0;z-index:5;background:rgba(0,0,0,.9)"><span>
+  (ノ◕ヮ◕)ノ*:･ﾟ✧ TH3 L3X1C0N 1S L4W ✧ V1S1T0R → R3G1ST3R3D → V3R1F1C4T10N ST4RT3D → V3R1F13D → FUND3D → 4CT1V4T3D ✧ SP3ND 0R 1T D1DN'T H4PP3N (❁´◡`❁)&nbsp;
+  (ノ◕ヮ◕)ノ*:･ﾟ✧ TH3 L3X1C0N 1S L4W ✧ V1S1T0R → R3G1ST3R3D → V3R1F1C4T10N ST4RT3D → V3R1F13D → FUND3D → 4CT1V4T3D ✧ SP3ND 0R 1T D1DN'T H4PP3N (❁´◡`❁)&nbsp;
+</span></div>
+
+<script>
+/* ═══════════════ QUESTIONS — Konrad-approved, verbatim from funnel-quiz ═══════════════ */
+const LEVEL_POINTS = { easy: 100, mid: 200, hard: 300 };
+const STREAK_BONUS = 50;
+const LEVEL_ORDER = ['easy', 'mid', 'hard'];
+const LEVEL_LABEL = { easy: 'lvl 1 — scr1pt k1dd13', mid: 'lvl 2 — h4xx0r', hard: 'lvl 3 — k3rn3l p4n1c' };
+
+const QUESTIONS = [
+  { level:'easy', prompt:'What is the correct order of the Peanut Lexicon funnel?',
+    options:['Visitor → Registered → Verification Started → Verified (Sumsub) → Verified (provider) → Funded → Activated','Visitor → Registered → Verification Started → Verified (provider) → Verified (Sumsub) → Funded → Activated','Visitor → Registered → Verified (Sumsub) → Funded → Verified (provider) → Activated','Visitor → Verification Started → Registered → Verified (Sumsub) → Verified (provider) → Funded → Activated'],
+    correctIndex:0,
+    joke:'Vibes → Mood → Slay → Profit → Retirement in Bali',
+    explanation:'The Lexicon is our shared vocabulary for the growth funnel: someone visits, registers (creates a passkey), starts verification (opens KYC), gets approved by Sumsub, gets accepted by a provider, funds (first money in), and activates (first spend). Verified split into two steps on 2026-07-22: Sumsub approving your documents is not the same as a provider agreeing to serve you.',
+    wrongQuip:'The Lexicon. Say it with me. All seven steps.' },
+  { level:'easy', prompt:"In the Lexicon, 'Registered' means the user:",
+    options:['Completed signup — their passkey was created','Visited the signup page','Verified their email address','Passed KYC'],
+    correctIndex:0,
+    joke:'Followed us on X and liked three posts (real recognizes real)',
+    explanation:"Registered = an account exists (a row in app.users — signup finished, passkey created). Just landing on /setup keeps you a Visitor; KYC is the next step ('Verified')." },
+  { level:'easy', prompt:"'Verified (Sumsub)' — the first of the two verified steps — means the user:",
+    options:['Had their KYC documents approved by Sumsub','Was accepted by a payment provider','Confirmed their phone number','Was manually approved by support'],
+    correctIndex:0,
+    joke:'Sent us a selfie holding a peanut for scale',
+    explanation:'Verified (Sumsub) = Sumsub approved the KYC. It is step one of the two verified steps — a provider still has to accept the user afterwards. Upstream of it sits Verification Started: the user opened KYC, measured in PostHog as kyc_initiated ∪ manteca_kyc_initiated.',
+    wrongQuip:'Sumsub first. Providers after.' },
+  { level:'easy', prompt:"'Verified (provider)' — the second verified step — means the user:",
+    options:['Was accepted by at least one provider — Manteca, Bridge, or Rain','Was accepted by ALL three providers — Manteca, Bridge, and Rain','Had KYC approved by Sumsub','Added a card to Apple or Google wallet'],
+    correctIndex:0,
+    joke:'Was vouched for by a squirrel with LinkedIn Premium',
+    explanation:'We have three providers — Manteca, Bridge, and Rain — and being verified by any single one of them is enough to pass this step. In the warehouse it is an ENABLED user_rail. Sumsub approval is the previous step; a provider can still reject (or simply never onboard) a Sumsub-approved user, which is exactly why the split exists.',
+    wrongQuip:'Any ONE of the three. Manteca, Bridge, or Rain.' },
+  { level:'easy', prompt:"'Funded' — the deposit step — means the user:",
+    options:['Completed at least one inflow: an onramp, a claimed send link, or a crypto deposit','Linked a funding source like a bank account','Holds a balance of at least $10','Made their first card payment'],
+    correctIndex:0,
+    joke:'Found $5 in an old jacket and felt something shift spiritually',
+    explanation:'Funded = money actually arrived at least once: a fiat ONRAMP, a claimed send link (SEND_LINK_CLAIM), or an on-chain CRYPTO_DEPOSIT — status COMPLETED. Linking a bank moves no money; a card payment is a spend (that is Activated).',
+    wrongQuip:'Funded = money IN. Actually in.' },
+  { level:'easy', prompt:"'Activated' — our north-star step — means the user:",
+    options:['Completed at least one SPEND — a card spend, or a QR spend on Mercado Pago / Pix','Completed at least one outbound transaction — a send link, offramp, withdrawal, or payment','Deposited money for the first time','Finished signup and KYC'],
+    correctIndex:0,
+    joke:'Said \'gm\' in the Discord two days in a row',
+    explanation:'Activated = at least one spend: card spend, or QR spend on Mercado Pago / Pix. That is the whole list. The "any money OUT" version (send links, offramps, direct sends, request-pays, crypto withdrawals) is the OLD definition — those still count as Volume, but moving money out is not the value moment. Spending it is.',
+    wrongQuip:'Money in is Funded. A SPEND is Activated. Everything else out is just Volume.' },
+  { level:'easy', prompt:"A funnel step's 'conversion rate' is:",
+    options:['The share of users who entered the step and completed it','The share of all our users who ever completed the step','The number of users who completed the step this week','Completed steps divided by sessions'],
+    correctIndex:0,
+    joke:'The % of users converted to worshipping the peanut (cult metric)',
+    explanation:'Conversion = completed ÷ entered, for the same group of users. The denominator is who ENTERED the step — not all users, not sessions. Get the denominator wrong and every number downstream is fiction.' },
+  { level:'mid', prompt:'Which of these does NOT count toward Funded?',
+    options:['Receiving Peanut points or a reward payout','A completed fiat onramp','Claiming a send link from a friend','An on-chain USDC deposit to your wallet'],
+    correctIndex:0,
+    joke:'Trick question — I identify as Funded',
+    explanation:'Rewards and points are explicitly excluded from the Funded definition — they are us moving money, not the user. The three real inflows are ONRAMP, SEND_LINK_CLAIM, and CRYPTO_DEPOSIT, each with status COMPLETED.',
+    wrongQuip:'We can’t "fund" you into activation ourselves.' },
+  { level:'mid', prompt:"'Active' — as on DAU/WAU-style dashboards — means a user who:",
+    options:['Is Activated AND completed at least one transaction in the last 7 days','Opened the app in the last 7 days','Completed at least one transaction in the last 7 days, activated or not','Ever reached Activated'],
+    correctIndex:0,
+    joke:'Thought about the app once in the shower',
+    explanation:"Active = Activated & ≥1 COMPLETED transaction in the last 7 days. Both halves matter: without the Activated gate, someone could count toward DAU while not being a user at all. Opening the app is a session, not activity, and Activated is a lifetime milestone, not a state. The opposite of Active is Inactive — 'churned' and 'dormant' are banned words: they dress a 7-day observation up as a prediction.",
+    wrongQuip:'Activated first. Then moving money. Both.' },
+  { level:'mid', prompt:'A user passed KYC but has zero balance. Which activation step does the home screen show them?',
+    options:["Deposit — 'Add money to make your first payment'","Verify — 'Unlock payments'","Spend — 'Make your first payment'",'None — the CTAs disappear after KYC'],
+    correctIndex:0,
+    joke:'A GIF of the peanut twerking until the user deposits',
+    explanation:'The in-app activation flow is verify → deposit → (card) → spend. KYC done + no balance lands you on the deposit step, routing to /add-money. You cannot make a first spend with an empty wallet, so the spend step waits until there is balance.' },
+  { level:'mid', prompt:"In Peanut card metrics, 'tokenization' means:",
+    options:['The card is added to Apple/Google wallet','A virtual card number is generated','The KYC provider issues a session token','USDC is converted to a spendable balance'],
+    correctIndex:0,
+    joke:'When the peanut finally becomes an NFT (right-clickers stay losing)',
+    explanation:'Tokenization = the add-to-wallet step (tracked from card_add_to_wallet_viewed onward). A card can be issued and never tokenized — that user can never tap to pay, which is why issued→tokenized is its own funnel step and its own class of drop-off.',
+    wrongQuip:'Not a crypto thing. A wallet thing.' },
+  { level:'mid', prompt:"'First spend' fires on card_spend_authorized, not card_spend_settled. What's the actual difference?",
+    options:['Authorization is the merchant hold at tap time; settlement is when funds actually clear, often days later','Authorization is our app approving the spend; settlement is the user confirming it','They are synonyms from two different providers','Settlement always happens first, authorization confirms it'],
+    correctIndex:0,
+    joke:'Authorization is asking your mom; settlement is \'we have food at home\'',
+    explanation:'card_spend_authorized = the moment the user tapped and the merchant got a hold — the behavioral event. card_spend_settled = money actually moving, days later. Between them a spend can also become declined or reversed. Use authorized for behavior, settled for money.' },
+  { level:'mid', prompt:"A dashboard says 'cards issued: 371'. Which event is it counting?",
+    options:['card_apply_card_created','card_apply_succeeded',"card_state_viewed with state='active'",'card_spend_authorized'],
+    correctIndex:0,
+    joke:'card_go_brrr_371',
+    explanation:"card_apply_card_created is THE 'card issued' event — Rain actually created the card. card_apply_succeeded only means the application was submitted; the card doesn't exist yet. state='active' is a screen view, which double-counts every visit.",
+    wrongQuip:"'apply_succeeded' is the classic trap. Application ≠ card." },
+  { level:'mid', prompt:'A user signs up, passes KYC, gets a card — and never spends. Which stage of the growth funnel failed?',
+    options:['Activation','Acquisition','Retention','Referral'],
+    correctIndex:0,
+    joke:'Skill issue (the user\'s, not ours, we are perfect)',
+    explanation:"Acquisition got them in the door; activation = reaching the first moment of real value — a first spend. You can't retain a user who never activated: retention only starts counting after the first value moment.",
+    wrongQuip:'Retention only starts after the first value moment.' },
+  { level:'hard', prompt:'For card spend counting toward Activated, the qualifying event is the AUTHORIZATION, not the settlement (CLEAR). Why?',
+    options:['The authorization is the moment the user actually tapped and got value; settlement is bookkeeping that lands days later','Settlements are not stored in the database','The canonical definition counts CLEAR — settlement is when money actually moves','Authorizations exclude declined transactions'],
+    correctIndex:0,
+    joke:'CLEAR was banned because it sounds like a shampoo brand',
+    explanation:'Ruling: the qualifying card event for Activated is the AUTHORIZATION — the tap is the value moment, and it is when the user behaved. Settlement (CLEAR) is the money actually moving, often days later — use it for money reporting, never for activation. Counting CLEAR is the OLD convention; picking it here is exactly the drift our scoreboard scripts used to suffer from, just in the other direction.',
+    wrongQuip:'The tap is the moment. Settlement is bookkeeping.' },
+  { level:'hard', prompt:'A user claims a $20 send link, then sends half of it onward as a send link to a friend. In Lexicon terms they are:',
+    options:['Funded but not Activated','Activated — the outbound send link was a completed transaction','Only Registered — send links are excluded from the funnel','Verified — claiming requires KYC'],
+    correctIndex:0,
+    joke:'Nothing — they are a money influencer now (mid-cycle micro-whale, bullish)',
+    explanation:'The claim (SEND_LINK_CLAIM) made them Funded — money came IN. But Activated requires a SPEND: card spend or QR spend on Mercado Pago / Pix. An outbound send link is Volume, not activation — that is the OLD "any money out" definition talking. This user is exactly who the Funded→Activated cliff is about: money in, money shuffled, nothing spent.',
+    wrongQuip:'Passing money along is not spending it.' },
+  { level:'hard', prompt:"500 cards were issued this month and 250 first-spends happened this month. A teammate reports 'issued→first-spend is 50%'. What's wrong?",
+    options:["The 250 spenders aren't necessarily from the 500 issued — conversion must follow one cohort through both steps",'Nothing, that is how funnel conversion is defined','They should have used settled spends instead','The denominator should be all users, not issued cards'],
+    correctIndex:0,
+    joke:'Mercury is in retrograde, numbers do that',
+    explanation:"Funnel conversion = of the users who did step A in a cohort, how many later did step B. This month's spenders mostly got their cards in earlier months. Dividing this month's B by this month's A mixes cohorts and can even exceed 100%.",
+    wrongQuip:'Cohorts. Always cohorts.' },
+  { level:'hard', prompt:"We report email results 'matured' (e.g. 65.6% open after a week) instead of day-1 numbers. Why?",
+    options:['People act slowly — a metric read too early undercounts, and cohorts become comparable only after the action window closes','Email providers batch-report stats weekly','It averages out weekend effects','Day-1 numbers are inflated by bots'],
+    correctIndex:0,
+    joke:'The emails need time to age like a fine parmesan',
+    explanation:"A 'matured' metric is read after enough time has passed for slow actors to act. Day-1 vs day-7 open rates differ hugely, so comparing a fresh campaign's day-1 number against an old campaign's final number is comparing different things." },
+  { level:'hard', prompt:'Why do we treat email CLICK rate as trustworthy but open rate as decoration?',
+    options:['Apple Mail privacy protection auto-loads tracking pixels, inflating opens; a click requires a human finger','Opens are sampled, clicks are counted exactly','Open tracking is disabled in our sender','Clicks include opens by definition'],
+    correctIndex:0,
+    joke:'Opens are introverts, clicks are extroverts',
+    explanation:'Apple MPP (and other prefetchers) fetch the tracking pixel whether or not a human read the email, so open rate is inflated by an unknowable amount. Clicks are deliberate actions. Rank campaigns by clicks; use opens only directionally.' },
+  { level:'hard', prompt:'Time-to-first-spend: mean 4.2 days, median 11 hours. What should you conclude?',
+    options:['The typical user spends within a day; a long tail of slow users drags the mean up','The data is corrupted — they should match','Users are getting slower over time','The typical user takes about 4 days to spend'],
+    correctIndex:0,
+    joke:'Delete the mean. It was rude anyway.',
+    explanation:"When mean >> median, a long right tail is doing the damage. The median is the typical user (11h!); the mean is distorted by a few week-long stragglers. Report medians for 'typical', and look at the tail as its own segment.",
+    wrongQuip:'The mean lies when the tail wags.' },
+  { level:'hard', prompt:'A user got a card issued but never opened the add-to-wallet screen. For the tokenization step, this user is:',
+    options:['Never-reached','Stalled','Inactive','Converted with delay'],
+    correctIndex:0,
+    joke:'Ghosted 💔 (it\'s not you, it\'s the funnel)',
+    explanation:"Never-reached = the user never arrived at the step. Stalled = they arrived (opened the screen) but didn't complete it. The fix differs completely: never-reached is a discovery/comms problem, stalled is a UX/product problem. Merging them hides which one you have.",
+    wrongQuip:"Can't stall on a screen you never opened." },
+];
+
+const RANKS = [
+  { min: 1,    rank: '31337 — NUTW0RK 0V3RL0RD 👑', kao: '☆*:.｡. o(≧▽≦)o .｡.:*☆', sub: 'You may now correct people in dashboards.' },
+  { min: 0.75, rank: '1337 — C3RT1F13D SQU1RR3L',   kao: '(❁´◡`❁)',                sub: 'Solid. Retry the missed ones and go flawless.' },
+  { min: 0.5,  rank: 'H4LF-CR4CK3D',                kao: '(￣ω￣;)',                 sub: 'You know the words. The definitions, less so.' },
+  { min: 0.25, rank: '5CR1PT K1DD13',               kao: '(・_・;)',                 sub: 'Read the intel. It is the whole point.' },
+  { min: 0,    rank: 'n00b',                        kao: '(╥﹏╥)',                   sub: 'Everyone starts raw. Hit retry.' },
+];
+
+/* ═══════════════ matrix rain ═══════════════ */
+const rain = document.getElementById('rain');
+const rctx = rain.getContext('2d');
+const GLYPHS = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ01¥$🥜'.split('');
+let cols = [], fs = 14;
+function sizeRain() {
+  rain.width = innerWidth; rain.height = innerHeight;
+  cols = Array(Math.ceil(innerWidth / fs)).fill(0).map(() => Math.random() * -50);
+}
+sizeRain(); addEventListener('resize', sizeRain);
+setInterval(() => {
+  rctx.fillStyle = 'rgba(2,8,3,0.12)'; rctx.fillRect(0, 0, rain.width, rain.height);
+  rctx.font = fs + 'px monospace';
+  cols.forEach((y, i) => {
+    const ch = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+    rctx.fillStyle = Math.random() < .08 ? '#baffb0' : '#39ff14';
+    rctx.fillText(ch, i * fs, y * fs);
+    cols[i] = y * fs > rain.height && Math.random() > .975 ? 0 : y + 1;
+  });
+}, 60);
+
+/* ═══════════════ helpers ═══════════════ */
+const $ = (id) => document.getElementById(id);
+const shuffle = (a) => { const o = [...a]; for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; } return o; };
+function typeLines(el, lines, done) {
+  el.innerHTML = ''; let li = 0;
+  (function nextLine() {
+    if (li >= lines.length) { done && done(); return; }
+    const [cls, text] = lines[li];
+    const div = document.createElement('div');
+    if (cls) div.className = cls;
+    div.classList.add('cursor');
+    el.appendChild(div);
+    let ci = 0;
+    const t = setInterval(() => {
+      div.textContent = text.slice(0, ++ci);
+      if (ci >= text.length) { clearInterval(t); div.classList.remove('cursor'); li++; setTimeout(nextLine, 130); }
+    }, 12);
+  })();
+}
+function nutRain(n) {
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('span');
+    s.className = 'nutfall'; s.textContent = Math.random() < .8 ? '🥜' : '🐿️';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDelay = (Math.random() * .5) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 2400);
+  }
+}
+
+/* ═══════════════ quiz state ═══════════════ */
+let order = [], optionOrders = {}, pos = 0, chosen = null;
+let correctCount = 0, missed = [], streak = 0, bestStreak = 0, points = 0, mascotClicks = 0;
+
+const stages = { start: $('stStart'), play: $('stPlay'), done: $('stDone') };
+function show(name) { Object.entries(stages).forEach(([k, el]) => el.classList.toggle('hidden', k !== name)); }
+
+function beginRun(subset) {
+  const idxs = subset && subset.length ? subset : QUESTIONS.map((_, i) => i);
+  order = LEVEL_ORDER.flatMap((lvl) => shuffle(idxs.filter((i) => QUESTIONS[i].level === lvl)));
+  optionOrders = {};
+  order.forEach((qi) => (optionOrders[qi] = shuffle(QUESTIONS[qi].options.map((_, i) => i))));
+  pos = 0; chosen = null; correctCount = 0; missed = []; streak = 0; bestStreak = 0; points = 0;
+  show('play'); renderQ();
+}
+
+function setMascot(face, sub) { $('mascotFace').textContent = face; $('mascotSub').textContent = sub; }
+
+function renderQ(prevLevel) {
+  const qi = order[pos], q = QUESTIONS[qi];
+  chosen = null;
+  $('prog').textContent = `Q ${pos + 1}/${order.length} ` + '🥜'.repeat(pos + 1) + '·'.repeat(Math.max(0, order.length - pos - 1));
+  $('pts').textContent = points;
+  $('combo').classList.toggle('hidden', streak < 3);
+  if (streak >= 3) $('combo').textContent = `C0MB0 x${streak}` + (streak >= 5 ? ' — UNSH3LL3D' : '');
+  const chip = $('lvlChip'); chip.textContent = LEVEL_LABEL[q.level] + `  ·  +${LEVEL_POINTS[q.level]}`; chip.className = 'lvl ' + q.level;
+  $('promptLine').textContent = `root@nutrix:~$ ./query --level=${q.level} --q=${pos + 1}`;
+  $('qText').textContent = q.prompt;
+  $('verdict').innerHTML = ''; $('intel').innerHTML = '';
+  $('btnNext').classList.add('hidden');
+  const opts = $('opts'); opts.innerHTML = ''; opts.classList.remove('shake');
+  optionOrders[qi].forEach((oi) => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.textContent = '> ' + q.options[oi];
+    b.onclick = () => answer(oi, b);
+    opts.appendChild(b);
+  });
+  if (q.joke) {
+    // the clown option: always rendered LAST, never correct, always tempting
+    const b = document.createElement('button');
+    b.className = 'opt'; b.textContent = '> ' + q.joke;
+    b.onclick = () => answer(-1, b);
+    opts.appendChild(b);
+  }
+  setMascot('(¬‿¬)🐿️', '// th1nk1ng...');
+  if (prevLevel && prevLevel !== q.level) {
+    const l = document.createElement('div');
+    l.className = 'lvlup'; l.innerHTML = `<span>⬆ L3V3L UP: ${LEVEL_LABEL[q.level]} (ノ◕ヮ◕)ノ*:･ﾟ✧</span>`;
+    document.body.appendChild(l); setTimeout(() => l.remove(), 1900);
+  }
+}
+
+function answer(oi, btn) {
+  if (chosen !== null) return;
+  const qi = order[pos], q = QUESTIONS[qi];
+  chosen = oi;
+  const ok = oi === q.correctIndex;
+  [...$('opts').children].forEach((b, k) => {
+    b.disabled = true;
+    const orig = optionOrders[qi][k];
+    if (orig === q.correctIndex) b.classList.add('correct');
+    else if (b === btn) b.classList.add('wrongpick');
+  });
+  if (ok) {
+    correctCount++; streak++; bestStreak = Math.max(bestStreak, streak);
+    const gain = LEVEL_POINTS[q.level] + (streak >= 3 ? STREAK_BONUS : 0);
+    points += gain; $('pts').textContent = points;
+    $('popHost').innerHTML = `<span class="pop">+${gain}</span>`;
+    $('verdict').innerHTML = '<div class="verdict ok">4CC3SS GR4NT3D ✔ o(≧▽≦)o</div>';
+    setMascot(streak >= 3 ? '(⌐■_■)🐿️🔥' : '\\(^ヮ^)/🐿️', streak >= 3 ? '// t00 c00l' : '// gg');
+    if (streak === 5) nutRain(24); else nutRain(4);
+    if (streak >= 3) { $('combo').classList.remove('hidden'); $('combo').textContent = `C0MB0 x${streak}` + (streak >= 5 ? ' — UNSH3LL3D' : ''); }
+  } else if (oi === -1) {
+    missed.push(qi); streak = 0; $('combo').classList.add('hidden');
+    $('opts').classList.add('shake'); $('qPanel').classList.remove('flash-red'); void $('qPanel').offsetWidth; $('qPanel').classList.add('flash-red');
+    $('verdict').innerHTML = '<div class="verdict no">C0M3D14N D3T3CT3D 🤡 -0 PTS F0R TH3 B1T</div>';
+    setMascot('(ಠ_ಠ)🐿️', '// n0t m4d, just d1s4pp01nt3d');
+    nutRain(2);
+  } else {
+    missed.push(qi); streak = 0; $('combo').classList.add('hidden');
+    $('opts').classList.add('shake'); $('qPanel').classList.remove('flash-red'); void $('qPanel').offsetWidth; $('qPanel').classList.add('flash-red');
+    $('verdict').innerHTML = '<div class="verdict no">4CC3SS D3N13D ✖ (╯°□°）╯︵ ┻━┻</div>';
+    setMascot('(T_T)🐿️', '// 0uch');
+  }
+  let intel = '';
+  if (oi === -1) intel += `<div class="quip">🐿️ w3 kn0w. 1t w4s r1ght th3r3. u h4d t0. (respect.)</div>`;
+  else if (!ok && q.wrongQuip) intel += `<div class="quip">🐿️ ${q.wrongQuip}</div>`;
+  intel += `<div class="intel">// 1NT3L: ${q.explanation}</div>`;
+  $('intel').innerHTML = intel;
+  const nb = $('btnNext'); nb.classList.remove('hidden');
+  nb.textContent = pos + 1 >= order.length ? '>> C0MP1L3 F1N4L R4NK <<' : '>> N3XT QU3RY <<';
+}
+
+function next() {
+  if (pos + 1 >= order.length) { finish(); return; }
+  const prevLevel = QUESTIONS[order[pos]].level;
+  pos++; renderQ(prevLevel);
+}
+
+function finish() {
+  show('done');
+  $('resultBlock').classList.add('hidden'); $('doneBtns').classList.add('hidden');
+  const frac = correctCount / order.length;
+  const r = RANKS.find((g) => frac >= g.min) || RANKS[RANKS.length - 1];
+  typeLines($('evalTerm'), [
+    [null, '> uploading answers to the nutwork ...'],
+    ['ok', '> tracing funnel knowledge ... ' + Math.round(frac * 100) + '%'],
+    ['warn', '> psych eval: ' + (missed.length === 0 ? 'FL4WL3SS. no shell dropped.' : missed.length + ' definition(s) leaked memory'),],
+    ['ok', '> R4NK C0MP1L3D:'],
+  ], () => {
+    $('resultBlock').classList.remove('hidden'); $('doneBtns').classList.remove('hidden');
+    $('finalScore').textContent = `${correctCount}/${order.length}`;
+    $('finalRank').textContent = r.rank;
+    $('finalKao').textContent = r.kao + '  ' + r.sub;
+    $('finalPts').textContent = `⭐ ${points} PTS`;
+    $('finalStreak').textContent = bestStreak >= 3 ? `best c0mb0: x${bestStreak} 🔥` : '';
+    const btnRetry = $('btnRetry');
+    btnRetry.classList.toggle('hidden', missed.length === 0);
+    btnRetry.textContent = `⟳ R3TRY TH3 ${missed.length} 1 M1SS3D`;
+    setMascot(frac >= 0.8 ? '☆*:.o(≧▽≦)o.:*☆🐿️' : frac >= 0.5 ? '(￣ω￣)🐿️' : '(╥﹏╥)🐿️', '// r4nk l0gg3d');
+    if (missed.length === 0) nutRain(40);
+  });
+}
+
+/* ═══════════════ share card ═══════════════ */
+async function shareCard(mode) {
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1080;
+  const x = c.getContext('2d');
+  x.fillStyle = '#020803'; x.fillRect(0, 0, 1080, 1080);
+  // rain streaks
+  x.font = '26px monospace';
+  for (let i = 0; i < 220; i++) {
+    x.fillStyle = `rgba(57,255,20,${0.05 + Math.random() * 0.3})`;
+    x.fillText(GLYPHS[Math.floor(Math.random() * GLYPHS.length)], Math.random() * 1080, Math.random() * 1080);
+  }
+  x.strokeStyle = '#39ff14'; x.lineWidth = 6; x.strokeRect(30, 30, 1020, 1020);
+  x.strokeStyle = '#ff44d4'; x.lineWidth = 2; x.strokeRect(46, 46, 988, 988);
+  x.textAlign = 'center';
+  x.fillStyle = '#ffffff'; x.font = '900 64px Impact, sans-serif';
+  x.shadowColor = '#ff44d4'; x.shadowBlur = 18;
+  x.fillText('1337 SQU1RR3L SQU4D', 540, 170);
+  x.shadowBlur = 0; x.fillStyle = '#00f0ff'; x.font = '30px monospace';
+  x.fillText('☆*:.｡. o(≧▽≦)o .｡.:*☆ training grounds (❁´◡`❁)', 540, 225);
+  x.fillStyle = '#39ff14'; x.font = '900 170px monospace';
+  x.shadowColor = '#39ff14'; x.shadowBlur = 26;
+  const frac = correctCount / (order.length || 1);
+  x.fillText(`${correctCount}/${order.length}`, 540, 450);
+  x.shadowBlur = 0;
+  const r = RANKS.find((g) => frac >= g.min) || RANKS[RANKS.length - 1];
+  x.fillStyle = '#ffd23f'; x.font = '900 54px Impact, sans-serif';
+  x.fillText(r.rank, 540, 560);
+  x.fillStyle = '#ff44d4'; x.font = '40px monospace';
+  x.fillText(r.kao, 540, 630);
+  x.fillStyle = '#39ff14'; x.font = '700 44px monospace';
+  x.fillText(`⭐ ${points} PTS` + (bestStreak >= 3 ? `  ·  c0mb0 x${bestStreak}` : ''), 540, 730);
+  x.fillStyle = '#00f0ff'; x.font = '30px monospace';
+  x.fillText('th3 l3x1c0n 1s l4w — sp3nd 0r 1t d1dn’t h4pp3n', 540, 840);
+  x.fillStyle = '#1c7a2e'; x.font = '26px monospace';
+  x.fillText('peanutsplit.com/dev/funnel-quiz — c4n u b34t m3?', 540, 990);
+  const blob = await new Promise((res) => c.toBlob(res, 'image/png'));
+  try {
+    if (mode === 'copy' && navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      $('btnCopy').textContent = '📋 C0P13D ✔'; setTimeout(() => ($('btnCopy').textContent = '📋 C0PY SH4R3 C4RD'), 1600);
+      return;
+    }
+    throw new Error('fallback');
+  } catch {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `1337-squirrel-squad-${correctCount}-${order.length}.png`;
+    a.click(); URL.revokeObjectURL(a.href);
+    $('btnDl').textContent = '💾 S4V3D ✔'; setTimeout(() => ($('btnDl').textContent = '💾 D0WNL04D C4RD'), 1600);
+  }
+}
+
+/* ═══════════════ chrome: mascot, trail, counter, boot ═══════════════ */
+$('mascot').onclick = () => {
+  mascotClicks++;
+  const faces = ['(⌐■_■)🐿️', '(ノ◕ヮ◕)ノ*:･ﾟ✧🐿️', '(❁´◡`❁)🐿️', 'ᕕ( ᐛ )ᕗ🐿️', '(￣▽￣)ノ🐿️'];
+  setMascot(faces[mascotClicks % faces.length], '// n1c3 cl1ck');
+  nutRain(mascotClicks % 5 === 0 ? 18 : 2);
+};
+let lastTrail = 0;
+addEventListener('pointermove', (e) => {
+  const now = performance.now();
+  if (now - lastTrail < 60) return; lastTrail = now;
+  const s = document.createElement('span');
+  s.className = 'trail-glyph';
+  s.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+  s.style.left = e.clientX + 'px'; s.style.top = e.clientY + 'px';
+  document.body.appendChild(s); setTimeout(() => s.remove(), 700);
+});
+(function counter() {
+  const target = 0x1337 * 1000 + Math.floor(Math.random() * 999);
+  let cur = target - 420;
+  const t = setInterval(() => {
+    cur += 21; if (cur >= target) { cur = target; clearInterval(t); }
+    $('visitors').textContent = '0x' + cur.toString(16).toUpperCase();
+  }, 40);
+})();
+typeLines($('bootTerm'), [
+  [null, '> init sq_protocol v1.337 ................ OK'],
+  [null, '> loading lexicon.dat .................... OK'],
+  ['warn', '> scanning for n00bs ..................... FOUND: YOU'],
+  [null, '> 20 queries · lvl 1→3 · pts + c0mb0s · no timer'],
+  ['ok', '> 4CC3SS: TRAINING GROUNDS // 3L1T3 SQU1RR3L SQU4D'],
+], () => $('btnStart').classList.remove('hidden'));
+</script>
+</body>
+</html>
