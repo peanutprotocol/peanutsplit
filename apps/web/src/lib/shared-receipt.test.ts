@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
     discardSharedReceipt,
     hasSharedReceipt,
+    MAX_SHARED_RECEIPT_BYTES,
     storeSharedReceipt,
     sweepSharedReceipt,
     takeSharedReceipt,
@@ -60,6 +61,15 @@ describe('a shared receipt', () => {
         await storeSharedReceipt(storage, receipt('second'))
 
         expect(await (await takeSharedReceipt(storage))?.text()).toBe('second')
+    })
+
+    it('rejects an oversized share before opening or writing Cache Storage', async () => {
+        const { storage, caches } = fakeCacheStorage()
+        const oversized = receipt('x')
+        Object.defineProperty(oversized, 'size', { value: MAX_SHARED_RECEIPT_BYTES + 1 })
+
+        await expect(storeSharedReceipt(storage, oversized)).rejects.toThrow('too large')
+        expect(caches.size).toBe(0)
     })
 
     it('is discarded whole', async () => {

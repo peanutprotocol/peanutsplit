@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { coerceCurrency } from '@/server/model'
 
 /**
- * The gate on a currency a language model guessed, off a receipt photo or a typed line.
+ * The gate on a currency a language model guessed from a receipt photo.
  *
  * Its whole job is to be graceful: every caller falls back to the room's currency when this
  * returns null, so a wrong guess costs nothing. Widening the catalog from 12 codes to 162 is

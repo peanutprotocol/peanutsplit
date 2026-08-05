@@ -4,8 +4,7 @@
  * deployment opts in explicitly at build time.
  *
  * Splitwise CSV import graduated to the v1 surface independently. Keep this
- * boundary for the AI-assisted entry tools: turning it on still exposes receipt
- * scanning and natural-language quick add together.
+ * boundary for AI-assisted receipt scanning.
  */
 export const splitV2Enabled = (): boolean => process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED === '1'
 

@@ -290,6 +290,58 @@ describe('OpenRouter — the failures', () => {
         expect(await codeOf(() => parseReceipt(body, 'EUR'))).toBe('SCAN_FAILED')
     })
 
+    it('combines caller cancellation with the provider deadline and aborts the outbound fetch', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const caller = new AbortController()
+        const fetchSpy = stubFetch().mockImplementation((_url, init) => {
+            const signal = init?.signal
+            return new Promise<Response>((_resolve, reject) => {
+                if (!signal) return
+                const rejectAbort = () => reject(signal.reason ?? new DOMException('aborted', 'AbortError'))
+                if (signal.aborted) rejectAbort()
+                else signal.addEventListener('abort', rejectAbort, { once: true })
+            })
+        })
+
+        const pending = parseReceipt(body, 'EUR', caller.signal)
+        await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledOnce())
+        const providerSignal = sentAt(fetchSpy).init.signal as AbortSignal
+        expect(providerSignal).not.toBe(caller.signal)
+        expect(providerSignal.aborted).toBe(false)
+
+        caller.abort()
+
+        expect(providerSignal.aborted).toBe(true)
+        expect(await codeOf(() => pending)).toBe('SCAN_FAILED')
+    })
+
+    it('keeps the 25-second provider deadline when a caller signal is present', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const caller = new AbortController()
+        const deadline = new AbortController()
+        const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(deadline.signal)
+        const fetchSpy = stubFetch().mockImplementation((_url, init) => {
+            const signal = init?.signal
+            return new Promise<Response>((_resolve, reject) => {
+                if (!signal) return
+                const rejectAbort = () => reject(signal.reason ?? new DOMException('timed out', 'TimeoutError'))
+                if (signal.aborted) rejectAbort()
+                else signal.addEventListener('abort', rejectAbort, { once: true })
+            })
+        })
+
+        const pending = parseReceipt(body, 'EUR', caller.signal)
+        await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledOnce())
+        const providerSignal = sentAt(fetchSpy).init.signal as AbortSignal
+        expect(timeout).toHaveBeenCalledWith(25_000)
+
+        deadline.abort(new DOMException('timed out', 'TimeoutError'))
+
+        expect(providerSignal.aborted).toBe(true)
+        expect(caller.signal.aborted).toBe(false)
+        expect(await codeOf(() => pending)).toBe('SCAN_FAILED')
+    })
+
     it('still distinguishes "nothing readable" from "the call failed"', async () => {
         vi.spyOn(console, 'error').mockImplementation(() => {})
         stubFetch().mockResolvedValueOnce(openRouterAnswer(JSON.stringify({ items: [] })))
