@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 import { test } from './fixtures'
+import { openCurrentRoomSettings } from './helpers'
 import { AVATARS, AVATAR_KEYS } from '../src/lib/avatars'
 
 /**
@@ -38,12 +39,11 @@ async function openOwnCharacterSheet(page: Page, room: string) {
 async function openOwnCharacterFromSettings(page: Page) {
     // A reload can restore `?settings=1` before the client portal has mounted.
     // Wait for that URL-owned sheet instead of racing its overlay with a second
-    // click on the header trigger.
+    // trip through the room picker.
     if (new URL(page.url()).searchParams.has('settings')) {
         await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
     } else {
-        await page.getByTestId('open-room-settings').click()
-        await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+        await openCurrentRoomSettings(page)
     }
 
     const settings = page.getByTestId('settings-sheet')
@@ -221,7 +221,7 @@ test('a person row in Settings opens that person’s character sheet', async ({ 
     await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
     await page.getByTestId('go-to-room').click()
 
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await page.locator('[data-testid="person-row"][data-member="Ana"]').click()
     await expect(page.getByTestId('character-sheet')).toBeVisible()
     await expect(page.getByTestId('character-sheet')).toContainText('Ana')

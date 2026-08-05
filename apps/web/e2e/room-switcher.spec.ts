@@ -51,14 +51,24 @@ test('the title switcher exposes every retained non-current room', async ({ page
     const expectedSlugs = retained.filter((room) => room.slug !== currentSlug).map((room) => room.slug)
 
     const sheet = await openRoomSwitcher(page)
+    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
     const current = sheet.getByTestId('room-switcher-current')
     const recent = sheet.getByTestId('room-switcher-tile')
+    const settings = sheet.getByTestId('room-switcher-settings')
     const manage = sheet.getByTestId('room-switcher-manage')
 
     await expect(current).toBeVisible()
     await expect(recent).toHaveCount(expectedSlugs.length)
-    await expect(sheet.getByRole('link')).toHaveCount(expectedSlugs.length + 1)
+    await expect(current.locator('a, button')).toHaveCount(0)
+    await expect(current.locator('..').locator('a, button')).toHaveCount(1)
+    const currentSettings = sheet.locator('[data-testid="room-switcher-settings"][data-current="true"]')
+    await expect(currentSettings).toHaveCount(1)
+    await expect(currentSettings).toHaveAttribute('data-slug', currentSlug)
+    await expect(settings).toHaveCount(expectedSlugs.length + 1)
+    await expect(settings).toHaveText(Array(expectedSlugs.length + 1).fill('Settings'))
     await expect(manage).toHaveAttribute('href', '/app?manage=1')
+    await expect(manage).toContainText('Add or join a room')
+    await expect(sheet.locator('a a, a button, button a, button button')).toHaveCount(0)
     expect(await recent.evaluateAll((tiles) => tiles.map((tile) => (tile as HTMLElement).dataset.slug))).toEqual(
         expectedSlugs
     )
@@ -67,6 +77,9 @@ test('the title switcher exposes every retained non-current room', async ({ page
             'href',
             `/r/${slug}`
         )
+        const roomSettings = sheet.locator(`[data-testid="room-switcher-settings"][data-slug="${slug}"]`)
+        await expect(roomSettings).toHaveCount(1)
+        await expect(roomSettings).toHaveAttribute('href', `/r/${slug}?settings=1`)
     }
 })
 
@@ -79,6 +92,7 @@ test('the full switcher scrolls to its final room without horizontal overflow', 
     await expect(recent).toHaveCount(CAP - 1)
     await manage.scrollIntoViewIfNeeded()
     await expect(manage).toBeInViewport()
+    await expect(manage).toContainText('Add or join a room')
 
     const overflow = await sheet.evaluate((element) => ({
         sheet: element.scrollWidth - element.clientWidth,

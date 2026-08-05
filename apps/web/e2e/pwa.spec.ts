@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
+import { openCurrentRoomSettings } from './helpers'
 
 /**
  * What this deployment tells the operating system about itself, on a v1 build.
@@ -74,7 +75,7 @@ async function openDeviceSheet(page: Page, name: string) {
     await page.getByTestId('go-to-room').click()
     await page.waitForURL(/\/r\//)
 
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await page.getByTestId('device-row').click()
     await expect(page.getByTestId('device-sheet')).toBeVisible()
 }

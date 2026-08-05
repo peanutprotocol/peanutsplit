@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
-import { enterCreatedRoom } from './helpers'
+import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
 const tabbableRadios = (group: Locator) =>
     group
@@ -108,7 +108,7 @@ test('room drawing uses one radio tab stop without arrow-opening the custom edit
 test('avatar, payer and split pickers preserve radio focus while selection changes', async ({ page }) => {
     await createTwoPersonRoom(page)
 
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     const settings = page.getByTestId('settings-sheet')
     await expect(settings).toBeVisible()
     const peopleToggle = settings.getByTestId('people-toggle')
@@ -160,7 +160,7 @@ test('avatar, payer and split pickers preserve radio focus while selection chang
 
 test('saved room drawing keyboard changes serialize instead of racing PATCHes', async ({ page }) => {
     await createTwoPersonRoom(page)
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await page.getByTestId('room-drawing').click()
 
     const settings = page.getByTestId('settings-sheet')

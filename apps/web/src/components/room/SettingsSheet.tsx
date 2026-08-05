@@ -34,6 +34,10 @@ import { HistorySheet } from './HistorySheet'
 interface SettingsSheetProps {
     open: boolean
     onClose: () => void
+    /** The room-picker settings action unmounts as this sheet opens. Closing with
+     *  X therefore lands on the stable room title; Back can target the settings
+     *  action remounted in the restored picker. */
+    onCloseFocus?: () => void
     room: ApiRoom
     members: ApiMember[]
     /** Full room state, for the surface that needs the ledger (CSV/JSON export). */
@@ -60,6 +64,7 @@ interface SettingsSheetProps {
 export function SettingsSheet({
     open,
     onClose,
+    onCloseFocus,
     room,
     members,
     state,
@@ -206,7 +211,19 @@ export function SettingsSheet({
     return (
         <>
             <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-                <DrawerContent data-testid="settings-sheet">
+                <DrawerContent
+                    data-testid="settings-sheet"
+                    onCloseAutoFocus={(event) => {
+                        // Callers that do not provide a fallback keep the shared
+                        // drawer's ordinary remembered-opener behaviour.
+                        if (!onCloseFocus) return
+                        // Override the generic remembered opener: it was a room-
+                        // picker action and is no longer connected. The caller
+                        // resolves X to the title and Back to the remounted action.
+                        event.preventDefault()
+                        window.requestAnimationFrame(onCloseFocus)
+                    }}
+                >
                     <DrawerHeader className="flex flex-row items-end justify-between">
                         <DrawerTitle className="text-h5">{t('title')}</DrawerTitle>
                         <CloseButton onClick={onClose} label={t('close')} data-testid="close-room-settings" />

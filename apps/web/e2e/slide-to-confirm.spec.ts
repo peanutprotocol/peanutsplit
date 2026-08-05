@@ -1,5 +1,6 @@
 import { expect, type Route } from '@playwright/test'
 import { test } from './fixtures'
+import { openCurrentRoomSettings } from './helpers'
 import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
 test('destructive ledger and identity actions require a slide or keyboard confirmation', async ({ page }, testInfo) => {
@@ -121,7 +122,7 @@ test('destructive ledger and identity actions require a slide or keyboard confir
     await payment.getByTestId('confirm-remove-settlement').press('Enter')
     await expect(page.getByTestId('settlement-row')).toHaveCount(0, { timeout: 15_000 })
 
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await page.getByTestId('you-row').click()
     const switchPerson = page.getByTestId('switch-person-confirm')
     await switchPerson.click()

@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
-import { enterCreatedRoom } from './helpers'
+import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
 /**
  * The shared drawer primitive is modal for the keyboard, not only for the mouse.
@@ -30,8 +30,14 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('focus enters the sheet, stays inside it, and comes back to the trigger', async ({ page }) => {
-    // Open it the way a keyboard user does. Clicking would move focus by itself and hide the bug.
-    await page.getByTestId('open-room-settings').focus()
+    // Open both steps the way a keyboard user does. Clicking would move focus by
+    // itself and hide the bug.
+    await page.getByTestId('open-room-switcher').focus()
+    await page.keyboard.press('Enter')
+    const switcher = page.getByTestId('room-switcher-sheet')
+    await expect(switcher).toBeVisible({ timeout: 10_000 })
+    const settingsTrigger = switcher.locator('[data-testid="room-switcher-settings"][data-current="true"]')
+    await settingsTrigger.focus()
     await page.keyboard.press('Enter')
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
     await page.waitForTimeout(600)
@@ -53,20 +59,19 @@ test('focus enters the sheet, stays inside it, and comes back to the trigger', a
 
     await page.keyboard.press('Escape')
     await page.waitForTimeout(800)
-    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-settings', insideDialog: false })
+    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-switcher', insideDialog: false })
 })
 
-test('closing with the X button also returns focus to the trigger', async ({ page }) => {
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+test('closing Settings with X returns focus to the stable title trigger', async ({ page }) => {
+    await openCurrentRoomSettings(page)
     await page.waitForTimeout(600)
 
     await page.getByTestId('close-room-settings').click()
     await page.waitForTimeout(800)
 
-    // Used to land on <body>: DrawerTrigger is exported but no caller uses it, so Radix's own
-    // trigger-hunt had nothing to find.
-    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-settings' })
+    // The room-specific opener leaves the DOM when its picker closes, so focus
+    // returns to the stable title control rather than <body>.
+    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-switcher' })
 })
 
 test('the title switcher traps focus and restores it to the title trigger', async ({ page }) => {
@@ -88,8 +93,7 @@ test('the title switcher traps focus and restores it to the title trigger', asyn
 })
 
 test('the sheet leaves a tappable strip of room above it', async ({ page }) => {
-    await page.getByTestId('open-room-settings').click()
-    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    await openCurrentRoomSettings(page)
     await page.waitForTimeout(600)
 
     // At `max-h-dvh` the sheet filled a 390x844 phone exactly, so tap-outside-to-close could never

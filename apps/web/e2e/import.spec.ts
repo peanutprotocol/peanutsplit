@@ -2,7 +2,7 @@ import { expect } from '@playwright/test'
 import { test } from './fixtures'
 import { SIMPLE_GROUP } from '../src/lib/__fixtures__/splitwise'
 import { SPLITPRO_ACCOUNT_EXPORT, SPLITPRO_FRIEND_CSV } from '../src/lib/__fixtures__/splitpro'
-import { enterCreatedRoom, expectBalance } from './helpers'
+import { enterCreatedRoom, expectBalance, openCurrentRoomSettings } from './helpers'
 
 /**
  * The switch, end to end: a real Splitwise export goes in through the real file input, and the
@@ -100,7 +100,7 @@ test('import into an existing room appends in place and an exact retry is a no-o
         timeout: 15_000,
     })
 
-    await page.getByTestId('open-room-settings').click()
+    await openCurrentRoomSettings(page)
     await page.getByTestId('export-row').click()
     await page.getByTestId('open-splitwise-import').click()
     await page.waitForURL(`${roomPath}/import`)

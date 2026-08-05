@@ -1,7 +1,6 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Doodle } from '@/components/ui/Doodle'
 import { cn } from '@/lib/cn'
 import { DEFAULT_THEME_KEY, ROOM_THEMES } from '@/lib/themes'
 
@@ -62,7 +61,7 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
                                 data-focus-contained
                                 onClick={() => onChange(theme.key === DEFAULT_THEME_KEY ? null : theme.key)}
                                 className={cn(
-                                    'flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 text-h7 transition-transform duration-100',
+                                    'size-11 shrink-0 rounded-sm border border-n-1 transition-transform duration-100',
                                     isSelected ? 'shadow-4' : 'active:translate-x-[2px] active:translate-y-[2px]',
                                     disabled && 'opacity-50'
                                 )}
@@ -71,9 +70,7 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
                                 // safelisted, and adding a ninth theme would
                                 // then be a two-file change.
                                 style={{ backgroundColor: theme.field }}
-                            >
-                                <Doodle name={theme.motif} size={23} weight={1.8} />
-                            </button>
+                            />
                         </li>
                     )
                 })}
