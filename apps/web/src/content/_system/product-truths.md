@@ -88,8 +88,9 @@ down"
 **unsafe:** Unqualified "fewest transfers" · "minimum number of transfers" · "optimal" · "the
 smallest possible number of payments" — the interface does not expose which solver path was used
 
-**source:** `apps/web/src/server/settlement.ts` (`suggestedTransfers`, including the
-`EXACT_SETTLEMENT_MAX_NONZERO_BALANCES` boundary and deterministic greedy fallback)
+**source:** `apps/web/src/server/settlement.ts` (`suggestedTransfers`) and
+`apps/api/src/split/math.ts` (`simplifyDebts`), including their shared
+`EXACT_SETTLEMENT_MAX_NONZERO_BALANCES` boundary and deterministic greedy fallback
 
 ---
 

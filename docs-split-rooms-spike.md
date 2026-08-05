@@ -13,8 +13,9 @@ manual today, with a designed seam for "pay with Peanut" later.
   member or add yourself. Identity is per-device `localStorage` (`peanut-split:member:{slug}`).
   A "sailing trip" starts working as a group immediately, even while people are still joining.
 - **Rooms have a base currency; expenses have their own.** Foreign expenses are converted at a
-  reference rate locked at creation. Splits are EQUAL or EXACT. Balances are net-per-person plus
-  minimal-transfer settle-up (greedy min-cash-flow), Splitwise's "simplify debts" behavior.
+  reference rate locked at creation. Splits are EQUAL or EXACT. Balances are net-per-person.
+  Settle-up suggestions use the minimum number of transfers at up to 18 non-zero balances, then
+  deterministic greedy netting above that threshold.
 
 ## Running locally
 
@@ -56,7 +57,7 @@ API surface (all under `/split`): `POST /rooms`, `GET /rooms/:slug`, `POST /room
 - Components: `src/components/Split/` — `CreateRoom`, `RoomView` (personalized "X owes you €Y"
   balances, per-expense "you lent / you owe" line, undo snackbar, settled-up history),
   `AddExpenseDrawer` (EQUAL/EXACT, currency picker, live `≈ €77.78` foreign estimate, edit mode),
-  `SettleUpDrawer` (minimal transfers, "Mark as paid", Pay-with-Peanut placeholder), `IdentityGate`.
+  `SettleUpDrawer` (suggested transfers, "Mark as paid", Pay-with-Peanut placeholder), `IdentityGate`.
 - Data: `src/services/split.ts` + `split.types.ts` (hand-written types — `gen:api` not wired yet),
   `src/hooks/query/split.ts` (React Query; mutations seed the cache from the returned snapshot;
   8s poll gives the "people joining live" feel without websockets).
