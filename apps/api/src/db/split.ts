@@ -380,7 +380,7 @@ export async function deleteSettlement(slug: string, settlementId: string): Prom
 
 /**
  * Full room snapshot for the client: members, live (non-deleted) expenses with
- * their shares, settlements, computed net balances, and the suggested minimal
+ * their shares, settlements, computed net balances, and the bounded suggested
  * transfers to settle up. All monetary values are stringified minor units
  * (BigInt isn't JSON-serializable).
  */
