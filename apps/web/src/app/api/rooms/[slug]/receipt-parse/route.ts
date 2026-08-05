@@ -10,11 +10,6 @@
  * the param is not read — and it stays only so the probe and the POST share one
  * URL. The client caches it once, not once per room.
  *
- * It also answers for quick add (`../parse-expense`), which has no GET of its
- * own: one key configures both, so a second probe would be a second round trip
- * returning the same boolean — and two booleans that must always agree are a bug
- * waiting for the deploy where they don't.
- *
  * POST takes one image and returns line items. It writes nothing — no row, no
  * file, and no image anywhere. The scan produces a *draft* the user reviews and
  * then saves through the ordinary expense endpoint, which is why this route is
@@ -22,10 +17,11 @@
  */
 
 import { ApiError, badRequest, json, readJsonCapped, respond } from '@/server/http'
-import { WRITE_LIMIT, enforceRateLimit, type Limit } from '@/server/rateLimit'
+import { WRITE_LIMIT, enforceRateLimit, meterRoomLookup, type Limit } from '@/server/rateLimit'
 import { loadRoom } from '@/server/roomState'
 import { modelEnabled } from '@/server/model'
 import { MAX_IMAGE_BASE64_CHARS, enforceRoomScanLimit, parseReceipt } from '@/server/receipt'
+import { receiptImageMatchesMimeType } from '@/server/receiptImage'
 import { receiptParseSchema } from '@/server/validation'
 import { splitV2Enabled } from '@/lib/flags'
 
@@ -71,13 +67,19 @@ export const POST = (request: Request, ctx: Ctx) =>
         if (!/^[A-Za-z0-9+/]+={0,2}$/.test(body.imageBase64)) {
             throw badRequest('imageBase64 must be raw base64 with no data: prefix', 'SCAN_BAD_IMAGE')
         }
+        if (!receiptImageMatchesMimeType(body.imageBase64, body.mimeType)) {
+            throw badRequest('image bytes do not match the declared mime type', 'SCAN_BAD_IMAGE')
+        }
 
-        const room = await loadRoom(slug)
+        // A room slug is the room credential. Share the same miss budget as
+        // every other slug lookup so this route cannot become a parallel room-
+        // existence oracle just because it also has a stricter model-cost cap.
+        const room = await meterRoomLookup(request, () => loadRoom(slug))
         // Per-room after per-IP, and after the room is known to exist: the daily
         // allowance belongs to a real room, not to a slug someone guessed.
         enforceRoomScanLimit(room.id)
 
-        return await parseReceipt(body, room.currency)
+        return await parseReceipt(body, room.currency, request.signal)
     })
 
 const imageTooLarge = () => new ApiError(413, 'SCAN_IMAGE_TOO_LARGE', 'that image is too large — take a new photo')

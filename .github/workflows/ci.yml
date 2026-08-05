@@ -86,8 +86,11 @@ jobs:
   # structurally blind to that. Advisory like the rest of CI — Dokploy polls
   # git, not this workflow — but it turns a silent prod stall into a red X on
   # the commit, and on a PR it fires before merge.
+  # Build with V2 on: NEXT_PUBLIC flags are compiled into the artifact, and the
+  # ordinary flag-off build above cannot prove the scanner client bundle or the
+  # matching Docker ARG/ENV path is production-buildable.
   docker-web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - run: docker build apps/web
+      - run: docker build --build-arg NEXT_PUBLIC_SPLIT_V2_ENABLED=1 apps/web

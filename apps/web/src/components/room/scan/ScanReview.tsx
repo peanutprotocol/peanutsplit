@@ -15,6 +15,7 @@
  * missed line, a tip written in by hand), not an error to suppress.
  */
 
+import { useRef } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { fieldSizes } from '@/components/ui/field'
@@ -39,6 +40,8 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
     const t = useTranslations('room.scan')
     const locale = useLocale()
     const feedback = useFeedback()
+    const itemListRef = useRef<HTMLUListElement>(null)
+    const addItemRef = useRef<HTMLButtonElement>(null)
 
     const invalidAmounts = invalidAmountItems(state, decimals, locale)
     const total = itemsTotalMinor(state, decimals, locale)
@@ -55,9 +58,13 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                 </p>
             </header>
 
-            <ul className="flex flex-col gap-2">
-                {state.items.map((item) => {
+            <ul ref={itemListRef} className="flex flex-col gap-2">
+                {state.items.map((item, index) => {
                     const invalid = invalidAmounts.some((candidate) => candidate.id === item.id)
+                    const itemName = item.label.trim()
+                    const itemContext = itemName
+                        ? t('itemContext', { number: index + 1, item: itemName })
+                        : t('itemNumber', { number: index + 1 })
                     return (
                         <li key={item.id} className="flex items-center gap-2">
                             <input
@@ -67,7 +74,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                                 }
                                 placeholder={t('itemPlaceholder')}
                                 maxLength={80}
-                                aria-label={t('itemLabel')}
+                                aria-label={t('itemNameFor', { item: itemContext })}
                                 data-testid="scan-item-label"
                                 className={cn('input min-w-0 flex-1', fieldSizes.sm)}
                             />
@@ -87,7 +94,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                                 inputMode="decimal"
                                 autoComplete="off"
                                 placeholder={decimals === 0 ? '0' : '0.00'}
-                                aria-label={t('itemAmount')}
+                                aria-label={t('itemAmountFor', { item: itemContext })}
                                 aria-invalid={invalid || undefined}
                                 aria-describedby={invalid ? 'scan-amount-error' : undefined}
                                 data-testid="scan-item-amount"
@@ -102,8 +109,16 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                                 onClick={() => {
                                     dispatch({ type: 'remove-item', itemId: item.id })
                                     feedback('tick')
+                                    requestAnimationFrame(() => {
+                                        const remaining = itemListRef.current?.querySelectorAll<HTMLButtonElement>(
+                                            '[data-testid="scan-remove-item"]'
+                                        )
+                                        const next = remaining?.[Math.min(index, remaining.length - 1)]
+                                        const focusTarget = next ?? addItemRef.current
+                                        focusTarget?.focus()
+                                    })
                                 }}
-                                aria-label={t('removeItem')}
+                                aria-label={t('removeItemFor', { item: itemContext })}
                                 data-testid="scan-remove-item"
                                 className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
                             >
@@ -132,6 +147,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
             )}
 
             <button
+                ref={addItemRef}
                 type="button"
                 onClick={() => {
                     dispatch({ type: 'add-item' })

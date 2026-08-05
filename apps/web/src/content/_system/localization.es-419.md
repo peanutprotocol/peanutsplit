@@ -409,7 +409,7 @@ known-wrong spelling is absent. Accent correctness stays with the cold read (sty
 
 Split ships nothing country-gated, so mono's country coming-soon block (`localization.es-419.md` §6)
 does not transfer. What does transfer is its shape, for Split features behind
-`NEXT_PUBLIC_SPLIT_V2_ENABLED`, such as receipt scanning and natural-language entry:
+`NEXT_PUBLIC_SPLIT_V2_ENABLED`, such as receipt scanning:
 
 - Future tense, `Próximamente:` prefix before the action verb. Never present tense for something
   that is not live.

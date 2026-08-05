@@ -11,17 +11,36 @@ import { truncateAll } from '@/server/test/db'
 import { MAX_IMAGE_BASE64_CHARS, ROOM_SCAN_LIMIT } from '@/server/receipt'
 import { resetRateLimits } from '@/server/rateLimit'
 import { GET as scanStatus, POST as scanParse } from '@/app/api/rooms/[slug]/receipt-parse/route'
+import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
-import type { ApiError, ParsedReceipt, RoomStateWithMember } from '@/lib/api-types'
+import type { ApiError, ParsedReceipt, ReceiptParseInput, RoomStateWithMember } from '@/lib/api-types'
 
 const BASE = 'http://localhost'
 const API_KEY = 'test-gemini-key'
 const priorV2 = process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
 
-/** Valid base64 characters; the bytes are never decoded by anything under test. */
-const image = (chars = 2048) => 'A'.repeat(chars)
+type ReceiptMimeType = ReceiptParseInput['mimeType']
 
-const post = async <T>(slug: string, body: unknown, init: { contentLength?: number; ip?: string } = {}) => {
+const signedImages = {
+    'image/jpeg': Buffer.from([
+        0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
+    ]).toString('base64'),
+    'image/png': Buffer.from([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    ]).toString('base64'),
+    'image/webp': Buffer.from([
+        0x52, 0x49, 0x46, 0x46, 0x08, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x20,
+    ]).toString('base64'),
+} satisfies Record<ReceiptMimeType, string>
+
+/** Exact-length base64 with a JPEG signature, for the ordinary and size-limit paths. */
+const image = (chars = 2048) => `${signedImages['image/jpeg'].slice(0, 4)}${'A'.repeat(chars)}`.slice(0, chars)
+
+const post = async <T>(
+    slug: string,
+    body: unknown,
+    init: { contentLength?: number; ip?: string; signal?: AbortSignal } = {}
+) => {
     const request = new Request(`${BASE}/api/rooms/${slug}/receipt-parse`, {
         method: 'POST',
         headers: {
@@ -30,6 +49,7 @@ const post = async <T>(slug: string, body: unknown, init: { contentLength?: numb
             ...(init.ip ? { 'X-Forwarded-For': init.ip } : {}),
         },
         body: JSON.stringify(body),
+        signal: init.signal,
     })
     const response = await scanParse(request, { params: Promise.resolve({ slug }) })
     return { status: response.status, body: (await response.json()) as T }
@@ -60,6 +80,12 @@ const postChunked = async (slug: string, payload: string) => {
         duplex: 'half',
     } as RequestInit & { duplex: 'half' })
     const response = await scanParse(request, { params: Promise.resolve({ slug }) })
+    return { status: response.status, body: (await response.json()) as ApiError }
+}
+
+const readRoom = async (slug: string) => {
+    const request = new Request(`${BASE}/api/rooms/${slug}`)
+    const response = await getRoom(request, { params: Promise.resolve({ slug }) })
     return { status: response.status, body: (await response.json()) as ApiError }
 }
 
@@ -226,6 +252,39 @@ describe('POST — the gates in front of the model', () => {
         expect(body.error.code).toBe('SCAN_BAD_IMAGE')
     })
 
+    it.each(Object.entries(signedImages) as [ReceiptMimeType, string][])(
+        'accepts bytes carrying the declared %s signature',
+        async (mimeType, imageBase64) => {
+            const slug = await newRoom()
+            const fetchMock = vi.fn(async () => modelAnswer({ items: [{ label: 'Beer', amountMinor: '500' }] }))
+            vi.stubGlobal('fetch', fetchMock)
+
+            const { status } = await post<ParsedReceipt>(slug, { imageBase64, mimeType })
+
+            expect(status).toBe(200)
+            expect(fetchMock).toHaveBeenCalledOnce()
+        }
+    )
+
+    it.each([
+        ['image/jpeg', 'image/png'],
+        ['image/png', 'image/webp'],
+        ['image/webp', 'image/jpeg'],
+    ] as const)('rejects %s bytes declared as %s before calling the provider', async (actualType, declaredType) => {
+        const slug = await newRoom()
+        const fetchMock = vi.fn()
+        vi.stubGlobal('fetch', fetchMock)
+
+        const { status, body } = await post<ApiError>(slug, {
+            imageBase64: signedImages[actualType],
+            mimeType: declaredType,
+        })
+
+        expect(status).toBe(400)
+        expect(body.error.code).toBe('SCAN_BAD_IMAGE')
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+
     it('404s an unknown room', async () => {
         vi.stubGlobal('fetch', vi.fn())
         const { status, body } = await post<ApiError>('no-such-room-aaaaaa', {
@@ -234,6 +293,46 @@ describe('POST — the gates in front of the model', () => {
         })
         expect(status).toBe(404)
         expect(body.error.code).toBe('NOT_FOUND')
+    })
+
+    it('shares the room-lookup miss budget and hides real slugs once it is exhausted', async () => {
+        const slug = await newRoom()
+        const fetchMock = vi.fn()
+        vi.stubGlobal('fetch', fetchMock)
+
+        // Spend most of the shared 30-miss allowance through the ordinary room
+        // endpoint, then finish it here. If scanning kept a private lookup
+        // bucket, all of the receipt requests below would still answer 404.
+        for (let i = 0; i < 25; i++) {
+            expect((await readRoom(`missing-read-${i}`)).status).toBe(404)
+        }
+        for (let i = 0; i < 5; i++) {
+            expect(
+                (
+                    await post<ApiError>(`missing-scan-${i}`, {
+                        imageBase64: image(),
+                        mimeType: 'image/jpeg',
+                    })
+                ).status
+            ).toBe(404)
+        }
+
+        const exhaustedMiss = await post<ApiError>('missing-scan-5', {
+            imageBase64: image(),
+            mimeType: 'image/jpeg',
+        })
+        expect(exhaustedMiss.status).toBe(429)
+        expect(exhaustedMiss.body.error.code).toBe('RATE_LIMITED')
+
+        // Refuse an existing slug at the same boundary; otherwise the 429/404
+        // distinction would itself reveal whether the guessed room exists.
+        const existing = await post<ApiError>(slug, {
+            imageBase64: image(),
+            mimeType: 'image/jpeg',
+        })
+        expect(existing.status).toBe(429)
+        expect(existing.body.error.code).toBe('RATE_LIMITED')
+        expect(fetchMock).not.toHaveBeenCalled()
     })
 
     it('caps a single IP at ten scans an hour', async () => {
@@ -345,6 +444,36 @@ describe('POST — the model boundary', () => {
         )
 
         const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        expect(status).toBe(502)
+        expect(body.error.code).toBe('SCAN_FAILED')
+    })
+
+    it('aborts the outbound provider request when the receipt POST is aborted', async () => {
+        const slug = await newRoom()
+        const requestController = new AbortController()
+        const fetchMock = vi.fn((_url: string | URL | Request, init?: RequestInit) => {
+            const signal = init?.signal
+            return new Promise<Response>((_resolve, reject) => {
+                if (!signal) return
+                const rejectAbort = () => reject(signal.reason ?? new DOMException('aborted', 'AbortError'))
+                if (signal.aborted) rejectAbort()
+                else signal.addEventListener('abort', rejectAbort, { once: true })
+            })
+        })
+        vi.stubGlobal('fetch', fetchMock)
+
+        const pending = post<ApiError>(
+            slug,
+            { imageBase64: image(), mimeType: 'image/jpeg' },
+            { signal: requestController.signal }
+        )
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
+        const providerSignal = (fetchMock.mock.calls[0]?.[1] as RequestInit | undefined)?.signal
+
+        requestController.abort()
+        const { status, body } = await pending
+
+        expect(providerSignal?.aborted).toBe(true)
         expect(status).toBe(502)
         expect(body.error.code).toBe('SCAN_FAILED')
     })

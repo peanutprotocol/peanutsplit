@@ -946,7 +946,7 @@ test('the room handoff shares a localized message, the link, and the room drawin
 test('v1 exposes Splitwise import without exposing AI tooling', async ({ page }) => {
     await openLanding(page)
     await expect(page.getByRole('link', { name: 'Import from Splitwise' })).toBeVisible()
-    await expect(page.getByText(/quick add|scan a receipt|AI receipt/i)).toHaveCount(0)
+    await expect(page.getByText(/scan a receipt|AI receipt/i)).toHaveCount(0)
 
     expect((await page.goto('/import'))?.status()).toBe(200)
     expect((await page.goto('/blog/scan-a-receipt-to-split-a-bill'))?.status()).toBe(404)

@@ -8,6 +8,7 @@ describe('expense drawer workflow state', () => {
             ...initialExpenseDrawerWorkflowState(),
             submitted: true,
             error: 'save failed',
+            scannerOpen: true,
             scanFile: file,
             payerDraft: { open: true, name: 'Bea', error: 'payer failed' },
             participantDraft: { open: true, name: 'Carla', error: 'participant failed' },
@@ -54,11 +55,25 @@ describe('expense drawer workflow state', () => {
         state = reduce(state, { type: 'error-set', error: 'Old validation failure' })
         state = reduce(state, { type: 'scan-selected', file })
 
+        expect(state).toMatchObject({ scannerOpen: true, scanFile: file })
+
         expect(reduce(state, { type: 'scan-applied' })).toMatchObject({
             submitted: false,
             error: null,
+            scannerOpen: false,
             scanFile: null,
         })
+    })
+
+    it('opens camera without a file and clears the whole session on cancel', () => {
+        const file = { name: 'receipt.jpg' } as File
+        let state = reduce(initialExpenseDrawerWorkflowState(), { type: 'scan-opened' })
+        expect(state).toMatchObject({ scannerOpen: true, scanFile: null })
+
+        state = reduce(state, { type: 'scan-selected', file })
+        expect(state).toMatchObject({ scannerOpen: true, scanFile: file })
+
+        expect(reduce(state, { type: 'scan-cancelled' })).toMatchObject({ scannerOpen: false, scanFile: null })
     })
 
     it('keeps editor, advanced disclosure and delete confirmation transitions explicit', () => {

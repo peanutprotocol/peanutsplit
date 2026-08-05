@@ -38,10 +38,10 @@ stabilization pass, but its expense-drawer entry point is intentionally hidden
 in v1. A real-device post-scan review could become unresponsive while the
 underlying drawer remained reachable. Re-enable only after the image-decoding →
 review → assignment portal lifecycle has a mobile regression test and a
-real-device pass. Typed quick-add remains available.
+real-device pass.
 
 **Owner: Konrad.** Decided 2026-07-28 (Hugo): the v1/v2 boundary —
-`splitV2Enabled()` and everything behind it (scan, NL entry, Splitwise import)
+`splitV2Enabled()` and everything behind it (scan and Splitwise import)
 — is Konrad's call to flip, and nobody else's. The flip itself is one Dokploy
 build arg on the web app (`NEXT_PUBLIC_SPLIT_V2_ENABLED=1`) plus a redeploy —
 the marketing surface is already flag-aware and starts claiming the features
@@ -82,14 +82,13 @@ Verified as a real gate: reverting the `pointer-events-auto` fix fails it with
 all nine viewport probes landing outside the overlay. **A real-device pass is
 still outstanding** and is the remaining half of the written condition.
 
-**Release verification 2026-08-04.** The flag-on dark suite passed 7/8. The
-primary journey (`apps/web/e2e-v2/scan.spec.ts:78`) reaches the review screen,
-passes the full-viewport hit test and renders editable receipt rows, but focus
-does not remain on the first item label after a click. This is non-blocking only
-because scanning is disabled in the production build. Do not flip
-`NEXT_PUBLIC_SPLIT_V2_ENABLED` until the suite is 8/8 and the real-device pass
-above is complete; investigate this as a portal/drawer focus-lifecycle issue,
-not as part of an unrelated v1 release.
+**Release verification 2026-08-05.** The rebased flag-on dark suite passes all
+13 Chromium journeys. It covers camera lifecycle and upload fallback, modal
+focus/inert ownership, retry and cancellation, Back/Forward symmetry,
+contextual receipt-row names and post-delete focus, draft-only handoff, and the
+single ordinary expense write. A flag-on production Docker build is also a CI
+gate. Do not flip `NEXT_PUBLIC_SPLIT_V2_ENABLED` until the real-device pass above
+is complete; mocked browser camera and model boundaries are not that evidence.
 
 ## Shipped (beyond the 07-25 launch state)
 

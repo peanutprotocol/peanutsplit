@@ -63,7 +63,6 @@ import { useShake } from '@/hooks/useShake'
 import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
-import { QuickAdd } from './QuickAdd'
 import { ExpenseComposer } from './expense-drawer/ExpenseComposer'
 import { ExpenseDateEditor } from './expense-drawer/ExpenseDateEditor'
 import { ExpenseDrawerActions } from './expense-drawer/ExpenseDrawerActions'
@@ -88,7 +87,7 @@ interface ExpenseDrawerProps {
     defaultPaidById: string
     /** `?shared=1` — a photo the OS share sheet parked for this room. */
     sharedReceipt?: boolean
-    onSharedReceiptConsumed?: () => void
+    onSharedReceiptConsumed?: () => void | Promise<void>
 }
 
 const ADVANCED_SPLIT_MODES = ['EXACT', 'PERCENTAGE', 'SHARES'] as const
@@ -139,6 +138,7 @@ export function ExpenseDrawer({
     const {
         submitted,
         error,
+        scannerOpen,
         scanFile,
         payerDraft: { open: addingPayer, name: newPayerName, error: payerError },
         participantDraft: { open: addingParticipant, name: newParticipantName, error: participantError },
@@ -155,15 +155,65 @@ export function ExpenseDrawer({
     const amountRef = useRef<HTMLInputElement>(null)
     const manualFxRateRef = useRef<HTMLInputElement>(null)
     const validationAlertRef = useRef<HTMLParagraphElement>(null)
+    const scanHistoryMarkerRef = useRef<string | null>(null)
+    const sharedHandoffRef = useRef<Promise<void> | null>(null)
+    const mountedRef = useRef(false)
+    const openRef = useRef(open)
+    openRef.current = open
     // React does not disable the button until the mutation state renders. A
     // second tap in that gap would mint a second clientKey and create a second
     // expense, so the synchronous guard owns the save attempt.
     const savingRef = useRef(false)
-    /** A server capability for typed quick-add, asked rather than compiled in.
-     *  Receipt scanning stays in the codebase as backlog work, but its entry
-     *  point is intentionally absent from v1 after the post-scan overlay proved
-     *  capable of trapping taps on real devices. */
+    /** The key stays server-side, so the drawer asks the deployment whether the
+     *  scanner can work before it offers the camera action. */
     const { enabled: modelEnabled, resolved: modelResolved } = useModelStatus(slug, splitV2Enabled())
+
+    useEffect(() => {
+        mountedRef.current = true
+        return () => {
+            mountedRef.current = false
+        }
+    }, [])
+
+    const armScanHistory = useCallback(() => {
+        if (scanHistoryMarkerRef.current) return
+        const marker = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+        window.history.pushState({ ...window.history.state, peanutSplitScanner: marker }, '', window.location.href)
+        scanHistoryMarkerRef.current = marker
+    }, [])
+
+    const closeScanner = useCallback((action: 'scan-cancelled' | 'scan-applied') => {
+        const marker = scanHistoryMarkerRef.current
+        scanHistoryMarkerRef.current = null
+        dispatchWorkflow({ type: action })
+        // Remove only the same-URL boundary this scanner added. A route replace
+        // may have replaced its state; Back would then leave the room and must
+        // not be guessed at.
+        if (marker && window.history.state?.peanutSplitScanner === marker) window.history.back()
+    }, [])
+
+    useEffect(() => {
+        const syncScannerWithHistory = (event: PopStateEvent) => {
+            const marker = typeof event.state?.peanutSplitScanner === 'string' ? event.state.peanutSplitScanner : null
+
+            if (scannerOpen) {
+                const armedMarker = scanHistoryMarkerRef.current
+                if (!armedMarker || marker === armedMarker) return
+                scanHistoryMarkerRef.current = null
+                dispatchWorkflow({ type: 'scan-cancelled' })
+                return
+            }
+
+            // Back closes the camera boundary; Forward should restore it. Leaving
+            // the same-URL marker visually dead makes the next Back appear broken
+            // and lets repeated opens accumulate invisible history steps.
+            if (!marker || !openRef.current || expense) return
+            scanHistoryMarkerRef.current = marker
+            dispatchWorkflow({ type: 'scan-opened' })
+        }
+        window.addEventListener('popstate', syncScannerWithHistory)
+        return () => window.removeEventListener('popstate', syncScannerWithHistory)
+    }, [expense, scannerOpen])
 
     // Re-seed on every open: a drawer that remembers last time's amount is a
     // money bug waiting to happen.
@@ -197,6 +247,16 @@ export function ExpenseDrawer({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, expense?.id])
 
+    // A route Back can close `?add=1` while the scanner portal is active. The
+    // drawer component itself remains mounted, so clear its local session too;
+    // a full-screen scanner must never outlive the URL-owned expense workflow.
+    useEffect(() => {
+        if (!open && scannerOpen) {
+            scanHistoryMarkerRef.current = null
+            dispatchWorkflow({ type: 'scan-cancelled' })
+        }
+    }, [open, scannerOpen])
+
     /**
      * A receipt shared in from the OS, picked up once.
      *
@@ -217,7 +277,10 @@ export function ExpenseDrawer({
      * fail.
      */
     useEffect(() => {
-        if (!sharedReceipt) return
+        if (!sharedReceipt) {
+            sharedHandoffRef.current = null
+            return
+        }
 
         const drop = () => {
             void discardSharedReceipt(caches)
@@ -236,15 +299,22 @@ export function ExpenseDrawer({
             return
         }
 
-        let cancelled = false
-        void takeSharedReceipt(caches).then((file) => {
-            if (!cancelled && file) dispatchWorkflow({ type: 'scan-selected', file })
-            onSharedReceiptConsumed?.()
-        })
-        return () => {
-            cancelled = true
-        }
-    }, [open, sharedReceipt, modelResolved, modelEnabled, onSharedReceiptConsumed])
+        // Own the whole handoff promise, not just the cache read. Strict Mode
+        // re-runs this effect and the URL replacement itself changes a dependency;
+        // neither may consume or dispatch the same shared photo twice.
+        sharedHandoffRef.current ??= (async () => {
+            const file = await takeSharedReceipt(caches)
+
+            // Clear the one-shot URL flag before adding the scanner's same-URL
+            // Back boundary. Replacing after push would overwrite that boundary
+            // with a stale `shared=1` snapshot and make reload scan a spent photo.
+            await onSharedReceiptConsumed?.()
+
+            if (!file || !mountedRef.current || !openRef.current) return
+            armScanHistory()
+            dispatchWorkflow({ type: 'scan-selected', file })
+        })()
+    }, [open, sharedReceipt, modelResolved, modelEnabled, onSharedReceiptConsumed, armScanHistory])
 
     // Own effect rather than a line in the re-seed above: that one also runs when
     // you tap straight from one expense to another, and the sheet is already open
@@ -940,7 +1010,20 @@ export function ExpenseDrawer({
      * only ever confirmation of what is already legible in the composer.
      */
     const amountChars = values.amountInput.trim().length
-    const amountTextSize = amountChars > 13 ? 'text-h5' : amountChars > 9 ? 'text-h4' : 'text-h3'
+    const scannerAvailable = !expense && modelResolved && modelEnabled
+    const amountTextSize = scannerAvailable
+        ? amountChars > 13
+            ? 'text-h6'
+            : amountChars > 10
+              ? 'text-h5'
+              : amountChars > 7
+                ? 'text-h4'
+                : 'text-h3'
+        : amountChars > 13
+          ? 'text-h5'
+          : amountChars > 9
+            ? 'text-h4'
+            : 'text-h3'
     const primaryLabel = expense
         ? t('save')
         : positiveTotal && amountChars <= 9
@@ -950,8 +1033,14 @@ export function ExpenseDrawer({
 
     return (
         <Drawer
-            open={open}
-            onOpenChange={(next) => !next && close()}
+            open={open && !scannerOpen}
+            onOpenChange={(next) => {
+                // Opening the full-screen scanner deliberately closes this modal
+                // layer while keeping its React state mounted. Vaul reports that
+                // programmatic close through the same callback as a dismissal;
+                // only the latter is allowed to clear the room's drawer state.
+                if (!next && !scannerOpen) close()
+            }}
             // Vaul snapshots the sheet's height when the software keyboard opens.
             // If an editor mounts while that keyboard closes, it restores the old
             // pixel height and clips the new section. Fall back to native input
@@ -961,6 +1050,13 @@ export function ExpenseDrawer({
             <DrawerContent
                 data-testid="expense-drawer"
                 className="bg-background"
+                onCloseAutoFocus={(event) => {
+                    if (!scannerOpen) return
+                    event.preventDefault()
+                    window.requestAnimationFrame(() => {
+                        document.querySelector<HTMLElement>('[data-testid="scan-flow"]')?.focus()
+                    })
+                }}
                 /**
                  * The scan overlay is portalled to `document.body`, and Radix decides
                  * what is "outside" this sheet by containment — so every tap in the
@@ -1023,6 +1119,14 @@ export function ExpenseDrawer({
                             decimals,
                             invalid: amountInvalid,
                             textSizeClass: amountTextSize,
+                            action: scannerAvailable ? (
+                                <ScanButton
+                                    onOpen={() => {
+                                        armScanHistory()
+                                        dispatchWorkflow({ type: 'scan-opened' })
+                                    }}
+                                />
+                            ) : undefined,
                             onChange: (value) => {
                                 patch({ amountInput: value })
                                 dispatchWorkflow({ type: 'form-field-edited' })
@@ -1075,39 +1179,6 @@ export function ExpenseDrawer({
                             amountRequired: t('validation.AMOUNT_REQUIRED'),
                         }}
                     />
-
-                    {/* Right under the composer, and only when adding: quick add
-                        rewrites the receipt and its split. It remains progressive
-                        enhancement; the card never depends on the model probe. */}
-                    {!expense && !modelResolved && (
-                        <div
-                            data-testid="expense-tools-loading"
-                            aria-hidden="true"
-                            className="flex flex-wrap items-start gap-2"
-                        >
-                            {splitV2Enabled() && (
-                                <span className="min-h-11 w-32 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
-                            )}
-                            <span className="min-h-11 w-28 animate-pulse rounded-sm border border-dashed border-grey-1 bg-grey-4 opacity-50" />
-                        </div>
-                    )}
-                    {!expense && modelResolved && modelEnabled && (
-                        <div className="flex flex-wrap items-start gap-2">
-                            <ScanButton onFile={(file) => dispatchWorkflow({ type: 'scan-selected', file })} />
-                            <QuickAdd
-                                slug={slug}
-                                roomCurrency={state.room.currency}
-                                currencies={currencies}
-                                values={values}
-                                onApply={(next) => {
-                                    setValues(next)
-                                    setManualFxRateInput('')
-                                    setManualFxRateSource(null)
-                                    dispatchWorkflow({ type: 'quick-add-applied' })
-                                }}
-                            />
-                        </div>
-                    )}
 
                     {isForeign && (
                         <div
@@ -1913,23 +1984,23 @@ export function ExpenseDrawer({
             {/* The scan overlay writes back into this sheet and creates nothing:
                 `onApply` hands over form values and the save button above is still
                 the only thing that writes. */}
-            {scanFile && (
+            {scannerOpen && (
                 <ScanFlow
-                    file={scanFile}
+                    initialFile={scanFile}
                     slug={slug}
                     token={token}
                     members={state.members}
                     roomCurrency={state.room.currency}
                     currencies={currencies}
                     baseValues={values}
-                    onCancel={() => dispatchWorkflow({ type: 'scan-cancelled' })}
+                    onCancel={() => closeScanner('scan-cancelled')}
                     onApply={(next) => {
                         setValues(next)
                         setManualFxRateInput('')
                         setManualFxRateSource(null)
                         // The form is now reconciled by construction, so an error
                         // left over from before the scan is stale by definition.
-                        dispatchWorkflow({ type: 'scan-applied' })
+                        closeScanner('scan-applied')
                     }}
                 />
             )}

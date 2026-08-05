@@ -31,7 +31,7 @@
  * surface that cannot be touched.
  */
 
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
@@ -44,14 +44,15 @@ import type { ExpenseFormValues } from '@/lib/expense-form'
 import { decimalsOf, formatAmountInput } from '@/lib/money'
 import { useFeedback } from '@/lib/use-settings'
 import { ScanAssign } from './ScanAssign'
+import { ScanCamera } from './ScanCamera'
 import { ScanReview } from './ScanReview'
 import { ScanningAnimation } from './ScanningAnimation'
 import { ImageTooLargeError, ImageUnreadableError, prepareReceiptImage } from './scan-image'
 import { initScanState, scanReducer, toExpenseFormValues, type ScanState } from './scan-state'
 
 interface ScanFlowProps {
-    /** The picked photo. A new file restarts the flow from scratch. */
-    file: File
+    /** OS-share entry can arrive with a photo; an ordinary open starts live camera. */
+    initialFile?: File | null
     slug: string
     token?: string | null
     members: readonly ApiMember[]
@@ -64,7 +65,7 @@ interface ScanFlowProps {
     onApply: (values: ExpenseFormValues) => void
 }
 
-type Phase = 'scanning' | 'review' | 'assign' | 'error'
+type Phase = 'camera' | 'scanning' | 'review' | 'assign' | 'error'
 
 /** A reducer needs a state to start from; the real one arrives with the parse. */
 const EMPTY: ScanState = {
@@ -77,7 +78,7 @@ const EMPTY: ScanState = {
 }
 
 export function ScanFlow({
-    file,
+    initialFile = null,
     slug,
     token,
     members,
@@ -92,7 +93,8 @@ export function ScanFlow({
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
 
-    const [phase, setPhase] = useState<Phase>('scanning')
+    const [file, setFile] = useState<File | null>(initialFile)
+    const [phase, setPhase] = useState<Phase>(initialFile ? 'scanning' : 'camera')
     const [error, setError] = useState<string | null>(null)
     const [state, dispatch] = useReducer(scanReducer, EMPTY)
     const [mounted, setMounted] = useState(false)
@@ -114,51 +116,154 @@ export function ScanFlow({
      * vision call is a real bill on a real API key), and whichever run is still
      * alive when it lands is the one that applies it.
      */
-    const read = useRef<{ file: File; promise: Promise<ParsedReceipt> } | null>(null)
+    const read = useRef<{ file: File; promise: Promise<ParsedReceipt>; controller: AbortController } | null>(null)
     const rootRef = useRef<HTMLDivElement>(null)
+    // Room polling re-renders the parent while somebody may be editing a
+    // receipt row. Keep cancellation fresh without re-running the modality
+    // effect and moving focus back to the dialog root.
+    const onCancelRef = useRef(onCancel)
+    onCancelRef.current = onCancel
 
     useEffect(() => setMounted(true), [])
 
-    /**
-     * Dialog focus, both ways — and the second half is not politeness.
-     *
-     * Taking focus is the ordinary reason: a screen reader lands on the dialog
-     * rather than staying on the button that opened it, and a caret left in one
-     * of the drawer's fields does not keep receiving the keyboard from under a
-     * full-screen overlay.
-     *
-     * GIVING IT BACK is what stops the drawer beneath from dismissing itself as
-     * this overlay unmounts. The drawer is a Radix layer that watches for focus
-     * leaving it; when a focused element inside this overlay disappears, focus
-     * falls to `<body>`, Radix reads that as an interaction outside the sheet
-     * and closes it — taking the URL state, and therefore the reviewed bill's
-     * destination, with it. Putting focus back where it came from means focus
-     * never leaves the layer at all. The restore runs in the cleanup, which
-     * React runs before it detaches this subtree, so the target is still there.
-     */
-    useEffect(() => {
-        const previouslyFocused = document.activeElement as HTMLElement | null
-        return () => {
-            if (previouslyFocused?.isConnected) previouslyFocused.focus({ preventScroll: true })
-        }
+    const cancel = useCallback(() => {
+        read.current?.controller.abort()
+        onCancelRef.current()
+    }, [])
+
+    const chooseFile = useCallback((next: File) => {
+        read.current?.controller.abort()
+        read.current = null
+        setError(null)
+        setFile(next)
+        setPhase('scanning')
     }, [])
 
     useEffect(() => {
-        if (mounted) rootRef.current?.focus({ preventScroll: true })
-    }, [mounted])
+        const abort = () => read.current?.controller.abort()
+        window.addEventListener('pagehide', abort)
+        return () => {
+            window.removeEventListener('pagehide', abort)
+            const pending = read.current
+            // Strict Mode cleans up and re-runs effects without removing the DOM.
+            // Wait one microtask so only a real unmount cancels the paid request.
+            queueMicrotask(() => {
+                if (!rootRef.current?.isConnected) pending?.controller.abort()
+            })
+        }
+    }, [])
+
+    /**
+     * This portal is a real modal, even though it sits beside the already-open
+     * expense drawer in `document.body`. Make every sibling inert and keep Tab
+     * inside this root; painting over the drawer is not enough to hide it from a
+     * keyboard or a screen reader.
+     */
+    useEffect(() => {
+        if (!mounted || !rootRef.current) return
+        const root = rootRef.current
+        const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+        /**
+         * The expense drawer is still finishing its exit animation when this
+         * dialog mounts. Its own cleanup later removes `inert` from the app root,
+         * so a one-time sweep is racy: the camera remains visually modal while
+         * the room becomes reachable to assistive technology. Keep ownership for
+         * the scanner's whole lifetime and claim an element if another layer
+         * releases it underneath us.
+         */
+        const ownedInert = new Set<HTMLElement>()
+        const enforceInert = (element: Element) => {
+            if (
+                !(element instanceof HTMLElement) ||
+                element.parentElement !== document.body ||
+                element === root ||
+                element.inert
+            )
+                return
+            ownedInert.add(element)
+            element.inert = true
+        }
+        for (const element of document.body.children) enforceInert(element)
+
+        const inertObserver = new MutationObserver((records) => {
+            for (const record of records) {
+                if (record.type === 'attributes') {
+                    enforceInert(record.target as Element)
+                    continue
+                }
+                for (const node of record.addedNodes) {
+                    if (node instanceof Element) enforceInert(node)
+                }
+            }
+        })
+        inertObserver.observe(document.body, {
+            childList: true,
+            // Attribute observation applies to the observed node itself unless
+            // subtree is enabled. `enforceInert` still limits ownership to direct
+            // body children, so nested UI state cannot accidentally become inert.
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['inert'],
+        })
+
+        const focusable = () =>
+            Array.from(
+                root.querySelectorAll<HTMLElement>(
+                    'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+                )
+            ).filter((element) => element.getClientRects().length > 0 && !element.closest('[inert]'))
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                event.preventDefault()
+                cancel()
+                return
+            }
+            if (event.key !== 'Tab') return
+            const candidates = focusable()
+            if (candidates.length === 0) {
+                event.preventDefault()
+                root.focus()
+                return
+            }
+            const first = candidates[0]
+            const last = candidates[candidates.length - 1]
+            if (event.shiftKey && (document.activeElement === first || document.activeElement === root)) {
+                event.preventDefault()
+                last.focus()
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault()
+                first.focus()
+            }
+        }
+
+        root.addEventListener('keydown', onKeyDown)
+        root.focus({ preventScroll: true })
+        return () => {
+            inertObserver.disconnect()
+            root.removeEventListener('keydown', onKeyDown)
+            for (const element of ownedInert) element.inert = false
+            queueMicrotask(() => {
+                if (previouslyFocused?.isConnected) previouslyFocused.focus({ preventScroll: true })
+            })
+        }
+    }, [mounted, cancel])
 
     useEffect(() => {
+        if (!file) return
         let cancelled = false
 
         /** Started at most once per photo, however many times this effect runs. */
         const readOnce = (): Promise<ParsedReceipt> => {
             if (read.current?.file !== file) {
+                const controller = new AbortController()
                 read.current = {
                     file,
+                    controller,
                     promise: (async () => {
                         track('receipt_scan_started', roomProps(slug))
                         const image = await prepareReceiptImage(file)
-                        return api.receipt.parse(slug, image, token)
+                        return api.receipt.parse(slug, image, token, controller.signal)
                     })(),
                 }
             }
@@ -247,56 +352,79 @@ export function ScanFlow({
             // Focusable so the overlay can take focus off whatever is behind it —
             // see the note at the top of the file.
             tabIndex={-1}
-            className="pointer-events-auto fixed inset-0 z-[60] overflow-y-auto overscroll-contain bg-background"
+            className={
+                phase === 'camera'
+                    ? 'pointer-events-auto fixed inset-0 z-[60] overflow-hidden bg-n-1 outline-none'
+                    : 'pointer-events-auto fixed inset-0 z-[60] overflow-y-auto overscroll-contain bg-background outline-none'
+            }
         >
-            <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
-                <div className="flex items-center justify-between">
-                    <span className="text-h8 uppercase tracking-wide text-grey-1">
-                        {phase === 'assign' ? t('step2') : t('step1')}
-                    </span>
-                    <CloseButton onClick={onCancel} label={t('cancel')} data-testid="scan-close" />
-                </div>
-
-                {phase === 'scanning' && <ScanningAnimation />}
-
-                {phase === 'error' && (
-                    <div className="flex flex-col gap-3 py-8">
-                        <p role="alert" className="text-h7 text-error">
-                            {error}
-                        </p>
-                        <p className="text-sm text-grey-1">{t('errors.hint')}</p>
-                        <Button variant="stroke" onClick={onCancel} className="justify-center">
-                            {t('cancel')}
-                        </Button>
+            {phase === 'camera' ? (
+                <ScanCamera onCancel={cancel} onFile={chooseFile} />
+            ) : (
+                <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
+                    <div className="flex items-center justify-between">
+                        <span className="text-h8 uppercase tracking-wide text-grey-1">
+                            {phase === 'assign' ? t('step2') : t('step1')}
+                        </span>
+                        <CloseButton onClick={cancel} label={t('cancel')} data-testid="scan-close" />
                     </div>
-                )}
 
-                {phase === 'review' && (
-                    <ScanReview
-                        state={state}
-                        dispatch={dispatch}
-                        decimals={decimals}
-                        currencies={currencies}
-                        onContinue={() => {
-                            feedback('whoosh')
-                            setPhase('assign')
-                        }}
-                        onCancel={onCancel}
-                    />
-                )}
+                    {phase === 'scanning' && <ScanningAnimation />}
 
-                {phase === 'assign' && (
-                    <ScanAssign
-                        state={state}
-                        dispatch={dispatch}
-                        members={members}
-                        decimals={decimals}
-                        currencies={currencies}
-                        onBack={() => setPhase('review')}
-                        onApply={apply}
-                    />
-                )}
-            </div>
+                    {phase === 'error' && (
+                        <div className="flex flex-col gap-3 py-8">
+                            <p role="alert" className="text-h7 text-error">
+                                {error}
+                            </p>
+                            <p className="text-sm text-grey-1">{t('errors.hint')}</p>
+                            <Button
+                                variant="primary"
+                                shadowSize="4"
+                                onClick={() => {
+                                    read.current?.controller.abort()
+                                    read.current = null
+                                    setFile(null)
+                                    setError(null)
+                                    setPhase('camera')
+                                }}
+                                className="justify-center"
+                                data-testid="scan-retry"
+                            >
+                                {t('tryAgain')}
+                            </Button>
+                            <Button variant="stroke" onClick={cancel} className="justify-center">
+                                {t('cancel')}
+                            </Button>
+                        </div>
+                    )}
+
+                    {phase === 'review' && (
+                        <ScanReview
+                            state={state}
+                            dispatch={dispatch}
+                            decimals={decimals}
+                            currencies={currencies}
+                            onContinue={() => {
+                                feedback('whoosh')
+                                setPhase('assign')
+                            }}
+                            onCancel={cancel}
+                        />
+                    )}
+
+                    {phase === 'assign' && (
+                        <ScanAssign
+                            state={state}
+                            dispatch={dispatch}
+                            members={members}
+                            decimals={decimals}
+                            currencies={currencies}
+                            onBack={() => setPhase('review')}
+                            onApply={apply}
+                        />
+                    )}
+                </div>
+            )}
         </div>,
         document.body
     )
