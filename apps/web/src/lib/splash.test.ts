@@ -42,6 +42,6 @@ describe('iOS launch screens', () => {
             .filter((entry) => entry.isDirectory())
             .map((entry) => entry.name)
             .sort()
-        expect(folders).toEqual(['doodles', 'fonts', 'icons'])
+        expect(folders).toEqual(['dev', 'doodles', 'fonts', 'icons'])
     })
 })
