@@ -22,7 +22,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_BASE_URL
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
 ARG NEXT_PUBLIC_SPLIT_V2_ENABLED
-ENV NEXT_PUBLIC_SPLIT_V2_ENABLED=$NEXT_PUBLIC_SPLIT_V2_ENABLED
+# Receipt scanning is public from the 2026-08-05 release. Keep the ARG declared
+# so the existing Dokploy build setting remains accepted, but bake the release
+# on regardless of an absent/blank stale value. Rollback is this one-line revert
+# plus the ordinary main deploy.
+ENV NEXT_PUBLIC_SPLIT_V2_ENABLED=1
 ARG NEXT_PUBLIC_LANDING_VARIANT
 ENV NEXT_PUBLIC_LANDING_VARIANT=$NEXT_PUBLIC_LANDING_VARIANT
 ARG NEXT_PUBLIC_SENTRY_DSN

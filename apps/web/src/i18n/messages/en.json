@@ -777,7 +777,7 @@
             "step1": "Scan a bill · check the items",
             "step2": "Scan a bill · who had what",
             "reading": "Reading the bill…",
-            "privacyNote": "The photo is read once and never stored.",
+            "privacyNote": "Split sends the photo once and doesn’t store it.",
             "reviewTitle": "Check the items",
             "reviewBody": "Fix anything that came out wrong, delete what is not yours, add what was missed.",
             "reviewFromMerchant": "From {merchant}. Fix anything that came out wrong, add what was missed.",

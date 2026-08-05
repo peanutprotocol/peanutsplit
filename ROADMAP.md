@@ -31,27 +31,25 @@ Owner of record for each open item is in brackets. Last full update: 2026-08-04.
 **State:** code-complete on `feat/import-existing-room`; production verification
 and deployment remain separate release gates.
 
-## V1 hold — receipt scanning
+## Release in progress — receipt scanning
 
-The scan implementation remains in `src/components/room/scan/` for a future
-stabilization pass, but its expense-drawer entry point is intentionally hidden
-in v1. A real-device post-scan review could become unresponsive while the
-underlying drawer remained reachable. Re-enable only after the image-decoding →
-review → assignment portal lifecycle has a mobile regression test and a
-real-device pass.
+The camera/gallery scanner is moving from deployed-dark to public production.
+Its expense-drawer entry point is the small camera/sparkle action inside the
+amount row; opening it requests the camera immediately and keeps upload in the
+bottom pullup. The installed-PWA Web Share Target is explicitly not part of
+this release because it bypasses the provider-terms camera screen and has not
+passed its real-device storage lifecycle gate.
 
 **Owner: Konrad.** Decided 2026-07-28 (Hugo): the v1/v2 boundary —
 `splitV2Enabled()` and everything behind it (scan and Splitwise import)
-— is Konrad's call to flip, and nobody else's. The flip itself is one Dokploy
-build arg on the web app (`NEXT_PUBLIC_SPLIT_V2_ENABLED=1`) plus a redeploy —
-the marketing surface is already flag-aware and starts claiming the features
-on its own.
+— is Konrad's call to flip, and nobody else's. Konrad explicitly requested the
+production activation on 2026-08-05. The release Dockerfile now bakes the flag
+on so an absent or stale Dokploy build arg cannot silently keep the public
+artifact dark; rollback is a source revert plus the ordinary main deploy.
 
-**Status 2026-07-28, second pass.** The tap trap was root-caused and fixed, and
-the entry point now renders behind `splitV2Enabled()` — the flag itself has NOT
-been flipped and that decision stays with Konrad. Three defects made the one
-symptom, all of them in how a `document.body` portal coexists with a modal Radix
-layer:
+**Historical status 2026-07-28, second pass.** The tap trap was root-caused and
+fixed while the flag remained off. Three defects made the one symptom, all of
+them in how a `document.body` portal coexists with a modal Radix layer:
 
 1. The expense drawer is a modal Radix layer, so while it is open Radix sets
    `document.body { pointer-events: none }` and re-enables pointer events only
@@ -79,16 +77,25 @@ The mobile regression test is `apps/web/e2e-v2/scan.spec.ts`, run with
 (`playwright.v2.config.ts`, port 3101 — a build-time flag cannot be a project in
 the v1 config, and the v1 suite asserts the absence of what this one drives).
 Verified as a real gate: reverting the `pointer-events-auto` fix fails it with
-all nine viewport probes landing outside the overlay. **A real-device pass is
-still outstanding** and is the remaining half of the written condition.
+all nine viewport probes landing outside the overlay.
 
 **Release verification 2026-08-05.** The rebased flag-on dark suite passes all
 13 Chromium journeys. It covers camera lifecycle and upload fallback, modal
 focus/inert ownership, retry and cancellation, Back/Forward symmetry,
 contextual receipt-row names and post-delete focus, draft-only handoff, and the
 single ordinary expense write. A flag-on production Docker build is also a CI
-gate. Do not flip `NEXT_PUBLIC_SPLIT_V2_ENABLED` until the real-device pass above
-is complete; mocked browser camera and model boundaries are not that evidence.
+gate.
+
+**Activation hardening 2026-08-05.** OpenRouter requests now require providers
+with data collection denied and zero data retention. Direct Gemini stays
+disabled unless the operator explicitly confirms paid-tier handling. The API
+accepts at most two scans concurrently, before body reading, and the prepared
+image ceiling is 4 MiB. The first public release advertises camera and gallery
+upload only; the manifest publishes no Web Share Target. Public activation is
+in progress pending the deployed capability probe and one synthetic live-model
+canary. Real iOS/Android camera, permission, rotation and background lifecycle
+verification is still required before the capability can be called
+production-verified.
 
 ## Shipped (beyond the 07-25 launch state)
 
@@ -341,11 +348,11 @@ object-form blind spot, and a scroll-padding a11y fix. 690 tests.
 **Wave 3.5 (PWA deepening) — shipped 2026-07-30**, except the real-device
 passes below. The installed app is called Split rather than the repo's name;
 the launcher carries shortcuts; the install row lives permanently in settings
-with one owner for the `beforeinstallprompt` event and five honest states; an
-app badge is raised when a push arrives for a device that was away; and the
-manifest `share_target` hands a receipt photo from the OS share sheet into a
-room. The share target is behind `NEXT_PUBLIC_SPLIT_V2_ENABLED`, because the
-scan flow it feeds is the held v1 feature above.
+with one owner for the `beforeinstallprompt` event and five honest states; and
+an app badge is raised when a push arrives for a device that was away. A
+receipt-photo OS share target was implemented, but is withheld from the
+manifest for the first public scanner release pending provider-terms and
+installed-PWA storage lifecycle verification.
 
 Still open, and NOT closed by any automated check:
 

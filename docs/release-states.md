@@ -27,11 +27,13 @@ rollback can move a capability back.
 - Deployed feature SHA: `aadc868` (`main` on 2026-08-02). The following
   test-coverage and release-record commits do not change the runtime feature set.
 - Public V2 gate: **off in the 2026-07-29 production audit**.
+- Receipt-scanner activation: **in progress on 2026-08-05**. The release artifact
+  bakes the gate on; the state moves to user-visible only after the public
+  capability probe and a synthetic provider canary pass.
 - Push delivery: UI and delivery infrastructure exist; the required real
   subscribe → notify → open loop on two devices has **not** been recorded.
-- `ROADMAP.md` is intentionally unchanged while parallel roadmap work is in
-  progress. Its older “live” push wording is not release evidence; this file is
-  the release-truth source until that shared document can be reconciled safely.
+- `ROADMAP.md` and this table now agree on the activation scope: camera/gallery
+  only. The installed-PWA Web Share Target remains withheld.
 
 | Capability                                                  | State               | Evidence / next gate                                                                                                    |
 | ----------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -43,7 +45,7 @@ rollback can move a capability back.
 | Splitwise import                                            | production-verified | Production Chromium + Firefox evidence recorded below, 2026-08-02                                                       |
 | Existing-room repeated import                               | code-complete       | Atomic append, replay/concurrency, populated-ledger preservation and browser journeys verified on the feature branch    |
 | Percentage and share-weighted expense splits                | production-verified | Production mobile create, edit and persisted-weight verification, 2026-08-02                                            |
-| Receipt scanning                                            | held                | Camera-first E2E is complete; V2 remains off until the real-device gate passes                                          |
+| Receipt scanning                                            | in progress         | Activation artifact is flag-on; public capability/provider canary pending. PWA share target remains withheld            |
 | Natural-language Quick Add                                  | retired             | Removed by product decision, 2026-08-05; camera/upload is the sole model-assisted expense entry                         |
 | Payer lifecycle, settlement correction and quiet provenance | code-complete       | Atomic staged payer, narrow cleanup, documentary Peanut receipt and settlement undo are verified on this feature branch |
 | Bounded saves and unambiguous amount punctuation            | code-complete       | Timeout/idempotency and locale-aware normalization tests pass on this feature branch                                    |

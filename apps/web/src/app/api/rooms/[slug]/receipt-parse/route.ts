@@ -21,6 +21,7 @@ import { WRITE_LIMIT, enforceRateLimit, meterRoomLookup, type Limit } from '@/se
 import { loadRoom } from '@/server/roomState'
 import { modelEnabled } from '@/server/model'
 import { MAX_IMAGE_BASE64_CHARS, enforceRoomScanLimit, parseReceipt } from '@/server/receipt'
+import { acquireReceiptScanSlot } from '@/server/receiptConcurrency'
 import { receiptImageMatchesMimeType } from '@/server/receiptImage'
 import { receiptParseSchema } from '@/server/validation'
 import { splitV2Enabled } from '@/lib/flags'
@@ -52,34 +53,42 @@ export const POST = (request: Request, ctx: Ctx) =>
         if (!modelEnabled()) throw new ApiError(503, 'SCAN_UNAVAILABLE', 'receipt scanning is not configured')
         enforceRateLimit(request, SCAN_LIMIT, 'scan')
 
-        // Counted while it arrives, not taken on the sender's word: a chunked
-        // request declares no length, so a `content-length` check alone reads
-        // the missing header as zero and buffers a body of any size. The header
-        // is still the fast path for an honest client — see `readJsonCapped`.
-        // The base64 check below is the semantic gate; this one bounds memory.
-        const { slug } = await ctx.params
-        const raw = await readJsonCapped(request, MAX_IMAGE_BASE64_CHARS + 1024, imageTooLarge())
-        const body = receiptParseSchema.parse(raw)
+        // The base64 request, parsed body and provider envelope overlap in
+        // memory. Bound that overlap before reading a byte; IP and room quotas
+        // limit totals over time but do not limit simultaneous requests.
+        const releaseScanSlot = acquireReceiptScanSlot()
+        try {
+            // Counted while it arrives, not taken on the sender's word: a chunked
+            // request declares no length, so a `content-length` check alone reads
+            // the missing header as zero and buffers a body of any size. The header
+            // is still the fast path for an honest client — see `readJsonCapped`.
+            // The base64 check below is the semantic gate; this one bounds memory.
+            const { slug } = await ctx.params
+            const raw = await readJsonCapped(request, MAX_IMAGE_BASE64_CHARS + 1024, imageTooLarge())
+            const body = receiptParseSchema.parse(raw)
 
-        if (body.imageBase64.length > MAX_IMAGE_BASE64_CHARS) throw imageTooLarge()
-        // Base64 with a `data:` prefix left on is the most likely client bug,
-        // and it fails inside the model rather than here unless it is named.
-        if (!/^[A-Za-z0-9+/]+={0,2}$/.test(body.imageBase64)) {
-            throw badRequest('imageBase64 must be raw base64 with no data: prefix', 'SCAN_BAD_IMAGE')
+            if (body.imageBase64.length > MAX_IMAGE_BASE64_CHARS) throw imageTooLarge()
+            // Base64 with a `data:` prefix left on is the most likely client bug,
+            // and it fails inside the model rather than here unless it is named.
+            if (!/^[A-Za-z0-9+/]+={0,2}$/.test(body.imageBase64)) {
+                throw badRequest('imageBase64 must be raw base64 with no data: prefix', 'SCAN_BAD_IMAGE')
+            }
+            if (!receiptImageMatchesMimeType(body.imageBase64, body.mimeType)) {
+                throw badRequest('image bytes do not match the declared mime type', 'SCAN_BAD_IMAGE')
+            }
+
+            // A room slug is the room credential. Share the same miss budget as
+            // every other slug lookup so this route cannot become a parallel room-
+            // existence oracle just because it also has a stricter model-cost cap.
+            const room = await meterRoomLookup(request, () => loadRoom(slug))
+            // Per-room after per-IP, and after the room is known to exist: the daily
+            // allowance belongs to a real room, not to a slug someone guessed.
+            enforceRoomScanLimit(room.id)
+
+            return await parseReceipt(body, room.currency, request.signal)
+        } finally {
+            releaseScanSlot()
         }
-        if (!receiptImageMatchesMimeType(body.imageBase64, body.mimeType)) {
-            throw badRequest('image bytes do not match the declared mime type', 'SCAN_BAD_IMAGE')
-        }
-
-        // A room slug is the room credential. Share the same miss budget as
-        // every other slug lookup so this route cannot become a parallel room-
-        // existence oracle just because it also has a stricter model-cost cap.
-        const room = await meterRoomLookup(request, () => loadRoom(slug))
-        // Per-room after per-IP, and after the room is known to exist: the daily
-        // allowance belongs to a real room, not to a slug someone guessed.
-        enforceRoomScanLimit(room.id)
-
-        return await parseReceipt(body, room.currency, request.signal)
     })
 
 const imageTooLarge = () => new ApiError(413, 'SCAN_IMAGE_TOO_LARGE', 'that image is too large — take a new photo')

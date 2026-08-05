@@ -18,6 +18,9 @@ export const SHARE_TARGET_LANDING = '/share-target'
 /** Applied in the worker before Cache Storage sees the full-resolution share.
  *  The page-side image pipeline enforces the same ceiling before decode. */
 export const MAX_SHARED_RECEIPT_BYTES = 40 * 1024 * 1024
+/** Maximum JPEG emitted by the 1600px client pipeline and accepted by the API.
+ *  Kept here so the browser and server cannot drift to different ceilings. */
+export const MAX_PREPARED_RECEIPT_BYTES = 4 * 1024 * 1024
 
 const CACHE = 'ps:shared-receipt'
 const KEY = '/__shared-receipt'
