@@ -160,7 +160,9 @@ export function CreateRoomForm() {
                         aria-label={t('emojiGroup')}
                         data-testid="room-drawing-summary"
                         data-focus-contained
-                        className={composerRowClassName('flex min-h-14 w-full items-center gap-3 px-4 text-left')}
+                        className={composerRowClassName(
+                            'flex min-h-14 w-full items-center gap-3 rounded-b-lg px-4 text-left'
+                        )}
                     >
                         <RoomEmblem value={shownEmblem} name={name} size={30} />
                         <span className="min-w-0 flex-1">
@@ -210,7 +212,7 @@ export function CreateRoomForm() {
                                     onClick={closeDrawing}
                                     aria-label={t('collapseDrawing')}
                                     data-testid="collapse-room-drawing"
-                                    className="flex size-11 shrink-0 items-center justify-center bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
+                                    className="flex size-11 shrink-0 items-center justify-center rounded-sm bg-transparent transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
                                 >
                                     <Icon name="chevron-up" size={24} />
                                 </button>

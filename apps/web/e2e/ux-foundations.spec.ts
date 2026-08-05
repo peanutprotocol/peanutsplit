@@ -6,6 +6,21 @@ const tabbableRadios = (group: Locator) =>
         .getByRole('radio')
         .evaluateAll((radios) => radios.filter((radio) => radio.getAttribute('tabindex') === '0').length)
 
+const focusShape = (control: Locator) =>
+    control.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return [
+            style.outlineColor,
+            style.outlineStyle,
+            style.outlineWidth,
+            style.outlineOffset,
+            style.borderTopLeftRadius,
+            style.borderTopRightRadius,
+            style.borderBottomRightRadius,
+            style.borderBottomLeftRadius,
+        ]
+    })
+
 async function createTwoPersonRoom(page: Page) {
     await page.goto('/new')
     await page.getByTestId('room-name').fill(`Keyboard foundations ${Date.now()}`)
@@ -23,13 +38,8 @@ test('focus and placeholder recipes stay visible on light and dark surfaces', as
     await roomName.focus()
 
     await expect
-        .poll(() =>
-            roomName.evaluate((input) => {
-                const style = getComputedStyle(input)
-                return [style.outlineColor, style.outlineStyle, style.outlineWidth, style.outlineOffset]
-            })
-        )
-        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '2px'])
+        .poll(() => focusShape(roomName))
+        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '2px', '12px', '12px', '12px', '12px'])
     expect(await roomName.evaluate((input) => getComputedStyle(input, '::placeholder').color)).toBe('rgb(95, 100, 109)')
 
     const composer = page.getByTestId('room-composer')
@@ -41,10 +51,14 @@ test('focus and placeholder recipes stay visible on light and dark surfaces', as
 
     const creatorName = page.getByTestId('creator-name')
     await creatorName.focus()
-    await expect.poll(() => creatorName.evaluate((input) => getComputedStyle(input).outlineOffset)).toBe('-2px')
+    await expect
+        .poll(() => focusShape(creatorName))
+        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '12px', '12px', '12px', '12px'])
     const drawingSummary = page.getByTestId('room-drawing-summary')
     await drawingSummary.focus()
-    await expect.poll(() => drawingSummary.evaluate((button) => getComputedStyle(button).outlineOffset)).toBe('-2px')
+    await expect
+        .poll(() => focusShape(drawingSummary))
+        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '0px', '0px', '16px', '16px'])
 
     await page.goto('/tools')
     const firstTool = page.locator('ul.overflow-hidden a').first()

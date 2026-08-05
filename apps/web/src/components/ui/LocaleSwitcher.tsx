@@ -78,7 +78,7 @@ export function LocaleSwitcher({
                             data-focus-tone={active ? 'dark' : 'light'}
                             onClick={() => setLocaleAndReload(locale)}
                             className={cn(
-                                'min-h-11 flex-1 px-3 py-2 text-h8 transition-colors duration-150',
+                                'min-h-11 flex-1 px-3 py-2 text-h8 transition-colors duration-150 first:rounded-l-sm last:rounded-r-sm',
                                 active ? 'bg-n-1 text-white' : 'bg-white text-n-1'
                             )}
                         >

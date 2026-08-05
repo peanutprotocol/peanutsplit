@@ -33,8 +33,9 @@ interface RoomHeaderProps {
  * Everything that used to live in this file — the roster, the character grid,
  * the device preferences, the export block — moved into `SettingsSheet` and its
  * parts. What is left is the bar itself: the emblem identifies the room, the
- * title opens room navigation, and share is share. Settings lives beside each
- * room in that navigation sheet, where its scope is explicit.
+ * title opens room navigation, and share is share. The room emblem opens the
+ * current room's settings directly; the room picker repeats that path beside
+ * each saved room, where its scope is explicit.
  */
 export function RoomHeader({
     room,
@@ -50,6 +51,7 @@ export function RoomHeader({
     const [sheets, setSheets] = useRoomParams()
     const internalRoomTitleRef = useRef<HTMLButtonElement>(null)
     const stableRoomTitleRef = roomTitleRef ?? internalRoomTitleRef
+    const headerSettingsRef = useRef<HTMLButtonElement>(null)
     const currentRoomSettingsRef = useRef<HTMLButtonElement>(null)
     // Resolved rather than held, so a member disappearing under an open sheet
     // closes it instead of leaving a sheet about nobody — which is also what an
@@ -62,13 +64,20 @@ export function RoomHeader({
         // this variable existed.
         <header className="sticky top-0 z-10 border-b border-n-1 bg-[var(--split-theme-field,#FFC900)]">
             <div className="flex items-center gap-3 px-4 py-3">
-                <span
-                    aria-hidden="true"
-                    data-testid="room-header-emblem"
+                <button
+                    ref={headerSettingsRef}
+                    type="button"
+                    onClick={() => setSheets({ settings: true })}
+                    aria-label={t('openSettings')}
+                    aria-haspopup="dialog"
+                    aria-expanded={sheets.settings}
+                    data-testid="open-room-settings"
                     className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
                 >
-                    <RoomEmblem value={room.emoji} name={room.name} size={26} />
-                </span>
+                    <span aria-hidden="true" data-testid="room-header-emblem">
+                        <RoomEmblem value={room.emoji} name={room.name} size={26} />
+                    </span>
+                </button>
 
                 <h1 className="min-w-0 flex-1">
                     <button
@@ -131,7 +140,10 @@ export function RoomHeader({
                 open={sheets.settings}
                 onClose={() => setSheets({ settings: null }, { history: 'replace' })}
                 onCloseFocus={() => {
-                    const target = sheets.rooms ? currentRoomSettingsRef.current : stableRoomTitleRef.current
+                    // Browser Back can restore the picker and its exact opener.
+                    // X/Escape from the direct path returns to the emblem, which
+                    // remains connected while the Settings drawer is open.
+                    const target = sheets.rooms ? currentRoomSettingsRef.current : headerSettingsRef.current
                     target?.focus({ preventScroll: true })
                 }}
                 room={room}

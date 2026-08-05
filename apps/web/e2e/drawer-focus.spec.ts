@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 import { test } from './fixtures'
 import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
@@ -21,6 +21,21 @@ const activeElement = (page: Page) =>
         insideDialog: !!document.activeElement?.closest('[role="dialog"],[data-vaul-drawer]'),
     }))
 
+const focusShape = (control: Locator) =>
+    control.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return [
+            style.outlineColor,
+            style.outlineStyle,
+            style.outlineWidth,
+            style.outlineOffset,
+            style.borderTopLeftRadius,
+            style.borderTopRightRadius,
+            style.borderBottomRightRadius,
+            style.borderBottomLeftRadius,
+        ]
+    })
+
 test.beforeEach(async ({ page }) => {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Focus behaviour')
@@ -30,6 +45,25 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('focus enters the sheet, stays inside it, and comes back to the trigger', async ({ page }) => {
+    // A second retained room exposes both independently focusable halves of a
+    // compound picker row without another API write in this rate-limited suite.
+    await page.evaluate(() => {
+        const retained = JSON.parse(localStorage.getItem('ps:recent') ?? '[]')
+        localStorage.setItem(
+            'ps:recent',
+            JSON.stringify([
+                ...retained,
+                {
+                    slug: 'focus-neighbour-brave-otter-lamp',
+                    name: 'Focus neighbour',
+                    emoji: 'island',
+                    theme: 'mint',
+                    lastSeenAt: Date.now() - 1_000,
+                },
+            ])
+        )
+    })
+
     // Open both steps the way a keyboard user does. Clicking would move focus by
     // itself and hide the bug.
     await page.getByTestId('open-room-switcher').focus()
@@ -37,7 +71,27 @@ test('focus enters the sheet, stays inside it, and comes back to the trigger', a
     const switcher = page.getByTestId('room-switcher-sheet')
     await expect(switcher).toBeVisible({ timeout: 10_000 })
     const settingsTrigger = switcher.locator('[data-testid="room-switcher-settings"][data-current="true"]')
+
+    const recentRoom = switcher.locator(
+        '[data-testid="room-switcher-tile"][data-slug="focus-neighbour-brave-otter-lamp"]'
+    )
+    await recentRoom.focus()
+    await expect
+        .poll(() => focusShape(recentRoom))
+        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '12px', '0px', '0px', '12px'])
+
+    const recentSettings = switcher.locator(
+        '[data-testid="room-switcher-settings"][data-slug="focus-neighbour-brave-otter-lamp"]'
+    )
+    await recentSettings.focus()
+    await expect
+        .poll(() => focusShape(recentSettings))
+        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '0px', '12px', '12px', '0px'])
+
     await settingsTrigger.focus()
+    await expect
+        .poll(() => focusShape(settingsTrigger))
+        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '0px', '12px', '12px', '0px'])
     await page.keyboard.press('Enter')
     await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
     await page.waitForTimeout(600)
@@ -57,21 +111,32 @@ test('focus enters the sheet, stays inside it, and comes back to the trigger', a
     })
     expect(background).toEqual({ ariaHidden: null, inert: true })
 
-    await page.keyboard.press('Escape')
-    await page.waitForTimeout(800)
-    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-switcher', insideDialog: false })
+    // Back restores the picker history entry and the exact action that opened
+    // Settings. The ordinary title-opened picker restoration is covered below.
+    await page.goBack()
+    await expect(page.getByTestId('settings-sheet')).toBeHidden({ timeout: 10_000 })
+    await expect(switcher).toBeVisible({ timeout: 10_000 })
+    await expect(settingsTrigger).toBeFocused()
+    expect((await activeElement(page)).insideDialog).toBe(true)
 })
 
-test('closing Settings with X returns focus to the stable title trigger', async ({ page }) => {
-    await openCurrentRoomSettings(page)
+test('the header emblem opens Settings directly and X restores focus to it', async ({ page }) => {
+    const settingsTrigger = page.getByTestId('open-room-settings')
+    await expect(settingsTrigger.getByTestId('room-header-emblem')).toHaveCount(1)
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+    await page.keyboard.press('Tab')
+    await expect(settingsTrigger).toBeFocused()
+    await expect
+        .poll(() => focusShape(settingsTrigger))
+        .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '2px', '12px', '12px', '12px', '12px'])
+    await page.keyboard.press('Enter')
+    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
     await page.waitForTimeout(600)
 
     await page.getByTestId('close-room-settings').click()
-    await page.waitForTimeout(800)
+    await expect(page.getByTestId('settings-sheet')).toBeHidden({ timeout: 10_000 })
 
-    // The room-specific opener leaves the DOM when its picker closes, so focus
-    // returns to the stable title control rather than <body>.
-    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-switcher' })
+    expect(await activeElement(page)).toMatchObject({ testid: 'open-room-settings', insideDialog: false })
 })
 
 test('the title switcher traps focus and restores it to the title trigger', async ({ page }) => {

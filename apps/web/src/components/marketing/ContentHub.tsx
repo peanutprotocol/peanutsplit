@@ -92,7 +92,7 @@ export async function ContentHub({ locale }: { locale: Locale }) {
                 {entries.length === 0 ? (
                     <p className="text-sm text-grey-1">{t('empty')}</p>
                 ) : (
-                    <ul className="flex flex-col gap-px overflow-hidden rounded-sm border border-n-1">
+                    <ul className="flex flex-col gap-px overflow-hidden rounded-sm border border-n-1 [&>li:first-child>a]:rounded-t-sm [&>li:last-child>a]:rounded-b-sm">
                         {entries.map((entry) => (
                             <li key={entry.href}>
                                 <Link
