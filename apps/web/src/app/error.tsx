@@ -18,7 +18,7 @@ export default function RouteError({ reset }: { error: Error & { digest?: string
                 {t('retry')}
             </button>
             <Link
-                href="/app"
+                href="/app?manage=1"
                 className="min-h-11 px-2 py-3 text-sm font-bold underline decoration-2 underline-offset-4"
             >
                 {t('exit')}

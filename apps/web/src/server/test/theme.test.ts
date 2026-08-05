@@ -229,15 +229,6 @@ describe('PATCH /api/rooms/:slug', () => {
         await setTheme(created.room.slug, 'lavender')
         expect(pokes).toBe(1)
     })
-
-    it('refuses to repaint an archived room', async () => {
-        const { body: created } = await newRoom()
-        await prisma.room.update({ where: { id: created.room.id }, data: { archivedAt: new Date() } })
-
-        const { status, body } = await setTheme(created.room.slug, 'sand')
-        expect(status).toBe(409)
-        expect(body.error.code).toBe('ROOM_ARCHIVED')
-    })
 })
 
 /**
@@ -336,15 +327,6 @@ describe('the room drawing', () => {
 
         await setEmblem(created.room.slug, 'pizza')
         expect(pokes).toBe(1)
-    })
-
-    it('refuses to redraw an archived room', async () => {
-        const { body: created } = await newRoom()
-        await prisma.room.update({ where: { id: created.room.id }, data: { archivedAt: new Date() } })
-
-        const { status, body } = await setEmblem(created.room.slug, 'boat')
-        expect(status).toBe(409)
-        expect(body.error.code).toBe('ROOM_ARCHIVED')
     })
 })
 

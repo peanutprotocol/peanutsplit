@@ -668,22 +668,16 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(pokes).toBe(1)
     })
 
-    it('refuses archived and missing targets without side effects', async () => {
-        // Archived remains the stronger state even when this room's custom
-        // currency would otherwise make the import unsupported.
-        const { body: target } = await newRoom({ currency: 'BEER' })
+    it('refuses a missing target without side effects', async () => {
+        const { body: target } = await newRoom()
         const body = bodyFor(source(), [
             { sourceName: 'Ana', memberId: target.members[0].id },
             { sourceName: 'Bruno', newMemberName: 'Bruno' },
             { sourceName: 'Carla', newMemberName: 'Carla' },
         ])
-        await prisma.room.update({ where: { id: target.room.id }, data: { archivedAt: new Date() } })
 
-        const archived = await append<ApiError>(target.room.slug, body, target.memberToken)
         const missing = await append<ApiError>('missing-room-slug', body, target.memberToken)
 
-        expect(archived.status).toBe(409)
-        expect(archived.body.error.code).toBe('ROOM_ARCHIVED')
         expect(missing.status).toBe(404)
         expect(missing.body.error.code).toBe('NOT_FOUND')
         expect(await prisma.member.count({ where: { roomId: target.room.id } })).toBe(1)

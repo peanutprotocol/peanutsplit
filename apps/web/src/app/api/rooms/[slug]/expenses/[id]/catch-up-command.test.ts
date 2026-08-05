@@ -552,7 +552,7 @@ describe('PATCH /api/rooms/:slug/expenses/:id catch-up command', () => {
         expect(new Set(storedIds)).toEqual(new Set(afterEli.shares.map((share) => share.memberId)))
     })
 
-    it('rejects an archived room, a non-member target, and a non-EQUAL row before changing shares', async () => {
+    it('rejects a non-member target and a non-EQUAL row before changing shares', async () => {
         const { body: created } = await createRoom()
         const slug = created.room.slug
         const { body: withBea } = await join(slug, 'Bea')
@@ -572,12 +572,5 @@ describe('PATCH /api/rooms/:slug/expenses/:id catch-up command', () => {
         const notEqual = await catchUp(slug, exact.id, snapshot(exact, created.memberId))
         expect(notEqual.status).toBe(409)
         expect((notEqual.body as ApiError).error.code).toBe('CATCH_UP_REVIEW_CONFLICT')
-
-        const before = await prisma.expenseShare.findMany({ where: { expenseId: equal.id } })
-        await prisma.room.update({ where: { id: created.room.id }, data: { archivedAt: new Date() } })
-        const archived = await catchUp(slug, equal.id, snapshot(equal, withBea.memberId))
-        expect(archived.status).toBe(409)
-        expect((archived.body as ApiError).error.code).toBe('ROOM_ARCHIVED')
-        expect(await prisma.expenseShare.findMany({ where: { expenseId: equal.id } })).toEqual(before)
     })
 })

@@ -13,7 +13,6 @@ const state: RoomState = {
         coverUrl: null,
         theme: 'mint',
         createdAt: '2026-07-01T10:00:00.000Z',
-        archivedAt: null,
     },
     members: [
         { id: 'ana', name: 'Ana', avatar: null, createdAt: '2026-07-01T10:00:00.000Z' },

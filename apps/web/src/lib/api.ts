@@ -48,7 +48,7 @@ export const isApiError = (error: unknown, code?: string): error is ApiRequestEr
     error instanceof ApiRequestError && (code === undefined || error.code === code)
 
 const CATCH_UP_ROW_CHANGE_CODES = new Set(['CATCH_UP_REVIEW_CONFLICT', 'EXPENSE_DELETED', 'EXPENSE_NOT_FOUND'])
-const CATCH_UP_REVIEW_CHANGE_CODES = new Set([...CATCH_UP_ROW_CHANGE_CODES, 'NOT_A_MEMBER', 'ROOM_ARCHIVED'])
+const CATCH_UP_REVIEW_CHANGE_CODES = new Set([...CATCH_UP_ROW_CHANGE_CODES, 'NOT_A_MEMBER'])
 
 /** Row-scoped conflicts may be skipped while a reviewed batch continues. */
 export const isCatchUpRowChange = (error: unknown): boolean =>

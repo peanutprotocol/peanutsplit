@@ -11,7 +11,6 @@ import { prisma } from '@/server/db'
 import { ApiError, readJson, respond } from '@/server/http'
 import { isAllowedPushEndpoint } from '@/server/pushHosts'
 import { assertProvenMember, loadRoom } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
 import { enforceRateLimit, meterRoomLookup, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushSubscribeSchema, pushUnsubscribeSchema } from '@/server/validation'
 import { actorForMember, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
@@ -33,7 +32,6 @@ export const POST = (request: Request, ctx: Ctx) =>
         // miss goes on the shared budget — same as the DELETE below and the
         // status route beside it. All three paths meter it the same way.
         const room = await meterRoomLookup(request, () => loadRoom(slug))
-        assertWritable(room)
         assertProvenMember(room, body.memberId, body.memberToken)
 
         if (!isAllowedPushEndpoint(body.endpoint)) {

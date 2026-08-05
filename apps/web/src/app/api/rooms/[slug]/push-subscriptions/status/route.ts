@@ -28,9 +28,6 @@ export const POST = (request: Request, ctx: Ctx) =>
         // a room-existence oracle. Its own 120/hour bucket would have widened the
         // 30/hour the miss limiter exists to enforce, so the miss goes there.
         const room = await meterRoomLookup(request, () => loadRoom(slug))
-        // Proof of membership as the delete does, but no `assertWritable`:
-        // reading your own notification state has to work in an archived room,
-        // where turning it off is the one thing left to do.
         assertProvenMember(room, body.memberId, body.memberToken)
 
         const row = await prisma.pushSubscription.findUnique({

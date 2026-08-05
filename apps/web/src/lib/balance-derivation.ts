@@ -194,17 +194,16 @@ export interface PairDerivation {
 /**
  * The pair sheet — deliberately NOT a pairwise debt, because there isn't one.
  *
- * A suggested transfer is not "what A owes B". `suggestedTransfers()` runs a greedy
- * simplification over the *net* balances: biggest debtor against biggest creditor, again and
- * again until everything is zero. So a transfer can pair two people who were never on the
- * same expense, and its amount is a slice of A's net position rather than a sum of anything
- * A and B shared. There is no faithful "here is where this €40 came from" to show.
+ * A suggested transfer is not "what A owes B". `suggestedTransfers()` simplifies the room's *net*
+ * balances into a payment plan. A transfer can therefore pair two people who were never on the
+ * same expense, and its amount is a slice of A's net position rather than a sum of anything A and
+ * B shared. There is no faithful "here is where this €40 came from" to show.
  *
  * Netting the expenses the two happen to share and calling *that* the derivation would be
  * the easy lie: the number would rarely match the payment, and a derivation that doesn't
  * reconcile re-teaches the exact distrust this whole feature exists to end. So we show the
- * true thing instead — both members' complete balances, and one line saying out loud that
- * the payment is the shortest way to clear the room, not a debt between these two.
+ * true thing instead — both members' complete balances, and one line saying out loud that the
+ * payment belongs to the room-wide plan, not a debt between these two.
  */
 export function derivePair(state: RoomState, selfId: string, otherId: string): PairDerivation {
     const transfer = state.suggestedTransfers.find(

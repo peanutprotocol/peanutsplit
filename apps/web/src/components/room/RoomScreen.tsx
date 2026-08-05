@@ -136,7 +136,7 @@ export function RoomScreen({ slug }: { slug: string }) {
     const needsJoin = loaded && !identity && !!state
     const staleState = !!state && isRefetchError
     const latecomer = useMemo(() => {
-        if (!state || state.room.archivedAt || latecomerPaused) return null
+        if (!state || latecomerPaused) return null
         const members = [...state.members].sort((a, b) => {
             const byTime = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             return byTime || b.id.localeCompare(a.id)
@@ -349,17 +349,19 @@ export function RoomScreen({ slug }: { slug: string }) {
             {state && !needsJoin && !historyEmpty && (
                 <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-xl border-t border-n-1 bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
                     <div className="flex gap-3">
-                        <Button
-                            variant="stroke"
-                            icon="hand-coins"
-                            width="auto"
-                            className="shrink-0 justify-center px-4"
-                            onClick={() => setParams({ settle: true })}
-                            disabled={staleState}
-                            data-testid="open-settle"
-                        >
-                            {t('settleUp')}
-                        </Button>
+                        {!settledUp && (
+                            <Button
+                                variant="stroke"
+                                icon="hand-coins"
+                                width="auto"
+                                className="shrink-0 justify-center px-4"
+                                onClick={() => setParams({ settle: true })}
+                                disabled={staleState}
+                                data-testid="open-settle"
+                            >
+                                {t('settleUp')}
+                            </Button>
+                        )}
                         <Button
                             variant="primary"
                             shadowSize="4"

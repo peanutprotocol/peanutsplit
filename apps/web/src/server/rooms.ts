@@ -103,7 +103,6 @@ export async function addMember(
     request: Request = new Request('http://localhost'),
     actor: AuditActor = { memberId: null, memberName: null }
 ): Promise<CreatedMember> {
-    if (room.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
     const token = memberToken()
 
     return prisma.$transaction(async (tx) => {
@@ -146,9 +145,6 @@ export async function addMemberInLockedTransaction(
     token = memberToken(),
     provisional = false
 ): Promise<CreatedMember> {
-    const current = await tx.room.findUnique({ where: { id: roomId }, select: { archivedAt: true } })
-    if (current?.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
-
     // The name rule is case-insensitive but PostgreSQL cannot express that
     // invariant with the existing schema. Every caller holds the room lock.
     const duplicate = await tx.member.findFirst({
@@ -176,8 +172,4 @@ export async function addMemberInLockedTransaction(
         },
     })
     return { memberId: member.id, memberToken: token }
-}
-
-export function assertWritable(room: RoomWithRelations): void {
-    if (room.archivedAt) throw conflict('this room is archived', 'ROOM_ARCHIVED')
 }

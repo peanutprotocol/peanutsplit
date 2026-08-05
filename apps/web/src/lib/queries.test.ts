@@ -46,7 +46,6 @@ const roomState = (expenseIds: string[] = ['e1']): RoomState => ({
         coverUrl: null,
         theme: null,
         createdAt: '2026-07-01T00:00:00.000Z',
-        archivedAt: null,
     },
     members: [
         { id: 'ana', name: 'Ana', avatar: null, createdAt: '2026-07-01T00:00:00.000Z' },

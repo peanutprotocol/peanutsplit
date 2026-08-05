@@ -9,7 +9,7 @@ export default async function NotFound() {
     return (
         <RouteState eyebrow={t('eyebrow')} title={t('title')} body={t('body')} testId="route-not-found">
             <Link
-                href="/app"
+                href="/app?manage=1"
                 className={buttonClassName({
                     shadowSize: '3',
                     width: 'auto',

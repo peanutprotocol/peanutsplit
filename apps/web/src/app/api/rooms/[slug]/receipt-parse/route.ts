@@ -24,7 +24,6 @@
 import { ApiError, badRequest, json, readJsonCapped, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit, type Limit } from '@/server/rateLimit'
 import { loadRoom } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
 import { modelEnabled } from '@/server/model'
 import { MAX_IMAGE_BASE64_CHARS, enforceRoomScanLimit, parseReceipt } from '@/server/receipt'
 import { receiptParseSchema } from '@/server/validation'
@@ -74,7 +73,6 @@ export const POST = (request: Request, ctx: Ctx) =>
         }
 
         const room = await loadRoom(slug)
-        assertWritable(room)
         // Per-room after per-IP, and after the room is known to exist: the daily
         // allowance belongs to a real room, not to a slug someone guessed.
         enforceRoomScanLimit(room.id)

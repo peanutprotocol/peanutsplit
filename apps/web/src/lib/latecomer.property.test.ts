@@ -107,7 +107,6 @@ const asRoom = (built: ReturnType<typeof growingRoom>): RoomWithRelations =>
         coverUrl: null,
         theme: null,
         createdAt: new Date(Date.UTC(2026, 6, 1)),
-        archivedAt: null,
         members: built.members,
         expenses: built.expenses.map((expense) => ({
             ...expense,

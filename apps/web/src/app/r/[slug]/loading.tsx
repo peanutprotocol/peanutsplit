@@ -10,7 +10,7 @@ export default function LoadingRoom() {
     return (
         <RouteState eyebrow={t('eyebrow')} title={t('title')} body={t('body')} role="status" testId="route-loading">
             <Link
-                href="/app"
+                href="/app?manage=1"
                 className="min-h-11 px-2 py-3 text-sm font-bold underline decoration-2 underline-offset-4"
             >
                 {t('exit')}

@@ -78,12 +78,7 @@ export function ExistingRoomImportScreen({ slug }: { slug: string }) {
                 </div>
             </header>
 
-            {state.room.archivedAt ? (
-                <section className="bg-yellow-1 mt-6 rounded-sm border border-n-1 p-5" data-testid="import-archived">
-                    <h2 className="text-h6">{t('archivedTitle')}</h2>
-                    <p className="mt-2 text-sm leading-5 text-n-1">{t('archivedBody')}</p>
-                </section>
-            ) : !isCatalogCode(state.room.currency) ? (
+            {!isCatalogCode(state.room.currency) ? (
                 <section
                     className="bg-yellow-1 mt-6 rounded-sm border border-n-1 p-5"
                     role="alert"
