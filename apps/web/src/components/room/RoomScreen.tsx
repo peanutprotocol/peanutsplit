@@ -16,6 +16,7 @@ import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { useRoomParams } from '@/lib/room-params'
+import { discardSharedReceipt } from '@/lib/shared-receipt'
 import { daySpan } from '@/lib/story'
 import { themeVars } from '@/lib/themes'
 import { useRoomIdentity } from '@/lib/use-identity'
@@ -191,6 +192,19 @@ export function RoomScreen({ slug }: { slug: string }) {
     useEffect(() => {
         if (staleState && (params.settle || params.expense)) setParams({ settle: null, expense: null })
     }, [params.expense, params.settle, setParams, staleState])
+
+    // A stale recent-room credential returns before ExpenseDrawer mounts. A joined person can
+    // also dismiss the ordinary drawer while its model-capability probe is still pending. Consume
+    // both halves of the handoff in either terminal case. JoinGate keeps `add=1`, so an unjoined
+    // person can still claim a valid room without this cleanup racing them.
+    useEffect(() => {
+        if (!params.shared) return
+        if (params.add && !isApiError(error, 'NOT_FOUND')) return
+        void (async () => {
+            await discardSharedReceipt(caches)
+            await consumeSharedReceipt()
+        })()
+    }, [consumeSharedReceipt, error, params.add, params.shared])
 
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} />
     if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />

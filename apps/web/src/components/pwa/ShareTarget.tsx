@@ -24,7 +24,7 @@ type Phase = 'checking' | 'unavailable' | 'expired' | 'empty' | 'pick'
  * button back into the app.
  *
  * The photo is discarded on every exit that is not a hand-off to a room. It is somebody's receipt,
- * and this app promises that a scanned photo is read once and never stored.
+ * temporarily parked on this device only for this one-shot routing decision.
  */
 export function ShareTarget({ enabled }: { enabled: boolean }) {
     const t = useTranslations('shareTarget')
