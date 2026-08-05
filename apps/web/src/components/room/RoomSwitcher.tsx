@@ -58,10 +58,10 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
         </span>
     )
 
-    const rowBodyClass = 'flex min-h-16 min-w-0 flex-1 items-center gap-2 p-2 text-left'
+    const rowBodyClass = 'flex min-h-16 min-w-0 flex-1 items-center gap-2 rounded-l-sm p-2 text-left'
     const compoundRowClass = 'flex min-h-16 w-full overflow-hidden rounded-sm border border-n-1 bg-white'
     const settingsClass =
-        'flex min-h-16 w-[6.5rem] shrink-0 flex-row items-center justify-center gap-1.5 border-l border-n-1 bg-white px-1 text-xs font-bold leading-none tracking-tight transition-colors hover:bg-primary-3 active:bg-primary-3'
+        'flex min-h-16 w-[6.5rem] shrink-0 flex-row items-center justify-center gap-1.5 rounded-r-sm border-l border-n-1 bg-white px-1 text-xs font-bold leading-none tracking-tight transition-colors hover:bg-primary-3 active:bg-primary-3'
 
     const beginSettingsTransition = () => {
         openingSettingsRef.current = true
@@ -103,6 +103,7 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                                 }}
                                 aria-label={t('openRoomSettings', { room: room.name })}
                                 data-testid="room-switcher-settings"
+                                data-focus-contained
                                 data-slug={room.slug}
                                 data-current="true"
                                 className={settingsClass}
@@ -122,6 +123,7 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                                 <Link
                                     href={`/r/${encodeURIComponent(candidate.slug)}`}
                                     data-testid="room-switcher-tile"
+                                    data-focus-contained
                                     data-slug={candidate.slug}
                                     className={cn(
                                         rowBodyClass,
@@ -137,6 +139,7 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                                     onClick={beginSettingsTransition}
                                     aria-label={t('openRoomSettings', { room: candidate.name })}
                                     data-testid="room-switcher-settings"
+                                    data-focus-contained
                                     data-slug={candidate.slug}
                                     className={settingsClass}
                                 >

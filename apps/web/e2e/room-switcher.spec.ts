@@ -51,7 +51,7 @@ test('the title switcher exposes every retained non-current room', async ({ page
     const expectedSlugs = retained.filter((room) => room.slug !== currentSlug).map((room) => room.slug)
 
     const sheet = await openRoomSwitcher(page)
-    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
+    await expect(page.getByTestId('open-room-settings')).toHaveCount(1)
     const current = sheet.getByTestId('room-switcher-current')
     const recent = sheet.getByTestId('room-switcher-tile')
     const settings = sheet.getByTestId('room-switcher-settings')

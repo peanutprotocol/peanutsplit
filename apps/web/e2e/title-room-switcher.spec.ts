@@ -57,11 +57,21 @@ test('an only room keeps an inert body and one settings action', async ({ page }
     expect(new URL(page.url()).pathname).toBe(path)
 })
 
-test('Settings is room-scoped in the picker, not a header destination', async ({ page }) => {
+test('Settings is available from both the room emblem and the room picker', async ({ page }) => {
     const { path } = await createRoom(page, 'Separate controls')
 
     await expect(page.getByTestId('open-room-switcher')).toBeVisible()
-    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
+    const directSettings = page.getByTestId('open-room-settings')
+    await expect(directSettings).toBeVisible()
+    // The emblem itself is the affordance. A second SVG would be the removed
+    // gear badge competing with the separate icon picker in Settings.
+    await expect(directSettings.locator('svg')).toHaveCount(1)
+    await directSettings.focus()
+    await page.keyboard.press('Enter')
+    await expect(page.getByTestId('settings-sheet')).toBeVisible({ timeout: 10_000 })
+    await page.getByTestId('close-room-settings').click()
+    await expect(page.getByTestId('settings-sheet')).toBeHidden({ timeout: 10_000 })
+    await expect(directSettings).toBeFocused()
 
     const sheet = await openRoomSwitcher(page)
     const settingsButton = sheet.locator('[data-testid="room-switcher-settings"][data-current="true"]')
@@ -131,5 +141,5 @@ test('Back closes the title switcher before leaving the room', async ({ page }) 
     await expect(page.getByTestId('room-switcher-sheet')).toBeHidden({ timeout: 10_000 })
     expect(new URL(page.url()).pathname).toBe(path)
     await expect(page.getByTestId('open-room-switcher')).toBeVisible()
-    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
+    await expect(page.getByTestId('open-room-settings')).toBeVisible()
 })

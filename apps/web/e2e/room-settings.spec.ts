@@ -117,8 +117,9 @@ test('room-scoped Settings keeps the link through rename and adds people in cont
     const slug = permanentPath.split('/').at(-1)
     expect(slug).toBeTruthy()
 
-    // Room settings live with the room in the title picker, not in the header.
-    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
+    // The room emblem is the direct path; the title picker repeats Settings for
+    // every saved room so either route keeps its room scope explicit.
+    await expect(page.getByTestId('open-room-settings')).toBeVisible()
     await expect(page.locator('header a')).toHaveCount(0)
     await openCurrentRoomSettings(page)
 

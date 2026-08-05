@@ -38,7 +38,7 @@ export type CloseButtonProps = CloseButtonBaseProps & CloseButtonElementProps
 
 export function CloseButton({ label, className, href, ...props }: CloseButtonProps) {
     const classes = cn(
-        'flex size-11 shrink-0 items-center justify-center transition-transform active:rotate-3',
+        'flex size-11 shrink-0 items-center justify-center rounded-sm transition-transform active:rotate-3',
         className
     )
     const glyph = <Icon name="x" size={CLOSE_ICON_SIZE} />

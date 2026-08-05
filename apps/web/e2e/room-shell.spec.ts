@@ -70,7 +70,7 @@ test('Back closes the settings and room-switcher sheets rather than leaving the 
     await expect(page.getByTestId('room-switcher-sheet')).toBeHidden({ timeout: 10_000 })
     expect(new URL(page.url()).pathname).toBe(roomPath)
     await expect(roomSwitcher).toBeFocused()
-    await expect(page.getByTestId('open-room-settings')).toHaveCount(0)
+    await expect(page.getByTestId('open-room-settings')).toBeVisible()
 })
 
 test('every person row carries a removal control, and the People disclosure is thumb-sized', async ({ page }) => {

@@ -109,7 +109,7 @@ export function PeopleSection({
                 onClick={toggle}
                 aria-expanded={open}
                 data-testid="people-toggle"
-                className="flex min-h-11 items-center gap-2 self-start"
+                className="flex min-h-11 items-center gap-2 self-start rounded-sm"
             >
                 <span className="text-h8 uppercase tracking-wide">{t('people')}</span>
                 {/* Same ink as the label beside it: one row, one colour. */}

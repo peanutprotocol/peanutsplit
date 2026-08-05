@@ -226,7 +226,9 @@ export function RelatedPages({ title = 'Keep reading', children }: { title?: str
     return (
         <nav className={`${COLUMN} my-10`} aria-label={title}>
             <h2 className="text-h5">{title}</h2>
-            <ul className="mt-4 flex flex-col gap-px overflow-hidden rounded-sm border border-n-1">{children}</ul>
+            <ul className="mt-4 flex flex-col gap-px overflow-hidden rounded-sm border border-n-1 [&>li:first-child>a]:rounded-t-sm [&>li:last-child>a]:rounded-b-sm">
+                {children}
+            </ul>
         </nav>
     )
 }

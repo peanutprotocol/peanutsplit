@@ -271,7 +271,9 @@ function Calculator({ tool }: { tool: Tool }) {
                             aria-controls="tool-builder"
                             data-testid="tool-builder-summary"
                             data-focus-contained
-                            className={composerRowClassName('flex min-h-14 w-full items-center gap-3 px-4 text-left')}
+                            className={composerRowClassName(
+                                'flex min-h-14 w-full items-center gap-3 rounded-sm px-4 text-left'
+                            )}
                         >
                             <Doodle name={tool.doodle} size={28} weight={1.8} />
                             <span className="min-w-0 flex-1">

@@ -296,7 +296,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                         }}
                         data-testid="open-balance"
                         data-focus-contained
-                        className="grid min-h-24 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
+                        className="grid min-h-24 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-sm p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                     >
                         {/* Direction has one fixed, high-contrast place. The arrow and complete
                             sentence repeat the meaning, so the faint wash only speeds up the scan.
@@ -385,7 +385,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                         }}
                                         data-testid="open-balance"
                                         data-focus-contained
-                                        className="flex w-full flex-col gap-2 p-3 text-left transition-transform duration-100 active:scale-[0.97]"
+                                        className="flex w-full flex-col gap-2 rounded-sm p-3 text-left transition-transform duration-100 active:scale-[0.97]"
                                     >
                                         <span className="flex items-center gap-2">
                                             <MemberAvatar

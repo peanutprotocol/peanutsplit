@@ -35,7 +35,7 @@ interface SettingsSheetProps {
     open: boolean
     onClose: () => void
     /** The room-picker settings action unmounts as this sheet opens. Closing with
-     *  X therefore lands on the stable room title; Back can target the settings
+     *  X therefore needs a stable header fallback; Back can target the settings
      *  action remounted in the restored picker. */
     onCloseFocus?: () => void
     room: ApiRoom
@@ -219,7 +219,8 @@ export function SettingsSheet({
                         if (!onCloseFocus) return
                         // Override the generic remembered opener: it was a room-
                         // picker action and is no longer connected. The caller
-                        // resolves X to the title and Back to the remounted action.
+                        // resolves X to the header emblem and Back to the
+                        // remounted action.
                         event.preventDefault()
                         window.requestAnimationFrame(onCloseFocus)
                     }}

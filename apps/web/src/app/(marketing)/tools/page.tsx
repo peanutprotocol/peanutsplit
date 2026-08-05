@@ -96,7 +96,7 @@ export default function ToolsHubPage() {
                 </Link>
                 <p className="mt-3 text-center text-sm text-grey-1">{copy.app.hint}</p>
 
-                <ul className="mt-8 flex flex-col gap-px overflow-hidden rounded-sm border border-n-1">
+                <ul className="mt-8 flex flex-col gap-px overflow-hidden rounded-sm border border-n-1 [&>li:first-child>a]:rounded-t-sm [&>li:last-child>a]:rounded-b-sm">
                     {TOOLS.map((tool) => (
                         <li key={tool.slug}>
                             <Link
