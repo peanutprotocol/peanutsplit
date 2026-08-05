@@ -20,9 +20,11 @@ const TTL_MS = 24 * 60 * 60 * 1000
  * refreshes it, nothing deletes it, and it keeps converting at whatever it was worth in the past.
  */
 const MAX_RATE_AGE_MS = 7 * 24 * 60 * 60 * 1000
-const FETCH_TIMEOUT_MS = 4000
-/** Don't re-hit a failing upstream on every request. */
-const FAILURE_BACKOFF_MS = 10 * 60 * 1000
+// The API's cold reference/provider work is itself bounded at three seconds.
+// Leave enough budget for the Squid CONNECT and normal network latency around it.
+const FETCH_TIMEOUT_MS = 6000
+/** Avoid a request storm without pinning a transient cold-start failure for ten minutes. */
+const FAILURE_BACKOFF_MS = 60 * 1000
 /** The backend currently serves about 200 ISO rates. This bound leaves room for
  *  the catalog to grow while refusing an accidentally unbounded response. */
 const MIN_RATE_ROWS = 150
