@@ -11,6 +11,7 @@ import { truncateAll } from '@/server/test/db'
 import { MAX_IMAGE_BASE64_CHARS, ROOM_SCAN_LIMIT } from '@/server/receipt'
 import { resetRateLimits } from '@/server/rateLimit'
 import { GET as scanStatus, POST as scanParse } from '@/app/api/rooms/[slug]/receipt-parse/route'
+import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import type { ApiError, ParsedReceipt, ReceiptParseInput, RoomStateWithMember } from '@/lib/api-types'
 
@@ -79,6 +80,12 @@ const postChunked = async (slug: string, payload: string) => {
         duplex: 'half',
     } as RequestInit & { duplex: 'half' })
     const response = await scanParse(request, { params: Promise.resolve({ slug }) })
+    return { status: response.status, body: (await response.json()) as ApiError }
+}
+
+const readRoom = async (slug: string) => {
+    const request = new Request(`${BASE}/api/rooms/${slug}`)
+    const response = await getRoom(request, { params: Promise.resolve({ slug }) })
     return { status: response.status, body: (await response.json()) as ApiError }
 }
 
@@ -286,6 +293,46 @@ describe('POST — the gates in front of the model', () => {
         })
         expect(status).toBe(404)
         expect(body.error.code).toBe('NOT_FOUND')
+    })
+
+    it('shares the room-lookup miss budget and hides real slugs once it is exhausted', async () => {
+        const slug = await newRoom()
+        const fetchMock = vi.fn()
+        vi.stubGlobal('fetch', fetchMock)
+
+        // Spend most of the shared 30-miss allowance through the ordinary room
+        // endpoint, then finish it here. If scanning kept a private lookup
+        // bucket, all of the receipt requests below would still answer 404.
+        for (let i = 0; i < 25; i++) {
+            expect((await readRoom(`missing-read-${i}`)).status).toBe(404)
+        }
+        for (let i = 0; i < 5; i++) {
+            expect(
+                (
+                    await post<ApiError>(`missing-scan-${i}`, {
+                        imageBase64: image(),
+                        mimeType: 'image/jpeg',
+                    })
+                ).status
+            ).toBe(404)
+        }
+
+        const exhaustedMiss = await post<ApiError>('missing-scan-5', {
+            imageBase64: image(),
+            mimeType: 'image/jpeg',
+        })
+        expect(exhaustedMiss.status).toBe(429)
+        expect(exhaustedMiss.body.error.code).toBe('RATE_LIMITED')
+
+        // Refuse an existing slug at the same boundary; otherwise the 429/404
+        // distinction would itself reveal whether the guessed room exists.
+        const existing = await post<ApiError>(slug, {
+            imageBase64: image(),
+            mimeType: 'image/jpeg',
+        })
+        expect(existing.status).toBe(429)
+        expect(existing.body.error.code).toBe('RATE_LIMITED')
+        expect(fetchMock).not.toHaveBeenCalled()
     })
 
     it('caps a single IP at ten scans an hour', async () => {

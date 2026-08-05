@@ -17,7 +17,7 @@
  */
 
 import { ApiError, badRequest, json, readJsonCapped, respond } from '@/server/http'
-import { WRITE_LIMIT, enforceRateLimit, type Limit } from '@/server/rateLimit'
+import { WRITE_LIMIT, enforceRateLimit, meterRoomLookup, type Limit } from '@/server/rateLimit'
 import { loadRoom } from '@/server/roomState'
 import { modelEnabled } from '@/server/model'
 import { MAX_IMAGE_BASE64_CHARS, enforceRoomScanLimit, parseReceipt } from '@/server/receipt'
@@ -71,7 +71,10 @@ export const POST = (request: Request, ctx: Ctx) =>
             throw badRequest('image bytes do not match the declared mime type', 'SCAN_BAD_IMAGE')
         }
 
-        const room = await loadRoom(slug)
+        // A room slug is the room credential. Share the same miss budget as
+        // every other slug lookup so this route cannot become a parallel room-
+        // existence oracle just because it also has a stricter model-cost cap.
+        const room = await meterRoomLookup(request, () => loadRoom(slug))
         // Per-room after per-IP, and after the room is known to exist: the daily
         // allowance belongs to a real room, not to a slug someone guessed.
         enforceRoomScanLimit(room.id)

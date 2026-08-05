@@ -193,15 +193,27 @@ export function ExpenseDrawer({
     }, [])
 
     useEffect(() => {
-        if (!scannerOpen) return
-        const closeOnBack = () => {
-            if (!scanHistoryMarkerRef.current) return
-            scanHistoryMarkerRef.current = null
-            dispatchWorkflow({ type: 'scan-cancelled' })
+        const syncScannerWithHistory = (event: PopStateEvent) => {
+            const marker = typeof event.state?.peanutSplitScanner === 'string' ? event.state.peanutSplitScanner : null
+
+            if (scannerOpen) {
+                const armedMarker = scanHistoryMarkerRef.current
+                if (!armedMarker || marker === armedMarker) return
+                scanHistoryMarkerRef.current = null
+                dispatchWorkflow({ type: 'scan-cancelled' })
+                return
+            }
+
+            // Back closes the camera boundary; Forward should restore it. Leaving
+            // the same-URL marker visually dead makes the next Back appear broken
+            // and lets repeated opens accumulate invisible history steps.
+            if (!marker || !openRef.current || expense) return
+            scanHistoryMarkerRef.current = marker
+            dispatchWorkflow({ type: 'scan-opened' })
         }
-        window.addEventListener('popstate', closeOnBack)
-        return () => window.removeEventListener('popstate', closeOnBack)
-    }, [scannerOpen])
+        window.addEventListener('popstate', syncScannerWithHistory)
+        return () => window.removeEventListener('popstate', syncScannerWithHistory)
+    }, [expense, scannerOpen])
 
     // Re-seed on every open: a drawer that remembers last time's amount is a
     // money bug waiting to happen.
