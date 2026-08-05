@@ -777,7 +777,7 @@
             "step1": "Escanear una cuenta · revisa los ítems",
             "step2": "Escanear una cuenta · quién pidió qué",
             "reading": "Leyendo la cuenta…",
-            "privacyNote": "La foto se lee una vez y no se guarda nunca.",
+            "privacyNote": "Split envía la foto una vez y no la guarda.",
             "reviewTitle": "Revisa los ítems",
             "reviewBody": "Corrige lo que haya salido mal, borra lo que no es tuyo y agrega lo que falte.",
             "reviewFromMerchant": "De {merchant}. Corrige lo que haya salido mal y agrega lo que falte.",
