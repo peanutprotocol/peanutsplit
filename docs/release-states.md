@@ -44,6 +44,7 @@ rollback can move a capability back.
 | Existing-room repeated import                               | code-complete       | Atomic append, replay/concurrency, populated-ledger preservation and browser journeys verified on the feature branch    |
 | Percentage and share-weighted expense splits                | production-verified | Production mobile create, edit and persisted-weight verification, 2026-08-02                                            |
 | Receipt scanning                                            | held                | Camera-first E2E is complete; V2 remains off until the real-device gate passes                                          |
+| Natural-language Quick Add                                  | retired             | Removed by product decision, 2026-08-05; camera/upload is the sole model-assisted expense entry                         |
 | Payer lifecycle, settlement correction and quiet provenance | code-complete       | Atomic staged payer, narrow cleanup, documentary Peanut receipt and settlement undo are verified on this feature branch |
 | Bounded saves and unambiguous amount punctuation            | code-complete       | Timeout/idempotency and locale-aware normalization tests pass on this feature branch                                    |
 | Rejected queued-draft repair                                | held                | A durable review/edit/retry/discard state needs the larger V2 recovery UI approved in the audit ruling                  |

@@ -15,6 +15,9 @@
 export const SHARE_TARGET_ACTION = '/api/share-target'
 export const SHARE_TARGET_FIELD = 'receipt'
 export const SHARE_TARGET_LANDING = '/share-target'
+/** Applied in the worker before Cache Storage sees the full-resolution share.
+ *  The page-side image pipeline enforces the same ceiling before decode. */
+export const MAX_SHARED_RECEIPT_BYTES = 40 * 1024 * 1024
 
 const CACHE = 'ps:shared-receipt'
 const KEY = '/__shared-receipt'
@@ -32,6 +35,7 @@ const STAMP = 'x-parked-at'
 /** Worker side. Throws are the caller's to swallow: the SW turns any failure into the same
  *  "nothing arrived" screen the empty case produces. */
 export async function storeSharedReceipt(storage: CacheStorage, file: File): Promise<void> {
+    if (file.size > MAX_SHARED_RECEIPT_BYTES) throw new Error('shared receipt is too large to store')
     const cache = await storage.open(CACHE)
     await cache.put(KEY, new Response(file, { headers: { [STAMP]: String(Date.now()) } }))
 }

@@ -27,6 +27,7 @@
  * counter then blocks the submit on a line they never wanted.
  */
 
+import { useRef } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
@@ -58,6 +59,8 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
     const t = useTranslations('room.scan')
     const locale = useLocale()
     const feedback = useFeedback()
+    const itemListRef = useRef<HTMLUListElement>(null)
+    const emptyStateRef = useRef<HTMLParagraphElement>(null)
 
     const memberIds = members.map((member) => member.id)
     const unassigned = unassignedItems(state, decimals, locale)
@@ -72,11 +75,15 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                 <p className="text-sm text-grey-1">{t('assignBody')}</p>
             </header>
 
-            <ul className="flex flex-col gap-3">
-                {state.items.map((item) => {
+            <ul ref={itemListRef} className="flex flex-col gap-3">
+                {state.items.map((item, index) => {
                     const assignees = state.assignments[item.id] ?? []
                     const isEveryone = memberIds.length > 0 && assignees.length === memberIds.length
                     const needsSomeone = assignees.length === 0 && BigInt(itemMinor(item, decimals, locale)) > 0n
+                    const itemName = item.label.trim()
+                    const itemContext = itemName
+                        ? t('itemContext', { number: index + 1, item: itemName })
+                        : t('itemNumber', { number: index + 1 })
                     return (
                         <li
                             key={item.id}
@@ -109,8 +116,16 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                     onClick={() => {
                                         dispatch({ type: 'remove-item', itemId: item.id })
                                         feedback('tick')
+                                        requestAnimationFrame(() => {
+                                            const remaining = itemListRef.current?.querySelectorAll<HTMLButtonElement>(
+                                                '[data-testid="scan-item-remove"]'
+                                            )
+                                            const next = remaining?.[Math.min(index, remaining.length - 1)]
+                                            const focusTarget = next ?? emptyStateRef.current
+                                            focusTarget?.focus()
+                                        })
                                     }}
-                                    aria-label={t('removeItem')}
+                                    aria-label={t('removeItemFor', { item: itemContext })}
                                     data-testid="scan-item-remove"
                                     className="-my-2 flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white"
                                 >
@@ -118,7 +133,11 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                 </button>
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
+                            <div
+                                role="group"
+                                aria-label={t('assignmentGroup', { item: itemContext })}
+                                className="flex flex-wrap gap-2"
+                            >
                                 {members.map((member) => {
                                     const on = assignees.includes(member.id)
                                     return (
@@ -134,6 +153,10 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                                 feedback('tick')
                                             }}
                                             aria-pressed={on}
+                                            aria-label={t('assignMemberToItem', {
+                                                member: member.name,
+                                                item: itemContext,
+                                            })}
                                             data-testid="scan-assignee-chip"
                                             data-member={member.name}
                                             className={cn(
@@ -163,6 +186,7 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                                         feedback('tick')
                                     }}
                                     aria-pressed={isEveryone}
+                                    aria-label={t('assignEveryoneToItem', { item: itemContext })}
                                     data-testid="scan-everyone"
                                     className={cn(
                                         'flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-n-1 px-3 py-2 text-h8 transition-all duration-100',
@@ -182,7 +206,13 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
                 receipt — and an empty screen with a dead button on it says nothing
                 about why. */}
             {state.items.length === 0 && (
-                <p data-testid="scan-no-items" className="text-sm text-grey-1">
+                <p
+                    ref={emptyStateRef}
+                    role="status"
+                    tabIndex={-1}
+                    data-testid="scan-no-items"
+                    className="text-sm text-grey-1"
+                >
                     {t('noItems')}
                 </p>
             )}

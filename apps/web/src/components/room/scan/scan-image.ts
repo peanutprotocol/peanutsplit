@@ -18,6 +18,8 @@
  * the caller, which posts them once and drops them.
  */
 
+import { MAX_SHARED_RECEIPT_BYTES } from '@/lib/shared-receipt'
+
 /** Longest edge after downscaling. Printed receipt text stays legible well below
  *  this; going lower starts losing the small print at the bottom of a long bill. */
 const MAX_EDGE = 1600
@@ -25,7 +27,7 @@ const MAX_EDGE = 1600
 /** Bound decode memory before a hostile or accidental giant source reaches a
  *  bitmap. Real phone photos sit far below this; the encoded upload still has
  *  the tighter 8MB limit after resizing. */
-export const MAX_SOURCE_IMAGE_BYTES = 40 * 1024 * 1024
+export const MAX_SOURCE_IMAGE_BYTES = MAX_SHARED_RECEIPT_BYTES
 
 /** Mirrors the server ceiling (8MB of image → its base64 length). Checked here
  *  too so an over-large photo fails on the device, before the upload, where the

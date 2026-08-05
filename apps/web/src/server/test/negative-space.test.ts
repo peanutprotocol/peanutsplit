@@ -327,9 +327,8 @@ describe('values that are not on any list', () => {
         expect(await prisma.expense.count()).toBe(1)
     })
 
-    /** Not a rejection: an omitted or empty participant list means the whole room, which is what
-     *  the quick-add path relies on. Pinned here so the refusal list above cannot quietly grow to
-     *  include it and break a shipped client. */
+    /** Not a rejection: an omitted or empty participant list means the whole room. Pinned here so
+     *  the refusal list above cannot quietly grow to include it and break ordinary expense entry. */
     it('reads an empty participant list as everybody, rather than as nobody', async () => {
         const { slug, created, bea } = await seedRoom()
         const { status, body } = await call<RoomState>(postExpense as Handler, {

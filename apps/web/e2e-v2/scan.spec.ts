@@ -378,7 +378,7 @@ test('a failed read can retry with another photo and calls the model once per at
     await makeRoom(page, 'Retry trip')
     await startUploadScan(page)
 
-    await expect(page.getByRole('alert')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('scan-flow').getByRole('alert')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('scan-retry')).toBeVisible()
     expect(posted.calls).toBe(1)
     await page.getByTestId('scan-retry').click()
@@ -407,23 +407,43 @@ test('scan → review → assign → delete a hallucinated row → hand back →
     expect(await everythingOnScreenIsTheOverlay(page)).toEqual([])
 
     const firstLabel = page.getByTestId('scan-item-label').first()
+    await expect(firstLabel).toHaveAccessibleName('Name for Item 1, Pizza')
     await firstLabel.click()
     await expect(firstLabel).toBeFocused()
     await firstLabel.fill('Pizza margherita')
     await expect(firstLabel).toHaveValue('Pizza margherita')
 
     await expect(page.getByTestId('scan-item-amount')).toHaveCount(3)
+    await expect(page.getByTestId('scan-item-amount').first()).toHaveAccessibleName(
+        'Amount for Item 1, Pizza margherita'
+    )
+    await expect(page.getByTestId('scan-item-amount').nth(1)).toHaveAccessibleName('Amount for Item 2, Wine')
     await expect(page.getByTestId('scan-totals')).toContainText('42.40')
-    await page.getByTestId('scan-remove-item').nth(2).click()
+    const hallucinatedReviewRow = page.getByTestId('scan-remove-item').nth(2)
+    await expect(hallucinatedReviewRow).toHaveAccessibleName('Remove Item 3, LOYALTY CARD 4417')
+    await hallucinatedReviewRow.focus()
+    await hallucinatedReviewRow.press('Enter')
     await expect(page.getByTestId('scan-item-amount')).toHaveCount(2)
+    await expect(page.getByTestId('scan-remove-item').nth(1)).toBeFocused()
     await expect(page.getByTestId('scan-totals')).toContainText('32.50')
     await expect(page.getByTestId('scan-continue')).toBeEnabled()
 
     await page.getByTestId('scan-continue').click()
     await expect(page.getByTestId('scan-assign-row')).toHaveCount(2)
     expect(await everythingOnScreenIsTheOverlay(page)).toEqual([])
-    await page.getByTestId('scan-item-remove').nth(1).click()
+    const pizzaRow = page.getByTestId('scan-assign-row').first()
+    await expect(pizzaRow.getByTestId('scan-assignee-chip')).toHaveAccessibleName(
+        'Assign Ana to Item 1, Pizza margherita'
+    )
+    await expect(pizzaRow.getByTestId('scan-everyone')).toHaveAccessibleName(
+        'Assign everyone to Item 1, Pizza margherita'
+    )
+    const wineAssignRow = page.getByTestId('scan-item-remove').nth(1)
+    await expect(wineAssignRow).toHaveAccessibleName('Remove Item 2, Wine')
+    await wineAssignRow.focus()
+    await wineAssignRow.press('Enter')
     await expect(page.getByTestId('scan-assign-row')).toHaveCount(1)
+    await expect(page.getByTestId('scan-item-remove').first()).toBeFocused()
     await page.getByTestId('scan-everyone').first().click()
     await expect(page.getByTestId('scan-unassigned')).toHaveCount(0)
     expect(getExpensePosts()).toBe(0)
@@ -452,9 +472,7 @@ test('scan → review → assign → delete a hallucinated row → hand back →
     expect(posted.calls).toBe(1)
 })
 
-test('browser Back exits only the scanner, keeps the drawer draft, and reopening starts at camera', async ({
-    page,
-}) => {
+test('browser Back and Forward mirror scanner state without losing the drawer draft', async ({ page }) => {
     await mockCamera(page, 'denied')
     const posted: Posted = {}
     await stubTheModel(page, posted)
@@ -470,6 +488,13 @@ test('browser Back exits only the scanner, keeps the drawer draft, and reopening
     await expect(page.getByTestId('scan-flow')).toHaveCount(0)
     await expect(page.getByTestId('expense-description')).toHaveValue('Back-safe draft', { timeout: 15_000 })
     expect(posted.calls ?? 0).toBe(0)
+
+    await page.goForward()
+    await expect(page.getByTestId('scan-camera')).toBeVisible()
+    await page.goBack()
+    await expect(page.getByTestId('scan-flow')).toHaveCount(0)
+    await expect(page.getByTestId('expense-description')).toHaveValue('Back-safe draft')
+
     await page.getByTestId('scan-bill').click()
     await expect(page.getByTestId('scan-camera')).toBeVisible()
     await expect(page.getByTestId('scan-item-label')).toHaveCount(0)
