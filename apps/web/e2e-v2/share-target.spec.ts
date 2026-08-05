@@ -2,7 +2,8 @@ import { expect, test, type Page } from '@playwright/test'
 import { makeRoom, snoozeInstallPrompt, stubTheModel, TINY_JPEG } from './helpers'
 
 /**
- * A receipt photo handed in from the OS share sheet, on a build whose scan flow is on.
+ * The internal receipt handoff, retained as regression coverage while the first
+ * public scanner release deliberately does not advertise a Web Share Target.
  *
  * WHAT THIS FILE CANNOT COVER, and why the seeding below is deliberate: `pnpm dev` builds no
  * service worker at all (next.config.js gates serwist on NODE_ENV), so the POST interception in
@@ -52,7 +53,7 @@ const rememberDecoyRoom = (page: Page) =>
         )
     })
 
-test('the manifest offers Split to the OS share sheet, and still carries no room', async ({ request }) => {
+test('the manifest keeps the unverified OS share path disabled', async ({ request }) => {
     const response = await request.get('/manifest.webmanifest')
     const manifest = (await response.json()) as {
         id: string
@@ -63,12 +64,7 @@ test('the manifest offers Split to the OS share sheet, and still carries no room
     }
     expect(manifest).toMatchObject({ id: '/', start_url: '/app', scope: '/' })
 
-    expect(manifest.share_target).toEqual({
-        action: '/api/share-target',
-        method: 'POST',
-        enctype: 'multipart/form-data',
-        params: { files: [{ name: 'receipt', accept: ['image/*'] }] },
-    })
+    expect(manifest.share_target).toBeUndefined()
     expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
     expect(JSON.stringify(manifest)).not.toContain('/r/')
 })
