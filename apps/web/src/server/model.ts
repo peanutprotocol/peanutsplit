@@ -8,8 +8,11 @@
  * Three properties, all of them the kind that quietly stop being true if nobody
  * writes them down:
  *
- * 1. **Nothing sent is persisted.** A receipt is someone's private life, handed
- *    over once for a few seconds of work. There is no column, bucket or temp file.
+ * 1. **Split does not persist what is sent.** A receipt is someone's private
+ *    life, handed over once for a few seconds of work. There is no app column,
+ *    bucket or temp file. OpenRouter requests also require a zero-retention,
+ *    no-data-collection provider; Gemini direct is fail-closed unless the
+ *    operator confirms the key belongs to a paid project.
  * 2. **Content never reaches a log.** No labels, no amounts, no merchant, no
  *    receipt content, not in an error path either. Every `console.error` below
  *    carries a status code — and, on OpenRouter, the machine-readable error code
@@ -23,8 +26,9 @@
  *   Gemini weights alongside every other model behind one bill and one per-key
  *   spend cap, so "the cheapest model that can do this" becomes an env change
  *   rather than a second integration to write and keep alive.
- * - **Gemini direct** (`SPLIT_GEMINI_API_KEY`) — the original path, kept as the
- *   fallback so a key we already hold stays sufficient on its own.
+ * - **Gemini direct** (`SPLIT_GEMINI_API_KEY`) — the original path, kept as a
+ *   fallback only when `SPLIT_GEMINI_PAID_TIER_CONFIRMED=1`. Unpaid Gemini may
+ *   use inputs to improve products, so a bare key must never reveal the feature.
  *
  * Neither key is a first-class state: the capability probe says
  * `enabled: false`, the UI hides the scanner, and a POST that arrives anyway
@@ -76,7 +80,7 @@ export function modelConfig(): ModelConfig | null {
         }
     }
     const geminiKey = process.env.SPLIT_GEMINI_API_KEY
-    if (geminiKey) {
+    if (geminiKey && process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED === '1') {
         return { transport: 'gemini', apiKey: geminiKey, model: process.env.SPLIT_GEMINI_MODEL || DEFAULT_GEMINI_MODEL }
     }
     return null
@@ -208,6 +212,11 @@ async function callOpenRouter(call: ModelCall, config: ModelConfig): Promise<str
             body: JSON.stringify({
                 model: config.model,
                 messages: [{ role: 'user', content }],
+                // Receipt photos can contain names, locations and partial card
+                // numbers. OpenRouter's routing defaults allow data-collecting
+                // providers, so both controls are explicit on every request:
+                // no training/collection and no provider-side retention.
+                provider: { data_collection: 'deny', zdr: true },
                 response_format: { type: 'json_object' },
                 // Zero temperature because this is transcription, not writing:
                 // the same input should produce the same expense twice.

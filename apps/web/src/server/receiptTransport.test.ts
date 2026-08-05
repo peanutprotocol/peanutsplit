@@ -63,6 +63,7 @@ const codeOf = async (fn: () => Promise<unknown>): Promise<string> => {
 beforeEach(() => {
     delete process.env.SPLIT_OPENROUTER_API_KEY
     delete process.env.SPLIT_GEMINI_API_KEY
+    delete process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED
     delete process.env.SPLIT_SCAN_MODEL
     delete process.env.SPLIT_GEMINI_MODEL
     delete process.env.SPLIT_SCAN_PROXY_URL
@@ -80,12 +81,14 @@ describe('transport selection', () => {
         expect(fetchSpy).not.toHaveBeenCalled()
     })
 
-    it('is enabled on either key alone — the probe answers for the feature, not a provider', () => {
+    it('is enabled on OpenRouter or a paid-tier-confirmed Gemini key', () => {
         process.env.SPLIT_OPENROUTER_API_KEY = OPENROUTER_KEY
         expect(modelEnabled()).toBe(true)
 
         delete process.env.SPLIT_OPENROUTER_API_KEY
         process.env.SPLIT_GEMINI_API_KEY = GEMINI_KEY
+        expect(modelEnabled()).toBe(false)
+        process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED = '1'
         expect(modelEnabled()).toBe(true)
     })
 
@@ -101,6 +104,7 @@ describe('transport selection', () => {
 
     it('falls back to Gemini direct with only its key, unchanged from before OpenRouter existed', async () => {
         process.env.SPLIT_GEMINI_API_KEY = GEMINI_KEY
+        process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED = '1'
         const fetchSpy = stubFetch().mockResolvedValueOnce(geminiAnswer(RECEIPT))
 
         const parsed = await parseReceipt(body, 'EUR')
@@ -128,6 +132,7 @@ describe('transport selection', () => {
 
         delete process.env.SPLIT_OPENROUTER_API_KEY
         process.env.SPLIT_GEMINI_API_KEY = GEMINI_KEY
+        process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED = '1'
         const gemini = stubFetch().mockResolvedValueOnce(geminiAnswer(RECEIPT))
         await parseReceipt(body, 'EUR')
         const geminiPrompt = sentBody(sentAt(gemini)).contents[0].parts[0].text
@@ -181,6 +186,7 @@ describe('OpenRouter — the request', () => {
         const payload = sentBody(sent)
         expect(payload.model).toBe('google/gemini-2.5-flash-lite')
         expect(payload.response_format).toEqual({ type: 'json_object' })
+        expect(payload.provider).toEqual({ data_collection: 'deny', zdr: true })
         expect(payload.temperature).toBe(0)
         expect(payload.max_tokens).toBe(4096)
         expect(payload.messages).toHaveLength(1)

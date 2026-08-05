@@ -42,6 +42,7 @@ export default defineConfig({
                   // spec intercepts every model call, so the value is never used —
                   // it only has to exist for the capability probe to say yes.
                   SPLIT_GEMINI_API_KEY: process.env.SPLIT_GEMINI_API_KEY ?? 'e2e-not-a-real-key',
+                  SPLIT_GEMINI_PAID_TIER_CONFIRMED: '1',
               },
           },
     projects: [{ name: 'mobile', use: { ...devices['iPhone 14'], browserName: 'chromium' } }],

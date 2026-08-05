@@ -9,6 +9,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { truncateAll } from '@/server/test/db'
 import { MAX_IMAGE_BASE64_CHARS, ROOM_SCAN_LIMIT } from '@/server/receipt'
+import { MAX_CONCURRENT_RECEIPT_SCANS } from '@/server/receiptConcurrency'
 import { resetRateLimits } from '@/server/rateLimit'
 import { GET as scanStatus, POST as scanParse } from '@/app/api/rooms/[slug]/receipt-parse/route'
 import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
@@ -124,6 +125,7 @@ beforeEach(async () => {
     // One map holds every bucket, per-IP and per-room alike.
     resetRateLimits()
     process.env.SPLIT_GEMINI_API_KEY = API_KEY
+    process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED = '1'
     // Explicitly absent, so a key in the developer's own shell cannot silently
     // move this whole file onto the other transport.
     delete process.env.SPLIT_OPENROUTER_API_KEY
@@ -133,6 +135,7 @@ beforeEach(async () => {
 afterEach(() => {
     vi.unstubAllGlobals()
     delete process.env.SPLIT_GEMINI_API_KEY
+    delete process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED
     delete process.env.SPLIT_OPENROUTER_API_KEY
 })
 
@@ -164,6 +167,11 @@ describe('capability probe', () => {
 
     it('reports disabled with no key — the UI hides the whole feature on this', async () => {
         delete process.env.SPLIT_GEMINI_API_KEY
+        expect(await scanStatus().json()).toEqual({ enabled: false })
+    })
+
+    it('reports disabled for an unconfirmed direct-Gemini key', async () => {
+        delete process.env.SPLIT_GEMINI_PAID_TIER_CONFIRMED
         expect(await scanStatus().json()).toEqual({ enabled: false })
     })
 
@@ -349,6 +357,40 @@ describe('POST — the gates in front of the model', () => {
         const { status, body } = await post<ApiError>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
         expect(status).toBe(429)
         expect(body.error.code).toBe('RATE_LIMITED')
+    })
+
+    it('rejects excess concurrent scans before reading their bodies', async () => {
+        const slug = await newRoom()
+        const releaseProvider: (() => void)[] = []
+        const fetchMock = vi.fn(
+            () =>
+                new Promise<Response>((resolve) => {
+                    releaseProvider.push(() => resolve(modelAnswer({ items: [{ label: 'Beer', amountMinor: '500' }] })))
+                })
+        )
+        vi.stubGlobal('fetch', fetchMock)
+
+        const pending = Array.from({ length: MAX_CONCURRENT_RECEIPT_SCANS }, () =>
+            post<ParsedReceipt>(slug, { imageBase64: image(), mimeType: 'image/jpeg' })
+        )
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(MAX_CONCURRENT_RECEIPT_SCANS))
+
+        // If body parsing ran first, the deliberately impossible declared size
+        // would answer 413. RATE_LIMITED proves the process slot is acquired
+        // before a byte of the excess request is accepted.
+        const excess = await post<ApiError>(
+            slug,
+            { imageBase64: image(), mimeType: 'image/jpeg' },
+            { contentLength: MAX_IMAGE_BASE64_CHARS * 2 }
+        )
+        expect(excess.status).toBe(429)
+        expect(excess.body.error.code).toBe('RATE_LIMITED')
+        expect(fetchMock).toHaveBeenCalledTimes(MAX_CONCURRENT_RECEIPT_SCANS)
+
+        for (const release of releaseProvider) release()
+        expect((await Promise.all(pending)).map(({ status }) => status)).toEqual(
+            Array(MAX_CONCURRENT_RECEIPT_SCANS).fill(200)
+        )
     })
 
     it('caps a room at its daily allowance even across IPs', async () => {

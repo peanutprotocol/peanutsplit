@@ -1,18 +1,18 @@
 ---
 title: Scan a receipt to split a bill by item
-description: Photograph the bill, check the lines it read, tap who had what. Receipt splitting is free forever, with no per-scan limit, premium tier or account to make first.
+description: Photograph the bill, check the lines it read, tap who had what. Receipt splitting is free forever, with no premium tier or account to make first.
 date: 2026-07-28
 v2Only: true
 tags: [receipts, dinners]
 faqs:
     - question: Is receipt scanning free forever?
-      answer: Yes. Receipt scanning is free forever, with no scan counter, premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.
+      answer: Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.
     - question: Do you keep my receipt photo?
-      answer: No. The photo is sent once, read once, and never written down — not the image, not the merchant, not the lines. What is saved is the expense you approve at the end, the same row you would have typed by hand.
+      answer: Split sends the photo to Gemini for reading, either through OpenRouter or directly. Split does not write the image or extracted lines to its app storage or logs. What is saved is the expense you approve at the end.
     - question: What if it reads a line wrong?
       answer: You see every line before anything is saved. Fix the text, fix the amount, delete what is not yours, add what it missed. If the lines do not add up to the printed total, it says so and shows the gap.
     - question: Do I have to scan to split by item?
-      answer: No. Scanning is a faster way into the same split. You can type the items yourself and assign them the same way, and the expense that lands is identical.
+      answer: No. For a short bill, enter one ordinary expense and set exact shares manually. The item-by-item assignment screen is part of receipt scanning.
 ---
 
 <Hero
@@ -39,7 +39,7 @@ What lands in the room at the end is an ordinary expense with exact amounts per 
 ## The honest part about the photo
 
 <Callout title="What happens to the image">
-It is sent once, read once, and never stored. Not the image, not the merchant name, not the line items — none of it is written to disk or to a log. The only thing that survives the flow is the expense you approve on the last screen. The model's arithmetic is not trusted either: the amounts are re-checked against the printed total before you are asked to assign anything.
+Split sends the photo to Gemini for reading, either through OpenRouter or directly. Split does not write the image, merchant name or extracted lines to its app storage or logs; the only thing it saves is the expense you approve on the last screen. When OpenRouter is used, requests are restricted to providers that deny data collection and use zero data retention. Direct Gemini is enabled only for a paid-tier project; Google's terms allow temporary prompt and response logging for abuse monitoring. The model's arithmetic is not trusted either: the amounts are re-checked against the printed total before you are asked to assign anything.
 </Callout>
 
 That is also why scanning is not a login-gated feature dressed up as a premium one. There is no account, so there is nothing to attach a scan history to, and no history to sell back to you later.
@@ -52,7 +52,7 @@ That is also why scanning is not a login-gated feature dressed up as a premium o
 <ChecklistItem title="The receipt is printed and flat">Handwritten totals, crumpled thermal paper and a photo taken at an angle are the three things that cost you a correction.</ChecklistItem>
 </Checklist>
 
-If the "Scan a bill" button is not in your room yet, it has not been switched on for that deployment. Nothing else changes: you can type the items in yourself and assign them exactly the same way, and the expense that comes out the other end is the same one.
+If the "Scan receipt" button is not in your room, scanning is unavailable on that deployment. You can still enter the total as an ordinary expense and set each person's exact share manually.
 
 ## Free forever, and what that means here
 
@@ -66,10 +66,10 @@ There is one number worth knowing: a room can scan 30 bills a day. That is a cei
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is receipt scanning free forever?">Yes. Receipt scanning is free forever, with no scan counter, premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.</FAQItem>
-<FAQItem question="Do you keep my receipt photo?">No. The photo is sent once, read once, and never written down — not the image, not the merchant, not the lines. What is saved is the expense you approve at the end, the same row you would have typed by hand.</FAQItem>
+<FAQItem question="Is receipt scanning free forever?">Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.</FAQItem>
+<FAQItem question="Do you keep my receipt photo?">Split sends the photo to Gemini for reading, either through OpenRouter or directly. Split does not write the image or extracted lines to its app storage or logs. What is saved is the expense you approve at the end.</FAQItem>
 <FAQItem question="What if it reads a line wrong?">You see every line before anything is saved. Fix the text, fix the amount, delete what is not yours, add what it missed. If the lines do not add up to the printed total, it says so and shows the gap.</FAQItem>
-<FAQItem question="Do I have to scan to split by item?">No. Scanning is a faster way into the same split. You can type the items yourself and assign them the same way, and the expense that lands is identical.</FAQItem>
+<FAQItem question="Do I have to scan to split by item?">No. For a short bill, enter one ordinary expense and set exact shares manually. The item-by-item assignment screen is part of receipt scanning.</FAQItem>
 </FAQ>
 
 <RelatedPages>

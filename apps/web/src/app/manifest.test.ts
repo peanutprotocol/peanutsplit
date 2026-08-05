@@ -56,19 +56,11 @@ describe('shortcuts', () => {
 })
 
 describe('share_target', () => {
-    it('puts nothing in the OS share sheet that this build cannot serve', async () => {
-        const manifest = await manifestWith(false)
-        expect(manifest.share_target).toBeUndefined()
-    })
-
-    it('accepts one image field, posted as multipart, at the route the worker intercepts', async () => {
-        const manifest = await manifestWith(true)
-        expect(manifest.share_target).toEqual({
-            action: '/api/share-target',
-            method: 'POST',
-            enctype: 'multipart/form-data',
-            params: { files: [{ name: 'receipt', accept: ['image/*'] }] },
-        })
+    it('does not advertise the unverified OS handoff in either flag state', async () => {
+        for (const v2 of [false, true]) {
+            const manifest = await manifestWith(v2)
+            expect(manifest.share_target).toBeUndefined()
+        }
     })
 })
 

@@ -26,14 +26,15 @@
  */
 
 import { ApiError } from '@/server/http'
+import { MAX_PREPARED_RECEIPT_BYTES } from '@/lib/shared-receipt'
 import { callModel, coerceCurrency, coerceDate, modelConfig, unfence } from '@/server/model'
 import { enforceRateLimitOn, type Limit } from '@/server/rateLimit'
 import { receiptItemSchema, receiptModelSchema, type ReceiptParseBody } from '@/server/validation'
 
-/** 8MB of actual image bytes. A downscaled phone photo lands around 200-500KB;
- *  this ceiling exists for the person who picks a raw file out of their gallery,
- *  not for the normal path. */
-export const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+/** A downscaled phone photo lands around 200-500KB. Four MiB leaves ample room
+ *  for a noisy 1600px JPEG while keeping the parsed and re-serialized request
+ *  comfortably inside the production container's memory budget. */
+export const MAX_IMAGE_BYTES = MAX_PREPARED_RECEIPT_BYTES
 /** Base64 is 4 bytes per 3, so the encoded form of the ceiling is this. Checked
  *  before decoding — the point of a size limit is to not do the work. */
 export const MAX_IMAGE_BASE64_CHARS = Math.ceil(MAX_IMAGE_BYTES / 3) * 4
