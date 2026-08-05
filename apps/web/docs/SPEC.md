@@ -183,8 +183,9 @@ reconstruction (passes the original author's e2e 10/10). Port its semantics exac
   minimal-transfer (≤ n−1 transfers).
 - Live FX: fetch Peanut's public `https://api.peanut.me/fx/rates?base=USD` display-sell snapshot
   server-side through `SPLIT_FX_PROXY_URL`, invert its units-per-USD decimal strings into Split's
-  USD-per-unit table, and cache the last good result for 24h in FxRate. No Peanut secret is sent.
-  Fall back to a bounded-age cache, then the mock's static table, when refresh fails. Rates are
+  USD-per-unit table, and treat the last good result as fresh for 24h in FxRate. No Peanut secret
+  is sent. If refresh fails, cached rows remain usable only while the producer's `generatedAt` is
+  under seven days old; after that Split falls back to the mock's 12-rate static table. Rates are
   indicative — label them so.
 
 ## Import compatibility boundary
