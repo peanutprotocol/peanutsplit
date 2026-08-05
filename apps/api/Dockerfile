@@ -5,7 +5,7 @@
 # Postgres and the proxy. Code here is treated as untrusted, so the image gives
 # it no credentials beyond DATABASE_URL and no reason to need egress.
 
-FROM node:22-bookworm-slim AS builder
+FROM node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436 AS builder
 WORKDIR /app
 
 # openssl must be here too, not just in the runner. Prisma picks its engine
@@ -26,7 +26,7 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @peanut-split/api build
 
-FROM node:22-bookworm-slim AS runner
+FROM node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436 AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
