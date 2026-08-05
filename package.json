@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
-  "packageManager": "pnpm@9.12.0",
+  "packageManager": "pnpm@10.17.1",
   "scripts": {
     "bootstrap": "pnpm install && cd apps/web && pnpm install --ignore-workspace && pnpm exec prisma generate",
     "dev": "pnpm --filter @peanut-split/api dev & pnpm --dir apps/web dev",
