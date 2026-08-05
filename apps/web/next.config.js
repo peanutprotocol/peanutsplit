@@ -52,7 +52,7 @@ if (process.env.NODE_ENV !== 'development') {
             // requests — iOS takes those from the OS at install time, not from a cache. This is
             // the same list minus `icons/splash`, written as an include list because glob drops
             // `!` patterns silently rather than treating them as exclusions.
-            globPublicPatterns: ['*', 'dev/**/*', 'doodles/**/*', 'fonts/*', 'icons/*'],
+            globPublicPatterns: ['*', 'doodles/**/*', 'fonts/*', 'icons/*'],
         })
         return withSerwist(withNextIntl(nextConfig))
     }
