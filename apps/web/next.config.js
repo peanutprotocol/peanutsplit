@@ -29,6 +29,15 @@ const nextConfig = {
     async redirects() {
         return [{ source: '/es/:path*', destination: '/es-419/:path*', permanent: true }]
     },
+
+    /**
+     * `public/` serves files at their exact path only — a directory never resolves to its own
+     * index.html. The funnel quiz is one self-contained static file under `public/dev/funnel-quiz/`,
+     * and this maps the clean URL onto it. After-files stage, so real files still win.
+     */
+    async rewrites() {
+        return [{ source: '/dev/funnel-quiz', destination: '/dev/funnel-quiz/index.html' }]
+    },
 }
 
 // Serwist compiles src/app/sw.ts → public/sw.js. Skipped in dev so cold starts
