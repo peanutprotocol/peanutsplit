@@ -31,9 +31,9 @@ Owner of record for each open item is in brackets. Last full update: 2026-08-04.
 **State:** code-complete on `feat/import-existing-room`; production verification
 and deployment remain separate release gates.
 
-## Release in progress — receipt scanning
+## User-visible — receipt scanning
 
-The camera/gallery scanner is moving from deployed-dark to public production.
+The camera/gallery scanner is live in public production.
 Its expense-drawer entry point is the small camera/sparkle action inside the
 amount row; opening it requests the camera immediately and keeps upload in the
 bottom pullup. The installed-PWA Web Share Target is explicitly not part of
@@ -91,11 +91,12 @@ with data collection denied and zero data retention. Direct Gemini stays
 disabled unless the operator explicitly confirms paid-tier handling. The API
 accepts at most two scans concurrently, before body reading, and the prepared
 image ceiling is 4 MiB. The first public release advertises camera and gallery
-upload only; the manifest publishes no Web Share Target. Public activation is
-in progress pending the deployed capability probe and one synthetic live-model
-canary. Real iOS/Android camera, permission, rotation and background lifecycle
-verification is still required before the capability can be called
-production-verified.
+upload only; the manifest publishes no Web Share Target. Commit `3d02268` is
+live, its public capability probe answers `enabled: true`, and a synthetic
+two-line EUR receipt passed the production provider/proxy path with the exact
+total while leaving the QA room with zero saved expenses. Real iOS/Android
+camera, permission, rotation and background lifecycle verification is still
+required before the capability can be called production-verified.
 
 ## Shipped (beyond the 07-25 launch state)
 
