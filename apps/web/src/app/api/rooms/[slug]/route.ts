@@ -4,7 +4,6 @@ import { memberTokenOf, readJson, respond } from '@/server/http'
 import { actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 import { WRITE_LIMIT, enforceRateLimit, meterRoomLookup } from '@/server/rateLimit'
 import { loadRoom, roomStateBySlug, toRoomState } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
 import { roomSettingsSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -35,11 +34,9 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         const { slug } = await ctx.params
         const body = roomSettingsSchema.parse(await readJson(request))
         const initial = await loadRoom(slug)
-        assertWritable(initial)
         const result = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, initial.id)
             const room = await loadRoom(slug, tx)
-            assertWritable(room)
             const before = { name: room.name, theme: room.theme, emoji: room.emoji }
             const after = {
                 name: body.name ?? room.name,

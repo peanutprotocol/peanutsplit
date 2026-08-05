@@ -148,7 +148,6 @@ describe('toRoomState weighted share serialization', () => {
             theme: null,
             locale: null,
             createdAt,
-            archivedAt: null,
             members: [
                 {
                     id: 'a',

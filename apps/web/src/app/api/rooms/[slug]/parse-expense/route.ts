@@ -20,7 +20,6 @@ import { modelEnabled } from '@/server/model'
 import { enforceRoomNlLimit, parseNlExpense } from '@/server/nlExpense'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
 import { nlParseSchema } from '@/server/validation'
 import { MAX_NL_TEXT_CHARS } from '@/lib/quick-add'
 import { splitV2Enabled } from '@/lib/flags'
@@ -61,7 +60,6 @@ export const POST = (request: Request, ctx: Ctx) =>
         if (body.text.length > MAX_NL_TEXT_CHARS) throw textTooLong()
 
         const room = await loadRoom(slug)
-        assertWritable(room)
         // Per-room after per-IP, and after the room is known to exist: the daily
         // allowance belongs to a real room, not to a slug someone guessed.
         enforceRoomNlLimit(room.id)

@@ -86,7 +86,7 @@ export function LatecomerBanner({
         }
     }, [onOpenChange, open])
 
-    if (!review || state.room.archivedAt || resolved || isLatecomerReviewDismissed(slug, review)) return null
+    if (!review || resolved || isLatecomerReviewDismissed(slug, review)) return null
 
     const safeItems = review.items.filter(selectable)
     const selectedIds = [...selected].filter((id) => safeItems.some((item) => item.expense.id === id))

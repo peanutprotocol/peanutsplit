@@ -33,13 +33,7 @@ const hangUntilAborted = () =>
 
 describe('api error paths', () => {
     it('recognizes every stale catch-up row as a review change', () => {
-        for (const code of [
-            'CATCH_UP_REVIEW_CONFLICT',
-            'EXPENSE_DELETED',
-            'EXPENSE_NOT_FOUND',
-            'NOT_A_MEMBER',
-            'ROOM_ARCHIVED',
-        ]) {
+        for (const code of ['CATCH_UP_REVIEW_CONFLICT', 'EXPENSE_DELETED', 'EXPENSE_NOT_FOUND', 'NOT_A_MEMBER']) {
             expect(isCatchUpReviewChange(new ApiRequestError(409, code, 'changed'))).toBe(true)
         }
         expect(isCatchUpReviewChange(new ApiRequestError(500, 'UNKNOWN', 'failed'))).toBe(false)
@@ -47,9 +41,7 @@ describe('api error paths', () => {
         for (const code of ['CATCH_UP_REVIEW_CONFLICT', 'EXPENSE_DELETED', 'EXPENSE_NOT_FOUND']) {
             expect(isCatchUpRowChange(new ApiRequestError(409, code, 'changed'))).toBe(true)
         }
-        for (const code of ['NOT_A_MEMBER', 'ROOM_ARCHIVED']) {
-            expect(isCatchUpRowChange(new ApiRequestError(409, code, 'changed'))).toBe(false)
-        }
+        expect(isCatchUpRowChange(new ApiRequestError(409, 'NOT_A_MEMBER', 'changed'))).toBe(false)
     })
 
     it('unwraps the { error: { code, message } } envelope', async () => {

@@ -14,7 +14,7 @@ import {
 import { notifyRoomWrite } from '@/server/push'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, memberIdForToken, toRoomState } from '@/server/roomState'
-import { addMemberInLockedTransaction, assertWritable } from '@/server/rooms'
+import { addMemberInLockedTransaction } from '@/server/rooms'
 import { expenseSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -35,7 +35,6 @@ export const POST = (request: Request, ctx: Ctx) =>
         const { slug } = await ctx.params
         const body = expenseSchema.parse(await readJson(request))
         const room = await loadRoom(slug)
-        assertWritable(room)
         const token = memberTokenOf(request)
         // Read catalog FX before entering the transaction only when this pair
         // needs it. Manual custom rates, identity pairs, and validation failures
@@ -53,7 +52,6 @@ export const POST = (request: Request, ctx: Ctx) =>
                 // have PostgreSQL cascade it away with the member.
                 await lockRoomWrite(tx, room.id)
                 let lockedRoom = await loadRoom(slug, tx)
-                assertWritable(lockedRoom)
                 const actor = actorFromToken(lockedRoom.members, token)
                 const actorMemberId = actor.memberId
 

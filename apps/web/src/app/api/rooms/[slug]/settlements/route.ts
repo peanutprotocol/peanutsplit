@@ -7,7 +7,6 @@ import { notifyRoomWrite } from '@/server/push'
 import { actorFromToken, appendRoomAuditEvent, lockRoomWrite, type PushRoomWriteEvent } from '@/server/history'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { balancesOf, loadRoom, memberIdForToken, toRoomState } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
 import { settlementSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +26,6 @@ export const POST = (request: Request, ctx: Ctx) =>
         const { slug } = await ctx.params
         const body = settlementSchema.parse(await readJson(request))
         const room = await loadRoom(slug)
-        assertWritable(room)
         const amountMinor = parseMinor(body.amountMinor)
         if (amountMinor <= 0n) throw badRequest('settlement amount must be greater than zero', 'AMOUNT_NOT_POSITIVE')
 
@@ -40,7 +38,6 @@ export const POST = (request: Request, ctx: Ctx) =>
                 // pre-payment balance.
                 await lockRoomWrite(tx, room.id)
                 const lockedRoom = await loadRoom(slug, tx)
-                assertWritable(lockedRoom)
                 const actor = actorFromToken(lockedRoom.members, token)
                 const actorMemberId = actor.memberId
 

@@ -31,7 +31,6 @@ export interface ApiRoom {
     /** A key into the catalog in `lib/themes.ts`. null = the default palette. */
     theme: string | null
     createdAt: string
-    archivedAt: string | null
 }
 
 export interface ApiMember {

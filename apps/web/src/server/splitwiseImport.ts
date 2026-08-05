@@ -30,7 +30,7 @@ import { badRequest, conflict } from '@/server/http'
 import { actorForMember, actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
 import { canPriceCode, isCatalogCode } from '@/server/money'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
-import { addMemberInLockedTransaction, assertWritable } from '@/server/rooms'
+import { addMemberInLockedTransaction } from '@/server/rooms'
 import { memberToken, roomSlug } from '@/server/slug'
 import type { ImportIntoRoomBody, ImportRoomBody } from '@/server/validation'
 import type { CreatedMember } from '@/server/rooms'
@@ -249,7 +249,6 @@ export async function importIntoRoom(
     request: Request = new Request('http://localhost'),
     actorToken: string | null = null
 ): Promise<ImportIntoRoomOutcome> {
-    assertWritable(initialRoom)
     // Splitwise and Split Pro exports contain catalog currencies. A room that
     // settles in an invented unit has no automatic conversion target, and the
     // import contract intentionally has no manual-rate field. Refuse before the
@@ -303,7 +302,6 @@ export async function importIntoRoom(
         async (tx) => {
             await lockRoomWrite(tx, initialRoom.id)
             let lockedRoom = await loadRoom(initialRoom.slug, tx)
-            assertWritable(lockedRoom)
 
             // This comes before resolving ids or creating requested new names.
             // In particular, replaying `{ newMemberName: "Bea" }` after the

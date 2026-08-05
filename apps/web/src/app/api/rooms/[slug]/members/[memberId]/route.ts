@@ -17,7 +17,6 @@ import { randomPersonaKey } from '@/lib/avatars'
 import { effectiveAvatarPaletteKey, separatedAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { canRemoveMember, loadRoom, toRoomState } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
 import { memberAvatarSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -34,7 +33,6 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         const body = memberAvatarSchema.parse(await readJson(request))
 
         const room = await loadRoom(slug)
-        assertWritable(room)
         const member = room.members.find((candidate) => candidate.id === memberId)
         if (!member) throw notFound('member not found')
 
@@ -50,7 +48,6 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         const result = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, room.id)
             const locked = await loadRoom(slug, tx)
-            assertWritable(locked)
             const target = locked.members.find((candidate) => candidate.id === memberId)
             if (!target) throw notFound('member not found')
             // Palette choice is a room invariant, so derive it only after taking
@@ -116,12 +113,10 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'write')
         const { slug, memberId } = await ctx.params
         const initial = await loadRoom(slug)
-        assertWritable(initial)
 
         const state = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, initial.id)
             const room = await loadRoom(slug, tx)
-            assertWritable(room)
             const member = room.members.find((candidate) => candidate.id === memberId)
             if (!member) throw notFound('member not found')
             if (!canRemoveMember(member))

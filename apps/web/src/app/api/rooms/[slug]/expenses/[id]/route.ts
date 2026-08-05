@@ -18,7 +18,6 @@ import {
 } from '@/server/history'
 import { CATCH_UP_LIMIT, WRITE_LIMIT, enforceRateLimit, enforceRateLimitPreflight } from '@/server/rateLimit'
 import { loadRoom, toRoomState, type RoomWithRelations } from '@/server/roomState'
-import { assertWritable } from '@/server/rooms'
 import { expensePatchSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -53,7 +52,6 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             'operation' in body ? 'catch-up' : 'write'
         )
         const initial = await loadRoom(slug)
-        assertWritable(initial)
         const initialExpense = await findExpense(initial, id)
         if (initialExpense.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
 
@@ -61,7 +59,6 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             const result = await prisma.$transaction(async (tx) => {
                 await lockRoomWrite(tx, initial.id)
                 const room = await loadRoom(slug, tx)
-                assertWritable(room)
                 const previous = room.expenses.find((expense) => expense.id === id)
                 const changed = await changeEqualExpenseParticipant(tx, room, id, body)
                 if (!changed) return { changed: false, state: toRoomState(room) }
@@ -115,7 +112,6 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         const result = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, initial.id)
             const room = await loadRoom(slug, tx)
-            assertWritable(room)
             const existing = await findExpense(room, id, tx)
             if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
             const weightedExisting = existing.splitMode === 'PERCENTAGE' || existing.splitMode === 'SHARES'

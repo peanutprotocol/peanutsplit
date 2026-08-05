@@ -133,9 +133,9 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                     {transfers.length > 0 && (
                         <div className="flex flex-col gap-2">
                             <span className="text-h8 uppercase tracking-wide text-grey-1">{t('suggestedTitle')}</span>
-                            {/* Said out loud rather than papered over: the payment below is the
-                                shortest way to clear the ROOM, not a debt between these two
-                                people. `derivePair` explains why there is nothing else to show. */}
+                            {/* Said out loud rather than papered over: the payment below is part of
+                                a room-wide plan, not a debt between these two people. `derivePair`
+                                explains why there is nothing else to show. */}
                             <p className="text-h10 leading-snug text-grey-1">{t('suggestedNote')}</p>
 
                             <ul className="flex flex-col gap-2">

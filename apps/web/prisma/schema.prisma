@@ -47,7 +47,6 @@ model Room {
   // expense cannot make a mature room look new again.
   firstSharedBalanceExpenseId String?
   createdAt                   DateTime         @default(now())
-  archivedAt                  DateTime?
   members                     Member[]
   expenses                    Expense[]
   settlements                 Settlement[]

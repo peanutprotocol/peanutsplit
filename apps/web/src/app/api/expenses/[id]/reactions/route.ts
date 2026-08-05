@@ -29,7 +29,6 @@ import { conflict, notFound, readJson, respond } from '@/server/http'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { assertProvenMember, loadRoom, loadRoomById, toRoomState } from '@/server/roomState'
 import { actorForMember, appendRoomAuditEvent, lockRoomWrite } from '@/server/history'
-import { assertWritable } from '@/server/rooms'
 import { reactionSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -52,7 +51,6 @@ async function authorize(request: Request, ctx: Ctx) {
     if (expense.deletedAt) throw conflict('this expense was deleted', 'EXPENSE_DELETED')
 
     const room = await loadRoomById(expense.roomId)
-    assertWritable(room)
     assertProvenMember(room, body.memberId, body.memberToken)
     return { expense, room, body }
 }
@@ -76,7 +74,6 @@ export const POST = (request: Request, ctx: Ctx) =>
             if (!currentExpense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
             if (currentExpense.deletedAt) throw conflict('this expense was deleted', 'EXPENSE_DELETED')
             const lockedRoom = await loadRoom(room.slug, tx)
-            assertWritable(lockedRoom)
             assertProvenMember(lockedRoom, body.memberId, body.memberToken)
             const created = await tx.expenseReaction.createMany({
                 data: [{ expenseId: expense.id, memberId: body.memberId, emoji: body.emoji }],
@@ -123,7 +120,6 @@ export const DELETE = (request: Request, ctx: Ctx) =>
             if (!currentExpense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
             if (currentExpense.deletedAt) throw conflict('this expense was deleted', 'EXPENSE_DELETED')
             const lockedRoom = await loadRoom(room.slug, tx)
-            assertWritable(lockedRoom)
             assertProvenMember(lockedRoom, body.memberId, body.memberToken)
             const removed = await tx.expenseReaction.deleteMany({
                 where: { expenseId: expense.id, memberId: body.memberId, emoji: body.emoji },

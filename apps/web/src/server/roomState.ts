@@ -6,7 +6,10 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { ApiError, notFound } from '@/server/http'
 import { formatStoredFxRate } from '@/server/money'
-import type { ApiTransfer, RoomState } from '@/lib/api-types'
+import { suggestedTransfers } from '@/server/settlement'
+import type { RoomState } from '@/lib/api-types'
+
+export { EXACT_SETTLEMENT_MAX_NONZERO_BALANCES, suggestedTransfers } from '@/server/settlement'
 
 const roomArgs = {
     include: {
@@ -84,36 +87,6 @@ export function balancesOf(room: BalanceInput): Map<string, bigint> {
     return net
 }
 
-/** Greedy debt simplification: settle the biggest debtor against the biggest
- *  creditor, repeatedly. At most n-1 transfers, and they zero every balance. */
-export function suggestedTransfers(balances: Map<string, bigint>): ApiTransfer[] {
-    const byAmountThenId = (a: { id: string; amount: bigint }, b: { id: string; amount: bigint }) =>
-        a.amount === b.amount ? a.id.localeCompare(b.id) : a.amount > b.amount ? -1 : 1
-
-    const entries = [...balances.entries()].map(([id, amount]) => ({ id, amount }))
-    const debtors = entries
-        .filter((e) => e.amount < 0n)
-        .map((e) => ({ id: e.id, amount: -e.amount }))
-        .sort(byAmountThenId)
-    const creditors = entries
-        .filter((e) => e.amount > 0n)
-        .map((e) => ({ id: e.id, amount: e.amount }))
-        .sort(byAmountThenId)
-
-    const out: ApiTransfer[] = []
-    let i = 0
-    let j = 0
-    while (i < debtors.length && j < creditors.length) {
-        const pay = debtors[i].amount < creditors[j].amount ? debtors[i].amount : creditors[j].amount
-        if (pay > 0n) out.push({ fromId: debtors[i].id, toId: creditors[j].id, amountMinor: pay.toString() })
-        debtors[i].amount -= pay
-        creditors[j].amount -= pay
-        if (debtors[i].amount === 0n) i++
-        if (creditors[j].amount === 0n) j++
-    }
-    return out
-}
-
 /** DB rows → wire shape. BigInt becomes a decimal string here, not later. */
 export function toRoomState(room: RoomWithRelations): RoomState {
     const balances = balancesOf(room)
@@ -127,7 +100,6 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             coverUrl: room.coverUrl,
             theme: room.theme,
             createdAt: room.createdAt.toISOString(),
-            archivedAt: room.archivedAt?.toISOString() ?? null,
         },
         members: room.members.map((m) => ({
             id: m.id,

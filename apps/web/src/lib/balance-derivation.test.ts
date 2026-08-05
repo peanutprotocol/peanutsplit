@@ -58,7 +58,6 @@ const state = (
         coverUrl: null,
         theme: null,
         createdAt: iso(1),
-        archivedAt: null,
     },
     members: members.map((id) => ({ id, name: id.toUpperCase(), avatar: null, createdAt: iso(1) })),
     expenses: expenses.map((expense, index) => ({
@@ -193,7 +192,6 @@ function randomRoom(rng: () => number, seed: number) {
         coverUrl: null,
         theme: null,
         createdAt: new Date(Date.UTC(2026, 6, 1)),
-        archivedAt: null,
         members,
         expenses,
         settlements,

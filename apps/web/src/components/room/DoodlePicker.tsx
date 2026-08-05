@@ -91,30 +91,34 @@ export function DoodlePicker({
 
     return (
         <>
-            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('emojiGroup')}>
-                {ROOM_DOODLES.map((name) => {
-                    const selected = name === value
-                    return (
-                        <button
-                            key={name}
-                            type="button"
-                            role="radio"
-                            aria-checked={selected}
-                            {...getRadioProps(name)}
-                            aria-disabled={disabled || undefined}
-                            aria-label={t('emojiOption', { emoji: name })}
-                            data-doodle={name}
-                            onClick={() => !disabled && onChange(name)}
-                            className={cn(
-                                'flex size-11 items-center justify-center rounded-sm border border-n-1 transition-transform active:translate-y-[2px]',
-                                selected ? 'shadow-4 bg-primary-1' : 'bg-white',
-                                disabled && 'opacity-50'
-                            )}
-                        >
-                            <Doodle name={name} size={24} />
-                        </button>
-                    )
-                })}
+            <div className="flex flex-col items-start gap-2">
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('emojiGroup')}>
+                    {ROOM_DOODLES.map((name) => {
+                        const selected = name === value
+                        return (
+                            <button
+                                key={name}
+                                type="button"
+                                role="radio"
+                                aria-checked={selected}
+                                {...getRadioProps(name)}
+                                aria-disabled={disabled || undefined}
+                                aria-label={t('emojiOption', { emoji: name })}
+                                data-doodle={name}
+                                onClick={() => !disabled && onChange(name)}
+                                className={cn(
+                                    'flex size-11 items-center justify-center rounded-sm border border-n-1 transition-transform active:translate-y-[2px]',
+                                    selected ? 'shadow-4 bg-primary-1' : 'bg-white',
+                                    disabled && 'opacity-50'
+                                )}
+                            >
+                                <Doodle name={name} size={24} />
+                            </button>
+                        )
+                    })}
+                </div>
+                {/* This opens an editor rather than selecting a preset. Keep it outside the
+                    radiogroup so its separate tab stop and pressed state describe that action. */}
                 <button
                     type="button"
                     aria-pressed={customSelected}

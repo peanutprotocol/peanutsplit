@@ -125,8 +125,8 @@ export type DrainVerdict = 'drop' | 'stop'
 /**
  * What to do with an item the server refused.
  *
- * 4xx (except 429) → drop: the room moved on. The member was removed, the room
- * was archived, the payload no longer validates. Replaying it forever would mean
+ * 4xx (except 429) → drop: the room moved on. The member was removed or the
+ * payload no longer validates. Replaying it forever would mean
  * a permanently stuck queue and a placeholder row that never resolves.
  *
  * 429, 5xx, transport failure → keep and stop draining: nothing about the write

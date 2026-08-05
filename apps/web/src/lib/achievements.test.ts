@@ -47,7 +47,6 @@ const state = (
         coverUrl: null,
         theme: null,
         createdAt: iso(1),
-        archivedAt: null,
     },
     members: members.map((id, index) => ({ id, name: id.toUpperCase(), avatar: null, createdAt: iso(1, index) })),
     expenses: expenses.map((expense, index) => ({

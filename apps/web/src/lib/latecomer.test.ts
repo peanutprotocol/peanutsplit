@@ -61,7 +61,6 @@ const room = (members: ApiMember[], expenses: ApiExpense[]): RoomState => ({
         coverUrl: null,
         theme: null,
         createdAt: iso(0),
-        archivedAt: null,
     },
     members,
     expenses,

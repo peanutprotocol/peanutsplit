@@ -998,7 +998,6 @@
         "EXPENSE_NOT_FOUND": "Ese gasto ya no está — recarga la sala.",
         "SETTLEMENT_NOT_FOUND": "Ese pago ya no está — recarga la sala.",
         "SLUG_EXHAUSTED": "No pudimos crear el link de la sala ahora — intenta de nuevo.",
-        "ROOM_ARCHIVED": "Esta sala está archivada.",
         "DUPLICATE_MEMBER_NAME": "Ese nombre ya está en la sala — elígelo de la lista.",
         "EXPENSE_DELETED": "Este gasto fue eliminado. Deshaz la eliminación antes de editarlo.",
         "NEW_PAYER_ON_EDIT": "Al editar, elige a alguien que ya esté en la sala. Agrega un nuevo pagador con un gasto nuevo.",
@@ -1145,8 +1144,6 @@
             "goToRoom": "Ir a la sala",
             "loadFailed": "No se pudo cargar esta sala, así que no se puede importar nada en ella.",
             "tryAgain": "Intentar de nuevo",
-            "archivedTitle": "Esta sala está archivada",
-            "archivedBody": "Las salas archivadas no pueden recibir importaciones. Vuelve a abrir la sala antes de intentarlo otra vez.",
             "customCurrencyUnsupportedTitle": "Las importaciones no están disponibles para salas con monedas personalizadas",
             "customCurrencyUnsupportedBody": "Las exportaciones de Splitwise y Split Pro usan monedas estándar, que este importador no puede convertir a {currency}. Agrega esos gastos manualmente en {currency}."
         },

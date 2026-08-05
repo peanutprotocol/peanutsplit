@@ -91,7 +91,6 @@ const state = (description: string): RoomState => ({
         coverUrl: null,
         theme: null,
         createdAt: '2026-08-03T10:00:00.000Z',
-        archivedAt: null,
     },
     members: [
         { id: 'ana', name: 'Ana', avatar: 'peanut', createdAt: '2026-08-03T10:00:00.000Z' },

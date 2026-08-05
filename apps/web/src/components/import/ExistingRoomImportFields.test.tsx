@@ -28,7 +28,6 @@ const room: ApiRoom = {
     coverUrl: null,
     theme: null,
     createdAt: '2026-08-04T00:00:00.000Z',
-    archivedAt: null,
 }
 
 const members: ApiMember[] = [

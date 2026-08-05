@@ -77,7 +77,6 @@ const state = (): RoomState => ({
         coverUrl: null,
         theme: null,
         createdAt: '2026-07-01T00:00:00.000Z',
-        archivedAt: null,
     },
     members: [
         { id: 'ana', name: 'Ana', avatar: null, createdAt: '2026-07-01T00:00:00.000Z' },
@@ -582,7 +581,7 @@ describe('the queue end to end', () => {
             body: input(),
         })
         setQueuePerformer(async () => {
-            throw apiError(409, 'ROOM_ARCHIVED')
+            throw apiError(409, 'EXPENSE_DELETED')
         })
 
         await drainPending()

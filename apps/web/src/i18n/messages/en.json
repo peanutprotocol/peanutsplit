@@ -998,7 +998,6 @@
         "EXPENSE_NOT_FOUND": "That expense is no longer here — refresh the room.",
         "SETTLEMENT_NOT_FOUND": "That payment is no longer here — refresh the room.",
         "SLUG_EXHAUSTED": "Could not create a room link just now — try again.",
-        "ROOM_ARCHIVED": "This room is archived.",
         "DUPLICATE_MEMBER_NAME": "That name is already in this room — pick it from the list instead.",
         "EXPENSE_DELETED": "This expense was deleted. Undo the delete first, then edit it.",
         "NEW_PAYER_ON_EDIT": "Choose an existing person when editing. Add a new payer with a new expense.",
@@ -1145,8 +1144,6 @@
             "goToRoom": "Go to room",
             "loadFailed": "This room could not be loaded, so nothing can be imported into it.",
             "tryAgain": "Try again",
-            "archivedTitle": "This room is archived",
-            "archivedBody": "Archived rooms can’t receive imports. Reopen the room before trying again.",
             "customCurrencyUnsupportedTitle": "Imports aren’t available for custom-currency rooms",
             "customCurrencyUnsupportedBody": "Splitwise and Split Pro exports use standard currencies, which this importer cannot convert into {currency}. Add those expenses in {currency} manually instead."
         },

@@ -176,7 +176,7 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
     }
 }
 
-/** Drop a room from the list (archived, or the user asked us to forget it). */
+/** Drop a room from the list when the user asks us to forget it. */
 export function forgetRoom(slug: string): boolean {
     const storage = browserStorage()
     if (!storage) return false

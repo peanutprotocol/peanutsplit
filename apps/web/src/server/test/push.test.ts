@@ -334,18 +334,6 @@ describe('status endpoint', () => {
         expect((await subscribe(fixture, fixture.owner, FCM('a'))).status).toBe(429)
         expect((await unsubscribe(fixture, fixture.owner, FCM('a'))).status).toBe(429)
     })
-
-    /** Turning notifications off is the one thing still worth doing in an
-     *  archived room, and the toggle cannot render without this answer. */
-    it('still answers in an archived room', async () => {
-        const fixture = await makeRoom()
-        await subscribe(fixture, fixture.owner, FCM('a'))
-        await prisma.room.update({ where: { id: fixture.roomId }, data: { archivedAt: new Date() } })
-
-        const { status, body } = await askStatus(fixture, fixture.owner, FCM('a'))
-        expect(status).toBe(200)
-        expect(body).toEqual({ subscribed: true })
-    })
 })
 
 describe('dedupe claim', () => {

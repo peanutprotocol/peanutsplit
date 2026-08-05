@@ -183,11 +183,11 @@ describe('meterRoomLookup — the room-existence oracle', () => {
 
     it('does not spend the miss budget on a failure that is not a 404', async () => {
         const request = from('203.0.113.12')
-        const archived = async () => {
-            throw new ApiError(409, 'ROOM_ARCHIVED', 'this room is archived')
+        const conflict = async () => {
+            throw new ApiError(409, 'IDEMPOTENCY_KEY_REUSED', 'request key was already used')
         }
         for (let index = 0; index < LOOKUP_MISS_LIMIT.capacity * 2; index++) {
-            await expect(meterRoomLookup(request, archived)).rejects.toMatchObject({ status: 409 })
+            await expect(meterRoomLookup(request, conflict)).rejects.toMatchObject({ status: 409 })
         }
         await expect(meterRoomLookup(request, hit)).resolves.toBe('a room')
     })

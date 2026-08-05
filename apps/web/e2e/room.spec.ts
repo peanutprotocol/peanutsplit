@@ -261,6 +261,8 @@ test('create → share → join → split → settle → undo', async ({ page, n
 
     await expectBalance(page, 'Bea', '0')
     await expect(allSettled(page)).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('open-settle')).toHaveCount(0)
+    await expect(page.getByTestId('open-add-expense')).toBeVisible()
     const payment = page.getByTestId('settlement-row')
     await expect(payment).toContainText('recorded by you')
     await expect(payment.getByTestId('settlement-receipt-link')).toHaveCount(0)

@@ -76,7 +76,6 @@ const state: RoomState = {
         coverUrl: null,
         theme: null,
         createdAt: '2026-08-03T10:00:00.000Z',
-        archivedAt: null,
     },
     members: [],
     expenses: [],
@@ -105,9 +104,12 @@ describe('SettingsSheet room drawing picker', () => {
     it('offers the custom drawing after every preset inside room settings', () => {
         const html = renderSettings()
         const offeredDrawings = [...html.matchAll(/data-doodle="([^"]+)"/g)].map((match) => match[1])
+        const radioGroupEnd = html.indexOf('</div>', html.indexOf('role="radiogroup"'))
 
         expect(offeredDrawings).toEqual([...ROOM_DOODLES, 'custom'])
+        expect(radioGroupEnd).toBeGreaterThan(-1)
         expect(html.indexOf('data-testid="room-card"')).toBeLessThan(html.indexOf('data-doodle="custom"'))
+        expect(html.indexOf('data-doodle="custom"')).toBeGreaterThan(radioGroupEnd)
         expect(html).toContain('aria-label="room.create.drawYourOwn"')
     })
 

@@ -81,8 +81,11 @@ test('room drawing uses one radio tab stop without arrow-opening the custom edit
     const editor = page.getByTestId('room-drawing-editor')
     const group = editor.getByRole('radiogroup', { name: 'Room drawing' })
     const radios = group.getByRole('radio')
+    const custom = editor.locator('[data-doodle="custom"]')
 
     await expect(radios).toHaveCount(16)
+    await expect(group.locator('[data-doodle="custom"]')).toHaveCount(0)
+    await expect(custom).toHaveAttribute('aria-pressed', 'false')
     expect(await tabbableRadios(group)).toBe(1)
     const selected = group.locator('[role="radio"][aria-checked="true"]')
     await expect(selected).toHaveCount(1)
@@ -97,6 +100,9 @@ test('room drawing uses one radio tab stop without arrow-opening the custom edit
     await expect(radios.first()).toHaveAttribute('aria-checked', 'true')
     await expect(radios.first()).toBeFocused()
     expect(await tabbableRadios(group)).toBe(1)
+
+    await page.keyboard.press('Tab')
+    await expect(custom).toBeFocused()
 })
 
 test('avatar, payer and split pickers preserve radio focus while selection changes', async ({ page }) => {
@@ -192,7 +198,7 @@ test('unknown routes render the translated safe not-found family', async ({ page
     expect(response?.status()).toBe(404)
     const state = page.getByTestId('route-not-found')
     await expect(state.getByRole('heading', { level: 1 })).toHaveText('This page could not be found')
-    await expect(state.getByRole('link', { name: 'Back to your rooms' })).toHaveAttribute('href', '/app')
+    await expect(state.getByRole('link', { name: 'Back to your rooms' })).toHaveAttribute('href', '/app?manage=1')
     await expect(state).not.toContainText('credential')
     await expect(state).not.toContainText('do-not-render')
     await expect(state).not.toContainText('Application error')
