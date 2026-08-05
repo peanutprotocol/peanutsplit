@@ -20,19 +20,19 @@
  * whole format, and everything below is the arithmetic of turning a net back into "who paid" and
  * "who owes what", which is what Split stores.
  *
- * MONEY. Minor units as BigInt from the first parse to the last. `parseAmountToMinor` (the same
- * function the expense drawer types into) does the decimal work, so a comma-decimal export and a
- * hand-typed amount go through one code path.
+ * MONEY. Minor units as BigInt from the first parse to the last. The export parser shares the
+ * expense drawer's decimal path, with one source-only rule: a separator in a zero-decimal currency
+ * is grouping, never a fractional unit that may be rounded one thousandfold smaller.
  */
 
 import { CURRENCY_CATALOG } from '@/lib/currency-catalog'
-import { currencyInfo, parseAmountToMinor } from '@/lib/money'
+import { currencyInfo, parseExportAmountToMinor } from '@/lib/money'
 
 // ─── shape ──────────────────────────────────────────────────────────────────
 
 /** One expense, ready to be posted. `costMinor` and every share are in `currencyCode`. */
 export interface ParsedExpense {
-    /** ISO date (YYYY-MM-DD). Splitwise exports one per row; a broken one falls back to today. */
+    /** ISO date (YYYY-MM-DD). A broken source date uses a deterministic sentinel and a warning. */
     date: string
     description: string
     category: string | null
@@ -85,6 +85,7 @@ export type WarningCode =
     | 'TRUNCATED_HISTORY'
     | 'SPLITPRO_BALANCES_ONLY'
     | 'SPLITPRO_PAIR_HISTORY'
+    | 'SPLITPRO_SPLIT_MODE_FLATTENED'
     | 'SPLITPRO_MISSING_NAMES'
     | 'SPLITPRO_BALANCES_SKIPPED'
     | 'SPLITPRO_UNSUPPORTED_CURRENCY'
@@ -112,6 +113,7 @@ export interface SplitwiseImport {
 
 export type ParseErrorCode =
     | 'NOT_SPLITWISE_CSV'
+    | 'MALFORMED_CSV'
     | 'MALFORMED_JSON'
     | 'SPLITPRO_DIRECT_UNRESOLVED'
     | 'NO_MEMBERS'
@@ -213,6 +215,10 @@ export function parseCsvRows(input: string): string[][] {
         } else if (ch !== '\r') field += ch
     }
 
+    // An open quote consumes every later physical row as one field. Returning the readable prefix
+    // would therefore present a silently truncated ledger as a successful partial import.
+    if (quoted) throw new SplitwiseParseError('MALFORMED_CSV')
+
     row.push(field)
     rows.push(row)
     return rows
@@ -252,9 +258,9 @@ const isBlankRow = (row: string[]) => row.every((cell) => cell.trim() === '')
 /**
  * Find the header. Splitwise puts it on line 1, but exports that have been through a spreadsheet
  * pick up title rows and blank lines above it, so the search runs down the file rather than
- * insisting on the first line. A row qualifies only if it has Date, Cost AND Currency — any one of
- * those words shows up in ordinary data, and a file without a currency column has no readable
- * amounts anyway, so demanding all three is both the stronger signal and the honest requirement.
+ * insisting on the first line. A row qualifies only if it has every canonical metadata column.
+ * Otherwise ordinary bookkeeping CSVs such as Date/Cost/Currency/Debit/Credit are misread as a
+ * Splitwise roster whose "members" happen to be Debit and Credit.
  */
 function findHeader(rows: string[][]): Header | null {
     for (let at = 0; at < rows.length; at++) {
@@ -263,7 +269,7 @@ function findHeader(rows: string[][]): Header | null {
         for (const [key, aliases] of Object.entries(COLUMN_ALIASES)) {
             columns[key] = cells.findIndex((cell) => aliases.includes(cell))
         }
-        if (columns.date < 0 || columns.cost < 0 || columns.currency < 0) continue
+        if (Object.values(columns).some((index) => index < 0)) continue
 
         const known = new Set(Object.values(columns).filter((index) => index >= 0))
         const members = rows[at]
@@ -324,35 +330,62 @@ function dedupeMemberNames(names: string[], warnings: ImportWarning[]): string[]
 /**
  * A cell → signed minor units, or null if it is not an amount.
  *
- * The sign is peeled off first because `parseAmountToMinor` only accepts non-negative input — it
- * is the expense-drawer parser, and a negative amount is not a thing anyone can type into a form.
- * Everything after the sign (separators, grouping, the ambiguity rules) is its problem, not this
- * file's: one money path, and a comma-decimal CSV behaves exactly like a comma-decimal keystroke.
+ * The sign is peeled off first because the shared magnitude parser accepts only non-negative input.
+ * It owns separators, grouping and the zero-decimal export rule; this layer only restores the sign.
  */
 export function parseSignedMinor(cell: string, decimals: number): bigint | null {
     // An empty member column means "nothing", which is a real zero. Anything else has to read as a
     // number — `n/a` must NOT come back as 0n, or an unreadable file quietly becomes a balanced one.
     if (cell.trim() === '') return 0n
 
-    // Currency symbols and spacing show up in exports that have been through a spreadsheet. JS's
-    // `\s` already covers the non-breaking and narrow-no-break spaces those tools like to emit.
-    const cleaned = cell.replace(/\s/g, '').replace(/[^\d.,+-]/g, '')
-    if (cleaned === '' || cleaned === '-' || cleaned === '+') return null
+    // Currency decorations and spacing show up in exports that have been through a spreadsheet.
+    // Strip only one anchored symbol/code — never arbitrary characters inside the number, because
+    // doing that turns `1e3` into `13` and a typo into plausible money.
+    let cleaned = cell
+        .normalize('NFKC')
+        .trim()
+        .replace(/\s/g, '')
+        .replace(/\u2212/g, '-')
+    let accountingNegative = false
+    if (cleaned.includes('(') || cleaned.includes(')')) {
+        if (!/^\([^()]+\)$/.test(cleaned)) return null
+        accountingNegative = true
+        cleaned = cleaned.slice(1, -1)
+    }
 
-    const negative = cleaned.startsWith('-')
-    const magnitude = parseAmountToMinor(cleaned.replace(/^[+-]/, ''), decimals)
+    let sign = ''
+    if (cleaned.startsWith('+') || cleaned.startsWith('-')) {
+        sign = cleaned[0]
+        cleaned = cleaned.slice(1)
+    }
+
+    const leadingDecoration = cleaned.match(/^(?:\p{Sc}|[A-Z]{3})/u)?.[0]
+    if (leadingDecoration) cleaned = cleaned.slice(leadingDecoration.length)
+
+    // Both `-€12.34` and `€-12.34` are common. Two explicit signs are not.
+    if (cleaned.startsWith('+') || cleaned.startsWith('-')) {
+        if (sign) return null
+        sign = cleaned[0]
+        cleaned = cleaned.slice(1)
+    }
+
+    const trailingDecoration = cleaned.match(/(?:\p{Sc}|[A-Z]{3})$/u)?.[0]
+    if (trailingDecoration) {
+        if (leadingDecoration) return null
+        cleaned = cleaned.slice(0, -trailingDecoration.length)
+    }
+
+    if (accountingNegative && sign) return null
+    if (cleaned === '') return null
+    const magnitude = parseExportAmountToMinor(cleaned, decimals)
     if (magnitude === null) return null
     const value = BigInt(magnitude)
-    return negative ? -value : value
+    return accountingNegative || sign === '-' ? -value : value
 }
 
-/**
- * Rated codes only, not the whole catalog. A row in a currency nothing can price is dropped with
- * `ROW_UNSUPPORTED_CURRENCY`, exactly as it has always been — carrying it instead would let one
- * unpriceable row fail the whole import with NO_RATE at write time, which is a much worse answer
- * than losing the row.
- */
-const SUPPORTED_CURRENCIES = new Set(CURRENCY_CATALOG.filter((c) => c.hasRate).map((c) => c.code))
+/** Keep every known catalog currency. Priceability depends on the chosen room currency: an unrated
+ * code such as BGN is still valid in a BGN room, so dropping it before a target exists loses data. */
+const SUPPORTED_CURRENCIES = new Set(CURRENCY_CATALOG.map((currency) => currency.code))
 
 /**
  * Spread `total` across `weights` so the parts are whole minor units and sum to `total` exactly.
@@ -437,25 +470,22 @@ export function isEvenSplit(costMinor: bigint, shares: readonly bigint[]): boole
 
 // ─── rows ───────────────────────────────────────────────────────────────────
 
-const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
+const ISO_DATE_PREFIX = /^(\d{4}-\d{2}-\d{2})(?=$|[ T])/
+export const INVALID_DATE_FALLBACK = '1970-01-01'
 
-/** Splitwise writes YYYY-MM-DD. Anything else gets one attempt through `Date` and then gives up
- *  to today — a wrong date is a cosmetic loss, a dropped expense is a money one. */
-function parseDate(cell: string): { date: string; ok: boolean } {
+/** Preserve the source's calendar day without passing a timezone-less timestamp through `Date`.
+ * Splitwise writes a day and SplitPro prefixes its timestamp with one, so no other shape is needed. */
+export function parseImportDate(cell: string): { date: string; ok: boolean } {
     const raw = cell.trim()
-    if (ISO_DATE.test(raw)) {
-        const parsed = new Date(`${raw}T00:00:00.000Z`)
-        if (!Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === raw) {
-            return { date: raw, ok: true }
+    const candidate = raw.match(ISO_DATE_PREFIX)?.[1]
+    if (candidate) {
+        const parsed = new Date(`${candidate}T00:00:00.000Z`)
+        if (!Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === candidate) {
+            return { date: candidate, ok: true }
         }
     }
 
-    const parsed = new Date(raw)
-    if (raw !== '' && !ISO_DATE.test(raw) && !Number.isNaN(parsed.getTime())) {
-        return { date: parsed.toISOString().slice(0, 10), ok: true }
-    }
-
-    return { date: new Date().toISOString().slice(0, 10), ok: false }
+    return { date: INVALID_DATE_FALLBACK, ok: false }
 }
 
 interface RowContext {
@@ -628,16 +658,6 @@ export function capHistory(
 ): { expenses: ParsedExpense[]; dropped: number } {
     if (expenses.length <= MAX_EXPENSES) return { expenses: [...expenses], dropped: 0 }
 
-    const members = [...new Set(expenses.flatMap((e) => [e.paidBy, ...e.shares.map((s) => s.member)]))]
-    const currencies = [...new Set(expenses.map((e) => e.currencyCode))]
-    // The opening balance has to fit inside the ceiling alongside the history it
-    // is standing in for, so its worst case is reserved before the cut rather
-    // than discovered after it. The worst case is `MAX_MEMBERS − 1` rows per currency, over the
-    // currencies THIS FILE uses — not over the catalog, which is 162 codes wide and would reserve
-    // more than the ceiling. A twelve-currency file reserves 19 × 12 = 228 of the 500.
-    const reserved = Math.max(0, members.length - 1) * Math.max(1, currencies.length)
-    const cut = Math.max(1, MAX_EXPENSES - reserved)
-
     // Newest first, with the original file order as the tie-break so two rows on
     // the same day cannot swap places between runs.
     const ordered = expenses
@@ -646,11 +666,24 @@ export function capHistory(
             a.expense.date === b.expense.date ? a.index - b.index : a.expense.date < b.expense.date ? 1 : -1
         )
 
-    const kept = ordered.slice(0, cut).map((entry) => entry.expense)
-    const dropped = ordered.slice(cut).map((entry) => entry.expense)
-    warnings.push({ code: 'TRUNCATED_HISTORY', detail: String(dropped.length) })
+    // Reserve the ACTUAL balance-forward rows, not `(members - 1) * currencies`.
+    // That estimate can exceed the whole 500-row contract and still emit >500
+    // rows. Start with the most history we could keep, then lower the cut until
+    // the real opening balance and retained suffix fit together. The cut only
+    // moves downward, so this terminates in at most 501 bounded passes.
+    let keepCount = MAX_EXPENSES
+    for (;;) {
+        const kept = ordered.slice(0, keepCount).map((entry) => entry.expense)
+        const dropped = ordered.slice(keepCount).map((entry) => entry.expense)
+        const opening = openingBalance(dropped)
+        if (opening.length + kept.length <= MAX_EXPENSES) {
+            warnings.push({ code: 'TRUNCATED_HISTORY', detail: String(dropped.length) })
+            return { expenses: [...opening, ...kept], dropped: dropped.length }
+        }
 
-    return { expenses: [...openingBalance(dropped), ...kept], dropped: dropped.length }
+        if (keepCount === 0) throw new SplitwiseParseError('TOO_MANY_EXPENSES')
+        keepCount = Math.max(0, Math.min(keepCount - 1, MAX_EXPENSES - opening.length))
+    }
 }
 
 /** The dropped rows, folded into at most one transfer-shaped expense per pair per
@@ -792,7 +825,7 @@ export function parseSplitwiseCsv(text: string): SplitwiseImport {
         const category = clip(rawCategory, MAX_CATEGORY_CHARS)
         if (category !== rawCategory) warnings.push({ code: 'ROW_CATEGORY_TRUNCATED', row: line })
 
-        const { date, ok } = parseDate(dateCell)
+        const { date, ok } = parseImportDate(dateCell)
         if (!ok) warnings.push({ code: 'ROW_BAD_DATE', row: line })
 
         // Splitwise allows a blank description; Split does not. The category is the next most

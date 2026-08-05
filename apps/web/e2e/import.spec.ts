@@ -204,7 +204,7 @@ test('import into an existing room appends in place and an exact retry is a no-o
     await expect(page.locator('[data-testid="balance-card"][data-member="Bruno"]')).toHaveCount(0)
 })
 
-test('an unrated KPW room blocks incompatible EUR history before submit', async ({ page }) => {
+test('a KPW room absent from the static e2e FX table blocks incompatible EUR history', async ({ page }) => {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('KPW import target')
     await page.getByTestId('room-currency').selectOption('KPW')
@@ -226,7 +226,7 @@ test('an unrated KPW room blocks incompatible EUR history before submit', async 
     await expect(page.getByTestId('import-submit')).toBeDisabled()
 })
 
-test('an unrated KPW room accepts same-currency KPW history', async ({ page }) => {
+test('that static-unavailable KPW room accepts same-currency KPW history', async ({ page }) => {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('KPW identity import')
     await page.getByTestId('room-currency').selectOption('KPW')
@@ -244,6 +244,34 @@ test('an unrated KPW room accepts same-currency KPW history', async ({ page }) =
     await expect(page.getByTestId('import-member-mapping')).toHaveCount(2, { timeout: 15_000 })
     await expect(page.getByTestId('import-currency-unsupported')).toHaveCount(0)
     await expect(page.getByTestId('import-submit')).toBeEnabled()
+})
+
+test('a live no-rate response blocks a catalog-rated foreign currency before submit', async ({ page }) => {
+    let probes = 0
+    // GBP is present in Playwright's static fallback. The row is blocked only if
+    // this intercepted live answer wins, so the assertion cannot pass merely
+    // because the test server has remote FX disabled.
+    await page.route('**/api/rate?from=GBP&to=EUR', async (route) => {
+        probes++
+        await route.fulfill({
+            contentType: 'application/json',
+            body: JSON.stringify({ from: 'GBP', to: 'EUR', rate: null, source: 'static', indicative: true }),
+        })
+    })
+    await page.goto('/import')
+    await page.getByTestId('import-file').setInputFiles({
+        name: 'expenses_with_Natalia.csv',
+        mimeType: 'text/csv',
+        buffer: Buffer.from(SPLITPRO_FRIEND_CSV.replace(',EUR,', ',GBP,'), 'utf8'),
+    })
+    await page.locator('[data-testid="import-me"][data-member="You"]').check()
+
+    const problem = page.getByTestId('import-currency-unsupported')
+    await expect(problem).toBeVisible({ timeout: 15_000 })
+    await expect(problem).toContainText('GBP')
+    await expect(problem).toContainText('EUR')
+    await expect(page.getByTestId('import-submit')).toBeDisabled()
+    expect(probes).toBe(1)
 })
 
 test('a file that is not a Splitwise export says so, and writes nothing', async ({ page }) => {

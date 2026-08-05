@@ -9,6 +9,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { IMPORT_LIMIT, resetRateLimits } from '@/server/rateLimit'
+import { MAX_IMPORT_BODY_BYTES } from '@/server/importRequest'
 import { importRoom } from '@/server/splitwiseImport'
 import { roomStateBySlug } from '@/server/roomState'
 import { assertImportCardinality, MAX_IMPORT_SHARE_ROWS, POST as postImport } from '@/app/api/import/route'
@@ -361,6 +362,45 @@ describe('what the route refuses', () => {
         )
     })
 
+    it('keeps the body cap above multibyte and JSON-escaped maximum imports for both routes', () => {
+        for (const fill of ['漢', '\ud800']) {
+            const members = Array.from(
+                { length: MAX_MEMBERS },
+                (_, index) => `${String(index).padStart(2, '0')}${fill.repeat(78)}`
+            )
+            const expense = {
+                date: '2026-08-05',
+                description: fill.repeat(255),
+                category: fill.repeat(40),
+                currencyCode: 'EUR',
+                costMinor: '2000000000000000000',
+                paidBy: members[0],
+                shares: members.map((member) => ({ member, amountMinor: '100000000000000000' })),
+            }
+            const expenses = Array.from({ length: MAX_EXPENSES }, () => expense)
+            const payloads = [
+                {
+                    roomName: fill.repeat(80),
+                    emoji: '🧾',
+                    currency: 'EUR',
+                    creatorName: members[0],
+                    members,
+                    expenses,
+                },
+                {
+                    members: members.map((sourceName) => ({ sourceName, newMemberName: sourceName })),
+                    expenses,
+                },
+            ]
+
+            for (const payload of payloads) {
+                const bytes = new TextEncoder().encode(JSON.stringify(payload)).byteLength
+                expect(bytes).toBeGreaterThan(1_000_000)
+                expect(bytes).toBeLessThanOrEqual(MAX_IMPORT_BODY_BYTES)
+            }
+        }
+    })
+
     it('refuses shares that do not add up to the expense', async () => {
         const file = parsed()
         file.expenses[0].shares[0].amountMinor = '1'
@@ -405,11 +445,13 @@ describe('what the route refuses', () => {
         expect(status).toBe(400)
     })
 
-    it('refuses an expense in a currency Split does not carry', async () => {
+    it('refuses an expense absent from the loaded static FX table', async () => {
         const file = parsed()
         file.expenses[0].currencyCode = 'KPW'
-        const { status } = await post<ApiError>(bodyFor(file))
+        const { status, body } = await post<ApiError>(bodyFor(file))
         expect(status).toBe(400)
+        expect(body.error.code).toBe('IMPORT_CURRENCY_CONVERSION_UNSUPPORTED')
+        expect(body.error.details).toEqual({ currencies: ['KPW'], targetCurrency: 'EUR' })
     })
 
     it('refuses a zero-amount expense', async () => {
@@ -434,7 +476,10 @@ describe('what the route refuses', () => {
     it('refuses an oversized body before reading it', async () => {
         const request = new Request(`${BASE}/api/import`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Content-Length': '2000000' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': String(MAX_IMPORT_BODY_BYTES + 1),
+            },
             body: JSON.stringify(bodyFor(parsed())),
         })
         const res = await postImport(request)
@@ -445,7 +490,7 @@ describe('what the route refuses', () => {
     /** The bypass the declared-length check could never have caught: no header,
      *  so the old code read the size as 0 and buffered the lot. */
     it('refuses an oversized body that declares no length at all', async () => {
-        const oversized = JSON.stringify(bodyFor(parsed(), { roomName: 'x'.repeat(1_200_000) }))
+        const oversized = JSON.stringify(bodyFor(parsed(), { roomName: 'x'.repeat(MAX_IMPORT_BODY_BYTES + 200_000) }))
         const { status, body } = await postChunked(oversized)
         expect(status).toBe(400)
         expect(body.error.code).toBe('IMPORT_TOO_LARGE')

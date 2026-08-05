@@ -71,7 +71,7 @@ Dá para **ver** o saldo. Quem nunca criou conta acompanha os números mexendo; 
 | Preço                    | Grátis para sempre, sem plano pago, sem anúncios                                   | Grátis de usar, com partes atrás de um plano Premium       |
 | Cobrar as pessoas        | Nada. O Split não lembra ninguém                                                   | Lembra os membros do grupo e cutuca para acertarem         |
 | Reduzir as dívidas       | Um plano de pagamento curto, sempre ligado                                         | Transfere dívidas para cortar transações; dá para desligar |
-| Moedas                   | 158 moedas, pela taxa do dia                                                       | Todas as moedas, por uma taxa baixada que você pode editar |
+| Moedas                   | 156 moedas, pela taxa indicativa do dia                                            | Todas as moedas, por uma taxa baixada que você pode editar |
 | Fora de sinal            | Despesas novas ficam na fila no celular; registrar um pagamento precisa de conexão | Funciona sem sinal e sincroniza quando ele volta           |
 
 As linhas do Settle Up vêm de settleup.io (página inicial, /tips, /tos, /privacy_policy) e da listagem na App Store dos EUA, lidas em julho de 2026.

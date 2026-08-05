@@ -23,10 +23,10 @@ export { MAX_IMPORT_SHARE_ROWS, assertImportCardinality } from '@/server/importR
  * Rate-limited as a creation, because that is what it is: one call makes a room, a roster and up
  * to five hundred rows that nobody can delete.
  *
- * NO IDEMPOTENCY KEY, deliberately. Every POST is a new room with a new link — a retried import
- * cannot corrupt anything, it can only leave an unshared room nobody opens. The alternative is a
- * key the client has to invent and the server has to store, to defend against a duplicate that
- * costs a row.
+ * This route is not globally idempotent: every POST is still a new room with a
+ * new link. Its source fingerprint is stored only inside that new room's first
+ * ImportBatch, so uploading the same local export through the room-scoped
+ * append route later cannot duplicate its ledger.
  */
 export const POST = (request: Request) =>
     respond(async (): Promise<RoomStateWithMember> => {

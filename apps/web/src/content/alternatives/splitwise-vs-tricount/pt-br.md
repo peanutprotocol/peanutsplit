@@ -173,7 +173,7 @@ O Tricount é da bunq, um banco, e o registro automático por cartão funciona s
 | ------------------------ | ---------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------- |
 | Despesas grátis por dia  | Um limite diário no plano grátis, tirado pelo Pro                | sem limite; "No ads, no limits"           | Sem limite                                                                         |
 | Anúncios no plano grátis | "A totally ad-free experience" é função do Pro                   | "100% free"                               | Sem anúncio e sem plano pago                                                       |
-| Conversão de moeda       | Pro: "Only Pro subscribers can convert"                          | grátis: "automatically converts expenses" | 158 moedas, pela taxa do dia                                                       |
+| Conversão de moeda       | Pro: "Only Pro subscribers can convert"                          | grátis: "automatically converts expenses" | 156 moedas, pela taxa indicativa do dia                                            |
 | Reduzir as dívidas       | "Simplify Debts", mas não entre moedas                           | Sugestões de acerto entre as pessoas      | Um plano de pagamento curto, valendo para as moedas da sala                        |
 | Contas                   | "everyone in a Splitwise group can log in and see their balance" | se marca como "No Registration"           | Nenhuma. Uma sala é um link                                                        |
 | Onde funciona            | "Free for iPhone, Android, and web."                             | download                                  | Qualquer navegador, sem instalar nada                                              |
@@ -200,7 +200,7 @@ Aquele grupo continua devendo dinheiro um ao outro, e o dinheiro não deixa de i
 
 Uma sala é um link. Ela não pede nem o login nem o download: você manda, e quem abre está dentro. O link é a chave, então ele mora no grupo do WhatsApp e não no navegador de uma pessoa só.
 
-Uma sala conta numa moeda e aceita despesas em qualquer uma das 158, pela taxa do dia. Os saldos se reduzem a um plano de pagamento curto.
+Uma sala conta numa moeda e converte automaticamente despesas em 156 moedas pela taxa indicativa do dia. Os saldos se reduzem a um plano de pagamento curto.
 
 Acertar é onde o Split é menor. Duas pessoas acertam do jeito que elas acertam, e uma delas toca para registrar. O Split não confere com banco nenhum e não tem como conferir. Ele acredita na sua palavra, do mesmo jeito que uma nota compartilhada acredita.
 

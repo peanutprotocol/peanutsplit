@@ -20,9 +20,9 @@ describe('existing-room import member mapping', () => {
     it('checks source-to-room priceability while preserving unrated identity pairs', () => {
         const expense = (currencyCode: string) => ({ currencyCode })
 
-        expect(unsupportedImportCurrencies([expense('EUR')], 'KPW')).toEqual(['EUR'])
-        expect(unsupportedImportCurrencies([expense('KPW')], 'KPW')).toEqual([])
-        expect(unsupportedImportCurrencies([expense('EUR'), expense('EUR'), expense('USD')], 'KPW')).toEqual([
+        expect(unsupportedImportCurrencies([expense('EUR')], 'BGN')).toEqual(['EUR'])
+        expect(unsupportedImportCurrencies([expense('BGN')], 'BGN')).toEqual([])
+        expect(unsupportedImportCurrencies([expense('EUR'), expense('EUR'), expense('USD')], 'BGN')).toEqual([
             'EUR',
             'USD',
         ])
@@ -39,6 +39,31 @@ describe('existing-room import member mapping', () => {
             { sourceName: ' ana ', memberId: 'ana', newMemberName: 'ana' },
             { sourceName: 'Bruno', memberId: null, newMemberName: 'Bruno' },
             { sourceName: 'Alex', memberId: null, newMemberName: 'Alex' },
+        ])
+    })
+
+    it('suggests the importer identity for Split Pro’s explicit You member', () => {
+        const drafts = initialExistingRoomMemberDrafts(
+            ['You', 'Natalia'],
+            [member('konrad', 'Konrad'), member('natalia', 'Natalia')],
+            'konrad'
+        )
+
+        expect(drafts).toEqual([
+            { sourceName: 'You', memberId: 'konrad', newMemberName: 'You' },
+            { sourceName: 'Natalia', memberId: 'natalia', newMemberName: 'Natalia' },
+        ])
+    })
+
+    it('does not trust an identity that is no longer in the room', () => {
+        expect(initialExistingRoomMemberDrafts(['You'], [member('konrad', 'Konrad')], 'removed')).toEqual([
+            { sourceName: 'You', memberId: null, newMemberName: 'You' },
+        ])
+    })
+
+    it('leaves a literal Splitwise member named You unmapped without semantic-self metadata', () => {
+        expect(initialExistingRoomMemberDrafts(['You'], [member('konrad', 'Konrad')])).toEqual([
+            { sourceName: 'You', memberId: null, newMemberName: 'You' },
         ])
     })
 

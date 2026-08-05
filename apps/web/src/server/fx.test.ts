@@ -47,8 +47,8 @@ describe('rateFrom', () => {
     })
 
     it('is null for a real catalog code the table carries no rate for', () => {
-        // KPW is in the catalog and never in the feed. It is not a special case; it is the
-        // general one, and it gets the same answer a made-up ticker gets.
+        // KPW is in the live catalog but absent from this supplied static table. It is not a
+        // special case; it gets the same answer a made-up ticker gets at runtime.
         expect(rateFrom(table, 'KPW', 'EUR')).toBeNull()
         expect(rateFrom(table, 'EUR', 'KPW')).toBeNull()
     })
@@ -57,6 +57,15 @@ describe('rateFrom', () => {
         const broken: RateTable = { ...table, usdPerUnit: { ...STATIC_USD_PER_UNIT, ZWL: 0 } }
         expect(rateFrom(broken, 'ZWL', 'EUR')).toBeNull()
         expect(rateFrom(broken, 'EUR', 'ZWL')).toBeNull()
+    })
+
+    it('refuses a cross that cannot be stored as a positive Decimal(24,12)', () => {
+        const extreme: RateTable = {
+            ...table,
+            usdPerUnit: { TINY: 1e-9, HUGE: 1e9 },
+        }
+        expect(rateFrom(extreme, 'HUGE', 'TINY')).toBeNull()
+        expect(rateFrom(extreme, 'TINY', 'HUGE')).toBeNull()
     })
 
     it('prices every ordered pair of the twelve codes that ship a static rate', () => {

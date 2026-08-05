@@ -1,14 +1,20 @@
-import { formatAmountInput, formatMinorPlain, isAmountInputAcceptable, parseAmountToMinor } from './money'
+import {
+    formatAmountInput,
+    formatMinorPlain,
+    isAmountInputAcceptable,
+    MAX_SIGNED_MINOR,
+    parseAmountToMinor,
+} from './money'
 
 /** Expense.fxRate is Decimal(24,12): twelve digits on either side of the decimal mark. */
 export const MANUAL_FX_RATE_DECIMALS = 12
 export const MANUAL_FX_RATE_MAX_LENGTH = 25
 const MANUAL_FX_RATE_SCALE = 10n ** BigInt(MANUAL_FX_RATE_DECIMALS)
 const MANUAL_FX_RATE_MAX_SCALED = 999_999_999_999n * MANUAL_FX_RATE_SCALE
-export const MAX_SIGNED_MINOR = 9_223_372_036_854_775_807n
+export { MAX_SIGNED_MINOR } from './money'
 
 const parseManualFxRateScaled = (input: string, locale?: string): bigint | null => {
-    const scaled = parseAmountToMinor(input, MANUAL_FX_RATE_DECIMALS, locale)
+    const scaled = parseAmountToMinor(input, MANUAL_FX_RATE_DECIMALS, locale, MANUAL_FX_RATE_MAX_SCALED)
     if (scaled === null) return null
     const value = BigInt(scaled)
     return value > 0n && value <= MANUAL_FX_RATE_MAX_SCALED ? value : null
@@ -37,14 +43,19 @@ export function parseManualFxRateInput(input: string, locale?: string): string |
 /** Can the input hold this value while somebody is still typing it? */
 export function isManualFxRateInputAcceptable(input: string, locale?: string): boolean {
     if (input.length > MANUAL_FX_RATE_MAX_LENGTH) return false
-    return isAmountInputAcceptable(input, MANUAL_FX_RATE_DECIMALS, locale)
+    return isAmountInputAcceptable(input, MANUAL_FX_RATE_DECIMALS, locale, MANUAL_FX_RATE_MAX_SCALED)
 }
 
 /** A frozen wire rate -> compact text using the active locale's decimal mark. */
 export function formatManualFxRateInput(rate: string, locale: string): string {
     const canonical = parseManualFxRateInput(rate)
     if (!canonical) return ''
-    const scaled = parseAmountToMinor(canonical, MANUAL_FX_RATE_DECIMALS) as string
+    const scaled = parseAmountToMinor(
+        canonical,
+        MANUAL_FX_RATE_DECIMALS,
+        undefined,
+        MANUAL_FX_RATE_MAX_SCALED
+    ) as string
     const fixed = formatAmountInput(scaled, MANUAL_FX_RATE_DECIMALS, locale)
     const decimalMark = fixed.includes(',') ? ',' : '.'
     const decimalAt = fixed.lastIndexOf(decimalMark)

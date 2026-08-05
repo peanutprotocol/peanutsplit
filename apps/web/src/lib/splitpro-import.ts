@@ -15,7 +15,7 @@
  * file never leaves the browser.
  */
 
-import { currencyInfo, FALLBACK_CURRENCIES } from '@/lib/money'
+import { currencyInfo, FALLBACK_CURRENCIES, MAX_SIGNED_MINOR } from '@/lib/money'
 import {
     BROUGHT_FORWARD,
     MAX_CATEGORY_CHARS,
@@ -25,10 +25,11 @@ import {
     MAX_NAME_CHARS,
     MAX_PARSED_EXPENSES,
     MAX_ROWS,
+    INVALID_DATE_FALLBACK,
     SplitwiseParseError,
     capHistory,
-    isEvenSplit,
     parseCsvRows,
+    parseImportDate,
     parseSignedMinor,
     parseSplitwiseCsv,
     roomNameFromFilename,
@@ -39,12 +40,14 @@ import {
 } from '@/lib/splitwise-csv'
 
 const SUPPORTED_CURRENCIES = new Set(FALLBACK_CURRENCIES.map((currency) => currency.code))
-const MAX_SIGNED_MINOR = 9_223_372_036_854_775_807n
 
 export type ImportSource = 'splitwise' | 'splitpro'
 
 export interface ImportChoice {
     id: string
+    /** Immutable locator inside the uploaded file. It must depend only on the
+     * source document's structure, never on names, amounts, or parser output. */
+    sourceKey: string
     roomName: string
     parsed: SplitwiseImport
 }
@@ -110,22 +113,6 @@ function safeNames(rawNames: string[], warnings: ImportWarning[]): string[] {
     })
 }
 
-const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
-
-function importDate(value: unknown): { date: string; ok: boolean } {
-    const raw = text(value)
-    if (ISO_DATE.test(raw)) {
-        const parsed = new Date(`${raw}T00:00:00.000Z`)
-        if (!Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === raw) {
-            return { date: raw, ok: true }
-        }
-    }
-
-    const parsed = new Date(raw)
-    if (raw && !Number.isNaN(parsed.getTime())) return { date: parsed.toISOString().slice(0, 10), ok: true }
-    return { date: new Date().toISOString().slice(0, 10), ok: false }
-}
-
 function finishImport(
     members: string[],
     expenses: ParsedExpense[],
@@ -188,7 +175,29 @@ function splitProCsvHeader(rows: string[][]): Map<string, number> | null {
 function friendNameFromFilename(filename: string): string {
     const base = filename.replace(/\.csv$/i, '')
     const match = base.match(/^expenses[_\s-]+with[_\s-]+(.+)$/i)
-    return (match?.[1] ?? 'Friend').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim() || 'Friend'
+    return (
+        (match?.[1] ?? 'Friend')
+            // Browsers append this when the same export is downloaded more than once. It is not
+            // part of the friend's identity and must not create a duplicate room member.
+            .replace(/\s+\(\d+\)$/i, '')
+            .replace(/_+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim() || 'Friend'
+    )
+}
+
+/** Prefer the identity repeated in the ledger itself. Only one distinct non-You payer is evidence;
+ * inconsistent values are left for row validation and fall back to the cleaned download name. */
+function friendNameFromRows(filename: string, rows: string[][], header: Map<string, number>): string {
+    const paidBy = header.get('paid by') ?? -1
+    const candidates = new Map<string, string>()
+    for (const row of rows.slice(1)) {
+        const raw = (row[paidBy] ?? '').trim()
+        const key = normalise(raw)
+        if (!key || key === 'you') continue
+        if (!candidates.has(key)) candidates.set(key, raw)
+    }
+    return candidates.size === 1 ? [...candidates.values()][0] : friendNameFromFilename(filename)
 }
 
 function parseSplitProCsv(filename: string, rows: string[][]): SplitwiseImport {
@@ -197,10 +206,13 @@ function parseSplitProCsv(filename: string, rows: string[][]): SplitwiseImport {
     if (!header) throw new SplitwiseParseError('NOT_SPLITWISE_CSV')
 
     const warnings: ImportWarning[] = [{ code: 'SPLITPRO_PAIR_HISTORY' }]
-    const members = safeNames(['You', friendNameFromFilename(filename)], warnings)
+    const friendSourceName = friendNameFromRows(filename, rows, header)
+    const friendSourceKey = normalise(friendSourceName)
+    const members = safeNames(['You', friendSourceName], warnings)
     const [you, friend] = members
     const expenses: ParsedExpense[] = []
     let sawSettlement = false
+    let flattenedSplitMode = false
 
     const cell = (row: string[], column: string) => row[header.get(column) ?? -1] ?? ''
 
@@ -228,9 +240,16 @@ function parseSplitProCsv(filename: string, rows: string[][]): SplitwiseImport {
             continue
         }
 
-        const payer = normalise(cell(row, 'paid by')) === 'you' ? you : friend
+        const payerKey = normalise(cell(row, 'paid by'))
+        const payer = payerKey === 'you' ? you : payerKey === friendSourceKey ? friend : null
+        if (!payer) {
+            warnings.push({ code: 'ROW_NO_PAYER', row: line, detail: cell(row, 'paid by').trim() || '—' })
+            continue
+        }
         const receiver = payer === you ? friend : you
-        const isSettlement = normalise(cell(row, 'split type')) === 'settlement' || settlement! > 0n
+        const sourceSplitType = normalise(cell(row, 'split type'))
+        const isSettlement = sourceSplitType === 'settlement' || settlement! > 0n
+        const flattensWeights = sourceSplitType === 'percentage' || sourceSplitType === 'share'
         let shares: { member: string; amountMinor: string }[]
 
         if (isSettlement) {
@@ -257,7 +276,7 @@ function parseSplitProCsv(filename: string, rows: string[][]): SplitwiseImport {
         const description = clip(rawDescription, MAX_DESCRIPTION_CHARS)
         if (description !== rawDescription) warnings.push({ code: 'ROW_DESCRIPTION_TRUNCATED', row: line })
 
-        const parsedDate = importDate(cell(row, 'expense date'))
+        const parsedDate = parseImportDate(cell(row, 'expense date'))
         if (!parsedDate.ok) warnings.push({ code: 'ROW_BAD_DATE', row: line })
 
         expenses.push({
@@ -267,17 +286,18 @@ function parseSplitProCsv(filename: string, rows: string[][]): SplitwiseImport {
             currencyCode,
             costMinor: cost!.toString(),
             paidBy: payer,
-            splitMode: isEvenSplit(
-                cost!,
-                shares.map((share) => BigInt(share.amountMinor))
-            )
-                ? 'EQUAL'
-                : 'EXACT',
+            // Split Pro exported the user's editing intent. Preserve EQUAL only
+            // when it says EQUAL; EXACT, weighted modes and settlements must not
+            // become mutable equal splits merely because today's amounts happen
+            // to divide evenly.
+            splitMode: !isSettlement && sourceSplitType === 'equal' ? 'EQUAL' : 'EXACT',
             shares,
         })
+        if (flattensWeights) flattenedSplitMode = true
     }
 
     if (sawSettlement) warnings.push({ code: 'PAYMENT_ROWS' })
+    if (flattenedSplitMode) warnings.push({ code: 'SPLITPRO_SPLIT_MODE_FLATTENED' })
     return finishImport(members, expenses, warnings)
 }
 
@@ -413,7 +433,7 @@ function parseSplitProGroup(
             continue
         }
         const value = amount < 0n ? -amount : amount
-        const parsedDate = importDate(balance?.updatedAt ?? group.updatedAt)
+        const parsedDate = parseImportDate(text(balance?.updatedAt ?? group.updatedAt))
         expenses.push({
             date: parsedDate.date,
             description: clip(`${BROUGHT_FORWARD} — ${debtor} → ${creditor}`, MAX_DESCRIPTION_CHARS),
@@ -434,6 +454,7 @@ function parseSplitProGroup(
     const roomName = clip(text(group.name) || `SplitPro group ${groupIndex + 1}`, 80)
     return {
         id: String(integer(group.id) ?? integer(group.publicId) ?? groupIndex),
+        sourceKey: `group:${groupIndex}`,
         roomName,
         parsed: finishImport(members, expenses, warnings, text(group.defaultCurrency).toUpperCase()),
     }
@@ -466,7 +487,7 @@ function parseDirectBalances(friends: Map<number, SplitProFriend>): ImportChoice
             const debtor = amount > 0n ? other : you
             const value = amount < 0n ? -amount : amount
             expenses.push({
-                date: new Date().toISOString().slice(0, 10),
+                date: INVALID_DATE_FALLBACK,
                 description: clip(`${BROUGHT_FORWARD} — ${debtor} → ${creditor}`, MAX_DESCRIPTION_CHARS),
                 category: null,
                 currencyCode,
@@ -483,6 +504,7 @@ function parseDirectBalances(friends: Map<number, SplitProFriend>): ImportChoice
     }
     return {
         id: 'direct-balances',
+        sourceKey: 'direct-balances',
         roomName: 'SplitPro balances',
         parsed: finishImport(members, expenses, warnings),
     }
@@ -606,6 +628,7 @@ export function parseImportFile(textValue: string, filename: string): ParsedImpo
             choices: [
                 {
                     id: 'splitpro-friend-csv',
+                    sourceKey: 'file',
                     roomName: roomNameFromFilename(filename),
                     parsed: parseSplitProCsv(filename, rows),
                 },
@@ -619,6 +642,7 @@ export function parseImportFile(textValue: string, filename: string): ParsedImpo
         choices: [
             {
                 id: 'splitwise-csv',
+                sourceKey: 'file',
                 roomName: roomNameFromFilename(filename),
                 parsed: parseSplitwiseCsv(textValue),
             },

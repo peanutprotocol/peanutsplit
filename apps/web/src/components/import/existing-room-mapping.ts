@@ -20,7 +20,7 @@ const nameKey = (name: string): string => name.trim().toLowerCase()
 
 /** Distinct source currencies that cannot be converted into the fixed target
  *  room currency. `canPrice` checks identity first, so an unrated catalog code
- *  such as KPW remains valid when both the source row and room use KPW. */
+ *  such as BGN remains valid when both the source row and room use BGN. */
 export function unsupportedImportCurrencies(
     expenses: readonly Pick<ImportedExpenseInput, 'currencyCode'>[],
     roomCurrency: string,
@@ -38,7 +38,8 @@ export function unsupportedImportCurrencies(
  */
 export function initialExistingRoomMemberDrafts(
     sourceNames: readonly string[],
-    members: readonly ApiMember[]
+    members: readonly ApiMember[],
+    semanticSelfMemberId?: string | null
 ): ExistingRoomMemberDraft[] {
     const memberByName = new Map<string, ApiMember>()
     const ambiguousNames = new Set<string>()
@@ -51,10 +52,15 @@ export function initialExistingRoomMemberDrafts(
     const used = new Set<string>()
     return sourceNames.map((sourceName) => {
         const key = nameKey(sourceName)
+        const currentMember =
+            key === 'you' && semanticSelfMemberId
+                ? members.find((member) => member.id === semanticSelfMemberId)
+                : undefined
         const exact = ambiguousNames.has(key) ? undefined : memberByName.get(key)
-        if (exact && !used.has(exact.id)) {
-            used.add(exact.id)
-            return { sourceName, memberId: exact.id, newMemberName: sourceName.trim() }
+        const suggested = currentMember ?? exact
+        if (suggested && !used.has(suggested.id)) {
+            used.add(suggested.id)
+            return { sourceName, memberId: suggested.id, newMemberName: sourceName.trim() }
         }
         return { sourceName, memberId: null, newMemberName: sourceName.trim() }
     })

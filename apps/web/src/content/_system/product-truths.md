@@ -1,5 +1,5 @@
 ---
-last_verified: 2026-07-30
+last_verified: 2026-08-05
 ---
 
 # Product truths
@@ -18,23 +18,27 @@ the next person can check it rather than trust this file.
 
 ---
 
-## rated-currencies-158
+## automatic-currency-conversion
 
-**claim:** A room can use any of 162 catalog currencies. Split can automatically convert expenses
-across 158 of them. CUC, KPW, SVC and XSU have no feed rate and work only when the expense and room
-use the same currency. The indicative conversion rate is frozen onto the expense when it is created.
+**claim:** The catalog recognises 162 currency codes, and 156 of them support automatic conversion
+to the room's currency at the day's indicative rate. That rate is frozen onto the expense when it
+is created. Split reads Peanut's public display-sell snapshot and caches it for 24 hours; during an
+outage it may use a last-known-good rate for up to seven days, then falls back to the 12 core static
+rates. The 12-rate table is also the only source in dev and test static mode.
 
-**safe:** "162 room currencies" · "158 currencies, converted at the day's rate" · "the rate is
-indicative, not your bank's" · "the rate is fixed when the expense is added, so history does not
-move"
+**safe:** "automatic conversion for 156 currencies" · "converted at the day's indicative rate" ·
+"the catalog recognises 162 currency codes" · "the rate is indicative, not your bank's" · "the
+rate is fixed when the expense is added, so history does not move"
 
-**unsafe:** "any currency converts" · "all 162 currencies convert" · "150+" · "live rate" ·
-"real-time rate" · anything implying the number moves after the expense is saved
+**unsafe:** "twelve currencies" as the production feature · "multi-currency" (says nothing) · "any
+currency" · "all currencies" · "150+" · "live rate" · "real-time rate" · anything implying the
+number moves after the expense is saved
 
-**source:** `apps/web/src/lib/currency-catalog.ts` (162 catalog entries, 158 with `hasRate`) ·
-`apps/web/src/lib/currency-rules.ts` (identity or two rated currencies) · `apps/web/src/server/fx.ts`
-(live feed → cache → static table) · `apps/web/src/server/expenses.ts` (`fxRate` locked at creation
-and reused on edit)
+**source:** `apps/web/src/lib/currency-catalog.ts` (162 generated entries, 156 with `hasRate`) ·
+`apps/web/src/server/fx.ts` (Peanut snapshot → 24h cache → bounded seven-day stale cache → 12-rate
+static table; the module says "Rates are indicative — surfaces that show one must say so") ·
+`apps/web/src/server/money.ts` (`STATIC_USD_PER_UNIT`, the 12 core fallback rates) ·
+`apps/web/src/server/expenses.ts` (`fxRate` locked at creation and reused on edit)
 
 ---
 

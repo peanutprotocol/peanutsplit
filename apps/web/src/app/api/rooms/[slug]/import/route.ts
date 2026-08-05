@@ -15,9 +15,9 @@ type Ctx = { params: Promise<{ slug: string }> }
  * Append one parsed source export to an existing room.
  *
  * The browser still parses locally; this endpoint receives only the validated
- * ledger projection and explicit source-person mappings. A repeated semantic
- * source is returned as an idempotent success by the service and deliberately
- * does not poke realtime subscribers a second time.
+ * ledger projection, immutable-source fingerprint and explicit source-person
+ * mappings. A repeated local export choice is returned as an idempotent
+ * success and deliberately does not poke realtime subscribers a second time.
  */
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async (): Promise<ImportIntoRoomResult> => {

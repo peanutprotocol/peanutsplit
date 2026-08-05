@@ -14,7 +14,7 @@
  * changing the amount is local arithmetic.
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery, type Query } from '@tanstack/react-query'
 import { api, type IndicativeRateQuote } from './api'
 
 /** An hour. A rate that moves under someone mid-form would make the preview
@@ -43,6 +43,33 @@ export function useRate(from: string, to: string, enabled = true) {
         // screen seconds late, after the eye has already moved on.
         retry: false,
         refetchOnWindowFocus: false,
+    })
+}
+
+/** Probe every distinct source currency before a bulk import is submitted.
+ * A definitive null response blocks the import; transport errors do not, because
+ * the write endpoint remains the authority and may still have a cached quote. */
+export function useRateAvailability(
+    fromCurrencies: readonly string[],
+    to: string,
+    enabled = true,
+    recheckCurrencies: readonly string[] = []
+) {
+    const recheck = new Set(recheckCurrencies)
+    return useQueries({
+        queries: fromCurrencies.map((from) => ({
+            queryKey: ['rate', from, to] as const,
+            queryFn: ({ signal }: { signal: AbortSignal }) => api.rate(from, to, signal),
+            select: availableRateQuote,
+            enabled: enabled && from !== to && from.length > 0 && to.length > 0,
+            // Missing quotes can recover after an operator repairs the feed, so
+            // this guard refreshes much sooner than an amount preview.
+            staleTime: 60 * 1000,
+            refetchInterval: (query: Query<IndicativeRateQuote>) =>
+                query.state.data?.rate === null || recheck.has(from) ? 60 * 1000 : false,
+            retry: false,
+            refetchOnWindowFocus: true,
+        })),
     })
 }
 

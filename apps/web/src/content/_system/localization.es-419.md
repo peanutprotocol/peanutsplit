@@ -107,32 +107,32 @@ Carried from mono `localization.es-419.md` §2:
 Three-column table, mono's shape (`localization.{locale}.md` §3). **Rows 1–7 are carried from mono
 verbatim**; the rest are Split terms with no mono equivalent.
 
-| English                     | es-419                                       | Avoid                                                                           |
-| --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------- |
-| the app                     | la app                                       | la aplicación, **la plataforma** (banned in every locale, `messaging.md` §14.2) |
-| phone                       | celular                                      | móvil (Spain), teléfono                                                         |
-| money                       | **dinero**                                   | pasta, guita, lana — **and `plata`, see below**                                 |
-| send money                  | enviar dinero                                | transferir fondos, remesar                                                      |
-| instantly                   | al instante / instantáneamente               | —                                                                               |
-| sign up                     | registrarse                                  | darse de alta (Spain)                                                           |
-| computer                    | computadora                                  | ordenador (Spain)                                                               |
-| a website                   | un sitio web / una web                       | **la app** — Split is not an app and says so (stylebook §10)                    |
-| room                        | **la sala**                                  | el grupo, la cuenta, el evento                                                  |
-| link                        | **el enlace**                                | el link, la liga (MX-only), el vínculo, la URL                                  |
-| the link is the key         | **el enlace es la llave**                    | tu token, tu acceso                                                             |
-| expense                     | **el gasto**                                 | el egreso, la erogación (accounting register)                                   |
-| add an expense              | cargar un gasto / agregar un gasto           | ingresar un gasto                                                               |
-| balance                     | **el saldo**                                 | el balance (false friend — a balance sheet)                                     |
-| all square                  | **a mano** ("quedan a mano", "estás a mano") | en cero, balanceado, empatados                                                  |
-| settle up (verb)            | **saldar**                                   | liquidar (accounting), pasar la cuenta, arreglar cuentas                        |
-| settled                     | saldado / saldadas                           | cerrado, finiquitado                                                            |
-| who owes who                | **quién le debe a quién**                    | quién debe qué                                                                  |
-| free forever                | **gratis para siempre**                      | gratuito, sin costo, versión gratis                                             |
-| 158 converted currencies    | 158 monedas convertidas                      | multimoneda, cualquier moneda (stylebook §6.7)                                  |
-| converted at the day's rate | al tipo de cambio del día                    | tipo de cambio en vivo / en tiempo real (stylebook §6.6)                        |
-| flatmate                    | roomie / compañero de departamento           | **compañero de piso** (Spain), piso                                             |
-| flat                        | departamento                                 | piso (Spain)                                                                    |
-| group chat                  | el chat del grupo                            | el grupo de WhatsApp (unscoped)                                                 |
+| English                                 | es-419                                       | Avoid                                                                           |
+| --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------- |
+| the app                                 | la app                                       | la aplicación, **la plataforma** (banned in every locale, `messaging.md` §14.2) |
+| phone                                   | celular                                      | móvil (Spain), teléfono                                                         |
+| money                                   | **dinero**                                   | pasta, guita, lana — **and `plata`, see below**                                 |
+| send money                              | enviar dinero                                | transferir fondos, remesar                                                      |
+| instantly                               | al instante / instantáneamente               | —                                                                               |
+| sign up                                 | registrarse                                  | darse de alta (Spain)                                                           |
+| computer                                | computadora                                  | ordenador (Spain)                                                               |
+| a website                               | un sitio web / una web                       | **la app** — Split is not an app and says so (stylebook §10)                    |
+| room                                    | **la sala**                                  | el grupo, la cuenta, el evento                                                  |
+| link                                    | **el enlace**                                | el link, la liga (MX-only), el vínculo, la URL                                  |
+| the link is the key                     | **el enlace es la llave**                    | tu token, tu acceso                                                             |
+| expense                                 | **el gasto**                                 | el egreso, la erogación (accounting register)                                   |
+| add an expense                          | cargar un gasto / agregar un gasto           | ingresar un gasto                                                               |
+| balance                                 | **el saldo**                                 | el balance (false friend — a balance sheet)                                     |
+| all square                              | **a mano** ("quedan a mano", "estás a mano") | en cero, balanceado, empatados                                                  |
+| settle up (verb)                        | **saldar**                                   | liquidar (accounting), pasar la cuenta, arreglar cuentas                        |
+| settled                                 | saldado / saldadas                           | cerrado, finiquitado                                                            |
+| who owes who                            | **quién le debe a quién**                    | quién debe qué                                                                  |
+| free forever                            | **gratis para siempre**                      | gratuito, sin costo, versión gratis                                             |
+| automatic conversion for 156 currencies | conversión automática para 156 monedas       | multimoneda, cualquier moneda, 150+ (stylebook §6.7)                            |
+| converted at the day's rate             | al tipo de cambio del día                    | tipo de cambio en vivo / en tiempo real (stylebook §6.6)                        |
+| flatmate                                | roomie / compañero de departamento           | **compañero de piso** (Spain), piso                                             |
+| flat                                    | departamento                                 | piso (Spain)                                                                    |
+| group chat                              | el chat del grupo                            | el grupo de WhatsApp (unscoped)                                                 |
 
 **`plata` — Split deviates from mono, on purpose.** Mono's `es-419` table permits _"dinero / plata
 (informal)"_; mono's `es-es` bans it. Split has no `es-es`, so `es-419` is also the page a reader in
