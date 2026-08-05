@@ -121,7 +121,7 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settled                     | acertado / acertadas                       | liquidado                                                            |
 | who owes who                | **quem deve a quem**                       | quem deve o quê                                                      |
 | free forever                | **grátis para sempre**                     | gratuito, sem custo, versão grátis                                   |
-| twelve currencies           | doze moedas                                | multimoeda, qualquer moeda (stylebook §6.7)                          |
+| 158 converted currencies    | 158 moedas convertidas                     | multimoeda, qualquer moeda (stylebook §6.7)                          |
 | converted at the day's rate | pela taxa do dia                           | taxa ao vivo / em tempo real (stylebook §6.6)                        |
 | the split (the operation)   | **o rateio**                               | a divisão (vague), o acerto                                          |
 | each person's share         | **a cota**                                 | a parte, a fatia                                                     |

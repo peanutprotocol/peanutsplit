@@ -8,7 +8,7 @@ tags: [no signup, groups]
 claims:
     - link-is-the-key
     - no-app
-    - netting-is-greedy
+    - netting-is-bounded-exact
     - settle-is-a-record
     - free-forever
     - room-size-20

@@ -7,11 +7,11 @@ intent: how to split airbnb cost when rooms are not equal
 tags: [trips, fairness]
 claims:
     - link-is-the-key
-    - netting-is-greedy
+    - netting-is-bounded-exact
     - settle-is-a-record
     - free-forever
     - room-size-20
-    - twelve-currencies
+    - rated-currencies-158
 cast:
     - jules
 faqs:
@@ -51,7 +51,7 @@ Four rooms much of a muchness do not need weights; weighting them invents a diff
 
 Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier and nothing to move behind one later.
 
-Twelve currencies, converted at the day's rate, which is indicative rather than your bank's. A room holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
+158 currencies, converted at the day's rate, which is indicative rather than your bank's. A room holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
 
 <CTA
   title="Put the weights where everyone can see them"

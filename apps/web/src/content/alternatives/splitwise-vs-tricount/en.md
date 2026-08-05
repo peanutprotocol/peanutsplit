@@ -169,7 +169,7 @@ Tricount is owned by bunq, a bank, and the card-based automatic tracking runs in
 | --------------------- | ---------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------- |
 | Free expenses per day | A daily cap on the free tier, lifted by Pro                      | no cap; "No ads, no limits"                        | No cap                                                                  |
 | Ads on the free tier  | "A totally ad-free experience" is a Pro feature                  | "100% free"                                        | No ads, and no paid tier                                                |
-| Currency conversion   | Pro: "Only Pro subscribers can convert"                          | free: "automatically converts expenses"            | Twelve currencies, converted at the day's rate                          |
+| Currency conversion   | Pro: "Only Pro subscribers can convert"                          | free: "automatically converts expenses"            | 158 currencies, converted at the day's rate                             |
 | Netting debts         | "Simplify Debts", but not across currencies                      | "fair, simple, and smart suggestions to settle up" | A short payment plan, across every currency in the room                 |
 | Accounts              | "everyone in a Splitwise group can log in and see their balance" | marks itself "No Registration"                     | None. A room is a link                                                  |
 | Where it runs         | "Free for iPhone, Android, and web."                             | download                                           | Any browser, nothing to install                                         |
@@ -196,7 +196,7 @@ That group still owes each other money, and the money does not stop mattering be
 
 A room is a web link. It asks for neither the login nor the download: you send it, and the people who open it are in. The link is the key, so it belongs in the group chat rather than in one person's browser.
 
-A room counts in one currency and takes expenses in any of twelve, converted at the day's rate. The balances net down to a short payment plan.
+A room counts in one currency and takes expenses in any of 158, converted at the day's rate. The balances net down to a short payment plan.
 
 Settling up is where Split is smallest. Two people settle however they settle, and one of them taps to record it. Split does not check with a bank and cannot. It takes your word for it, the way a shared note does.
 

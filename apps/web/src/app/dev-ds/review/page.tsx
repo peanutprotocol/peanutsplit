@@ -41,11 +41,6 @@ const noMockupItems = [
     ],
     ['QUAL-01', 'Semantic lint', 'Tooling and a ratcheted baseline need code review, not product-design review.'],
     ['SEC-04', 'Private caching', 'Add private, no-store defaults and route tests.'],
-    [
-        'DOMAIN-01',
-        'Write invariants',
-        'Fix the two known archived-room omissions without inventing a command framework.',
-    ],
 ] as const
 
 export default function ReviewPage() {
@@ -130,9 +125,9 @@ export default function ReviewPage() {
                                 Anonymous room management is deliberately deferred
                             </h2>
                             <p className="mt-4 max-w-3xl text-base leading-7 text-grey-2">
-                                A separate management capability could eventually rotate a share link, archive or delete
-                                a room without requiring accounts. That direction is documented, but it is not a current
-                                flow and there is nothing to approve here yet.
+                                A separate management capability could eventually rotate a share link or delete a room
+                                without requiring accounts. That direction is documented, but it is not a current flow
+                                and there is nothing to approve here yet.
                             </p>
                         </div>
                         <div className="rounded-sm border border-white bg-white p-5 text-n-1">

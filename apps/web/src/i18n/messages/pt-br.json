@@ -236,8 +236,8 @@
             "features": {
                 "title": "O que o Split faz",
                 "currency": {
-                    "title": "162 moedas disponíveis",
-                    "body": "A sala conta em uma moeda. Adicione uma despesa em qualquer uma das 162 moedas disponíveis e o Split converte pela cotação do dia."
+                    "title": "162 moedas para a sala",
+                    "body": "A sala conta em uma moeda. O Split converte despesas entre 158 moedas pela cotação do dia; quatro funcionam apenas sem conversão."
                 },
                 "splits": {
                     "title": "Divisões desiguais",
@@ -655,7 +655,7 @@
             "listTitle": "Quem deve a quem",
             "recordTitle": "Registrar um pagamento",
             "nothingToSettle": "Nada para acertar ainda — lance um gasto primeiro.",
-            "intro": "O menor número de pagamentos que zera tudo. Pague como quiser — a gente só registra.",
+            "intro": "Um plano curto de pagamentos que zera tudo. Pague como quiser — a gente só registra.",
             "stillOutstanding": "Ainda em aberto",
             "howPaid": "Como foi pago?",
             "cash": "Dinheiro",
@@ -1060,7 +1060,7 @@
         "emptyTitle": "Nada ainda",
         "emptyBody": "Sem gastos nem pagamentos — nada mexeu neste saldo.",
         "suggestedTitle": "Para ficar quite",
-        "suggestedNote": "Os pagamentos sugeridos zeram a sala inteira com o menor número de transferências, então quem paga quem nem sempre é quem gastou com quem. Os dois saldos estão aqui para conferir.",
+        "suggestedNote": "Os pagamentos sugeridos resumem a sala inteira em um plano curto, então quem paga quem nem sempre é quem gastou com quem. Os dois saldos estão aqui para conferir.",
         "sends": "Paga {name}",
         "receives": "{name} paga",
         "showOther": "Ver o saldo de {name}",

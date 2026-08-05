@@ -128,7 +128,7 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settled                     | saldado / saldadas                           | cerrado, finiquitado                                                            |
 | who owes who                | **quién le debe a quién**                    | quién debe qué                                                                  |
 | free forever                | **gratis para siempre**                      | gratuito, sin costo, versión gratis                                             |
-| twelve currencies           | doce monedas                                 | multimoneda, cualquier moneda (stylebook §6.7)                                  |
+| 158 converted currencies    | 158 monedas convertidas                      | multimoneda, cualquier moneda (stylebook §6.7)                                  |
 | converted at the day's rate | al tipo de cambio del día                    | tipo de cambio en vivo / en tiempo real (stylebook §6.6)                        |
 | flatmate                    | roomie / compañero de departamento           | **compañero de piso** (Spain), piso                                             |
 | flat                        | departamento                                 | piso (Spain)                                                                    |

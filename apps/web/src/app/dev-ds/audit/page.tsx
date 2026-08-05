@@ -265,14 +265,13 @@ const findings: Finding[] = [
         status: 'accepted risk',
         title: 'Append-only financial history has no erasure or retention path',
         summary:
-            'Audit rows store before/after/detail snapshots, use a RESTRICT room foreign key and are protected from update/delete by a trigger. Every existing room receives a marker, while the product exposes no complete archive/delete/retention lifecycle.',
+            'Audit rows store before/after/detail snapshots, use a RESTRICT room foreign key and are protected from update/delete by a trigger. Every existing room receives a marker, while the product exposes no deletion or retention lifecycle.',
         impact: 'Abandoned, imported and user-requested data can accumulate indefinitely; ordinary hard deletion is structurally blocked. This is both an operational growth risk and a privacy/compliance design gap.',
         action: 'Document the anonymous-managed direction, but do not build retention, partitioning, expiry or deletion flows yet. Reopen around 1,000 rooms, on the first real erasure request, a concrete legal obligation, or measured audit-table growth.',
         evidence: [
             'apps/web/prisma/migrations/20260803150000_room_audit_history/migration.sql:27 — room foreign key restricts deletion',
             'apps/web/prisma/migrations/20260803150000_room_audit_history/migration.sql:32 — append-only trigger',
             'apps/web/src/server/history.ts:218 — catch-up/audit reads have no lifecycle boundary',
-            'apps/web/prisma/schema.prisma:62 — archivedAt exists without a complete product flow',
         ],
     },
     {
@@ -572,25 +571,6 @@ const findings: Finding[] = [
             'apps/web/src/app/not-found.tsx — translated 404 family',
             'apps/web/src/app/r/[slug]/loading.tsx — localized room loading status',
             'apps/web/src/components/ui/RouteState.tsx — safe presentation contract',
-        ],
-    },
-    {
-        id: 'DOMAIN-01',
-        severity: 'medium',
-        area: 'Domain integrity',
-        effort: 'M',
-        horizon: 'Now',
-        status: 'resolved',
-        title: 'The two known archived-room write omissions are closed',
-        summary:
-            'Expense restore now asserts writability after acquiring the room lock. Settlement deletion asserts before and after locking. Tests prove both return ROOM_ARCHIVED without changing stored rows.',
-        impact: 'Expense restore and settlement deletion now refuse archived rooms under the write lock and leave rows unchanged. The broader command-pipeline abstraction remains intentionally deferred.',
-        action: 'Resolved for the demonstrated defects. Reopen the generic pipeline only after another omission proves repetition is still causing product errors.',
-        evidence: [
-            'apps/web/src/server/rooms.ts:179 — central assertWritable exists',
-            'apps/web/src/app/api/expenses/[id]/restore/route.ts — checks after room lock',
-            'apps/web/src/app/api/rooms/[slug]/settlements/[id]/route.ts — checks before and after lock',
-            'apps/web/src/server/test/api.test.ts — archived writes return ROOM_ARCHIVED and preserve rows',
         ],
     },
     {

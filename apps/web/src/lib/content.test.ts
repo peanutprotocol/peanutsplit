@@ -416,13 +416,13 @@ export const NEVER_STRINGS: readonly StyleRule[] = [
         target: 'prose',
         pattern:
             /\b(?:fewest|smallest|minimum|minimal|optimal|m[íi]nim\w+|menor n[úu]mero)\b[^.\n]{0,24}\b(?:transfers?|payments?|transferencias?|transfer[êe]ncias?|pagos?|pagamentos?)\b/i,
-        why: 'the netting walk is greedy — say "two or three transfers instead of twenty" (product-truths.md#netting-is-greedy)',
+        why: 'the exact solver is bounded — say "two or three transfers instead of twenty" (product-truths.md#netting-is-bounded-exact)',
     },
     {
         id: 'live-fx-rate',
         target: 'prose',
         pattern: new RegExp(`\\b(?:${LIVE_WORD})\\b[\\s-]*(?:${RATE_WORD})\\b`, 'i'),
-        why: 'the FX ceiling is "converted at the day\'s rate" — never live or real-time (product-truths.md#twelve-currencies)',
+        why: 'the FX ceiling is "converted at the day\'s rate" — never live or real-time (product-truths.md#rated-currencies-158)',
     },
     {
         id: 'live-fx-rate-reversed',

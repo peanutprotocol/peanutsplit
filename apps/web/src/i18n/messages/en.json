@@ -236,8 +236,8 @@
             "features": {
                 "title": "What Split does",
                 "currency": {
-                    "title": "162 supported currencies",
-                    "body": "The room counts in one currency. Add an expense in any of the 162 supported currencies and Split converts it at the rate on the day."
+                    "title": "162 room currencies",
+                    "body": "The room counts in one currency. Split converts expenses across 158 currencies at the rate on the day; four work only without conversion."
                 },
                 "splits": {
                     "title": "Splits that are not even",
@@ -655,7 +655,7 @@
             "listTitle": "Who owes whom",
             "recordTitle": "Record a payment",
             "nothingToSettle": "Nothing to settle yet — add an expense first.",
-            "intro": "The fewest payments that clear everything. Pay however you like — we just record it.",
+            "intro": "A short payment plan that clears everything. Pay however you like — we just record it.",
             "stillOutstanding": "Still outstanding",
             "howPaid": "How was it paid?",
             "cash": "Cash",
@@ -1060,7 +1060,7 @@
         "emptyTitle": "Nothing yet",
         "emptyBody": "No expenses, no payments — nothing has touched this balance.",
         "suggestedTitle": "To clear this",
-        "suggestedNote": "Suggested payments clear the whole room in the fewest transfers, so who pays whom isn’t always who spent on whom. Both balances are here to check.",
+        "suggestedNote": "Suggested payments net the whole room into a short plan, so who pays whom isn’t always who spent on whom. Both balances are here to check.",
         "sends": "Pays {name}",
         "receives": "Gets paid by {name}",
         "showOther": "Show {name}’s balance",

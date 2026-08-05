@@ -99,7 +99,6 @@ model Room {
   currency   String                      // display/settle currency, ISO 4217
   coverUrl   String?                     // legacy dormant field; uploads are not approved
   createdAt  DateTime @default(now())
-  archivedAt DateTime?
   members    Member[]
   expenses   Expense[]
   settlements Settlement[]

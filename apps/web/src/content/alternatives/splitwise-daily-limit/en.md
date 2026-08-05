@@ -77,13 +77,13 @@ Their own pages say three things about ads. The Pro page sells "A totally ad-fre
 
 ## Where a room is different
 
-|              | Peanut Split                                   | Splitwise free                                      |
-| ------------ | ---------------------------------------------- | --------------------------------------------------- |
-| Expenses/day | No cap                                         | A daily cap, lifted by a Pro subscription           |
-| Ads          | None                                           | Pro is sold as an ad-free experience                |
-| Price        | Free forever, no paid tier                     | Pro price not published; varies by country and date |
-| Account      | None. A room is a link                         | An account                                          |
-| Currencies   | Twelve currencies, converted at the day's rate | Currency conversion sits under Pro                  |
+|              | Peanut Split                                | Splitwise free                                      |
+| ------------ | ------------------------------------------- | --------------------------------------------------- |
+| Expenses/day | No cap                                      | A daily cap, lifted by a Pro subscription           |
+| Ads          | None                                        | Pro is sold as an ad-free experience                |
+| Price        | Free forever, no paid tier                  | Pro price not published; varies by country and date |
+| Account      | None. A room is a link                      | An account                                          |
+| Currencies   | 158 currencies, converted at the day's rate | Currency conversion sits under Pro                  |
 
 Splitwise rows are taken from splitwise.com, kb.splitwise.com and feedback.splitwise.com on 31 July 2026.
 

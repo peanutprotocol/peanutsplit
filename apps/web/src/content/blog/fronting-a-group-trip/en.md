@@ -6,9 +6,9 @@ type: guide
 tags: [trips, fronting, getting paid back]
 claims:
     - link-is-the-key
-    - twelve-currencies
+    - rated-currencies-158
     - offline-creates-only
-    - netting-is-greedy
+    - netting-is-bounded-exact
     - settle-is-a-record
     - room-size-20
     - free-forever
@@ -64,7 +64,7 @@ You offered to book the Airbnb. Nobody asked you to run an unsecured lending des
 
 So put them in at the table, while the receipt is still on it. It takes longer to describe than to do, and no signal is not a problem: an expense typed with no connection waits on the phone and goes when the connection comes back.
 
-Enter what you actually paid, in the currency you paid it in. Split covers twelve currencies, and an expense in one of them is converted at the day's rate and fixed onto the expense when you add it, so the history does not move under you later. The rate is indicative, not your bank's.
+Enter what you actually paid, in the currency you paid it in. Split converts 158 currencies, and an expense in one of them is converted at the day's rate and fixed onto the expense when you add it, so the history does not move under you later. The rate is indicative, not your bank's.
 
 <Cast name="mo" size="md" caption="Mo bought the first-night groceries and typed them in at the till, so the other three saw the number before breakfast." />
 

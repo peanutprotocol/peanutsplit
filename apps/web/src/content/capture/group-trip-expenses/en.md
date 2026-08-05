@@ -8,8 +8,8 @@ tags: [trips, spreadsheets]
 claims:
     - link-is-the-key
     - room-size-20
-    - twelve-currencies
-    - netting-is-greedy
+    - rated-currencies-158
+    - netting-is-bounded-exact
     - settle-is-a-record
     - offline-creates-only
     - free-forever
@@ -46,7 +46,7 @@ A room does none of that. It counts what people paid, it nets the total down to 
 
 Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier and nothing to move behind one later.
 
-It takes twelve currencies rather than every currency, converted at the day's rate, which is indicative rather than your bank's. Split does not check with a bank and cannot: two people settle however they settle, and one of them taps to record it. Recording that tap needs a connection, on purpose, because a payment written down twice is worse than one written down late.
+It takes 158 currencies rather than every currency, converted at the day's rate, which is indicative rather than your bank's. Split does not check with a bank and cannot: two people settle however they settle, and one of them taps to record it. Recording that tap needs a connection, on purpose, because a payment written down twice is worse than one written down late.
 
 <CTA
   title="Start a room for the trip"
