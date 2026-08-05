@@ -1,34 +1,23 @@
 /**
  * The wire to a language model, and the two interchangeable transports over it.
  *
- * This file exists because Split now has TWO typing-removers — a photo of a bill
- * (`server/receipt.ts`) and a line of free text (`server/nlExpense.ts`) — and
- * exactly one thing they should share: how a request leaves the container and
- * how a failure is spoken about. Everything that decides what an answer MEANS
- * stays in the feature module; nothing here knows what a receipt or an expense
- * is.
+ * This file owns how a receipt image leaves the container. Everything that
+ * decides what the answer means stays in `server/receipt.ts`; this module only
+ * chooses a transport and returns model text.
  *
  * Three properties, all of them the kind that quietly stop being true if nobody
  * writes them down:
  *
- * 1. **Nothing sent is persisted.** A photograph of a receipt and a line pasted
- *    out of a group chat are the same category of thing: someone's private
- *    life, handed over once for a few seconds of work. There is no column, no
- *    bucket, no temp file, on either path.
+ * 1. **Nothing sent is persisted.** A receipt is someone's private life, handed
+ *    over once for a few seconds of work. There is no column, bucket or temp file.
  * 2. **Content never reaches a log.** No labels, no amounts, no merchant, no
- *    typed text, not in an error path either. Every `console.error` below
+ *    receipt content, not in an error path either. Every `console.error` below
  *    carries a status code — and, on OpenRouter, the machine-readable error code
  *    beside it — and nothing else. Never `error.message`: a provider is free to
- *    quote the request back at you in it. If you are debugging this in
- *    production and wishing for the payload, that wish is the feature working.
+ *    quote the request back at you in it.
  * 3. **The model's arithmetic is never trusted.** Callers re-derive every number
  *    through the `minorAmount` primitive in `server/validation.ts`. This module
  *    hands back a string and makes no claim about it at all.
- *
- * ONE key, BOTH features. `modelConfig()` is the only place a transport is
- * chosen, and a deployment that can read a bill can also read a typed line —
- * there is no second env var and no second capability probe, because a second
- * boolean that must always equal the first is a bug waiting for a deploy.
  *
  * - **OpenRouter** (`SPLIT_OPENROUTER_API_KEY`) — preferred. It fronts the same
  *   Gemini weights alongside every other model behind one bill and one per-key
@@ -38,8 +27,8 @@
  *   fallback so a key we already hold stays sufficient on its own.
  *
  * Neither key is a first-class state: the capability probe says
- * `enabled: false`, the UI hides both affordances, and a POST that arrives
- * anyway answers 503. Nothing half-works.
+ * `enabled: false`, the UI hides the scanner, and a POST that arrives anyway
+ * answers 503. Nothing half-works.
  */
 
 import { egressFetch, type EgressResponse } from '@/server/egress'
@@ -48,7 +37,7 @@ import { canPriceCode, isValidCode, normaliseCode } from '@/server/money'
 
 /**
  * Flash-Lite is the cheapest model in the 2.5 family that reads printed text off
- * a photo well, and reading one typed line is strictly easier than that.
+ * a photo well.
  * Overridable because "cheapest current" is a fact with a shelf life, and a
  * model swap should not need a deploy of new code.
  */
@@ -93,27 +82,35 @@ export function modelConfig(): ModelConfig | null {
     return null
 }
 
-/** Either key is enough, and it answers for the FEATURE SET, not for a provider
- *  — swapping transports must never make a button flicker out of existence, and
- *  neither must adding a second feature behind the same key. */
+/** Either key is enough; swapping transports must never make the scanner flicker
+ *  out of existence. */
 export const modelEnabled = (): boolean => modelConfig() !== null
 
 export interface ModelCall {
     /** Log namespace — and the only thing about this call that reaches a log. */
     tag: string
     prompt: string
-    /** Omitted for a text-only call. */
-    image?: { base64: string; mimeType: string }
+    image: { base64: string; mimeType: string }
     /**
      * Answer ceiling. A truncated answer is unparseable JSON, so this is sized
      * to the longest LEGITIMATE answer rather than the typical one — a cheap
      * ceiling here costs the whole call.
      */
     maxOutputTokens: number
+    /** Cancels work when the caller no longer needs the answer. The provider
+     *  deadline below remains active independently. */
+    signal?: AbortSignal
     /** Every way a call can fail upstream is one thing to the person holding the
-     *  phone, and each feature says it in its own words. One factory per caller
-     *  so two transports cannot drift into saying it differently. */
+     *  phone. The receipt feature owns the user-facing failure. */
     failed: () => ApiError
+}
+
+/** A caller going away and the provider taking too long are two independent
+ *  reasons to stop paying for the same request. `AbortSignal.any` preserves the
+ *  first reason while keeping the existing hard provider deadline in force. */
+const modelRequestSignal = (callerSignal?: AbortSignal): AbortSignal => {
+    const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+    return callerSignal ? AbortSignal.any([callerSignal, timeoutSignal]) : timeoutSignal
 }
 
 // Proxy routing lives in `server/egress.ts` — Next's patched global fetch
@@ -123,8 +120,10 @@ export interface ModelCall {
 /** The model's raw answer, as text. Everything about whether it is *usable*
  *  belongs to the caller — these functions only know about HTTP. */
 async function callGemini(call: ModelCall, config: ModelConfig): Promise<string> {
-    const parts: unknown[] = [{ text: call.prompt }]
-    if (call.image) parts.push({ inline_data: { mime_type: call.image.mimeType, data: call.image.base64 } })
+    const parts: unknown[] = [
+        { text: call.prompt },
+        { inline_data: { mime_type: call.image.mimeType, data: call.image.base64 } },
+    ]
 
     let response: EgressResponse
     try {
@@ -144,12 +143,11 @@ async function callGemini(call: ModelCall, config: ModelConfig): Promise<string>
                         maxOutputTokens: call.maxOutputTokens,
                     },
                 }),
-                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+                signal: modelRequestSignal(call.signal),
             }
         )
     } catch (err) {
-        // Status only. The request body is a photograph of somebody's dinner, or
-        // a line out of their group chat.
+        // Status only. The request body is a photograph of somebody's dinner.
         console.error(`[${call.tag}] model request failed`, err instanceof Error ? err.name : 'unknown')
         throw call.failed()
     }
@@ -176,9 +174,9 @@ async function callGemini(call: ModelCall, config: ModelConfig): Promise<string>
 }
 
 /**
- * The same request over OpenRouter's OpenAI-compatible chat API. An image, when
- * there is one, goes as a `data:` URI inside the message rather than as a
- * sibling `inline_data` part — that is the whole of the difference at this
+ * The same request over OpenRouter's OpenAI-compatible chat API. The image goes
+ * as a `data:` URI inside the message rather than as a sibling `inline_data`
+ * part — that is the whole of the difference at this
  * layer, and everything past the `return` is identical to the Gemini path by
  * construction.
  *
@@ -189,13 +187,13 @@ async function callGemini(call: ModelCall, config: ModelConfig): Promise<string>
  * with `unfence` still standing behind it for the models that fence anyway.
  */
 async function callOpenRouter(call: ModelCall, config: ModelConfig): Promise<string> {
-    const content: unknown[] = [{ type: 'text', text: call.prompt }]
-    if (call.image) {
-        content.push({
+    const content: unknown[] = [
+        { type: 'text', text: call.prompt },
+        {
             type: 'image_url',
             image_url: { url: `data:${call.image.mimeType};base64,${call.image.base64}` },
-        })
-    }
+        },
+    ]
 
     let response: EgressResponse
     try {
@@ -216,11 +214,10 @@ async function callOpenRouter(call: ModelCall, config: ModelConfig): Promise<str
                 temperature: 0,
                 max_tokens: call.maxOutputTokens,
             }),
-            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            signal: modelRequestSignal(call.signal),
         })
     } catch (err) {
-        // Status only. The request body is a photograph of somebody's dinner, or
-        // a line out of their group chat.
+        // Status only. The request body is a photograph of somebody's dinner.
         console.error(`[${call.tag}] model request failed`, err instanceof Error ? err.name : 'unknown')
         throw call.failed()
     }

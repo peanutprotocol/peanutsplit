@@ -330,8 +330,7 @@ export interface ParsedReceipt {
 
 /**
  * `GET /api/rooms/:slug/receipt-parse` — whether this deployment has a model key
- * at all. One key gates BOTH typing-removers, scanning and quick add, so this is
- * the answer for both and there is no second probe.
+ * at all.
  */
 export interface ModelStatus {
     enabled: boolean
@@ -341,35 +340,6 @@ export interface ReceiptParseInput {
     /** Raw base64, no `data:` prefix. */
     imageBase64: string
     mimeType: 'image/jpeg' | 'image/png' | 'image/webp'
-}
-
-// ─── quick add ──────────────────────────────────────────────────────────────
-// A typed line becomes a DRAFT, never an expense: it prefills the same form a
-// hand-typed expense is saved from. Nulls mean "the text did not say" and the
-// form keeps what it had — see `lib/quick-add.ts`.
-
-export interface NlParseInput {
-    /** One line, typed or pasted. Bounded by `MAX_NL_TEXT_CHARS`. */
-    text: string
-}
-
-export interface NlDraft {
-    description: string | null
-    /** Minor units of `currency`, or of the room's when that is null. */
-    amountMinor: string
-    currency: string | null
-    /** YYYY-MM-DD. */
-    date: string | null
-    paidById: string | null
-    /** Null means everyone — different from an empty list. */
-    participantIds: string[] | null
-}
-
-export interface NlParseResult {
-    draft: NlDraft
-    /** Names the text stated that the roster could not resolve. The server never
-     *  guesses between two candidates; these are shown so a person can pick. */
-    unmatchedNames: string[]
 }
 
 // ─── splitwise import ───────────────────────────────────────────────────────

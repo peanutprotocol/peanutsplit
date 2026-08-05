@@ -17,7 +17,11 @@ services:
             retries: 10
 
     app:
-        build: .
+        build:
+            context: .
+            args:
+                NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+                NEXT_PUBLIC_SPLIT_V2_ENABLED: ${NEXT_PUBLIC_SPLIT_V2_ENABLED:-}
         restart: unless-stopped
         depends_on:
             db:
@@ -28,6 +32,11 @@ services:
             NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
             NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://eu.i.posthog.com}
             SENTRY_DSN: ${SENTRY_DSN:-}
+            SPLIT_OPENROUTER_API_KEY: ${SPLIT_OPENROUTER_API_KEY:-}
+            SPLIT_SCAN_MODEL: ${SPLIT_SCAN_MODEL:-}
+            SPLIT_GEMINI_API_KEY: ${SPLIT_GEMINI_API_KEY:-}
+            SPLIT_GEMINI_MODEL: ${SPLIT_GEMINI_MODEL:-}
+            SPLIT_SCAN_PROXY_URL: ${SPLIT_SCAN_PROXY_URL:-}
         ports:
             - '3000:3000'
 

@@ -760,7 +760,20 @@
             "roomOnlyManual": "Só {roomCurrency} — invente um código com taxa manual."
         },
         "scan": {
-            "cta": "Escanear uma conta",
+            "cta": "Escanear recibo",
+            "cameraTitle": "Escanear recibo",
+            "cameraStarting": "Iniciando a câmera…",
+            "cameraReady": "Câmera pronta",
+            "cameraBlocked": "A câmera está desativada. Envie uma foto.",
+            "cameraUnavailable": "A câmera não está disponível aqui. Envie uma foto.",
+            "cameraFailed": "Não deu para iniciar a câmera. Envie uma foto.",
+            "cameraControls": "Controles da foto do recibo",
+            "takePhoto": "Tirar foto",
+            "upload": "Enviar",
+            "framingHint": "Mantenha os quatro cantos no quadro",
+            "captureFailed": "Não deu para tirar essa foto. Tente de novo ou envie uma.",
+            "termsNote": "Você aceita os termos da OpenRouter e do Gemini.",
+            "tryAgain": "Tentar outro recibo",
             "step1": "Escanear uma conta · confira os itens",
             "step2": "Escanear uma conta · quem pediu o quê",
             "reading": "Lendo a conta…",
@@ -793,16 +806,6 @@
                 "unreadable": "Não deu para abrir esse arquivo como imagem.",
                 "generic": "Não deu para ler essa conta.",
                 "hint": "Tire a foto de frente, com a conta inteira no quadro e boa luz."
-            }
-        },
-        "quickAdd": {
-            "cta": "Adicionar rápido",
-            "placeholder": "táxi 12€ — ou cole do chat",
-            "action": "Preencher o formulário",
-            "reading": "Lendo…",
-            "unmatched": "Não deu para identificar: {names} — escolha essas pessoas abaixo.",
-            "errors": {
-                "generic": "Não deu para ler isso."
             }
         },
         "theme": {
@@ -1029,11 +1032,6 @@
         "SCAN_NO_ITEMS": "Não deu para ler nenhum item nessa foto — tente uma foto mais reta e com mais luz.",
         "SCAN_ROOM_LIMIT": "Esta sala escaneou muitas contas hoje — tente amanhã.",
         "SCAN_FAILED": "Não deu para ler essa conta — tente de novo.",
-        "NL_UNAVAILABLE": "O adicionar rápido não está ligado aqui.",
-        "NL_TEXT_TOO_LONG": "Isso é mais texto do que um gasto só — encurte e tente de novo.",
-        "NL_NO_AMOUNT": "Não deu para ler nenhum valor aí — diga quanto custou.",
-        "NL_ROOM_LIMIT": "Esta sala já usou os adicionares rápidos de hoje — tente amanhã.",
-        "NL_FAILED": "Não deu para ler isso — tente de novo.",
         "IMPORT_TOO_LARGE": "Essa importação é grande demais para enviar. Tente um grupo com menos histórico.",
         "IMPORT_UNAVAILABLE": "As importações estão pausadas por enquanto — tente novamente mais tarde.",
         "IMPORT_TARGET_CURRENCY_UNSUPPORTED": "Não é possível adicionar importações a uma sala com moeda personalizada. Adicione as despesas manualmente na moeda da sala.",

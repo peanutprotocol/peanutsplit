@@ -43,8 +43,7 @@ rollback can move a capability back.
 | Splitwise import                                            | production-verified | Production Chromium + Firefox evidence recorded below, 2026-08-02                                                       |
 | Existing-room repeated import                               | code-complete       | Atomic append, replay/concurrency, populated-ledger preservation and browser journeys verified on the feature branch    |
 | Percentage and share-weighted expense splits                | production-verified | Production mobile create, edit and persisted-weight verification, 2026-08-02                                            |
-| Natural-language expense entry                              | deployed dark       | V2 gate is off                                                                                                          |
-| Receipt scanning                                            | held                | Consent and real-device gates remain open; do not expose                                                                |
+| Receipt scanning                                            | held                | Camera-first E2E is complete; V2 remains off until the real-device gate passes                                          |
 | Payer lifecycle, settlement correction and quiet provenance | code-complete       | Atomic staged payer, narrow cleanup, documentary Peanut receipt and settlement undo are verified on this feature branch |
 | Bounded saves and unambiguous amount punctuation            | code-complete       | Timeout/idempotency and locale-aware normalization tests pass on this feature branch                                    |
 | Rejected queued-draft repair                                | held                | A durable review/edit/retry/discard state needs the larger V2 recovery UI approved in the audit ruling                  |
@@ -61,8 +60,7 @@ rollback can move a capability back.
   room's exact balances, history and creator identity. It also downloaded both CSV and JSON from
   the combined room-settings surface without exposing the room credential.
 - Chromium and Firefox verified invalid-file no-write behavior, reduced motion, mixed-currency and
-  700-row previews, and confirmed that receipt scanning and natural-language entry remained behind
-  their V2 boundary.
+  700-row previews, and confirmed that receipt scanning remained behind its V2 boundary.
 
 ### Finished feature wave — 2026-08-02
 

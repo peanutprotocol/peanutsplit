@@ -482,7 +482,6 @@ test('one person can add a payer and submit an expense on their behalf', async (
         element.scrollTop = element.scrollHeight
     })
     await expect(page.getByTestId('save-expense')).toBeVisible()
-    await expect(page.getByTestId('quick-add')).toHaveCount(0)
     await page.getByTestId('expense-scroll').evaluate((element) => {
         element.scrollTop = 0
     })

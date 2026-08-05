@@ -22,6 +22,11 @@
  *  this; going lower starts losing the small print at the bottom of a long bill. */
 const MAX_EDGE = 1600
 
+/** Bound decode memory before a hostile or accidental giant source reaches a
+ *  bitmap. Real phone photos sit far below this; the encoded upload still has
+ *  the tighter 8MB limit after resizing. */
+export const MAX_SOURCE_IMAGE_BYTES = 40 * 1024 * 1024
+
 /** Mirrors the server ceiling (8MB of image → its base64 length). Checked here
  *  too so an over-large photo fails on the device, before the upload, where the
  *  message "take a new photo" can still be acted on. */
@@ -42,6 +47,15 @@ export interface PreparedImage {
 
 export class ImageTooLargeError extends Error {}
 export class ImageUnreadableError extends Error {}
+
+export function assertReceiptSourceFile(file: Pick<File, 'size' | 'type'>): void {
+    if (file.size === 0) throw new ImageUnreadableError('image is empty')
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) throw new ImageTooLargeError('source image is too large to decode')
+    const mimeType = file.type.toLowerCase()
+    if ((mimeType && !mimeType.startsWith('image/')) || mimeType.startsWith('image/svg')) {
+        throw new ImageUnreadableError('file is not a supported raster image')
+    }
+}
 
 /** `createImageBitmap` is the fast path and the only one that applies EXIF
  *  orientation for us; the `<img>` fallback covers older Safari, where an
@@ -77,28 +91,32 @@ const decodedBytes = (base64: string): number =>
     Math.floor((base64.length * 3) / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0)
 
 export async function prepareReceiptImage(file: File): Promise<PreparedImage> {
+    assertReceiptSourceFile(file)
     const { width, height, draw } = await decode(file)
-    if (width === 0 || height === 0) throw new ImageUnreadableError('image has no dimensions')
+    try {
+        if (width === 0 || height === 0) throw new ImageUnreadableError('image has no dimensions')
 
-    const scale = Math.min(1, MAX_EDGE / Math.max(width, height))
-    const canvas = document.createElement('canvas')
-    canvas.width = Math.max(1, Math.round(width * scale))
-    canvas.height = Math.max(1, Math.round(height * scale))
+        const scale = Math.min(1, MAX_EDGE / Math.max(width, height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.max(1, Math.round(width * scale))
+        canvas.height = Math.max(1, Math.round(height * scale))
 
-    const context = canvas.getContext('2d')
-    if (!context) throw new ImageUnreadableError('no 2d context')
-    // White underneath: a PNG receipt scan with a transparent background would
-    // otherwise flatten to black, and black-on-black reads as an empty bill.
-    context.fillStyle = '#ffffff'
-    context.fillRect(0, 0, canvas.width, canvas.height)
-    context.drawImage(draw, 0, 0, canvas.width, canvas.height)
-    if (typeof ImageBitmap !== 'undefined' && draw instanceof ImageBitmap) draw.close()
+        const context = canvas.getContext('2d')
+        if (!context) throw new ImageUnreadableError('no 2d context')
+        // White underneath: a PNG receipt scan with a transparent background would
+        // otherwise flatten to black, and black-on-black reads as an empty bill.
+        context.fillStyle = '#ffffff'
+        context.fillRect(0, 0, canvas.width, canvas.height)
+        context.drawImage(draw, 0, 0, canvas.width, canvas.height)
 
-    for (const quality of QUALITY_STEPS) {
-        const base64 = toBase64(canvas.toDataURL('image/jpeg', quality))
-        if (base64.length <= MAX_BASE64_CHARS) {
-            return { imageBase64: base64, mimeType: 'image/jpeg', byteLength: decodedBytes(base64) }
+        for (const quality of QUALITY_STEPS) {
+            const base64 = toBase64(canvas.toDataURL('image/jpeg', quality))
+            if (base64.length <= MAX_BASE64_CHARS) {
+                return { imageBase64: base64, mimeType: 'image/jpeg', byteLength: decodedBytes(base64) }
+            }
         }
+        throw new ImageTooLargeError('image is too large even after downscaling')
+    } finally {
+        if (typeof ImageBitmap !== 'undefined' && draw instanceof ImageBitmap) draw.close()
     }
-    throw new ImageTooLargeError('image is too large even after downscaling')
 }

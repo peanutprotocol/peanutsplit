@@ -66,7 +66,9 @@ export function RoomScreen({ slug }: { slug: string }) {
     const consumeSharedReceipt = useCallback(
         // `replace`, not the hook's default `push`: the drawer clears this param the instant it
         // lands, and with a history entry the back button would return to a share already spent.
-        () => void setParams({ shared: null }, { history: 'replace' }),
+        async () => {
+            await setParams({ shared: null }, { history: 'replace' })
+        },
         [setParams]
     )
     const motionAllowed = useMotionAllowed()
