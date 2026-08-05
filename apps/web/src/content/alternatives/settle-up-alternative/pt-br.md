@@ -9,7 +9,7 @@ faqs:
     - question: O Split é grátis para sempre?
       answer: É. O Split é grátis para sempre, não existe nada para assinar depois e não tem anúncio. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.
     - question: Dá para trazer os saldos do Settle Up?
-      answer: Digitando, não importando. Não tem arquivo para subir nem nada para conectar. Ponha quanto cada pessoa está para cima ou para baixo hoje, uma linha para cada uma, e o que já foi acertado no Settle Up continua acertado lá.
+      answer: Digitando, não importando. O Settle Up pode exportar CSV, mas o Split ainda não aceita esse arquivo nem tem uma conexão direta. Ponha quanto cada pessoa está para cima ou para baixo hoje, uma linha para cada uma, e o que já foi acertado no Settle Up continua acertado lá.
     - question: Como eu volto para uma sala?
       answer: Você abre o link de novo. Não tem login, então o link é a chave. Deixe ele no grupo do WhatsApp, e lembre que abrir uma sala pela primeira vez precisa de conexão.
 ---
@@ -78,7 +78,7 @@ As linhas do Settle Up vêm de settleup.io (página inicial, /tips, /tos, /priva
 
 ## O que atravessa e o que fica
 
-Os dados do Settle Up não são importados numa sala. O Settle Up puxa os membros e os saldos de um grupo do Splitwise para dentro dele; no sentido contrário não existe equivalente, não tem arquivo para subir e não tem nada para conectar.
+Os dados do Settle Up ainda não são importados numa sala. O Settle Up pode exportar CSV, mas o Split ainda não aceita esse arquivo nem tem uma conexão direta.
 
 O que você leva é a posição: quanto cada pessoa está para cima ou para baixo hoje, uma linha por pessoa, então quatro pessoas são quatro linhas. As pessoas em si não levam nada, porque não existe conta para elas criarem.
 
@@ -124,7 +124,7 @@ Não tem banco nem carteira atrás do Split. Duas pessoas acertam do jeito que e
 <FAQ title="Perguntas">
 <FAQItem question="Preciso de conta para usar o Split?">Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail, sem senha.</FAQItem>
 <FAQItem question="O Split é grátis para sempre?">É. O Split é grátis para sempre, não existe nada para assinar depois e não tem anúncio. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.</FAQItem>
-<FAQItem question="Dá para trazer os saldos do Settle Up?">Digitando, não importando. Não tem arquivo para subir nem nada para conectar. Ponha quanto cada pessoa está para cima ou para baixo hoje, uma linha para cada uma, e o que já foi acertado no Settle Up continua acertado lá.</FAQItem>
+<FAQItem question="Dá para trazer os saldos do Settle Up?">Digitando, não importando. O Settle Up pode exportar CSV, mas o Split ainda não aceita esse arquivo nem tem uma conexão direta. Ponha quanto cada pessoa está para cima ou para baixo hoje, uma linha para cada uma, e o que já foi acertado no Settle Up continua acertado lá.</FAQItem>
 <FAQItem question="Como eu volto para uma sala?">Você abre o link de novo. Não tem login, então o link é a chave. Deixe ele no grupo do WhatsApp, e lembre que abrir uma sala pela primeira vez precisa de conexão.</FAQItem>
 </FAQ>
 
