@@ -18,7 +18,7 @@ WORKDIR /app
 ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
 RUN apt-get update && apt-get install -y --no-install-recommends openssl \
     && rm -rf /var/lib/apt/lists/*
-RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+RUN corepack enable && corepack prepare pnpm@10.17.1 --activate
 
 # Whole-repo copy on purpose: the api's postinstall runs `prisma generate`, so
 # the schema has to be present before install rather than after.
