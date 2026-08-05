@@ -196,9 +196,10 @@ describe('normalizeReceipt — the optional fields', () => {
         expect(one({ currency: 'eur' }).currency).toBe('EUR')
         // The catalog is 162 codes wide now, so a scanned SEK receipt is kept.
         expect(one({ currency: 'SEK' }).currency).toBe('SEK')
-        // KPW is real ISO 4217 and the rate feed does not carry it: a room cannot be priced in
+        expect(one({ currency: 'KPW' }).currency).toBe('KPW')
+        // BGN is real ISO 4217 and the current Peanut snapshot does not carry it: a room cannot be priced in
         // it, so a guess here would be worse than the room's own currency.
-        expect(one({ currency: 'KPW' }).currency).toBeNull()
+        expect(one({ currency: 'BGN' }).currency).toBeNull()
         expect(one({ currency: '€' }).currency).toBeNull()
         expect(one({ currency: 42 }).currency).toBeNull()
     })

@@ -11,7 +11,7 @@ claims:
     - settle-is-a-record
     - free-forever
     - room-size-20
-    - rated-currencies-158
+    - automatic-currency-conversion
 cast: []
 faqs:
     - question: Is there a calculator that splits a bill by income?
@@ -50,7 +50,7 @@ It is right more often than the search results suggest: when the difference is s
 
 Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier and nothing to move behind one later.
 
-The calculators do the weighting and the room does the ledger. It takes 158 currencies, converted at the day's rate, and holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
+The calculators do the weighting and the room does the ledger. It automatically converts 156 currencies at the day's indicative rate and holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
 
 <CTA
   title="The uneven part is a decision, the rest is a room"

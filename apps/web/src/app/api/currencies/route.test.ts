@@ -3,7 +3,7 @@
  *
  * The catalog's `hasRate` describes the live rate feed, and `SPLIT_FX_MODE=static` is the mode
  * that has no feed: dev, this suite, and the e2e run all price from the twelve-code static table.
- * Advertising the feed's 158 there hands the picker currencies the write path then refuses with a
+ * Advertising the feed's 156 there hands the picker currencies the write path then refuses with a
  * 400 `NO_RATE` — the one failure the whole `hasRate` contract exists to make unreachable. So the
  * check below is the contract itself: every code this route says has a rate can be priced by the
  * table `getRateTable()` actually returns.
@@ -49,7 +49,8 @@ describe('GET /api/currencies', () => {
         delete process.env.SPLIT_FX_MODE
         const currencies = await served()
         expect(currencies.find((c) => c.code === 'INR')?.hasRate).toBe(true)
-        // A catalog code the feed never carried stays false in either mode.
-        expect(currencies.find((c) => c.code === 'KPW')?.hasRate).toBe(false)
+        expect(currencies.find((c) => c.code === 'KPW')?.hasRate).toBe(true)
+        // A catalog code absent from the current Peanut snapshot stays false in either mode.
+        expect(currencies.find((c) => c.code === 'BGN')?.hasRate).toBe(false)
     })
 })

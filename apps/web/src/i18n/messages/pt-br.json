@@ -237,7 +237,7 @@
                 "title": "O que o Split faz",
                 "currency": {
                     "title": "162 moedas para a sala",
-                    "body": "A sala conta em uma moeda. O Split converte despesas entre 158 moedas pela cotação do dia; quatro funcionam apenas sem conversão."
+                    "body": "A sala conta em uma moeda. O Split converte despesas entre 156 moedas pela cotação indicativa do dia; seis funcionam apenas sem conversão."
                 },
                 "splits": {
                     "title": "Divisões desiguais",
@@ -1181,7 +1181,7 @@
             "ROW_NO_PAYER": "A linha {row} não diz quem pagou, então ficou de fora.",
             "ROW_ZERO_COST": "A linha {row} não tem valor, então ficou de fora.",
             "ROW_BAD_AMOUNT": "A linha {row} tem um valor que a gente não conseguiu ler, então ficou de fora.",
-            "ROW_BAD_DATE": "A linha {row} tem uma data que a gente não conseguiu ler — ela entra com a data de hoje.",
+            "ROW_BAD_DATE": "A linha {row} tem uma data que a gente não conseguiu ler — ela entra com uma data fixa de substituição.",
             "ROW_DESCRIPTION_TRUNCATED": "A linha {row} tem uma descrição bem longa — ela entra encurtada.",
             "ROW_CATEGORY_TRUNCATED": "A linha {row} tem uma categoria bem longa — ela entra encurtada.",
             "MEMBER_NAME_TRUNCATED": "Um nome era comprido demais e entra encurtado, como “{detail}”. Dá para editar ele acima.",
@@ -1192,12 +1192,14 @@
             "TRUNCATED_HISTORY": "Uma sala guarda 500 gastos, então {count, plural, one {o # mais antigo entra} other {os # mais antigos entram}} como um único “Saldo anterior” por pessoa. O saldo de cada um continua igual.",
             "SPLITPRO_BALANCES_ONLY": "O download da conta do Split Pro traz os saldos atuais, mas não o histórico de gastos. Eles entram como “Saldo anterior”: o total de cada pessoa é preservado, mas a lista de gastos antigos não.",
             "SPLITPRO_PAIR_HISTORY": "O CSV de um contato do Split Pro não diz a qual grupo cada gasto pertencia. Todos os gastos do arquivo entram juntos nesta sala.",
+            "SPLITPRO_SPLIT_MODE_FLATTENED": "As divisões por porcentagem/partes do Split Pro mantêm os valores finais, mas entram como valores fixos. Editá-las depois não preservará os pesos originais.",
             "SPLITPRO_MISSING_NAMES": "O Split Pro deixou de fora {count, plural, one {o nome de uma pessoa} other {os nomes de # pessoas}}. Você verá o rótulo “Membro” abaixo — troque antes de criar a sala.",
             "SPLITPRO_BALANCES_SKIPPED": "{count, plural, one {Um saldo do backup do Split Pro está incompleto e ficou de fora} other {# saldos do backup do Split Pro estão incompletos e ficaram de fora}}. Compare a prévia com o Split Pro antes de criar a sala.",
             "SPLITPRO_UNSUPPORTED_CURRENCY": "O Split não consegue converter {detail}, então os saldos nessa moeda ficaram de fora. Use outra exportação se esses saldos importarem."
         },
         "errors": {
             "NOT_SPLITWISE_CSV": "A gente não reconhece este arquivo. Escolha o .csv de um grupo do Splitwise, o .csv de um contato do Split Pro ou splitpro_data.json na página Conta do Split Pro.",
+            "MALFORMED_CSV": "Esse arquivo CSV está incompleto ou danificado. Baixe uma exportação nova e use sem editar.",
             "MALFORMED_JSON": "Esse arquivo JSON está incompleto ou danificado. Baixe “Dados do SplitPro” de novo na página Conta e use o arquivo novo sem editar.",
             "SPLITPRO_DIRECT_UNRESOLVED": "Este backup do Split Pro não identifica qual integrante é você, então não dá para separar com segurança os saldos que estão fora dos grupos. Importe os grupos acima e use o CSV de cada contato para qualquer saldo restante.",
             "NO_MEMBERS": "Esta exportação não tem a lista do grupo. No Splitwise, exporte um grupo; no Split Pro, use “Baixar dados do SplitPro” na página Conta.",

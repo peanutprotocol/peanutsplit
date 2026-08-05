@@ -30,9 +30,8 @@ export const STATIC_USD_PER_UNIT: Readonly<Record<string, number>> = {
     CAD: 0.73,
 }
 
-/** PostgreSQL BIGINT's positive ceiling. Public money writes are positive, but
- *  every amount still has to fit the signed column it will be stored in. */
-export const MAX_SIGNED_MINOR = 9_223_372_036_854_775_807n
+/** Keep server validation and browser/import parsing on one storage boundary. */
+export { MAX_SIGNED_MINOR } from '@/lib/money'
 
 /** How many minor units a code outside the catalog has. Two is part of the invented-currency
  *  contract: parse, format, exact shares, and manual conversion all use it consistently, so

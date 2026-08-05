@@ -56,11 +56,9 @@ export const WITH_PAYMENTS = `Date,Description,Category,Cost,Currency,Ana,Bruno
 Total balance,,,0.00,EUR,0.00,0.00
 `
 
-/** Preamble rows, blank lines, a row that does not sum to zero, a currency Split does not carry,
+/** Preamble rows, blank lines, a row that does not sum to zero, an unknown currency code,
  *  and a zero-cost row. Everything survivable should survive.
- *
- *  KPW is a real ISO 4217 code that the rate feed does not carry, so nothing can price it. It is
- *  what "a currency Split does not carry" means now that the catalog is 162 codes wide. */
+ *  Known-but-unrated catalog currencies are preserved because same-currency rooms can use them. */
 export const MESSY_GROUP = `My group export
 ,,,,,,
 
@@ -68,7 +66,7 @@ Date,Description,Category,Cost,Currency,Ana,Bruno
 
 2026-07-01,Dinner,Dining out,50.00,EUR,25.00,-25.00
 2026-07-02,Broken,Dining out,50.00,EUR,25.00,-20.00
-2026-07-03,Unpriceable,Dining out,500.00,KPW,250.00,-250.00
+2026-07-03,Unknown currency,Dining out,500.00,ZZZ,250.00,-250.00
 2026-07-04,Nothing,Dining out,0.00,EUR,0.00,0.00
 2026-07-05,Lunch,Dining out,30.00,EUR,-15.00,15.00
 
@@ -81,10 +79,10 @@ export const GARBAGE = `%PDF-1.4
 << /Type /Catalog >>
 `
 
-/** Bank-statement CSV: real columns, real commas, no member columns and no currency column. */
-export const WRONG_CSV = `Transaction Date,Details,Amount,Balance
-2026-01-02,COFFEE SHOP,-3.40,1200.10
-2026-01-03,SALARY,2000.00,3200.10
+/** Bank-style CSV whose Date/Cost/Currency and balanced Debit/Credit columns used to be mistaken
+ * for a Splitwise roster. It lacks the canonical Category metadata column. */
+export const WRONG_CSV = `Date,Description,Cost,Currency,Debit,Credit
+2026-01-02,COFFEE SHOP,10.00,EUR,10.00,-10.00
 `
 
 /**

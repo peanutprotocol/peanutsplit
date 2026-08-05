@@ -2,7 +2,7 @@
  * `getRateTable`'s cache branch, against the real `peanut_split_test` database with the upstream
  * feed stubbed.
  *
- * This branch had no test and is the one most likely to be silently wrong at 162 codes: four
+ * This branch had no test and is the one most likely to be silently wrong at 162 codes: six
  * catalog codes are never in the feed, so a freshness test written against the whole catalog is
  * false forever — every request re-fetches, and one upstream blip drops all 150 new currencies to
  * the twelve-rate static table with nothing logged anywhere.
@@ -13,18 +13,51 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { prisma } from '@/server/test/db'
 import { FX_CORE, type RateTable } from '@/server/fx'
-import { STATIC_USD_PER_UNIT } from '@/server/money'
+import { isCatalogCode, STATIC_USD_PER_UNIT } from '@/server/money'
+
+const { egressFetchSpy } = vi.hoisted(() => ({ egressFetchSpy: vi.fn() }))
+
+vi.mock('@/server/egress', () => ({ egressFetch: egressFetchSpy }))
 
 const freshFx = async () => {
     vi.resetModules()
     return await import('@/server/fx')
 }
 
-/** `rates` on the wire is units per USD; the module stores the inverse. */
-const feed = (rates: Record<string, unknown>) =>
-    new Response(JSON.stringify({ result: 'success', rates }), { status: 200 })
+const nowIso = () => new Date().toISOString()
 
-const perUsd = Object.fromEntries(Object.entries(STATIC_USD_PER_UNIT).map(([code, usd]) => [code, 1 / usd]))
+/** `unitsPerBase` on the wire is quote units per USD; the module stores the inverse. */
+const completeRates = (rates: Record<string, unknown>): Record<string, unknown> => {
+    const complete = { ...rates }
+    for (let index = 0; Object.keys(complete).length < 150; index++) {
+        const code = `Q${String.fromCharCode(65 + Math.floor(index / 26))}${String.fromCharCode(65 + (index % 26))}`
+        if (!isCatalogCode(code) && !(code in complete)) complete[code] = '1'
+    }
+    return complete
+}
+
+const feedBody = (rates: Record<string, unknown>) => ({
+    base: 'USD',
+    basis: 'display_sell',
+    indicative: true,
+    generatedAt: nowIso(),
+    rates: Object.entries(completeRates(rates))
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([code, unitsPerBase]) => ({
+            code,
+            unitsPerBase,
+            source: code === 'USD' ? 'identity' : 'reference',
+            effectiveAt: code === 'USD' ? null : nowIso(),
+        })),
+})
+
+const feed = (rates: Record<string, unknown>) => new Response(JSON.stringify(feedBody(rates)), { status: 200 })
+
+const payload = (body: unknown) => new Response(JSON.stringify(body), { status: 200 })
+
+const perUsd = Object.fromEntries(
+    Object.entries(STATIC_USD_PER_UNIT).map(([code, usd]) => [code, (1 / usd).toString()])
+)
 
 const seed = async (rows: { quote: string; usdPerUnit: number; fetchedAt?: Date }[]) => {
     await prisma.fxRate.deleteMany()
@@ -45,21 +78,49 @@ let fetchSpy: ReturnType<typeof vi.fn>
 
 beforeEach(async () => {
     process.env.SPLIT_FX_MODE = ''
+    delete process.env.SPLIT_FX_PROXY_URL
     fetchSpy = vi.fn(async () => feed(perUsd))
     vi.stubGlobal('fetch', fetchSpy)
+    egressFetchSpy.mockReset()
+    egressFetchSpy.mockImplementation(
+        async (_proxyUrl: string | undefined, url: string, init: RequestInit) => await fetch(url, init)
+    )
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     await prisma.fxRate.deleteMany()
 })
 
 afterEach(async () => {
     vi.unstubAllGlobals()
+    vi.restoreAllMocks()
     vi.resetModules()
     process.env.SPLIT_FX_MODE = 'static'
+    delete process.env.SPLIT_FX_PROXY_URL
     await prisma.fxRate.deleteMany()
 })
 
+describe('rate feed transport', () => {
+    it('delegates its dedicated proxy URL to a bodyless egress GET', async () => {
+        process.env.SPLIT_FX_PROXY_URL = 'http://split-egress.test:3128'
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable()).source).toBe('live')
+        expect(egressFetchSpy).toHaveBeenCalledTimes(1)
+        expect(egressFetchSpy).toHaveBeenCalledWith(
+            'http://split-egress.test:3128',
+            'https://api.peanut.me/fx/rates?base=USD',
+            expect.objectContaining({
+                method: 'GET',
+                headers: { Accept: 'application/json' },
+                signal: expect.any(AbortSignal),
+            })
+        )
+        expect(egressFetchSpy.mock.calls[0]?.[2]).not.toHaveProperty('body')
+    })
+})
+
 describe('freshness is judged against FX_CORE, not the catalog', () => {
-    it('calls a cache with every core code fresh — even though four catalog codes are missing', async () => {
-        // CUC, KPW, SVC and XSU are in the catalog and will never be in the feed. Judging
+    it('calls a cache with every core code fresh — even though some catalog codes are missing', async () => {
+        // CUC, BGN and other catalog codes are not in the provider snapshot. Judging
         // completeness against all 162 makes `fresh` false forever.
         await seed(coreRows())
         const { getRateTable } = await freshFx()
@@ -122,8 +183,18 @@ describe('freshness is judged against FX_CORE, not the catalog', () => {
 })
 
 describe('what counts as a usable payload', () => {
+    it('rejects a thin successful payload before it can erase broad cached coverage', async () => {
+        const thin = feedBody(perUsd)
+        thin.rates = thin.rates.slice(0, 149)
+        fetchSpy.mockResolvedValue(payload(thin))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable()).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+    })
+
     it('accepts a payload missing only non-core codes, and leaves them out of the table', async () => {
-        const partial = { ...perUsd, INR: 88 }
+        const partial = { ...perUsd, INR: '88' }
         delete (partial as Record<string, unknown>).SEK
         fetchSpy.mockResolvedValue(feed(partial))
         const { getRateTable } = await freshFx()
@@ -142,11 +213,12 @@ describe('what counts as a usable payload', () => {
 
         // Nothing cached and the payload refused → the static table, not a half-live one.
         expect((await getRateTable()).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed missing core currencies)')
     })
 
     it('drops a code the catalog does not know, so a made-up ticker cannot pick up a real rate', async () => {
         // The feed carries CNH, IMP, JEP and five other non-ISO codes.
-        fetchSpy.mockResolvedValue(feed({ ...perUsd, CNH: 7.1, JEP: 0.79, KID: 1.5 }))
+        fetchSpy.mockResolvedValue(feed({ ...perUsd, CNH: '7.1', JEP: '0.79', KID: '1.5' }))
         const { getRateTable } = await freshFx()
 
         const table = await getRateTable()
@@ -154,16 +226,115 @@ describe('what counts as a usable payload', () => {
         for (const code of ['CNH', 'JEP', 'KID']) expect(table.usdPerUnit).not.toHaveProperty(code)
     })
 
-    it('drops a bad value per code rather than failing the payload', async () => {
+    it.each([
+        ['a numeric rather than decimal-string rate', { ...perUsd, PLN: 4.1 }],
+        ['zero', { ...perUsd, PLN: '0' }],
+        ['a negative rate', { ...perUsd, PLN: '-4.1' }],
+        ['exponent notation', { ...perUsd, PLN: '4.1e0' }],
+        ['more than eighteen fractional digits', { ...perUsd, PLN: '4.1234567890123456789' }],
+    ])('rejects the whole provider payload when one row has %s', async (_label, rates) => {
+        fetchSpy.mockResolvedValue(feed(rates))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable()).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+    })
+
+    it.each([
+        ['the wrong base', { ...feedBody(perUsd), base: 'EUR' }],
+        ['the wrong basis', { ...feedBody(perUsd), basis: 'midmarket' }],
+        ['a non-indicative flag', { ...feedBody(perUsd), indicative: false }],
+        ['a malformed generated timestamp', { ...feedBody(perUsd), generatedAt: 'today' }],
+        [
+            'a generated timestamp too far in the future',
+            { ...feedBody(perUsd), generatedAt: new Date(Date.now() + 6 * 60 * 1000).toISOString() },
+        ],
+    ])('rejects %s', async (_label, body) => {
+        fetchSpy.mockResolvedValue(payload(body))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable()).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+    })
+
+    it('rejects a generated snapshot older than the 24-hour upstream window', async () => {
         fetchSpy.mockResolvedValue(
-            feed({ ...perUsd, INR: 0, ZAR: -3, ISK: Number.NaN, PLN: '4.1', NOK: null, SEK: 10 })
+            payload({ ...feedBody(perUsd), generatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() })
         )
         const { getRateTable } = await freshFx()
 
-        const table = await getRateTable()
-        expect(table.source).toBe('live')
-        for (const code of ['INR', 'ZAR', 'ISK', 'PLN', 'NOK']) expect(table.usdPerUnit).not.toHaveProperty(code)
-        expect(table.usdPerUnit.SEK).toBeCloseTo(0.1, 12)
+        expect((await getRateTable()).source).toBe('static')
+    })
+
+    it('rejects duplicate, unsorted and malformed rows instead of picking an arbitrary value', async () => {
+        const duplicate = feedBody(perUsd)
+        duplicate.rates.push({ ...duplicate.rates[0] })
+        fetchSpy.mockResolvedValueOnce(payload(duplicate))
+        const first = await freshFx()
+        expect((await first.getRateTable()).source).toBe('static')
+
+        vi.resetModules()
+        const unsorted = feedBody(perUsd)
+        unsorted.rates = [...unsorted.rates].reverse()
+        fetchSpy.mockResolvedValueOnce(payload(unsorted))
+        const second = await import('@/server/fx')
+        expect((await second.getRateTable()).source).toBe('static')
+
+        vi.resetModules()
+        const malformed = feedBody(perUsd)
+        malformed.rates[0] = { ...malformed.rates[0], effectiveAt: 'not-an-instant' }
+        fetchSpy.mockResolvedValueOnce(payload(malformed))
+        const third = await import('@/server/fx')
+        expect((await third.getRateTable()).source).toBe('static')
+    })
+
+    it.each([
+        ['an unknown source', 'EUR', { source: 'oracle' }],
+        ['identity on a non-USD row', 'EUR', { source: 'identity' }],
+        ['a non-identity USD row', 'USD', { source: 'reference' }],
+        ['a non-unit USD value', 'USD', { unitsPerBase: '1.01' }],
+        ['an effective timestamp on identity', 'USD', { effectiveAt: nowIso() }],
+        ['a missing effective timestamp', 'EUR', { effectiveAt: null }],
+        [
+            'an old effective timestamp',
+            'EUR',
+            { effectiveAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        ['a future effective timestamp', 'EUR', { effectiveAt: new Date(Date.now() + 6 * 60 * 1000).toISOString() }],
+        ['a rate below the producer bound', 'EUR', { unitsPerBase: '0.0000000001' }],
+        ['a rate above the producer bound', 'EUR', { unitsPerBase: '10000000000' }],
+    ])('rejects %s', async (_label, code, replacement) => {
+        const body = feedBody(perUsd)
+        const index = body.rates.findIndex((row) => row.code === code)
+        body.rates[index] = { ...body.rates[index], ...replacement }
+        fetchSpy.mockResolvedValue(payload(body))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable()).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
+    })
+
+    it('rejects more than 512 rows before attempting to build a table', async () => {
+        const rows = Array.from({ length: 513 }, (_, index) => ({
+            code: `${String.fromCharCode(65 + Math.floor(index / 26 / 26))}${String.fromCharCode(
+                65 + (Math.floor(index / 26) % 26)
+            )}${String.fromCharCode(65 + (index % 26))}`,
+            unitsPerBase: '1',
+            source: 'reference',
+            effectiveAt: nowIso(),
+        }))
+        fetchSpy.mockResolvedValue(payload({ ...feedBody(perUsd), rates: rows }))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable()).source).toBe('static')
+    })
+
+    it('stops reading a chunked response once its raw JSON crosses 256 KiB', async () => {
+        fetchSpy.mockResolvedValue(payload({ ...feedBody(perUsd), padding: 'x'.repeat(256 * 1024) }))
+        const { getRateTable } = await freshFx()
+
+        expect((await getRateTable()).source).toBe('static')
+        expect(console.warn).toHaveBeenCalledWith('[fx] rate feed refresh failed (rate feed payload unusable)')
     })
 
     it('falls back to a complete cache when the fetch fails, rather than to the static table', async () => {
@@ -230,7 +401,7 @@ describe('a code the feed stops carrying', () => {
 
 describe('the write', () => {
     it('lands every rate in one transaction', async () => {
-        fetchSpy.mockResolvedValue(feed({ ...perUsd, INR: 88, KWD: 0.306 }))
+        fetchSpy.mockResolvedValue(feed({ ...perUsd, INR: '88', KWD: '0.306' }))
         const { getRateTable } = await freshFx()
 
         await getRateTable()
@@ -243,7 +414,7 @@ describe('the write', () => {
 
     it('updates the row it already has rather than inserting a second one', async () => {
         await seed(coreRows(new Date(Date.now() - 25 * 60 * 60 * 1000)))
-        fetchSpy.mockResolvedValue(feed({ ...perUsd, EUR: 2 }))
+        fetchSpy.mockResolvedValue(feed({ ...perUsd, EUR: '2' }))
         const { getRateTable } = await freshFx()
 
         await getRateTable()

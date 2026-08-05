@@ -17,9 +17,11 @@
  * list* rather than one answer: a guess presented as a fact is worse than no guess, and three
  * one-tap chips cost the user nothing.
  *
- * Everything is table-driven from `ORIGINS` below, which covers only the 12 catalog currencies
- * (`src/server/money.ts`). Anything outside it resolves to EUR (the `Europe/` catch-all) or USD
- * (the final fallback) rather than to a currency the room could not be created in.
+ * Everything is table-driven from `ORIGINS` below, which deliberately covers the 12 core
+ * currencies that remain priceable from the static outage/dev fallback. The full catalog
+ * recognises 162 codes and the connected rate feed prices 156, but a weak device-locale guess is
+ * not a reason to suggest all of them. Anything outside this hint table resolves to EUR (the
+ * `Europe/` catch-all) or USD (the final fallback), both of which are always priceable.
  *
  * This module is pure on purpose — no `navigator`, no `Intl`, no React. The device reading lives
  * in `use-currency-hint.ts`, which keeps this testable with explicit fixtures.
@@ -61,8 +63,8 @@ interface CurrencyOrigin {
 }
 
 /**
- * One table, three lookups. Adding a 13th currency to the catalog means adding one row here and
- * nothing else — the maps below are all derived.
+ * One table, three lookups. Adding another currency to the hint set means adding one row here and
+ * nothing else — the maps below are all derived. Catalog and rate-feed coverage are separate.
  */
 const ORIGINS: readonly CurrencyOrigin[] = [
     {

@@ -170,22 +170,24 @@ model Expense {
 /// write created: the full initial roster for a global import, or only new
 /// mappings for an append.
 ///
-/// `fingerprint` describes only the canonical source roster and expense
-/// multiset, never the chosen room-member mappings. Its room-scoped unique key
-/// turns a repeated/concurrent delivery of the same source into a successful
-/// replay while still allowing later, genuinely different exports to append.
+/// `fingerprint` is the legacy canonical parsed-ledger identity retained for
+/// old clients and batches. `sourceFingerprint` is the stable identity of the
+/// immutable local export plus its selected raw-file choice; parser upgrades
+/// and UI renames therefore cannot turn a replay into a second ledger write.
 model ImportBatch {
-  id               String   @id @default(uuid())
-  roomId           String
-  fingerprint      String
-  importedAt       DateTime @db.Timestamp(3)
-  expenseCount     Int
-  addedMemberCount Int
+  id                String   @id @default(uuid())
+  roomId            String
+  fingerprint       String
+  sourceFingerprint String?
+  importedAt        DateTime @db.Timestamp(3)
+  expenseCount      Int
+  addedMemberCount  Int
 
   room     Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
   expenses Expense[]
 
   @@unique([roomId, fingerprint])
+  @@unique([roomId, sourceFingerprint])
   @@index([roomId, importedAt])
   @@schema("split")
 }

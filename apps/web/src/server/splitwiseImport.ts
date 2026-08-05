@@ -52,8 +52,35 @@ const TRANSACTION_TIMEOUT_MS = 30_000
 const sourceNameKey = (name: string): string => name.toLowerCase()
 const compareText = (left: string, right: string): number => (left < right ? -1 : left > right ? 1 : 0)
 
+/** The catalog is a theoretical gate; a loaded table is the runtime gate. Keep
+ * both import destinations on the same error contract so the preview can make a
+ * failed quote durable instead of inviting another identical bulk request. */
+function assertImportCurrenciesPriceable(
+    expenses: readonly { currencyCode: string }[],
+    targetCurrency: string,
+    rateTable?: Awaited<ReturnType<typeof getRateTable>>
+): void {
+    const unavailable = [...new Set(expenses.map((expense) => expense.currencyCode))].filter(
+        (sourceCurrency) =>
+            !canPriceCode(sourceCurrency, targetCurrency) ||
+            (rateTable !== undefined && rateFrom(rateTable, sourceCurrency, targetCurrency) === null)
+    )
+    if (unavailable.length > 0) {
+        throw badRequest(
+            `import currencies ${unavailable.join(', ')} cannot be converted into ${targetCurrency}`,
+            'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED',
+            { currencies: unavailable, targetCurrency }
+        )
+    }
+}
+
+type ImportFingerprintBody = {
+    members: readonly (string | { sourceName: string })[]
+    expenses: readonly ImportRoomBody['expenses'][number][]
+}
+
 /**
- * A semantic identity for one parsed source export.
+ * The legacy semantic identity for one parsed source export.
  *
  * Target-room choices are intentionally absent: once this source history has
  * committed to a room, changing its mapping and posting it again must be a
@@ -62,7 +89,7 @@ const compareText = (left: string, right: string): number => (left < right ? -1 
  * order is still the same roster and expense multiset; duplicate identical
  * rows remain duplicate strings in the sorted array, so multiplicity survives.
  */
-export function importSourceFingerprint(body: ImportIntoRoomBody | ImportRoomBody): string {
+export function importSourceFingerprint(body: ImportFingerprintBody): string {
     const canonicalExpenses = body.expenses
         .map((expense) =>
             JSON.stringify({
@@ -93,6 +120,49 @@ export function importSourceFingerprint(body: ImportIntoRoomBody | ImportRoomBod
         expenses: canonicalExpenses,
     })
     return createHash('sha256').update(canonical).digest('hex')
+}
+
+/**
+ * Recover the semantic fingerprint written by the old fresh-room path after
+ * its UI renamed source people (most visibly Split Pro's `You`). This is a
+ * compatibility alias only: new batches keep both the original semantic
+ * projection and the immutable upload fingerprint instead.
+ */
+function mappedLegacyFingerprint(room: RoomWithRelations, body: ImportIntoRoomBody): string | null {
+    const targetNameBySource = new Map<string, string>()
+    for (const mapping of body.members) {
+        const targetName =
+            'memberId' in mapping
+                ? room.members.find((member) => member.id === mapping.memberId)?.name
+                : mapping.newMemberName
+        if (!targetName) return null
+        targetNameBySource.set(sourceNameKey(mapping.sourceName), targetName)
+    }
+
+    const targetName = (sourceName: string): string | null => targetNameBySource.get(sourceNameKey(sourceName)) ?? null
+    const expenses: ImportRoomBody['expenses'] = []
+    for (const expense of body.expenses) {
+        const paidBy = targetName(expense.paidBy)
+        if (!paidBy) return null
+        const shares: (typeof expense)['shares'] = []
+        for (const share of expense.shares) {
+            const member = targetName(share.member)
+            if (!member) return null
+            shares.push({ ...share, member })
+        }
+        expenses.push({ ...expense, paidBy, shares })
+    }
+
+    return importSourceFingerprint({
+        members: body.members.map((mapping) => targetNameBySource.get(sourceNameKey(mapping.sourceName)) as string),
+        expenses,
+    })
+}
+
+function legacyFingerprintCandidates(room: RoomWithRelations, body: ImportIntoRoomBody): string[] {
+    const direct = importSourceFingerprint(body)
+    const mapped = mappedLegacyFingerprint(room, body)
+    return mapped && mapped !== direct ? [direct, mapped] : [direct]
 }
 
 export interface ImportIntoRoomOutcome {
@@ -214,13 +284,15 @@ export async function importRoom(
 ): Promise<{ room: RoomWithRelations } & CreatedMember> {
     // Read phase: the one external lookup the whole import needs, before the transaction opens so
     // a slow rate feed can never hold a write lock.
+    assertImportCurrenciesPriceable(body.expenses, body.currency)
     const rateTable = await getRateTable()
+    assertImportCurrenciesPriceable(body.expenses, body.currency, rateTable)
     const token = memberToken()
     const fingerprint = importSourceFingerprint(body)
 
     for (let attempt = 0; attempt < SLUG_ATTEMPTS; attempt++) {
         try {
-            const slug = await writeRoom(body, rateTable, fingerprint, token, request)
+            const slug = await writeRoom(body, rateTable, fingerprint, body.sourceFingerprint ?? null, token, request)
             const room = await loadRoom(slug)
             const creator = room.members.find((m) => m.token === token)
             // Unreachable: the creator is validated to be one of the members before we get here.
@@ -237,11 +309,12 @@ export async function importRoom(
 /**
  * Append a parsed source export to an existing room.
  *
- * Exact semantic replays are successful no-ops. Different fingerprints append
- * in full, even when a newer export overlaps an older one; there is no honest
+ * Replays of one immutable source file choice are successful no-ops, even when
+ * a newer parser would project that file differently. Different source files
+ * append in full, even when a newer export overlaps an older one; there is no
  * stable source-expense id in the supported formats with which to do partial
- * overlap detection. The batch fingerprint only protects retries and identical
- * concurrent deliveries.
+ * overlap detection. The legacy semantic fingerprint remains as a rolling-
+ * compatibility fallback for clients and batches without source identity.
  */
 export async function importIntoRoom(
     initialRoom: RoomWithRelations,
@@ -249,31 +322,47 @@ export async function importIntoRoom(
     request: Request = new Request('http://localhost'),
     actorToken: string | null = null
 ): Promise<ImportIntoRoomOutcome> {
-    // Splitwise and Split Pro exports contain catalog currencies. A room that
-    // settles in an invented unit has no automatic conversion target, and the
-    // import contract intentionally has no manual-rate field. Refuse before the
-    // FX lookup and transaction so this unsupported pairing cannot stage people
-    // or touch the ledger. Ordinary manual-rate expense writes remain separate.
-    if (!isCatalogCode(initialRoom.currency)) {
-        throw badRequest(
-            `imports cannot be converted into custom room currency ${initialRoom.currency}`,
-            'IMPORT_TARGET_CURRENCY_UNSUPPORTED'
-        )
-    }
-    const unsupportedCurrencies = [...new Set(body.expenses.map((expense) => expense.currencyCode))].filter(
-        (sourceCurrency) => !canPriceCode(sourceCurrency, initialRoom.currency)
-    )
-    if (unsupportedCurrencies.length > 0) {
-        throw badRequest(
-            `import currencies ${unsupportedCurrencies.join(', ')} cannot be converted into ${initialRoom.currency}`,
-            'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED'
-        )
-    }
-    const fingerprint = importSourceFingerprint(body)
+    const sourceFingerprint = body.sourceFingerprint ?? null
+    const legacyFingerprints = legacyFingerprintCandidates(initialRoom, body)
 
-    // Identity rows (including KPW → KPW and other catalog currencies without
-    // a feed rate) need no table. Keeping this decision before the optimistic
-    // replay lookup means an accepted same-currency import never wakes FX work.
+    // Prefer immutable upload identity. The legacy lookup keeps old clients and
+    // batches working, including fresh-room imports whose UI renamed `You`
+    // before the old server computed its semantic hash.
+    const knownBySource = sourceFingerprint
+        ? await prisma.importBatch.findUnique({
+              where: {
+                  roomId_sourceFingerprint: { roomId: initialRoom.id, sourceFingerprint },
+              },
+              select: { id: true },
+          })
+        : null
+    let knownByLegacy: { id: string } | null = null
+    if (!knownBySource) {
+        for (const fingerprint of legacyFingerprints) {
+            knownByLegacy = await prisma.importBatch.findUnique({
+                where: { roomId_fingerprint: { roomId: initialRoom.id, fingerprint } },
+                select: { id: true },
+            })
+            if (knownByLegacy) break
+        }
+    }
+    const knownBatch = knownBySource ?? knownByLegacy
+
+    if (!knownBatch) {
+        // Splitwise and Split Pro exports contain catalog currencies. A room
+        // that settles in an invented unit has no automatic conversion target,
+        // and the import contract intentionally has no manual-rate field.
+        if (!isCatalogCode(initialRoom.currency)) {
+            throw badRequest(
+                `imports cannot be converted into custom room currency ${initialRoom.currency}`,
+                'IMPORT_TARGET_CURRENCY_UNSUPPORTED'
+            )
+        }
+        assertImportCurrenciesPriceable(body.expenses, initialRoom.currency)
+    }
+
+    // Identity rows (including BGN → BGN and other catalog currencies without
+    // a feed rate) need no table. A recognised replay also never wakes FX work.
     const needsRateTable = body.expenses.some((expense) =>
         expenseNeedsRateTable(initialRoom.currency, expense.currencyCode)
     )
@@ -281,22 +370,8 @@ export async function importIntoRoom(
     // A replay must not depend on today's FX table. This optimistic read only
     // avoids that lookup; the authoritative replay decision still happens
     // under the room lock below, so a concurrent first delivery is safe.
-    const knownBatch = await prisma.importBatch.findUnique({
-        where: { roomId_fingerprint: { roomId: initialRoom.id, fingerprint } },
-        select: { id: true },
-    })
     const rateTable = knownBatch || !needsRateTable ? undefined : await getRateTable()
-    if (rateTable) {
-        const unavailableNow = [...new Set(body.expenses.map((expense) => expense.currencyCode))].filter(
-            (sourceCurrency) => rateFrom(rateTable, sourceCurrency, initialRoom.currency) === null
-        )
-        if (unavailableNow.length > 0) {
-            throw badRequest(
-                `import currencies ${unavailableNow.join(', ')} cannot be converted into ${initialRoom.currency}`,
-                'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED'
-            )
-        }
-    }
+    if (rateTable) assertImportCurrenciesPriceable(body.expenses, initialRoom.currency, rateTable)
 
     return prisma.$transaction(
         async (tx) => {
@@ -307,10 +382,31 @@ export async function importIntoRoom(
             // In particular, replaying `{ newMemberName: "Bea" }` after the
             // original import created Bea is still a clean no-op rather than a
             // duplicate-name conflict.
-            const existing = await tx.importBatch.findUnique({
-                where: { roomId_fingerprint: { roomId: lockedRoom.id, fingerprint } },
-            })
+            let existing = sourceFingerprint
+                ? await tx.importBatch.findUnique({
+                      where: {
+                          roomId_sourceFingerprint: { roomId: lockedRoom.id, sourceFingerprint },
+                      },
+                  })
+                : null
+            if (!existing) {
+                for (const fingerprint of legacyFingerprints) {
+                    existing = await tx.importBatch.findUnique({
+                        where: { roomId_fingerprint: { roomId: lockedRoom.id, fingerprint } },
+                    })
+                    if (existing) break
+                }
+            }
             if (existing) {
+                // Opportunistically upgrade a legacy batch. Keeping its
+                // semantic fingerprint as a separate column means old clients
+                // still recognise it after this backfill.
+                if (sourceFingerprint && existing.sourceFingerprint === null) {
+                    existing = await tx.importBatch.update({
+                        where: { id: existing.id },
+                        data: { sourceFingerprint },
+                    })
+                }
                 return {
                     room: lockedRoom,
                     batchId: existing.id,
@@ -402,7 +498,8 @@ export async function importIntoRoom(
                 data: {
                     id: batchId,
                     roomId: lockedRoom.id,
-                    fingerprint,
+                    fingerprint: legacyFingerprints[0],
+                    sourceFingerprint,
                     importedAt,
                     expenseCount: rows.expenses.length,
                     addedMemberCount: addedMemberIds.length,
@@ -474,6 +571,7 @@ async function writeRoom(
     body: ImportRoomBody,
     rateTable: Awaited<ReturnType<typeof getRateTable>>,
     fingerprint: string,
+    sourceFingerprint: string | null,
     token: string,
     request: Request
 ): Promise<string> {
@@ -530,6 +628,7 @@ async function writeRoom(
                     id: batchId,
                     roomId: created.id,
                     fingerprint,
+                    sourceFingerprint,
                     importedAt,
                     expenseCount: rows.expenses.length,
                     addedMemberCount: created.members.length,

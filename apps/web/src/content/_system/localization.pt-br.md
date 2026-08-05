@@ -99,35 +99,35 @@ Carried from mono `localization.pt-br.md` §2:
 Three-column table, mono's shape (`localization.{locale}.md` §3). **Rows 1–8 are carried from mono
 verbatim**; the rest are Split terms with no mono equivalent.
 
-| English                     | pt-br                                      | Avoid                                                                |
-| --------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| the app                     | o app / o aplicativo                       | **a plataforma** (banned in every locale, `messaging.md` §14.2)      |
-| phone                       | celular                                    | telemóvel (Portugal)                                                 |
-| money                       | dinheiro                                   | grana (too slangy for copy)                                          |
-| send money                  | enviar dinheiro                            | transferir fundos                                                    |
-| instantly                   | instantaneamente / na hora                 | —                                                                    |
-| sign up                     | cadastrar-se / criar conta                 | —                                                                    |
-| try (in a CTA)              | **experimente**                            | tente                                                                |
-| computer                    | computador                                 | —                                                                    |
-| a website                   | um site                                    | **o app** — Split is not an app and says so (stylebook §10)          |
-| room                        | **a sala**                                 | o grupo, a conta, o evento                                           |
-| link                        | **o link**                                 | o enlace, a ligação (both Portugal)                                  |
-| the link is the key         | **o link é a chave**                       | seu token, seu acesso                                                |
-| expense                     | **a despesa**                              | o gasto (secondary; keep one word per page)                          |
-| add an expense              | **lançar uma despesa**                     | inserir, cadastrar uma despesa                                       |
-| balance                     | **o saldo**                                | o balanço (an accounting statement)                                  |
-| all square                  | **quites** ("ficar quites", "tudo quites") | zerado, empatado                                                     |
-| settle up (verb)            | **acertar**                                | **passar a régua** (banned, stylebook §9.3), quitar (formal)         |
-| settled                     | acertado / acertadas                       | liquidado                                                            |
-| who owes who                | **quem deve a quem**                       | quem deve o quê                                                      |
-| free forever                | **grátis para sempre**                     | gratuito, sem custo, versão grátis                                   |
-| 158 converted currencies    | 158 moedas convertidas                     | multimoeda, qualquer moeda (stylebook §6.7)                          |
-| converted at the day's rate | pela taxa do dia                           | taxa ao vivo / em tempo real (stylebook §6.6)                        |
-| the split (the operation)   | **o rateio**                               | a divisão (vague), o acerto                                          |
-| each person's share         | **a cota**                                 | a parte, a fatia                                                     |
-| flatmate                    | colega de apartamento / colega de apê      | companheiro de casa                                                  |
-| group chat                  | o grupo (do WhatsApp)                      | o chat                                                               |
-| email                       | **e-mail**                                 | email (mono prefers `e-mail` 47:31, and so does the live Split page) |
+| English                                 | pt-br                                      | Avoid                                                                |
+| --------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| the app                                 | o app / o aplicativo                       | **a plataforma** (banned in every locale, `messaging.md` §14.2)      |
+| phone                                   | celular                                    | telemóvel (Portugal)                                                 |
+| money                                   | dinheiro                                   | grana (too slangy for copy)                                          |
+| send money                              | enviar dinheiro                            | transferir fundos                                                    |
+| instantly                               | instantaneamente / na hora                 | —                                                                    |
+| sign up                                 | cadastrar-se / criar conta                 | —                                                                    |
+| try (in a CTA)                          | **experimente**                            | tente                                                                |
+| computer                                | computador                                 | —                                                                    |
+| a website                               | um site                                    | **o app** — Split is not an app and says so (stylebook §10)          |
+| room                                    | **a sala**                                 | o grupo, a conta, o evento                                           |
+| link                                    | **o link**                                 | o enlace, a ligação (both Portugal)                                  |
+| the link is the key                     | **o link é a chave**                       | seu token, seu acesso                                                |
+| expense                                 | **a despesa**                              | o gasto (secondary; keep one word per page)                          |
+| add an expense                          | **lançar uma despesa**                     | inserir, cadastrar uma despesa                                       |
+| balance                                 | **o saldo**                                | o balanço (an accounting statement)                                  |
+| all square                              | **quites** ("ficar quites", "tudo quites") | zerado, empatado                                                     |
+| settle up (verb)                        | **acertar**                                | **passar a régua** (banned, stylebook §9.3), quitar (formal)         |
+| settled                                 | acertado / acertadas                       | liquidado                                                            |
+| who owes who                            | **quem deve a quem**                       | quem deve o quê                                                      |
+| free forever                            | **grátis para sempre**                     | gratuito, sem custo, versão grátis                                   |
+| automatic conversion for 156 currencies | conversão automática para 156 moedas       | multimoeda, qualquer moeda, 150+ (stylebook §6.7)                    |
+| converted at the day's rate             | pela taxa do dia                           | taxa ao vivo / em tempo real (stylebook §6.6)                        |
+| the split (the operation)               | **o rateio**                               | a divisão (vague), o acerto                                          |
+| each person's share                     | **a cota**                                 | a parte, a fatia                                                     |
+| flatmate                                | colega de apartamento / colega de apê      | companheiro de casa                                                  |
+| group chat                              | o grupo (do WhatsApp)                      | o chat                                                               |
+| email                                   | **e-mail**                                 | email (mono prefers `e-mail` 47:31, and so does the live Split page) |
 
 **`dividir` / `rachar` / `rateio` / `acertar` are strategy, not taste.** Stylebook §9.3 is binding and
 is not restated here. In one line: `dividir` owns titles, H1s and slugs; `rachar` is body and

@@ -65,7 +65,7 @@ Friends can **view** the balance. Somebody who never signs up can watch the numb
 | Cost                          | Free forever, no paid tier, no ads                                  | Free to use, with parts of it behind a Premium plan           |
 | Chasing people                | Nothing. Split will not remind anybody                              | Reminds group members and nudges them to settle               |
 | Netting debts                 | A short payment plan, always on                                     | Transfers debts to cut the number of transactions; can be off |
-| Currencies                    | 158 currencies, converted at the day's rate                         | Every currency, at a downloaded rate you can edit             |
+| Currencies                    | 156 currencies, converted at the day's indicative rate              | Every currency, at a downloaded rate you can edit             |
 | Offline                       | New expenses queue on the phone; recording a payment needs a signal | Works with no signal and syncs when it comes back             |
 
 Settle Up rows are taken from settleup.io (homepage, /tips, /tos, /privacy_policy) and its US App Store listing, read in July 2026.

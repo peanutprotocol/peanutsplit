@@ -99,21 +99,29 @@ const netsOf = (row: Row): bigint[] =>
 
 const csvCell = (value: string): string => (/[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value)
 
+/** A 3dp value such as `29.088` is also a valid grouped whole in an export
+ * whose locale is unknown. Prefixing the whole part with zero preserves the
+ * number while making this generated machine fixture unambiguous; the importer
+ * deliberately rejects the unsafe spelling instead of guessing 1000x. */
+const exportMoney = (minor: bigint, currency: string): string => {
+    const rendered = formatMinorPlain(minor.toString(), decimalsOf(currency))
+    return /^-?[1-9]\d{0,2}[.,]\d{3}$/.test(rendered) ? rendered.replace(/^(-?)/, '$10') : rendered
+}
+
 /** The generated ledger, rendered the way a Splitwise group export renders it. */
 function toSplitwiseCsv(group: ReturnType<typeof randomGroup>, withTotalRow = true): string {
     const header = ['Date', 'Description', 'Category', 'Cost', 'Currency', ...group.members]
     const lines = [header.map(csvCell).join(',')]
 
     for (const row of group.rows) {
-        const decimals = decimalsOf(row.currency)
         lines.push(
             [
                 '2026-07-14',
                 csvCell(row.description),
                 'General',
-                formatMinorPlain(row.cost.toString(), decimals),
+                exportMoney(row.cost, row.currency),
                 row.currency,
-                ...netsOf(row).map((net) => formatMinorPlain(net.toString(), decimals)),
+                ...netsOf(row).map((net) => exportMoney(net, row.currency)),
             ].join(',')
         )
     }
@@ -130,7 +138,7 @@ function toSplitwiseCsv(group: ReturnType<typeof randomGroup>, withTotalRow = tr
                 '',
                 formatMinorPlain('0', decimals),
                 group.rows[0].currency,
-                ...totals.map((total) => formatMinorPlain(total.toString(), decimals)),
+                ...totals.map((total) => exportMoney(total, group.rows[0].currency)),
             ].join(',')
         )
     }

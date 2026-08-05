@@ -3,7 +3,7 @@
  * exercise the route against PostgreSQL so retries, locks, provenance and
  * rollback are proved at the boundary where they matter.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { POST as postGlobalImport } from '@/app/api/import/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
@@ -21,6 +21,8 @@ import type {
     RoomStateWithMember,
 } from '@/lib/api-types'
 import { resetEvents, subscribe } from '@/server/events'
+import { FX_CORE } from '@/server/fx'
+import { STATIC_USD_PER_UNIT } from '@/server/money'
 import { resetRateLimits } from '@/server/rateLimit'
 import { prisma, truncateAll } from '@/server/test/db'
 
@@ -101,15 +103,96 @@ const importEvents = (roomId: string) =>
     })
 
 beforeEach(async () => {
+    process.env.SPLIT_FX_MODE = 'static'
     await truncateAll()
     resetRateLimits()
     resetEvents()
 })
 
+afterEach(() => {
+    process.env.SPLIT_FX_MODE = 'static'
+})
+
 describe('POST /api/rooms/:slug/import', () => {
+    it('recognises a legacy fresh-room import after Split Pro You was renamed and backfills source identity', async () => {
+        const sourceFingerprint = '1'.repeat(64)
+        const original: SplitwiseImport = {
+            members: ['You', 'Natalia'],
+            expenses: [
+                {
+                    date: '2026-08-05',
+                    description: 'Dinner',
+                    category: 'Dining out',
+                    currencyCode: 'EUR',
+                    costMinor: '1000',
+                    paidBy: 'Natalia',
+                    splitMode: 'EQUAL',
+                    shares: [
+                        { member: 'You', amountMinor: '500' },
+                        { member: 'Natalia', amountMinor: '500' },
+                    ],
+                },
+            ],
+            suggestedCurrency: 'EUR',
+            currencies: ['EUR'],
+            totalBalance: null,
+            warnings: [],
+        }
+        const renamedExpenses = original.expenses.map((expense) => ({
+            ...expense,
+            paidBy: expense.paidBy === 'You' ? 'Konrad' : expense.paidBy,
+            shares: expense.shares.map((share) => ({
+                ...share,
+                member: share.member === 'You' ? 'Konrad' : share.member,
+            })),
+        }))
+
+        // Simulate a batch written before immutable source fingerprints existed:
+        // the old UI renamed `You` throughout the parsed projection first.
+        const created = await importNewRoom({
+            roomName: 'Renamed Split Pro import',
+            currency: 'EUR',
+            creatorName: 'Konrad',
+            members: ['Konrad', 'Natalia'],
+            expenses: renamedExpenses,
+        })
+        expect(created.status).toBe(201)
+        const legacyBatch = await prisma.importBatch.findFirstOrThrow({ where: { roomId: created.body.room.id } })
+        expect(legacyBatch.sourceFingerprint).toBeNull()
+
+        const ids = new Map(created.body.members.map((member) => [member.name, member.id]))
+        const replay = await append(
+            created.body.room.slug,
+            {
+                sourceFingerprint,
+                members: [
+                    { sourceName: 'You', memberId: ids.get('Konrad')! },
+                    { sourceName: 'Natalia', memberId: ids.get('Natalia')! },
+                ],
+                expenses: original.expenses,
+            },
+            created.body.memberToken
+        )
+
+        expect(replay.status).toBe(200)
+        expect(replay.body).toMatchObject({
+            batchId: legacyBatch.id,
+            addedExpenses: 1,
+            addedMembers: 2,
+            alreadyImported: true,
+        })
+        expect(replay.body.expenses).toHaveLength(1)
+        expect(await prisma.importBatch.count({ where: { roomId: created.body.room.id } })).toBe(1)
+        expect(await prisma.importBatch.findUniqueOrThrow({ where: { id: legacyBatch.id } })).toMatchObject({
+            sourceFingerprint,
+        })
+    })
+
     it('recognises the source that originally created a room as a replay', async () => {
         const parsed = source()
+        const sourceFingerprint = '3'.repeat(64)
         const created = await importNewRoom({
+            sourceFingerprint,
             roomName: 'Originally imported',
             emoji: '🧦',
             currency: 'EUR',
@@ -120,7 +203,7 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(created.status).toBe(201)
 
         const batch = await prisma.importBatch.findFirstOrThrow({ where: { roomId: created.body.room.id } })
-        expect(batch).toMatchObject({ expenseCount: 3, addedMemberCount: 3 })
+        expect(batch).toMatchObject({ expenseCount: 3, addedMemberCount: 3, sourceFingerprint })
         const importedBefore = await prisma.expense.findMany({
             where: { roomId: created.body.room.id },
             orderBy: { importRowIndex: 'asc' },
@@ -132,11 +215,14 @@ describe('POST /api/rooms/:slug/import', () => {
         ])
 
         const ids = new Map(created.body.members.map((member) => [member.name, member.id]))
-        const body = bodyFor(parsed, [
-            { sourceName: 'Ana', memberId: ids.get('Ana')! },
-            { sourceName: 'Bruno', memberId: ids.get('Bruno')! },
-            { sourceName: 'Carla', memberId: ids.get('Carla')! },
-        ])
+        const body: ImportIntoRoomInput = {
+            ...bodyFor(parsed, [
+                { sourceName: 'Ana', memberId: ids.get('Ana')! },
+                { sourceName: 'Bruno', memberId: ids.get('Bruno')! },
+                { sourceName: 'Carla', memberId: ids.get('Carla')! },
+            ]),
+            sourceFingerprint,
+        }
         const memberIdsBefore = created.body.members.map((member) => member.id).sort()
         const expenseIdsBefore = created.body.expenses.map((expense) => expense.id).sort()
         let pokes = 0
@@ -470,6 +556,52 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(pokes).toBe(2)
     })
 
+    it('uses immutable source identity across parser projection changes', async () => {
+        const { body: target } = await newRoom()
+        const parsed = source()
+        const sourceFingerprint = '2'.repeat(64)
+        const first = await append(
+            target.room.slug,
+            {
+                ...bodyFor(parsed, [
+                    { sourceName: 'Ana', memberId: target.members[0].id },
+                    { sourceName: 'Bruno', newMemberName: 'Bruno' },
+                    { sourceName: 'Carla', newMemberName: 'Carla' },
+                ]),
+                sourceFingerprint,
+            },
+            target.memberToken
+        )
+        expect(first.status).toBe(200)
+
+        const ids = new Map(first.body.members.map((member) => [member.name, member.id]))
+        const reparsed = parsed.expenses.map((expense) => ({
+            ...expense,
+            // This deliberately changes the legacy semantic hash, as a parser
+            // normalization or bug fix can, while the local source is unchanged.
+            description: `${expense.description} (new parser projection)`,
+        }))
+        const replay = await append(
+            target.room.slug,
+            {
+                sourceFingerprint,
+                members: [
+                    { sourceName: 'Ana', memberId: ids.get('Ana')! },
+                    { sourceName: 'Bruno', memberId: ids.get('Bruno')! },
+                    { sourceName: 'Carla', memberId: ids.get('Carla')! },
+                ],
+                expenses: reparsed,
+            },
+            target.memberToken
+        )
+
+        expect(replay.status).toBe(200)
+        expect(replay.body).toMatchObject({ batchId: first.body.batchId, alreadyImported: true })
+        expect(replay.body.expenses).toHaveLength(parsed.expenses.length)
+        expect(await prisma.importBatch.count({ where: { roomId: target.room.id } })).toBe(1)
+        expect(await prisma.expense.count({ where: { roomId: target.room.id } })).toBe(parsed.expenses.length)
+    })
+
     it('rejects invalid reconciliation without writing target members, rows, batches or audit', async () => {
         const { body: target } = await newRoom()
         const { body: other } = await newRoom({ name: 'Other room', creatorName: 'Else' })
@@ -568,11 +700,68 @@ describe('POST /api/rooms/:slug/import', () => {
 
         expect(result.status).toBe(400)
         expect(result.body.error.code).toBe('IMPORT_CURRENCY_CONVERSION_UNSUPPORTED')
+        expect(result.body.error.details).toEqual({ currencies: ['KPW'], targetCurrency: 'EUR' })
         expect(await prisma.member.count({ where: { roomId: target.room.id } })).toBe(1)
         expect(await prisma.expense.count({ where: { roomId: target.room.id } })).toBe(0)
         expect(await prisma.importBatch.count({ where: { roomId: target.room.id } })).toBe(0)
         expect(await importEvents(target.room.id)).toHaveLength(0)
         expect(pokes).toBe(0)
+    })
+
+    it("imports KUNC's 82 PLN toll into its EUR room with the cached Peanut cross-rate", async () => {
+        const { body: target } = await newRoom({ name: 'KUNC', creatorName: 'You' })
+        await prisma.fxRate.createMany({
+            data: [
+                ...FX_CORE.map((quote) => ({
+                    base: 'USD',
+                    quote,
+                    rate: STATIC_USD_PER_UNIT[quote],
+                    fetchedAt: new Date(),
+                })),
+                { base: 'USD', quote: 'PLN', rate: 0.25, fetchedAt: new Date() },
+            ],
+        })
+        delete process.env.SPLIT_FX_MODE
+
+        const result = await append(
+            target.room.slug,
+            {
+                members: [
+                    { sourceName: 'You', memberId: target.members[0].id },
+                    { sourceName: 'Natalia Cieśla', newMemberName: 'Natalia Cieśla' },
+                ],
+                expenses: [
+                    {
+                        date: '2026-04-27',
+                        description: 'Toll',
+                        category: 'car',
+                        currencyCode: 'PLN',
+                        costMinor: '8200',
+                        paidBy: 'Natalia Cieśla',
+                        splitMode: 'EQUAL',
+                        shares: [
+                            { member: 'You', amountMinor: '4100' },
+                            { member: 'Natalia Cieśla', amountMinor: '4100' },
+                        ],
+                    },
+                ],
+            },
+            target.memberToken
+        )
+
+        expect(result.status).toBe(200)
+        expect(result.body).toMatchObject({ addedExpenses: 1, addedMembers: 1, alreadyImported: false })
+        expect(result.body.expenses).toHaveLength(1)
+        expect(result.body.expenses[0]).toMatchObject({
+            description: 'Toll',
+            amountMinor: '8200',
+            currency: 'PLN',
+            baseAmountMinor: '1898',
+            fxRate: '0.231481481481',
+        })
+        const you = result.body.members.find((member) => member.name === 'You')!
+        const natalia = result.body.members.find((member) => member.name === 'Natalia Cieśla')!
+        expect(result.body.balances).toMatchObject({ [you.id]: '-949', [natalia.id]: '949' })
     })
 
     it('refuses a custom-currency target before adding people, ledger rows or notifications', async () => {
@@ -602,7 +791,7 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(pokes).toBe(0)
     })
 
-    it('refuses an EUR source into an unrated KPW target before any import side effect', async () => {
+    it('refuses an EUR source into a KPW target absent from the static FX table before any side effect', async () => {
         const { body: target } = await newRoom({ currency: 'KPW' })
         const body = bodyFor(source(), [
             { sourceName: 'Ana', memberId: target.members[0].id },
@@ -629,7 +818,7 @@ describe('POST /api/rooms/:slug/import', () => {
         expect(pokes).toBe(0)
     })
 
-    it('imports same-currency KPW rows into an unrated KPW target at identity', async () => {
+    it('imports same-currency KPW rows into that static-unavailable target at identity', async () => {
         const { body: target } = await newRoom({ currency: 'KPW' })
         const parsed = source()
         const kpwSource: SplitwiseImport = {

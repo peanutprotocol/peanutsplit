@@ -1,8 +1,11 @@
 import { MAX_EXPENSES, MAX_MEMBERS } from '@/lib/splitwise-csv'
 import { ApiError, badRequest } from '@/server/http'
 
-/** Five hundred expenses across twenty members is roughly 400 KB. */
-export const MAX_IMPORT_BODY_BYTES = 1_000_000
+/** The valid 500-expense × 20-share envelope reaches about 6.4 MB when every
+ * bounded JavaScript character must be represented as a six-byte JSON escape.
+ * Keep the byte ceiling above that schema maximum while still refusing
+ * unexpectedly large bodies before parsing. */
+export const MAX_IMPORT_BODY_BYTES = 7_000_000
 
 /** Aggregate row-amplification ceiling, equal to the full documented product
  * envelope. It remains explicit so a future dimension-limit change cannot

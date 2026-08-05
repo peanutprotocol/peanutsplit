@@ -10,7 +10,9 @@ import {
     formatMoney,
     formatMoneyParts,
     isAmountInputAcceptable,
+    MAX_SIGNED_MINOR,
     parseAmountToMinor,
+    parseExportAmountToMinor,
 } from './money'
 
 describe('parseAmountToMinor', () => {
@@ -40,6 +42,12 @@ describe('parseAmountToMinor', () => {
         expect(parseAmountToMinor('-5', 2)).toBeNull()
         expect(parseAmountToMinor('12.3.4', 2)).toBeNull()
         expect(parseAmountToMinor('abc', 2)).toBeNull()
+    })
+
+    it('shares PostgreSQL BIGINT bounds with API validation without constructing giant BigInts', () => {
+        expect(parseAmountToMinor(MAX_SIGNED_MINOR.toString(), 0)).toBe(MAX_SIGNED_MINOR.toString())
+        expect(parseAmountToMinor((MAX_SIGNED_MINOR + 1n).toString(), 0)).toBeNull()
+        expect(parseAmountToMinor('9'.repeat(100_000), 0)).toBeNull()
     })
 
     /**
@@ -157,6 +165,40 @@ describe('parseAmountToMinor', () => {
         ])('rejects fractional units for zero-decimal currencies in %s', (locale, input) => {
             expect(parseAmountToMinor(input, 0, locale)).toBeNull()
         })
+    })
+})
+
+describe('parseExportAmountToMinor', () => {
+    it('uses zero-decimal currency metadata to read either grouping convention', () => {
+        expect(parseExportAmountToMinor('1,234', 0)).toBe('1234')
+        expect(parseExportAmountToMinor('1.234', 0)).toBe('1234')
+        expect(parseExportAmountToMinor('1,234,567', 0)).toBe('1234567')
+        expect(parseExportAmountToMinor('1.234.567', 0)).toBe('1234567')
+    })
+
+    it('accepts explicit zero fractions but refuses fractional zero-decimal source money', () => {
+        expect(parseExportAmountToMinor('1234.00', 0)).toBe('1234')
+        expect(parseExportAmountToMinor('1,234.00', 0)).toBe('1234')
+        expect(parseExportAmountToMinor('1234.5', 0)).toBeNull()
+        expect(parseExportAmountToMinor('12,34', 0)).toBeNull()
+    })
+
+    it('retains the established decimal and grouping rules for currencies with fractions', () => {
+        expect(parseExportAmountToMinor('1,234.56', 2)).toBe('123456')
+        expect(parseExportAmountToMinor('1.234,56', 2)).toBe('123456')
+        expect(parseExportAmountToMinor('1,234', 2)).toBe('123400')
+        expect(parseExportAmountToMinor('1.234', 2)).toBe('123400')
+        expect(parseExportAmountToMinor('1,234,567', 2)).toBe('123456700')
+        expect(parseExportAmountToMinor('0,123', 2)).toBeNull()
+        expect(parseExportAmountToMinor('1,234.567', 2)).toBeNull()
+        expect(parseExportAmountToMinor('1.234,567', 2)).toBeNull()
+    })
+
+    it('refuses the 1000x-ambiguous single-separator shape for three-decimal exports', () => {
+        expect(parseExportAmountToMinor('1,234', 3)).toBeNull()
+        expect(parseExportAmountToMinor('1.234', 3)).toBeNull()
+        expect(parseExportAmountToMinor('0.234', 3)).toBe('234')
+        expect(parseExportAmountToMinor('1,234,567', 3)).toBe('1234567000')
     })
 })
 
