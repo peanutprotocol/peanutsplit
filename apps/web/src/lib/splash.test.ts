@@ -32,12 +32,12 @@ describe('iOS launch screens', () => {
 
     /**
      * Keeping the launch screens out of the service worker's precache costs `next.config.js` an
-     * include list, because glob drops `!` patterns instead of treating them as exclusions. An
-     * include list stops covering a folder that did not exist when it was written, and the symptom
-     * — an asset silently missing offline — is invisible until someone is on a train. So the shape
-     * of `public/` is pinned here: add a folder, and this fails until the patterns follow.
+     * include list, because glob drops `!` patterns instead of treating them as exclusions. The
+     * internal `dev` tools are deliberately network-only, while the other folders must work
+     * offline. Pinning the complete shape of `public/` makes every new folder an explicit policy
+     * decision instead of silently omitting it from the service worker.
      */
-    it('leaves nothing in public/ that next.config.js forgot to precache', () => {
+    it('classifies every public/ folder as precached or intentionally network-only', () => {
         const folders = readdirSync(path.join(WEB, 'public'), { withFileTypes: true })
             .filter((entry) => entry.isDirectory())
             .map((entry) => entry.name)
