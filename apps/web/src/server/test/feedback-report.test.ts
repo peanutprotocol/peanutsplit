@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import sharp from 'sharp'
 import * as feedbackRoute from '@/app/api/rooms/[slug]/feedback/route'
 import { POST as postFeedback } from '@/app/api/rooms/[slug]/feedback/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
-import { MAX_FEEDBACK_REQUEST_BYTES } from '@/lib/feedback-contract'
+import { MAX_FEEDBACK_REQUEST_BYTES, MAX_FEEDBACK_SCREENSHOT_EDGE } from '@/lib/feedback-contract'
 import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
@@ -117,9 +118,11 @@ describe('POST /api/rooms/:slug/feedback', () => {
             },
         })
 
-        const jpeg = Buffer.from([
-            0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
-        ])
+        const jpeg = await sharp({
+            create: { width: 390, height: 844, channels: 3, background: '#ffffff' },
+        })
+            .jpeg()
+            .toBuffer()
         const response = await call<{ reportId: string }>(postFeedback as Handler, {
             path: `/api/rooms/${created.room.slug}/feedback`,
             method: 'POST',
@@ -208,23 +211,38 @@ describe('POST /api/rooms/:slug/feedback', () => {
         expect(await prisma.expense.findUnique({ where: { id: expense.id } })).not.toBeNull()
     })
 
-    it('has a database backstop for screenshot MIME, size and metadata consistency', async () => {
+    it('has a database backstop for screenshot MIME, byte count and the pixel edge cap', async () => {
         const { body: created } = await createRoom()
-
-        await expect(
+        const write = (message: string, overrides: Record<string, unknown>) =>
             prisma.feedbackReport.create({
                 data: {
                     roomId: created.room.id,
-                    message: 'Direct invalid write',
+                    message,
                     screenshot: Uint8Array.from([0xff, 0xd8, 0xff]),
                     screenshotMimeType: 'image/jpeg',
-                    screenshotByteLength: 2,
+                    screenshotByteLength: 3,
                     screenshotWidth: 1,
                     screenshotHeight: 1,
+                    ...overrides,
                 },
             })
+
+        await expect(write('Direct invalid write', { screenshotByteLength: 2 })).rejects.toThrow()
+        // The backstop tracks the app limit, not the 20000 it was born with.
+        await expect(
+            write('Direct oversized write', { screenshotWidth: MAX_FEEDBACK_SCREENSHOT_EDGE + 1 })
+        ).rejects.toThrow()
+        await expect(
+            write('Direct oversized write', { screenshotHeight: MAX_FEEDBACK_SCREENSHOT_EDGE + 1 })
         ).rejects.toThrow()
         expect(await prisma.feedbackReport.count()).toBe(0)
+
+        // …and stops exactly there, so a full-width screenshot still stores.
+        await write('Direct write at the edge', {
+            screenshotWidth: MAX_FEEDBACK_SCREENSHOT_EDGE,
+            screenshotHeight: MAX_FEEDBACK_SCREENSHOT_EDGE,
+        })
+        expect(await prisma.feedbackReport.count()).toBe(1)
     })
 
     it('rejects unconsented attachments and forged screenshot metadata without storing a row', async () => {
@@ -257,6 +275,97 @@ describe('POST /api/rooms/:slug/feedback', () => {
             },
         })
         expect(forged.status).toBe(400)
+        expect(await prisma.feedbackReport.count()).toBe(0)
+
+        const realJpeg = await sharp({
+            create: { width: 2, height: 3, channels: 3, background: '#ffffff' },
+        })
+            .jpeg()
+            .toBuffer()
+        const forgedDimensions = await call<ApiError>(postFeedback as Handler, {
+            path,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                message: 'This screenshot claims dimensions it does not have.',
+                consent: { ...consent, screenshot: true },
+                screenshot: {
+                    imageBase64: realJpeg.toString('base64'),
+                    mimeType: 'image/jpeg',
+                    byteLength: realJpeg.byteLength,
+                    width: 3,
+                    height: 2,
+                },
+            },
+        })
+        expect(forgedDimensions.status).toBe(400)
+        expect(forgedDimensions.body.error.code).toBe('VALIDATION_ERROR')
+        expect(await prisma.feedbackReport.count()).toBe(0)
+    })
+
+    it('refuses screenshot bytes that do not decode, over-run the pixel cap, or stop halfway', async () => {
+        const { body: created } = await createRoom()
+        const path = `/api/rooms/${created.room.slug}/feedback`
+        const post = (message: string, screenshot: Record<string, unknown>) =>
+            call<ApiError>(postFeedback as Handler, {
+                path,
+                method: 'POST',
+                params: { slug: created.room.slug },
+                body: { message, consent: { ...consent, screenshot: true }, screenshot },
+            })
+
+        // A JPEG signature with nothing usable behind it, and an honest byte
+        // count — so this is the first case that survives as far as the decoder.
+        const headerOnly = Buffer.from([0xff, 0xd8, 0xff, ...new Array(13).fill(0)])
+        const undecodable = await post('These screenshot bytes are not really an image.', {
+            imageBase64: headerOnly.toString('base64'),
+            mimeType: 'image/jpeg',
+            byteLength: headerOnly.byteLength,
+            width: 390,
+            height: 844,
+        })
+        expect(undecodable.status).toBe(400)
+        expect(undecodable.body.error.code).toBe('VALIDATION_ERROR')
+
+        // The schema caps a *claimed* edge at 1600, so the only way to post a
+        // 2000px image is to understate it. libvips' pixel limit is what
+        // notices, because nothing before it has looked at the real bitmap.
+        const oversized = await sharp({
+            create: { width: 2000, height: 2000, channels: 3, background: '#ffffff' },
+        })
+            .jpeg()
+            .toBuffer()
+        const tooManyPixels = await post('This screenshot understates how big it really is.', {
+            imageBase64: oversized.toString('base64'),
+            mimeType: 'image/jpeg',
+            byteLength: oversized.byteLength,
+            width: MAX_FEEDBACK_SCREENSHOT_EDGE,
+            height: MAX_FEEDBACK_SCREENSHOT_EDGE,
+        })
+        expect(tooManyPixels.status).toBe(400)
+        expect(tooManyPixels.body.error.code).toBe('VALIDATION_ERROR')
+
+        // Half a real JPEG, zero-padded back to its original length. Byte count,
+        // MIME signature and header dimensions all agree; only a full pixel
+        // decode can tell that the scan data runs out.
+        const whole = await sharp({
+            create: { width: 320, height: 240, channels: 3, background: '#336699' },
+        })
+            .jpeg()
+            .toBuffer()
+        const kept = Math.floor(whole.byteLength / 2)
+        const halfJpeg = Buffer.concat([whole.subarray(0, kept), Buffer.alloc(whole.byteLength - kept)])
+        expect(halfJpeg.byteLength).toBe(whole.byteLength)
+        const truncated = await post('This screenshot stops halfway through its pixels.', {
+            imageBase64: halfJpeg.toString('base64'),
+            mimeType: 'image/jpeg',
+            byteLength: halfJpeg.byteLength,
+            width: 320,
+            height: 240,
+        })
+        expect(truncated.status).toBe(400)
+        expect(truncated.body.error.code).toBe('VALIDATION_ERROR')
+
         expect(await prisma.feedbackReport.count()).toBe(0)
     })
 
@@ -325,5 +434,36 @@ describe('private report logging boundary', () => {
         expect(log).not.toHaveBeenCalled()
         expect(await response.text()).not.toContain(secret)
         log.mockRestore()
+    })
+
+    it('signals a broken decoder instead of blaming the reporter for it', async () => {
+        vi.resetModules()
+        vi.doMock('sharp', () => ({
+            default: () => {
+                throw new TypeError('sharp native binding is missing')
+            },
+        }))
+        const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+        try {
+            const { decodeFeedbackScreenshot } = await import('@/server/feedback')
+            const bytes = Buffer.from([0xff, 0xd8, 0xff, ...new Array(13).fill(0)])
+            // A 400 here would be indistinguishable from ordinary user error,
+            // so a broken image pipeline would sit in production unnoticed.
+            await expect(
+                decodeFeedbackScreenshot({
+                    imageBase64: bytes.toString('base64'),
+                    mimeType: 'image/jpeg',
+                    byteLength: bytes.byteLength,
+                    width: 390,
+                    height: 844,
+                })
+            ).rejects.toBeInstanceOf(TypeError)
+            // The name only: the surrounding request body is private prose.
+            expect(log).toHaveBeenCalledWith('[split] feedback screenshot decode failed', 'TypeError')
+        } finally {
+            log.mockRestore()
+            vi.doUnmock('sharp')
+            vi.resetModules()
+        }
     })
 })
