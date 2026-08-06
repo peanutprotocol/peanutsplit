@@ -29,6 +29,7 @@ import type {
     RoomStateWithMember,
     SettlementInput,
 } from './api-types'
+import type { FeedbackReportInput, FeedbackReportResult } from './feedback-contract'
 
 /** Every non-2xx response, plus transport failures, surfaces as this. */
 export class ApiRequestError extends Error {
@@ -63,6 +64,7 @@ export const NETWORK_ERROR_CODE = 'NETWORK_ERROR'
  *  the person holding the phone. Expense creates are safe to retry because
  *  their client key is minted before the first attempt and reused on replay. */
 export const EXPENSE_WRITE_TIMEOUT_MS = 12_000
+const FEEDBACK_WRITE_TIMEOUT_MS = 30_000
 
 interface RequestOptions {
     method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
@@ -186,6 +188,17 @@ export const api = {
             signal,
             cache: 'no-store',
         }),
+
+    /** Private support write. The route resolves the room from its scoped path;
+     *  neither the slug nor any member token is copied into report JSON. */
+    feedback: {
+        report: (slug: string, input: FeedbackReportInput) =>
+            request<FeedbackReportResult>(`/api/rooms/${encode(slug)}/feedback`, {
+                method: 'POST',
+                body: input,
+                timeoutMs: FEEDBACK_WRITE_TIMEOUT_MS,
+            }),
+    },
 
     joinRoom: (slug: string, input: CreateMemberInput) =>
         request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members`, {

@@ -96,6 +96,25 @@ describe('api error paths', () => {
 })
 
 describe('api requests', () => {
+    it('posts private feedback without copying member identity into the request', async () => {
+        const fetchMock = respondWith(201, { reportId: 'report-1' })
+        vi.stubGlobal('fetch', fetchMock)
+
+        await api.feedback.report('ski/trip', {
+            message: 'The button did not react after I tapped it.',
+            consent: { confirmed: true, diagnostics: false, roomSnapshot: false, screenshot: false },
+        })
+
+        const [url, init] = fetchMock.mock.calls[0]
+        expect(url).toBe('/api/rooms/ski%2Ftrip/feedback')
+        expect(init.method).toBe('POST')
+        expect(init.headers['X-Member-Token']).toBeUndefined()
+        expect(JSON.parse(init.body)).toEqual({
+            message: 'The button did not react after I tapped it.',
+            consent: { confirmed: true, diagnostics: false, roomSnapshot: false, screenshot: false },
+        })
+    })
+
     it('posts an append import to the encoded room route with attribution and no invented timestamp', async () => {
         const fetchMock = respondWith(200, {})
         vi.stubGlobal('fetch', fetchMock)
