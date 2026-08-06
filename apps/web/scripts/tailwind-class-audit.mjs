@@ -72,6 +72,40 @@ function validateClasses(value, file, line) {
     for (const token of value.split(/\s+/)) validateToken(token, file, line)
 }
 
+function jsxAttribute(node, name, sourceFile) {
+    return node.attributes.properties.find(
+        (property) => ts.isJsxAttribute(property) && property.name.getText(sourceFile) === name
+    )
+}
+
+function staticAttributeValue(attribute) {
+    if (!attribute?.initializer) return attribute ? 'true' : undefined
+    if (ts.isStringLiteral(attribute.initializer)) return attribute.initializer.text
+    if (!ts.isJsxExpression(attribute.initializer)) return undefined
+    const expression = attribute.initializer.expression
+    if (expression?.kind === ts.SyntaxKind.TrueKeyword) return 'true'
+    if (expression?.kind === ts.SyntaxKind.FalseKeyword) return 'false'
+    if (expression && (ts.isStringLiteral(expression) || ts.isNoSubstitutionTemplateLiteral(expression))) {
+        return expression.text
+    }
+    return undefined
+}
+
+function stringTokensInside(attribute) {
+    if (!attribute?.initializer) return []
+    if (ts.isStringLiteral(attribute.initializer)) return attribute.initializer.text.split(/\s+/)
+    if (!ts.isJsxExpression(attribute.initializer) || !attribute.initializer.expression) return []
+    const tokens = []
+    const visit = (node) => {
+        if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+            tokens.push(...node.text.split(/\s+/))
+        }
+        ts.forEachChild(node, visit)
+    }
+    visit(attribute.initializer.expression)
+    return tokens
+}
+
 for (const path of filesBelow(src)) {
     const source = readFileSync(path, 'utf8')
     const file = relative(root, path)
@@ -135,6 +169,22 @@ for (const path of filesBelow(src)) {
     function visit(node) {
         if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
             const tag = node.tagName.getText(sourceFile)
+            if (!isDevDs && ['input', 'textarea', 'select'].includes(tag)) {
+                const type = staticAttributeValue(jsxAttribute(node, 'type', sourceFile)) ?? 'text'
+                const ariaHidden = staticAttributeValue(jsxAttribute(node, 'aria-hidden', sourceFile)) === 'true'
+                const nonTextInput =
+                    tag === 'input' && ['checkbox', 'radio', 'range', 'file', 'hidden', 'color'].includes(type)
+                if (!ariaHidden && !nonTextInput) {
+                    const classTokens = stringTokensInside(jsxAttribute(node, 'className', sourceFile))
+                    const unsafeMobileText = classTokens.find((token) => token === 'text-xs' || token === 'text-sm')
+                    if (unsafeMobileText) {
+                        const line = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1
+                        failures.push(
+                            `${file}:${line} gives a touch form control ${unsafeMobileText}; use text-base md:text-sm to prevent mobile focus zoom`
+                        )
+                    }
+                }
+            }
             const isButton = tag === 'button' || (buttonBinding && tag === buttonBinding)
             if (isButton) {
                 let ancestor = node.parent
@@ -179,5 +229,5 @@ if (failures.length) {
 }
 
 console.log(
-    'Tailwind class audit clean: tokens resolve; focus and placeholder recipes are central; links do not nest controls; test ids are not CSS hooks'
+    'Tailwind class audit clean: tokens resolve; mobile form text stays at least 16px; focus and placeholder recipes are central; links do not nest controls; test ids are not CSS hooks'
 )

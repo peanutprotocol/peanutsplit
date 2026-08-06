@@ -302,7 +302,7 @@ export function LinkMoment({
                                         aria-label={t('inviteText')}
                                         data-testid="room-link-input"
                                         rows={3}
-                                        className="input min-h-24 select-text px-3 py-3 text-sm"
+                                        className="input min-h-24 select-text px-3 py-3 text-base md:text-sm"
                                     />
                                 </div>
                             ) : (

@@ -9,6 +9,7 @@ import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { personalExpenseImpact } from '@/lib/expense-impact'
+import { formatManualFxRateInput } from '@/lib/manual-fx-rate'
 import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
@@ -56,13 +57,21 @@ const expensePressTarget = (target: EventTarget | null, card: Element): Element 
  * art in a memoized leaf means reaction, gesture and polling state do not repeat
  * that work for every unchanged row.
  */
-const ExpenseSubjectArt = memo(function ExpenseSubjectArt({ description }: { description: string }) {
-    const subject = matchExpenseCategory(description).subject
+const ExpenseSubjectArt = memo(function ExpenseSubjectArt({
+    description,
+    category,
+}: {
+    description: string
+    category: string | null
+}) {
+    const match = matchExpenseCategory(description, category)
+    const subject = match.subject
 
     return (
         <span
             className="flex h-11 w-11 shrink-0 items-center justify-center self-center text-n-1"
             data-expense-subject={subject.id}
+            data-expense-category={match.category.id}
             data-testid="expense-subject-doodle"
         >
             <Doodle name={subject.doodle} size={44} weight={1.4} />
@@ -434,6 +443,9 @@ export function ExpenseList({
                                     )
                                 }
                                 const expense = entry.expense
+                                const hasSavedManualRate =
+                                    expense.currency !== state.room.currency &&
+                                    !currencies.some((currency) => currency.code === expense.currency)
                                 const payer = memberName(expense.paidById)
                                 const queuedExpense = isQueuedExpenseId(expense.id, queued)
                                 const unsaved = isPending(expense) || queuedExpense
@@ -556,7 +568,10 @@ export function ExpenseList({
                                             {/* The description already names the purchase, so the subject art is
                                                 decorative. Its bare 44px stroke replaces the old payer portrait;
                                                 who paid remains on the secondary text line below. */}
-                                            <ExpenseSubjectArt description={expense.description} />
+                                            <ExpenseSubjectArt
+                                                description={expense.description}
+                                                category={expense.category}
+                                            />
                                             <span className="min-w-0 flex-1 pt-0.5">
                                                 <span className="block truncate text-h7">
                                                     {/* Row label, not plain `expenseLabel`: these rows
@@ -578,8 +593,26 @@ export function ExpenseList({
                                                         minor={expense.amountMinor}
                                                         currency={expense.currency}
                                                         catalog={currencies}
+                                                        density="overview"
                                                     />
                                                 </span>
+                                                {hasSavedManualRate && (
+                                                    <span
+                                                        className="mt-1 block truncate text-h10 text-grey-1"
+                                                        data-testid="expense-saved-fx-rate"
+                                                        title={t('savedManualRate', {
+                                                            currency: expense.currency,
+                                                            rate: formatManualFxRateInput(expense.fxRate, locale),
+                                                            roomCurrency: state.room.currency,
+                                                        })}
+                                                    >
+                                                        {t('savedManualRate', {
+                                                            currency: expense.currency,
+                                                            rate: formatManualFxRateInput(expense.fxRate, locale),
+                                                            roomCurrency: state.room.currency,
+                                                        })}
+                                                    </span>
+                                                )}
                                             </span>
                                             <span className="flex shrink-0 flex-col items-end gap-0.5">
                                                 <span className="whitespace-nowrap text-h10 text-grey-1">
@@ -589,6 +622,7 @@ export function ExpenseList({
                                                     minor={personalPosition.amountMinor}
                                                     currency={personalPosition.currency}
                                                     catalog={currencies}
+                                                    density="overview"
                                                     className="text-h5"
                                                 />
                                             </span>

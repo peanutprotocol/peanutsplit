@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+    CURATED_EXPENSE_CATEGORY_IDS,
     EXPENSE_CATEGORIES,
     EXPENSE_CATEGORY_IDS,
     EXPENSE_SUBJECTS,
@@ -25,6 +26,20 @@ describe('expense catalog', () => {
 
         expect(imported).toHaveLength(300)
         expect(new Set(imported.map((subject) => subject.doodle)).size).toBe(300)
+    })
+
+    it('keeps the manual picker deliberately smaller than the inference catalog', () => {
+        expect(CURATED_EXPENSE_CATEGORY_IDS).toEqual([
+            'food-drink',
+            'transport',
+            'travel-stays',
+            'home-bills',
+            'shopping',
+            'entertainment-leisure',
+            'health-wellness',
+            'gifts-giving',
+            'other',
+        ])
     })
 })
 
@@ -89,5 +104,23 @@ describe('matchExpenseCategory', () => {
     it('falls back to Other for empty and unknown descriptions', () => {
         expect(matchExpenseCategory('').rule).toBe('fallback')
         expect(matchExpenseCategory('ultraviolet marmalade').subject.id).toBe('other')
+    })
+
+    it('uses a saved high-level category ahead of a contradictory description', () => {
+        const match = matchExpenseCategory('Pizza for everyone', 'transport')
+
+        expect(match.rule).toBe('override')
+        expect(match.category.id).toBe('transport')
+        expect(match.subject.id).toBe('taxi-rides')
+        expect(match.subject.doodle).toBe('taxi')
+    })
+
+    it('honours subject ids and imported category labels before description inference', () => {
+        expect(matchExpenseCategory('Pizza', 'pharmacy').subject.id).toBe('pharmacy')
+        expect(matchExpenseCategory('Pizza', 'Dining out').subject.id).toBe('restaurants')
+    })
+
+    it('ignores an unknown legacy category rather than replacing good description art', () => {
+        expect(matchExpenseCategory('Pizza', 'not from any catalog').subject.id).toBe('pizza')
     })
 })

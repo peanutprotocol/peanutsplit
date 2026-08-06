@@ -41,7 +41,28 @@ describe('AnimatedMoney accessibility', () => {
         // way <Money/> does (`absolute && minor.startsWith('-') ? minor.slice(1) : minor`), so
         // a balance and its accessible name can never point at different signs or magnitudes.
         expect(body).toContain("const signedMinor = absolute && minor.startsWith('-') ? minor.slice(1) : minor")
-        expect(body).toContain('minorToNumber(signedMinor, info.decimals)')
+        expect(body).toContain('minorToExactNumber(signedMinor, info.decimals)')
+    })
+
+    it('falls back to static Money before NumberFlow when the value cannot round-trip', () => {
+        const guard = body.indexOf('if (value === null || overview?.compact)')
+        const fallback = body.indexOf('<Money', guard)
+        const numberFlow = body.indexOf('<NumberFlow')
+
+        expect(guard).toBeGreaterThan(-1)
+        expect(fallback).toBeGreaterThan(guard)
+        expect(numberFlow).toBeGreaterThan(fallback)
+    })
+
+    it('keeps compact overview text approximate only visually', () => {
+        const moneyStart = source.indexOf('export function Money')
+        const moneyBody = source.slice(moneyStart, bodyStart)
+
+        expect(moneyBody).toContain('className="sr-only">{overview.exact}')
+        expect(moneyBody).toContain("aria-hidden={overview ? 'true' : undefined}")
+        expect(moneyBody).not.toContain('aria-label={overview?.exact}')
+        expect(moneyBody).toContain('title={overview?.exact}')
+        expect(moneyBody).toContain('overview.visible')
     })
 
     it('imports formatMoney rather than reimplementing it', () => {
