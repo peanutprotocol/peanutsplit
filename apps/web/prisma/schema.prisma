@@ -52,10 +52,36 @@ model Room {
   settlements                 Settlement[]
   auditEvents                 RoomAuditEvent[]
   importBatches               ImportBatch[]
+  feedbackReports             FeedbackReport[]
 
   pushSubscriptions PushSubscription[]
   notificationSends NotificationSend[]
 
+  @@schema("split")
+}
+
+/// A private support report created only after the person sending it reviews
+/// and consents to every attachment. It is intentionally not part of RoomState,
+/// the room audit log, or any readable room relation exposed by an API route.
+/// `roomSnapshot` is a bounded, secret-free server projection captured at send
+/// time; `diagnostics` is the allowlisted browser projection shown in the form.
+model FeedbackReport {
+  id                   String   @id @default(uuid())
+  roomId               String
+  message              String
+  diagnostics          Json?
+  roomSnapshot         Json?
+  screenshot           Bytes?
+  screenshotMimeType   String?
+  screenshotByteLength Int?
+  screenshotWidth      Int?
+  screenshotHeight     Int?
+  createdAt            DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+  @@index([createdAt])
   @@schema("split")
 }
 

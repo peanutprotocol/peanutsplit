@@ -15,6 +15,8 @@ import { addMinor, decimalsOf, formatAmountInput, formatMinorPlain, parseAmountT
 
 export interface ExpenseFormValues {
     description: string
+    /** Saved manual art/category override. null keeps description inference. */
+    category: string | null
     /** Major units, verbatim as typed. */
     amountInput: string
     currency: string
@@ -71,6 +73,7 @@ export const emptyExpenseForm = (opts: {
     paidById: string
 }): ExpenseFormValues => ({
     description: '',
+    category: null,
     amountInput: '',
     currency: opts.currency,
     paidById: opts.paidById,
@@ -120,6 +123,7 @@ export function expenseToFormValues(
     }
     return {
         description: expense.description,
+        category: expense.category,
         amountInput: locale
             ? formatAmountInput(expense.amountMinor, decimals, locale)
             : formatMinorPlain(expense.amountMinor, decimals),
@@ -381,6 +385,7 @@ export function buildExpenseBody(
 
     const base = {
         description: values.description.trim(),
+        category: values.category,
         amountMinor,
         currency: values.currency,
         date: values.date,

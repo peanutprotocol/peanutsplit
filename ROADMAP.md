@@ -774,6 +774,14 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
 
 ## Known debt
 
+- **Private feedback retention scheduler:** report writes and every production
+  container start delete `FeedbackReport` rows older than 90 days. Add a daily
+  Dokploy/Postgres job using the same cutoff so the policy remains time-bounded
+  even if a container runs for more than 90 days without a deploy or a new
+  report. **Owner: Konrad. Done when:** the daily job is visible in operations,
+  one deliberately expired canary row is removed, and screenshots, diagnostics,
+  messages, and room snapshots are all covered by the same row deletion.
+
 - `formatMoney` can flash 2-decimal amounts for a fresh non-fallback currency
   before `/api/currencies` resolves (mitigated by the fallback catalog).
 - `apps/api` (the Fastify settle-loop engine) still exists beside `apps/web`
