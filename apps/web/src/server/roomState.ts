@@ -8,6 +8,7 @@ import { ApiError, notFound } from '@/server/http'
 import { formatStoredFxRate } from '@/server/money'
 import { suggestedTransfers } from '@/server/settlement'
 import type { RoomState } from '@/lib/api-types'
+import { safePersonNameForDisplay } from '@/lib/person-name'
 
 export { EXACT_SETTLEMENT_MAX_NONZERO_BALANCES, suggestedTransfers } from '@/server/settlement'
 
@@ -103,7 +104,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
         },
         members: room.members.map((m) => ({
             id: m.id,
-            name: m.name,
+            name: safePersonNameForDisplay(m.name),
             avatar: m.avatar,
             avatarPalette: m.avatarPalette,
             createdAt: m.createdAt.toISOString(),
