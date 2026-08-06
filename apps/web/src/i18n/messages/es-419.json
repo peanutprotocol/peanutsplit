@@ -702,7 +702,7 @@
             "copyBlocked": "Tu navegador bloqueó la copia. La invitación completa está seleccionada arriba — cópiala a mano.",
             "copy": "Copiar invitación",
             "copied": "¡Copiado!",
-            "share": "Compartir",
+            "share": "Compartir link de la sala",
             "shared": "Invitación enviada.",
             "shareFailed": "No se abrió el menú para compartir. Copia la invitación.",
             "anyoneCanJoin": "Cualquiera con este link puede entrar y agregar gastos.",
@@ -919,7 +919,7 @@
                 "title": "El viaje, resumido",
                 "body": "{count, plural, other {# tarjetas. Comparte las que quieras.}}"
             },
-            "share": "Compartir",
+            "share": "Compartir imagen",
             "sharing": "Preparándola…",
             "dismiss": "Ahora no",
             "shelfTitle": "Tarjetas de este viaje",

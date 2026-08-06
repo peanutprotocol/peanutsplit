@@ -32,11 +32,13 @@ import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
 export const OG_SIZE = { width: 1200, height: 630 } as const
 export const OG_CONTENT_TYPE = 'image/png'
 /**
- * Five minutes. Long enough that a link pasted into three chats renders once,
- * short enough that the card catches up with the room within a coffee break —
- * a stale "no expenses yet" is worse than a re-render.
+ * Five minutes in both private browser caches and shared reverse-proxy caches.
+ * Long enough that a proactive same-origin fetch and the first few chat crawlers
+ * reuse one render, short enough that the card catches up with the room within
+ * a coffee break. A brief stale-while-revalidate window avoids a blank unfurl
+ * while a fresh render is being built.
  */
-export const OG_CACHE_CONTROL = 'public, max-age=300'
+export const OG_CACHE_CONTROL = 'public, max-age=300, s-maxage=300, stale-while-revalidate=60'
 
 /** Warm dark ink. Every field in the theme catalog is chosen to carry it, which
  *  is why a theme tints the field and never restyles the card. */

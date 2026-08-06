@@ -710,14 +710,22 @@ manual-copy textarea fallback. `SHARE_PACKAGE_METHODS` shrank to
 `native | clipboard`; the five `room.link.download*` keys left all three
 locales.
 
-**Shipped 2026-07-30 (the rest of it):** the SVG share path is deleted rather
-than kept alongside — the invite now goes out as a PNG off the same card route
-the achievements use, through the one share chain. The geometry gate came back
-in an equivalent form, reading the card route's own output instead of an
-intercepted download.
+**Corrected 2026-08-06:** a private room invite is URL-first again. Its native
+payload is localized text plus the exact room URL and never a PNG attachment;
+some iOS share targets accept image + URL and silently deliver only the image.
+The URL still has a room-specific 1200×630 visual through its existing
+`/r/<slug>/opengraph-image` metadata route. Creation and room load proactively
+warm that same-origin image, whose browser/shared-cache lifetime is five minutes
+with a short stale-while-revalidate window. Preview failure never blocks the
+room or the share. Public achievement/recap keepsakes remain a separate,
+explicitly labelled image-only action with no URL, text or title in the native
+payload. `share_completed` therefore stays `native | clipboard`; there is no
+invite `card` method to add.
 
-Still open: decide whether `share_completed` needs a `card` method now that the
-PNG path exists. [Konrad]
+The empty-room hierarchy was corrected in the same pass: Share room remains the
+sole primary share action until at least one real expense exists. A roster-only
+CREW unlock waits rather than presenting a competing image-share moment before
+the ledger has earned one.
 
 **Queued — semi-done feature audit, remaining surfaces:** [Konrad]
 A 2026-07-29 Playwright walk covered landing, room view, and the share drawer

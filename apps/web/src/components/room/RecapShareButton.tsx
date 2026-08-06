@@ -38,7 +38,9 @@ export function RecapShareButton({ slug, variant = 'primary' }: { slug: string; 
             const blob = await response.blob()
             const file = new File([blob], RECAP_FILE_NAME, { type: blob.type || 'image/png' })
 
-            const tier = await shareImageFile(file, { title: t('shareTitle'), text: t('shareText') })
+            // A public keepsake file, intentionally separate from the private
+            // room-link invite and carrying no URL or text payload.
+            const tier = await shareImageFile(file)
             if (!tier) return
 
             if (tier === 'clipboard') toast(t('copied'), { duration: TOAST_MS.default })

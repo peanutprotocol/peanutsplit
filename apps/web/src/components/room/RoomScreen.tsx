@@ -16,6 +16,7 @@ import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { useRoomParams } from '@/lib/room-params'
+import { prewarmRoomPreview } from '@/lib/room-preview'
 import { discardSharedReceipt } from '@/lib/shared-receipt'
 import { daySpan } from '@/lib/story'
 import { themeVars } from '@/lib/themes'
@@ -109,6 +110,13 @@ export function RoomScreen({ slug }: { slug: string }) {
             emoji: state.room.emoji ?? undefined,
             theme: state.room.theme ?? undefined,
         })
+    }, [slug, state])
+
+    useEffect(() => {
+        if (!state) return
+        // Warm the exact image chat crawlers request before the share drawer
+        // opens. Preview failure is contained and cannot affect the room.
+        void prewarmRoomPreview(slug)
     }, [slug, state])
 
     /**
@@ -325,9 +333,12 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 people came back for. An achievement can wait a render — stacked
                                 over the ledger on a 375px screen it pushes either of them below
                                 the fold. */}
-                            {!needsJoin && !staleState && !drawerOpen && !latecomerPending && !settledUp && (
-                                <AchievementMoment slug={slug} state={state} meId={meId} />
-                            )}
+                            {!needsJoin &&
+                                !staleState &&
+                                !drawerOpen &&
+                                !latecomerPending &&
+                                !settledUp &&
+                                saved.length > 0 && <AchievementMoment slug={slug} state={state} meId={meId} />}
                             <AnimatePresence initial={false}>
                                 {settledUp && !latecomerPending && (
                                     <AllSettled
@@ -427,7 +438,6 @@ export function RoomScreen({ slug }: { slug: string }) {
                         onClose={closeRoomShare}
                         state={state}
                         currencies={currencies}
-                        sharerMemberId={meId}
                         surface={shareSurface}
                     />
                     <BalanceDrawer
