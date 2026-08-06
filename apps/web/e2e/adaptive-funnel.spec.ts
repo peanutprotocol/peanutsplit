@@ -84,6 +84,9 @@ test('checkpoint → empty room → first shared balance is one adaptive funnel'
     await expect(genericShare.getByRole('button', { name: 'Not now', exact: true })).toHaveCount(0)
     await expect(genericShare.getByTestId('close-share')).toHaveCount(1)
     await expect(genericShare.getByTestId('share-link')).toHaveClass(/btn-primary/)
+    // ShareDrawer owns this density adjustment; the global drawer rhythm stays
+    // unchanged while the link action fits a short phone without first scroll.
+    await expect(genericShare.getByTestId('share-link')).toBeInViewport({ ratio: 1 })
 })
 
 test('a solo first expense returns to the room without opening Share', async ({ page }) => {

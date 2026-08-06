@@ -23,6 +23,12 @@ Sharing is important and encouraged, but never required.
 The prompt should match what exists. An empty room can be shared as setup; a
 populated room should show the context it has earned.
 
+The private invite payload is text plus the exact room URL, never an attached
+file. The URL's room-specific Open Graph image supplies the visual in receivers
+that unfurl links without risking an image-only delivery that drops the room
+credential. Public achievement and recap images are separate, honestly labelled
+file actions and never carry the room URL.
+
 ## Measurement rule
 
 `share_completed` is the success event: the native share resolves or a real

@@ -866,7 +866,7 @@ test('a verified pasted link still opens when localStorage is denied and says it
     expect(await page.evaluate(() => window.localStorage.getItem('ps:recent'))).toBeNull()
 })
 
-test('the room handoff shares a localized message, the link, and the room drawing', async ({ page }) => {
+test('the room handoff shares localized text and the exact URL without attaching a file', async ({ page }) => {
     await page.addInitScript(() => {
         Object.defineProperty(navigator, 'share', {
             configurable: true,
@@ -902,6 +902,8 @@ test('the room handoff shares a localized message, the link, and the room drawin
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
     expect(payload?.url).toMatch(/\/r\/share-package-\d+-[A-Za-z0-9_-]{22}$/)
+    expect(Object.keys(payload ?? {})).toEqual(['title', 'text', 'url'])
+    expect(payload).not.toHaveProperty('files')
     await expect(page.getByTestId('copy-link')).toBeVisible()
 
     await page.evaluate(() => {
@@ -952,21 +954,7 @@ test('v1 exposes Splitwise import without exposing AI tooling', async ({ page })
     expect((await page.goto('/blog/scan-a-receipt-to-split-a-bill'))?.status()).toBe(404)
 })
 
-/**
- * The re-added geometry gate, one layer up from where the deleted one sat.
- *
- * The old test measured hand-placed SVG coordinates (`x="92" y="270"`, `translate(820 180)`)
- * against the doodle's bounding box. Satori has no absolute text placement in these cards — the
- * name and the emblem are flex siblings — so the class of bug it caught is structurally
- * impossible now. What is still possible, and worse, is shipping bytes that are not a PNG at all:
- * that is exactly how the SVG attachment failed in every messenger for months. `createImageBitmap`
- * decoding the payload is the assertion that cannot be satisfied by a renamed blob.
- *
- * This is a SECOND test rather than an extension of the one above it. That one installs a
- * `canShare` that throws, on purpose, to prove the URL never yields to the image — with it in
- * place `payload.files` is permanently undefined and nothing here could ever run.
- */
-test('the invite share attaches a real 1200\u00d7630 PNG', async ({ page, request }) => {
+test('the room URL prewarms a cached 1200×630 social preview while native share stays URL-only', async ({ page }) => {
     await page.addInitScript(() => {
         Object.defineProperty(navigator, 'share', {
             configurable: true,
@@ -974,40 +962,41 @@ test('the invite share attaches a real 1200\u00d7630 PNG', async ({ page, reques
                 ;(window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload = payload
             },
         })
-        Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
+        Object.defineProperty(navigator, 'canShare', {
+            configurable: true,
+            value: () => {
+                ;(window as Window & { __canShareCalls?: number }).__canShareCalls =
+                    ((window as Window & { __canShareCalls?: number }).__canShareCalls ?? 0) + 1
+                return true
+            },
+        })
     })
     await page.goto('/new')
-    // 80 W's \u2014 the adversarial name the deleted test used, and the field's own maxLength.
+    // The field's full 80-character bound still has to produce a decodable image.
     await page.getByTestId('room-name').fill('W'.repeat(80))
     await page.getByTestId('creator-name').fill('Ana')
-    /**
-     * Armed BEFORE the room exists, because `useSharePng` fires the moment `LinkMoment` mounts \u2014
-     * which is the same paint that reveals the link. Measured: the prefetch response landed 8ms
-     * AFTER an immediate tap, so without this wait the test taps a button that is legitimately
-     * still holding null, gets the correct text-only degradation, and fails on the decode below.
-     * The `expect.poll` further down cannot save it: `__roomSharePayload` is written once, by the
-     * `share` call, so polling it re-reads a snapshot taken at tap time and can never change.
-     *
-     * A phone is not this fast \u2014 both screens that render `LinkMoment` sit on display for seconds
-     * before anyone taps, which is the whole reason the fetch was moved to mount. The wait models
-     * that, rather than papering over a race that only a test harness can win.
-     */
-    const cardPrefetched = page
-        .waitForResponse((response) => response.url().includes('/card/invite'), { timeout: 20_000 })
-        // Any answer, including a 404: the degradation branch below owns that case and must still
-        // be reachable when the route is not there.
-        .catch(() => null)
+    const previewWarmed = page.waitForResponse((response) => response.url().includes('/opengraph-image'), {
+        timeout: 20_000,
+    })
     await page.getByTestId('create-room').click()
     const roomUrl = await enterCreatedRoom(page)
     const slug = new URL(roomUrl).pathname.split('/')[2]
+    const previewResponse = await previewWarmed
+    expect(previewResponse.status()).toBe(200)
+    expect(new URL(previewResponse.url()).pathname).toBe(`/r/${slug}/opengraph-image`)
+    expect(previewResponse.headers()['cache-control']).toContain('s-maxage=300')
+    expect(previewResponse.headers()['cache-control']).toContain('stale-while-revalidate=60')
+
+    const preview = await page.evaluate(async (path) => {
+        const response = await fetch(path)
+        const blob = await response.blob()
+        const bitmap = await createImageBitmap(blob)
+        return { ok: response.ok, type: blob.type, width: bitmap.width, height: bitmap.height }
+    }, `/r/${slug}/opengraph-image`)
+    expect(preview).toEqual({ ok: true, type: 'image/png', width: 1200, height: 630 })
+
     await page.getByTestId('empty-share').click()
     await expect(page.getByTestId('room-link')).toBeVisible({ timeout: 15_000 })
-    await cardPrefetched
-    // Two frames: the response is decoded and `setFile` has committed before the gesture.
-    await page.evaluate(
-        () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
-    )
-
     await page.getByTestId('share-link').click()
     await expect
         .poll(() => page.evaluate(() => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload))
@@ -1015,50 +1004,8 @@ test('the invite share attaches a real 1200\u00d7630 PNG', async ({ page, reques
     const payload = await page.evaluate(
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
-
-    /**
-     * The designed degradation, asserted for real rather than assumed: with no card route the
-     * prefetch 404s, `useSharePng` holds null, and the text+url package goes out unchanged. The
-     * invite's job is to carry the link; the picture is the enhancement.
-     *
-     * This branch disarms itself. The moment the card route answers, the decode below is the gate.
-     */
-    const cardRoute = await request.get(`/r/${slug}/card/invite`)
-    if (cardRoute.status() === 404) {
-        expect(payload?.files ?? []).toHaveLength(0)
-        expect(payload?.url).toContain('/r/')
-        expect(payload?.text).toBe('Open the link, pick your name, then add what you paid.')
-        test.skip(true, 'the card route has not landed; the text-only degradation is asserted above')
-    }
-
-    // The prefetch runs on mount so the tap can stay synchronous. Without the poll the click races
-    // it and the test flakes rather than failing honestly.
-    await expect
-        .poll(
-            () =>
-                page.evaluate(
-                    () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload?.files?.length ?? 0
-                ),
-            { timeout: 20_000 }
-        )
-        .toBeGreaterThan(0)
-
-    const meta = await page.evaluate(async () => {
-        const shared = (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
-        const file = shared?.files?.[0]
-        if (!file) return null
-        const bitmap = await createImageBitmap(file)
-        return {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            w: bitmap.width,
-            h: bitmap.height,
-            url: shared?.url,
-        }
-    })
-    expect(meta).toMatchObject({ name: 'peanut-split-invite.png', type: 'image/png', w: 1200, h: 630 })
-    expect(meta!.size).toBeGreaterThan(5_000)
-    // The link still rides along. The picture is the enhancement, never the replacement.
-    expect(meta!.url).toContain('/r/')
+    expect(payload?.url).toBe(roomUrl)
+    expect(Object.keys(payload ?? {})).toEqual(['title', 'text', 'url'])
+    expect(payload).not.toHaveProperty('files')
+    expect(await page.evaluate(() => (window as Window & { __canShareCalls?: number }).__canShareCalls ?? 0)).toBe(0)
 })

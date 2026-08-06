@@ -24,16 +24,15 @@ import { useFeedback } from '@/lib/use-settings'
  * The PNG is prefetched on mount, so the tap itself is synchronous — `navigator.share` needs
  * transient user activation and an `await fetch` inside the gesture loses it on iOS.
  *
- * The payload carries `{ files, title, text }` and no `url`. That is the whole privacy design in
- * one object: the room link is the room's credential, so it rides only in the deliberate invite
- * flow. The card prints `peanutsplit.com` instead, which is the acquisition path that survives
- * being forwarded.
+ * The native payload carries `{ files }` only. That is the whole privacy design
+ * in one object: the room link is the room's credential, so it rides only in the
+ * deliberate invite flow. The card prints `peanutsplit.com` instead, which is
+ * the acquisition path that survives being forwarded.
  *
  * Sound and haptics fire on the tap, never on appearance.
  *
- * The visible label is just "Share" — it sits under the card it shares, so the picture is the
- * label. A screen reader gets the card's name instead (`shareLabel.<kind>`), because a settled
- * recap can carry five of these and "Share, Share, Share" is a list of nothing.
+ * The visible label names the image. A screen reader gets the particular card's
+ * name (`shareLabel.<kind>`), because a settled recap can carry five of these.
  */
 export function CardShareButton({
     slug,
@@ -49,7 +48,6 @@ export function CardShareButton({
     variant?: 'primary' | 'stroke'
 }) {
     const t = useTranslations('room.achievements')
-    const tRecap = useTranslations('room.recap')
     const feedback = useFeedback()
     const [busy, setBusy] = useState(false)
     const { file } = useSharePng(achievementCardPath(slug, kind, params), CARD_FILE_NAME[kind])
@@ -57,24 +55,13 @@ export function CardShareButton({
     const share = useCallback(async () => {
         if (busy) return
         setBusy(true)
-        const copy = { title: tRecap('shareTitle'), text: t(`shareText.${kind}`) }
         try {
             track('achievement_share_opened', achievementProps(type))
             feedback('whoosh')
 
-            if (!file) {
-                /**
-                 * The card never arrived — offline, or the route answered 404. The text still says
-                 * the thing and carries no link and no slug, so it is a real share rather than a
-                 * dead button. It reports no tier, because no file went anywhere.
-                 */
-                if (typeof navigator.share !== 'function') throw new Error('no card, no share sheet')
-                await navigator.share(copy)
-                track('achievement_shared', achievementProps(type))
-                return
-            }
+            if (!file) throw new Error('achievement image is not ready')
 
-            const tier = await shareImageFile(file, copy)
+            const tier = await shareImageFile(file)
             if (!tier) return
             if (tier === 'clipboard') toast(t('copied'), { duration: TOAST_MS.default })
             if (tier === 'download') toast(t('downloaded'), { duration: TOAST_MS.state })
@@ -87,7 +74,7 @@ export function CardShareButton({
         } finally {
             setBusy(false)
         }
-    }, [busy, feedback, file, kind, t, tRecap, type])
+    }, [busy, feedback, file, t, type])
 
     return (
         <Button

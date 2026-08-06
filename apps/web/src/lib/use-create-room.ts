@@ -7,6 +7,7 @@ import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
 import { useCreateRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
+import { prewarmRoomPreview } from '@/lib/room-preview'
 import { useFeedback } from '@/lib/use-settings'
 
 export interface CreateRoomFields {
@@ -48,6 +49,9 @@ export function useCreateRoomFlow(fallbackMessage: string) {
                 name: fields.creatorName.trim(),
             })
             rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
+            // Render the social preview while the creator is still at the
+            // roster checkpoint. It is an enhancement and never blocks this path.
+            void prewarmRoomPreview(state.room.slug)
             track('room_created', roomProps(state.room.slug, { currency: state.room.currency }))
             // A room came into being — the cork, not the pencil.
             feedback('pop')
