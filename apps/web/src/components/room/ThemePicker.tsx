@@ -40,7 +40,7 @@ export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
                 swatch was unreachable at 390px, which is the width this sheet is designed at. */}
             <ul
                 data-vaul-no-drag
-                className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin] [touch-action:pan-x]"
+                className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-n-1 [touch-action:pan-x]"
             >
                 {ROOM_THEMES.map((theme) => {
                     // `t.has`-free: every name lives under `names.<key>` and the

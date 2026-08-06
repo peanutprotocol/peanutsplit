@@ -129,7 +129,22 @@ export function Providers({ children }: { children: React.ReactNode }) {
                         // passes its own duration from TOAST_MS at the call site.
                         duration={TOAST_MS.default}
                         toastOptions={{
-                            className: 'rounded-sm border border-n-1 bg-white text-n-1 font-sans',
+                            // Sonner's styled mode wins on selector specificity,
+                            // reintroducing its soft shadow and 8px radius over
+                            // these classes. Own the primitive completely so a
+                            // toast follows the same hard-edged DS as the room.
+                            unstyled: true,
+                            classNames: {
+                                toast: 'shadow-4 flex w-full items-start gap-3 rounded-sm border border-n-1 bg-white p-4 font-sans text-sm text-n-1',
+                                content: 'flex min-w-0 flex-1 flex-col gap-1',
+                                title: 'font-bold',
+                                description: 'text-grey-1',
+                                actionButton:
+                                    'min-h-10 rounded-sm border border-n-1 bg-primary-1 px-3 font-bold text-n-1',
+                                cancelButton: 'min-h-10 rounded-sm border border-n-1 bg-white px-3 font-bold text-n-1',
+                                closeButton:
+                                    'flex size-10 items-center justify-center rounded-sm border border-n-1 bg-white',
+                            },
                         }}
                     />
                 </NuqsAdapter>
