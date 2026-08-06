@@ -7,6 +7,25 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-05.
 
+## Code-complete 2026-08-06 — exact-zero Former-member lifecycle
+
+- A used active member whose authoritative room-currency balance is exactly zero
+  can now be marked Former without deleting any ledger or social history. The
+  room-locked transition keeps at least one active person, invalidates the old
+  identity proof, drops push, writes audit history, and has short Undo plus
+  durable same-ID reactivation with token rotation.
+- New activity, identity, counts, and share art use the active roster. History,
+  exports, recap, balances, and settlements use the full ledger directory.
+  Historical corrections can reopen a Former balance and keep it settleable.
+- Open money forms survive identity recovery. Offline expenses blocked by a
+  membership change remain durable until reviewed: role remapping preserves
+  exact amounts/weights and per-room ordering; only Retry success or explicit
+  Discard removes the draft.
+
+**State:** code-complete on `qa/qa-sesh-former`; production verification and
+deployment remain separate release gates. Canonical invariants are in
+[`member-removal-design.md`](./member-removal-design.md).
+
 ## Code-complete 2026-08-04 — append imports to an existing room
 
 - Room settings now opens `/r/[slug]/import`, where a reviewed Splitwise or

@@ -9,7 +9,17 @@ import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { personalExpenseImpact } from '@/lib/expense-impact'
-import { isQueuedExpenseId, useQueuedWrites } from '@/lib/offline-queue'
+import {
+    discardQueuedWrite,
+    isQueuedExpenseId,
+    queuedExpenseId,
+    queuedParticipantIds as queuedBodyParticipantIds,
+    remapQueuedExpenseParticipant,
+    remapQueuedExpensePayer,
+    retryBlockedWrite,
+    updateBlockedWrite,
+    useQueuedWrites,
+} from '@/lib/offline-queue'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -175,6 +185,7 @@ export function ExpenseList({
     const motionAllowed = useMotionAllowed()
     const poppedId = usePoppedExpenseId(state.expenses)
     const queued = useQueuedWrites(slug)
+    const [reviewingQueuedKey, setReviewingQueuedKey] = useState<string | null>(null)
     const [openReactionExpenseId, setOpenReactionExpenseId] = useState<string | null>(null)
     const press = useRef<ExpensePress | null>(null)
     const suppressedClick = useRef<SuppressedExpenseClick | null>(null)
@@ -357,11 +368,16 @@ export function ExpenseList({
     }
 
     const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
-    const memberName = (id: string) => state.members.find((member) => member.id === id)?.name ?? t('someone')
+    const memberName = (id: string) => {
+        const member = state.members.find((candidate) => candidate.id === id)
+        if (!member) return t('someone')
+        return member.removedAt == null ? member.name : t('formerName', { name: member.name })
+    }
     // A stale device identity is not permission to call somebody in this room
     // "you". Spectators still see the expense totals, just without personal
     // direction claims.
-    const validMeId = meId && state.members.some((member) => member.id === meId) ? meId : undefined
+    const validMeId =
+        meId && state.members.some((member) => member.id === meId && member.removedAt == null) ? meId : undefined
     const memberIds = state.members.map((member) => member.id)
     const viewerIsMember = !!validMeId
     const groups = groupByDay(timeline, (entry) => entry.date)
@@ -435,7 +451,67 @@ export function ExpenseList({
                                 }
                                 const expense = entry.expense
                                 const payer = memberName(expense.paidById)
+                                const queuedWrite = queued.find(
+                                    (item) => queuedExpenseId(item.clientKey) === expense.id
+                                )
                                 const queuedExpense = isQueuedExpenseId(expense.id, queued)
+                                const blockedWrite = queuedWrite?.blocked ? queuedWrite : null
+                                const blockedCode = blockedWrite?.blocked?.code
+                                const blockedCopy =
+                                    blockedWrite?.blocked?.code === 'MEMBER_FORMER'
+                                        ? tOffline('blockedFormerBody')
+                                        : blockedWrite?.blocked?.code === 'MEMBER_TOKEN_INVALID'
+                                          ? tOffline('blockedTokenBody')
+                                          : blockedWrite?.blocked?.code === 'NOT_A_MEMBER'
+                                            ? tOffline('blockedMissingBody')
+                                            : tOffline('blockedBody')
+                                const activeRoster = state.members.filter((member) => member.removedAt == null)
+                                const activeIds = new Set(activeRoster.map((member) => member.id))
+                                const explicitQueuedParticipantIds = blockedWrite
+                                    ? queuedBodyParticipantIds(blockedWrite.body)
+                                    : []
+                                const queuedParticipantIds =
+                                    blockedWrite?.body.splitMode === 'EQUAL' && !blockedWrite.body.participantIds
+                                        ? activeRoster.map((member) => member.id)
+                                        : explicitQueuedParticipantIds
+                                const queuedParticipantNames = queuedParticipantIds.map(memberName).join(', ')
+                                const invalidQueuedPayerId =
+                                    blockedWrite?.body.paidById && !activeIds.has(blockedWrite.body.paidById)
+                                        ? blockedWrite.body.paidById
+                                        : null
+                                const invalidQueuedParticipantIds = explicitQueuedParticipantIds.filter(
+                                    (memberId) => !activeIds.has(memberId)
+                                )
+                                const queuedRolesValid =
+                                    invalidQueuedPayerId === null && invalidQueuedParticipantIds.length === 0
+                                const canRetryBlocked = queuedRolesValid && !!validMeId && !!token
+                                const participantRoleValue = (memberId: string) => {
+                                    if (!blockedWrite || blockedWrite.body.splitMode === 'EQUAL')
+                                        return tOffline('equalValue')
+                                    if (blockedWrite.body.splitMode === 'EXACT') {
+                                        const share = blockedWrite.body.exactShares?.find(
+                                            (candidate) => candidate.memberId === memberId
+                                        )
+                                        return share ? (
+                                            <Money
+                                                minor={share.amountMinor}
+                                                currency={blockedWrite.body.currency}
+                                                catalog={currencies}
+                                            />
+                                        ) : null
+                                    }
+                                    const weight = blockedWrite.body.weightedShares?.find(
+                                        (candidate) => candidate.memberId === memberId
+                                    )?.weight
+                                    if (!weight) return null
+                                    return blockedWrite.body.splitMode === 'PERCENTAGE'
+                                        ? tOffline('percentageValue', {
+                                              value: new Intl.NumberFormat(locale, {
+                                                  maximumFractionDigits: 2,
+                                              }).format(Number(weight) / 100),
+                                          })
+                                        : tOffline('sharesValue', { value: weight })
+                                }
                                 const unsaved = isPending(expense) || queuedExpense
                                 const impact = unsaved ? null : personalExpenseImpact(expense, validMeId)
                                 const personalPosition = getExpensePersonalPosition(
@@ -567,7 +643,9 @@ export function ExpenseList({
                                                 </span>
                                                 {queuedExpense && (
                                                     <span className="block text-h10 uppercase tracking-wide text-grey-1">
-                                                        {tOffline('rowHint')}
+                                                        {blockedWrite
+                                                            ? tOffline('blockedRowHint')
+                                                            : tOffline('rowHint')}
                                                     </span>
                                                 )}
                                                 <span className="mt-1 block truncate text-sm text-grey-1">
@@ -593,6 +671,146 @@ export function ExpenseList({
                                                 />
                                             </span>
                                         </button>
+                                        {blockedWrite && (
+                                            <div className="border-yellow-3 bg-yellow-1 mx-3 mb-3 rounded-sm border p-3 text-sm">
+                                                <p className="text-h8">{tOffline('blockedTitle')}</p>
+                                                <p className="mt-1 text-grey-1">{blockedCopy}</p>
+                                                {reviewingQueuedKey === blockedWrite.clientKey && (
+                                                    <div className="border-yellow-3 mt-3 border-t pt-3">
+                                                        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                                                            <dt className="text-grey-1">{tOffline('reviewAmount')}</dt>
+                                                            <dd className="text-right">
+                                                                <Money
+                                                                    minor={blockedWrite.body.amountMinor}
+                                                                    currency={blockedWrite.body.currency}
+                                                                    catalog={currencies}
+                                                                />
+                                                            </dd>
+                                                            <dt className="text-grey-1">{tOffline('reviewPayer')}</dt>
+                                                            <dd className="text-right">
+                                                                {memberName(blockedWrite.body.paidById ?? '')}
+                                                            </dd>
+                                                            <dt className="text-grey-1">{tOffline('reviewSplit')}</dt>
+                                                            <dd className="text-right">
+                                                                {queuedParticipantNames || t('someone')}
+                                                            </dd>
+                                                        </dl>
+                                                        {invalidQueuedPayerId && (
+                                                            <label className="mt-3 block text-h9">
+                                                                {tOffline('remapPayer', {
+                                                                    name: memberName(invalidQueuedPayerId),
+                                                                })}
+                                                                <select
+                                                                    value=""
+                                                                    onChange={(event) => {
+                                                                        if (!event.target.value) return
+                                                                        updateBlockedWrite(
+                                                                            blockedWrite.clientKey,
+                                                                            remapQueuedExpensePayer(
+                                                                                blockedWrite.body,
+                                                                                event.target.value
+                                                                            )
+                                                                        )
+                                                                    }}
+                                                                    className="mt-1 h-11 w-full rounded-sm border border-n-1 bg-white px-2"
+                                                                >
+                                                                    <option value="">{tOffline('chooseActive')}</option>
+                                                                    {activeRoster.map((member) => (
+                                                                        <option key={member.id} value={member.id}>
+                                                                            {member.name}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </label>
+                                                        )}
+                                                        {invalidQueuedParticipantIds.map((formerId) => (
+                                                            <label key={formerId} className="mt-3 block text-h9">
+                                                                {tOffline('remapParticipant', {
+                                                                    name: memberName(formerId),
+                                                                })}{' '}
+                                                                · {participantRoleValue(formerId)}
+                                                                <select
+                                                                    value=""
+                                                                    onChange={(event) => {
+                                                                        if (!event.target.value) return
+                                                                        const next = remapQueuedExpenseParticipant(
+                                                                            blockedWrite.body,
+                                                                            formerId,
+                                                                            event.target.value
+                                                                        )
+                                                                        if (next)
+                                                                            updateBlockedWrite(
+                                                                                blockedWrite.clientKey,
+                                                                                next
+                                                                            )
+                                                                    }}
+                                                                    className="mt-1 h-11 w-full rounded-sm border border-n-1 bg-white px-2"
+                                                                >
+                                                                    <option value="">{tOffline('chooseActive')}</option>
+                                                                    {activeRoster.map((member) => (
+                                                                        <option
+                                                                            key={member.id}
+                                                                            value={member.id}
+                                                                            disabled={explicitQueuedParticipantIds.includes(
+                                                                                member.id
+                                                                            )}
+                                                                        >
+                                                                            {member.name}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                                {!activeRoster.some(
+                                                                    (member) =>
+                                                                        !explicitQueuedParticipantIds.includes(
+                                                                            member.id
+                                                                        )
+                                                                ) && (
+                                                                    <span className="mt-1 block font-normal text-grey-1">
+                                                                        {tOffline('insufficientActive')}
+                                                                    </span>
+                                                                )}
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    <button
+                                                        type="button"
+                                                        className="rounded-sm border border-n-1 bg-white px-3 py-2 text-h9"
+                                                        onClick={() =>
+                                                            setReviewingQueuedKey((current) =>
+                                                                current === blockedWrite.clientKey
+                                                                    ? null
+                                                                    : blockedWrite.clientKey
+                                                            )
+                                                        }
+                                                    >
+                                                        {reviewingQueuedKey === blockedWrite.clientKey
+                                                            ? tOffline('hideReview')
+                                                            : tOffline('review')}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={!canRetryBlocked}
+                                                        className="rounded-sm border border-n-1 bg-white px-3 py-2 text-h9 disabled:opacity-40"
+                                                        onClick={() => retryBlockedWrite(blockedWrite.clientKey, token)}
+                                                    >
+                                                        {tOffline('retry')}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="text-red-1 rounded-sm px-3 py-2 text-h9 underline"
+                                                        onClick={() => {
+                                                            if (!window.confirm(tOffline('discardConfirm'))) return
+                                                            discardQueuedWrite(blockedWrite.clientKey)
+                                                            setReviewingQueuedKey(null)
+                                                        }}
+                                                    >
+                                                        {tOffline('discard')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                         {/* Outside the row button, not inside
                                             it: a button cannot contain buttons,
                                             and the row's own tap target has to

@@ -23,6 +23,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { Prisma } from '@prisma/client'
 import { dealPersonaKeys } from '@/lib/avatars'
 import { dealAvatarPaletteKeys } from '@/lib/avatar-palettes'
+import { isFormerMember } from '@/lib/members'
 import { prisma } from '@/server/db'
 import { buildExpense, expenseNeedsRateTable } from '@/server/expenses'
 import { getRateTable, rateFrom } from '@/server/fx'
@@ -337,6 +338,9 @@ export async function importIntoRoom(
                 if (!target) {
                     throw badRequest(`${mapping.sourceName} is not mapped to a member of this room`, 'NOT_A_MEMBER')
                 }
+                if (isFormerMember(target)) {
+                    throw badRequest(`${mapping.sourceName} is mapped to a former member`, 'MEMBER_FORMER')
+                }
                 if (usedTargetIds.has(target.id)) {
                     throw badRequest('each source member needs a distinct room member', 'VALIDATION_ERROR')
                 }
@@ -347,13 +351,22 @@ export async function importIntoRoom(
             // Reject every name collision against the authoritative roster
             // before issuing member tokens. The eventual helper repeats the
             // check by design; both happen under this same advisory lock.
-            const roomNames = new Set(lockedRoom.members.map((member) => sourceNameKey(member.name)))
+            const roomNames = new Map(
+                lockedRoom.members.map((member) => [sourceNameKey(member.name), isFormerMember(member)] as const)
+            )
             for (const mapping of body.members) {
                 if (!('newMemberName' in mapping)) continue
-                if (roomNames.has(sourceNameKey(mapping.newMemberName))) {
+                const existingIsFormer = roomNames.get(sourceNameKey(mapping.newMemberName))
+                if (existingIsFormer === true) {
+                    throw conflict(
+                        `${mapping.newMemberName} is a former member; reactivate that person first`,
+                        'MEMBER_REACTIVATION_REQUIRED'
+                    )
+                }
+                if (existingIsFormer === false) {
                     throw conflict(`${mapping.newMemberName} is already in this room`, 'DUPLICATE_MEMBER_NAME')
                 }
-                roomNames.add(sourceNameKey(mapping.newMemberName))
+                roomNames.set(sourceNameKey(mapping.newMemberName), false)
             }
 
             const addedMemberIds: string[] = []

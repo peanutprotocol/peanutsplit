@@ -145,6 +145,9 @@ export async function sendRoomEvent(input: SendRoomEventInput): Promise<SendOutc
     const targets = await prisma.pushSubscription.findMany({
         where: {
             roomId: room.id,
+            // Removal deletes subscriptions transactionally; this relation
+            // filter is defense in depth for legacy/orphaned rows.
+            member: { removedAt: null },
             ...(actorMemberId ? { memberId: { not: actorMemberId } } : {}),
         },
     })

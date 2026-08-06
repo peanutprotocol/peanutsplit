@@ -114,6 +114,8 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             const room = await loadRoom(slug, tx)
             const existing = await findExpense(room, id, tx)
             if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
+            const previous = room.expenses.find((expense) => expense.id === id)
+            if (!previous) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
             const weightedExisting = existing.splitMode === 'PERCENTAGE' || existing.splitMode === 'SHARES'
             if (
                 (weightedExisting && body.expectedSplitMode !== existing.splitMode) ||
@@ -130,11 +132,9 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             const write = await buildExpense(
                 room,
                 { ...editBody, description: editBody.description ?? existing.description },
-                existing,
+                { ...existing, shares: previous.shares },
                 rateTable
             )
-            const previous = room.expenses.find((expense) => expense.id === id)
-            if (!previous) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
             const after = expenseAuditSnapshot({
                 id,
                 roomId: room.id,

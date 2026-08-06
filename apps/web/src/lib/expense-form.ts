@@ -55,6 +55,16 @@ export interface ExpenseFormValues {
     date: string
 }
 
+/** Member ids the current form would send for its selected split mode. Untouched
+ * EQUAL deliberately returns none because the wire omits participantIds and the
+ * server resolves the active roster at commit time. */
+export const referencedDraftParticipantIds = (values: ExpenseFormValues): string[] => {
+    if (values.splitMode === 'EQUAL') return values.participantsTouched ? values.participantIds : []
+    if (values.splitMode === 'EXACT') return Object.keys(values.exactInputs)
+    if (values.splitMode === 'PERCENTAGE') return Object.keys(values.percentageInputs)
+    return Object.keys(values.shareInputs)
+}
+
 export const emptyExpenseForm = (opts: {
     currency: string
     members: readonly ApiMember[]

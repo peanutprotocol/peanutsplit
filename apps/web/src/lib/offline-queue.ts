@@ -21,8 +21,8 @@
  *     there, is a double payment recorded as fact. Money says no.
  *
  * The queue is per device (localStorage), survives a reload and a PWA restart,
- * and is drained sequentially — never in parallel, so the room's history keeps
- * the order the person actually typed things in.
+ * and is drained sequentially — never in parallel. A blocked write is an
+ * ordering barrier for its room, while unrelated rooms may continue.
  */
 
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
@@ -30,6 +30,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ApiRequestError, NETWORK_ERROR_CODE } from './api'
 import type { ApiExpense, ExpenseInput, RoomState } from './api-types'
+import { activeMembers } from './members'
 import { PENDING_ID_PREFIX } from './pending'
 import { TOAST_MS } from './toasts'
 
@@ -66,6 +67,10 @@ export interface QueuedWrite {
     body: ExpenseInput
     token: string | null
     addedAt: number
+    /** A deterministic member-lifecycle refusal needs a person, not a timer.
+     * Keep the original body byte-for-byte until they explicitly retry or
+     * discard it. */
+    blocked?: { code: string; blockedAt: number }
 }
 
 // ─── pure rules ─────────────────────────────────────────────────────────────
@@ -97,6 +102,13 @@ export function parseQueue(raw: string | null): QueuedWrite[] {
 function isQueuedWrite(value: unknown): value is QueuedWrite {
     if (typeof value !== 'object' || value === null) return false
     const item = value as Record<string, unknown>
+    const blocked = item.blocked
+    const validBlocked =
+        blocked === undefined ||
+        (typeof blocked === 'object' &&
+            blocked !== null &&
+            typeof (blocked as Record<string, unknown>).code === 'string' &&
+            typeof (blocked as Record<string, unknown>).blockedAt === 'number')
     return (
         typeof item.clientKey === 'string' &&
         typeof item.slug === 'string' &&
@@ -105,7 +117,8 @@ function isQueuedWrite(value: unknown): value is QueuedWrite {
         typeof item.body === 'object' &&
         item.body !== null &&
         typeof item.addedAt === 'number' &&
-        isQueueable(item.endpoint, item.method)
+        isQueueable(item.endpoint, item.method) &&
+        validBlocked
     )
 }
 
@@ -116,18 +129,30 @@ export function appendQueued(
     item: QueuedWrite
 ): { items: QueuedWrite[]; dropped: QueuedWrite[] } {
     const next = [...items, item]
-    const overflow = Math.max(0, next.length - MAX_QUEUED)
-    return { items: next.slice(overflow), dropped: next.slice(0, overflow) }
+    const dropped: QueuedWrite[] = []
+    while (next.length > MAX_QUEUED) {
+        // A blocked draft is durable until success or explicit discard. When
+        // every existing slot is blocked, the newly appended (unblocked) item
+        // is the only evictable record and enqueueWrite reports that failure.
+        const evictable = next.findIndex((queued) => !queued.blocked)
+        if (evictable < 0) break
+        dropped.push(...next.splice(evictable, 1))
+    }
+    return { items: next, dropped }
 }
 
-export type DrainVerdict = 'drop' | 'stop'
+export type DrainVerdict = 'drop' | 'block' | 'stop'
+
+const MEMBER_REVIEW_CODES = new Set(['MEMBER_FORMER', 'MEMBER_TOKEN_INVALID', 'NOT_A_MEMBER'])
 
 /**
  * What to do with an item the server refused.
  *
- * 4xx (except 429) → drop: the room moved on. The member was removed or the
- * payload no longer validates. Replaying it forever would mean
- * a permanently stuck queue and a placeholder row that never resolves.
+ * Member-lifecycle 4xx → block: the money fact is retained for explicit review,
+ * retry or discard, without an automatic retry loop.
+ *
+ * Other 4xx (except 429) → drop: the payload no longer validates. Replaying it
+ * forever would mean a permanently stuck queue.
  *
  * 429, 5xx, transport failure → keep and stop draining: nothing about the write
  * is wrong, the other end is just unavailable. Dropping a real expense because
@@ -136,6 +161,7 @@ export type DrainVerdict = 'drop' | 'stop'
  */
 export function verdictFor(error: unknown): DrainVerdict {
     if (error instanceof ApiRequestError) {
+        if (MEMBER_REVIEW_CODES.has(error.code)) return 'block'
         if (error.status === 429) return 'stop'
         if (error.status >= 400 && error.status < 500) return 'drop'
     }
@@ -148,6 +174,8 @@ export interface DrainSummary {
     sent: QueuedWrite[]
     /** Refused by the server and given up on. */
     dropped: QueuedWrite[]
+    /** Refused because membership changed; retained with its complete body. */
+    blocked: QueuedWrite[]
 }
 
 /**
@@ -164,22 +192,43 @@ export async function drainQueue(
 ): Promise<DrainSummary> {
     const sent: QueuedWrite[] = []
     const dropped: QueuedWrite[] = []
+    const blocked: QueuedWrite[] = []
+    const remaining: QueuedWrite[] = []
+    const blockedSlugs = new Set<string>()
 
     for (let i = 0; i < items.length; i++) {
         const item = items[i]
+        if (blockedSlugs.has(item.slug)) {
+            remaining.push(item)
+            continue
+        }
         try {
             await perform(item)
             sent.push(item)
         } catch (error) {
-            if (verdictFor(error) === 'drop') {
+            const verdict = verdictFor(error)
+            if (verdict === 'drop') {
                 dropped.push(item)
                 continue
             }
-            return { remaining: items.slice(i), sent, dropped }
+            if (verdict === 'block') {
+                blocked.push({
+                    ...item,
+                    blocked: {
+                        code: error instanceof ApiRequestError ? error.code : 'MEMBER_REVIEW_REQUIRED',
+                        blockedAt: Date.now(),
+                    },
+                })
+                // Preserve chronological order within this room. Another room
+                // is independent and may still drain in this same pass.
+                blockedSlugs.add(item.slug)
+                continue
+            }
+            return { remaining: [...remaining, ...items.slice(i)], sent, dropped, blocked }
         }
     }
 
-    return { remaining: [], sent, dropped }
+    return { remaining, sent, dropped, blocked }
 }
 
 /**
@@ -202,7 +251,7 @@ export function mergeQueuedExpenses(state: RoomState, queued: readonly QueuedWri
         draftExpenseRow(item.body, {
             id: queuedExpenseId(item.clientKey),
             at: item.addedAt,
-            members: state.members,
+            members: activeMembers(state.members),
         })
     )
     // Replace only this queue's optimistic rows. Another save may still be in flight, and stripping
@@ -275,6 +324,52 @@ export function draftExpenseRow(
 export const isQueuedExpenseId = (expenseId: string, queued: readonly QueuedWrite[]): boolean =>
     queued.some((item) => queuedExpenseId(item.clientKey) === expenseId)
 
+/** Explicit participant references carried by the queued body. Untouched EQUAL
+ * has no ids on purpose: the server resolves the active roster at commit. */
+export function queuedParticipantIds(body: ExpenseInput): string[] {
+    if (body.splitMode === 'EQUAL') return body.participantIds ?? []
+    if (body.splitMode === 'EXACT') return (body.exactShares ?? []).map((share) => share.memberId)
+    return (body.weightedShares ?? []).map((share) => share.memberId)
+}
+
+export const remapQueuedExpensePayer = (body: ExpenseInput, memberId: string): ExpenseInput => ({
+    ...body,
+    paidById: memberId,
+})
+
+/** Remap one participant identity without touching its amount or weight. Null
+ * means the target is already another participant, which would collapse two
+ * money roles into one and lose information. */
+export function remapQueuedExpenseParticipant(
+    body: ExpenseInput,
+    fromMemberId: string,
+    toMemberId: string
+): ExpenseInput | null {
+    const ids = queuedParticipantIds(body)
+    if (fromMemberId !== toMemberId && ids.includes(toMemberId)) return null
+    if (body.splitMode === 'EQUAL') {
+        if (!body.participantIds?.includes(fromMemberId)) return body
+        return {
+            ...body,
+            participantIds: body.participantIds.map((id) => (id === fromMemberId ? toMemberId : id)),
+        }
+    }
+    if (body.splitMode === 'EXACT') {
+        return {
+            ...body,
+            exactShares: body.exactShares?.map((share) =>
+                share.memberId === fromMemberId ? { ...share, memberId: toMemberId } : share
+            ),
+        }
+    }
+    return {
+        ...body,
+        weightedShares: body.weightedShares?.map((share) =>
+            share.memberId === fromMemberId ? { ...share, memberId: toMemberId } : share
+        ),
+    }
+}
+
 // ─── storage ────────────────────────────────────────────────────────────────
 
 let storageOverride: Storage | null = null
@@ -346,10 +441,12 @@ function persistQueuedItem(item: QueuedWrite): { items: QueuedWrite[]; dropped: 
         store.removeItem(PENDING_KEY)
 
         const all = readStoredQueue(store)
-        const overflow = Math.max(0, all.length - MAX_QUEUED)
-        const dropped = all.slice(0, overflow)
+        const { items, dropped } = appendQueued(
+            all.filter((queued) => queued.clientKey !== item.clientKey),
+            item
+        )
         for (const queued of dropped) store.removeItem(`${PENDING_ITEM_PREFIX}${queued.clientKey}`)
-        return { items: all.slice(overflow), dropped }
+        return { items, dropped }
     } catch {
         // Quota, or a private-mode Storage that accepts reads and refuses
         // writes. The in-memory snapshot still drains this session.
@@ -369,6 +466,21 @@ function removeQueuedItems(items: readonly QueuedWrite[]): QueuedWrite[] {
         return readStoredQueue(store)
     } catch {
         return (snapshot ?? []).filter((item) => !removed.has(item.clientKey))
+    }
+}
+
+function replaceQueuedItems(items: readonly QueuedWrite[]): QueuedWrite[] {
+    const store = storage()
+    if (!store) {
+        const replacements = new Map(items.map((item) => [item.clientKey, item]))
+        return (snapshot ?? []).map((item) => replacements.get(item.clientKey) ?? item)
+    }
+    try {
+        for (const item of items) store.setItem(`${PENDING_ITEM_PREFIX}${item.clientKey}`, JSON.stringify(item))
+        return readStoredQueue(store)
+    } catch {
+        const replacements = new Map(items.map((item) => [item.clientKey, item]))
+        return (snapshot ?? []).map((item) => replacements.get(item.clientKey) ?? item)
     }
 }
 
@@ -409,6 +521,7 @@ export type QueueNotice =
     | { kind: 'queued' }
     | { kind: 'dropped-full'; count: number }
     | { kind: 'dropped-rejected'; count: number }
+    | { kind: 'blocked-member'; count: number }
     | { kind: 'sent'; count: number }
 
 const noticeListeners = new Set<(notice: QueueNotice) => void>()
@@ -473,9 +586,10 @@ export function enqueueWrite(input: {
     const { items, dropped } = persistQueuedItem(item)
     snapshot = items
     notifyChanged()
-    notify({ kind: 'queued' })
+    const accepted = items.some((queued) => queued.clientKey === item.clientKey)
+    if (accepted) notify({ kind: 'queued' })
     if (dropped.length > 0) notify({ kind: 'dropped-full', count: dropped.length })
-    return item
+    return accepted ? item : null
 }
 
 /**
@@ -617,25 +731,43 @@ export async function drainPending(): Promise<DrainSummary | null> {
 
             refreshQueueSnapshot()
             const items = queueSnapshot()
-            if (items.length === 0) {
+            const blockedSlugs = new Set<string>()
+            const ready = items.filter((item) => {
+                if (item.blocked) {
+                    blockedSlugs.add(item.slug)
+                    return false
+                }
+                return !blockedSlugs.has(item.slug)
+            })
+            if (ready.length === 0) {
                 cancelRetry()
                 return null
             }
 
-            const summary = await drainQueue(items, activePerformer)
+            const summary = await drainQueue(ready, activePerformer)
             // Remove only writes this drain actually sent or rejected. Every
             // record has its own storage key, so another tab can append while a
             // network request is in flight without sharing an overwrite target.
             snapshot = removeQueuedItems([...summary.sent, ...summary.dropped])
+            snapshot = replaceQueuedItems(summary.blocked)
             notifyChanged()
             // Any forward progress means the connection is not in the same
             // failure streak. Give the first retained item the short retry
             // again instead of inheriting a five-minute delay from an older one.
-            if (summary.sent.length > 0 || summary.dropped.length > 0) retryAttempt = 0
-            if (snapshot.length > 0) scheduleRetry()
+            if (summary.sent.length > 0 || summary.dropped.length > 0 || summary.blocked.length > 0) retryAttempt = 0
+            const waitingBlockedSlugs = new Set<string>()
+            const hasSendablePrefix = snapshot.some((item) => {
+                if (item.blocked) {
+                    waitingBlockedSlugs.add(item.slug)
+                    return false
+                }
+                return !waitingBlockedSlugs.has(item.slug)
+            })
+            if (hasSendablePrefix) scheduleRetry()
             else cancelRetry()
             if (summary.sent.length > 0) notify({ kind: 'sent', count: summary.sent.length })
             if (summary.dropped.length > 0) notify({ kind: 'dropped-rejected', count: summary.dropped.length })
+            if (summary.blocked.length > 0) notify({ kind: 'blocked-member', count: summary.blocked.length })
             return summary
         })
         if (!owned.acquired) {
@@ -655,6 +787,51 @@ export async function drainPending(): Promise<DrainSummary | null> {
  *  `onSuccess`, an event listener). */
 export const requestDrain = (): void => {
     void drainPending().catch((err) => console.warn('[split] queue drain failed', err))
+}
+
+/** Explicitly put one reviewed write back into the sendable queue. */
+export function retryBlockedWrite(clientKey: string, replacementToken?: string | null): boolean {
+    refreshQueueSnapshot()
+    const current = queueSnapshot().find((item) => item.clientKey === clientKey && item.blocked)
+    if (!current) return false
+    const { blocked: _blocked, ...rest } = current
+    const ready = { ...rest, token: replacementToken === undefined ? current.token : replacementToken }
+    snapshot = replaceQueuedItems([ready])
+    notifyChanged()
+    cancelRetry()
+    requestDrain()
+    return true
+}
+
+/** Persist a reviewed remap while retaining the block and original client key.
+ * A restart between Review and Retry must not undo the person's decision. */
+export function updateBlockedWrite(clientKey: string, body: ExpenseInput): boolean {
+    refreshQueueSnapshot()
+    const current = queueSnapshot().find((item) => item.clientKey === clientKey && item.blocked)
+    if (!current) return false
+    // Per-item storage avoids cross-tab queue replacement. Two tabs editing the
+    // same clientKey are last-writer-wins locally; server clientKey idempotency
+    // still prevents the two reviewed deliveries from creating two expenses.
+    snapshot = replaceQueuedItems([
+        {
+            ...current,
+            body: { ...body, clientKey: current.clientKey },
+        },
+    ])
+    notifyChanged()
+    return true
+}
+
+/** The only path that intentionally deletes a member-blocked money fact. */
+export function discardQueuedWrite(clientKey: string): boolean {
+    refreshQueueSnapshot()
+    const current = queueSnapshot().find((item) => item.clientKey === clientKey)
+    if (!current) return false
+    snapshot = removeQueuedItems([current])
+    notifyChanged()
+    if (!snapshot.some((item) => !item.blocked)) cancelRetry()
+    requestDrain()
+    return true
 }
 
 // ─── react ──────────────────────────────────────────────────────────────────
@@ -697,6 +874,9 @@ export function useQueueNotices(): void {
                     // "Add it again" is an instruction — it has to outlive the
                     // moment of reading it.
                     toast.error(t('rejectedToast', { count: notice.count }), { duration: TOAST_MS.actionable })
+                    return
+                case 'blocked-member':
+                    toast.error(t('blockedToast', { count: notice.count }), { duration: TOAST_MS.actionable })
                     return
                 case 'sent':
                     toast.success(t('sentToast', { count: notice.count }), { duration: TOAST_MS.state })

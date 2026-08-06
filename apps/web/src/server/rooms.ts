@@ -3,7 +3,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { conflict } from '@/server/http'
-import { actorForMember, appendRoomAuditEvent, type AuditActor } from '@/server/history'
+import { actorForMember, actorFromToken, appendRoomAuditEvent } from '@/server/history'
 import { randomPersonaKey } from '@/lib/avatars'
 import { effectiveAvatarPaletteKey, randomAvatarPaletteKey, separatedAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { memberToken, roomSlug } from '@/server/slug'
@@ -101,12 +101,17 @@ export async function addMember(
     name: string,
     provisional = false,
     request: Request = new Request('http://localhost'),
-    actor: AuditActor = { memberId: null, memberName: null }
+    actorToken: string | null = null
 ): Promise<CreatedMember> {
     const token = memberToken()
 
     return prisma.$transaction(async (tx) => {
         await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${room.id}, 0))`
+        // Resolve a supplied identity only after taking the same lock as member
+        // removal. Otherwise removal can win between the route's room read and
+        // this insert, and a stale token still writes as a Former member.
+        const lockedRoom = await loadRoom(room.slug, tx)
+        const actor = actorFromToken(lockedRoom.members, actorToken)
         const added = await addMemberInLockedTransaction(tx, room.id, name, token, provisional)
         const member = await tx.member.findUniqueOrThrow({ where: { id: added.memberId } })
         await appendRoomAuditEvent({
@@ -149,11 +154,19 @@ export async function addMemberInLockedTransaction(
     // invariant with the existing schema. Every caller holds the room lock.
     const duplicate = await tx.member.findFirst({
         where: { roomId, name: { equals: name, mode: 'insensitive' } },
-        select: { id: true },
+        select: { id: true, removedAt: true },
     })
+    if (duplicate?.removedAt) {
+        throw conflict(
+            `${name} is a former member; reactivate that existing person instead`,
+            'MEMBER_REACTIVATION_REQUIRED'
+        )
+    }
     if (duplicate) throw conflict(`${name} is already in this room`, 'DUPLICATE_MEMBER_NAME')
     const existingMembers = await tx.member.findMany({
-        where: { roomId, removedAt: null },
+        // Former identities can be restored with their persona intact, so their
+        // visual identity remains reserved by the ledger directory.
+        where: { roomId },
         select: { name: true, avatar: true, avatarPalette: true },
     })
     const usedAvatars = existingMembers.flatMap((member) => (member.avatar ? [member.avatar] : []))

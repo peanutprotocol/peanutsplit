@@ -13,6 +13,7 @@ import { currencyDoodle } from '@/lib/currency-doodle'
 import { savedExpenses } from '@/lib/pending'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { activeMembers } from '@/lib/members'
 import { CardShareButton } from './CardShareButton'
 import { Confetti } from './Confetti'
 import { MemberAvatar } from './MemberAvatar'
@@ -130,8 +131,9 @@ function Subject({
     t: (key: string) => string
 }) {
     if (unlock.type === 'crew') {
-        const lineup = state.members.slice(0, 8)
-        const overflow = state.members.length - lineup.length
+        const roster = activeMembers(state.members)
+        const lineup = roster.slice(0, 8)
+        const overflow = roster.length - lineup.length
         return (
             <div className="flex items-center" data-testid="achievement-lineup">
                 {lineup.map((member) => (

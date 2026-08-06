@@ -63,6 +63,14 @@ export interface LatecomerReview {
 
 const at = (iso: string): number => new Date(iso).getTime()
 
+/** Best available historical roster interval. `removedAt` records the current
+ * Former transition, so a person removed before a row was written must not make
+ * that row look like an incomplete whole-room split. Reactivation clears this
+ * timestamp; older inactive intervals are intentionally treated conservatively
+ * until the audit log becomes the source for interval history. */
+export const memberWasActiveAt = (member: ApiMember, timestamp: number): boolean =>
+    at(member.createdAt) <= timestamp && (member.removedAt == null || at(member.removedAt) > timestamp)
+
 /**
  * The earlier expenses `memberId` should be in. Empty for anybody who was there
  * from the start, and empty once the repair has run — which is what makes the
@@ -71,7 +79,7 @@ const at = (iso: string): number => new Date(iso).getTime()
  */
 export function backfillableFor(state: RoomState, memberId: string): ApiExpense[] {
     const member = state.members.find((candidate) => candidate.id === memberId)
-    if (!member) return []
+    if (!member || member.removedAt != null) return []
     const joinedAt = at(member.createdAt)
 
     return savedExpenses(state.expenses).filter((expense) => {
@@ -82,7 +90,7 @@ export function backfillableFor(state: RoomState, memberId: string): ApiExpense[
         const shareHolders = new Set(expense.shares.map((share) => share.memberId))
         if (shareHolders.has(memberId)) return false
 
-        const presentThen = state.members.filter((candidate) => at(candidate.createdAt) <= writtenAt)
+        const presentThen = state.members.filter((candidate) => memberWasActiveAt(candidate, writtenAt))
         if (presentThen.length !== shareHolders.size) return false
         return presentThen.every((candidate) => shareHolders.has(candidate.id))
     })
@@ -100,7 +108,7 @@ export function backfillableFor(state: RoomState, memberId: string): ApiExpense[
  */
 export function latecomerReview(state: RoomState, memberId: string): LatecomerReview | null {
     const member = state.members.find((candidate) => candidate.id === memberId)
-    if (!member) return null
+    if (!member || member.removedAt != null) return null
     const joinedAt = at(member.createdAt)
 
     const items = savedExpenses(state.expenses).flatMap((expense): LatecomerReviewItem[] => {
@@ -123,7 +131,7 @@ export function latecomerReview(state: RoomState, memberId: string): LatecomerRe
             return [{ expense, kind: 'manual', impactMinor: null }]
         }
 
-        const presentThen = state.members.filter((candidate) => at(candidate.createdAt) <= writtenAt)
+        const presentThen = state.members.filter((candidate) => memberWasActiveAt(candidate, writtenAt))
         // Later-created holders are extras, not evidence that this stopped being
         // a whole-room expense. This is how a second latecomer can review a row
         // after the first latecomer was already caught up.

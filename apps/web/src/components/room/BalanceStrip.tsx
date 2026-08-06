@@ -9,6 +9,7 @@ import { isZeroMinor } from '@/lib/money'
 import { savedExpenses } from '@/lib/pending'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { balanceMembers, isFormerMember } from '@/lib/members'
 import { AnimatedMoney } from './Money'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -84,6 +85,7 @@ const byDebtFirst = (balances: Record<string, string>) => (a: { id: string }, b:
 interface PairMember {
     id: string
     name: string
+    removedAt?: string | null
 }
 
 export interface PairCard {
@@ -243,15 +245,19 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
     const anySavedExpenses = savedExpenses(state.expenses).length > 0
     // Copied before sorting: `state.members` is the query cache's array, and sorting in place
     // would reorder it for every other reader of the same room.
-    const ordered = useMemo(() => [...state.members].sort(byDebtFirst(state.balances)), [state.members, state.balances])
+    const visibleMembers = useMemo(() => balanceMembers(state.members, state.balances), [state.balances, state.members])
+    const ordered = useMemo(
+        () => [...visibleMembers].sort(byDebtFirst(state.balances)),
+        [visibleMembers, state.balances]
+    )
     // Exactly two people is one number, not two. One and three-or-more keep the strip.
     const pair =
-        state.members.length === 2 ? pairCard(state.members, state.balances, meId, anySavedExpenses, t) : undefined
+        visibleMembers.length === 2 ? pairCard(visibleMembers, state.balances, meId, anySavedExpenses, t) : undefined
     // Seeded on the first render so the initial roster does not fire n pops.
     const known = useRef<Set<string> | null>(null)
 
     useEffect(() => {
-        const ids = state.members.map((member) => member.id)
+        const ids = visibleMembers.map((member) => member.id)
         if (known.current === null) {
             known.current = new Set(ids)
             return
@@ -259,7 +265,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
         const arrived = ids.some((id) => !known.current!.has(id))
         known.current = new Set(ids)
         if (arrived) feedback('pop')
-    }, [state.members, feedback])
+    }, [visibleMembers, feedback])
 
     if (pair)
         return (
@@ -317,7 +323,10 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                 element is not an option, because Spanish puts the name last in
                                 the other direction ("Le debes a {name}") and the order is the
                                 translator's to choose. */}
-                            <span className="line-clamp-2 min-w-0 break-words text-h8 leading-snug">{pair.label}</span>
+                            <span className="line-clamp-2 min-w-0 break-words text-h8 leading-snug">
+                                {pair.label}
+                                {isFormerMember(pair.about) && ` · ${t('former')}`}
+                            </span>
                         </span>
                         {/* AnimatedMoney emits an accessible text node and a visual NumberFlow.
                             One wrapper keeps both in the amount column of this two-column grid. */}
@@ -369,6 +378,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                     // the animated text mid-transition.
                                     data-net={net}
                                     data-balance-direction={tone.direction}
+                                    data-former={isFormerMember(member) || undefined}
                                     className={cn(
                                         'flex w-[8.5rem] shrink-0 rounded-sm border border-n-1',
                                         tone.card,
@@ -397,6 +407,11 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                             <span className="min-w-0 flex-1 truncate text-h8">
                                                 {member.id === meId ? t('you') : member.name}
                                             </span>
+                                            {isFormerMember(member) && (
+                                                <span className="rounded-full border border-n-1 bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                                                    {t('former')}
+                                                </span>
+                                            )}
                                         </span>
                                         {/* No letter-spacing here. At 10px the extra tracking
                                             rounds up to a full pixel on some glyph pairs and

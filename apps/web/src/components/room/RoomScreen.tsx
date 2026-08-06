@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
-import { isApiError } from '@/lib/api'
+import { isApiError, MEMBER_TOKEN_INVALID_EVENT } from '@/lib/api'
 import { roomProps, track, type ShareSurface } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { isLatecomerReviewDismissed, latecomerReview } from '@/lib/latecomer'
@@ -17,6 +17,8 @@ import { rememberRoom } from '@/lib/recent-rooms'
 import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { useRoomParams } from '@/lib/room-params'
 import { prewarmRoomPreview } from '@/lib/room-preview'
+import { activeMembers, isActiveMember } from '@/lib/members'
+import { expenseSessionShouldOpen } from '@/lib/expense-session'
 import { discardSharedReceipt } from '@/lib/shared-receipt'
 import { daySpan } from '@/lib/story'
 import { themeVars } from '@/lib/themes'
@@ -48,6 +50,7 @@ export function RoomScreen({ slug }: { slug: string }) {
     const { data: state, error, isPending, isFetching, isRefetchError, refetch } = useRoomState(slug)
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
+    const [displacedIdentity, setDisplacedIdentity] = useState<MemberIdentity | null>(null)
     const [params, setParams] = useRoomParams()
     const [shareSurface, setShareSurface] = useState<ShareSurface>('header')
     const openRoomShare = useCallback(
@@ -144,11 +147,22 @@ export function RoomScreen({ slug }: { slug: string }) {
         !!params.character
     const drawerOpen = roomDrawerOpen || latecomerReviewOpen
 
-    const needsJoin = loaded && !identity && !!state
+    const activeRoster = useMemo(() => activeMembers(state?.members ?? []), [state?.members])
+    const identityIsActive = !!identity && activeRoster.some((member) => member.id === identity.memberId)
+    const needsJoin = loaded && (!identity || !identityIsActive) && !!state
+
+    useEffect(() => {
+        const displaced = (event: Event) => {
+            const token = (event as CustomEvent<{ token?: unknown }>).detail?.token
+            if (typeof token === 'string' && identity?.token === token) setDisplacedIdentity(identity)
+        }
+        window.addEventListener(MEMBER_TOKEN_INVALID_EVENT, displaced)
+        return () => window.removeEventListener(MEMBER_TOKEN_INVALID_EVENT, displaced)
+    }, [identity])
     const staleState = !!state && isRefetchError
     const latecomer = useMemo(() => {
         if (!state || latecomerPaused) return null
-        const members = [...state.members].sort((a, b) => {
+        const members = activeMembers(state.members).sort((a, b) => {
             const byTime = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             return byTime || b.id.localeCompare(a.id)
         })
@@ -158,6 +172,23 @@ export function RoomScreen({ slug }: { slug: string }) {
         }
         return null
     }, [latecomerPaused, slug, state])
+
+    // JoinGate is the sole viewport owner during identity recovery. Money
+    // drafts remain logically mounted and suspended below; every other URL
+    // sheet is disposable and must not stack above or surprise-reopen later.
+    useEffect(() => {
+        if (!needsJoin || !(params.settings || params.rooms || params.character || params.share || params.balance))
+            return
+        void setParams(
+            { settings: null, rooms: null, character: null, share: null, balance: null },
+            { history: 'replace' }
+        )
+    }, [needsJoin, params.balance, params.character, params.rooms, params.settings, params.share, setParams])
+
+    useEffect(() => {
+        if (!params.character || activeRoster.some((member) => member.id === params.character)) return
+        void setParams({ character: null }, { history: 'replace' })
+    }, [activeRoster, params.character, setParams])
     const latecomerPending = latecomer !== null
 
     useEffect(() => {
@@ -183,6 +214,20 @@ export function RoomScreen({ slug }: { slug: string }) {
         () => (params.expense ? (state?.expenses.find((expense) => expense.id === params.expense) ?? null) : null),
         [params.expense, state]
     )
+    const expenseRequested = params.add || (!!editing && !staleState)
+    const [expenseSessionStarted, setExpenseSessionStarted] = useState(false)
+    const settlementRequested = params.settle && !staleState
+    const [settlementSessionStarted, setSettlementSessionStarted] = useState(false)
+
+    useEffect(() => {
+        if (!expenseRequested) setExpenseSessionStarted(false)
+        else if (!needsJoin) setExpenseSessionStarted(true)
+    }, [expenseRequested, needsJoin])
+
+    useEffect(() => {
+        if (!settlementRequested) setSettlementSessionStarted(false)
+        else if (!needsJoin) setSettlementSessionStarted(true)
+    }, [needsJoin, settlementRequested])
 
     // A selected expense that vanished (deleted on another device) must not leave
     // an empty drawer hanging around.
@@ -190,16 +235,28 @@ export function RoomScreen({ slug }: { slug: string }) {
         if (params.expense && state && !editing) setParams({ expense: null })
     }, [params.expense, state, editing, setParams])
 
-    // Same for a balance sheet whose member is not on the roster — a link shared from
-    // another room, or a stale param.
+    // Same for an unknown member or a square Former row. Former balances reopen
+    // only when historical corrections make them non-zero.
     useEffect(() => {
-        if (params.balance && state && !state.members.some((member) => member.id === params.balance))
-            setParams({ balance: null })
+        if (!params.balance || !state) return
+        const member = state.members.find((candidate) => candidate.id === params.balance)
+        if (!member || (member.removedAt != null && BigInt(state.balances[member.id] ?? '0') === 0n)) {
+            void setParams({ balance: null }, { history: 'replace' })
+        }
     }, [params.balance, state, setParams])
 
     useEffect(() => {
         if (staleState && (params.settle || params.expense)) setParams({ settle: null, expense: null })
     }, [params.expense, params.settle, setParams, staleState])
+
+    // Another link-holder may mark this device's identity Former. Clear the
+    // stale proof locally so the JoinGate opens instead of silently attributing
+    // future writes to the room's first active person.
+    useEffect(() => {
+        if (!loaded || !state || !identity || identityIsActive) return
+        setDisplacedIdentity(identity)
+        forget()
+    }, [forget, identity, identityIsActive, loaded, state])
 
     // A stale recent-room credential returns before ExpenseDrawer mounts. A joined person can
     // also dismiss the ordinary drawer while its model-capability probe is still pending. Consume
@@ -219,13 +276,17 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     const closeDrawers = () => setParams({ add: null, expense: null, settle: null })
 
-    const onJoined = (next: MemberIdentity) => claim(next)
+    const onJoined = (next: MemberIdentity) => {
+        setDisplacedIdentity(null)
+        claim(next)
+    }
 
     // The roster row for whoever is holding the phone, resolved once: the header
     // needs the whole row (its avatar), everything else needs only the id.
-    const me = (identity && state?.members.find((member) => member.id === identity.memberId)) || null
+    const me =
+        (identity && state?.members.find((member) => member.id === identity.memberId && isActiveMember(member))) || null
     const meId = me?.id
-    const defaultPaidById = meId ?? state?.members[0]?.id ?? ''
+    const defaultPaidById = meId ?? activeRoster[0]?.id ?? ''
 
     return (
         // The theme is a handful of CSS variables on the room container, not a
@@ -255,7 +316,11 @@ export function RoomScreen({ slug }: { slug: string }) {
                     me={me}
                     roomTitleRef={roomTitleRef}
                     onShare={() => openRoomShare('header')}
-                    onForgetIdentity={forget}
+                    onForgetIdentity={() => {
+                        setDisplacedIdentity(null)
+                        forget()
+                    }}
+                    suspended={needsJoin}
                 />
             ) : (
                 <RoomHeaderSkeleton />
@@ -346,7 +411,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                         celebrate={celebrate}
                                         slug={slug}
                                         summary={{
-                                            people: state.members.length,
+                                            people: activeRoster.length,
                                             expenses: saved.length,
                                             days: daySpan(saved.map((expense) => new Date(expense.date))),
                                         }}
@@ -403,12 +468,15 @@ export function RoomScreen({ slug }: { slug: string }) {
                 </div>
             )}
 
-            {state && needsJoin && <JoinGate slug={slug} state={state} onJoined={onJoined} />}
+            {state && needsJoin && (
+                <JoinGate slug={slug} state={state} onJoined={onJoined} previousIdentity={displacedIdentity} />
+            )}
 
             {state && (
                 <>
                     <ExpenseDrawer
-                        open={(params.add || (!!editing && !staleState)) && !needsJoin}
+                        open={expenseSessionShouldOpen(expenseRequested, needsJoin, expenseSessionStarted)}
+                        suspended={needsJoin}
                         onClose={closeDrawers}
                         slug={slug}
                         state={state}
@@ -425,7 +493,8 @@ export function RoomScreen({ slug }: { slug: string }) {
                         onSharedReceiptConsumed={consumeSharedReceipt}
                     />
                     <SettleDrawer
-                        open={params.settle && !needsJoin && !staleState}
+                        open={expenseSessionShouldOpen(settlementRequested, needsJoin, settlementSessionStarted)}
+                        suspended={needsJoin}
                         onClose={closeDrawers}
                         slug={slug}
                         state={state}

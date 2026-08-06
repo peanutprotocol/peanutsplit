@@ -4,6 +4,7 @@ import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { loadRoom, toRoomState } from '@/server/roomState'
 import type { RoomStateWithMember } from '@/lib/api-types'
 import { lockRoomWrite } from '@/server/history'
+import { activeMember } from '@/lib/members'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +27,7 @@ export const POST = (request: Request, ctx: Ctx) =>
             const room = await loadRoom(slug, tx)
             await lockRoomWrite(tx, room.id)
             const lockedRoom = await loadRoom(slug, tx)
-            const member = lockedRoom.members.find((candidate) => candidate.id === memberId)
+            const member = activeMember(lockedRoom.members, memberId)
             if (!member) throw notFound('member not found')
 
             return { ...toRoomState(lockedRoom), memberId: member.id, memberToken: member.token }

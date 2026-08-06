@@ -11,6 +11,7 @@ import type {
 } from '../api-types'
 import { createClientKey, draftExpenseRow, enqueueWrite, isOfflineFailure, queuedExpenseId } from '../offline-queue'
 import { roomKey, roomStateResult, seedRoomState } from './core'
+import { activeMembers } from '../members'
 
 interface AddExpenseContext {
     previous?: RoomState
@@ -114,7 +115,7 @@ export function addExpenseMutationOptions(
                         draftExpenseRow(input, {
                             id: queuedExpenseId(clientKey),
                             at: now,
-                            members: previous.members,
+                            members: activeMembers(previous.members),
                         }),
                         ...previous.expenses,
                     ],

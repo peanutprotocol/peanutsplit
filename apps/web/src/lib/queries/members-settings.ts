@@ -88,6 +88,22 @@ export function useDeleteMember(slug: string, token?: string | null) {
     })
 }
 
+export function useRestoreMember(slug: string, token?: string | null) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (memberId: string) => api.restoreMember(slug, memberId, token),
+        onSuccess: (state) => seedRoomState(queryClient, slug, state),
+    })
+}
+
+export function useReactivateMember(slug: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (memberId: string) => api.reactivateMember(slug, memberId),
+        onSuccess: (response) => seedRoomState(queryClient, slug, roomStateResult(response)),
+    })
+}
+
 /** Rename optimistically while preserving the room slug and saved links. */
 export function useSetRoomName(slug: string, token?: string | null) {
     const queryClient = useQueryClient()

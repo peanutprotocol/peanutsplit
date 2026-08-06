@@ -145,5 +145,7 @@ export async function readJsonCapped(request: Request, maxBytes: number, tooBig:
     return parseJson(text)
 }
 
-/** Attribution only — never authorization. The slug is the credential. */
+/** Optional attribution proof. The slug remains the room capability, but a
+ * supplied token must resolve to an active member instead of degrading to an
+ * anonymous actor. */
 export const memberTokenOf = (request: Request): string | null => request.headers.get('x-member-token')
