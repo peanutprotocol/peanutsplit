@@ -1,7 +1,9 @@
 import { Prisma } from '@prisma/client'
+import sharp from 'sharp'
 import {
     FEEDBACK_RETENTION_DAYS,
     MAX_FEEDBACK_SCREENSHOT_BYTES,
+    MAX_FEEDBACK_SCREENSHOT_EDGE,
     MAX_FEEDBACK_SNAPSHOT_EXPENSES,
     MAX_FEEDBACK_SNAPSHOT_MEMBERS,
     MAX_FEEDBACK_SNAPSHOT_SETTLEMENTS,
@@ -32,10 +34,43 @@ export function redactFeedbackMessage(message: string, roomSlug: string): string
     return pathsRedacted.split(roomSlug).join('[room]')
 }
 
-/** Decode only after the string cap and prove the declared size and file type. */
-export function decodeFeedbackScreenshot(
+const SHARP_FORMAT_BY_MIME = {
+    'image/jpeg': 'jpeg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+} as const
+
+const invalidScreenshot = () => badRequest('screenshot dimensions or encoding are invalid', 'VALIDATION_ERROR')
+
+/**
+ * libvips refuses an unusable image by throwing a plain `Error` carrying a
+ * decoder message and nothing else. Anything richer out of this pipeline — a
+ * native module that failed to load, an allocation failure, a `TypeError` left
+ * by a refactor — is our fault rather than the reporter's, and dressing it up as
+ * "your screenshot is invalid" would hide a broken deploy behind a 400 that
+ * nobody investigates.
+ */
+const isImageRejection = (err: unknown): boolean =>
+    err instanceof Error && err.constructor === Error && (err as NodeJS.ErrnoException).code === undefined
+
+/** One libvips step: a rejected image becomes the user-facing 400, and an
+ *  infrastructure failure keeps failing the request but leaves a log line. */
+async function decodeStep<T>(step: () => T | PromiseLike<T>): Promise<T> {
+    try {
+        return await step()
+    } catch (err) {
+        if (isImageRejection(err)) throw invalidScreenshot()
+        // Name only. This request body is private user-authored data and a
+        // thrown message can echo it — the same rule `respondSensitive` keeps.
+        console.error('[split] feedback screenshot decode failed', err instanceof Error ? err.name : 'unknown')
+        throw err
+    }
+}
+
+/** Decode only after the string cap and prove the declared size, type and pixels. */
+export async function decodeFeedbackScreenshot(
     screenshot: NonNullable<FeedbackReportBody['screenshot']>
-): Uint8Array<ArrayBuffer> {
+): Promise<Uint8Array<ArrayBuffer>> {
     if (!/^[A-Za-z0-9+/]+={0,2}$/.test(screenshot.imageBase64) || screenshot.imageBase64.length % 4 !== 0) {
         throw badRequest('screenshot must be raw canonical base64', 'VALIDATION_ERROR')
     }
@@ -49,6 +84,32 @@ export function decodeFeedbackScreenshot(
     if (!receiptImageMatchesMimeType(screenshot.imageBase64, screenshot.mimeType)) {
         throw badRequest('screenshot bytes do not match the declared MIME type', 'VALIDATION_ERROR')
     }
+    const image = await decodeStep(() =>
+        sharp(bytes, {
+            // A compressed image can be tiny while expanding into an enormous
+            // bitmap. Bound libvips before it trusts or allocates for pixels.
+            limitInputPixels: MAX_FEEDBACK_SCREENSHOT_EDGE ** 2,
+            failOn: 'warning',
+        })
+    )
+    const metadata = await decodeStep(() => image.metadata())
+    if (
+        metadata.format !== SHARP_FORMAT_BY_MIME[screenshot.mimeType] ||
+        metadata.width !== screenshot.width ||
+        metadata.height !== screenshot.height ||
+        metadata.width < 1 ||
+        metadata.height < 1 ||
+        metadata.width > MAX_FEEDBACK_SCREENSHOT_EDGE ||
+        metadata.height > MAX_FEEDBACK_SCREENSHOT_EDGE
+    ) {
+        throw invalidScreenshot()
+    }
+    // `.metadata()` reads the header only, and `failOn` never applies to a
+    // header read: a real JPEG truncated to half its bytes still reports its
+    // declared size, and would be stored as an attachment support cannot open.
+    // `.stats()` walks every pixel, so a corrupt body fails here instead. The
+    // edge cap checked just above is what bounds the cost of that decode.
+    await decodeStep(() => image.stats())
     // Prisma's Bytes input is deliberately ArrayBuffer-backed; copy out of
     // Node's wider Buffer<ArrayBufferLike> type after validation.
     return Uint8Array.from(bytes)
@@ -165,7 +226,7 @@ export async function persistFeedbackReport(input: {
     roomSlug: string
     body: FeedbackReportBody
 }): Promise<{ reportId: string }> {
-    const screenshot = input.body.screenshot ? decodeFeedbackScreenshot(input.body.screenshot) : null
+    const screenshot = input.body.screenshot ? await decodeFeedbackScreenshot(input.body.screenshot) : null
 
     return prisma.$transaction(async (tx) => {
         // The write path is a second retention backstop beside the deploy-time

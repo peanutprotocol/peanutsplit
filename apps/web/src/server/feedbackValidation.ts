@@ -3,11 +3,12 @@ import {
     FEEDBACK_SCREENSHOT_MIME_TYPES,
     MAX_FEEDBACK_MESSAGE_CHARS,
     MAX_FEEDBACK_SCREENSHOT_BYTES,
+    MAX_FEEDBACK_SCREENSHOT_EDGE,
     MIN_FEEDBACK_MESSAGE_CHARS,
 } from '@/lib/feedback-contract'
 
 const shortText = (max: number) => z.string().max(max)
-const dimension = z.number().int().min(1).max(20_000)
+const screenshotDimension = z.number().int().min(1).max(MAX_FEEDBACK_SCREENSHOT_EDGE)
 
 const diagnosticsSchema = z
     .object({
@@ -55,8 +56,8 @@ const screenshotSchema = z
         imageBase64: z.string().min(16).max(maxBase64Chars),
         mimeType: z.enum(FEEDBACK_SCREENSHOT_MIME_TYPES),
         byteLength: z.number().int().min(1).max(MAX_FEEDBACK_SCREENSHOT_BYTES),
-        width: dimension,
-        height: dimension,
+        width: screenshotDimension,
+        height: screenshotDimension,
     })
     .strict()
 

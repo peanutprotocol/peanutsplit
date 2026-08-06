@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_FEEDBACK_SCREENSHOT_BYTES, MIN_FEEDBACK_MESSAGE_CHARS } from '@/lib/feedback-contract'
+import {
+    MAX_FEEDBACK_SCREENSHOT_BYTES,
+    MAX_FEEDBACK_SCREENSHOT_EDGE,
+    MIN_FEEDBACK_MESSAGE_CHARS,
+} from '@/lib/feedback-contract'
 import {
     FeedbackImageTooLargeError,
     FeedbackImageUnreadableError,
@@ -91,6 +95,20 @@ describe('feedbackReportSchema consent boundary', () => {
                     byteLength: MAX_FEEDBACK_SCREENSHOT_BYTES + 1,
                     width: 100,
                     height: 100,
+                },
+            })
+        ).toThrow()
+
+        expect(() =>
+            feedbackReportSchema.parse({
+                ...emptyAttachments,
+                consent: { ...emptyAttachments.consent, screenshot: true },
+                screenshot: {
+                    imageBase64: 'A'.repeat(16),
+                    mimeType: 'image/jpeg',
+                    byteLength: 12,
+                    width: MAX_FEEDBACK_SCREENSHOT_EDGE + 1,
+                    height: 1,
                 },
             })
         ).toThrow()
