@@ -158,12 +158,16 @@ test('a real-currency room can price an invented expense with a frozen manual ra
     await expect(page.getByTestId('skip-post-aha-share')).toBeVisible({ timeout: 15_000 })
     await page.getByTestId('skip-post-aha-share').click()
     await expect(page.locator('[data-testid="expense-row"][data-description="First round"]')).toContainText('4.00 BEER')
+    await expect(page.getByTestId('expense-saved-fx-rate')).toHaveText('Saved here · 1 BEER = 0.5 EUR')
     await expectBalance(page, 'Bea', '-100')
 
     // Editing starts from this expense's own frozen rate. Changing it explicitly reprices the room
     // amount; a different expense never inherits that agreement implicitly.
     await page.locator('[data-testid="expense-row"][data-description="First round"]').click()
     await expect(rate).toHaveValue('0.5')
+    await expect(page.locator('#expense-manual-rate-hint')).toContainText(
+        'Saved only for this expense: 1 BEER = 0.5 EUR'
+    )
     await rate.fill('0.75')
     await expect(page.getByTestId('expense-foreign-preview')).toContainText('= €3.00')
     await page.getByTestId('save-expense').click()

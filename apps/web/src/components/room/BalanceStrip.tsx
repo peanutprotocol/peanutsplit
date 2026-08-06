@@ -336,6 +336,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                 currency={state.room.currency}
                                 catalog={currencies}
                                 absolute
+                                density="overview"
                                 className="text-h4 sm:text-h3"
                             />
                         </span>
@@ -430,6 +431,7 @@ export function BalanceStrip({ state, currencies, meId, onSelect }: BalanceStrip
                                             currency={state.room.currency}
                                             catalog={currencies}
                                             absolute
+                                            density="overview"
                                             className="text-h5"
                                         />
                                         <span className="sr-only">

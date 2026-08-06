@@ -109,7 +109,7 @@ export function ExistingRoomImportFields({
                                     })
                                 }}
                                 aria-label={t('memberTargetLabel', { name: draft.sourceName })}
-                                className="h-10 min-w-0 rounded-sm border border-n-1 bg-white px-2 text-sm font-bold text-n-1"
+                                className="h-10 min-w-0 rounded-sm border border-n-1 bg-white px-2 text-base font-bold text-n-1 md:text-sm"
                                 data-testid="import-member-target"
                                 data-member={draft.sourceName}
                             >
