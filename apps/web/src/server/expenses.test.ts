@@ -119,6 +119,24 @@ describe('Former membership on expense writes', () => {
         expect(write.shares.map((share) => share.memberId)).toEqual(['ana', 'dani', 'eve'])
     })
 
+    /**
+     * The client's offline queue has to guard against "the server will pick the
+     * roster for me", and it guards on the body. `[]` and an absent key are the
+     * same instruction here — so a guard written for one and not the other lets
+     * a draft saved hours ago be split among whoever happens to be in the room
+     * when it finally sends. Locked explicitly rather than left implied by the
+     * `?.length` in the expression.
+     */
+    it('reads an empty participant list as the same live roster as no list at all', async () => {
+        const write = await buildExpense(
+            roomWithFormer('EUR'),
+            body({ currency: 'EUR', participantIds: [] }),
+            undefined,
+            STATIC_TABLE
+        )
+        expect(write.shares.map((share) => share.memberId)).toEqual(['ana', 'dani', 'eve'])
+    })
+
     it('rejects a Former identity introduced by a new write', async () => {
         await expect(
             buildExpense(

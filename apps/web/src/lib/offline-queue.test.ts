@@ -3,6 +3,7 @@ import { ApiRequestError, NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import {
     MAX_QUEUED,
+    OFFLINE_EQUAL_ROSTER_UNKNOWN,
     PENDING_ITEM_PREFIX,
     PENDING_KEY,
     RETRY_BASE_MS,
@@ -56,6 +57,7 @@ const input = (overrides: Partial<ExpenseInput> = {}): ExpenseInput => ({
     currency: 'EUR',
     paidById: 'bea',
     splitMode: 'EQUAL',
+    participantIds: ['ana', 'bea'],
     ...overrides,
 })
 
@@ -738,6 +740,141 @@ describe('the queue end to end', () => {
             blocked: { code: 'MEMBER_FORMER' },
         })
         expect(notices.at(-1)).toEqual({ kind: 'blocked-member', count: 1 })
+    })
+
+    it('blocks a legacy implicit EQUAL roster until review materializes current participants', async () => {
+        const legacy = item({
+            clientKey: 'legacy-equal-roster',
+            body: input({ participantIds: undefined }),
+        })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${legacy.clientKey}`, JSON.stringify(legacy))
+        setQueueStorage(storage)
+        const sent: QueuedWrite[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued))
+
+        await drainPending()
+
+        expect(sent).toEqual([])
+        expect(queueSnapshot()[0]).toMatchObject({
+            clientKey: legacy.clientKey,
+            body: { splitMode: 'EQUAL' },
+            blocked: { code: OFFLINE_EQUAL_ROSTER_UNKNOWN, blockedAt: legacy.addedAt },
+        })
+        expect(queueSnapshot()[0].body.participantIds).toBeUndefined()
+
+        setQueuePerformer(null)
+        expect(retryBlockedWrite(legacy.clientKey, 'current-token')).toBe(false)
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+        expect(
+            retryBlockedWrite(legacy.clientKey, 'current-token', {
+                ...queueSnapshot()[0].body,
+                participantIds: ['ana', 'carla'],
+            })
+        ).toBe(true)
+        expect(queueSnapshot()[0]).toMatchObject({
+            body: { participantIds: ['ana', 'carla'] },
+            token: 'current-token',
+        })
+        expect(queueSnapshot()[0].blocked).toBeUndefined()
+
+        setQueuePerformer(async (queued) => void sent.push(queued))
+        await drainPending()
+        expect(sent).toHaveLength(1)
+        expect(sent[0].body.participantIds).toEqual(['ana', 'carla'])
+        expect(queueSnapshot()).toEqual([])
+    })
+
+    it('reports failure when storage loses the atomic reviewed body, and keeps legacy EQUAL blocked', async () => {
+        const legacy = item({
+            clientKey: 'legacy-storage-race',
+            body: input({ participantIds: undefined }),
+        })
+        const readableButUnwritable = memoryStorage()
+        readableButUnwritable.setItem(`${PENDING_ITEM_PREFIX}${legacy.clientKey}`, JSON.stringify(legacy))
+        readableButUnwritable.setItem = () => {
+            throw new DOMException('quota exceeded', 'QuotaExceededError')
+        }
+        setQueueStorage(readableButUnwritable)
+        const sent: QueuedWrite[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued))
+
+        // The confirmation never reached the device, so the answer is no. A true
+        // here was the whole bug: the screen showed nothing, and the row went on
+        // saying "waiting to send" forever.
+        expect(
+            retryBlockedWrite(legacy.clientKey, 'current-token', {
+                ...queueSnapshot()[0].body,
+                participantIds: ['ana', 'carla'],
+            })
+        ).toBe(false)
+
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+        expect(queueSnapshot()[0].body.participantIds).toBeUndefined()
+        expect(sent).toEqual([])
+    })
+
+    /**
+     * `[]` is not a narrower split. The server resolves
+     * `participantIds?.length ? … : activeMembers(room)`, so an empty array and
+     * an absent key are one instruction — and a guard written for `undefined`
+     * lets the empty one through as a sendable implicit roster.
+     */
+    it('holds an EMPTY EQUAL roster exactly as it holds an absent one', async () => {
+        const empty = item({ clientKey: 'empty-equal-roster', body: input({ participantIds: [] }) })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${empty.clientKey}`, JSON.stringify(empty))
+        setQueueStorage(storage)
+        const sent: QueuedWrite[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued))
+
+        await drainPending()
+
+        expect(sent).toEqual([])
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+
+        setQueuePerformer(null)
+        // …and an empty roster is not a confirmation of one either.
+        expect(retryBlockedWrite(empty.clientKey, 'current-token', { ...empty.body, participantIds: [] })).toBe(false)
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+
+        expect(
+            retryBlockedWrite(empty.clientKey, 'current-token', { ...empty.body, participantIds: ['ana', 'bea'] })
+        ).toBe(true)
+        expect(queueSnapshot()[0].blocked).toBeUndefined()
+    })
+
+    /**
+     * A read-time block never reaches `drainQueue`, so it never appeared in a
+     * drain summary and nothing was ever toasted — while it silently barred
+     * every later write in its room. The promise is that a draft waits until the
+     * user confirms it, which requires having asked them.
+     */
+    it('says a legacy draft needs review instead of silently barring its room', async () => {
+        const legacy = item({ clientKey: 'legacy-barrier', body: input({ participantIds: undefined }) })
+        const later = item({ clientKey: 'later-same-room', addedAt: legacy.addedAt + 1 })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${legacy.clientKey}`, JSON.stringify(legacy))
+        storage.setItem(`${PENDING_ITEM_PREFIX}${later.clientKey}`, JSON.stringify(later))
+        setQueueStorage(storage)
+        const sent: string[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued.clientKey))
+
+        const summary = await drainPending()
+
+        // Its own reason, not the membership one: nobody left this room, and
+        // sending the reader to check the People list would waste their time.
+        expect(notices).toContainEqual({ kind: 'blocked-roster', count: 1 })
+        expect(notices.some((notice) => notice.kind === 'blocked-member')).toBe(false)
+        expect(sent).toEqual([])
+        // The later draft is held behind the barrier, and the summary says so
+        // rather than reporting an idle queue.
+        expect(summary?.blocked.map((held) => held.clientKey)).toEqual([legacy.clientKey])
+        expect(summary?.remaining.map((held) => held.clientKey)).toEqual([legacy.clientKey, later.clientKey])
+        expect(queueSnapshot().map((held) => held.clientKey)).toEqual([legacy.clientKey, later.clientKey])
+
+        // Told once. A read-time block is re-derived on every snapshot, and a
+        // toast on every sync attempt would be its own bug.
+        notices.length = 0
+        await drainPending()
+        expect(notices).toEqual([])
     })
 
     it('retries with the currently claimed token and clears only after success', async () => {
