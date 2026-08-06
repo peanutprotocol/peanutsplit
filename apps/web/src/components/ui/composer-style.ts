@@ -10,6 +10,9 @@ export const composerBareInputClassName = (className?: string) =>
     cn('w-full min-w-0 rounded-sm border-0 bg-transparent outline-none placeholder:text-n-3', className)
 
 export const composerBoxedInputClassName = (className?: string) =>
-    cn('h-11 rounded-sm border border-n-1 bg-white px-3 text-right text-sm font-bold text-n-1 outline-none', className)
+    cn(
+        'h-11 rounded-sm border border-n-1 bg-white px-3 text-right text-base font-bold text-n-1 outline-none md:text-sm',
+        className
+    )
 
 export const COMPOSER_CURRENCY_SLOT = 'w-[7.25rem] shrink-0'

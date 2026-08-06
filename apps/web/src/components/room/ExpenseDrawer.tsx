@@ -18,6 +18,12 @@ import { roomProps, track, trackFirstSharedBalance } from '@/lib/analytics'
 import { canPrice } from '@/lib/currency-rules'
 import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
+    CURATED_EXPENSE_CATEGORY_IDS,
+    getExpenseCategorySubject,
+    isExpenseCategoryId,
+    type ExpenseCategoryId,
+} from '@/lib/expense-category'
+import {
     allocatedMinor,
     buildExpenseBody,
     emptyExpenseForm,
@@ -44,7 +50,14 @@ import {
     parseManualFxRateInput,
 } from '@/lib/manual-fx-rate'
 import { discardSharedReceipt, takeSharedReceipt } from '@/lib/shared-receipt'
-import { currencyInfo, formatAmountInput, formatMoney, isAmountInputAcceptable, parseAmountToMinor } from '@/lib/money'
+import {
+    currencyInfo,
+    formatAmountInput,
+    formatLargeAmountPreview,
+    formatMoney,
+    isAmountInputAcceptable,
+    parseAmountToMinor,
+} from '@/lib/money'
 import {
     useAddExpense,
     useAddMember,
@@ -354,6 +367,11 @@ export function ExpenseDrawer({
     const percentageSettled =
         percentageRemaining === '0' && percentageHasInput && !hasUnreadablePercentage(values, locale)
     const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
+    /** Keep the editable field byte-for-byte as typed while focus is in it. A
+     * separate preview supplies grouping once the amount reaches five whole
+     * digits — common territory for JPY and ARS, not an exceptional overflow. */
+    const formattedAmountPreview =
+        totalMinor === null ? null : formatLargeAmountPreview(totalMinor, values.currency, currencies, locale)
     const manualFxConversion =
         requiresManualFxRate && manualFxRate !== null && totalMinor !== null
             ? convertMinorAtManualRate(totalMinor, manualFxRate, decimals, roomCurrencyInfo.decimals)
@@ -1032,6 +1050,22 @@ export function ExpenseDrawer({
           ? t('addWithAmount', { amount: formatMoney(totalMinor!, values.currency, currencies, locale) })
           : t('add')
     const pending = addExpense.isPending || updateExpense.isPending
+    const categoryLabels: Record<(typeof CURATED_EXPENSE_CATEGORY_IDS)[number], string> = {
+        'food-drink': t('categories.foodDrink'),
+        transport: t('categories.transport'),
+        'travel-stays': t('categories.travelStays'),
+        'home-bills': t('categories.homeBills'),
+        shopping: t('categories.shopping'),
+        'entertainment-leisure': t('categories.entertainment'),
+        'health-wellness': t('categories.health'),
+        'gifts-giving': t('categories.gifts'),
+        other: t('categories.other'),
+    }
+    const categoryOptions = CURATED_EXPENSE_CATEGORY_IDS.map((id) => ({
+        id,
+        label: categoryLabels[id],
+        doodle: getExpenseCategorySubject(id).doodle,
+    }))
 
     return (
         <Drawer
@@ -1121,6 +1155,7 @@ export function ExpenseDrawer({
                             decimals,
                             invalid: amountInvalid,
                             textSizeClass: amountTextSize,
+                            formattedPreview: formattedAmountPreview,
                             action: scannerAvailable ? (
                                 <ScanButton
                                     onOpen={() => {
@@ -1154,6 +1189,14 @@ export function ExpenseDrawer({
                             },
                             onBlur: () => repairFieldRoles(),
                         }}
+                        category={{
+                            value: isExpenseCategoryId(values.category) ? values.category : null,
+                            options: categoryOptions,
+                            onChange: (category: ExpenseCategoryId | null) => {
+                                patch({ category })
+                                dispatchWorkflow({ type: 'form-field-edited' })
+                            },
+                        }}
                         editor={editor}
                         onToggleEditor={(next) => dispatchWorkflow({ type: 'editor-toggled', editor: next })}
                         payer={payer}
@@ -1179,6 +1222,9 @@ export function ExpenseDrawer({
                             dateSummary: (date) => t('dateSummary', { date }),
                             dateShort: t('dateShort'),
                             amountRequired: t('validation.AMOUNT_REQUIRED'),
+                            amountPreview: (amount) => t('amountPreview', { amount }),
+                            category: t('category'),
+                            categoryAutomatic: t('categoryAutomatic'),
                         }}
                     />
 
@@ -1258,7 +1304,11 @@ export function ExpenseDrawer({
                                     </div>
                                     <p id="expense-manual-rate-hint" className="mt-2 text-xs leading-5 text-grey-1">
                                         {manualFxRateSource === 'expense'
-                                            ? t('manualRateFromExpense')
+                                            ? t('manualRateFromExpense', {
+                                                  currency: values.currency,
+                                                  rate: manualFxRateInput,
+                                                  roomCurrency: state.room.currency,
+                                              })
                                             : t('manualRateHint')}
                                     </p>
                                     {submitted && manualFxValidationError && (

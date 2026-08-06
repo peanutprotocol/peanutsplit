@@ -4,6 +4,8 @@ import type { ReactNode, RefObject } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '@/lib/cn'
 import type { CurrencyInfo, RoomState } from '@/lib/api-types'
+import type { ExpenseCategoryId } from '@/lib/expense-category'
+import type { DoodleName } from '@/components/ui/doodles'
 import { Doodle } from '@/components/ui/Doodle'
 import { Icon } from '@/components/ui/Icon'
 import {
@@ -25,6 +27,7 @@ interface ExpenseComposerProps {
         decimals: number
         invalid: boolean
         textSizeClass: string
+        formattedPreview?: string | null
         action?: ReactNode
         onChange: (value: string) => void
         onBlur: () => void
@@ -41,6 +44,11 @@ interface ExpenseComposerProps {
         value: string
         onChange: (value: string) => void
         onBlur: () => void
+    }
+    category: {
+        value: ExpenseCategoryId | null
+        options: readonly { id: ExpenseCategoryId; label: string; doodle: DoodleName }[]
+        onChange: (value: ExpenseCategoryId | null) => void
     }
     editor: ExpenseEditor | null
     onToggleEditor: (editor: ExpenseEditor) => void
@@ -67,6 +75,9 @@ interface ExpenseComposerProps {
         dateSummary: (date: string) => string
         dateShort: string
         amountRequired: string
+        amountPreview: (amount: string) => string
+        category: string
+        categoryAutomatic: string
     }
 }
 
@@ -80,6 +91,7 @@ export function ExpenseComposer({
     amount,
     currency,
     description,
+    category,
     editor,
     onToggleEditor,
     payer,
@@ -114,13 +126,49 @@ export function ExpenseComposer({
                             autoComplete="off"
                             placeholder={amount.decimals === 0 ? '0' : '0.00'}
                             aria-invalid={amount.invalid || undefined}
-                            aria-describedby={amount.invalid ? 'expense-amount-error' : undefined}
+                            aria-describedby={
+                                [
+                                    amount.formattedPreview ? 'expense-amount-preview' : null,
+                                    amount.invalid ? 'expense-amount-error' : null,
+                                ]
+                                    .filter(Boolean)
+                                    .join(' ') || undefined
+                            }
                             data-testid="expense-amount"
                             className={composerBareInputClassName(
                                 cn('h-16 px-1 font-extrabold tabular-nums', amount.textSizeClass)
                             )}
                         />
+                        {amount.formattedPreview && (
+                            <span
+                                id="expense-amount-preview"
+                                data-testid="expense-amount-preview"
+                                className="block px-1 pb-1 text-xs font-bold text-grey-1"
+                            >
+                                {labels.amountPreview(amount.formattedPreview)}
+                            </span>
+                        )}
                     </label>
+                </div>
+
+                <label className={composerRowClassName('block')}>
+                    <span className="sr-only">{labels.description}</span>
+                    <input
+                        value={description.value}
+                        onChange={(event) => description.onChange(event.target.value)}
+                        onBlur={description.onBlur}
+                        placeholder={labels.descriptionPlaceholder}
+                        maxLength={255}
+                        data-testid="expense-description"
+                        data-focus-contained
+                        className={composerBareInputClassName('h-14 px-4 text-base font-bold md:text-sm')}
+                    />
+                </label>
+
+                {/* DOM order is the keyboard order: amount → description first,
+                    then scan/currency. Moving these controls visually with CSS
+                    would leave the old, surprising Tab path intact. */}
+                <div className={composerRowClassName('flex min-h-14 items-center justify-end gap-2 px-3 py-1.5')}>
                     {amount.action}
                     <div className={COMPOSER_CURRENCY_SLOT}>
                         <CurrencySelect
@@ -137,19 +185,47 @@ export function ExpenseComposer({
                     </div>
                 </div>
 
-                <label className={composerRowClassName('block')}>
-                    <span className="sr-only">{labels.description}</span>
-                    <input
-                        value={description.value}
-                        onChange={(event) => description.onChange(event.target.value)}
-                        onBlur={description.onBlur}
-                        placeholder={labels.descriptionPlaceholder}
-                        maxLength={255}
-                        data-testid="expense-description"
-                        data-focus-contained
-                        className={composerBareInputClassName('h-14 px-4 text-sm font-bold')}
-                    />
-                </label>
+                <fieldset className={composerRowClassName('min-w-0 px-3 py-2')}>
+                    <legend className="px-1 text-h10 uppercase tracking-wide text-grey-1">{labels.category}</legend>
+                    <div
+                        className="flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                        data-testid="expense-category-picker"
+                    >
+                        <button
+                            type="button"
+                            onClick={() => category.onChange(null)}
+                            aria-pressed={category.value === null}
+                            data-category="auto"
+                            className={cn(
+                                'flex h-14 min-w-16 shrink-0 flex-col items-center justify-center rounded-sm border border-n-1 px-2 text-h10',
+                                category.value === null ? 'shadow-2 bg-primary-3' : 'bg-white'
+                            )}
+                        >
+                            <Icon name="sparkles" size={19} />
+                            <span className="mt-1 max-w-14 truncate">{labels.categoryAutomatic}</span>
+                        </button>
+                        {category.options.map((option) => (
+                            <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => category.onChange(option.id)}
+                                aria-label={option.label}
+                                aria-pressed={category.value === option.id}
+                                title={option.label}
+                                data-category={option.id}
+                                className={cn(
+                                    'flex h-14 min-w-16 shrink-0 flex-col items-center justify-center rounded-sm border border-n-1 px-2 text-h10',
+                                    category.value === option.id ? 'shadow-2 bg-primary-3' : 'bg-white'
+                                )}
+                            >
+                                <Doodle name={option.doodle} size={22} weight={1.6} />
+                                <span aria-hidden="true" className="mt-1 max-w-14 truncate">
+                                    {option.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </fieldset>
 
                 <div className={composerRowClassName('grid grid-cols-[1.1fr_1.45fr_.85fr] p-1.5')}>
                     <button

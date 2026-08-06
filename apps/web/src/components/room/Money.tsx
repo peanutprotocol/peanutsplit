@@ -10,8 +10,10 @@ import {
     currencySuffix,
     formatMoney,
     formatMoneyParts,
-    minorToNumber,
+    minorToExactNumber,
     moneyFormatOptions,
+    overviewMoneyPresentation,
+    type OverviewMoneyScale,
 } from '@/lib/money'
 
 interface MoneyProps {
@@ -22,6 +24,9 @@ interface MoneyProps {
     className?: string
     /** Drop the sign and render the magnitude only (the label carries the direction). */
     absolute?: boolean
+    /** Constrained cards/rows may shrink, then use locale-native compact notation.
+     * Detail views keep the default exact full rendering. */
+    density?: 'full' | 'overview'
 }
 
 /**
@@ -34,22 +39,40 @@ interface MoneyProps {
  * black row, and a hardcoded colour would be wrong in two of the three.
  */
 const SYMBOL_CLASS = 'relative -top-[0.08em] text-[0.78em] opacity-70'
+const OVERVIEW_SCALE_CLASS: Record<OverviewMoneyScale, string> = {
+    regular: '',
+    smaller: 'text-[0.86em]',
+    smallest: 'text-[0.72em]',
+}
 
-export function Money({ minor, currency, catalog, className, absolute }: MoneyProps) {
+export function Money({ minor, currency, catalog, className, absolute, density = 'full' }: MoneyProps) {
     const locale = useLocale()
     const value = absolute && minor.startsWith('-') ? minor.slice(1) : minor
+    const overview = density === 'overview' ? overviewMoneyPresentation(value, currency, catalog, locale) : null
     const parts = formatMoneyParts(value, currency, catalog, locale)
     return (
-        <span className={cn('tabular-nums', className)}>
-            {parts.map((part, index) =>
-                part.type === 'currency' ? (
-                    <span key={index} className={SYMBOL_CLASS}>
-                        {part.value}
-                    </span>
-                ) : (
-                    <Fragment key={index}>{part.value}</Fragment>
-                )
-            )}
+        <span
+            className={cn('relative inline-block tabular-nums', className)}
+            title={overview?.exact}
+            data-money-display={overview?.compact ? 'compact' : 'exact'}
+        >
+            {overview && <span className="sr-only">{overview.exact}</span>}
+            <span
+                aria-hidden={overview ? 'true' : undefined}
+                className={overview ? OVERVIEW_SCALE_CLASS[overview.scale] : undefined}
+            >
+                {overview?.compact
+                    ? overview.visible
+                    : parts.map((part, index) =>
+                          part.type === 'currency' ? (
+                              <span key={index} className={SYMBOL_CLASS}>
+                                  {part.value}
+                              </span>
+                          ) : (
+                              <Fragment key={index}>{part.value}</Fragment>
+                          )
+                      )}
+            </span>
         </span>
     )
 }
@@ -68,16 +91,36 @@ const FADE_TIMING: EffectTiming = { duration: 380, easing: 'ease-out' }
 
 /**
  * Animated amount — balances *count* to their new value when an expense lands
- * (signature moment #3). NumberFlow needs a JS number, which is the one place a
- * float is allowed near money: this value is never written back anywhere.
+ * (signature moment #3). NumberFlow needs a JS number. Values that cannot make
+ * the exact bigint → Number → bigint round trip render as static exact text;
+ * no animation is worth changing a visible amount by one minor unit.
  */
-export function AnimatedMoney({ minor, currency, catalog, className, absolute }: MoneyProps) {
+export function AnimatedMoney({ minor, currency, catalog, className, absolute, density = 'full' }: MoneyProps) {
     const locale = useLocale()
     const info = currencyInfo(currency, catalog)
     const signedMinor = absolute && minor.startsWith('-') ? minor.slice(1) : minor
-    const value = minorToNumber(signedMinor, info.decimals)
+    const value = minorToExactNumber(signedMinor, info.decimals)
+    const overview = density === 'overview' ? overviewMoneyPresentation(signedMinor, currency, catalog, locale) : null
+
+    if (value === null || overview?.compact) {
+        return (
+            <Money
+                minor={minor}
+                currency={currency}
+                catalog={catalog}
+                className={className}
+                absolute={absolute}
+                density={density}
+            />
+        )
+    }
+
     return (
-        <>
+        <span
+            className={cn('relative inline-block', className)}
+            title={overview?.exact}
+            data-money-display="animated-exact"
+        >
             {/* NumberFlow's digits live in a shadow root, spun in one at a time: the
                 accessible name it sets there is an ElementInternals property, not a DOM
                 attribute, so it doesn't reach every AT, and it leaves no light-DOM text to
@@ -90,9 +133,7 @@ export function AnimatedMoney({ minor, currency, catalog, className, absolute }:
                 horizontally scrolling strip (the balance cards) it escaped the scroller's clipping
                 and stretched the whole page sideways by the width of the strip. Giving it a
                 positioned parent of its own keeps it where it belongs. */}
-            <span className="relative">
-                <span className="sr-only">{formatMoney(signedMinor, currency, catalog, locale)}</span>
-            </span>
+            <span className="sr-only">{formatMoney(signedMinor, currency, catalog, locale)}</span>
             <NumberFlow
                 aria-hidden="true"
                 value={value}
@@ -110,8 +151,8 @@ export function AnimatedMoney({ minor, currency, catalog, className, absolute }:
                 transformTiming={COUNT_TIMING}
                 opacityTiming={FADE_TIMING}
                 respectMotionPreference
-                className={cn('tabular-nums', className)}
+                className={cn('tabular-nums', overview && OVERVIEW_SCALE_CLASS[overview.scale])}
             />
-        </>
+        </span>
     )
 }
