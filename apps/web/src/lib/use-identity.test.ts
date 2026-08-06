@@ -9,7 +9,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { memberStorageKey, readIdentity, writeIdentity } from './identity'
-import { forgetIdentity } from './use-identity'
+import { forgetIdentity, identityAfterInvalidToken } from './use-identity'
 
 const { dropRoomSubscription } = vi.hoisted(() => ({ dropRoomSubscription: vi.fn() }))
 
@@ -90,5 +90,20 @@ describe('forgetIdentity', () => {
         // and such a device never had a subscription to drop in the first place.
         expect(dropRoomSubscription).not.toHaveBeenCalled()
         expect(readIdentity(SLUG)).toBeNull()
+    })
+})
+
+describe('invalid token recovery', () => {
+    it('clears only the identity whose concrete proof the server refused', async () => {
+        const identity = { memberId: 'm1', name: 'Ana', token: 'tok-1' }
+        writeIdentity(SLUG, identity)
+
+        expect(identityAfterInvalidToken(SLUG, identity, 'some-other-token')).toBe(identity)
+        expect(readIdentity(SLUG)).toEqual(identity)
+        expect(identityAfterInvalidToken(SLUG, identity, 'tok-1')).toBeNull()
+        await flush()
+
+        expect(readIdentity(SLUG)).toBeNull()
+        expect(dropRoomSubscription).toHaveBeenCalledWith(SLUG, 'm1', 'tok-1')
     })
 })

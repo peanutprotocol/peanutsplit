@@ -19,12 +19,15 @@ import { useAddSettlement } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { isFormerMember } from '@/lib/members'
 import { AllSettled } from './AllSettled'
 import { MemberAvatar } from './MemberAvatar'
 import { AnimatedMoney, Money } from './Money'
 
 interface SettleDrawerProps {
     open: boolean
+    /** JoinGate temporarily owns the screen without ending this money draft. */
+    suspended?: boolean
     onClose: () => void
     slug: string
     state: RoomState
@@ -68,7 +71,16 @@ const COLLAPSE_MS = 620
 const REVEAL_STAGGER_S = 0.07
 const REVEAL_STAGGER_MAX = 6
 
-export function SettleDrawer({ open, onClose, slug, state, currencies, token, me }: SettleDrawerProps) {
+export function SettleDrawer({
+    open,
+    suspended = false,
+    onClose,
+    slug,
+    state,
+    currencies,
+    token,
+    me,
+}: SettleDrawerProps) {
     const t = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
     const locale = useLocale()
@@ -151,7 +163,12 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
     }, [open, selected, slug])
 
     const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
-    const displayName = (id: string) => (id === me?.id ? t('you') : nameOf(id))
+    const displayName = (id: string) => {
+        if (id === me?.id) return t('you')
+        const member = state.members.find((candidate) => candidate.id === id)
+        const name = nameOf(id)
+        return member && isFormerMember(member) ? t('formerName', { name }) : name
+    }
     const avatarOf = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
     const paletteOf = (id: string) => state.members.find((member) => member.id === id)?.avatarPalette ?? null
 
@@ -185,7 +202,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                 problem:
                     selected.fromId === me?.id
                         ? t('amountTooHighYou')
-                        : t('amountTooHigh', { name: nameOf(selected.fromId) }),
+                        : t('amountTooHigh', { name: displayName(selected.fromId) }),
             }
         return { minor: parsed }
     }
@@ -300,7 +317,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
     const recorded = state.settlements.filter((settlement) => recordedIds.includes(settlement.id))
 
     return (
-        <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
+        <Drawer open={open && !suspended} onOpenChange={(next) => !next && !suspended && onClose()}>
             <DrawerContent>
                 <DrawerHeader>
                     <DrawerTitle className="text-h5">{selected ? t('recordTitle') : t('listTitle')}</DrawerTitle>

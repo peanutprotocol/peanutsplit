@@ -38,11 +38,10 @@ export const POST = (request: Request, ctx: Ctx) =>
                 // pre-payment balance.
                 await lockRoomWrite(tx, room.id)
                 const lockedRoom = await loadRoom(slug, tx)
-                const actor = actorFromToken(lockedRoom.members, token)
-                const actorMemberId = actor.memberId
 
                 // Idempotency precedes the debt ceiling: after the first write
-                // the debt may be gone, but a lost-response retry is success.
+                // may be gone and the original token may have rotated, but a
+                // lost-response retry is still success.
                 if (body.clientKey) {
                     const existing = await tx.settlement.findUnique({
                         where: { id: body.clientKey },
@@ -54,12 +53,15 @@ export const POST = (request: Request, ctx: Ctx) =>
                         return {
                             created: false,
                             settlementId: existing.id,
-                            actorMemberId,
+                            actorMemberId: null,
                             fresh: lockedRoom,
                             state: toRoomState(lockedRoom),
                         }
                     }
                 }
+
+                const actor = actorFromToken(lockedRoom.members, token)
+                const actorMemberId = actor.memberId
 
                 const isMember = (id: string) => lockedRoom.members.some((member) => member.id === id)
                 if (!isMember(body.fromId))

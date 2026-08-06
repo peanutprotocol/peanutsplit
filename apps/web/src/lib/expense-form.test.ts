@@ -12,10 +12,33 @@ import {
     percentageRemainingBasisPoints,
     percentageShareEntries,
     remainingMinor,
+    referencedDraftParticipantIds,
     repairMisplacedExpenseFields,
     validateExpenseForm,
     type ExpenseFormValues,
 } from './expense-form'
+
+describe('participant references kept visible during a live draft', () => {
+    const draft = (overrides: Partial<ExpenseFormValues>): ExpenseFormValues => ({
+        ...emptyExpenseForm({ currency: 'EUR', members: [], paidById: 'payer' }),
+        ...overrides,
+    })
+
+    it('materialises only a deliberately touched EQUAL roster', () => {
+        expect(referencedDraftParticipantIds(draft({ participantIds: ['a', 'b'] }))).toEqual([])
+        expect(referencedDraftParticipantIds(draft({ participantIds: ['a', 'b'], participantsTouched: true }))).toEqual(
+            ['a', 'b']
+        )
+    })
+
+    it('preserves exact and weighted role ids without changing their money fields', () => {
+        expect(referencedDraftParticipantIds(draft({ splitMode: 'EXACT', exactInputs: { a: '12.34' } }))).toEqual(['a'])
+        expect(
+            referencedDraftParticipantIds(draft({ splitMode: 'PERCENTAGE', percentageInputs: { a: '25', b: '75' } }))
+        ).toEqual(['a', 'b'])
+        expect(referencedDraftParticipantIds(draft({ splitMode: 'SHARES', shareInputs: { b: '3' } }))).toEqual(['b'])
+    })
+})
 
 /**
  * A CHF expense in a EUR room, split EXACT. `enteredAmountMinor` is what was

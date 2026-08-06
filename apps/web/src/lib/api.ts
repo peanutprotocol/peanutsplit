@@ -46,7 +46,7 @@ export const isApiError = (error: unknown, code?: string): error is ApiRequestEr
     error instanceof ApiRequestError && (code === undefined || error.code === code)
 
 const CATCH_UP_ROW_CHANGE_CODES = new Set(['CATCH_UP_REVIEW_CONFLICT', 'EXPENSE_DELETED', 'EXPENSE_NOT_FOUND'])
-const CATCH_UP_REVIEW_CHANGE_CODES = new Set([...CATCH_UP_ROW_CHANGE_CODES, 'NOT_A_MEMBER'])
+const CATCH_UP_REVIEW_CHANGE_CODES = new Set([...CATCH_UP_ROW_CHANGE_CODES, 'NOT_A_MEMBER', 'MEMBER_FORMER'])
 
 /** Row-scoped conflicts may be skipped while a reviewed batch continues. */
 export const isCatchUpRowChange = (error: unknown): boolean =>
@@ -64,10 +64,20 @@ export const NETWORK_ERROR_CODE = 'NETWORK_ERROR'
  *  their client key is minted before the first attempt and reused on replay. */
 export const EXPENSE_WRITE_TIMEOUT_MS = 12_000
 
+/** A rotated or Former proof must never quietly become an anonymous write. The
+ * HTTP layer emits this once so every room identity consumer can recover by
+ * reopening the join gate, including failures from an offline replay. */
+export const MEMBER_TOKEN_INVALID_EVENT = 'peanut-split:member-token-invalid'
+
+export function notifyInvalidMemberToken(token: string): void {
+    if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return
+    window.dispatchEvent(new CustomEvent(MEMBER_TOKEN_INVALID_EVENT, { detail: { token } }))
+}
+
 interface RequestOptions {
     method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
     body?: unknown
-    /** Sent as `X-Member-Token`. Attribution only — absence never blocks a write. */
+    /** Sent as `X-Member-Token`. Absence is anonymous; supplied invalid proof is refused. */
     token?: string | null
     signal?: AbortSignal
     timeoutMs?: number
@@ -134,6 +144,12 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         const envelope = (payload as { error?: { code?: unknown; message?: unknown } } | undefined)?.error
         const code = typeof envelope?.code === 'string' ? envelope.code : 'UNKNOWN'
         const message = typeof envelope?.message === 'string' ? envelope.message : 'something went wrong'
+        const bodyMemberToken =
+            typeof body === 'object' && body !== null && 'memberToken' in body && typeof body.memberToken === 'string'
+                ? body.memberToken
+                : null
+        const invalidProof = token ?? bodyMemberToken
+        if (code === 'MEMBER_TOKEN_INVALID' && invalidProof) notifyInvalidMemberToken(invalidProof)
         throw new ApiRequestError(response.status, code, message)
     }
 
@@ -202,6 +218,17 @@ export const api = {
 
     deleteMember: (slug: string, memberId: string, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}`, { method: 'DELETE', token }),
+
+    restoreMember: (slug: string, memberId: string, token?: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}/restore`, {
+            method: 'POST',
+            token,
+        }),
+
+    reactivateMember: (slug: string, memberId: string) =>
+        request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}/reactivate`, {
+            method: 'POST',
+        }),
 
     claimMember: (slug: string, memberId: string) =>
         request<RoomStateWithMember>(`/api/rooms/${encode(slug)}/members/${encode(memberId)}/claim`, {

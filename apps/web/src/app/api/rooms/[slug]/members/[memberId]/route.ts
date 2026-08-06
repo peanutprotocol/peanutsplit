@@ -16,7 +16,8 @@ import { actorFromToken, appendRoomAuditEvent, lockRoomWrite } from '@/server/hi
 import { randomPersonaKey } from '@/lib/avatars'
 import { effectiveAvatarPaletteKey, separatedAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { WRITE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
-import { canRemoveMember, loadRoom, toRoomState } from '@/server/roomState'
+import { activeMembers, isFormerMember } from '@/lib/members'
+import { balancesOf, loadRoom, toRoomState } from '@/server/roomState'
 import { memberAvatarSchema } from '@/server/validation'
 
 export const dynamic = 'force-dynamic'
@@ -35,6 +36,7 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         const room = await loadRoom(slug)
         const member = room.members.find((candidate) => candidate.id === memberId)
         if (!member) throw notFound('member not found')
+        if (isFormerMember(member)) throw notFound('member not found')
 
         // Older clients used null for "automatic". Preserve compatibility, but
         // make it a concrete random pick so every phone sees the same character.
@@ -49,12 +51,14 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             await lockRoomWrite(tx, room.id)
             const locked = await loadRoom(slug, tx)
             const target = locked.members.find((candidate) => candidate.id === memberId)
-            if (!target) throw notFound('member not found')
+            if (!target || isFormerMember(target)) throw notFound('member not found')
             // Palette choice is a room invariant, so derive it only after taking
             // the same advisory lock used by member creation. Nullable legacy
             // rows still render a deterministic palette and must reserve it too.
             const usedPalettes = locked.members
-                .filter((candidate) => candidate.id !== target.id && candidate.removedAt === null)
+                // Former identities keep their palette for a possible restore.
+                // Exclude only the row being edited, never the ledger directory.
+                .filter((candidate) => candidate.id !== target.id)
                 .map((candidate) =>
                     effectiveAvatarPaletteKey(candidate.avatarPalette, candidate.avatar ?? candidate.name)
                 )
@@ -103,10 +107,9 @@ export const PATCH = (request: Request, ctx: Ctx) =>
     })
 
 /**
- * Remove only an untouched roster-added name. Any subscription, expense,
- * share, settlement or reaction makes the ledger identity permanent. Selecting
- * the name on a device does not. Counts include soft-deleted rows, so removal
- * can never erase or redistribute history.
+ * Mark one exact-zero active identity Former. This never deletes a member or a
+ * ledger row. Former identities remain in RoomState so historical rows and a
+ * balance reopened by a later correction stay resolvable and settleable.
  */
 export const DELETE = (request: Request, ctx: Ctx) =>
     respond(async () => {
@@ -114,15 +117,28 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         const { slug, memberId } = await ctx.params
         const initial = await loadRoom(slug)
 
-        const state = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, initial.id)
             const room = await loadRoom(slug, tx)
             const member = room.members.find((candidate) => candidate.id === memberId)
             if (!member) throw notFound('member not found')
-            if (!canRemoveMember(member))
-                throw conflict('this member has room history and cannot be removed', 'MEMBER_HAS_HISTORY')
+            // Lost-response retry: lifecycle state already reached, so return
+            // the authoritative room without extending or duplicating anything.
+            if (isFormerMember(member)) return { changed: false, state: toRoomState(room) }
 
-            await tx.member.delete({ where: { id: member.id } })
+            if (activeMembers(room.members).length <= 1) {
+                throw conflict('the last active member cannot leave the room', 'LAST_ACTIVE_MEMBER')
+            }
+            const balance = balancesOf(room).get(member.id) ?? 0n
+            if (balance !== 0n) {
+                throw conflict('settle this member to exactly zero before removing them', 'MEMBER_BALANCE_NOT_ZERO')
+            }
+
+            const removedAt = new Date()
+            await tx.member.update({ where: { id: member.id }, data: { removedAt } })
+            // Removing lifecycle proof also removes every delivery channel. The
+            // member and every financial/social fact remain intact.
+            await tx.pushSubscription.deleteMany({ where: { roomId: room.id, memberId: member.id } })
             await appendRoomAuditEvent({
                 tx,
                 request,
@@ -138,11 +154,21 @@ export const DELETE = (request: Request, ctx: Ctx) =>
                         avatar: member.avatar,
                         avatarPalette: member.avatarPalette,
                         provisional: member.provisional,
+                        removedAt: null,
                     },
+                    after: {
+                        id: member.id,
+                        name: member.name,
+                        avatar: member.avatar,
+                        avatarPalette: member.avatarPalette,
+                        provisional: member.provisional,
+                        removedAt,
+                    },
+                    detail: { lifecycle: 'former', historyPreserved: true },
                 },
             })
-            return toRoomState(await loadRoom(slug, tx))
+            return { changed: true, state: toRoomState(await loadRoom(slug, tx)) }
         })
-        publish(initial.id)
-        return state
+        if (result.changed) publish(initial.id)
+        return result.state
     })

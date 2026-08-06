@@ -54,10 +54,26 @@ step. See [ACHIEVEMENTS.md](./ACHIEVEMENTS.md) for the product guardrails.
 settlements, balances, and history. Device-local identity remains a viewpoint
 only.
 
-The legacy `provisional` field is creation provenance used only for cleanup: it
-marks a name added to an existing roster so an untouched typo can be removed.
-Selecting that name on a device does not change the field or its cleanup status.
-Durable ledger history, not whether a person opened the room, protects the row.
+The legacy `provisional` field is creation provenance: it marks a name staged
+while adding an expense. It does not determine removal eligibility. Selecting a
+name on a device does not change that field or the roster lifecycle.
+
+## Active and Former participants
+
+`Member` rows are never deleted. An exact-zero active participant may be marked
+Former while all ledger facts remain attached to the same ID.
+
+- Active members are eligible for new activity and device identity selection.
+- Former members remain in the ledger directory for history, exports, balances,
+  settlements, reactions, and attribution.
+- A historical correction may reopen a Former balance; it stays visible and
+  settleable without silently reactivating the member.
+- Reactivation reuses the same member ID and rotates its proof token.
+- Former changes participation, not access: the shared room link remains the
+  room credential.
+
+See [`member-removal-design.md`](../member-removal-design.md) for the exact-zero,
+locking, draft-recovery, and offline-queue contract.
 
 Name selection emits no product-funnel event. In particular, it is not product
 activation or collaboration success.

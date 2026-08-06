@@ -14,7 +14,9 @@ import { POST as postRoom } from '@/app/api/rooms/route'
 import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
 import { POST as claimMember } from '@/app/api/rooms/[slug]/members/[memberId]/claim/route'
-import { DELETE as deleteMember } from '@/app/api/rooms/[slug]/members/[memberId]/route'
+import { DELETE as deleteMember, PATCH as patchMember } from '@/app/api/rooms/[slug]/members/[memberId]/route'
+import { POST as restoreMember } from '@/app/api/rooms/[slug]/members/[memberId]/restore/route'
+import { POST as reactivateAndClaimMember } from '@/app/api/rooms/[slug]/members/[memberId]/reactivate/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense, PATCH as patchExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
 import { POST as restoreExpense } from '@/app/api/expenses/[id]/restore/route'
@@ -77,11 +79,12 @@ const join = (slug: string, name: string) =>
         body: { name },
     })
 
-const addPayer = (slug: string, name: string) =>
+const addPayer = (slug: string, name: string, token?: string) =>
     call<RoomStateWithAddedMember>(postMember as Handler, {
         path: `/api/rooms/${slug}/members`,
         method: 'POST',
         params: { slug },
+        token,
         body: { name, intent: 'add' },
     })
 
@@ -92,10 +95,25 @@ const claim = (slug: string, memberId: string) =>
         params: { slug, memberId },
     })
 
-const removeMember = (slug: string, memberId: string) =>
+const removeMember = (slug: string, memberId: string, token?: string) =>
     call<RoomState | ApiError>(deleteMember as Handler, {
         path: `/api/rooms/${slug}/members/${memberId}`,
         method: 'DELETE',
+        params: { slug, memberId },
+        token,
+    })
+
+const reactivateMember = (slug: string, memberId: string) =>
+    call<RoomState>(restoreMember as Handler, {
+        path: `/api/rooms/${slug}/members/${memberId}/restore`,
+        method: 'POST',
+        params: { slug, memberId },
+    })
+
+const reactivateAndClaim = (slug: string, memberId: string) =>
+    call<RoomStateWithMember>(reactivateAndClaimMember as Handler, {
+        path: `/api/rooms/${slug}/members/${memberId}/reactivate`,
+        method: 'POST',
         params: { slug, memberId },
     })
 
@@ -309,14 +327,15 @@ describe('rooms and members', () => {
         expect(body.members.find((member) => member.id === body.memberId)?.canRemove).toBe(true)
     })
 
-    it('removes only an untouched on-behalf placeholder', async () => {
+    it('marks an exact-zero member Former without deleting their identity', async () => {
         const { body: created } = await newRoom()
         const { body: added } = await addPayer(created.room.slug, 'Bea')
 
         const removed = await removeMember(created.room.slug, added.memberId)
         expect(removed.status).toBe(200)
-        expect((removed.body as RoomState).members.map((member) => member.name)).toEqual(['Ana'])
-        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).toBeNull()
+        const member = (removed.body as RoomState).members.find((candidate) => candidate.id === added.memberId)
+        expect(member?.removedAt).toBeTruthy()
+        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).not.toBeNull()
     })
 
     it('keeps device selection separate from roster cleanup status', async () => {
@@ -326,10 +345,357 @@ describe('rooms and members', () => {
 
         const removal = await removeMember(created.room.slug, added.memberId)
         expect(removal.status).toBe(200)
-        expect(await prisma.member.findUnique({ where: { id: added.memberId } })).toBeNull()
+        expect((await prisma.member.findUnique({ where: { id: added.memberId } }))?.removedAt).not.toBeNull()
     })
 
-    it('protects a placeholder when even soft-deleted expense history references it', async () => {
+    it('blocks the last active member and makes repeated removal idempotent', async () => {
+        const { body: created } = await newRoom()
+        const last = await removeMember(created.room.slug, created.memberId)
+        expect(last.status).toBe(409)
+        expect((last.body as ApiError).error.code).toBe('LAST_ACTIVE_MEMBER')
+
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const first = await removeMember(created.room.slug, added.memberId)
+        const second = await removeMember(created.room.slug, added.memberId)
+        expect(first.status).toBe(200)
+        expect(second.status).toBe(200)
+        const firstRemovedAt = (first.body as RoomState).members.find(
+            (member) => member.id === added.memberId
+        )?.removedAt
+        expect((second.body as RoomState).members.find((member) => member.id === added.memberId)?.removedAt).toBe(
+            firstRemovedAt
+        )
+        expect(await prisma.member.count({ where: { id: added.memberId } })).toBe(1)
+    })
+
+    it('reactivates the same member id, rotates proof, and never assigns that identity to the restorer', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const before = await prisma.member.findUniqueOrThrow({ where: { id: added.memberId }, select: { token: true } })
+        await removeMember(created.room.slug, added.memberId)
+
+        const duplicate = await addPayer(created.room.slug, 'bea')
+        expect(duplicate.status).toBe(409)
+        expect((duplicate.body as unknown as ApiError).error.code).toBe('MEMBER_REACTIVATION_REQUIRED')
+        const staleClaim = await claim(created.room.slug, added.memberId)
+        expect(staleClaim.status).toBe(404)
+
+        const restored = await reactivateMember(created.room.slug, added.memberId)
+        expect(restored.status).toBe(200)
+        expect(restored.body.members.find((member) => member.id === added.memberId)?.removedAt).toBeNull()
+        expect(restored.body).not.toHaveProperty('memberId')
+        expect(restored.body).not.toHaveProperty('memberToken')
+        const after = await prisma.member.findUniqueOrThrow({ where: { id: added.memberId }, select: { token: true } })
+        expect(after.token).not.toBe(before.token)
+
+        const replay = await reactivateMember(created.room.slug, added.memberId)
+        expect(replay.status).toBe(200)
+        expect((await prisma.member.findUniqueOrThrow({ where: { id: added.memberId } })).token).toBe(after.token)
+        expect(await prisma.member.count({ where: { roomId: created.room.id, name: { equals: 'Bea' } } })).toBe(1)
+    })
+
+    it('explicitly reactivates and claims the same id with a newly rotated token', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const oldToken = (await prisma.member.findUniqueOrThrow({ where: { id: added.memberId } })).token
+        await removeMember(created.room.slug, added.memberId)
+
+        const claimed = await reactivateAndClaim(created.room.slug, added.memberId)
+
+        expect(claimed.status).toBe(200)
+        expect(claimed.body.memberId).toBe(added.memberId)
+        expect(claimed.body.memberToken).not.toBe(oldToken)
+        expect(claimed.body.members.find((member) => member.id === added.memberId)?.removedAt).toBeNull()
+        expect((await prisma.member.findUniqueOrThrow({ where: { id: added.memberId } })).token).toBe(
+            claimed.body.memberToken
+        )
+    })
+
+    it('reserves Former personas and palettes across new joins and active avatar edits', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await addPayer(created.room.slug, 'Bea')
+        const former = await prisma.member.findUniqueOrThrow({ where: { id: bea.memberId } })
+        await removeMember(created.room.slug, bea.memberId)
+
+        const { body: caro } = await addPayer(created.room.slug, 'Caro')
+        const newMember = await prisma.member.findUniqueOrThrow({ where: { id: caro.memberId } })
+        expect(newMember.avatar).not.toBe(former.avatar)
+        expect(newMember.avatarPalette).not.toBe(former.avatarPalette)
+
+        const repainted = await call<RoomState>(patchMember as Handler, {
+            path: `/api/rooms/${created.room.slug}/members/${created.memberId}`,
+            method: 'PATCH',
+            params: { slug: created.room.slug, memberId: created.memberId },
+            body: { avatar: 'tea-dragon', avatarPalette: former.avatarPalette },
+        })
+        expect(repainted.status).toBe(200)
+        expect(repainted.body.members.find((member) => member.id === created.memberId)?.avatarPalette).not.toBe(
+            former.avatarPalette
+        )
+
+        await reactivateMember(created.room.slug, bea.memberId)
+        const restored = await prisma.member.findUniqueOrThrow({ where: { id: bea.memberId } })
+        expect(restored.avatar).toBe(former.avatar)
+        expect(restored.avatarPalette).toBe(former.avatarPalette)
+    })
+
+    it('refuses restore when legacy data already has an active case-insensitive name collision', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        await removeMember(created.room.slug, added.memberId)
+        await prisma.member.create({
+            data: { roomId: created.room.id, name: 'bea', token: `legacy-${crypto.randomUUID()}` },
+        })
+
+        const restored = await reactivateMember(created.room.slug, added.memberId)
+        expect(restored.status).toBe(409)
+        expect((restored.body as unknown as ApiError).error.code).toBe('MEMBER_NAME_CONFLICT')
+        expect((await prisma.member.findUniqueOrThrow({ where: { id: added.memberId } })).removedAt).not.toBeNull()
+    })
+
+    it('keeps Former out of new writes but lets historical edits reopen and settle their exact balance', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await join(created.room.slug, 'Bea')
+        const slug = created.room.slug
+        const original = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Cabin',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        const expenseId = original.body.expenses[0].id
+        const square = await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${slug}/settlements`,
+            method: 'POST',
+            params: { slug },
+            body: { fromId: bea.memberId, toId: created.memberId, amountMinor: '500' },
+        })
+        expect(square.body.balances[bea.memberId]).toBe('0')
+
+        const removed = await removeMember(slug, bea.memberId)
+        expect(removed.status).toBe(200)
+        expect((removed.body as RoomState).members.find((member) => member.id === bea.memberId)?.removedAt).toBeTruthy()
+
+        const explicitFormer = await call<ApiError>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Bad replay',
+                amountMinor: '100',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: bea.memberId, amountMinor: '100' }],
+            },
+        })
+        expect(explicitFormer.status).toBe(400)
+        expect(explicitFormer.body.error.code).toBe('MEMBER_FORMER')
+
+        const activeDefault = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                description: 'Ana only now',
+                amountMinor: '100',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        expect(activeDefault.body.expenses[0].shares.map((share) => share.memberId)).toEqual([created.memberId])
+
+        const reopened = await call<RoomState>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${expenseId}`,
+            method: 'PATCH',
+            params: { slug, id: expenseId },
+            body: {
+                description: 'Cabin corrected',
+                amountMinor: '1200',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [
+                    { memberId: created.memberId, amountMinor: '600' },
+                    { memberId: bea.memberId, amountMinor: '600' },
+                ],
+            },
+        })
+        expect(reopened.status).toBe(200)
+        expect(reopened.body.balances[bea.memberId]).toBe('-100')
+        expect(reopened.body.members.find((member) => member.id === bea.memberId)?.removedAt).toBeTruthy()
+        expect(reopened.body.suggestedTransfers).toContainEqual({
+            fromId: bea.memberId,
+            toId: created.memberId,
+            amountMinor: '100',
+        })
+
+        const resettled = await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${slug}/settlements`,
+            method: 'POST',
+            params: { slug },
+            body: { fromId: bea.memberId, toId: created.memberId, amountMinor: '100' },
+        })
+        expect(resettled.status).toBe(201)
+        expect(resettled.body.balances[bea.memberId]).toBe('0')
+        expect(resettled.body.members.find((member) => member.id === bea.memberId)?.removedAt).toBeTruthy()
+    })
+
+    it('restoring a deleted expense reopens a Former balance without restoring membership', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await join(created.room.slug, 'Bea')
+        const added = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Dinner',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        const expenseId = added.body.expenses[0].id
+        await call<RoomState>(deleteExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses/${expenseId}`,
+            method: 'DELETE',
+            params: { slug: created.room.slug, id: expenseId },
+        })
+        expect((await removeMember(created.room.slug, bea.memberId)).status).toBe(200)
+
+        const restored = await call<RoomState>(restoreExpense as Handler, {
+            path: `/api/expenses/${expenseId}/restore`,
+            method: 'POST',
+            params: { id: expenseId },
+        })
+
+        expect(restored.status).toBe(200)
+        expect(restored.body.balances[bea.memberId]).toBe('-500')
+        expect(restored.body.members.find((member) => member.id === bea.memberId)?.removedAt).toBeTruthy()
+    })
+
+    it('deleting a settlement reopens a Former balance without restoring membership', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await join(created.room.slug, 'Bea')
+        await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Dinner',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EQUAL',
+            },
+        })
+        const settled = await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${created.room.slug}/settlements`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: { fromId: bea.memberId, toId: created.memberId, amountMinor: '500' },
+        })
+        const settlementId = settled.body.settlements[0].id
+        expect((await removeMember(created.room.slug, bea.memberId)).status).toBe(200)
+
+        const reopened = await call<RoomState>(deleteSettlement as Handler, {
+            path: `/api/rooms/${created.room.slug}/settlements/${settlementId}`,
+            method: 'DELETE',
+            params: { slug: created.room.slug, id: settlementId },
+        })
+
+        expect(reopened.status).toBe(200)
+        expect(reopened.body.balances[bea.memberId]).toBe('-500')
+        expect(reopened.body.members.find((member) => member.id === bea.memberId)?.removedAt).toBeTruthy()
+    })
+
+    it('preserves only each Former member’s original payer or participant role on edit', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await join(created.room.slug, 'Bea')
+        const { body: caro } = await join(created.room.slug, 'Caro')
+        const participantRow = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Bea participated',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: bea.memberId, amountMinor: '1000' }],
+            },
+        })
+        await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${created.room.slug}/settlements`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: { fromId: bea.memberId, toId: created.memberId, amountMinor: '1000' },
+        })
+        const payerRow = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Caro paid',
+                amountMinor: '700',
+                currency: 'EUR',
+                paidById: caro.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '700' }],
+            },
+        })
+        await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${created.room.slug}/settlements`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: { fromId: created.memberId, toId: caro.memberId, amountMinor: '700' },
+        })
+        await removeMember(created.room.slug, bea.memberId)
+        await removeMember(created.room.slug, caro.memberId)
+
+        const participantToPayer = await call<ApiError>(patchExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses/${participantRow.body.expenses[0].id}`,
+            method: 'PATCH',
+            params: { slug: created.room.slug, id: participantRow.body.expenses[0].id },
+            body: {
+                description: 'Role swap',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: bea.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: bea.memberId, amountMinor: '1000' }],
+            },
+        })
+        expect(participantToPayer.status).toBe(400)
+        expect(participantToPayer.body.error.code).toBe('MEMBER_FORMER')
+
+        const payerToParticipant = await call<ApiError>(patchExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses/${payerRow.body.expenses[0].id}`,
+            method: 'PATCH',
+            params: { slug: created.room.slug, id: payerRow.body.expenses[0].id },
+            body: {
+                description: 'Other role swap',
+                amountMinor: '700',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: caro.memberId, amountMinor: '700' }],
+            },
+        })
+        expect(payerToParticipant.status).toBe(400)
+        expect(payerToParticipant.body.error.code).toBe('MEMBER_FORMER')
+    })
+
+    it('uses the current exact balance while preserving soft-deleted history', async () => {
         const createdResult = await newRoom()
         expect(createdResult.status).toBe(201)
         const created = createdResult.body
@@ -357,10 +723,13 @@ describe('rooms and members', () => {
             path: `/api/rooms/${created.room.slug}`,
             params: { slug: created.room.slug },
         })
-        expect(fresh.body.members.find((member) => member.id === added.memberId)?.canRemove).toBe(false)
+        expect(fresh.body.members.find((member) => member.id === added.memberId)?.canRemove).toBe(true)
         const removal = await removeMember(created.room.slug, added.memberId)
-        expect(removal.status).toBe(409)
-        expect((removal.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+        expect(removal.status).toBe(200)
+        expect(
+            (removal.body as RoomState).members.find((member) => member.id === added.memberId)?.removedAt
+        ).toBeTruthy()
+        expect(await prisma.expense.count({ where: { roomId: created.room.id, paidById: added.memberId } })).toBe(1)
     })
 
     it('serializes ordinary expense creation before placeholder removal', async () => {
@@ -389,9 +758,85 @@ describe('rooms and members', () => {
         expect((await write).status).toBe(201)
         const removed = await removal
         expect(removed.status).toBe(409)
-        expect((removed.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+        expect((removed.body as ApiError).error.code).toBe('MEMBER_BALANCE_NOT_ZERO')
         expect(await prisma.member.findUnique({ where: { id: added.memberId } })).not.toBeNull()
         expect(await prisma.expense.count({ where: { roomId: created.room.id, paidById: added.memberId } })).toBe(1)
+    })
+
+    it('rejects a queued expense when exact-zero removal wins the room lock first', async () => {
+        const { body: created } = await newRoom()
+        const { body: added } = await addPayer(created.room.slug, 'Bea')
+        const blocker = await holdRoomWriteLock(created.room.id)
+
+        const removal = removeMember(created.room.slug, added.memberId)
+        await waitForAdvisoryWaiters(1)
+        const write = call<ApiError>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            body: {
+                description: 'Stale Bea draft',
+                amountMinor: '1000',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: added.memberId, amountMinor: '1000' }],
+            },
+        })
+        await waitForAdvisoryWaiters(2)
+        await blocker.release()
+
+        expect((await removal).status).toBe(200)
+        const rejected = await write
+        expect(rejected.status).toBe(400)
+        expect(rejected.body.error.code).toBe('MEMBER_FORMER')
+        expect(await prisma.expenseShare.count({ where: { memberId: added.memberId } })).toBe(0)
+        expect((await prisma.member.findUniqueOrThrow({ where: { id: added.memberId } })).removedAt).not.toBeNull()
+    })
+
+    it('rejects a stale actor token when removal wins before adding another member', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await addPayer(created.room.slug, 'Bea')
+        const beaToken = (await prisma.member.findUniqueOrThrow({ where: { id: bea.memberId } })).token
+        const blocker = await holdRoomWriteLock(created.room.id)
+
+        const removal = removeMember(created.room.slug, bea.memberId)
+        await waitForAdvisoryWaiters(1)
+        const staleAdd = addPayer(created.room.slug, 'Caro', beaToken)
+        await waitForAdvisoryWaiters(2)
+        await blocker.release()
+
+        expect((await removal).status).toBe(200)
+        const rejected = await staleAdd
+        expect(rejected.status).toBe(403)
+        expect((rejected.body as unknown as ApiError).error.code).toBe('MEMBER_TOKEN_INVALID')
+        expect(await prisma.member.count({ where: { roomId: created.room.id, name: 'Caro' } })).toBe(0)
+    })
+
+    it('never accepts a supplied Former token as anonymous attribution', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await addPayer(created.room.slug, 'Bea')
+        const beaToken = (await prisma.member.findUniqueOrThrow({ where: { id: bea.memberId } })).token
+        await removeMember(created.room.slug, bea.memberId)
+
+        const rejected = await call<ApiError>(postExpense as Handler, {
+            path: `/api/rooms/${created.room.slug}/expenses`,
+            method: 'POST',
+            params: { slug: created.room.slug },
+            token: beaToken,
+            body: {
+                clientKey: 'stale-actor-new-expense-01',
+                description: 'Must not become anonymous',
+                amountMinor: '100',
+                currency: 'EUR',
+                paidById: created.memberId,
+                splitMode: 'EXACT',
+                exactShares: [{ memberId: created.memberId, amountMinor: '100' }],
+            },
+        })
+        expect(rejected.status).toBe(403)
+        expect(rejected.body.error.code).toBe('MEMBER_TOKEN_INVALID')
+        expect(await prisma.expense.count({ where: { id: 'stale-actor-new-expense-01' } })).toBe(0)
     })
 
     it('serializes expense edits before placeholder removal', async () => {
@@ -433,14 +878,14 @@ describe('rooms and members', () => {
         expect((await write).status).toBe(200)
         const removed = await removal
         expect(removed.status).toBe(409)
-        expect((removed.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+        expect((removed.body as ApiError).error.code).toBe('MEMBER_BALANCE_NOT_ZERO')
         expect(await prisma.member.findUnique({ where: { id: added.memberId } })).not.toBeNull()
         expect(
             await prisma.expense.count({ where: { id: expenseId, roomId: created.room.id, paidById: added.memberId } })
         ).toBe(1)
     })
 
-    it('protects attribution, reaction, settlement and device history independently', async () => {
+    it('preserves attribution, reactions and settlements while dropping push on Former', async () => {
         const createdResult = await newRoom()
         expect(createdResult.status).toBe(201)
         const created = createdResult.body
@@ -493,9 +938,13 @@ describe('rooms and members', () => {
 
         for (const memberId of [attributed, reacted, settled, subscribed]) {
             const removal = await removeMember(slug, memberId)
-            expect(removal.status).toBe(409)
-            expect((removal.body as ApiError).error.code).toBe('MEMBER_HAS_HISTORY')
+            expect(removal.status).toBe(200)
+            expect((removal.body as RoomState).members.find((member) => member.id === memberId)?.removedAt).toBeTruthy()
         }
+        expect(await prisma.expense.count({ where: { createdById: attributed } })).toBe(1)
+        expect(await prisma.expenseReaction.count({ where: { memberId: reacted } })).toBe(1)
+        expect(await prisma.settlement.count({ where: { fromId: settled } })).toBe(1)
+        expect(await prisma.pushSubscription.count({ where: { memberId: subscribed } })).toBe(0)
     })
 
     it('claims an existing roster entry with its stable token instead of rotating it', async () => {
@@ -1396,6 +1845,36 @@ describe('expense request idempotency', () => {
         expect(await prisma.expenseShare.count({ where: { expenseId: key } })).toBe(2)
     })
 
+    it('returns a committed retry before validating a token rotated by remove and restore', async () => {
+        const { body: created } = await newRoom()
+        const { body: bea } = await join(created.room.slug, 'Bea')
+        const clientKey = 'expense-rotated-token-retry-01'
+        const post = () =>
+            call<ExpenseCreateResult>(postExpense as Handler, {
+                path: `/api/rooms/${created.room.slug}/expenses`,
+                method: 'POST',
+                params: { slug: created.room.slug },
+                token: bea.memberToken,
+                body: {
+                    clientKey,
+                    description: 'Ana-only attributed fact',
+                    amountMinor: '100',
+                    currency: 'EUR',
+                    paidById: created.memberId,
+                    splitMode: 'EXACT',
+                    exactShares: [{ memberId: created.memberId, amountMinor: '100' }],
+                },
+            })
+
+        expect((await post()).status).toBe(201)
+        await removeMember(created.room.slug, bea.memberId)
+        await reactivateMember(created.room.slug, bea.memberId)
+        expect((await prisma.member.findUniqueOrThrow({ where: { id: bea.memberId } })).token).not.toBe(bea.memberToken)
+
+        expect((await post()).status).toBe(201)
+        expect(await prisma.expense.count({ where: { id: clientKey } })).toBe(1)
+    })
+
     it('turns a concurrent cross-room key collision into 409, never 500', async () => {
         const { body: first } = await newRoom({ name: 'First' })
         const { body: second } = await newRoom({ name: 'Second' })
@@ -1569,6 +2048,17 @@ describe('settlement request idempotency and serialization', () => {
         const clientKey = 'settlement-retry-key-0001'
 
         expect((await settle(room, clientKey)).status).toBe(201)
+        expect((await settle(room, clientKey)).status).toBe(201)
+        expect(await prisma.settlement.count({ where: { id: clientKey } })).toBe(1)
+    })
+
+    it('returns a committed retry before validating the now-Former actor token', async () => {
+        const room = await roomWithDebt('Former retry room')
+        const clientKey = 'settlement-former-token-retry-01'
+
+        expect((await settle(room, clientKey)).status).toBe(201)
+        expect((await removeMember(room.created.room.slug, room.joined.memberId)).status).toBe(200)
+
         expect((await settle(room, clientKey)).status).toBe(201)
         expect(await prisma.settlement.count({ where: { id: clientKey } })).toBe(1)
     })

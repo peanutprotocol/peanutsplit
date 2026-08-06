@@ -4,7 +4,6 @@ import { CREATE_LIMIT, enforceRateLimit } from '@/server/rateLimit'
 import { addMember } from '@/server/rooms'
 import { loadRoom, toRoomState } from '@/server/roomState'
 import { createMemberSchema } from '@/server/validation'
-import { actorFromToken } from '@/server/history'
 import type { RoomStateWithAddedMember, RoomStateWithMember } from '@/lib/api-types'
 
 export const dynamic = 'force-dynamic'
@@ -22,7 +21,7 @@ export const POST = (request: Request, ctx: Ctx) =>
             body.name,
             body.intent === 'add',
             request,
-            actorFromToken(room.members, memberTokenOf(request))
+            memberTokenOf(request)
         )
         publish(room.id)
         // Reload: the roster the client renders must already contain the joiner.

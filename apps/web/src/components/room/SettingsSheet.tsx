@@ -290,6 +290,7 @@ export function SettingsSheet({
                             <PeopleSection
                                 slug={room.slug}
                                 members={members}
+                                balances={state.balances}
                                 token={identity?.token}
                                 onOpenCharacter={onOpenCharacter}
                             />

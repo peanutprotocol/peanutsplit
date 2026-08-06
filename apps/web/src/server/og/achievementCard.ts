@@ -267,20 +267,24 @@ const SELECT: Record<Exclude<CardKind, 'invite'>, object> = {
     crew: {
         theme: true,
         locale: true,
-        members: { orderBy: { createdAt: 'asc' }, select: { avatar: true, avatarPalette: true } },
+        members: {
+            where: { removedAt: null },
+            orderBy: { createdAt: 'asc' },
+            select: { avatar: true, avatarPalette: true },
+        },
     },
     passport: { theme: true, locale: true, expenses: { where: { deletedAt: null }, select: { currency: true } } },
     alterego: { theme: true, locale: true },
     stats: {
         theme: true,
         locale: true,
-        members: { select: { id: true } },
+        members: { where: { removedAt: null }, select: { id: true } },
         expenses: { where: { deletedAt: null }, select: { date: true } },
     },
     landing: {
         theme: true,
         locale: true,
-        members: { select: { id: true } },
+        members: { where: { removedAt: null }, select: { id: true } },
         settlements: { where: { deletedAt: null }, select: { id: true } },
     },
 }
@@ -313,8 +317,9 @@ export async function loadInviteCard(
                 name: true,
                 theme: true,
                 locale: true,
-                _count: { select: { members: true } },
+                _count: { select: { members: { where: { removedAt: null } } } },
                 members: {
+                    where: { removedAt: null },
                     orderBy: { createdAt: 'asc' },
                     take: MAX_INVITE_LINEUP,
                     select: { avatar: true, avatarPalette: true },
@@ -323,7 +328,7 @@ export async function loadInviteCard(
         }),
         sharerMemberId
             ? prisma.member.findFirst({
-                  where: { id: sharerMemberId, room: { slug } },
+                  where: { id: sharerMemberId, room: { slug }, removedAt: null },
                   select: { name: true },
               })
             : Promise.resolve(null),

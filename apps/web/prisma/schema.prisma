@@ -103,12 +103,11 @@ model Member {
   // writes always choose a concrete allowlisted key.
   avatarPalette String?
   userId        String? // future account-linking hook
-  // Creation provenance only: true for a name added to an existing roster, so
-  // an untouched typo can be removed. Selecting the name on a device does not
-  // change it; durable ledger history is what makes the row non-removable.
+  // Creation provenance only: true for a name staged while adding an expense.
+  // It is not removal eligibility and selecting the name does not change it.
   provisional   Boolean   @default(false)
   createdAt     DateTime  @default(now())
-  removedAt     DateTime?
+  removedAt     DateTime? // non-null = Former for future activity; ledger identity remains durable
   room          Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 

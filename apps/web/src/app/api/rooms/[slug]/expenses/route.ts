@@ -52,11 +52,10 @@ export const POST = (request: Request, ctx: Ctx) =>
                 // have PostgreSQL cascade it away with the member.
                 await lockRoomWrite(tx, room.id)
                 let lockedRoom = await loadRoom(slug, tx)
-                const actor = actorFromToken(lockedRoom.members, token)
-                const actorMemberId = actor.memberId
 
                 // A lost-response retry must return before creating another
-                // provisional payer.
+                // provisional payer or validating a token that may legitimately
+                // have rotated since the already-committed first delivery.
                 if (body.clientKey) {
                     const existing = await tx.expense.findUnique({
                         where: { id: body.clientKey },
@@ -68,13 +67,16 @@ export const POST = (request: Request, ctx: Ctx) =>
                         return {
                             created: false,
                             expenseId: existing.id,
-                            actorMemberId,
+                            actorMemberId: null,
                             fresh: lockedRoom,
                             state: toRoomState(lockedRoom),
                             createdFirstSharedBalance: lockedRoom.firstSharedBalanceExpenseId === existing.id,
                         }
                     }
                 }
+
+                const actor = actorFromToken(lockedRoom.members, token)
+                const actorMemberId = actor.memberId
 
                 let paidById = body.paidById
                 if (body.newPaidByName) {

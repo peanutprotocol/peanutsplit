@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
 import type { ApiMember, ApiRoom } from '@/lib/api-types'
 import type { ExistingRoomMemberDraft } from './existing-room-mapping'
+import { activeMembers } from '@/lib/members'
 
 export const NEW_ROOM_MEMBER_VALUE = '__new_room_member__'
 
@@ -73,6 +74,7 @@ export function ExistingRoomImportFields({
     problem,
 }: ExistingRoomImportFieldsProps) {
     const t = useTranslations('import.existing')
+    const roster = activeMembers(members)
     const selectedIds = new Set(drafts.flatMap((draft) => (draft.memberId ? [draft.memberId] : [])))
 
     return (
@@ -111,7 +113,7 @@ export function ExistingRoomImportFields({
                                 data-testid="import-member-target"
                                 data-member={draft.sourceName}
                             >
-                                {members.map((member) => (
+                                {roster.map((member) => (
                                     <option
                                         key={member.id}
                                         value={member.id}
