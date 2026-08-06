@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest'
-import type { ApiExpense } from '@/lib/api-types'
-import { getExpensePersonalPosition } from './ExpenseList'
+import { afterEach, describe, expect, it } from 'vitest'
+import type { ApiExpense, ExpenseInput } from '@/lib/api-types'
+import {
+    OFFLINE_EQUAL_ROSTER_UNKNOWN,
+    PENDING_ITEM_PREFIX,
+    queueSnapshot,
+    setQueuePerformer,
+    setQueueStorage,
+    type QueuedWrite,
+} from '@/lib/offline-queue'
+import { getExpensePersonalPosition, retryBlockedQueuedWrite } from './ExpenseList'
 
 const expense = (patch: Partial<ApiExpense> = {}): ApiExpense => ({
     id: 'expense',
@@ -134,5 +142,94 @@ describe('the compact expense personal position', () => {
             amountMinor: '1234',
             currency: 'CHF',
         })
+    })
+})
+
+describe('the Retry button on a blocked draft', () => {
+    const memoryStorage = (): Storage => {
+        const map = new Map<string, string>()
+        return {
+            get length() {
+                return map.size
+            },
+            key: (index: number) => [...map.keys()][index] ?? null,
+            getItem: (key: string) => map.get(key) ?? null,
+            setItem: (key: string, value: string) => void map.set(key, value),
+            removeItem: (key: string) => void map.delete(key),
+            clear: () => map.clear(),
+        } as Storage
+    }
+
+    const body: ExpenseInput = {
+        description: 'Dinner',
+        amountMinor: '6000',
+        currency: 'EUR',
+        paidById: 'bea',
+        splitMode: 'EQUAL',
+    }
+
+    const legacy: QueuedWrite = {
+        clientKey: 'legacy-key',
+        slug: 'ski-trip-aaa',
+        endpoint: '/api/rooms/ski-trip-aaa/expenses',
+        method: 'POST',
+        body,
+        token: 'old-token',
+        addedAt: 1_700_000_000_000,
+    }
+
+    /** A device holding one legacy draft, with `broken` refusing every write. */
+    const deviceHolding = (draft: QueuedWrite, broken = false): QueuedWrite => {
+        const store = memoryStorage()
+        store.setItem(`${PENDING_ITEM_PREFIX}${draft.clientKey}`, JSON.stringify(draft))
+        if (broken)
+            store.setItem = () => {
+                throw new DOMException('quota exceeded', 'QuotaExceededError')
+            }
+        setQueueStorage(store)
+        setQueuePerformer(null)
+        return queueSnapshot()[0]
+    }
+
+    afterEach(() => {
+        setQueueStorage(null)
+        setQueuePerformer(null)
+    })
+
+    it('confirms the reviewed roster in the same operation that unblocks the draft', () => {
+        const write = deviceHolding(legacy)
+        expect(write.blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+
+        expect(
+            retryBlockedQueuedWrite(write, {
+                token: 'current-token',
+                activeMemberIds: ['ana', 'bea'],
+                needsRosterConfirmation: true,
+            })
+        ).toBe(true)
+
+        expect(queueSnapshot()[0].body.participantIds).toEqual(['ana', 'bea'])
+        expect(queueSnapshot()[0].blocked).toBeUndefined()
+        expect(queueSnapshot()[0].token).toBe('current-token')
+    })
+
+    /**
+     * The screen turns this false into a toast. Before it was a swallowed
+     * storage error reported as success: the drawer closed, nothing was queued
+     * for sending, and the row went on saying "waiting to send" indefinitely.
+     */
+    it('answers false when the device cannot keep the confirmation, and stays blocked', () => {
+        const write = deviceHolding(legacy, true)
+
+        expect(
+            retryBlockedQueuedWrite(write, {
+                token: 'current-token',
+                activeMemberIds: ['ana', 'bea'],
+                needsRosterConfirmation: true,
+            })
+        ).toBe(false)
+
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+        expect(queueSnapshot()[0].body.participantIds).toBeUndefined()
     })
 })

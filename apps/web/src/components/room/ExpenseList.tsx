@@ -5,6 +5,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { peanutThinking } from '@/assets/mascot'
 import type { ApiExpense, CurrencyInfo, RoomState } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
@@ -12,6 +13,7 @@ import { personalExpenseImpact } from '@/lib/expense-impact'
 import { formatManualFxRateInput } from '@/lib/manual-fx-rate'
 import {
     discardQueuedWrite,
+    isImplicitEqualRoster,
     isQueuedExpenseId,
     queuedExpenseId,
     queuedParticipantIds as queuedBodyParticipantIds,
@@ -20,7 +22,9 @@ import {
     retryBlockedWrite,
     updateBlockedWrite,
     useQueuedWrites,
+    type QueuedWrite,
 } from '@/lib/offline-queue'
+import { TOAST_MS } from '@/lib/toasts'
 import { isPendingExpenseId } from '@/lib/pending'
 import { roomTimeline } from '@/lib/timeline'
 import { useMotionAllowed } from '@/lib/use-motion'
@@ -121,6 +125,27 @@ export function getExpensePersonalPosition(
         amountMinor: impact.amountMinor,
         currency: roomCurrency,
     }
+}
+
+/**
+ * Send a reviewed draft back to the queue, and answer whether it went.
+ *
+ * A draft whose EQUAL roster was never frozen is confirmed here against the
+ * roster the reviewer is looking at, in the same operation that unblocks it —
+ * the queue refuses an unblock that leaves the roster implicit, so confirming
+ * and retrying cannot come apart. False means the draft is still blocked, which
+ * the screen has to say: the row's own label reads "waiting to send", and a
+ * Retry that silently failed leaves someone watching a row that will never move.
+ */
+export function retryBlockedQueuedWrite(
+    write: QueuedWrite,
+    options: { token?: string | null; activeMemberIds: readonly string[]; needsRosterConfirmation: boolean }
+): boolean {
+    return retryBlockedWrite(
+        write.clientKey,
+        options.token,
+        options.needsRosterConfirmation ? { ...write.body, participantIds: [...options.activeMemberIds] } : undefined
+    )
 }
 
 interface ExpensePress {
@@ -468,24 +493,26 @@ export function ExpenseList({
                                 )
                                 const queuedExpense = isQueuedExpenseId(expense.id, queued)
                                 const blockedWrite = queuedWrite?.blocked ? queuedWrite : null
-                                const blockedCode = blockedWrite?.blocked?.code
-                                const blockedCopy =
-                                    blockedWrite?.blocked?.code === 'MEMBER_FORMER'
-                                        ? tOffline('blockedFormerBody')
-                                        : blockedWrite?.blocked?.code === 'MEMBER_TOKEN_INVALID'
-                                          ? tOffline('blockedTokenBody')
-                                          : blockedWrite?.blocked?.code === 'NOT_A_MEMBER'
-                                            ? tOffline('blockedMissingBody')
-                                            : tOffline('blockedBody')
+                                const queuedRosterNeedsConfirmation = blockedWrite
+                                    ? isImplicitEqualRoster(blockedWrite.body)
+                                    : false
+                                const blockedCopy = queuedRosterNeedsConfirmation
+                                    ? tOffline('blockedRosterUnknownBody')
+                                    : blockedWrite?.blocked?.code === 'MEMBER_FORMER'
+                                      ? tOffline('blockedFormerBody')
+                                      : blockedWrite?.blocked?.code === 'MEMBER_TOKEN_INVALID'
+                                        ? tOffline('blockedTokenBody')
+                                        : blockedWrite?.blocked?.code === 'NOT_A_MEMBER'
+                                          ? tOffline('blockedMissingBody')
+                                          : tOffline('blockedBody')
                                 const activeRoster = state.members.filter((member) => member.removedAt == null)
                                 const activeIds = new Set(activeRoster.map((member) => member.id))
                                 const explicitQueuedParticipantIds = blockedWrite
                                     ? queuedBodyParticipantIds(blockedWrite.body)
                                     : []
-                                const queuedParticipantIds =
-                                    blockedWrite?.body.splitMode === 'EQUAL' && !blockedWrite.body.participantIds
-                                        ? activeRoster.map((member) => member.id)
-                                        : explicitQueuedParticipantIds
+                                const queuedParticipantIds = queuedRosterNeedsConfirmation
+                                    ? activeRoster.map((member) => member.id)
+                                    : explicitQueuedParticipantIds
                                 const queuedParticipantNames = queuedParticipantIds.map(memberName).join(', ')
                                 const invalidQueuedPayerId =
                                     blockedWrite?.body.paidById && !activeIds.has(blockedWrite.body.paidById)
@@ -496,7 +523,11 @@ export function ExpenseList({
                                 )
                                 const queuedRolesValid =
                                     invalidQueuedPayerId === null && invalidQueuedParticipantIds.length === 0
-                                const canRetryBlocked = queuedRolesValid && !!validMeId && !!token
+                                const canRetryBlocked =
+                                    queuedRolesValid &&
+                                    !!validMeId &&
+                                    !!token &&
+                                    (!queuedRosterNeedsConfirmation || reviewingQueuedKey === blockedWrite?.clientKey)
                                 const participantRoleValue = (memberId: string) => {
                                     if (!blockedWrite || blockedWrite.body.splitMode === 'EQUAL')
                                         return tOffline('equalValue')
@@ -659,7 +690,9 @@ export function ExpenseList({
                                                 {queuedExpense && (
                                                     <span className="block text-h10 uppercase tracking-wide text-grey-1">
                                                         {blockedWrite
-                                                            ? tOffline('blockedRowHint')
+                                                            ? queuedRosterNeedsConfirmation
+                                                                ? tOffline('blockedRosterUnknownRowHint')
+                                                                : tOffline('blockedRowHint')
                                                             : tOffline('rowHint')}
                                                     </span>
                                                 )}
@@ -827,7 +860,19 @@ export function ExpenseList({
                                                         type="button"
                                                         disabled={!canRetryBlocked}
                                                         className="rounded-sm border border-n-1 bg-white px-3 py-2 text-h9 disabled:opacity-40"
-                                                        onClick={() => retryBlockedWrite(blockedWrite.clientKey, token)}
+                                                        onClick={() => {
+                                                            const retrying = retryBlockedQueuedWrite(blockedWrite, {
+                                                                token,
+                                                                activeMemberIds: activeRoster.map(
+                                                                    (member) => member.id
+                                                                ),
+                                                                needsRosterConfirmation: queuedRosterNeedsConfirmation,
+                                                            })
+                                                            if (!retrying)
+                                                                toast.error(tOffline('retryFailed'), {
+                                                                    duration: TOAST_MS.actionable,
+                                                                })
+                                                        }}
                                                     >
                                                         {tOffline('retry')}
                                                     </button>
