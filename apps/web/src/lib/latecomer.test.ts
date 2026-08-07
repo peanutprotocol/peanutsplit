@@ -6,6 +6,7 @@ import {
     dismissLatecomerReview,
     isLatecomerReviewDismissed,
     latecomerReview,
+    memberWasActiveAt,
     projectedBalanceMinor,
     runBackfill,
     selectedImpactMinor,
@@ -75,6 +76,17 @@ const bea = member('bea', 1)
 const dani = member('dani', 30)
 
 describe('backfillableFor', () => {
+    it('uses the active roster at write time and never offers a current Former target', () => {
+        const leftBeforeDinner = { ...member('caro', 0), removedAt: iso(5) }
+        const state = room([ana, bea, leftBeforeDinner, dani], [expense('e1', 10, ['ana', 'bea'])])
+
+        expect(memberWasActiveAt(leftBeforeDinner, new Date(iso(4)).getTime())).toBe(true)
+        expect(memberWasActiveAt(leftBeforeDinner, new Date(iso(10)).getTime())).toBe(false)
+        expect(backfillableFor(state, 'dani').map((row) => row.id)).toEqual(['e1'])
+        expect(backfillableFor(state, 'caro')).toEqual([])
+        expect(latecomerReview(state, 'caro')).toBeNull()
+    })
+
     it('offers an EQUAL expense that was everyone in the room at the time', () => {
         const state = room([ana, bea, dani], [expense('e1', 10, ['ana', 'bea'])])
         expect(backfillableFor(state, 'dani').map((e) => e.id)).toEqual(['e1'])

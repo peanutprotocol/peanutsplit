@@ -284,20 +284,23 @@ export function toRoomCard(
         currency: string
         theme?: string | null
         members: { name: string }[]
+        /** Active count when `members` is the bounded preview lineup. */
+        memberCount?: number
         expenses: { baseAmountMinor: bigint }[]
     },
     copy: CardCopy = ENGLISH_CARD_COPY
 ): RoomCardData {
     const total = room.expenses.reduce((sum, e) => sum + e.baseAmountMinor, 0n)
-    const { avatars, overflow } = avatarsFor(room.members.map((m) => m.name))
+    const memberCount = room.memberCount ?? room.members.length
+    const { avatars } = avatarsFor(room.members.map((m) => m.name))
     return {
         name: sanitizeDisplayName(room.name),
         emblem: roomEmblemValue(room.emoji, room.name),
         avatars,
-        overflow,
-        memberCount: room.members.length,
+        overflow: Math.max(0, memberCount - avatars.length),
+        memberCount,
         stat: statLine(room.expenses.length, total, room.currency, copy),
-        people: peopleLine(room.members.length, copy),
+        people: peopleLine(memberCount, copy),
         tagline: bodySafe(copy.tagline),
         theme: themeFor(room.theme),
     }
@@ -317,9 +320,15 @@ export async function loadRoomCard(slug: string): Promise<RoomCardData | null> {
             currency: true,
             theme: true,
             locale: true,
-            members: { orderBy: { createdAt: 'asc' }, select: { name: true } },
+            _count: { select: { members: { where: { removedAt: null } } } },
+            members: {
+                where: { removedAt: null },
+                orderBy: { createdAt: 'asc' },
+                take: MAX_AVATARS,
+                select: { name: true },
+            },
             expenses: { where: { deletedAt: null }, select: { baseAmountMinor: true } },
         },
     })
-    return room ? toRoomCard(room, await cardCopy(room.locale)) : null
+    return room ? toRoomCard({ ...room, memberCount: room._count.members }, await cardCopy(room.locale)) : null
 }

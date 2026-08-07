@@ -52,10 +52,36 @@ model Room {
   settlements                 Settlement[]
   auditEvents                 RoomAuditEvent[]
   importBatches               ImportBatch[]
+  feedbackReports             FeedbackReport[]
 
   pushSubscriptions PushSubscription[]
   notificationSends NotificationSend[]
 
+  @@schema("split")
+}
+
+/// A private support report created only after the person sending it reviews
+/// and consents to every attachment. It is intentionally not part of RoomState,
+/// the room audit log, or any readable room relation exposed by an API route.
+/// `roomSnapshot` is a bounded, secret-free server projection captured at send
+/// time; `diagnostics` is the allowlisted browser projection shown in the form.
+model FeedbackReport {
+  id                   String   @id @default(uuid())
+  roomId               String
+  message              String
+  diagnostics          Json?
+  roomSnapshot         Json?
+  screenshot           Bytes?
+  screenshotMimeType   String?
+  screenshotByteLength Int?
+  screenshotWidth      Int?
+  screenshotHeight     Int?
+  createdAt            DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+  @@index([createdAt])
   @@schema("split")
 }
 
@@ -103,12 +129,11 @@ model Member {
   // writes always choose a concrete allowlisted key.
   avatarPalette String?
   userId        String? // future account-linking hook
-  // Creation provenance only: true for a name added to an existing roster, so
-  // an untouched typo can be removed. Selecting the name on a device does not
-  // change it; durable ledger history is what makes the row non-removable.
+  // Creation provenance only: true for a name staged while adding an expense.
+  // It is not removal eligibility and selecting the name does not change it.
   provisional   Boolean   @default(false)
   createdAt     DateTime  @default(now())
-  removedAt     DateTime?
+  removedAt     DateTime? // non-null = Former for future activity; ledger identity remains durable
   room          Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 

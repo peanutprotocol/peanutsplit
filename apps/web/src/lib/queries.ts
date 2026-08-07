@@ -26,6 +26,8 @@ export {
     useClaimMember,
     useCreateRoom,
     useDeleteMember,
+    useRestoreMember,
+    useReactivateMember,
     useJoinRoom,
     useSetAvatar,
     useSetEmblem,

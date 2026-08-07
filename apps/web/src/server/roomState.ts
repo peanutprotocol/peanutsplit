@@ -8,6 +8,8 @@ import { ApiError, notFound } from '@/server/http'
 import { formatStoredFxRate } from '@/server/money'
 import { suggestedTransfers } from '@/server/settlement'
 import type { RoomState } from '@/lib/api-types'
+import { safePersonNameForDisplay } from '@/lib/person-name'
+import { activeMember, activeMembers, isActiveMember } from '@/lib/members'
 
 export { EXACT_SETTLEMENT_MAX_NONZERO_BALANCES, suggestedTransfers } from '@/server/settlement'
 
@@ -43,9 +45,9 @@ export type RoomWithRelations = Omit<BaseRoomWithRelations, 'members'> & {
     members: MemberWithRemovalState[]
 }
 
-/** True only for a roster-added name with no durable ledger reference. Device
- * selection never changes this cleanup decision. */
-export const canRemoveMember = (member: MemberWithRemovalState): boolean => member.provisional && member.canRemove
+/** Wire hint only. The mutation repeats the exact balance + last-active checks
+ * under the room advisory lock before changing lifecycle state. */
+export const canRemoveMember = (member: MemberWithRemovalState): boolean => isActiveMember(member) && member.canRemove
 
 /**
  * The columns a balance is folded from, and nothing else.
@@ -103,10 +105,11 @@ export function toRoomState(room: RoomWithRelations): RoomState {
         },
         members: room.members.map((m) => ({
             id: m.id,
-            name: m.name,
+            name: safePersonNameForDisplay(m.name),
             avatar: m.avatar,
             avatarPalette: m.avatarPalette,
             createdAt: m.createdAt.toISOString(),
+            removedAt: m.removedAt?.toISOString() ?? null,
             canRemove: m.canRemove,
         })),
         expenses: room.expenses.map((e) => ({
@@ -148,47 +151,19 @@ export function toRoomState(room: RoomWithRelations): RoomState {
     }
 }
 
-type RoomReader = Pick<Prisma.TransactionClient, 'room' | 'member'>
+type RoomReader = Pick<Prisma.TransactionClient, 'room'>
 
-/**
- * Count history separately from the room read. Adding `_count` to the ordered
- * member relation changes PostgreSQL's query plan and made equal-timestamp
- * imported rosters reorder themselves. A second query only for roster-added
- * names keeps roster order stable and still counts soft-deleted history.
- */
-async function withRemovalState(room: BaseRoomWithRelations, db: RoomReader): Promise<RoomWithRelations> {
-    const provisionalIds = room.members.filter((member) => member.provisional).map((member) => member.id)
-    if (provisionalIds.length === 0) {
-        return {
-            ...room,
-            members: room.members.map((member) => ({ ...member, canRemove: false })),
-        }
-    }
-
-    const histories = await db.member.findMany({
-        where: { id: { in: provisionalIds } },
-        select: { id: true, _count: true },
-    })
-    const removable = new Set(
-        histories
-            .filter(
-                ({ _count }) =>
-                    _count.paidExpenses === 0 &&
-                    _count.createdExpenses === 0 &&
-                    _count.shares === 0 &&
-                    _count.reactions === 0 &&
-                    _count.settlementsFrom === 0 &&
-                    _count.settlementsTo === 0 &&
-                    _count.createdSettlements === 0 &&
-                    _count.pushSubscriptions === 0
-            )
-            .map(({ id }) => id)
-    )
+/** Exact-zero eligibility is derived from the same current ledger fold the UI
+ * settles. The mutation repeats it under the room lock; this is only its wire
+ * hint for rendering controls. */
+function withRemovalState(room: BaseRoomWithRelations): RoomWithRelations {
+    const balances = balancesOf(room)
+    const activeCount = activeMembers(room.members).length
     return {
         ...room,
         members: room.members.map((member) => ({
             ...member,
-            canRemove: removable.has(member.id),
+            canRemove: isActiveMember(member) && activeCount > 1 && (balances.get(member.id) ?? 0n) === 0n,
         })),
     }
 }
@@ -196,13 +171,13 @@ async function withRemovalState(room: BaseRoomWithRelations, db: RoomReader): Pr
 export async function loadRoom(slug: string, db: RoomReader = prisma): Promise<RoomWithRelations> {
     const room = await db.room.findUnique({ where: { slug }, ...roomArgs })
     if (!room) throw notFound('room not found')
-    return withRemovalState(room, db)
+    return withRemovalState(room)
 }
 
 export async function loadRoomById(id: string): Promise<RoomWithRelations> {
     const room = await prisma.room.findUnique({ where: { id }, ...roomArgs })
     if (!room) throw notFound('room not found')
-    return withRemovalState(room, prisma)
+    return withRemovalState(room)
 }
 
 export const roomStateBySlug = async (slug: string): Promise<RoomState> => toRoomState(await loadRoom(slug))
@@ -210,7 +185,7 @@ export const roomStateBySlug = async (slug: string): Promise<RoomState> => toRoo
 /** The member a request is acting as, per `X-Member-Token`. Attribution only. */
 export function memberIdForToken(room: RoomWithRelations, token: string | null): string | null {
     if (!token) return null
-    return room.members.find((m) => m.token === token)?.id ?? null
+    return room.members.find((m) => m.token === token && isActiveMember(m))?.id ?? null
 }
 
 /**
@@ -222,7 +197,7 @@ export function memberIdForToken(room: RoomWithRelations, token: string | null):
  * next to each other and nobody reaches for the wrong one.
  */
 export function assertProvenMember(room: RoomWithRelations, memberId: string, memberToken: string): void {
-    const member = room.members.find((m) => m.id === memberId)
+    const member = activeMember(room.members, memberId)
     if (!member || member.token !== memberToken) {
         throw new ApiError(403, 'MEMBER_TOKEN_INVALID', 'this device is not signed in as a member of this room')
     }

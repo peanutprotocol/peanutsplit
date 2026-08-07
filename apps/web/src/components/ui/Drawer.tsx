@@ -116,7 +116,7 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 const DrawerContent = React.forwardRef<
     React.ElementRef<typeof DrawerPrimitive.Content>,
     React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, onOpenAutoFocus, onCloseAutoFocus, ...props }, ref) => {
+>(({ className, children, onOpenAutoFocus, onCloseAutoFocus, onPointerDownOutside, ...props }, ref) => {
     /** No sheet here is opened by a `DrawerTrigger` — they are URL params — so the
      *  dialog's own "focus the trigger again" had no trigger to find and closing
      *  dropped focus on `<body>`. Remember what the sheet took focus from. */
@@ -154,6 +154,29 @@ const DrawerContent = React.forwardRef<
                     event.preventDefault()
                     if (openerRef.current?.isConnected) openerRef.current.focus()
                     openerRef.current = null
+                }}
+                /**
+                 * A toast is not the backdrop.
+                 *
+                 * The dialog dismisses on any pointer down outside its own React tree, and
+                 * the toast host is a sibling of the sheet rather than a child of it — so
+                 * the tap that answers a toast counted as a tap to close. That toast is
+                 * usually the SHEET'S OWN reply: the Undo under a person just marked Former
+                 * in Settings. Answering it closed the sheet out from under the answer, and
+                 * for a caller-fired toast there is no call site that could have known.
+                 *
+                 * The backdrop keeps every tap that is genuinely on the backdrop; sonner's
+                 * toasts are the only thing carved out, and only where one is drawn.
+                 * `lib/providers` owns the other half — the host is `pointer-events: auto`,
+                 * or none of these taps land anywhere at all.
+                 */
+                onPointerDownOutside={(event) => {
+                    onPointerDownOutside?.(event)
+                    if (event.defaultPrevented) return
+                    const target = event.detail.originalEvent.target
+                    if (target instanceof Element && target.closest('[data-sonner-toast]')) {
+                        event.preventDefault()
+                    }
                 }}
                 {...props}
             >

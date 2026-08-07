@@ -7,12 +7,14 @@ import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { isApiError } from '@/lib/api'
-import type { RoomState } from '@/lib/api-types'
+import type { ApiMember, RoomState } from '@/lib/api-types'
 import type { MemberIdentity } from '@/lib/identity'
 import { useErrorMessage } from '@/lib/error-messages'
-import { useClaimMember, useJoinRoom } from '@/lib/queries'
+import { useClaimMember, useJoinRoom, useReactivateMember } from '@/lib/queries'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { activeMembers } from '@/lib/members'
+import { reactivationCandidateForName } from '@/lib/member-reactivation'
 import { useShake } from '@/hooks/useShake'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -20,6 +22,7 @@ interface JoinGateProps {
     slug: string
     state: RoomState
     onJoined: (identity: MemberIdentity) => void
+    previousIdentity?: MemberIdentity | null
 }
 
 /**
@@ -31,11 +34,12 @@ interface JoinGateProps {
  * circle is a category norm (Kittysplit, Splid), while the token lets reactions
  * and push bind to the identity this device selected.
  */
-export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
+export function JoinGate({ slug, state, onJoined, previousIdentity = null }: JoinGateProps) {
     const t = useTranslations('room.join')
     const errorMessage = useErrorMessage()
     const joinRoom = useJoinRoom(slug)
     const claimMember = useClaimMember(slug)
+    const reactivateMember = useReactivateMember(slug)
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
     const gateRootRef = useRef<HTMLDivElement>(null)
@@ -45,9 +49,11 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
     const titleId = useId()
     const rosterId = useId()
     const { ref: cardRef, shake } = useShake<HTMLDivElement>()
-    const [mode, setMode] = useState<'pick' | 'new'>(state.members.length > 0 ? 'pick' : 'new')
+    const roster = activeMembers(state.members)
+    const [mode, setMode] = useState<'pick' | 'new'>(roster.length > 0 ? 'pick' : 'new')
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
+    const [reactivation, setReactivation] = useState<ApiMember | null>(null)
 
     useEffect(() => {
         const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -129,6 +135,12 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
         event.preventDefault()
         const trimmed = name.trim()
         if (!trimmed) return
+        const former = reactivationCandidateForName(state.members, trimmed)
+        if (former) {
+            setError(null)
+            setReactivation(former)
+            return
+        }
         setError(null)
         try {
             const next = await joinRoom.mutateAsync({ name: trimmed })
@@ -146,6 +158,27 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                 setMode('pick')
                 return
             }
+            if (isApiError(err, 'MEMBER_REACTIVATION_REQUIRED')) {
+                const staleMatch = reactivationCandidateForName(state.members, trimmed, false)
+                if (staleMatch) {
+                    setReactivation(staleMatch)
+                    return
+                }
+            }
+            setError(errorMessage(err, t('failed')))
+        }
+    }
+
+    const confirmReactivation = async () => {
+        if (!reactivation || reactivateMember.isPending) return
+        setError(null)
+        try {
+            const next = await reactivateMember.mutateAsync(reactivation.id)
+            feedback('pop')
+            onJoined({ memberId: next.memberId, token: next.memberToken, name: reactivation.name })
+        } catch (err) {
+            feedback('error', { haptic: 'error' })
+            shake()
             setError(errorMessage(err, t('failed')))
         }
     }
@@ -187,14 +220,23 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                 {t('title')}
                             </h2>
                             <p id={rosterId} className="text-sm text-grey-1">
-                                {t('roster', { room: state.room.name, count: state.members.length })}
+                                {t('roster', { room: state.room.name, count: roster.length })}
                             </p>
+                            {previousIdentity && (
+                                <p className="mt-2 rounded-sm bg-primary-3 p-2 text-sm" role="status">
+                                    {state.members.some(
+                                        (member) => member.id === previousIdentity.memberId && member.removedAt != null
+                                    )
+                                        ? t('previousFormer', { name: previousIdentity.name })
+                                        : t('previousChanged', { name: previousIdentity.name })}
+                                </p>
+                            )}
                         </div>
 
                         {mode === 'pick' && (
                             <div className="flex flex-col gap-3">
                                 <ul className="flex flex-col gap-2">
-                                    {state.members.map((member, index) => (
+                                    {roster.map((member, index) => (
                                         <li key={member.id}>
                                             <button
                                                 ref={index === 0 ? firstMemberRef : undefined}
@@ -244,7 +286,11 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                 <BaseInput
                                     ref={nameInputRef}
                                     value={name}
-                                    onChange={(event) => setName(event.target.value)}
+                                    onChange={(event) => {
+                                        setName(event.target.value)
+                                        setReactivation(null)
+                                        setError(null)
+                                    }}
                                     placeholder={t('namePlaceholder')}
                                     maxLength={80}
                                     data-testid="join-name"
@@ -254,18 +300,52 @@ export function JoinGate({ slug, state, onJoined }: JoinGateProps) {
                                         {error}
                                     </p>
                                 )}
+                                {reactivation && (
+                                    <div
+                                        className="flex flex-col gap-3 rounded-sm border border-n-1 bg-primary-3 p-3"
+                                        data-testid="reactivate-member-confirmation"
+                                    >
+                                        <div>
+                                            <p className="text-h7">
+                                                {t('reactivateTitle', { name: reactivation.name })}
+                                            </p>
+                                            <p className="mt-1 text-sm leading-5 text-grey-1">{t('reactivateBody')}</p>
+                                        </div>
+                                        <div className="flex flex-col gap-2 sm:flex-row">
+                                            <Button
+                                                type="button"
+                                                variant="primary"
+                                                shadowSize="4"
+                                                loading={reactivateMember.isPending}
+                                                onClick={() => void confirmReactivation()}
+                                                className="flex-1 justify-center"
+                                                data-testid="confirm-reactivate-member"
+                                            >
+                                                {t('reactivateConfirm', { name: reactivation.name })}
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="stroke"
+                                                onClick={() => setReactivation(null)}
+                                                className="justify-center"
+                                            >
+                                                {t('reactivateCancel')}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                                 <Button
                                     type="submit"
                                     variant="primary"
                                     shadowSize="4"
-                                    disabled={name.trim().length === 0}
+                                    disabled={name.trim().length === 0 || reactivation !== null}
                                     loading={joinRoom.isPending}
                                     className="justify-center text-h6"
                                     data-testid="join-room"
                                 >
                                     {t('submit')}
                                 </Button>
-                                {state.members.length > 0 && (
+                                {roster.length > 0 && (
                                     <Button
                                         variant="stroke"
                                         className="justify-center"

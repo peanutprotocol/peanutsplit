@@ -187,6 +187,8 @@ test('create → share → join → split → settle → undo', async ({ page, n
     await bea.getByTestId('open-add-expense').click()
     await bea.getByTestId('expense-amount').fill('60')
     await bea.getByTestId('expense-description').fill('Dinner')
+    // A deliberate category wins over description inference and survives edit.
+    await bea.locator('[data-testid="expense-category-picker"] [data-category="transport"]').click()
     await bea.getByTestId('expense-payer-summary').click()
     await bea.locator('[data-testid="payer-chip"][data-member="Bea"]').click()
     await bea.getByTestId('save-expense').click()
@@ -195,6 +197,13 @@ test('create → share → join → split → settle → undo', async ({ page, n
     await expect(bea.getByTestId('first-balance-context')).toBeVisible()
     await bea.getByTestId('skip-post-aha-share').click()
     await expect(bea.getByTestId('expense-row')).toHaveCount(1, { timeout: 15_000 })
+    const dinnerRow = bea.locator('[data-testid="expense-row"][data-description="Dinner"]')
+    await expect(dinnerRow.getByTestId('expense-subject-doodle')).toHaveAttribute('data-expense-subject', 'taxi-rides')
+    await dinnerRow.click()
+    await expect(bea.locator('[data-category="transport"]')).toHaveAttribute('aria-pressed', 'true')
+    await bea.locator('[data-testid="expense-category-picker"] [data-category="food-drink"]').click()
+    await bea.getByTestId('save-expense').click()
+    await expect(dinnerRow.getByTestId('expense-subject-doodle')).toHaveAttribute('data-expense-subject', 'pizza')
     // Bea paid 60 and owes 30, so Bea is +3000 — stated once, on the card, as Ana's -3000.
     await expectBalance(bea, 'Ana', '-3000')
 
@@ -430,8 +439,13 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await expect(page.getByTestId('expense-drawer')).toHaveAttribute('data-state', 'open')
     expect(expenseWrites).toHaveLength(0)
 
+    await page.getByTestId('expense-amount').fill('12345678.9')
+    await expect(page.getByTestId('expense-amount')).toHaveValue('12345678.9')
+    await expect(page.getByTestId('expense-amount-preview')).toHaveText('Formatted: €12,345,678.90')
+
     await page.getByTestId('expense-amount').fill('1,234')
     await page.getByTestId('expense-amount').press('Tab')
+    await expect(page.getByTestId('expense-description')).toBeFocused()
     await expect(page.getByTestId('expense-amount')).toHaveValue('1234.00')
     await expect(page.getByTestId('expense-fields-repaired')).toContainText('Read as 1234.00')
     await page.getByTestId('expense-amount').fill('12.345')

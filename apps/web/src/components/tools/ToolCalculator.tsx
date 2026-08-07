@@ -367,7 +367,9 @@ function Calculator({ tool }: { tool: Tool }) {
                                         maxLength={40}
                                         aria-label={`${rowSpec.nameLabel} ${index + 1}`}
                                         data-testid={`tool-row-name-${index}`}
-                                        className={composerBareInputClassName('h-11 px-1 text-sm font-bold')}
+                                        className={composerBareInputClassName(
+                                            'h-11 px-1 text-base font-bold md:text-sm'
+                                        )}
                                     />
                                 </label>
                             </div>
@@ -512,7 +514,7 @@ function Picker({
                         value={value ?? ''}
                         onChange={(event) => onPick(choice, event.target.value)}
                         data-testid={`tool-choice-${choice.name}`}
-                        className="h-12 w-full appearance-none rounded-sm border border-n-1 bg-white pl-3 pr-10 text-sm font-bold text-n-1 outline-none"
+                        className="h-12 w-full appearance-none rounded-sm border border-n-1 bg-white pl-3 pr-10 text-base font-bold text-n-1 outline-none md:text-sm"
                     >
                         {choice.options.map((option) => (
                             <option key={option.value} value={option.value}>

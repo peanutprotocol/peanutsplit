@@ -1,16 +1,56 @@
 import { describe, expect, it } from 'vitest'
 import {
+    appendRoomDrawingDraftPoint,
     decodeRoomDrawing,
     encodeRoomDrawing,
     isRoomDrawing,
+    ROOM_DRAWING_DRAFT_MAX_POINTS_PER_STROKE,
     ROOM_DRAWING_MAX_LENGTH,
     ROOM_DRAWING_MAX_POINTS,
     ROOM_DRAWING_MAX_POINTS_PER_STROKE,
     ROOM_DRAWING_MAX_STROKES,
     ROOM_DRAWING_PREFIX,
+    startRoomDrawingDraftStroke,
     roomDrawingPathData,
     type RoomDrawing,
 } from '@/lib/room-drawing'
+
+describe('room drawing editor draft', () => {
+    it('keeps drawing well past the persisted 384-point budget and samples only on save', () => {
+        let draft: RoomDrawing = []
+        for (let stroke = 0; stroke < 3; stroke += 1) {
+            draft = startRoomDrawingDraftStroke(draft, { x: 0, y: stroke / 2 })
+            for (let point = 1; point < 600; point += 1) {
+                draft = appendRoomDrawingDraftPoint(draft, {
+                    x: point / 599,
+                    y: stroke / 2,
+                })
+            }
+        }
+
+        expect(draft).toHaveLength(3)
+        expect(draft.every((stroke) => stroke.length === 600)).toBe(true)
+
+        const persisted = decodeRoomDrawing(encodeRoomDrawing(draft))!
+        expect(persisted.reduce((total, stroke) => total + stroke.length, 0)).toBeLessThanOrEqual(
+            ROOM_DRAWING_MAX_POINTS
+        )
+        expect(persisted[0][0].x).toBe(0)
+        expect(persisted[0].at(-1)?.x).toBe(1)
+    })
+
+    it('stops cleanly at the generous safety ceiling instead of dragging the last segment', () => {
+        const stroke = Array.from({ length: ROOM_DRAWING_DRAFT_MAX_POINTS_PER_STROKE }, (_, index) => ({
+            x: index / ROOM_DRAWING_DRAFT_MAX_POINTS_PER_STROKE,
+            y: 0.5,
+        }))
+        const draft: RoomDrawing = [stroke]
+        const next = appendRoomDrawingDraftPoint(draft, { x: 1, y: 1 })
+
+        expect(next).toBe(draft)
+        expect(next[0].at(-1)).toEqual(stroke.at(-1))
+    })
+})
 
 describe('room drawing encoding', () => {
     it('round-trips normalized black-only geometry in a compact v1 value', () => {

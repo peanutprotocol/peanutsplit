@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { CustomRoomDrawing } from '@/components/ui/CustomRoomDrawing'
 import { Button } from '@/components/ui/Button'
@@ -8,11 +8,11 @@ import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import {
+    appendRoomDrawingDraftPoint,
     decodeRoomDrawing,
     encodeRoomDrawing,
-    ROOM_DRAWING_MAX_POINTS,
-    ROOM_DRAWING_MAX_POINTS_PER_STROKE,
-    ROOM_DRAWING_MAX_STROKES,
+    roomDrawingDraftIsFull,
+    startRoomDrawingDraftStroke,
     type RoomDrawing,
     type RoomDrawingPoint,
 } from '@/lib/room-drawing'
@@ -52,27 +52,15 @@ export function RoomDrawingEditor({ open, value, onChange, onOpenChange }: RoomD
 
     const addPoint = (event: ReactPointerEvent<SVGSVGElement>) => {
         const point = pointForEvent(event)
-        setStrokes((current) => {
-            const lastStroke = current.at(-1)
-            if (!lastStroke) return current
-            const lastPoint = lastStroke.at(-1)
-            if (lastPoint && lastPoint.x === point.x && lastPoint.y === point.y) return current
-            const pointCount = current.reduce((total, stroke) => total + stroke.length, 0)
-            if (lastStroke.length >= ROOM_DRAWING_MAX_POINTS_PER_STROKE || pointCount >= ROOM_DRAWING_MAX_POINTS) {
-                return [...current.slice(0, -1), [...lastStroke.slice(0, -1), point]]
-            }
-            return [...current.slice(0, -1), [...lastStroke, point]]
-        })
+        setStrokes((current) => appendRoomDrawingDraftPoint(current, point))
     }
 
     const startStroke = (event: ReactPointerEvent<SVGSVGElement>) => {
-        const pointCount = strokes.reduce((total, stroke) => total + stroke.length, 0)
         if (
             activePointer.current !== null ||
             !event.isPrimary ||
             (event.pointerType === 'mouse' && event.button !== 0) ||
-            strokes.length >= ROOM_DRAWING_MAX_STROKES ||
-            pointCount >= ROOM_DRAWING_MAX_POINTS
+            roomDrawingDraftIsFull(strokes)
         ) {
             return
         }
@@ -85,7 +73,7 @@ export function RoomDrawingEditor({ open, value, onChange, onOpenChange }: RoomD
         // React clears a synthetic event's `currentTarget` after this handler;
         // capture the geometry before entering the state updater.
         const point = pointForEvent(event)
-        setStrokes((current) => [...current, [point]])
+        setStrokes((current) => startRoomDrawingDraftStroke(current, point))
     }
 
     const continueStroke = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -117,6 +105,14 @@ export function RoomDrawingEditor({ open, value, onChange, onOpenChange }: RoomD
         close()
     }
 
+    // The canvas always shows what will be persisted. The raw draft remains
+    // roomy and responsive; once it exceeds the storage budget this preview is
+    // the encoder's even simplification rather than a surprise after Save.
+    const persistedPreview = useMemo(
+        () => (strokes.length ? (decodeRoomDrawing(encodeRoomDrawing(strokes)) ?? strokes) : strokes),
+        [strokes]
+    )
+
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerContent data-testid="custom-room-drawing-editor">
@@ -133,7 +129,7 @@ export function RoomDrawingEditor({ open, value, onChange, onOpenChange }: RoomD
                         className="shadow-4 mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-lg border-2 border-n-1 bg-white"
                     >
                         <CustomRoomDrawing
-                            strokes={strokes}
+                            strokes={persistedPreview}
                             viewBoxSize={DRAWING_SIZE}
                             weight={32}
                             label={t('drawTitle')}

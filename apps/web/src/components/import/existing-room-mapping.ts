@@ -1,6 +1,7 @@
 import type { ApiMember, CurrencyInfo, ImportedExpenseInput, ImportMemberMapping } from '@/lib/api-types'
 import { canPrice } from '@/lib/currency-rules'
 import { currencyInfo } from '@/lib/money'
+import { activeMembers } from '@/lib/members'
 
 /** `null` means this source person will be added atomically with the import. */
 export interface ExistingRoomMemberDraft {
@@ -41,6 +42,7 @@ export function initialExistingRoomMemberDrafts(
     members: readonly ApiMember[],
     semanticSelfMemberId?: string | null
 ): ExistingRoomMemberDraft[] {
+    members = activeMembers(members)
     const memberByName = new Map<string, ApiMember>()
     const ambiguousNames = new Set<string>()
     for (const member of members) {
@@ -71,6 +73,7 @@ export function existingRoomMappingProblem(
     drafts: readonly ExistingRoomMemberDraft[],
     members: readonly ApiMember[]
 ): ExistingRoomMappingProblem | null {
+    members = activeMembers(members)
     const selected = drafts.flatMap((draft) => (draft.memberId ? [draft.memberId] : []))
     const currentMemberIds = new Set(members.map((member) => member.id))
     if (selected.some((memberId) => !currentMemberIds.has(memberId))) return 'missing-existing-member'

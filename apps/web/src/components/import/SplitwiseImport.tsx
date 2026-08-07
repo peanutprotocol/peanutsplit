@@ -547,7 +547,6 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                 roomName={created.room.name}
                 emoji={created.room.emoji}
                 theme={created.room.theme}
-                sharerMemberId={created.memberId}
                 surface="room_ready"
                 title={t('ready.title')}
                 subtitle={t('ready.subtitle')}

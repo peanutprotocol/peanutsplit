@@ -3,6 +3,7 @@ import { encodeRoomDrawing } from './room-drawing'
 import {
     ApiRequestError,
     EXPENSE_WRITE_TIMEOUT_MS,
+    MEMBER_TOKEN_INVALID_EVENT,
     NETWORK_ERROR_CODE,
     api,
     isApiError,
@@ -32,8 +33,61 @@ const hangUntilAborted = () =>
     })
 
 describe('api error paths', () => {
+    const invalidTokenResponse = () =>
+        respondWith(403, {
+            error: { code: 'MEMBER_TOKEN_INVALID', message: 'member proof is stale' },
+        })
+
+    const invalidationEvents = () => {
+        const dispatched: Array<{ type: string; detail: unknown }> = []
+        vi.stubGlobal('window', { dispatchEvent: (event: { type: string; detail: unknown }) => dispatched.push(event) })
+        vi.stubGlobal(
+            'CustomEvent',
+            class {
+                readonly detail: unknown
+                constructor(
+                    readonly type: string,
+                    init: { detail: unknown }
+                ) {
+                    this.detail = init.detail
+                }
+            }
+        )
+        return dispatched
+    }
+
+    it('invalidates an identity claimed by a stale attribution header', async () => {
+        const events = invalidationEvents()
+        vi.stubGlobal('fetch', invalidTokenResponse())
+
+        await api.deleteExpense('room-a', 'e1', 'old-header-token').catch(() => {})
+
+        expect(events).toEqual([{ type: MEMBER_TOKEN_INVALID_EVENT, detail: { token: 'old-header-token' } }])
+    })
+
+    it('invalidates reaction and push proofs carried in JSON bodies', async () => {
+        const events = invalidationEvents()
+        vi.stubGlobal('fetch', invalidTokenResponse())
+
+        await api.reactions.add('e1', { emoji: '❤️', memberId: 'm1', memberToken: 'old-body-token' }).catch(() => {})
+        await api.push
+            .status('room-a', { endpoint: 'https://push.example/1', memberId: 'm1', memberToken: 'old-push-token' })
+            .catch(() => {})
+
+        expect(events).toEqual([
+            { type: MEMBER_TOKEN_INVALID_EVENT, detail: { token: 'old-body-token' } },
+            { type: MEMBER_TOKEN_INVALID_EVENT, detail: { token: 'old-push-token' } },
+        ])
+    })
+
     it('recognizes every stale catch-up row as a review change', () => {
-        for (const code of ['CATCH_UP_REVIEW_CONFLICT', 'EXPENSE_DELETED', 'EXPENSE_NOT_FOUND', 'NOT_A_MEMBER']) {
+        for (const code of [
+            'CATCH_UP_REVIEW_CONFLICT',
+            'EXPENSE_DELETED',
+            'EXPENSE_NOT_FOUND',
+            'NOT_A_MEMBER',
+            'MEMBER_FORMER',
+        ]) {
             expect(isCatchUpReviewChange(new ApiRequestError(409, code, 'changed'))).toBe(true)
         }
         expect(isCatchUpReviewChange(new ApiRequestError(500, 'UNKNOWN', 'failed'))).toBe(false)
@@ -114,6 +168,25 @@ describe('api error paths', () => {
 })
 
 describe('api requests', () => {
+    it('posts private feedback without copying member identity into the request', async () => {
+        const fetchMock = respondWith(201, { reportId: 'report-1' })
+        vi.stubGlobal('fetch', fetchMock)
+
+        await api.feedback.report('ski/trip', {
+            message: 'The button did not react after I tapped it.',
+            consent: { confirmed: true, diagnostics: false, roomSnapshot: false, screenshot: false },
+        })
+
+        const [url, init] = fetchMock.mock.calls[0]
+        expect(url).toBe('/api/rooms/ski%2Ftrip/feedback')
+        expect(init.method).toBe('POST')
+        expect(init.headers['X-Member-Token']).toBeUndefined()
+        expect(JSON.parse(init.body)).toEqual({
+            message: 'The button did not react after I tapped it.',
+            consent: { confirmed: true, diagnostics: false, roomSnapshot: false, screenshot: false },
+        })
+    })
+
     it('posts an append import to the encoded room route with attribution and no invented timestamp', async () => {
         const fetchMock = respondWith(200, {})
         vi.stubGlobal('fetch', fetchMock)

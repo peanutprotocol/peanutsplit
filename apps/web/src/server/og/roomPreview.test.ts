@@ -59,6 +59,17 @@ describe('the meta a chat preview reads', () => {
         expect(meta.robots).toEqual({ index: false, follow: false })
         expect(meta.openGraph?.description).toBe(meta.description)
         expect(meta.twitter?.description).toBe(meta.description)
+        expect(meta.openGraph?.images).toEqual([
+            {
+                url: `/r/${room.slug}/opengraph-image`,
+                width: 1200,
+                height: 630,
+                alt: 'Peanut Split room preview',
+            },
+        ])
+        expect(meta.twitter?.images).toEqual([`/r/${room.slug}/opengraph-image`])
+        // The existing room capability is the only token in the preview path.
+        expect(JSON.stringify(meta.openGraph?.images).match(new RegExp(room.slug, 'g'))).toHaveLength(1)
     })
 
     it('falls back to English for a room that never said', async () => {

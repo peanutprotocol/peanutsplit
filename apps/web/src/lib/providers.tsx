@@ -128,8 +128,39 @@ export function Providers({ children }: { children: React.ReactNode }) {
                         // The floor, not the rule: anything that asks for an action
                         // passes its own duration from TOAST_MS at the call site.
                         duration={TOAST_MS.default}
+                        // A toast that can be seen has to be tappable, including over an
+                        // open sheet. Sonner's host already outranks every layer here on
+                        // z-index and paints above the backdrop — but a vaul sheet is a
+                        // modal Radix dialog, and for as long as one is open Radix sets
+                        // `pointer-events: none` on <body> and re-enables them only on its
+                        // own content. This host is a SIBLING of that content, not a child,
+                        // so it inherited `none`: the Undo under a person just marked
+                        // Former in Settings was fully visible and answered no taps at all.
+                        // Same trap the scan overlay documents in `room/scan/ScanFlow`.
+                        //
+                        // On the host and not on the toast, because sonner positions every
+                        // toast absolutely inside this zero-height fixed container — only a
+                        // toast's own rectangle takes a tap, the rest of the backdrop stays
+                        // live and still closes the sheet. `ui/Drawer` owns the other half:
+                        // a tap that lands on a toast is not an "outside" tap.
+                        style={{ pointerEvents: 'auto' }}
                         toastOptions={{
-                            className: 'rounded-sm border border-n-1 bg-white text-n-1 font-sans',
+                            // Sonner's styled mode wins on selector specificity,
+                            // reintroducing its soft shadow and 8px radius over
+                            // these classes. Own the primitive completely so a
+                            // toast follows the same hard-edged DS as the room.
+                            unstyled: true,
+                            classNames: {
+                                toast: 'shadow-4 flex w-full items-start gap-3 rounded-sm border border-n-1 bg-white p-4 font-sans text-sm text-n-1',
+                                content: 'flex min-w-0 flex-1 flex-col gap-1',
+                                title: 'font-bold',
+                                description: 'text-grey-1',
+                                actionButton:
+                                    'min-h-10 rounded-sm border border-n-1 bg-primary-1 px-3 font-bold text-n-1',
+                                cancelButton: 'min-h-10 rounded-sm border border-n-1 bg-white px-3 font-bold text-n-1',
+                                closeButton:
+                                    'flex size-10 items-center justify-center rounded-sm border border-n-1 bg-white',
+                            },
                         }}
                     />
                 </NuqsAdapter>

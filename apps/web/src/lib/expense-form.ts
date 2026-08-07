@@ -15,6 +15,8 @@ import { addMinor, decimalsOf, formatAmountInput, formatMinorPlain, parseAmountT
 
 export interface ExpenseFormValues {
     description: string
+    /** Saved manual art/category override. null keeps description inference. */
+    category: string | null
     /** Major units, verbatim as typed. */
     amountInput: string
     currency: string
@@ -26,10 +28,15 @@ export interface ExpenseFormValues {
     participantIds: string[]
     /**
      * False until the user deliberately toggles a participant. While false the
-     * body omits `participantIds`, so the SERVER splits among everyone in the
-     * room at save time — the client's roster can be up to a poll-interval
+     * ONLINE body omits `participantIds`, so the server splits among everyone in
+     * the room at save time — the client's roster can be up to a poll-interval
      * stale, and "split with everyone" is intent, not a member-list snapshot.
      * (A member who joined 3s ago must not be silently excluded.)
+     *
+     * A draft that falls back to the offline queue is the opposite case, and
+     * `queries/expenses.ts` writes the roster into its queued body: replay can
+     * land hours after somebody left, and there "everyone" has to mean the
+     * people who were on screen when Save was pressed.
      */
     participantsTouched: boolean
     /** EXACT mode: memberId → major-unit text, in the EXPENSE currency. */
@@ -55,12 +62,25 @@ export interface ExpenseFormValues {
     date: string
 }
 
+/** Member ids the current form would send for its selected split mode. Untouched
+ * EQUAL deliberately returns none because the online wire omits participantIds
+ * and the server resolves the active roster at commit time. (A queued draft is
+ * materialized against the submit-time roster instead, at enqueue — that
+ * happens after this form model is gone.) */
+export const referencedDraftParticipantIds = (values: ExpenseFormValues): string[] => {
+    if (values.splitMode === 'EQUAL') return values.participantsTouched ? values.participantIds : []
+    if (values.splitMode === 'EXACT') return Object.keys(values.exactInputs)
+    if (values.splitMode === 'PERCENTAGE') return Object.keys(values.percentageInputs)
+    return Object.keys(values.shareInputs)
+}
+
 export const emptyExpenseForm = (opts: {
     currency: string
     members: readonly ApiMember[]
     paidById: string
 }): ExpenseFormValues => ({
     description: '',
+    category: null,
     amountInput: '',
     currency: opts.currency,
     paidById: opts.paidById,
@@ -110,6 +130,7 @@ export function expenseToFormValues(
     }
     return {
         description: expense.description,
+        category: expense.category,
         amountInput: locale
             ? formatAmountInput(expense.amountMinor, decimals, locale)
             : formatMinorPlain(expense.amountMinor, decimals),
@@ -371,6 +392,7 @@ export function buildExpenseBody(
 
     const base = {
         description: values.description.trim(),
+        category: values.category,
         amountMinor,
         currency: values.currency,
         date: values.date,

@@ -147,7 +147,7 @@ export function CreateRoomForm() {
                             maxLength={80}
                             data-testid="creator-name"
                             data-focus-contained
-                            className={composerBareInputClassName('h-14 px-4 text-sm font-bold')}
+                            className={composerBareInputClassName('h-14 px-4 text-base font-bold md:text-sm')}
                         />
                     </label>
 

@@ -7,6 +7,25 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-05.
 
+## Code-complete 2026-08-06 — exact-zero Former-member lifecycle
+
+- A used active member whose authoritative room-currency balance is exactly zero
+  can now be marked Former without deleting any ledger or social history. The
+  room-locked transition keeps at least one active person, invalidates the old
+  identity proof, drops push, writes audit history, and has short Undo plus
+  durable same-ID reactivation with token rotation.
+- New activity, identity, counts, and share art use the active roster. History,
+  exports, recap, balances, and settlements use the full ledger directory.
+  Historical corrections can reopen a Former balance and keep it settleable.
+- Open money forms survive identity recovery. Offline expenses blocked by a
+  membership change remain durable until reviewed: role remapping preserves
+  exact amounts/weights and per-room ordering; only Retry success or explicit
+  Discard removes the draft.
+
+**State:** code-complete on `qa/qa-sesh-former`; production verification and
+deployment remain separate release gates. Canonical invariants are in
+[`member-removal-design.md`](./member-removal-design.md).
+
 ## Code-complete 2026-08-04 — append imports to an existing room
 
 - Room settings now opens `/r/[slug]/import`, where a reviewed Splitwise or
@@ -710,14 +729,22 @@ manual-copy textarea fallback. `SHARE_PACKAGE_METHODS` shrank to
 `native | clipboard`; the five `room.link.download*` keys left all three
 locales.
 
-**Shipped 2026-07-30 (the rest of it):** the SVG share path is deleted rather
-than kept alongside — the invite now goes out as a PNG off the same card route
-the achievements use, through the one share chain. The geometry gate came back
-in an equivalent form, reading the card route's own output instead of an
-intercepted download.
+**Corrected 2026-08-06:** a private room invite is URL-first again. Its native
+payload is localized text plus the exact room URL and never a PNG attachment;
+some iOS share targets accept image + URL and silently deliver only the image.
+The URL still has a room-specific 1200×630 visual through its existing
+`/r/<slug>/opengraph-image` metadata route. Creation and room load proactively
+warm that same-origin image, whose browser/shared-cache lifetime is five minutes
+with a short stale-while-revalidate window. Preview failure never blocks the
+room or the share. Public achievement/recap keepsakes remain a separate,
+explicitly labelled image-only action with no URL, text or title in the native
+payload. `share_completed` therefore stays `native | clipboard`; there is no
+invite `card` method to add.
 
-Still open: decide whether `share_completed` needs a `card` method now that the
-PNG path exists. [Konrad]
+The empty-room hierarchy was corrected in the same pass: Share room remains the
+sole primary share action until at least one real expense exists. A roster-only
+CREW unlock waits rather than presenting a competing image-share moment before
+the ledger has earned one.
 
 **Queued — semi-done feature audit, remaining surfaces:** [Konrad]
 A 2026-07-29 Playwright walk covered landing, room view, and the share drawer
@@ -746,6 +773,14 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
 - **Native apps, monetization features** — out of scope for the bet.
 
 ## Known debt
+
+- **Private feedback retention scheduler:** report writes and every production
+  container start delete `FeedbackReport` rows older than 90 days. Add a daily
+  Dokploy/Postgres job using the same cutoff so the policy remains time-bounded
+  even if a container runs for more than 90 days without a deploy or a new
+  report. **Owner: Konrad. Done when:** the daily job is visible in operations,
+  one deliberately expired canary row is removed, and screenshots, diagnostics,
+  messages, and room snapshots are all covered by the same row deletion.
 
 - `formatMoney` can flash 2-decimal amounts for a fresh non-fallback currency
   before `/api/currencies` resolves (mitigated by the fallback catalog).

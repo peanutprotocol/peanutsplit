@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { BTN_SMALL } from '@/components/ui/control'
 import { cn } from '@/lib/cn'
 import type { ApiMember } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
-import { useDeleteMember } from '@/lib/queries'
+import { useDeleteMember, useRestoreMember } from '@/lib/queries'
+import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
 
 /**
@@ -23,15 +25,30 @@ import { useFeedback } from '@/lib/use-settings'
  * both callers sit inside a drawer that clips its own scroll area, so a popover
  * would be cut in half. Both therefore lay their row out with `flex-wrap`.
  *
- * The server hard-deletes, and there is no restore route, so the confirmation
- * IS the safety net — `member-removal-design.md` specifies a 10-second Undo and
- * a "Removed people" section, and both need `removedAt` to be honoured first.
+ * The server marks an exact-zero person Former. It never deletes their identity
+ * or history; the durable Former section owns the explicit Reactivate action.
  */
-export function RemovePerson({ slug, member, token }: { slug: string; member: ApiMember; token?: string | null }) {
+export function RemovePerson({
+    slug,
+    member,
+    token,
+    balanceMinor,
+    lastActive,
+}: {
+    slug: string
+    member: ApiMember
+    token?: string | null
+    balanceMinor: string
+    lastActive: boolean
+}) {
     const t = useTranslations('room.people')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const deleteMember = useDeleteMember(slug, token)
+    // Token-free on purpose: when someone marks their own identity Former, the
+    // just-invalidated proof cannot attribute Undo. The room link still permits
+    // restore, which rotates the member token again.
+    const restoreMember = useRestoreMember(slug)
     const [open, setOpen] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -51,6 +68,18 @@ export function RemovePerson({ slug, member, token }: { slug: string; member: Ap
             // to close afterwards.
             await deleteMember.mutateAsync(member.id)
             feedback('thunk')
+            toast(t('removedToast', { name: member.name }), {
+                duration: TOAST_MS.actionable,
+                action: {
+                    label: t('undo'),
+                    onClick: () => {
+                        void restoreMember
+                            .mutateAsync(member.id)
+                            .then(() => toast.success(t('restoredToast', { name: member.name })))
+                            .catch((err) => toast.error(errorMessage(err, t('restoreFailed'))))
+                    },
+                },
+            })
         } catch (err) {
             feedback('error', { haptic: 'error' })
             setError(errorMessage(err, t('removeFailed')))
@@ -108,7 +137,9 @@ export function RemovePerson({ slug, member, token }: { slug: string; member: Ap
                         </div>
                     ) : (
                         <p role="status" className="text-sm leading-5">
-                            {t('blockedReason', { name: member.name })}
+                            {lastActive
+                                ? t('lastActiveReason', { name: member.name })
+                                : t('blockedReason', { name: member.name, balance: balanceMinor })}
                         </p>
                     )}
                     {error && (

@@ -61,7 +61,7 @@ vi.mock('./SettlementRow', () => ({ SettlementRow: () => null }))
 
 import { ExpenseList } from './ExpenseList'
 
-const expense = (description: string): ApiExpense => ({
+const expense = (description: string, overrides: Partial<ApiExpense> = {}): ApiExpense => ({
     id: 'expense',
     description,
     amountMinor: '4000',
@@ -79,9 +79,10 @@ const expense = (description: string): ApiExpense => ({
         { memberId: 'bea', amountMinor: '2000', enteredAmountMinor: null, splitWeight: null },
     ],
     reactions: [],
+    ...overrides,
 })
 
-const state = (description: string): RoomState => ({
+const state = (description: string, overrides: Partial<ApiExpense> = {}): RoomState => ({
     room: {
         id: 'room',
         slug: 'summer-trip',
@@ -96,16 +97,16 @@ const state = (description: string): RoomState => ({
         { id: 'ana', name: 'Ana', avatar: 'peanut', createdAt: '2026-08-03T10:00:00.000Z' },
         { id: 'bea', name: 'Bea', avatar: 'bee', createdAt: '2026-08-03T10:00:00.000Z' },
     ],
-    expenses: [expense(description)],
+    expenses: [expense(description, overrides)],
     settlements: [],
     balances: { ana: '2000', bea: '-2000' },
     suggestedTransfers: [{ fromId: 'bea', toId: 'ana', amountMinor: '2000' }],
 })
 
-const renderExpense = (description: string) =>
+const renderExpense = (description: string, overrides: Partial<ApiExpense> = {}) =>
     renderToStaticMarkup(
         <ExpenseList
-            state={state(description)}
+            state={state(description, overrides)}
             currencies={[{ code: 'USD', symbol: '$', name: 'US dollar', decimals: 2, hasRate: true }]}
             meId="bea"
             slug="summer-trip"
@@ -135,6 +136,26 @@ describe('ExpenseList subject art', () => {
         const card = renderExpense('Pizza')
 
         expect(card).toContain('paidByCompact:Ana')
+    })
+
+    it('uses a saved category override ahead of contradictory description inference', () => {
+        const card = renderExpense('Pizza', { category: 'transport' })
+
+        expect(card).toContain('data-expense-category="transport"')
+        expect(card).toContain('data-expense-subject="taxi-rides"')
+        expect(card).toContain('data-doodle-name="taxi"')
+    })
+
+    it('shows a custom FX rate as frozen on this expense row', () => {
+        const card = renderExpense('First round', {
+            currency: 'BEER',
+            amountMinor: '400',
+            baseAmountMinor: '200',
+            fxRate: '0.5',
+        })
+
+        expect(card).toContain('data-testid="expense-saved-fx-rate"')
+        expect(card).toContain('savedManualRate:BEER,0.5,USD')
     })
 
     it('uses the locked bare-hero size and keeps inferred art decorative', () => {

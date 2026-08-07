@@ -72,9 +72,13 @@ const CSV_HEADERS = [
     'date',
     'created_at',
     'receipt_url',
+    'member_status',
+    'removed_at',
 ] as const
 
 const row = (...cells: CsvCell[]): string => cells.map(csvCell).join(',')
+const dataRow = (...cells: CsvCell[]): string =>
+    row(...cells, ...Array<CsvCell>(Math.max(0, CSV_HEADERS.length - cells.length)).fill(''))
 
 /**
  * A normalized CSV: expenses, shares and settlements are separate records so
@@ -84,7 +88,7 @@ export function roomCsv(state: RoomState): string {
     const rows: string[] = [row(...CSV_HEADERS)]
 
     rows.push(
-        row(
+        dataRow(
             'room',
             '',
             '',
@@ -111,7 +115,7 @@ export function roomCsv(state: RoomState): string {
 
     for (const member of state.members) {
         rows.push(
-            row(
+            dataRow(
                 'member',
                 member.id,
                 '',
@@ -132,14 +136,16 @@ export function roomCsv(state: RoomState): string {
                 '',
                 '',
                 member.createdAt,
-                ''
+                '',
+                member.removedAt ? 'FORMER' : 'ACTIVE',
+                member.removedAt ?? ''
             )
         )
     }
 
     for (const expense of state.expenses) {
         rows.push(
-            row(
+            dataRow(
                 'expense',
                 expense.id,
                 '',
@@ -165,7 +171,7 @@ export function roomCsv(state: RoomState): string {
         )
         for (const share of expense.shares) {
             rows.push(
-                row(
+                dataRow(
                     'share',
                     '',
                     expense.id,
@@ -194,7 +200,7 @@ export function roomCsv(state: RoomState): string {
 
     for (const settlement of state.settlements) {
         rows.push(
-            row(
+            dataRow(
                 'settlement',
                 settlement.id,
                 '',
@@ -222,7 +228,7 @@ export function roomCsv(state: RoomState): string {
 
     for (const [memberId, amountMinor] of Object.entries(state.balances)) {
         rows.push(
-            row(
+            dataRow(
                 'balance',
                 '',
                 '',
@@ -250,7 +256,7 @@ export function roomCsv(state: RoomState): string {
 
     for (const transfer of state.suggestedTransfers) {
         rows.push(
-            row(
+            dataRow(
                 'suggested_transfer',
                 '',
                 '',

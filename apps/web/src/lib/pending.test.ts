@@ -111,6 +111,13 @@ describe('isRoomSettled', () => {
         expect(isRoomSettled(solo)).toBe(false)
     })
 
+    it('a square Former identity with shared history still leaves the trip settled', () => {
+        const ana = member('ana', 'Ana')
+        const former = { ...member('bea', 'Bea'), removedAt: '2026-08-06T00:00:00.000Z' }
+        const historical = expense('real-1')
+        expect(isRoomSettled(room([historical], [], [ana, former]))).toBe(true)
+    })
+
     /** Persona repro: two people in the room, and the only expense so far is one
      *  of them logging something they bought for themselves. Real money, no debt. */
     it('a room whose expenses never crossed between people is not settled', () => {

@@ -36,7 +36,8 @@ describe('the Telegram-style reaction pills', () => {
     })
 
     it('names the toggle action and the people behind it for assistive technology', () => {
-        expect(source).toContain("const reactorNames = group.reactors.map((member) => member.name).join(', ')")
+        expect(source).toContain("const reactorNames = group.reactors.map(reactorName).join(', ')")
+        expect(source).toContain("member.removedAt == null ? member.name : t('formerName', { name: member.name })")
         expect(source).toContain("? t('remove', { emoji: reactionName })")
         expect(source).toContain(": t('pick', { emoji: reactionName })")
         expect(source).toContain('aria-label={`${toggleName}: ${reactorNames}')

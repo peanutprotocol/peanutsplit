@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { clearIdentity, readIdentity, writeIdentity, type MemberIdentity } from './identity'
+import { MEMBER_TOKEN_INVALID_EVENT } from './api'
 import { dropRoomSubscription } from './use-push'
 
 export interface RoomIdentityState {
@@ -38,6 +39,17 @@ export function forgetIdentity(slug: string, previous: MemberIdentity | null): v
     clearIdentity(slug)
 }
 
+/** Pure state transition behind the global invalid-proof event. */
+export function identityAfterInvalidToken(
+    slug: string,
+    current: MemberIdentity | null,
+    invalidToken: string
+): MemberIdentity | null {
+    if (current?.token !== invalidToken) return current
+    forgetIdentity(slug, current)
+    return null
+}
+
 /** Who this device is in `slug`, kept in sync with localStorage. */
 export function useRoomIdentity(slug: string): RoomIdentityState {
     const [identity, setIdentity] = useState<MemberIdentity | null>(null)
@@ -46,6 +58,16 @@ export function useRoomIdentity(slug: string): RoomIdentityState {
     useEffect(() => {
         setIdentity(readIdentity(slug))
         setLoaded(true)
+    }, [slug])
+
+    useEffect(() => {
+        const invalidated = (event: Event) => {
+            const token = (event as CustomEvent<{ token?: unknown }>).detail?.token
+            if (typeof token !== 'string') return
+            setIdentity((current) => identityAfterInvalidToken(slug, current, token))
+        }
+        window.addEventListener(MEMBER_TOKEN_INVALID_EVENT, invalidated)
+        return () => window.removeEventListener(MEMBER_TOKEN_INVALID_EVENT, invalidated)
     }, [slug])
 
     const claim = useCallback(

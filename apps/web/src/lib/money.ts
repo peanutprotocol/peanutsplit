@@ -3,8 +3,8 @@
  * `src/server/money.ts`, but display-only: the client never derives balances, it
  * renders the minor-unit strings the API hands it.
  *
- * Amounts stay strings + BigInt everywhere except the NumberFlow display value,
- * which needs a JS number by construction.
+ * Amounts stay strings + BigInt everywhere except a NumberFlow display value
+ * which has proved it can round-trip to the identical minor-unit integer.
  */
 
 import { DEFAULT_LOCALE } from '@/i18n/locales'
@@ -278,6 +278,25 @@ export function formatAmountInput(minor: string, decimals: number, locale: strin
     return usesCommaDecimal ? plain.replace('.', ',') : plain
 }
 
+/** A sidecar for raw, caret-stable entry. Grouping starts being useful at five
+ * whole digits; below that the preview would only repeat the field. */
+export function formatLargeAmountPreview(
+    minor: string,
+    code: string,
+    catalog?: readonly CurrencyInfo[],
+    locale: string = DEFAULT_LOCALE
+): string | null {
+    const info = currencyInfo(code, catalog)
+    try {
+        const magnitude = BigInt(minor)
+        const absolute = magnitude < 0n ? -magnitude : magnitude
+        if (absolute < 10n ** BigInt(info.decimals + 4)) return null
+        return formatMoney(minor, code, catalog, locale)
+    } catch {
+        return null
+    }
+}
+
 /** ISO-4217 shape. `Intl.NumberFormat` throws a RangeError on anything else. */
 const isCurrencyCode = (code: string): boolean => /^[A-Za-z]{3}$/.test(code)
 
@@ -291,6 +310,13 @@ export interface MoneyFormat {
     currency?: string
     minimumFractionDigits: number
     maximumFractionDigits: number
+}
+
+/** The compact formatter is never handed to NumberFlow. It is the deliberately
+ * approximate visual form for a constrained overview; the exact full string
+ * stays beside it as the accessible name and title. */
+type CompactMoneyFormat = Intl.NumberFormatOptions & {
+    style: 'currency' | 'decimal'
 }
 
 /**
@@ -326,6 +352,25 @@ export function moneyFormatOptions(info: CurrencyInfo): MoneyFormat {
         : { style: 'decimal', ...digits }
 }
 
+/**
+ * Locale data owns the compact suffix (`M`, `mi`, `B`, spacing, and so on).
+ * One fractional digit is enough to distinguish materially different overview
+ * values without letting an abbreviated number grow back into a full one.
+ * Currency minor-unit precision does not apply here: this is a rounded visual
+ * summary, while the exact amount remains available to AT and in `title`.
+ */
+function compactMoneyFormatOptions(info: CurrencyInfo): CompactMoneyFormat {
+    const compact = {
+        notation: 'compact' as const,
+        compactDisplay: 'short' as const,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+    }
+    return printsSymbol(info)
+        ? { style: 'currency', currency: info.code.toUpperCase(), ...compact }
+        : { style: 'decimal', ...compact }
+}
+
 /** What follows the digits when the currency has no symbol — '' when it has one. */
 export const currencySuffix = (info: CurrencyInfo): string =>
     printsSymbol(info) ? '' : formatWithCurrency('', '', info)
@@ -336,6 +381,7 @@ export const currencySuffix = (info: CurrencyInfo): string =>
  * (locales × currencies), so it never needs eviction.
  */
 const formatterCache = new Map<string, Intl.NumberFormat>()
+const compactFormatterCache = new Map<string, Intl.NumberFormat>()
 
 export function moneyFormatter(locale: string, info: CurrencyInfo): Intl.NumberFormat {
     const key = `${locale}|${info.code}|${info.decimals}`
@@ -343,6 +389,15 @@ export function moneyFormatter(locale: string, info: CurrencyInfo): Intl.NumberF
     if (cached) return cached
     const formatter = new Intl.NumberFormat(locale, moneyFormatOptions(info))
     formatterCache.set(key, formatter)
+    return formatter
+}
+
+function compactMoneyFormatter(locale: string, info: CurrencyInfo): Intl.NumberFormat {
+    const key = `${locale}|${info.code}|compact`
+    const cached = compactFormatterCache.get(key)
+    if (cached) return cached
+    const formatter = new Intl.NumberFormat(locale, compactMoneyFormatOptions(info))
+    compactFormatterCache.set(key, formatter)
     return formatter
 }
 
@@ -377,6 +432,78 @@ export function formatMoney(
         // An engine without string input. Formatting must never throw mid-render, so fall back to
         // ungrouped digits rather than losing the amount.
         return formatWithCurrency(sign, magnitude, info)
+    }
+}
+
+/**
+ * An abbreviated amount for a constrained overview. The input is still the
+ * exact decimal string accepted by ECMA-402's ToIntlMathematicalValue; no JS
+ * `number` sits between bigint minor units and locale formatting.
+ */
+export function formatCompactMoney(
+    minor: string,
+    code: string,
+    catalog?: readonly CurrencyInfo[],
+    locale: string = DEFAULT_LOCALE
+): string {
+    const info = currencyInfo(code, catalog)
+    const plain = formatMinorPlain(minor, info.decimals)
+    const sign = plain.startsWith('-') ? '-' : ''
+    const magnitude = sign ? plain.slice(1) : plain
+    try {
+        if (printsSymbol(info)) return compactMoneyFormatter(locale, info).format(plain as unknown as number)
+        return formatWithCurrency(
+            sign,
+            compactMoneyFormatter(locale, info).format(magnitude as unknown as number),
+            info
+        )
+    } catch {
+        // Compact notation is an enhancement. An older engine gets the exact
+        // full value, never an invented abbreviation or a missing amount.
+        return formatMoney(minor, code, catalog, locale)
+    }
+}
+
+export type OverviewMoneyScale = 'regular' | 'smaller' | 'smallest'
+
+export interface OverviewMoneyPresentation {
+    /** Exact, locale-formatted text. Always the accessible name and title. */
+    exact: string
+    /** What a sighted reader sees on the constrained overview. */
+    visible: string
+    compact: boolean
+    /** Typography gives way before precision does. */
+    scale: OverviewMoneyScale
+}
+
+/** Past this many visible characters, shrinking again is less readable than
+ * the locale's own compact notation. Detail views never call this helper. */
+export const OVERVIEW_MONEY_COMPACT_AFTER = 12
+
+const displayLength = (value: string): number => Array.from(value).length
+
+export function overviewMoneyPresentation(
+    minor: string,
+    code: string,
+    catalog?: readonly CurrencyInfo[],
+    locale: string = DEFAULT_LOCALE
+): OverviewMoneyPresentation {
+    const exact = formatMoney(minor, code, catalog, locale)
+    const exactLength = displayLength(exact)
+    if (exactLength > OVERVIEW_MONEY_COMPACT_AFTER) {
+        const visible = formatCompactMoney(minor, code, catalog, locale)
+        return {
+            exact,
+            visible,
+            compact: visible !== exact,
+            scale: displayLength(visible) > 10 ? 'smaller' : 'regular',
+        }
+    }
+    return {
+        exact,
+        visible: exact,
+        compact: false,
+        scale: exactLength > 10 ? 'smallest' : exactLength > 7 ? 'smaller' : 'regular',
     }
 }
 
@@ -486,10 +613,31 @@ export function currencyDisplayName(
     return info.name || code
 }
 
-/** Display-only: NumberFlow animates numbers, so the major-unit float is the
- *  one place a float is allowed near money. */
-export function minorToNumber(minor: string, decimals: number): number {
-    return Number(minor) / 10 ** decimals
+/**
+ * Display-only gate for NumberFlow.
+ *
+ * A value may animate only if its major-unit Number scales back to the exact
+ * bigint minor units. This is deliberately stronger than checking `isFinite`
+ * and more accurate than checking the raw integer alone: dividing a large safe
+ * integer by 100 can make two neighbouring cent values collapse onto the same
+ * float. `null` means the caller must render exact static text instead.
+ */
+export function minorToExactNumber(minor: string, decimals: number): number | null {
+    try {
+        const exact = BigInt(minor)
+        const scale = 10 ** decimals
+        const value = Number(exact) / scale
+        if (!Number.isFinite(value)) return null
+        const roundTrip = value * scale
+        // NumberFlow ultimately hands this value back to Intl as a Number. Even
+        // exactly representable powers of two above MAX_SAFE_INTEGER can format
+        // to a visibly different decimal integer, so keep the animation gate at
+        // the safe-integer boundary as well as checking the exact round-trip.
+        if (!Number.isFinite(roundTrip) || !Number.isSafeInteger(roundTrip)) return null
+        return BigInt(Math.round(roundTrip)) === exact ? value : null
+    } catch {
+        return null
+    }
 }
 
 export const isZeroMinor = (minor: string): boolean => {

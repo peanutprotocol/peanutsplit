@@ -24,5 +24,13 @@ while true; do
     sleep "$DELAY"
 done
 
+# Private feedback can contain a screenshot and room ledger context. Keep it
+# only for the 90-day support window. The same cutoff runs before every new
+# report; this boot sweep also covers a room that receives no later reports.
+echo "→ pruning private feedback reports older than 90 days"
+printf '%s\n' \
+    'DELETE FROM "split"."FeedbackReport" WHERE "createdAt" < CURRENT_TIMESTAMP - INTERVAL '\''90 days'\'';' \
+    | ./node_modules/.bin/prisma db execute --stdin --schema ./prisma/schema.prisma
+
 echo "→ starting server on :${PORT:-3000}"
 exec node server.js

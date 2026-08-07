@@ -41,7 +41,10 @@ export interface ApiMember {
     /** A key from `lib/avatar-palettes.ts`. Optional only for older cached responses. */
     avatarPalette?: string | null
     createdAt: string
-    /** Only untouched names added on somebody else's behalf can be removed. */
+    /** null/absent = active. A timestamp means Former: history stays, but the
+     * identity is excluded from every new split and identity-sensitive write. */
+    removedAt?: string | null
+    /** Server-derived exact-balance eligibility for leaving the active roster. */
     canRemove?: boolean
 }
 
@@ -127,6 +130,7 @@ export type RoomHistoryAction =
     | 'member_joined'
     | 'member_added'
     | 'member_removed'
+    | 'member_restored'
     | 'member_avatar_updated'
     | 'expense_added'
     | 'expense_edited'

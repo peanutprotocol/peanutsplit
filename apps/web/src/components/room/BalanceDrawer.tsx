@@ -14,6 +14,7 @@ import { useMotionAllowed } from '@/lib/use-motion'
 import { DerivationSheet } from './DerivationSheet'
 import { MemberAvatar } from './MemberAvatar'
 import { Money } from './Money'
+import { isFormerMember } from '@/lib/members'
 
 interface BalanceDrawerProps {
     open: boolean
@@ -94,6 +95,11 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                             size={32}
                         />
                         <span className="min-w-0 truncate">{member.id === meId ? tBalances('you') : member.name}</span>
+                        {isFormerMember(member) && (
+                            <span className="rounded-full border border-n-1 px-2 py-0.5 text-xs uppercase">
+                                {tBalances('former')}
+                            </span>
+                        )}
                     </DrawerTitle>
                     <p className="text-sm text-grey-1">{t('title')}</p>
                 </DrawerHeader>

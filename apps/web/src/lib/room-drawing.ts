@@ -13,6 +13,53 @@ export const ROOM_DRAWING_MAX_STROKES = 32
 export const ROOM_DRAWING_MAX_POINTS_PER_STROKE = 128
 export const ROOM_DRAWING_MAX_POINTS = 384
 
+/**
+ * Editor-only limits are intentionally much roomier than the persisted v1
+ * format. Pointer input must feel like ink, not like a storage buffer filling
+ * up: the encoder below is the one place that samples a draft down to the
+ * compact wire format.
+ */
+export const ROOM_DRAWING_DRAFT_MAX_STROKES = 96
+export const ROOM_DRAWING_DRAFT_MAX_POINTS_PER_STROKE = 4096
+export const ROOM_DRAWING_DRAFT_MAX_POINTS = 8192
+const ROOM_DRAWING_DRAFT_MIN_DISTANCE_SQUARED = 0.0015 ** 2
+
+export function roomDrawingPointCount(strokes: RoomDrawing): number {
+    return strokes.reduce((total, stroke) => total + stroke.length, 0)
+}
+
+export function roomDrawingDraftIsFull(strokes: RoomDrawing): boolean {
+    return (
+        strokes.length >= ROOM_DRAWING_DRAFT_MAX_STROKES ||
+        roomDrawingPointCount(strokes) >= ROOM_DRAWING_DRAFT_MAX_POINTS
+    )
+}
+
+/** Begin a raw editor gesture. Persisted limits are deliberately not consulted. */
+export function startRoomDrawingDraftStroke(strokes: RoomDrawing, point: RoomDrawingPoint): RoomDrawing {
+    if (roomDrawingDraftIsFull(strokes)) return strokes
+    return [...strokes, [point]]
+}
+
+/**
+ * Add one editor point while thinning sub-pixel pointer noise. At the generous
+ * safety ceiling the draft stops cleanly; it never replaces the previous point
+ * with the cursor, which was the visible rubber-band failure in QA.
+ */
+export function appendRoomDrawingDraftPoint(strokes: RoomDrawing, point: RoomDrawingPoint): RoomDrawing {
+    const lastStroke = strokes.at(-1)
+    if (!lastStroke || lastStroke.length >= ROOM_DRAWING_DRAFT_MAX_POINTS_PER_STROKE) return strokes
+    if (roomDrawingPointCount(strokes) >= ROOM_DRAWING_DRAFT_MAX_POINTS) return strokes
+
+    const lastPoint = lastStroke.at(-1)
+    if (lastPoint) {
+        const dx = lastPoint.x - point.x
+        const dy = lastPoint.y - point.y
+        if (dx * dx + dy * dy < ROOM_DRAWING_DRAFT_MIN_DISTANCE_SQUARED) return strokes
+    }
+    return [...strokes.slice(0, -1), [...lastStroke, point]]
+}
+
 // 1,023 gives sub-pixel accuracy in the 100 x 100 SVG viewBox while still fitting in two base-36
 // characters. The stored format is deliberately just geometry: there is no colour to validate or
 // migrate, and all renderers can safely use the product's single black ink colour.

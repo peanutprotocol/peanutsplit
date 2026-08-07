@@ -11,6 +11,7 @@ import { Icon } from '@/components/ui/Icon'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
 import type { MemberIdentity } from '@/lib/identity'
 import { useRoomParams } from '@/lib/room-params'
+import { activeMember } from '@/lib/members'
 
 interface RoomHeaderProps {
     room: ApiRoom
@@ -25,6 +26,8 @@ interface RoomHeaderProps {
     roomTitleRef?: RefObject<HTMLButtonElement | null>
     onShare: () => void
     onForgetIdentity: () => void
+    /** JoinGate owns the viewport while this device reclaims an identity. */
+    suspended?: boolean
 }
 
 /**
@@ -46,6 +49,7 @@ export function RoomHeader({
     roomTitleRef,
     onShare,
     onForgetIdentity,
+    suspended = false,
 }: RoomHeaderProps) {
     const t = useTranslations('room.header')
     const [sheets, setSheets] = useRoomParams()
@@ -56,7 +60,7 @@ export function RoomHeader({
     // Resolved rather than held, so a member disappearing under an open sheet
     // closes it instead of leaving a sheet about nobody — which is also what an
     // unknown or stale id in the URL does.
-    const characterMember = members.find((member) => member.id === sheets.character) ?? null
+    const characterMember = sheets.character ? (activeMember(members, sheets.character) ?? null) : null
 
     return (
         // The room's field colour, with the classic yellow as the literal
@@ -137,7 +141,7 @@ export function RoomHeader({
             </div>
 
             <SettingsSheet
-                open={sheets.settings}
+                open={sheets.settings && !suspended}
                 onClose={() => setSheets({ settings: null }, { history: 'replace' })}
                 onCloseFocus={() => {
                     // Browser Back can restore the picker and its exact opener.
@@ -157,7 +161,7 @@ export function RoomHeader({
             />
 
             <RoomSwitcher
-                open={sheets.rooms}
+                open={sheets.rooms && !suspended}
                 onClose={() => setSheets({ rooms: null }, { history: 'replace' })}
                 onOpenSettings={() => setSheets({ rooms: null, settings: true })}
                 currentSettingsRef={currentRoomSettingsRef}
@@ -165,7 +169,7 @@ export function RoomHeader({
             />
 
             <CharacterSheet
-                open={characterMember !== null}
+                open={characterMember !== null && !suspended}
                 onClose={() => setSheets({ character: null })}
                 slug={room.slug}
                 member={characterMember}

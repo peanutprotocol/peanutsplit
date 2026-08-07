@@ -18,6 +18,12 @@ import { roomProps, track, trackFirstSharedBalance } from '@/lib/analytics'
 import { canPrice } from '@/lib/currency-rules'
 import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
+    CURATED_EXPENSE_CATEGORY_IDS,
+    getExpenseCategorySubject,
+    isExpenseCategoryId,
+    type ExpenseCategoryId,
+} from '@/lib/expense-category'
+import {
     allocatedMinor,
     buildExpenseBody,
     emptyExpenseForm,
@@ -29,6 +35,7 @@ import {
     percentageRemainingBasisPoints,
     remainingMinor,
     repairMisplacedExpenseFields,
+    referencedDraftParticipantIds,
     shareWeightEntries,
     validateExpenseForm,
     weightedParticipantIds,
@@ -44,7 +51,14 @@ import {
     parseManualFxRateInput,
 } from '@/lib/manual-fx-rate'
 import { discardSharedReceipt, takeSharedReceipt } from '@/lib/shared-receipt'
-import { currencyInfo, formatAmountInput, formatMoney, isAmountInputAcceptable, parseAmountToMinor } from '@/lib/money'
+import {
+    currencyInfo,
+    formatAmountInput,
+    formatLargeAmountPreview,
+    formatMoney,
+    isAmountInputAcceptable,
+    parseAmountToMinor,
+} from '@/lib/money'
 import {
     useAddExpense,
     useAddMember,
@@ -59,6 +73,7 @@ import { useCurrencyHints } from '@/lib/use-currency-hint'
 import { convertMinorForPreview, useRate } from '@/lib/use-rate'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { activeMembers, activityRoleMembers, isFormerMember } from '@/lib/members'
 import { useShake } from '@/hooks/useShake'
 import { CurrencyTag } from './CurrencyTag'
 import { MemberAvatar } from './MemberAvatar'
@@ -72,6 +87,9 @@ import { ScanFlow } from './scan/ScanFlow'
 
 interface ExpenseDrawerProps {
     open: boolean
+    /** Keep the logical draft session mounted while another surface (currently
+     * JoinGate after token rotation) temporarily owns the screen. */
+    suspended?: boolean
     onClose: () => void
     slug: string
     state: RoomState
@@ -97,6 +115,7 @@ type ManualFxRateSource = 'expense' | 'typed' | null
 
 export function ExpenseDrawer({
     open,
+    suspended = false,
     onClose,
     slug,
     state,
@@ -112,6 +131,8 @@ export function ExpenseDrawer({
     const t = useTranslations('room.expenseDrawer')
     const tExpenses = useTranslations('room.expenses')
     const tDates = useTranslations('dates')
+    const roleName = (member: { name: string; removedAt?: string | null }) =>
+        isFormerMember(member) ? t('formerName', { name: member.name }) : member.name
     const locale = useLocale()
     const errorMessage = useErrorMessage()
     const expenseRequestRef = useRef<ExpenseRequestState | null>(null)
@@ -127,9 +148,37 @@ export function ExpenseDrawer({
     const { ref: formRef, shake } = useShake<HTMLDivElement>()
     const hints = useCurrencyHints()
 
+    const activeRoster = useMemo(() => activeMembers(state.members), [state.members])
     const [values, setValues] = useState<ExpenseFormValues>(() =>
-        emptyExpenseForm({ currency: state.room.currency, members: state.members, paidById: defaultPaidById })
+        emptyExpenseForm({ currency: state.room.currency, members: activeRoster, paidById: defaultPaidById })
     )
+    /** Role-specific draft preservation. If a poll marks a selected person
+     * Former mid-entry, keep that exact row visible so it can be changed or
+     * removed. Once removed it is no longer offered, and one role never grants
+     * the other. */
+    const payerRoster = useMemo(
+        () => activityRoleMembers(state.members, new Set(values.paidById ? [values.paidById] : [])),
+        [state.members, values.paidById]
+    )
+    const draftParticipantIds = useMemo(() => new Set(referencedDraftParticipantIds(values)), [values])
+    const participantRoster = useMemo(
+        () => activityRoleMembers(state.members, draftParticipantIds),
+        [draftParticipantIds, state.members]
+    )
+    const hasFormerDraftRole =
+        (!!values.paidById && payerRoster.some((member) => member.id === values.paidById && isFormerMember(member))) ||
+        participantRoster.some((member) => draftParticipantIds.has(member.id) && isFormerMember(member))
+    const savedParticipantIds = useMemo(
+        () => new Set(expense?.shares.map((share) => share.memberId) ?? []),
+        [expense?.shares]
+    )
+    const hasInvalidFormerPayer = payerRoster.some(
+        (member) => member.id === values.paidById && isFormerMember(member) && member.id !== expense?.paidById
+    )
+    const hasInvalidFormerParticipant = participantRoster.some(
+        (member) => draftParticipantIds.has(member.id) && isFormerMember(member) && !savedParticipantIds.has(member.id)
+    )
+    const hasInvalidFormerDraftRole = hasInvalidFormerPayer || hasInvalidFormerParticipant
     const [workflow, dispatchWorkflow] = useReducer(
         expenseDrawerWorkflowReducer,
         undefined,
@@ -155,6 +204,7 @@ export function ExpenseDrawer({
     const amountRef = useRef<HTMLInputElement>(null)
     const manualFxRateRef = useRef<HTMLInputElement>(null)
     const validationAlertRef = useRef<HTMLParagraphElement>(null)
+    const formerRoleWarningRef = useRef<HTMLParagraphElement>(null)
     const scanHistoryMarkerRef = useRef<string | null>(null)
     const sharedHandoffRef = useRef<Promise<void> | null>(null)
     const mountedRef = useRef(false)
@@ -238,7 +288,7 @@ export function ExpenseDrawer({
                 ? expenseToFormValues(expense, currencies, locale)
                 : emptyExpenseForm({
                       currency: state.room.currency,
-                      members: state.members,
+                      members: activeRoster,
                       paidById: defaultPaidById,
                   })
         )
@@ -354,6 +404,11 @@ export function ExpenseDrawer({
     const percentageSettled =
         percentageRemaining === '0' && percentageHasInput && !hasUnreadablePercentage(values, locale)
     const totalMinor = parseAmountToMinor(values.amountInput, decimals, locale)
+    /** Keep the editable field byte-for-byte as typed while focus is in it. A
+     * separate preview supplies grouping once the amount reaches five whole
+     * digits — common territory for JPY and ARS, not an exceptional overflow. */
+    const formattedAmountPreview =
+        totalMinor === null ? null : formatLargeAmountPreview(totalMinor, values.currency, currencies, locale)
     const manualFxConversion =
         requiresManualFxRate && manualFxRate !== null && totalMinor !== null
             ? convertMinorAtManualRate(totalMinor, manualFxRate, decimals, roomCurrencyInfo.decimals)
@@ -410,7 +465,7 @@ export function ExpenseDrawer({
     }
     const payerOptions = [
         ...(values.newPaidByName ? [DRAFT_PAYER_OPTION] : []),
-        ...state.members.map((member) => member.id),
+        ...payerRoster.map((member) => member.id),
     ]
     const { getRadioProps: getPayerRadioProps } = useRovingRadioGroup({
         options: payerOptions,
@@ -430,7 +485,7 @@ export function ExpenseDrawer({
         const name = newPayerName.trim()
         if (!name) return
 
-        const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
+        const existing = activeRoster.find((member) => member.name.toLowerCase() === name.toLowerCase())
         if (existing) {
             choosePayer(existing.id)
             return
@@ -461,7 +516,7 @@ export function ExpenseDrawer({
             patch({ splitMode: 'EQUAL' })
             return
         }
-        const participants = values.participantsTouched ? values.participantIds : state.members.map((m) => m.id)
+        const participants = values.participantsTouched ? values.participantIds : activeRoster.map((m) => m.id)
         if (mode === 'EXACT') {
             if (Object.keys(values.exactInputs).length > 0) {
                 patch({ splitMode: mode })
@@ -506,7 +561,7 @@ export function ExpenseDrawer({
     const toggleParticipant = (memberId: string) => {
         // First touch materialises "everyone right now"; until then the form's
         // list is a stale snapshot and the wire omits it (server = everyone).
-        const current = values.participantsTouched ? values.participantIds : state.members.map((m) => m.id)
+        const current = values.participantsTouched ? values.participantIds : activeRoster.map((m) => m.id)
         const has = current.includes(memberId)
         patch({
             participantsTouched: true,
@@ -528,7 +583,7 @@ export function ExpenseDrawer({
             if (values.splitMode === 'EQUAL') {
                 const current = values.participantsTouched
                     ? values.participantIds
-                    : state.members.map((member) => member.id)
+                    : activeRoster.map((member) => member.id)
                 patch({
                     participantsTouched: true,
                     participantIds: current.includes(memberId) ? current : [...current, memberId],
@@ -543,7 +598,7 @@ export function ExpenseDrawer({
             dispatchWorkflow({ type: 'participant-draft-closed' })
         }
 
-        const existing = state.members.find((member) => member.name.toLowerCase() === name.toLowerCase())
+        const existing = activeRoster.find((member) => member.name.toLowerCase() === name.toLowerCase())
         if (existing) {
             select(existing.id)
             feedback('tick')
@@ -703,6 +758,16 @@ export function ExpenseDrawer({
         if (savingRef.current) return
         dispatchWorkflow({ type: 'submission-attempted' })
         const valuesToSave = repairFieldRoles(values, false)
+        if (hasInvalidFormerDraftRole) {
+            feedback('error', { haptic: 'error' })
+            shake()
+            dispatchWorkflow({ type: 'editor-opened', editor: hasInvalidFormerPayer ? 'payer' : 'split' })
+            requestAnimationFrame(() => {
+                formerRoleWarningRef.current?.focus({ preventScroll: true })
+                formerRoleWarningRef.current?.scrollIntoView({ block: 'center' })
+            })
+            return
+        }
         const validationToSave = validateExpenseForm(valuesToSave, currencies, locale)
         if (validationToSave) {
             // The message alone is easy to miss on a long form — the sheet moving
@@ -902,34 +967,34 @@ export function ExpenseDrawer({
      *  different question from whether they are on the split. `participantIds`
      *  below answers that one, and only that one is allowed near the summary. */
     const exactRows = useMemo(
-        () => state.members.filter((member) => values.exactInputs[member.id] !== undefined),
-        [state.members, values.exactInputs]
+        () => participantRoster.filter((member) => values.exactInputs[member.id] !== undefined),
+        [participantRoster, values.exactInputs]
     )
-    const membersNotInExact = state.members.filter((member) => values.exactInputs[member.id] === undefined)
+    const membersNotInExact = participantRoster.filter((member) => values.exactInputs[member.id] === undefined)
     const weightedInputs = values.splitMode === 'PERCENTAGE' ? values.percentageInputs : values.shareInputs
-    const weightedRows = state.members.filter((member) => weightedInputs[member.id] !== undefined)
-    const membersNotInWeighted = state.members.filter((member) => weightedInputs[member.id] === undefined)
+    const weightedRows = participantRoster.filter((member) => weightedInputs[member.id] !== undefined)
+    const membersNotInWeighted = participantRoster.filter((member) => weightedInputs[member.id] === undefined)
     const shareWeightTotal = shareWeightEntries(values).reduce((total, share) => total + BigInt(share.weight), 0n)
 
     const payer = state.members.find((member) => member.id === values.paidById)
-    const payerName = values.newPaidByName || payer?.name
+    const payerName = values.newPaidByName || (payer ? roleName(payer) : undefined)
     const participantIds =
         values.splitMode === 'EQUAL'
             ? values.participantsTouched
                 ? values.participantIds
-                : state.members.map((member) => member.id)
+                : activeRoster.map((member) => member.id)
             : values.splitMode === 'EXACT'
               ? exactParticipantIds(values, currencies, locale)
               : weightedParticipantIds(values, locale)
-    const participants = state.members.filter((member) => participantIds.includes(member.id))
+    const participants = participantRoster.filter((member) => participantIds.includes(member.id))
     const participantSummary =
-        participants.length === state.members.length
+        participants.length === participantRoster.length
             ? t('everyone')
             : participants.length === 0
               ? t('choosePeople')
               : participants.length === 1
-                ? participants[0].name
-                : t('peopleSummary', { name: participants[0].name, count: participants.length - 1 })
+                ? roleName(participants[0])
+                : t('peopleSummary', { name: roleName(participants[0]), count: participants.length - 1 })
     const splitModeSummary =
         values.splitMode === 'EQUAL'
             ? t('equally')
@@ -1032,16 +1097,32 @@ export function ExpenseDrawer({
           ? t('addWithAmount', { amount: formatMoney(totalMinor!, values.currency, currencies, locale) })
           : t('add')
     const pending = addExpense.isPending || updateExpense.isPending
+    const categoryLabels: Record<(typeof CURATED_EXPENSE_CATEGORY_IDS)[number], string> = {
+        'food-drink': t('categories.foodDrink'),
+        transport: t('categories.transport'),
+        'travel-stays': t('categories.travelStays'),
+        'home-bills': t('categories.homeBills'),
+        shopping: t('categories.shopping'),
+        'entertainment-leisure': t('categories.entertainment'),
+        'health-wellness': t('categories.health'),
+        'gifts-giving': t('categories.gifts'),
+        other: t('categories.other'),
+    }
+    const categoryOptions = CURATED_EXPENSE_CATEGORY_IDS.map((id) => ({
+        id,
+        label: categoryLabels[id],
+        doodle: getExpenseCategorySubject(id).doodle,
+    }))
 
     return (
         <Drawer
-            open={open && !scannerOpen}
+            open={open && !suspended && !scannerOpen}
             onOpenChange={(next) => {
                 // Opening the full-screen scanner deliberately closes this modal
                 // layer while keeping its React state mounted. Vaul reports that
                 // programmatic close through the same callback as a dismissal;
                 // only the latter is allowed to clear the room's drawer state.
-                if (!next && !scannerOpen) close()
+                if (!next && !scannerOpen && !suspended) close()
             }}
             // Vaul snapshots the sheet's height when the software keyboard opens.
             // If an editor mounts while that keyboard closes, it restores the old
@@ -1121,6 +1202,7 @@ export function ExpenseDrawer({
                             decimals,
                             invalid: amountInvalid,
                             textSizeClass: amountTextSize,
+                            formattedPreview: formattedAmountPreview,
                             action: scannerAvailable ? (
                                 <ScanButton
                                     onOpen={() => {
@@ -1154,6 +1236,14 @@ export function ExpenseDrawer({
                             },
                             onBlur: () => repairFieldRoles(),
                         }}
+                        category={{
+                            value: isExpenseCategoryId(values.category) ? values.category : null,
+                            options: categoryOptions,
+                            onChange: (category: ExpenseCategoryId | null) => {
+                                patch({ category })
+                                dispatchWorkflow({ type: 'form-field-edited' })
+                            },
+                        }}
                         editor={editor}
                         onToggleEditor={(next) => dispatchWorkflow({ type: 'editor-toggled', editor: next })}
                         payer={payer}
@@ -1179,8 +1269,23 @@ export function ExpenseDrawer({
                             dateSummary: (date) => t('dateSummary', { date }),
                             dateShort: t('dateShort'),
                             amountRequired: t('validation.AMOUNT_REQUIRED'),
+                            amountPreview: (amount) => t('amountPreview', { amount }),
+                            category: t('category'),
+                            categoryAutomatic: t('categoryAutomatic'),
                         }}
                     />
+
+                    {hasFormerDraftRole && (
+                        <p
+                            ref={formerRoleWarningRef}
+                            tabIndex={-1}
+                            role="alert"
+                            data-testid="former-draft-role-warning"
+                            className="border-yellow-3 bg-yellow-1 rounded-md border px-3 py-2 text-sm"
+                        >
+                            {hasInvalidFormerDraftRole ? t('formerDraftRoleWarning') : t('formerSavedRoleWarning')}
+                        </p>
+                    )}
 
                     {isForeign && (
                         <div
@@ -1258,7 +1363,11 @@ export function ExpenseDrawer({
                                     </div>
                                     <p id="expense-manual-rate-hint" className="mt-2 text-xs leading-5 text-grey-1">
                                         {manualFxRateSource === 'expense'
-                                            ? t('manualRateFromExpense')
+                                            ? t('manualRateFromExpense', {
+                                                  currency: values.currency,
+                                                  rate: manualFxRateInput,
+                                                  roomCurrency: state.room.currency,
+                                              })
                                             : t('manualRateHint')}
                                     </p>
                                     {submitted && manualFxValidationError && (
@@ -1314,7 +1423,7 @@ export function ExpenseDrawer({
                                             <Icon name="check" size={16} />
                                         </button>
                                     )}
-                                    {state.members.map((member) => {
+                                    {payerRoster.map((member) => {
                                         const selected = values.paidById === member.id
                                         return (
                                             <button
@@ -1337,7 +1446,7 @@ export function ExpenseDrawer({
                                                     palette={member.avatarPalette}
                                                     size={27}
                                                 />
-                                                <span className="flex-1 truncate text-h8">{member.name}</span>
+                                                <span className="flex-1 truncate text-h8">{roleName(member)}</span>
                                                 {selected && <Icon name="check" size={16} />}
                                             </button>
                                         )
@@ -1500,7 +1609,7 @@ export function ExpenseDrawer({
 
                                 {values.splitMode === 'EQUAL' ? (
                                     <ul aria-label={t('whoShares')} className="grid grid-cols-2 gap-2">
-                                        {state.members.map((member) => {
+                                        {participantRoster.map((member) => {
                                             const checked =
                                                 !values.participantsTouched || values.participantIds.includes(member.id)
                                             return (
@@ -1526,7 +1635,9 @@ export function ExpenseDrawer({
                                                             palette={member.avatarPalette}
                                                             size={27}
                                                         />
-                                                        <span className="flex-1 truncate text-h8">{member.name}</span>
+                                                        <span className="flex-1 truncate text-h8">
+                                                            {roleName(member)}
+                                                        </span>
                                                         <span
                                                             className={cn(
                                                                 'flex size-6 shrink-0 items-center justify-center rounded-full border border-n-1',
@@ -1584,7 +1695,7 @@ export function ExpenseDrawer({
                                                         size={28}
                                                     />
                                                     <span className="w-20 shrink-0 truncate text-h8">
-                                                        {member.name}
+                                                        {roleName(member)}
                                                     </span>
                                                     <input
                                                         value={values.exactInputs[member.id] ?? ''}
@@ -1723,7 +1834,7 @@ export function ExpenseDrawer({
                                                         size={28}
                                                     />
                                                     <span className="w-20 shrink-0 truncate text-h8">
-                                                        {member.name}
+                                                        {roleName(member)}
                                                     </span>
                                                     <div className="flex h-12 min-w-0 flex-1 items-center rounded-sm border border-n-1 bg-white">
                                                         <input
@@ -1986,12 +2097,12 @@ export function ExpenseDrawer({
             {/* The scan overlay writes back into this sheet and creates nothing:
                 `onApply` hands over form values and the save button above is still
                 the only thing that writes. */}
-            {scannerOpen && (
+            {scannerOpen && !suspended && (
                 <ScanFlow
                     initialFile={scanFile}
                     slug={slug}
                     token={token}
-                    members={state.members}
+                    members={activeRoster}
                     roomCurrency={state.room.currency}
                     currencies={currencies}
                     baseValues={values}

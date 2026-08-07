@@ -103,6 +103,8 @@ export function ReactionBar({
         })
         return { ...group, reactors }
     })
+    const reactorName = (member: ApiMember) =>
+        member.removedAt == null ? member.name : t('formerName', { name: member.name })
     /** A legacy tokenless identity can read the room's reactions but not sign
      *  one — same rule, and same disabled-with-a-reason shape, as push. */
     const needsToken = !meId || !token
@@ -166,7 +168,7 @@ export function ReactionBar({
             <AnimatePresence initial={false}>
                 {groupsWithReactors.map((group) => {
                     const reactionName = t(`names.${REACTION_ART[group.emoji].label}`)
-                    const reactorNames = group.reactors.map((member) => member.name).join(', ')
+                    const reactorNames = group.reactors.map(reactorName).join(', ')
                     const toggleName = group.mine
                         ? t('remove', { emoji: reactionName })
                         : t('pick', { emoji: reactionName })
@@ -205,7 +207,7 @@ export function ReactionBar({
                                 {group.reactors.map((member) => (
                                     <MemberAvatar
                                         key={member.id}
-                                        name={member.name}
+                                        name={reactorName(member)}
                                         avatar={member.avatar}
                                         palette={member.avatarPalette}
                                         size={20}
