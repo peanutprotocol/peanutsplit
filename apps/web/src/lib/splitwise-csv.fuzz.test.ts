@@ -250,24 +250,31 @@ describe('files nobody meant to write', () => {
     })
 })
 
-describe('parseCsvRows is total', () => {
-    it('returns a grid for anything at all, and never throws', () => {
+describe('parseCsvRows rejects only structurally truncated CSV', () => {
+    it('returns a grid or a typed unterminated-quote error for any input', () => {
         for (let seed = 1; seed <= 400; seed++) {
             const rng = mulberry32(seed * 31)
             let text = ''
             for (let index = between(rng, 0, 200); index > 0; index--) {
                 text += rng() < 0.5 ? pick(rng, HOSTILE) : String.fromCharCode(between(rng, 32, 0x1fff))
             }
-            const rows = parseCsvRows(text)
-            expect(Array.isArray(rows)).toBe(true)
-            expect(rows.length).toBeGreaterThan(0)
-            for (const row of rows) for (const cell of row) expect(typeof cell).toBe('string')
+            try {
+                const rows = parseCsvRows(text)
+                expect(Array.isArray(rows)).toBe(true)
+                expect(rows.length).toBeGreaterThan(0)
+                for (const row of rows) for (const cell of row) expect(typeof cell).toBe('string')
+            } catch (error) {
+                expect(error).toBeInstanceOf(SplitwiseParseError)
+                expect((error as SplitwiseParseError).code).toBe('MALFORMED_CSV')
+            }
         }
     })
 
-    it('keeps every cell of a row it can read, however the quotes were mangled', () => {
+    it('keeps readable quote shapes and refuses an unterminated field', () => {
         expect(parseCsvRows('a,"b,c",d')).toEqual([['a', 'b,c', 'd']])
-        expect(parseCsvRows('a,"unterminated')).toEqual([['a', 'unterminated']])
+        expect(() => parseCsvRows('a,"unterminated')).toThrowError(
+            expect.objectContaining<Partial<SplitwiseParseError>>({ code: 'MALFORMED_CSV' })
+        )
         expect(parseCsvRows('a,b"c,d')).toEqual([['a', 'b"c', 'd']])
         expect(parseCsvRows('\r\n')).toEqual([[''], ['']])
     })

@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
     liveRoom: vi.fn(),
     refetch: vi.fn(),
     retryClick: undefined as (() => void) | undefined,
+    identity: null as { memberId: string; token: string; name: string } | null,
+    importTarget: undefined as unknown,
 }))
 
 vi.mock('next/link', () => ({
@@ -24,11 +26,14 @@ vi.mock('@/lib/queries', () => ({
     useRoomState: (...args: unknown[]) => mocks.liveRoom(...args),
 }))
 vi.mock('@/lib/use-identity', () => ({
-    useRoomIdentity: () => ({ identity: null, loaded: true, claim: vi.fn(), forget: vi.fn() }),
+    useRoomIdentity: () => ({ identity: mocks.identity, loaded: true, claim: vi.fn(), forget: vi.fn() }),
 }))
 vi.mock('@/lib/themes', () => ({ themeVars: () => ({}) }))
 vi.mock('@/components/import/SplitwiseImport', () => ({
-    SplitwiseImport: () => createElement('div', { 'data-testid': 'splitwise-import-stub' }),
+    SplitwiseImport: ({ targetRoom }: { targetRoom: unknown }) => {
+        mocks.importTarget = targetRoom
+        return createElement('div', { 'data-testid': 'splitwise-import-stub' })
+    },
 }))
 vi.mock('@/components/room/RoomEmblem', () => ({ RoomEmblem: () => null }))
 vi.mock('@/components/room/RoomStates', () => ({
@@ -76,6 +81,8 @@ describe('ExistingRoomImportScreen room read', () => {
         mocks.liveRoom.mockReset()
         mocks.refetch.mockReset()
         mocks.retryClick = undefined
+        mocks.identity = null
+        mocks.importTarget = undefined
         mocks.snapshot.mockReturnValue(loaded())
         mocks.liveRoom.mockReturnValue(loaded())
     })
@@ -86,6 +93,18 @@ describe('ExistingRoomImportScreen room read', () => {
         expect(mocks.snapshot).toHaveBeenCalledWith('summer-trip')
         expect(mocks.liveRoom).not.toHaveBeenCalled()
         expect(html).toContain('data-testid="splitwise-import-stub"')
+    })
+
+    it('passes the current member id for a visible Split Pro You mapping suggestion', () => {
+        mocks.identity = { memberId: 'member-konrad', token: 'token-konrad', name: 'Konrad' }
+
+        renderToStaticMarkup(<ExistingRoomImportScreen slug="summer-trip" />)
+
+        expect(mocks.importTarget).toEqual({
+            state,
+            memberId: 'member-konrad',
+            memberToken: 'token-konrad',
+        })
     })
 
     it('explains a custom target currency before mounting the file importer', () => {

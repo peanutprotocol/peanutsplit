@@ -422,13 +422,20 @@ export const NEVER_STRINGS: readonly StyleRule[] = [
         id: 'live-fx-rate',
         target: 'prose',
         pattern: new RegExp(`\\b(?:${LIVE_WORD})\\b[\\s-]*(?:${RATE_WORD})\\b`, 'i'),
-        why: 'the FX ceiling is "converted at the day\'s rate" — never live or real-time (product-truths.md#rated-currencies-158)',
+        why: 'the FX ceiling is "converted at the day\'s indicative rate" — never live or real-time (product-truths.md#automatic-currency-conversion)',
     },
     {
         id: 'live-fx-rate-reversed',
         target: 'prose',
         pattern: new RegExp(`\\b(?:${RATE_WORD})\\b[^.\\n]{0,16}\\b(?:${LIVE_WORD})\\b`, 'i'),
         why: 'same rule, other word order: a rate is never described as live or in real time',
+    },
+    {
+        id: 'legacy-currency-count',
+        target: 'prose',
+        pattern:
+            /\btwelve currencies\b|\bany of (?:the )?twelve\b|\bdoce monedas\b|\bcualquiera de (?:las )?doce\b|\bdoze moedas\b|\bqualquer(?:a)? uma das doze\b/i,
+        why: 'automatic conversion covers 156 currencies; twelve is only the static outage/dev fallback (product-truths.md#automatic-currency-conversion)',
     },
     {
         id: 'unlimited',

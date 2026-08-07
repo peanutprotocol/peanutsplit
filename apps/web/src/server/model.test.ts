@@ -15,6 +15,7 @@ describe('coerceCurrency', () => {
         expect(coerceCurrency('THB', 'EUR')).toBe('THB')
         // Wide catalog: this is the point of the change.
         expect(coerceCurrency('INR', 'EUR')).toBe('INR')
+        expect(coerceCurrency('KPW', 'EUR')).toBe('KPW')
         expect(coerceCurrency('KWD', 'JPY')).toBe('KWD')
     })
 
@@ -31,8 +32,8 @@ describe('coerceCurrency', () => {
 
     /** The D7 rule. A guess the room cannot convert is worse than no guess. */
     it('drops a code the room currency has no rate to', () => {
-        // A real catalog code the feed does not carry.
-        expect(coerceCurrency('KPW', 'EUR')).toBeNull()
+        // A real catalog code the current Peanut snapshot does not carry.
+        expect(coerceCurrency('BGN', 'EUR')).toBeNull()
         // A real code, in a room that settles in a made-up ticker.
         expect(coerceCurrency('EUR', 'BEER')).toBeNull()
         // Two made-up tickers never convert to each other.
@@ -42,6 +43,6 @@ describe('coerceCurrency', () => {
     it('keeps the room currency itself, whatever it is', () => {
         expect(coerceCurrency('BEER', 'BEER')).toBe('BEER')
         expect(coerceCurrency('beer', 'BEER')).toBe('BEER')
-        expect(coerceCurrency('KPW', 'KPW')).toBe('KPW')
+        expect(coerceCurrency('BGN', 'BGN')).toBe('BGN')
     })
 })

@@ -237,7 +237,7 @@
                 "title": "Qué hace Split",
                 "currency": {
                     "title": "162 monedas para la sala",
-                    "body": "La sala cuenta en una moneda. Split convierte gastos entre 158 monedas al cambio del día; cuatro funcionan solo sin conversión."
+                    "body": "La sala cuenta en una moneda. Split convierte gastos entre 156 monedas al cambio indicativo del día; seis funcionan solo sin conversión."
                 },
                 "splits": {
                     "title": "Divisiones que no son parejas",
@@ -1303,7 +1303,7 @@
             "ROW_NO_PAYER": "La fila {row} no dice quién pagó, así que quedó fuera.",
             "ROW_ZERO_COST": "La fila {row} no tiene monto, así que quedó fuera.",
             "ROW_BAD_AMOUNT": "La fila {row} tiene un monto que no pudimos leer, así que quedó fuera.",
-            "ROW_BAD_DATE": "La fila {row} tiene una fecha que no pudimos leer: entra con la fecha de hoy.",
+            "ROW_BAD_DATE": "La fila {row} tiene una fecha que no pudimos leer: entra con una fecha fija de reemplazo.",
             "ROW_DESCRIPTION_TRUNCATED": "La fila {row} tiene una descripción muy larga: entra acortada.",
             "ROW_CATEGORY_TRUNCATED": "La fila {row} tiene una categoría muy larga: entra acortada.",
             "MEMBER_NAME_TRUNCATED": "Un nombre era demasiado largo y entra acortado, como «{detail}». Puedes editarlo arriba.",
@@ -1314,12 +1314,14 @@
             "TRUNCATED_HISTORY": "Una sala guarda 500 gastos, así que {count, plural, one {el # más antiguo llega} other {los # más antiguos llegan}} como un único “Saldo anterior” por persona. El saldo de cada uno queda igual.",
             "SPLITPRO_BALANCES_ONLY": "La descarga de cuenta de Split Pro trae los saldos actuales, pero no el historial de gastos. Entran como «Saldo anterior»: se conserva el total de cada persona, no la lista de gastos viejos.",
             "SPLITPRO_PAIR_HISTORY": "El CSV de un contacto de Split Pro no dice a qué grupo pertenecía cada gasto. Todos los gastos del archivo entran juntos en esta sala.",
+            "SPLITPRO_SPLIT_MODE_FLATTENED": "Las divisiones por porcentaje/partes de Split Pro conservan los importes finales, pero entran como importes fijos. Si las editas después, no conservarán los pesos originales.",
             "SPLITPRO_MISSING_NAMES": "Split Pro dejó fuera {count, plural, one {el nombre de una persona} other {los nombres de # personas}}. Abajo verás la etiqueta «Miembro»: cámbiala antes de crear la sala.",
             "SPLITPRO_BALANCES_SKIPPED": "{count, plural, one {Un saldo del respaldo de Split Pro está incompleto y quedó fuera} other {# saldos del respaldo de Split Pro están incompletos y quedaron fuera}}. Compara la vista previa con Split Pro antes de crear la sala.",
             "SPLITPRO_UNSUPPORTED_CURRENCY": "Split no puede convertir {detail}, así que los saldos en esa moneda quedaron fuera. Usa otra exportación si esos saldos importan."
         },
         "errors": {
             "NOT_SPLITWISE_CSV": "No reconocemos este archivo. Elige el .csv de un grupo de Splitwise, el .csv de un contacto de Split Pro o splitpro_data.json desde la página Cuenta de Split Pro.",
+            "MALFORMED_CSV": "Ese archivo CSV está incompleto o dañado. Descarga una exportación nueva y úsala sin editarla.",
             "MALFORMED_JSON": "Ese archivo JSON está incompleto o dañado. Vuelve a descargar «Datos de SplitPro» desde la página Cuenta y usa el archivo nuevo sin editarlo.",
             "SPLITPRO_DIRECT_UNRESOLVED": "Este respaldo de Split Pro no identifica cuál integrante eres tú, así que no se pueden separar con seguridad los saldos que están fuera de los grupos. Importa los grupos de arriba y usa el CSV de cada contacto para cualquier saldo restante.",
             "NO_MEMBERS": "Esta exportación no trae la lista del grupo. En Splitwise, exporta un grupo; en Split Pro, usa «Descargar datos de SplitPro» desde Cuenta.",

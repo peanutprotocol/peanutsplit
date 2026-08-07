@@ -187,7 +187,7 @@ export const mileageSplitCalculator: Tool = {
             title: 'Good to know',
             body: [
                 'Split is free forever, with nothing to upgrade to.',
-                '158 currencies, converted at the day’s rate.',
+                'Automatic conversion for 156 currencies at the day’s indicative rate.',
                 'A room holds up to twenty people.',
                 'Split records a payment rather than making one. It does not check with a bank and cannot.',
             ],

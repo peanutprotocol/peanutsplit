@@ -12,7 +12,7 @@ import { publicCurrencies, STATIC_USD_PER_UNIT } from '@/server/money'
  *
  * One exception, and it is the whole reason this route is not a one-liner. `SPLIT_FX_MODE=static`
  * turns the rate feed off — that is dev, the unit suite and the e2e run — and the static table
- * prices twelve codes, not 158. Serving the catalog's own `hasRate` there offers the picker
+ * prices twelve codes, not 156. Serving the catalog's own `hasRate` there offers the picker
  * currencies the server then refuses at write time with a 400 `NO_RATE`, which reads as a broken
  * app in exactly the environments where the app is being worked on. So static mode advertises what
  * static mode can price, and nothing else.

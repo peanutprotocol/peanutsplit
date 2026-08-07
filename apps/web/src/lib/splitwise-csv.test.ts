@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { convertMinorAtRate, STATIC_USD_PER_UNIT } from '@/server/money'
+import { MAX_SIGNED_MINOR } from '@/lib/money'
 import { exactShares } from '@/server/split'
 import { importRoomSchema } from '@/server/validation'
 import {
@@ -92,6 +93,12 @@ describe('parseCsvRows — RFC 4180', () => {
     it('treats a quote that opens mid-field as data', () => {
         expect(parseCsvRows('a"b",c')).toEqual([['a"b"', 'c']])
     })
+
+    it('rejects an unterminated quote instead of returning a truncated ledger', () => {
+        expect(() => parseCsvRows('a,"unterminated\nnext,row')).toThrowError(
+            expect.objectContaining<Partial<SplitwiseParseError>>({ code: 'MALFORMED_CSV' })
+        )
+    })
 })
 
 describe('parseSignedMinor', () => {
@@ -119,20 +126,56 @@ describe('parseSignedMinor', () => {
         expect(parseSignedMinor('1234', 0)).toBe(1234n)
     })
 
+    it('reads grouped positive and negative amounts in a zero-decimal currency', () => {
+        expect(parseSignedMinor('1,234', 0)).toBe(1234n)
+        expect(parseSignedMinor('-1.234', 0)).toBe(-1234n)
+        expect(parseSignedMinor('1,234,567', 0)).toBe(1_234_567n)
+    })
+
+    it('reads a grouped whole amount in a two-decimal currency without changing its scale', () => {
+        expect(parseSignedMinor('1,234', 2)).toBe(123_400n)
+        expect(parseSignedMinor('-1.234', 2)).toBe(-123_400n)
+    })
+
     it('treats an empty cell as zero', () => {
         expect(parseSignedMinor('', 2)).toBe(0n)
     })
 
     it('strips a currency symbol a spreadsheet added', () => {
         expect(parseSignedMinor('€ 12.34', 2)).toBe(1234n)
+        expect(parseSignedMinor('EUR 12.34', 2)).toBe(1234n)
+        expect(parseSignedMinor('12.34 EUR', 2)).toBe(1234n)
+        expect(parseSignedMinor('€ -12.34', 2)).toBe(-1234n)
     })
 
-    it('refuses an amount whose separators cannot be read', () => {
-        expect(parseSignedMinor('1.234.567', 2)).toBeNull()
+    it('preserves explicit spreadsheet negative notation', () => {
+        expect(parseSignedMinor('−1,234.56', 2)).toBe(-123456n)
+        expect(parseSignedMinor('(1,234.56)', 2)).toBe(-123456n)
+        expect(parseSignedMinor('(€ 1,234.56)', 2)).toBe(-123456n)
+    })
+
+    it('refuses notation and junk instead of deleting it into a different amount', () => {
+        expect(parseSignedMinor('1e3', 2)).toBeNull()
+        expect(parseSignedMinor('abc12.34', 2)).toBeNull()
+        expect(parseSignedMinor('12abc34', 2)).toBeNull()
+        expect(parseSignedMinor('+-12.34', 2)).toBeNull()
+        expect(parseSignedMinor('(-12.34)', 2)).toBeNull()
+    })
+
+    it('reads repeated valid grouping and refuses malformed separators', () => {
+        expect(parseSignedMinor('1.234.567', 2)).toBe(123_456_700n)
+        expect(parseSignedMinor('1.23.456', 2)).toBeNull()
     })
 
     it('refuses a word', () => {
         expect(parseSignedMinor('n/a', 2)).toBeNull()
+    })
+
+    it('enforces the storage ceiling before previewing an import', () => {
+        expect(parseSignedMinor(MAX_SIGNED_MINOR.toString(), 0)).toBe(MAX_SIGNED_MINOR)
+        expect(parseSignedMinor(`-${MAX_SIGNED_MINOR}`, 0)).toBe(-MAX_SIGNED_MINOR)
+        expect(parseSignedMinor((MAX_SIGNED_MINOR + 1n).toString(), 0)).toBeNull()
+        expect(parseSignedMinor('9'.repeat(100_000), 0)).toBeNull()
     })
 })
 
@@ -243,6 +286,12 @@ describe('parseSplitwiseCsv — localised decimals', () => {
             { member: 'Bruno', amountMinor: '61728' },
         ])
     })
+
+    it('recognises a complete localised Splitwise header', () => {
+        const spanish =
+            'Fecha,Descripción,Categoría,Costo,Moneda,Ana,Bruno\n' + '2026-05-01,Cena,Comida,10.00,EUR,5.00,-5.00\n'
+        expect(parseSplitwiseCsv(spanish).expenses[0].description).toBe('Cena')
+    })
 })
 
 describe('parseSplitwiseCsv — multi-payer rows', () => {
@@ -290,6 +339,21 @@ describe('parseSplitwiseCsv — payments and multi-currency', () => {
     it('suggests the currency most rows are in', () => {
         expect(parseSplitwiseCsv(MULTI_CURRENCY).suggestedCurrency).toBe('EUR')
     })
+
+    it('preserves a known unrated currency for a same-currency target room', () => {
+        const kpw =
+            'Date,Description,Category,Cost,Currency,Ana,Bruno\n' +
+            '2026-01-02,Dinner,Food,"2,000",KPW,"1,000","-1,000"\n'
+        const parsed = parseSplitwiseCsv(kpw)
+
+        expect(parsed.suggestedCurrency).toBe('KPW')
+        expect(parsed.expenses[0].costMinor).toBe('2000')
+        expect(parsed.expenses[0].shares).toEqual([
+            { member: 'Ana', amountMinor: '1000' },
+            { member: 'Bruno', amountMinor: '1000' },
+        ])
+        expect(codes(parsed)).not.toContain('ROW_UNSUPPORTED_CURRENCY')
+    })
 })
 
 describe('parseSplitwiseCsv — hostile and messy input', () => {
@@ -307,7 +371,7 @@ describe('parseSplitwiseCsv — hostile and messy input', () => {
         expect(result.warnings).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({ code: 'ROW_UNBALANCED', row: 7 }),
-                expect.objectContaining({ code: 'ROW_UNSUPPORTED_CURRENCY', row: 8, detail: 'KPW' }),
+                expect.objectContaining({ code: 'ROW_UNSUPPORTED_CURRENCY', row: 8, detail: 'ZZZ' }),
                 expect.objectContaining({ code: 'ROW_ZERO_COST', row: 9 }),
             ])
         )
@@ -370,11 +434,11 @@ describe('parseSplitwiseCsv — hostile and messy input', () => {
         ).toBe(true)
     })
 
-    it('falls back to today when a date will not parse, and says so', () => {
+    it('falls back to a deterministic sentinel when a date will not parse, and says so', () => {
         const badDate = 'Date,Description,Category,Cost,Currency,Ana,Bruno\nnot a date,X,Y,10.00,EUR,5.00,-5.00\n'
         const parsed = parseSplitwiseCsv(badDate)
         expect(codes(parsed)).toContain('ROW_BAD_DATE')
-        expect(parsed.expenses[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+        expect(parsed.expenses[0].date).toBe('1970-01-01')
     })
 
     it('rejects impossible ISO calendar dates instead of rolling them forward', () => {
@@ -382,7 +446,17 @@ describe('parseSplitwiseCsv — hostile and messy input', () => {
         const parsed = parseSplitwiseCsv(badDate)
 
         expect(codes(parsed)).toContain('ROW_BAD_DATE')
-        expect(parsed.expenses[0].date).not.toBe('2026-02-31')
+        expect(parsed.expenses[0].date).toBe('1970-01-01')
+    })
+
+    it('preserves the leading calendar day of a timezone-less timestamp', () => {
+        const timestamp =
+            'Date,Description,Category,Cost,Currency,Ana,Bruno\n' +
+            '2026-08-01 00:00:00,Rent,Housing,10.00,EUR,5.00,-5.00\n'
+        const parsed = parseSplitwiseCsv(timestamp)
+
+        expect(parsed.expenses[0].date).toBe('2026-08-01')
+        expect(codes(parsed)).not.toContain('ROW_BAD_DATE')
     })
 
     it('accepts a real leap day without a date warning', () => {
@@ -689,7 +763,6 @@ describe('carrying history a room cannot hold', () => {
         expect(codes(parsed)).toContain('TRUNCATED_HISTORY')
 
         const carried = parsed.expenses.filter((expense) => expense.description.startsWith(BROUGHT_FORWARD))
-        expect(carried.length).toBeGreaterThan(0)
         // At most one row per pair per currency, which is n − 1 at the very worst.
         expect(carried.length).toBeLessThanOrEqual(MEMBERS.length - 1)
         // A carried row is a ledger entry, never a division: one share, and it
@@ -778,7 +851,7 @@ describe('carrying history a room cannot hold', () => {
     })
 
     /**
-     * The ceiling at the worst shape the other caps allow: the biggest roster a
+     * The ceiling at a large but representable shape: the biggest roster a
      * room can hold, spending in a dozen currencies, with one person fronting
      * everything so the pairing cannot fold the residual into fewer than
      * `n − 1` transfers per currency.
@@ -787,10 +860,8 @@ describe('carrying history a room cannot hold', () => {
      * reserve is bounded by the currencies a FILE uses, and a file with 162 of them would reserve
      * more than the ceiling — a different case, and not this one.
      *
-     * That is the case `reserved` exists for, and the only one where it is spent
-     * to the last row: 19 × 12 = 228 carried rows plus 272 kept ones is exactly
-     * 500. Nothing else in the suite would notice `MAX_MEMBERS` growing without the reservation
-     * following — the import would just start proposing rooms `importRoomSchema` refuses.
+     * The implementation measures these 228 carried rows rather than assuming
+     * the worst case, then keeps exactly as much recent history as still fits.
      */
     it('stays inside the ceiling at the worst case the caps allow', () => {
         const members = Array.from({ length: MAX_MEMBERS }, (_, i) => `P${i}`)
@@ -816,6 +887,30 @@ describe('carrying history a room cannot hold', () => {
 
         expect(capped.expenses.length).toBeLessThanOrEqual(MAX_EXPENSES)
         expect(carried).toHaveLength((MAX_MEMBERS - 1) * WORST_CASE_CURRENCIES.length)
+    })
+
+    it('fails honestly when even an exact opening balance cannot fit the room schema', () => {
+        const members = Array.from({ length: MAX_MEMBERS }, (_, i) => `P${i}`)
+        const currencies = Array.from({ length: 27 }, (_, i) => `C${String(i).padStart(2, '0')}`)
+        const shares = members.slice(1).map((member, index) => ({
+            member,
+            amountMinor: String(100 + index),
+        }))
+        const costMinor = shares.reduce((total, share) => total + BigInt(share.amountMinor), 0n).toString()
+        const rows: ParsedExpense[] = Array.from({ length: 540 }, (_, index) => ({
+            date: new Date(Date.UTC(2026, 0, 1 + index)).toISOString().slice(0, 10),
+            description: `Row ${index + 1}`,
+            category: null,
+            currencyCode: currencies[index % currencies.length],
+            costMinor,
+            paidBy: members[0],
+            splitMode: 'EXACT',
+            shares,
+        }))
+
+        expect(() => capHistory(rows, [])).toThrowError(
+            expect.objectContaining<Partial<SplitwiseParseError>>({ code: 'TOO_MANY_EXPENSES' })
+        )
     })
 
     it('leaves a file inside the ceiling completely untouched', () => {

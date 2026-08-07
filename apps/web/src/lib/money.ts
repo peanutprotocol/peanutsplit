@@ -12,6 +12,21 @@ import { CATALOG_BY_CODE, CURRENCY_CATALOG } from './currency-catalog'
 import { formatWithCurrency } from './currency-rules'
 import type { CurrencyInfo } from './api-types'
 
+/** PostgreSQL BIGINT's positive ceiling. Money is stored as signed minor-unit
+ * integers, so browser parsing must enforce the same boundary as the API. */
+export const MAX_SIGNED_MINOR = 9_223_372_036_854_775_807n
+
+/** Refuse an oversized integer before constructing a potentially enormous
+ * BigInt. Comparing canonical decimal strings is exact and keeps uploaded CSV
+ * cells on the same bounded path as interactive amounts. */
+const parseBoundedUnsigned = (digits: string, maximum: bigint): bigint | null => {
+    const canonical = digits.replace(/^0+(?=\d)/, '') || '0'
+    const maximumText = maximum.toString()
+    if (canonical.length > maximumText.length || (canonical.length === maximumText.length && canonical > maximumText))
+        return null
+    return BigInt(canonical)
+}
+
 /**
  * The catalog, in the bundle.
  *
@@ -114,7 +129,15 @@ function normaliseDecimalInput(input: string, locale?: string): string | null {
  * pass a locale and reject extra fraction digits; legacy import callers omit it
  * and keep deterministic half-up rounding.
  */
-export function parseAmountToMinor(input: string, decimals: number, locale?: string): string | null {
+export function parseAmountToMinor(
+    input: string,
+    decimals: number,
+    locale?: string,
+    maximum = MAX_SIGNED_MINOR
+): string | null {
+    // Eighteen covers every catalog currency and the 12dp manual-FX input. It
+    // also prevents a hostile caller from turning padEnd/10** into unbounded work.
+    if (!Number.isInteger(decimals) || decimals < 0 || decimals > 18) return null
     const raw = normaliseDecimalInput(input, locale)
     if (raw === null) return null
     if (raw.length === 0) return null
@@ -132,14 +155,64 @@ export function parseAmountToMinor(input: string, decimals: number, locale?: str
     if (decimals === 0) {
         // Round half-up on the first fraction digit.
         const roundUp = fraction.length > 0 && Number(fraction[0]) >= 5
-        return (BigInt(wholePart) + (roundUp ? 1n : 0n)).toString()
+        const wholeMinor = parseBoundedUnsigned(wholePart, maximum)
+        if (wholeMinor === null) return null
+        const rounded = wholeMinor + (roundUp ? 1n : 0n)
+        return rounded <= maximum ? rounded.toString() : null
     }
 
     const padded = fraction.padEnd(decimals + 1, '0')
     const kept = padded.slice(0, decimals)
     const next = Number(padded[decimals] ?? '0')
-    const minor = BigInt(wholePart) * 10n ** BigInt(decimals) + BigInt(kept === '' ? '0' : kept)
-    return (next >= 5 ? minor + 1n : minor).toString()
+    const minor = parseBoundedUnsigned(`${wholePart}${kept}`, maximum)
+    if (minor === null) return null
+    const rounded = next >= 5 ? minor + 1n : minor
+    return rounded <= maximum ? rounded.toString() : null
+}
+
+/**
+ * Parse a machine-exported amount without silently rounding source precision.
+ *
+ * A single separator followed by exactly three digits is inherently ambiguous
+ * for a 3dp currency: `1,234` can mean either 1.234 KWD or 1,234.000 KWD. An
+ * export with no locale metadata cannot choose safely, so that shape is
+ * refused. Repeated canonical groups are unambiguous whole numbers. Mixed
+ * grouping/decimal conventions remain supported, while a fractional part
+ * longer than the currency allows is refused.
+ */
+export function parseExportAmountToMinor(input: string, decimals: number): string | null {
+    const raw = input.trim().replace(/\s/g, '')
+    if (!raw.includes('.') && !raw.includes(',')) return parseAmountToMinor(raw, decimals)
+
+    const separatorCount = [...raw].filter((character) => character === '.' || character === ',').length
+    const groupedWhole = /^[1-9]\d{0,2}(?:,\d{3})+$/.test(raw) || /^[1-9]\d{0,2}(?:\.\d{3})+$/.test(raw)
+
+    if (groupedWhole) {
+        if (separatorCount > 1 || decimals < 3) return parseAmountToMinor(raw.replace(/[.,]/g, ''), decimals)
+        return null
+    }
+
+    const wholeWithZeroFraction = raw.match(/^(\d+)[.,](0+)$/)
+    if (decimals === 0 && wholeWithZeroFraction) {
+        return parseAmountToMinor(wholeWithZeroFraction[1], 0)
+    }
+
+    if (raw.includes('.') && raw.includes(',')) {
+        const decimalSeparator = raw.lastIndexOf('.') > raw.lastIndexOf(',') ? '.' : ','
+        const fraction = raw.slice(raw.lastIndexOf(decimalSeparator) + 1)
+        if (decimals === 0) {
+            if (!/^0*$/.test(fraction)) return null
+        } else if (fraction.length > decimals) {
+            return null
+        }
+        return parseAmountToMinor(raw, decimals)
+    }
+
+    if (separatorCount > 1) return null
+    const separator = raw.includes('.') ? '.' : ','
+    const fraction = raw.slice(raw.indexOf(separator) + 1)
+    if (fraction.length > decimals || (decimals === 0 && !/^0*$/.test(fraction))) return null
+    return parseAmountToMinor(raw, decimals)
 }
 
 /**
@@ -171,11 +244,16 @@ const TYPEABLE_COMPLETIONS = ['', '0', '00', '000'] as const
  * this split". Whitespace alone is not: it is on the way to nothing, and a field
  * holding it would read as filled while the parser sees no amount in it.
  */
-export function isAmountInputAcceptable(input: string, decimals: number, locale?: string): boolean {
+export function isAmountInputAcceptable(
+    input: string,
+    decimals: number,
+    locale?: string,
+    maximum = MAX_SIGNED_MINOR
+): boolean {
     if (input.length === 0) return true
     if (input.trim().length === 0) return false
     return TYPEABLE_COMPLETIONS.some(
-        (completion) => parseAmountToMinor(`${input}${completion}`, decimals, locale) !== null
+        (completion) => parseAmountToMinor(`${input}${completion}`, decimals, locale, maximum) !== null
     )
 }
 

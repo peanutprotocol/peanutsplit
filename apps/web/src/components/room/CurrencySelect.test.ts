@@ -28,7 +28,7 @@ const trigger = (top: number, bottom: number, left = 24, width = 136) => ({
 
 /**
  * A catalog small enough to read, shaped like the real one: a spread of codes that collide on `U`,
- * an accented Spanish name, and two codes the rate feed does not carry.
+ * an accented Spanish name, and two codes the current rate snapshot does not carry.
  */
 const info = (code: string, name: string, hasRate = true): CurrencyInfo => ({
     code,
@@ -40,12 +40,13 @@ const info = (code: string, name: string, hasRate = true): CurrencyInfo => ({
 
 const CATALOG: CurrencyInfo[] = [
     info('ARS', 'Peso argentino'),
+    info('BGN', 'Bulgarian Lev', false),
     info('BRL', 'Brazilian Real'),
     info('CHF', 'Swiss Franc'),
     info('CUC', 'Cuban Convertible Peso', false),
     info('EUR', 'Euro'),
     info('GBP', 'British Pound'),
-    info('KPW', 'North Korean Won', false),
+    info('KPW', 'North Korean Won'),
     info('MXN', 'Mexican Peso'),
     info('THB', 'Thai Baht'),
     info('TRY', 'Türk Lirası'),
@@ -192,8 +193,9 @@ describe('offerableCurrencies', () => {
         const offerable = codesOf(offerableCurrencies(CATALOG, 'EUR', 'EUR'))
 
         expect(offerable).toContain('THB')
+        expect(offerable).toContain('KPW')
+        expect(offerable).not.toContain('BGN')
         expect(offerable).not.toContain('CUC')
-        expect(offerable).not.toContain('KPW')
     })
 
     it('offers one row in a room whose own currency has no rate', () => {

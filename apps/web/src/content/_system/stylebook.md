@@ -401,19 +401,19 @@ does not do" and so is "The honest bit": a section title that promises a confess
 read as one.
 
 **§4.4 "Good to know" is flat and neutral, not apologetic.** It is where practical facts land when
-they are not comparative: the trust answer (§7.4), 158 currencies converted at the day's rate, up
-to twenty people, recording a settle-up needs a connection, Split records a payment rather than
-making it. State each one in its own plain sentence. No hedging, no "unfortunately", no sentence that
-sums the section up as a shortfall. A page that has nothing but comparative material does not need
-the section at all.
+they are not comparative: the trust answer (§7.4), automatic conversion for 156 currencies at the
+day's indicative rate, up to twenty people, recording a settle-up needs a connection, Split records
+a payment rather than making it. State each one in its own plain sentence. No hedging, no
+"unfortunately", no sentence that sums the section up as a shortfall. A page that has nothing but
+comparative material does not need the section at all.
 
 **§4.5 Concession pool** — draw from these; anything new must trace to product truth (§7.3): Split
 does not check with a bank and cannot, because settling up is a tap that records what two people
-already did · 158 currencies, not every currency · up to twenty people · recording a settle-up
-needs a connection, on purpose · Split will not chase anybody, so no reminders and no nudges into the
-group chat · Split is smaller and does less than {Competitor}, deliberately, and a group that would
-have been happy with {Competitor} should use {Competitor}. The accountless facts left this pool on
-30 Jul and became mechanics (§4.2).
+already did · automatic conversion covers 156 of the 162 currency codes the catalog recognises · up
+to twenty people · recording a settle-up needs a connection, on purpose · Split will not chase
+anybody, so no reminders and no nudges into the group chat · Split is smaller and does less than
+{Competitor}, deliberately, and a group that would have been happy with {Competitor} should use
+{Competitor}. The accountless facts left this pool on 30 Jul and became mechanics (§4.2).
 
 **§4.6 Concede before the CTA, never after** — the concession earns the CTA; reversing reads as a
 retraction. **§4.7 Never concede something false to sound humble.**
@@ -474,8 +474,8 @@ ingresos` query: a doodle on a page about one partner being in fuel poverty is t
 | §6.3  | **No engagement gamification.** No streaks, levels, points, leaderboards, rankings, spending contests, progress bars, repeatable rewards, locked-item grids, or shame/loss states. Peanut Split does have a finite catalog of in-room achievements: optional trip keepsakes based on positive coordination, never money or usage pressure. `docs/ACHIEVEMENTS.md` is the source of truth. Marketing copy must not turn that product noun into an acquisition promise.                                                                                                                                                                                            | HN: _"Gamification of stuff you're forced to do is patronizing"_; the keepsake boundary preserves the distinction between noticing a trip and manufacturing a usage loop    |
 | §6.4  | **No marketing adjectives:** seamless, effortless, robust, powerful, world-class, cutting-edge, game-changing, revolutionary, empower, unlock, elevate, supercharge, truly, incredibly. Split also bans **simply** outright, and **just** as a minimiser — sentence-initial imperative "Just …" is legal once per page under §3.18, mid-sentence "just" never is. Achievement UI should name the card or moment directly rather than using "unlock" as generic hype.                                                                                                                                                                                             | mono STE rules + Split's live copy                                                                                                                                          |
 | §6.5  | **No competitor prices, any locale, including inside a quotation.** Keep the _fact_ of a paid tier without a number                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Splitwise publishes none; ES review says "4€ al mes", a rival blog "3-4 euros" — both second-hand. Splid "$3.99" and Kittysplit "€3" violate the pages' own no-rot rule     |
-| §6.6  | **No live/real-time FX claims.** Ceiling: "converted at the day's rate"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | `fx.ts` is live → cache → static fallback; the rate freezes onto each expense at creation                                                                                   |
-| §6.7  | **No unbounded or superlative claims:** unlimited, any currency, multi-currency, all currencies, 150+, unguessable, fewest/minimum transfers, optimal, any size group                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | 158 converted currencies; twenty people; bounded exact netting with a greedy fallback                                                                                       |
+| §6.6  | **No live/real-time FX claims.** Ceiling: "converted at the day's indicative rate"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | `fx.ts` is live → cache → static fallback; the rate freezes onto each expense at creation                                                                                   |
+| §6.7  | **No unbounded or superlative claims:** unlimited, any currency, multi-currency, all currencies, 150+, unguessable, fewest/minimum transfers, optimal, any size group                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | automatic conversion for 156 currencies; 162 recognised catalog codes; twenty people; bounded exact netting with a greedy fallback                                          |
 | §6.8  | **No permanence promises.** Never "never lose your data", "safe forever", "a permanent record". The optional email is _access from any device_, never a backup guarantee                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | device loss is the documented churn driver for accountless apps                                                                                                             |
 | §6.9  | **No slang with a shelf life, any locale.** No gen-alpha lexicon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | _"vergonha alheia amanhã"_; the failure has a BR name, _tiozão_. Burned already: _lacrou_, _arrasou_                                                                        |
 | §6.10 | **No "split bills, not friendships"**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | taken twice — Splid's hero and PartyTab's                                                                                                                                   |
@@ -582,7 +582,7 @@ the reader's behalf is the trust-builder for the migration audience.
 
 | Truth         | Safe                                                                                                                                                                                                       | Unsafe                                                                         |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Currencies    | "158 currencies, converted at the day's rate"; "indicative, not your bank's rate"                                                                                                                          | multi-currency, any currency, 150+, live rate, real-time                       |
+| Currencies    | "automatic conversion for 156 currencies at the day's indicative rate"; "the catalog recognises 162 currency codes"; "indicative, not your bank's rate"                                                    | twelve currencies, multi-currency, any currency, 150+, live rate, real-time    |
 | Group size    | "up to twenty people"                                                                                                                                                                                      | unlimited, any size group                                                      |
 | Netting       | "two or three transfers instead of twenty"; "a short payment plan"                                                                                                                                         | fewest/minimum transfers, optimal                                              |
 | Offline       | "expenses typed with no signal wait on your phone and go when it comes back"; "recording a settle-up waits for a connection on purpose — a payment written down twice is worse than one written down late" | "works offline" as a category claim; anything implying settle-up works offline |
@@ -776,16 +776,16 @@ and invent no others.
 
 ## §10 Vocabulary
 
-| Say                                         | Not                                       |
-| ------------------------------------------- | ----------------------------------------- |
-| room · link · all square                    | group · invite / invite code · balanced   |
-| the link is the key / the link is the room  | your access token                         |
-| alter ego, cast, recast                     | avatar, profile                           |
-| free forever, with nothing to upgrade to    | free · free tier · freemium               |
-| reconciles to the cent                      | 100% accurate                             |
-| Start a split                               | Get started · Try it free · Sign up       |
-| a website                                   | the app (Split is not an app and says so) |
-| 158 currencies, converted at the day's rate | multi-currency                            |
+| Say                                                    | Not                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------- |
+| room · link · all square                               | group · invite / invite code · balanced                 |
+| the link is the key / the link is the room             | your access token                                       |
+| alter ego, cast, recast                                | avatar, profile                                         |
+| free forever, with nothing to upgrade to               | free · free tier · freemium                             |
+| reconciles to the cent                                 | 100% accurate                                           |
+| Start a split                                          | Get started · Try it free · Sign up                     |
+| a website                                              | the app (Split is not an app and says so)               |
+| 156 currencies, converted at the day's indicative rate | multi-currency · twelve currencies as the product limit |
 
 ### §10.1 Naming — "Split", "Peanut Split", "Split by Peanut"
 

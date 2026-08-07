@@ -237,7 +237,7 @@
                 "title": "What Split does",
                 "currency": {
                     "title": "162 room currencies",
-                    "body": "The room counts in one currency. Split converts expenses across 158 currencies at the rate on the day; four work only without conversion."
+                    "body": "The room counts in one currency. Split converts expenses across 156 currencies at the indicative rate for the day; six work only without conversion."
                 },
                 "splits": {
                     "title": "Splits that are not even",
@@ -1303,7 +1303,7 @@
             "ROW_NO_PAYER": "Row {row} does not say who paid, so it was left out.",
             "ROW_ZERO_COST": "Row {row} has no amount, so it was left out.",
             "ROW_BAD_AMOUNT": "Row {row} has an amount we could not read, so it was left out.",
-            "ROW_BAD_DATE": "Row {row} has a date we could not read — it comes in dated today.",
+            "ROW_BAD_DATE": "Row {row} has a date we could not read — it comes in with a fixed placeholder date.",
             "ROW_DESCRIPTION_TRUNCATED": "Row {row} has a very long description — it comes in shortened.",
             "ROW_CATEGORY_TRUNCATED": "Row {row} has a very long category — it comes in shortened.",
             "MEMBER_NAME_TRUNCATED": "One name was too long and comes in shortened, as “{detail}”. You can edit it above.",
@@ -1314,12 +1314,14 @@
             "TRUNCATED_HISTORY": "A room holds 500 expenses, so the {count, plural, one {# oldest one} other {# oldest ones}} arrive as a single “Balance brought forward” entry per person instead. Everyone's balance still comes out the same.",
             "SPLITPRO_BALANCES_ONLY": "Split Pro’s account download contains current balances, but not expense history. They arrive as “Balance brought forward” entries, so everyone’s total is preserved but the old expense list is not.",
             "SPLITPRO_PAIR_HISTORY": "Split Pro’s friend CSV does not say which group each expense belonged to. Every expense in this file arrives together in this room.",
+            "SPLITPRO_SPLIT_MODE_FLATTENED": "Split Pro’s percentage/share splits keep the same final amounts, but arrive as fixed amounts. Editing them later will not preserve the original weights.",
             "SPLITPRO_MISSING_NAMES": "Split Pro left {count, plural, one {one person’s name} other {# people’s names}} out of the backup. They are labelled “Member” below — rename them before creating the room.",
             "SPLITPRO_BALANCES_SKIPPED": "{count, plural, one {One balance in the Split Pro backup is incomplete, so it was left out} other {# balances in the Split Pro backup are incomplete, so they were left out}}. Compare the preview with Split Pro before creating the room.",
             "SPLITPRO_UNSUPPORTED_CURRENCY": "Split cannot convert {detail}, so balances in that currency were left out. Choose another export if those balances matter."
         },
         "errors": {
             "NOT_SPLITWISE_CSV": "We don’t recognize this file. Choose a Splitwise group .csv, a Split Pro friend .csv, or the splitpro_data.json file from Split Pro’s Account page.",
+            "MALFORMED_CSV": "That CSV file is incomplete or damaged. Download a fresh export and use it without editing it.",
             "MALFORMED_JSON": "That JSON file is incomplete or damaged. Download “SplitPro data” again from Split Pro’s Account page and use the new file without editing it.",
             "SPLITPRO_DIRECT_UNRESOLVED": "This Split Pro backup does not identify which member is you, so balances outside named groups cannot be separated safely. Import the groups above, then use each friend’s CSV export for any remaining balance.",
             "NO_MEMBERS": "This export does not contain a group roster. In Splitwise, export a group; in Split Pro, use “Download SplitPro data” from the Account page.",

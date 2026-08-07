@@ -12,7 +12,7 @@
  * what we understood. An import that silently guesses wrong is worse than one that refuses.
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -23,15 +23,22 @@ import { Icon } from '@/components/ui/Icon'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { LinkMoment } from '@/components/room/LinkMoment'
 import { track } from '@/lib/analytics'
+import { isApiError } from '@/lib/api'
 import type { ImportedExpenseInput, ImportIntoRoomResult, RoomState, RoomStateWithMember } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
 import { importedRoomPath } from '@/lib/import-routes'
+import {
+    fingerprintParsedImportFile,
+    type FingerprintedImportChoice,
+    type FingerprintedImportFile,
+} from '@/lib/import-source-fingerprint'
 import { formatMoney } from '@/lib/money'
 import { useCurrencies, useImportIntoRoom, useImportRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { useMotionAllowed } from '@/lib/use-motion'
+import { useRateAvailability } from '@/lib/use-rate'
 import {
     MAX_FILE_CHARS,
     SplitwiseParseError,
@@ -40,12 +47,7 @@ import {
     type ParseErrorCode,
     type SplitwiseImport as ParsedFile,
 } from '@/lib/splitwise-csv'
-import {
-    parseImportFile,
-    type ImportChoice,
-    type ParsedImportFile,
-    type SkippedImportChoice,
-} from '@/lib/splitpro-import'
+import { parseImportFile, type ParsedImportFile, type SkippedImportChoice } from '@/lib/splitpro-import'
 import { useFeedback } from '@/lib/use-settings'
 import {
     ExistingRoomImportContext,
@@ -69,6 +71,22 @@ export interface ExistingRoomImportTarget {
     state: RoomState
     /** Attribution only; holding the slug remains sufficient to write. */
     memberToken?: string | null
+    /** Used only to visibly suggest which imported person is the current visitor. */
+    memberId?: string | null
+}
+
+const conversionFailureCurrencies = (error: unknown, candidates: readonly string[]): string[] => {
+    if (!isApiError(error, 'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED') && !isApiError(error, 'NO_RATE')) {
+        return []
+    }
+    const details = error.details
+    if (typeof details !== 'object' || details === null) return []
+    const currencies = (details as { currencies?: unknown }).currencies
+    if (!Array.isArray(currencies)) return []
+    const candidateSet = new Set(candidates)
+    return [...new Set(currencies.filter((code): code is string => typeof code === 'string'))].filter((code) =>
+        candidateSet.has(code)
+    )
 }
 
 export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImportTarget } = {}) {
@@ -85,12 +103,16 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
     const inputRef = useRef<HTMLInputElement>(null)
 
     const [parsed, setParsed] = useState<ParsedFile | null>(null)
-    const [parsedFile, setParsedFile] = useState<ParsedImportFile | null>(null)
+    const [parsedFile, setParsedFile] = useState<FingerprintedImportFile | null>(null)
     const [choiceIndex, setChoiceIndex] = useState(0)
+    const [sourceFingerprint, setSourceFingerprint] = useState<string | null>(null)
     const [roomName, setRoomName] = useState('')
     const [currency, setCurrency] = useState('EUR')
     const [names, setNames] = useState<string[]>([])
     const [memberDrafts, setMemberDrafts] = useState<ExistingRoomMemberDraft[]>([])
+    /** Source code → query data timestamp observed when the write rejected it.
+     * A later successful probe clears the derived latch without another upload. */
+    const [serverRateRejections, setServerRateRejections] = useState<Record<string, number>>({})
     /**
      * Null until somebody picks, and the submit button is disabled until they do.
      *
@@ -117,6 +139,8 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
         switch (code) {
             case 'NOT_SPLITWISE_CSV':
                 return t('errors.NOT_SPLITWISE_CSV')
+            case 'MALFORMED_CSV':
+                return t('errors.MALFORMED_CSV')
             case 'MALFORMED_JSON':
                 return t('errors.MALFORMED_JSON')
             case 'SPLITPRO_DIRECT_UNRESOLVED':
@@ -172,6 +196,8 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                 return t('warnings.SPLITPRO_BALANCES_ONLY')
             case 'SPLITPRO_PAIR_HISTORY':
                 return t('warnings.SPLITPRO_PAIR_HISTORY')
+            case 'SPLITPRO_SPLIT_MODE_FLATTENED':
+                return t('warnings.SPLITPRO_SPLIT_MODE_FLATTENED')
             case 'SPLITPRO_MISSING_NAMES':
                 return t('warnings.SPLITPRO_MISSING_NAMES', { count: Number(detail) || 0 })
             case 'SPLITPRO_BALANCES_SKIPPED':
@@ -182,17 +208,25 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
     }
 
     const applyChoice = useCallback(
-        (choice: ImportChoice, index: number) => {
+        (choice: FingerprintedImportChoice, index: number, source: ParsedImportFile['source']) => {
             setChoiceIndex(index)
             setParsed(choice.parsed)
+            setSourceFingerprint(choice.sourceFingerprint)
             setRoomName(choice.roomName || t('preview.fallbackName'))
             setCurrency(choice.parsed.suggestedCurrency)
             setNames(choice.parsed.members)
             setMemberDrafts(
-                targetRoom ? initialExistingRoomMemberDrafts(choice.parsed.members, targetRoom.state.members) : []
+                targetRoom
+                    ? initialExistingRoomMemberDrafts(
+                          choice.parsed.members,
+                          targetRoom.state.members,
+                          source === 'splitpro' ? targetRoom.memberId : null
+                      )
+                    : []
             )
             setMeIndex(null)
             setError(null)
+            setServerRateRejections({})
         },
         [t, targetRoom]
     )
@@ -218,9 +252,9 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
             }
 
             try {
-                const result = parseImportFile(text, file.name)
+                const result = await fingerprintParsedImportFile(text, parseImportFile(text, file.name))
                 setParsedFile(result)
-                applyChoice(result.choices[0], 0)
+                applyChoice(result.choices[0], 0, result.source)
                 feedback('pop')
                 // Counts only. Not the group's name, not a member's, not an amount.
                 track('import_parsed', {
@@ -277,13 +311,52 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
         () => (targetRoom ? existingRoomMappingProblem(memberDrafts, targetRoom.state.members) : null),
         [memberDrafts, targetRoom]
     )
-    const unsupportedCurrencies = useMemo(
-        () =>
-            parsed && targetRoom
-                ? unsupportedImportCurrencies(parsed.expenses, targetRoom.state.room.currency, currencies)
-                : [],
-        [parsed, targetRoom, currencies]
+    const targetCurrency = targetRoom?.state.room.currency ?? currency
+    const catalogUnsupportedCurrencies = useMemo(
+        () => (parsed ? unsupportedImportCurrencies(parsed.expenses, targetCurrency, currencies) : []),
+        [parsed, targetCurrency, currencies]
     )
+    const rateSourceCurrencies = useMemo(() => {
+        if (!parsed) return []
+        const catalogUnsupported = new Set(catalogUnsupportedCurrencies)
+        return [...new Set(parsed.expenses.map((expense) => expense.currencyCode))].filter(
+            (source) => source !== targetCurrency && !catalogUnsupported.has(source)
+        )
+    }, [parsed, targetCurrency, catalogUnsupportedCurrencies])
+    const rateProbes = useRateAvailability(
+        rateSourceCurrencies,
+        targetCurrency,
+        parsed !== null,
+        Object.keys(serverRateRejections)
+    )
+    const liveUnavailableCurrencies = rateSourceCurrencies.filter(
+        (_, index) => rateProbes[index]?.isSuccess && rateProbes[index]?.data === null
+    )
+    const serverUnavailableCurrencies = Object.entries(serverRateRejections).flatMap(
+        ([code, rejectedDataUpdatedAt]) => {
+            const probe = rateProbes[rateSourceCurrencies.indexOf(code)]
+            const recovered = probe?.isSuccess && probe.data !== null && probe.dataUpdatedAt > rejectedDataUpdatedAt
+            return recovered ? [] : [code]
+        }
+    )
+    const recoveredServerCurrencies = Object.entries(serverRateRejections)
+        .flatMap(([code, rejectedDataUpdatedAt]) => {
+            const probe = rateProbes[rateSourceCurrencies.indexOf(code)]
+            return probe?.isSuccess && probe.data !== null && probe.dataUpdatedAt > rejectedDataUpdatedAt ? [code] : []
+        })
+        .sort()
+        .join(',')
+    useEffect(() => {
+        if (!recoveredServerCurrencies) return
+        const recovered = new Set(recoveredServerCurrencies.split(','))
+        setServerRateRejections((current) =>
+            Object.fromEntries(Object.entries(current).filter(([code]) => !recovered.has(code)))
+        )
+    }, [recoveredServerCurrencies])
+    const checkingRates = rateProbes.some((probe) => probe.isFetching)
+    const unsupportedCurrencies = [
+        ...new Set([...catalogUnsupportedCurrencies, ...liveUnavailableCurrencies, ...serverUnavailableCurrencies]),
+    ]
 
     const memberMappingProblemMessage = (problem: ExistingRoomMappingProblem | null): string | null => {
         switch (problem) {
@@ -302,10 +375,37 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
         }
     }
 
+    const rememberConversionFailure = (failure: unknown) => {
+        const isConversionFailure =
+            isApiError(failure, 'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED') || isApiError(failure, 'NO_RATE')
+        if (!isConversionFailure) return
+
+        const unavailable = conversionFailureCurrencies(failure, rateSourceCurrencies)
+        if (unavailable.length > 0) {
+            setServerRateRejections((current) => {
+                const next = { ...current }
+                for (const code of unavailable) {
+                    const probe = rateProbes[rateSourceCurrencies.indexOf(code)]
+                    next[code] = probe?.dataUpdatedAt ?? 0
+                }
+                return next
+            })
+        }
+
+        // New servers return the exact failed codes. During a rolling deploy an
+        // older NO_RATE envelope may not, so recheck every candidate but do not
+        // falsely label all of them unsupported.
+        const toRecheck = unavailable.length > 0 ? unavailable : rateSourceCurrencies
+        for (const code of toRecheck) {
+            void rateProbes[rateSourceCurrencies.indexOf(code)]?.refetch()
+        }
+    }
+
     const submit = async () => {
-        if (!parsed) return
+        if (!parsed || !sourceFingerprint) return
+        if (checkingRates || unsupportedCurrencies.length > 0) return
         if (targetRoom) {
-            if (memberMappingProblem || unsupportedCurrencies.length > 0) return
+            if (memberMappingProblem) return
         } else if (nameProblem || !roomName.trim() || meIndex === null) {
             return
         }
@@ -314,6 +414,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
         if (targetRoom) {
             try {
                 const result = await importIntoRoom.mutateAsync({
+                    sourceFingerprint,
                     members: importMemberMappings(memberDrafts),
                     expenses: parsed.expenses,
                 })
@@ -326,6 +427,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                 feedback('pop')
                 setAppended(result)
             } catch (err) {
+                rememberConversionFailure(err)
                 setError(errorMessage(err, tExisting('failed')))
                 feedback('error')
                 track('import_failed', { reason: 'POST_FAILED', target: 'existing' })
@@ -348,6 +450,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
 
         try {
             const state = await importRoom.mutateAsync({
+                sourceFingerprint,
                 roomName: roomName.trim(),
                 // Read from the group's own name, same as a hand-made room. It used to be a
                 // hardcoded 🧾, which made every imported room look identical in the list.
@@ -369,6 +472,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
             feedback('pop')
             setCreated(state)
         } catch (err) {
+            rememberConversionFailure(err)
             setError(errorMessage(err, t('errors.failed')))
             feedback('error')
             track('import_failed', { reason: 'POST_FAILED' })
@@ -378,10 +482,12 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
     const startOver = () => {
         setParsed(null)
         setParsedFile(null)
+        setSourceFingerprint(null)
         setChoiceIndex(0)
         setMemberDrafts([])
         setAppended(null)
         setError(null)
+        setServerRateRejections({})
     }
 
     if (targetRoom && appended) {
@@ -565,7 +671,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                         onChange={(event) => {
                             const index = Number(event.target.value)
                             const choice = parsedFile.choices[index]
-                            if (choice) applyChoice(choice, index)
+                            if (choice) applyChoice(choice, index, parsedFile.source)
                         }}
                         className="h-12 rounded-sm border border-n-1 bg-white px-3 text-base font-bold text-n-1 shadow-[2px_2px_0_#111] outline-none"
                         data-testid="import-group-choice"
@@ -669,6 +775,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                             value={currency}
                             onChange={(code) => {
                                 setCurrency(code)
+                                setServerRateRejections({})
                                 feedback('tick')
                             }}
                             currencies={currencies}
@@ -681,6 +788,10 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                         />
                         <span className="text-sm text-grey-1">{t('preview.currencyHint')}</span>
                     </div>
+                    <ExistingRoomImportCurrencyProblem
+                        sourceCurrencies={unsupportedCurrencies}
+                        roomCurrency={currency}
+                    />
                 </>
             )}
 
@@ -765,8 +876,16 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                     className="justify-center"
                     disabled={
                         targetRoom
-                            ? !!memberMappingProblem || unsupportedCurrencies.length > 0 || importIntoRoom.isPending
-                            : !roomName.trim() || !!nameProblem || meIndex === null || importRoom.isPending
+                            ? !!memberMappingProblem ||
+                              checkingRates ||
+                              unsupportedCurrencies.length > 0 ||
+                              importIntoRoom.isPending
+                            : !roomName.trim() ||
+                              !!nameProblem ||
+                              meIndex === null ||
+                              checkingRates ||
+                              unsupportedCurrencies.length > 0 ||
+                              importRoom.isPending
                     }
                     loading={targetRoom ? importIntoRoom.isPending : importRoom.isPending}
                     onClick={submit}

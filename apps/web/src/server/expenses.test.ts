@@ -40,13 +40,17 @@ const roomWithFormer = (currency: string): RoomWithRelations =>
         members: MEMBERS.map((id) => ({ id, removedAt: id === 'bea' || id === 'caro' ? new Date() : null })),
     }) as unknown as RoomWithRelations
 
-const tableOf = (usdPerUnit: Record<string, number>): RateTable => ({
-    usdPerUnit,
-    source: 'static',
-    fetchedAt: null,
-})
+const tableOf = (usdPerUnit: Record<string, number>, base = 'EUR'): RateTable => {
+    const usdPerBase = usdPerUnit[base]
+    const basePerUnit =
+        usdPerBase === undefined
+            ? { ...usdPerUnit }
+            : Object.fromEntries(Object.entries(usdPerUnit).map(([quote, usd]) => [quote, usd / usdPerBase]))
+    return { base, basePerUnit, source: 'static', fetchedAt: null }
+}
 
-const STATIC_TABLE = tableOf({ ...STATIC_USD_PER_UNIT })
+const staticTableFor = (base: string) => tableOf({ ...STATIC_USD_PER_UNIT }, base)
+const STATIC_TABLE = staticTableFor('EUR')
 
 const body = (over: Partial<ExpenseBody> & { paidById?: string } = {}): ExpenseBody & { paidById: string } => {
     const result = {
@@ -413,7 +417,7 @@ describe('a description-only edit does not move the money', () => {
                         room,
                         body({ currency: from, amountMinor: amountMinor.toString() }),
                         undefined,
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     const edited = await buildExpense(
                         room,
@@ -423,7 +427,7 @@ describe('a description-only edit does not move the money', () => {
                             description: 'Dinner (split with Caro)',
                         }),
                         rowOf(created),
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     if (edited.baseAmountMinor !== created.baseAmountMinor) moved++
                     expect(edited.fxRate).toBe(created.fxRate)
@@ -466,7 +470,7 @@ describe('a description-only edit does not move the money', () => {
     /** Three decimals into zero decimals, the shape the 162-code catalog introduces and the twelve
      *  never could. Neither code is in the static table, so the rate table is built for the pair. */
     it('holds on BHD→JPY, a three-decimal currency into a zero-decimal one', async () => {
-        const table = tableOf({ BHD: 2.65, JPY: 0.0064 })
+        const table = tableOf({ BHD: 2.65, JPY: 0.0064 }, 'JPY')
         const room = roomIn('JPY')
         const created = await buildExpense(room, body({ currency: 'BHD', amountMinor: '1000000' }), undefined, table)
         const edited = await buildExpense(
@@ -671,7 +675,7 @@ describe('the stored rate is the rate that priced the expense', () => {
                         roomIn(to),
                         body({ currency: from, amountMinor: amountMinor.toString() }),
                         undefined,
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     const fromColumn = convertMinorAtRate(amountMinor, from, to, Number(created.fxRate))
                     if (fromColumn !== created.baseAmountMinor) moved++
@@ -732,7 +736,7 @@ describe('an amount edit reconverts at the locked rate', () => {
                         room,
                         body({ currency: from, amountMinor: '1000' }),
                         undefined,
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     // First edit changes the amount, so it converts. Second repeats it, so it
                     // carries forward. The two must agree or every re-save walks the balance.
@@ -740,13 +744,13 @@ describe('an amount edit reconverts at the locked rate', () => {
                         room,
                         body({ currency: from, amountMinor: amountMinor.toString() }),
                         rowOf(created),
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     const second = await buildExpense(
                         room,
                         body({ currency: from, amountMinor: amountMinor.toString() }),
                         rowOf(first),
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     if (first.baseAmountMinor !== second.baseAmountMinor) moved++
                 }
@@ -811,7 +815,7 @@ describe('a row written at the old 1e9 rate scale', () => {
                             description: 'fixed a typo',
                         }),
                         row,
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     if (edited.baseAmountMinor !== row.baseAmountMinor) rewritten++
                     // What recomputing would have cost, which is the size of the bug being held shut.
@@ -892,7 +896,7 @@ describe('a row written at the old 1e9 rate scale', () => {
                             })),
                         }),
                         row,
-                        STATIC_TABLE
+                        staticTableFor(to)
                     )
                     expect(write.baseAmountMinor).toBe(row.baseAmountMinor)
                     expect(sumShares(write.shares)).toBe(row.baseAmountMinor)

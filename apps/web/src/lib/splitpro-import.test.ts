@@ -95,6 +95,7 @@ describe('Split Pro account JSON', () => {
 
         expect(parsed.members).toEqual(['You', 'Bruno'])
         expect(balances(parsed)).toEqual({ You: '-425', Bruno: '425' })
+        expect(parsed.expenses[0].date).toBe('1970-01-01')
         expect(acceptedByServer(parsed)).toBe(true)
     })
 
@@ -107,6 +108,7 @@ describe('Split Pro account JSON', () => {
 
 describe('Split Pro friend CSV', () => {
     const parsed = parseImportFile(SPLITPRO_FRIEND_CSV, 'expenses_with_Natalia.csv').choices[0].parsed
+    const header = SPLITPRO_FRIEND_CSV.split('\n')[0]
 
     it('detects the pair export and names both people', () => {
         expect(parsed.members).toEqual(['You', 'Natalia'])
@@ -138,5 +140,84 @@ describe('Split Pro friend CSV', () => {
         const codes = parsed.warnings.map((warning) => warning.code)
         expect(codes).toContain('SPLITPRO_PAIR_HISTORY')
         expect(codes).toContain('PAYMENT_ROWS')
+    })
+
+    it('explains when percentage or share weights become fixed final amounts', () => {
+        const weighted = `${header}\nYou,Dinner,Food,20.00,PERCENTAGE,2026-08-01 12:00:00,EUR,10.00,0,0\n`
+        const imported = parseImportFile(weighted, 'expenses_with_Natalia.csv').choices[0].parsed
+
+        expect(imported.expenses[0].splitMode).toBe('EXACT')
+        expect(imported.expenses[0].shares).toEqual([
+            { member: 'You', amountMinor: '1000' },
+            { member: 'Natalia', amountMinor: '1000' },
+        ])
+        expect(imported.warnings).toContainEqual({ code: 'SPLITPRO_SPLIT_MODE_FLATTENED' })
+    })
+
+    it('preserves explicit exact editing intent even when the final amounts are 50/50', () => {
+        const exact = `${header}\nYou,Dinner,Food,20.00,EXACT,2026-08-01 12:00:00,EUR,10.00,0,0\n`
+        const imported = parseImportFile(exact, 'expenses_with_Natalia.csv').choices[0].parsed
+
+        expect(imported.expenses[0].splitMode).toBe('EXACT')
+    })
+
+    it('derives the friend from consistent Paid By cells even when the file was renamed', () => {
+        const renamed = parseImportFile(SPLITPRO_FRIEND_CSV, 'trip.csv').choices[0].parsed
+        expect(renamed.members).toEqual(['You', 'Natalia'])
+        expect(renamed.expenses.map((expense) => expense.paidBy)).toEqual(['You', 'Natalia', 'You'])
+    })
+
+    it('cleans a browser download suffix when the rows contain no friend-paid expense', () => {
+        const onlyYou = `${header}\nYou,Dinner,Food,20.00,EQUAL,2026-08-01 12:00:00,EUR,10.00,0,0\n`
+        const imported = parseImportFile(onlyYou, 'expenses_with_Natalia Cieśla (5).csv').choices[0].parsed
+
+        expect(imported.members).toEqual(['You', 'Natalia Cieśla'])
+    })
+
+    it('drops a payer inconsistent with the inferred pair instead of assigning it to the friend', () => {
+        const withThirdPayer = [
+            header,
+            'You,Dinner,Food,20.00,EQUAL,2026-08-01 12:00:00,EUR,10.00,0,0',
+            'Natalia,Taxi,Transport,20.00,EQUAL,2026-08-01 12:00:00,EUR,0,10.00,0',
+            'Someone Else,Coffee,Food,10.00,EQUAL,2026-08-01 12:00:00,EUR,0,5.00,0',
+            '',
+        ].join('\n')
+        const imported = parseImportFile(withThirdPayer, 'expenses_with_Natalia.csv').choices[0].parsed
+
+        expect(imported.expenses.map((expense) => expense.description)).toEqual(['Dinner', 'Taxi'])
+        expect(imported.warnings).toContainEqual({ code: 'ROW_NO_PAYER', row: 4, detail: 'Someone Else' })
+    })
+
+    it('preserves the calendar day from SplitPro timestamps independently of timezone', () => {
+        const atMidnight = `${header}\nYou,Rent,Housing,20.00,EQUAL,2026-08-01 00:00:00,EUR,10.00,0,0\n`
+        const imported = parseImportFile(atMidnight, 'expenses_with_Natalia.csv').choices[0].parsed
+
+        expect(imported.expenses[0].date).toBe('2026-08-01')
+        expect(imported.warnings.map((warning) => warning.code)).not.toContain('ROW_BAD_DATE')
+    })
+
+    it('uses a deterministic sentinel for an invalid SplitPro date', () => {
+        const badDate = `${header}\nYou,Rent,Housing,20.00,EQUAL,not a date,EUR,10.00,0,0\n`
+        const imported = parseImportFile(badDate, 'expenses_with_Natalia.csv').choices[0].parsed
+
+        expect(imported.expenses[0].date).toBe('1970-01-01')
+        expect(imported.warnings).toContainEqual({ code: 'ROW_BAD_DATE', row: 2 })
+    })
+
+    it('reads grouped zero-decimal amounts without changing their scale', () => {
+        const jpy = `${header}\nYou,Dinner,Food,"2,000",EQUAL,2026-08-01 12:00:00,JPY,"1,000",0,0\n`
+        const imported = parseImportFile(jpy, 'expenses_with_Natalia.csv').choices[0].parsed
+
+        expect(imported.expenses[0].costMinor).toBe('2000')
+        expect(imported.expenses[0].shares).toEqual([
+            { member: 'You', amountMinor: '1000' },
+            { member: 'Natalia', amountMinor: '1000' },
+        ])
+    })
+
+    it('surfaces a typed error for an unterminated quoted field', () => {
+        expect(() => parseImportFile(`${header}\nYou,"unterminated`, 'expenses_with_Natalia.csv')).toThrowError(
+            expect.objectContaining<Partial<SplitwiseParseError>>({ code: 'MALFORMED_CSV' })
+        )
     })
 })

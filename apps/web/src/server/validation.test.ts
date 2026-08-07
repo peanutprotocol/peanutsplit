@@ -6,6 +6,7 @@ import {
     expensePatchSchema,
     expenseSchema,
     expenseUpdateSchema,
+    importIntoRoomSchema,
     importRoomSchema,
     modelAmountMinor,
     rateQuerySchema,
@@ -295,6 +296,28 @@ describe('structured import dates', () => {
         expect(importRoomSchema.safeParse(withDate('2024-02-29')).success).toBe(true)
         expect(importRoomSchema.safeParse(withDate('2026-02-31')).success).toBe(false)
         expect(importRoomSchema.safeParse(withDate('2025-02-29')).success).toBe(false)
+    })
+})
+
+describe('immutable import source identity', () => {
+    it('accepts an optional lowercase SHA-256 digest on both import destinations', () => {
+        const fingerprint = 'a'.repeat(64)
+        const fresh = imported('100')
+        const append = {
+            sourceFingerprint: fingerprint,
+            members: [{ sourceName: 'Ana', newMemberName: 'Ana' }],
+            expenses: fresh.expenses,
+        }
+
+        expect(importRoomSchema.safeParse({ ...fresh, sourceFingerprint: fingerprint }).success).toBe(true)
+        expect(importIntoRoomSchema.safeParse(append).success).toBe(true)
+        expect(importRoomSchema.safeParse(fresh).success).toBe(true)
+    })
+
+    it('rejects malformed or non-canonical source fingerprints', () => {
+        for (const sourceFingerprint of ['a'.repeat(63), 'A'.repeat(64), 'g'.repeat(64), 123]) {
+            expect(importRoomSchema.safeParse({ ...imported('100'), sourceFingerprint }).success).toBe(false)
+        }
     })
 })
 

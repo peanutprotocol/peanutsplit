@@ -185,7 +185,7 @@ export interface RoomStateWithAddedMember extends RoomState {
 }
 
 export interface ApiError {
-    error: { code: string; message: string }
+    error: { code: string; message: string; details?: unknown }
 }
 
 // ─── request bodies ─────────────────────────────────────────────────────────
@@ -380,6 +380,10 @@ export interface ImportedExpenseInput {
 
 /** POST /api/import — a whole room in one body. */
 export interface ImportRoomInput {
+    /** SHA-256 identity of the local source file and selected raw-file choice.
+     * Optional only for rolling compatibility with clients predating durable
+     * source identity; current importers always send it. */
+    sourceFingerprint?: string
     roomName: string
     emoji?: string | null
     /** What the room settles in. Expenses in other currencies are converted at import time. */
@@ -398,6 +402,8 @@ export type ImportMemberMapping =
 
 /** POST /api/rooms/:slug/import — append one parsed source export atomically. */
 export interface ImportIntoRoomInput {
+    /** Same immutable-source identity as `ImportRoomInput.sourceFingerprint`. */
+    sourceFingerprint?: string
     members: ImportMemberMapping[]
     expenses: ImportedExpenseInput[]
 }

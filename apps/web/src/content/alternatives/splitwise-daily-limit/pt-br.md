@@ -84,13 +84,13 @@ As páginas deles dizem três coisas sobre anúncios. A página do Pro vende "A 
 
 ## Onde uma sala é diferente
 
-|                  | Peanut Split                       | Splitwise grátis                                      |
-| ---------------- | ---------------------------------- | ----------------------------------------------------- |
-| Despesas por dia | Sem limite                         | Um limite diário, tirado por uma assinatura Pro       |
-| Anúncios         | Nenhum                             | O Pro é vendido como experiência sem anúncios         |
-| Preço            | Grátis para sempre, sem plano pago | Preço do Pro não publicado; varia por país e por data |
-| Conta            | Nenhuma. Uma sala é um link        | Uma conta                                             |
-| Moedas           | 158 moedas, pela taxa do dia       | A conversão de moeda fica no Pro                      |
+|                  | Peanut Split                            | Splitwise grátis                                      |
+| ---------------- | --------------------------------------- | ----------------------------------------------------- |
+| Despesas por dia | Sem limite                              | Um limite diário, tirado por uma assinatura Pro       |
+| Anúncios         | Nenhum                                  | O Pro é vendido como experiência sem anúncios         |
+| Preço            | Grátis para sempre, sem plano pago      | Preço do Pro não publicado; varia por país e por data |
+| Conta            | Nenhuma. Uma sala é um link             | Uma conta                                             |
+| Moedas           | 156 moedas, pela taxa indicativa do dia | A conversão de moeda fica no Pro                      |
 
 As linhas do Splitwise vêm de splitwise.com, kb.splitwise.com e feedback.splitwise.com, lidas em 31 de julho de 2026.
 

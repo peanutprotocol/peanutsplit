@@ -48,20 +48,20 @@ describe('ExistingRoomImportContext', () => {
 })
 
 describe('ExistingRoomImportCurrencyProblem', () => {
-    it('names an unconvertible EUR source before submission to a KPW room', () => {
+    it('names an unconvertible EUR source before submission to a BGN room', () => {
         const html = renderToStaticMarkup(
-            <ExistingRoomImportCurrencyProblem sourceCurrencies={['EUR']} roomCurrency="KPW" />
+            <ExistingRoomImportCurrencyProblem sourceCurrencies={['EUR']} roomCurrency="BGN" />
         )
 
         expect(html).toContain('data-testid="import-currency-unsupported"')
         expect(html).toContain('role="alert"')
         expect(html).toContain('import.existing.currencyUnsupportedTitle')
-        expect(html).toContain('import.existing.currencyUnsupportedBody:EUR,KPW')
+        expect(html).toContain('import.existing.currencyUnsupportedBody:EUR,BGN')
     })
 
     it('renders nothing when every source currency is priceable', () => {
         expect(
-            renderToStaticMarkup(<ExistingRoomImportCurrencyProblem sourceCurrencies={[]} roomCurrency="KPW" />)
+            renderToStaticMarkup(<ExistingRoomImportCurrencyProblem sourceCurrencies={[]} roomCurrency="BGN" />)
         ).toBe('')
     })
 })
