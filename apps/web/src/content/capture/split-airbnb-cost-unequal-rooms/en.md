@@ -11,7 +11,7 @@ claims:
     - settle-is-a-record
     - free-forever
     - room-size-20
-    - rated-currencies-158
+    - automatic-currency-conversion
 cast:
     - jules
 faqs:
@@ -51,7 +51,7 @@ Four rooms much of a muchness do not need weights; weighting them invents a diff
 
 Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier and nothing to move behind one later.
 
-158 currencies, converted at the day's rate, which is indicative rather than your bank's. A room holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
+Automatic conversion for 156 currencies at the day's indicative rate rather than your bank's. A room holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
 
 <CTA
   title="Put the weights where everyone can see them"

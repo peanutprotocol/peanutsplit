@@ -91,7 +91,9 @@ export function ExistingRoomImportScreen({ slug }: { slug: string }) {
                 </section>
             ) : (
                 <section className="mt-6">
-                    <SplitwiseImport targetRoom={{ state, memberToken: identity?.token }} />
+                    <SplitwiseImport
+                        targetRoom={{ state, memberToken: identity?.token, memberId: identity?.memberId }}
+                    />
                 </section>
             )}
         </main>

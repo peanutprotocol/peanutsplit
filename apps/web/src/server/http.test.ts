@@ -30,6 +30,25 @@ describe('JSON response caching', () => {
     })
 })
 
+describe('typed error details', () => {
+    it('preserves bounded machine-readable context without changing ordinary envelopes', async () => {
+        const response = await respond(() => {
+            throw badRequest('PLN cannot be converted', 'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED', {
+                currencies: ['PLN'],
+                targetCurrency: 'EUR',
+            })
+        })
+
+        await expect(response.json()).resolves.toEqual({
+            error: {
+                code: 'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED',
+                message: 'PLN cannot be converted',
+                details: { currencies: ['PLN'], targetCurrency: 'EUR' },
+            },
+        })
+    })
+})
+
 describe('readJson', () => {
     it('parses an ordinary JSON request', async () => {
         await expect(readJson(request('{"name":"Peanut"}'))).resolves.toEqual({ name: 'Peanut' })

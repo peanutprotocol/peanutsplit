@@ -170,15 +170,40 @@ model AuthAccount { id String @id @default(uuid()); userId String; provider Stri
 reconstruction (passes the original author's e2e 10/10). Port its semantics exactly:
 
 - Minor-unit **strings** on the wire, **BigInt** internally and in DB. A float never touches money.
-- Currency decimals respected (JPY/COP = 0). Currency catalog: copy the mock's 12 currencies.
-- FX conversion: integer maths at `RATE_SCALE = 1e9`, round half-up (mock's `convertMinor`).
+- Currency decimals respected (JPY/COP = 0). The generated catalog recognises 162 currency codes;
+  156 support automatic conversion in a connected deployment. The mock's 12 core currencies are
+  the static outage/dev fallback, not the production catalog.
+- FX conversion: integer maths at `RATE_SCALE = 1e18`, round half-up. The wider scale is required
+  for the smallest crosses in the 162-code catalog; the persisted expense rate remains
+  `Decimal(24,12)` and unsafe zero/overflow crosses are unavailable.
 - EQUAL split: base + remainder spread one unit at a time; shares sum to total **exactly**.
 - EXACT split: store `enteredAmountMinor` verbatim in expense currency; residue after FX goes on
   the largest share; re-opening and re-saving a foreign-currency expense must not drift balances.
 - Balances: sum over non-deleted expenses/settlements; suggested transfers via greedy
   minimal-transfer (≤ n−1 transfers).
-- Live FX: fetch from `https://open.er-api.com/v6/latest/USD` server-side, cache 24h in FxRate,
-  fall back to the mock's static table when fetch fails. Rates are indicative — label them so.
+- Live FX: directly fetch Peanut's public
+  `https://api.peanut.me/fx/rates?base=<room currency>` display-sell snapshot server-side. Each row
+  is the backend-selected quote-to-room pair, preserving Peanut UI's all-provider-or-all-reference
+  choice; Split inverts that row into room-units-per-quote and never crosses independently selected
+  live rows. The request is bodyless and sends no credential. Cache each base separately for 24h in
+  FxRate. If refresh fails, cached rows remain usable only while the producer's `generatedAt` is
+  under seven days old; after that Split materializes the mock's 12-rate static table in the target
+  base. Rates are indicative — label them so.
+
+## Import compatibility boundary
+
+- Supported and fixture-tested: canonical Splitwise group CSV, Split Pro friend CSV, and Split
+  Pro account JSON. Unknown CSVs fail closed; they are never guessed into a ledger format.
+- Settle Up is **not** currently supported. Its Android app can export CSV, but there is no
+  versioned schema in this repository and no real export fixture to prove balances. Add an
+  adapter only with a redacted source file and a round-trip/balance fixture; marketing and UI
+  must not claim compatibility before that lands.
+- A single separator followed by three digits in a 3-decimal currency (`1,234` or `1.234`) is a
+  1000× ambiguity without locale metadata. The parser rejects that row instead of guessing;
+  repeated grouping and mixed grouping-plus-decimal forms remain supported.
+- Parsed minor-unit amounts are bounded to PostgreSQL signed BIGINT before preview, and history
+  folding must prove its actual opening-balance rows plus retained history fit the 500-expense
+  API ceiling.
 
 ## API contract (route handlers under `src/app/api/`)
 

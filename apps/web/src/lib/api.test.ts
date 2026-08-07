@@ -110,6 +110,24 @@ describe('api error paths', () => {
         expect(failure.message).toBe('Bea is already in this room')
     })
 
+    it('preserves optional machine-readable error details', async () => {
+        vi.stubGlobal(
+            'fetch',
+            respondWith(400, {
+                error: {
+                    code: 'IMPORT_CURRENCY_CONVERSION_UNSUPPORTED',
+                    message: 'PLN cannot be converted',
+                    details: { currencies: ['PLN'], targetCurrency: 'EUR' },
+                },
+            })
+        )
+
+        const failure = await api.importRoom({} as never).catch((error) => error)
+
+        expect(failure).toBeInstanceOf(ApiRequestError)
+        expect(failure.details).toEqual({ currencies: ['PLN'], targetCurrency: 'EUR' })
+    })
+
     it('distinguishes a 409 EXPENSE_DELETED from other conflicts', async () => {
         vi.stubGlobal(
             'fetch',

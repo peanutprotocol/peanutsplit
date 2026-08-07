@@ -95,7 +95,14 @@ describe('currency catalog', () => {
     })
 
     it('says which codes the rate feed carries', () => {
-        expect(CURRENCY_CATALOG.filter((c) => !c.hasRate).map((c) => c.code)).toEqual(['CUC', 'KPW', 'SVC', 'XSU'])
+        expect(CURRENCY_CATALOG.filter((c) => !c.hasRate).map((c) => c.code)).toEqual([
+            'BGN',
+            'CUC',
+            'HRK',
+            'SLL',
+            'XSU',
+            'ZWL',
+        ])
         expect(LEGACY.every((c) => currency(c.code).hasRate)).toBe(true)
     })
 

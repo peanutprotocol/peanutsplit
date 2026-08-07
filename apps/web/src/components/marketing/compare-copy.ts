@@ -132,8 +132,8 @@ const es419 = {
                 body: 'El enlace es la sala. Quien lo tenga está adentro, así que déjalo en el chat del grupo y no en un lugar público.',
             },
             {
-                title: '158 monedas, convertidas',
-                body: 'Elige en qué cuenta la sala. Carga un gasto en cualquiera de las 158 y Split lo convierte al tipo de cambio del día, y después lo guarda: editar la línea más tarde no la vuelve a cotizar.',
+                title: '156 monedas, convertidas',
+                body: 'Elige en qué cuenta la sala. Carga un gasto en cualquiera de las 156 monedas con conversión automática y Split lo convierte al tipo de cambio indicativo del día, y después lo guarda: editar la línea más tarde no la vuelve a cotizar.',
             },
             {
                 title: 'Cuentas que cierran',
@@ -300,8 +300,8 @@ const ptBr = {
                 body: 'O link é a sala. Quem tem o link está dentro, então deixe ele no grupo do WhatsApp e não num lugar público.',
             },
             {
-                title: '158 moedas, convertidas',
-                body: 'Escolha em que a sala conta. Lance uma despesa em qualquer uma das 158 e o Split converte pela taxa do dia, que ele guarda: editar a linha depois não muda o preço dela.',
+                title: '156 moedas, convertidas',
+                body: 'Escolha em que a sala conta. Lance uma despesa em qualquer uma das 156 moedas com conversão automática e o Split converte pela taxa indicativa do dia, que ele guarda: editar a linha depois não muda o preço dela.',
             },
             {
                 title: 'Conta que fecha',

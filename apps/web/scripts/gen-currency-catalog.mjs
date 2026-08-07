@@ -2,9 +2,9 @@
 /**
  * Writes `src/lib/currency-catalog.ts` from the ICU data this Node ships with.
  *
- * Run it by hand (`pnpm currencies:gen`), never at build or boot. Production has no egress, so
- * the catalog has to be a committed artifact — and a table regenerated silently by a Node upgrade
- * is a table whose decimals can move under rooms that already hold money.
+ * Run it by hand (`pnpm currencies:gen`), never at build or boot. The catalog is a committed
+ * artifact so a table regenerated silently by a Node upgrade cannot move decimals under rooms
+ * that already hold money.
  *
  * Re-running on one Node version produces a byte-identical file, so the git diff IS the review.
  * Read the diff. The report below names every code added and every decimals change, because both
@@ -17,7 +17,7 @@
  *             land on '' and the formatter prints `12.34 AED` for them.
  *   decimals  `Intl.NumberFormat(...).resolvedOptions().maximumFractionDigits` — CLDR, never
  *             guessed. 33 codes are 0-decimal and 6 are 3-decimal.
- *   hasRate   membership of FEED_CODES below.
+ *   hasRate   membership of RATE_CODES below.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -27,15 +27,15 @@ import { fileURLToPath } from 'node:url'
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'lib', 'currency-catalog.ts')
 
 /**
- * The codes open.er-api.com/v6/latest/USD carried on 2026-07-31, verbatim and sorted.
+ * The currency codes Peanut's `GET /fx/rates?base=USD` snapshot carried on 2026-08-05,
+ * verbatim and sorted. The backend builds its reference layer from Frankfurter v2
+ * and overlays Peanut's provider display-sell rates.
  *
- * Committed rather than fetched for the reason the header gives: no egress at runtime, and a
- * boolean that changes without a deploy is a boolean nobody can reason about. Eight of these
- * (CLF CNH FOK GGP IMP JEP KID TVD) are not ISO 4217 and are therefore not in the catalog at
- * all — `hasRate` only ever describes a code ICU already knows. To refresh: fetch the feed,
- * sort the keys of `rates`, paste them here, re-run, and read the diff.
+ * Committed rather than fetched so supported-code changes are reviewed and deployed deliberately;
+ * `hasRate` only ever describes a code ICU already knows. To refresh: fetch the Peanut snapshot,
+ * sort its codes, paste them here, re-run, and read the diff.
  */
-const FEED_CODES = new Set([
+const RATE_CODES = new Set([
     'AED',
     'AFN',
     'ALL',
@@ -49,7 +49,6 @@ const FEED_CODES = new Set([
     'BAM',
     'BBD',
     'BDT',
-    'BGN',
     'BHD',
     'BIF',
     'BMD',
@@ -95,7 +94,6 @@ const FEED_CODES = new Set([
     'GYD',
     'HKD',
     'HNL',
-    'HRK',
     'HTG',
     'HUF',
     'IDR',
@@ -114,6 +112,7 @@ const FEED_CODES = new Set([
     'KHR',
     'KID',
     'KMF',
+    'KPW',
     'KRW',
     'KWD',
     'KYD',
@@ -165,11 +164,11 @@ const FEED_CODES = new Set([
     'SGD',
     'SHP',
     'SLE',
-    'SLL',
     'SOS',
     'SRD',
     'SSP',
     'STN',
+    'SVC',
     'SYP',
     'SZL',
     'THB',
@@ -201,7 +200,6 @@ const FEED_CODES = new Set([
     'ZAR',
     'ZMW',
     'ZWG',
-    'ZWL',
 ])
 
 /**
@@ -256,7 +254,7 @@ function build() {
             name: displayNames.of(code) ?? code,
             symbol: symbolOf(code),
             decimals: decimalsOf(code),
-            hasRate: FEED_CODES.has(code),
+            hasRate: RATE_CODES.has(code),
         }))
 }
 

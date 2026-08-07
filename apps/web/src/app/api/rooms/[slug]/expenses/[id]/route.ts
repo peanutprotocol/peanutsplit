@@ -106,7 +106,7 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             initialExpense.currency,
             body.manualFxRate
         )
-            ? await getRateTable()
+            ? await getRateTable(initial.currency)
             : undefined
 
         const result = await prisma.$transaction(async (tx) => {

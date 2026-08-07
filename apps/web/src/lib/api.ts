@@ -36,7 +36,8 @@ export class ApiRequestError extends Error {
     constructor(
         readonly status: number,
         readonly code: string,
-        message: string
+        message: string,
+        readonly details?: unknown
     ) {
         super(message)
         this.name = 'ApiRequestError'
@@ -143,7 +144,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     }
 
     if (!response.ok) {
-        const envelope = (payload as { error?: { code?: unknown; message?: unknown } } | undefined)?.error
+        const envelope = (payload as { error?: { code?: unknown; message?: unknown; details?: unknown } } | undefined)
+            ?.error
         const code = typeof envelope?.code === 'string' ? envelope.code : 'UNKNOWN'
         const message = typeof envelope?.message === 'string' ? envelope.message : 'something went wrong'
         const bodyMemberToken =
@@ -152,7 +154,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
                 : null
         const invalidProof = token ?? bodyMemberToken
         if (code === 'MEMBER_TOKEN_INVALID' && invalidProof) notifyInvalidMemberToken(invalidProof)
-        throw new ApiRequestError(response.status, code, message)
+        throw new ApiRequestError(response.status, code, message, envelope?.details)
     }
 
     return payload as T

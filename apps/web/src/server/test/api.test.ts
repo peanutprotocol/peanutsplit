@@ -1636,11 +1636,12 @@ describe('fx is locked at creation', () => {
      *  gives a movable table that still never reaches the network. */
     const seedRates = async (overrides: Record<string, number>) => {
         await prisma.fxRate.deleteMany()
+        const usdRates = { ...STATIC_USD_PER_UNIT, ...overrides }
         await prisma.fxRate.createMany({
-            data: Object.entries(STATIC_USD_PER_UNIT).map(([code, usdPerUnit]) => ({
-                base: 'USD',
+            data: Object.entries(usdRates).map(([code, usdPerUnit]) => ({
+                base: 'EUR',
                 quote: code,
-                rate: overrides[code] ?? usdPerUnit,
+                rate: usdPerUnit / usdRates.EUR,
                 fetchedAt: new Date(),
             })),
         })

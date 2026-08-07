@@ -42,7 +42,7 @@ export function RoomExport({ state }: { state: RoomState }) {
     const [open, setOpen] = useState(false)
     // The browser parsers deliberately discard invented source currencies, so
     // a custom room has no file it can accept. Catalog targets remain available:
-    // even an unrated code such as KPW can import rows already denominated in KPW.
+    // even an unrated code such as BGN can import rows already denominated in BGN.
     const importsSupported = isCatalogCode(state.room.currency)
     const headerTitle = importsSupported ? tHeader('importExport') : tHeader('exportOnly')
     const headerFormats = importsSupported ? tHeader('importExportFormats') : tHeader('exportFormats')

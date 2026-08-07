@@ -5,7 +5,8 @@ export class ApiError extends Error {
     constructor(
         readonly status: number,
         readonly code: string,
-        message: string
+        message: string,
+        readonly details?: unknown
     ) {
         super(message)
     }
@@ -17,7 +18,8 @@ export class ApiError extends Error {
  * would describe differently must not share one code. The default is the catch-all for schema
  * rejections, not a licence to leave a distinct failure unnamed.
  */
-export const badRequest = (message: string, code = 'VALIDATION_ERROR') => new ApiError(400, code, message)
+export const badRequest = (message: string, code = 'VALIDATION_ERROR', details?: unknown) =>
+    new ApiError(400, code, message, details)
 export const notFound = (message: string, code = 'NOT_FOUND') => new ApiError(404, code, message)
 export const conflict = (message: string, code = 'CONFLICT') => new ApiError(409, code, message)
 
@@ -40,8 +42,8 @@ export function json(data: unknown, status = 200, headers: Record<string, string
     })
 }
 
-export const errorResponse = (code: string, message: string, status: number) =>
-    json({ error: { code, message } }, status)
+export const errorResponse = (code: string, message: string, status: number, details?: unknown) =>
+    json({ error: { code, message, ...(details === undefined ? {} : { details }) } }, status)
 
 /**
  * Any thrown thing → the house envelope. Split out of `respond` because one
@@ -50,7 +52,7 @@ export const errorResponse = (code: string, message: string, status: number) =>
  * directly rather than inventing a second error shape.
  */
 export function errorEnvelope(err: unknown): Response {
-    if (err instanceof ApiError) return errorResponse(err.code, err.message, err.status)
+    if (err instanceof ApiError) return errorResponse(err.code, err.message, err.status, err.details)
     if (err instanceof ZodError) {
         const first = err.issues[0]
         const path = first?.path.join('.')

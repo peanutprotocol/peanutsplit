@@ -501,6 +501,14 @@ const importedExpenseSchema = z.object({
 
 type ImportedExpenseBody = z.infer<typeof importedExpenseSchema>
 
+/** Browser-computed SHA-256 over the immutable upload and selected source
+ * choice. Optional keeps rolling deploys compatible with older clients; when
+ * absent the service falls back to its legacy semantic projection. */
+const importedSourceFingerprint = z
+    .string()
+    .regex(/^[a-f0-9]{64}$/, 'must be a lowercase SHA-256 digest')
+    .optional()
+
 /** Re-establish the source-ledger invariants for both import destinations. The
  * source names are still the join key when appending; the room-member mapping
  * is deliberately resolved only after this shape has proved self-consistent. */
@@ -552,6 +560,7 @@ const refineImportedLedger = (
 
 export const importRoomSchema = z
     .object({
+        sourceFingerprint: importedSourceFingerprint,
         roomName: z.string().trim().min(1, 'is required').max(80),
         emoji: roomEmblem.nullish(),
         currency: currencyCode,
@@ -573,6 +582,7 @@ const newImportMember = z.object({ sourceName: personName, newMemberName: person
 
 export const importIntoRoomSchema = z
     .object({
+        sourceFingerprint: importedSourceFingerprint,
         members: z
             .array(z.union([existingImportMember, newImportMember]))
             .min(1)
