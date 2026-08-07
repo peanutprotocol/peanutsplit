@@ -121,9 +121,11 @@ Two consequences worth knowing before changing anything:
 - **Egress is default-deny, with one pinhole.** The app network has no route
   out; every runtime fetch goes through the `split-egress` squid proxy, one
   `*_PROXY_URL` env var per consumer (`SPLIT_PUSH_PROXY_URL`,
-  `SPLIT_SCAN_PROXY_URL`), against a CONNECT-443 allowlist for browser push
-  gateways and configured model providers. A scan or push that 502s with the
-  proxy env unset is this, not the provider.
+  `SPLIT_SCAN_PROXY_URL`, `SPLIT_FX_PROXY_URL`), against a CONNECT-443
+  allowlist for browser push gateways, configured model providers, and
+  `api.peanut.me`. A scan or push that 502s with the proxy env unset is this,
+  not the provider; an FX refresh in that state fails quietly and leaves the
+  table on the twelve static rates.
 - **Every `NEXT_PUBLIC_*` value is a build arg**, because Next inlines them into
   the client bundle at build time. Setting one only at runtime silently does
   nothing — the bundle already has the old value baked in. They are passed as
