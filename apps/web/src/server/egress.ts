@@ -32,11 +32,13 @@ export interface EgressResponse {
  */
 const agents = new Map<string, ProxyAgent>()
 
-export async function egressFetch(
-    proxyUrl: string | undefined,
-    url: string,
-    init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }
-): Promise<EgressResponse> {
+/**
+ * `init` is a plain RequestInit and the result is a full `Response` so a caller
+ * that streams the body with a byte ceiling (the FX rate table) can use this
+ * too, not only the JSON-shaped POSTs. `Response` structurally satisfies
+ * `EgressResponse`, so existing callers are unaffected.
+ */
+export async function egressFetch(proxyUrl: string | undefined, url: string, init: RequestInit): Promise<Response> {
     if (!proxyUrl) return fetch(url, init)
     const { fetch: undiciFetch, ProxyAgent } = await import('undici')
     let agent = agents.get(proxyUrl)
@@ -45,5 +47,5 @@ export async function egressFetch(
         agents.set(proxyUrl, agent)
     }
     // The cast crosses undici's nominal types; the shape above is what we use.
-    return undiciFetch(url, { ...init, dispatcher: agent } as never) as unknown as EgressResponse
+    return undiciFetch(url, { ...init, dispatcher: agent } as never) as unknown as Response
 }
