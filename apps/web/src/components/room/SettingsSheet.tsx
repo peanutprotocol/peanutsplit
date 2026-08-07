@@ -29,6 +29,7 @@ import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
 import { DeviceSheet } from './DeviceSheet'
+import { FeedbackReportDrawer } from './FeedbackReportDrawer'
 import { HistorySheet } from './HistorySheet'
 
 interface SettingsSheetProps {
@@ -85,6 +86,7 @@ export function SettingsSheet({
     const [draft, setDraft] = useState(room.name)
     const [deviceOpen, setDeviceOpen] = useState(false)
     const [historyOpen, setHistoryOpen] = useState(false)
+    const [feedbackOpen, setFeedbackOpen] = useState(false)
     const [switchOpen, setSwitchOpen] = useState(false)
     const [pickerOpen, setPickerOpen] = useState(false)
     const [drawingEditorOpen, setDrawingEditorOpen] = useState(false)
@@ -290,6 +292,7 @@ export function SettingsSheet({
                             <PeopleSection
                                 slug={room.slug}
                                 members={members}
+                                balances={state.balances}
                                 token={identity?.token}
                                 onOpenCharacter={onOpenCharacter}
                             />
@@ -348,6 +351,13 @@ export function SettingsSheet({
                             testId="device-row"
                         />
 
+                        <SettingRow
+                            label={t('reportProblem')}
+                            value={t('reportProblemHint')}
+                            onClick={() => setFeedbackOpen(true)}
+                            testId="feedback-report-row"
+                        />
+
                         {/* The one surviving statement of the link-is-the-credential
                         fact. It used to appear four times. Say it once, here. */}
                         <p className="text-center text-sm text-grey-1">{t('privacyNote')}</p>
@@ -357,6 +367,7 @@ export function SettingsSheet({
 
             <DeviceSheet open={deviceOpen} onClose={() => setDeviceOpen(false)} />
             <HistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} slug={room.slug} />
+            <FeedbackReportDrawer open={feedbackOpen} onClose={() => setFeedbackOpen(false)} state={state} />
 
             <Drawer open={switchOpen} onOpenChange={setSwitchOpen}>
                 <DrawerContent data-testid="switch-person-sheet">

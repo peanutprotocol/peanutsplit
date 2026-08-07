@@ -22,6 +22,20 @@ export const EXPENSE_CATEGORY_IDS = [
 
 export type ExpenseCategoryId = (typeof EXPENSE_CATEGORY_IDS)[number]
 
+/** A deliberately small, high-frequency set for the manual art override. The
+ * complete matcher still covers all 13 categories and 340 subjects. */
+export const CURATED_EXPENSE_CATEGORY_IDS = [
+    'food-drink',
+    'transport',
+    'travel-stays',
+    'home-bills',
+    'shopping',
+    'entertainment-leisure',
+    'health-wellness',
+    'gifts-giving',
+    'other',
+] as const satisfies readonly ExpenseCategoryId[]
+
 export interface ExpenseCategory {
     readonly id: ExpenseCategoryId
     readonly label: string
@@ -39,7 +53,7 @@ export interface ExpenseCategoryMatch {
     readonly category: ExpenseCategory
     readonly subject: ExpenseSubject
     readonly matchedTerm: string | null
-    readonly rule: 'exact' | 'phrase' | 'word' | 'typo' | 'fallback'
+    readonly rule: 'override' | 'exact' | 'phrase' | 'word' | 'typo' | 'fallback'
     readonly editDistance: number | null
 }
 
@@ -142,7 +156,39 @@ const subjectById = new Map(EXPENSE_SUBJECTS.map((subject) => [subject.id, subje
 const fallbackCategory = categoryById.get('other')
 const fallbackSubject = subjectById.get('other')
 
+/** Splitwise and older exports use a few broad labels that are not descriptions.
+ * Resolve those deliberately instead of allowing fuzzy typo matching to turn,
+ * for example, "Dining out" into an unrelated near-spelling. */
+const savedCategorySubjectAliases = new Map<string, string>([
+    ['dining out', 'restaurants'],
+    ['groceries', 'groceries'],
+    ['transportation', 'taxi-rides'],
+    ['utilities', 'utilities'],
+    ['uncategorized', 'other'],
+])
+
 if (!fallbackCategory || !fallbackSubject) throw new Error('Expense catalog needs an Other fallback')
+
+export const isExpenseCategoryId = (value: string | null | undefined): value is ExpenseCategoryId =>
+    typeof value === 'string' && categoryIds.has(value)
+
+/** Stable representative art for a high-level category. This is explicit rather
+ * than "first subject wins", so catalog reordering cannot change saved rows. */
+const representativeSubjectIds: Record<ExpenseCategoryId, string> = {
+    'food-drink': 'pizza',
+    transport: 'taxi-rides',
+    'travel-stays': 'accommodation',
+    'home-bills': 'rent-home',
+    shopping: 'shopping',
+    'entertainment-leisure': 'entertainment',
+    'health-wellness': 'health',
+    'family-education': 'education',
+    'work-services': 'professional-work',
+    'tech-connectivity': 'phone-internet',
+    'money-admin': 'cash',
+    'gifts-giving': 'gifts',
+    other: 'other',
+}
 
 interface IndexedTerm {
     readonly category: ExpenseCategory
@@ -186,6 +232,9 @@ export const getExpenseSubject = (id: string): ExpenseSubject => {
     if (!subject) throw new Error(`Unknown expense subject: ${id}`)
     return subject
 }
+
+export const getExpenseCategorySubject = (id: ExpenseCategoryId): ExpenseSubject =>
+    getExpenseSubject(representativeSubjectIds[id])
 
 const fallbackMatch = (): ExpenseCategoryMatch => ({
     category: fallbackCategory,
@@ -270,7 +319,7 @@ const typoMatch = (description: string): ExpenseCategoryMatch | undefined => {
     }
 }
 
-export const matchExpenseCategory = (description: string): ExpenseCategoryMatch => {
+const matchExpenseDescription = (description: string): ExpenseCategoryMatch => {
     const normalizedDescription = normalizeExpenseCategoryText(description)
     if (!normalizedDescription) return fallbackMatch()
 
@@ -311,4 +360,42 @@ export const matchExpenseCategory = (description: string): ExpenseCategoryMatch 
     }
 
     return typoMatch(normalizedDescription) ?? fallbackMatch()
+}
+
+/**
+ * Resolve saved category/art before inferring from the description.
+ *
+ * New manual overrides store a stable high-level category id. Existing imports
+ * may carry a subject id or source label such as "Dining out"; both are honoured
+ * before the description, so editing an imported row does not silently swap its
+ * artwork. An unknown legacy value degrades to normal description matching.
+ */
+export const matchExpenseCategory = (description: string, savedCategory?: string | null): ExpenseCategoryMatch => {
+    const categoryValue = savedCategory?.trim()
+    if (categoryValue) {
+        const directSubject = subjectById.get(categoryValue)
+        const directCategory = isExpenseCategoryId(categoryValue) ? categoryById.get(categoryValue) : undefined
+        const aliasedSubject = subjectById.get(
+            savedCategorySubjectAliases.get(normalizeExpenseCategoryText(categoryValue)) ?? ''
+        )
+        const subject =
+            directSubject ??
+            aliasedSubject ??
+            (directCategory ? getExpenseCategorySubject(directCategory.id) : undefined)
+        const category = directSubject ? categoryById.get(directSubject.categoryId) : directCategory
+        const resolvedCategory = category ?? (subject ? categoryById.get(subject.categoryId) : undefined)
+        if (subject && resolvedCategory) {
+            return {
+                category: resolvedCategory,
+                subject,
+                matchedTerm: categoryValue,
+                rule: 'override',
+                editDistance: null,
+            }
+        }
+
+        const imported = matchExpenseDescription(categoryValue)
+        if (imported.rule !== 'fallback' && imported.rule !== 'typo') return { ...imported, rule: 'override' }
+    }
+    return matchExpenseDescription(description)
 }

@@ -31,10 +31,11 @@ import type { RecapShareTier } from '@/lib/recap'
  * the alternative is a share with no card at all, and the cached one is the better answer. The
  * `<img>` shelf tiles keep that cache for the same reason: a shelf is a snapshot.
  *
- * A missing route answers 404 and this returns null. That is the designed degradation — the
- * calling surface shares text, or hides its button, and never shows a broken one.
+ * A missing route answers 404 and this returns null. The calling surface keeps
+ * the image action honest by reporting that the card is not ready rather than
+ * silently sending a different kind of payload.
  */
-function useFetchedPng(path: string, filename: string, method: 'GET' | 'POST', body?: string): { file: File | null } {
+function useFetchedPng(path: string, filename: string): { file: File | null } {
     const [file, setFile] = useState<File | null>(null)
 
     useEffect(() => {
@@ -42,11 +43,7 @@ function useFetchedPng(path: string, filename: string, method: 'GET' | 'POST', b
         setFile(null)
         void (async () => {
             try {
-                const response = await fetch(path, {
-                    method,
-                    cache: 'no-store',
-                    ...(body ? { headers: { 'Content-Type': 'application/json' }, body } : {}),
-                })
+                const response = await fetch(path, { cache: 'no-store' })
                 if (!response.ok) return
                 const blob = await response.blob()
                 if (!live) return
@@ -58,47 +55,36 @@ function useFetchedPng(path: string, filename: string, method: 'GET' | 'POST', b
         return () => {
             live = false
         }
-    }, [path, filename, method, body])
+    }, [path, filename])
 
     return { file }
 }
 
 export function useSharePng(path: string, filename: string): { file: File | null } {
-    return useFetchedPng(path, filename, 'GET')
+    return useFetchedPng(path, filename)
 }
 
 /**
- * The invite is personalized to the active room member, so it must never share
- * the cached GET representation used by the achievement shelf. The member id is
- * sent only in a POST body; the server verifies that it belongs to the room and
- * resolves the current name. No name, token or identifier enters the URL.
- */
-export function useInviteSharePng(path: string, filename: string, sharerMemberId?: string): { file: File | null } {
-    const body = JSON.stringify(sharerMemberId ? { memberId: sharerMemberId } : {})
-    return useFetchedPng(path, filename, 'POST', body)
-}
-
-/**
- * native(files) → clipboard → download. Returns which rung fired, or null when they aborted.
+ * native(files only) → clipboard → download. Returns which rung fired, or null when they aborted.
  *
- * `canShare` must be probed with the EXACT object that will be passed to `share` — it inspects the
- * payload (file type, size, and which fields are present), so probing `{ files: [] }` or a
- * differently shaped object answers a question nobody asked. Some engines also refuse files
- * alongside `text`/`title`, hence the second, narrower probe rather than giving up on the sheet.
+ * `canShare` is probed with the EXACT object passed to `share`. These public
+ * keepsakes are intentionally files-only: they never acquire the private room
+ * URL, and their visible action is labelled as an image share.
  *
  * Closing the share sheet is a decision, not a failure: an `AbortError` returns null and falls
  * through to nothing, because dropping a downloaded file on somebody who just declined is worse
  * than doing nothing.
  */
-export async function shareImageFile(
-    file: File,
-    copy: { title: string; text: string }
-): Promise<RecapShareTier | null> {
-    const rich = { files: [file], title: copy.title, text: copy.text }
-    const filesOnly = { files: [file] }
-    const payload = navigator.canShare?.(rich) ? rich : navigator.canShare?.(filesOnly) ? filesOnly : null
+export async function shareImageFile(file: File): Promise<RecapShareTier | null> {
+    const payload = { files: [file] }
+    let nativeSupported = false
+    try {
+        nativeSupported = navigator.canShare?.(payload) ?? false
+    } catch {
+        // A broken capability probe does not remove the image clipboard/download floors.
+    }
 
-    if (payload) {
+    if (nativeSupported) {
         try {
             await navigator.share(payload)
             return 'files'

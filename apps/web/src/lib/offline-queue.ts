@@ -21,8 +21,8 @@
  *     there, is a double payment recorded as fact. Money says no.
  *
  * The queue is per device (localStorage), survives a reload and a PWA restart,
- * and is drained sequentially — never in parallel, so the room's history keeps
- * the order the person actually typed things in.
+ * and is drained sequentially — never in parallel. A blocked write is an
+ * ordering barrier for its room, while unrelated rooms may continue.
  */
 
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
@@ -30,6 +30,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ApiRequestError, NETWORK_ERROR_CODE } from './api'
 import type { ApiExpense, ExpenseInput, RoomState } from './api-types'
+import { activeMembers } from './members'
 import { PENDING_ID_PREFIX } from './pending'
 import { TOAST_MS } from './toasts'
 
@@ -66,7 +67,36 @@ export interface QueuedWrite {
     body: ExpenseInput
     token: string | null
     addedAt: number
+    /** A deterministic member-lifecycle refusal needs a person, not a timer.
+     * Keep the original body byte-for-byte until they explicitly retry or
+     * discard it. */
+    blocked?: { code: string; blockedAt: number }
 }
+
+/** Upgrade marker for drafts created before submit-time EQUAL rosters were
+ * persisted. Their original participants cannot be reconstructed safely. */
+export const OFFLINE_EQUAL_ROSTER_UNKNOWN = 'OFFLINE_EQUAL_ROSTER_UNKNOWN'
+
+/**
+ * "Split equally with everyone", with the roster still unresolved.
+ *
+ * An EMPTY `participantIds` is not a narrower split. The server resolves
+ * `body.participantIds?.length ? … : activeMembers(room)`, so `[]` and an absent
+ * key mean the same thing on the wire: whoever is in the room at commit. Every
+ * guard against an implicit roster has to read them as one case, or `[]` walks
+ * straight through a check written for `undefined` and becomes a sendable
+ * implicit split.
+ */
+export const isImplicitEqualRoster = (body: ExpenseInput): boolean =>
+    body.splitMode === 'EQUAL' && !body.participantIds?.length
+
+const blockUnknownEqualRoster = (item: QueuedWrite): QueuedWrite =>
+    isImplicitEqualRoster(item.body) && !item.blocked
+        ? {
+              ...item,
+              blocked: { code: OFFLINE_EQUAL_ROSTER_UNKNOWN, blockedAt: item.addedAt },
+          }
+        : item
 
 // ─── pure rules ─────────────────────────────────────────────────────────────
 
@@ -97,6 +127,13 @@ export function parseQueue(raw: string | null): QueuedWrite[] {
 function isQueuedWrite(value: unknown): value is QueuedWrite {
     if (typeof value !== 'object' || value === null) return false
     const item = value as Record<string, unknown>
+    const blocked = item.blocked
+    const validBlocked =
+        blocked === undefined ||
+        (typeof blocked === 'object' &&
+            blocked !== null &&
+            typeof (blocked as Record<string, unknown>).code === 'string' &&
+            typeof (blocked as Record<string, unknown>).blockedAt === 'number')
     return (
         typeof item.clientKey === 'string' &&
         typeof item.slug === 'string' &&
@@ -105,7 +142,8 @@ function isQueuedWrite(value: unknown): value is QueuedWrite {
         typeof item.body === 'object' &&
         item.body !== null &&
         typeof item.addedAt === 'number' &&
-        isQueueable(item.endpoint, item.method)
+        isQueueable(item.endpoint, item.method) &&
+        validBlocked
     )
 }
 
@@ -116,18 +154,30 @@ export function appendQueued(
     item: QueuedWrite
 ): { items: QueuedWrite[]; dropped: QueuedWrite[] } {
     const next = [...items, item]
-    const overflow = Math.max(0, next.length - MAX_QUEUED)
-    return { items: next.slice(overflow), dropped: next.slice(0, overflow) }
+    const dropped: QueuedWrite[] = []
+    while (next.length > MAX_QUEUED) {
+        // A blocked draft is durable until success or explicit discard. When
+        // every existing slot is blocked, the newly appended (unblocked) item
+        // is the only evictable record and enqueueWrite reports that failure.
+        const evictable = next.findIndex((queued) => !queued.blocked)
+        if (evictable < 0) break
+        dropped.push(...next.splice(evictable, 1))
+    }
+    return { items: next, dropped }
 }
 
-export type DrainVerdict = 'drop' | 'stop'
+export type DrainVerdict = 'drop' | 'block' | 'stop'
+
+const MEMBER_REVIEW_CODES = new Set(['MEMBER_FORMER', 'MEMBER_TOKEN_INVALID', 'NOT_A_MEMBER'])
 
 /**
  * What to do with an item the server refused.
  *
- * 4xx (except 429) → drop: the room moved on. The member was removed or the
- * payload no longer validates. Replaying it forever would mean
- * a permanently stuck queue and a placeholder row that never resolves.
+ * Member-lifecycle 4xx → block: the money fact is retained for explicit review,
+ * retry or discard, without an automatic retry loop.
+ *
+ * Other 4xx (except 429) → drop: the payload no longer validates. Replaying it
+ * forever would mean a permanently stuck queue.
  *
  * 429, 5xx, transport failure → keep and stop draining: nothing about the write
  * is wrong, the other end is just unavailable. Dropping a real expense because
@@ -136,6 +186,7 @@ export type DrainVerdict = 'drop' | 'stop'
  */
 export function verdictFor(error: unknown): DrainVerdict {
     if (error instanceof ApiRequestError) {
+        if (MEMBER_REVIEW_CODES.has(error.code)) return 'block'
         if (error.status === 429) return 'stop'
         if (error.status >= 400 && error.status < 500) return 'drop'
     }
@@ -148,6 +199,8 @@ export interface DrainSummary {
     sent: QueuedWrite[]
     /** Refused by the server and given up on. */
     dropped: QueuedWrite[]
+    /** Refused because membership changed; retained with its complete body. */
+    blocked: QueuedWrite[]
 }
 
 /**
@@ -164,22 +217,43 @@ export async function drainQueue(
 ): Promise<DrainSummary> {
     const sent: QueuedWrite[] = []
     const dropped: QueuedWrite[] = []
+    const blocked: QueuedWrite[] = []
+    const remaining: QueuedWrite[] = []
+    const blockedSlugs = new Set<string>()
 
     for (let i = 0; i < items.length; i++) {
         const item = items[i]
+        if (blockedSlugs.has(item.slug)) {
+            remaining.push(item)
+            continue
+        }
         try {
             await perform(item)
             sent.push(item)
         } catch (error) {
-            if (verdictFor(error) === 'drop') {
+            const verdict = verdictFor(error)
+            if (verdict === 'drop') {
                 dropped.push(item)
                 continue
             }
-            return { remaining: items.slice(i), sent, dropped }
+            if (verdict === 'block') {
+                blocked.push({
+                    ...item,
+                    blocked: {
+                        code: error instanceof ApiRequestError ? error.code : 'MEMBER_REVIEW_REQUIRED',
+                        blockedAt: Date.now(),
+                    },
+                })
+                // Preserve chronological order within this room. Another room
+                // is independent and may still drain in this same pass.
+                blockedSlugs.add(item.slug)
+                continue
+            }
+            return { remaining: [...remaining, ...items.slice(i)], sent, dropped, blocked }
         }
     }
 
-    return { remaining: [], sent, dropped }
+    return { remaining, sent, dropped, blocked }
 }
 
 /**
@@ -202,7 +276,7 @@ export function mergeQueuedExpenses(state: RoomState, queued: readonly QueuedWri
         draftExpenseRow(item.body, {
             id: queuedExpenseId(item.clientKey),
             at: item.addedAt,
-            members: state.members,
+            members: activeMembers(state.members),
         })
     )
     // Replace only this queue's optimistic rows. Another save may still be in flight, and stripping
@@ -275,6 +349,53 @@ export function draftExpenseRow(
 export const isQueuedExpenseId = (expenseId: string, queued: readonly QueuedWrite[]): boolean =>
     queued.some((item) => queuedExpenseId(item.clientKey) === expenseId)
 
+/** Explicit participant references carried by the queued body. New untouched
+ * EQUAL drafts are materialized from the submit-time roster before enqueue;
+ * the fallback keeps legacy localStorage records readable. */
+export function queuedParticipantIds(body: ExpenseInput): string[] {
+    if (body.splitMode === 'EQUAL') return body.participantIds ?? []
+    if (body.splitMode === 'EXACT') return (body.exactShares ?? []).map((share) => share.memberId)
+    return (body.weightedShares ?? []).map((share) => share.memberId)
+}
+
+export const remapQueuedExpensePayer = (body: ExpenseInput, memberId: string): ExpenseInput => ({
+    ...body,
+    paidById: memberId,
+})
+
+/** Remap one participant identity without touching its amount or weight. Null
+ * means the target is already another participant, which would collapse two
+ * money roles into one and lose information. */
+export function remapQueuedExpenseParticipant(
+    body: ExpenseInput,
+    fromMemberId: string,
+    toMemberId: string
+): ExpenseInput | null {
+    const ids = queuedParticipantIds(body)
+    if (fromMemberId !== toMemberId && ids.includes(toMemberId)) return null
+    if (body.splitMode === 'EQUAL') {
+        if (!body.participantIds?.includes(fromMemberId)) return body
+        return {
+            ...body,
+            participantIds: body.participantIds.map((id) => (id === fromMemberId ? toMemberId : id)),
+        }
+    }
+    if (body.splitMode === 'EXACT') {
+        return {
+            ...body,
+            exactShares: body.exactShares?.map((share) =>
+                share.memberId === fromMemberId ? { ...share, memberId: toMemberId } : share
+            ),
+        }
+    }
+    return {
+        ...body,
+        weightedShares: body.weightedShares?.map((share) =>
+            share.memberId === fromMemberId ? { ...share, memberId: toMemberId } : share
+        ),
+    }
+}
+
 // ─── storage ────────────────────────────────────────────────────────────────
 
 let storageOverride: Storage | null = null
@@ -284,6 +405,9 @@ let storageOverride: Storage | null = null
 export function setQueueStorage(storage: Storage | null): void {
     storageOverride = storage
     snapshot = null
+    // A different device store is a different set of drafts; anything announced
+    // against the old one has no bearing on what this one holds.
+    announcedBlocks.clear()
     notifyChanged()
 }
 
@@ -329,7 +453,9 @@ function readStoredQueue(store: Storage): QueuedWrite[] {
         const parsed = parseQueue(raw === null ? null : `[${raw}]`)[0]
         if (parsed) byKey.set(parsed.clientKey, parsed)
     }
-    return [...byKey.values()].sort((a, b) => a.addedAt - b.addedAt || a.clientKey.localeCompare(b.clientKey))
+    return [...byKey.values()]
+        .map(blockUnknownEqualRoster)
+        .sort((a, b) => a.addedAt - b.addedAt || a.clientKey.localeCompare(b.clientKey))
 }
 
 function persistQueuedItem(item: QueuedWrite): { items: QueuedWrite[]; dropped: QueuedWrite[] } {
@@ -346,10 +472,12 @@ function persistQueuedItem(item: QueuedWrite): { items: QueuedWrite[]; dropped: 
         store.removeItem(PENDING_KEY)
 
         const all = readStoredQueue(store)
-        const overflow = Math.max(0, all.length - MAX_QUEUED)
-        const dropped = all.slice(0, overflow)
+        const { items, dropped } = appendQueued(
+            all.filter((queued) => queued.clientKey !== item.clientKey),
+            item
+        )
         for (const queued of dropped) store.removeItem(`${PENDING_ITEM_PREFIX}${queued.clientKey}`)
-        return { items: all.slice(overflow), dropped }
+        return { items, dropped }
     } catch {
         // Quota, or a private-mode Storage that accepts reads and refuses
         // writes. The in-memory snapshot still drains this session.
@@ -369,6 +497,31 @@ function removeQueuedItems(items: readonly QueuedWrite[]): QueuedWrite[] {
         return readStoredQueue(store)
     } catch {
         return (snapshot ?? []).filter((item) => !removed.has(item.clientKey))
+    }
+}
+
+/**
+ * Whether the replacement actually reached the device, alongside the resulting
+ * queue.
+ *
+ * A caller that unblocks a reviewed money draft has to be able to tell: an
+ * in-memory-only unblock is undone by the next reload, and reporting it as
+ * success is how a Retry ends up doing nothing and saying nothing. No storage at
+ * all is not a failure — there the in-memory queue IS the queue. A storage that
+ * accepted the read and refused the write is.
+ */
+function replaceQueuedItems(items: readonly QueuedWrite[]): { items: QueuedWrite[]; persisted: boolean } {
+    const inMemory = (): QueuedWrite[] => {
+        const replacements = new Map(items.map((item) => [item.clientKey, item]))
+        return (snapshot ?? []).map((item) => replacements.get(item.clientKey) ?? item)
+    }
+    const store = storage()
+    if (!store) return { items: inMemory(), persisted: true }
+    try {
+        for (const item of items) store.setItem(`${PENDING_ITEM_PREFIX}${item.clientKey}`, JSON.stringify(item))
+        return { items: readStoredQueue(store), persisted: true }
+    } catch {
+        return { items: inMemory(), persisted: false }
     }
 }
 
@@ -409,6 +562,12 @@ export type QueueNotice =
     | { kind: 'queued' }
     | { kind: 'dropped-full'; count: number }
     | { kind: 'dropped-rejected'; count: number }
+    | { kind: 'blocked-member'; count: number }
+    /** Same outcome as `blocked-member`, different reason — and the reason is
+     *  the whole message. "Membership changed" is simply untrue of a draft that
+     *  was saved before rosters were frozen, and a toast that names the wrong
+     *  cause sends someone to check the People list for nothing. */
+    | { kind: 'blocked-roster'; count: number }
     | { kind: 'sent'; count: number }
 
 const noticeListeners = new Set<(notice: QueueNotice) => void>()
@@ -420,6 +579,31 @@ export function subscribeToQueueNotices(listener: (notice: QueueNotice) => void)
 
 const notify = (notice: QueueNotice): void => {
     for (const listener of noticeListeners) listener(notice)
+}
+
+/**
+ * Blocked drafts the reader has already been told about.
+ *
+ * A drain-time block happens once, so notifying from the drain summary alone was
+ * enough. A read-time block is re-derived from storage on every single snapshot,
+ * and announcing that on every drain would be a toast after every save. Announce
+ * a draft once; forget it when it stops being blocked, so a reviewed draft that
+ * blocks again is announced again.
+ */
+const announcedBlocks = new Set<string>()
+
+const announceBlocked = (blocked: readonly QueuedWrite[]): void => {
+    const fresh = blocked.filter((item) => !announcedBlocks.has(item.clientKey))
+    for (const item of blocked) announcedBlocks.add(item.clientKey)
+    const roster = fresh.filter((item) => item.blocked?.code === OFFLINE_EQUAL_ROSTER_UNKNOWN).length
+    const membership = fresh.length - roster
+    if (membership > 0) notify({ kind: 'blocked-member', count: membership })
+    if (roster > 0) notify({ kind: 'blocked-roster', count: roster })
+}
+
+const forgetAnnouncedExcept = (blocked: readonly QueuedWrite[]): void => {
+    const current = new Set(blocked.map((item) => item.clientKey))
+    for (const key of announcedBlocks) if (!current.has(key)) announcedBlocks.delete(key)
 }
 
 // ─── the queue itself ───────────────────────────────────────────────────────
@@ -454,7 +638,11 @@ export function enqueueWrite(input: {
     })()
     snapshot = current
     const clientKey = input.body.clientKey ?? createClientKey()
-    const item: QueuedWrite = {
+    // An EQUAL body with no resolved roster is held for confirmation from the
+    // moment it is written, not from the first read back: a device with no
+    // usable storage never re-reads, and would otherwise replay an implicit
+    // roster into a room that changed while it waited.
+    const item: QueuedWrite = blockUnknownEqualRoster({
         clientKey,
         slug: input.slug,
         endpoint: input.endpoint,
@@ -468,14 +656,15 @@ export function enqueueWrite(input: {
         // actual enqueue order; other tabs use the key as a deterministic
         // tiebreaker when their clocks genuinely tie.
         addedAt: Math.max(Date.now(), (current.at(-1)?.addedAt ?? 0) + 1),
-    }
+    })
 
     const { items, dropped } = persistQueuedItem(item)
     snapshot = items
     notifyChanged()
-    notify({ kind: 'queued' })
+    const accepted = items.some((queued) => queued.clientKey === item.clientKey)
+    if (accepted) notify({ kind: 'queued' })
     if (dropped.length > 0) notify({ kind: 'dropped-full', count: dropped.length })
-    return item
+    return accepted ? item : null
 }
 
 /**
@@ -617,25 +806,54 @@ export async function drainPending(): Promise<DrainSummary | null> {
 
             refreshQueueSnapshot()
             const items = queueSnapshot()
-            if (items.length === 0) {
+            const blockedSlugs = new Set<string>()
+            const held: QueuedWrite[] = []
+            const ready = items.filter((item) => {
+                if (item.blocked) {
+                    blockedSlugs.add(item.slug)
+                    held.push(item)
+                    return false
+                }
+                return !blockedSlugs.has(item.slug)
+            })
+            // A block derived on read — a legacy draft whose EQUAL roster was
+            // never frozen — never reaches drainQueue, so it never appeared in a
+            // drain summary and was never said out loud. It still barred every
+            // later write in its room. "Until the user explicitly confirms"
+            // requires having asked them.
+            forgetAnnouncedExcept(held)
+            announceBlocked(held)
+            if (ready.length === 0) {
                 cancelRetry()
-                return null
+                // Nothing sendable. An empty queue is idle; a queue that is only
+                // blocked is waiting on a person, and says so.
+                return items.length === 0 ? null : { remaining: [...items], sent: [], dropped: [], blocked: held }
             }
 
-            const summary = await drainQueue(items, activePerformer)
+            const summary = await drainQueue(ready, activePerformer)
             // Remove only writes this drain actually sent or rejected. Every
             // record has its own storage key, so another tab can append while a
             // network request is in flight without sharing an overwrite target.
             snapshot = removeQueuedItems([...summary.sent, ...summary.dropped])
+            snapshot = replaceQueuedItems(summary.blocked).items
             notifyChanged()
             // Any forward progress means the connection is not in the same
             // failure streak. Give the first retained item the short retry
             // again instead of inheriting a five-minute delay from an older one.
-            if (summary.sent.length > 0 || summary.dropped.length > 0) retryAttempt = 0
-            if (snapshot.length > 0) scheduleRetry()
+            if (summary.sent.length > 0 || summary.dropped.length > 0 || summary.blocked.length > 0) retryAttempt = 0
+            const waitingBlockedSlugs = new Set<string>()
+            const hasSendablePrefix = snapshot.some((item) => {
+                if (item.blocked) {
+                    waitingBlockedSlugs.add(item.slug)
+                    return false
+                }
+                return !waitingBlockedSlugs.has(item.slug)
+            })
+            if (hasSendablePrefix) scheduleRetry()
             else cancelRetry()
             if (summary.sent.length > 0) notify({ kind: 'sent', count: summary.sent.length })
             if (summary.dropped.length > 0) notify({ kind: 'dropped-rejected', count: summary.dropped.length })
+            announceBlocked(summary.blocked)
             return summary
         })
         if (!owned.acquired) {
@@ -655,6 +873,87 @@ export async function drainPending(): Promise<DrainSummary | null> {
  *  `onSuccess`, an event listener). */
 export const requestDrain = (): void => {
     void drainPending().catch((err) => console.warn('[split] queue drain failed', err))
+}
+
+/**
+ * Explicitly put one reviewed write back into the sendable queue. A replacement
+ * body makes legacy roster confirmation atomic with unblocking: if storage
+ * loses that write, the next refresh sees the old locally-blocked record rather
+ * than an implicit EQUAL body that can reach the server.
+ *
+ * False means the draft is still blocked, for any reason — no such draft, a
+ * roster that is still implicit, or a device that refused to persist the
+ * unblock. The caller has to say so; a Retry that quietly does nothing is worse
+ * than one that fails loudly.
+ */
+export function retryBlockedWrite(
+    clientKey: string,
+    replacementToken?: string | null,
+    replacementBody?: ExpenseInput
+): boolean {
+    refreshQueueSnapshot()
+    const current = queueSnapshot().find((item) => item.clientKey === clientKey && item.blocked)
+    if (!current) return false
+    const body = replacementBody ? { ...replacementBody, clientKey: current.clientKey } : current.body
+    // This is the non-bypassable migration boundary. A caller, failed storage
+    // write or cross-tab overwrite may hand us a legacy body; it stays blocked
+    // until an explicit participant roster is supplied in this same operation.
+    // An empty roster is not one: the server would resolve it against the live
+    // room, which is the very thing this draft cannot be allowed to do.
+    if (isImplicitEqualRoster(body)) return false
+    const { blocked: _blocked, ...rest } = current
+    const ready = {
+        ...rest,
+        body,
+        token: replacementToken === undefined ? current.token : replacementToken,
+    }
+    const { items, persisted } = replaceQueuedItems([ready])
+    if (!persisted) {
+        // The unblock never reached the device. Leave the draft exactly as it
+        // was rather than sending from an in-memory unblock the next boot cannot
+        // reproduce.
+        refreshQueueSnapshot()
+        return false
+    }
+    snapshot = items
+    notifyChanged()
+    cancelRetry()
+    requestDrain()
+    return true
+}
+
+/** Persist a reviewed remap while retaining the block and original client key.
+ * A restart between Review and Retry must not undo the person's decision. */
+export function updateBlockedWrite(clientKey: string, body: ExpenseInput): boolean {
+    refreshQueueSnapshot()
+    const current = queueSnapshot().find((item) => item.clientKey === clientKey && item.blocked)
+    if (!current) return false
+    // Per-item storage avoids cross-tab queue replacement. Two tabs editing the
+    // same clientKey are last-writer-wins locally; server clientKey idempotency
+    // still prevents the two reviewed deliveries from creating two expenses.
+    const { items, persisted } = replaceQueuedItems([
+        {
+            ...current,
+            body: { ...body, clientKey: current.clientKey },
+        },
+    ])
+    snapshot = items
+    notifyChanged()
+    // A remap that did not survive the write is a decision the next restart will
+    // ask for again, so it is reported rather than assumed.
+    return persisted
+}
+
+/** The only path that intentionally deletes a member-blocked money fact. */
+export function discardQueuedWrite(clientKey: string): boolean {
+    refreshQueueSnapshot()
+    const current = queueSnapshot().find((item) => item.clientKey === clientKey)
+    if (!current) return false
+    snapshot = removeQueuedItems([current])
+    notifyChanged()
+    if (!snapshot.some((item) => !item.blocked)) cancelRetry()
+    requestDrain()
+    return true
 }
 
 // ─── react ──────────────────────────────────────────────────────────────────
@@ -697,6 +996,12 @@ export function useQueueNotices(): void {
                     // "Add it again" is an instruction — it has to outlive the
                     // moment of reading it.
                     toast.error(t('rejectedToast', { count: notice.count }), { duration: TOAST_MS.actionable })
+                    return
+                case 'blocked-member':
+                    toast.error(t('blockedToast', { count: notice.count }), { duration: TOAST_MS.actionable })
+                    return
+                case 'blocked-roster':
+                    toast.error(t('blockedRosterToast', { count: notice.count }), { duration: TOAST_MS.actionable })
                     return
                 case 'sent':
                     toast.success(t('sentToast', { count: notice.count }), { duration: TOAST_MS.state })

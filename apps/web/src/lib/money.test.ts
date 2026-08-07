@@ -6,11 +6,15 @@ import {
     displaySymbol,
     equalSplitMinor,
     formatAmountInput,
+    formatCompactMoney,
+    formatLargeAmountPreview,
     formatMinorPlain,
     formatMoney,
     formatMoneyParts,
     isAmountInputAcceptable,
     MAX_SIGNED_MINOR,
+    minorToExactNumber,
+    overviewMoneyPresentation,
     parseAmountToMinor,
     parseExportAmountToMinor,
 } from './money'
@@ -318,6 +322,20 @@ describe('formatting', () => {
         expect(formatMoney('900719925474099123', 'EUR', undefined, 'en')).toBe('€9,007,199,254,740,991.23')
     })
 
+    it('keeps both signed bigint ceilings exact', () => {
+        expect(formatMoney('9223372036854775807', 'EUR', undefined, 'en')).toBe('€92,233,720,368,547,758.07')
+        expect(formatMoney('-9223372036854775808', 'EUR', undefined, 'en')).toBe('-€92,233,720,368,547,758.08')
+    })
+
+    it.each([
+        ['en', '¥1,234,567', 'ARS\u00a0123,456,789.00'],
+        ['es-419', 'JPY\u00a01,234,567', 'ARS\u00a0123,456,789.00'],
+        ['pt-br', 'JP¥\u00a01.234.567', 'ARS\u00a0123.456.789,00'],
+    ])('uses native JPY and ARS grouping in %s', (locale, jpy, ars) => {
+        expect(formatMoney('1234567', 'JPY', undefined, locale)).toBe(jpy)
+        expect(formatMoney('12345678900', 'ARS', undefined, locale)).toBe(ars)
+    })
+
     /**
      * THE back-compat lock. Every room in production settles in one of these twelve, and widening
      * the catalog from twelve codes to 162 must not move a single character of what they render.
@@ -380,6 +398,70 @@ describe('formatting', () => {
         expect(formatMoney('123456', 'BEER', undefined, 'en')).toBe('1,234.56 BEER')
         expect(formatMoney('1234', 'DOG', undefined, 'en')).toBe('12.34 DOG')
         expect(currencyInfo('BEER').decimals).toBe(2)
+    })
+})
+
+describe('dense overview money', () => {
+    it.each([
+        ['en', '¥1.2M', 'ARS\u00a0123.5M'],
+        ['es-419', 'JPY\u00a01.2\u00a0M', 'ARS\u00a0123.5\u00a0M'],
+        ['pt-br', 'JP¥\u00a01,2\u00a0mi', 'ARS\u00a0123,5\u00a0mi'],
+    ])('uses the locale-native JPY and ARS compact convention in %s', (locale, jpy, ars) => {
+        expect(formatCompactMoney('1234567', 'JPY', undefined, locale)).toBe(jpy)
+        expect(formatCompactMoney('12345678900', 'ARS', undefined, locale)).toBe(ars)
+    })
+
+    it('shrinks exact text before compacting and always carries the full amount', () => {
+        expect(overviewMoneyPresentation('123456', 'ARS', undefined, 'en')).toEqual({
+            exact: 'ARS\u00a01,234.56',
+            visible: 'ARS\u00a01,234.56',
+            compact: false,
+            scale: 'smallest',
+        })
+        expect(overviewMoneyPresentation('12345678900', 'ARS', undefined, 'en')).toEqual({
+            exact: 'ARS\u00a0123,456,789.00',
+            visible: 'ARS\u00a0123.5M',
+            compact: true,
+            scale: 'regular',
+        })
+    })
+})
+
+describe('large raw-input preview', () => {
+    it('stays quiet for ordinary values and groups large JPY without changing the field', () => {
+        expect(formatLargeAmountPreview('9999', 'JPY', undefined, 'en')).toBeNull()
+        expect(formatLargeAmountPreview('10000', 'JPY', undefined, 'en')).toBe('¥10,000')
+        expect(formatLargeAmountPreview('10000', 'JPY', undefined, 'es-419')).toBe('JPY\u00a010,000')
+        expect(formatLargeAmountPreview('10000', 'JPY', undefined, 'pt-br')).toBe('JP¥\u00a010.000')
+    })
+
+    it('uses the reader locale for large ARS entry', () => {
+        expect(formatLargeAmountPreview('12345678900', 'ARS', undefined, 'en')).toBe('ARS\u00a0123,456,789.00')
+        expect(formatLargeAmountPreview('12345678900', 'ARS', undefined, 'es-419')).toBe('ARS\u00a0123,456,789.00')
+        expect(formatLargeAmountPreview('12345678900', 'ARS', undefined, 'pt-br')).toBe('ARS\u00a0123.456.789,00')
+    })
+})
+
+describe('minorToExactNumber', () => {
+    it('admits only values whose major-unit Number returns to the identical minor bigint', () => {
+        expect(minorToExactNumber('1234', 2)).toBe(12.34)
+        // Division by 100 collapses this otherwise-safe integer onto its neighbour.
+        expect(minorToExactNumber('9007199254740990', 2)).toBeNull()
+        expect(minorToExactNumber('9007199254740991', 2)).toBe(90071992547409.9)
+    })
+
+    it('locks the 2^53 boundary instead of assuming every large integer behaves alike', () => {
+        expect(minorToExactNumber('9007199254740991', 0)).toBe(9007199254740991)
+        // 2^53 is representable, but it is outside the safe-integer contract used
+        // for decimal display and must therefore take the exact static path too.
+        expect(minorToExactNumber('9007199254740992', 0)).toBeNull()
+        expect(minorToExactNumber('9007199254740993', 0)).toBeNull()
+        expect(minorToExactNumber('-9007199254740993', 0)).toBeNull()
+    })
+
+    it('keeps signed bigint ceilings out of NumberFlow', () => {
+        expect(minorToExactNumber('9223372036854775807', 0)).toBeNull()
+        expect(minorToExactNumber('-9223372036854775808', 0)).toBeNull()
     })
 })
 

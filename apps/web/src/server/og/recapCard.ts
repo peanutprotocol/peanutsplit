@@ -25,7 +25,13 @@ export interface RecapRoomRow {
     name: string
     emoji: string | null
     currency: string
-    members: { id: string; name: string; avatar?: string | null; avatarPalette?: string | null }[]
+    members: {
+        id: string
+        name: string
+        avatar?: string | null
+        avatarPalette?: string | null
+        removedAt?: Date | string | null
+    }[]
     expenses: {
         baseAmountMinor: bigint
         paidById: string
@@ -98,8 +104,9 @@ export interface RecapCardData {
  * cached and re-rendered on other boxes; "deterministic" has to mean across
  * processes, not just within one.
  *
- * A payer who is no longer on the roster is skipped, the same way `balancesOf`
- * ignores rows for members it has no entry for.
+ * A payer missing from the ledger directory is skipped as corrupt/orphaned
+ * history. Former identities remain in that directory and are still eligible:
+ * lifecycle must not rewrite who historically fronted the most.
  */
 export function topPayerName(
     members: readonly { id: string; name: string }[],
@@ -214,7 +221,7 @@ export async function loadRecap(slug: string): Promise<RoomRecap | null> {
             // member on the recap fell through to the neutral peanut.
             members: {
                 orderBy: { createdAt: 'asc' },
-                select: { id: true, name: true, avatar: true, avatarPalette: true },
+                select: { id: true, name: true, avatar: true, avatarPalette: true, removedAt: true },
             },
             expenses: {
                 where: { deletedAt: null },

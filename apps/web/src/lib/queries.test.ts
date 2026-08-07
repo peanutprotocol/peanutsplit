@@ -9,7 +9,7 @@ import { MutationObserver, QueryClient } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EXPENSE_WRITE_TIMEOUT_MS, NETWORK_ERROR_CODE } from './api'
 import type { CatchUpExpenseInput, ExpenseCreateResult, ExpenseInput, RoomState } from './api-types'
-import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
+import { OFFLINE_EQUAL_ROSTER_UNKNOWN, queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
 import {
     addExpenseMutationOptions,
     addMemberMutationOptions,
@@ -452,6 +452,128 @@ describe('adding an expense with no network', () => {
         expect(queueSnapshot()).toHaveLength(1)
         expect(queueSnapshot()[0].clientKey).toBe(firstAttempt.clientKey)
         expect(queueSnapshot()[0].body.clientKey).toBe(firstAttempt.clientKey)
+    })
+
+    it('freezes untouched EQUAL participants before a hanging request sees roster churn', async () => {
+        const before = roomState()
+        queryClient.setQueryData(roomKey(SLUG), before)
+        let rejectRequest!: (reason: unknown) => void
+        const fetchMock = vi.fn(
+            (_url: string | URL | Request, _init?: RequestInit) =>
+                new Promise<Response>((_resolve, reject) => {
+                    rejectRequest = reject
+                })
+        )
+        vi.stubGlobal('fetch', fetchMock)
+
+        const result = addExpense(queryClient)
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
+
+        const midFlight = queryClient.getQueryData<RoomState>(roomKey(SLUG))!
+        const afterRosterChurn: RoomState = {
+            ...midFlight,
+            members: [
+                midFlight.members[0],
+                { ...midFlight.members[1], removedAt: '2026-07-02T00:00:00.000Z' },
+                {
+                    id: 'carla',
+                    name: 'Carla',
+                    avatar: null,
+                    createdAt: '2026-07-02T00:00:00.000Z',
+                },
+            ],
+        }
+        queryClient.setQueryData(roomKey(SLUG), afterRosterChurn)
+        rejectRequest(new TypeError('Failed to fetch'))
+
+        await expect(result).resolves.toMatchObject({ members: afterRosterChurn.members })
+        const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1]?.body as string) as ExpenseInput
+        expect(firstAttempt.participantIds).toBeUndefined()
+        expect(queueSnapshot()[0].body.participantIds).toEqual(['ana', 'bea'])
+    })
+
+    it('captures the visible roster before async query cancellation can update it', async () => {
+        const before = roomState()
+        queryClient.setQueryData(roomKey(SLUG), before)
+        vi.spyOn(queryClient, 'cancelQueries').mockImplementation(async () => {
+            queryClient.setQueryData<RoomState>(roomKey(SLUG), {
+                ...before,
+                members: [
+                    before.members[0],
+                    { ...before.members[1], removedAt: '2026-07-02T00:00:00.000Z' },
+                    {
+                        id: 'carla',
+                        name: 'Carla',
+                        avatar: null,
+                        createdAt: '2026-07-02T00:00:00.000Z',
+                    },
+                ],
+            })
+        })
+        const fetchMock = offline()
+
+        await addExpense(queryClient)
+
+        const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1].body) as ExpenseInput
+        expect(firstAttempt.participantIds).toBeUndefined()
+        expect(queueSnapshot()[0].body.participantIds).toEqual(['ana', 'bea'])
+    })
+
+    /**
+     * An empty `participantIds` is not a narrower split: the server resolves it
+     * against the live room exactly as it resolves an absent key. So it needs
+     * the same freeze, or a draft that spent the evening in a pocket gets split
+     * among whoever is in the room when it finally sends.
+     */
+    it('freezes an empty participant list too, because the server would resolve it live', async () => {
+        const before = roomState()
+        queryClient.setQueryData(roomKey(SLUG), before)
+        const fetchMock = offline()
+
+        await new MutationObserver(queryClient, addExpenseMutationOptions(queryClient, SLUG, 'token-1')).mutate({
+            ...input,
+            participantIds: [],
+        })
+
+        expect((JSON.parse(fetchMock.mock.calls[0][1].body) as ExpenseInput).participantIds).toEqual([])
+        expect(queueSnapshot()[0].body.participantIds).toEqual(['ana', 'bea'])
+        expect(queueSnapshot()[0].blocked).toBeUndefined()
+    })
+
+    /**
+     * The freeze is only worth anything if nothing downstream can re-derive the
+     * roster after the first await. A concurrent draft replacing the shared
+     * request object is the one path where the frozen value is missing at send
+     * time — and the only roster still readable there is the post-cancellation
+     * one, which is precisely what the freeze exists to refuse.
+     */
+    it('refuses a post-await roster when a concurrent draft replaces the request', async () => {
+        const before = roomState()
+        queryClient.setQueryData(roomKey(SLUG), before)
+        const requestRef: ExpenseRequestRef = { current: null }
+        vi.spyOn(queryClient, 'cancelQueries').mockImplementation(async () => {
+            requestRef.current = { signature: 'a different draft entirely', clientKey: 'other-key' }
+            queryClient.setQueryData<RoomState>(roomKey(SLUG), {
+                ...before,
+                members: [
+                    before.members[0],
+                    { ...before.members[1], removedAt: '2026-07-02T00:00:00.000Z' },
+                    { id: 'carla', name: 'Carla', avatar: null, createdAt: '2026-07-02T00:00:00.000Z' },
+                ],
+            })
+        })
+        offline()
+
+        await new MutationObserver(
+            queryClient,
+            addExpenseMutationOptions(queryClient, SLUG, 'token-1', requestRef)
+        ).mutate(input)
+
+        const queued = queueSnapshot()[0]
+        // Not ['ana', 'carla'] — and not silently implicit either: a person is
+        // asked to confirm the split instead of this code guessing it.
+        expect(queued.body.participantIds).toBeUndefined()
+        expect(queued.blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
     })
 })
 

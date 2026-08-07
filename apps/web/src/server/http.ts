@@ -69,12 +69,37 @@ export function errorEnvelope(err: unknown): Response {
     return errorResponse('INTERNAL', 'something went wrong on our side', 500)
 }
 
+/**
+ * Error boundary for routes whose request body is private user-authored data.
+ * Known API/schema failures keep the house envelope. Unexpected failures do not
+ * log even a bounded Error.message: database clients can echo a write argument
+ * into that message, which would turn a private report into container logs.
+ */
+export function sensitiveErrorEnvelope(err: unknown): Response {
+    if (err instanceof ApiError) return errorResponse(err.code, err.message, err.status)
+    if (err instanceof ZodError) {
+        const first = err.issues[0]
+        const path = first?.path.join('.')
+        return errorResponse('VALIDATION_ERROR', path ? `${path}: ${first.message}` : first.message, 400)
+    }
+    return errorResponse('INTERNAL', 'something went wrong on our side', 500)
+}
+
 /** Wraps a handler so every failure leaves as `{ error: { code, message } }`. */
 export async function respond(run: () => Promise<unknown>, successStatus = 200): Promise<Response> {
     try {
         return json(await run(), successStatus)
     } catch (err) {
         return errorEnvelope(err)
+    }
+}
+
+/** `respond`, with the no-log private-payload boundary above. */
+export async function respondSensitive(run: () => Promise<unknown>, successStatus = 200): Promise<Response> {
+    try {
+        return json(await run(), successStatus)
+    } catch (err) {
+        return sensitiveErrorEnvelope(err)
     }
 }
 
@@ -147,5 +172,7 @@ export async function readJsonCapped(request: Request, maxBytes: number, tooBig:
     return parseJson(text)
 }
 
-/** Attribution only — never authorization. The slug is the credential. */
+/** Optional attribution proof. The slug remains the room capability, but a
+ * supplied token must resolve to an active member instead of degrading to an
+ * anonymous actor. */
 export const memberTokenOf = (request: Request): string | null => request.headers.get('x-member-token')

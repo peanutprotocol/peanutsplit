@@ -43,6 +43,8 @@ export const POST = (request: Request, ctx: Ctx) =>
             // several new devices can all observe 29 rows and push the room past
             // its hard ceiling.
             await lockRoomWrite(tx, room.id)
+            const lockedRoom = await loadRoom(slug, tx)
+            assertProvenMember(lockedRoom, body.memberId, body.memberToken)
 
             const existing = await tx.pushSubscription.findUnique({
                 where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
@@ -79,9 +81,9 @@ export const POST = (request: Request, ctx: Ctx) =>
                 },
             })
             if (!existing || existing.memberId !== body.memberId) {
-                const member = room.members.find(
+                const member = lockedRoom.members.find(
                     (candidate) => candidate.id === body.memberId
-                ) as (typeof room.members)[number]
+                ) as (typeof lockedRoom.members)[number]
                 await appendRoomAuditEvent({
                     tx,
                     request,
@@ -118,6 +120,8 @@ export const DELETE = (request: Request, ctx: Ctx) =>
         // count (still used) or after (and re-creates its own channel).
         const endpointStillUsed = await prisma.$transaction(async (tx) => {
             await lockRoomWrite(tx, room.id)
+            const lockedRoom = await loadRoom(slug, tx)
+            assertProvenMember(lockedRoom, body.memberId, body.memberToken)
             const existing = await tx.pushSubscription.findUnique({
                 where: { endpoint_roomId: { endpoint: body.endpoint, roomId: room.id } },
                 select: { id: true, memberId: true },
@@ -126,9 +130,9 @@ export const DELETE = (request: Request, ctx: Ctx) =>
                 where: { roomId: room.id, endpoint: body.endpoint },
             })
             if (removed.count > 0 && existing) {
-                const member = room.members.find(
+                const member = lockedRoom.members.find(
                     (candidate) => candidate.id === body.memberId
-                ) as (typeof room.members)[number]
+                ) as (typeof lockedRoom.members)[number]
                 await appendRoomAuditEvent({
                     tx,
                     request,

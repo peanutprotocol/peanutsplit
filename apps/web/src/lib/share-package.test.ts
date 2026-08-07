@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+    nativeRoomShareData,
     renderShareChannelFixture,
     roomSharePackage,
     SHARE_PACKAGE_VARIANT,
@@ -24,6 +25,19 @@ describe('room share package', () => {
             fullText: `${nextAction}\n${url}`,
         })
         expect(SHARE_PACKAGE_VARIANT).toBe('group_chat_package_v1')
+    })
+
+    it('builds a URL-first native payload with no file attachment', () => {
+        const native = nativeRoomShareData(payload)
+
+        expect(native).toEqual({
+            title: 'Lisbon weekend · Peanut Split',
+            text: nextAction,
+            url,
+        })
+        expect(Object.keys(native)).toEqual(['title', 'text', 'url'])
+        expect(native).not.toHaveProperty('files')
+        expect(native.url).toBe(url)
     })
 
     it.each<ShareChannelFixture>(['whatsapp', 'telegram', 'messenger', 'sms', 'email'])(

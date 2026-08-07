@@ -36,7 +36,7 @@ two is the remaining merge.
 - **Do not scaffold deferred ideas.** Future-facing fields, states, routes, or abstractions require an approved ROADMAP item that explicitly authorizes implementation; listing an idea as deferred does not.
 - **No identity in analytics either** — no room slug, no member name, no amount. The slug is the room's access control; a name is what someone chose to show their friends.
 - Dependencies must be ≥14 days old (`.npmrc` enforces it).
-- Run `pnpm typecheck && pnpm test && pnpm format` before pushing.
+- Run `pnpm typecheck && pnpm test && pnpm format` before pushing. Run `pnpm format` from `apps/web`, never the repo root — the root config can't resolve `prettier-plugin-tailwindcss` and reformats CI yaml as a side effect.
 
 ## Local dev
 

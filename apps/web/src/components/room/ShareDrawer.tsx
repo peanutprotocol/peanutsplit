@@ -17,8 +17,6 @@ interface ShareDrawerProps {
     onClose: () => void
     state: RoomState
     currencies: readonly CurrencyInfo[]
-    /** The current device's roster id after RoomScreen verified it still exists. */
-    sharerMemberId?: string
     surface: ShareSurface
 }
 
@@ -27,7 +25,7 @@ interface ShareDrawerProps {
  * checkpoint and room settings, so this sheet has one job and one primary
  * action: get the room link into the group chat.
  */
-export function ShareDrawer({ open, onClose, state, currencies, sharerMemberId, surface }: ShareDrawerProps) {
+export function ShareDrawer({ open, onClose, state, currencies, surface }: ShareDrawerProps) {
     const t = useTranslations('room.share')
     const feedback = useFeedback()
     const room = state.room
@@ -46,7 +44,7 @@ export function ShareDrawer({ open, onClose, state, currencies, sharerMemberId, 
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
             <DrawerContent>
                 <DrawerTitle className="sr-only">{surface === 'post_aha' ? t('postAhaTitle') : t('title')}</DrawerTitle>
-                <DrawerBody>
+                <DrawerBody className="gap-3 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">
                     {surface !== 'post_aha' && (
                         <div className="flex justify-end">
                             <CloseButton onClick={onClose} label={t('close')} data-testid="close-share" />
@@ -57,9 +55,9 @@ export function ShareDrawer({ open, onClose, state, currencies, sharerMemberId, 
                         roomName={room.name}
                         emoji={room.emoji}
                         theme={room.theme}
-                        sharerMemberId={sharerMemberId}
                         surface={surface}
                         compact={surface === 'post_aha'}
+                        dense
                         title={surface === 'post_aha' ? t('postAhaTitle') : t('title')}
                         subtitle={surface === 'post_aha' ? t('postAhaSubtitle') : t('subtitle')}
                         context={

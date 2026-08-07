@@ -9,8 +9,16 @@ import type {
     ExpenseUpdateInput,
     RoomState,
 } from '../api-types'
-import { createClientKey, draftExpenseRow, enqueueWrite, isOfflineFailure, queuedExpenseId } from '../offline-queue'
+import {
+    createClientKey,
+    draftExpenseRow,
+    enqueueWrite,
+    isImplicitEqualRoster,
+    isOfflineFailure,
+    queuedExpenseId,
+} from '../offline-queue'
 import { roomKey, roomStateResult, seedRoomState } from './core'
+import { activeMembers } from '../members'
 
 interface AddExpenseContext {
     previous?: RoomState
@@ -19,6 +27,9 @@ interface AddExpenseContext {
 export interface ExpenseRequestState {
     signature: string
     clientKey: string
+    /** Present only for untouched EQUAL. Captured synchronously in onMutate,
+     * before query cancellation can yield to a roster update. */
+    equalParticipantIds?: string[]
 }
 
 export interface ExpenseRequestRef {
@@ -60,12 +71,18 @@ export function addExpenseMutationOptions(
     requestRef?: ExpenseRequestRef
 ): UseMutationOptions<ExpenseCreateResult, Error, ExpenseInput, AddExpenseContext> {
     let localRequest: ExpenseRequestState | null = null
-    const requestFor = (input: ExpenseInput): ExpenseRequestState => {
+    const requestFor = (input: ExpenseInput, equalParticipantIds?: string[]): ExpenseRequestState => {
         const signature = expenseRequestSignature(input)
         const current = requestRef ? requestRef.current : localRequest
+        const sameRequest = current?.signature === signature
         const next = {
             signature,
-            clientKey: input.clientKey ?? (current?.signature === signature ? current.clientKey : createClientKey()),
+            clientKey: input.clientKey ?? (sameRequest ? current.clientKey : createClientKey()),
+            ...(equalParticipantIds !== undefined
+                ? { equalParticipantIds }
+                : sameRequest && current.equalParticipantIds !== undefined
+                  ? { equalParticipantIds: current.equalParticipantIds }
+                  : {}),
         }
         localRequest = next
         if (requestRef) requestRef.current = next
@@ -80,8 +97,28 @@ export function addExpenseMutationOptions(
         mutationFn: async (input: ExpenseInput): Promise<ExpenseCreateResult> => {
             // Mint before the first attempt so a committed write with a lost
             // response and its offline replay address the same server row.
-            const { clientKey } = requestFor(input)
+            const request = requestFor(input)
+            const { clientKey } = request
             const requestInput = { ...input, clientKey }
+            // An untouched EQUAL form means "everyone visible when I saved".
+            // The online request keeps the compact body and lets the server
+            // resolve that roster atomically. If the request becomes an
+            // offline draft, however, replay may happen after somebody leaves
+            // or joins. The roster was frozen in `onMutate`, synchronously,
+            // before the awaited `cancelQueries` — so an SSE/cache update during
+            // a hanging request cannot silently move the bill from one person to
+            // another.
+            //
+            // There is deliberately no cache read here. Every read at this point
+            // is a post-await read, which is precisely the roster the freeze
+            // exists to refuse; falling back to one would undo the whole thing
+            // in the one case that needs it. When a concurrent draft has
+            // replaced the request object the freeze is simply gone, and the
+            // body stays implicit: the queue holds an unresolved EQUAL roster
+            // for confirmation, so a person decides instead of this line
+            // guessing.
+            const frozen = request.equalParticipantIds
+            const equalParticipantSnapshot = isImplicitEqualRoster(input) && frozen?.length ? frozen : null
             try {
                 return await api.addExpense(slug, requestInput, token)
             } catch (error) {
@@ -91,11 +128,15 @@ export function addExpenseMutationOptions(
                 if (!isOfflineFailure(error)) throw error
                 const authoritative = authoritativeState(queryClient, slug, clientKey)
                 if (!authoritative) throw error
+                const queuedInput =
+                    equalParticipantSnapshot === null
+                        ? requestInput
+                        : { ...requestInput, participantIds: equalParticipantSnapshot }
                 const queued = enqueueWrite({
                     slug,
                     endpoint: expensesPath(slug),
                     method: 'POST',
-                    body: requestInput,
+                    body: queuedInput,
                     token,
                 })
                 if (!queued) throw error
@@ -103,18 +144,29 @@ export function addExpenseMutationOptions(
             }
         },
         onMutate: async (input: ExpenseInput) => {
-            const { clientKey } = requestFor(input)
+            // This first cache read is deliberately before the first await: it
+            // is the roster visible at the instant Save was pressed.
+            const submitState = queryClient.getQueryData<RoomState>(roomKey(slug))
+            const submitRoster = activeMembers(submitState?.members ?? []).map((member) => member.id)
+            // An empty roster is not a freeze — it is the same implicit "whoever
+            // is in the room" the server would resolve, so it is never recorded
+            // as one.
+            const equalParticipantIds =
+                isImplicitEqualRoster(input) && submitRoster.length > 0 ? submitRoster : undefined
+            const { clientKey } = requestFor(input, equalParticipantIds)
             await queryClient.cancelQueries({ queryKey: roomKey(slug) })
             const previous = queryClient.getQueryData<RoomState>(roomKey(slug))
             if (previous && !input.newPaidByName) {
                 const now = Date.now()
+                const optimisticInput =
+                    equalParticipantIds === undefined ? input : { ...input, participantIds: equalParticipantIds }
                 queryClient.setQueryData<RoomState>(roomKey(slug), {
                     ...previous,
                     expenses: [
-                        draftExpenseRow(input, {
+                        draftExpenseRow(optimisticInput, {
                             id: queuedExpenseId(clientKey),
                             at: now,
-                            members: previous.members,
+                            members: activeMembers(previous.members),
                         }),
                         ...previous.expenses,
                     ],

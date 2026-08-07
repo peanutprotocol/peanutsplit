@@ -7,6 +7,7 @@
  */
 import type { Metadata } from 'next'
 import { getTranslator } from '@/i18n/t'
+import { roomPreviewImagePath } from '@/lib/room-preview'
 import { prisma } from '@/server/db'
 
 /** Chat previews truncate hard; keep the room name inside the visible run. */
@@ -66,13 +67,19 @@ export async function roomMetadata(slug: string): Promise<Metadata> {
 
     const title = room ? roomTitle(room.name, room.emoji) : ROOM_FALLBACK_TITLE
     const description = room ? await roomDescription(room.locale) : ROOM_FALLBACK_DESCRIPTION
+    const previewImage = roomPreviewImagePath(slug)
 
     return {
         title,
         description,
         robots: { index: false, follow: false },
-        openGraph: { type: 'website', title, description },
-        twitter: { card: 'summary_large_image', title, description },
+        openGraph: {
+            type: 'website',
+            title,
+            description,
+            images: [{ url: previewImage, width: 1200, height: 630, alt: 'Peanut Split room preview' }],
+        },
+        twitter: { card: 'summary_large_image', title, description, images: [previewImage] },
     }
 }
 

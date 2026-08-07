@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { isValidCode, MAX_SIGNED_MINOR, normaliseCode, parseManualFxRate } from '@/server/money'
 import { isAvatarKey } from '@/lib/avatars'
 import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
+import { normalizePersonName } from '@/lib/person-name'
 import { isReactionEmoji } from '@/lib/reactions'
 import { isRoomDrawing } from '@/lib/room-drawing'
 import { isThemeKey } from '@/lib/themes'
@@ -69,7 +70,12 @@ const clientKey = z
     .min(16)
     .max(64)
     .regex(/^[A-Za-z0-9-]+$/, 'must be an opaque request key')
-const personName = z.string().trim().min(1, 'is required').max(MAX_NAME_CHARS)
+const personName = z
+    .string()
+    // Bound normalization work before touching hostile unauthenticated input.
+    .max(MAX_NAME_CHARS * 4)
+    .transform(normalizePersonName)
+    .pipe(z.string().min(1, 'is required').max(MAX_NAME_CHARS))
 
 /**
  * The room's emblem. Presets and legacy emoji remain short strings. A custom

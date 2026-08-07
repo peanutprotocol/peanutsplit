@@ -8,11 +8,10 @@ import { peanutWavingHello } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
-import { CARD_FILE_NAME, achievementCardPath } from '@/lib/achievements-contract'
 import { roomProps, sharePackageMeasureProps, track, type ShareSurface } from '@/lib/analytics'
 import { copyText } from '@/lib/clipboard'
-import { roomSharePackage } from '@/lib/share-package'
-import { useInviteSharePng } from '@/lib/share-card'
+import { prewarmRoomPreview } from '@/lib/room-preview'
+import { nativeRoomShareData, roomSharePackage } from '@/lib/share-package'
 import { themeFor } from '@/lib/themes'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
@@ -23,8 +22,6 @@ interface LinkMomentProps {
     roomName: string
     emoji: string | null
     theme?: string | null
-    /** The active roster row, already cross-checked against live room state. */
-    sharerMemberId?: string
     /** Closed, identity-free context for presented → completed measurement. */
     surface: ShareSurface
     /** Optional on-screen context for a particular share moment. */
@@ -34,6 +31,8 @@ interface LinkMomentProps {
     /** Put the actual share action ahead of the optional link ticket on short
      *  post-aha sheets, so the business-critical action is visible immediately. */
     compact?: boolean
+    /** Tighten only this composition when it lives in a bottom drawer. */
+    dense?: boolean
     /** Headline. The creation screen and the share drawer say different things. */
     title: string
     subtitle: string
@@ -54,10 +53,9 @@ export const roomUrl = (slug: string): string =>
  * The group-chat handoff.
  *
  * The bearer link appears only in user-directed text (native share and
- * clipboard). The visual attachment is the room's own invite card, rendered by
- * the same pipeline every other card goes through; it carries the room name,
- * the proven current sharer when available, and avatar/count-only social proof.
- * It carries no URL, other member names or ledger data.
+ * clipboard). The native payload never carries a file: receivers that support
+ * link unfurls fetch the room's same-origin Open Graph image from the URL, while
+ * receivers that do not still get the indispensable credential intact.
  *
  * Native share is an enhancement. Clipboard and manual copy remain available
  * independently.
@@ -67,11 +65,11 @@ export function LinkMoment({
     roomName,
     emoji,
     theme,
-    sharerMemberId,
     surface,
     context,
     footer,
     compact = false,
+    dense = false,
     title,
     subtitle,
     headingLevel = 1,
@@ -88,12 +86,6 @@ export function LinkMoment({
             }),
         [roomName, t, url]
     )
-    /**
-     * Prefetched on mount, never inside the tap: `navigator.share` needs transient user
-     * activation and an `await fetch` in the gesture is what loses it on iOS. Both screens that
-     * render this are on display for seconds before anyone taps.
-     */
-    const { file } = useInviteSharePng(achievementCardPath(slug, 'invite'), CARD_FILE_NAME.invite, sharerMemberId)
     const palette = themeFor(theme)
     const [copied, setCopied] = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
@@ -119,6 +111,12 @@ export function LinkMoment({
         completedRef.current = false
         track('share_package_presented', sharePackageMeasureProps(surface))
     }, [surface])
+
+    useEffect(() => {
+        // Begin before the gesture. Preview art may fail; the URL is still a
+        // complete invitation and this helper contains the failure.
+        void prewarmRoomPreview(slug)
+    }, [slug])
 
     const completed = useCallback(
         (method: 'native' | 'clipboard') => {
@@ -171,21 +169,8 @@ export function LinkMoment({
         // Localised on purpose: `roomSharePackage` was built from `t(...)`, so this
         // text is in the language the person sharing is already speaking when it
         // gets pasted into the group chat.
-        const textPayload = { title: payload.title, text: payload.text, url: payload.url }
-        let nativePayload: ShareData = textPayload
-        if (file) {
-            try {
-                const richPayload = { ...textPayload, files: [file] }
-                if (navigator.canShare?.(richPayload)) nativePayload = richPayload
-            } catch {
-                // `canShare` is an optional enhancement, and so is the card: if the probe throws,
-                // or the prefetch has not landed, the text+url package goes out unchanged. The
-                // invite's whole job is to carry the link; the picture is the enhancement.
-            }
-        }
-
         try {
-            await navigator.share(nativePayload)
+            await navigator.share(nativeRoomShareData(payload))
             setStatus(t('shared'))
             wave()
             // `completed` is the one `share_completed` emitter — it carries the
@@ -196,10 +181,10 @@ export function LinkMoment({
             setStatus(t('shareFailed'))
             feedback('error', { haptic: 'error' })
         }
-    }, [completed, copy, feedback, file, payload, slug, t, wave])
+    }, [completed, copy, feedback, payload, slug, t, wave])
 
     const actions = (
-        <div className="flex flex-col gap-3">
+        <div className={`flex flex-col ${dense ? 'gap-2' : 'gap-3'}`}>
             {/* Share stays the single primary action and is never hidden: on a
                 browser with no native sheet `share()` copies instead, so the
                 button always does the useful thing. */}
@@ -218,13 +203,13 @@ export function LinkMoment({
     )
 
     return (
-        <div className={compact ? 'flex flex-col gap-4' : 'flex flex-col gap-6'}>
+        <div className={compact || dense ? 'flex flex-col gap-4' : 'flex flex-col gap-6'}>
             <motion.div
                 initial={motionAllowed ? { opacity: 0, y: -8 } : false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={motionAllowed ? { type: 'spring', stiffness: 340, damping: 30 } : { duration: 0 }}
                 data-motion-surface
-                className="flex flex-col gap-2 text-center"
+                className={`flex flex-col text-center ${dense ? 'gap-1' : 'gap-2'}`}
             >
                 <Heading className="text-h4">{title}</Heading>
                 <p className="text-sm text-grey-1">{subtitle}</p>
@@ -276,7 +261,7 @@ export function LinkMoment({
                     )}
                     <Card shadowSize="6" className="overflow-hidden">
                         <div
-                            className="flex items-center gap-3 border-b border-n-1 px-4 py-4"
+                            className={`flex items-center gap-3 border-b border-n-1 px-4 ${dense ? 'py-3' : 'py-4'}`}
                             style={{ backgroundColor: palette.field }}
                         >
                             <motion.span
@@ -305,7 +290,7 @@ export function LinkMoment({
                             <span className="absolute inset-x-4 -top-px block border-t border-dashed border-n-1/40" />
                         </div>
 
-                        <div className="flex flex-col gap-3 px-4 py-5">
+                        <div className={`flex flex-col gap-3 px-4 ${dense ? 'py-3' : 'py-5'}`}>
                             <p className="text-h10 uppercase tracking-wide text-grey-1">{t('roomLink')}</p>
                             {copyFailed ? (
                                 <div className="flex flex-col gap-2">
@@ -317,7 +302,7 @@ export function LinkMoment({
                                         aria-label={t('inviteText')}
                                         data-testid="room-link-input"
                                         rows={3}
-                                        className="input min-h-24 select-text px-3 py-3 text-sm"
+                                        className="input min-h-24 select-text px-3 py-3 text-base md:text-sm"
                                     />
                                 </div>
                             ) : (

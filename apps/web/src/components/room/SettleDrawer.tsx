@@ -19,12 +19,15 @@ import { useAddSettlement } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { isFormerMember } from '@/lib/members'
 import { AllSettled } from './AllSettled'
 import { MemberAvatar } from './MemberAvatar'
 import { AnimatedMoney, Money } from './Money'
 
 interface SettleDrawerProps {
     open: boolean
+    /** JoinGate temporarily owns the screen without ending this money draft. */
+    suspended?: boolean
     onClose: () => void
     slug: string
     state: RoomState
@@ -68,7 +71,16 @@ const COLLAPSE_MS = 620
 const REVEAL_STAGGER_S = 0.07
 const REVEAL_STAGGER_MAX = 6
 
-export function SettleDrawer({ open, onClose, slug, state, currencies, token, me }: SettleDrawerProps) {
+export function SettleDrawer({
+    open,
+    suspended = false,
+    onClose,
+    slug,
+    state,
+    currencies,
+    token,
+    me,
+}: SettleDrawerProps) {
     const t = useTranslations('room.settle')
     const tExpenses = useTranslations('room.expenses')
     const locale = useLocale()
@@ -151,6 +163,12 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
     }, [open, selected, slug])
 
     const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
+    const displayName = (id: string) => {
+        if (id === me?.id) return t('you')
+        const member = state.members.find((candidate) => candidate.id === id)
+        const name = nameOf(id)
+        return member && isFormerMember(member) ? t('formerName', { name }) : name
+    }
     const avatarOf = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
     const paletteOf = (id: string) => state.members.find((member) => member.id === id)?.avatarPalette ?? null
 
@@ -184,7 +202,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                 problem:
                     selected.fromId === me?.id
                         ? t('amountTooHighYou')
-                        : t('amountTooHigh', { name: nameOf(selected.fromId) }),
+                        : t('amountTooHigh', { name: displayName(selected.fromId) }),
             }
         return { minor: parsed }
     }
@@ -255,7 +273,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
             if (!motionAllowed) {
                 // No collapse played, so there is nothing to have watched — say it
                 // in words instead. Everyone else already saw the row go.
-                toast.success(t('recorded', { from: nameOf(selected.fromId), to: nameOf(selected.toId) }), {
+                toast.success(t('recorded', { from: displayName(selected.fromId), to: displayName(selected.toId) }), {
                     // A debt disappeared and they did not see it move: this is the
                     // only account of it, so it gets the longer state duration.
                     duration: TOAST_MS.state,
@@ -299,7 +317,7 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
     const recorded = state.settlements.filter((settlement) => recordedIds.includes(settlement.id))
 
     return (
-        <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
+        <Drawer open={open && !suspended} onOpenChange={(next) => !next && !suspended && onClose()}>
             <DrawerContent>
                 <DrawerHeader>
                     <DrawerTitle className="text-h5">{selected ? t('recordTitle') : t('listTitle')}</DrawerTitle>
@@ -413,8 +431,14 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                                             palette={paletteOf(transfer.fromId)}
                                                             size={32}
                                                         />
-                                                        <span className="min-w-0 truncate text-h8">
-                                                            {nameOf(transfer.fromId)}
+                                                        <span
+                                                            data-self={transfer.fromId === me?.id || undefined}
+                                                            className={cn(
+                                                                'min-w-0 truncate rounded-sm px-1 text-h8',
+                                                                transfer.fromId === me?.id && 'bg-primary-3'
+                                                            )}
+                                                        >
+                                                            {displayName(transfer.fromId)}
                                                         </span>
                                                     </span>
                                                     <Icon
@@ -429,8 +453,14 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                                             palette={paletteOf(transfer.toId)}
                                                             size={32}
                                                         />
-                                                        <span className="min-w-0 truncate text-h8">
-                                                            {nameOf(transfer.toId)}
+                                                        <span
+                                                            data-self={transfer.toId === me?.id || undefined}
+                                                            className={cn(
+                                                                'min-w-0 truncate rounded-sm px-1 text-h8',
+                                                                transfer.toId === me?.id && 'bg-primary-3'
+                                                            )}
+                                                        >
+                                                            {displayName(transfer.toId)}
                                                         </span>
                                                     </span>
                                                     <Money
@@ -488,8 +518,14 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                                 palette={paletteOf(settlement.fromId)}
                                                 size={28}
                                             />
-                                            <span className="min-w-0 truncate text-h8">
-                                                {nameOf(settlement.fromId)}
+                                            <span
+                                                data-self={settlement.fromId === me?.id || undefined}
+                                                className={cn(
+                                                    'min-w-0 truncate rounded-sm px-1 text-h8',
+                                                    settlement.fromId === me?.id && 'bg-primary-3'
+                                                )}
+                                            >
+                                                {displayName(settlement.fromId)}
                                             </span>
                                             <Icon name="arrow-right" size={14} className="shrink-0 text-grey-1" />
                                             <MemberAvatar
@@ -498,7 +534,15 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                                 palette={paletteOf(settlement.toId)}
                                                 size={28}
                                             />
-                                            <span className="min-w-0 truncate text-h8">{nameOf(settlement.toId)}</span>
+                                            <span
+                                                data-self={settlement.toId === me?.id || undefined}
+                                                className={cn(
+                                                    'min-w-0 truncate rounded-sm px-1 text-h8',
+                                                    settlement.toId === me?.id && 'bg-primary-3'
+                                                )}
+                                            >
+                                                {displayName(settlement.toId)}
+                                            </span>
                                         </span>
                                         <Money
                                             minor={settlement.amountMinor}
@@ -531,7 +575,15 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                         palette={paletteOf(selected.fromId)}
                                         size={36}
                                     />
-                                    <span className="truncate text-h8">{nameOf(selected.fromId)}</span>
+                                    <span
+                                        data-self={selected.fromId === me?.id || undefined}
+                                        className={cn(
+                                            'truncate rounded-sm px-1 text-h8',
+                                            selected.fromId === me?.id && 'bg-primary-3'
+                                        )}
+                                    >
+                                        {displayName(selected.fromId)}
+                                    </span>
                                 </span>
                                 <Icon name="arrow-right" size={18} className="shrink-0" />
                                 <span className="flex min-w-0 items-center gap-2">
@@ -541,7 +593,15 @@ export function SettleDrawer({ open, onClose, slug, state, currencies, token, me
                                         palette={paletteOf(selected.toId)}
                                         size={36}
                                     />
-                                    <span className="truncate text-h8">{nameOf(selected.toId)}</span>
+                                    <span
+                                        data-self={selected.toId === me?.id || undefined}
+                                        className={cn(
+                                            'truncate rounded-sm px-1 text-h8',
+                                            selected.toId === me?.id && 'bg-primary-3'
+                                        )}
+                                    >
+                                        {displayName(selected.toId)}
+                                    </span>
                                 </span>
                             </div>
                             {/* The suggestion, editable. It arrives filled in, so

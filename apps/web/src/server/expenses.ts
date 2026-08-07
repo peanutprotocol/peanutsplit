@@ -27,6 +27,7 @@ import {
 } from '@/server/split'
 import type { RoomWithRelations } from '@/server/roomState'
 import type { CatchUpExpenseBody, ExpenseBody } from '@/server/validation'
+import { activeMembers, isFormerMember } from '@/lib/members'
 
 export interface ExpenseWrite {
     description: string
@@ -82,6 +83,9 @@ export async function changeEqualExpenseParticipant(
 ): Promise<boolean> {
     const member = room.members.find((candidate) => candidate.id === body.memberId)
     if (!member) throw badRequest('participant is not a member of this room', 'NOT_A_MEMBER')
+    if (body.action === 'add' && isFormerMember(member)) {
+        throw conflict('a former member cannot be added to an expense', 'MEMBER_FORMER')
+    }
 
     const expense = await tx.expense.findFirst({
         where: { id: expenseId, roomId: room.id },
@@ -157,16 +161,28 @@ export async function changeEqualExpenseParticipant(
  * translates, and it is the same one for payer, participant and share member on purpose — the
  * user-facing sentence is identical and three codes would be three catalog entries saying it.
  */
-const requireMember = (room: RoomWithRelations, id: string, label: string): string => {
-    if (!room.members.some((m) => m.id === id))
-        throw badRequest(`${label} is not a member of this room`, 'NOT_A_MEMBER')
+const requireMember = (
+    room: RoomWithRelations,
+    id: string,
+    label: string,
+    allowedFormerIds: ReadonlySet<string> = new Set()
+): string => {
+    const member = room.members.find((candidate) => candidate.id === id)
+    if (!member) throw badRequest(`${label} is not a member of this room`, 'NOT_A_MEMBER')
+    if (isFormerMember(member) && !allowedFormerIds.has(id)) {
+        throw badRequest(`${label} is a former member and cannot be added to new activity`, 'MEMBER_FORMER')
+    }
     return id
 }
 
 /** The row an edit is rewriting. `currency` + `fxRate` are what keep the rate locked at creation;
  *  `amountMinor` + `baseAmountMinor` are what let an edit that does not touch the money carry the
  *  stored total forward instead of converting it again; `date` is reused when the body omits one. */
-export type ExistingExpense = Pick<Expense, 'date' | 'currency' | 'fxRate' | 'amountMinor' | 'baseAmountMinor'>
+export type ExistingExpense = Pick<Expense, 'date' | 'currency' | 'fxRate' | 'amountMinor' | 'baseAmountMinor'> & {
+    /** Present on route-backed edits. Optional keeps the pure FX helpers small. */
+    paidById?: string
+    shares?: readonly { memberId: string }[]
+}
 
 /**
  * Whether a write needs a fresh catalog table before it takes the room lock.
@@ -199,7 +215,11 @@ export async function buildExpense(
     assertSplitPayloadMatchesMode(body)
     const total = parseMinor(body.amountMinor)
     if (total <= 0n) throw badRequest('amount must be greater than zero', 'AMOUNT_NOT_POSITIVE')
-    requireMember(room, body.paidById, 'payer')
+    // Historical edits may preserve the Former identities already on THIS row,
+    // but may never introduce a different Former payer or participant.
+    const existingPayerIds = new Set(existing?.paidById ? [existing.paidById] : [])
+    const existingParticipantIds = new Set((existing?.shares ?? []).map((share) => share.memberId))
+    requireMember(room, body.paidById, 'payer', existingPayerIds)
 
     // The rate is locked at creation (schema.prisma says so, and history depends
     // on it). Re-reading the table on every edit would silently re-price a
@@ -302,7 +322,7 @@ export async function buildExpense(
         if (entered.length === 0)
             throw badRequest('exactShares is required for an EXACT split', 'EXACT_SHARES_REQUIRED')
         assertNoDuplicates(entered.map((s) => s.memberId))
-        entered.forEach((s) => requireMember(room, s.memberId, 'share member'))
+        entered.forEach((s) => requireMember(room, s.memberId, 'share member', existingParticipantIds))
         const parsed = entered.map((s) => ({ memberId: s.memberId, amountMinor: parseMinor(s.amountMinor) }))
         const sum = parsed.reduce((a, s) => a + s.amountMinor, 0n)
         if (sum !== total) throw badRequest('exact shares must add up to the expense total', 'SHARES_DO_NOT_ADD_UP')
@@ -312,7 +332,7 @@ export async function buildExpense(
         if (entered.length === 0)
             throw badRequest('weightedShares is required for a weighted split', 'WEIGHTED_SHARES_REQUIRED')
         assertNoDuplicates(entered.map((share) => share.memberId))
-        entered.forEach((share) => requireMember(room, share.memberId, 'share member'))
+        entered.forEach((share) => requireMember(room, share.memberId, 'share member', existingParticipantIds))
         const parsed = entered.map((share) => ({ memberId: share.memberId, weight: parseMinor(share.weight) }))
         if (parsed.some((share) => share.weight <= 0n))
             throw badRequest('split weights must be greater than zero', 'SPLIT_WEIGHT_NOT_POSITIVE')
@@ -320,10 +340,10 @@ export async function buildExpense(
             throw badRequest('percentage shares must add up to 100%', 'PERCENTAGES_DO_NOT_ADD_UP')
         shares = apportionWeightedShares(baseAmountMinor, parsed)
     } else {
-        const ids = body.participantIds?.length ? body.participantIds : room.members.map((m) => m.id)
+        const ids = body.participantIds?.length ? body.participantIds : activeMembers(room.members).map((m) => m.id)
         if (ids.length === 0) throw badRequest('an expense needs at least one participant', 'NO_PARTICIPANTS')
         assertNoDuplicates(ids)
-        ids.forEach((id) => requireMember(room, id, 'participant'))
+        ids.forEach((id) => requireMember(room, id, 'participant', existingParticipantIds))
         shares = equalShares(baseAmountMinor, ids)
     }
 

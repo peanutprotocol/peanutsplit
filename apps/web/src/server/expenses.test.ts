@@ -33,6 +33,13 @@ const MEMBERS = ['ana', 'bea', 'caro', 'dani', 'eve']
 const roomIn = (currency: string): RoomWithRelations =>
     ({ id: 'room', currency, members: MEMBERS.map((id) => ({ id })) }) as unknown as RoomWithRelations
 
+const roomWithFormer = (currency: string): RoomWithRelations =>
+    ({
+        id: 'room',
+        currency,
+        members: MEMBERS.map((id) => ({ id, removedAt: id === 'bea' || id === 'caro' ? new Date() : null })),
+    }) as unknown as RoomWithRelations
+
 const tableOf = (usdPerUnit: Record<string, number>, base = 'EUR'): RateTable => {
     const usdPerBase = usdPerUnit[base]
     const basePerUnit =
@@ -104,6 +111,129 @@ const amountsFor = (seed: number, pair: readonly [string, string]): bigint[] => 
     const rand = rng(seed + PAIRS.findIndex(([f, t]) => f === pair[0] && t === pair[1]))
     return Array.from({ length: DRAWS }, () => BigInt(Math.floor(rand() * 5_000_000) + 1))
 }
+
+describe('Former membership on expense writes', () => {
+    it('defaults a new equal expense to active people only', async () => {
+        const write = await buildExpense(
+            roomWithFormer('EUR'),
+            body({ currency: 'EUR', participantIds: undefined }),
+            undefined,
+            STATIC_TABLE
+        )
+        expect(write.shares.map((share) => share.memberId)).toEqual(['ana', 'dani', 'eve'])
+    })
+
+    /**
+     * The client's offline queue has to guard against "the server will pick the
+     * roster for me", and it guards on the body. `[]` and an absent key are the
+     * same instruction here — so a guard written for one and not the other lets
+     * a draft saved hours ago be split among whoever happens to be in the room
+     * when it finally sends. Locked explicitly rather than left implied by the
+     * `?.length` in the expression.
+     */
+    it('reads an empty participant list as the same live roster as no list at all', async () => {
+        const write = await buildExpense(
+            roomWithFormer('EUR'),
+            body({ currency: 'EUR', participantIds: [] }),
+            undefined,
+            STATIC_TABLE
+        )
+        expect(write.shares.map((share) => share.memberId)).toEqual(['ana', 'dani', 'eve'])
+    })
+
+    it('rejects a Former identity introduced by a new write', async () => {
+        await expect(
+            buildExpense(
+                roomWithFormer('EUR'),
+                body({
+                    currency: 'EUR',
+                    splitMode: 'EXACT',
+                    exactShares: [{ memberId: 'bea', amountMinor: '10000' }],
+                }),
+                undefined,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'MEMBER_FORMER' })
+    })
+
+    it('lets an edit preserve its own Former references but not add another one', async () => {
+        const existing: ExistingExpense = {
+            date: new Date('2026-07-01T00:00:00.000Z'),
+            currency: 'EUR',
+            fxRate: new Prisma.Decimal(1),
+            amountMinor: 10_000n,
+            baseAmountMinor: 10_000n,
+            paidById: 'ana',
+            shares: [{ memberId: 'ana' }, { memberId: 'bea' }],
+        }
+        const preserved = await buildExpense(
+            roomWithFormer('EUR'),
+            body({ currency: 'EUR', participantIds: ['ana', 'bea'] }),
+            existing,
+            STATIC_TABLE
+        )
+        expect(preserved.shares.map((share) => share.memberId)).toEqual(['ana', 'bea'])
+
+        await expect(
+            buildExpense(
+                roomWithFormer('EUR'),
+                body({ currency: 'EUR', participantIds: ['ana', 'bea', 'caro'] }),
+                existing,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'MEMBER_FORMER' })
+    })
+
+    it('does not let an old Former participant escalate into payer', async () => {
+        const existing: ExistingExpense = {
+            date: new Date('2026-07-01T00:00:00.000Z'),
+            currency: 'EUR',
+            fxRate: new Prisma.Decimal(1),
+            amountMinor: 10_000n,
+            baseAmountMinor: 10_000n,
+            paidById: 'ana',
+            shares: [{ memberId: 'bea' }],
+        }
+        await expect(
+            buildExpense(
+                roomWithFormer('EUR'),
+                body({
+                    currency: 'EUR',
+                    paidById: 'bea',
+                    splitMode: 'EXACT',
+                    exactShares: [{ memberId: 'bea', amountMinor: '10000' }],
+                }),
+                existing,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'MEMBER_FORMER' })
+    })
+
+    it('does not let an old Former payer escalate into participant', async () => {
+        const existing: ExistingExpense = {
+            date: new Date('2026-07-01T00:00:00.000Z'),
+            currency: 'EUR',
+            fxRate: new Prisma.Decimal(1),
+            amountMinor: 10_000n,
+            baseAmountMinor: 10_000n,
+            paidById: 'bea',
+            shares: [{ memberId: 'ana' }],
+        }
+        await expect(
+            buildExpense(
+                roomWithFormer('EUR'),
+                body({
+                    currency: 'EUR',
+                    paidById: 'ana',
+                    splitMode: 'EXACT',
+                    exactShares: [{ memberId: 'bea', amountMinor: '10000' }],
+                }),
+                existing,
+                STATIC_TABLE
+            )
+        ).rejects.toMatchObject({ code: 'MEMBER_FORMER' })
+    })
+})
 
 describe('manual rates for invented expense currencies', () => {
     it('loads catalog FX only for a new real-currency pair', () => {

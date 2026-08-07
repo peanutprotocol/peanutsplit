@@ -3,12 +3,14 @@ import { ApiRequestError, NETWORK_ERROR_CODE } from './api'
 import type { ExpenseInput, RoomState } from './api-types'
 import {
     MAX_QUEUED,
+    OFFLINE_EQUAL_ROSTER_UNKNOWN,
     PENDING_ITEM_PREFIX,
     PENDING_KEY,
     RETRY_BASE_MS,
     appendQueued,
     drainPending,
     drainQueue,
+    discardQueuedWrite,
     enqueueWrite,
     isOfflineFailure,
     isQueuedExpenseId,
@@ -17,10 +19,15 @@ import {
     parseQueue,
     queueRetryDelay,
     queueSnapshot,
+    queuedParticipantIds,
     refreshQueueSnapshot,
+    remapQueuedExpenseParticipant,
+    remapQueuedExpensePayer,
+    retryBlockedWrite,
     setQueuePerformer,
     setQueueStorage,
     subscribeToQueueNotices,
+    updateBlockedWrite,
     verdictFor,
     type QueueNotice,
     type QueuedWrite,
@@ -50,6 +57,7 @@ const input = (overrides: Partial<ExpenseInput> = {}): ExpenseInput => ({
     currency: 'EUR',
     paidById: 'bea',
     splitMode: 'EQUAL',
+    participantIds: ['ana', 'bea'],
     ...overrides,
 })
 
@@ -206,6 +214,20 @@ describe('the cap', () => {
         expect(items).toHaveLength(MAX_QUEUED)
         expect(dropped).toHaveLength(4)
     })
+
+    it('never evicts blocked drafts; a new draft is refused when every slot needs review', () => {
+        const blocked = Array.from({ length: MAX_QUEUED }, (_, i) =>
+            item({
+                clientKey: `blocked-${i}`,
+                blocked: { code: 'MEMBER_FORMER', blockedAt: 1_700_000_000_000 + i },
+            })
+        )
+        const incoming = item({ clientKey: 'incoming' })
+        const result = appendQueued(blocked, incoming)
+
+        expect(result.items).toEqual(blocked)
+        expect(result.dropped).toEqual([incoming])
+    })
 })
 
 describe('what to do with a refusal', () => {
@@ -221,6 +243,12 @@ describe('what to do with a refusal', () => {
         expect(verdictFor(apiError(503, 'INTERNAL'))).toBe('stop')
         expect(verdictFor(networkError())).toBe('stop')
         expect(verdictFor(new Error('who knows'))).toBe('stop')
+    })
+
+    it('blocks membership refusals for review instead of deleting the money draft', () => {
+        for (const code of ['MEMBER_FORMER', 'MEMBER_TOKEN_INVALID', 'NOT_A_MEMBER']) {
+            expect(verdictFor(apiError(403, code))).toBe('block')
+        }
     })
 })
 
@@ -264,7 +292,28 @@ describe('draining', () => {
         const perform = vi.fn()
         const summary = await drainQueue([], perform)
         expect(perform).not.toHaveBeenCalled()
-        expect(summary).toEqual({ remaining: [], sent: [], dropped: [] })
+        expect(summary).toEqual({ remaining: [], sent: [], dropped: [], blocked: [] })
+    })
+
+    it('keeps a new block as a per-room ordering barrier without starving another room', async () => {
+        const sameRoomLater = item({ clientKey: 'a2', addedAt: 2 })
+        const otherRoom = item({
+            clientKey: 'b1',
+            slug: 'beach-trip-bbb',
+            endpoint: '/api/rooms/beach-trip-bbb/expenses',
+            addedAt: 3,
+        })
+        const attempted: string[] = []
+        const summary = await drainQueue([item({ clientKey: 'a1' }), sameRoomLater, otherRoom], async (queued) => {
+            attempted.push(queued.clientKey)
+            if (queued.clientKey === 'a1') throw apiError(403, 'MEMBER_FORMER')
+        })
+
+        expect(attempted).toEqual(['a1', 'b1'])
+        expect(summary.blocked.map((queued) => queued.clientKey)).toEqual(['a1'])
+        expect(summary.remaining.map((queued) => queued.clientKey)).toEqual(['a2'])
+        expect(summary.sent.map((queued) => queued.clientKey)).toEqual(['b1'])
+        expect(summary.blocked[0].body).toEqual(item().body)
     })
 })
 
@@ -376,6 +425,64 @@ describe('queued rows on screen', () => {
         // An in-flight optimistic row is somebody else's business.
         expect(isQueuedExpenseId('pending-1700000000', queued)).toBe(false)
         expect(isQueuedExpenseId('e1', queued)).toBe(false)
+    })
+})
+
+describe('reviewing member roles without changing money', () => {
+    it('remaps EQUAL payer and participants and refuses a duplicate target', () => {
+        const original = input({ paidById: 'former-payer', participantIds: ['active-a', 'former-b'] })
+        const payer = remapQueuedExpensePayer(original, 'active-c')
+        const remapped = remapQueuedExpenseParticipant(payer, 'former-b', 'active-c')!
+
+        expect(remapped).toMatchObject({ paidById: 'active-c', participantIds: ['active-a', 'active-c'] })
+        expect(remapQueuedExpenseParticipant(original, 'former-b', 'active-a')).toBeNull()
+    })
+
+    it('remaps EXACT identity only and preserves every entered amount', () => {
+        const original = input({
+            splitMode: 'EXACT',
+            exactShares: [
+                { memberId: 'active-a', amountMinor: '1234' },
+                { memberId: 'former-b', amountMinor: '4766' },
+            ],
+        })
+        const remapped = remapQueuedExpenseParticipant(original, 'former-b', 'active-c')!
+
+        expect(remapped.exactShares).toEqual([
+            { memberId: 'active-a', amountMinor: '1234' },
+            { memberId: 'active-c', amountMinor: '4766' },
+        ])
+        expect(remapped.amountMinor).toBe(original.amountMinor)
+    })
+
+    it.each([
+        ['PERCENTAGE' as const, [{ memberId: 'former-b', weight: '3750' }]],
+        ['SHARES' as const, [{ memberId: 'former-b', weight: '7' }]],
+    ])('remaps %s identity only and preserves its original weight', (splitMode, weightedShares) => {
+        const original = input({ splitMode, weightedShares })
+        const remapped = remapQueuedExpenseParticipant(original, 'former-b', 'active-c')!
+
+        expect(remapped.weightedShares).toEqual([{ memberId: 'active-c', weight: weightedShares[0].weight }])
+        expect(queuedParticipantIds(remapped)).toEqual(['active-c'])
+    })
+
+    it('persists a reviewed body across restart while retaining the block and client key', () => {
+        const blocked = item({
+            clientKey: 'reviewed-key',
+            body: input({ paidById: 'former-payer' }),
+            blocked: { code: 'MEMBER_FORMER', blockedAt: Date.now() },
+        })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${blocked.clientKey}`, JSON.stringify(blocked))
+        refreshQueueSnapshot()
+
+        expect(updateBlockedWrite(blocked.clientKey, remapQueuedExpensePayer(blocked.body, 'active-payer'))).toBe(true)
+        setQueueStorage(storage)
+
+        expect(queueSnapshot()[0]).toMatchObject({
+            clientKey: 'reviewed-key',
+            body: { clientKey: 'reviewed-key', paidById: 'active-payer', amountMinor: '6000' },
+            blocked: { code: 'MEMBER_FORMER' },
+        })
     })
 })
 
@@ -588,6 +695,256 @@ describe('the queue end to end', () => {
 
         expect(queueSnapshot()).toEqual([])
         expect(notices.at(-1)).toEqual({ kind: 'dropped-rejected', count: 1 })
+    })
+
+    it('persists a member-blocked draft across restart without retry spin or data loss', async () => {
+        const setTimeout = vi.fn((_callback: () => void, _delay?: number) => 42)
+        vi.stubGlobal('window', { setTimeout, clearTimeout: vi.fn() })
+        const first = enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input({ description: 'Dinner', amountMinor: '987654321' }),
+            token: 'old-token',
+        })!
+        enqueueWrite({
+            slug: 'ski-trip-aaa',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            method: 'POST',
+            body: input({ description: 'Later taxi' }),
+        })
+        const attempted: string[] = []
+        setQueuePerformer(async (queued) => {
+            attempted.push(queued.clientKey)
+            if (queued.clientKey === first.clientKey) throw apiError(403, 'MEMBER_FORMER')
+        })
+
+        await drainPending()
+
+        expect(attempted).toEqual([first.clientKey])
+        expect(setTimeout).not.toHaveBeenCalled()
+        expect(queueSnapshot()[0]).toMatchObject({
+            clientKey: first.clientKey,
+            token: 'old-token',
+            body: { description: 'Dinner', amountMinor: '987654321' },
+            blocked: { code: 'MEMBER_FORMER' },
+        })
+        expect(storage.getItem(`${PENDING_ITEM_PREFIX}${first.clientKey}`)).toContain('987654321')
+
+        // A new module snapshot reads the blocked metadata and complete body
+        // from storage rather than relying on this session's memory.
+        setQueueStorage(storage)
+        expect(queueSnapshot()[0]).toMatchObject({
+            clientKey: first.clientKey,
+            body: { description: 'Dinner', amountMinor: '987654321' },
+            blocked: { code: 'MEMBER_FORMER' },
+        })
+        expect(notices.at(-1)).toEqual({ kind: 'blocked-member', count: 1 })
+    })
+
+    it('blocks a legacy implicit EQUAL roster until review materializes current participants', async () => {
+        const legacy = item({
+            clientKey: 'legacy-equal-roster',
+            body: input({ participantIds: undefined }),
+        })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${legacy.clientKey}`, JSON.stringify(legacy))
+        setQueueStorage(storage)
+        const sent: QueuedWrite[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued))
+
+        await drainPending()
+
+        expect(sent).toEqual([])
+        expect(queueSnapshot()[0]).toMatchObject({
+            clientKey: legacy.clientKey,
+            body: { splitMode: 'EQUAL' },
+            blocked: { code: OFFLINE_EQUAL_ROSTER_UNKNOWN, blockedAt: legacy.addedAt },
+        })
+        expect(queueSnapshot()[0].body.participantIds).toBeUndefined()
+
+        setQueuePerformer(null)
+        expect(retryBlockedWrite(legacy.clientKey, 'current-token')).toBe(false)
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+        expect(
+            retryBlockedWrite(legacy.clientKey, 'current-token', {
+                ...queueSnapshot()[0].body,
+                participantIds: ['ana', 'carla'],
+            })
+        ).toBe(true)
+        expect(queueSnapshot()[0]).toMatchObject({
+            body: { participantIds: ['ana', 'carla'] },
+            token: 'current-token',
+        })
+        expect(queueSnapshot()[0].blocked).toBeUndefined()
+
+        setQueuePerformer(async (queued) => void sent.push(queued))
+        await drainPending()
+        expect(sent).toHaveLength(1)
+        expect(sent[0].body.participantIds).toEqual(['ana', 'carla'])
+        expect(queueSnapshot()).toEqual([])
+    })
+
+    it('reports failure when storage loses the atomic reviewed body, and keeps legacy EQUAL blocked', async () => {
+        const legacy = item({
+            clientKey: 'legacy-storage-race',
+            body: input({ participantIds: undefined }),
+        })
+        const readableButUnwritable = memoryStorage()
+        readableButUnwritable.setItem(`${PENDING_ITEM_PREFIX}${legacy.clientKey}`, JSON.stringify(legacy))
+        readableButUnwritable.setItem = () => {
+            throw new DOMException('quota exceeded', 'QuotaExceededError')
+        }
+        setQueueStorage(readableButUnwritable)
+        const sent: QueuedWrite[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued))
+
+        // The confirmation never reached the device, so the answer is no. A true
+        // here was the whole bug: the screen showed nothing, and the row went on
+        // saying "waiting to send" forever.
+        expect(
+            retryBlockedWrite(legacy.clientKey, 'current-token', {
+                ...queueSnapshot()[0].body,
+                participantIds: ['ana', 'carla'],
+            })
+        ).toBe(false)
+
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+        expect(queueSnapshot()[0].body.participantIds).toBeUndefined()
+        expect(sent).toEqual([])
+    })
+
+    /**
+     * `[]` is not a narrower split. The server resolves
+     * `participantIds?.length ? … : activeMembers(room)`, so an empty array and
+     * an absent key are one instruction — and a guard written for `undefined`
+     * lets the empty one through as a sendable implicit roster.
+     */
+    it('holds an EMPTY EQUAL roster exactly as it holds an absent one', async () => {
+        const empty = item({ clientKey: 'empty-equal-roster', body: input({ participantIds: [] }) })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${empty.clientKey}`, JSON.stringify(empty))
+        setQueueStorage(storage)
+        const sent: QueuedWrite[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued))
+
+        await drainPending()
+
+        expect(sent).toEqual([])
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+
+        setQueuePerformer(null)
+        // …and an empty roster is not a confirmation of one either.
+        expect(retryBlockedWrite(empty.clientKey, 'current-token', { ...empty.body, participantIds: [] })).toBe(false)
+        expect(queueSnapshot()[0].blocked?.code).toBe(OFFLINE_EQUAL_ROSTER_UNKNOWN)
+
+        expect(
+            retryBlockedWrite(empty.clientKey, 'current-token', { ...empty.body, participantIds: ['ana', 'bea'] })
+        ).toBe(true)
+        expect(queueSnapshot()[0].blocked).toBeUndefined()
+    })
+
+    /**
+     * A read-time block never reaches `drainQueue`, so it never appeared in a
+     * drain summary and nothing was ever toasted — while it silently barred
+     * every later write in its room. The promise is that a draft waits until the
+     * user confirms it, which requires having asked them.
+     */
+    it('says a legacy draft needs review instead of silently barring its room', async () => {
+        const legacy = item({ clientKey: 'legacy-barrier', body: input({ participantIds: undefined }) })
+        const later = item({ clientKey: 'later-same-room', addedAt: legacy.addedAt + 1 })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${legacy.clientKey}`, JSON.stringify(legacy))
+        storage.setItem(`${PENDING_ITEM_PREFIX}${later.clientKey}`, JSON.stringify(later))
+        setQueueStorage(storage)
+        const sent: string[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued.clientKey))
+
+        const summary = await drainPending()
+
+        // Its own reason, not the membership one: nobody left this room, and
+        // sending the reader to check the People list would waste their time.
+        expect(notices).toContainEqual({ kind: 'blocked-roster', count: 1 })
+        expect(notices.some((notice) => notice.kind === 'blocked-member')).toBe(false)
+        expect(sent).toEqual([])
+        // The later draft is held behind the barrier, and the summary says so
+        // rather than reporting an idle queue.
+        expect(summary?.blocked.map((held) => held.clientKey)).toEqual([legacy.clientKey])
+        expect(summary?.remaining.map((held) => held.clientKey)).toEqual([legacy.clientKey, later.clientKey])
+        expect(queueSnapshot().map((held) => held.clientKey)).toEqual([legacy.clientKey, later.clientKey])
+
+        // Told once. A read-time block is re-derived on every snapshot, and a
+        // toast on every sync attempt would be its own bug.
+        notices.length = 0
+        await drainPending()
+        expect(notices).toEqual([])
+    })
+
+    it('retries with the currently claimed token and clears only after success', async () => {
+        const blocked = item({
+            clientKey: 'blocked-token',
+            token: 'rotated-away',
+            blocked: { code: 'MEMBER_TOKEN_INVALID', blockedAt: Date.now() },
+        })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${blocked.clientKey}`, JSON.stringify(blocked))
+        refreshQueueSnapshot()
+
+        expect(
+            updateBlockedWrite(blocked.clientKey, remapQueuedExpensePayer(blocked.body, 'reviewed-active-payer'))
+        ).toBe(true)
+        expect(retryBlockedWrite(blocked.clientKey, 'current-token')).toBe(true)
+        expect(queueSnapshot()[0]).toMatchObject({ clientKey: blocked.clientKey, token: 'current-token' })
+        expect(queueSnapshot()[0].blocked).toBeUndefined()
+
+        const sent: QueuedWrite[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued))
+        await drainPending()
+        expect(sent[0]).toMatchObject({
+            clientKey: 'blocked-token',
+            token: 'current-token',
+            endpoint: '/api/rooms/ski-trip-aaa/expenses',
+            slug: 'ski-trip-aaa',
+            body: { clientKey: 'blocked-token', paidById: 'reviewed-active-payer', amountMinor: '6000' },
+        })
+        expect(queueSnapshot()).toEqual([])
+    })
+
+    it('re-blocks a reviewed target that became Former during send without changing the edited body', async () => {
+        const reviewed = item({
+            clientKey: 'race-review',
+            token: 'current-token',
+            body: input({ paidById: 'active-at-review', clientKey: 'race-review' }),
+            blocked: { code: 'MEMBER_FORMER', blockedAt: Date.now() - 1 },
+        })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${reviewed.clientKey}`, JSON.stringify(reviewed))
+        refreshQueueSnapshot()
+        setQueuePerformer(async () => {
+            throw apiError(400, 'MEMBER_FORMER')
+        })
+
+        retryBlockedWrite(reviewed.clientKey, 'new-current-token')
+        await vi.waitFor(() => expect(queueSnapshot()[0]?.blocked?.code).toBe('MEMBER_FORMER'))
+
+        expect(queueSnapshot()[0]).toMatchObject({
+            clientKey: 'race-review',
+            token: 'new-current-token',
+            body: { clientKey: 'race-review', paidById: 'active-at-review', amountMinor: '6000' },
+            blocked: { code: 'MEMBER_FORMER' },
+        })
+    })
+
+    it('sends the next same-room draft only after explicit discard removes the barrier', async () => {
+        const blocked = item({
+            clientKey: 'blocked-first',
+            blocked: { code: 'NOT_A_MEMBER', blockedAt: Date.now() },
+        })
+        const later = item({ clientKey: 'later', addedAt: blocked.addedAt + 1 })
+        storage.setItem(`${PENDING_ITEM_PREFIX}${blocked.clientKey}`, JSON.stringify(blocked))
+        storage.setItem(`${PENDING_ITEM_PREFIX}${later.clientKey}`, JSON.stringify(later))
+        refreshQueueSnapshot()
+        const sent: string[] = []
+        setQueuePerformer(async (queued) => void sent.push(queued.clientKey))
+
+        expect(discardQueuedWrite(blocked.clientKey)).toBe(true)
+        await vi.waitFor(() => expect(queueSnapshot()).toEqual([]))
+        expect(sent).toEqual(['later'])
     })
 
     /**

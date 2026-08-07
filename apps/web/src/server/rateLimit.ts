@@ -20,6 +20,7 @@ export interface Limit {
 }
 
 const HOUR_MS = 60 * 60 * 1000
+const DAY_MS = 24 * HOUR_MS
 
 /** SPEC: 20/hour on room and member creation — the rows nobody can delete. */
 export const CREATE_LIMIT: Limit = { capacity: 20, windowMs: HOUR_MS }
@@ -44,6 +45,10 @@ export const LOOKUP_MISS_LIMIT: Limit = { capacity: 30, windowMs: HOUR_MS }
  *  able to hold every SSE slot on the box and silently demote every other room
  *  in the container to the slow poll. */
 export const EVENTS_LIMIT: Limit = { capacity: 30, windowMs: HOUR_MS }
+/** Private support writes carry durable text and may carry a screenshot. Keep a
+ * runaway form to five reports per caller and twenty per real room per day. */
+export const FEEDBACK_LIMIT: Limit = { capacity: 5, windowMs: HOUR_MS }
+export const FEEDBACK_ROOM_LIMIT: Limit = { capacity: 20, windowMs: DAY_MS }
 
 export interface Bucket {
     tokens: number

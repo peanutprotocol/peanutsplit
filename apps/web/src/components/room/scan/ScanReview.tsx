@@ -164,7 +164,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                 data-testid="scan-totals"
                 className={cn(
                     'flex flex-col gap-1 rounded-sm border border-n-1 p-3 text-h8',
-                    hasMismatch ? 'bg-error-1' : 'bg-primary-3'
+                    hasMismatch ? 'bg-secondary-1' : 'bg-primary-3'
                 )}
             >
                 <div className="flex items-center justify-between">
@@ -178,7 +178,7 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                     </div>
                 )}
                 {hasMismatch && (
-                    <p role="alert" className="pt-1 text-sm font-bold text-error">
+                    <p role="status" className="pt-1 text-sm text-grey-1">
                         {t('mismatch', {
                             amount: formatMoney(
                                 mismatch.startsWith('-') ? mismatch.slice(1) : mismatch,

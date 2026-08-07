@@ -23,6 +23,15 @@ async function join(page: Page, url: string, name: string): Promise<void> {
     await expect(page.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
 }
 
+async function keepEarlierLedgerUnchanged(page: Page, memberName: string): Promise<void> {
+    const banner = page.getByTestId('latecomer-banner')
+    // A refetch can briefly offer the previously newest member while the join
+    // response lands. Dismiss only the row this device just claimed.
+    await expect(banner).toContainText(`Did ${memberName} share any earlier expenses?`, { timeout: 15_000 })
+    await banner.getByTestId('latecomer-dismiss').click()
+    await expect(page.getByTestId('latecomer-banner')).toHaveCount(0)
+}
+
 test.describe.configure({ mode: 'serial' })
 
 let roomUrl = ''
@@ -36,17 +45,44 @@ test.beforeAll(async ({ browser }) => {
     await page.getByTestId('create-room').click()
     roomUrl = await enterCreatedRoom(page)
 
-    // Two more people, because CREW's first rung is three.
+    // One more person. A third joins in the first test so we can prove that an
+    // empty three-person room still prioritizes its private invite over CREW.
     const bea = await openDevice(browser)
     await join(bea, roomUrl, 'Bea')
-    const caro = await openDevice(browser)
-    await join(caro, roomUrl, 'Caro')
     await page.context().close()
+})
+
+test('an empty room keeps Share room primary and waits for a ledger milestone before CREW', async ({ newDevice }) => {
+    const page = await newDevice()
+    await join(page, roomUrl, 'Caro')
+
+    await expect(page.getByTestId('achievement-moment')).toHaveCount(0)
+    await expect(page.getByTestId('share-card-crew')).toHaveCount(0)
+    const emptyShare = page.getByTestId('empty-share')
+    const emptyAdd = page.getByTestId('open-add-expense')
+    await expect(emptyShare).toHaveText('Share room')
+    await expect(emptyShare).toHaveClass(/btn-primary/)
+    await expect(emptyAdd).toHaveClass(/btn-stroke/)
+
+    // The first real ledger row earns the keepsake moment. Its post-aha private
+    // invite gets first refusal, then CREW can appear after that sheet closes.
+    await emptyAdd.click()
+    await page.getByTestId('expense-amount').fill('30')
+    await page.getByTestId('expense-description').fill('First shared dinner')
+    await page.getByTestId('save-expense').click()
+    await expect(page.getByRole('dialog', { name: 'First split done' })).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('skip-post-aha-share').click()
+
+    const moment = page.getByTestId('achievement-moment')
+    await expect(moment).toBeVisible({ timeout: 15_000 })
+    await expect(moment).toHaveAttribute('data-achievement', 'crew-3')
+    await expect(moment.getByTestId('share-card-crew')).toHaveText('Share image')
 })
 
 test('the crew moment fires once, then never again on this device', async ({ newDevice }) => {
     const page = await newDevice()
     await join(page, roomUrl, 'Dan')
+    await keepEarlierLedgerUnchanged(page, 'Dan')
 
     const moment = page.getByTestId('achievement-moment')
     await expect(moment).toBeVisible({ timeout: 15_000 })
@@ -83,6 +119,7 @@ test('the crew moment fires once, then never again on this device', async ({ new
 test.fixme('the moment reads without motion, and fits a 375px screen', async ({ newDevice }) => {
     const page = await newDevice({ viewport: { width: 375, height: 667 }, reducedMotion: 'reduce' })
     await join(page, roomUrl, 'Eve')
+    await keepEarlierLedgerUnchanged(page, 'Eve')
 
     const moment = page.getByTestId('achievement-moment')
     await expect(moment).toBeVisible({ timeout: 15_000 })
@@ -107,11 +144,42 @@ test.fixme('the moment reads without motion, and fits a 375px screen', async ({ 
 test('the crew moment is a keepsake, not roster completion or an invitation prompt', async ({ browser }) => {
     const context = await browser.newContext()
     const page = await context.newPage()
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async (payload: ShareData) => {
+                ;(window as Window & { __achievementSharePayload?: ShareData }).__achievementSharePayload = payload
+            },
+        })
+    })
+    const cardReady = page.waitForResponse((response) => response.url().includes('/card/crew'))
     await join(page, roomUrl, 'Fede')
+    await keepEarlierLedgerUnchanged(page, 'Fede')
 
     await expect(page.getByTestId('achievement-moment')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('achievement-invite')).toHaveCount(0)
     await expect(page.getByTestId('share-card-crew')).toHaveAccessibleName(copy.shareLabel.crew)
+    await expect(page.getByTestId('share-card-crew')).toHaveText('Share image')
     await expect(page.getByTestId('achievement-moment')).not.toContainText(/missing|join|invite/i)
+    await cardReady
+    await page.evaluate(
+        () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+    )
+    await page.getByTestId('share-card-crew').click()
+    await expect
+        .poll(() =>
+            page.evaluate(
+                () => (window as Window & { __achievementSharePayload?: ShareData }).__achievementSharePayload
+            )
+        )
+        .toBeTruthy()
+    const payload = await page.evaluate(
+        () => (window as Window & { __achievementSharePayload?: ShareData }).__achievementSharePayload
+    )
+    expect(Object.keys(payload ?? {})).toEqual(['files'])
+    expect(payload?.files).toHaveLength(1)
+    expect(payload).not.toHaveProperty('url')
+    expect(payload).not.toHaveProperty('text')
     await context.close()
 })

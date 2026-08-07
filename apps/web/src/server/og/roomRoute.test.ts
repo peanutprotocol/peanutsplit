@@ -71,6 +71,8 @@ describe('room opengraph-image', () => {
         expect([...bytes.slice(0, 4)]).toEqual(PNG_MAGIC)
         expect(bytes.byteLength).toBeGreaterThan(5_000)
         expect(response.headers.get('Cache-Control')).toContain('max-age=300')
+        expect(response.headers.get('Cache-Control')).toContain('s-maxage=300')
+        expect(response.headers.get('Cache-Control')).toContain('stale-while-revalidate=60')
     }, 30_000)
 
     it('rasterizes a themed room, overflow chip and empty seat and all', async () => {

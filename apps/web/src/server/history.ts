@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { Prisma } from '@prisma/client'
 import type { RoomHistoryPage } from '@/lib/api-types'
 import { prisma } from '@/server/db'
-import { badRequest, notFound } from '@/server/http'
+import { ApiError, badRequest, notFound } from '@/server/http'
 
 export const ROOM_ACTIONS = [
     'history_started',
@@ -13,6 +13,7 @@ export const ROOM_ACTIONS = [
     'member_joined',
     'member_added',
     'member_removed',
+    'member_restored',
     'member_avatar_updated',
     'expense_added',
     'expense_edited',
@@ -296,13 +297,19 @@ const deviceHash = (request: Request, roomId: string): string | null => {
     return raw ? createHash('sha256').update(`split-room-device\0${roomId}\0${raw}`).digest('hex') : null
 }
 
-/** Resolve the optional attribution token without changing link-holder authorization. */
+/** Resolve optional attribution. A missing token remains anonymous link-holder
+ * access, but a supplied token is a concrete identity claim: accepting an old
+ * or Former member's proof as anonymous would silently misattribute writes. */
 export function actorFromToken(
-    members: readonly { id: string; name: string; token: string }[],
+    members: readonly { id: string; name: string; token: string; removedAt?: Date | string | null }[],
     token: string | null
 ): AuditActor {
-    const member = token ? members.find((candidate) => candidate.token === token) : undefined
-    return member ? { memberId: member.id, memberName: member.name } : { memberId: null, memberName: null }
+    if (!token) return { memberId: null, memberName: null }
+    const member = members.find((candidate) => candidate.token === token && candidate.removedAt == null)
+    if (!member) {
+        throw new ApiError(403, 'MEMBER_TOKEN_INVALID', 'this device is not signed in as an active member of this room')
+    }
+    return { memberId: member.id, memberName: member.name }
 }
 
 export const actorForMember = (member: { id: string; name: string }): AuditActor => ({

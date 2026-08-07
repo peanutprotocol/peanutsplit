@@ -12,10 +12,33 @@ import {
     percentageRemainingBasisPoints,
     percentageShareEntries,
     remainingMinor,
+    referencedDraftParticipantIds,
     repairMisplacedExpenseFields,
     validateExpenseForm,
     type ExpenseFormValues,
 } from './expense-form'
+
+describe('participant references kept visible during a live draft', () => {
+    const draft = (overrides: Partial<ExpenseFormValues>): ExpenseFormValues => ({
+        ...emptyExpenseForm({ currency: 'EUR', members: [], paidById: 'payer' }),
+        ...overrides,
+    })
+
+    it('materialises only a deliberately touched EQUAL roster', () => {
+        expect(referencedDraftParticipantIds(draft({ participantIds: ['a', 'b'] }))).toEqual([])
+        expect(referencedDraftParticipantIds(draft({ participantIds: ['a', 'b'], participantsTouched: true }))).toEqual(
+            ['a', 'b']
+        )
+    })
+
+    it('preserves exact and weighted role ids without changing their money fields', () => {
+        expect(referencedDraftParticipantIds(draft({ splitMode: 'EXACT', exactInputs: { a: '12.34' } }))).toEqual(['a'])
+        expect(
+            referencedDraftParticipantIds(draft({ splitMode: 'PERCENTAGE', percentageInputs: { a: '25', b: '75' } }))
+        ).toEqual(['a', 'b'])
+        expect(referencedDraftParticipantIds(draft({ splitMode: 'SHARES', shareInputs: { b: '3' } }))).toEqual(['b'])
+    })
+})
 
 /**
  * A CHF expense in a EUR room, split EXACT. `enteredAmountMinor` is what was
@@ -54,6 +77,7 @@ describe('expenseToFormValues — the no-drift path', () => {
         const body = buildExpenseBody(expenseToFormValues(foreignExactExpense))
         expect(body).toEqual({
             description: 'Lift passes',
+            category: null,
             amountMinor: '10000',
             currency: 'CHF',
             paidById: 'm1',
@@ -140,6 +164,7 @@ describe('expenseToFormValues — the no-drift path', () => {
 
 const baseForm = (overrides: Partial<ExpenseFormValues> = {}): ExpenseFormValues => ({
     description: 'Dinner',
+    category: null,
     amountInput: '60.00',
     currency: 'EUR',
     paidById: 'm1',
@@ -190,12 +215,34 @@ describe('staged new payer', () => {
         expect(validateExpenseForm(values)).toBeNull()
         expect(buildExpenseBody(values)).toEqual({
             description: 'Dinner',
+            category: null,
             amountMinor: '6000',
             currency: 'EUR',
             newPaidByName: 'Bea',
             date: '2026-07-25T12:00:00.000Z',
             splitMode: 'EQUAL',
         })
+    })
+})
+
+describe('saved category override', () => {
+    it('starts on automatic inference and persists a deliberate choice', () => {
+        const fresh = emptyExpenseForm({
+            currency: 'EUR',
+            members: [{ id: 'm1', name: 'Ana', avatar: null, createdAt: '2026-07-25T12:00:00.000Z' }],
+            paidById: 'm1',
+        })
+        expect(fresh.category).toBeNull()
+
+        const body = buildExpenseBody(baseForm({ description: 'Pizza', category: 'transport' }))
+        expect(body.category).toBe('transport')
+    })
+
+    it('round-trips an existing override through edit values, including clearing it', () => {
+        const edited = expenseToFormValues({ ...foreignExactExpense, category: 'travel-stays' })
+        expect(edited.category).toBe('travel-stays')
+        expect(buildExpenseBody(edited).category).toBe('travel-stays')
+        expect(buildExpenseBody({ ...edited, category: null }).category).toBeNull()
     })
 })
 

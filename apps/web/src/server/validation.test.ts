@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
 import {
+    createMemberSchema,
     createRoomSchema,
     expensePatchSchema,
     expenseSchema,
@@ -13,6 +14,17 @@ import {
     roomSettingsSchema,
     settlementSchema,
 } from '@/server/validation'
+
+describe('person names', () => {
+    it('normalizes names before they become shared room data', () => {
+        const parsed = createMemberSchema.parse({ name: `  Jose\u0301${'\u0336'.repeat(20)}  ` })
+        expect(parsed.name).toBe(`José${'\u0336'.repeat(3)}`)
+    })
+
+    it('bounds hostile input before Unicode normalization', () => {
+        expect(createMemberSchema.safeParse({ name: 'x'.repeat(321) }).success).toBe(false)
+    })
+})
 
 const expense = (amountMinor: unknown) => ({
     description: 'Dinner',

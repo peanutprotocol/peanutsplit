@@ -34,19 +34,16 @@ test('creation pauses at a concise roster checkpoint before entering the room', 
 })
 
 test('the in-room hand-off keeps copy inline and makes sharing the primary action', async ({ page }) => {
+    const previewRequestPromise = page.waitForRequest((request) => request.url().includes('/opengraph-image'))
     await createRoom(page, 'Beer trip')
+    const previewRequest = await previewRequestPromise
+    expect(previewRequest.method()).toBe('GET')
+    expect(new URL(previewRequest.url()).pathname).toMatch(/\/r\/beer-trip-[A-Za-z0-9_-]{22}\/opengraph-image$/)
+    expect(previewRequest.headers()).not.toHaveProperty('x-member-token')
+
     await page.getByRole('button', { name: 'Skip', exact: true }).click()
     await page.waitForURL(/\/r\/beer-trip-/)
-
-    const inviteRequestPromise = page.waitForRequest((request) => request.url().includes('/card/invite'))
     await page.getByTestId('share-room').click()
-
-    const inviteRequest = await inviteRequestPromise
-    expect(inviteRequest.method()).toBe('POST')
-    expect(new URL(inviteRequest.url()).search).toBe('')
-    expect(Object.keys(inviteRequest.postDataJSON() as Record<string, unknown>)).toEqual(['memberId'])
-    expect((inviteRequest.postDataJSON() as { memberId: unknown }).memberId).toEqual(expect.any(String))
-    expect(inviteRequest.headers()).not.toHaveProperty('x-member-token')
 
     const row = page.getByTestId('room-link-row')
     await expect(row).toBeVisible({ timeout: 15_000 })
@@ -57,6 +54,7 @@ test('the in-room hand-off keeps copy inline and makes sharing the primary actio
     const share = page.getByTestId('share-link')
     await expect(share).toBeVisible()
     await expect(share).toHaveClass(/btn-primary/)
+    await expect(share).toHaveText('Share room link')
 
     const [rowBox, copyBox] = await Promise.all([row.boundingBox(), row.getByTestId('copy-link').boundingBox()])
     expect(rowBox).not.toBeNull()

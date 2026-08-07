@@ -68,7 +68,11 @@ export function SettlementRow({
         if (actionsDisabled) setConfirming(false)
     }, [actionsDisabled])
 
-    const nameOf = (id: string) => state.members.find((member) => member.id === id)?.name ?? tExpenses('someone')
+    const nameOf = (id: string) => {
+        const member = state.members.find((candidate) => candidate.id === id)
+        if (!member) return tExpenses('someone')
+        return member.removedAt == null ? member.name : tSettle('formerName', { name: member.name })
+    }
     const avatarOf = (id: string) => state.members.find((member) => member.id === id)?.avatar ?? null
     const paletteOf = (id: string) => state.members.find((member) => member.id === id)?.avatarPalette ?? null
 

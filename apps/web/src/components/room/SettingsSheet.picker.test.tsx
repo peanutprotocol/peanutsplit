@@ -46,8 +46,17 @@ vi.mock('@/components/ui/Icon', () => ({
     Icon: ({ name }: { name: string }) => createElement('span', { 'data-room-picker-icon': name }),
 }))
 vi.mock('@/components/ui/SettingRow', () => ({
-    SettingRow: ({ label, trailing }: { label: string; trailing?: ReactNode }) =>
-        createElement('div', null, label, trailing),
+    SettingRow: ({
+        label,
+        value,
+        trailing,
+        testId,
+    }: {
+        label: string
+        value?: string
+        trailing?: ReactNode
+        testId: string
+    }) => createElement('div', { 'data-testid': testId }, label, value, trailing),
 }))
 vi.mock('@/components/ui/SlideToConfirm', () => ({ SlideToConfirm: () => null }))
 vi.mock('@/lib/analytics', () => ({ roomProps: () => ({}), track: () => undefined }))
@@ -60,6 +69,7 @@ vi.mock('@/lib/queries', () => ({
 }))
 vi.mock('@/lib/use-settings', () => ({ useFeedback: () => () => undefined }))
 vi.mock('./DeviceSheet', () => ({ DeviceSheet: () => null }))
+vi.mock('./FeedbackReportDrawer', () => ({ FeedbackReportDrawer: () => null }))
 vi.mock('./HistorySheet', () => ({ HistorySheet: () => null }))
 vi.mock('./RoomDrawingEditor', () => ({ RoomDrawingEditor: () => null }))
 
@@ -101,6 +111,14 @@ const renderSettings = () =>
     )
 
 describe('SettingsSheet room drawing picker', () => {
+    it('wires the private problem report into room settings', () => {
+        const html = renderSettings()
+
+        expect(html).toContain('data-testid="feedback-report-row"')
+        expect(html).toContain('room.header.reportProblem')
+        expect(html).toContain('room.header.reportProblemHint')
+    })
+
     it('offers the custom drawing after every preset inside room settings', () => {
         const html = renderSettings()
         const offeredDrawings = [...html.matchAll(/data-doodle="([^"]+)"/g)].map((match) => match[1])

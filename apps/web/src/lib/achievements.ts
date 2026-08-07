@@ -26,6 +26,7 @@ import type { AchievementType, AwardId } from './achievements-contract'
 import { FALLBACK_AVATAR_KEY } from './avatars'
 import { savedExpenses } from './pending'
 import { isRoomSettled } from './pending'
+import { activeMembers } from './members'
 
 export interface Unlock {
     type: AchievementType
@@ -52,7 +53,7 @@ const crossed = (value: number, thresholds: readonly number[]): { top: number; a
 
 /** The ledger-roster moment. Not every name — only 3, 5, 8 and 12, and only the highest crossed. */
 export function crewUnlock(state: RoomState): Unlock | null {
-    const count = state.members.length
+    const count = activeMembers(state.members).length
     const hit = crossed(count, CREW_THRESHOLDS)
     if (!hit) return null
     return {
