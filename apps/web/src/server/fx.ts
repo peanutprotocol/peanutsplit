@@ -5,10 +5,16 @@
  * by crossing unrelated rows locally.
  */
 import { prisma } from '@/server/db'
+import { egressFetch } from '@/server/egress'
 import { badRequest } from '@/server/http'
 import { convertMinorAtRate, isCatalogCode, STATIC_USD_PER_UNIT } from '@/server/money'
 
-const RATE_ENDPOINT = 'https://api.peanut.me/fx/rates'
+// Overridable so staging can be pointed at a staging API. Production egress is
+// default-deny, so the call rides the pinned squid proxy exactly like the model
+// scan does — without SPLIT_FX_PROXY_URL set, and api.peanut.me on the squid
+// CONNECT-443 allowlist, every refresh fails and the table silently degrades to
+// the twelve static rates. See the Deployment section of README.md.
+const RATE_ENDPOINT = process.env.SPLIT_FX_ENDPOINT ?? 'https://api.peanut.me/fx/rates'
 const TTL_MS = 24 * 60 * 60 * 1000
 /** A cached rate this old never prices money again, even during an outage. */
 const MAX_RATE_AGE_MS = 7 * 24 * 60 * 60 * 1000
@@ -270,7 +276,7 @@ async function fetchBaseRates(base: string): Promise<LiveRateSnapshot | null> {
     if (remoteDisabled() || !isCatalogCode(base)) return null
     if (Date.now() - (lastFailedFetchAt.get(base) ?? 0) < FAILURE_BACKOFF_MS) return null
     try {
-        const response = await fetch(rateUrl(base), {
+        const response = await egressFetch(process.env.SPLIT_FX_PROXY_URL, rateUrl(base), {
             method: 'GET',
             headers: { Accept: 'application/json' },
             signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
