@@ -4,6 +4,7 @@
  * that money is a string on the wire (nothing here ever touches BigInt or Number).
  */
 
+import { rememberRoomKey } from '@/lib/analytics'
 import type {
     CatchUpExpenseInput,
     CatchUpExpenseResult,
@@ -157,7 +158,24 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         throw new ApiRequestError(response.status, code, message, envelope?.details)
     }
 
+    rememberRoomKeyFrom(payload)
     return payload as T
+}
+
+/**
+ * Learn a room's analytics pseudonym from any response that carries a room.
+ *
+ * Done here rather than at each `api.*` call because RoomState comes back from
+ * eight of them — room reads, creates, imports, member joins — and one missed
+ * call site is a room that silently loses its analytics key. Structural, so a
+ * future RoomState-returning endpoint is covered without being remembered.
+ */
+function rememberRoomKeyFrom(payload: unknown): void {
+    if (!payload || typeof payload !== 'object') return
+    const room = (payload as { room?: unknown }).room
+    if (!room || typeof room !== 'object') return
+    const { slug, analyticsKey } = room as { slug?: unknown; analyticsKey?: unknown }
+    if (typeof slug === 'string' && typeof analyticsKey === 'string') rememberRoomKey(slug, analyticsKey)
 }
 
 const encode = encodeURIComponent

@@ -250,3 +250,45 @@ describe('toRoomState weighted share serialization', () => {
         expect(state.expenses.find((expense) => expense.id === 'equal')?.shares[0].splitWeight).toBeNull()
     })
 })
+
+describe('toRoomState analytics pseudonym', () => {
+    const base = (id: string, slug: string) =>
+        ({
+            id,
+            slug,
+            name: 'Room',
+            emoji: null,
+            currency: 'EUR',
+            coverUrl: null,
+            theme: null,
+            locale: null,
+            createdAt: new Date('2026-08-08T00:00:00.000Z'),
+            members: [],
+            expenses: [],
+            settlements: [],
+        }) as unknown as RoomWithRelations
+
+    it('derives a stable 32-hex key that is not the slug or the id', () => {
+        const key = toRoomState(base('room-uuid-1', 'ski-trip-nL5tI')).room.analyticsKey
+
+        expect(key).toMatch(/^[0-9a-f]{32}$/)
+        expect(key).not.toBe('room-uuid-1')
+        expect(key).not.toContain('ski-trip')
+        // Stable across calls, or a room's analytics would fragment per request.
+        expect(toRoomState(base('room-uuid-1', 'ski-trip-nL5tI')).room.analyticsKey).toBe(key)
+    })
+
+    it('keys off the id, not the slug — renaming a room must not fork its history', () => {
+        const first = toRoomState(base('room-uuid-1', 'ski-trip-nL5tI')).room.analyticsKey
+        const renamed = toRoomState(base('room-uuid-1', 'totally-different-slug')).room.analyticsKey
+
+        expect(renamed).toBe(first)
+    })
+
+    it('gives different rooms different keys', () => {
+        const a = toRoomState(base('room-uuid-1', 'a')).room.analyticsKey
+        const b = toRoomState(base('room-uuid-2', 'a')).room.analyticsKey
+
+        expect(a).not.toBe(b)
+    })
+})
