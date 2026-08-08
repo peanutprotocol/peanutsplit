@@ -45,6 +45,12 @@ test('the in-room hand-off keeps copy inline and makes sharing the primary actio
     await page.waitForURL(/\/r\/beer-trip-/)
     await page.getByTestId('share-room').click()
 
+    const qr = page.getByTestId('room-qr')
+    await expect(qr).toBeVisible({ timeout: 15_000 })
+    await expect(qr).toHaveAccessibleName('QR code to join Beer trip')
+    await expect(qr).toContainText('Scan to join in person')
+    await expect(qr.locator('svg')).toHaveCount(1)
+
     const row = page.getByTestId('room-link-row')
     await expect(row).toBeVisible({ timeout: 15_000 })
     await expect(row.getByTestId('room-link')).toContainText('/r/beer-trip-')
@@ -62,6 +68,17 @@ test('the in-room hand-off keeps copy inline and makes sharing the primary actio
     expect(copyBox!.x + copyBox!.width).toBeLessThanOrEqual(rowBox!.x + rowBox!.width + 1)
     expect(copyBox!.y).toBeGreaterThanOrEqual(rowBox!.y)
     expect(copyBox!.y + copyBox!.height).toBeLessThanOrEqual(rowBox!.y + rowBox!.height)
+
+    const [qrBox, cardBox] = await Promise.all([
+        qr.locator('svg').boundingBox(),
+        page.getByTestId('room-share-card').boundingBox(),
+    ])
+    expect(qrBox).not.toBeNull()
+    expect(cardBox).not.toBeNull()
+    expect(Math.abs(qrBox!.width - qrBox!.height)).toBeLessThan(1)
+    expect(qrBox!.width).toBeGreaterThanOrEqual(112)
+    expect(qrBox!.x).toBeGreaterThanOrEqual(cardBox!.x)
+    expect(qrBox!.x + qrBox!.width).toBeLessThanOrEqual(cardBox!.x + cardBox!.width)
 
     // Desktop Chromium has no native share sheet. The primary action still does
     // useful work there: it copies the link and the inline icon confirms it.

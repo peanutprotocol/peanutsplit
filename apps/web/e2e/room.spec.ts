@@ -623,7 +623,7 @@ test('a link holder can export the room without exporting the room credential', 
     await expect(exportSheet).toBeVisible()
     await expect(exportSheet).toContainText('Bring over a Splitwise group')
     await expect(exportSheet).toContainText(
-        'Add a Splitwise or Split Pro export to this room. Its link and existing expenses stay as they are.'
+        'Add a Splitwise or Split Pro export whose expense currencies match this room or have a conversion rate. Its link and existing expenses stay as they are.'
     )
     await expect(page.getByTestId('open-splitwise-import')).toBeVisible()
     // One disclosure sentence, and it does not claim to be the whole money
@@ -667,7 +667,7 @@ test('a link holder can export the room without exporting the room credential', 
     await expect(page.getByTestId('import-target-room')).toContainText('Export room')
     await expect(page.getByTestId('import-target-currency')).toHaveText('EUR')
     await expect(page.getByTestId('import-repeat-warning')).toContainText(
-        'Importing the exact same source data again changes nothing'
+        'submitting the exact same reviewed source data here changes nothing'
     )
 
     // Backing out returns to the exact room settings context where this append

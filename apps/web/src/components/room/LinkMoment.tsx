@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
+import { QRCodeSVG } from 'qrcode.react'
 import { peanutWavingHello } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -33,6 +34,9 @@ interface LinkMomentProps {
     compact?: boolean
     /** Tighten only this composition when it lives in a bottom drawer. */
     dense?: boolean
+    /** Keep the room credential visible as a scannable handoff for people
+     *  standing together. Post-creation activation stays link-first. */
+    showQr?: boolean
     /** Headline. The creation screen and the share drawer say different things. */
     title: string
     subtitle: string
@@ -70,6 +74,7 @@ export function LinkMoment({
     footer,
     compact = false,
     dense = false,
+    showQr = false,
     title,
     subtitle,
     headingLevel = 1,
@@ -203,7 +208,7 @@ export function LinkMoment({
     )
 
     return (
-        <div className={compact || dense ? 'flex flex-col gap-4' : 'flex flex-col gap-6'}>
+        <div className={compact ? 'flex flex-col gap-4' : dense ? 'flex flex-col gap-3' : 'flex flex-col gap-6'}>
             <motion.div
                 initial={motionAllowed ? { opacity: 0, y: -8 } : false}
                 animate={{ opacity: 1, y: 0 }}
@@ -290,8 +295,30 @@ export function LinkMoment({
                             <span className="absolute inset-x-4 -top-px block border-t border-dashed border-n-1/40" />
                         </div>
 
-                        <div className={`flex flex-col gap-3 px-4 ${dense ? 'py-3' : 'py-5'}`}>
-                            <p className="text-h10 uppercase tracking-wide text-grey-1">{t('roomLink')}</p>
+                        <div className={`flex flex-col px-4 ${dense ? 'gap-2 py-2' : 'gap-3 py-5'}`}>
+                            {showQr && (
+                                <div
+                                    className="flex flex-col items-center gap-2 border-b border-n-1/20 pb-2"
+                                    data-testid="room-qr"
+                                    role="img"
+                                    aria-label={t('qrLabel', { room: roomName })}
+                                >
+                                    <p className="text-h10 uppercase tracking-wide text-grey-1">{t('scanToJoin')}</p>
+                                    <span className="flex rounded-sm border border-n-1 bg-white p-1">
+                                        <QRCodeSVG
+                                            value={url}
+                                            size={144}
+                                            level="M"
+                                            marginSize={4}
+                                            bgColor="#FFFFFF"
+                                            fgColor="#211C17"
+                                            aria-hidden="true"
+                                            className="h-auto w-[clamp(7rem,36vw,9rem)]"
+                                        />
+                                    </span>
+                                </div>
+                            )}
+                            {!showQr && <p className="text-h10 uppercase tracking-wide text-grey-1">{t('roomLink')}</p>}
                             {copyFailed ? (
                                 <div className="flex flex-col gap-2">
                                     <textarea

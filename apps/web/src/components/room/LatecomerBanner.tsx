@@ -224,29 +224,30 @@ export function LatecomerBanner({
 
     return (
         <>
-            <section
-                data-testid="latecomer-banner"
-                className="mx-4 flex items-center gap-3 rounded-sm border border-n-1 bg-primary-3 p-4"
-            >
-                <MemberAvatar
-                    name={review.member.name}
-                    avatar={review.member.avatar}
-                    palette={review.member.avatarPalette}
-                    size={36}
-                />
-                <div className="min-w-0 flex-1">
-                    <p className="break-words text-h8 [overflow-wrap:anywhere]">
-                        {t('promptTitle', { name: review.member.name })}
-                    </p>
-                    <p className="mt-1 break-words text-sm leading-5 text-grey-1 [overflow-wrap:anywhere]">
-                        {t('promptBody', { name: review.member.name, count: review.items.length })}
-                    </p>
+            <section data-testid="latecomer-banner" className="mx-4 rounded-sm border border-n-1 bg-primary-3 p-4">
+                <div className="flex items-start gap-3" data-testid="latecomer-copy-row">
+                    <MemberAvatar
+                        name={review.member.name}
+                        avatar={review.member.avatar}
+                        palette={review.member.avatarPalette}
+                        size={36}
+                    />
+                    <div className="min-w-0 flex-1" data-testid="latecomer-copy">
+                        <p className="break-words text-h8 [overflow-wrap:anywhere]">
+                            {t('promptTitle', { name: review.member.name })}
+                        </p>
+                        <p className="mt-1 break-words text-sm leading-5 text-grey-1 [overflow-wrap:anywhere]">
+                            {t('promptBody', { name: review.member.name, count: review.items.length })}
+                        </p>
+                    </div>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
+                <div
+                    className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"
+                    data-testid="latecomer-actions"
+                >
                     <Button
                         variant="primary"
                         size="small"
-                        width="auto"
                         className={cn(BTN_SMALL, 'justify-center')}
                         onClick={openReview}
                         data-testid="latecomer-review"
