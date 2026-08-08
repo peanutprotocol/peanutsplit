@@ -11,10 +11,31 @@ import { convertMinorAtRate, isCatalogCode, STATIC_USD_PER_UNIT } from '@/server
 
 // Overridable so staging can be pointed at a staging API. Production egress is
 // default-deny, so the call rides the pinned squid proxy exactly like the model
-// scan does — without SPLIT_FX_PROXY_URL set, and api.peanut.me on the squid
-// CONNECT-443 allowlist, every refresh fails and the table silently degrades to
-// the twelve static rates. See the Deployment section of README.md.
+// scan does, and `api.peanut.me` must be on that proxy's CONNECT-443 allowlist
+// (added 2026-08-07). Without it every refresh fails and the table silently
+// degrades to the twelve static rates. See the Deployment section of README.md.
 const RATE_ENDPOINT = process.env.SPLIT_FX_ENDPOINT ?? 'https://api.peanut.me/fx/rates'
+
+/**
+ * The one egress proxy, whichever consumer's variable happens to name it.
+ *
+ * Every `*_PROXY_URL` in this deployment points at the same `split-egress`
+ * squid instance — there is only one. Reading only `SPLIT_FX_PROXY_URL` made
+ * FX the single consumer that breaks if its variable is missing, and it breaks
+ * SILENTLY: `fetchBaseRates` catches its own failure and the table degrades to
+ * twelve static rates. That is not hypothetical. Split shipped without the
+ * variable set and served USD→ARS at 1030 against a real 1551 — 33% wrong,
+ * for weeks, with nothing in any log.
+ *
+ * Falling back to a sibling makes the FX-specific variable an override rather
+ * than a requirement, so a redeploy that drops it cannot quietly re-break
+ * pricing. Set `SPLIT_FX_PROXY_URL` to point FX somewhere else on purpose.
+ */
+const egressProxyUrl = (): string | undefined =>
+    process.env.SPLIT_FX_PROXY_URL ??
+    process.env.SPLIT_SCAN_PROXY_URL ??
+    process.env.SPLIT_PUSH_PROXY_URL ??
+    process.env.SPLIT_EMAIL_PROXY_URL
 const TTL_MS = 24 * 60 * 60 * 1000
 /** A cached rate this old never prices money again, even during an outage. */
 const MAX_RATE_AGE_MS = 7 * 24 * 60 * 60 * 1000
@@ -276,7 +297,7 @@ async function fetchBaseRates(base: string): Promise<LiveRateSnapshot | null> {
     if (remoteDisabled() || !isCatalogCode(base)) return null
     if (Date.now() - (lastFailedFetchAt.get(base) ?? 0) < FAILURE_BACKOFF_MS) return null
     try {
-        const response = await egressFetch(process.env.SPLIT_FX_PROXY_URL, rateUrl(base), {
+        const response = await egressFetch(egressProxyUrl(), rateUrl(base), {
             method: 'GET',
             headers: { Accept: 'application/json' },
             signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
