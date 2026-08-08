@@ -262,5 +262,30 @@ export function achievementProps(type: AchievementType, tier?: RecapShareTier): 
     return tier && (SHARE_TIERS as readonly string[]).includes(tier) ? { type, tier } : { type }
 }
 
-/** Keeps the room call sites ergonomic without attaching any room identifier. */
-export const roomProps = (_slug: string, extra: Record<string, unknown> = {}) => ({ ...extra })
+/**
+ * slug → analytics pseudonym, learned from RoomState as it arrives.
+ *
+ * Call sites hold a slug and nothing else, and threading a second identifier
+ * through fifteen component prop chains would be a far larger change than the
+ * one property it carries. The slug stays on the device either way: it is only
+ * ever the lookup key here, never a value that is sent.
+ */
+const roomKeys = new Map<string, string>()
+
+/** Called for every RoomState the client receives. Unknown rooms stay unkeyed. */
+export function rememberRoomKey(slug: string, analyticsKey: string | undefined): void {
+    if (analyticsKey) roomKeys.set(slug, analyticsKey)
+}
+
+/**
+ * Room call sites, with the room's pseudonym attached when it is known.
+ *
+ * `room` is the one-way key from the server, never the slug — a slug in a
+ * property bag is a credential handed to a third party, which is precisely the
+ * 2026-07-28 leak. An unknown slug simply omits the property rather than
+ * falling back to anything identifying: fewer analytics beats a leak.
+ */
+export const roomProps = (slug: string, extra: Record<string, unknown> = {}) => {
+    const room = roomKeys.get(slug)
+    return room ? { room, ...extra } : { ...extra }
+}

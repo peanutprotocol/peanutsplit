@@ -24,6 +24,12 @@ export interface CurrencyInfo {
 export interface ApiRoom {
     id: string
     slug: string
+    /**
+     * One-way pseudonym for grouping analytics by room. Safe to send to
+     * PostHog; the slug never is, because the slug is the room's credential.
+     * Optional only so an older cached RoomState still parses.
+     */
+    analyticsKey?: string
     name: string
     emoji: string | null
     currency: string

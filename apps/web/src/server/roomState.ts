@@ -2,6 +2,7 @@
  * The RoomState envelope. Every mutation returns one of these so the client
  * seeds its cache in a single hop and never has to re-derive money client-side.
  */
+import { createHash } from 'node:crypto'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { ApiError, notFound } from '@/server/http'
@@ -89,6 +90,29 @@ export function balancesOf(room: BalanceInput): Map<string, bigint> {
     return net
 }
 
+/**
+ * The room's analytics pseudonym: stable, groupable, and useless to anyone
+ * holding it.
+ *
+ * Analytics needs to answer "of the rooms that added an expense, how many
+ * settled up" — which needs a per-room key. It must not be the slug, because
+ * the slug IS the room's access control: anyone who reads one can open the
+ * room and see every expense, amount and name. On 2026-07-28 automatic
+ * PostHog page properties carried slugs for one day, which is exactly the
+ * leak this exists to make impossible.
+ *
+ * Derived from the room UUID, never the slug. A v4 UUID carries 122 bits of
+ * entropy, so the digest cannot be walked back to a room by anyone who only
+ * has the digest — no shared secret required, and therefore no environment
+ * variable that a redeploy can silently drop. Domain-separated exactly like
+ * `deviceHash` in history.ts so the two can never collide.
+ *
+ * To sever historical linkage later, add a secret to the prefix: every key
+ * changes, which is the rotation.
+ */
+const analyticsKeyFor = (roomId: string): string =>
+    createHash('sha256').update(`split-room-analytics\0${roomId}`).digest('hex').slice(0, 32)
+
 /** DB rows → wire shape. BigInt becomes a decimal string here, not later. */
 export function toRoomState(room: RoomWithRelations): RoomState {
     const balances = balancesOf(room)
@@ -96,6 +120,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
         room: {
             id: room.id,
             slug: room.slug,
+            analyticsKey: analyticsKeyFor(room.id),
             name: room.name,
             emoji: room.emoji,
             currency: room.currency,
