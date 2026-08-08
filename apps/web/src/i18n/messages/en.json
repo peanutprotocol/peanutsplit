@@ -778,6 +778,8 @@
         },
         "link": {
             "subtitle": "your split room",
+            "scanToJoin": "Scan to join in person",
+            "qrLabel": "QR code to join {room}",
             "roomLink": "Room link",
             "inviteText": "Invite text",
             "copyBlocked": "Your browser blocked the copy. The full invite is selected above — copy it manually.",

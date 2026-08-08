@@ -778,6 +778,8 @@
         },
         "link": {
             "subtitle": "sua sala de divisão",
+            "scanToJoin": "Escaneie para entrar pessoalmente",
+            "qrLabel": "Código QR para entrar em {room}",
             "roomLink": "Link da sala",
             "inviteText": "Texto do convite",
             "copyBlocked": "Seu navegador bloqueou a cópia. O convite completo está selecionado acima — copie na mão.",

@@ -58,6 +58,7 @@ const claim = async (page: Page, slug: string, name: string) => {
 }
 
 test('any recorder gets a named room prompt and one review sheet that closes on success', async ({ page, request }) => {
+    await page.setViewportSize({ width: 320, height: 700 })
     const room = await createRoom(request, 'Room-level catch-up')
     await addExpense(request, room, 'Dinner')
     await new Promise((resolve) => setTimeout(resolve, 10))
@@ -70,6 +71,19 @@ test('any recorder gets a named room prompt and one review sheet that closes on 
     await expect(banner).toBeVisible()
     await expect(banner).toContainText('Did Dani share any earlier expenses?')
     await expect(page.getByTestId('latecomer-flow')).toHaveCount(0)
+    const [bannerBox, copyBox, actionsBox] = await Promise.all([
+        banner.boundingBox(),
+        banner.getByTestId('latecomer-copy').boundingBox(),
+        banner.getByTestId('latecomer-actions').boundingBox(),
+    ])
+    expect(bannerBox).not.toBeNull()
+    expect(copyBox).not.toBeNull()
+    expect(actionsBox).not.toBeNull()
+    expect(bannerBox!.x).toBe(16)
+    expect(bannerBox!.width).toBe(288)
+    expect(bannerBox!.height).toBeLessThanOrEqual(200)
+    expect(copyBox!.width).toBeGreaterThanOrEqual(200)
+    expect(actionsBox!.y).toBeGreaterThanOrEqual(copyBox!.y + copyBox!.height + 16)
     await expectTapFloor(banner.getByTestId('latecomer-review'))
     await expectTapFloor(banner.getByTestId('latecomer-dismiss'))
 

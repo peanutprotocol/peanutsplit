@@ -51,6 +51,7 @@
         "nuqs": "^2.4.3",
         "posthog-js": "^1.260.0",
         "prisma": "^6.14.0",
+        "qrcode.react": "4.2.0",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
         "remark-gfm": "^4.0.1",

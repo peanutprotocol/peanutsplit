@@ -44,9 +44,9 @@ export function ShareDrawer({ open, onClose, state, currencies, surface }: Share
         <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
             <DrawerContent>
                 <DrawerTitle className="sr-only">{surface === 'post_aha' ? t('postAhaTitle') : t('title')}</DrawerTitle>
-                <DrawerBody className="gap-3 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">
+                <DrawerBody className="relative gap-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
                     {surface !== 'post_aha' && (
-                        <div className="flex justify-end">
+                        <div className="absolute right-4 top-2 z-10">
                             <CloseButton onClick={onClose} label={t('close')} data-testid="close-share" />
                         </div>
                     )}
@@ -58,6 +58,7 @@ export function ShareDrawer({ open, onClose, state, currencies, surface }: Share
                         surface={surface}
                         compact={surface === 'post_aha'}
                         dense
+                        showQr={surface !== 'post_aha'}
                         title={surface === 'post_aha' ? t('postAhaTitle') : t('title')}
                         subtitle={surface === 'post_aha' ? t('postAhaSubtitle') : t('subtitle')}
                         context={

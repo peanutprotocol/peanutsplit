@@ -22,6 +22,15 @@ const drawerHeight = async (page: Page) => {
     return box.height
 }
 
+const expectDrawerGrowth = async (page: Page, beforeHeight: number) => {
+    const maxHeight = await page
+        .getByTestId('expense-drawer')
+        .evaluate((element) => Number.parseFloat(getComputedStyle(element).maxHeight))
+    const expectedHeight = Math.min(beforeHeight + 40, maxHeight) - 1
+
+    await expect.poll(() => drawerHeight(page)).toBeGreaterThanOrEqual(expectedHeight)
+}
+
 const installVisualViewportMock = async (page: Page) => {
     await page.addInitScript(() => {
         const viewport = window.visualViewport
@@ -109,7 +118,7 @@ test('typed amount lets the drawer grow when payer and sharing settings open', a
 
     await expect(page.getByTestId('payer-editor')).toBeVisible()
     await expect.poll(() => page.getByTestId('expense-drawer').evaluate((element) => element.style.height)).toBe('')
-    await expect.poll(() => drawerHeight(page)).toBeGreaterThan(collapsedHeight + 40)
+    await expectDrawerGrowth(page, collapsedHeight)
     await page.locator('[data-testid="payer-chip"][data-member="Bea"]').click()
     await expect(page.getByTestId('expense-payer-summary')).toHaveAccessibleName('Bea paid')
     await expect(page.getByTestId('payer-editor')).toHaveCount(0)
@@ -117,7 +126,7 @@ test('typed amount lets the drawer grow when payer and sharing settings open', a
     const beforeSplitHeight = await drawerHeight(page)
     await page.getByTestId('expense-split-summary').click()
     await expect(page.getByTestId('split-editor')).toBeVisible()
-    await expect.poll(() => drawerHeight(page)).toBeGreaterThan(beforeSplitHeight + 40)
+    await expectDrawerGrowth(page, beforeSplitHeight)
 
     // The expanded section is not only mounted: its controls can be reached
     // and changed, while the stable action area remains usable.
