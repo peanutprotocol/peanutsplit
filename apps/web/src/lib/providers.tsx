@@ -7,7 +7,9 @@ import { useLocale } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from 'sonner'
+import { HandoffImporter } from '@/components/handoff/HandoffImporter'
 import { PushNavigation } from '@/components/pwa/PushNavigation'
+import { ReinstallBanner } from '@/components/pwa/ReinstallBanner'
 import { asLocale } from '@/i18n/locales'
 import { localeFromPathname } from '@/i18n/paths'
 import { initAnalytics } from './analytics'
@@ -123,6 +125,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     {children}
                     <OfflineQueueRunner />
                     <PushNavigation />
+                    {/* Both halves of the domain cutover, and both self-gate on the
+                        hostname: the importer runs only on the canonical host, the
+                        banner only inside an installed PWA on the legacy one. On any
+                        other host they are mounted no-ops. */}
+                    <HandoffImporter />
+                    <ReinstallBanner />
                     <Toaster
                         position="top-center"
                         // The floor, not the rule: anything that asks for an action
