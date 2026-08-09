@@ -35,6 +35,7 @@
  * answers 503. Nothing half-works.
  */
 
+import { siteUrl } from '@/lib/site'
 import { egressFetch, type EgressResponse } from '@/server/egress'
 import { ApiError } from '@/server/http'
 import { canPriceCode, isValidCode, normaliseCode } from '@/server/money'
@@ -206,7 +207,7 @@ async function callOpenRouter(call: ModelCall, config: ModelConfig): Promise<str
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${config.apiKey}`,
-                'HTTP-Referer': 'https://peanutsplit.com',
+                'HTTP-Referer': siteUrl,
                 'X-Title': 'Peanut Split',
             },
             body: JSON.stringify({
