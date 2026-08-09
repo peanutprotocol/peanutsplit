@@ -366,7 +366,7 @@ export function SettingsSheet({
             </Drawer>
 
             <DeviceSheet open={deviceOpen} onClose={() => setDeviceOpen(false)} />
-            <HistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} slug={room.slug} />
+            <HistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} slug={room.slug} state={state} />
             <FeedbackReportDrawer open={feedbackOpen} onClose={() => setFeedbackOpen(false)} state={state} />
 
             <Drawer open={switchOpen} onOpenChange={setSwitchOpen}>
