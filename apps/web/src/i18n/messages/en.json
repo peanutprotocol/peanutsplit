@@ -41,7 +41,7 @@
             "recovery": {
                 "title": "Already have a room link?",
                 "label": "Paste the room link",
-                "placeholder": "peanutsplit.com/r/your-room-…",
+                "placeholder": "split.peanut.me/r/your-room-…",
                 "hint": "We check the link, then save that room on this device. No account or ownership change.",
                 "submit": "Add this room",
                 "invalid": "Paste a complete Peanut Split room link.",
@@ -1397,6 +1397,13 @@
             "currencyHopper": "Currency Hopper",
             "theCloser": "The Closer",
             "hypeCrew": "Hype Crew"
+        }
+    },
+    "cutover": {
+        "reinstall": {
+            "message": "Peanut Split moved to split.peanut.me. Install the app again from there — your rooms carry over automatically.",
+            "open": "Open split.peanut.me",
+            "dismiss": "Dismiss"
         }
     }
 }
