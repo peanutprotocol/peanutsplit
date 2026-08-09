@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { expect } from '@playwright/test'
 import { test } from './fixtures'
 import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
@@ -66,6 +67,50 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
     expect((await clickSave).ok()).toBe(true)
     await expect(details).not.toHaveAttribute('open', '')
     await expect(summary).toBeFocused()
+})
+
+test('room history keeps stats available and downloads a capability-free full log', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('History room')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    await enterCreatedRoom(page)
+
+    const slug = new URL(page.url()).pathname.split('/').at(-1)
+    expect(slug).toBeTruthy()
+
+    await openCurrentRoomSettings(page)
+    await page.getByTestId('history-row').click()
+    const historySheet = page.getByTestId('history-sheet')
+    await expect(historySheet).toBeVisible()
+    await expect(historySheet.getByTestId('history-stats')).toContainText('Room stats')
+    await expect(historySheet.getByTestId('history-stats')).toContainText(
+        'Stats and room lore will appear after the first expense.'
+    )
+    await expect(historySheet.getByTestId('history-list')).toContainText('Device A acting as Ana created the room')
+
+    const downloadStarted = page.waitForEvent('download')
+    await historySheet.getByTestId('history-download').click()
+    const download = await downloadStarted
+    expect(download.suggestedFilename()).toBe('history-room-history.json')
+    const downloadPath = await download.path()
+    expect(downloadPath).not.toBeNull()
+    const exportedText = await readFile(downloadPath!, 'utf8')
+    const exported = JSON.parse(exportedText) as {
+        schema: string
+        eventCount: number
+        events: { action: string }[]
+        redactions: Record<string, string>
+    }
+    expect(exported.schema).toBe('peanut-split-room-history')
+    expect(exported.eventCount).toBe(exported.events.length)
+    expect(exported.events.map((event) => event.action)).toEqual(['room_created'])
+    expect(exported.redactions).toEqual({
+        roomLink: 'removed',
+        privateFields: 'removed',
+        deviceFingerprint: 'not_exported',
+    })
+    expect(exportedText).not.toContain(slug)
 })
 
 test('room-scoped Settings keeps the link through rename and adds people in context', async ({ page }) => {
