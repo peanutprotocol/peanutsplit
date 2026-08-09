@@ -7,6 +7,18 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-05.
 
+## Code-complete 2026-08-09 — domain cutover to split.peanut.me [Hugo]
+
+- App moves to `split.peanut.me`; `peanutsplit.com` becomes a redirect shell for
+  app paths (302 now, 301 later) and keeps serving marketing. Host-aware
+  redirects live in `src/proxy.ts` over the pure table in
+  `src/lib/cutover-redirects.ts`; device state (`ps:*` localStorage) crosses
+  origins through the `/handoff` postMessage bridge, write-if-absent; an
+  installed legacy PWA gets a dismissible reinstall banner. Inert everywhere but
+  the two production hosts, so the code ships safely ahead of DNS. Decision
+  record: `apps/web/docs/SEO-DOMAIN-DECISIONS.md` (2026-08-09 update). Old-origin
+  service-worker retirement ships separately.
+
 ## Code-complete 2026-08-06 — exact-zero Former-member lifecycle
 
 - A used active member whose authoritative room-currency balance is exactly zero

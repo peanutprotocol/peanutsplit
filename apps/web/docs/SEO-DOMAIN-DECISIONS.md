@@ -31,3 +31,14 @@ Rationale: authority must accrue to peanut.me. Subdomains are treated by Google 
 - [ ] Flip siteUrl/canonicals to peanut.me for content routes; verify sitemap + hreflang under the new paths.
 - [ ] 301 any existing indexed peanutsplit.com content URLs to their peanut.me/split/* equivalents.
 - [ ] Confirm split.peanut.me app routes are noindex.
+      (App-side redirect code for the split.peanut.me half shipped 2026-08-09 — see the update below. The four items above stay open: they are peanut-ui/Vercel and content-route work, not this repo's redirects.)
+
+## Update 2026-08-09 — app cutover implemented (this repo)
+
+Decided 2026-08-09. Refines the 2026-07-30 rule; the authority argument stands unchanged.
+
+- **Content → `peanut.me/{locale}/split/*`, owned by Konrad in mono's content engine.** The rewrite approach above is superseded for new content: curated pages are authored in mono, not proxied from this app.
+- **App → `split.peanut.me`.** Implemented in this repo: `src/lib/domains.ts` (host pair), `src/lib/cutover-redirects.ts` (pure decision table), `src/proxy.ts` (host-aware 302s). App paths (`/r/*`, `/app`, `/new`, `/import`) on peanutsplit.com bounce to split.peanut.me; everything else on split.peanut.me bounces back, so no marketing/content is duplicated on the subdomain. `/handoff` and `/share-target` never redirect (origin-bound storage on both).
+- **peanutsplit.com → redirect shell.** 302 now, hardened to 301 once the cutover has soaked and the destination set is final.
+- **Interim canonical wart, accepted:** while `NEXT_PUBLIC_BASE_URL` is `https://split.peanut.me`, marketing pages still served on peanutsplit.com emit canonicals/OG pointing at split.peanut.me (where those paths 302 back). Accepted for the interim; resolved when the content moves to peanut.me/{locale}/split/*.
+- **Device state crosses origins via `/handoff`** (postMessage bridge, `src/lib/handoff.ts`) — localStorage `ps:*` keys are copied write-if-absent to the new origin. The legacy-origin service worker and its push subscriptions stay in place; SW retirement ships separately.
