@@ -375,7 +375,7 @@ export async function appendRoomAuditEvent(input: {
     })
 }
 
-const labelForOrdinal = (ordinal: number | null): string | null => {
+export const labelForOrdinal = (ordinal: number | null): string | null => {
     if (!ordinal || ordinal < 1) return null
     let value = ordinal
     let label = ''
