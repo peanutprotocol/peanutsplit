@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
+import { cutoverRedirect } from '@/lib/cutover-redirects'
 
 /**
  * Tells the server what language a URL is in. It does not route, redirect or rewrite anything.
@@ -18,6 +19,17 @@ import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
  * `/` remains cookie-localized public marketing.
  */
 export function proxy(request: NextRequest) {
+    // Domain cutover (2026-08): app paths live on split.peanut.me, marketing stays on
+    // peanutsplit.com, and each host bounces the other's half across. The decision
+    // table is `lib/cutover-redirects.ts` — pure, unit-tested, inert off-production.
+    // The served hostname comes from the forwarded Host header, because behind the
+    // standalone container `request.url`'s origin is `0.0.0.0:3000` (the trap
+    // `api/share-target` documents); targets are built from `lib/domains.ts` literals,
+    // never from the request.
+    const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
+    const redirect = cutoverRedirect(host, request.nextUrl.pathname, request.nextUrl.search)
+    if (redirect) return NextResponse.redirect(redirect.target, redirect.status)
+
     const locale = localeFromPathname(request.nextUrl.pathname)
     if (!locale) return NextResponse.next()
 
