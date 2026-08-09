@@ -23,7 +23,18 @@
  */
 import { doodleDataUri, emblemDataUri } from '@/server/og/emblem'
 import { DISPLAY_FONT } from '@/server/og/fonts'
-import { BLOBS_LEFT, disc, Field, INK, MUTED, PersonaDisc, SettledStamp, Sheet, Wordmark } from '@/server/og/frame'
+import {
+    BLOBS_LEFT,
+    cardDomain,
+    disc,
+    Field,
+    INK,
+    MUTED,
+    PersonaDisc,
+    SettledStamp,
+    Sheet,
+    Wordmark,
+} from '@/server/og/frame'
 import type { RecapCardData } from '@/server/og/recapCard'
 
 /** green-1 — the all-settled colour the app already celebrates in. */
@@ -186,7 +197,7 @@ export function RecapCard({ card, emojiSrc }: { card: RecapCardData; emojiSrc: s
                 a file so the room slug (which is the room's credential) never leaves
                 the group — so the printed domain is the only thing a stranger who
                 sees it can act on. */}
-            <Wordmark note="peanutsplit.com" noteColor={FIELD_INK} height={88} />
+            <Wordmark note={cardDomain()} noteColor={FIELD_INK} height={88} />
         </Field>
     )
 }

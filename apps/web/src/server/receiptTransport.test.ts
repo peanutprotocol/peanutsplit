@@ -16,6 +16,7 @@
  * pasted into a log line by accident.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { siteUrl } from '@/lib/site'
 import { ApiError } from '@/server/http'
 import { modelEnabled } from '@/server/model'
 import { parseReceipt } from '@/server/receipt'
@@ -180,7 +181,7 @@ describe('OpenRouter — the request', () => {
         expect(sent.url).toBe('https://openrouter.ai/api/v1/chat/completions')
         expect(sent.init.method).toBe('POST')
         expect(sent.init.headers.Authorization).toBe(`Bearer ${OPENROUTER_KEY}`)
-        expect(sent.init.headers['HTTP-Referer']).toBe('https://peanutsplit.com')
+        expect(sent.init.headers['HTTP-Referer']).toBe(siteUrl)
         expect(sent.init.headers['X-Title']).toBe('Peanut Split')
 
         const payload = sentBody(sent)

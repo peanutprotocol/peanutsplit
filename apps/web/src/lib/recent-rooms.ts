@@ -10,7 +10,12 @@
 
 export const RECENT_ROOMS_KEY = 'ps:recent'
 export const RECENT_ROOMS_LIMIT = 12
-const CANONICAL_ROOM_HOSTS = new Set(['peanutsplit.com', 'www.peanutsplit.com'])
+const CANONICAL_ROOM_HOSTS = new Set([
+    'peanutsplit.com',
+    'www.peanutsplit.com',
+    'split.peanut.me',
+    'www.split.peanut.me',
+])
 const ROOM_PATH = /^\/r\/([^/]+)\/?$/
 /** A readable stem, then a capability. New rooms carry a 22-character base64url
  * token (128 random bits); three-word and six-character tails remain accepted
