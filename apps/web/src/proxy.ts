@@ -4,6 +4,7 @@ import { cutoverRedirect } from '@/lib/cutover-redirects'
 
 /**
  * Tells the server what language a URL is in. It does not route, redirect or rewrite anything.
+ * (One exception since 2026-08: the domain-cutover redirects at the top of the function.)
  *
  * The indexed pages live under `/es-419/…`, `/pt-br/…`, and the English originals they translate. Every
  * server component on them — the footer, the locale switcher, anything on `useTranslations` —
