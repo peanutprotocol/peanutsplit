@@ -102,6 +102,12 @@ interface ExpenseDrawerProps {
     /** The first actionable balance can hand straight to the existing, dismissible
      *  Share drawer. Ordinary saves still close back to the room. */
     onFirstSharedBalance?: () => void
+    /** A later server-acknowledged create is an earned-return signal for an opened-room device. */
+    onMatureContribution?: (result: {
+        roomWasMature: boolean
+        queuedLocally: boolean
+        createdFirstSharedBalance: boolean
+    }) => void
     defaultPaidById: string
     /** `?shared=1` — a photo the OS share sheet parked for this room. */
     sharedReceipt?: boolean
@@ -124,6 +130,7 @@ export function ExpenseDrawer({
     meId,
     expense,
     onFirstSharedBalance,
+    onMatureContribution,
     defaultPaidById,
     sharedReceipt = false,
     onSharedReceiptConsumed,
@@ -836,18 +843,35 @@ export function ExpenseDrawer({
         try {
             if (expense) {
                 const input: ExpenseUpdateInput = { ...body, expectedSplitMode: expense.splitMode }
-                await updateExpense.mutateAsync({ id: expense.id, input })
+                // Editing a solo row can be the action that first creates money
+                // between two people. Compare the authoritative response with
+                // the pre-submit room so a lost-response retry still observes
+                // the transition without adding mutation-only fields to the wire.
+                const roomWasMature = state.room.hasReachedSharedBalance === true
+                const updated = await updateExpense.mutateAsync({ id: expense.id, input })
                 track(
                     'expense_edited',
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
                 )
+                if (!roomWasMature && updated.room.hasReachedSharedBalance === true) {
+                    trackFirstSharedBalance()
+                    if (onFirstSharedBalance) {
+                        feedback('tick', { haptic: 'confirm' })
+                        onFirstSharedBalance()
+                        return
+                    }
+                }
             } else {
-                const { createdFirstSharedBalance } = await addExpense.mutateAsync(body)
+                // Capture before the mutation seeds its returned RoomState. The expense that creates
+                // the latch is aha itself, not a later mature-room contribution.
+                const roomWasMature = state.room.hasReachedSharedBalance === true
+                const { createdFirstSharedBalance, queuedLocally } = await addExpense.mutateAsync(body)
                 track(
                     'expense_added',
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
                 )
                 if (createdFirstSharedBalance) trackFirstSharedBalance()
+                onMatureContribution?.({ roomWasMature, queuedLocally, createdFirstSharedBalance })
 
                 // Save succeeded and the room has reached its first actionable
                 // balance. The existing Share drawer is itself skippable, so the

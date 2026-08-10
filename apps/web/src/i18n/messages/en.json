@@ -183,23 +183,28 @@
             "madeByBrand": "Squirrel Labs"
         },
         "install": {
-            "title": "Add Split to your home screen",
-            "body": "Opens instantly, works like an app. No store, no account.",
-            "cta": "Add to home screen",
+            "title": "Keep this split close",
+            "body": "Add Split to this device and come straight back to this room. No store, no account.",
+            "cta": "Add Split",
+            "ctaIos": "Show me how",
             "dismiss": "Not now",
+            "closeSuggestion": "Close install suggestion",
             "row": {
                 "label": "Install Split",
                 "labelIos": "Add to home screen",
                 "installed": "Already on this device.",
-                "dismissed": "Not added. Open Split again to try."
+                "dismissed": "Not added. Open Split again to try.",
+                "preparing": "Preparing…"
             },
             "ios": {
                 "title": "Add Split to your home screen",
-                "step1": "Tap the Share button in the Safari toolbar.",
+                "step1": "Open your browser’s Share menu (in Safari, tap More, then Share).",
                 "step2": "Scroll down and choose “Add to Home Screen”.",
-                "step3": "Tap “Add”. That’s it.",
+                "step3": "If you see “Open as Web App”, turn it on, then tap “Add”.",
+                "step4": "Open Split from the new icon within 24 hours. If this room isn’t there, open its link once.",
                 "done": "Got it",
-                "body": "Two taps in Safari and Split lives on your home screen like an app."
+                "body": "Use your browser’s Share menu to put Split on your home screen.",
+                "prepareFailed": "Couldn’t prepare this room. Try again in a moment."
             }
         },
         "linkExplainer": {
@@ -827,6 +832,7 @@
             "postAhaSubtitle": "Share it with the group.",
             "postAhaBalance": "{from} owes {to}",
             "notNow": "Not now",
+            "done": "Done",
             "close": "Close sharing"
         },
         "link": {
@@ -1146,7 +1152,9 @@
         "INTERNAL": "Something went wrong on our side. Try again in a moment.",
         "VALIDATION_ERROR": "That does not look right — check the fields and try again.",
         "MALFORMED_JSON": "Something went wrong sending that — try again.",
+        "JSON_REQUIRED": "Something went wrong sending that — try again.",
         "REQUEST_TOO_LARGE": "That request is too large to send.",
+        "CROSS_SITE_REQUEST": "That request could not be verified — reopen Split and try again.",
         "NOT_FOUND": "This room does not exist.",
         "EXPENSE_NOT_FOUND": "That expense is no longer here — refresh the room.",
         "SETTLEMENT_NOT_FOUND": "That payment is no longer here — refresh the room.",
@@ -1179,6 +1187,7 @@
         "SETTLEMENT_EXCEEDS_DEBT": "That payment is more than is currently owed — refresh and check the amount.",
         "IDEMPOTENCY_KEY_REUSED": "That save key was already used in another room — try saving again.",
         "MEMBER_TOKEN_INVALID": "That wasn’t your member key — reopen the room from your own link.",
+        "INSTALL_HANDOFF_UNAVAILABLE": "That saved install handoff is no longer available — open this room in your browser and add Split again.",
         "SCAN_UNAVAILABLE": "Bill scanning is not switched on here.",
         "SCAN_IMAGE_TOO_LARGE": "That image is too large — take a new photo.",
         "SCAN_BAD_IMAGE": "That image could not be sent — try taking it again.",

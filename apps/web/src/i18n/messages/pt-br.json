@@ -183,23 +183,28 @@
             "madeByBrand": "Squirrel Labs"
         },
         "install": {
-            "title": "Adicione o Split à sua tela de início",
-            "body": "Abre na hora e funciona como app. Sem loja, sem conta.",
-            "cta": "Adicionar à tela de início",
+            "title": "Mantenha esta divisão por perto",
+            "body": "Adicione o Split a este aparelho e volte direto para esta sala. Sem loja, sem conta.",
+            "cta": "Adicionar o Split",
+            "ctaIos": "Ver como",
             "dismiss": "Agora não",
+            "closeSuggestion": "Fechar sugestão de instalação",
             "row": {
                 "label": "Instalar o Split",
                 "labelIos": "Adicionar à tela de início",
                 "installed": "Já está neste aparelho.",
-                "dismissed": "Não foi adicionado. Abra o Split de novo para tentar."
+                "dismissed": "Não foi adicionado. Abra o Split de novo para tentar.",
+                "preparing": "Preparando…"
             },
             "ios": {
                 "title": "Adicione o Split à sua tela de início",
-                "step1": "Toque no botão Compartilhar na barra do Safari.",
+                "step1": "Abra o menu Compartilhar do navegador (no Safari, toque em Mais e depois em Compartilhar).",
                 "step2": "Role para baixo e escolha “Adicionar à Tela de Início”.",
-                "step3": "Toque em “Adicionar”. Pronto.",
+                "step3": "Se vir “Abrir como App da Web”, ative a opção e toque em “Adicionar”.",
+                "step4": "Abra o Split pelo novo ícone em até 24 horas. Se esta sala não aparecer, abra o link dela uma vez.",
                 "done": "Entendi",
-                "body": "Dois toques no Safari e o Split fica na sua tela de início como um app."
+                "body": "Use o menu Compartilhar do navegador para colocar o Split na tela de início.",
+                "prepareFailed": "Não foi possível preparar esta sala. Tente novamente em instantes."
             }
         },
         "linkExplainer": {
@@ -827,6 +832,7 @@
             "postAhaSubtitle": "Compartilhe com o grupo.",
             "postAhaBalance": "{from} deve a {to}",
             "notNow": "Agora não",
+            "done": "Pronto",
             "close": "Fechar compartilhamento"
         },
         "link": {
@@ -1146,7 +1152,9 @@
         "INTERNAL": "Algo deu errado do nosso lado. Tente daqui a pouco.",
         "VALIDATION_ERROR": "Isso não parece certo — confira os campos e tente de novo.",
         "MALFORMED_JSON": "Algo deu errado ao enviar — tente de novo.",
+        "JSON_REQUIRED": "Algo deu errado ao enviar — tente de novo.",
         "REQUEST_TOO_LARGE": "Essa solicitação é grande demais para enviar.",
+        "CROSS_SITE_REQUEST": "Não foi possível verificar essa solicitação — abra o Split de novo e tente novamente.",
         "NOT_FOUND": "Esta sala não existe.",
         "EXPENSE_NOT_FOUND": "Esse gasto não está mais aqui — recarregue a sala.",
         "SETTLEMENT_NOT_FOUND": "Esse pagamento não está mais aqui — recarregue a sala.",
@@ -1179,6 +1187,7 @@
         "SETTLEMENT_EXCEEDS_DEBT": "Esse pagamento é maior do que a dívida atual — recarregue e confira o valor.",
         "IDEMPOTENCY_KEY_REUSED": "Essa chave de salvamento já foi usada em outra sala — tente salvar de novo.",
         "MEMBER_TOKEN_INVALID": "Essa não era a sua chave de participante — abra a sala de novo pelo seu próprio link.",
+        "INSTALL_HANDOFF_UNAVAILABLE": "A transferência salva para instalar não está mais disponível — abra esta sala no navegador e adicione o Split de novo.",
         "SCAN_UNAVAILABLE": "O escaneamento de contas não está ligado aqui.",
         "SCAN_IMAGE_TOO_LARGE": "Essa imagem é grande demais — tire uma foto nova.",
         "SCAN_BAD_IMAGE": "Não deu para enviar essa imagem — tente tirar de novo.",

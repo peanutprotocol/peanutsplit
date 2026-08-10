@@ -113,13 +113,42 @@ const randomUuid = (): string => {
     return `dev-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
 }
 
+const isDeviceId = (value: string | null): value is string =>
+    value !== null &&
+    (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ||
+        /^dev-[a-z0-9]{8,80}$/i.test(value))
+
 const writeDeviceCookie = (deviceId: string): void => {
     try {
         if (typeof document === 'undefined') return
-        document.cookie = `${DEVICE_COOKIE}=${deviceId}; path=/; max-age=${DEVICE_COOKIE_MAX_AGE}; SameSite=Lax`
+        const secure = typeof window !== 'undefined' && window.location?.protocol === 'https:' ? '; Secure' : ''
+        document.cookie = `${DEVICE_COOKIE}=${encodeURIComponent(deviceId)}; path=/; max-age=${DEVICE_COOKIE_MAX_AGE}; SameSite=Lax${secure}`
     } catch {
         // ignore
     }
+}
+
+/**
+ * WebKit copies cookies, but not localStorage, into a newly-added Home Screen
+ * app. Read the mirrored id before minting so that one-time copy remains the
+ * same anonymous device instead of being overwritten on the installed app's
+ * first Providers effect.
+ */
+const readDeviceCookie = (): string | null => {
+    try {
+        if (typeof document === 'undefined') return null
+        for (const part of document.cookie.split(';')) {
+            const [name, ...rawValue] = part.trim().split('=')
+            if (name !== DEVICE_COOKIE) continue
+            const value = decodeURIComponent(rawValue.join('='))
+            // A device id is only a hint, but bounding its shape keeps a damaged
+            // or attacker-written cookie from becoming durable application state.
+            return isDeviceId(value) ? value : null
+        }
+    } catch {
+        // An unreadable/malformed cookie falls through to ordinary minting.
+    }
+    return null
 }
 
 /**
@@ -131,12 +160,13 @@ export function ensureDeviceId(): string | null {
     if (!store) return null
     let deviceId: string | null = null
     try {
-        deviceId = store.getItem(DEVICE_KEY)
+        const stored = store.getItem(DEVICE_KEY)
+        deviceId = isDeviceId(stored) ? stored : null
     } catch {
         return null
     }
     if (!deviceId) {
-        deviceId = randomUuid()
+        deviceId = readDeviceCookie() ?? randomUuid()
         try {
             store.setItem(DEVICE_KEY, deviceId)
         } catch {

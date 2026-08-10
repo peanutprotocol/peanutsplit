@@ -37,6 +37,9 @@ interface LatecomerBannerProps {
     memberId: string
     token?: string | null
     onResolved?: () => void
+    /** Persist the earned transition above this banner: opening an expense
+     * drawer deliberately unmounts it while the review is still unresolved. */
+    onFirstSharedBalanceEarned?: () => void
     onOpenChange?: (open: boolean) => void
     onEditExpense?: (expenseId: string) => void
 }
@@ -55,6 +58,7 @@ export function LatecomerBanner({
     memberId,
     token,
     onResolved,
+    onFirstSharedBalanceEarned,
     onOpenChange,
     onEditExpense,
 }: LatecomerBannerProps) {
@@ -148,6 +152,12 @@ export function LatecomerBanner({
                         expenseId: expense.id,
                         ...catchUpExpenseInput(expense, memberId),
                     })
+                    if (
+                        state.room.hasReachedSharedBalance !== true &&
+                        result.state.room.hasReachedSharedBalance === true
+                    ) {
+                        onFirstSharedBalanceEarned?.()
+                    }
                     const updated = result.state.expenses.find((candidate) => candidate.id === expense.id)
                     if (result.changed && updated) {
                         wrote += 1

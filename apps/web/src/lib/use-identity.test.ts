@@ -9,7 +9,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { memberStorageKey, readIdentity, writeIdentity } from './identity'
-import { forgetIdentity, identityAfterInvalidToken } from './use-identity'
+import { rememberRoom } from './recent-rooms'
+import { forgetIdentity, forgetRoomFromDevice, identityAfterInvalidToken } from './use-identity'
 
 const { dropRoomSubscription } = vi.hoisted(() => ({ dropRoomSubscription: vi.fn() }))
 
@@ -90,6 +91,39 @@ describe('forgetIdentity', () => {
         // and such a device never had a subscription to drop in the first place.
         expect(dropRoomSubscription).not.toHaveBeenCalled()
         expect(readIdentity(SLUG)).toBeNull()
+    })
+})
+
+describe('forgetRoomFromDevice', () => {
+    it('drops notifications only after the room and identity were removed locally', async () => {
+        expect(rememberRoom({ slug: SLUG, name: 'Ski trip' })).toBe(true)
+        writeIdentity(SLUG, { memberId: 'm1', name: 'Ana', token: 'tok-1' })
+        const identityAtDrop: Array<string | null> = []
+        dropRoomSubscription.mockImplementation(async () => {
+            identityAtDrop.push(window.localStorage.getItem(memberStorageKey(SLUG)))
+        })
+
+        expect(forgetRoomFromDevice(SLUG)).toBe(true)
+        await flush()
+
+        expect(dropRoomSubscription).toHaveBeenCalledWith(SLUG, 'm1', 'tok-1')
+        expect(identityAtDrop).toEqual([null])
+        expect(readIdentity(SLUG)).toBeNull()
+    })
+
+    it('does not unsubscribe when local removal fails', async () => {
+        const storage = window.localStorage
+        expect(rememberRoom({ slug: SLUG, name: 'Ski trip' })).toBe(true)
+        writeIdentity(SLUG, { memberId: 'm1', name: 'Ana', token: 'tok-1' })
+        storage.setItem = () => {
+            throw new DOMException('blocked', 'SecurityError')
+        }
+
+        expect(forgetRoomFromDevice(SLUG)).toBe(false)
+        await flush()
+
+        expect(dropRoomSubscription).not.toHaveBeenCalled()
+        expect(readIdentity(SLUG)).toEqual({ memberId: 'm1', name: 'Ana', token: 'tok-1' })
     })
 })
 

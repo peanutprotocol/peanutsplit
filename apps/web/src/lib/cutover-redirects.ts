@@ -89,9 +89,16 @@ export function decideCutoverRedirect(
         return isAppPath(pathname) ? { target: `https://${canonicalHost}${pathname}${search}`, status: 301 } : null
     }
 
-    // Canonical host: the app serves; everything else — marketing pages, locale
-    // prefixes, unknown slugs — bounces back so no content is duplicated on the
-    // subdomain while its canonicals are still being sorted out.
+    // The handoff endpoints enforce the configured origin exactly. Canonicalise
+    // app pages before React runs so a www page cannot later issue same-origin
+    // requests whose Origin disagrees with that configured bare host.
+    if (bare === `www.${canonicalHost}` && isAppPath(pathname)) {
+        return { target: `https://${canonicalHost}${pathname}${search}`, status: 301 }
+    }
+
+    // Bare canonical host: the app serves; everything else — marketing pages,
+    // locale prefixes, unknown slugs — bounces back so no content is duplicated
+    // on the subdomain while its canonicals are still being sorted out.
     return isAppPath(pathname) ? null : { target: `https://${legacyHost}${pathname}${search}`, status: 302 }
 }
 

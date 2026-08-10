@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { CloseButton } from '@/components/ui/CloseButton'
@@ -14,10 +14,13 @@ import { Money } from './Money'
 
 interface ShareDrawerProps {
     open: boolean
-    onClose: () => void
+    onClose: (completed: boolean) => void
+    onCompleted?: (method: 'native' | 'clipboard') => void
     state: RoomState
     currencies: readonly CurrencyInfo[]
     surface: ShareSurface
+    /** Stable fallback when a post-aha drawer replaced an opener that unmounted. */
+    returnFocusRef?: RefObject<HTMLElement | null>
 }
 
 /**
@@ -25,29 +28,67 @@ interface ShareDrawerProps {
  * checkpoint and room settings, so this sheet has one job and one primary
  * action: get the room link into the group chat.
  */
-export function ShareDrawer({ open, onClose, state, currencies, surface }: ShareDrawerProps) {
+export function ShareDrawer({
+    open,
+    onClose,
+    onCompleted,
+    state,
+    currencies,
+    surface,
+    returnFocusRef,
+}: ShareDrawerProps) {
     const t = useTranslations('room.share')
     const feedback = useFeedback()
     const room = state.room
     const transfer = surface === 'post_aha' ? state.suggestedTransfers[0] : undefined
     const from = transfer ? state.members.find((member) => member.id === transfer.fromId) : undefined
     const to = transfer ? state.members.find((member) => member.id === transfer.toId) : undefined
+    const [completed, setCompleted] = useState(false)
+    const completedRef = useRef(false)
+    // `onClose` resets the parent surface before the closing animation ends.
+    // Preserve the surface this presentation opened with so only a post-aha
+    // replacement overrides the generic Drawer's connected opener.
+    const openedSurfaceRef = useRef<ShareSurface>(surface)
+
+    const close = useCallback(() => onClose(completedRef.current), [onClose])
+    const shared = useCallback(
+        (method: 'native' | 'clipboard') => {
+            completedRef.current = true
+            setCompleted(true)
+            onCompleted?.(method)
+        },
+        [onCompleted]
+    )
 
     useEffect(() => {
-        if (open) feedback('blip')
+        if (open) {
+            openedSurfaceRef.current = surface
+            completedRef.current = false
+            setCompleted(false)
+            feedback('blip')
+        }
         // The feedback function is stable; rerunning because its provider
         // rendered would replay an opening cue that did not happen.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
 
     return (
-        <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
-            <DrawerContent>
+        <Drawer open={open} onOpenChange={(next) => !next && close()}>
+            <DrawerContent
+                onCloseAutoFocus={
+                    returnFocusRef && openedSurfaceRef.current === 'post_aha'
+                        ? (event) => {
+                              event.preventDefault()
+                              window.requestAnimationFrame(() => returnFocusRef.current?.focus({ preventScroll: true }))
+                          }
+                        : undefined
+                }
+            >
                 <DrawerTitle className="sr-only">{surface === 'post_aha' ? t('postAhaTitle') : t('title')}</DrawerTitle>
                 <DrawerBody className="relative gap-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
                     {surface !== 'post_aha' && (
                         <div className="absolute right-4 top-2 z-10">
-                            <CloseButton onClick={onClose} label={t('close')} data-testid="close-share" />
+                            <CloseButton onClick={close} label={t('close')} data-testid="close-share" />
                         </div>
                     )}
                     <LinkMoment
@@ -61,6 +102,7 @@ export function ShareDrawer({ open, onClose, state, currencies, surface }: Share
                         showQr={surface !== 'post_aha'}
                         title={surface === 'post_aha' ? t('postAhaTitle') : t('title')}
                         subtitle={surface === 'post_aha' ? t('postAhaSubtitle') : t('subtitle')}
+                        onCompleted={shared}
                         context={
                             transfer && from && to ? (
                                 <div
@@ -84,10 +126,10 @@ export function ShareDrawer({ open, onClose, state, currencies, surface }: Share
                                 <Button
                                     variant="transparent"
                                     className="justify-center"
-                                    onClick={onClose}
-                                    data-testid="skip-post-aha-share"
+                                    onClick={close}
+                                    data-testid={completed ? 'finish-post-aha-share' : 'skip-post-aha-share'}
                                 >
-                                    {t('notNow')}
+                                    {completed ? t('done') : t('notNow')}
                                 </Button>
                             ) : undefined
                         }

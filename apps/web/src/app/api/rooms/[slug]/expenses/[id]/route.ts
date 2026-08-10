@@ -67,9 +67,10 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                 const updatedRoom = await loadRoom(slug, tx)
                 const updated = updatedRoom.expenses.find((expense) => expense.id === id)
                 if (!updated) throw conflict('the expense changed during catch-up', 'CATCH_UP_REVIEW_CONFLICT')
-                if (body.action === 'add') {
-                    await latchFirstSharedBalance(tx, room, id, updated.paidById, updated.shares)
-                }
+                const createdFirstSharedBalance =
+                    body.action === 'add'
+                        ? await latchFirstSharedBalance(tx, room, id, updated.paidById, updated.shares)
+                        : false
                 await appendRoomAuditEvent({
                     tx,
                     request,
@@ -88,7 +89,11 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                         },
                     },
                 })
-                return { changed: true, state: toRoomState(updatedRoom) }
+                // The latch updates the room row after `updatedRoom` was loaded.
+                // Return the post-latch snapshot so the client that created the
+                // first real debt can hand directly to the post-aha share moment.
+                const finalRoom = createdFirstSharedBalance ? await loadRoom(slug, tx) : updatedRoom
+                return { changed: true, state: toRoomState(finalRoom) }
             })
             if (result.changed) publish(initial.id)
             return result

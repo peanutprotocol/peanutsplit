@@ -197,6 +197,7 @@ describe('PATCH /api/rooms/:slug/expenses/:id catch-up command', () => {
         const { body: withDani } = await join(slug, 'Dani')
         const added = await catchUp(slug, before.id, snapshot(before, withDani.memberId))
         expect(added.status).toBe(200)
+        expect((added.body as CatchUpExpenseResult).state.room.hasReachedSharedBalance).toBe(true)
         expect(
             (await prisma.room.findUniqueOrThrow({ where: { id: created.room.id } })).firstSharedBalanceExpenseId
         ).toBe(before.id)
@@ -207,6 +208,7 @@ describe('PATCH /api/rooms/:slug/expenses/:id catch-up command', () => {
             action: 'remove',
         })
         expect(removed.status).toBe(200)
+        expect((removed.body as CatchUpExpenseResult).state.room.hasReachedSharedBalance).toBe(true)
         expect(
             (await prisma.room.findUniqueOrThrow({ where: { id: created.room.id } })).firstSharedBalanceExpenseId
         ).toBe(before.id)

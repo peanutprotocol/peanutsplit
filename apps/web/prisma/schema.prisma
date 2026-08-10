@@ -53,6 +53,7 @@ model Room {
   auditEvents                 RoomAuditEvent[]
   importBatches               ImportBatch[]
   feedbackReports             FeedbackReport[]
+  installHandoffs             InstallHandoff[]
 
   pushSubscriptions PushSubscription[]
   notificationSends NotificationSend[]
@@ -146,8 +147,31 @@ model Member {
   createdSettlements Settlement[]      @relation("SettlementCreatedBy")
 
   pushSubscriptions PushSubscription[]
+  installHandoffs   InstallHandoff[]
 
   @@index([roomId])
+  @@schema("split")
+}
+
+/// A one-time bridge from an iOS browser tab into the isolated Home Screen app.
+///
+/// WebKit copies cookies at installation but not localStorage. The browser holds
+/// an opaque cookie; only its SHA-256 digest reaches this table, and the row is
+/// short-lived. Deliberately no device id or user relation: one explicit install
+/// intent restores one room, without becoming an anonymous cross-room account.
+model InstallHandoff {
+  tokenHash       String   @id @db.Char(64)
+  roomId          String
+  memberId        String?
+  memberTokenHash String?  @db.Char(64)
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime
+
+  room   Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  member Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@index([roomId])
+  @@index([expiresAt])
   @@schema("split")
 }
 

@@ -8,9 +8,11 @@ import { SettingToggle } from '@/components/ui/SettingToggle'
 import { StateRow } from '@/components/ui/StateRow'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
-import { roomProps, track } from '@/lib/analytics'
+import { installMeasureProps, roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
+import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
+import { snoozeAfterIosInstallInstructions } from '@/lib/install'
 import type { SettledPushStatus } from '@/lib/push-status'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
@@ -18,6 +20,7 @@ import { usePush } from '@/lib/use-push'
 import { IosInstallSteps } from './IosInstallSteps'
 
 interface PushOptInProps {
+    active?: boolean
     slug: string
     /** Named in the label, because the switch is per room and the sheet is not. */
     roomName: string
@@ -37,13 +40,32 @@ interface PushOptInProps {
  * If the browser denies the request, the switch stays disabled and carries the
  * reason as its hint instead of disappearing from under the person who tapped it.
  */
-export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptInProps) {
+export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPerson }: PushOptInProps) {
     const t = useTranslations('push')
     const tInstall = useTranslations('marketing.install')
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const { status, error, subscribe, unsubscribe } = usePush(slug)
     const [iosSheetOpen, setIosSheetOpen] = useState(false)
+    const [installArming, setInstallArming] = useState(false)
+    const installArmingRef = useRef(false)
+    const mountedRef = useRef(true)
+    const activeRef = useRef(active)
+    const inactiveGeneration = useRef(0)
+    if (activeRef.current && !active) inactiveGeneration.current += 1
+    activeRef.current = active
+
+    useEffect(() => {
+        mountedRef.current = true
+        return () => {
+            mountedRef.current = false
+        }
+    }, [])
+
+    const closeIosInstallSteps = () => {
+        snoozeAfterIosInstallInstructions()
+        setIosSheetOpen(false)
+    }
     /**
      * The last settled status, so a subscribe in flight (which reports
      * 'pending') does not make the row someone just tapped disappear from under
@@ -75,6 +97,31 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
 
     const busy = status === 'pending'
 
+    const openIosInstallSteps = async () => {
+        if (installArmingRef.current) return
+        installArmingRef.current = true
+        setInstallArming(true)
+        const generation = inactiveGeneration.current
+        const prepared = await prepareInstallHandoff(slug, identity?.token)
+        if (!mountedRef.current) {
+            if (prepared) void cancelPreparedInstallHandoff(prepared)
+            return
+        }
+        installArmingRef.current = false
+        setInstallArming(false)
+        if (!activeRef.current || generation !== inactiveGeneration.current) {
+            if (prepared) void cancelPreparedInstallHandoff(prepared)
+            return
+        }
+        if (!prepared) {
+            feedback('error', { haptic: 'error' })
+            toast.error(tInstall('ios.prepareFailed'), { duration: TOAST_MS.actionable })
+            return
+        }
+        track('ios_install_steps_opened', installMeasureProps('ios_install_steps_opened', { surface: 'settings' }))
+        setIosSheetOpen(true)
+    }
+
     // A browser with no push at all gets no row, no explanation and no apology.
     if (displayed === null || displayed === 'unsupported') return null
 
@@ -84,12 +131,13 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
                 <StateRow label={t('label')} line={t('iosNeedsPwa')} />
                 <button
                     type="button"
-                    onClick={() => setIosSheetOpen(true)}
+                    onClick={() => void openIosInstallSteps()}
+                    disabled={installArming}
                     className="self-start text-sm text-n-1 underline"
                 >
-                    {t('iosHow')}
+                    {installArming ? tInstall('row.preparing') : t('iosHow')}
                 </button>
-                <Drawer open={iosSheetOpen} onOpenChange={setIosSheetOpen}>
+                <Drawer open={iosSheetOpen} onOpenChange={(next) => !next && closeIosInstallSteps()}>
                     <DrawerContent>
                         <DrawerHeader>
                             <DrawerTitle className="text-h5">{tInstall('ios.title')}</DrawerTitle>
@@ -98,11 +146,7 @@ export function PushOptIn({ slug, roomName, identity, onSwitchPerson }: PushOptI
                         <DrawerBody>
                             <IosInstallSteps />
                             <DrawerActions>
-                                <Button
-                                    variant="stroke"
-                                    className="justify-center"
-                                    onClick={() => setIosSheetOpen(false)}
-                                >
+                                <Button variant="stroke" className="justify-center" onClick={closeIosInstallSteps}>
                                     {tInstall('ios.done')}
                                 </Button>
                             </DrawerActions>

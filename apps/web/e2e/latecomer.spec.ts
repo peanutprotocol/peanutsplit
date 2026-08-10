@@ -40,6 +40,20 @@ const addExpense = async (
     expect(response.status()).toBe(201)
 }
 
+const addManualExpense = async (request: APIRequestContext, room: CreatedRoom, description: string) => {
+    const response = await request.post(`/api/rooms/${room.room.slug}/expenses`, {
+        data: {
+            description,
+            amountMinor: '3000',
+            currency: 'EUR',
+            paidById: room.memberId,
+            splitMode: 'EXACT',
+            exactShares: [{ memberId: room.memberId, amountMinor: '3000' }],
+        },
+    })
+    expect(response.status()).toBe(201)
+}
+
 const expectTapFloor = async (locator: Locator) => {
     const box = await locator.boundingBox()
     expect(box).not.toBeNull()
@@ -106,12 +120,91 @@ test('any recorder gets a named room prompt and one review sheet that closes on 
     await dialog.getByTestId('latecomer-confirm').click()
     await expect(dialog).toHaveCount(0, { timeout: 15_000 })
     await expect(page.getByTestId('latecomer-banner')).toHaveCount(0)
+    const postAha = page.getByRole('dialog', { name: 'First split done' })
+    await expect(postAha).toBeVisible()
+    // The catch-up review closes before the earned Share moment opens: never
+    // leave two modal focus traps mounted for one transition.
+    await expect(page.getByRole('dialog')).toHaveCount(1)
+    await expect(postAha.getByTestId('first-balance-context')).toContainText('Dani owes Ana')
+    await expect(postAha.getByTestId('first-balance-context')).toContainText('€15.00')
+    await postAha.getByTestId('skip-post-aha-share').click()
+    await expect(postAha).toHaveCount(0)
     await expect(page.getByTestId('open-room-switcher')).toBeFocused()
     await expect(page.locator('[data-testid="balance-card"][data-member="Dani"]')).toHaveAttribute('data-net', '-1500')
 
     await page.getByRole('button', { name: 'Undo' }).click()
     await expect(page.getByText('Catch-up undone')).toBeVisible()
     await expect(page.locator('[data-testid="balance-card"][data-member="Dani"]')).toHaveAttribute('data-net', '0')
+})
+
+test('a first balance survives a later catch-up conflict and manual expense drawer handoff', async ({
+    page,
+    request,
+}) => {
+    const room = await createRoom(request, 'Partial catch-up activation')
+    await addExpense(request, room, 'First shared row')
+    await addExpense(request, room, 'Conflicting row')
+    await addManualExpense(request, room, 'Manual row')
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    await addMember(request, room.room.slug, 'Dani')
+
+    await claim(page, room.room.slug, 'Ana')
+
+    let catchUpPatches = 0
+    await page.route(`**/api/rooms/${room.room.slug}/expenses/*`, async (route) => {
+        if (route.request().method() !== 'PATCH') {
+            await route.continue()
+            return
+        }
+        const requestBody = route.request().postDataJSON() as { operation?: unknown } | null
+        if (requestBody?.operation !== 'CATCH_UP_EQUAL_PARTICIPANT') {
+            await route.continue()
+            return
+        }
+        catchUpPatches += 1
+        if (catchUpPatches !== 2) {
+            await route.continue()
+            return
+        }
+        await route.fulfill({
+            status: 409,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                error: {
+                    code: 'CATCH_UP_REVIEW_CONFLICT',
+                    message: 'the expense changed after review — review it again',
+                },
+            }),
+        })
+    })
+
+    await page.getByTestId('latecomer-review').click()
+    let review = page.getByRole('dialog', { name: 'Earlier expenses for Dani' })
+    await review.getByTestId('latecomer-confirm').click()
+    await expect(review.getByRole('alert')).toContainText('1 expense changed')
+    expect(catchUpPatches).toBe(2)
+
+    // A manual row hands modal ownership to ExpenseDrawer and unmounts the
+    // banner. The already-earned first-balance transition belongs to the room,
+    // so that intentional handoff cannot erase it.
+    await review.getByRole('button', { name: /Manual row/ }).click()
+    const expenseDrawer = page.getByTestId('expense-drawer')
+    await expect(expenseDrawer).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(1)
+    await expect.poll(() => expenseDrawer.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+    await page.getByTestId('close-expense').click()
+
+    await expect(page.getByTestId('latecomer-banner')).toBeVisible()
+    await page.getByTestId('latecomer-review').click()
+    review = page.getByRole('dialog', { name: 'Earlier expenses for Dani' })
+    await review.getByTestId('latecomer-not-now').click()
+
+    const postAha = page.getByRole('dialog', { name: 'First split done' })
+    await expect(postAha).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(1)
+    await postAha.getByTestId('skip-post-aha-share').click()
+    await expect(postAha).toHaveCount(0)
+    await expect(page.getByTestId('open-room-switcher')).toBeFocused()
 })
 
 test('optional subsets start off and Not now changes neither identity nor ledger', async ({ page, request }) => {

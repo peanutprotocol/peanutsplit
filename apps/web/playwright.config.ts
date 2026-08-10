@@ -34,6 +34,10 @@ export default defineConfig({
     reporter: process.env.CI ? 'html' : 'list',
     use: {
         baseURL,
+        // Production handoff cookies are deliberately Secure. Let the deep
+        // WebKit matrix exercise them against Next's self-signed localhost
+        // HTTPS server without weakening the application cookie contract.
+        ignoreHTTPSErrors: baseURL.startsWith('https://localhost:'),
         trace: 'on-first-retry',
     },
     webServer: process.env.E2E_BASE_URL

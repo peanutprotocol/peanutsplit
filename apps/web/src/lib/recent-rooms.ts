@@ -8,6 +8,9 @@
  * Storage shape: `RecentRoom[]`, newest first, capped at RECENT_ROOMS_LIMIT.
  */
 
+import { memberStorageKey } from '@/lib/identity'
+import { roomInstallStorageKey } from '@/lib/install-funnel'
+
 export const RECENT_ROOMS_KEY = 'ps:recent'
 export const RECENT_ROOMS_LIMIT = 12
 const CANONICAL_ROOM_HOSTS = new Set([
@@ -169,26 +172,66 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
         theme: room.theme,
         lastSeenAt: room.lastSeenAt ?? Date.now(),
     }
-    const next = [entry, ...readRecentRooms().filter((existing) => existing.slug !== entry.slug)].slice(
+    const existingRooms = readRecentRooms()
+    const next = [entry, ...existingRooms.filter((existing) => existing.slug !== entry.slug)].slice(
         0,
         RECENT_ROOMS_LIMIT
     )
+    const retained = new Set(next.map((candidate) => candidate.slug))
+    const evicted = existingRooms.filter((candidate) => !retained.has(candidate.slug))
+    let previousRecent: string | null = null
+    let evictedDetails: Array<{ key: string; value: string | null }> = []
     try {
+        previousRecent = storage.getItem(RECENT_ROOMS_KEY)
+        // A list-cap eviction is not a user request to forget who they are. It
+        // prunes only the new prompt-journey record; explicit Forget below also
+        // removes the room identity.
+        evictedDetails = evicted.map((candidate) => {
+            const key = roomInstallStorageKey(candidate.slug)
+            return { key, value: storage.getItem(key) }
+        })
         storage.setItem(RECENT_ROOMS_KEY, JSON.stringify(next))
+        for (const { key } of evictedDetails) storage.removeItem(key)
         return true
     } catch {
+        // localStorage has no transaction primitive. Restore the list and any
+        // per-room records if a quota/privacy failure interrupts this small set.
+        try {
+            if (previousRecent === null) storage.removeItem(RECENT_ROOMS_KEY)
+            else storage.setItem(RECENT_ROOMS_KEY, previousRecent)
+            for (const { key, value } of evictedDetails) {
+                if (value === null) storage.removeItem(key)
+                else storage.setItem(key, value)
+            }
+        } catch {
+            // The write already reports failure; a browser denying rollback is
+            // not recoverable from client code.
+        }
         return false
     }
 }
 
-/** Drop a room from the list when the user asks us to forget it. */
+/** Drop a room and its room-scoped identity/journey records from this device. */
 export function forgetRoom(slug: string): boolean {
     const storage = browserStorage()
     if (!storage) return false
+    const keys = [RECENT_ROOMS_KEY, memberStorageKey(slug), roomInstallStorageKey(slug)]
+    let previous: Array<{ key: string; value: string | null }> = []
     try {
+        previous = keys.map((key) => ({ key, value: storage.getItem(key) }))
         storage.setItem(RECENT_ROOMS_KEY, JSON.stringify(readRecentRooms().filter((r) => r.slug !== slug)))
+        storage.removeItem(memberStorageKey(slug))
+        storage.removeItem(roomInstallStorageKey(slug))
         return true
     } catch {
+        try {
+            for (const { key, value } of previous) {
+                if (value === null) storage.removeItem(key)
+                else storage.setItem(key, value)
+            }
+        } catch {
+            // See rememberRoom: best-effort rollback is the strongest localStorage offers.
+        }
         return false
     }
 }

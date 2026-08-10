@@ -187,13 +187,65 @@ describe('the install store', () => {
         expect(readInstallState()).toBe('installed')
     })
 
+    it('fails closed when opening the browser prompt throws without recording a decision', async () => {
+        const win = fakeWindow()
+        const { captureInstallPrompt, promptInstall, readInstallState } = await import('./install')
+        captureInstallPrompt()
+        win.fire('beforeinstallprompt', {
+            prompt: () => {
+                throw new Error('browser prompt failed')
+            },
+            userChoice: Promise.resolve({ outcome: 'dismissed' }),
+        })
+
+        expect(await promptInstall()).toBe('unavailable')
+        expect(readInstallState()).toBe('waiting')
+        expect(await promptInstall()).toBe('unavailable')
+    })
+
+    it('fails closed when the browser prompt rejects without recording a decision', async () => {
+        const win = fakeWindow()
+        const { captureInstallPrompt, promptInstall, readInstallState } = await import('./install')
+        captureInstallPrompt()
+        win.fire('beforeinstallprompt', {
+            prompt: () => Promise.reject(new Error('browser prompt failed')),
+            userChoice: Promise.resolve({ outcome: 'accepted' }),
+        })
+
+        expect(await promptInstall()).toBe('unavailable')
+        expect(readInstallState()).toBe('waiting')
+    })
+
+    it('handles an early userChoice rejection while prompt() is pending and fails closed', async () => {
+        const win = fakeWindow()
+        const { captureInstallPrompt, promptInstall, readInstallState } = await import('./install')
+        captureInstallPrompt()
+
+        let finishPrompt: (() => void) | undefined
+        const promptPending = new Promise<void>((resolve) => {
+            finishPrompt = resolve
+        })
+        win.fire('beforeinstallprompt', {
+            prompt: () => promptPending,
+            userChoice: Promise.reject(new Error('browser choice failed')),
+        })
+
+        const outcome = promptInstall()
+        await Promise.resolve()
+        finishPrompt?.()
+
+        expect(await outcome).toBe('unavailable')
+        expect(readInstallState()).toBe('waiting')
+    })
+
     it('clears the banner snooze when the app is installed any other way', async () => {
         const win = fakeWindow()
-        const { captureInstallPrompt, isInstallSnoozed, noteInstallDismissed, readInstallState } =
+        const { captureInstallPrompt, isInstallSnoozed, noteInstallDismissed, readInstallState, snoozeInstallFor } =
             await import('./install')
         captureInstallPrompt()
 
         expect(noteInstallDismissed()).toBe(1)
+        snoozeInstallFor(30 * 24 * 60 * 60 * 1000)
         expect(isInstallSnoozed()).toBe(true)
 
         // Chrome's omnibox install, not ours.
@@ -258,5 +310,23 @@ describe('the banner backoff', () => {
         expect(installBackoffMs(2)).toBe(48 * hour)
         expect(installBackoffMs(3)).toBe(96 * hour)
         expect(installBackoffMs(99)).toBe(30 * 24 * hour)
+    })
+
+    it('can impose the iOS instructions minimum without hiding the settings action forever', async () => {
+        vi.resetModules()
+        fakeWindow()
+        const now = vi.spyOn(Date, 'now').mockReturnValue(1_000)
+        const { IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS, isInstallSnoozed, snoozeAfterIosInstallInstructions } =
+            await import('./install')
+
+        snoozeAfterIosInstallInstructions()
+        expect(isInstallSnoozed()).toBe(true)
+        now.mockReturnValue(1_000 + IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS - 1)
+        expect(isInstallSnoozed()).toBe(true)
+        now.mockReturnValue(1_000 + IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS)
+        expect(isInstallSnoozed()).toBe(false)
+
+        now.mockRestore()
+        vi.unstubAllGlobals()
     })
 })

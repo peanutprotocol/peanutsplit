@@ -108,17 +108,22 @@ test('the in-app animations-off setting stays still through new, room, share, ad
 
 test('the deferred install prompt is still when the OS requests reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'share', { configurable: true, value: async () => undefined })
+    })
     await page.goto('/new')
     await page.getByTestId('room-name').fill(`Still install ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
     await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
+    await page.getByRole('textbox', { name: 'Name' }).fill('Bea')
+    await page.getByRole('button', { name: 'Add', exact: true }).click()
 
     // Install before the room navigation: InstallPrompt does not exist on /new,
     // so every timer in its mounted lifecycle belongs to the controlled clock.
     await page.clock.install()
     await enterCreatedRoom(page)
-    await expectBalance(page, 'Ana', '0')
+    await expectBalance(page, 'Bea', '0')
 
     await page.evaluate(() => {
         const event = new Event('beforeinstallprompt', { cancelable: true })
@@ -128,9 +133,16 @@ test('the deferred install prompt is still when the OS requests reduced motion',
         })
         window.dispatchEvent(event)
     })
-    await page.clock.runFor(21_000)
+    await page.getByTestId('open-add-expense').click()
+    await page.getByTestId('expense-amount').fill('20')
+    await page.getByTestId('save-expense').click()
+    const postAha = page.getByRole('dialog', { name: 'First split done' })
+    await expect(postAha).toBeVisible({ timeout: 15_000 })
+    await postAha.getByTestId('share-link').click()
+    await postAha.getByTestId('finish-post-aha-share').click()
+    await page.clock.runFor(2_000)
 
-    await expect(page.locator('[data-motion-surface][role="dialog"]')).toBeVisible()
+    await expect(page.getByTestId('install-prompt')).toBeVisible()
     await expectStill(page)
 })
 

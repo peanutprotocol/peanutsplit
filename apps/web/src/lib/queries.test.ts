@@ -179,7 +179,7 @@ describe('adding an expense', () => {
         const fetchMock = respondWith(201, served)
         vi.stubGlobal('fetch', fetchMock)
 
-        await expect(addExpense(queryClient)).resolves.toEqual(served)
+        await expect(addExpense(queryClient)).resolves.toEqual({ ...served, queuedLocally: false })
 
         expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).toEqual(state)
         expect(queryClient.getQueryData<RoomState>(roomKey(SLUG))).not.toHaveProperty('createdFirstSharedBalance')
@@ -254,7 +254,10 @@ describe('adding an expense', () => {
         )
 
         await expect(observer.mutate(staged)).rejects.toMatchObject({ code: NETWORK_ERROR_CODE })
-        await expect(observer.mutate(staged)).resolves.toEqual(expenseResult(roomState([sent[0].clientKey]), true))
+        await expect(observer.mutate(staged)).resolves.toEqual({
+            ...expenseResult(roomState([sent[0].clientKey]), true),
+            queuedLocally: false,
+        })
 
         expect(sent).toHaveLength(2)
         expect(sent[1].clientKey).toBe(sent[0].clientKey)
@@ -393,7 +396,7 @@ describe('adding an expense with no network', () => {
         queryClient.setQueryData(roomKey(SLUG), before)
         const fetchMock = offline()
 
-        await expect(addExpense(queryClient)).resolves.toEqual(expenseResult(before))
+        await expect(addExpense(queryClient)).resolves.toEqual({ ...expenseResult(before), queuedLocally: true })
 
         // No balance moved, no placeholder left seeded in the cache — the queued
         // row is merged in at read time by `useRoomState`, from the queue.
@@ -446,7 +449,7 @@ describe('adding an expense with no network', () => {
 
         const result = addExpense(queryClient)
         await vi.advanceTimersByTimeAsync(EXPENSE_WRITE_TIMEOUT_MS)
-        await expect(result).resolves.toEqual(expenseResult(before))
+        await expect(result).resolves.toEqual({ ...expenseResult(before), queuedLocally: true })
 
         const firstAttempt = JSON.parse(fetchMock.mock.calls[0][1]?.body as string)
         expect(queueSnapshot()).toHaveLength(1)

@@ -5,6 +5,7 @@ import { roomProps, track } from '@/lib/analytics'
 import type { RoomStateWithMember } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
+import { markRoomCreatedHere } from '@/lib/install-funnel'
 import { useCreateRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { prewarmRoomPreview } from '@/lib/room-preview'
@@ -48,6 +49,7 @@ export function useCreateRoomFlow(fallbackMessage: string) {
                 token: state.memberToken,
                 name: fields.creatorName.trim(),
             })
+            markRoomCreatedHere(state.room.slug)
             rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
             // Render the social preview while the creator is still at the
             // roster checkpoint. It is an enhancement and never blocks this path.

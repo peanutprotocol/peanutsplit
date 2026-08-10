@@ -23,6 +23,7 @@ import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
 import { copyText } from '@/lib/clipboard'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
+import { noteRoomShareCompleted } from '@/lib/install-funnel'
 import { useSetEmblem, useSetRoomName, useSetTheme } from '@/lib/queries'
 import { emblemChoice, roomEmblemValue } from '@/lib/room-emblem'
 import { themeFor } from '@/lib/themes'
@@ -46,6 +47,8 @@ interface SettingsSheetProps {
     identity: MemberIdentity | null
     me: ApiMember | null
     onShare: () => void
+    /** Re-read device-local install eligibility after a direct successful link copy. */
+    onRoomShareCompleted?: () => void
     onForgetIdentity: () => void
     onOpenCharacter: (memberId: string) => void
 }
@@ -72,6 +75,7 @@ export function SettingsSheet({
     identity,
     me,
     onShare,
+    onRoomShareCompleted,
     onForgetIdentity,
     onOpenCharacter,
 }: SettingsSheetProps) {
@@ -200,8 +204,15 @@ export function SettingsSheet({
 
     const copyLink = async () => {
         const copied = await copyText(`${window.location.origin}/r/${room.slug}`)
-        if (copied) toast.success(t('linkCopied'), { duration: TOAST_MS.default })
-        else toast.error(t('copyFailed'), { duration: TOAST_MS.actionable })
+        if (copied) {
+            // This is a bare-link settings action, not a presented share
+            // package. Keep the package conversion denominator honest while
+            // still recording the successful action that earned installation.
+            track('link_copied', roomProps(room.slug))
+            noteRoomShareCompleted(room.slug, room.hasReachedSharedBalance === true)
+            onRoomShareCompleted?.()
+            toast.success(t('linkCopied'), { duration: TOAST_MS.default })
+        } else toast.error(t('copyFailed'), { duration: TOAST_MS.actionable })
     }
 
     const switchPerson = () => {
@@ -298,6 +309,7 @@ export function SettingsSheet({
                             />
 
                             <PushOptIn
+                                active={open}
                                 slug={room.slug}
                                 roomName={room.name}
                                 identity={identity}
@@ -365,7 +377,12 @@ export function SettingsSheet({
                 </DrawerContent>
             </Drawer>
 
-            <DeviceSheet open={deviceOpen} onClose={() => setDeviceOpen(false)} />
+            <DeviceSheet
+                open={deviceOpen}
+                onClose={() => setDeviceOpen(false)}
+                slug={room.slug}
+                token={identity?.token}
+            />
             <HistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} slug={room.slug} state={state} />
             <FeedbackReportDrawer open={feedbackOpen} onClose={() => setFeedbackOpen(false)} state={state} />
 

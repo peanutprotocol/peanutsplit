@@ -8,9 +8,21 @@ import { Doodle } from '@/components/ui/Doodle'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { isApiError, MEMBER_TOKEN_INVALID_EVENT } from '@/lib/api'
-import { roomProps, track, type ShareSurface } from '@/lib/analytics'
+import { installMeasureProps, roomProps, track, trackFirstSharedBalance, type ShareSurface } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { isLatecomerReviewDismissed, latecomerReview } from '@/lib/latecomer'
+import {
+    clearMatureRoomReturnEvidence,
+    deferRoomInstallAfterSkippedShare,
+    eligibleRoomInstallTrigger,
+    MATURE_ACTIVITY_HEARTBEAT_MS,
+    noteMatureContribution,
+    noteMatureRoomActivity,
+    noteMatureRoomAway,
+    noteMatureRoomVisit,
+    noteRoomShareCompleted,
+    type AutoInstallTrigger,
+} from '@/lib/install-funnel'
 import { isRoomSettled, savedExpenses } from '@/lib/pending'
 import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
@@ -52,22 +64,58 @@ export function RoomScreen({ slug }: { slug: string }) {
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
     const [displacedIdentity, setDisplacedIdentity] = useState<MemberIdentity | null>(null)
     const [params, setParams] = useRoomParams()
-    const [shareSurface, setShareSurface] = useState<ShareSurface>('header')
+    const [shareSurface, setShareSurface] = useState<ShareSurface>(() =>
+        params.share && params.shareMoment === 'post_aha' ? 'post_aha' : 'header'
+    )
+    const [postAhaLocationReady, setPostAhaLocationReady] = useState(
+        () => params.share && params.shareMoment === 'post_aha'
+    )
+    const [installTrigger, setInstallTrigger] = useState<AutoInstallTrigger | null>(null)
+    const [achievementOpen, setAchievementOpen] = useState(false)
+    const matureVisitRecorded = useRef(false)
+    // The banner intentionally unmounts when its manual row hands off to the
+    // Expense drawer. Keep an already-earned transition with the room screen so
+    // a later conflict cannot make that first-balance moment disappear.
+    const latecomerFirstSharedBalancePending = useRef(false)
+    const refreshInstallTrigger = useCallback(() => setInstallTrigger(eligibleRoomInstallTrigger(slug)), [slug])
     const openRoomShare = useCallback(
         (surface: ShareSurface) => {
             setShareSurface(surface)
-            void setParams({ share: true })
+            setPostAhaLocationReady(false)
+            void setParams({ share: true, shareMoment: null })
         },
         [setParams]
     )
-    const closeRoomShare = useCallback(() => {
-        setShareSurface('header')
-        // A controlled drawer can report the same close twice: once for its
-        // explicit button and once as vaul observes `open=false`. Replace is
-        // deliberately idempotent, so neither path leaves a stale share entry
-        // for Back to reopen.
-        void setParams({ share: null }, { history: 'replace' })
-    }, [setParams])
+    const openPostAhaShare = useCallback(
+        (closeExpenseDrawer: boolean) => {
+            setShareSurface('post_aha')
+            setPostAhaLocationReady(false)
+            const next = closeExpenseDrawer
+                ? { add: null, expense: null, share: true, shareMoment: 'post_aha' }
+                : { share: true, shareMoment: 'post_aha' }
+            // Safari throttles History API writes. Do not paint a reloadable
+            // state until nuqs confirms its URL is durable; if the drawer is
+            // visible, a reload must be able to reconstruct why it opened.
+            void setParams(next, { history: 'replace' }).then(() => setPostAhaLocationReady(true))
+        },
+        [setParams]
+    )
+    const closeRoomShare = useCallback(
+        (completed: boolean) => {
+            if (shareSurface === 'post_aha' && !completed) {
+                deferRoomInstallAfterSkippedShare(slug)
+                refreshInstallTrigger()
+            }
+            setShareSurface('header')
+            setPostAhaLocationReady(false)
+            // A controlled drawer can report the same close twice: once for its
+            // explicit button and once as vaul observes `open=false`. Replace is
+            // deliberately idempotent, so neither path leaves a stale share entry
+            // for Back to reopen.
+            void setParams({ share: null, shareMoment: null }, { history: 'replace' })
+        },
+        [refreshInstallTrigger, setParams, shareSurface, slug]
+    )
     const consumeSharedReceipt = useCallback(
         // `replace`, not the hook's default `push`: the drawer clears this param the instant it
         // lands, and with a history entry the back button would return to a share already spent.
@@ -91,19 +139,34 @@ export function RoomScreen({ slug }: { slug: string }) {
     const roomTitleRef = useRef<HTMLButtonElement>(null)
     const sawUnsettled = useRef(false)
 
-    const resolveLatecomer = useCallback(() => {
-        setLatecomerPaused(true)
+    const noteLatecomerFirstSharedBalance = useCallback(() => {
+        if (latecomerFirstSharedBalancePending.current) return
+        latecomerFirstSharedBalancePending.current = true
+        trackFirstSharedBalance()
     }, [])
 
+    const resolveLatecomer = useCallback(() => {
+        setLatecomerPaused(true)
+        if (!latecomerFirstSharedBalancePending.current) return
+        latecomerFirstSharedBalancePending.current = false
+        // The review has committed its close before Share becomes the sole
+        // modal owner, matching the ordinary successful catch-up path.
+        openPostAhaShare(false)
+    }, [openPostAhaShare])
+
     useEffect(() => {
-        if (!latecomerPaused) return
+        latecomerFirstSharedBalancePending.current = false
+    }, [slug])
+
+    useEffect(() => {
+        if (!latecomerPaused || params.share) return
         // Confirm and Not now remove the banner that opened the drawer, so the
         // generic drawer restoration target is disconnected. Wait for that
         // committed close to remove the room's inert state, then land on its
         // real heading instead of dropping focus on body.
         const frame = window.requestAnimationFrame(() => roomTitleRef.current?.focus({ preventScroll: true }))
         return () => window.cancelAnimationFrame(frame)
-    }, [latecomerPaused])
+    }, [latecomerPaused, params.share])
 
     useEffect(() => {
         if (!state) return
@@ -132,6 +195,7 @@ export function RoomScreen({ slug }: { slug: string }) {
      */
     const saved = useMemo(() => (state ? savedExpenses(state.expenses) : []), [state])
     const settledUp = isRoomSettled(state)
+    const hasActiveDebt = (state?.suggestedTransfers.length ?? 0) > 0
     const historyEmpty = !!state && state.expenses.length === 0 && state.settlements.length === 0
 
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
@@ -150,6 +214,67 @@ export function RoomScreen({ slug }: { slug: string }) {
     const activeRoster = useMemo(() => activeMembers(state?.members ?? []), [state?.members])
     const identityIsActive = !!identity && activeRoster.some((member) => member.id === identity.memberId)
     const needsJoin = loaded && (!identity || !identityIsActive) && !!state
+    const canRecordMatureVisit =
+        loaded && !needsJoin && hasActiveDebt && !settledUp && state?.room.hasReachedSharedBalance === true
+
+    useEffect(() => {
+        matureVisitRecorded.current = false
+        refreshInstallTrigger()
+    }, [refreshInstallTrigger, slug])
+
+    useEffect(() => {
+        if (!state || !loaded) return
+        if (!canRecordMatureVisit) {
+            matureVisitRecorded.current = false
+            clearMatureRoomReturnEvidence(slug)
+            return
+        }
+        // A background-loaded tab is not a return until it actually becomes visible.
+        if (matureVisitRecorded.current || document.visibilityState !== 'visible') return
+        matureVisitRecorded.current = true
+        noteMatureRoomVisit(slug)
+        refreshInstallTrigger()
+    }, [canRecordMatureVisit, loaded, refreshInstallTrigger, slug, state])
+
+    // A mobile PWA commonly survives in the background instead of remounting. Persist both sides
+    // of that lifecycle: hidden/blur/pagehide starts an absence, while visible/focus/pageshow
+    // evaluates it. The heartbeat keeps a continuously foregrounded tab recent, so 31 minutes of
+    // wall time followed by reload cannot masquerade as a retained return.
+    useEffect(() => {
+        if (!canRecordMatureVisit) return
+        let away = document.visibilityState !== 'visible'
+        const recordAway = () => {
+            away = true
+            noteMatureRoomAway(slug)
+        }
+        const recordVisibleReturn = () => {
+            if (document.visibilityState !== 'visible') return
+            away = false
+            matureVisitRecorded.current = true
+            noteMatureRoomVisit(slug)
+            refreshInstallTrigger()
+        }
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') recordVisibleReturn()
+            else recordAway()
+        }
+        document.addEventListener('visibilitychange', onVisibilityChange)
+        window.addEventListener('blur', recordAway)
+        window.addEventListener('focus', recordVisibleReturn)
+        window.addEventListener('pagehide', recordAway)
+        window.addEventListener('pageshow', recordVisibleReturn)
+        const heartbeat = window.setInterval(() => {
+            if (!away && document.visibilityState === 'visible') noteMatureRoomActivity(slug)
+        }, MATURE_ACTIVITY_HEARTBEAT_MS)
+        return () => {
+            window.clearInterval(heartbeat)
+            document.removeEventListener('visibilitychange', onVisibilityChange)
+            window.removeEventListener('blur', recordAway)
+            window.removeEventListener('focus', recordVisibleReturn)
+            window.removeEventListener('pagehide', recordAway)
+            window.removeEventListener('pageshow', recordVisibleReturn)
+        }
+    }, [canRecordMatureVisit, refreshInstallTrigger, slug])
 
     useEffect(() => {
         const displaced = (event: Event) => {
@@ -180,10 +305,19 @@ export function RoomScreen({ slug }: { slug: string }) {
         if (!needsJoin || !(params.settings || params.rooms || params.character || params.share || params.balance))
             return
         void setParams(
-            { settings: null, rooms: null, character: null, share: null, balance: null },
+            { settings: null, rooms: null, character: null, share: null, shareMoment: null, balance: null },
             { history: 'replace' }
         )
-    }, [needsJoin, params.balance, params.character, params.rooms, params.settings, params.share, setParams])
+    }, [
+        needsJoin,
+        params.balance,
+        params.character,
+        params.rooms,
+        params.settings,
+        params.share,
+        params.shareMoment,
+        setParams,
+    ])
 
     useEffect(() => {
         if (!params.character || activeRoster.some((member) => member.id === params.character)) return
@@ -316,6 +450,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                     me={me}
                     roomTitleRef={roomTitleRef}
                     onShare={() => openRoomShare('header')}
+                    onRoomShareCompleted={refreshInstallTrigger}
                     onForgetIdentity={() => {
                         setDisplacedIdentity(null)
                         forget()
@@ -388,6 +523,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                     memberId={latecomer.member.id}
                                     token={identity?.token}
                                     onResolved={resolveLatecomer}
+                                    onFirstSharedBalanceEarned={noteLatecomerFirstSharedBalance}
                                     onOpenChange={setLatecomerReviewOpen}
                                     onEditExpense={(expenseId) => setParams({ expense: expenseId })}
                                 />
@@ -403,7 +539,14 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 !drawerOpen &&
                                 !latecomerPending &&
                                 !settledUp &&
-                                saved.length > 0 && <AchievementMoment slug={slug} state={state} meId={meId} />}
+                                saved.length > 0 && (
+                                    <AchievementMoment
+                                        slug={slug}
+                                        state={state}
+                                        meId={meId}
+                                        onOpenChange={setAchievementOpen}
+                                    />
+                                )}
                             <AnimatePresence initial={false}>
                                 {settledUp && !latecomerPending && (
                                     <AllSettled
@@ -484,9 +627,10 @@ export function RoomScreen({ slug }: { slug: string }) {
                         token={identity?.token}
                         meId={meId}
                         expense={editing}
-                        onFirstSharedBalance={() => {
-                            setShareSurface('post_aha')
-                            void setParams({ add: null, expense: null, share: true }, { history: 'replace' })
+                        onFirstSharedBalance={() => openPostAhaShare(true)}
+                        onMatureContribution={(result) => {
+                            noteMatureContribution(slug, result)
+                            refreshInstallTrigger()
                         }}
                         defaultPaidById={defaultPaidById}
                         sharedReceipt={params.shared}
@@ -503,11 +647,16 @@ export function RoomScreen({ slug }: { slug: string }) {
                         me={me}
                     />
                     <ShareDrawer
-                        open={params.share}
+                        open={params.share && (shareSurface !== 'post_aha' || postAhaLocationReady)}
                         onClose={closeRoomShare}
+                        onCompleted={() => {
+                            noteRoomShareCompleted(slug, state.room.hasReachedSharedBalance === true)
+                            refreshInstallTrigger()
+                        }}
                         state={state}
                         currencies={currencies}
                         surface={shareSurface}
+                        returnFocusRef={roomTitleRef}
                     />
                     <BalanceDrawer
                         open={!!params.balance && !needsJoin}
@@ -520,9 +669,31 @@ export function RoomScreen({ slug }: { slug: string }) {
                 </>
             )}
 
-            {/* Install prompt lives on the room, not the landing page: you only pin
-                something you are already using. */}
-            {state && !needsJoin && <InstallPrompt onShown={() => track('pwa_prompt_shown', roomProps(slug))} />}
+            {/* The settings row stays discoverable whenever this browser exposes an install action.
+                This promoted card is earned by semantic room value and yields to every
+                higher-priority room moment. */}
+            {state && !needsJoin && (
+                <InstallPrompt
+                    trigger={
+                        state.room.hasReachedSharedBalance === true && hasActiveDebt && !settledUp
+                            ? installTrigger
+                            : null
+                    }
+                    blocked={drawerOpen || latecomerPending || achievementOpen || staleState}
+                    slug={slug}
+                    token={identity?.token}
+                    returnFocusRef={roomTitleRef}
+                    onShown={({ trigger, delivery }) =>
+                        track('pwa_prompt_shown', installMeasureProps('pwa_prompt_shown', { trigger, delivery }))
+                    }
+                    onDismissed={({ trigger, delivery, reason }) =>
+                        track(
+                            'pwa_prompt_dismissed',
+                            installMeasureProps('pwa_prompt_dismissed', { trigger, delivery, reason })
+                        )
+                    }
+                />
+            )}
         </main>
     )
 }

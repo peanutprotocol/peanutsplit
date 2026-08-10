@@ -22,7 +22,17 @@ import { triggerHaptic, useSettings } from '@/lib/use-settings'
  * tick, haptics pulses, animations springs, and the language switch reloads the
  * page you are reading.
  */
-export function DeviceSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function DeviceSheet({
+    open,
+    onClose,
+    slug,
+    token,
+}: {
+    open: boolean
+    onClose: () => void
+    slug: string
+    token?: string | null
+}) {
     const t = useTranslations('room.header')
     const tSettings = useTranslations('settings')
     const tLocale = useTranslations('locale')
@@ -37,7 +47,7 @@ export function DeviceSheet({ open, onClose }: { open: boolean; onClose: () => v
                 </DrawerHeader>
                 <DrawerBody>
                     {/* Installing is per device by construction, so the sheet's label stays true. */}
-                    <InstallRow />
+                    <InstallRow slug={slug} token={token} active={open} />
                     <LocaleSwitcher label={tLocale('label')} />
                     <div className="flex flex-col gap-2">
                         <SettingToggle

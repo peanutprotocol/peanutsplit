@@ -292,3 +292,28 @@ describe('toRoomState analytics pseudonym', () => {
         expect(a).not.toBe(b)
     })
 })
+
+describe('toRoomState activation latch', () => {
+    const base = (firstSharedBalanceExpenseId: string | null) =>
+        ({
+            id: 'room-uuid',
+            slug: 'trip-abcdefghijklmnopqrstuv',
+            name: 'Room',
+            emoji: null,
+            currency: 'EUR',
+            coverUrl: null,
+            theme: null,
+            locale: null,
+            firstSharedBalanceExpenseId,
+            createdAt: new Date('2026-08-08T00:00:00.000Z'),
+            members: [],
+            expenses: [],
+            settlements: [],
+        }) as unknown as RoomWithRelations
+
+    it('exposes only whether the immutable milestone happened, never its expense id', () => {
+        expect(toRoomState(base(null)).room.hasReachedSharedBalance).toBe(false)
+        expect(toRoomState(base('private-expense-id')).room.hasReachedSharedBalance).toBe(true)
+        expect(toRoomState(base('private-expense-id')).room).not.toHaveProperty('firstSharedBalanceExpenseId')
+    })
+})

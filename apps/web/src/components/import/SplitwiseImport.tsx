@@ -22,12 +22,13 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { LinkMoment } from '@/components/room/LinkMoment'
-import { track } from '@/lib/analytics'
+import { track, trackFirstSharedBalance } from '@/lib/analytics'
 import { isApiError } from '@/lib/api'
 import type { ImportedExpenseInput, ImportIntoRoomResult, RoomState, RoomStateWithMember } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
+import { deferRoomInstallAfterSkippedShare, markRoomCreatedHere, noteRoomShareCompleted } from '@/lib/install-funnel'
 import { importedRoomPath } from '@/lib/import-routes'
 import {
     fingerprintParsedImportFile,
@@ -92,6 +93,7 @@ const conversionFailureCurrencies = (error: unknown, candidates: readonly string
 export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImportTarget } = {}) {
     const t = useTranslations('import')
     const tExisting = useTranslations('import.existing')
+    const tShare = useTranslations('room.share')
     const locale = useLocale()
     const router = useRouter()
     const feedback = useFeedback()
@@ -128,6 +130,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
     const [dragging, setDragging] = useState(false)
     const [created, setCreated] = useState<RoomStateWithMember | null>(null)
     const [appended, setAppended] = useState<ImportIntoRoomResult | null>(null)
+    const [appendCreatedFirstSharedBalance, setAppendCreatedFirstSharedBalance] = useState(false)
 
     /**
      * Every parse failure the parser can name, spelled out one literal at a time rather than
@@ -413,11 +416,26 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
 
         if (targetRoom) {
             try {
+                // Keep the pre-mutation latch in this async closure. The mutation
+                // seeds its RoomState into React Query before `mutateAsync`
+                // resolves, so reading the target prop afterward can already see
+                // the post-import value and lose the transition.
+                const roomWasMature = targetRoom.state.room.hasReachedSharedBalance === true
                 const result = await importIntoRoom.mutateAsync({
                     sourceFingerprint,
                     members: importMemberMappings(memberDrafts),
                     expenses: parsed.expenses,
                 })
+                const createdFirstSharedBalance = !roomWasMature && result.room.hasReachedSharedBalance === true
+                if (createdFirstSharedBalance) {
+                    trackFirstSharedBalance()
+                    // This success page owns the post-aha share moment. Arm the
+                    // same short refusal window as the room drawer up front so
+                    // browser Back, a reload, or either footer action cannot
+                    // replace an unfinished share with an install ask. A real
+                    // share completion clears the deferral below.
+                    deferRoomInstallAfterSkippedShare(targetRoom.state.room.slug)
+                }
                 track('import_completed', {
                     expenses: result.addedExpenses,
                     members: result.addedMembers,
@@ -425,6 +443,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                     alreadyImported: result.alreadyImported,
                 })
                 feedback('pop')
+                setAppendCreatedFirstSharedBalance(createdFirstSharedBalance)
                 setAppended(result)
             } catch (err) {
                 rememberConversionFailure(err)
@@ -467,6 +486,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                 token: state.memberToken,
                 name: me,
             })
+            markRoomCreatedHere(state.room.slug)
             rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
             track('import_completed', { expenses: expenses.length, members: names.length })
             feedback('pop')
@@ -486,6 +506,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
         setChoiceIndex(0)
         setMemberDrafts([])
         setAppended(null)
+        setAppendCreatedFirstSharedBalance(false)
         setError(null)
         setServerRateRejections({})
     }
@@ -516,6 +537,19 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                               })}
                     </p>
                 </section>
+                {appendCreatedFirstSharedBalance && (
+                    <LinkMoment
+                        headingLevel={2}
+                        slug={targetRoom.state.room.slug}
+                        roomName={targetRoom.state.room.name}
+                        emoji={targetRoom.state.room.emoji}
+                        theme={targetRoom.state.room.theme}
+                        surface="post_aha"
+                        title={tShare('postAhaTitle')}
+                        subtitle={tShare('postAhaSubtitle')}
+                        onCompleted={() => noteRoomShareCompleted(targetRoom.state.room.slug, true)}
+                    />
+                )}
                 <div className="flex flex-col gap-3">
                     <Button
                         variant="primary"
@@ -550,6 +584,9 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                 surface="room_ready"
                 title={t('ready.title')}
                 subtitle={t('ready.subtitle')}
+                onCompleted={() =>
+                    noteRoomShareCompleted(created.room.slug, created.room.hasReachedSharedBalance === true)
+                }
                 footer={
                     <Button
                         variant="stroke"

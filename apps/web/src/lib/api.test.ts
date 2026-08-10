@@ -168,6 +168,60 @@ describe('api error paths', () => {
 })
 
 describe('api requests', () => {
+    it('matches the install-handoff prepare, redeem, and ACK wire contract', async () => {
+        const handoff = {
+            room: { slug: 'ski-trip-x7k2m9', name: 'Ski trip', emoji: '⛷️', theme: 'lagoon' },
+            identity: { memberId: 'm1', name: 'Ana', token: 'tok_abc' },
+        }
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 201,
+                text: () => Promise.resolve(JSON.stringify({ prepared: true })),
+            } as Response)
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                text: () => Promise.resolve(JSON.stringify(handoff)),
+            } as Response)
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 204,
+                text: () => Promise.resolve(''),
+            } as Response)
+        vi.stubGlobal('fetch', fetchMock)
+        const controller = new AbortController()
+
+        await expect(api.installHandoff.prepare('ski/trip', 'tok_abc')).resolves.toEqual({ prepared: true })
+        await expect(api.installHandoff.redeem(controller.signal)).resolves.toEqual(handoff)
+        await expect(api.installHandoff.acknowledge(controller.signal)).resolves.toBeUndefined()
+
+        const [prepareUrl, prepareInit] = fetchMock.mock.calls[0]
+        expect(prepareUrl).toBe('/api/rooms/ski%2Ftrip/install-handoff')
+        expect(prepareInit).toMatchObject({ method: 'POST', body: '{}', cache: 'no-store' })
+        expect(prepareInit.headers).toEqual({
+            'Content-Type': 'application/json',
+            'X-Member-Token': 'tok_abc',
+        })
+
+        const [redeemUrl, redeemInit] = fetchMock.mock.calls[1]
+        expect(redeemUrl).toBe('/api/install-handoff')
+        expect(redeemInit).toMatchObject({
+            method: 'POST',
+            body: '{}',
+            cache: 'no-store',
+            signal: controller.signal,
+        })
+        expect(redeemInit.headers).toEqual({ 'Content-Type': 'application/json' })
+
+        const [ackUrl, ackInit] = fetchMock.mock.calls[2]
+        expect(ackUrl).toBe('/api/install-handoff')
+        expect(ackInit).toMatchObject({ method: 'DELETE', cache: 'no-store', signal: controller.signal })
+        expect(ackInit.body).toBeUndefined()
+        expect(ackInit.headers).toEqual({})
+    })
+
     it('posts private feedback without copying member identity into the request', async () => {
         const fetchMock = respondWith(201, { reportId: 'report-1' })
         vi.stubGlobal('fetch', fetchMock)

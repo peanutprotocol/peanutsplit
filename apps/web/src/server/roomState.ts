@@ -126,6 +126,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
             currency: room.currency,
             coverUrl: room.coverUrl,
             theme: room.theme,
+            hasReachedSharedBalance: room.firstSharedBalanceExpenseId !== null,
             createdAt: room.createdAt.toISOString(),
         },
         members: room.members.map((m) => ({
