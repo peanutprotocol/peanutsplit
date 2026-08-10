@@ -319,10 +319,22 @@ settings, both default ON, persisted in localStorage.
 - **PWA:** manifest (name, icons, standalone, theme `#FFC900`), Serwist service worker —
   **NetworkOnly for `/api/*`** (a stale RoomState is worse than a spinner; a prior app shipped a
   soft-lock bug from NetworkFirst on state endpoints), CacheFirst for hashed `/_next/static`,
-  NetworkFirst (3s timeout) for navigations. Install prompt: never interrupt input; show after
-  ~20s idle on a room page, exponential dismiss backoff (24h→48h→…→30d cap) in localStorage;
-  iOS gets a how-to sheet (no beforeinstallprompt there; detect iPadOS-as-Mac via
-  `maxTouchPoints > 1 && /Mac/`).
+  NetworkFirst (3s timeout) for navigations. Installation is a retention affordance, not an
+  activation gate: keep the settings action available whenever the browser exposes one, but
+  automatically offer it only after the device has both reached a durable shared balance and completed a room share, or
+  after a device that opened an existing mature room later contributes or deliberately returns.
+  The post-activation share owns the first ask; the install surface waits until that drawer closes
+  and the interaction is quiet.
+  Dismissals use an exponential backoff (24h→48h→…→30d cap) in localStorage. iOS gets a how-to
+  sheet (no `beforeinstallprompt` there; detect iPadOS-as-Mac via
+  `maxTouchPoints > 1 && /Mac/`). [WebKit 17.2+ copies cookies but no other local storage into a newly
+  installed iOS/iPadOS web app](https://webkit.org/blog/14787/webkit-features-in-safari-17-2/), so
+  opening the iOS instructions arms a 24-hour, one-time server handoff: an opaque host-only cookie
+  names a hashed transient row containing only the room, optional active member, and hash of the
+  exact proof presented. The installed `/app` launch copies that narrow state into its own
+  localStorage, verifies it, enters the room, and acknowledges/deletes the row in the background.
+  It never creates an account, device map, or analytics link. Older WebKit and failed transfers
+  fall back to reopening the room link once in the installed app.
 - **Share:** native `navigator.share` with clipboard fallback that MUST NOT be swallowed by a
   silent catch (known bug in the reference UI).
 - **Landing:** one screen — what it does, create CTA, "your rooms" if localStorage has any,
@@ -371,4 +383,6 @@ hazards:
   only for the CSRF double-submit cookie. Google needs `prompt: 'select_account'`.
 - Passkeys: platform authenticator, `residentKey: 'required'`; passkey-only accounts have no email.
 - Log `signup-no-claim` with `hadDeviceId` — the greppable metric for stranded anonymous history.
-- iOS Safari↔PWA identity handoff via CacheStorage (the one shared surface) with 30-day TTL.
+- iOS Safari↔PWA identity handoff must not rely on CacheStorage or localStorage: WebKit installs
+  have an isolated data container. The shipped PWA flow uses the narrow, short-lived cookie +
+  hashed-row handoff described in the Growth layer instead.

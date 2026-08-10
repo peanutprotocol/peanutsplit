@@ -19,8 +19,13 @@ describe('decideCutoverRedirect', () => {
         }
     })
 
-    it('accepts the www variant of either host', () => {
+    it('accepts legacy www and canonicalises canonical www app pages', () => {
         expect(decide(`www.${LEGACY}`, '/app')).toEqual({ target: `https://${CANONICAL}/app`, status: 301 })
+        expect(decide(`www.${CANONICAL}`, '/app')).toEqual({ target: `https://${CANONICAL}/app`, status: 301 })
+        expect(decide(`www.${CANONICAL}`, '/r/trip-abc123', '?from=chat')).toEqual({
+            target: `https://${CANONICAL}/r/trip-abc123?from=chat`,
+            status: 301,
+        })
         expect(decide(`www.${CANONICAL}`, '/')).toEqual({ target: `https://${LEGACY}/`, status: 302 })
     })
 
@@ -58,7 +63,7 @@ describe('decideCutoverRedirect', () => {
     })
 
     it('never redirects /handoff, /share-target or the probes, on either host', () => {
-        for (const host of [LEGACY, CANONICAL]) {
+        for (const host of [LEGACY, `www.${LEGACY}`, CANONICAL, `www.${CANONICAL}`]) {
             for (const path of ['/handoff', '/share-target', '/healthcheck', '/readiness', '/dev-ds/audit']) {
                 expect(decide(host, path)).toBeNull()
             }

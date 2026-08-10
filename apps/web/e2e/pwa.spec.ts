@@ -54,9 +54,9 @@ const onlyOn = (project: 'mobile' | 'desktop') =>
     test.skip(test.info().project.name !== project, `${project} project only`)
 
 /**
- * The deferred banner arms a 20s idle timer and then opens a card over whatever is on screen.
- * These specs wait on a room creation, so that timer fires inside them. The snooze is the banner's
- * alone — the store still captures the event, which is the point of this whole wave.
+ * These settings-row specs are not install-funnel tests. Keep any already-earned automatic card
+ * asleep while they wait on room creation; the shared store must still capture the browser event,
+ * which is the point of this whole wave.
  */
 const snoozeInstallBanner = (page: Page) =>
     page.addInitScript(() => {
@@ -140,7 +140,8 @@ test.describe('the install row', () => {
         await expect(page.getByTestId('install-row-ios')).toContainText('Add to home screen')
 
         await page.getByTestId('install-row-ios').click()
-        await expect(page.getByText('Tap the Share button in the Safari toolbar.')).toBeVisible()
+        await expect(page.getByText('Open your browser’s Share menu (in Safari, tap More, then Share).')).toBeVisible()
+        await expect(page.getByText('If you see “Open as Web App”, turn it on, then tap “Add”.')).toBeVisible()
     })
 
     test('replays the browser prompt, and reads as installed once it is accepted', async ({ page }) => {

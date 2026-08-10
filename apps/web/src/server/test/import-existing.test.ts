@@ -293,6 +293,7 @@ describe('POST /api/rooms/:slug/import', () => {
             name: target.room.name,
             emoji: target.room.emoji,
             currency: target.room.currency,
+            hasReachedSharedBalance: true,
         })
         expect(await prisma.room.count()).toBe(1)
         expect(result.body.members.map((member) => member.name)).toEqual(['Ana', 'Bruno', 'Carla'])

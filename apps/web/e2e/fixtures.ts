@@ -56,6 +56,9 @@ export function deviceContext(options: BrowserContextOptions = {}): BrowserConte
 /** Open a second device — its own context, its own identity storage, its own creation budget. */
 export type NewDevice = (options?: BrowserContextOptions) => Promise<Page>
 
+const ignoreLocalHttpsErrors = (baseURL: string | undefined): boolean =>
+    typeof baseURL === 'string' && baseURL.startsWith('https://localhost:')
+
 interface SplitFixtures {
     /** The address this test's own browser context presents. */
     clientIp: string
@@ -87,16 +90,19 @@ export const test = base.extend<SplitFixtures>({
     request: async ({ playwright, baseURL, clientIp }, use) => {
         const api = await playwright.request.newContext({
             baseURL,
+            ignoreHTTPSErrors: ignoreLocalHttpsErrors(baseURL),
             extraHTTPHeaders: { 'x-forwarded-for': clientIp },
         })
         await use(api)
         await api.dispose()
     },
 
-    newDevice: async ({ browser }, use) => {
+    newDevice: async ({ browser, baseURL }, use) => {
         const opened: BrowserContext[] = []
         const open: NewDevice = async (options) => {
-            const context = await browser.newContext(deviceContext(options))
+            const context = await browser.newContext(
+                deviceContext({ ignoreHTTPSErrors: ignoreLocalHttpsErrors(baseURL), ...options })
+            )
             opened.push(context)
             return context.newPage()
         }
@@ -107,7 +113,12 @@ export const test = base.extend<SplitFixtures>({
 
 /** For `beforeAll`, where test-scoped fixtures do not reach. */
 export async function openDevice(browser: Browser, options?: BrowserContextOptions): Promise<Page> {
-    const context = await browser.newContext(deviceContext(options))
+    const context = await browser.newContext(
+        deviceContext({
+            ignoreHTTPSErrors: ignoreLocalHttpsErrors(process.env.E2E_BASE_URL),
+            ...options,
+        })
+    )
     return context.newPage()
 }
 

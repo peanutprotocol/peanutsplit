@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 
 /**
- * The three Safari taps that put Split on a home screen.
+ * The Safari taps that put Split on a home screen, plus the first launch that restores this room.
  *
  * Extracted from `InstallPrompt` because there are now two reasons to show it.
  * The second is notifications: iOS delivers no web push to a browser tab at all,
@@ -15,9 +15,9 @@ export function IosInstallSteps() {
 
     return (
         <ol className="flex flex-col gap-3">
-            {/* Literal keys: three steps is not enough repetition to justify a
+            {/* Literal keys: four steps is not enough repetition to justify a
                 computed path, which the i18n audit could only skip. */}
-            {[t('ios.step1'), t('ios.step2'), t('ios.step3')].map((step, index) => (
+            {[t('ios.step1'), t('ios.step2'), t('ios.step3'), t('ios.step4')].map((step, index) => (
                 <li key={step} className="flex items-start gap-3">
                     <span
                         aria-hidden="true"

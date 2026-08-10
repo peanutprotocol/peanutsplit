@@ -15,11 +15,12 @@ import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { api, isApiError } from '@/lib/api'
-import { forgetRoom, readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
+import { readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { forgetRoomFromDevice } from '@/lib/use-identity'
 
 const COLLAPSED_LIMIT = 5
 
@@ -114,7 +115,7 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
     if (surface === 'landing' && recent.length === 0) return null
 
     const forget = (room: RecentRoom): boolean => {
-        if (!forgetRoom(room.slug)) {
+        if (!forgetRoomFromDevice(room.slug)) {
             const message = t('forgetFailed', { room: room.name })
             setNotice(message)
             setForgetError(message)

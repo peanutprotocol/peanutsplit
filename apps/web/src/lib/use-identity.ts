@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { clearIdentity, readIdentity, writeIdentity, type MemberIdentity } from './identity'
 import { MEMBER_TOKEN_INVALID_EVENT } from './api'
+import { forgetRoom } from './recent-rooms'
 import { dropRoomSubscription } from './use-push'
 
 export interface RoomIdentityState {
@@ -37,6 +38,22 @@ export function forgetIdentity(slug: string, previous: MemberIdentity | null): v
         void dropRoomSubscription(slug, previous.memberId, previous.token).catch(() => {})
     }
     clearIdentity(slug)
+}
+
+/**
+ * Remove a room from the device-level room list without leaving its push
+ * channel behind. Capture the proof before the transactional local deletion,
+ * but start the network cleanup only after that deletion succeeds. A local
+ * storage failure therefore keeps both the room and its notifications intact
+ * instead of producing a half-forgotten device.
+ */
+export function forgetRoomFromDevice(slug: string): boolean {
+    const previous = readIdentity(slug)
+    if (!forgetRoom(slug)) return false
+    if (previous?.token) {
+        void dropRoomSubscription(slug, previous.memberId, previous.token).catch(() => {})
+    }
+    return true
 }
 
 /** Pure state transition behind the global invalid-proof event. */

@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { StateRow } from '@/components/ui/StateRow'
-import { track } from '@/lib/analytics'
-import { isIOSHere, promptInstall, useInstallState } from '@/lib/install'
+import { installMeasureProps, track } from '@/lib/analytics'
+import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
+import { isIOSHere, promptInstall, snoozeAfterIosInstallInstructions, useInstallState } from '@/lib/install'
 import { useFeedback } from '@/lib/use-settings'
 import { IosInstallSteps } from './IosInstallSteps'
 
@@ -29,12 +31,24 @@ import { IosInstallSteps } from './IosInstallSteps'
  * for it. Everywhere else, including a Mac, the row keeps the install wording. The state lines
  * below it are unchanged: what the row is called and what it currently says are separate answers.
  */
-export function InstallRow() {
+export function InstallRow({ slug, token, active = true }: { slug: string; token?: string | null; active?: boolean }) {
     const t = useTranslations('marketing.install')
     const feedback = useFeedback()
     const state = useInstallState()
     const [iosSheetOpen, setIosSheetOpen] = useState(false)
+    const [arming, setArming] = useState(false)
+    const armingRef = useRef(false)
+    const mountedRef = useRef(true)
+    const activeRef = useRef(active)
+    const inactiveGeneration = useRef(0)
+    if (activeRef.current && !active) inactiveGeneration.current += 1
+    activeRef.current = active
     const reported = useRef(false)
+
+    const closeIosSteps = () => {
+        snoozeAfterIosInstallInstructions()
+        setIosSheetOpen(false)
+    }
 
     useEffect(() => {
         if (reported.current || state === null || state === 'waiting') return
@@ -44,10 +58,17 @@ export function InstallRow() {
         track('install_row_shown', { state })
     }, [state])
 
+    useEffect(() => {
+        mountedRef.current = true
+        return () => {
+            mountedRef.current = false
+        }
+    }, [])
+
     const install = async () => {
         const outcome = await promptInstall()
         if (outcome === 'unavailable') return
-        track('install_prompted', { outcome })
+        track('install_prompted', installMeasureProps('install_prompted', { outcome, surface: 'settings' }))
         // `pwa_installed` is NOT fired here. The store's `appinstalled` handler is its one source.
         if (outcome === 'accepted') feedback('pop')
     }
@@ -66,12 +87,42 @@ export function InstallRow() {
         return <StateRow label={label} line={t('row.dismissed')} testId="install-row-dismissed" />
     }
     if (state === 'ios') {
+        const openIosSteps = async () => {
+            if (armingRef.current) return
+            // Withhold the steps unless this exact room replaced any older prepared handoff.
+            armingRef.current = true
+            setArming(true)
+            const generation = inactiveGeneration.current
+            const prepared = await prepareInstallHandoff(slug, token)
+            if (!mountedRef.current) {
+                if (prepared) void cancelPreparedInstallHandoff(prepared)
+                return
+            }
+            armingRef.current = false
+            setArming(false)
+            if (!activeRef.current || generation !== inactiveGeneration.current) {
+                if (prepared) void cancelPreparedInstallHandoff(prepared)
+                return
+            }
+            if (!prepared) {
+                feedback('error', { haptic: 'error' })
+                toast.error(t('ios.prepareFailed'))
+                return
+            }
+            track('ios_install_steps_opened', installMeasureProps('ios_install_steps_opened', { surface: 'settings' }))
+            setIosSheetOpen(true)
+        }
         return (
             <>
-                <SettingRow label={label} onClick={() => setIosSheetOpen(true)} testId="install-row-ios" />
+                <SettingRow
+                    label={label}
+                    value={arming ? t('row.preparing') : undefined}
+                    onClick={() => void openIosSteps()}
+                    testId="install-row-ios"
+                />
                 {/* The same sheet the deferred banner and the push row already open. There is no
                     second install explanation in this app. */}
-                <Drawer open={iosSheetOpen} onOpenChange={setIosSheetOpen}>
+                <Drawer open={iosSheetOpen} onOpenChange={(next) => !next && closeIosSteps()}>
                     <DrawerContent>
                         <DrawerHeader>
                             <DrawerTitle className="text-h5">{t('ios.title')}</DrawerTitle>
@@ -80,11 +131,7 @@ export function InstallRow() {
                         <DrawerBody>
                             <IosInstallSteps />
                             <DrawerActions>
-                                <Button
-                                    variant="stroke"
-                                    className="justify-center"
-                                    onClick={() => setIosSheetOpen(false)}
-                                >
+                                <Button variant="stroke" className="justify-center" onClick={closeIosSteps}>
                                     {t('ios.done')}
                                 </Button>
                             </DrawerActions>

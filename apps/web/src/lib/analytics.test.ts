@@ -183,6 +183,50 @@ describe('share-package measurement', () => {
     })
 })
 
+describe('install measurement', () => {
+    it('allows only closed funnel facts and drops every identity-shaped property', async () => {
+        const { INSTALL_MEASURE, installMeasureProps } = await import('./analytics')
+
+        expect(INSTALL_MEASURE).toEqual({
+            exposure: 'pwa_prompt_shown',
+            success: {
+                chromium: 'pwa_installed',
+                ios: 'pwa_ios_install_handoff_completed',
+            },
+            allowedProperties: {
+                pwa_prompt_shown: ['trigger', 'delivery'],
+                pwa_prompt_dismissed: ['trigger', 'delivery', 'reason'],
+                install_prompted: ['surface', 'outcome', 'trigger'],
+                ios_install_steps_opened: ['surface', 'trigger'],
+            },
+        })
+
+        expect(
+            installMeasureProps('pwa_prompt_dismissed', {
+                trigger: 'balance_and_share',
+                delivery: 'ios_steps',
+                reason: 'not_now',
+                slug: 'private-room-credential',
+                room: 'room-pseudonym',
+                member: 'ana',
+            })
+        ).toEqual({ trigger: 'balance_and_share', delivery: 'ios_steps', reason: 'not_now' })
+        expect(
+            installMeasureProps('install_prompted', {
+                surface: 'auto',
+                outcome: 'accepted',
+                trigger: 'mature_return',
+            })
+        ).toEqual({ trigger: 'mature_return', surface: 'auto', outcome: 'accepted' })
+        expect(
+            installMeasureProps('pwa_prompt_shown', {
+                trigger: 'creator' as never,
+                delivery: 'magic' as never,
+            })
+        ).toEqual({})
+    })
+})
+
 describe('achievement measurement', () => {
     it('defines an honest shared-over-seen measure with an exact identifier-free allowlist', async () => {
         const { ACHIEVEMENT_MEASURE, achievementProps } = await import('./analytics')

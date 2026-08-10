@@ -12,6 +12,12 @@ import { enterCreatedRoom, expectBalance, openCurrentRoomSettings } from './help
  * NumberFlow frame caught mid-animation — the same discipline as the main journey.
  */
 test('import a Splitwise export → a room whose balances match the file', async ({ page }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async () => {},
+        })
+    })
     await page.goto('/import')
 
     await page.getByTestId('import-file').setInputFiles({
@@ -38,7 +44,22 @@ test('import a Splitwise export → a room whose balances match the file', async
     // ── The link moment, exactly as a fresh room gets ─────────────────────
     const roomLink = page.getByTestId('room-link')
     await expect(roomLink).toBeVisible({ timeout: 20_000 })
-    expect((await roomLink.innerText()).trim()).toContain('/r/ski-trip-')
+    const roomUrl = (await roomLink.innerText()).trim()
+    expect(roomUrl).toContain('/r/ski-trip-')
+
+    // Imported rooms arrive with a durable shared balance, so this primary ready-screen share is
+    // the second half of the creator's aha signal. It must count here instead of requiring another
+    // share after entering the room.
+    await page.getByTestId('share-link').click()
+    const slug = new URL(roomUrl).pathname.split('/').at(-1)!
+    await expect
+        .poll(() =>
+            page.evaluate((roomSlug) => {
+                const raw = localStorage.getItem(`ps:pwa-room:${roomSlug}`)
+                return raw ? JSON.parse(raw) : null
+            }, slug)
+        )
+        .toMatchObject({ origin: 'created_here', qualifiedTrigger: 'balance_and_share' })
 
     await page.getByTestId('go-to-imported-room').click()
 
@@ -202,6 +223,77 @@ test('import into an existing room appends in place and an exact retry is a no-o
     await expectBalance(page, 'Bea', '-3500')
     await expectBalance(page, 'Carla', '0')
     await expect(page.locator('[data-testid="balance-card"][data-member="Bruno"]')).toHaveCount(0)
+})
+
+test('an append that creates the first shared balance earns one post-aha share package', async ({ page }) => {
+    test.setTimeout(60_000)
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'share', {
+            configurable: true,
+            value: async () => {},
+        })
+    })
+
+    // A one-person room can hold private notes without having reached aha.
+    await page.goto('/new')
+    await page.getByTestId('room-name').fill('Import activation')
+    await page.getByTestId('room-currency').selectOption('EUR')
+    await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('create-room').click()
+    const roomPath = new URL(await enterCreatedRoom(page)).pathname
+
+    await page.goto(`${roomPath}/import`)
+    const upload = async () => {
+        await page.getByTestId('import-file').setInputFiles({
+            name: 'Activation group.csv',
+            mimeType: 'text/csv',
+            buffer: Buffer.from(SIMPLE_GROUP, 'utf8'),
+        })
+        await expect(page.getByTestId('import-member-mapping')).toHaveCount(3, { timeout: 15_000 })
+        await expect(page.getByTestId('import-submit')).toBeEnabled()
+        await page.getByTestId('import-submit').click()
+    }
+
+    await upload()
+    await expect(page.getByTestId('import-existing-success')).toHaveAttribute('data-already-imported', 'false', {
+        timeout: 20_000,
+    })
+    await expect(page.getByRole('heading', { name: 'First split done' })).toBeVisible()
+    await expect(page.getByTestId('room-link')).toBeVisible()
+    const activatedSlug = roomPath.split('/').at(-1)!
+    await expect
+        .poll(() =>
+            page.evaluate((slug) => {
+                const raw = localStorage.getItem(`ps:pwa-room:${slug}`)
+                const state = raw ? JSON.parse(raw) : null
+                return typeof state?.deferUntil === 'number' && state.deferUntil > Date.now()
+            }, activatedSlug)
+        )
+        .toBe(true)
+    await page.getByTestId('share-link').click()
+    await expect
+        .poll(() =>
+            page.evaluate((slug) => {
+                const raw = localStorage.getItem(`ps:pwa-room:${slug}`)
+                const state = raw ? JSON.parse(raw) : null
+                return {
+                    origin: state?.origin,
+                    qualifiedTrigger: state?.qualifiedTrigger,
+                    deferred: typeof state?.deferUntil === 'number' && state.deferUntil > Date.now(),
+                }
+            }, activatedSlug)
+        )
+        .toEqual({ origin: 'created_here', qualifiedTrigger: 'balance_and_share', deferred: false })
+
+    // Replaying the same durable batch is still a useful receipt, but it cannot
+    // present or count the first-balance package a second time.
+    await page.getByTestId('import-another-file').click()
+    await upload()
+    await expect(page.getByTestId('import-existing-success')).toHaveAttribute('data-already-imported', 'true', {
+        timeout: 20_000,
+    })
+    await expect(page.getByRole('heading', { name: 'First split done' })).toHaveCount(0)
+    await expect(page.getByTestId('room-link')).toHaveCount(0)
 })
 
 test('a KPW room absent from the static e2e FX table blocks incompatible EUR history', async ({ page }) => {

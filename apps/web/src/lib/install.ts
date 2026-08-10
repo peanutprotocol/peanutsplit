@@ -66,10 +66,12 @@ export function deriveInstallState(env: InstallEnvironment): InstallState {
 
 const DISMISS_COUNT_KEY = 'ps:pwa-dismiss-count'
 const DISMISSED_AT_KEY = 'ps:pwa-dismissed-at'
+const SNOOZED_UNTIL_KEY = 'ps:pwa-snoozed-until'
 
 const HOUR = 60 * 60 * 1000
 const BASE_BACKOFF_MS = 24 * HOUR
 const MAX_BACKOFF_MS = 30 * 24 * HOUR
+export const IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS = 30 * 24 * HOUR
 
 const readInt = (key: string): number => {
     const raw = window.localStorage.getItem(key)
@@ -83,12 +85,27 @@ export const installBackoffMs = (dismissCount: number): number =>
 
 export const isInstallSnoozed = (): boolean => {
     try {
+        if (Date.now() < readInt(SNOOZED_UNTIL_KEY)) return true
         const count = readInt(DISMISS_COUNT_KEY)
         if (count === 0) return false
         return Date.now() - readInt(DISMISSED_AT_KEY) < installBackoffMs(count)
     } catch {
         return false
     }
+}
+
+/** Apply a minimum quiet period for platforms whose manual install cannot report success. */
+export const snoozeInstallFor = (durationMs: number): void => {
+    try {
+        window.localStorage.setItem(SNOOZED_UNTIL_KEY, String(Date.now() + Math.max(0, durationMs)))
+    } catch {
+        // Private mode: the settings row still provides the action.
+    }
+}
+
+/** Safari cannot report an install result, so closing its instructions quiets automatic asks. */
+export const snoozeAfterIosInstallInstructions = (): void => {
+    snoozeInstallFor(IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS)
 }
 
 /** Records a dismissal and answers how many there have now been. */
@@ -107,6 +124,7 @@ const clearInstallSnooze = (): void => {
     try {
         window.localStorage.removeItem(DISMISS_COUNT_KEY)
         window.localStorage.removeItem(DISMISSED_AT_KEY)
+        window.localStorage.removeItem(SNOOZED_UNTIL_KEY)
     } catch {
         // Private mode. There was nothing to clear.
     }
@@ -218,8 +236,20 @@ export async function promptInstall(): Promise<'accepted' | 'dismissed' | 'unava
     ;(window as InstallWindow).__splitInstallPrompt = null
     publish()
 
-    await event.prompt()
-    const { outcome } = await event.userChoice
+    // Attach the rejection handler before opening the browser UI. `userChoice` is supplied as an
+    // already-live promise, so it can reject while `prompt()` is still pending; awaiting the two
+    // sequentially would briefly leave that rejection unhandled. Either browser failure consumes
+    // this single-use event but is not a user dismissal (and certainly not an install).
+    const choice = Promise.resolve(event.userChoice).catch(() => null)
+    try {
+        await event.prompt()
+    } catch {
+        return 'unavailable'
+    }
+
+    const result = await choice
+    if (!result) return 'unavailable'
+    const { outcome } = result
     if (outcome === 'accepted') installedHere = true
     else promptSpent = true
     publish()

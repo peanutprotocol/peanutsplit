@@ -67,6 +67,8 @@ export const NETWORK_ERROR_CODE = 'NETWORK_ERROR'
  *  their client key is minted before the first attempt and reused on replay. */
 export const EXPENSE_WRITE_TIMEOUT_MS = 12_000
 const FEEDBACK_WRITE_TIMEOUT_MS = 30_000
+/** Install handoff is a boot aid, never a reason to strand the operational home. */
+const INSTALL_HANDOFF_TIMEOUT_MS = 5_000
 
 /** A rotated or Former proof must never quietly become an anonymous write. The
  * HTTP layer emits this once so every room identity consumer can recover by
@@ -188,6 +190,26 @@ export interface IndicativeRateQuote {
     indicative: true
 }
 
+/**
+ * The deliberately small payload copied into a new iOS Home Screen storage
+ * container. The opaque cookie never reaches JavaScript; this response contains
+ * only the one room the person explicitly installed from and, when proven, its
+ * room-scoped viewpoint.
+ */
+export interface InstallHandoffPayload {
+    room: {
+        slug: string
+        name: string
+        emoji: string | null
+        theme: string | null
+    }
+    identity: {
+        memberId: string
+        name: string
+        token: string
+    } | null
+}
+
 /** Exported because the offline queue stores the endpoint it is holding a write
  *  for, and two places building the same path is how they drift apart. */
 export const expensesPath = (slug: string): string => `/api/rooms/${encode(slug)}/expenses`
@@ -218,6 +240,37 @@ export const api = {
 
     room: (slug: string, signal?: AbortSignal) =>
         request<RoomState>(`/api/rooms/${encode(slug)}`, { signal, cache: 'no-store' }),
+
+    installHandoff: {
+        /** Arm the cookie Safari copies into a newly-added Home Screen app. */
+        prepare: (slug: string, token?: string | null) =>
+            request<{ prepared: true }>(`/api/rooms/${encode(slug)}/install-handoff`, {
+                method: 'POST',
+                body: {},
+                token,
+                timeoutMs: INSTALL_HANDOFF_TIMEOUT_MS,
+                cache: 'no-store',
+            }),
+
+        /** Idempotent peek. The server retains the row until acknowledge succeeds. */
+        redeem: (signal?: AbortSignal) =>
+            request<InstallHandoffPayload>('/api/install-handoff', {
+                method: 'POST',
+                body: {},
+                signal,
+                timeoutMs: INSTALL_HANDOFF_TIMEOUT_MS,
+                cache: 'no-store',
+            }),
+
+        /** Consume only after the local room and identity have been read back. */
+        acknowledge: (signal?: AbortSignal) =>
+            request<void>('/api/install-handoff', {
+                method: 'DELETE',
+                signal,
+                timeoutMs: INSTALL_HANDOFF_TIMEOUT_MS,
+                cache: 'no-store',
+            }),
+    },
 
     roomHistory: (slug: string, cursor?: string | null, signal?: AbortSignal) =>
         request<RoomHistoryPage>(`/api/rooms/${encode(slug)}/history${cursor ? `?cursor=${encode(cursor)}` : ''}`, {

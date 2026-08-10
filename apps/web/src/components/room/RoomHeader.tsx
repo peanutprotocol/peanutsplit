@@ -25,6 +25,7 @@ interface RoomHeaderProps {
     /** Stable room landmark used when a transient sheet removes its opener. */
     roomTitleRef?: RefObject<HTMLButtonElement | null>
     onShare: () => void
+    onRoomShareCompleted?: () => void
     onForgetIdentity: () => void
     /** JoinGate owns the viewport while this device reclaims an identity. */
     suspended?: boolean
@@ -48,6 +49,7 @@ export function RoomHeader({
     me,
     roomTitleRef,
     onShare,
+    onRoomShareCompleted,
     onForgetIdentity,
     suspended = false,
 }: RoomHeaderProps) {
@@ -156,6 +158,7 @@ export function RoomHeader({
                 identity={identity}
                 me={me}
                 onShare={onShare}
+                onRoomShareCompleted={onRoomShareCompleted}
                 onForgetIdentity={onForgetIdentity}
                 onOpenCharacter={(memberId) => setSheets({ character: memberId })}
             />

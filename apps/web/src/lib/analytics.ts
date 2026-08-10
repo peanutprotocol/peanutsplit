@@ -11,6 +11,7 @@ import type { CaptureResult } from 'posthog-js'
 import { ACHIEVEMENT_TYPES } from './achievements-contract'
 import type { AchievementType } from './achievements-contract'
 import type { LandingVariant } from './flags'
+import type { AutoInstallTrigger } from './install-funnel'
 import type { RecapShareTier } from './recap'
 import { SHARE_PACKAGE_VARIANT } from './share-package-contract'
 
@@ -40,13 +41,17 @@ export type AnalyticsEvent =
     | 'link_copied'
     | 'all_settled'
     | 'pwa_prompt_shown'
+    | 'pwa_prompt_dismissed'
     | 'pwa_installed'
+    | 'pwa_ios_install_handoff_completed'
     // Installing. Every property is a fact about a browser — which of five states the settings row
     // found this device in, and which of two answers the browser's own dialog got. Never a room,
-    // never a device id. `pwa_installed` is Chromium-only, because `appinstalled` is: iOS install
-    // conversion is unmeasurable and no number here should pretend otherwise.
+    // never a device id. `pwa_installed` is Chromium-only, because `appinstalled` is. On iOS the
+    // separately named event proves only that a prepared handoff completed in standalone mode;
+    // it is deliberately not presented as an operating-system install event.
     | 'install_row_shown'
     | 'install_prompted'
+    | 'ios_install_steps_opened'
     // A photo handed in from the OS share sheet. One enum, five buckets, and never a room count:
     // "this device has 7 rooms" is a weak fingerprint and buys nothing the buckets do not.
     | 'share_target_opened'
@@ -235,6 +240,76 @@ export function sharePackageMeasureProps(surface: ShareSurface, method?: SharePa
     return method && (SHARE_PACKAGE_METHODS as readonly string[]).includes(method)
         ? { variant: SHARE_PACKAGE_VARIANT, surface, method }
         : { variant: SHARE_PACKAGE_VARIANT, surface }
+}
+
+export const INSTALL_TRIGGERS = [
+    'balance_and_share',
+    'mature_contribution',
+    'mature_return',
+] as const satisfies readonly AutoInstallTrigger[]
+export const INSTALL_DELIVERIES = ['browser_prompt', 'ios_steps'] as const
+export const INSTALL_SURFACES = ['auto', 'settings'] as const
+export const INSTALL_OUTCOMES = ['accepted', 'dismissed'] as const
+export const INSTALL_DISMISS_REASONS = ['not_now', 'close', 'browser_declined', 'instructions_closed'] as const
+
+type InstallMeasureEvent = 'pwa_prompt_shown' | 'pwa_prompt_dismissed' | 'install_prompted' | 'ios_install_steps_opened'
+
+/**
+ * The complete promoted-install measurement boundary. Room identity is deliberately absent — not
+ * even the safe analytics pseudonym — so an install journey cannot become a cross-room profile.
+ */
+export const INSTALL_MEASURE = {
+    exposure: 'pwa_prompt_shown',
+    success: {
+        chromium: 'pwa_installed',
+        /** Strongest honest iOS signal: a prepared room reached a new standalone context,
+         *  was persisted there, and the one-time handoff was acknowledged. WebKit exposes no
+         *  programmable install event, so this remains a handoff completion, not OS proof. */
+        ios: 'pwa_ios_install_handoff_completed',
+    },
+    allowedProperties: {
+        pwa_prompt_shown: ['trigger', 'delivery'],
+        pwa_prompt_dismissed: ['trigger', 'delivery', 'reason'],
+        install_prompted: ['surface', 'outcome', 'trigger'],
+        ios_install_steps_opened: ['surface', 'trigger'],
+    },
+} as const
+
+/** Unknown keys and values are dropped, not forwarded to PostHog. */
+export function installMeasureProps(
+    event: InstallMeasureEvent,
+    properties: Record<string, unknown>
+): Record<string, string> {
+    const result: Record<string, string> = {}
+    const trigger = properties.trigger
+    const delivery = properties.delivery
+    const surface = properties.surface
+    const outcome = properties.outcome
+    const reason = properties.reason
+
+    if (
+        (event === 'pwa_prompt_shown' ||
+            event === 'pwa_prompt_dismissed' ||
+            event === 'install_prompted' ||
+            event === 'ios_install_steps_opened') &&
+        (INSTALL_TRIGGERS as readonly unknown[]).includes(trigger)
+    )
+        result.trigger = trigger as string
+    if (
+        (event === 'pwa_prompt_shown' || event === 'pwa_prompt_dismissed') &&
+        (INSTALL_DELIVERIES as readonly unknown[]).includes(delivery)
+    )
+        result.delivery = delivery as string
+    if (
+        (event === 'install_prompted' || event === 'ios_install_steps_opened') &&
+        (INSTALL_SURFACES as readonly unknown[]).includes(surface)
+    )
+        result.surface = surface as string
+    if (event === 'install_prompted' && (INSTALL_OUTCOMES as readonly unknown[]).includes(outcome))
+        result.outcome = outcome as string
+    if (event === 'pwa_prompt_dismissed' && (INSTALL_DISMISS_REASONS as readonly unknown[]).includes(reason))
+        result.reason = reason as string
+    return result
 }
 
 /**

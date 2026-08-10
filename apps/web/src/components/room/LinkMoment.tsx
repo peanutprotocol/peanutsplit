@@ -46,6 +46,8 @@ interface LinkMomentProps {
      * the `h1`, and a second one would claim the page is about two things.
      */
     headingLevel?: 1 | 2
+    /** A real user-directed handoff completed. Never fires for presentation, abort, or failure. */
+    onCompleted?: (method: 'native' | 'clipboard') => void
 }
 
 export const roomUrl = (slug: string): string =>
@@ -78,6 +80,7 @@ export function LinkMoment({
     title,
     subtitle,
     headingLevel = 1,
+    onCompleted,
 }: LinkMomentProps) {
     const t = useTranslations('room.link')
     const Heading = headingLevel === 1 ? 'h1' : 'h2'
@@ -130,8 +133,9 @@ export function LinkMoment({
             if (completedRef.current) return
             completedRef.current = true
             track('share_completed', sharePackageMeasureProps(surface, method))
+            onCompleted?.(method)
         },
-        [surface]
+        [onCompleted, surface]
     )
 
     const revealFallback = useCallback(() => {

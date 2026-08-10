@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { CloseButton } from '@/components/ui/CloseButton'
-import { CANONICAL_APP_HOST, CANONICAL_APP_ORIGIN, isLoopbackHost, LEGACY_APP_HOST } from '@/lib/domains'
+import { CANONICAL_APP_ENTRY, CANONICAL_APP_HOST, isLoopbackHost, LEGACY_APP_HOST } from '@/lib/domains'
 
 /**
  * "The app moved" — shown ONLY inside an installed PWA still launching from the legacy
@@ -57,7 +57,7 @@ export function ReinstallBanner() {
             <div className="shadow-4 mx-auto flex w-full max-w-xl gap-3 rounded-sm border border-n-1 bg-white p-4">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <p className="text-sm leading-5">{t('message')}</p>
-                    <a href={CANONICAL_APP_ORIGIN} className="text-sm font-bold underline">
+                    <a href={CANONICAL_APP_ENTRY} className="text-sm font-bold underline">
                         {t('open')}
                     </a>
                 </div>

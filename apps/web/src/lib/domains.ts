@@ -16,6 +16,9 @@ export const LEGACY_APP_ORIGIN = `https://${LEGACY_APP_HOST}`
 
 export const CANONICAL_APP_HOST = new URL(siteUrl).hostname
 export const CANONICAL_APP_ORIGIN = `https://${CANONICAL_APP_HOST}`
+/** The operational launcher destination. The canonical origin's bare `/` is
+ *  intentionally marketing-routed back to peanutsplit.com. */
+export const CANONICAL_APP_ENTRY = `${CANONICAL_APP_ORIGIN}/app`
 
 /**
  * `localhost`, `127.0.0.1`, `0.0.0.0` — a host a production build would never call

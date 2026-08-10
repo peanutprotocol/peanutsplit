@@ -33,7 +33,17 @@ import { MemberAvatar } from './MemberAvatar'
  * `AllSettled`, which rings a bell on arrival; that one is the terminal moment of the whole
  * product, and an achievement is not.
  */
-export function AchievementMoment({ slug, state, meId }: { slug: string; state: RoomState; meId: string | undefined }) {
+export function AchievementMoment({
+    slug,
+    state,
+    meId,
+    onOpenChange,
+}: {
+    slug: string
+    state: RoomState
+    meId: string | undefined
+    onOpenChange?: (open: boolean) => void
+}) {
     const t = useTranslations('room.achievements')
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
@@ -42,6 +52,15 @@ export function AchievementMoment({ slug, state, meId }: { slug: string; state: 
     const claimed = useRef(false)
 
     const unlocks = useMemo(() => unlocksFor(state, meId), [state, meId])
+    const open = shown !== null && !dismissed
+
+    useEffect(() => onOpenChange?.(open), [onOpenChange, open])
+    useEffect(
+        () => () => {
+            onOpenChange?.(false)
+        },
+        [onOpenChange]
+    )
 
     useEffect(() => {
         if (claimed.current) return
@@ -62,7 +81,7 @@ export function AchievementMoment({ slug, state, meId }: { slug: string; state: 
         setDismissed(true)
     }, [feedback])
 
-    if (!shown || dismissed) return null
+    if (!open || !shown) return null
 
     return (
         <motion.div

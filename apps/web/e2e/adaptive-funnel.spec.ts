@@ -91,6 +91,8 @@ test('checkpoint → empty room → first shared balance is one adaptive funnel'
     // phone without first scroll.
     await expect(genericShare.getByTestId('room-qr')).toBeInViewport({ ratio: 1 })
     await expect(genericShare.getByTestId('share-link')).toBeInViewport({ ratio: 1 })
+    await genericShare.getByTestId('close-share').click()
+    await expect(page.getByTestId('share-room')).toBeFocused()
 })
 
 test('a solo first expense returns to the room without opening Share', async ({ page }) => {

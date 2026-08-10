@@ -32,5 +32,13 @@ printf '%s\n' \
     'DELETE FROM "split"."FeedbackReport" WHERE "createdAt" < CURRENT_TIMESTAMP - INTERVAL '\''90 days'\'';' \
     | ./node_modules/.bin/prisma db execute --stdin --schema ./prisma/schema.prisma
 
+# Install handoffs are recovery capabilities, not history. Redemption enforces
+# the same expiry, every new prepare prunes opportunistically, and the live Node
+# process sweeps hourly; this boot sweep also covers time spent stopped.
+echo "→ pruning expired install handoffs"
+printf '%s\n' \
+    'DELETE FROM "split"."InstallHandoff" WHERE "expiresAt" <= CURRENT_TIMESTAMP;' \
+    | ./node_modules/.bin/prisma db execute --stdin --schema ./prisma/schema.prisma
+
 echo "→ starting server on :${PORT:-3000}"
 exec node server.js

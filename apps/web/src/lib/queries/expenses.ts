@@ -24,6 +24,9 @@ interface AddExpenseContext {
     previous?: RoomState
 }
 
+/** Client-only mutation metadata. `queuedLocally` is never part of the HTTP contract or cache. */
+export type ExpenseMutationResult = ExpenseCreateResult & { queuedLocally: boolean }
+
 export interface ExpenseRequestState {
     signature: string
     clientKey: string
@@ -69,7 +72,7 @@ export function addExpenseMutationOptions(
     slug: string,
     token?: string | null,
     requestRef?: ExpenseRequestRef
-): UseMutationOptions<ExpenseCreateResult, Error, ExpenseInput, AddExpenseContext> {
+): UseMutationOptions<ExpenseMutationResult, Error, ExpenseInput, AddExpenseContext> {
     let localRequest: ExpenseRequestState | null = null
     const requestFor = (input: ExpenseInput, equalParticipantIds?: string[]): ExpenseRequestState => {
         const signature = expenseRequestSignature(input)
@@ -94,7 +97,7 @@ export function addExpenseMutationOptions(
     }
 
     return {
-        mutationFn: async (input: ExpenseInput): Promise<ExpenseCreateResult> => {
+        mutationFn: async (input: ExpenseInput): Promise<ExpenseMutationResult> => {
             // Mint before the first attempt so a committed write with a lost
             // response and its offline replay address the same server row.
             const request = requestFor(input)
@@ -120,7 +123,7 @@ export function addExpenseMutationOptions(
             const frozen = request.equalParticipantIds
             const equalParticipantSnapshot = isImplicitEqualRoster(input) && frozen?.length ? frozen : null
             try {
-                return await api.addExpense(slug, requestInput, token)
+                return { ...(await api.addExpense(slug, requestInput, token)), queuedLocally: false }
             } catch (error) {
                 // A staged payer has no server-issued member id for an honest
                 // pending row, so only ordinary expenses can enter the queue.
@@ -140,7 +143,7 @@ export function addExpenseMutationOptions(
                     token,
                 })
                 if (!queued) throw error
-                return { ...authoritative, createdFirstSharedBalance: false }
+                return { ...authoritative, createdFirstSharedBalance: false, queuedLocally: true }
             }
         },
         onMutate: async (input: ExpenseInput) => {

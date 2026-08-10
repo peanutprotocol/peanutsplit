@@ -36,6 +36,11 @@ export interface ApiRoom {
     coverUrl: string | null
     /** A key into the catalog in `lib/themes.ts`. null = the default palette. */
     theme: string | null
+    /**
+     * Durable activation latch: this room has at some point produced a balance between different
+     * people. Optional so a rolling client can safely read an older cached RoomState.
+     */
+    hasReachedSharedBalance?: boolean
     createdAt: string
 }
 
