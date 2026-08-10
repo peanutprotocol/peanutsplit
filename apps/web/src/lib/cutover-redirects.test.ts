@@ -13,21 +13,21 @@ const decide = (host: string, pathname: string, search = '') =>
     decideCutoverRedirect(host, pathname, search, LEGACY, CANONICAL)
 
 describe('decideCutoverRedirect', () => {
-    it('bounces app paths on the legacy host to the canonical host, 302', () => {
+    it('bounces app paths on the legacy host to the canonical host, 301 — permanent since 2026-08-10', () => {
         for (const path of ['/app', '/new', '/import', '/r/ski-trip-R7LxQ3TBJV_uQ2PMhzc8rw']) {
-            expect(decide(LEGACY, path)).toEqual({ target: `https://${CANONICAL}${path}`, status: 302 })
+            expect(decide(LEGACY, path)).toEqual({ target: `https://${CANONICAL}${path}`, status: 301 })
         }
     })
 
     it('accepts the www variant of either host', () => {
-        expect(decide(`www.${LEGACY}`, '/app')).toEqual({ target: `https://${CANONICAL}/app`, status: 302 })
+        expect(decide(`www.${LEGACY}`, '/app')).toEqual({ target: `https://${CANONICAL}/app`, status: 301 })
         expect(decide(`www.${CANONICAL}`, '/')).toEqual({ target: `https://${LEGACY}/`, status: 302 })
     })
 
     it('preserves the query string across the bounce', () => {
         expect(decide(LEGACY, '/r/lisbon-abc123', '?from=group-chat')).toEqual({
             target: `https://${CANONICAL}/r/lisbon-abc123?from=group-chat`,
-            status: 302,
+            status: 301,
         })
         expect(decide(CANONICAL, '/blog', '?utm_source=x')).toEqual({
             target: `https://${LEGACY}/blog?utm_source=x`,
@@ -73,7 +73,7 @@ describe('decideCutoverRedirect', () => {
     })
 
     it('ignores port and case on the request host', () => {
-        expect(decide('PeanutSplit.com:443', '/app')).toEqual({ target: `https://${CANONICAL}/app`, status: 302 })
+        expect(decide('PeanutSplit.com:443', '/app')).toEqual({ target: `https://${CANONICAL}/app`, status: 301 })
     })
 
     it('is inert when the build is not cut over (canonical host === legacy host)', () => {

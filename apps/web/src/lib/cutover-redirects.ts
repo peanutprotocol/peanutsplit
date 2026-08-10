@@ -4,8 +4,12 @@
  *
  * The split: app intent serves on `split.peanut.me`, marketing/content intent stays on
  * `peanutsplit.com` (see `docs/SEO-DOMAIN-DECISIONS.md`). The same build answers both
- * hostnames, so each host bounces the other host's half across — 302, not 301, because
- * the content half of the story is still moving and a cached 301 cannot be taken back.
+ * hostnames, so each host bounces the other host's half across. The two directions carry
+ * different statuses on purpose: the app direction is **301** — the mapping is permanent
+ * and was verified in production (2026-08-09, full matrix + real-device handoff) before
+ * being made cacheable — while the marketing direction stays **302**, because where
+ * content ultimately lives is still moving (peanut.me/{locale}/split/*, Konrad's port)
+ * and a cached 301 cannot be taken back.
  *
  * Three deliberate properties:
  *
@@ -23,7 +27,7 @@ import { CANONICAL_APP_HOST, isLoopbackHost, LEGACY_APP_HOST } from './domains'
 
 export interface CutoverRedirect {
     target: string
-    status: 302
+    status: 301 | 302
 }
 
 /**
@@ -82,7 +86,7 @@ export function decideCutoverRedirect(
 
     if (onLegacy) {
         // App intent has moved. Marketing (and anything unrecognised) stays here.
-        return isAppPath(pathname) ? { target: `https://${canonicalHost}${pathname}${search}`, status: 302 } : null
+        return isAppPath(pathname) ? { target: `https://${canonicalHost}${pathname}${search}`, status: 301 } : null
     }
 
     // Canonical host: the app serves; everything else — marketing pages, locale
