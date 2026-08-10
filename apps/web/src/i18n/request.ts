@@ -12,19 +12,20 @@
  * URL states a language, the URL wins — and because the whole shell reads its strings through this
  * config, the footer and everything else follow with no prop-drilling.
  *
- * The URL arrives as a header set by `proxy.ts`. `setRequestLocale` cannot do it: this config
- * is resolved by the root layout, which renders before any page could call it. `localeFromPathname`
- * is the rule the proxy applies, and it answers for the unprefixed pages too: `/blog` and
+ * The URL — or an explicit `/new?locale=…` handoff — arrives as a header set by `proxy.ts`.
+ * `setRequestLocale` cannot do it: this config is resolved by the root layout, which renders
+ * before any page could call it. `localeFromPathname` is the rule the proxy applies to content,
+ * and it answers for the unprefixed pages too: `/blog` and
  * `/tricount-alternative` are the canonical ENGLISH URLs of those pages and state `en` as firmly
- * as `/es-419/blog` states `es-419`. Only the app shell — `/`, `/new`, `/r/*` — states nothing, and it is
- * the only thing the cookie still decides.
+ * as `/es-419/blog` states `es-419`. Only the app shell — `/`, `/new`, `/r/*` — states nothing in
+ * its path; absent the explicit `/new` handoff, it is the only thing the cookie still decides.
  *
  * `requestLocale` comes first and is NOT optional to honour. next-intl re-invokes this config with
  * it whenever a caller asks for a specific language — `getTranslations({ locale: 'en' })`. Ignoring
  * it meant an explicit English lookup came back in whatever the cookie held, which served a
  * Spanish `<h1>` at the canonical English URL to anyone carrying a Spanish cookie.
  *
- * Resolution order: explicit request → URL header → `ps-locale` cookie → `Accept-Language` → `en`.
+ * Resolution order: explicit request → proxy header → `ps-locale` cookie → `Accept-Language` → `en`.
  */
 
 import { cookies, headers } from 'next/headers'
@@ -46,7 +47,7 @@ async function resolveLocale(requested: string | undefined): Promise<Locale> {
 
     const requestHeaders = await headers()
 
-    // Only ever set by the proxy, and only for a locale-prefixed path.
+    // Only ever set by the proxy, for a locale-pinned content path or a valid `/new` handoff.
     const fromUrl = requestHeaders.get(LOCALE_HEADER)
     if (isLocale(fromUrl)) return fromUrl
 

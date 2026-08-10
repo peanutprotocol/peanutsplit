@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
 import { cutoverRedirect } from '@/lib/cutover-redirects'
+import { localeFromNewRoomHandoff } from '@/lib/locale-handoff'
 
 /**
- * Tells the server what language a URL is in. It does not route, redirect or rewrite anything.
- * (One exception since 2026-08: the domain-cutover redirects at the top of the function.)
+ * Tells the server what language a URL is in. It does not route or rewrite anything.
+ * (The domain-cutover redirect runs first, and `/new?locale=…` persists a guide CTA's locale.)
  *
  * The indexed pages live under `/es-419/…`, `/pt-br/…`, and the English originals they translate. Every
  * server component on them — the footer, the locale switcher, anything on `useTranslations` —
@@ -14,10 +16,11 @@ import { cutoverRedirect } from '@/lib/cutover-redirects'
  * is Spanish" — or English — is here.
  *
  * `localeFromPathname` is the whole reason this is acceptable next to the no-proxy rule in
- * `request.ts`. It returns null for the app shell, so `/`, `/new`, `/r/*` and `/share-target` fall
- * through untouched and keep their cookie-decided locale. WHICH pages get a header is that
- * function's call, not the matcher's — one rule, one place. `/app` is the operational home;
- * `/` remains cookie-localized public marketing.
+ * `request.ts`. It returns null for the app shell, so `/`, `/new`, `/r/*` and `/share-target` keep
+ * their cookie-decided locale. The sole handoff is `/new?locale=…`: a peanut.me guide cannot
+ * share this host's cookie, so its canonical locale is applied to the first paint and persisted
+ * for the room-creation POST. `/app` is the operational home; `/` remains cookie-localized public
+ * marketing.
  */
 export function proxy(request: NextRequest) {
     // Domain cutover (2026-08): app paths live on split.peanut.me, marketing stays on
@@ -31,17 +34,29 @@ export function proxy(request: NextRequest) {
     const redirect = cutoverRedirect(host, request.nextUrl.pathname, request.nextUrl.search)
     if (redirect) return NextResponse.redirect(redirect.target, redirect.status)
 
-    const locale = localeFromPathname(request.nextUrl.pathname)
+    const handoffLocale = localeFromNewRoomHandoff(request.nextUrl.pathname, request.nextUrl.searchParams)
+    const locale = handoffLocale ?? localeFromPathname(request.nextUrl.pathname)
     if (!locale) return NextResponse.next()
 
     const headers = new Headers(request.headers)
     headers.set(LOCALE_HEADER, locale)
-    return NextResponse.next({ request: { headers } })
+    const response = NextResponse.next({ request: { headers } })
+
+    if (handoffLocale) {
+        response.cookies.set(LOCALE_COOKIE, handoffLocale, {
+            path: '/',
+            maxAge: LOCALE_COOKIE_MAX_AGE_SECONDS,
+            sameSite: 'lax',
+        })
+    }
+
+    return response
 }
 
 export const config = {
     // Pages only: no API routes, no Next internals, nothing with a file extension (`sw.js`,
     // `robots.txt`, `icon.png`). `/api/*` stays excluded on purpose so `server/locale.ts`'s
-    // `creationLocale()` keeps stamping a new room with the creator's cookie language.
+    // `creationLocale()` keeps stamping a new room with the creator's cookie language. A valid
+    // `/new?locale=…` handoff sets that cookie on the page response before the POST occurs.
     matcher: ['/((?!api/|_next/|.*\\.).*)'],
 }

@@ -44,6 +44,9 @@ export const DEFAULT_LOCALE: Locale = 'en'
  */
 export const LOCALE_COOKIE = 'ps-locale'
 
+/** One year, shared by the server handoff and the client-side preference writer. */
+export const LOCALE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365
+
 export const isLocale = (value: unknown): value is Locale => LOCALES.includes(value as Locale)
 
 /**

@@ -9,7 +9,7 @@
  * can disagree with the one the server actually read.)
  */
 
-import { LOCALE_COOKIE, type Locale } from '@/i18n/locales'
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS, type Locale } from '@/i18n/locales'
 
 /**
  * One year, re-asserted on every boot. Safari's Intelligent Tracking Prevention caps
@@ -17,13 +17,11 @@ import { LOCALE_COOKIE, type Locale } from '@/i18n/locales'
  * in March would silently be served English again. Re-writing on load resets that window for
  * anyone who has been here inside the last week, which is everyone who still cares.
  */
-const MAX_AGE_SECONDS = 60 * 60 * 24 * 365
-
 export function writeLocaleCookie(locale: Locale): void {
     if (typeof document === 'undefined') return
     // `SameSite=Lax` and no `Secure`: the cookie carries a UI preference, and dropping `Secure`
     // is what lets it work on plain-http local dev without a second code path.
-    document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${MAX_AGE_SECONDS}; SameSite=Lax`
+    document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`
 }
 
 /**
