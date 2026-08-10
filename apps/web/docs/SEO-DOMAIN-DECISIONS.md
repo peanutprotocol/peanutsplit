@@ -1,44 +1,77 @@
-# SEO domain decisions — handoff
+# SEO domain decisions — historical handoff
 
-Decided 2026-07-30 (Konrad + Hugo, Discord). This supersedes any earlier assumption that content lives on split.peanut.me or peanutsplit.com.
+> [!IMPORTANT]
+> **Superseded on 2026-08-09.** The plan of record is
+> [`mono/projects/peanut-split/domain-consolidation-2026-08-09.md`](https://github.com/peanutprotocol/mono/blob/main/projects/peanut-split/domain-consolidation-2026-08-09.md).
+> Marketing and SEO are native mono content at `peanut.me/{locale}/split/*`;
+> rooms, `/new`, and the PWA live at `split.peanut.me`; and
+> `peanutsplit.com` is a redirect shell. There is no peanut.me rewrite to this
+> app. Breaking compatibility is allowed for this pre-launch product; the one
+> migration exception is preserving access to existing live `/r/*` rooms.
 
-## The rule
+This document records the 2026-07-30 handoff and the transition that followed.
+Keep it for decision history, but do not use its old rewrite proposal as an
+implementation plan.
 
-Content intent → `peanut.me/split/*` (subfolder on root domain).
-App intent → `split.peanut.me`.
-`peanutsplit.com` → landing page only.
+## Current contract
 
-Rationale: authority must accrue to peanut.me. Subdomains are treated by Google as quasi-separate sites, so content on split.peanut.me would NOT feed peanut.me root — only subfolders consolidate. peanutsplit.com has no authority to lose (fresh domain, exact-match domains are not a ranking factor), so demoting it to LP-only costs nothing.
+- Marketing/SEO → `peanut.me/{locale}/split/*`, rendered by mono's content
+  system.
+- Product → `split.peanut.me` (`/r/*`, `/new`, app and PWA surfaces).
+- Legacy domain → `peanutsplit.com` remains registered as a redirect shell.
 
-## Decisions
+The marketing implementation, locale contract, rollout state, and redirect
+mapping are owned by the linked mono plan.
 
-1. **All indexable content serves on `peanut.me/split/*`.** Blog, alternatives pages, any future SEO pages. Never on split.peanut.me, never on peanutsplit.com.
-2. **Serving mechanism: rewrite, not port.** peanut.me rewrites/reverse-proxies `peanut.me/split/*` to this standalone Next app (Vercel rewrites). Keeps the "add a .md, push" workflow. Do NOT port the MDX engine into peanut-ui unless the rewrite approach fails in practice.
-   - Implication: this app's `metadataBase` / siteUrl env must emit `https://peanut.me` canonicals for content routes once the rewrite is live. Sitemap and robots must also be reachable/declared under the peanut.me host for those paths.
-3. **App surface stays `split.peanut.me`.** App pages are noindex / low content value; reverse-proxying the app under peanut.me isn't worth the infra. Only content routes need the peanut.me host.
-4. **peanutsplit.com = LP only.** Keep it for paid/social landing, app-store identity, and spin-off optionality. Any content links there 301 (or canonical) into peanut.me/split/*. It accrues nothing and that's fine.
-5. **Content quality cap (hard rule).** Only curated, hand-quality pages go on peanut.me — programmatic/thin content at scale on the root domain risks sitewide quality classifiers dragging all of peanut.me. If programmatic volume is ever wanted, it goes on peanutsplit.com as a sacrificial surface. Never mix the two strategies on peanut.me.
+## Historical proposal (2026-07-30; superseded)
 
-## Current state (as of this handoff)
+The rationale was to consolidate authority on peanut.me paths rather than a
+subdomain or separate domain. That rationale survives, but the proposed serving
+mechanism does not.
+
+1. Indexable content was intended to serve on `peanut.me/split/*`.
+2. The proposed serving mechanism was a peanut.me rewrite/reverse proxy to this
+   standalone Next app. **This was never the final architecture and must not be
+   implemented.** Mono now owns and renders the pages directly.
+3. The app surface was to stay on `split.peanut.me`; this part remains current.
+4. `peanutsplit.com` was described as landing-page-only. It is now a redirect
+   shell instead.
+5. The proposal limited peanut.me to curated, high-quality pages. Treat that as
+   historical product reasoning; current content policy lives in mono.
+
+## Historical state at the 2026-07-30 handoff
 
 - Engine: standalone Next app, this repo (`apps/web`), MDX content in `src/content/` (~8 pages: blog + alternatives, en/es/pt-br).
 - `metadataBase` comes from siteUrl env (`src/app/layout.tsx:17`) — domain switch is config, not code.
-- The peanut.me-side rewrite is NOT yet configured. That is the keystone task: without it, canonicals pointing at peanut.me/split/* are broken links.
+- A peanut.me-side rewrite had not been configured. The rewrite was later
+  abandoned in favor of native mono content.
 
-## Open items
+## Superseded open items
 
-- [ ] Add `peanut.me/split/*` rewrite in peanut-ui/Vercel config pointing at this app.
-- [ ] Flip siteUrl/canonicals to peanut.me for content routes; verify sitemap + hreflang under the new paths.
-- [ ] 301 any existing indexed peanutsplit.com content URLs to their peanut.me/split/* equivalents.
-- [ ] Confirm split.peanut.me app routes are noindex.
-      (App-side redirect code for the split.peanut.me half shipped 2026-08-09 — see the update below. The four items above stay open: they are peanut-ui/Vercel and content-route work, not this repo's redirects.)
+- ~~Add a `peanut.me/split/*` rewrite to this app.~~ Rejected; mono renders the
+  content natively.
+- ~~Point this app's content canonicals and sitemap at peanut.me.~~ Replaced by
+  mono's metadata and sitemap implementation.
+- Redirect legacy marketing paths to their native
+  `peanut.me/{locale}/split/*` destinations as those destinations launch.
+- Keep product/app routes on `split.peanut.me` out of the marketing index.
 
-## Update 2026-08-09 — app cutover implemented (this repo)
+## Transition record — app cutover (2026-08-09 to 2026-08-10)
 
 Decided 2026-08-09. Refines the 2026-07-30 rule; the authority argument stands unchanged.
 
 - **Content → `peanut.me/{locale}/split/*`, owned by Konrad in mono's content engine.** The rewrite approach above is superseded for new content: curated pages are authored in mono, not proxied from this app.
-- **App → `split.peanut.me`.** Implemented in this repo: `src/lib/domains.ts` (host pair), `src/lib/cutover-redirects.ts` (pure decision table), `src/proxy.ts` (host-aware 302s). App paths (`/r/*`, `/app`, `/new`, `/import`) on peanutsplit.com bounce to split.peanut.me; everything else on split.peanut.me bounces back, so no marketing/content is duplicated on the subdomain. `/handoff` and `/share-target` never redirect (origin-bound storage on both).
-- **peanutsplit.com → redirect shell.** 302 now, hardened to 301 once the cutover has soaked and the destination set is final.
-- **Interim canonical wart, accepted:** while `NEXT_PUBLIC_BASE_URL` is `https://split.peanut.me`, marketing pages still served on peanutsplit.com emit canonicals/OG pointing at split.peanut.me (where those paths 302 back). Accepted for the interim; resolved when the content moves to peanut.me/{locale}/split/*.
-- **Device state crosses origins via `/handoff`** (postMessage bridge, `src/lib/handoff.ts`) — localStorage `ps:*` keys are copied write-if-absent to the new origin. The legacy-origin service worker and its push subscriptions stay in place; SW retirement ships separately.
+- **App → `split.peanut.me`.** The cutover was implemented in this repo:
+  `src/lib/domains.ts` (host pair), `src/lib/cutover-redirects.ts` (pure decision
+  table), and `src/proxy.ts` (host-aware redirects). `/handoff` and
+  `/share-target` remained exempt to preserve origin-bound state.
+- **peanutsplit.com → redirect shell.** Product-path redirects were hardened
+  from 302 to 301 on 2026-08-10. Marketing redirects are flipped per path as
+  native peanut.me pages launch.
+- **Interim canonical wart (historical):** before the native pages moved,
+  marketing pages on peanutsplit.com could emit split.peanut.me canonicals.
+  This was accepted only as a temporary migration state, never as the target
+  architecture.
+- **Device state crossed origins via `/handoff`** (postMessage bridge,
+  `src/lib/handoff.ts`) to protect the few existing rooms during the cutover.
+  This is the deliberate exception to the otherwise breaking migration.
