@@ -7,17 +7,20 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-05.
 
-## Code-complete 2026-08-09 — domain cutover to split.peanut.me [Hugo]
+## Shipped 2026-08-10 — domain cutover to split.peanut.me [Hugo]
 
-- App moves to `split.peanut.me`; `peanutsplit.com` becomes a redirect shell for
-  app paths (302 now, 301 later) and keeps serving marketing. Host-aware
+- The app lives at `split.peanut.me`; legacy product paths on
+  `peanutsplit.com` redirect permanently. Marketing and SEO are native mono
+  content at `peanut.me/{locale}/split/*`, not a rewrite to this app. Legacy
+  marketing redirects flip as their native destinations launch. Host-aware
   redirects live in `src/proxy.ts` over the pure table in
   `src/lib/cutover-redirects.ts`; device state (`ps:*` localStorage) crosses
-  origins through the `/handoff` postMessage bridge, write-if-absent; an
-  installed legacy PWA gets a dismissible reinstall banner. Inert everywhere but
-  the two production hosts, so the code ships safely ahead of DNS. Decision
-  record: `apps/web/docs/SEO-DOMAIN-DECISIONS.md` (2026-08-09 update). Old-origin
-  service-worker retirement ships separately.
+  origins through the `/handoff` postMessage bridge, write-if-absent. That room
+  handoff is the only compatibility exception required for this pre-launch
+  product. Product redirects are permanent and the legacy service worker's
+  retirement shipped with the cutover. Decision record:
+  `apps/web/docs/SEO-DOMAIN-DECISIONS.md`; current cross-repo plan:
+  [`mono/projects/peanut-split/domain-consolidation-2026-08-09.md`](https://github.com/peanutprotocol/mono/blob/main/projects/peanut-split/domain-consolidation-2026-08-09.md).
 
 ## Code-complete 2026-08-06 — exact-zero Former-member lifecycle
 

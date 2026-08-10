@@ -27,7 +27,7 @@ apps/api   Fastify + Prisma + its own Postgres, port 5051
   src/db/split.ts  every write. Two settlement paths, deliberately (see below)
   src/peanut/      the entire Peanut integration, mocked and documented
   src/routes/      /split/* (anonymous, proxied) and /webhooks/* (signed, not proxied)
-apps/web   Next — the live product at peanutsplit.com (PWA, per-room previews)
+apps/web   Next — the live product at split.peanut.me (PWA, per-room previews)
 ```
 
 ### The one thing to understand before changing the settle code
@@ -94,6 +94,8 @@ Peanut's design system, with `primary-1` swapped off Peanut pink so Split reads 
   claimed/unclaimed lifecycle.
 - `docs/SHARE-SUCCESS.md` — a completed share is the key business success
   moment: strongly encouraged, never required.
+- [`mono/projects/peanut-split/domain-consolidation-2026-08-09.md`](https://github.com/peanutprotocol/mono/blob/main/projects/peanut-split/domain-consolidation-2026-08-09.md)
+  — current domain ownership and marketing-migration plan.
 
 ## Provenance
 
@@ -101,8 +103,10 @@ Extracted from the `feat/split-rooms` spike branches in `peanut-ui` and `peanut-
 
 ## Deployment
 
-Live at **https://peanutsplit.com**, on a Hetzner box via Dokploy: `split-org-web`
-(public, serves `apps/web`) → `split-org-api` (never published) → Postgres.
+Live at **https://split.peanut.me**, on a Hetzner box via Dokploy:
+`split-org-web` (public, serves `apps/web`) → `split-org-api` (never published)
+→ Postgres. `peanutsplit.com` is retained as a redirect shell. Marketing and
+SEO live natively at `peanut.me/{locale}/split/*`, outside this deploy.
 **Pushing to `main` deploys within ~5 minutes**, with no CI gate in between —
 the tradeoff this repo already chose by shipping straight to main.
 

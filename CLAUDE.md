@@ -10,8 +10,13 @@ Product rationale, status, milestones and the decision log live in the Notion pr
 apps/api    Fastify + Prisma + its own Postgres. All money logic: splits,
             balances, FX, settlements, and the settle-with-Peanut loop.
 apps/web    The live product — Next, PWA, per-room link previews. THIS is what
-            peanutsplit.com serves.
+            split.peanut.me serves.
 ```
+
+This repo owns the product, not the long-term marketing surface. Marketing and
+SEO are native mono content at `peanut.me/{locale}/split/*`.
+`peanutsplit.com` stays registered as a redirect shell; peanut.me does not
+rewrite or reverse-proxy content to this app.
 
 `main` is canonical: two apps, one of them live, nothing dead. The original
 standalone UI (the settle-up screens wired to `apps/api`'s settle loop) lives on
@@ -33,6 +38,10 @@ two is the remaining merge.
 
 - **Money code needs a test before it ships.** Balances, splits, FX, settlements: if it can produce a wrong number, it has a test. The pure math in `apps/api/src/split/math.ts` is where that logic belongs — testable without a database.
 - **The money surface is frozen.** Split settles through an existing Peanut payment-request link. No new money-path endpoints. Split is accountless: recent rooms and member tokens stay on the device, and the room link stays the credential. No email login, passwords, OAuth, profiles, or room ownership. Push notifications are opt-in per device per room. Anything past that is a product decision, not an implementation gap.
+- **Migration compatibility is intentionally narrow.** Split was not broadly
+  launched, so breaking changes are allowed. Do not strand the existing live
+  `/r/*` room links or their member state during a domain change; no broader
+  legacy-compatibility layer is required.
 - **Do not scaffold deferred ideas.** Future-facing fields, states, routes, or abstractions require an approved ROADMAP item that explicitly authorizes implementation; listing an idea as deferred does not.
 - **No identity in analytics either** — no room slug, no member name, no amount. The slug is the room's access control; a name is what someone chose to show their friends. Rooms are grouped by `analyticsKey`, a one-way digest of the room UUID issued by the server — it cannot be turned back into a room, and the slug still never leaves the device. Attach it with `roomProps(slug, …)`, which looks the key up; never put a slug in a property bag.
 - Dependencies must be ≥14 days old (`.npmrc` enforces it).
