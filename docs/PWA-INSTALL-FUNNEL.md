@@ -3,8 +3,8 @@
 Installation is not Peanut Split's activation event. A URL already delivers the
 product; adding it to a device only reduces the cost of coming back. The automatic
 offer therefore follows demonstrated value. The Device settings action remains available
-from first use on iOS and once Chromium exposes its install action. This first version
-does not surface the separate manual flows in macOS Safari or Firefox.
+from first use: iOS has its Home Screen steps, browsers without a live one-tap event get
+portable menu guidance, and Chromium upgrades that same row when its prompt arrives.
 
 ## Why the automatic offer waits
 
@@ -46,7 +46,8 @@ name, amount, or currency.
   active mature room after at least 30 minutes. The expense that first creates a balance and
   an offline-queued write do not count as a later contribution.
 - A passive first visit, an empty/no-debt room, and a settled room never receive an
-  automatic offer. The settings action stays available when the browser exposes one.
+  automatic offer. The settings action stays available throughout: it uses a native
+  prompt when exposed and otherwise explains the browser-menu route.
 - The post-activation share owns the first ask. Installation waits until that drawer and
   every other blocking surface are closed, then waits for a short quiet interaction
   window.
@@ -61,8 +62,9 @@ name, amount, or currency.
 The journey state is localStorage-only and room-scoped. It describes what this browser
 did; it is not synchronized or mapped to a server device. Raw origin/timestamps never
 leave the device. Prompt exposure measures only closed `trigger` and `delivery`
-categories; dismissal also measures a closed `reason`. Explicit Forget removes the
-identity and journey record;
+categories; dismissal also measures a closed `reason`. Opening the manual browser
+instructions measures only the closed `settings` surface, never the browser, room, or
+member. Explicit Forget removes the identity and journey record;
 passive recent-list eviction prunes the journey record without revoking member proof.
 
 ## iOS installation handoff

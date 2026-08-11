@@ -45,13 +45,15 @@ export type AnalyticsEvent =
     | 'pwa_installed'
     | 'pwa_ios_install_handoff_completed'
     // Installing. Every property is a fact about a browser — which of five states the settings row
-    // found this device in, and which of two answers the browser's own dialog got. Never a room,
-    // never a device id. `pwa_installed` is Chromium-only, because `appinstalled` is. On iOS the
-    // separately named event proves only that a prepared handoff completed in standalone mode;
-    // it is deliberately not presented as an operating-system install event.
+    // found this device in, which of two answers the browser's own dialog got, or that manual
+    // instructions opened. Never a room, never a device id. `pwa_installed` is Chromium-only,
+    // because `appinstalled` is. On iOS the separately named event proves only that a prepared
+    // handoff completed in standalone mode; it is deliberately not presented as an operating-system
+    // install event.
     | 'install_row_shown'
     | 'install_prompted'
     | 'ios_install_steps_opened'
+    | 'browser_install_steps_opened'
     // A photo handed in from the OS share sheet. One enum, five buckets, and never a room count:
     // "this device has 7 rooms" is a weak fingerprint and buys nothing the buckets do not.
     | 'share_target_opened'
@@ -252,10 +254,15 @@ export const INSTALL_SURFACES = ['auto', 'settings'] as const
 export const INSTALL_OUTCOMES = ['accepted', 'dismissed'] as const
 export const INSTALL_DISMISS_REASONS = ['not_now', 'close', 'browser_declined', 'instructions_closed'] as const
 
-type InstallMeasureEvent = 'pwa_prompt_shown' | 'pwa_prompt_dismissed' | 'install_prompted' | 'ios_install_steps_opened'
+type InstallMeasureEvent =
+    | 'pwa_prompt_shown'
+    | 'pwa_prompt_dismissed'
+    | 'install_prompted'
+    | 'ios_install_steps_opened'
+    | 'browser_install_steps_opened'
 
 /**
- * The complete promoted-install measurement boundary. Room identity is deliberately absent — not
+ * The complete install measurement boundary. Room identity is deliberately absent — not
  * even the safe analytics pseudonym — so an install journey cannot become a cross-room profile.
  */
 export const INSTALL_MEASURE = {
@@ -272,6 +279,7 @@ export const INSTALL_MEASURE = {
         pwa_prompt_dismissed: ['trigger', 'delivery', 'reason'],
         install_prompted: ['surface', 'outcome', 'trigger'],
         ios_install_steps_opened: ['surface', 'trigger'],
+        browser_install_steps_opened: ['surface'],
     },
 } as const
 
@@ -301,7 +309,9 @@ export function installMeasureProps(
     )
         result.delivery = delivery as string
     if (
-        (event === 'install_prompted' || event === 'ios_install_steps_opened') &&
+        (event === 'install_prompted' ||
+            event === 'ios_install_steps_opened' ||
+            event === 'browser_install_steps_opened') &&
         (INSTALL_SURFACES as readonly unknown[]).includes(surface)
     )
         result.surface = surface as string
