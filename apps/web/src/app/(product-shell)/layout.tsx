@@ -3,11 +3,12 @@ import { headers } from 'next/headers'
 import { NextIntlClientProvider } from 'next-intl'
 import Script from 'next/script'
 import { getLocale } from 'next-intl/server'
+import { JsonLd } from '@/components/marketing/JsonLd'
+import { RegisterProductServiceWorker } from '@/components/pwa/RegisterProductServiceWorker'
 import { asLocale, HREFLANG } from '@/i18n/locales'
 import { bodyFontClassName } from '@/lib/fonts'
 import { isCanonicalPwaRequest } from '@/lib/pwa-manifest'
 import { Providers } from '@/lib/providers'
-import { JsonLd } from '@/components/marketing/JsonLd'
 import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import { appleStartupImages } from '@/lib/splash'
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </Script>
             </head>
             <body className={bodyFontClassName}>
+                {canonicalPwa ? <RegisterProductServiceWorker /> : null}
                 {/* Legacy WebSite + Organization plus the app-origin SoftwareApplication,
                     declared once so unmigrated page schema is host-consistent while the product
                     entity keeps its split.peanut.me identity. Room pages are noindex. */}

@@ -55,6 +55,8 @@ describe('the isolated Split content root document', () => {
 
         expect(contentRoot).toContain('<SplitContentDocument')
         expect(contentRoot).toContain('isSplitContentRender')
+        expect(contentRoot).not.toContain('RegisterProductServiceWorker')
+        expect(productRoot).toContain('canonicalPwa ? <RegisterProductServiceWorker /> : null')
         for (const forbidden of [
             'motionPreferencePreflight',
             'installPromptPreflight',
