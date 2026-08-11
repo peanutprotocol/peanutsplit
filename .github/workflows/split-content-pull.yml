@@ -76,7 +76,7 @@ jobs:
 
           ssh-keyscan -t ed25519 github.com > "${known_hosts}" 2>/dev/null
           host_fingerprint="$(ssh-keygen -E sha256 -lf "${known_hosts}" | awk '{print $2}')"
-          if [[ "${host_fingerprint}" != 'SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPtw+4Prt/mbFYE' ]]; then
+          if [[ "${host_fingerprint}" != 'SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU' ]]; then
             echo '::error::github.com SSH host fingerprint did not match the reviewed Ed25519 pin.'
             exit 1
           fi
