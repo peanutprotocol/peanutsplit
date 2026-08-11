@@ -193,8 +193,17 @@
                 "label": "Install Split",
                 "labelIos": "Add to home screen",
                 "installed": "Already on this device.",
-                "dismissed": "Not added. Open Split again to try.",
-                "preparing": "Preparing…"
+                "preparing": "Preparing…",
+                "browserMenu": "Browser menu"
+            },
+            "browser": {
+                "title": "Add Split from your browser",
+                "body": "The one-tap button isn’t available right now, but your browser menu may still add Split.",
+                "step1": "If Split opened inside another app, choose “Open in browser” first.",
+                "step2": "Open your browser’s menu.",
+                "step3": "Choose “Install app”, “Add to Home screen” or “Add to Dock”. If none appears, open this room in Chrome, Edge or Safari.",
+                "step4": "Seeing split.peanut.me is expected. Open Split from the new icon; if this room isn’t there, open its link once.",
+                "done": "Got it"
             },
             "ios": {
                 "title": "Add Split to your home screen",

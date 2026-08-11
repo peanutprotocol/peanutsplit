@@ -64,6 +64,16 @@ const snoozeInstallBanner = (page: Page) =>
         window.localStorage.setItem('ps:pwa-dismissed-at', String(Date.now()))
     })
 
+const modelAndroidBrowser = (page: Page) =>
+    page.addInitScript(() => {
+        Object.defineProperties(window.navigator, {
+            userAgent: {
+                value: 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36',
+            },
+            platform: { value: 'Linux armv8l' },
+        })
+    })
+
 /** A room, its settings sheet, and the device sheet the install row lives in. */
 async function openDeviceSheet(page: Page, name: string) {
     await page.goto('/new')
@@ -108,26 +118,32 @@ test.describe('the install row', () => {
         await snoozeInstallBanner(page)
     })
 
-    test('waits for Android Chrome instead of claiming it cannot install', async ({ page }) => {
+    test('keeps an Android install path visible while Chrome waits, then upgrades it in place', async ({ page }) => {
         onlyOn('mobile')
         test.setTimeout(60_000)
-        await page.addInitScript(() => {
-            Object.defineProperties(window.navigator, {
-                userAgent: {
-                    value: 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36',
-                },
-                platform: { value: 'Linux armv8l' },
-            })
-        })
+        await modelAndroidBrowser(page)
         await openDeviceSheet(page, 'Install Android Chrome')
 
         // Chrome decides installability after hydration and may wait for its engagement threshold.
-        // No event yet is not a negative result, so the row must not make that claim.
+        // Its menu remains usable during that wait, so Device must never become an empty dead end.
         await expect(page.getByText('This browser doesn’t offer it.')).toHaveCount(0)
-        await expect(page.locator('[data-testid^="install-row-"]')).toHaveCount(0)
+        const browserRow = page.getByTestId('install-row-browser')
+        await expect(browserRow).toContainText('Install Split')
+        await expect(browserRow).toContainText('Browser menu')
+        await browserRow.click()
 
+        const instructions = page.getByRole('dialog', { name: 'Add Split from your browser' })
+        await expect(instructions).toBeVisible()
+        await expect(instructions).toContainText('Open in browser')
+        await expect(instructions).toContainText('Install app')
+        await expect(instructions).toContainText('split.peanut.me')
+
+        // Event delivery is an upgrade, not permission to tear away instructions mid-read.
         await offerTheBrowserPrompt(page, 'accepted')
+        await expect(instructions).toBeVisible()
+        await instructions.getByRole('button', { name: 'Got it' }).click()
         await expect(page.getByTestId('install-row-prompt')).toContainText('Install Split')
+        await expect(page.getByTestId('install-row-browser')).toHaveCount(0)
     })
 
     test('opens the Safari steps on iOS', async ({ page }) => {
@@ -138,6 +154,7 @@ test.describe('the install row', () => {
         // The label is Safari's own words, so the row names the thing the person is then told to
         // look for two lines further down. "Install" appears nowhere on an iPhone.
         await expect(page.getByTestId('install-row-ios')).toContainText('Add to home screen')
+        await expect(page.getByTestId('install-row-browser')).toHaveCount(0)
 
         await page.getByTestId('install-row-ios').click()
         await expect(page.getByText('Open your browser’s Share menu (in Safari, tap More, then Share).')).toBeVisible()
@@ -162,7 +179,7 @@ test.describe('the install row', () => {
         await expect(page.getByTestId('install-row-installed')).toBeVisible()
     })
 
-    test('says the prompt was declined, not that the browser cannot install', async ({ page }) => {
+    test('keeps the browser-menu fallback after the native prompt is declined', async ({ page }) => {
         // Same reason as its siblings above: the row only exists on a device that can install.
         onlyOn('mobile')
         test.setTimeout(60_000)
@@ -172,9 +189,26 @@ test.describe('the install row', () => {
         await offerTheBrowserPrompt(page, 'dismissed')
         await page.getByTestId('install-row-prompt').click()
 
-        await expect(page.getByTestId('install-row-dismissed')).toBeVisible()
+        await expect(page.getByTestId('install-row-dismissed')).toContainText('Browser menu')
         await expect(page.getByTestId('install-row-prompt')).toHaveCount(0)
         await expect(page.getByText('This browser doesn’t offer it.')).toHaveCount(0)
+        await page.getByTestId('install-row-dismissed').click()
+        await expect(page.getByRole('dialog', { name: 'Add Split from your browser' })).toBeVisible()
+    })
+
+    test('closes menu help onto a focused installed state when appinstalled arrives', async ({ page }) => {
+        onlyOn('mobile')
+        test.setTimeout(60_000)
+        await modelAndroidBrowser(page)
+        await openDeviceSheet(page, 'Install through menu')
+
+        await page.getByTestId('install-row-browser').click()
+        await expect(page.getByTestId('browser-install-drawer')).toBeVisible()
+        await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')))
+
+        await expect(page.getByTestId('browser-install-drawer')).toHaveCount(0)
+        await expect(page.getByTestId('install-row-installed')).toBeVisible()
+        await expect(page.getByTestId('install-row-installed-focus')).toBeFocused()
     })
 
     test('never offers to install an app that is already installed', async ({ page }) => {
