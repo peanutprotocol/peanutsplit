@@ -515,6 +515,13 @@ describe('generated Split artifact loader', () => {
         reservedLegacy.manifest.entries.at(-1)!.legacy_paths = ['/import']
         writeV2Manifest(reservedLegacy.root, reservedLegacy.manifest)
         expect(() => loadSplitContentManifest(reservedLegacy.root)).toThrow(/product or API namespace/)
+
+        const conflictingLegacy = makeV2Fixture()
+        conflictingLegacy.manifest.entries.at(-1)!.legacy_paths = ['/en/split/tools']
+        writeV2Manifest(conflictingLegacy.root, conflictingLegacy.manifest)
+        expect(() => loadSplitContentManifest(conflictingLegacy.root)).toThrow(
+            /legacy path conflicts with a current public_path/
+        )
     })
 
     it('rejects noncanonical, reordered, unknown, and falsely-provenanced schema-v2 JSON', () => {
@@ -609,6 +616,19 @@ describe('generated Split artifact loader', () => {
             return { ...payload, content: { ...content, data: { ...data, rows } } }
         })
         expect(() => loadSplitContentManifest(badSource.root)).toThrow(/absolute HTTPS URL/)
+
+        const numericRate = makeV2Fixture()
+        const numericMileageEntry = numericRate.manifest.entries.find(
+            (entry) => entry.slug === 'mileage-split-calculator'
+        )!
+        mutateV2Output(numericRate.root, numericRate.manifest, numericMileageEntry, (payload) => {
+            const content = payload.content as Record<string, unknown>
+            const data = content.data as Record<string, unknown>
+            const rows = [...(data.rows as Array<Record<string, unknown>>)]
+            rows[1] = { ...rows[1], rate_decimal: 0.3 }
+            return { ...payload, content: { ...content, data: { ...data, rows } } }
+        })
+        expect(() => loadSplitContentManifest(numericRate.root)).toThrow(/rate_decimal/)
 
         const extra = makeV2Fixture()
         writeFixtureFile(extra.root, 'notes.txt', 'not declared\n')

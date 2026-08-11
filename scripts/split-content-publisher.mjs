@@ -565,7 +565,10 @@ function validateMileageData(value, label) {
 		if (row.code !== MILEAGE_CODES[index]) fail(`${rowLabel}.code must be ${MILEAGE_CODES[index]}`)
 		assertNonEmptyString(row.label, `${rowLabel}.label`)
 		if (!['km', 'mile'].includes(row.unit)) fail(`${rowLabel}.unit must be km or mile`)
-		if (row.rate_decimal !== null && !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(row.rate_decimal)) {
+		if (
+			row.rate_decimal !== null &&
+			(typeof row.rate_decimal !== 'string' || !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(row.rate_decimal))
+		) {
 			fail(`${rowLabel}.rate_decimal must be a non-negative decimal string or null`)
 		}
 		if (typeof row.currency !== 'string' || !/^[A-Z]{3}$/.test(row.currency)) {
@@ -873,6 +876,9 @@ function validateManifestV2(files, sourceCommit) {
 	}
 	assertSameStringSet(publicPaths, publicPaths, 'public paths')
 	assertSameStringSet(legacyPaths, legacyPaths, 'legacy paths')
+	const publicPathSet = new Set(publicPaths)
+	const conflictingLegacyPath = legacyPaths.find((legacyPath) => publicPathSet.has(legacyPath))
+	if (conflictingLegacyPath) fail(`legacy path conflicts with a current public_path: ${conflictingLegacyPath}`)
 	assertSameStringSet(destinationPaths, destinationPaths, 'destination paths')
 	assertSameStringSet([...new Set(usedInputs)], inputPaths, 'manifest source-input union')
 	assertSameStringSet(

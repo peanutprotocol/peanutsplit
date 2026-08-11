@@ -521,6 +521,11 @@ function validateV2Matrix(entries: z.infer<typeof manifestEntryV2Schema>[]): voi
     assertUnique(publicPaths, 'schema v2 public paths')
     assertUnique(outputPaths, 'schema v2 output paths')
     assertUnique(legacyPaths, 'schema v2 legacy paths')
+    const publicPathSet = new Set(publicPaths)
+    const conflictingLegacyPath = legacyPaths.find((legacyPath) => publicPathSet.has(legacyPath))
+    if (conflictingLegacyPath) {
+        artifactError(`schema v2 legacy path conflicts with a current public_path: ${conflictingLegacyPath}`)
+    }
 }
 
 function validateManifestProvenance(manifest: SplitContentManifest): void {
