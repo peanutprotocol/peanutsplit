@@ -45,6 +45,41 @@ const ENTRY_KEYS = [
 	'output_sha256',
 	'source_input_paths',
 ]
+const V2_ENTRY_KEYS = [
+	'content_type',
+	'slug',
+	'locale',
+	'public_path',
+	'legacy_paths',
+	'output_path',
+	'output_sha256',
+	'source_input_paths',
+]
+const PAYLOAD_KEYS = [
+	'payload_schema_version',
+	'type',
+	'slug',
+	'lang',
+	'title',
+	'description',
+	'canonical',
+	'alternates',
+	'claims',
+	'schema_types',
+	'generated_from',
+	'generated_at',
+	'content',
+]
+const GENERATED_FROM_KEYS = ['template', 'data', 'product', 'workflow', 'context', 'guidelines']
+const GENERATED_FROM_SECTIONS = [
+	{ key: 'template', kind: 'scalar' },
+	{ key: 'data', kind: 'list' },
+	{ key: 'product', kind: 'list' },
+	{ key: 'workflow', kind: 'scalar' },
+	{ key: 'context', kind: 'list' },
+	{ key: 'guidelines', kind: 'list' },
+]
+const TYPE_RANK = new Map(['guide', 'hub', 'tools_hub', 'calculator'].map((type, index) => [type, index]))
 const BUNDLE_KEYS = [
 	'schema_version',
 	'source_repository',
@@ -68,6 +103,13 @@ const COMMIT_SHA = /^[0-9a-f]{40}$/
 const SHA256 = /^[0-9a-f]{64}$/
 const GIT_BLOB = /^[0-9a-f]{40}$/
 const SAFE_PATH = /^[A-Za-z0-9._/-]+$/
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const DATE = /^\d{4}-\d{2}-\d{2}$/
+const CLAIM = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const LEGACY_PATH = /^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$/
+const RESERVED_LEGACY_PREFIXES = ['/api', '/app', '/import', '/new', '/r']
+const CALCULATOR_SLUGS = ['rent-split-calculator', 'mileage-split-calculator']
+const MILEAGE_CODES = ['AU', 'BE', 'BR', 'CA', 'FR', 'DE', 'IE', 'NL', 'PL', 'ES', 'GB', 'US']
 
 export class PublisherValidationError extends Error {
 	constructor(message) {
@@ -91,6 +133,62 @@ function assertExactKeys(value, expected, label) {
 	if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
 		fail(`${label} keys must be exactly: ${wanted.join(', ')}`)
 	}
+}
+
+function assertExactOrderedKeys(value, expected, label) {
+	assertExactKeys(value, expected, label)
+	const actual = Object.keys(value)
+	if (actual.some((key, index) => key !== expected[index])) {
+		fail(`${label} keys must use the canonical order: ${expected.join(', ')}`)
+	}
+}
+
+function assertNonEmptyString(value, label) {
+	if (typeof value !== 'string' || value.trim() !== value || !value)
+		fail(`${label} must be a non-empty trimmed string`)
+}
+
+function assertDate(value, label) {
+	if (typeof value !== 'string' || !DATE.test(value)) fail(`${label} must be an ISO calendar date`)
+	const parsed = new Date(`${value}T00:00:00.000Z`)
+	if (Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== value) {
+		fail(`${label} must be an ISO calendar date`)
+	}
+}
+
+function assertStringArray(value, label, { min = 0, pattern } = {}) {
+	if (!Array.isArray(value) || value.length < min)
+		fail(`${label} must be a string array with at least ${min} item(s)`)
+	const seen = new Set()
+	for (const [index, item] of value.entries()) {
+		assertNonEmptyString(item, `${label}[${index}]`)
+		if (pattern && !pattern.test(item)) fail(`${label}[${index}] is invalid: ${item}`)
+		if (seen.has(item)) fail(`${label} contains a duplicate: ${item}`)
+		seen.add(item)
+	}
+	return value
+}
+
+function assertLegacyPath(value, label) {
+	if (typeof value !== 'string' || !LEGACY_PATH.test(value) || (value !== '/' && value.endsWith('/'))) {
+		fail(`${label} must be a normalized root-relative legacy path`)
+	}
+	if (RESERVED_LEGACY_PREFIXES.some((prefix) => value === prefix || value.startsWith(`${prefix}/`))) {
+		fail(`${label} is in a product or API namespace: ${value}`)
+	}
+}
+
+function assertPublicPath(value, label) {
+	if (typeof value !== 'string' || !LEGACY_PATH.test(value) || value === '/' || value.endsWith('/')) {
+		fail(`${label} must be a normalized root-relative public path`)
+	}
+}
+
+function parseCanonicalJsonBytes(bytes, label) {
+	const parsed = parseJsonBytes(bytes, label)
+	const canonical = Buffer.from(`${JSON.stringify(parsed, null, 2)}\n`)
+	if (!canonical.equals(bytes)) fail(`${label} must use canonical two-space JSON with one final newline`)
+	return parsed
 }
 
 function assertCommit(value, label) {
@@ -222,7 +320,311 @@ function assertSameStringSet(actual, expected, label) {
 	}
 }
 
-function validateManifest(files, sourceCommit) {
+function assertExactArray(actual, expected, label) {
+	if (
+		!Array.isArray(actual) ||
+		actual.length !== expected.length ||
+		actual.some((item, index) => item !== expected[index])
+	) {
+		fail(`${label} must be exactly: ${expected.join(', ')}`)
+	}
+}
+
+function expectedV2Paths(entry) {
+	if (entry.content_type === 'guide') {
+		return {
+			publicPath: `/${entry.locale}/split/guides/${entry.slug}`,
+			outputPath: `${PUBLISHED_PREFIX}guides/${entry.slug}/${entry.locale}.md`,
+		}
+	}
+	if (entry.content_type === 'hub') {
+		return {
+			publicPath: `/${entry.locale}/split`,
+			outputPath: `${PUBLISHED_PREFIX}hubs/split/${entry.locale}.json`,
+		}
+	}
+	if (entry.content_type === 'tools_hub') {
+		return {
+			publicPath: '/en/split/tools',
+			outputPath: `${PUBLISHED_PREFIX}tools-hubs/tools/en.json`,
+		}
+	}
+	return {
+		publicPath: `/en/split/tools/${entry.slug}`,
+		outputPath: `${PUBLISHED_PREFIX}calculators/${entry.slug}/en.json`,
+	}
+}
+
+function validateGeneratedFrom(value, entry, label) {
+	assertExactOrderedKeys(value, GENERATED_FROM_KEYS, `${label}.generated_from`)
+	assertNonEmptyString(value.template, `${label}.generated_from.template`)
+	assertNonEmptyString(value.workflow, `${label}.generated_from.workflow`)
+	const data = assertStringArray(value.data, `${label}.generated_from.data`, { min: 1 })
+	const product = assertStringArray(value.product, `${label}.generated_from.product`, { min: 1 })
+	const context = assertStringArray(value.context, `${label}.generated_from.context`, { min: 1 })
+	const guidelines = assertStringArray(value.guidelines, `${label}.generated_from.guidelines`, { min: 1 })
+	const paths = [value.template, ...data, ...product, value.workflow, ...context, ...guidelines]
+	for (const [index, inputPath] of paths.entries()) {
+		assertSafeRelativePath(inputPath, `${label}.generated_from path ${index}`)
+		if (
+			(!inputPath.startsWith('split-content/_system/') && !inputPath.startsWith('split-content/product/')) ||
+			inputPath.startsWith('split-content/_system/generated/')
+		) {
+			fail(`${label}.generated_from path is outside the source allowlist: ${inputPath}`)
+		}
+	}
+	assertExactArray(paths, entry.source_input_paths, `${label}.generated_from flattened paths`)
+}
+
+function validateGuideGeneratedFrom(outputBytes, entry, label) {
+	const text = outputBytes.toString('utf8')
+	if (!Buffer.from(text).equals(outputBytes)) fail(`${label} must be valid UTF-8`)
+	const lines = text.split('\n')
+	if (lines[0] !== '---') fail(`${label} must start with YAML frontmatter`)
+	const end = lines.indexOf('---', 1)
+	if (end === -1) fail(`${label} frontmatter is not closed`)
+	const indexes = []
+	for (let index = 1; index < end; index += 1) if (lines[index] === 'generated_from:') indexes.push(index)
+	if (indexes.length !== 1) fail(`${label} must contain exactly one generated_from block`)
+
+	const paths = []
+	let cursor = indexes[0] + 1
+	for (const section of GENERATED_FROM_SECTIONS) {
+		if (section.kind === 'scalar') {
+			const prefix = `  ${section.key}: `
+			const line = lines[cursor] ?? ''
+			if (!line.startsWith(prefix) || line.length === prefix.length) {
+				fail(`${label} generated_from.${section.key} must be one repository path`)
+			}
+			const sourcePath = line.slice(prefix.length)
+			assertSafeRelativePath(sourcePath, `${label} generated_from.${section.key}`)
+			paths.push(sourcePath)
+			cursor += 1
+			continue
+		}
+
+		if (lines[cursor] !== `  ${section.key}:`) {
+			fail(`${label} generated_from.${section.key} must be a path list in the known block order`)
+		}
+		cursor += 1
+		const firstPathIndex = paths.length
+		while (cursor < end && lines[cursor].startsWith('    - ')) {
+			const sourcePath = lines[cursor].slice('    - '.length)
+			assertSafeRelativePath(sourcePath, `${label} generated_from.${section.key}`)
+			paths.push(sourcePath)
+			cursor += 1
+		}
+		if (paths.length === firstPathIndex) fail(`${label} generated_from.${section.key} must not be empty`)
+	}
+	if (!(lines[cursor] ?? '').startsWith('generated_at: ')) {
+		fail(`${label} generated_from block has an unknown, missing, or out-of-order field`)
+	}
+	assertExactArray(paths, entry.source_input_paths, `${label} generated_from paths`)
+}
+
+function validateTextSection(value, label, { list = false } = {}) {
+	assertExactOrderedKeys(value, ['title', 'body'], label)
+	assertNonEmptyString(value.title, `${label}.title`)
+	if (list) assertStringArray(value.body, `${label}.body`, { min: 1 })
+	else assertNonEmptyString(value.body, `${label}.body`)
+}
+
+function validateAction(value, label, { body = false } = {}) {
+	const keys = body ? ['title', 'body', 'label', 'hint', 'action'] : ['kind', 'label', 'hint']
+	assertExactOrderedKeys(value, keys, label)
+	if (body) {
+		assertNonEmptyString(value.title, `${label}.title`)
+		assertNonEmptyString(value.body, `${label}.body`)
+		if (value.action !== 'app_new') fail(`${label}.action must be app_new`)
+	} else if (value.kind !== 'app_new') fail(`${label}.kind must be app_new`)
+	assertNonEmptyString(value.label, `${label}.label`)
+	assertNonEmptyString(value.hint, `${label}.hint`)
+}
+
+function validateHubContent(value, payload, label) {
+	assertExactOrderedKeys(value, ['intro', 'primary_action', 'cards'], label)
+	assertStringArray(value.intro, `${label}.intro`, { min: 1 })
+	validateAction(value.primary_action, `${label}.primary_action`)
+	if (!Array.isArray(value.cards) || value.cards.length === 0) fail(`${label}.cards must be a non-empty array`)
+	const ids = []
+	const legacyPaths = []
+	const publicPaths = []
+	for (const [index, card] of value.cards.entries()) {
+		const cardLabel = `${label}.cards[${index}]`
+		assertExactOrderedKeys(
+			card,
+			['id', 'kind', 'locale', 'title', 'description', 'date', 'tags', 'legacy_path', 'public_path'],
+			cardLabel
+		)
+		if (typeof card.id !== 'string' || !SLUG.test(card.id)) fail(`${cardLabel}.id is invalid`)
+		if (!['guide', 'alternative', 'tools_hub'].includes(card.kind)) fail(`${cardLabel}.kind is unsupported`)
+		if (!LOCALES.includes(card.locale) || card.locale !== payload.lang) {
+			fail(`${cardLabel}.locale must match the hub locale`)
+		}
+		assertNonEmptyString(card.title, `${cardLabel}.title`)
+		assertNonEmptyString(card.description, `${cardLabel}.description`)
+		if (card.date !== null) assertDate(card.date, `${cardLabel}.date`)
+		assertStringArray(card.tags, `${cardLabel}.tags`)
+		assertLegacyPath(card.legacy_path, `${cardLabel}.legacy_path`)
+		assertPublicPath(card.public_path, `${cardLabel}.public_path`)
+
+		const expectedPublicPath =
+			card.kind === 'guide'
+				? `/${card.locale}/split/guides/${card.id}`
+				: card.kind === 'alternative'
+					? `/${card.locale}/split/alternatives/${card.id}`
+					: '/en/split/tools'
+		if (card.kind === 'tools_hub' && (card.id !== 'tools' || card.locale !== 'en')) {
+			fail(`${cardLabel} tools_hub identity must be en/tools`)
+		}
+		if (card.public_path !== expectedPublicPath) fail(`${cardLabel}.public_path must be ${expectedPublicPath}`)
+		ids.push(`${card.kind}/${card.id}`)
+		legacyPaths.push(card.legacy_path)
+		publicPaths.push(card.public_path)
+	}
+	assertSameStringSet(ids, ids, `${label} card identities`)
+	assertSameStringSet(legacyPaths, legacyPaths, `${label} card legacy paths`)
+	assertSameStringSet(publicPaths, publicPaths, `${label} card public paths`)
+}
+
+function validateToolsHubContent(value, label) {
+	assertExactOrderedKeys(value, ['intro', 'app_card', 'calculator_slugs'], label)
+	assertStringArray(value.intro, `${label}.intro`, { min: 1 })
+	validateAction(value.app_card, `${label}.app_card`, { body: true })
+	assertExactArray(value.calculator_slugs, CALCULATOR_SLUGS, `${label}.calculator_slugs`)
+}
+
+function validateRelatedLink(value, label) {
+	assertExactOrderedKeys(value, ['label', 'legacy_path', 'public_path'], label)
+	assertNonEmptyString(value.label, `${label}.label`)
+	assertLegacyPath(value.legacy_path, `${label}.legacy_path`)
+	assertPublicPath(value.public_path, `${label}.public_path`)
+}
+
+function validateCalculatorCopy(value, label) {
+	assertExactOrderedKeys(
+		value,
+		['intro', 'result', 'method', 'concession', 'good_to_know', 'cta', 'faq_title', 'faqs', 'related'],
+		label
+	)
+	assertStringArray(value.intro, `${label}.intro`, { min: 1 })
+	assertExactOrderedKeys(
+		value.result,
+		['title', 'hint', 'rounding_note', 'copy_label', 'copy_done'],
+		`${label}.result`
+	)
+	for (const key of ['title', 'hint', 'rounding_note', 'copy_label', 'copy_done']) {
+		assertNonEmptyString(value.result[key], `${label}.result.${key}`)
+	}
+	if (value.method !== null) validateTextSection(value.method, `${label}.method`, { list: true })
+	validateTextSection(value.concession, `${label}.concession`)
+	validateTextSection(value.good_to_know, `${label}.good_to_know`, { list: true })
+	validateAction(value.cta, `${label}.cta`, { body: true })
+	assertNonEmptyString(value.faq_title, `${label}.faq_title`)
+	if (!Array.isArray(value.faqs) || value.faqs.length === 0) fail(`${label}.faqs must be a non-empty array`)
+	for (const [index, faq] of value.faqs.entries()) {
+		const faqLabel = `${label}.faqs[${index}]`
+		assertExactOrderedKeys(faq, ['question', 'answer'], faqLabel)
+		assertNonEmptyString(faq.question, `${faqLabel}.question`)
+		assertNonEmptyString(faq.answer, `${faqLabel}.answer`)
+	}
+	if (!Array.isArray(value.related) || value.related.length < 1 || value.related.length > 3) {
+		fail(`${label}.related must contain one to three links`)
+	}
+	value.related.forEach((item, index) => validateRelatedLink(item, `${label}.related[${index}]`))
+}
+
+function validateSourceUrl(value, label) {
+	assertNonEmptyString(value, label)
+	let url
+	try {
+		url = new URL(value)
+	} catch {
+		fail(`${label} must be an absolute HTTPS URL`)
+	}
+	if (url.protocol !== 'https:' || url.username || url.password || url.hash) {
+		fail(`${label} must be an absolute HTTPS URL without credentials or a fragment`)
+	}
+}
+
+function validateMileageData(value, label) {
+	assertExactOrderedKeys(value, ['version', 'retrieved_at', 'rows'], label)
+	assertNonEmptyString(value.version, `${label}.version`)
+	assertDate(value.retrieved_at, `${label}.retrieved_at`)
+	if (!Array.isArray(value.rows) || value.rows.length !== MILEAGE_CODES.length) {
+		fail(`${label}.rows must contain the exact reviewed country set`)
+	}
+	const codes = []
+	for (const [index, row] of value.rows.entries()) {
+		const rowLabel = `${label}.rows[${index}]`
+		assertExactOrderedKeys(
+			row,
+			['code', 'label', 'unit', 'rate_decimal', 'currency', 'note', 'source_label', 'source_url'],
+			rowLabel
+		)
+		if (row.code !== MILEAGE_CODES[index]) fail(`${rowLabel}.code must be ${MILEAGE_CODES[index]}`)
+		assertNonEmptyString(row.label, `${rowLabel}.label`)
+		if (!['km', 'mile'].includes(row.unit)) fail(`${rowLabel}.unit must be km or mile`)
+		if (row.rate_decimal !== null && !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(row.rate_decimal)) {
+			fail(`${rowLabel}.rate_decimal must be a non-negative decimal string or null`)
+		}
+		if (typeof row.currency !== 'string' || !/^[A-Z]{3}$/.test(row.currency)) {
+			fail(`${rowLabel}.currency must be an ISO-style uppercase currency code`)
+		}
+		assertNonEmptyString(row.note, `${rowLabel}.note`)
+		assertNonEmptyString(row.source_label, `${rowLabel}.source_label`)
+		validateSourceUrl(row.source_url, `${rowLabel}.source_url`)
+		codes.push(row.code)
+	}
+	assertSameStringSet(codes, codes, `${label} country codes`)
+}
+
+function validateCalculatorContent(value, entry, label) {
+	assertExactOrderedKeys(value, ['engine', 'copy', 'data'], label)
+	const expectedEngine = entry.slug === 'rent-split-calculator' ? 'rent_split_v1' : 'mileage_split_v1'
+	if (!CALCULATOR_SLUGS.includes(entry.slug)) fail(`${label} has no reviewed calculator engine for ${entry.slug}`)
+	if (value.engine !== expectedEngine) fail(`${label}.engine must be ${expectedEngine}`)
+	validateCalculatorCopy(value.copy, `${label}.copy`)
+	if (entry.slug === 'rent-split-calculator') {
+		if (value.data !== null) fail(`${label}.data must be null for rent_split_v1`)
+	} else validateMileageData(value.data, `${label}.data`)
+}
+
+function validateV2Payload(outputBytes, entry, entries, label) {
+	const payload = parseCanonicalJsonBytes(outputBytes, label)
+	assertExactOrderedKeys(payload, PAYLOAD_KEYS, label)
+	if (payload.payload_schema_version !== 1) fail(`${label}.payload_schema_version must be 1`)
+	if (payload.type !== entry.content_type || payload.slug !== entry.slug || payload.lang !== entry.locale) {
+		fail(`${label} identity disagrees with its manifest entry`)
+	}
+	assertNonEmptyString(payload.title, `${label}.title`)
+	assertNonEmptyString(payload.description, `${label}.description`)
+	const expectedCanonical = `https://peanut.me${entry.public_path}`
+	if (payload.canonical !== expectedCanonical) fail(`${label}.canonical must be ${expectedCanonical}`)
+
+	const siblings = entries
+		.filter((candidate) => candidate.content_type === entry.content_type && candidate.slug === entry.slug)
+		.sort((left, right) => LOCALES.indexOf(left.locale) - LOCALES.indexOf(right.locale))
+	const alternateLocales = siblings.map((candidate) => candidate.locale)
+	assertExactOrderedKeys(payload.alternates, alternateLocales, `${label}.alternates`)
+	for (const sibling of siblings) {
+		if (payload.alternates[sibling.locale] !== sibling.output_path) {
+			fail(`${label}.alternates.${sibling.locale} must be ${sibling.output_path}`)
+		}
+	}
+	assertStringArray(payload.claims, `${label}.claims`, { min: 1, pattern: CLAIM })
+	const expectedSchemaTypes =
+		entry.content_type === 'calculator' ? ['WebApplication', 'FAQPage'] : ['CollectionPage', 'ItemList']
+	assertExactArray(payload.schema_types, expectedSchemaTypes, `${label}.schema_types`)
+	validateGeneratedFrom(payload.generated_from, entry, label)
+	assertDate(payload.generated_at, `${label}.generated_at`)
+	if (entry.content_type === 'hub') validateHubContent(payload.content, payload, `${label}.content`)
+	else if (entry.content_type === 'tools_hub') validateToolsHubContent(payload.content, `${label}.content`)
+	else validateCalculatorContent(payload.content, entry, `${label}.content`)
+	return payload
+}
+
+function validateManifestV1(files, sourceCommit) {
 	const fileMap = new Map(files.map((file) => [file.path, file.bytes]))
 	const manifestBytes = fileMap.get('manifest.json')
 	if (!manifestBytes) fail('artifact tree must contain manifest.json')
@@ -337,6 +739,174 @@ function validateManifest(files, sourceCommit) {
 	return manifest
 }
 
+function validateManifestV2(files, sourceCommit) {
+	const fileMap = new Map(files.map((file) => [file.path, file.bytes]))
+	const manifestBytes = fileMap.get('manifest.json')
+	if (!manifestBytes) fail('artifact tree must contain manifest.json')
+	const manifest = parseCanonicalJsonBytes(manifestBytes, 'artifact manifest')
+	assertExactOrderedKeys(manifest, MANIFEST_KEYS, 'artifact manifest')
+	if (manifest.schema_version !== 2) fail('artifact manifest schema_version must be 2')
+	if (manifest.source_repository !== SOURCE_REPOSITORY) {
+		fail(`artifact manifest source_repository must be ${SOURCE_REPOSITORY}`)
+	}
+	if (manifest.source_commit !== sourceCommit) fail('artifact manifest source_commit does not match the bundle')
+	if (manifest.content_root !== 'split-content') fail('artifact manifest content_root must be split-content')
+	assertExactArray(manifest.locales, LOCALES, 'artifact manifest locales')
+	if (!isPlainObject(manifest.input_sha256)) fail('artifact manifest input_sha256 must be an object')
+	const inputPaths = Object.keys(manifest.input_sha256)
+	const sortedInputPaths = [...inputPaths].sort(compareAscii)
+	if (inputPaths.some((inputPath, index) => inputPath !== sortedInputPaths[index])) {
+		fail('artifact manifest input_sha256 keys must be sorted')
+	}
+	for (const inputPath of inputPaths) {
+		assertSafeRelativePath(inputPath, `input_sha256 key ${inputPath}`)
+		if (
+			(!inputPath.startsWith('split-content/_system/') && !inputPath.startsWith('split-content/product/')) ||
+			inputPath.startsWith('split-content/_system/generated/')
+		) {
+			fail(`input_sha256 key is outside the source allowlist: ${inputPath}`)
+		}
+		assertSha256(manifest.input_sha256[inputPath], `input_sha256 for ${inputPath}`)
+	}
+	if (!Array.isArray(manifest.entries) || manifest.entries.length === 0) {
+		fail('artifact manifest entries must be a non-empty array')
+	}
+
+	const destinationPaths = []
+	const publicPaths = []
+	const legacyPaths = []
+	const usedInputs = []
+	const groups = new Map()
+	for (const [index, entry] of manifest.entries.entries()) {
+		const label = `artifact manifest entries[${index}]`
+		assertExactOrderedKeys(entry, V2_ENTRY_KEYS, label)
+		if (!TYPE_RANK.has(entry.content_type)) fail(`${label}.content_type is unsupported in schema v2`)
+		if (typeof entry.slug !== 'string' || !SLUG.test(entry.slug)) fail(`${label}.slug is invalid`)
+		if (!LOCALES.includes(entry.locale)) fail(`${label}.locale is unsupported`)
+		if (entry.content_type === 'hub' && entry.slug !== 'split') fail(`${label}.slug must be split for hub`)
+		if (entry.content_type === 'tools_hub' && entry.slug !== 'tools') fail(`${label}.slug must be tools`)
+		if (['tools_hub', 'calculator'].includes(entry.content_type) && entry.locale !== 'en') {
+			fail(`${label}.${entry.content_type} must be English-only`)
+		}
+
+		const expected = expectedV2Paths(entry)
+		if (entry.public_path !== expected.publicPath) fail(`${label}.public_path must be ${expected.publicPath}`)
+		if (entry.output_path !== expected.outputPath) fail(`${label}.output_path must be ${expected.outputPath}`)
+		assertPublicPath(entry.public_path, `${label}.public_path`)
+		if (!Array.isArray(entry.legacy_paths)) fail(`${label}.legacy_paths must be an array`)
+		const sortedLegacy = [...entry.legacy_paths].sort(compareAscii)
+		if (
+			entry.legacy_paths.some((legacyPath, legacyIndex) => legacyPath !== sortedLegacy[legacyIndex]) ||
+			new Set(entry.legacy_paths).size !== entry.legacy_paths.length
+		) {
+			fail(`${label}.legacy_paths must be unique and sorted`)
+		}
+		entry.legacy_paths.forEach((legacyPath, legacyIndex) => {
+			assertLegacyPath(legacyPath, `${label}.legacy_paths[${legacyIndex}]`)
+			legacyPaths.push(legacyPath)
+		})
+		assertSha256(entry.output_sha256, `${label}.output_sha256`)
+		if (!Array.isArray(entry.source_input_paths) || entry.source_input_paths.length === 0) {
+			fail(`${label}.source_input_paths must be a non-empty array`)
+		}
+		const entryInputs = new Set()
+		for (const [inputIndex, inputPath] of entry.source_input_paths.entries()) {
+			assertSafeRelativePath(inputPath, `${label}.source_input_paths[${inputIndex}]`)
+			if (
+				(!inputPath.startsWith('split-content/_system/') && !inputPath.startsWith('split-content/product/')) ||
+				inputPath.startsWith('split-content/_system/generated/')
+			) {
+				fail(`${label}.source_input_paths is outside the source allowlist: ${inputPath}`)
+			}
+			if (entryInputs.has(inputPath)) fail(`${label}.source_input_paths contains a duplicate: ${inputPath}`)
+			entryInputs.add(inputPath)
+			usedInputs.push(inputPath)
+		}
+
+		const destinationPath = entry.output_path.slice(PUBLISHED_PREFIX.length)
+		const outputBytes = fileMap.get(destinationPath)
+		if (!outputBytes) fail(`artifact output is missing: ${destinationPath}`)
+		const outputHash = sha256(outputBytes)
+		if (outputHash !== entry.output_sha256) {
+			fail(
+				`artifact output SHA-256 mismatch for ${destinationPath}: expected ${entry.output_sha256}, got ${outputHash}`
+			)
+		}
+		if (entry.content_type === 'guide') {
+			validateGuideGeneratedFrom(outputBytes, entry, `artifact output ${destinationPath}`)
+		} else validateV2Payload(outputBytes, entry, manifest.entries, `artifact output ${destinationPath}`)
+		destinationPaths.push(destinationPath)
+		publicPaths.push(entry.public_path)
+		const groupKey = `${entry.content_type}/${entry.slug}`
+		groups.set(groupKey, [...(groups.get(groupKey) ?? []), entry.locale])
+	}
+
+	const expectedOrder = [...manifest.entries].sort(
+		(left, right) =>
+			TYPE_RANK.get(left.content_type) - TYPE_RANK.get(right.content_type) ||
+			compareAscii(left.slug, right.slug) ||
+			LOCALES.indexOf(left.locale) - LOCALES.indexOf(right.locale)
+	)
+	if (manifest.entries.some((entry, index) => entry !== expectedOrder[index])) {
+		fail('artifact schema v2 entries must be sorted by type, slug, and locale order')
+	}
+	for (const [key, locales] of groups) {
+		const [contentType] = key.split('/')
+		if (new Set(locales).size !== locales.length) fail(`schema v2 matrix for ${key} contains a duplicate locale`)
+		if (contentType === 'hub') assertExactArray(locales, LOCALES, `schema v2 matrix for ${key}`)
+		if (contentType === 'tools_hub') assertExactArray(locales, ['en'], `schema v2 matrix for ${key}`)
+		if (contentType === 'calculator') assertExactArray(locales, ['en'], `schema v2 matrix for ${key}`)
+	}
+	const structuredEntries = manifest.entries.filter((entry) => entry.content_type !== 'guide')
+	if (structuredEntries.length > 0) {
+		const hubs = structuredEntries.filter((entry) => entry.content_type === 'hub')
+		const toolsHubs = structuredEntries.filter((entry) => entry.content_type === 'tools_hub')
+		const calculators = structuredEntries.filter((entry) => entry.content_type === 'calculator')
+		if (hubs.length !== LOCALES.length || toolsHubs.length !== 1) {
+			fail('schema v2 structured pages must contain the complete three-hub and one-tools-hub cohort')
+		}
+		assertSameStringSet(
+			calculators.map((entry) => entry.slug),
+			CALCULATOR_SLUGS,
+			'schema v2 calculator cohort'
+		)
+	}
+	assertSameStringSet(publicPaths, publicPaths, 'public paths')
+	assertSameStringSet(legacyPaths, legacyPaths, 'legacy paths')
+	assertSameStringSet(destinationPaths, destinationPaths, 'destination paths')
+	assertSameStringSet([...new Set(usedInputs)], inputPaths, 'manifest source-input union')
+	assertSameStringSet(
+		files.map((file) => file.path),
+		['manifest.json', ...destinationPaths],
+		'artifact tree'
+	)
+	return manifest
+}
+
+function validateManifest(files, sourceCommit) {
+	const manifestBytes = files.find((file) => file.path === 'manifest.json')?.bytes
+	if (!manifestBytes) fail('artifact tree must contain manifest.json')
+	const raw = parseJsonBytes(manifestBytes, 'artifact manifest')
+	if (raw?.schema_version === 1) return validateManifestV1(files, sourceCommit)
+	if (raw?.schema_version === 2) return validateManifestV2(files, sourceCommit)
+	fail('artifact manifest schema_version must be 1 or 2')
+}
+
+function manifestVersionIfPresent(files, label) {
+	const bytes = files.find((file) => file.path === 'manifest.json')?.bytes
+	if (!bytes) return undefined
+	const manifest = parseJsonBytes(bytes, `${label} manifest`)
+	if (![1, 2].includes(manifest?.schema_version)) fail(`${label} manifest schema_version must be 1 or 2`)
+	return manifest.schema_version
+}
+
+function assertNoSchemaDowngrade(priorFiles, nextManifest, label) {
+	const priorVersion = manifestVersionIfPresent(priorFiles, label)
+	if (priorVersion === 2 && nextManifest.schema_version === 1) {
+		fail('refusing to downgrade an installed schema v2 artifact to schema v1')
+	}
+}
+
 export function loadPublisherLock(lockPath) {
 	const lock = parseJsonBytes(readRegularFile(lockPath, 'publisher lock'), 'publisher lock')
 	assertExactKeys(lock, LOCK_KEYS, 'publisher lock')
@@ -408,8 +978,8 @@ function validateBundle(bundle, lock) {
 	}
 	const actualTreeHash = treeSha256(files)
 	if (actualTreeHash !== bundle.tree_sha256) fail('publisher bundle tree_sha256 mismatch')
-	validateManifest(files, bundle.source_commit)
-	return files
+	const manifest = validateManifest(files, bundle.source_commit)
+	return { files, manifest }
 }
 
 export function createPublisherBundle({
@@ -424,8 +994,9 @@ export function createPublisherBundle({
 	assertCommit(sourceCommit, 'source commit')
 	assertCommit(targetBaseCommit, 'target base commit')
 	const files = walkRegularTree(artifactRoot)
-	validateManifest(files, sourceCommit)
+	const manifest = validateManifest(files, sourceCommit)
 	const priorFiles = walkRegularTree(priorArtifactRoot, { allowMissing: true, label: 'prior artifact tree' })
+	assertNoSchemaDowngrade(priorFiles, manifest, 'prior artifact')
 	const bundle = {
 		schema_version: 1,
 		source_repository: lock.source_repository,
@@ -535,8 +1106,8 @@ function replaceDestination(destination, files, sourceCommit) {
 
 function readBundle(bundlePath, lock) {
 	const bundle = parseJsonBytes(readRegularFile(bundlePath, 'publisher bundle'), 'publisher bundle')
-	const files = validateBundle(bundle, lock)
-	return { bundle, files }
+	const { files, manifest } = validateBundle(bundle, lock)
+	return { bundle, files, manifest }
 }
 
 function validateBaseModes(repoRoot, targetBaseCommit, destinationRoot) {
@@ -611,7 +1182,7 @@ export function installPublisherBundle({
 	treeSha256: expectedTreeSha256,
 }) {
 	const lock = loadPublisherLock(lockPath)
-	const { bundle, files } = readBundle(bundlePath, lock)
+	const { bundle, files, manifest } = readBundle(bundlePath, lock)
 	if (targetBaseCommit !== bundle.target_base_commit)
 		fail('requested target base does not match the publisher bundle')
 	assertCommit(sourceCommit, 'expected source commit')
@@ -622,6 +1193,7 @@ export function installPublisherBundle({
 	assertRepoAtCommit(repoRoot, targetBaseCommit)
 	const destination = assertSafeDestination(repoRoot, lock.destination_root)
 	const priorFiles = walkRegularTree(destination, { allowMissing: true, label: 'current generated artifact tree' })
+	assertNoSchemaDowngrade(priorFiles, manifest, 'current generated artifact')
 	const actualPriorHash = treeSha256(priorFiles)
 	if (actualPriorHash !== bundle.prior_tree_sha256) {
 		fail(
