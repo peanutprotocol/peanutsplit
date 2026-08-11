@@ -193,8 +193,17 @@
                 "label": "Instalar o Split",
                 "labelIos": "Adicionar à tela de início",
                 "installed": "Já está neste aparelho.",
-                "dismissed": "Não foi adicionado. Abra o Split de novo para tentar.",
-                "preparing": "Preparando…"
+                "preparing": "Preparando…",
+                "browserMenu": "Menu do navegador"
+            },
+            "browser": {
+                "title": "Adicione o Split pelo navegador",
+                "body": "O botão de um toque não está disponível agora, mas o menu do navegador pode adicionar o Split.",
+                "step1": "Se o Split abriu dentro de outro app, escolha “Abrir no navegador” primeiro.",
+                "step2": "Abra o menu do navegador.",
+                "step3": "Escolha “Instalar app”, “Adicionar à tela de início” ou “Adicionar ao Dock”. Se nenhuma opção aparecer, abra esta sala no Chrome, Edge ou Safari.",
+                "step4": "É normal aparecer split.peanut.me. Abra o Split pelo novo ícone; se esta sala não aparecer, abra o link dela uma vez.",
+                "done": "Entendi"
             },
             "ios": {
                 "title": "Adicione o Split à sua tela de início",
