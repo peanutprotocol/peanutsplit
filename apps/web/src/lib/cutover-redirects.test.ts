@@ -47,16 +47,7 @@ describe('decideCutoverRedirect', () => {
     })
 
     it('bounces marketing (and unknown slugs) on the canonical host back to legacy, 302', () => {
-        for (const path of [
-            '/',
-            '/blog',
-            '/blog/some-post',
-            '/tools',
-            '/splitwise-alternative',
-            '/pt-br/blog',
-            '/sitemap.xml',
-            '/robots.txt',
-        ]) {
+        for (const path of ['/', '/blog', '/blog/some-post', '/tools', '/splitwise-alternative', '/pt-br/blog']) {
             expect(decide(CANONICAL, path)).toEqual({ target: `https://${LEGACY}${path}`, status: 302 })
         }
         expect(decide(CANONICAL, '/tricount-alternative')).toEqual({

@@ -47,7 +47,7 @@ untrustworthy.
 | Data fetching | @tanstack/react-query v5; URL state via nuqs                                                                                                                                                                                                                                                                     |
 | Motion        | `motion` (ex-framer), `@number-flow/react`, View Transitions API, `vaul` (sheets), `sonner` (toasts)                                                                                                                                                                                                             |
 | Mascot        | Peanut animated WebPs copied from `peanut-ui/src/assets/mascot/` (no Lottie exists — `peanut-cheering.webp` = settle celebration, `peanut-waving-hello.webp` = landing/join, `peanut-thinking.webp` = empty states, `peanut-sad.webp` = errors)                                                                  |
-| PWA           | `@serwist/next` (same as peanut-ui) + explicit `/manifest.webmanifest` route backed by `src/lib/pwa-manifest.ts`                                                                                                                                                                                                  |
+| PWA           | `@serwist/next` (same as peanut-ui) + `manifest.ts`                                                                                                                                                                                                                                                              |
 | Avatars       | In-house non-human alter egos (animals, snacks, monsters), stable by member name until the room recasts them; no inferred human appearance or external avatar system                                                                                                                                              |
 | i18n          | next-intl — locales `en`, `es` (es-419 tone), `pt-BR`                                                                                                                                                                                                                                                            |
 | OG images     | `next/og` ImageResponse (satori, built in — no extra dep)                                                                                                                                                                                                                                                        |
@@ -71,7 +71,7 @@ peanut-split/
       r/[slug]/page.tsx        THE room (join gate renders here on first visit)
       r/[slug]/opengraph-image.tsx
       api/...                  route handlers (contract below)
-      manifest.webmanifest/route.ts  sw.ts    PWA
+      manifest.ts  sw route    PWA
     components/ui/             primitives (Button, Card, Field, Sheet, …) — design-system agent owns
     components/room/           room feature components — flows agent owns
     server/                    domain logic: money.ts, split.ts, fx.ts, db.ts, roomState.ts

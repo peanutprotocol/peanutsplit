@@ -3,66 +3,6 @@ import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
 import { cutoverRedirect } from '@/lib/cutover-redirects'
 import { localeFromNewRoomHandoff } from '@/lib/locale-handoff'
-import { splitContentIndexable } from '@/lib/split-content/indexability'
-import { SPLIT_EDGE_MARKER_SHA256 } from '@/lib/split-content/marker-release'
-import {
-    SPLIT_CONTENT_RENDER_HEADER,
-    classifySplitTransport,
-    hasSplitMarker,
-    inspectSplitTransport,
-    sanitizedSplitTransportHeaders,
-    splitTransportResponseHeaders,
-} from '@/lib/split-content/transport'
-
-function applySplitDiagnostics(response: NextResponse, diagnostics: Headers): NextResponse {
-    for (const [name, value] of diagnostics) response.headers.set(name, value)
-    return response
-}
-
-export function splitTransportResponse(
-    request: NextRequest,
-    expectedMarkerDigest: string = SPLIT_EDGE_MARKER_SHA256
-): NextResponse | null {
-    const route = classifySplitTransport(request.nextUrl.pathname)
-    if (route.action === 'pass') return null
-    if (route.action === 'not-found') {
-        return new NextResponse(null, {
-            status: 404,
-            headers: { 'cache-control': 'private, no-store', 'x-robots-tag': 'noindex, nofollow, noarchive' },
-        })
-    }
-
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-        return new NextResponse(null, {
-            status: 405,
-            headers: {
-                allow: 'GET, HEAD',
-                'cache-control': 'private, no-store',
-                'x-robots-tag': 'noindex, nofollow, noarchive',
-            },
-        })
-    }
-
-    const diagnostics = inspectSplitTransport(route.kind, request.headers, expectedMarkerDigest)
-
-    // The global prefix also serves the direct Split product and installed PWA. Their public,
-    // content-hashed chunks carry no edge marker. Any explicit marker is an edge-origin claim and
-    // must validate; this preserves direct PWA assets without letting a forged forward through.
-    if (route.kind === 'asset' && !hasSplitMarker(request.headers)) return NextResponse.next()
-
-    const responseHeaders = splitTransportResponseHeaders(diagnostics, splitContentIndexable())
-    if (!diagnostics.markerValid) {
-        responseHeaders.set('x-robots-tag', 'noindex, nofollow, noarchive')
-        return applySplitDiagnostics(new NextResponse(null, { status: 404 }), responseHeaders)
-    }
-
-    const forwarded = sanitizedSplitTransportHeaders(request.headers)
-    if (route.kind === 'content') {
-        forwarded.set(LOCALE_HEADER, route.locale)
-        forwarded.set(SPLIT_CONTENT_RENDER_HEADER, '1')
-    }
-    return applySplitDiagnostics(NextResponse.next({ request: { headers: forwarded } }), responseHeaders)
-}
 
 /**
  * Tells the server what language a URL is in. It does not route or rewrite anything.
@@ -83,11 +23,6 @@ export function splitTransportResponse(
  * marketing.
  */
 export function proxy(request: NextRequest) {
-    // Renderer transport and the negative namespace firewall run before the legacy host cutover.
-    // Otherwise canonical-host content requests bounce to peanutsplit.com before React can render.
-    const transport = splitTransportResponse(request)
-    if (transport) return transport
-
     // Domain cutover (2026-08): app paths live on split.peanut.me, marketing stays on
     // peanutsplit.com, and each host bounces the other's half across. The decision
     // table is `lib/cutover-redirects.ts` — pure, unit-tested, inert off-production.
@@ -123,16 +58,5 @@ export const config = {
     // `robots.txt`, `icon.png`). `/api/*` stays excluded on purpose so `server/locale.ts`'s
     // `creationLocale()` keeps stamping a new room with the creator's cookie language. A valid
     // `/new?locale=…` handoff sets that cookie on the page response before the POST occurs.
-    matcher: [
-        '/split-static/:path*',
-        '/split-sitemap.xml/:path*',
-        // Next metadata routes contain dots, so the broad page matcher below excludes them.
-        // Include the two discovery files explicitly: on split.peanut.me they are marketing and
-        // must 302 to the 200 legacy host instead of becoming a second discovery surface.
-        '/sitemap.xml',
-        '/robots.txt',
-        '/:locale/split/:path*',
-        '/split/:path*',
-        '/((?!api/|_next/|split-static/|split-sitemap\\.xml|.*\\.).*)',
-    ],
+    matcher: ['/((?!api/|_next/|.*\\.).*)'],
 }

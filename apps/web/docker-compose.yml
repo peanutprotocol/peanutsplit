@@ -22,8 +22,6 @@ services:
             args:
                 NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
                 NEXT_PUBLIC_SPLIT_V2_ENABLED: ${NEXT_PUBLIC_SPLIT_V2_ENABLED:-}
-                APP_ORIGIN: ${APP_ORIGIN:-https://split.peanut.me}
-                CONTENT_ORIGIN: ${CONTENT_ORIGIN:-https://peanut.me}
         restart: unless-stopped
         depends_on:
             db:
@@ -31,8 +29,6 @@ services:
         environment:
             DATABASE_URL: postgresql://split:split@db:5432/split
             NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
-            APP_ORIGIN: ${APP_ORIGIN:-https://split.peanut.me}
-            CONTENT_ORIGIN: ${CONTENT_ORIGIN:-https://peanut.me}
             NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
             NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://eu.i.posthog.com}
             SENTRY_DSN: ${SENTRY_DSN:-}

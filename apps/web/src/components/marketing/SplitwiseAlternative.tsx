@@ -12,7 +12,7 @@ import { buttonClassName } from '@/components/ui/button-style'
 import { Icon } from '@/components/ui/Icon'
 import { HREFLANG, LOCALES, type Locale } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
-import { absoluteLanguages, breadcrumbSchema, pageMetadata } from '@/lib/seo'
+import { breadcrumbSchema, pageMetadata } from '@/lib/seo'
 
 const BASE_PATH = '/splitwise-alternative'
 
@@ -31,7 +31,7 @@ export function splitwiseAlternativeMetadata(locale: Locale): Metadata {
         ...meta,
         alternates: {
             ...meta.alternates,
-            languages: absoluteLanguages(hreflangAlternates(BASE_PATH, [...LOCALES])),
+            languages: hreflangAlternates(BASE_PATH, [...LOCALES]),
         },
     }
 }

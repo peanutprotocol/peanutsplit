@@ -326,7 +326,7 @@ const findings: Finding[] = [
         evidence: [
             'apps/web/src/styles/globals.css:256 — landing-specific block begins',
             'apps/web/src/styles/globals.css:1477 — late selectors still target landing elements',
-            'apps/web/src/app/(product-shell)/layout.tsx — product stylesheet root',
+            'apps/web/src/app/layout.tsx:13 — stylesheet loads for every route',
         ],
     },
     {
@@ -380,7 +380,7 @@ const findings: Finding[] = [
         impact: 'Editorial visits pay app-runtime JavaScript and persistence/analytics side effects they do not need.',
         action: 'Treat this as conditional SEO work, not a provider-stack cleanup project. Use the smallest coarse route split needed for static indexed pages, or reopen on measured public-route JS/TTFB harm.',
         evidence: [
-            'apps/web/src/app/(product-shell)/layout.tsx — product routes receive the same providers',
+            'apps/web/src/app/layout.tsx:135 — all routes receive the same providers',
             'apps/web/src/lib/providers.tsx:45 — global application boot effects',
             'apps/web/src/lib/providers.tsx:120 — Query, offline, push and toast hosts',
         ],
@@ -439,7 +439,7 @@ const findings: Finding[] = [
             'apps/web/src/components/ui/Drawer.tsx — default border and left header geometry',
             'apps/web/src/components/ui/DrawerLayout.tsx — only body/action layout remains',
             'apps/web/src/components/ui/control.ts — button-size shim remains pending review',
-            'apps/web/src/app/(product-shell)/dev-ds/review — TARGETS mockup and decision field',
+            'apps/web/src/app/dev-ds/review — TARGETS mockup and decision field',
         ],
     },
     {
@@ -531,8 +531,8 @@ const findings: Finding[] = [
         impact: 'Indexed content and internal docs give up static HTML/CDN caching to satisfy cookie-localized room URLs.',
         action: 'If the recorded SEO strategy requires it, make indexed paths static with the smallest route/layout change possible. Do not redesign locale architecture without static-output or measured TTFB evidence.',
         evidence: [
-            'apps/web/src/app/(product-shell)/layout.tsx — dynamic consequence documented',
-            'apps/web/src/app/(product-shell)/layout.tsx — awaits getLocale at root',
+            'apps/web/src/app/layout.tsx:99 — dynamic consequence documented',
+            'apps/web/src/app/layout.tsx:112 — awaits getLocale at root',
         ],
         status: 'accepted risk',
     },
@@ -569,7 +569,7 @@ const findings: Finding[] = [
         evidence: [
             'apps/web/src/app/error.tsx — reset plus safe /app exit; error object is never rendered',
             'apps/web/src/app/not-found.tsx — translated 404 family',
-            'apps/web/src/app/(product-shell)/r/[slug]/loading.tsx — localized room loading status',
+            'apps/web/src/app/r/[slug]/loading.tsx — localized room loading status',
             'apps/web/src/components/ui/RouteState.tsx — safe presentation contract',
         ],
     },
@@ -657,7 +657,7 @@ const findings: Finding[] = [
             'The root html element carries translate=no, including public guides. Three locales ship, but readers of other languages cannot normally request browser translation.',
         impact: 'Unsupported-language accessibility and discovery are narrowed without a documented route-wide rationale.',
         action: 'Remove the root prohibition or scope it to brand marks, names, money and controls that must remain exact.',
-        evidence: ['apps/web/src/app/(product-shell)/layout.tsx — translate=no at product document root'],
+        evidence: ['apps/web/src/app/layout.tsx:115 — translate=no at document root'],
         status: 'conditional',
     },
     {
@@ -672,8 +672,8 @@ const findings: Finding[] = [
         impact: 'Product routes may preload display assets they rarely render.',
         action: 'Inspect the production waterfall; move display/wordmark fonts to layouts/components that use them or disable unnecessary preload.',
         evidence: [
-            'apps/web/src/lib/fonts.ts — all families configured once',
-            'apps/web/src/app/(product-shell)/layout.tsx — all variables on every product body',
+            'apps/web/src/app/layout.tsx:48 — all families configured at root',
+            'apps/web/src/app/layout.tsx:125 — all variables on every body',
         ],
         status: 'conditional',
     },

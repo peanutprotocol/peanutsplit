@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { FinalCta } from '@/components/marketing/FinalCta'
 import { Hero } from '@/components/marketing/Hero'
 import { LandingProof } from '@/components/marketing/LandingProof'
@@ -6,7 +7,6 @@ import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { YourRooms } from '@/components/marketing/YourRooms'
 import { StandaloneLandingRedirect } from '@/components/pwa/StandaloneLandingRedirect'
 import enMessages from '@/i18n/messages/en.json'
-import { pageMetadata } from '@/lib/seo'
 
 /**
  * Head copy stays English in every locale, on purpose. The title and description are what is
@@ -17,12 +17,22 @@ import { pageMetadata } from '@/lib/seo'
  */
 const heroSubtitle = enMessages.marketing.hero.subtitle
 
-export const metadata = pageMetadata({
+export const metadata: Metadata = {
     title: 'Peanut Split — pass the link, not the spreadsheet',
     description: heroSubtitle,
-    path: '/',
-    type: 'website',
-})
+    alternates: { canonical: '/' },
+    openGraph: {
+        type: 'website',
+        url: '/',
+        title: 'Peanut Split — pass the link, not the spreadsheet',
+        description: heroSubtitle,
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Peanut Split — pass the link, not the spreadsheet',
+        description: heroSubtitle,
+    },
+}
 
 export default function LandingPage() {
     return (
