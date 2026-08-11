@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
     absoluteUrl,
+    appBreadcrumbSchema,
+    appPageMetadata,
     articleSchema,
     breadcrumbSchema,
     faqSchema,
@@ -10,12 +12,13 @@ import {
     SITE_DESCRIPTION,
 } from './seo'
 import { COLLECTIONS, listDocs } from './content'
+import { LEGACY_APP_ORIGIN } from './domains'
 import { siteUrl } from './site'
 
 describe('absoluteUrl', () => {
-    it('resolves root-relative paths against the site origin', () => {
-        expect(absoluteUrl('/blog')).toBe(`${siteUrl}/blog`)
-        expect(absoluteUrl('/')).toBe(siteUrl)
+    it('resolves unmigrated marketing paths against the fixed 200 legacy origin', () => {
+        expect(absoluteUrl('/blog')).toBe(`${LEGACY_APP_ORIGIN}/blog`)
+        expect(absoluteUrl('/')).toBe(LEGACY_APP_ORIGIN)
     })
 
     it('leaves an already-absolute URL alone', () => {
@@ -26,13 +29,21 @@ describe('absoluteUrl', () => {
 describe('pageMetadata', () => {
     it('points canonical and OG at the same path', () => {
         const meta = pageMetadata({ title: 'T', description: 'D', path: '/blog/x' })
-        expect(meta.alternates?.canonical).toBe('/blog/x')
-        expect(meta.openGraph?.url).toBe('/blog/x')
+        expect(meta.metadataBase).toEqual(new URL(LEGACY_APP_ORIGIN))
+        expect(meta.alternates?.canonical).toBe(`${LEGACY_APP_ORIGIN}/blog/x`)
+        expect(meta.openGraph?.url).toBe(`${LEGACY_APP_ORIGIN}/blog/x`)
     })
 
     it('omits article timestamps on a website-type page', () => {
         const meta = pageMetadata({ title: 'T', description: 'D', path: '/blog', type: 'website' })
         expect(meta.openGraph).not.toHaveProperty('publishedTime')
+    })
+
+    it('keeps the app-owned importer canonical and breadcrumbs on the product origin', () => {
+        const meta = appPageMetadata({ title: 'Import', description: 'D', path: '/import', type: 'website' })
+        expect(meta.alternates?.canonical).toBe(`${siteUrl}/import`)
+        expect(meta.openGraph?.url).toBe(`${siteUrl}/import`)
+        expect(appBreadcrumbSchema([{ name: 'App', href: '/app' }]).itemListElement[0].item).toBe(`${siteUrl}/app`)
     })
 
     it('suffixes the site name once', () => {
@@ -48,7 +59,7 @@ describe('structured data', () => {
             { name: 'Guides', href: '/blog' },
         ])
         expect(schema.itemListElement.map((i) => i.position)).toEqual([1, 2])
-        expect(schema.itemListElement[1].item).toBe(`${siteUrl}/blog`)
+        expect(schema.itemListElement[1].item).toBe(`${LEGACY_APP_ORIGIN}/blog`)
     })
 
     it('drops an empty FAQ rather than emitting an invalid FAQPage', () => {
@@ -69,7 +80,7 @@ describe('structured data', () => {
             for (const doc of listDocs(collection)) {
                 const schema = articleSchema(doc)
                 expect(schema.url).toBe(schema.mainEntityOfPage)
-                expect(schema.url.startsWith(siteUrl), doc.slug).toBe(true)
+                expect(schema.url.startsWith(LEGACY_APP_ORIGIN), doc.slug).toBe(true)
                 expect(schema.dateModified >= schema.datePublished, doc.slug).toBe(true)
             }
         }
@@ -77,9 +88,13 @@ describe('structured data', () => {
 
     it('links the WebSite node to the Organization node by @id', () => {
         const graph = siteSchema()['@graph']
-        const website = graph.find((node) => node['@type'] === 'WebSite') as { publisher: { '@id': string } }
+        const website = graph.find((node) => node['@type'] === 'WebSite') as {
+            url: string
+            publisher: { '@id': string }
+        }
         const org = graph.find((node) => node['@type'] === 'Organization') as { '@id': string }
         expect(website.publisher['@id']).toBe(org['@id'])
+        expect(website.url).toBe(LEGACY_APP_ORIGIN)
     })
 
     /** Google reads name/description/applicationCategory/offers off this node; a missing one is
@@ -94,5 +109,6 @@ describe('structured data', () => {
         expect(app.applicationCategory).toBe('FinanceApplication')
         expect(app.operatingSystem).toBe('Web')
         expect(app.offers).toMatchObject({ price: '0', priceCurrency: 'USD' })
+        expect(app.url).toBe(siteUrl)
     })
 })

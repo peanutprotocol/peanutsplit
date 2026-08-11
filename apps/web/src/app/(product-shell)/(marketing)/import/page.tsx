@@ -17,7 +17,7 @@ import {
     type Locale,
 } from '@/i18n/locales'
 import { loadMessages } from '@/i18n/messages'
-import { breadcrumbSchema, pageMetadata } from '@/lib/seo'
+import { appBreadcrumbSchema, appPageMetadata } from '@/lib/seo'
 
 const { importPage } = marketingCopy
 
@@ -33,7 +33,7 @@ const { importPage } = marketingCopy
  * The tool sits above the fold and above the prose, because someone who arrived with a file in
  * hand should not have to scroll past an argument for the thing they already decided to do.
  */
-export const metadata: Metadata = pageMetadata({
+export const metadata: Metadata = appPageMetadata({
     title: importPage.meta.title,
     description: importPage.meta.description,
     path: '/import',
@@ -41,7 +41,7 @@ export const metadata: Metadata = pageMetadata({
 })
 
 const crumbs = [
-    { name: 'Home', href: '/' },
+    { name: 'Home', href: '/app' },
     { name: 'Import from Splitwise', href: '/import' },
 ]
 
@@ -76,7 +76,7 @@ export default async function ImportPage() {
     return (
         <main className="flex min-h-dvh flex-col gap-8 bg-background sm:gap-10">
             <JsonLd data={faqJsonLd} />
-            <JsonLd data={breadcrumbSchema(crumbs)} />
+            <JsonLd data={appBreadcrumbSchema(crumbs)} />
 
             <Breadcrumbs crumbs={crumbs} />
 

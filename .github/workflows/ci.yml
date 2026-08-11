@@ -18,6 +18,9 @@ jobs:
     env:
       # apps/api's integration suite talks to this; apps/web's unit tests don't.
       DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      APP_ORIGIN: https://split.peanut.me
+      CONTENT_ORIGIN: https://peanut.me
+      SEO_INDEXABLE: 'false'
     services:
       postgres:
         image: postgres:16-alpine
@@ -93,4 +96,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - run: docker build --build-arg NEXT_PUBLIC_SPLIT_V2_ENABLED=1 apps/web
+      - run: >-
+          docker build
+          --build-arg NEXT_PUBLIC_SPLIT_V2_ENABLED=1
+          --build-arg NEXT_PUBLIC_BASE_URL=https://split.peanut.me
+          --build-arg APP_ORIGIN=https://split.peanut.me
+          --build-arg CONTENT_ORIGIN=https://peanut.me
+          apps/web
