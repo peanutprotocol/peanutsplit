@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type APIRequestContext, type Page } from '@playwright/test'
 import { test } from './fixtures'
 import { openCurrentRoomSettings } from './helpers'
 
@@ -36,6 +36,57 @@ test('the manifest names the app Split, offers v1 creation shortcuts, and carrie
     expect(JSON.stringify(manifest)).not.toContain('/r/')
 })
 
+const chromeUserAgent =
+    'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36'
+
+async function expectIdentityInInitialHead(request: APIRequestContext, path: string): Promise<void> {
+    const response = await request.get(path, { headers: { 'user-agent': chromeUserAgent } })
+    expect(response.status()).toBe(200)
+    const html = await response.text()
+    const headEnd = html.indexOf('</head>')
+    expect(headEnd).toBeGreaterThan(0)
+
+    const initialHead = html.slice(0, headEnd)
+    expect(initialHead).toContain('<link rel="manifest" href="/manifest.webmanifest"')
+    expect(initialHead).toContain('<meta name="application-name" content="Split"')
+    expect(initialHead).toContain('<meta name="apple-mobile-web-app-title" content="Split"')
+    expect(html.match(/rel="manifest"/g) ?? []).toHaveLength(1)
+}
+
+test('direct room and recap responses expose the Split manifest in the initial head', async ({ page, request }) => {
+    const roomName = `PWA head contract ${Date.now()}`
+    const created = await request.post('/api/rooms', {
+        data: { name: roomName, currency: 'EUR', creatorName: 'Ana' },
+    })
+    expect(created.status()).toBe(201)
+    const { room } = (await created.json()) as { room: { slug: string } }
+    const roomPath = `/r/${room.slug}`
+
+    // These are raw browser-UA responses, not the browser's repaired DOM. Next streams async
+    // room metadata for ordinary browsers, so this catches the exact regression where inherited
+    // manifest tags landed after </head> and Chromium reported `no-manifest`.
+    await expectIdentityInInitialHead(request, roomPath)
+    await expectIdentityInInitialHead(request, `${roomPath}/recap`)
+
+    await page.goto(roomPath)
+    await expect(page).toHaveTitle(`${roomName} — Peanut Split`)
+    await expect(page.locator('head > link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest')
+    await expect(page.locator('head > meta[name="application-name"]')).toHaveAttribute('content', 'Split')
+})
+
+test('the legacy host cannot advertise or serve a second installable Split', async ({ request }) => {
+    const headers = { 'x-forwarded-host': 'peanutsplit.com', 'user-agent': chromeUserAgent }
+    const [manifest, app] = await Promise.all([
+        request.get('/manifest.webmanifest', { headers }),
+        request.get('/app', { headers }),
+    ])
+
+    expect(manifest.status()).toBe(404)
+    expect(manifest.headers()['cache-control']).toContain('no-store')
+    const html = await app.text()
+    expect(html.slice(0, html.indexOf('</head>'))).not.toContain('rel="manifest"')
+})
+
 test('iOS is offered "Split" as the home-screen name', async ({ page }) => {
     // The tag lives in the root layout, so every route under it carries the same value — these two
     // are the routes that need no room and therefore no creation budget.
@@ -60,8 +111,14 @@ const onlyOn = (project: 'mobile' | 'desktop') =>
  */
 const snoozeInstallBanner = (page: Page) =>
     page.addInitScript(() => {
-        window.localStorage.setItem('ps:pwa-dismiss-count', '3')
-        window.localStorage.setItem('ps:pwa-dismissed-at', String(Date.now()))
+        try {
+            if (window.sessionStorage.getItem('__test-install-backoff-seeded') === '1') return
+            window.localStorage.setItem('ps:pwa-dismiss-count', '3')
+            window.localStorage.setItem('ps:pwa-dismissed-at', String(Date.now()))
+            window.sessionStorage.setItem('__test-install-backoff-seeded', '1')
+        } catch {
+            // The init script also runs on origin-less documents; retry on the first app document.
+        }
     })
 
 const modelAndroidBrowser = (page: Page) =>
@@ -74,8 +131,22 @@ const modelAndroidBrowser = (page: Page) =>
         })
     })
 
+const modelStandaloneDisplay = (page: Page) =>
+    page.addInitScript(() => {
+        const real = window.matchMedia.bind(window)
+        window.matchMedia = (query: string) =>
+            query.includes('display-mode: standalone')
+                ? ({
+                      matches: true,
+                      media: query,
+                      addEventListener() {},
+                      removeEventListener() {},
+                  } as MediaQueryList)
+                : real(query)
+    })
+
 /** A room, its settings sheet, and the device sheet the install row lives in. */
-async function openDeviceSheet(page: Page, name: string) {
+async function openDeviceSheet(page: Page, name: string, { reloadRoom = false } = {}) {
     await page.goto('/new')
     await page.getByTestId('room-name').fill(name)
     await page.getByTestId('room-currency').selectOption('EUR')
@@ -84,6 +155,7 @@ async function openDeviceSheet(page: Page, name: string) {
     await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
     await page.getByTestId('go-to-room').click()
     await page.waitForURL(/\/r\//)
+    if (reloadRoom) await page.reload()
 
     await openCurrentRoomSettings(page)
     await page.getByTestId('device-row').click()
@@ -101,12 +173,14 @@ const offerTheBrowserPrompt = (page: Page, outcome: 'accepted' | 'dismissed') =>
     page.evaluate((choice) => {
         const window_ = window as typeof window & { __installPrompts?: number }
         window_.__installPrompts = 0
+        window.sessionStorage.setItem('__test-install-prompts', '0')
         const event = new Event('beforeinstallprompt') as Event & {
             prompt?: () => Promise<void>
             userChoice?: Promise<{ outcome: string }>
         }
         event.prompt = () => {
             window_.__installPrompts = (window_.__installPrompts ?? 0) + 1
+            window.sessionStorage.setItem('__test-install-prompts', String(window_.__installPrompts))
             return Promise.resolve()
         }
         event.userChoice = Promise.resolve({ outcome: choice })
@@ -118,47 +192,91 @@ test.describe('the install row', () => {
         await snoozeInstallBanner(page)
     })
 
-    test('keeps an Android install path visible while Chrome waits, then upgrades it in place', async ({ page }) => {
+    test('takes Android manual install to the canonical page and upgrades to a native button', async ({ page }) => {
         onlyOn('mobile')
         test.setTimeout(60_000)
         await modelAndroidBrowser(page)
         await openDeviceSheet(page, 'Install Android Chrome')
 
-        // Chrome decides installability after hydration and may wait for its engagement threshold.
-        // Its menu remains usable during that wait, so Device must never become an empty dead end.
-        await expect(page.getByText('This browser doesn’t offer it.')).toHaveCount(0)
         const browserRow = page.getByTestId('install-row-browser')
         await expect(browserRow).toContainText('Install Split')
-        await expect(browserRow).toContainText('Browser menu')
+        await expect(browserRow).toContainText('Show install steps')
         await browserRow.click()
 
-        const instructions = page.getByRole('dialog', { name: 'Add Split from your browser' })
-        await expect(instructions).toBeVisible()
-        await expect(instructions).toContainText('Open in browser')
-        await expect(instructions).toContainText('Install app')
-        await expect(instructions).toContainText('split.peanut.me')
+        await expect(page).toHaveURL(/\/app\?install=1&source=settings$/)
+        await expect(page).toHaveTitle('Split')
+        const surface = page.getByTestId('install-app-surface')
+        await expect(surface).toBeVisible()
+        await expect(surface.getByRole('heading', { name: 'Install Split' })).toBeVisible()
+        await expect(surface).toContainText('Use your browser menu. Choose “Install app”—not “Create shortcut”.')
+        await expect(surface).toContainText('Inside another app? Choose “Open in browser” first.')
+        await expect(surface.getByTestId('browser-install-steps').locator('li')).toHaveCount(4)
+        await expect(surface).toContainText('Open your browser menu.')
+        await expect(surface).toContainText('Tap “Install app”. It may be under “Add to Home screen”.')
+        await expect(surface).toContainText('Make sure the name is “Split”.')
+        await expect(surface).toContainText('Tap “Install”.')
+        await expect(surface).toContainText('No install option? Open this page in Chrome.')
+        await expect(surface).toContainText('Room missing after installing? Open the original room link once.')
+        await expect(surface.getByTestId('install-copy-room')).toHaveText('Copy original room link')
+        expect(await page.evaluate(() => localStorage.getItem('ps:pwa-snoozed-until'))).toBeNull()
+        const appOrigin = new URL(page.url()).origin
 
-        // Event delivery is an upgrade, not permission to tear away instructions mid-read.
+        // Chromium can deliver its event after this document paints. The same surface becomes a
+        // real one-tap action; the person does not have to leave help and reopen Device settings.
         await offerTheBrowserPrompt(page, 'accepted')
-        await expect(instructions).toBeVisible()
-        await instructions.getByRole('button', { name: 'Got it' }).click()
-        await expect(page.getByTestId('install-row-prompt')).toContainText('Install Split')
-        await expect(page.getByTestId('install-row-browser')).toHaveCount(0)
+        const nativeInstall = surface.getByTestId('install-app-native')
+        await expect(nativeInstall).toHaveText('Install Split')
+        await nativeInstall.click()
+        await expect.poll(() => page.evaluate(() => sessionStorage.getItem('__test-install-prompts'))).toBe('1')
+        await expect(page).toHaveURL(`${appOrigin}/app`)
+        await expect(page).toHaveTitle('Split')
     })
 
-    test('opens the Safari steps on iOS', async ({ page }) => {
+    test('keeps desktop fallback instructions short and platform-specific', async ({ page }) => {
+        onlyOn('desktop')
+        await page.goto('/app?install=1&source=settings')
+
+        await expect(page).toHaveURL(/\/app\?install=1&source=settings$/)
+        await expect(page).toHaveTitle('Split')
+        const surface = page.getByTestId('install-app-surface')
+        await expect(surface.getByRole('heading', { name: 'Install Split' })).toBeVisible()
+        await expect(surface).toContainText('Use your browser’s install option—not “Create shortcut”.')
+        await expect(surface).toContainText('Inside another app? Choose “Open in browser” first.')
+        await expect(surface.getByTestId('browser-install-steps').locator('li')).toHaveCount(3)
+        await expect(surface).toContainText('Open your browser’s menu.')
+        await expect(surface).toContainText('Choose “Install app”. On Mac, choose “Add to Dock”.')
+        await expect(surface).toContainText('Make sure the name is “Split”, then confirm.')
+        await expect(surface).toContainText('No install option? Open this page in Chrome.')
+        await expect(surface.getByTestId('install-copy-room')).toHaveCount(0)
+    })
+
+    test('takes iOS to short home-screen steps on the slug-free Split page', async ({ page }) => {
         onlyOn('mobile')
         test.setTimeout(60_000)
         await openDeviceSheet(page, 'Install ios')
 
-        // The label is Safari's own words, so the row names the thing the person is then told to
-        // look for two lines further down. "Install" appears nowhere on an iPhone.
-        await expect(page.getByTestId('install-row-ios')).toContainText('Add to home screen')
+        const iosRow = page.getByTestId('install-row-ios')
+        await expect(iosRow).toContainText('Add Split to Home Screen')
+        await expect(iosRow).toContainText('Show install steps')
         await expect(page.getByTestId('install-row-browser')).toHaveCount(0)
 
-        await page.getByTestId('install-row-ios').click()
-        await expect(page.getByText('Open your browser’s Share menu (in Safari, tap More, then Share).')).toBeVisible()
-        await expect(page.getByText('If you see “Open as Web App”, turn it on, then tap “Add”.')).toBeVisible()
+        await iosRow.click()
+        await expect(page).toHaveURL(/\/app\?install=1&source=settings$/)
+        await expect(page).toHaveTitle('Split')
+        const surface = page.getByTestId('install-app-surface')
+        await expect(surface.getByRole('heading', { name: 'Add Split to your Home Screen' })).toBeVisible()
+        await expect(surface).toContainText('Use your browser’s Share menu.')
+        await expect(surface.locator('ol > li')).toHaveCount(4)
+        await expect(surface).toContainText('Tap Share.')
+        await expect(surface).toContainText('Tap “Add to Home Screen”.')
+        await expect(surface).toContainText('Turn on “Open as Web App”, if you see it.')
+        await expect(surface).toContainText('Tap “Add”.')
+        await expect(surface).toContainText('Then open Split from the new icon.')
+        await expect(surface).toContainText('Room missing after installing? Open the original room link once.')
+        await expect(surface.getByTestId('install-copy-room')).toHaveText('Copy original room link')
+        await expect(surface).not.toContainText('within 24 hours')
+        expect(new URL(page.url()).pathname).toBe('/app')
+        expect(page.url()).not.toContain('/r/')
     })
 
     test('replays the browser prompt, and reads as installed once it is accepted', async ({ page }) => {
@@ -179,60 +297,119 @@ test.describe('the install row', () => {
         await expect(page.getByTestId('install-row-installed')).toBeVisible()
     })
 
-    test('keeps the browser-menu fallback after the native prompt is declined', async ({ page }) => {
+    test('records a native decline and keeps the canonical install-page fallback', async ({ page }) => {
         // Same reason as its siblings above: the row only exists on a device that can install.
         onlyOn('mobile')
         test.setTimeout(60_000)
+        await modelAndroidBrowser(page)
         await openDeviceSheet(page, 'Install decline')
 
         await expect(page.locator('[data-testid^="install-row-"]')).toBeVisible()
         await offerTheBrowserPrompt(page, 'dismissed')
         await page.getByTestId('install-row-prompt').click()
 
-        await expect(page.getByTestId('install-row-dismissed')).toContainText('Browser menu')
+        await expect(page.getByTestId('install-row-dismissed')).toContainText('Show install steps')
+        await expect(page.getByTestId('install-row-dismissed')).toBeFocused()
         await expect(page.getByTestId('install-row-prompt')).toHaveCount(0)
-        await expect(page.getByText('This browser doesn’t offer it.')).toHaveCount(0)
+        const dismissal = await page.evaluate(() => ({
+            count: localStorage.getItem('ps:pwa-dismiss-count'),
+            at: Number(localStorage.getItem('ps:pwa-dismissed-at')),
+        }))
+        expect(dismissal.count).toBe('4')
+        expect(Date.now() - dismissal.at).toBeLessThan(10_000)
         await page.getByTestId('install-row-dismissed').click()
-        await expect(page.getByRole('dialog', { name: 'Add Split from your browser' })).toBeVisible()
+        await expect(page).toHaveURL(/\/app\?install=1&source=settings$/)
+        await expect(page.getByTestId('browser-install-steps')).toBeVisible()
     })
 
-    test('closes menu help onto a focused installed state when appinstalled arrives', async ({ page }) => {
+    test('leaves manual help when the browser reports that installation completed', async ({ page }) => {
         onlyOn('mobile')
         test.setTimeout(60_000)
         await modelAndroidBrowser(page)
         await openDeviceSheet(page, 'Install through menu')
 
         await page.getByTestId('install-row-browser').click()
-        await expect(page.getByTestId('browser-install-drawer')).toBeVisible()
+        await expect(page).toHaveURL(/\/app\?install=1&source=settings$/)
+        await expect(page.getByTestId('install-app-surface')).toBeVisible()
+        await expect(page.getByTestId('browser-install-steps')).toBeVisible()
+        const appOrigin = new URL(page.url()).origin
         await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')))
 
-        await expect(page.getByTestId('browser-install-drawer')).toHaveCount(0)
-        await expect(page.getByTestId('install-row-installed')).toBeVisible()
-        await expect(page.getByTestId('install-row-installed-focus')).toBeFocused()
+        await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
+        await expect(page).toHaveURL(`${appOrigin}/app`)
+        await expect(page).toHaveTitle('Split')
     })
 
-    test('never offers to install an app that is already installed', async ({ page }) => {
+    test('keeps a healthy canonical standalone app installed when a synthetic prompt arrives', async ({ page }) => {
         test.setTimeout(60_000)
-        // Playwright cannot emulate display-mode, so the media query is the thing stubbed.
+        await modelStandaloneDisplay(page)
         await page.addInitScript(() => {
-            const real = window.matchMedia.bind(window)
-            window.matchMedia = (query: string) =>
-                query.includes('display-mode: standalone')
-                    ? ({
-                          matches: true,
-                          media: query,
-                          addEventListener() {},
-                          removeEventListener() {},
-                      } as MediaQueryList)
-                    : real(query)
+            try {
+                localStorage.setItem('ps:pwa-canonical-launch:v1', '1')
+            } catch {
+                // about:blank has no storage; the script runs again on the app origin.
+            }
         })
         await openDeviceSheet(page, 'Install standalone')
 
         await expect(page.getByTestId('install-row-installed')).toBeVisible()
-        // Precedence: even a live prompt does not outrank being installed.
+        // A browser should not normally emit this event for an installed app. If it does, canonical
+        // standalone evidence still wins so the healthy app cannot offer a duplicate installation.
         await offerTheBrowserPrompt(page, 'accepted')
         await expect(page.getByTestId('install-row-prompt')).toHaveCount(0)
+        expect(
+            await page.evaluate(() => (window as typeof window & { __installPrompts?: number }).__installPrompts)
+        ).toBe(0)
         await expect(page.getByTestId('install-row-installed')).toBeVisible()
+    })
+
+    test('gives a room-named standalone shortcut an honest, slug-free repair path', async ({ page }) => {
+        onlyOn('mobile')
+        test.setTimeout(60_000)
+        await modelAndroidBrowser(page)
+        await modelStandaloneDisplay(page)
+        await openDeviceSheet(page, 'KUNC shortcut repair', { reloadRoom: true })
+
+        const roomUrl = new URL(page.url())
+        expect(roomUrl.pathname).toMatch(/^\/r\//)
+        const row = page.getByTestId('install-row-repair')
+        await expect(row).toContainText('Split icon')
+        await expect(row).toContainText('Check')
+        await row.click()
+
+        await expect(page).toHaveURL(/\/app\?install=1&repair=1&source=settings$/)
+        await expect(page).toHaveTitle('Split')
+        const surface = page.getByTestId('install-app-surface')
+        await expect(surface.getByRole('heading', { name: 'Replace the old room icon' })).toBeVisible()
+        await expect(surface).toContainText('Icon says Split? You’re all set. Icon shows a room name? Replace it.')
+        await expect(surface).toContainText('Copy the room link before removing the old icon.')
+        await expect(surface.getByTestId('install-repair-copy-room')).toHaveText('Copy room link')
+        await expect(surface.locator('ol > li')).toHaveCount(3)
+        await expect(surface).toContainText('Remove the icon named after the room.')
+        await expect(surface).toContainText('Open the original room link in Chrome.')
+        await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: roomUrl.origin })
+        await surface.getByTestId('install-repair-copy-room').click()
+        await expect(surface.getByRole('status')).toHaveText('Room link copied.')
+        await expect(surface).toContainText('Open the copied room link in Chrome.')
+        await expect(surface).toContainText('Tap ⋮, then “Install app”.')
+        await expect(surface).toContainText('Install only if the name says “Split”.')
+        expect(page.url()).not.toContain(roomUrl.pathname)
+        expect(await page.evaluate(() => sessionStorage.getItem('ps:pwa-repair-room-url:v1'))).toBe(
+            `${roomUrl.origin}${roomUrl.pathname}`
+        )
+
+        // Opening repair acknowledges only this migration notice. The existing install backoff
+        // remains untouched, and returning to the room does not immediately repeat the card.
+        await surface.getByTestId('install-repair-back').click()
+        await expect(page).toHaveURL(`${roomUrl.origin}${roomUrl.pathname}`)
+        await page.waitForTimeout(2_000)
+        await expect(page.getByTestId('install-prompt')).toHaveCount(0)
+        expect(
+            await page.evaluate(() => ({
+                repair: localStorage.getItem('ps:pwa-repair-notice-dismissed:v1'),
+                dismissals: localStorage.getItem('ps:pwa-dismiss-count'),
+            }))
+        ).toEqual({ repair: '1', dismissals: '3' })
     })
 })
 
