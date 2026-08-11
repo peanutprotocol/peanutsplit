@@ -123,7 +123,7 @@ jobs:
       - run: pnpm verify
 
   browser:
-    name: Browser journeys (${{ matrix.browser }} / ${{ matrix.project }})
+    name: Browser journeys (${{ matrix.browser }} / ${{ matrix.project }} / ${{ matrix.shard }} of 2)
     needs: changes
     if: needs.changes.outputs.run_deep == 'true'
     runs-on: ubuntu-latest
@@ -132,16 +132,17 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
-        # One project per runner means one database and one Next dev server per
-        # 151-test shard. The prior job sent all 302 tests through one server.
+        # Each runner owns one database and one Next dev server for about 75 tests.
+        # The prior job sent all 302 tests and six browser workers through one server.
         project: [mobile, desktop]
+        shard: [1, 2]
     env:
       CI: true
       DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
       E2E_BROWSER: ${{ matrix.browser }}
-      # Preserve six workers of aggregate throughput across the two project
-      # shards without asking either single Next dev server to serve all six.
-      E2E_WORKERS: 3
+      # A single browser shares the runner with Next and Postgres. Hosted evidence
+      # showed three workers still starved long journeys; one was stable locally.
+      E2E_WORKERS: 1
     services:
       postgres:
         image: postgres:16-alpine
@@ -163,16 +164,16 @@ jobs:
           node-version: 22
       - run: corepack enable
       - run: pnpm bootstrap
-      - name: Validate the ${{ matrix.project }} shard plan
-        run: pnpm --dir apps/web e2e:plan ${{ matrix.project }}
+      - name: Validate the ${{ matrix.project }} shard ${{ matrix.shard }} of 2 plan
+        run: pnpm --dir apps/web e2e:plan ${{ matrix.project }} ${{ matrix.shard }}/2
       - run: pnpm --dir apps/web exec prisma migrate deploy
       - run: pnpm --dir apps/web exec playwright install --with-deps ${{ matrix.browser }}
-      - run: pnpm --dir apps/web exec playwright test --project=${{ matrix.project }}
+      - run: pnpm --dir apps/web exec playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
       - name: Keep the report and traces
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: browser-${{ matrix.browser }}-${{ matrix.project }}-${{ github.sha }}
+          name: browser-${{ matrix.browser }}-${{ matrix.project }}-${{ matrix.shard }}of2-${{ github.sha }}
           path: |
             apps/web/playwright-report
             apps/web/test-results
