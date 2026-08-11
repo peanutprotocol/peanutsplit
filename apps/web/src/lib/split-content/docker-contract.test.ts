@@ -21,7 +21,10 @@ describe('Split content container release contract', () => {
         )
 
         expect(indexRelease).toContain('SPLIT_CONTENT_INDEX_RELEASED = false')
-        expect(markerRelease).toContain("SPLIT_EDGE_MARKER_SHA256 = '0'.repeat(64)")
+        expect(markerRelease).toContain(
+            "SPLIT_EDGE_MARKER_SHA256 = '4307ae3e7601ca23faf31181ac9f268fd5c7c6c510d6ab56a49c1abb1a171dc4'"
+        )
+        expect(markerRelease).not.toContain("SPLIT_EDGE_MARKER_SHA256 = '0'.repeat(64)")
         expect(compose).not.toContain('SPLIT_CONTENT_EDGE_MARKER')
         expect(compose).not.toContain('SEO_INDEXABLE')
         expect(workflow).toContain("SEO_INDEXABLE: 'false'")
