@@ -4,8 +4,8 @@ Installation is not Peanut Split's activation event. A URL already delivers the
 product; adding it to a device only reduces the cost of coming back. Install is therefore
 always discoverable in Device settings and becomes the room's promoted fallback CTA only
 when no temporary product journey needs that space. iOS has its Home Screen steps,
-browsers without a live one-tap event get portable menu guidance, and Chromium upgrades
-the same surface when its prompt arrives.
+browsers without a live one-tap event move to Split's canonical, slug-free install page,
+and Chromium uses its native prompt as soon as that prompt is available.
 
 ## One guidance slot
 
@@ -59,19 +59,34 @@ name, amount, or currency.
   deliberate mature return remain local attribution signals. They can explain the context
   of an exposure, but the non-persisted `quiet_slot` reason covers the ordinary fallback.
 - Chromium uses its native prompt when available. Otherwise the room CTA and Device row
-  open browser-menu instructions and upgrade in place if `beforeinstallprompt` arrives.
+  navigate to the canonical `/app?install=1` surface. That page is titled `Split`, contains
+  no room slug, and distinguishes Chrome's manifest-backed **Install app** action from
+  **Create shortcut**, which must not be used as an equivalent. The original room URL is
+  retained only in this tab's sessionStorage so it can be copied and reopened once if a
+  browser switch does not carry the room.
 - Rendering an automatic offer alone does not suppress a later quiet slot. Explicit dismissal or
-  a browser decline uses the exponential backoff. Installed/standalone state wins over every
-  trigger.
-- Closing manual-install instructions, whether opened automatically or from settings,
-  quiets automatic offers for 30 days because the browser exposes no reliable success
-  event; the settings action remains available throughout.
+  a browser decline uses the exponential backoff. A live Chromium prompt wins over standalone
+  display when Chromium actually exposes one. Otherwise installed/standalone state suppresses
+  ordinary promotion.
+- Reading or leaving install help is not a dismissal and creates no backoff. The retired
+  manual-help snooze and any dismissal state it contaminated are cleared once on upgrade;
+  only the explicit **Not now** action or a native browser decline suppresses promotion.
+- A PR11-era room shortcut can also launch standalone while carrying the room's title and URL.
+  A canonical standalone `/app` launch records a versioned local marker; an unmarked standalone
+  room gets a one-time, conditional **Check your Split icon** card. Device settings keeps the same
+  check reachable even after dismissal or marker ambiguity. Repair never claims it can uninstall
+  or force-open a browser: it copies the original room link locally and tells the person to remove
+  only a room-named icon, reopen that link in a supported browser, and continue only when the
+  install sheet says **Split**.
 
 The journey state is localStorage-only and room-scoped. It describes what this browser
 did; it is not synchronized or mapped to a server device. Raw origin/timestamps never
 leave the device. Prompt exposure measures only closed `trigger` and `delivery`
 categories; dismissal also measures a closed `reason`. Opening manual browser instructions
-measures only the closed `auto` or `settings` surface, never the browser, room, or member.
+measures only the closed `auto`, `settings`, or direct `app` surface, never the browser,
+room, or member.
+The conditional legacy-shortcut check is excluded from these install-promotion events so an
+already-standalone visit cannot inflate the acquisition funnel.
 Explicit Forget removes the identity and journey record;
 passive recent-list eviction prunes the journey record without revoking member proof.
 
@@ -81,8 +96,8 @@ passive recent-list eviction prunes the journey record without revoking member p
 iPadOS web app](https://webkit.org/blog/14787/webkit-features-in-safari-17-2/). Earlier
 versions and any failed handoff fall back to reopening the room link once. Copying all
 room state to the server would turn an accountless product into an implicit account and
-increase the credential blast radius. Instead, opening the iOS instructions prepares a
-narrow, expiring bridge:
+increase the credential blast radius. Instead, choosing the room's iOS install action
+prepares a narrow, expiring bridge and then opens the canonical `/app?install=1` steps:
 
 1. The browser creates a 24-hour handoff for the current room and, when available, its
    active member proof. The raw random capability exists only in a Secure, Strict,
@@ -118,3 +133,8 @@ restore where only cookies cross contexts.
 Automation cannot prove the operating system's install-time cookie copy. A physical
 iPhone Safari → Add to Home Screen → first launcher open remains the final evidence for
 calling the iOS handoff production-verified.
+
+Automation also cannot remove or inspect an Android launcher icon. A physical regression must
+cover a pre-fix room-named shortcut: it receives the conditional check, preserves/copies the
+original room link, can be replaced from Chrome only when the sheet says **Split**, and the new
+icon launches `/app` rather than the room URL.

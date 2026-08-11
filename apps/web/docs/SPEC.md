@@ -47,7 +47,7 @@ untrustworthy.
 | Data fetching | @tanstack/react-query v5; URL state via nuqs                                                                                                                                                                                                                                                                     |
 | Motion        | `motion` (ex-framer), `@number-flow/react`, View Transitions API, `vaul` (sheets), `sonner` (toasts)                                                                                                                                                                                                             |
 | Mascot        | Peanut animated WebPs copied from `peanut-ui/src/assets/mascot/` (no Lottie exists — `peanut-cheering.webp` = settle celebration, `peanut-waving-hello.webp` = landing/join, `peanut-thinking.webp` = empty states, `peanut-sad.webp` = errors)                                                                  |
-| PWA           | `@serwist/next` (same as peanut-ui) + `manifest.ts`                                                                                                                                                                                                                                                              |
+| PWA           | `@serwist/next` (same as peanut-ui) + host-aware `manifest.webmanifest` route                                                                                                                                                                                                                                    |
 | Avatars       | In-house non-human alter egos (animals, snacks, monsters), stable by member name until the room recasts them; no inferred human appearance or external avatar system                                                                                                                                              |
 | i18n          | next-intl — locales `en`, `es` (es-419 tone), `pt-BR`                                                                                                                                                                                                                                                            |
 | OG images     | `next/og` ImageResponse (satori, built in — no extra dep)                                                                                                                                                                                                                                                        |
@@ -71,7 +71,7 @@ peanut-split/
       r/[slug]/page.tsx        THE room (join gate renders here on first visit)
       r/[slug]/opengraph-image.tsx
       api/...                  route handlers (contract below)
-      manifest.ts  sw route    PWA
+      manifest.webmanifest/route.ts  sw route    canonical-host-only PWA
     components/ui/             primitives (Button, Card, Field, Sheet, …) — design-system agent owns
     components/room/           room feature components — flows agent owns
     server/                    domain logic: money.ts, split.ts, fx.ts, db.ts, roomState.ts
@@ -320,21 +320,30 @@ settings, both default ON, persisted in localStorage.
   **NetworkOnly for `/api/*`** (a stale RoomState is worse than a spinner; a prior app shipped a
   soft-lock bug from NetworkFirst on state endpoints), CacheFirst for hashed `/_next/static`,
   NetworkFirst (3s timeout) for navigations. Installation is a retention affordance, not an
-  activation gate: Device settings always provides a native action or truthful browser-menu
-  guidance. The room has one contextual guidance slot — identity/recovery, first expense,
+  activation gate: Device settings always provides a native action or a route to Split's
+  canonical, slug-free `/app?install=1` surface. On Chromium, use the manifest-backed native
+  **Install app** action; **Create shortcut** is not an equivalent and must never be recommended
+  from a room URL. The original room link may be kept only in tab-local sessionStorage for a
+  copy/reopen fallback when switching browsers. The room has one contextual guidance slot — identity/recovery, first expense,
   post-activation Share, active forms, latecomer review, fresh All settled and achievements all
   outrank Install; Install is the inline fallback once none is active and the interaction is quiet.
   Temporary blockers suspend the same exposure, while competing-prompt refusals defer it.
-  Dismissals use an exponential backoff (24h→48h→…→30d cap) in localStorage. iOS gets a how-to
-  sheet (no `beforeinstallprompt` there; detect iPadOS-as-Mac via
+  Explicit **Not now** and native browser declines use an exponential backoff
+  (24h→48h→…→30d cap) in localStorage; merely reading install help does not. iOS gets concise
+  Home Screen steps on the canonical install surface (no `beforeinstallprompt` there; detect iPadOS-as-Mac via
   `maxTouchPoints > 1 && /Mac/`). [WebKit 17.2+ copies cookies but no other local storage into a newly
   installed iOS/iPadOS web app](https://webkit.org/blog/14787/webkit-features-in-safari-17-2/), so
-  opening the iOS instructions arms a 24-hour, one-time server handoff: an opaque host-only cookie
+  choosing the room's iOS install action first arms a 24-hour, one-time server handoff, then opens
+  the canonical steps: an opaque host-only cookie
   names a hashed transient row containing only the room, optional active member, and hash of the
   exact proof presented. The installed `/app` launch copies that narrow state into its own
   localStorage, verifies it, enters the room, and acknowledges/deletes the row in the background.
   It never creates an account, device map, or analytics link. Older WebKit and failed transfers
   fall back to reopening the room link once in the installed app.
+  A standalone room document without the versioned canonical-launch marker gets a one-time,
+  conditional icon check for the PR11 shortcut regression; Device keeps that check actionable
+  even when standalone detection is ambiguous. It never reports into the normal install-promotion
+  funnel and never claims the browser can remove the old icon automatically.
 - **Share:** native `navigator.share` with clipboard fallback that MUST NOT be swallowed by a
   silent catch (known bug in the reference UI).
 - **Landing:** one screen — what it does, create CTA, "your rooms" if localStorage has any,

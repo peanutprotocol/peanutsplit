@@ -183,38 +183,61 @@
             "madeByBrand": "Squirrel Labs"
         },
         "install": {
-            "title": "Keep this split close",
-            "body": "Add Split to this device and come straight back to this room. No store, no account.",
-            "bodySettled": "Keep Split one tap away for this trip and the next. No store, no account.",
-            "cta": "Add Split",
-            "ctaIos": "Show me how",
+            "title": "Install Split",
+            "body": "Get back to this room faster. No app store. No account.",
+            "bodySettled": "Keep this trip—and the next one—one tap away.",
+            "cta": "Install Split",
             "dismiss": "Not now",
-            "closeSuggestion": "Close install suggestion",
             "row": {
                 "label": "Install Split",
-                "labelIos": "Add to home screen",
-                "installed": "Already on this device.",
+                "labelIos": "Add Split to Home Screen",
+                "installed": "Split is installed.",
                 "preparing": "Preparing…",
-                "browserMenu": "Browser menu"
+                "openInstall": "Open install page",
+                "checkLabel": "Split installation",
+                "checkLabelIos": "Home-screen icon",
+                "checkAction": "Check"
             },
             "browser": {
-                "title": "Add Split from your browser",
-                "body": "The one-tap button isn’t available right now, but your browser menu may still add Split.",
-                "step1": "If Split opened inside another app, choose “Open in browser” first.",
-                "step2": "Open your browser’s menu.",
-                "step3": "Choose “Install app”, “Add to Home screen” or “Add to Dock”. If none appears, open this room in Chrome, Edge or Safari.",
-                "step4": "Seeing split.peanut.me is expected. Open Split from the new icon; if this room isn’t there, open its link once.",
-                "done": "Got it"
+                "title": "Install Split",
+                "body": "Use Chrome’s “Install app”—not “Create shortcut”.",
+                "step1": "Not in Chrome? Open your original room link there.",
+                "step2": "Tap ⋮ → “Install app”. If needed, open “Add to Home screen” first.",
+                "step3": "Check the screen says “Split”, then tap “Install”.",
+                "step4": "Room missing? Open the original link once."
             },
             "ios": {
-                "title": "Add Split to your home screen",
-                "step1": "Open your browser’s Share menu (in Safari, tap More, then Share).",
-                "step2": "Scroll down and choose “Add to Home Screen”.",
-                "step3": "If you see “Open as Web App”, turn it on, then tap “Add”.",
-                "step4": "Open Split from the new icon within 24 hours. If this room isn’t there, open its link once.",
-                "done": "Got it",
-                "body": "Use your browser’s Share menu to put Split on your home screen.",
+                "title": "Add Split to Home Screen",
+                "step1": "Tap Share.",
+                "step2": "Tap “Add to Home Screen”.",
+                "step3": "If shown, turn on “Open as Web App”.",
+                "step4": "Tap “Add”, then open Split.",
+                "step5": "Room missing? Open the original link once.",
+                "body": "No “Add to Home Screen”? Open your original room link in your browser.",
                 "prepareFailed": "Couldn’t prepare this room. Try again in a moment."
+            },
+            "repair": {
+                "title": "Check your Split icon",
+                "body": "Icon shows a room name? Replace it. Icon says Split? You’re all set.",
+                "cardBody": "If your icon shows a room name, replace it with Split.",
+                "cta": "Check icon",
+                "step1": "If the icon shows a room name, remove it.",
+                "step2Chrome": "Open your original room link in Chrome.",
+                "step2Ios": "Open your original room link in your browser.",
+                "step3Chrome": "Tap ⋮ → “Install app”. Do not choose “Create shortcut”.",
+                "step3Ios": "Tap Share → “Add to Home Screen”.",
+                "copy": "Copy room link",
+                "copied": "Room link copied.",
+                "copyFailed": "Couldn’t copy the link. Reopen it from where it was shared.",
+                "missing": "No room link here. Reopen it from where it was shared.",
+                "check": "Continue only if the install screen says “Split”.",
+                "back": "Back to room"
+            },
+            "page": {
+                "preparing": "Checking this browser…",
+                "installed": "Split is installed.",
+                "continue": "Continue to Split",
+                "copyRoom": "Copy original room link"
             }
         },
         "linkExplainer": {

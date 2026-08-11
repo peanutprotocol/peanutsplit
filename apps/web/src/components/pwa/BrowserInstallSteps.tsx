@@ -2,14 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-/**
- * The portable floor under browser-managed installation.
- *
- * `beforeinstallprompt` is an optional Chromium convenience, not the browser's only install path.
- * When it has not arrived, these steps point to the browser menu where installation is supported,
- * and to a full browser when an embedded one cannot install. The last line answers the alarming but
- * correct origin Chrome shows without promising that every browser creates the same kind of app.
- */
+/** Safe fallback from the canonical, slug-free `/app` document. */
 export function BrowserInstallSteps() {
     const t = useTranslations('marketing.install')
 

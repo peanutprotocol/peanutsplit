@@ -183,38 +183,61 @@
             "madeByBrand": "Squirrel Labs"
         },
         "install": {
-            "title": "Ten esta división a mano",
-            "body": "Agrega Split a este dispositivo y vuelve directo a esta sala. Sin tienda, sin cuenta.",
-            "bodySettled": "Mantén Split a un toque para este viaje y el siguiente. Sin tienda, sin cuenta.",
-            "cta": "Agregar Split",
-            "ctaIos": "Muéstrame cómo",
+            "title": "Instala Split",
+            "body": "Vuelve a esta sala más rápido. Sin tienda de apps. Sin cuenta.",
+            "bodySettled": "Ten este viaje —y el próximo— a un toque.",
+            "cta": "Instalar Split",
             "dismiss": "Ahora no",
-            "closeSuggestion": "Cerrar sugerencia de instalación",
             "row": {
                 "label": "Instalar Split",
-                "labelIos": "Agregar a pantalla de inicio",
-                "installed": "Ya está en este dispositivo.",
+                "labelIos": "Agregar Split a inicio",
+                "installed": "Split ya está instalado.",
                 "preparing": "Preparando…",
-                "browserMenu": "Menú del navegador"
+                "openInstall": "Abrir página de instalación",
+                "checkLabel": "Instalación de Split",
+                "checkLabelIos": "Ícono de inicio",
+                "checkAction": "Revisar"
             },
             "browser": {
-                "title": "Agrega Split desde tu navegador",
-                "body": "El botón de un toque no está disponible ahora, pero el menú de tu navegador puede agregar Split.",
-                "step1": "Si Split se abrió dentro de otra app, primero elige «Abrir en el navegador».",
-                "step2": "Abre el menú de tu navegador.",
-                "step3": "Elige «Instalar app», «Agregar a pantalla de inicio» o «Agregar al Dock». Si no aparece ninguna, abre esta sala en Chrome, Edge o Safari.",
-                "step4": "Es normal que aparezca split.peanut.me. Abre Split desde el nuevo ícono; si esta sala no aparece, abre su link una vez.",
-                "done": "Entendido"
+                "title": "Instala Split",
+                "body": "Usa «Instalar app» de Chrome, no «Crear acceso directo».",
+                "step1": "¿No estás en Chrome? Abre ahí el enlace original de la sala.",
+                "step2": "Toca ⋮ → «Instalar app». Si hace falta, abre primero «Agregar a pantalla de inicio».",
+                "step3": "Comprueba que la pantalla diga «Split» y toca «Instalar».",
+                "step4": "¿Falta la sala? Abre una vez el enlace original."
             },
             "ios": {
                 "title": "Agrega Split a tu pantalla de inicio",
-                "step1": "Abre el menú Compartir de tu navegador (en Safari, toca Más y luego Compartir).",
-                "step2": "Baja y elige «Agregar a inicio».",
-                "step3": "Si ves «Abrir como app web», actívalo y luego toca «Agregar».",
-                "step4": "Abre Split desde el nuevo ícono dentro de 24 horas. Si esta sala no aparece, abre su link una vez.",
-                "done": "Entendido",
-                "body": "Usa el menú Compartir de tu navegador para poner Split en tu pantalla de inicio.",
+                "step1": "Toca Compartir.",
+                "step2": "Toca «Agregar a pantalla de inicio».",
+                "step3": "Si aparece, activa «Abrir como app web».",
+                "step4": "Toca «Agregar» y abre Split.",
+                "step5": "¿Falta la sala? Abre una vez el enlace original.",
+                "body": "¿No ves «Agregar a pantalla de inicio»? Abre el enlace original de la sala en tu navegador.",
                 "prepareFailed": "No pudimos preparar esta sala. Inténtalo de nuevo en un momento."
+            },
+            "repair": {
+                "title": "Revisa tu ícono de Split",
+                "body": "¿El ícono muestra una sala? Reemplázalo. ¿Dice Split? Todo está listo.",
+                "cardBody": "Si el ícono muestra una sala, reemplázalo por Split.",
+                "cta": "Revisar ícono",
+                "step1": "Si el ícono muestra una sala, elimínalo.",
+                "step2Chrome": "Abre el enlace original de la sala en Chrome.",
+                "step2Ios": "Abre el enlace original de la sala en tu navegador.",
+                "step3Chrome": "Toca ⋮ → «Instalar app». No elijas «Crear acceso directo».",
+                "step3Ios": "Toca Compartir → «Agregar a pantalla de inicio».",
+                "copy": "Copiar enlace de la sala",
+                "copied": "Enlace de la sala copiado.",
+                "copyFailed": "No pudimos copiar el enlace. Vuelve a abrirlo desde donde lo compartieron.",
+                "missing": "No tenemos el enlace aquí. Ábrelo de nuevo desde donde te lo compartieron.",
+                "check": "Sigue solo si la pantalla de instalación dice «Split».",
+                "back": "Volver a la sala"
+            },
+            "page": {
+                "preparing": "Revisando este navegador…",
+                "installed": "Split ya está instalado.",
+                "continue": "Continuar a Split",
+                "copyRoom": "Copiar enlace original de la sala"
             }
         },
         "linkExplainer": {

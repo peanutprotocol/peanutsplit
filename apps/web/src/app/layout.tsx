@@ -1,6 +1,7 @@
 import { type Metadata, type Viewport } from 'next'
 import { Roboto_Flex, Sniglet } from 'next/font/google'
 import localFont from 'next/font/local'
+import { headers } from 'next/headers'
 import { NextIntlClientProvider } from 'next-intl'
 import Script from 'next/script'
 import { getLocale } from 'next-intl/server'
@@ -9,6 +10,7 @@ import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
+import { isCanonicalPwaRequest } from '@/lib/pwa-manifest'
 import { appleStartupImages } from '@/lib/splash'
 import '../styles/globals.css'
 
@@ -17,22 +19,6 @@ export const metadata: Metadata = {
     // Shared with the SoftwareApplication node in `siteSchema()` — same sentence, one source.
     description: SITE_DESCRIPTION,
     metadataBase: new URL(siteUrl),
-    // The app CHROME is "Split": launcher label, home-screen label, lock-screen sender. Everything
-    // a search engine or a group chat sees — the title above, `SITE_NAME`, every OG unfurl — stays
-    // "Peanut Split".
-    applicationName: 'Split',
-    // Next fills the rest of this object in: `capable` defaults to true and `statusBarStyle` to
-    // 'default', so this one line also emits <meta name="mobile-web-app-capable"> and
-    // <meta name="apple-mobile-web-app-status-bar-style">. What we are here for is
-    // `apple-mobile-web-app-title` — the name iOS proposes in the Add to Home Screen dialog, which
-    // the manifest cannot set. Chromeless launch on iOS comes from the manifest's
-    // `display: 'standalone'`; Next 16 emits no `apple-mobile-web-app-capable` tag at all, so
-    // pre-16.4 iOS gains nothing from this.
-    // `startupImage` is what an installed iOS app shows while it boots. Without it that second is
-    // a blank `background_color` screen; the matching is per exact device geometry, so it is a file
-    // per phone. `splash.ts` owns the table and `pnpm icons` renders it.
-    appleWebApp: { title: 'Split', startupImage: appleStartupImages() },
-    icons: { apple: '/icons/apple-touch-icon.png' },
 }
 
 export const viewport: Viewport = {
@@ -102,6 +88,9 @@ window.addEventListener('beforeinstallprompt', function (event) {
  * language" — there is no static HTML that can be correct for three languages at once.
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+    const requestHeaders = await headers()
+    const showPwaIdentity = isCanonicalPwaRequest(requestHeaders)
+
     // Resolved by src/i18n/request.ts: the language the URL states, then ps-locale cookie →
     // Accept-Language → en. `lang` has to follow the URL and not the cookie — an English page
     // opened by a reader carrying `ps-locale=pt-br` is still an English page, and declaring it
@@ -114,12 +103,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
         <html lang={locale} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
             <head>
+                {/* These tags are literal children of <head>, not Next Metadata API values. Room
+                    pages resolve metadata asynchronously; Next may stream that metadata into
+                    <body>, where Chromium cannot discover a manifest. Keeping the app identity
+                    here also lets the shared build omit it entirely on legacy/preview hosts. */}
+                {showPwaIdentity && (
+                    <>
+                        <link rel="manifest" href="/manifest.webmanifest" />
+                        <meta name="application-name" content="Split" />
+                        <meta name="apple-mobile-web-app-capable" content="yes" />
+                        <meta name="apple-mobile-web-app-title" content="Split" />
+                        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+                        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+                        {appleStartupImages().map(({ url, media }) => (
+                            <link key={media} rel="apple-touch-startup-image" href={url} media={media} />
+                        ))}
+                    </>
+                )}
                 <Script id="split-motion-preflight" strategy="beforeInteractive">
                     {motionPreferencePreflight}
                 </Script>
-                <Script id="split-install-preflight" strategy="beforeInteractive">
-                    {installPromptPreflight}
-                </Script>
+                {showPwaIdentity && (
+                    <Script id="split-install-preflight" strategy="beforeInteractive">
+                        {installPromptPreflight}
+                    </Script>
+                )}
             </head>
             <body
                 className={`${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`}
