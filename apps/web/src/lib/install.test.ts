@@ -316,14 +316,14 @@ describe('the banner backoff', () => {
         vi.resetModules()
         fakeWindow()
         const now = vi.spyOn(Date, 'now').mockReturnValue(1_000)
-        const { IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS, isInstallSnoozed, snoozeAfterIosInstallInstructions } =
+        const { MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS, isInstallSnoozed, snoozeAfterManualInstallInstructions } =
             await import('./install')
 
-        snoozeAfterIosInstallInstructions()
+        snoozeAfterManualInstallInstructions()
         expect(isInstallSnoozed()).toBe(true)
-        now.mockReturnValue(1_000 + IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS - 1)
+        now.mockReturnValue(1_000 + MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS - 1)
         expect(isInstallSnoozed()).toBe(true)
-        now.mockReturnValue(1_000 + IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS)
+        now.mockReturnValue(1_000 + MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS)
         expect(isInstallSnoozed()).toBe(false)
 
         now.mockRestore()

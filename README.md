@@ -94,8 +94,8 @@ Peanut's design system, with `primary-1` swapped off Peanut pink so Split reads 
   claimed/unclaimed lifecycle.
 - `docs/SHARE-SUCCESS.md` — a completed share is the key business success
   moment: strongly encouraged, never required.
-- `docs/PWA-INSTALL-FUNNEL.md` — why automatic install promotion follows value,
-  the device-local eligibility rules, and the narrow iOS first-launch handoff.
+- `docs/PWA-INSTALL-FUNNEL.md` — the room guidance priority behind automatic
+  install promotion, its device-local suppression rules, and the narrow iOS first-launch handoff.
 
 ## Provenance
 

@@ -221,6 +221,14 @@ describe('install measurement', () => {
         ).toEqual({ trigger: 'mature_return', surface: 'auto', outcome: 'accepted' })
         expect(
             installMeasureProps('pwa_prompt_shown', {
+                trigger: 'quiet_slot',
+                delivery: 'browser_steps',
+                slug: 'private-room-credential',
+                member: 'ana',
+            })
+        ).toEqual({ trigger: 'quiet_slot', delivery: 'browser_steps' })
+        expect(
+            installMeasureProps('pwa_prompt_shown', {
                 trigger: 'creator' as never,
                 delivery: 'magic' as never,
             })
