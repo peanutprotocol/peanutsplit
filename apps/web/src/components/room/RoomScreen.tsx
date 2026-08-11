@@ -669,9 +669,9 @@ export function RoomScreen({ slug }: { slug: string }) {
                 </>
             )}
 
-            {/* The settings row stays discoverable whenever this browser exposes an install action.
-                This promoted card is earned by semantic room value and yields to every
-                higher-priority room moment. */}
+            {/* Settings stays discoverable through either the browser's one-tap action or portable
+                menu guidance. This promoted card is earned by semantic room value and yields to
+                every higher-priority room moment. */}
             {state && !needsJoin && (
                 <InstallPrompt
                     trigger={

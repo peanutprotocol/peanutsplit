@@ -198,6 +198,7 @@ describe('install measurement', () => {
                 pwa_prompt_dismissed: ['trigger', 'delivery', 'reason'],
                 install_prompted: ['surface', 'outcome', 'trigger'],
                 ios_install_steps_opened: ['surface', 'trigger'],
+                browser_install_steps_opened: ['surface'],
             },
         })
 
@@ -224,6 +225,13 @@ describe('install measurement', () => {
                 delivery: 'magic' as never,
             })
         ).toEqual({})
+        expect(
+            installMeasureProps('browser_install_steps_opened', {
+                surface: 'settings',
+                slug: 'private-room-credential',
+                member: 'ana',
+            })
+        ).toEqual({ surface: 'settings' })
     })
 })
 
