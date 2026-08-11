@@ -7,15 +7,36 @@ const env = (overrides: Partial<InstallEnvironment> = {}): InstallEnvironment =>
     hasPrompt: false,
     promptSpent: false,
     installedHere: false,
+    hasCanonicalLaunchMarker: false,
+    isRoomPath: false,
     ...overrides,
 })
 
 describe('deriveInstallState', () => {
-    it('answers installed before anything else, on either signal', () => {
-        expect(deriveInstallState(env({ isStandalone: true, isIOS: true, hasPrompt: true }))).toBe('installed')
+    it('flags an unmarked standalone room shortcut for explicit repair', () => {
+        expect(deriveInstallState(env({ isStandalone: true, isRoomPath: true }))).toBe('repair')
+    })
+
+    it('keeps an unmarked standalone room on repair when a late prompt arrives', () => {
+        expect(deriveInstallState(env({ isStandalone: true, isRoomPath: true, hasPrompt: true }))).toBe('repair')
+    })
+
+    it('trusts a versioned canonical launch marker before standalone room navigation', () => {
+        expect(deriveInstallState(env({ isStandalone: true, isRoomPath: true, hasCanonicalLaunchMarker: true }))).toBe(
+            'installed'
+        )
+        expect(
+            deriveInstallState(
+                env({ isStandalone: true, isRoomPath: true, hasCanonicalLaunchMarker: true, hasPrompt: true })
+            )
+        ).toBe('installed')
+        expect(deriveInstallState(env({ isStandalone: true }))).toBe('installed')
+    })
+
+    it('keeps an install accepted in this tab installed while the browser finishes', () => {
         // The tab that installs the app is still a tab: `display-mode` never flips in it. Without
         // this the row would say "this browser can't add apps" one second after it added one.
-        expect(deriveInstallState(env({ installedHere: true, promptSpent: true }))).toBe('installed')
+        expect(deriveInstallState(env({ installedHere: true, promptSpent: true, hasPrompt: true }))).toBe('installed')
     })
 
     it('offers the browser prompt whenever one is still live', () => {
@@ -49,6 +70,9 @@ function fakeWindow({
     ua = 'Mozilla/5.0 (X11; Linux x86_64)',
     platform = 'Linux x86_64',
     maxTouchPoints = 0,
+    pathname = '/app',
+    search = '',
+    denyLocalStorage = false,
 } = {}): FakeWindow {
     const listeners = new Map<string, ((event: unknown) => void)[]>()
     const store = new Map<string, string>()
@@ -60,10 +84,25 @@ function fakeWindow({
         },
         matchMedia: () => ({ matches: state.standalone }),
         navigator: { userAgent: ua, platform, maxTouchPoints },
+        location: {
+            origin: 'https://split.peanut.me',
+            href: `https://split.peanut.me${pathname}${search}`,
+            pathname,
+            search,
+        },
         localStorage: {
-            getItem: (key: string) => store.get(key) ?? null,
-            setItem: (key: string, value: string) => void store.set(key, value),
-            removeItem: (key: string) => void store.delete(key),
+            getItem: (key: string) => {
+                if (denyLocalStorage) throw new Error('storage denied')
+                return store.get(key) ?? null
+            },
+            setItem: (key: string, value: string) => {
+                if (denyLocalStorage) throw new Error('storage denied')
+                store.set(key, value)
+            },
+            removeItem: (key: string) => {
+                if (denyLocalStorage) throw new Error('storage denied')
+                store.delete(key)
+            },
         },
     }
     vi.stubGlobal('window', win)
@@ -123,6 +162,58 @@ describe('the install store', () => {
 
         win.fire('beforeinstallprompt')
         expect(readInstallState()).toBe('promptable')
+    })
+
+    it('records a canonical standalone /app launch before treating later rooms as installed', async () => {
+        const win = fakeWindow({ standalone: true, pathname: '/app' })
+        const {
+            CANONICAL_LAUNCH_MARKER_KEY,
+            captureInstallPrompt,
+            hasCanonicalStandaloneLaunch,
+            readInstallState,
+            recordCanonicalStandaloneLaunch,
+        } = await import('./install')
+
+        expect(recordCanonicalStandaloneLaunch()).toBe(true)
+        expect(win.store.get(CANONICAL_LAUNCH_MARKER_KEY)).toBe('1')
+        expect(hasCanonicalStandaloneLaunch()).toBe(true)
+
+        captureInstallPrompt()
+        expect(readInstallState()).toBe('installed')
+    })
+
+    it('uses the marker as stronger evidence than an eventual standalone room path', async () => {
+        const win = fakeWindow({ standalone: true, pathname: '/r/KUNC' })
+        win.store.set('ps:pwa-canonical-launch:v1', '1')
+        const { captureInstallPrompt, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+
+        expect(readInstallState()).toBe('installed')
+    })
+
+    it('refuses to write the canonical marker on room and repair routes', async () => {
+        const room = fakeWindow({ standalone: true, pathname: '/r/KUNC' })
+        const { CANONICAL_LAUNCH_MARKER_KEY, recordCanonicalStandaloneLaunch } = await import('./install')
+
+        expect(recordCanonicalStandaloneLaunch()).toBe(false)
+        expect(room.store.has(CANONICAL_LAUNCH_MARKER_KEY)).toBe(false)
+
+        vi.resetModules()
+        const repair = fakeWindow({ standalone: true, pathname: '/app', search: '?install=1&repair=1' })
+        const repairInstall = await import('./install')
+        expect(repairInstall.recordCanonicalStandaloneLaunch()).toBe(false)
+        expect(repair.store.has(repairInstall.CANONICAL_LAUNCH_MARKER_KEY)).toBe(false)
+    })
+
+    it('keeps an unmarked standalone room actionable when local storage is denied', async () => {
+        fakeWindow({ standalone: true, pathname: '/r/KUNC', denyLocalStorage: true })
+        const { captureInstallPrompt, readInstallState, recordCanonicalStandaloneLaunch } = await import('./install')
+
+        expect(recordCanonicalStandaloneLaunch()).toBe(false)
+        captureInstallPrompt()
+
+        expect(readInstallState()).toBe('repair')
     })
 
     it('uses an Android Chrome prompt that arrived before React mounted', async () => {
@@ -238,14 +329,13 @@ describe('the install store', () => {
         expect(readInstallState()).toBe('waiting')
     })
 
-    it('clears the banner snooze when the app is installed any other way', async () => {
+    it('clears explicit dismissal backoff when the app is installed any other way', async () => {
         const win = fakeWindow()
-        const { captureInstallPrompt, isInstallSnoozed, noteInstallDismissed, readInstallState, snoozeInstallFor } =
+        const { captureInstallPrompt, isInstallSnoozed, noteInstallDismissed, readInstallState } =
             await import('./install')
         captureInstallPrompt()
 
         expect(noteInstallDismissed()).toBe(1)
-        snoozeInstallFor(30 * 24 * 60 * 60 * 1000)
         expect(isInstallSnoozed()).toBe(true)
 
         // Chrome's omnibox install, not ours.
@@ -254,6 +344,33 @@ describe('the install store', () => {
         expect(isInstallSnoozed()).toBe(false)
         expect(win.store.size).toBe(0)
         expect(readInstallState()).toBe('installed')
+    })
+
+    it('repairs the legacy help-close snooze and its contaminated dismissal on capture', async () => {
+        const win = fakeWindow()
+        win.store.set('ps:pwa-snoozed-until', String(Date.now() + 30 * 24 * 60 * 60 * 1000))
+        win.store.set('ps:pwa-dismiss-count', '4')
+        win.store.set('ps:pwa-dismissed-at', String(Date.now()))
+        const { captureInstallPrompt, isInstallSnoozed, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+
+        expect(readInstallState()).toBe('waiting')
+        expect(isInstallSnoozed()).toBe(false)
+        expect(win.store.size).toBe(0)
+    })
+
+    it('keeps the one-time repair acknowledgement separate from install backoff', async () => {
+        fakeWindow()
+        const { dismissInstallRepairNotice, isInstallRepairNoticeDismissed, isInstallSnoozed, noteInstallDismissed } =
+            await import('./install')
+
+        noteInstallDismissed()
+        expect(isInstallSnoozed()).toBe(true)
+        expect(isInstallRepairNoticeDismissed()).toBe(false)
+
+        dismissInstallRepairNotice()
+        expect(isInstallRepairNoticeDismissed()).toBe(true)
     })
 })
 
@@ -312,18 +429,17 @@ describe('the banner backoff', () => {
         expect(installBackoffMs(99)).toBe(30 * 24 * hour)
     })
 
-    it('can impose the iOS instructions minimum without hiding the settings action forever', async () => {
+    it('is applied only by an explicit dismissal', async () => {
         vi.resetModules()
         fakeWindow()
         const now = vi.spyOn(Date, 'now').mockReturnValue(1_000)
-        const { MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS, isInstallSnoozed, snoozeAfterManualInstallInstructions } =
-            await import('./install')
+        const { installBackoffMs, isInstallSnoozed, noteInstallDismissed } = await import('./install')
 
-        snoozeAfterManualInstallInstructions()
+        noteInstallDismissed()
         expect(isInstallSnoozed()).toBe(true)
-        now.mockReturnValue(1_000 + MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS - 1)
+        now.mockReturnValue(1_000 + installBackoffMs(1) - 1)
         expect(isInstallSnoozed()).toBe(true)
-        now.mockReturnValue(1_000 + MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS)
+        now.mockReturnValue(1_000 + installBackoffMs(1))
         expect(isInstallSnoozed()).toBe(false)
 
         now.mockRestore()
