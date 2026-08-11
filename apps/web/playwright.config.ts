@@ -4,6 +4,21 @@ const PORT = Number(process.env.E2E_PORT ?? 3100)
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`
 const browserName =
     process.env.E2E_BROWSER === 'firefox' || process.env.E2E_BROWSER === 'webkit' ? process.env.E2E_BROWSER : 'chromium'
+const iphone = devices['iPhone 14']
+/**
+ * Firefox cannot emulate WebKit's `isMobile` context flag. Feeding it the full iPhone descriptor
+ * creates a hybrid browser with a Safari user agent and makes viewport changes hang. Keep the
+ * same narrow/touch test surface on Firefox's own UA and supported desktop context instead.
+ */
+const mobileDevice =
+    browserName === 'firefox'
+        ? {
+              ...devices['Desktop Firefox'],
+              viewport: iphone.viewport,
+              screen: { width: 390, height: 844 },
+              hasTouch: true,
+          }
+        : iphone
 
 /**
  * Mobile-first: 390x844 is the design target.
@@ -71,7 +86,7 @@ export default defineConfig({
         {
             name: 'mobile',
             use: {
-                ...devices['iPhone 14'],
+                ...mobileDevice,
                 browserName,
                 // The two projects model independent visitors. Keeping their
                 // TEST-NET addresses distinct prevents one project's room/member

@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 import { test } from './fixtures'
-import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
+import { enterCreatedRoom, openCurrentRoomSettings, waitForHydratedControl } from './helpers'
 
 /**
  * The shared drawer primitive is modal for the keyboard, not only for the mouse.
@@ -38,7 +38,9 @@ const focusShape = (control: Locator) =>
 
 test.beforeEach(async ({ page }) => {
     await page.goto('/new')
-    await page.getByTestId('room-name').fill('Focus behaviour')
+    const roomName = page.getByTestId('room-name')
+    await waitForHydratedControl(roomName)
+    await roomName.fill('Focus behaviour')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
     await enterCreatedRoom(page)
@@ -70,12 +72,20 @@ test('focus enters the sheet, stays inside it, and comes back to the trigger', a
     await page.keyboard.press('Enter')
     const switcher = page.getByTestId('room-switcher-sheet')
     await expect(switcher).toBeVisible({ timeout: 10_000 })
+    const closeSwitcher = switcher.getByRole('button', { name: 'Close room switcher' })
     const settingsTrigger = switcher.locator('[data-testid="room-switcher-settings"][data-current="true"]')
 
     const recentRoom = switcher.locator(
         '[data-testid="room-switcher-tile"][data-slug="focus-neighbour-brave-otter-lamp"]'
     )
-    await recentRoom.focus()
+    // Drive the real keyboard order. Firefox deliberately does not apply
+    // `:focus-visible` to locator.focus(), because that is script focus rather
+    // than keyboard focus; Chromium happened to make the old shortcut pass.
+    await expect(closeSwitcher).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(settingsTrigger).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(recentRoom).toBeFocused()
     await expect
         .poll(() => focusShape(recentRoom))
         .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '12px', '0px', '0px', '12px'])
@@ -83,12 +93,16 @@ test('focus enters the sheet, stays inside it, and comes back to the trigger', a
     const recentSettings = switcher.locator(
         '[data-testid="room-switcher-settings"][data-slug="focus-neighbour-brave-otter-lamp"]'
     )
-    await recentSettings.focus()
+    await page.keyboard.press('Tab')
+    await expect(recentSettings).toBeFocused()
     await expect
         .poll(() => focusShape(recentSettings))
         .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '0px', '12px', '12px', '0px'])
 
-    await settingsTrigger.focus()
+    await page.keyboard.press('Shift+Tab')
+    await expect(recentRoom).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await expect(settingsTrigger).toBeFocused()
     await expect
         .poll(() => focusShape(settingsTrigger))
         .toEqual(['rgb(33, 28, 23)', 'solid', '2px', '-2px', '0px', '12px', '12px', '0px'])
