@@ -13,20 +13,23 @@ import type { MemberIdentity } from '@/lib/identity'
 import { isLatecomerReviewDismissed, latecomerReview } from '@/lib/latecomer'
 import {
     clearMatureRoomReturnEvidence,
-    deferRoomInstallAfterSkippedShare,
-    eligibleRoomInstallTrigger,
+    deferRoomInstallAfterCompetingGuidance,
+    deferredRoomInstallWaitMs,
     MATURE_ACTIVITY_HEARTBEAT_MS,
     noteMatureContribution,
     noteMatureRoomActivity,
     noteMatureRoomAway,
     noteMatureRoomVisit,
     noteRoomShareCompleted,
+    promotedRoomInstallTrigger,
     type AutoInstallTrigger,
 } from '@/lib/install-funnel'
-import { isRoomSettled, savedExpenses } from '@/lib/pending'
+import { useQueuedWrites } from '@/lib/offline-queue'
+import { isPendingExpenseId, isRoomSettled, savedExpenses } from '@/lib/pending'
 import { useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { roomEmblemDoodle } from '@/lib/room-emblem'
+import { resolveRoomGuidance } from '@/lib/room-guidance'
 import { useRoomParams } from '@/lib/room-params'
 import { prewarmRoomPreview } from '@/lib/room-preview'
 import { activeMembers, isActiveMember } from '@/lib/members'
@@ -77,7 +80,7 @@ export function RoomScreen({ slug }: { slug: string }) {
     // Expense drawer. Keep an already-earned transition with the room screen so
     // a later conflict cannot make that first-balance moment disappear.
     const latecomerFirstSharedBalancePending = useRef(false)
-    const refreshInstallTrigger = useCallback(() => setInstallTrigger(eligibleRoomInstallTrigger(slug)), [slug])
+    const refreshInstallTrigger = useCallback(() => setInstallTrigger(promotedRoomInstallTrigger(slug)), [slug])
     const openRoomShare = useCallback(
         (surface: ShareSurface) => {
             setShareSurface(surface)
@@ -103,7 +106,7 @@ export function RoomScreen({ slug }: { slug: string }) {
     const closeRoomShare = useCallback(
         (completed: boolean) => {
             if (shareSurface === 'post_aha' && !completed) {
-                deferRoomInstallAfterSkippedShare(slug)
+                deferRoomInstallAfterCompetingGuidance(slug)
                 refreshInstallTrigger()
             }
             setShareSurface('header')
@@ -145,14 +148,23 @@ export function RoomScreen({ slug }: { slug: string }) {
         trackFirstSharedBalance()
     }, [])
 
-    const resolveLatecomer = useCallback(() => {
-        setLatecomerPaused(true)
-        if (!latecomerFirstSharedBalancePending.current) return
-        latecomerFirstSharedBalancePending.current = false
-        // The review has committed its close before Share becomes the sole
-        // modal owner, matching the ordinary successful catch-up path.
-        openPostAhaShare(false)
-    }, [openPostAhaShare])
+    const deferCompetingGuidance = useCallback(() => {
+        deferRoomInstallAfterCompetingGuidance(slug)
+        refreshInstallTrigger()
+    }, [refreshInstallTrigger, slug])
+
+    const resolveLatecomer = useCallback(
+        (reason: 'completed' | 'not_now') => {
+            setLatecomerPaused(true)
+            if (reason === 'not_now') deferCompetingGuidance()
+            if (!latecomerFirstSharedBalancePending.current) return
+            latecomerFirstSharedBalancePending.current = false
+            // The review has committed its close before Share becomes the sole
+            // modal owner, matching the ordinary successful catch-up path.
+            openPostAhaShare(false)
+        },
+        [deferCompetingGuidance, openPostAhaShare]
+    )
 
     useEffect(() => {
         latecomerFirstSharedBalancePending.current = false
@@ -197,6 +209,9 @@ export function RoomScreen({ slug }: { slug: string }) {
     const settledUp = isRoomSettled(state)
     const hasActiveDebt = (state?.suggestedTransfers.length ?? 0) > 0
     const historyEmpty = !!state && state.expenses.length === 0 && state.settlements.length === 0
+    const queuedWrites = useQueuedWrites(slug)
+    const hasUnsavedExpense =
+        queuedWrites.length > 0 || !!state?.expenses.some((expense) => isPendingExpenseId(expense.id))
 
     // Nothing is celebrated behind a sheet: the settle drawer dims the room to
     // 20% and the burst would be spent before anyone saw it.
@@ -221,6 +236,26 @@ export function RoomScreen({ slug }: { slug: string }) {
         matureVisitRecorded.current = false
         refreshInstallTrigger()
     }, [refreshInstallTrigger, slug])
+
+    useEffect(() => {
+        if (installTrigger !== null) return
+        const firstWait = deferredRoomInstallWaitMs(slug)
+        if (firstWait === null) return
+
+        let timer = 0
+        const refreshAfterDefer = () => {
+            const wait = deferredRoomInstallWaitMs(slug)
+            if (wait === null) {
+                refreshInstallTrigger()
+                return
+            }
+            // Re-check against wall time when the tab wakes: clocks and background timer
+            // throttling must not turn a 30-minute courtesy defer into a permanent one.
+            timer = window.setTimeout(refreshAfterDefer, wait + 1)
+        }
+        timer = window.setTimeout(refreshAfterDefer, firstWait + 1)
+        return () => window.clearTimeout(timer)
+    }, [installTrigger, refreshInstallTrigger, slug])
 
     useEffect(() => {
         if (!state || !loaded) return
@@ -324,6 +359,16 @@ export function RoomScreen({ slug }: { slug: string }) {
         void setParams({ character: null }, { history: 'replace' })
     }, [activeRoster, params.character, setParams])
     const latecomerPending = latecomer !== null
+    const guidanceOwner = resolveRoomGuidance({
+        identity: !loaded || needsJoin,
+        recovery: staleState || hasUnsavedExpense,
+        postAhaShare: !!params.share && shareSurface === 'post_aha',
+        activeFlow: drawerOpen,
+        roomActivation: historyEmpty,
+        latecomerReview: latecomerPending,
+        allSettledMoment: celebrate,
+        achievement: achievementOpen,
+    })
 
     useEffect(() => {
         if (!state) return
@@ -545,6 +590,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                         state={state}
                                         meId={meId}
                                         onOpenChange={setAchievementOpen}
+                                        onDismissed={deferCompetingGuidance}
                                     />
                                 )}
                             <AnimatePresence initial={false}>
@@ -565,6 +611,28 @@ export function RoomScreen({ slug }: { slug: string }) {
                                     />
                                 )}
                             </AnimatePresence>
+                            {!needsJoin && (
+                                <InstallPrompt
+                                    trigger={installTrigger}
+                                    blocked={guidanceOwner !== 'install'}
+                                    slug={slug}
+                                    token={identity?.token}
+                                    settled={settledUp}
+                                    returnFocusRef={roomTitleRef}
+                                    onShown={({ trigger, delivery }) =>
+                                        track(
+                                            'pwa_prompt_shown',
+                                            installMeasureProps('pwa_prompt_shown', { trigger, delivery })
+                                        )
+                                    }
+                                    onDismissed={({ trigger, delivery, reason }) =>
+                                        track(
+                                            'pwa_prompt_dismissed',
+                                            installMeasureProps('pwa_prompt_dismissed', { trigger, delivery, reason })
+                                        )
+                                    }
+                                />
+                            )}
                             <ExpenseList
                                 state={state}
                                 currencies={currencies}
@@ -667,32 +735,6 @@ export function RoomScreen({ slug }: { slug: string }) {
                         meId={meId}
                     />
                 </>
-            )}
-
-            {/* Settings stays discoverable through either the browser's one-tap action or portable
-                menu guidance. This promoted card is earned by semantic room value and yields to
-                every higher-priority room moment. */}
-            {state && !needsJoin && (
-                <InstallPrompt
-                    trigger={
-                        state.room.hasReachedSharedBalance === true && hasActiveDebt && !settledUp
-                            ? installTrigger
-                            : null
-                    }
-                    blocked={drawerOpen || latecomerPending || achievementOpen || staleState}
-                    slug={slug}
-                    token={identity?.token}
-                    returnFocusRef={roomTitleRef}
-                    onShown={({ trigger, delivery }) =>
-                        track('pwa_prompt_shown', installMeasureProps('pwa_prompt_shown', { trigger, delivery }))
-                    }
-                    onDismissed={({ trigger, delivery, reason }) =>
-                        track(
-                            'pwa_prompt_dismissed',
-                            installMeasureProps('pwa_prompt_dismissed', { trigger, delivery, reason })
-                        )
-                    }
-                />
             )}
         </main>
     )

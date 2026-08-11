@@ -10,7 +10,13 @@ import { SettingRow } from '@/components/ui/SettingRow'
 import { StateRow } from '@/components/ui/StateRow'
 import { installMeasureProps, track } from '@/lib/analytics'
 import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
-import { isIOSHere, promptInstall, snoozeAfterIosInstallInstructions, useInstallState } from '@/lib/install'
+import {
+    isIOSHere,
+    noteInstallDismissed,
+    promptInstall,
+    snoozeAfterManualInstallInstructions,
+    useInstallState,
+} from '@/lib/install'
 import { useFeedback } from '@/lib/use-settings'
 import { BrowserInstallSteps } from './BrowserInstallSteps'
 import { IosInstallSteps } from './IosInstallSteps'
@@ -49,8 +55,13 @@ export function InstallRow({ slug, token, active = true }: { slug: string; token
     const reported = useRef(false)
 
     const closeIosSteps = () => {
-        snoozeAfterIosInstallInstructions()
+        snoozeAfterManualInstallInstructions()
         setIosSheetOpen(false)
+    }
+
+    const closeBrowserSteps = () => {
+        if (state !== 'installed') snoozeAfterManualInstallInstructions()
+        setBrowserSheetOpen(false)
     }
 
     useEffect(() => {
@@ -76,6 +87,7 @@ export function InstallRow({ slug, token, active = true }: { slug: string; token
         const outcome = await promptInstall()
         if (outcome === 'unavailable') return
         track('install_prompted', installMeasureProps('install_prompted', { outcome, surface: 'settings' }))
+        if (outcome === 'dismissed') noteInstallDismissed()
         // `pwa_installed` is NOT fired here. The store's `appinstalled` handler is its one source.
         if (outcome === 'accepted') feedback('pop')
     }
@@ -152,7 +164,7 @@ export function InstallRow({ slug, token, active = true }: { slug: string; token
         setBrowserSheetOpen(true)
     }
     const browserInstructions = (
-        <Drawer open={browserSheetOpen} onOpenChange={(next) => !next && setBrowserSheetOpen(false)}>
+        <Drawer open={browserSheetOpen} onOpenChange={(next) => !next && closeBrowserSteps()}>
             <DrawerContent
                 data-testid="browser-install-drawer"
                 onCloseAutoFocus={(event) => {
@@ -168,7 +180,7 @@ export function InstallRow({ slug, token, active = true }: { slug: string; token
                 <DrawerBody>
                     <BrowserInstallSteps />
                     <DrawerActions>
-                        <Button variant="stroke" className="justify-center" onClick={() => setBrowserSheetOpen(false)}>
+                        <Button variant="stroke" className="justify-center" onClick={closeBrowserSteps}>
                             {t('browser.done')}
                         </Button>
                     </DrawerActions>

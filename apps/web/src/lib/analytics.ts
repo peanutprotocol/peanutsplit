@@ -248,8 +248,9 @@ export const INSTALL_TRIGGERS = [
     'balance_and_share',
     'mature_contribution',
     'mature_return',
+    'quiet_slot',
 ] as const satisfies readonly AutoInstallTrigger[]
-export const INSTALL_DELIVERIES = ['browser_prompt', 'ios_steps'] as const
+export const INSTALL_DELIVERIES = ['browser_prompt', 'browser_steps', 'ios_steps'] as const
 export const INSTALL_SURFACES = ['auto', 'settings'] as const
 export const INSTALL_OUTCOMES = ['accepted', 'dismissed'] as const
 export const INSTALL_DISMISS_REASONS = ['not_now', 'close', 'browser_declined', 'instructions_closed'] as const

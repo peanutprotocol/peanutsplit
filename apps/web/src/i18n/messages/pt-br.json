@@ -185,6 +185,7 @@
         "install": {
             "title": "Mantenha esta divisão por perto",
             "body": "Adicione o Split a este aparelho e volte direto para esta sala. Sem loja, sem conta.",
+            "bodySettled": "Mantenha o Split a um toque para esta viagem e a próxima. Sem loja, sem conta.",
             "cta": "Adicionar o Split",
             "ctaIos": "Ver como",
             "dismiss": "Agora não",
