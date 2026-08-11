@@ -8,6 +8,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      expected_head_sha:
+        description: Exact artifact commit this run must validate
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -36,6 +42,23 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
+      - name: Bind a dispatched run to one exact commit
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        env:
+          ACTUAL_HEAD_SHA: ${{ github.sha }}
+          EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${EXPECTED_HEAD_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::expected_head_sha must be a lowercase 40-character Git SHA.'
+            exit 1
+          fi
+          if [[ "${ACTUAL_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}" ]]; then
+            echo "::error::Dispatched ref resolved to ${ACTUAL_HEAD_SHA}, not ${EXPECTED_HEAD_SHA}."
+            exit 1
+          fi
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -80,6 +103,21 @@ jobs:
 
       - run: pnpm test
 
+      # Renderer-only branches have no generated destination. Artifact publication commits do,
+      # and must compile every real body through the production loader, MDX policy, route
+      # metadata, and layout rather than relying only on the synthetic A3 fixtures.
+      - name: Validate the installed generated Split artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_root="${GITHUB_WORKSPACE}/apps/web/src/generated/seo"
+          if [[ ! -f "${artifact_root}/manifest.json" ]]; then
+            echo 'No generated Split artifact is installed in this commit.'
+            exit 0
+          fi
+          SPLIT_CONTENT_ARTIFACT_ROOT="${artifact_root}" \
+            pnpm --dir apps/web exec vitest run src/lib/split-content/published-artifact.test.tsx
+
       - run: pnpm build
 
   # Builds the exact artifact Dokploy deploys. The 2026-08-03 incident class:
@@ -95,6 +133,23 @@ jobs:
   docker-web:
     runs-on: ubuntu-latest
     steps:
+      - name: Bind a dispatched run to one exact commit
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        env:
+          ACTUAL_HEAD_SHA: ${{ github.sha }}
+          EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${EXPECTED_HEAD_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::expected_head_sha must be a lowercase 40-character Git SHA.'
+            exit 1
+          fi
+          if [[ "${ACTUAL_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}" ]]; then
+            echo "::error::Dispatched ref resolved to ${ACTUAL_HEAD_SHA}, not ${EXPECTED_HEAD_SHA}."
+            exit 1
+          fi
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - run: >-
           docker build
