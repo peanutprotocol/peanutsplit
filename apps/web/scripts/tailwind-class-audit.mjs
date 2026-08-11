@@ -109,7 +109,7 @@ function stringTokensInside(attribute) {
 for (const path of filesBelow(src)) {
     const source = readFileSync(path, 'utf8')
     const file = relative(root, path)
-    const isDevDs = file.startsWith('src/app/dev-ds/')
+    const isDevDs = file.startsWith('src/app/(product-shell)/dev-ds/')
 
     if (!isDevDs) {
         for (const match of source.matchAll(/placeholder:text-grey-2/g)) {

@@ -36,12 +36,12 @@ describe('localized Splitwise comparison', () => {
             const path = localizedPath('/splitwise-alternative', locale)
             expect(comparisonCopy[locale].migration.moreHref).toBe(localizedPath('/splitwise-daily-limit', locale))
             const metadata = splitwiseAlternativeMetadata(locale)
-            expect(metadata.alternates?.canonical).toBe(path)
+            expect(metadata.alternates?.canonical).toBe(absoluteUrl(path))
             expect(metadata.alternates?.languages).toEqual({
-                en: '/splitwise-alternative',
-                'es-419': '/es-419/splitwise-alternative',
-                'pt-BR': '/pt-br/splitwise-alternative',
-                'x-default': '/splitwise-alternative',
+                en: absoluteUrl('/splitwise-alternative'),
+                'es-419': absoluteUrl('/es-419/splitwise-alternative'),
+                'pt-BR': absoluteUrl('/pt-br/splitwise-alternative'),
+                'x-default': absoluteUrl('/splitwise-alternative'),
             })
         }
     })

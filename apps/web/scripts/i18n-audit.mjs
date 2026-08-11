@@ -274,7 +274,7 @@ for (const file of sourceFiles(srcRoot)) {
 
 // ---------------------------------------------------------------- document policy
 
-const layoutPath = 'src/app/layout.tsx'
+const layoutPath = 'src/app/(product-shell)/layout.tsx'
 const translationPolicyViolations = []
 for (const file of sourceFiles(srcRoot)) {
     const path = relative(appRoot, file)
@@ -291,7 +291,7 @@ for (const file of sourceFiles(srcRoot)) {
 }
 
 const layoutSource = stripComments(readFileSync(join(appRoot, layoutPath), 'utf8'))
-if (!/<html\s[^>]*lang=\{locale\}[^>]*translate="no"/.test(layoutSource)) {
+if (!/<html\s[^>]*lang=\{HREFLANG\[locale\]\}[^>]*translate="no"/.test(layoutSource)) {
     translationPolicyViolations.push(`${layoutPath} must bind lang and the native-only policy on <html>`)
 }
 

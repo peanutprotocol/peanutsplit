@@ -1,0 +1,73 @@
+{
+    "schema_version": 1,
+    "source_repository": "peanutprotocol/mono",
+    "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "content_root": "split-content",
+    "locales": ["en", "es-419", "pt-br"],
+    "input_sha256": {
+        "split-content/_system/context/localization.es-419.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/context/localization.pt-br.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/context/messaging.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/data/guides/synthetic-guide.es-419.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/data/guides/synthetic-guide.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/data/guides/synthetic-guide.pt-br.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/generation-templates/guide.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/guidelines/seo.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/_system/workflows/generate-guide.md": "0000000000000000000000000000000000000000000000000000000000000000",
+        "split-content/product/truths.md": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "entries": [
+        {
+            "content_type": "guide",
+            "slug": "synthetic-guide",
+            "locale": "en",
+            "public_path": "/en/split/guides/synthetic-guide",
+            "output_path": "split-content/published/guides/synthetic-guide/en.md",
+            "output_sha256": "c6f7c93c2ec5de37357c9fad92df5a308420c464cc0a31b8e6fd2716896cdca5",
+            "source_input_paths": [
+                "split-content/_system/generation-templates/guide.md",
+                "split-content/_system/data/guides/synthetic-guide.md",
+                "split-content/product/truths.md",
+                "split-content/_system/workflows/generate-guide.md",
+                "split-content/_system/context/messaging.md",
+                "split-content/_system/guidelines/seo.md"
+            ]
+        },
+        {
+            "content_type": "guide",
+            "slug": "synthetic-guide",
+            "locale": "es-419",
+            "public_path": "/es-419/split/guides/synthetic-guide",
+            "output_path": "split-content/published/guides/synthetic-guide/es-419.md",
+            "output_sha256": "6258933a1179a899a2ffadc34457b3cfd660ccd9633fe4e508b6121b1830d4e2",
+            "source_input_paths": [
+                "split-content/_system/generation-templates/guide.md",
+                "split-content/_system/data/guides/synthetic-guide.md",
+                "split-content/_system/data/guides/synthetic-guide.es-419.md",
+                "split-content/product/truths.md",
+                "split-content/_system/workflows/generate-guide.md",
+                "split-content/_system/context/messaging.md",
+                "split-content/_system/context/localization.es-419.md",
+                "split-content/_system/guidelines/seo.md"
+            ]
+        },
+        {
+            "content_type": "guide",
+            "slug": "synthetic-guide",
+            "locale": "pt-br",
+            "public_path": "/pt-br/split/guides/synthetic-guide",
+            "output_path": "split-content/published/guides/synthetic-guide/pt-br.md",
+            "output_sha256": "6a9b6f42b8b3e979dfa54063d3da21a76296cb0439ea30ee60a65048911401df",
+            "source_input_paths": [
+                "split-content/_system/generation-templates/guide.md",
+                "split-content/_system/data/guides/synthetic-guide.md",
+                "split-content/_system/data/guides/synthetic-guide.pt-br.md",
+                "split-content/product/truths.md",
+                "split-content/_system/workflows/generate-guide.md",
+                "split-content/_system/context/messaging.md",
+                "split-content/_system/context/localization.pt-br.md",
+                "split-content/_system/guidelines/seo.md"
+            ]
+        }
+    ]
+}
