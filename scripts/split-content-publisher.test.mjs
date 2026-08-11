@@ -466,15 +466,24 @@ test('schema v2 rejects unknown versions, partial cohorts, and unsafe legacy own
 		manifest.entries.at(-1).legacy_paths = ['/import']
 	})
 	assert.throws(() => pack(reservedLegacy), /product or API namespace/)
+
+	const conflictingLegacy = makeFixture(t)
+	writeV2Artifact(conflictingLegacy.artifactRoot)
+	mutateManifest(conflictingLegacy.artifactRoot, (manifest) => {
+		manifest.entries.at(-1).legacy_paths = ['/en/split/tools']
+	})
+	assert.throws(() => pack(conflictingLegacy), /legacy path conflicts with a current public_path/)
 })
 
-test('schema v2 independently rejects noncanonical, active, and falsely-provenanced JSON', (t) => {
-	const mutateOutput = (fixture, mutate, { canonical = true } = {}) => {
+test('schema v2 independently rejects noncanonical, active, falsely-provenanced, and wrong-typed JSON', (t) => {
+	const mutateOutput = (
+		fixture,
+		mutate,
+		{ canonical = true, select = (candidate) => candidate.content_type === 'hub' && candidate.locale === 'en' } = {}
+	) => {
 		const manifestPath = path.join(fixture.artifactRoot, 'manifest.json')
 		const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
-		const entry = manifest.entries.find(
-			(candidate) => candidate.content_type === 'hub' && candidate.locale === 'en'
-		)
+		const entry = manifest.entries.find(select)
 		const outputPath = path.join(
 			fixture.artifactRoot,
 			...entry.output_path.slice('split-content/published/'.length).split('/')
@@ -519,6 +528,18 @@ test('schema v2 independently rejects noncanonical, active, and falsely-provenan
 		generated_from: { ...payload.generated_from, data: ['split-content/_system/data/pages/other.md'] },
 	}))
 	assert.throws(() => pack(falseProvenance), /generated_from flattened paths/)
+
+	const numericRate = makeFixture(t)
+	writeV2Artifact(numericRate.artifactRoot)
+	mutateOutput(
+		numericRate,
+		(payload) => {
+			payload.content.data.rows[1].rate_decimal = 0.3
+			return payload
+		},
+		{ select: (candidate) => candidate.slug === 'mileage-split-calculator' }
+	)
+	assert.throws(() => pack(numericRate), /rate_decimal must be a non-negative decimal string or null/)
 })
 
 test('pins both the reviewed mirror Git blob and its bytes', (t) => {
