@@ -65,6 +65,18 @@ interface FakeWindow {
     standalone: boolean
 }
 
+interface FakeWindowOptions {
+    standalone?: boolean
+    ua?: string
+    platform?: string
+    maxTouchPoints?: number
+    pathname?: string
+    search?: string
+    initialPathname?: string
+    initialSearch?: string
+    denyLocalStorage?: boolean
+}
+
 function fakeWindow({
     standalone = false,
     ua = 'Mozilla/5.0 (X11; Linux x86_64)',
@@ -72,8 +84,10 @@ function fakeWindow({
     maxTouchPoints = 0,
     pathname = '/app',
     search = '',
+    initialPathname = pathname,
+    initialSearch = search,
     denyLocalStorage = false,
-} = {}): FakeWindow {
+}: FakeWindowOptions = {}): FakeWindow {
     const listeners = new Map<string, ((event: unknown) => void)[]>()
     const store = new Map<string, string>()
     const state = { standalone }
@@ -89,6 +103,11 @@ function fakeWindow({
             href: `https://split.peanut.me${pathname}${search}`,
             pathname,
             search,
+            hash: '',
+        },
+        performance: {
+            getEntriesByType: (type: string) =>
+                type === 'navigation' ? [{ name: `https://split.peanut.me${initialPathname}${initialSearch}` }] : [],
         },
         localStorage: {
             getItem: (key: string) => {
@@ -192,7 +211,7 @@ describe('the install store', () => {
         expect(readInstallState()).toBe('installed')
     })
 
-    it('refuses to write the canonical marker on room and repair routes', async () => {
+    it('refuses to write the canonical marker on room, managed-app, and repair routes', async () => {
         const room = fakeWindow({ standalone: true, pathname: '/r/KUNC' })
         const { CANONICAL_LAUNCH_MARKER_KEY, recordCanonicalStandaloneLaunch } = await import('./install')
 
@@ -200,10 +219,33 @@ describe('the install store', () => {
         expect(room.store.has(CANONICAL_LAUNCH_MARKER_KEY)).toBe(false)
 
         vi.resetModules()
+        const managed = fakeWindow({ standalone: true, pathname: '/app', search: '?manage=1' })
+        const managedInstall = await import('./install')
+        expect(managedInstall.recordCanonicalStandaloneLaunch()).toBe(false)
+        expect(managed.store.has(managedInstall.CANONICAL_LAUNCH_MARKER_KEY)).toBe(false)
+
+        vi.resetModules()
         const repair = fakeWindow({ standalone: true, pathname: '/app', search: '?install=1&repair=1' })
         const repairInstall = await import('./install')
         expect(repairInstall.recordCanonicalStandaloneLaunch()).toBe(false)
         expect(repair.store.has(repairInstall.CANONICAL_LAUNCH_MARKER_KEY)).toBe(false)
+    })
+
+    it('refuses to certify a room shortcut that client-navigated to an exact /app route', async () => {
+        const win = fakeWindow({ standalone: true, pathname: '/app', initialPathname: '/r/KUNC' })
+        const { CANONICAL_LAUNCH_MARKER_KEY, recordCanonicalStandaloneLaunch } = await import('./install')
+
+        expect(recordCanonicalStandaloneLaunch()).toBe(false)
+        expect(win.store.has(CANONICAL_LAUNCH_MARKER_KEY)).toBe(false)
+    })
+
+    it('fails closed when the initial document navigation is unavailable', async () => {
+        const win = fakeWindow({ standalone: true, pathname: '/app' })
+        ;(window.performance as { getEntriesByType: (type: string) => unknown[] }).getEntriesByType = () => []
+        const { CANONICAL_LAUNCH_MARKER_KEY, recordCanonicalStandaloneLaunch } = await import('./install')
+
+        expect(recordCanonicalStandaloneLaunch()).toBe(false)
+        expect(win.store.has(CANONICAL_LAUNCH_MARKER_KEY)).toBe(false)
     })
 
     it('keeps an unmarked standalone room actionable when local storage is denied', async () => {

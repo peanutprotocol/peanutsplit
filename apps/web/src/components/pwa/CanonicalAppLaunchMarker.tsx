@@ -4,9 +4,10 @@ import { useLayoutEffect } from 'react'
 import { recordCanonicalStandaloneLaunch } from '@/lib/install'
 
 /**
- * A child layout effect runs before Providers' parent passive effect reads install state. The
- * repair surface deliberately omits this component: opening repair inside an old room shortcut
- * must not certify that shortcut as the canonical Split app.
+ * A child layout effect runs before Providers' parent passive effect reads install state.
+ * `recordCanonicalStandaloneLaunch` independently proves that the initial document URL—not a
+ * later client route—is the exact manifest start URL. Repair omits the marker as an extra
+ * fail-closed boundary.
  */
 export function CanonicalAppLaunchMarker() {
     useLayoutEffect(() => {

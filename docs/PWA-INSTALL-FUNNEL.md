@@ -73,8 +73,9 @@ name, amount, or currency.
   manual-help snooze and any dismissal state it contaminated are cleared once on upgrade;
   only the explicit **Not now** action or a native browser decline suppresses promotion.
 - A PR11-era room shortcut can also launch standalone while carrying the room's title and URL.
-  A canonical standalone `/app` launch records a versioned local marker; an unmarked standalone
-  room gets a one-time, conditional **Replace the old room icon** card. Device settings keeps the
+  Only an initial standalone document navigation to the exact manifest start URL `/app` records a
+  versioned local marker; a client transition from a room cannot certify an old shortcut. An
+  unmarked standalone room gets a one-time, conditional **Replace the old room icon** card. Device settings keeps the
   same check reachable even after dismissal or marker ambiguity. Repair never claims it can
   uninstall or force-open a browser: it copies the original room link locally and tells the person
   to remove only a room-named icon, reopen that link in a supported browser, and continue only when

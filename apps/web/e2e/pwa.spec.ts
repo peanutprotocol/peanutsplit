@@ -372,9 +372,25 @@ test.describe('the install row', () => {
 
         const roomUrl = new URL(page.url())
         expect(roomUrl.pathname).toMatch(/^\/r\//)
+        await expect(page.getByTestId('install-row-repair')).toContainText('Split icon')
+        await expect(page.getByTestId('install-row-repair')).toContainText('Check')
+
+        // A Next client transition is still running inside the old room shortcut. Visiting the
+        // room chooser must not certify that container as a canonical manifest launch.
+        await page.getByTestId('close-device-sheet').click()
+        await expect(page.getByTestId('device-sheet')).toBeHidden()
+        await page.getByTestId('close-room-settings').click()
+        await expect(page.getByTestId('settings-sheet')).toBeHidden()
+        await page.getByTestId('open-room-switcher').click()
+        await page.getByTestId('room-switcher-manage').click()
+        await expect(page).toHaveURL(/\/app\?manage=1$/)
+        expect(await page.evaluate(() => localStorage.getItem('ps:pwa-canonical-launch:v1'))).toBeNull()
+
+        await page.goto(`${roomUrl.origin}${roomUrl.pathname}`)
+        await openCurrentRoomSettings(page)
+        await page.getByTestId('device-row').click()
         const row = page.getByTestId('install-row-repair')
         await expect(row).toContainText('Split icon')
-        await expect(row).toContainText('Check')
         await row.click()
 
         await expect(page).toHaveURL(/\/app\?install=1&repair=1&source=settings$/)

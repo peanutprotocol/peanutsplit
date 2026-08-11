@@ -341,8 +341,10 @@ settings, both default ON, persisted in localStorage.
   localStorage, verifies it, enters the room, and acknowledges/deletes the row in the background.
   It never creates an account, device map, or analytics link. Older WebKit and failed transfers
   fall back to reopening the room link once in the installed app.
-  A standalone room document without the versioned canonical-launch marker gets a one-time,
-  conditional **Replace the old room icon** check for the PR11 shortcut regression; Device keeps
+  Only an initial standalone navigation to the exact manifest start URL `/app` writes the
+  canonical-launch marker; a client transition from a room cannot certify an old shortcut. A
+  standalone room document without that marker gets a one-time, conditional
+  **Replace the old room icon** check for the PR11 shortcut regression; Device keeps
   that check actionable even when standalone detection is ambiguous. It never reports into the
   normal install-promotion funnel and never claims the browser can remove the old icon
   automatically.

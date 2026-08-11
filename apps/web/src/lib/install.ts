@@ -205,13 +205,31 @@ const isStandaloneHere = (): boolean => {
 }
 
 /**
- * Written only by the canonical `/app` route after it proves it is running standalone. Keeping the
- * version in the key lets a future identity migration disregard old evidence without rewriting it.
+ * Written only when the browser's initial standalone document is the manifest start URL exactly.
+ *
+ * Checking the current route is not enough: a PR11 room shortcut can use Next client navigation to
+ * reach `/app?manage=1` without leaving its bad standalone container. `PerformanceNavigationTiming`
+ * keeps the original document URL across that transition, so the shortcut cannot certify itself.
+ * Fail closed when that evidence is unavailable.
  */
 export function recordCanonicalStandaloneLaunch(): boolean {
-    if (window.location.pathname !== '/app' || new URLSearchParams(window.location.search).get('repair') === '1')
-        return false
     if (!isStandaloneHere()) return false
+    if (window.location.pathname !== '/app' || window.location.search !== '' || window.location.hash !== '')
+        return false
+    const navigation = window.performance?.getEntriesByType?.('navigation')[0]
+    if (!navigation?.name) return false
+    try {
+        const initial = new URL(navigation.name)
+        if (
+            initial.origin !== window.location.origin ||
+            initial.pathname !== '/app' ||
+            initial.search !== '' ||
+            initial.hash !== ''
+        )
+            return false
+    } catch {
+        return false
+    }
     try {
         window.localStorage.setItem(CANONICAL_LAUNCH_MARKER_KEY, '1')
         return true
