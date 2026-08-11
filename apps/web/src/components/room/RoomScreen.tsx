@@ -30,7 +30,7 @@ import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { useRoomParams } from '@/lib/room-params'
 import { prewarmRoomPreview } from '@/lib/room-preview'
 import { activeMembers, isActiveMember } from '@/lib/members'
-import { expenseSessionShouldOpen } from '@/lib/expense-session'
+import { expenseSessionCanStart, expenseSessionShouldOpen } from '@/lib/expense-session'
 import { discardSharedReceipt } from '@/lib/shared-receipt'
 import { daySpan } from '@/lib/story'
 import { themeVars } from '@/lib/themes'
@@ -214,6 +214,7 @@ export function RoomScreen({ slug }: { slug: string }) {
     const activeRoster = useMemo(() => activeMembers(state?.members ?? []), [state?.members])
     const identityIsActive = !!identity && activeRoster.some((member) => member.id === identity.memberId)
     const needsJoin = loaded && (!identity || !identityIsActive) && !!state
+    const expenseSessionReady = loaded && !!state
     const canRecordMatureVisit =
         loaded && !needsJoin && hasActiveDebt && !settledUp && state?.room.hasReachedSharedBalance === true
 
@@ -355,13 +356,13 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     useEffect(() => {
         if (!expenseRequested) setExpenseSessionStarted(false)
-        else if (!needsJoin) setExpenseSessionStarted(true)
-    }, [expenseRequested, needsJoin])
+        else if (expenseSessionCanStart(expenseSessionReady, needsJoin)) setExpenseSessionStarted(true)
+    }, [expenseRequested, expenseSessionReady, needsJoin])
 
     useEffect(() => {
         if (!settlementRequested) setSettlementSessionStarted(false)
-        else if (!needsJoin) setSettlementSessionStarted(true)
-    }, [needsJoin, settlementRequested])
+        else if (expenseSessionCanStart(expenseSessionReady, needsJoin)) setSettlementSessionStarted(true)
+    }, [expenseSessionReady, needsJoin, settlementRequested])
 
     // A selected expense that vanished (deleted on another device) must not leave
     // an empty drawer hanging around.
@@ -618,7 +619,12 @@ export function RoomScreen({ slug }: { slug: string }) {
             {state && (
                 <>
                     <ExpenseDrawer
-                        open={expenseSessionShouldOpen(expenseRequested, needsJoin, expenseSessionStarted)}
+                        open={expenseSessionShouldOpen(
+                            expenseRequested,
+                            expenseSessionReady,
+                            needsJoin,
+                            expenseSessionStarted
+                        )}
                         suspended={needsJoin}
                         onClose={closeDrawers}
                         slug={slug}
@@ -637,7 +643,12 @@ export function RoomScreen({ slug }: { slug: string }) {
                         onSharedReceiptConsumed={consumeSharedReceipt}
                     />
                     <SettleDrawer
-                        open={expenseSessionShouldOpen(settlementRequested, needsJoin, settlementSessionStarted)}
+                        open={expenseSessionShouldOpen(
+                            settlementRequested,
+                            expenseSessionReady,
+                            needsJoin,
+                            settlementSessionStarted
+                        )}
                         suspended={needsJoin}
                         onClose={closeDrawers}
                         slug={slug}
