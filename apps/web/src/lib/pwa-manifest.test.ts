@@ -122,9 +122,23 @@ describe('the manifest request host boundary', () => {
         'user@split.peanut.me',
         'split.peanut.me/path',
         'split.peanut.me.',
+        '@split.peanut.me',
+        '//split.peanut.me',
+        'split.peanut.me/.',
+        'split%2epeanut%2eme',
+        'split.peanut.me?',
+        'split.peanut.me:',
+        'split.peanut.me:0443',
     ])('rejects malformed forwarded host %j without falling through to Host', async (forwardedHost) => {
         await expect(boundary({ host: 'split.peanut.me', 'x-forwarded-host': forwardedHost })).resolves.toEqual({
             host: null,
+            canonical: false,
+        })
+    })
+
+    it('rejects a non-HTTPS production authority without rejecting its valid hostname', async () => {
+        await expect(boundary({ 'x-forwarded-host': 'split.peanut.me:444' })).resolves.toEqual({
+            host: 'split.peanut.me',
             canonical: false,
         })
     })

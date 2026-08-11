@@ -8,32 +8,43 @@ const LOCAL_PWA_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]'])
 
 type HeaderReader = Pick<Headers, 'get'>
 
+type PwaRequestAuthority = {
+    host: string
+    port: number | null
+}
+
+function parsedPwaRequestAuthority(headers: HeaderReader): PwaRequestAuthority | null {
+    const forwarded = headers.get('x-forwarded-host')
+    const raw = forwarded === null ? headers.get('host') : forwarded
+    if (!raw || raw !== raw.trim() || raw.includes(',')) return null
+
+    const ipv6 = raw.match(/^\[(::1)\](?::([0-9]{1,5}))?$/i)
+    const domain = raw.match(/^([^:]+)(?::([0-9]{1,5}))?$/)
+    if (!ipv6 && !domain) return null
+
+    const host = ipv6 ? `[${ipv6[1].toLowerCase()}]` : domain![1].toLowerCase()
+    const portText = (ipv6 ?? domain)![2]
+    const port = portText === undefined ? null : Number(portText)
+    if (port !== null && (port < 1 || port > 65_535)) return null
+    if (port !== null && String(port) !== portText) return null
+
+    if (
+        !ipv6 &&
+        (host.length > 253 || host.split('.').some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label)))
+    ) {
+        return null
+    }
+
+    return { host, port }
+}
+
 /**
  * Resolve the public request host without ever falling through a present forwarded-host claim.
  * Dokploy supplies X-Forwarded-Host; local Next requests use Host. Reject lists and URL-shaped
  * values rather than guessing which element or substring a proxy meant.
  */
 export function pwaRequestHost(headers: HeaderReader): string | null {
-    const forwarded = headers.get('x-forwarded-host')
-    const raw = forwarded === null ? headers.get('host') : forwarded
-    if (!raw || raw !== raw.trim() || raw.includes(',')) return null
-
-    try {
-        const parsed = new URL(`http://${raw}`)
-        if (
-            parsed.username ||
-            parsed.password ||
-            parsed.pathname !== '/' ||
-            parsed.search ||
-            parsed.hash ||
-            parsed.hostname.endsWith('.')
-        ) {
-            return null
-        }
-        return parsed.hostname.toLowerCase()
-    } catch {
-        return null
-    }
+    return parsedPwaRequestAuthority(headers)?.host ?? null
 }
 
 /** The production manifest belongs to one origin. Loopback remains usable in dev and E2E only. */
@@ -41,9 +52,10 @@ export function isCanonicalPwaRequest(
     headers: HeaderReader,
     environment: string | undefined = process.env.NODE_ENV
 ): boolean {
-    const host = pwaRequestHost(headers)
-    if (host === PRODUCTION_PWA_HOST) return true
-    return environment !== 'production' && host !== null && LOCAL_PWA_HOSTS.has(host)
+    const authority = parsedPwaRequestAuthority(headers)
+    if (authority === null) return false
+    if (authority.host === PRODUCTION_PWA_HOST) return authority.port === null || authority.port === 443
+    return environment !== 'production' && LOCAL_PWA_HOSTS.has(authority.host)
 }
 
 /**

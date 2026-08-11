@@ -16,8 +16,17 @@ describe('the origin-bound PWA manifest route', () => {
         await expect(response.json()).resolves.toMatchObject({ name: 'Split', start_url: '/app', scope: '/' })
     })
 
-    it('fails closed without publishing an install identity on another host', async () => {
-        const response = GET(request('peanutsplit.com'))
+    it.each([
+        'peanutsplit.com',
+        '@split.peanut.me',
+        '//split.peanut.me',
+        'split.peanut.me/.',
+        'split%2epeanut%2eme',
+        'split.peanut.me?',
+        'split.peanut.me:',
+        'split.peanut.me:444',
+    ])('fails closed without publishing an install identity for authority %j', async (authority) => {
+        const response = GET(request(authority))
 
         expect(response.status).toBe(404)
         expect(response.headers.get('cache-control')).toBe('private, no-store')
