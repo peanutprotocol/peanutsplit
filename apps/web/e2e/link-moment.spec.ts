@@ -1,10 +1,12 @@
 import { expect } from '@playwright/test'
 import { test } from './fixtures'
-import { openCurrentRoomSettings } from './helpers'
+import { openCurrentRoomSettings, waitForHydratedControl } from './helpers'
 
 const createRoom = async (page: import('@playwright/test').Page, name: string) => {
     await page.goto('/new')
-    await page.getByTestId('room-name').fill(name)
+    const roomName = page.getByTestId('room-name')
+    await waitForHydratedControl(roomName)
+    await roomName.fill(name)
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
@@ -34,6 +36,17 @@ test('creation pauses at a concise roster checkpoint before entering the room', 
 })
 
 test('the in-room hand-off keeps copy inline and makes sharing the primary action', async ({ page }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: {
+                writeText: async (text: string) => {
+                    ;(window as Window & { __copiedRoomText?: string }).__copiedRoomText = text
+                },
+            },
+        })
+    })
     const previewRequestPromise = page.waitForRequest((request) => request.url().includes('/opengraph-image'))
     await createRoom(page, 'Beer trip')
     const previewRequest = await previewRequestPromise
@@ -80,12 +93,13 @@ test('the in-room hand-off keeps copy inline and makes sharing the primary actio
     expect(qrBox!.x).toBeGreaterThanOrEqual(cardBox!.x)
     expect(qrBox!.x + qrBox!.width).toBeLessThanOrEqual(cardBox!.x + cardBox!.width)
 
-    // Desktop Chromium has no native share sheet. The primary action still does
-    // useful work there: it copies the link and the inline icon confirms it.
-    await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], {
-        origin: new URL(page.url()).origin,
-    })
-    await page.evaluate(() => Object.defineProperty(navigator, 'share', { configurable: true, value: undefined }))
+    // Desktop browsers have no native share sheet in this matrix. Stub the
+    // clipboard contract directly: Firefox does not support Playwright's
+    // Chromium-only clipboard-read permission, but the product promise is the
+    // same — the primary action copies the room package and confirms it inline.
     await share.click()
     await expect(row.getByTestId('copy-link')).toHaveAccessibleName('Copied!')
+    await expect
+        .poll(() => page.evaluate(() => (window as Window & { __copiedRoomText?: string }).__copiedRoomText))
+        .toContain('/r/beer-trip-')
 })

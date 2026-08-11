@@ -11,6 +11,21 @@ export const balanceCard = (page: Page, member: string): Locator =>
     page.locator(`[data-testid="balance-card"][data-member="${member}"]`)
 
 /**
+ * Wait until React owns a server-rendered control before typing into it.
+ *
+ * `page.goto()` can finish while WebKit is still hydrating. The input is already visible then, so
+ * Playwright can fill the inert server HTML and React immediately replaces that value with its
+ * initial state. Chromium usually hydrates quickly enough to hide the race. The attached props
+ * slot is React DOM's direct signal that its event handler is ready; waiting on it keeps the test
+ * coupled to the actual boundary instead of an arbitrary sleep.
+ */
+export async function waitForHydratedControl(control: Locator): Promise<void> {
+    await expect
+        .poll(() => control.evaluate((element) => Object.keys(element).some((key) => key.startsWith('__reactProps$'))))
+        .toBe(true)
+}
+
+/**
  * Assert a member's net in minor units, off `data-net` — raw server truth rather than rendered
  * text, so no assertion catches a NumberFlow frame mid-animation.
  *
