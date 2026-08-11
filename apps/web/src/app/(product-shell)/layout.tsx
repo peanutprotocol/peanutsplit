@@ -1,16 +1,15 @@
 import { type Metadata, type Viewport } from 'next'
-import { Roboto_Flex, Sniglet } from 'next/font/google'
-import localFont from 'next/font/local'
 import { NextIntlClientProvider } from 'next-intl'
 import Script from 'next/script'
 import { getLocale } from 'next-intl/server'
 import { asLocale, HREFLANG } from '@/i18n/locales'
+import { bodyFontClassName } from '@/lib/fonts'
 import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import { appleStartupImages } from '@/lib/splash'
-import '../styles/globals.css'
+import '../../styles/globals.css'
 
 export const metadata: Metadata = {
     title: 'Peanut Split — split expenses, no signup',
@@ -21,6 +20,7 @@ export const metadata: Metadata = {
     // a search engine or a group chat sees — the title above, `SITE_NAME`, every OG unfurl — stays
     // "Peanut Split".
     applicationName: 'Split',
+    manifest: '/manifest.webmanifest',
     // Next fills the rest of this object in: `capable` defaults to true and `statusBarStyle` to
     // 'default', so this one line also emits <meta name="mobile-web-app-capable"> and
     // <meta name="apple-mobile-web-app-status-bar-style">. What we are here for is
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     // a blank `background_color` screen; the matching is per exact device geometry, so it is a file
     // per phone. `splash.ts` owns the table and `pnpm icons` renders it.
     appleWebApp: { title: 'Split', startupImage: appleStartupImages() },
-    icons: { apple: '/icons/apple-touch-icon.png' },
+    icons: { icon: '/icon.png', shortcut: '/favicon.ico', apple: '/icons/apple-touch-icon.png' },
 }
 
 export const viewport: Viewport = {
@@ -42,32 +42,6 @@ export const viewport: Viewport = {
     viewportFit: 'cover',
     themeColor: '#FFC900',
 }
-
-const roboto = Roboto_Flex({
-    subsets: ['latin'],
-    display: 'swap',
-    variable: '--font-roboto',
-    axes: ['wdth'],
-})
-
-const sniglet = Sniglet({
-    weight: ['400', '800'],
-    subsets: ['latin'],
-    display: 'swap',
-    variable: '--font-sniglet',
-})
-
-const knerdOutline = localFont({
-    src: '../assets/fonts/knerd-outline.ttf',
-    variable: '--font-knerd-outline',
-    display: 'swap',
-})
-
-const knerdFilled = localFont({
-    src: '../assets/fonts/knerd-filled.ttf',
-    variable: '--font-knerd-filled',
-    display: 'swap',
-})
 
 /**
  * The app preference has to exist before React and Motion mount. Otherwise an
@@ -109,10 +83,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     //
     // `HREFLANG`, not the raw code: `lang` is an HTML language tag, so it gets the standard
     // BCP 47 casing (`pt-BR`) rather than the lowercase spelling used in filenames and URLs.
-    const locale = HREFLANG[asLocale(await getLocale())]
-
+    const locale = asLocale(await getLocale())
     return (
-        <html lang={locale} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
+        <html lang={HREFLANG[locale]} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
             <head>
                 <Script id="split-motion-preflight" strategy="beforeInteractive">
                     {motionPreferencePreflight}
@@ -121,13 +94,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     {installPromptPreflight}
                 </Script>
             </head>
-            <body
-                className={`${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`}
-            >
-                {/* WebSite + Organization + SoftwareApplication, declared once for the whole
-                    site so every page's publisher can reference one entity by @id instead of
-                    re-declaring an unlinked copy. Room pages are noindex, so this costs them
-                    nothing. */}
+            <body className={bodyFontClassName}>
+                {/* Legacy WebSite + Organization plus the app-origin SoftwareApplication,
+                    declared once so unmigrated page schema is host-consistent while the product
+                    entity keeps its split.peanut.me identity. Room pages are noindex. */}
                 <JsonLd data={siteSchema()} />
                 {/* No `messages` prop: rendered from a Server Component, the provider inherits
                     the request config, which serialises only the active catalog to the client.

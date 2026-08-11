@@ -35,7 +35,7 @@ const PRIORITY: Record<Collection, number> = {
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.filter(
-        (page) => !page.v2Only || splitV2Enabled()
+        (page) => page.inSitemap !== false && (!page.v2Only || splitV2Enabled())
     ).flatMap((page) => {
         const locales = page.locales ?? [DEFAULT_LOCALE]
         const languages = absolutise(hreflangAlternates(page.href, [...locales]))

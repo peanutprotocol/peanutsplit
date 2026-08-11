@@ -16,7 +16,7 @@ import sharp from 'sharp'
 import { CARD_KINDS } from '@/lib/achievements-contract'
 import { prisma, truncateAll } from '@/server/test/db'
 import { enforceRateLimitPreflight, LOOKUP_MISS_LIMIT, LOOKUP_MISS_SCOPE, resetRateLimits } from '@/server/rateLimit'
-import { GET, POST } from '@/app/r/[slug]/card/[kind]/route'
+import { GET, POST } from '@/app/(product-shell)/r/[slug]/card/[kind]/route'
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47]
 const SLUG = 'card-route-tests1'

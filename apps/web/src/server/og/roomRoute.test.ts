@@ -12,7 +12,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { prisma, truncateAll } from '@/server/test/db'
-import RoomOgImage from '@/app/r/[slug]/opengraph-image'
+import RoomOgImage from '@/app/(product-shell)/r/[slug]/opengraph-image'
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47]
 

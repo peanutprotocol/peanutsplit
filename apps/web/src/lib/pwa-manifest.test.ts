@@ -14,7 +14,7 @@ async function manifestWith(v2: boolean) {
     vi.resetModules()
     if (v2) process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = '1'
     else delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
-    const { default: manifest } = await import('./manifest')
+    const { default: manifest } = await import('./pwa-manifest')
     return manifest()
 }
 
