@@ -234,12 +234,19 @@ describe('install measurement', () => {
             })
         ).toEqual({})
         expect(
+            installMeasureProps('pwa_prompt_dismissed', {
+                trigger: 'quiet_slot',
+                delivery: 'browser_steps',
+                reason: 'instructions_closed',
+            })
+        ).toEqual({ trigger: 'quiet_slot', delivery: 'browser_steps' })
+        expect(
             installMeasureProps('browser_install_steps_opened', {
-                surface: 'settings',
+                surface: 'app',
                 slug: 'private-room-credential',
                 member: 'ana',
             })
-        ).toEqual({ surface: 'settings' })
+        ).toEqual({ surface: 'app' })
     })
 })
 

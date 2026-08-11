@@ -3,26 +3,30 @@ import { describe, expect, it } from 'vitest'
 
 const source = (name: string): string => readFileSync(new URL(`./${name}.tsx`, import.meta.url), 'utf8')
 
-describe('manual install-instructions snooze wiring', () => {
-    it.each([
-        ['InstallPrompt', 'closeInstructions'],
-        ['InstallRow', 'closeIosSteps'],
-        ['PushOptIn', 'closeIosInstallSteps'],
-    ])('snoozes the automatic prompt on both drawer dismissal and Done in %s', (component, closeHandler) => {
-        const contents = source(component)
+describe('canonical install-surface wiring', () => {
+    it.each(['InstallPrompt', 'InstallRow', 'PushOptIn'])(
+        'never treats reading or leaving install help as a refusal in %s',
+        (component) => {
+            const contents = source(component)
 
-        expect(contents).toContain('snoozeAfterManualInstallInstructions()')
-        expect(contents).toContain(`onOpenChange={(next) => !next && ${closeHandler}()}`)
-        expect(contents).toContain(`onClick={${closeHandler}}`)
-    })
+            expect(contents).not.toContain('snoozeAfterManualInstallInstructions')
+            expect(contents).not.toContain('snoozeInstallFor')
+        }
+    )
 
-    it('also snoozes after the generic browser-menu instructions close', () => {
-        const contents = source('InstallRow')
+    it.each(['InstallPrompt', 'InstallRow', 'PushOptIn'])(
+        'routes manual installation away from a room document in %s',
+        (component) => {
+            expect(source(component)).toContain("openInstallSurface('")
+        }
+    )
 
-        expect(contents).toContain('const closeBrowserSteps = () => {')
-        expect(contents).toContain('snoozeAfterManualInstallInstructions()')
-        expect(contents).toContain('onOpenChange={(next) => !next && closeBrowserSteps()}')
-        expect(contents).toContain('onClick={closeBrowserSteps}')
+    it('keeps the explicit automatic refusal as the only card backoff', () => {
+        const contents = source('InstallPrompt')
+
+        expect(contents).toContain("dismiss('not_now')")
+        expect(contents).toContain('noteInstallDismissed()')
+        expect(contents).not.toContain('<Drawer')
     })
 
     it('rejects a prepared handoff response after the automatic card has been blocked', () => {

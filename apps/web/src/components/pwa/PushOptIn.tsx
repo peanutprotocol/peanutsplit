@@ -3,21 +3,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/Button'
 import { SettingToggle } from '@/components/ui/SettingToggle'
 import { StateRow } from '@/components/ui/StateRow'
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
-import { installMeasureProps, roomProps, track } from '@/lib/analytics'
+import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
-import { snoozeAfterManualInstallInstructions } from '@/lib/install'
+import { openInstallSurface } from '@/lib/install-surface'
 import type { SettledPushStatus } from '@/lib/push-status'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
 import { usePush } from '@/lib/use-push'
-import { IosInstallSteps } from './IosInstallSteps'
 
 interface PushOptInProps {
     active?: boolean
@@ -46,7 +42,6 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const { status, error, subscribe, unsubscribe } = usePush(slug)
-    const [iosSheetOpen, setIosSheetOpen] = useState(false)
     const [installArming, setInstallArming] = useState(false)
     const installArmingRef = useRef(false)
     const mountedRef = useRef(true)
@@ -62,10 +57,6 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
         }
     }, [])
 
-    const closeIosInstallSteps = () => {
-        snoozeAfterManualInstallInstructions()
-        setIosSheetOpen(false)
-    }
     /**
      * The last settled status, so a subscribe in flight (which reports
      * 'pending') does not make the row someone just tapped disappear from under
@@ -118,8 +109,7 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
             toast.error(tInstall('ios.prepareFailed'), { duration: TOAST_MS.actionable })
             return
         }
-        track('ios_install_steps_opened', installMeasureProps('ios_install_steps_opened', { surface: 'settings' }))
-        setIosSheetOpen(true)
+        openInstallSurface('settings')
     }
 
     // A browser with no push at all gets no row, no explanation and no apology.
@@ -137,22 +127,6 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
                 >
                     {installArming ? tInstall('row.preparing') : t('iosHow')}
                 </button>
-                <Drawer open={iosSheetOpen} onOpenChange={(next) => !next && closeIosInstallSteps()}>
-                    <DrawerContent>
-                        <DrawerHeader>
-                            <DrawerTitle className="text-h5">{tInstall('ios.title')}</DrawerTitle>
-                            <DrawerDescription>{tInstall('ios.body')}</DrawerDescription>
-                        </DrawerHeader>
-                        <DrawerBody>
-                            <IosInstallSteps />
-                            <DrawerActions>
-                                <Button variant="stroke" className="justify-center" onClick={closeIosInstallSteps}>
-                                    {tInstall('ios.done')}
-                                </Button>
-                            </DrawerActions>
-                        </DrawerBody>
-                    </DrawerContent>
-                </Drawer>
             </div>
         )
     }

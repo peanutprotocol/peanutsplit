@@ -251,9 +251,11 @@ export const INSTALL_TRIGGERS = [
     'quiet_slot',
 ] as const satisfies readonly AutoInstallTrigger[]
 export const INSTALL_DELIVERIES = ['browser_prompt', 'browser_steps', 'ios_steps'] as const
-export const INSTALL_SURFACES = ['auto', 'settings'] as const
+export const INSTALL_SURFACES = ['auto', 'settings', 'app'] as const
 export const INSTALL_OUTCOMES = ['accepted', 'dismissed'] as const
-export const INSTALL_DISMISS_REASONS = ['not_now', 'close', 'browser_declined', 'instructions_closed'] as const
+// Reading or leaving install help is not a refusal. Only explicit card/native-prompt decisions
+// belong in the dismissal funnel.
+export const INSTALL_DISMISS_REASONS = ['not_now', 'browser_declined'] as const
 
 type InstallMeasureEvent =
     | 'pwa_prompt_shown'
