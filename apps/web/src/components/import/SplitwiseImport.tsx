@@ -28,7 +28,11 @@ import type { ImportedExpenseInput, ImportIntoRoomResult, RoomState, RoomStateWi
 import { cn } from '@/lib/cn'
 import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
-import { deferRoomInstallAfterSkippedShare, markRoomCreatedHere, noteRoomShareCompleted } from '@/lib/install-funnel'
+import {
+    deferRoomInstallAfterCompetingGuidance,
+    markRoomCreatedHere,
+    noteRoomShareCompleted,
+} from '@/lib/install-funnel'
 import { importedRoomPath } from '@/lib/import-routes'
 import {
     fingerprintParsedImportFile,
@@ -434,7 +438,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                     // browser Back, a reload, or either footer action cannot
                     // replace an unfinished share with an install ask. A real
                     // share completion clears the deferral below.
-                    deferRoomInstallAfterSkippedShare(targetRoom.state.room.slug)
+                    deferRoomInstallAfterCompetingGuidance(targetRoom.state.room.slug)
                 }
                 track('import_completed', {
                     expenses: result.addedExpenses,
