@@ -32,8 +32,8 @@ R=$(intent $S $A $B 2000)
 REF=$(echo "$R" | python3 -c "import sys,json;print(json.load(sys.stdin)['reference'])")
 PAYURL=$(echo "$R" | python3 -c "import sys,json;print(json.load(sys.stdin)['payUrl'])")
 ok "intent returns an opaque reference" "$([ ${#REF} -ge 20 ] && echo yes || echo no)" "yes"
-ok "reference does NOT leak the room slug" "$(echo "$PAYURL" | grep -qF "$S" && echo leaked || echo clean)" "clean"
-ok "pay URL carries the reference" "$(echo "$PAYURL" | grep -qF "$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1],safe=''))" "$REF")" && echo yes || echo no)" "yes"
+ok "reference does NOT leak the room slug" "$(echo "$PAYURL" | grep -qF -- "$S" && echo leaked || echo clean)" "clean"
+ok "pay URL carries the reference" "$(echo "$PAYURL" | grep -qF -- "$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1],safe=''))" "$REF")" && echo yes || echo no)" "yes"
 ok "room shows the payment in flight" "$(pending $S)" "1"
 ok "webhook accepted" "$(post_hook "{\"paymentId\":\"pay_A\",\"reference\":\"$REF\",\"amountMinor\":\"2000\",\"currency\":\"EUR\",\"status\":\"completed\"}")" "200"
 ok "settlement recorded as PEANUT" "$(peanut_settlements $S)" "1"
