@@ -1,0 +1,412 @@
+name: Pull Split content artifact
+
+# Dark until the read-only key, branch lifecycle, and exact-SHA CI dispatch have passed the
+# disposable proof. Deliberately no schedule: workflow_dispatch is the only entry point.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: split-content-pull-publisher
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    # The mono key must be an environment secret, with this environment restricted to main.
+    environment: split-content-publisher-read
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+      mono_source_commit: ${{ steps.source.outputs.mono_source_commit }}
+      mirror_script_git_blob: ${{ steps.mirror.outputs.mirror_script_git_blob }}
+      mirror_script_sha256: ${{ steps.mirror.outputs.mirror_script_sha256 }}
+      target_base_commit: ${{ steps.source.outputs.target_base_commit }}
+      tree_sha256: ${{ steps.bundle.outputs.tree_sha256 }}
+    steps:
+      - name: Checkout the exact target base without a write credential
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Resolve and clone mono main with the read-only deploy key
+        id: source
+        shell: bash
+        env:
+          EXPECTED_REF: refs/heads/main
+          MONO_SPLIT_CONTENT_READ_KEY: ${{ secrets.MONO_SPLIT_CONTENT_READ_KEY }}
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "${WORKFLOW_REF}" != "${EXPECTED_REF}" ]]; then
+            echo "::error::The publisher must be dispatched from ${EXPECTED_REF}, not ${WORKFLOW_REF}."
+            exit 1
+          fi
+          if [[ -z "${MONO_SPLIT_CONTENT_READ_KEY}" ]]; then
+            echo '::error::MONO_SPLIT_CONTENT_READ_KEY is not configured.'
+            exit 1
+          fi
+
+          target_base_commit="$(git rev-parse HEAD)"
+          if [[ ! "${target_base_commit}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::Target base did not resolve to a full Git SHA.'
+            exit 1
+          fi
+
+          ssh_root="$(mktemp -d "${RUNNER_TEMP}/split-content-ssh.XXXXXX")"
+          key_file="${ssh_root}/mono-read-key"
+          known_hosts="${ssh_root}/known_hosts"
+          mono_root="${RUNNER_TEMP}/mono-split-content"
+          trap 'rm -rf "${ssh_root}"' EXIT
+          install -m 600 /dev/null "${key_file}"
+          printf '%s\n' "${MONO_SPLIT_CONTENT_READ_KEY}" > "${key_file}"
+          if ! ssh-keygen -y -P '' -f "${key_file}" >/dev/null 2>&1; then
+            echo '::error::MONO_SPLIT_CONTENT_READ_KEY is not a usable OpenSSH private key.'
+            exit 1
+          fi
+
+          ssh-keyscan -t ed25519 github.com > "${known_hosts}" 2>/dev/null
+          host_fingerprint="$(ssh-keygen -E sha256 -lf "${known_hosts}" | awk '{print $2}')"
+          if [[ "${host_fingerprint}" != 'SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPtw+4Prt/mbFYE' ]]; then
+            echo '::error::github.com SSH host fingerprint did not match the reviewed Ed25519 pin.'
+            exit 1
+          fi
+          git_ssh="ssh -i ${key_file} -o IdentitiesOnly=yes -o UserKnownHostsFile=${known_hosts} -o StrictHostKeyChecking=yes"
+
+          mono_source_commit="$(GIT_SSH_COMMAND="${git_ssh}" git ls-remote \
+            git@github.com:peanutprotocol/mono.git refs/heads/main | awk '{print $1}')"
+          if [[ ! "${mono_source_commit}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::Mono main did not resolve to a full Git SHA.'
+            exit 1
+          fi
+          GIT_SSH_COMMAND="${git_ssh}" git clone \
+            --branch main \
+            --no-tags \
+            --single-branch \
+            git@github.com:peanutprotocol/mono.git \
+            "${mono_root}"
+          git -C "${mono_root}" switch --detach "${mono_source_commit}"
+          if [[ "$(git -C "${mono_root}" rev-parse HEAD)" != "${mono_source_commit}" ]]; then
+            echo '::error::Mono checkout moved from the resolved main SHA.'
+            exit 1
+          fi
+
+          echo "mono_root=${mono_root}" >> "${GITHUB_OUTPUT}"
+          echo "mono_source_commit=${mono_source_commit}" >> "${GITHUB_OUTPUT}"
+          echo "target_base_commit=${target_base_commit}" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify the reviewed mono mirror implementation pin
+        id: mirror
+        shell: bash
+        env:
+          MONO_ROOT: ${{ steps.source.outputs.mono_root }}
+          MONO_SOURCE_COMMIT: ${{ steps.source.outputs.mono_source_commit }}
+        run: |
+          set -euo pipefail
+          mirror_path='scripts/split-content-mirror.mjs'
+          mirror_blob="$(git -C "${MONO_ROOT}" rev-parse "${MONO_SOURCE_COMMIT}:${mirror_path}")"
+          result="$(node scripts/split-content-publisher.mjs verify-lock \
+            --lock .github/split-content-publisher-lock.json \
+            --mirror-script "${MONO_ROOT}/${mirror_path}" \
+            --mirror-blob "${mirror_blob}")"
+          printf '%s\n' "${result}"
+          RESULT="${result}" node --input-type=module -e '
+            const value = JSON.parse(process.env.RESULT)
+            process.stdout.write(`mirror_script_git_blob=${value.mirrorScriptGitBlob}\n`)
+            process.stdout.write(`mirror_script_sha256=${value.mirrorScriptSha256}\n`)
+          ' >> "${GITHUB_OUTPUT}"
+
+      - name: Snapshot the prior generated tree and run the mono mirror
+        shell: bash
+        env:
+          MONO_ROOT: ${{ steps.source.outputs.mono_root }}
+          MONO_SOURCE_COMMIT: ${{ steps.source.outputs.mono_source_commit }}
+        run: |
+          set -euo pipefail
+          destination="${GITHUB_WORKSPACE}/apps/web/src/generated/seo"
+          prior="${RUNNER_TEMP}/prior-split-content-artifact"
+          mkdir -p "${prior}"
+          if [[ -e "${destination}" ]]; then
+            if [[ -L "${destination}" || ! -d "${destination}" ]]; then
+              echo '::error::The generated destination must be a real directory.'
+              exit 1
+            fi
+            cp -a "${destination}/." "${prior}/"
+          fi
+          node "${MONO_ROOT}/scripts/split-content-mirror.mjs" \
+            --repo-root "${MONO_ROOT}" \
+            --destination "${destination}" \
+            --source-commit "${MONO_SOURCE_COMMIT}"
+          second_result="$(node "${MONO_ROOT}/scripts/split-content-mirror.mjs" \
+            --repo-root "${MONO_ROOT}" \
+            --destination "${destination}" \
+            --source-commit "${MONO_SOURCE_COMMIT}")"
+          printf '%s\n' "${second_result}"
+          SECOND_RESULT="${second_result}" node --input-type=module -e '
+            const value = JSON.parse(process.env.SECOND_RESULT)
+            if (!Array.isArray(value.changedFiles) || value.changedFiles.length !== 0) {
+              throw new Error(`second mirror pass was not a no-op: ${value.changedFiles?.join(", ")}`)
+            }
+          '
+
+      - name: Prove the target diff is artifact-only
+        id: diff
+        shell: bash
+        env:
+          TARGET_BASE_COMMIT: ${{ steps.source.outputs.target_base_commit }}
+        run: |
+          set -euo pipefail
+          result="$(node scripts/split-content-publisher.mjs assert-diff \
+            --lock .github/split-content-publisher-lock.json \
+            --repo-root "${GITHUB_WORKSPACE}" \
+            --target-base-commit "${TARGET_BASE_COMMIT}")"
+          printf '%s\n' "${result}"
+          changed="$(RESULT="${result}" node --input-type=module -e '
+            const value = JSON.parse(process.env.RESULT)
+            process.stdout.write(value.changed ? "true" : "false")
+          ')"
+          echo "changed=${changed}" >> "${GITHUB_OUTPUT}"
+
+      - name: Pack a data-only handoff bundle
+        id: bundle
+        if: ${{ steps.diff.outputs.changed == 'true' }}
+        shell: bash
+        env:
+          MONO_SOURCE_COMMIT: ${{ steps.source.outputs.mono_source_commit }}
+          TARGET_BASE_COMMIT: ${{ steps.source.outputs.target_base_commit }}
+        run: |
+          set -euo pipefail
+          bundle="${RUNNER_TEMP}/split-content-publisher-bundle.json"
+          result="$(node scripts/split-content-publisher.mjs pack \
+            --lock .github/split-content-publisher-lock.json \
+            --artifact-root "${GITHUB_WORKSPACE}/apps/web/src/generated/seo" \
+            --prior-artifact-root "${RUNNER_TEMP}/prior-split-content-artifact" \
+            --bundle "${bundle}" \
+            --source-commit "${MONO_SOURCE_COMMIT}" \
+            --target-base-commit "${TARGET_BASE_COMMIT}")"
+          printf '%s\n' "${result}"
+          tree_sha256="$(RESULT="${result}" node --input-type=module -e '
+            const value = JSON.parse(process.env.RESULT)
+            process.stdout.write(value.treeSha256)
+          ')"
+          echo "tree_sha256=${tree_sha256}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload the data-only handoff bundle
+        if: ${{ steps.diff.outputs.changed == 'true' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: split-content-publisher-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/split-content-publisher-bundle.json
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: prepare
+    if: ${{ needs.prepare.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout the pinned target base with the ephemeral target token
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.target_base_commit }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Download the data-only handoff bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: split-content-publisher-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/split-content-publisher-download
+
+      - name: Fail on a target ref race or an occupied artifact branch
+        shell: bash
+        env:
+          TARGET_BASE_COMMIT: ${{ needs.prepare.outputs.target_base_commit }}
+        run: |
+          set -euo pipefail
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          if [[ "${remote_main}" != "${TARGET_BASE_COMMIT}" ]]; then
+            echo "::error::PeanutSplit main moved from ${TARGET_BASE_COMMIT} to ${remote_main}; rerun from the new base."
+            exit 1
+          fi
+          artifact_head="$(git ls-remote origin refs/heads/automation/split-content-artifacts | awk '{print $1}')"
+          if [[ -n "${artifact_head}" ]]; then
+            echo "::error::The fixed artifact branch is occupied at ${artifact_head}; merge or close that publication first."
+            exit 1
+          fi
+
+      - name: Install and independently validate the bundle
+        shell: bash
+        env:
+          MONO_SOURCE_COMMIT: ${{ needs.prepare.outputs.mono_source_commit }}
+          TARGET_BASE_COMMIT: ${{ needs.prepare.outputs.target_base_commit }}
+          TREE_SHA256: ${{ needs.prepare.outputs.tree_sha256 }}
+        run: |
+          set -euo pipefail
+          node scripts/split-content-publisher.mjs install \
+            --lock .github/split-content-publisher-lock.json \
+            --bundle "${RUNNER_TEMP}/split-content-publisher-download/split-content-publisher-bundle.json" \
+            --repo-root "${GITHUB_WORKSPACE}" \
+            --target-base-commit "${TARGET_BASE_COMMIT}" \
+            --source-commit "${MONO_SOURCE_COMMIT}" \
+            --tree-sha256 "${TREE_SHA256}"
+          node --test scripts/split-content-publisher.test.mjs
+
+      - name: Commit the provenance-bound artifact
+        id: commit
+        shell: bash
+        env:
+          MONO_SOURCE_COMMIT: ${{ needs.prepare.outputs.mono_source_commit }}
+          TARGET_BASE_COMMIT: ${{ needs.prepare.outputs.target_base_commit }}
+          TREE_SHA256: ${{ needs.prepare.outputs.tree_sha256 }}
+        run: |
+          set -euo pipefail
+          destination='apps/web/src/generated/seo'
+          git add -- "${destination}"
+          if git diff --cached --quiet; then
+            echo '::error::The validated bundle produced no staged artifact diff.'
+            exit 1
+          fi
+          unstaged="$(git status --porcelain=v1 --untracked-files=all | awk 'substr($0,2,1) != " " { print }')"
+          if [[ -n "${unstaged}" ]]; then
+            echo '::error::An unstaged change appeared after artifact installation.'
+            exit 1
+          fi
+          manifest_sha256="$(sha256sum "${destination}/manifest.json" | awk '{print $1}')"
+          git config user.name 'split-content-publisher[bot]'
+          git config user.email 'split-content-publisher@users.noreply.github.com'
+          message="${RUNNER_TEMP}/split-content-commit-message.txt"
+          printf '%s\n' \
+            "content: mirror Split artifact from mono ${MONO_SOURCE_COMMIT:0:12}" \
+            '' \
+            "Mono-Source-Commit: ${MONO_SOURCE_COMMIT}" \
+            "PeanutSplit-Base-Commit: ${TARGET_BASE_COMMIT}" \
+            "Split-Manifest-SHA256: ${manifest_sha256}" \
+            "Split-Artifact-Tree-SHA256: ${TREE_SHA256}" \
+            "Publisher-Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            > "${message}"
+          git commit --file "${message}"
+          artifact_commit="$(git rev-parse HEAD)"
+          echo "artifact_commit=${artifact_commit}" >> "${GITHUB_OUTPUT}"
+          echo "manifest_sha256=${manifest_sha256}" >> "${GITHUB_OUTPUT}"
+
+      - name: Recheck refs and push only the fixed non-main branch
+        shell: bash
+        env:
+          TARGET_BASE_COMMIT: ${{ needs.prepare.outputs.target_base_commit }}
+        run: |
+          set -euo pipefail
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          artifact_head="$(git ls-remote origin refs/heads/automation/split-content-artifacts | awk '{print $1}')"
+          if [[ "${remote_main}" != "${TARGET_BASE_COMMIT}" || -n "${artifact_head}" ]]; then
+            echo '::error::A target ref moved after validation; refusing publication.'
+            exit 1
+          fi
+          # The empty expected value is an atomic compare-and-swap: the remote ref must still
+          # be absent when the server processes this push. A concurrent creator therefore wins
+          # without our descendant commit silently fast-forwarding over it.
+          git push \
+            --force-with-lease=refs/heads/automation/split-content-artifacts: \
+            origin \
+            HEAD:refs/heads/automation/split-content-artifacts
+
+      - name: Dispatch exact CI and wait for both jobs
+        id: ci
+        shell: bash
+        env:
+          ARTIFACT_COMMIT: ${{ steps.commit.outputs.artifact_commit }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run ci.yml \
+            --ref automation/split-content-artifacts \
+            -f "expected_head_sha=${ARTIFACT_COMMIT}"
+
+          run_id=''
+          for attempt in $(seq 1 30); do
+            run_id="$(gh api -X GET \
+              "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs" \
+              -f branch='automation/split-content-artifacts' \
+              -f event='workflow_dispatch' \
+              -f head_sha="${ARTIFACT_COMMIT}" \
+              -f per_page=20 \
+              --jq ".workflow_runs | map(select(.head_sha == \"${ARTIFACT_COMMIT}\")) | sort_by(.created_at) | last | .id // empty")"
+            [[ -n "${run_id}" ]] && break
+            sleep 2
+          done
+          if [[ -z "${run_id}" ]]; then
+            echo '::error::The exact-SHA CI dispatch did not create an observable run.'
+            exit 1
+          fi
+          echo "run_id=${run_id}" >> "${GITHUB_OUTPUT}"
+          gh run watch "${run_id}" --exit-status
+
+      - name: Open the human-gated artifact PR
+        shell: bash
+        env:
+          ARTIFACT_COMMIT: ${{ steps.commit.outputs.artifact_commit }}
+          CI_RUN_ID: ${{ steps.ci.outputs.run_id }}
+          GH_TOKEN: ${{ github.token }}
+          MANIFEST_SHA256: ${{ steps.commit.outputs.manifest_sha256 }}
+          MIRROR_SCRIPT_GIT_BLOB: ${{ needs.prepare.outputs.mirror_script_git_blob }}
+          MIRROR_SCRIPT_SHA256: ${{ needs.prepare.outputs.mirror_script_sha256 }}
+          MONO_SOURCE_COMMIT: ${{ needs.prepare.outputs.mono_source_commit }}
+          TARGET_BASE_COMMIT: ${{ needs.prepare.outputs.target_base_commit }}
+          TREE_SHA256: ${{ needs.prepare.outputs.tree_sha256 }}
+        run: |
+          set -euo pipefail
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          artifact_head="$(git ls-remote origin refs/heads/automation/split-content-artifacts | awk '{print $1}')"
+          if [[ "${remote_main}" != "${TARGET_BASE_COMMIT}" || "${artifact_head}" != "${ARTIFACT_COMMIT}" ]]; then
+            echo '::error::A target ref moved while exact-SHA CI ran; refusing to open a stale PR.'
+            exit 1
+          fi
+          existing="$(gh pr list \
+            --base main \
+            --head automation/split-content-artifacts \
+            --state open \
+            --json number \
+            --jq 'length')"
+          if [[ "${existing}" != '0' ]]; then
+            echo '::error::An artifact PR appeared after the fixed-branch preflight.'
+            exit 1
+          fi
+          body="${RUNNER_TEMP}/split-content-pr-body.md"
+          printf '%s\n' \
+            'Automated, one-way Split content artifact. **Human merge required.**' \
+            '' \
+            "- Mono source: \`${MONO_SOURCE_COMMIT}\`" \
+            "- PeanutSplit base: \`${TARGET_BASE_COMMIT}\`" \
+            "- Artifact commit: \`${ARTIFACT_COMMIT}\`" \
+            "- Manifest SHA-256: \`${MANIFEST_SHA256}\`" \
+            "- Artifact tree SHA-256: \`${TREE_SHA256}\`" \
+            "- Mirror script Git blob: \`${MIRROR_SCRIPT_GIT_BLOB}\`" \
+            "- Mirror script SHA-256: \`${MIRROR_SCRIPT_SHA256}\`" \
+            "- Publisher run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            "- Exact-SHA CI: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${CI_RUN_ID}" \
+            '' \
+            'The ordinary PR-triggered CI run may require manual approval because this PR is opened with GITHUB_TOKEN. The linked workflow_dispatch run is bound to the exact artifact commit and is the authoritative automated gate.' \
+            > "${body}"
+          gh pr create \
+            --base main \
+            --head automation/split-content-artifacts \
+            --title "content: mirror Split artifact from mono ${MONO_SOURCE_COMMIT:0:12}" \
+            --body-file "${body}" \
+            --draft
