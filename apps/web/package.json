@@ -5,7 +5,7 @@
     "packageManager": "pnpm@10.17.1",
     "scripts": {
         "dev": "next dev",
-        "build": "next build --webpack",
+        "build": "next build --webpack && node scripts/assert-pwa-build-boundary.mjs",
         "start": "next start",
         "typecheck": "tsc --noEmit",
         "lint": "pnpm format:check && pnpm classes:audit",
@@ -19,6 +19,7 @@
         "classes:audit": "node scripts/tailwind-class-audit.mjs",
         "test:watch": "vitest",
         "e2e": "playwright test",
+        "e2e:pwa-boundary": "playwright test --config playwright.pwa-boundary.config.ts",
         "e2e:v2": "playwright test --config playwright.v2.config.ts",
         "icons": "node scripts/generate-icons.mjs"
     },

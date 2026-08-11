@@ -51,6 +51,13 @@ if (process.env.NODE_ENV !== 'development') {
         const withSerwist = (await import('@serwist/next')).default({
             swSrc: './src/app/sw.ts',
             swDest: 'public/sw.js',
+            // Build and precache the product worker, but never register it from Serwist's global
+            // client entry: that entry is shared by both Next root layouts. The canonical
+            // product shell owns the one explicit registration side effect instead.
+            register: false,
+            // This default also lives in the shared client entry. The product-only registrar
+            // preserves the reload-on-reconnect behavior without attaching it to content pages.
+            reloadOnOnline: false,
             // Serwist precaches all of `public/` by default, which would mean every visitor on
             // every platform downloading half a megabyte of iOS launch screens the page never
             // requests — iOS takes those from the OS at install time, not from a cache. This is
