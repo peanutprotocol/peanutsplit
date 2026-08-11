@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { LEGACY_APP_ORIGIN } from '@/lib/domains'
 import { siteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, HREFLANG, type Locale } from '@/i18n/locales'
 import type { Doc, Faq } from '@/lib/content'
@@ -9,9 +8,9 @@ import type { Doc, Faq } from '@/lib/content'
  * peanut.me's src/lib/seo — same schema types, Split's own publisher block — because the two
  * sites are different publishers with different canonical hosts and must be able to drift.
  *
- * The product app origin remains `siteUrl`. Unmigrated marketing/content URLs deliberately resolve
- * against the fixed legacy origin until each page moves to peanut.me. This avoids a canonical or
- * sitemap URL on split.peanut.me immediately redirecting back to the 200 page on peanutsplit.com.
+ * Everything here takes a root-relative path and resolves it against `siteUrl`. Next resolves
+ * `metadataBase` for the metadata tags but not for JSON-LD strings, so absolute URLs have to be
+ * built by hand — a relative @id in structured data is silently ignored by Google.
  */
 
 const SITE_NAME = 'Peanut Split'
@@ -40,34 +39,21 @@ const OG_LOCALE: Record<Locale, string> = {
 }
 
 /** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
-export const ORGANIZATION_ID = `${LEGACY_APP_ORIGIN}/#organization`
+export const ORGANIZATION_ID = `${siteUrl}/#organization`
 
 const PUBLISHER = {
     '@type': 'Organization' as const,
     '@id': ORGANIZATION_ID,
     name: SITE_NAME,
-    url: LEGACY_APP_ORIGIN,
+    url: siteUrl,
     logo: {
         '@type': 'ImageObject' as const,
-        url: `${LEGACY_APP_ORIGIN}/icons/icon-512.png`,
+        url: `${siteUrl}/icons/icon-512.png`,
     },
 }
 
-/** Legacy marketing root-relative path → absolute URL. Idempotent for absolute canonicals. */
+/** Root-relative path → absolute URL. Idempotent for values that are already absolute. */
 export function absoluteUrl(pathname: string): string {
-    if (/^https?:\/\//.test(pathname)) return pathname
-    const suffix = pathname === '/' ? '' : pathname
-    return `${LEGACY_APP_ORIGIN}${suffix.startsWith('/') || suffix === '' ? suffix : `/${suffix}`}`
-}
-
-/** Metadata and sitemap hreflang values must name the same 200 legacy host as their canonical. */
-export function absoluteLanguages(languages: Record<string, string> | undefined): Record<string, string> | undefined {
-    if (!languages) return undefined
-    return Object.fromEntries(Object.entries(languages).map(([locale, href]) => [locale, absoluteUrl(href)]))
-}
-
-/** Product-owned app paths (currently `/import`) never enter the legacy canonical surface. */
-export function absoluteAppUrl(pathname: string): string {
     if (/^https?:\/\//.test(pathname)) return pathname
     const suffix = pathname === '/' ? '' : pathname
     return `${siteUrl}${suffix.startsWith('/') || suffix === '' ? suffix : `/${suffix}`}`
@@ -100,15 +86,13 @@ export function pageMetadata({
     modifiedTime,
     locale = DEFAULT_LOCALE,
 }: PageMetaInput): Metadata {
-    const canonical = absoluteUrl(path)
     return {
         title,
         description,
-        metadataBase: new URL(LEGACY_APP_ORIGIN),
-        alternates: { canonical },
+        alternates: { canonical: path },
         openGraph: {
             type,
-            url: canonical,
+            url: path,
             siteName: SITE_NAME,
             // OG wants `es_ES`-style underscores, not the BCP 47 hyphen the rest of the app uses.
             locale: OG_LOCALE[locale],
@@ -121,17 +105,6 @@ export function pageMetadata({
             title,
             description,
         },
-    }
-}
-
-export function appPageMetadata(input: PageMetaInput): Metadata {
-    const metadata = pageMetadata(input)
-    const canonical = absoluteAppUrl(input.path)
-    return {
-        ...metadata,
-        metadataBase: new URL(siteUrl),
-        alternates: { ...metadata.alternates, canonical },
-        openGraph: { ...metadata.openGraph, url: canonical },
     }
 }
 
@@ -167,7 +140,7 @@ export interface Breadcrumb {
     href: string
 }
 
-function breadcrumbSchemaFor(crumbs: Breadcrumb[], resolveUrl: (href: string) => string) {
+export function breadcrumbSchema(crumbs: Breadcrumb[]) {
     return {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -175,17 +148,9 @@ function breadcrumbSchemaFor(crumbs: Breadcrumb[], resolveUrl: (href: string) =>
             '@type': 'ListItem',
             position: i + 1,
             name: crumb.name,
-            item: resolveUrl(crumb.href),
+            item: absoluteUrl(crumb.href),
         })),
     }
-}
-
-export function breadcrumbSchema(crumbs: Breadcrumb[]) {
-    return breadcrumbSchemaFor(crumbs, absoluteUrl)
-}
-
-export function appBreadcrumbSchema(crumbs: Breadcrumb[]) {
-    return breadcrumbSchemaFor(crumbs, absoluteAppUrl)
 }
 
 /**
@@ -226,7 +191,7 @@ export function articleSchema(doc: Doc) {
         // Google lists `image` as required for an Article rich result. Deliberately the app icon
         // and not the unfurl card: Next hash-suffixes generated `opengraph-image` routes, so any
         // URL spelled out here would be a guess that breaks the next time the card is rebuilt.
-        image: `${LEGACY_APP_ORIGIN}/icons/icon-512.png`,
+        image: `${siteUrl}/icons/icon-512.png`,
         mainEntityOfPage: absoluteUrl(frontmatter.canonical ?? doc.href),
         url: absoluteUrl(frontmatter.canonical ?? doc.href),
     }
@@ -254,7 +219,7 @@ export function toolSchema({ path, title, description }: { path: string; title: 
         applicationCategory: 'FinanceApplication',
         operatingSystem: 'Web',
         inLanguage: HREFLANG[DEFAULT_LOCALE],
-        isPartOf: { '@id': `${LEGACY_APP_ORIGIN}/#website` },
+        isPartOf: { '@id': `${siteUrl}/#website` },
         publisher: { '@id': ORGANIZATION_ID },
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     }
@@ -271,14 +236,14 @@ export function siteSchema() {
         '@graph': [
             {
                 '@type': 'WebSite',
-                '@id': `${LEGACY_APP_ORIGIN}/#website`,
-                url: LEGACY_APP_ORIGIN,
+                '@id': `${siteUrl}/#website`,
+                url: siteUrl,
                 name: SITE_NAME,
-                publisher: { '@id': ORGANIZATION_ID },
+                publisher: { '@id': `${siteUrl}/#organization` },
             },
             {
                 ...PUBLISHER,
-                '@id': ORGANIZATION_ID,
+                '@id': `${siteUrl}/#organization`,
             },
             {
                 '@type': 'SoftwareApplication',

@@ -12,7 +12,7 @@ import {
     type Doc,
 } from '@/lib/content'
 import { renderArticle } from '@/lib/mdx'
-import { absoluteLanguages, pageMetadata, pageTitle } from '@/lib/seo'
+import { pageMetadata, pageTitle } from '@/lib/seo'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { LOCALES, type Locale } from '@/i18n/locales'
 
@@ -105,10 +105,7 @@ export function articleMetadata(collections: RouteCollections, locale: Locale, p
         })
         return {
             ...meta,
-            alternates: {
-                ...meta.alternates,
-                languages: absoluteLanguages(alternatesFor(doc.collection, slug, locale)),
-            },
+            alternates: { ...meta.alternates, languages: alternatesFor(doc.collection, slug, locale) },
         }
     }
 }
@@ -131,13 +128,7 @@ export function hubMetadata(locale: Locale) {
             type: 'website',
             locale,
         })
-        return {
-            ...meta,
-            alternates: {
-                ...meta.alternates,
-                languages: absoluteLanguages(hreflangAlternates('/blog', [...LOCALES])),
-            },
-        }
+        return { ...meta, alternates: { ...meta.alternates, languages: hreflangAlternates('/blog', [...LOCALES]) } }
     }
 }
 

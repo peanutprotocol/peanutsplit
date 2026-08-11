@@ -1,17 +1,16 @@
 import { type Metadata, type Viewport } from 'next'
-import { headers } from 'next/headers'
+import { Roboto_Flex, Sniglet } from 'next/font/google'
+import localFont from 'next/font/local'
 import { NextIntlClientProvider } from 'next-intl'
 import Script from 'next/script'
 import { getLocale } from 'next-intl/server'
 import { asLocale, HREFLANG } from '@/i18n/locales'
-import { bodyFontClassName } from '@/lib/fonts'
-import { isCanonicalPwaRequest } from '@/lib/pwa-manifest'
 import { Providers } from '@/lib/providers'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import { appleStartupImages } from '@/lib/splash'
-import '../../styles/globals.css'
+import '../styles/globals.css'
 
 export const metadata: Metadata = {
     title: 'Peanut Split — split expenses, no signup',
@@ -21,6 +20,19 @@ export const metadata: Metadata = {
     // The app CHROME is "Split": launcher label, home-screen label, lock-screen sender. Everything
     // a search engine or a group chat sees — the title above, `SITE_NAME`, every OG unfurl — stays
     // "Peanut Split".
+    applicationName: 'Split',
+    // Next fills the rest of this object in: `capable` defaults to true and `statusBarStyle` to
+    // 'default', so this one line also emits <meta name="mobile-web-app-capable"> and
+    // <meta name="apple-mobile-web-app-status-bar-style">. What we are here for is
+    // `apple-mobile-web-app-title` — the name iOS proposes in the Add to Home Screen dialog, which
+    // the manifest cannot set. Chromeless launch on iOS comes from the manifest's
+    // `display: 'standalone'`; Next 16 emits no `apple-mobile-web-app-capable` tag at all, so
+    // pre-16.4 iOS gains nothing from this.
+    // `startupImage` is what an installed iOS app shows while it boots. Without it that second is
+    // a blank `background_color` screen; the matching is per exact device geometry, so it is a file
+    // per phone. `splash.ts` owns the table and `pnpm icons` renders it.
+    appleWebApp: { title: 'Split', startupImage: appleStartupImages() },
+    icons: { apple: '/icons/apple-touch-icon.png' },
 }
 
 export const viewport: Viewport = {
@@ -30,6 +42,32 @@ export const viewport: Viewport = {
     viewportFit: 'cover',
     themeColor: '#FFC900',
 }
+
+const roboto = Roboto_Flex({
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-roboto',
+    axes: ['wdth'],
+})
+
+const sniglet = Sniglet({
+    weight: ['400', '800'],
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-sniglet',
+})
+
+const knerdOutline = localFont({
+    src: '../assets/fonts/knerd-outline.ttf',
+    variable: '--font-knerd-outline',
+    display: 'swap',
+})
+
+const knerdFilled = localFont({
+    src: '../assets/fonts/knerd-filled.ttf',
+    variable: '--font-knerd-filled',
+    display: 'swap',
+})
 
 /**
  * The app preference has to exist before React and Motion mount. Otherwise an
@@ -71,44 +109,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     //
     // `HREFLANG`, not the raw code: `lang` is an HTML language tag, so it gets the standard
     // BCP 47 casing (`pt-BR`) rather than the lowercase spelling used in filenames and URLs.
-    const [requestHeaders, requestLocale] = await Promise.all([headers(), getLocale()])
-    const locale = asLocale(requestLocale)
-    const canonicalPwa = isCanonicalPwaRequest(requestHeaders)
+    const locale = HREFLANG[asLocale(await getLocale())]
+
     return (
-        <html lang={HREFLANG[locale]} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
+        <html lang={locale} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
             <head>
-                {/* Next streams Metadata API output after <body> on dynamic room routes. Browsers
-                    ignore a manifest discovered there, which made the room surface ineligible for
-                    installation. These product-only tags must be literal initial-head markup; the
-                    separate Split content root therefore remains PWA-free. */}
-                {canonicalPwa ? (
-                    <>
-                        <meta name="application-name" content="Split" />
-                        <link rel="manifest" href="/manifest.webmanifest" />
-                        <meta name="mobile-web-app-capable" content="yes" />
-                        <meta name="apple-mobile-web-app-title" content="Split" />
-                        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-                        <link rel="shortcut icon" href="/favicon.ico" />
-                        <link rel="icon" href="/icon.png" />
-                        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-                        {/* iOS matches startup images on exact device geometry. `splash.ts` owns the
-                            table and `pnpm icons` renders the corresponding files. */}
-                        {appleStartupImages().map(({ url, media }) => (
-                            <link key={url} rel="apple-touch-startup-image" href={url} media={media} />
-                        ))}
-                        <Script id="split-install-preflight" strategy="beforeInteractive">
-                            {installPromptPreflight}
-                        </Script>
-                    </>
-                ) : null}
                 <Script id="split-motion-preflight" strategy="beforeInteractive">
                     {motionPreferencePreflight}
                 </Script>
+                <Script id="split-install-preflight" strategy="beforeInteractive">
+                    {installPromptPreflight}
+                </Script>
             </head>
-            <body className={bodyFontClassName}>
-                {/* Legacy WebSite + Organization plus the app-origin SoftwareApplication,
-                    declared once so unmigrated page schema is host-consistent while the product
-                    entity keeps its split.peanut.me identity. Room pages are noindex. */}
+            <body
+                className={`${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`}
+            >
+                {/* WebSite + Organization + SoftwareApplication, declared once for the whole
+                    site so every page's publisher can reference one entity by @id instead of
+                    re-declaring an unlinked copy. Room pages are noindex, so this costs them
+                    nothing. */}
                 <JsonLd data={siteSchema()} />
                 {/* No `messages` prop: rendered from a Server Component, the provider inherits
                     the request config, which serialises only the active catalog to the client.

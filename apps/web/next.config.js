@@ -7,7 +7,6 @@ const createNextIntlPlugin = require('next-intl/plugin')
  * that path is the plugin's own default.
  */
 const withNextIntl = createNextIntlPlugin()
-const SPLIT_ASSET_PREFIX = '/split-static'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -15,9 +14,6 @@ const nextConfig = {
     output: 'standalone',
     reactStrictMode: true,
     productionBrowserSourceMaps: false,
-    // Stable, collision-free namespace shared by product and content chunks. Next serves
-    // `${assetPrefix}/_next/*` natively; adding an internal rewrite masks that contract.
-    assetPrefix: SPLIT_ASSET_PREFIX,
 
     /**
      * The Spanish pages shipped under `/es/…` before the locale codes carried a territory. They

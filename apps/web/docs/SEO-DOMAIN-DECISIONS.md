@@ -22,10 +22,7 @@ Rationale: authority must accrue to peanut.me. Subdomains are treated by Google 
 ## Current state (as of this handoff)
 
 - Engine: standalone Next app, this repo (`apps/web`), MDX content in `src/content/` (~8 pages: blog + alternatives, en/es/pt-br).
-- Current code keeps the URL identities separate: legacy marketing metadata is fixed to
-  `peanutsplit.com` in `src/lib/seo.ts`, product metadata uses `siteUrl` in
-  `src/app/(product-shell)/layout.tsx`, and forwarded Split content uses `CONTENT_ORIGIN` through
-  `src/lib/split-content/root-metadata.ts`.
+- `metadataBase` comes from siteUrl env (`src/app/layout.tsx:17`) — domain switch is config, not code.
 - The peanut.me-side rewrite is NOT yet configured. That is the keystone task: without it, canonicals pointing at peanut.me/split/* are broken links.
 
 ## Open items
