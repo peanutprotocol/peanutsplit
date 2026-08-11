@@ -1,23 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
-    AUTO_INSTALL_SHOWN_COOLDOWN_MS,
-    AUTO_INSTALL_SHOWN_AT_KEY,
     clearMatureRoomReturnEvidence,
+    COMPETING_GUIDANCE_DEFER_MS,
+    deferredRoomInstallWaitMs,
+    deferRoomInstallAfterCompetingGuidance,
     eligibleRoomInstallTrigger,
     markRoomCreatedHere,
     MATURE_RETURN_MS,
     INSTALL_QUALIFICATION_TTL_MS,
-    noteAutoInstallShown,
     noteMatureContribution,
     noteMatureRoomActivity,
     noteMatureRoomAway,
     noteMatureRoomVisit,
     noteRoomShareCompleted,
-    POST_AHA_SKIP_DEFER_MS,
-    deferRoomInstallAfterSkippedShare,
+    promotedRoomInstallTrigger,
     readRoomInstallFunnel,
     ROOM_INSTALL_KEY_PREFIX,
-    wasAutoInstallShownRecently,
 } from './install-funnel'
 
 class MemoryStorage {
@@ -140,14 +138,65 @@ describe('the semantic install funnel', () => {
         const store = new MemoryStorage()
         noteRoomShareCompleted(SLUG, false, 100, store)
         noteMatureRoomVisit(SLUG, 200, store)
-        deferRoomInstallAfterSkippedShare(SLUG, 300, store)
+        deferRoomInstallAfterCompetingGuidance(SLUG, 300, store)
 
-        expect(eligibleRoomInstallTrigger(SLUG, 300 + POST_AHA_SKIP_DEFER_MS - 1, store)).toBeNull()
-        expect(eligibleRoomInstallTrigger(SLUG, 300 + POST_AHA_SKIP_DEFER_MS, store)).toBe('balance_and_share')
+        expect(eligibleRoomInstallTrigger(SLUG, 300 + COMPETING_GUIDANCE_DEFER_MS - 1, store)).toBeNull()
+        expect(eligibleRoomInstallTrigger(SLUG, 300 + COMPETING_GUIDANCE_DEFER_MS, store)).toBe('balance_and_share')
 
-        deferRoomInstallAfterSkippedShare(SLUG, 400, store)
+        deferRoomInstallAfterCompetingGuidance(SLUG, 400, store)
         noteRoomShareCompleted(SLUG, true, 401, store)
         expect(eligibleRoomInstallTrigger(SLUG, 402, store)).toBe('balance_and_share')
+    })
+
+    it('uses the quiet slot without persisting it when no semantic trigger was earned', () => {
+        const opened = new MemoryStorage()
+        expect(eligibleRoomInstallTrigger(SLUG, 100, opened)).toBeNull()
+        expect(promotedRoomInstallTrigger(SLUG, 100, opened)).toBe('quiet_slot')
+        expect(readRoomInstallFunnel(SLUG, opened).qualifiedTrigger).toBeUndefined()
+
+        const creator = new MemoryStorage()
+        markRoomCreatedHere(SLUG, creator)
+        expect(promotedRoomInstallTrigger(SLUG, 100, creator)).toBe('quiet_slot')
+        expect(readRoomInstallFunnel(SLUG, creator).qualifiedTrigger).toBeUndefined()
+    })
+
+    it('keeps an earned reason as promotion attribution instead of replacing it with the quiet slot', () => {
+        const store = new MemoryStorage()
+        noteMatureContribution(
+            SLUG,
+            { roomWasMature: true, queuedLocally: false, createdFirstSharedBalance: false },
+            100,
+            store
+        )
+
+        expect(promotedRoomInstallTrigger(SLUG, 101, store)).toBe('mature_contribution')
+    })
+
+    it('lets any dismissed competing guidance defer both earned and quiet-slot promotion', () => {
+        const quiet = new MemoryStorage()
+        deferRoomInstallAfterCompetingGuidance(SLUG, 100, quiet)
+        expect(promotedRoomInstallTrigger(SLUG, 100 + COMPETING_GUIDANCE_DEFER_MS - 1, quiet)).toBeNull()
+        expect(promotedRoomInstallTrigger(SLUG, 100 + COMPETING_GUIDANCE_DEFER_MS, quiet)).toBe('quiet_slot')
+
+        const earned = new MemoryStorage()
+        noteMatureContribution(
+            SLUG,
+            { roomWasMature: true, queuedLocally: false, createdFirstSharedBalance: false },
+            100,
+            earned
+        )
+        deferRoomInstallAfterCompetingGuidance(SLUG, 200, earned)
+        expect(promotedRoomInstallTrigger(SLUG, 200 + COMPETING_GUIDANCE_DEFER_MS - 1, earned)).toBeNull()
+        expect(promotedRoomInstallTrigger(SLUG, 200 + COMPETING_GUIDANCE_DEFER_MS, earned)).toBe('mature_contribution')
+    })
+
+    it('exposes only the remaining defer duration needed for a live refresh', () => {
+        const store = new MemoryStorage()
+        expect(deferredRoomInstallWaitMs(SLUG, 100, store)).toBeNull()
+
+        deferRoomInstallAfterCompetingGuidance(SLUG, 100, store)
+        expect(deferredRoomInstallWaitMs(SLUG, 101, store)).toBe(COMPETING_GUIDANCE_DEFER_MS - 1)
+        expect(deferredRoomInstallWaitMs(SLUG, 100 + COMPETING_GUIDANCE_DEFER_MS, store)).toBeNull()
     })
 
     it('treats malformed storage as an opened-room first visit', () => {
@@ -193,13 +242,5 @@ describe('the semantic install funnel', () => {
             noteMatureRoomVisit(SLUG, maturityAt, store)
             expect(eligibleRoomInstallTrigger(SLUG, maturityAt + 1, store)).toBeNull()
         }
-    })
-
-    it('throttles automatic cards globally for 24 hours without affecting room qualification', () => {
-        const store = new MemoryStorage()
-        noteAutoInstallShown(1_000, store)
-        expect(store.getItem(AUTO_INSTALL_SHOWN_AT_KEY)).toBe('1000')
-        expect(wasAutoInstallShownRecently(1_000 + AUTO_INSTALL_SHOWN_COOLDOWN_MS - 1, store)).toBe(true)
-        expect(wasAutoInstallShownRecently(1_000 + AUTO_INSTALL_SHOWN_COOLDOWN_MS, store)).toBe(false)
     })
 })

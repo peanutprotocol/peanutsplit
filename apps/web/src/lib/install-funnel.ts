@@ -9,7 +9,9 @@
  */
 
 export type RoomInstallOrigin = 'created_here' | 'opened_here'
-export type AutoInstallTrigger = 'balance_and_share' | 'mature_contribution' | 'mature_return'
+export type EarnedAutoInstallTrigger = 'balance_and_share' | 'mature_contribution' | 'mature_return'
+/** `quiet_slot` is selected at render time and is deliberately never persisted as room history. */
+export type AutoInstallTrigger = EarnedAutoInstallTrigger | 'quiet_slot'
 
 export interface RoomInstallFunnelState {
     version: 1
@@ -22,24 +24,22 @@ export interface RoomInstallFunnelState {
     lastMatureActiveAt?: number
     /** Explicit hidden/blur/pagehide boundary. Kept until the next visible entry evaluates it. */
     matureAwaySince?: number
-    qualifiedTrigger?: AutoInstallTrigger
+    qualifiedTrigger?: EarnedAutoInstallTrigger
     qualifiedAt?: number
-    /** A skipped post-aha share must not be replaced immediately by an install ask. */
+    /** A dismissed competing guidance ask must not be replaced immediately by install. */
     deferUntil?: number
 }
 
 type InstallStorage = Pick<Storage, 'getItem' | 'setItem'>
 
 export const ROOM_INSTALL_KEY_PREFIX = 'ps:pwa-room:'
-export const AUTO_INSTALL_SHOWN_AT_KEY = 'ps:pwa-auto-shown-at'
 export const MATURE_RETURN_MS = 30 * 60 * 1000
 export const MATURE_ACTIVITY_HEARTBEAT_MS = 60 * 1000
-export const POST_AHA_SKIP_DEFER_MS = 30 * 60 * 1000
-export const AUTO_INSTALL_SHOWN_COOLDOWN_MS = 24 * 60 * 60 * 1000
+export const COMPETING_GUIDANCE_DEFER_MS = 30 * 60 * 1000
 /** An old trip should not wake an install card months later merely because somebody edits it. */
 export const INSTALL_QUALIFICATION_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
-const TRIGGER_PRIORITY: Record<AutoInstallTrigger, number> = {
+const TRIGGER_PRIORITY: Record<EarnedAutoInstallTrigger, number> = {
     mature_return: 1,
     mature_contribution: 2,
     balance_and_share: 3,
@@ -118,7 +118,11 @@ const qualificationIsFresh = (state: RoomInstallFunnelState, now: number): boole
     state.qualifiedAt <= now &&
     now - state.qualifiedAt <= INSTALL_QUALIFICATION_TTL_MS
 
-const qualify = (state: RoomInstallFunnelState, trigger: AutoInstallTrigger, now: number): RoomInstallFunnelState => {
+const qualify = (
+    state: RoomInstallFunnelState,
+    trigger: EarnedAutoInstallTrigger,
+    now: number
+): RoomInstallFunnelState => {
     const current = qualificationIsFresh(state, now) ? state.qualifiedTrigger : undefined
     const winner = !current || TRIGGER_PRIORITY[trigger] >= TRIGGER_PRIORITY[current] ? trigger : current
     return {
@@ -248,20 +252,20 @@ export function noteMatureContribution(
     return writeRoomState(slug, qualify({ ...current, deferUntil: undefined }, 'mature_contribution', now), store)
 }
 
-export function deferRoomInstallAfterSkippedShare(
+export function deferRoomInstallAfterCompetingGuidance(
     slug: string,
     now = Date.now(),
     store: InstallStorage | null = browserStorage()
 ): RoomInstallFunnelState {
     const current = readRoomInstallFunnel(slug, store)
-    return writeRoomState(slug, { ...current, deferUntil: now + POST_AHA_SKIP_DEFER_MS }, store)
+    return writeRoomState(slug, { ...current, deferUntil: now + COMPETING_GUIDANCE_DEFER_MS }, store)
 }
 
 export function eligibleRoomInstallTrigger(
     slug: string,
     now = Date.now(),
     store: InstallStorage | null = browserStorage()
-): AutoInstallTrigger | null {
+): EarnedAutoInstallTrigger | null {
     const state = readRoomInstallFunnel(slug, store)
     if (!state.qualifiedTrigger || !qualificationIsFresh(state, now)) return null
     if (state.deferUntil !== undefined && now < state.deferUntil) return null
@@ -271,30 +275,36 @@ export function eligibleRoomInstallTrigger(
     return state.qualifiedTrigger
 }
 
-const readShownAt = (store: InstallStorage | null): number => {
-    if (!store) return 0
-    try {
-        const raw = store.getItem(AUTO_INSTALL_SHOWN_AT_KEY)
-        const parsed = raw === null ? NaN : Number.parseInt(raw, 10)
-        return Number.isFinite(parsed) ? parsed : 0
-    } catch {
-        return 0
-    }
-}
-
-export function wasAutoInstallShownRecently(
+/**
+ * Trigger for the promoted room guidance slot.
+ *
+ * A fresh semantic reason keeps its more useful attribution. Otherwise install is the ordinary
+ * quiet-room fallback. A recent dismissal of a competing guided CTA suppresses both paths, so
+ * saying "Not now" to Share, latecomer review, or another moment is never answered by a second ask.
+ */
+export function promotedRoomInstallTrigger(
+    slug: string,
     now = Date.now(),
     store: InstallStorage | null = browserStorage()
-): boolean {
-    const shownAt = readShownAt(store)
-    return shownAt > 0 && now - shownAt < AUTO_INSTALL_SHOWN_COOLDOWN_MS
+): AutoInstallTrigger | null {
+    const state = readRoomInstallFunnel(slug, store)
+    if (state.deferUntil !== undefined && now < state.deferUntil) return null
+
+    if (state.qualifiedTrigger && qualificationIsFresh(state, now)) {
+        if (state.origin !== 'created_here' || state.qualifiedTrigger === 'balance_and_share') {
+            return state.qualifiedTrigger
+        }
+    }
+    return 'quiet_slot'
 }
 
-export function noteAutoInstallShown(now = Date.now(), store: InstallStorage | null = browserStorage()): void {
-    if (!store) return
-    try {
-        store.setItem(AUTO_INSTALL_SHOWN_AT_KEY, String(now))
-    } catch {
-        // The in-memory shown guard still prevents a second card in this page life.
-    }
+/** Remaining time for a competing-guidance defer, used to re-open the quiet slot without a reload. */
+export function deferredRoomInstallWaitMs(
+    slug: string,
+    now = Date.now(),
+    store: InstallStorage | null = browserStorage()
+): number | null {
+    const deferUntil = readRoomInstallFunnel(slug, store).deferUntil
+    if (deferUntil === undefined || deferUntil <= now) return null
+    return deferUntil - now
 }

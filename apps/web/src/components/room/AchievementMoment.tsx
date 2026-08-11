@@ -38,11 +38,13 @@ export function AchievementMoment({
     state,
     meId,
     onOpenChange,
+    onDismissed,
 }: {
     slug: string
     state: RoomState
     meId: string | undefined
     onOpenChange?: (open: boolean) => void
+    onDismissed?: () => void
 }) {
     const t = useTranslations('room.achievements')
     const feedback = useFeedback()
@@ -78,8 +80,9 @@ export function AchievementMoment({
 
     const dismiss = useCallback(() => {
         feedback('tick')
+        onDismissed?.()
         setDismissed(true)
-    }, [feedback])
+    }, [feedback, onDismissed])
 
     if (!open || !shown) return null
 

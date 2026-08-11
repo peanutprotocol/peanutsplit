@@ -185,6 +185,7 @@
         "install": {
             "title": "Keep this split close",
             "body": "Add Split to this device and come straight back to this room. No store, no account.",
+            "bodySettled": "Keep Split one tap away for this trip and the next. No store, no account.",
             "cta": "Add Split",
             "ctaIos": "Show me how",
             "dismiss": "Not now",
