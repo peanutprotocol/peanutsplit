@@ -12,7 +12,7 @@ import { installMeasureProps, roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
-import { snoozeAfterIosInstallInstructions } from '@/lib/install'
+import { snoozeAfterManualInstallInstructions } from '@/lib/install'
 import type { SettledPushStatus } from '@/lib/push-status'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
@@ -63,7 +63,7 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
     }, [])
 
     const closeIosInstallSteps = () => {
-        snoozeAfterIosInstallInstructions()
+        snoozeAfterManualInstallInstructions()
         setIosSheetOpen(false)
     }
     /**

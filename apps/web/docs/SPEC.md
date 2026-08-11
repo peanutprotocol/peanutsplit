@@ -320,11 +320,11 @@ settings, both default ON, persisted in localStorage.
   **NetworkOnly for `/api/*`** (a stale RoomState is worse than a spinner; a prior app shipped a
   soft-lock bug from NetworkFirst on state endpoints), CacheFirst for hashed `/_next/static`,
   NetworkFirst (3s timeout) for navigations. Installation is a retention affordance, not an
-  activation gate: keep the settings action available whenever the browser exposes one, but
-  automatically offer it only after the device has both reached a durable shared balance and completed a room share, or
-  after a device that opened an existing mature room later contributes or deliberately returns.
-  The post-activation share owns the first ask; the install surface waits until that drawer closes
-  and the interaction is quiet.
+  activation gate: Device settings always provides a native action or truthful browser-menu
+  guidance. The room has one contextual guidance slot — identity/recovery, first expense,
+  post-activation Share, active forms, latecomer review, fresh All settled and achievements all
+  outrank Install; Install is the inline fallback once none is active and the interaction is quiet.
+  Temporary blockers suspend the same exposure, while competing-prompt refusals defer it.
   Dismissals use an exponential backoff (24h→48h→…→30d cap) in localStorage. iOS gets a how-to
   sheet (no `beforeinstallprompt` there; detect iPadOS-as-Mac via
   `maxTouchPoints > 1 && /Mac/`). [WebKit 17.2+ copies cookies but no other local storage into a newly

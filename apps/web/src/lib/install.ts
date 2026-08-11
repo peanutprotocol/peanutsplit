@@ -71,7 +71,7 @@ const SNOOZED_UNTIL_KEY = 'ps:pwa-snoozed-until'
 const HOUR = 60 * 60 * 1000
 const BASE_BACKOFF_MS = 24 * HOUR
 const MAX_BACKOFF_MS = 30 * 24 * HOUR
-export const IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS = 30 * 24 * HOUR
+export const MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS = 30 * 24 * HOUR
 
 const readInt = (key: string): number => {
     const raw = window.localStorage.getItem(key)
@@ -103,9 +103,9 @@ export const snoozeInstallFor = (durationMs: number): void => {
     }
 }
 
-/** Safari cannot report an install result, so closing its instructions quiets automatic asks. */
-export const snoozeAfterIosInstallInstructions = (): void => {
-    snoozeInstallFor(IOS_INSTALL_INSTRUCTIONS_SNOOZE_MS)
+/** Manual browser installation cannot report success, so closing its steps quiets automatic asks. */
+export const snoozeAfterManualInstallInstructions = (): void => {
+    snoozeInstallFor(MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS)
 }
 
 /** Records a dismissal and answers how many there have now been. */

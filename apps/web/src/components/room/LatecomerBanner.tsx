@@ -36,7 +36,7 @@ interface LatecomerBannerProps {
     state: RoomState
     memberId: string
     token?: string | null
-    onResolved?: () => void
+    onResolved?: (reason: 'completed' | 'not_now') => void
     /** Persist the earned transition above this banner: opening an expense
      * drawer deliberately unmounts it while the review is still unresolved. */
     onFirstSharedBalanceEarned?: () => void
@@ -100,11 +100,14 @@ export function LatecomerBanner({
     const money = (minor: string) => formatMoney(minor, state.room.currency, undefined, locale)
     const dayOptions = { locale, today: tDates('today'), yesterday: tDates('yesterday') }
 
-    const resolveLocally = (excludedIds: ReadonlySet<string> = new Set()) => {
+    const resolveLocally = (
+        excludedIds: ReadonlySet<string> = new Set(),
+        reason: 'completed' | 'not_now' = 'completed'
+    ) => {
         dismissLatecomerReview(slug, review, excludedIds)
         setResolved(true)
         setOpen(false)
-        onResolved?.()
+        onResolved?.(reason)
     }
 
     const openReview = () => {
@@ -269,7 +272,7 @@ export function LatecomerBanner({
                         size="small"
                         width="auto"
                         className={cn(BTN_SMALL, 'justify-center underline')}
-                        onClick={() => resolveLocally()}
+                        onClick={() => resolveLocally(new Set(), 'not_now')}
                         data-testid="latecomer-dismiss"
                     >
                         {t('notNow')}
@@ -368,7 +371,7 @@ export function LatecomerBanner({
                             <Button
                                 variant="transparent"
                                 className="justify-center underline"
-                                onClick={() => resolveLocally()}
+                                onClick={() => resolveLocally(new Set(), 'not_now')}
                                 disabled={submitting}
                                 data-testid="latecomer-not-now"
                             >

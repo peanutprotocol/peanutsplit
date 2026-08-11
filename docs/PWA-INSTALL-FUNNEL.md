@@ -1,23 +1,29 @@
 # PWA install and retention funnel
 
 Installation is not Peanut Split's activation event. A URL already delivers the
-product; adding it to a device only reduces the cost of coming back. The automatic
-offer therefore follows demonstrated value. The Device settings action remains available
-from first use: iOS has its Home Screen steps, browsers without a live one-tap event get
-portable menu guidance, and Chromium upgrades that same row when its prompt arrives.
+product; adding it to a device only reduces the cost of coming back. Install is therefore
+always discoverable in Device settings and becomes the room's promoted fallback CTA only
+when no temporary product journey needs that space. iOS has its Home Screen steps,
+browsers without a live one-tap event get portable menu guidance, and Chromium upgrades
+the same surface when its prompt arrives.
 
-## Why the automatic offer waits
+## One guidance slot
 
-Before a useful balance exists, installation asks for attention and trust in exchange
-for an abstract future benefit. On iOS it also asks somebody to complete a manual
-browser workflow. That interruption competes with the jobs that create value: adding a
-real expense and putting the room link in the group chat.
+The room chooses one optional guidance owner in this order: identity, recovery,
+post-activation Share, an active form or drawer, empty-room activation, latecomer review,
+a newly reached All settled moment, an achievement, then Install. Persistent utilities
+such as Add expense, Settle up, header Share and Settings do not consume the slot.
 
-After a room has a durable shared balance and the link has actually been shared, the
-same offer has a concrete promise: keep this live split one tap away. An invitee who
-returns to an active mature room has independently demonstrated the same repeat-use
-need. Installation can reduce return friction for either journey; it cannot create that
-need before activation.
+This protects activation directly without making a particular local history event a hard
+install prerequisite. A browser opening an already-useful room should not have to share
+again, contribute a second expense, or leave for 30 minutes merely to discover that Split
+can live on the device. Conversely, an empty room keeps its Share/Add actions and never
+replaces them with Install.
+
+The promoted card is inline above the ledger rather than fixed over the primary room
+controls. A temporary owner hides it; after that owner closes and the interaction is quiet,
+the same card returns without recording a second exposure. A dismissal or browser decline
+is different: it applies the global backoff while Device settings remains available.
 
 This is why install count is diagnostic, not the objective. A future causal experiment
 should use incremental D7 return to a meaningful active-room action, with first-balance
@@ -33,38 +39,40 @@ standalone `pwa_ios_install_handoff_completed` event cannot be joined into a per
 funnel or D7 cohort. A future implementation may carry a low-cardinality policy arm
 through the transient handoff, but must not add a unique device or room identifier.
 
-## Device-local journey rules
+## Device-local promotion rules
 
 No server-side creator/invitee role is introduced. Roster members are ledger
 participants, not accounts, and install analytics never contain a member, room slug,
 name, amount, or currency.
 
-- A device that created the room qualifies after both a durable shared balance and a
-  completed native/package clipboard share or direct room-link copy, in either order.
-- A device that opened an existing room can qualify the same way, by completing a new
-  server-confirmed contribution after the room was already mature, or by returning to an
-  active mature room after at least 30 minutes. The expense that first creates a balance and
-  an offline-queued write do not count as a later contribution.
-- A passive first visit, an empty/no-debt room, and a settled room never receive an
-  automatic offer. The settings action stays available throughout: it uses a native
-  prompt when exposed and otherwise explains the browser-menu route.
-- The post-activation share owns the first ask. Installation waits until that drawer and
-  every other blocking surface are closed, then waits for a short quiet interaction
-  window.
-- Skipping the post-activation share defers installation; a successful share changes the
-  footer to Done and allows the offer after close.
-- Showing an automatic offer starts a global 24-hour cooldown. Explicit dismissal or a
-  browser decline uses the longer exponential backoff. Installed/standalone state wins
-  over every trigger.
-- Closing the manual iOS instructions quiets automatic offers for 30 days because Safari
-  exposes no install-result event; the settings action remains available throughout.
+- A loaded room with a resolved active device identity promotes Install whenever the
+  guidance resolver reaches its fallback slot. A first visit to an existing room is enough;
+  there is no balance/share/contribution/return eligibility gate.
+- Empty-room Share/Add, identity recovery, stale or pending writes, open sheets/forms,
+  latecomer correction, achievements, and the fresh All settled transition take priority.
+- Reaching All settled suppresses Install for the rest of that mounted celebration. A later
+  visit may show it with next-trip copy because the transition is over.
+- Skipping post-activation Share, saying Not now to latecomer review, or dismissing an
+  achievement defers the fallback for 30 minutes. A completed meaningful action may clear
+  that defer.
+- A native or clipboard share plus durable balance, a later mature contribution, and a
+  deliberate mature return remain local attribution signals. They can explain the context
+  of an exposure, but the non-persisted `quiet_slot` reason covers the ordinary fallback.
+- Chromium uses its native prompt when available. Otherwise the room CTA and Device row
+  open browser-menu instructions and upgrade in place if `beforeinstallprompt` arrives.
+- Rendering an automatic offer alone does not suppress a later quiet slot. Explicit dismissal or
+  a browser decline uses the exponential backoff. Installed/standalone state wins over every
+  trigger.
+- Closing manual-install instructions, whether opened automatically or from settings,
+  quiets automatic offers for 30 days because the browser exposes no reliable success
+  event; the settings action remains available throughout.
 
 The journey state is localStorage-only and room-scoped. It describes what this browser
 did; it is not synchronized or mapped to a server device. Raw origin/timestamps never
 leave the device. Prompt exposure measures only closed `trigger` and `delivery`
-categories; dismissal also measures a closed `reason`. Opening the manual browser
-instructions measures only the closed `settings` surface, never the browser, room, or
-member. Explicit Forget removes the identity and journey record;
+categories; dismissal also measures a closed `reason`. Opening manual browser instructions
+measures only the closed `auto` or `settings` surface, never the browser, room, or member.
+Explicit Forget removes the identity and journey record;
 passive recent-list eviction prunes the journey record without revoking member proof.
 
 ## iOS installation handoff

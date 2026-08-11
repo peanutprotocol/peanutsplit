@@ -5,8 +5,6 @@ import { slideToConfirm } from './slide-to-confirm'
 
 test.setTimeout(90_000)
 
-const OLD_IDLE_PROMPT_MS = 20_000
-
 async function stubSuccessfulShare(page: Page): Promise<void> {
     await page.addInitScript(() => {
         Object.defineProperty(navigator, 'share', {
@@ -20,14 +18,30 @@ async function stubSuccessfulShare(page: Page): Promise<void> {
 
 async function offerBrowserInstall(page: Page, outcome: 'accepted' | 'dismissed' = 'dismissed'): Promise<void> {
     await page.evaluate((choice) => {
+        const window_ = window as Window & { __installRetentionPrompts?: number }
+        window_.__installRetentionPrompts = 0
         const event = new Event('beforeinstallprompt') as Event & {
             prompt: () => Promise<void>
             userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
         }
-        event.prompt = async () => {}
+        event.prompt = async () => {
+            window_.__installRetentionPrompts = (window_.__installRetentionPrompts ?? 0) + 1
+        }
         event.userChoice = Promise.resolve({ outcome: choice })
         window.dispatchEvent(event)
     }, outcome)
+}
+
+async function modelAndroidBrowser(page: Page): Promise<void> {
+    await page.addInitScript(() => {
+        Object.defineProperties(window.navigator, {
+            userAgent: {
+                configurable: true,
+                value: 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36',
+            },
+            platform: { configurable: true, value: 'Linux armv8l' },
+        })
+    })
 }
 
 async function modelIOSBrowser(page: Page): Promise<void> {
@@ -65,18 +79,24 @@ async function addExpense(page: Page, description: string, amount = '20'): Promi
     await page.getByTestId('save-expense').click()
 }
 
-test('an empty room stays quiet past the retired timer and skipping post-aha does not stack an install ask', async ({
-    page,
-}) => {
+test('empty-room and post-aha guidance own the slot, and skipping Share defers install', async ({ page }) => {
+    await modelAndroidBrowser(page)
     await createTwoPersonRoom(page, `No early install ${Date.now()}`)
-    await offerBrowserInstall(page)
 
-    // Regression: the old policy interrupted every room after 20 seconds, even
-    // when no shared balance or return reason existed.
-    await page.waitForTimeout(OLD_IDLE_PROMPT_MS + 1_500)
+    // An empty room already has two explicit next steps. The browser is otherwise
+    // eligible for portable menu guidance, but Install must not become a third ask.
+    await expect(page.getByTestId('empty-share')).toBeVisible()
+    await expect(page.getByTestId('open-add-expense')).toBeVisible()
+    await page.waitForTimeout(2_000)
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
 
-    await addExpense(page, 'First dinner')
+    await page.getByTestId('open-add-expense').click()
+    await expect(page.getByTestId('expense-drawer')).toBeVisible()
+    await page.waitForTimeout(2_000)
+    await expect(page.getByTestId('install-prompt')).toHaveCount(0)
+    await page.getByTestId('expense-amount').fill('20')
+    await page.getByTestId('expense-description').fill('First dinner')
+    await page.getByTestId('save-expense').click()
     const postAha = page.getByRole('dialog', { name: 'First split done' })
     await expect(postAha).toBeVisible({ timeout: 15_000 })
     await page.waitForTimeout(2_000)
@@ -84,16 +104,23 @@ test('an empty room stays quiet past the retired timer and skipping post-aha doe
 
     await postAha.getByTestId('skip-post-aha-share').click()
     await expect(postAha).toHaveCount(0)
+    const deferral = await page.evaluate(() => {
+        const slug = window.location.pathname.split('/').filter(Boolean).at(-1)
+        const raw = slug ? window.localStorage.getItem(`ps:pwa-room:${slug}`) : null
+        const state = raw ? (JSON.parse(raw) as { deferUntil?: number }) : null
+        return { now: Date.now(), deferUntil: state?.deferUntil ?? 0 }
+    })
+    expect(deferral.deferUntil - deferral.now).toBeGreaterThan(29 * 60 * 1_000)
     await page.waitForTimeout(2_000)
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
 })
 
-test('a completed post-aha share owns the moment, changes to Done, then earns the install card after close', async ({
+test('completed Share yields to an inline install card that upgrades, suspends for a drawer, and resumes', async ({
     page,
 }) => {
+    await modelAndroidBrowser(page)
     await stubSuccessfulShare(page)
     await createTwoPersonRoom(page, `Earned install ${Date.now()}`)
-    await offerBrowserInstall(page)
 
     await addExpense(page, 'Shared dinner', '60')
     const postAha = page.getByRole('dialog', { name: 'First split done' })
@@ -111,12 +138,47 @@ test('a completed post-aha share owns the moment, changes to Done, then earns th
 
     await postAha.getByTestId('finish-post-aha-share').click()
     await expect(postAha).toHaveCount(0)
-    await expect(page.getByTestId('install-prompt')).toBeVisible({ timeout: 6_000 })
-    await expect(page.getByTestId('install-prompt')).toContainText('No store, no account')
-    await expect(page.getByTestId('install-prompt')).toHaveAttribute('role', 'region')
+    const prompt = page.getByTestId('install-prompt')
+    await expect(prompt).toBeVisible({ timeout: 6_000 })
+    await expect(prompt).toContainText('No store, no account')
+    await expect(prompt).toHaveAttribute('role', 'region')
+    await expect(prompt).not.toHaveClass(/\bfixed\b/)
+    await expect(prompt.getByRole('button', { name: 'Show me how' })).toBeVisible()
 
-    await page.getByTestId('install-prompt').getByRole('button', { name: 'Not now' }).click()
-    await expect(page.getByTestId('open-room-switcher')).toBeFocused()
+    // This is an inline next step, not a bottom overlay competing with the room's
+    // persistent actions. Bring it into view and prove it remains above the footer.
+    await prompt.scrollIntoViewIfNeeded()
+    const [promptBox, footerActionBox] = await Promise.all([
+        prompt.boundingBox(),
+        page.getByTestId('open-add-expense').boundingBox(),
+    ])
+    expect(promptBox).not.toBeNull()
+    expect(footerActionBox).not.toBeNull()
+    expect(promptBox!.y + promptBox!.height).toBeLessThanOrEqual(footerActionBox!.y)
+
+    // A late browser event upgrades this same card instead of creating a second
+    // impression or tearing away the fallback while somebody is considering it.
+    await offerBrowserInstall(page, 'accepted')
+    await expect(prompt.getByRole('button', { name: 'Add Split' })).toBeVisible()
+
+    // Persistent utility controls do not permanently disqualify installation, but
+    // the drawer they open temporarily owns the guidance slot.
+    await page.getByTestId('share-room').click()
+    const genericShare = page.getByRole('dialog', { name: 'Share room' })
+    await expect(genericShare).toBeVisible()
+    await expect(prompt).toHaveCount(0)
+    await genericShare.getByTestId('close-share').click()
+    await expect(genericShare).toHaveCount(0)
+    await expect(prompt).toBeVisible({ timeout: 6_000 })
+    await expect(prompt.getByRole('button', { name: 'Add Split' })).toBeVisible()
+
+    await prompt.getByRole('button', { name: 'Add Split' }).click()
+    expect(
+        await page.evaluate(
+            () => (window as Window & { __installRetentionPrompts?: number }).__installRetentionPrompts ?? 0
+        )
+    ).toBe(1)
+    await expect(prompt).toHaveCount(0)
 })
 
 test('editing a solo expense into the first shared balance enters the same post-aha path', async ({ page }) => {
@@ -129,7 +191,7 @@ test('editing a solo expense into the first shared balance enters the same post-
 
     await addExpense(page, 'Solo booking')
     await expect(page.getByRole('dialog', { name: 'First split done' })).toHaveCount(0)
-    await page.locator('[data-testid="expense-row"][data-description="Solo booking"]').click()
+    await page.locator('[data-testid="expense-row"][data-description="Solo booking"]:not([disabled])').click()
     await page.getByTestId('expense-split-summary').click()
     await page.getByTestId('add-participant').click()
     await page.getByTestId('new-participant-name').fill('Bea')
@@ -143,7 +205,7 @@ test('editing a solo expense into the first shared balance enters the same post-
     await expect(page.getByRole('dialog', { name: 'First split done' })).toBeVisible({ timeout: 15_000 })
 })
 
-test('deleting the only active debt suppresses an already-earned install offer', async ({ page }) => {
+test('deleting the only ledger row gives the empty-room activation actions priority again', async ({ page }) => {
     await stubSuccessfulShare(page)
     await createTwoPersonRoom(page, `Deleted debt install guard ${Date.now()}`)
     await offerBrowserInstall(page)
@@ -153,9 +215,8 @@ test('deleting the only active debt suppresses an already-earned install offer',
     await postAha.getByTestId('share-link').click()
     await postAha.getByTestId('finish-post-aha-share').click()
 
-    // Open the row during the quiet window, then remove the only current debt.
-    // The durable maturity latch remains true, but there is no return task for
-    // an automatic retention ask to serve.
+    // Open the row during the quiet window, then remove the only history. The
+    // durable maturity latch remains true, but the empty-room actions own the slot.
     await page.locator('[data-testid="expense-row"][data-description="Temporary dinner"]').click()
     await page.getByTestId('delete-expense').click()
     await slideToConfirm(page, page.getByTestId('confirm-delete-expense'))
@@ -237,101 +298,80 @@ test('reloading an open post-aha share preserves its refusal semantics', async (
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
 })
 
-test('an opened-room device earns the ask on a later server-confirmed contribution, not its passive first view', async ({
+test('a fresh browser entering a mature room gets the waiting/manual install path after Join', async ({
     page,
     newDevice,
 }) => {
-    const roomUrl = await createTwoPersonRoom(page, `Contributor install ${Date.now()}`)
+    const roomUrl = await createTwoPersonRoom(page, `Mature first visit ${Date.now()}`)
     await addExpense(page, 'Organizer dinner')
     await page.getByTestId('skip-post-aha-share').click()
 
     const bea = await newDevice()
+    await modelAndroidBrowser(bea)
+    await bea.goto(roomUrl)
+    await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
+    await bea.waitForTimeout(2_000)
+    await expect(bea.getByTestId('install-prompt')).toHaveCount(0)
+
+    await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
+    await expect(bea.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
+    await expect(bea.getByTestId('latecomer-banner')).toHaveCount(0)
+
+    // No share, contribution, or return happened on this device. A mature quiet
+    // room is enough, including while Chromium has not emitted its optional event.
+    const prompt = bea.getByTestId('install-prompt')
+    await expect(prompt).toBeVisible({ timeout: 6_000 })
+    await expect(prompt.getByRole('button', { name: 'Show me how' })).toBeVisible()
+    await prompt.getByRole('button', { name: 'Show me how' }).click()
+
+    const instructions = bea.getByRole('dialog', { name: 'Add Split from your browser' })
+    await expect(instructions).toBeVisible()
+    await expect(instructions).toContainText('split.peanut.me')
+
+    // Installing through the very browser menu these steps describe can report
+    // success while the sheet is open. It should close and restore the room's
+    // stable title landmark rather than leave focus on a removed action.
+    await bea.evaluate(() => window.dispatchEvent(new Event('appinstalled')))
+    await expect(instructions).toHaveCount(0)
+    await expect(prompt).toHaveCount(0)
+    await expect(bea.getByTestId('open-room-switcher')).toBeFocused()
+})
+
+test('the all-settled arrival owns this visit, while a later visit gets next-trip installation', async ({
+    page,
+    newDevice,
+}) => {
+    const roomUrl = await createTwoPersonRoom(page, `Settled install handoff ${Date.now()}`)
+    await addExpense(page, 'Organizer dinner')
+    await page.getByTestId('skip-post-aha-share').click()
+
+    const bea = await newDevice()
+    await modelAndroidBrowser(bea)
     await bea.goto(roomUrl)
     await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
     await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
     await expect(bea.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
-    await offerBrowserInstall(bea)
 
-    await bea.waitForTimeout(2_000)
-    await expect(bea.getByTestId('install-prompt')).toHaveCount(0)
-
-    // Keep a non-zero balance: an exactly offsetting contribution settles the
-    // room, and settled rooms intentionally remain settings-only.
-    await addExpense(bea, 'Bea adds dessert', '10')
+    // Open the competing flow immediately. This exactly offsets the first equal
+    // split, so closing the expense drawer transitions into the terminal moment.
+    await bea.getByTestId('open-add-expense').click()
+    await bea.getByTestId('expense-amount').fill('20')
+    await bea.getByTestId('expense-description').fill('Bea pays next time')
+    await bea.getByTestId('save-expense').click()
     await expect(bea.getByTestId('expense-row')).toHaveCount(2, { timeout: 15_000 })
-    await expect(bea.getByTestId('install-prompt')).toBeVisible({ timeout: 6_000 })
-})
-
-test('a contribution that settles the room stays settings-only', async ({ page, newDevice }) => {
-    const roomUrl = await createTwoPersonRoom(page, `Settled install guard ${Date.now()}`)
-    await addExpense(page, 'Organizer dinner')
-    await page.getByTestId('skip-post-aha-share').click()
-
-    const bea = await newDevice()
-    await bea.goto(roomUrl)
-    await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
-    await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
-    await expect(bea.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
-    await offerBrowserInstall(bea)
-
-    // This exactly offsets the first equal split. The contribution is meaningful,
-    // but there is no future room task for an automatic retention ask to serve.
-    await addExpense(bea, 'Bea pays next time')
-    await expect(bea.getByText('All settled up')).toBeVisible({ timeout: 15_000 })
+    await expect(bea.locator('main [data-testid="all-settled"]')).toBeVisible({ timeout: 15_000 })
     await bea.waitForTimeout(2_000)
     await expect(bea.getByTestId('install-prompt')).toHaveCount(0)
-})
+    expect(await bea.evaluate(() => window.localStorage.getItem('ps:pwa-auto-shown-at'))).toBeNull()
 
-test('an opened-room device earns the ask on a deliberate mature return', async ({ page, newDevice }) => {
-    const roomUrl = await createTwoPersonRoom(page, `Return install ${Date.now()}`)
-    await addExpense(page, 'Organizer dinner')
-    await page.getByTestId('skip-post-aha-share').click()
-
-    const visitor = await newDevice()
-    await visitor.goto(roomUrl)
-    await expect(visitor.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
-    await visitor.locator('[data-testid="claim-member"][data-member="Bea"]').click()
-    await expect(visitor.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
-    // Keep the same document alive: installed PWAs are commonly backgrounded
-    // and resumed without React ever remounting the room.
-    await visitor.evaluate(() => {
-        const clock = window as Window & { __installRetentionNow?: number }
-        clock.__installRetentionNow = Date.now()
-        Date.now = () => clock.__installRetentionNow as number
-        window.dispatchEvent(new Event('blur'))
-        clock.__installRetentionNow += 31 * 60 * 1000
-        window.dispatchEvent(new Event('focus'))
-    })
-    await offerBrowserInstall(visitor)
-    await expect(visitor.getByTestId('install-prompt')).toBeVisible({ timeout: 6_000 })
-})
-
-test('31 minutes continuously foregrounded followed by reload is not a mature return', async ({ page, newDevice }) => {
-    const roomUrl = await createTwoPersonRoom(page, `Foreground reload ${Date.now()}`)
-    await addExpense(page, 'Organizer dinner')
-    await page.getByTestId('skip-post-aha-share').click()
-
-    const visitor = await newDevice()
-    await visitor.goto(roomUrl)
-    await visitor.locator('[data-testid="claim-member"][data-member="Bea"]').click()
-    await expect(visitor.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
-    await visitor.addInitScript(() => {
-        const persisted = localStorage.getItem('__installRetentionClock')
-        if (persisted !== null) Date.now = () => Number(persisted)
-    })
-    await visitor.evaluate(() => {
-        const now = Date.now() + 31 * 60 * 1000
-        localStorage.setItem('__installRetentionClock', String(now))
-        Date.now = () => now
-        // A normal reload emits pagehide at the end of the foreground session.
-        window.dispatchEvent(new PageTransitionEvent('pagehide'))
-    })
-    await visitor.reload()
-    await expect(visitor.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
-    await offerBrowserInstall(visitor)
-    await visitor.waitForTimeout(2_000)
-
-    await expect(visitor.getByTestId('install-prompt')).toHaveCount(0)
+    // The durable zero balance is not itself a permanent competing CTA. On a
+    // later mount there is no fresh celebration, so installation owns the slot.
+    await bea.reload()
+    await expect(bea.locator('main [data-testid="all-settled"]')).toBeVisible({ timeout: 15_000 })
+    const prompt = bea.getByTestId('install-prompt')
+    await expect(prompt).toBeVisible({ timeout: 6_000 })
+    await expect(prompt).toContainText('Keep Split one tap away for this trip and the next.')
+    await expect(prompt.getByRole('button', { name: 'Show me how' })).toBeVisible()
 })
 
 test('the earned iOS offer withholds instructions on arm failure, then restores this exact room on retry', async ({
