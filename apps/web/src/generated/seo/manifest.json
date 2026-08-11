@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "source_repository": "peanutprotocol/mono",
+  "source_commit": "3316c78e5898e2f5afce22b18a079d52c36ab30c",
+  "content_root": "split-content",
+  "locales": ["en", "es-419", "pt-br"],
+  "input_sha256": {
+    "split-content/_system/context/localization.es-419.md": "d793b5116042ac94afd41752e332ce214f7ad47366e5c0f4dbb81665d9dea0a5",
+    "split-content/_system/context/localization.pt-br.md": "2e4f9ca4bad731a53dcf6208a4219bfff414a93f0ef467405bf10c41ed80cf78",
+    "split-content/_system/context/messaging.md": "5b0e7c1aeddf32b09bd51bc8dce710bb379833794ad0965eeed5ec1cef5a9ec4",
+    "split-content/_system/data/guides/split-a-group-trip-across-countries.es-419.md": "61c5f6052908957ecdccb6039f99621f0b8eb786aa97a579fcb46e79825a05a9",
+    "split-content/_system/data/guides/split-a-group-trip-across-countries.md": "24f91137cd12f79c380202b67575df48625a3775f600025e97a12301678359fb",
+    "split-content/_system/data/guides/split-a-group-trip-across-countries.pt-br.md": "33b1c4aee05c3db430435626392deb761a35aca0f4df77b1bf40e46554605be2",
+    "split-content/_system/data/guides/split-expenses-across-currencies.es-419.md": "6c03c158b6871d4088334cdf3d6595de72e00003a4240c1887ac1ba5163f6341",
+    "split-content/_system/data/guides/split-expenses-across-currencies.md": "2bdaa0dbb78a5039530ae59499131bfb2c624ac051ff3f2ce0f2d23ec8a6e081",
+    "split-content/_system/data/guides/split-expenses-across-currencies.pt-br.md": "0fe7bf97838088becfb74dbe8742cb3dbe3d2664f5c6781b6671f0132c54d76b",
+    "split-content/_system/generation-templates/guide.md": "451ccb1f425e7047b1c58b7f04854b42238f0c3b1616c32f98894a356c279085",
+    "split-content/_system/guidelines/components.md": "44239193ff59f6e8715e0adf7aeea01160423f0a05169f5aaae2bb37cf8bdab2",
+    "split-content/_system/guidelines/intent-taxonomy.md": "48a6b457c5b39a2bd05a1121c44711a57dda2b3e5fe79e132699d46bd598b172",
+    "split-content/_system/guidelines/locales.md": "efebc317968d133868d38525e199f035f434137fb1f76441fab25c2813925211",
+    "split-content/_system/guidelines/seo.md": "fbff0124938543eaa2e510b8b41b1e739c3a8275b0b9f1226ceb6b650fd3d917",
+    "split-content/_system/workflows/generate-guide.md": "4f1468389dd311111b7e376edf9f026b1320d3bc152f008002fc27d1007bc92d",
+    "split-content/product/truths.md": "ef2b8286ce806266e7e7b41f8f5c0c4a555deae38b14100d641a60af5e7da8ee"
+  },
+  "entries": [
+    {
+      "content_type": "guide",
+      "slug": "split-a-group-trip-across-countries",
+      "locale": "en",
+      "public_path": "/en/split/guides/split-a-group-trip-across-countries",
+      "output_path": "split-content/published/guides/split-a-group-trip-across-countries/en.md",
+      "output_sha256": "4716620d59000e615df440cdf1acd3378a039cc0e0cec0f34b83411f9e92538a",
+      "source_input_paths": [
+        "split-content/_system/generation-templates/guide.md",
+        "split-content/_system/data/guides/split-a-group-trip-across-countries.md",
+        "split-content/product/truths.md",
+        "split-content/_system/workflows/generate-guide.md",
+        "split-content/_system/context/messaging.md",
+        "split-content/_system/guidelines/seo.md",
+        "split-content/_system/guidelines/components.md",
+        "split-content/_system/guidelines/locales.md",
+        "split-content/_system/guidelines/intent-taxonomy.md"
+      ]
+    },
+    {
+      "content_type": "guide",
+      "slug": "split-a-group-trip-across-countries",
+      "locale": "es-419",
+      "public_path": "/es-419/split/guides/split-a-group-trip-across-countries",
+      "output_path": "split-content/published/guides/split-a-group-trip-across-countries/es-419.md",
+      "output_sha256": "110c80b586c21e74255fb466e7ccc0d8b337e56fb710e4b8b42d36f771c1456d",
+      "source_input_paths": [
+        "split-content/_system/generation-templates/guide.md",
+        "split-content/_system/data/guides/split-a-group-trip-across-countries.md",
+        "split-content/_system/data/guides/split-a-group-trip-across-countries.es-419.md",
+        "split-content/product/truths.md",
+        "split-content/_system/workflows/generate-guide.md",
+        "split-content/_system/context/messaging.md",
+        "split-content/_system/context/localization.es-419.md",
+        "split-content/_system/guidelines/seo.md",
+        "split-content/_system/guidelines/components.md",
+        "split-content/_system/guidelines/locales.md",
+        "split-content/_system/guidelines/intent-taxonomy.md"
+      ]
+    },
+    {
+      "content_type": "guide",
+      "slug": "split-a-group-trip-across-countries",
+      "locale": "pt-br",
+      "public_path": "/pt-br/split/guides/split-a-group-trip-across-countries",
+      "output_path": "split-content/published/guides/split-a-group-trip-across-countries/pt-br.md",
+      "output_sha256": "171e5171e3f29d6337a08df30f1dddf51e7b52f2634f97a053dffdd677f6d9b3",
+      "source_input_paths": [
+        "split-content/_system/generation-templates/guide.md",
+        "split-content/_system/data/guides/split-a-group-trip-across-countries.md",
+        "split-content/_system/data/guides/split-a-group-trip-across-countries.pt-br.md",
+        "split-content/product/truths.md",
+        "split-content/_system/workflows/generate-guide.md",
+        "split-content/_system/context/messaging.md",
+        "split-content/_system/context/localization.pt-br.md",
+        "split-content/_system/guidelines/seo.md",
+        "split-content/_system/guidelines/components.md",
+        "split-content/_system/guidelines/locales.md",
+        "split-content/_system/guidelines/intent-taxonomy.md"
+      ]
+    },
+    {
+      "content_type": "guide",
+      "slug": "split-expenses-across-currencies",
+      "locale": "en",
+      "public_path": "/en/split/guides/split-expenses-across-currencies",
+      "output_path": "split-content/published/guides/split-expenses-across-currencies/en.md",
+      "output_sha256": "ee281f2a0b5dfc40e8e454b1704418d13b3606a152344b0c3bdf87d55ec2a96a",
+      "source_input_paths": [
+        "split-content/_system/generation-templates/guide.md",
+        "split-content/_system/data/guides/split-expenses-across-currencies.md",
+        "split-content/product/truths.md",
+        "split-content/_system/workflows/generate-guide.md",
+        "split-content/_system/context/messaging.md",
+        "split-content/_system/guidelines/seo.md",
+        "split-content/_system/guidelines/components.md",
+        "split-content/_system/guidelines/locales.md",
+        "split-content/_system/guidelines/intent-taxonomy.md"
+      ]
+    },
+    {
+      "content_type": "guide",
+      "slug": "split-expenses-across-currencies",
+      "locale": "es-419",
+      "public_path": "/es-419/split/guides/split-expenses-across-currencies",
+      "output_path": "split-content/published/guides/split-expenses-across-currencies/es-419.md",
+      "output_sha256": "9283f37b3aa7946d9bbee832fc570423c1f8a6734e3ef9ad0bf7e26bf8b36bed",
+      "source_input_paths": [
+        "split-content/_system/generation-templates/guide.md",
+        "split-content/_system/data/guides/split-expenses-across-currencies.md",
+        "split-content/_system/data/guides/split-expenses-across-currencies.es-419.md",
+        "split-content/product/truths.md",
+        "split-content/_system/workflows/generate-guide.md",
+        "split-content/_system/context/messaging.md",
+        "split-content/_system/context/localization.es-419.md",
+        "split-content/_system/guidelines/seo.md",
+        "split-content/_system/guidelines/components.md",
+        "split-content/_system/guidelines/locales.md",
+        "split-content/_system/guidelines/intent-taxonomy.md"
+      ]
+    },
+    {
+      "content_type": "guide",
+      "slug": "split-expenses-across-currencies",
+      "locale": "pt-br",
+      "public_path": "/pt-br/split/guides/split-expenses-across-currencies",
+      "output_path": "split-content/published/guides/split-expenses-across-currencies/pt-br.md",
+      "output_sha256": "e49c9028cb5f981557425e18681b58df417b3d0691bb209bf97f584cb8ecf5a8",
+      "source_input_paths": [
+        "split-content/_system/generation-templates/guide.md",
+        "split-content/_system/data/guides/split-expenses-across-currencies.md",
+        "split-content/_system/data/guides/split-expenses-across-currencies.pt-br.md",
+        "split-content/product/truths.md",
+        "split-content/_system/workflows/generate-guide.md",
+        "split-content/_system/context/messaging.md",
+        "split-content/_system/context/localization.pt-br.md",
+        "split-content/_system/guidelines/seo.md",
+        "split-content/_system/guidelines/components.md",
+        "split-content/_system/guidelines/locales.md",
+        "split-content/_system/guidelines/intent-taxonomy.md"
+      ]
+    }
+  ]
+}
