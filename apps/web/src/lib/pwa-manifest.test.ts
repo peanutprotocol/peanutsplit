@@ -78,3 +78,65 @@ describe('the room slug never leaves the device', () => {
         }
     })
 })
+
+describe('the manifest request host boundary', () => {
+    const boundary = async (
+        values: Record<string, string>,
+        environment: string | undefined = 'production'
+    ): Promise<{ host: string | null; canonical: boolean }> => {
+        const { isCanonicalPwaRequest, pwaRequestHost } = await import('./pwa-manifest')
+        const normalized = Object.fromEntries(
+            Object.entries(values).map(([name, value]) => [name.toLowerCase(), value])
+        )
+        const headers = { get: (name: string) => normalized[name.toLowerCase()] ?? null }
+        return {
+            host: pwaRequestHost(headers),
+            canonical: isCanonicalPwaRequest(headers, environment),
+        }
+    }
+
+    it('accepts the exact canonical forwarded host, normalized for case and a default port', async () => {
+        await expect(boundary({ 'x-forwarded-host': 'SPLIT.PEANUT.ME:443' })).resolves.toEqual({
+            host: 'split.peanut.me',
+            canonical: true,
+        })
+    })
+
+    it('falls back to Host only when X-Forwarded-Host is absent', async () => {
+        await expect(boundary({ host: 'split.peanut.me' })).resolves.toEqual({
+            host: 'split.peanut.me',
+            canonical: true,
+        })
+        await expect(boundary({ host: 'split.peanut.me', 'x-forwarded-host': 'peanutsplit.com' })).resolves.toEqual({
+            host: 'peanutsplit.com',
+            canonical: false,
+        })
+    })
+
+    it.each([
+        '',
+        ' split.peanut.me',
+        'split.peanut.me ',
+        'split.peanut.me, peanutsplit.com',
+        'https://split.peanut.me',
+        'user@split.peanut.me',
+        'split.peanut.me/path',
+        'split.peanut.me.',
+    ])('rejects malformed forwarded host %j without falling through to Host', async (forwardedHost) => {
+        await expect(boundary({ host: 'split.peanut.me', 'x-forwarded-host': forwardedHost })).resolves.toEqual({
+            host: null,
+            canonical: false,
+        })
+    })
+
+    it('allows loopback only outside a production build', async () => {
+        await expect(boundary({ host: 'localhost:3100' }, 'development')).resolves.toEqual({
+            host: 'localhost',
+            canonical: true,
+        })
+        await expect(boundary({ host: 'localhost:3100' }, 'production')).resolves.toEqual({
+            host: 'localhost',
+            canonical: false,
+        })
+    })
+})

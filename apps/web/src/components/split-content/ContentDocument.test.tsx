@@ -70,8 +70,18 @@ describe('the isolated Split content root document', () => {
         for (const specialFile of ['manifest.ts', 'favicon.ico', 'icon.png']) {
             expect(fs.existsSync(path.join(process.cwd(), 'src/app', specialFile))).toBe(false)
         }
-        expect(productRoot).toContain("manifest: '/manifest.webmanifest'")
-        expect(productRoot).toContain("icon: '/icon.png'")
+        // Metadata API output is streamed after <body> on dynamic room routes. Keep the PWA
+        // discovery surface as literal markup inside the product root's initial <head> instead.
+        const productHead = productRoot.match(/<head>([\s\S]*?)<\/head>/)?.[1]
+        expect(productRoot).toContain('isCanonicalPwaRequest')
+        expect(productHead).toMatch(/\{canonicalPwa \? \([\s\S]*split-install-preflight[\s\S]*\) : null\}/)
+        expect(productHead).toContain('<link rel="manifest" href="/manifest.webmanifest" />')
+        expect(productHead).toContain('<meta name="mobile-web-app-capable" content="yes" />')
+        expect(productHead).toContain('<meta name="apple-mobile-web-app-title" content="Split" />')
+        expect(productHead).toContain('<link rel="icon" href="/icon.png" />')
+        expect(productHead).toContain('<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />')
+        expect(productRoot).not.toContain("manifest: '/manifest.webmanifest'")
+        expect(productRoot).not.toContain('appleWebApp:')
         expect(fs.existsSync(path.join(process.cwd(), 'public/favicon.ico'))).toBe(true)
         expect(fs.existsSync(path.join(process.cwd(), 'public/icon.png'))).toBe(true)
     })

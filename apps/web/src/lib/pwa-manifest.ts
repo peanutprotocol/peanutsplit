@@ -2,6 +2,50 @@ import type { MetadataRoute } from 'next'
 import { splitV2Enabled } from '@/lib/flags'
 import { SHARE_TARGET_ACTION, SHARE_TARGET_FIELD } from '@/lib/shared-receipt'
 
+export const PRODUCTION_PWA_HOST = 'split.peanut.me'
+
+const LOCAL_PWA_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]'])
+
+type HeaderReader = Pick<Headers, 'get'>
+
+/**
+ * Resolve the public request host without ever falling through a present forwarded-host claim.
+ * Dokploy supplies X-Forwarded-Host; local Next requests use Host. Reject lists and URL-shaped
+ * values rather than guessing which element or substring a proxy meant.
+ */
+export function pwaRequestHost(headers: HeaderReader): string | null {
+    const forwarded = headers.get('x-forwarded-host')
+    const raw = forwarded === null ? headers.get('host') : forwarded
+    if (!raw || raw !== raw.trim() || raw.includes(',')) return null
+
+    try {
+        const parsed = new URL(`http://${raw}`)
+        if (
+            parsed.username ||
+            parsed.password ||
+            parsed.pathname !== '/' ||
+            parsed.search ||
+            parsed.hash ||
+            parsed.hostname.endsWith('.')
+        ) {
+            return null
+        }
+        return parsed.hostname.toLowerCase()
+    } catch {
+        return null
+    }
+}
+
+/** The production manifest belongs to one origin. Loopback remains usable in dev and E2E only. */
+export function isCanonicalPwaRequest(
+    headers: HeaderReader,
+    environment: string | undefined = process.env.NODE_ENV
+): boolean {
+    const host = pwaRequestHost(headers)
+    if (host === PRODUCTION_PWA_HOST) return true
+    return environment !== 'production' && host !== null && LOCAL_PWA_HOSTS.has(host)
+}
+
 /**
  * The installed app is "Split". "Peanut Split" stays on the surfaces a search engine or a group
  * chat sees — the root `<title>`, `SITE_NAME`, the OG unfurls. A home screen has room for one word.
