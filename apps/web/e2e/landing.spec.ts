@@ -901,7 +901,8 @@ test('the room handoff shares localized text and the exact URL without attaching
     const payload = await page.evaluate(
         () => (window as Window & { __roomSharePayload?: ShareData }).__roomSharePayload
     )
-    expect(payload?.url).toMatch(/\/r\/share-package-\d+-[A-Za-z0-9_-]{22}$/)
+    if (typeof payload?.url !== 'string') throw new Error('The room share payload must include its URL')
+    expect(payload.url).toMatch(/\/r\/share-package-\d+-[A-Za-z0-9_-]{22}$/)
     expect(Object.keys(payload ?? {})).toEqual(['title', 'text', 'url'])
     expect(payload).not.toHaveProperty('files')
     await expect(page.getByTestId('copy-link')).toBeVisible()
@@ -938,11 +939,7 @@ test('the room handoff shares localized text and the exact URL without attaching
     await page.getByTestId('copy-link').click()
     const manualInvite = page.getByTestId('room-link-input')
     await expect(manualInvite).toBeFocused()
-    await expect(manualInvite).toHaveValue(
-        new RegExp(
-            '^Open the link, pick your name, then add what you paid\\.\\nhttp://(?:localhost|127\\.0\\.0\\.1):\\d+/r/share-package-'
-        )
-    )
+    await expect(manualInvite).toHaveValue(`Open the link, pick your name, then add what you paid.\n${payload.url}`)
 })
 
 test('v1 exposes Splitwise import without exposing AI tooling', async ({ page }) => {

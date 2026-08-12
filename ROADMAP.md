@@ -7,7 +7,7 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-12.
 
-## Code-complete 2026-08-12 — one-domain rollback to peanutsplit.com [Konrad]
+## Production-verified 2026-08-12 — one-domain rollback to peanutsplit.com [Konrad]
 
 - `peanutsplit.com` is again the only canonical origin for the app, PWA, native
   SEO pages, sitemap, metadata, schema, and newly generated room links.
@@ -19,6 +19,11 @@ Owner of record for each open item is in brackets. Last full update: 2026-08-12.
   preserved as deferred work. It must be deliberately retargeted before any
   generated artifact is published; no Peanut UI routing is part of the live
   architecture. Decision record: `apps/web/docs/SEO-DOMAIN-DECISIONS.md`.
+- Release commit `541dce23549b3984343cc201dab52052957be18e` passed the
+  complete local/CI gate and two independent production QA passes, including a
+  real room/member/expense flow and persistent-Chrome PWA installability. The
+  exact evidence and administrative Peanut UI cleanup are recorded in
+  `docs/DOMAIN-ROLLBACK-2026-08-12.md`.
 
 ## Code-complete 2026-08-06 — exact-zero Former-member lifecycle
 
