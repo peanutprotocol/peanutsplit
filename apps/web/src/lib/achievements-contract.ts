@@ -12,9 +12,10 @@
 /**
  * What a card can be.
  *
- * `recap` is deliberately absent: it already has its own route
- * (`/r/<slug>/recap/opengraph-image`) and its own art, and this wave does not move it. The WRAPPED
- * deck references it by name (`WRAPPED_DECK`) and links to the route it already has.
+ * `recap` is deliberately absent: it has its own art and its own routes — `/r/<slug>/recap/card`
+ * for the app code that fetches the bytes, and the `opengraph-image` segment beside it for the
+ * unfurl — and this wave does not move it. The WRAPPED deck references it by name
+ * (`WRAPPED_DECK`) and links to the route it already has, via `lib/recap.ts`.
  */
 export const CARD_KINDS = ['invite', 'crew', 'passport', 'alterego', 'stats', 'landing'] as const
 export type CardKind = (typeof CARD_KINDS)[number]

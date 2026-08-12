@@ -1,4 +1,5 @@
 import { request } from '@playwright/test'
+import { recapImagePath } from '../src/lib/recap'
 
 /**
  * Compile every route the suite opens, once, before any test starts.
@@ -46,6 +47,10 @@ export default async function globalSetup(): Promise<void> {
             // an append journey starts its test clock.
             await api.get(`/r/${slug}/import`, { timeout: 180_000 }).catch(() => undefined)
             await api.get(`/r/${slug}/card/invite`, { timeout: 180_000 }).catch(() => undefined)
+            // The recap card is the same 1200×630 Satori render behind its own route, and
+            // `recap.spec.ts` fetches it inside an ordinary 30s API timeout — well under what a
+            // cold compile of an `ImageResponse` route can cost when several workers arrive at once.
+            await api.get(recapImagePath(slug), { timeout: 180_000 }).catch(() => undefined)
         }
     } finally {
         await api.dispose()
