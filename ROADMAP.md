@@ -864,7 +864,7 @@ tracked fix, not something to leave.)
   `POST /api/rooms/{slug}/members` → `addMemberInLockedTransaction`
   (`src/server/rooms.ts:146`) does not, so a room reaches 26+ active members via
   incremental adds. Not a settlement-compute DoS: `suggestedTransfers` guards
-  independently on ≤18 *nonzero* balances (greedy fallback above that), so the
+  independently on ≤18 _nonzero_ balances (greedy fallback above that), so the
   exponential exact-solver is never reached regardless of roster size.
 - **[low] Room-existence oracle on mutating routes.** Mutating handlers call
   `loadRoom()` directly without `meterRoomLookup` (`route.ts:36`,
