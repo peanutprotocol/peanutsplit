@@ -12,11 +12,19 @@
  * an unknown slug answers 200 with the brand card rather than a 404 or a 500: a
  * failed fetch is a dead button for a member who did nothing wrong.
  *
+ * There is a second reason, learned later and the hard way — see
+ * `recap/card/route.ts`, which now exists because of it. Next appends a
+ * build-scoped hash to a generated metadata-image SEGMENT whenever a parent
+ * segment is a route group, and every page here sits under `(product-shell)`. A
+ * metadata image's URL therefore cannot be built from a slug at all, which is
+ * fatal for any card whose consumer fetches it. Route Handlers are served at the
+ * path they are written at; that is the property, not a detail.
+ *
  * The service worker caches these URLs. `sw.ts`'s `NetworkOnly` rule covers
  * `/api/` only, so a card path falls through to `defaultCache`'s "others"
  * `NetworkFirst` bucket, and its full URL — slug included — is persisted in
- * Cache Storage for 24h. That already happens to `/r/<slug>/recap/opengraph-image`
- * and to the room page itself, so it is no new class; it is written down because
+ * Cache Storage for 24h. That already happens to `/r/<slug>/recap/card` and to
+ * the room page itself, so it is no new class; it is written down because
  * "the slug only ever lives in a path" is the sentence the rest of this wave
  * leans on. The share path fetches with `cache: 'no-store'`, so what gets shared
  * is never a stale card; the `<img>` shelf tiles keep the cache, which is right —
