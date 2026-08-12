@@ -68,16 +68,60 @@ out of scope.
 
 ## Verification record
 
-The release is complete only when all of these are recorded as passing on the
-shipped commit:
+Runtime release commit
+[`541dce23549b3984343cc201dab52052957be18e`](https://github.com/peanutprotocol/peanutsplit/commit/541dce23549b3984343cc201dab52052957be18e)
+was deployed and production-verified on 2026-08-12. Its
+[GitHub Actions run](https://github.com/peanutprotocol/peanutsplit/actions/runs/31621703518)
+passed both the complete check job and the exact-argument production Docker
+build.
 
-- typecheck, formatting/audits, unit/integration tests, and production build;
-- focused domain, metadata, sitemap, PWA, and room-link tests;
-- Chromium app/alias/PWA E2E, plus the V2 suite for regression coverage;
-- production HTTP matrix for `/`, `/app`, `/new`, `/import`, `/r/*`, robots,
-  sitemap, manifest, service worker, and probes;
-- live metadata/canonical inspection and one real QA room share/join cycle;
-- independent exact-commit review, followed by a fix-forward cycle for any
-  failure.
+Before deployment, the local gate passed:
 
-The final shipped commit and concrete QA results are appended after deployment.
+- bootstrap, typecheck, formatting and all source audits;
+- 24 publisher, 80 API, and 2,406 web tests (two deliberately gated skips);
+- the full production build, including 96 generated pages and the PWA build
+  boundary;
+- focused domain/SEO/PWA coverage, 50 relevant desktop journeys, 16 relevant
+  mobile journeys, the social-preview journeys, and the production PWA-boundary
+  test;
+- an independent exact-commit review. It found an alias public-asset matcher
+  gap, which was fixed before the release commit; the complete matrix passed on
+  the corrected tree.
+
+Production verification then passed twice, once by the shipping agent and once
+by an independent agent:
+
+- canonical `/`, `/app`, `/new`, `/import`, `/blog`, `/tools`, robots, sitemap,
+  manifest, service worker, icons, and probes terminate on `peanutsplit.com`;
+- `split.peanut.me` and `www.peanutsplit.com` make one query-preserving 308 hop
+  to the same canonical path. Health and readiness probes stay host-local;
+- canonical, Open Graph, hreflang, and JSON-LD URLs use only
+  `peanutsplit.com`. The sitemap has 39 canonical `<loc>` entries and 135 total
+  URL references, all on the canonical origin; robots advertises that sitemap;
+- the manifest is `Split` with `id: /`, `start_url: /app`, and `scope: /`. A
+  persistent headed Chrome profile reported zero installability errors on the
+  app, a redacted QA room, and its recap; each page was service-worker
+  controlled and received `beforeinstallprompt`;
+- a disposable production room was created through the mobile UI, joined by a
+  second member, and given an expense. The API returned two members and one
+  expense, the visible/share URL used `peanutsplit.com`, the room was noindex,
+  and both aliases redirected its exact path and query;
+- `peanut.me` root, robots, sitemap, and sampled Split-looking paths remained
+  ordinary Peanut surfaces with no Split marker, origin, sitemap, or renderer.
+
+The live share journey also exposed an E2E-only assumption: its manual-copy
+assertion required a localhost URL even when intentionally pointed at
+production. The follow-up makes the assertion compare against the exact URL
+already captured from the share payload. It passes against production. A broad
+money journey separately reached the live FX path and differed from its static
+local-rate fixture; the same-currency production ledger journey passed, so no
+money behavior was changed as part of this rollback.
+
+Peanut UI required no code revert. Draft PRs stayed unmerged; #2671 was closed,
+and corrective notes were added to #2670 and #2590. Guarded workflow runs
+[`31622150493`](https://github.com/peanutprotocol/peanut-ui/actions/runs/31622150493)
+and
+[`31622185549`](https://github.com/peanutprotocol/peanut-ui/actions/runs/31622185549)
+removed the two inert Vercel Production records and independently proved them
+absent before their GitHub source variable and secret were deleted. DNS was not
+changed.
