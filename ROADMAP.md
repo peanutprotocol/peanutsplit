@@ -842,3 +842,41 @@ currency`, `150+` or any es/pt-BR never-string and pass clean, and the
 - `all_settled` fires (analytics + would-be push) for a solo room whose only
   expense nets to zero — harmless (push skips with no targets) but the event
   is semantically noisy for single-member rooms.
+
+### From the deep-QA sweep 2026-08-11
+
+(Full repro for each is in the QA report; the money, concurrency, import, and
+auth surfaces came back clean — these are the only hardening items. The one
+high-severity finding, the room `og:image` 404 in prod, is not debt: it is a
+tracked fix, not something to leave.)
+
+- **[medium] IP rate limits are bypassable by rotating `X-Forwarded-For`.**
+  `clientIp` (`src/server/rateLimit.ts:100-107`) trusts the left-most,
+  client-supplied XFF hop with no trusted-proxy stripping, so rotating the
+  header hands out a fresh bucket per request and defeats every IP-keyed limit
+  (create 20/hr, write 120/hr, lookup-miss 30/hr). Verified: constant XFF →
+  20×201 then 429; rotating → no cap. This is the sharp edge of the existing
+  "in-memory rate limiter … wrong if the proxy ever changes" note above — the
+  fix is the same: key on the proxy-appended right-most hop / a configured
+  trusted-proxy depth, and confirm Traefik's `forwardedHeaders` config.
+- **[low] Incremental member-add skips the `MAX_MEMBERS` (20) cap.** The import
+  paths enforce it (`src/server/validation.ts:499`, `importRequest.ts:36`) but
+  `POST /api/rooms/{slug}/members` → `addMemberInLockedTransaction`
+  (`src/server/rooms.ts:146`) does not, so a room reaches 26+ active members via
+  incremental adds. Not a settlement-compute DoS: `suggestedTransfers` guards
+  independently on ≤18 *nonzero* balances (greedy fallback above that), so the
+  exponential exact-solver is never reached regardless of roster size.
+- **[low] Room-existence oracle on mutating routes.** Mutating handlers call
+  `loadRoom()` directly without `meterRoomLookup` (`route.ts:36`,
+  `expenses/route.ts:37`, `settlements/route.ts:28`), so they never spend the
+  lookup-miss budget the GET routes do (`rateLimit.ts:141-164`) — breaking that
+  file's documented single-budget invariant. Heavily mitigated by ~43-bit slug
+  entropy and by body-validation running before the lookup on several routes.
+  Fix: wrap `loadRoom(slug)` in `meterRoomLookup` on the mutating routes too, or
+  move miss-metering into `loadRoom`.
+- **[low, latent] Cutover `isAppPath` uses exact match.** `APP_PATHS` is the
+  exact Set `{'/app','/new','/import'}` and `isAppPath` only adds
+  `startsWith('/r/')` (`src/lib/cutover-redirects.ts:39-40`), so a future
+  `/app/*` subroute would 302 to the legacy marketing host on the canonical
+  origin. Latent only — no `/app/*` subroutes exist today and the live build is
+  not cut over. Fix: treat `/app` as a prefix like `/r/*`.

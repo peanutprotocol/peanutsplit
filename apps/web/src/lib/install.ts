@@ -27,7 +27,7 @@ export interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-export type InstallState = 'installed' | 'promptable' | 'dismissed' | 'ios' | 'waiting'
+export type InstallState = 'installed' | 'promptable' | 'dismissed' | 'ios' | 'waiting' | 'repair'
 
 export interface InstallEnvironment {
     isStandalone: boolean
@@ -45,11 +45,26 @@ export interface InstallEnvironment {
      * the only signal that "installed" is true here.
      */
     installedHere: boolean
+    /** This browser has previously launched the canonical `/app` start URL as a standalone app. */
+    hasCanonicalLaunchMarker: boolean
+    /** The current document is a private room route rather than the canonical app start URL. */
+    isRoomPath: boolean
 }
 
 export function deriveInstallState(env: InstallEnvironment): InstallState {
-    // Installed first: an app already on this device must never be told how to add itself.
-    if (env.isStandalone || env.installedHere) return 'installed'
+    // A prompt accepted in this tab is strongest: do not immediately offer it again while the
+    // browser finishes installing.
+    if (env.installedHere) return 'installed'
+    if (env.isStandalone) {
+        // PR11-era room shortcuts launch standalone too, but they have neither the canonical start
+        // URL nor the marker written by a real Split launch. Keep that narrow combination on the
+        // explicit repair path even if a browser emits an unusual late prompt: directly installing
+        // would leave the old room-named icon behind and contaminate ordinary install analytics.
+        // A first-ever deep link into a legitimate install can be a false positive; the card remains
+        // dismissible and the persistent Device row remains available.
+        if (env.isRoomPath && !env.hasCanonicalLaunchMarker) return 'repair'
+        return 'installed'
+    }
     if (env.hasPrompt) return 'promptable'
     if (env.promptSpent) return 'dismissed'
     if (env.isIOS) return 'ios'
@@ -67,11 +82,12 @@ export function deriveInstallState(env: InstallEnvironment): InstallState {
 const DISMISS_COUNT_KEY = 'ps:pwa-dismiss-count'
 const DISMISSED_AT_KEY = 'ps:pwa-dismissed-at'
 const SNOOZED_UNTIL_KEY = 'ps:pwa-snoozed-until'
+export const CANONICAL_LAUNCH_MARKER_KEY = 'ps:pwa-canonical-launch:v1'
+const REPAIR_NOTICE_DISMISSED_KEY = 'ps:pwa-repair-notice-dismissed:v1'
 
 const HOUR = 60 * 60 * 1000
 const BASE_BACKOFF_MS = 24 * HOUR
 const MAX_BACKOFF_MS = 30 * 24 * HOUR
-export const MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS = 30 * 24 * HOUR
 
 const readInt = (key: string): number => {
     const raw = window.localStorage.getItem(key)
@@ -85,27 +101,12 @@ export const installBackoffMs = (dismissCount: number): number =>
 
 export const isInstallSnoozed = (): boolean => {
     try {
-        if (Date.now() < readInt(SNOOZED_UNTIL_KEY)) return true
         const count = readInt(DISMISS_COUNT_KEY)
         if (count === 0) return false
         return Date.now() - readInt(DISMISSED_AT_KEY) < installBackoffMs(count)
     } catch {
         return false
     }
-}
-
-/** Apply a minimum quiet period for platforms whose manual install cannot report success. */
-export const snoozeInstallFor = (durationMs: number): void => {
-    try {
-        window.localStorage.setItem(SNOOZED_UNTIL_KEY, String(Date.now() + Math.max(0, durationMs)))
-    } catch {
-        // Private mode: the settings row still provides the action.
-    }
-}
-
-/** Manual browser installation cannot report success, so closing its steps quiets automatic asks. */
-export const snoozeAfterManualInstallInstructions = (): void => {
-    snoozeInstallFor(MANUAL_INSTALL_INSTRUCTIONS_SNOOZE_MS)
 }
 
 /** Records a dismissal and answers how many there have now been. */
@@ -120,6 +121,23 @@ export const noteInstallDismissed = (): number => {
     }
 }
 
+export const isInstallRepairNoticeDismissed = (): boolean => {
+    try {
+        return window.localStorage.getItem(REPAIR_NOTICE_DISMISSED_KEY) === '1'
+    } catch {
+        return false
+    }
+}
+
+/** A separate one-time acknowledgement: an earlier install refusal must never hide migration help. */
+export const dismissInstallRepairNotice = (): void => {
+    try {
+        window.localStorage.setItem(REPAIR_NOTICE_DISMISSED_KEY, '1')
+    } catch {
+        // Storage denial means the notice may return; the Device row remains usable either way.
+    }
+}
+
 const clearInstallSnooze = (): void => {
     try {
         window.localStorage.removeItem(DISMISS_COUNT_KEY)
@@ -127,6 +145,21 @@ const clearInstallSnooze = (): void => {
         window.localStorage.removeItem(SNOOZED_UNTIL_KEY)
     } catch {
         // Private mode. There was nothing to clear.
+    }
+}
+
+/**
+ * The retired instruction drawers wrote a 30-day snooze and, on the automatic surface, an
+ * additional dismissal. Reading help was never a refusal. Clear that contaminated trio once on
+ * upgrade; future explicit refusals use only the two dismissal keys and are left intact.
+ */
+export const migrateLegacyInstallSnooze = (): boolean => {
+    try {
+        if (window.localStorage.getItem(SNOOZED_UNTIL_KEY) === null) return false
+        clearInstallSnooze()
+        return true
+    } catch {
+        return false
     }
 }
 
@@ -166,17 +199,63 @@ export function isIOSHere(): boolean {
     })
 }
 
-function readEnvironment(): InstallEnvironment {
+const isStandaloneHere = (): boolean => {
     const navigator = window.navigator as Navigator & { standalone?: boolean }
+    return isStandaloneDisplay(window.matchMedia('(display-mode: standalone)').matches, navigator.standalone)
+}
+
+/**
+ * Written only when the browser's initial standalone document is the manifest start URL exactly.
+ *
+ * Checking the current route is not enough: a PR11 room shortcut can use Next client navigation to
+ * reach `/app?manage=1` without leaving its bad standalone container. `PerformanceNavigationTiming`
+ * keeps the original document URL across that transition, so the shortcut cannot certify itself.
+ * Fail closed when that evidence is unavailable.
+ */
+export function recordCanonicalStandaloneLaunch(): boolean {
+    if (!isStandaloneHere()) return false
+    if (window.location.pathname !== '/app' || window.location.search !== '' || window.location.hash !== '')
+        return false
+    const navigation = window.performance?.getEntriesByType?.('navigation')[0]
+    if (!navigation?.name) return false
+    try {
+        const initial = new URL(navigation.name)
+        if (
+            initial.origin !== window.location.origin ||
+            initial.pathname !== '/app' ||
+            initial.search !== '' ||
+            initial.hash !== ''
+        )
+            return false
+    } catch {
+        return false
+    }
+    try {
+        window.localStorage.setItem(CANONICAL_LAUNCH_MARKER_KEY, '1')
+        return true
+    } catch {
+        // Storage can be denied in private or embedded contexts. Do not turn that into a crash.
+        return false
+    }
+}
+
+export function hasCanonicalStandaloneLaunch(): boolean {
+    try {
+        return window.localStorage.getItem(CANONICAL_LAUNCH_MARKER_KEY) === '1'
+    } catch {
+        return false
+    }
+}
+
+function readEnvironment(): InstallEnvironment {
     return {
-        isStandalone: isStandaloneDisplay(
-            window.matchMedia('(display-mode: standalone)').matches,
-            navigator.standalone
-        ),
+        isStandalone: isStandaloneHere(),
         isIOS: isIOSHere(),
         hasPrompt: deferred !== null,
         promptSpent,
         installedHere,
+        hasCanonicalLaunchMarker: hasCanonicalStandaloneLaunch(),
+        isRoomPath: window.location.pathname.startsWith('/r/'),
     }
 }
 
@@ -189,6 +268,7 @@ function publish(): void {
 export function captureInstallPrompt(): void {
     if (captured || typeof window === 'undefined') return
     captured = true
+    migrateLegacyInstallSnooze()
 
     const takeBufferedPrompt = () => {
         const event = (window as InstallWindow).__splitInstallPrompt
