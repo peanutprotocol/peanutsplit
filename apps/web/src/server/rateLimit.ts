@@ -92,16 +92,55 @@ function prune(now: number): void {
     if (buckets.size > MAX_KEYS) buckets.clear()
 }
 
+/** The address ranges our own infrastructure uses: RFC1918, loopback, IPv4/IPv6
+ *  link-local, and IPv6 unique-local. A caller reaching Traefik from the public
+ *  internet never arrives from one of these, so when they sit at the tail of
+ *  `x-forwarded-for` they are our proxy hops, not the client, and are stepped over. */
+function isInternalHop(ip: string): boolean {
+    // Some proxies bracket IPv6 or map IPv4 as ::ffff:a.b.c.d — normalize both first.
+    let addr = ip.replace(/^\[|\]$/g, '').toLowerCase()
+    const mapped = addr.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/)
+    if (mapped) addr = mapped[1]
+    return (
+        /^127\./.test(addr) || // IPv4 loopback
+        /^10\./.test(addr) || // RFC1918
+        /^192\.168\./.test(addr) || // RFC1918
+        /^172\.(1[6-9]|2\d|3[01])\./.test(addr) || // RFC1918
+        /^169\.254\./.test(addr) || // IPv4 link-local
+        addr === '::1' || // IPv6 loopback
+        /^f[cd][0-9a-f]{2}:/.test(addr) || // fc00::/7 unique-local
+        /^fe[89ab][0-9a-f]:/.test(addr) // fe80::/10 link-local
+    )
+}
+
 /**
- * The app sits behind Traefik, so `request.ip` is the proxy for every caller.
- * The first `x-forwarded-for` hop is the client; the rest are proxies. It is
- * spoofable — see the file header on what this limiter is and isn't for.
+ * The address the limiter keys on. The app sits behind Traefik, which appends
+ * the connecting client to `x-forwarded-for`, so the client Traefik actually saw
+ * is the *last* real address in the list — everything to its left is caller-
+ * supplied and forgeable. Walk in from the right, past our own proxy hops, to the
+ * first address a caller could not have written themselves. Taking the left-most
+ * hop instead — as this once did — let anyone mint a fresh bucket per request by
+ * rotating one header. It is still only a courtesy limiter (see the file header),
+ * but that one-line bypass is closed. No Cloudflare or other CDN fronts the app,
+ * so there is no client-trusted `cf-connecting-ip` to prefer. This leans on
+ * Traefik presenting the real peer as the right-most hop: if a CDN or a second
+ * proxy is ever added in front — or the edge starts SNAT-masking source IPs —
+ * selection slides back to a caller-supplied hop and the bypass reopens. Revisit
+ * here whenever the ingress path changes.
  */
 export function clientIp(request: Request): string {
     const forwarded = request.headers.get('x-forwarded-for')
     if (forwarded) {
-        const first = forwarded.split(',')[0]?.trim()
-        if (first) return first
+        const hops = forwarded
+            .split(',')
+            .map((hop) => hop.trim())
+            .filter(Boolean)
+        for (let i = hops.length - 1; i >= 0; i--) {
+            if (!isInternalHop(hops[i])) return hops[i]
+        }
+        // Every hop is one of ours — internal traffic such as a health check.
+        // Key it on the outermost hop rather than colliding with the header-less fallback.
+        if (hops.length > 0) return hops[hops.length - 1]
     }
     return request.headers.get('x-real-ip')?.trim() || 'unknown'
 }
