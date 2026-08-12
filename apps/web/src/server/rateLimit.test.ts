@@ -47,8 +47,24 @@ describe('takeToken', () => {
 describe('clientIp', () => {
     const req = (headers: Record<string, string>) => new Request('http://localhost/api/rooms', { headers })
 
-    it('takes the first x-forwarded-for hop — the rest are our own proxies', () => {
+    it('keys on the client hop, stepping over our own trailing proxy hops', () => {
         expect(clientIp(req({ 'x-forwarded-for': '203.0.113.7, 10.0.0.2, 10.0.0.3' }))).toBe('203.0.113.7')
+    })
+
+    it('ignores a spoofed leading hop — keys on the address Traefik appended', () => {
+        // The caller writes 1.2.3.4 into the header; Traefik appends the real peer to the right.
+        expect(clientIp(req({ 'x-forwarded-for': '1.2.3.4, 203.0.113.7' }))).toBe('203.0.113.7')
+    })
+
+    it('keys the same however the caller rotates the prefix — no fresh bucket per request', () => {
+        const a = clientIp(req({ 'x-forwarded-for': '9.9.9.9, 203.0.113.7' }))
+        const b = clientIp(req({ 'x-forwarded-for': '8.8.8.8, 203.0.113.7' }))
+        expect(a).toBe('203.0.113.7')
+        expect(b).toBe('203.0.113.7')
+    })
+
+    it('falls back to the outermost hop when every hop is internal', () => {
+        expect(clientIp(req({ 'x-forwarded-for': '10.255.255.254' }))).toBe('10.255.255.254')
     })
 
     it('falls back to x-real-ip, then to a shared bucket', () => {

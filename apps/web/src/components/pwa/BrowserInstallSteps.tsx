@@ -2,30 +2,30 @@
 
 import { useTranslations } from 'next-intl'
 
-/**
- * The portable floor under browser-managed installation.
- *
- * `beforeinstallprompt` is an optional Chromium convenience, not the browser's only install path.
- * When it has not arrived, these steps point to the browser menu where installation is supported,
- * and to a full browser when an embedded one cannot install. The last line answers the alarming but
- * correct origin Chrome shows without promising that every browser creates the same kind of app.
- */
-export function BrowserInstallSteps() {
+/** Short, platform-aware fallback from the canonical, slug-free `/app` document. */
+export function BrowserInstallSteps({ android }: { android: boolean }) {
     const t = useTranslations('marketing.install')
+    const steps = android
+        ? [t('browser.step1Android'), t('browser.step2Android'), t('browser.step3Android'), t('browser.step4Android')]
+        : [t('browser.step1Other'), t('browser.step2Other'), t('browser.step3Other')]
 
     return (
-        <ol className="flex flex-col gap-3" data-testid="browser-install-steps">
-            {[t('browser.step1'), t('browser.step2'), t('browser.step3'), t('browser.step4')].map((step, index) => (
-                <li key={step} className="flex items-start gap-3">
-                    <span
-                        aria-hidden="true"
-                        className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-1 font-display text-h8 leading-none"
-                    >
-                        {index + 1}
-                    </span>
-                    <span className="flex-1 text-sm leading-5">{step}</span>
-                </li>
-            ))}
-        </ol>
+        <div className="grid gap-3">
+            <p className="text-sm leading-5 text-grey-1">{t('browser.embedded')}</p>
+            <ol className="flex flex-col gap-3" data-testid="browser-install-steps">
+                {steps.map((step, index) => (
+                    <li key={step} className="flex items-start gap-3">
+                        <span
+                            aria-hidden="true"
+                            className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-1 font-display text-h8 leading-none"
+                        >
+                            {index + 1}
+                        </span>
+                        <span className="flex-1 text-sm leading-5">{step}</span>
+                    </li>
+                ))}
+            </ol>
+            <p className="text-sm leading-5 text-grey-1">{t('browser.noOption')}</p>
+        </div>
     )
 }
