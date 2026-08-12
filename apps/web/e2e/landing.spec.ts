@@ -981,18 +981,32 @@ test('the room URL prewarms a cached 1200×630 social preview while native share
     await page.getByTestId('create-room').click()
     const roomUrl = await enterCreatedRoom(page)
     const slug = new URL(roomUrl).pathname.split('/')[2]
+    // What the room actually tells a crawler to fetch. Next mints this URL —
+    // a build-scoped hash on the segment, plus a cache-busting query — so the
+    // test reads it out of the head exactly like the app does, and matches its
+    // SHAPE, never today's hash. The bug this guards: the app spelled the URL
+    // out as `/r/<slug>/opengraph-image`, which Next does not serve, so every
+    // shared room unfurled imageless off a 404.
+    const advertised = page.locator('meta[property="og:image"]')
+    await expect(advertised).toHaveAttribute(
+        'content',
+        new RegExp(`^https?://[^/]+/r/${slug}/opengraph-image-[a-z0-9]+(\\?|$)`)
+    )
+    const previewUrl = (await advertised.getAttribute('content'))!
+
     const previewResponse = await previewWarmed
     expect(previewResponse.status()).toBe(200)
-    expect(new URL(previewResponse.url()).pathname).toBe(`/r/${slug}/opengraph-image`)
+    // The warm is the advertised URL, not a near-miss of it.
+    expect(previewResponse.url()).toBe(previewUrl)
     expect(previewResponse.headers()['cache-control']).toContain('s-maxage=300')
     expect(previewResponse.headers()['cache-control']).toContain('stale-while-revalidate=60')
 
-    const preview = await page.evaluate(async (path) => {
-        const response = await fetch(path)
+    const preview = await page.evaluate(async (url) => {
+        const response = await fetch(url)
         const blob = await response.blob()
         const bitmap = await createImageBitmap(blob)
         return { ok: response.ok, type: blob.type, width: bitmap.width, height: bitmap.height }
-    }, `/r/${slug}/opengraph-image`)
+    }, previewUrl)
     expect(preview).toEqual({ ok: true, type: 'image/png', width: 1200, height: 630 })
 
     await page.getByTestId('empty-share').click()

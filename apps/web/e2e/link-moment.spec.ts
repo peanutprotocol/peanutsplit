@@ -34,15 +34,27 @@ test('creation pauses at a concise roster checkpoint before entering the room', 
 })
 
 test('the in-room hand-off keeps copy inline and makes sharing the primary action', async ({ page }) => {
+    // The preview warm waits for the room itself. Its URL is minted by Next —
+    // a build-scoped hash on the segment — so the room document's own head is
+    // the only place it is written down, and the roster checkpoint is still on
+    // `/new`, describing `/new`. Registered before creation, awaited after the
+    // room is on screen.
     const previewRequestPromise = page.waitForRequest((request) => request.url().includes('/opengraph-image'))
     await createRoom(page, 'Beer trip')
-    const previewRequest = await previewRequestPromise
-    expect(previewRequest.method()).toBe('GET')
-    expect(new URL(previewRequest.url()).pathname).toMatch(/\/r\/beer-trip-[A-Za-z0-9_-]{22}\/opengraph-image$/)
-    expect(previewRequest.headers()).not.toHaveProperty('x-member-token')
 
     await page.getByRole('button', { name: 'Skip', exact: true }).click()
     await page.waitForURL(/\/r\/beer-trip-/)
+
+    const previewRequest = await previewRequestPromise
+    expect(previewRequest.method()).toBe('GET')
+    // The hash belongs to the build, never to this app: match the shape, never
+    // the value. Asserting the hashless path is what let the 404 ship.
+    expect(new URL(previewRequest.url()).pathname).toMatch(
+        /^\/r\/beer-trip-[A-Za-z0-9_-]{22}\/opengraph-image-[a-z0-9]+$/
+    )
+    expect(previewRequest.headers()).not.toHaveProperty('x-member-token')
+    expect((await previewRequest.response())?.status()).toBe(200)
+
     await page.getByTestId('share-room').click()
 
     const qr = page.getByTestId('room-qr')

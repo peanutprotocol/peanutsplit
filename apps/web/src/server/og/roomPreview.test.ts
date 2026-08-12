@@ -59,17 +59,18 @@ describe('the meta a chat preview reads', () => {
         expect(meta.robots).toEqual({ index: false, follow: false })
         expect(meta.openGraph?.description).toBe(meta.description)
         expect(meta.twitter?.description).toBe(meta.description)
-        expect(meta.openGraph?.images).toEqual([
-            {
-                url: `/r/${room.slug}/opengraph-image`,
-                width: 1200,
-                height: 630,
-                alt: 'Peanut Split room preview',
-            },
-        ])
-        expect(meta.twitter?.images).toEqual([`/r/${room.slug}/opengraph-image`])
-        // The existing room capability is the only token in the preview path.
-        expect(JSON.stringify(meta.openGraph?.images).match(new RegExp(room.slug, 'g'))).toHaveLength(1)
+        // The card is a large one, and that is the only part of it stated here.
+        expect(meta.twitter).toMatchObject({ card: 'summary_large_image' })
+        // NOTHING names the image. `opengraph-image.tsx` is a Next file
+        // convention and Next writes both tags itself, at a URL carrying a
+        // build-scoped hash that no code here can derive. Spelling one out —
+        // which is what this test used to assert — overrode Next's URL with
+        // `/r/<slug>/opengraph-image`, a 404, and rooms unfurled imageless.
+        // The e2e suite holds the other end: that the URL Next does write
+        // answers with a 1200×630 PNG.
+        expect(meta.openGraph?.images).toBeUndefined()
+        expect(meta.twitter?.images).toBeUndefined()
+        expect(JSON.stringify(meta)).not.toContain('opengraph-image')
     })
 
     it('falls back to English for a room that never said', async () => {
