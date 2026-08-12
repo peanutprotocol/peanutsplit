@@ -107,7 +107,7 @@ test('a fresh public guide creates no worker, cache, browser storage, or install
 })
 
 test('canonical product routes register through Serwist and remain installable and offline', async ({ browser }) => {
-    const context = await browser.newContext({ extraHTTPHeaders: { 'x-forwarded-host': 'split.peanut.me' } })
+    const context = await browser.newContext({ extraHTTPHeaders: { 'x-forwarded-host': 'peanutsplit.com' } })
     const page = await context.newPage()
     reportBrowserFailures(page)
     await instrumentRegistration(page)

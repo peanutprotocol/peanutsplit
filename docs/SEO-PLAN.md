@@ -2,18 +2,22 @@
 
 _2026-07-29. v2 after Konrad's direction: think engine + content types first, concrete pages second. Research basis (v1): live SERP sweeps EN/ES + full audit of the content engine in `apps/web`._
 
+> **Domain update, 2026-08-12:** the domain portions of this plan are superseded
+> by [`apps/web/docs/SEO-DOMAIN-DECISIONS.md`](../apps/web/docs/SEO-DOMAIN-DECISIONS.md).
+> Product, PWA, and live SEO all stay on `peanutsplit.com`; `split.peanut.me` is
+> only a redirecting compatibility alias. The content-type research below remains
+> useful, but the separate peanut.me publishing architecture is deferred.
+
 ## The frame
 
 We don't plan pages; we plan **content types the engine can mass-produce**. Each type is a template + data contract + voice. Once a type exists, adding an instance is cheap (a data file or a markdown dir). SEO velocity then comes from the engine, not from one-off builds.
 
-## Domain architecture (changed in v2)
+## Domain architecture (current)
 
-**Authority feeds peanut.me.** Content lives on **split.peanut.me**; **peanutsplit.com stays landing-only** (hero + app entry, thin, canonical to itself).
-
-- Subdomain content accrues to the peanut.me registrable domain — every link a calculator or essay earns strengthens the domain the card/main product lives on, instead of a standalone domain starting from zero.
-- Existing content pages (blog + `/splitwise-alternative`) 301 from peanutsplit.com to split.peanut.me at cutover; hreflang + sitemap regenerate from the new host. One config knob if we make the host an env of the content routes.
-- Cost to accept: we restart what little indexing peanutsplit.com's content has (it's 4 articles — cheap to move now, expensive later). Landing keeps ranking for the brand term.
-- App/rooms stay wherever the app lives; `/r/*` indexing rules unchanged.
+Everything live accrues to **peanutsplit.com**. Native content, tools, app routes,
+rooms, PWA identity, canonicals, hreflang, and sitemap stay on the same origin.
+The generated-content engine is preserved but dark until its URL and publishing
+contracts are retargeted to this domain without Peanut UI.
 
 ## Content types (the engine's primitives)
 
@@ -60,16 +64,15 @@ Own engine, like peanut-ui's — not shared code (standing ruling: Split never i
 
 ## Roadmap
 
-- **Phase 0 — plumbing (~1–2 days):** GSC + Bing verification; IndexNow on deploy; PostHog marketing-attribution carve-out (keep global `$pathname` strip for room routes, allow it on marketing routes only, or typed `marketing_page_view` + `landing_surface` on `room_created`); RSS. **Plus now: the split.peanut.me host decision executed** (DNS, host config, 301s) — do it while there are 5 pages, not 50.
+- **Phase 0 — plumbing (~1–2 days):** GSC + Bing verification for peanutsplit.com; IndexNow on deploy; PostHog marketing-attribution carve-out (keep global `$pathname` strip for room routes, allow it on marketing routes only, or typed `marketing_page_view` + `landing_surface` on `room_created`); RSS.
 - **Phase 1 — engine work:** tools registry + shared shell (first tool = bill split, hardest = mileage w/ country data); capture-page collection + template; translate pipeline.
 - **Phase 2 — content waves, per type:** comparisons (6 pages, data exists from v1 research) · microtools (fairness set) · capture pages · editorial 1/wk from the topic bank, 2/wk total cadence with guides.
-- **Phase 3 — authority:** now flows into peanut.me by construction; still do AlternativeTo, Product Hunt (time with v2/import), directories, genuine Reddit.
+- **Phase 3 — authority:** grows on peanutsplit.com; still do AlternativeTo, Product Hunt (time with v2/import), directories, genuine Reddit.
 - **Measurement:** GSC per content type; `room_created` by landing surface; monthly review, kill types with zero impressions after 8 weeks.
 
 ## Decisions still open (Konrad)
 
-1. **split.peanut.me cutover timing** — Phase 0 (recommended: move before content wave) or after?
-2. Localize comparison pages to es/pt-BR (still formally reverses ROADMAP's "English by design")? The localization-engine directive implies yes — confirm.
-3. Cadence: Claude drafts 2/wk (1 editorial + 1 guide/capture) + translations, Konrad reviews before push?
+1. Localize comparison pages to es/pt-BR (still formally reverses ROADMAP's "English by design")? The localization-engine directive implies yes — confirm.
+2. Cadence: Claude drafts 2/wk (1 editorial + 1 guide/capture) + translations, Konrad reviews before push?
 
 _(v1's "calculators in scope?" and "peanut.me backlink?" are answered by this revision: yes-and-bigger, and superseded by the subdomain move.)_

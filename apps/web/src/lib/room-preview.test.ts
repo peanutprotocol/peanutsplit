@@ -14,7 +14,7 @@ const png = () =>
     })
 
 /** A document that advertises `image` from the page served at `baseURI`. */
-const docAdvertising = (image: string | null, baseURI = 'https://split.peanut.me/r/ski-trip-a_b-123') => ({
+const docAdvertising = (image: string | null, baseURI = 'https://peanutsplit.com/r/ski-trip-a_b-123') => ({
     baseURI,
     querySelector: (selectors: string) =>
         selectors === 'meta[property="og:image"]' && image ? { getAttribute: () => image } : null,
@@ -27,7 +27,7 @@ describe('room social-preview prewarm', () => {
         const fetcher = vi.fn(async () => response) as unknown as typeof fetch
         // The suffix and the query are Next's, they change with the build, and
         // nothing here may care what they are — only that they are passed through.
-        const advertised = 'https://split.peanut.me/r/ski-trip-a_b-123/opengraph-image-a1b2c3?9a3e77b02c2f6d0d'
+        const advertised = 'https://peanutsplit.com/r/ski-trip-a_b-123/opengraph-image-a1b2c3?9a3e77b02c2f6d0d'
 
         await expect(prewarmRoomPreview('ski-trip-a_b-123', fetcher, docAdvertising(advertised))).resolves.toBe(true)
         expect(fetcher).toHaveBeenCalledWith(advertised, { cache: 'force-cache', credentials: 'same-origin' })
@@ -39,7 +39,7 @@ describe('room social-preview prewarm', () => {
         await prewarmRoomPreview(
             'ski-trip-a_b-123',
             fetcher,
-            docAdvertising('https://split.peanut.me/r/ski-trip-a_b-123/opengraph-image-a1b2c3')
+            docAdvertising('https://peanutsplit.com/r/ski-trip-a_b-123/opengraph-image-a1b2c3')
         )
         expect(vi.mocked(fetcher).mock.calls[0][1]).not.toHaveProperty('headers')
     })
@@ -49,8 +49,8 @@ describe('room social-preview prewarm', () => {
         // The landing hero and `/new` both create rooms while their own unfurl
         // card is the one in the head. Warming that would be the wrong image.
         const landing = {
-            baseURI: 'https://split.peanut.me/new',
-            querySelector: () => ({ getAttribute: () => 'https://split.peanut.me/opengraph-image-d4e5f6' }),
+            baseURI: 'https://peanutsplit.com/new',
+            querySelector: () => ({ getAttribute: () => 'https://peanutsplit.com/opengraph-image-d4e5f6' }),
         }
         await expect(prewarmRoomPreview('ski-trip-a_b-123', fetcher, landing)).resolves.toBe(false)
         expect(fetcher).not.toHaveBeenCalled()
@@ -58,7 +58,7 @@ describe('room social-preview prewarm', () => {
 
     it('warms nothing when the head names another room', async () => {
         const fetcher = vi.fn(async () => png()) as unknown as typeof fetch
-        const other = docAdvertising('https://split.peanut.me/r/other-room-999/opengraph-image-a1b2c3')
+        const other = docAdvertising('https://peanutsplit.com/r/other-room-999/opengraph-image-a1b2c3')
         await expect(prewarmRoomPreview('ski-trip-a_b-123', fetcher, other)).resolves.toBe(false)
         expect(fetcher).not.toHaveBeenCalled()
     })
@@ -86,7 +86,7 @@ describe('room social-preview prewarm', () => {
         const fetcher = vi.fn(async () => {
             throw new TypeError('offline')
         })
-        const doc = docAdvertising('https://split.peanut.me/r/offline-room/opengraph-image-a1b2c3')
+        const doc = docAdvertising('https://peanutsplit.com/r/offline-room/opengraph-image-a1b2c3')
         await expect(prewarmRoomPreview('offline-room', fetcher as typeof fetch, doc)).resolves.toBe(false)
     })
 })

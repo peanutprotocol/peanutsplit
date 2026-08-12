@@ -74,17 +74,17 @@ test('direct room and recap responses expose the Split manifest in the initial h
     await expect(page.locator('head > meta[name="application-name"]')).toHaveAttribute('content', 'Split')
 })
 
-test('the legacy host cannot advertise or serve a second installable Split', async ({ request }) => {
-    const headers = { 'x-forwarded-host': 'peanutsplit.com', 'user-agent': chromeUserAgent }
+test('the compatibility alias redirects instead of advertising a second installable Split', async ({ request }) => {
+    const headers = { 'x-forwarded-host': 'split.peanut.me', 'user-agent': chromeUserAgent }
     const [manifest, app] = await Promise.all([
-        request.get('/manifest.webmanifest', { headers }),
-        request.get('/app', { headers }),
+        request.get('/manifest.webmanifest', { headers, maxRedirects: 0 }),
+        request.get('/app', { headers, maxRedirects: 0 }),
     ])
 
-    expect(manifest.status()).toBe(404)
-    expect(manifest.headers()['cache-control']).toContain('no-store')
-    const html = await app.text()
-    expect(html.slice(0, html.indexOf('</head>'))).not.toContain('rel="manifest"')
+    expect(manifest.status()).toBe(308)
+    expect(manifest.headers().location).toBe('https://peanutsplit.com/manifest.webmanifest')
+    expect(app.status()).toBe(308)
+    expect(app.headers().location).toBe('https://peanutsplit.com/app')
 })
 
 test('iOS is offered "Split" as the home-screen name', async ({ page }) => {

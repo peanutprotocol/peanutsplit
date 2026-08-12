@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
+import { siteUrl } from '@/lib/site'
 import { QRCodeSVG } from 'qrcode.react'
 import { peanutWavingHello } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
@@ -51,9 +52,7 @@ interface LinkMomentProps {
 }
 
 export const roomUrl = (slug: string): string =>
-    typeof window === 'undefined'
-        ? `${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/r/${slug}`
-        : `${window.location.origin}/r/${slug}`
+    typeof window === 'undefined' ? `${siteUrl}/r/${slug}` : `${window.location.origin}/r/${slug}`
 
 /**
  * The group-chat handoff.

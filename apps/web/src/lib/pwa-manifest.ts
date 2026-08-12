@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next'
+import { CANONICAL_HOST } from '@/lib/domains'
 import { splitV2Enabled } from '@/lib/flags'
 import { SHARE_TARGET_ACTION, SHARE_TARGET_FIELD } from '@/lib/shared-receipt'
 
-export const PRODUCTION_PWA_HOST = 'split.peanut.me'
+export const PRODUCTION_PWA_HOST = CANONICAL_HOST
 
 const LOCAL_PWA_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]'])
 

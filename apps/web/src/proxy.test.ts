@@ -51,9 +51,43 @@ function expectSplitDiagnostics(
 }
 
 describe('proxy /new locale handoff', () => {
-    it('runs the host cutover for dotted robots and sitemap metadata routes', () => {
+    it('matches identity-bearing files and APIs for alias canonicalisation', () => {
         expect(config.matcher).toContain('/sitemap.xml')
         expect(config.matcher).toContain('/robots.txt')
+        expect(config.matcher).toContain('/manifest.webmanifest')
+        expect(config.matcher).toContain('/sw.js')
+        expect(config.matcher).toContain('/favicon.ico')
+        expect(config.matcher).toContain('/icon.png')
+        expect(config.matcher).toContain('/icons/:path*')
+        expect(config.matcher).toContain('/api/:path*')
+    })
+
+    it('redirects the former host before any app or content handling', () => {
+        for (const path of ['/app', '/r/trip-abc123', '/en/split/guides/synthetic-guide']) {
+            const response = proxy(
+                new NextRequest(`https://renderer.internal${path}?from=chat`, {
+                    headers: { 'x-forwarded-host': 'split.peanut.me' },
+                })
+            )
+            expect(response.status, path).toBe(308)
+            expect(response.headers.get('location'), path).toBe(`https://peanutsplit.com${path}?from=chat`)
+        }
+    })
+
+    it('passes canonical APIs through without rewriting request headers', () => {
+        const response = proxy(
+            new NextRequest('https://renderer.internal/api/rooms', {
+                headers: {
+                    'x-forwarded-host': 'peanutsplit.com',
+                    cookie: 'ps-locale=pt-br',
+                    [SPLIT_EDGE_MARKER_HEADER]: 'caller-owned-api-value',
+                },
+            })
+        )
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get('location')).toBeNull()
+        expect(response.headers.get(`x-middleware-request-${SPLIT_EDGE_MARKER_HEADER}`)).toBeNull()
     })
 
     it('sets first-paint locale context and persists it without redirecting or dropping query parameters', () => {
@@ -95,7 +129,7 @@ describe('proxy Split content transport boundary', () => {
         expectSplitDiagnostics(response, 'content', '0')
     })
 
-    it('fails missing markers before the canonical-host cutover can redirect a guide', () => {
+    it('fails missing markers closed on the renderer transport', () => {
         const response = splitTransportResponse(
             new NextRequest('https://renderer.internal/en/split/guides/synthetic-guide', {
                 headers: { host: 'split.peanut.me', 'x-forwarded-host': 'split.peanut.me' },
@@ -109,7 +143,7 @@ describe('proxy Split content transport boundary', () => {
         expectSplitDiagnostics(response, 'content', '0')
     })
 
-    it('accepts a valid marker, strips credentials, sets trusted locale/content state, and bypasses cutover', () => {
+    it('accepts a valid marker, strips credentials, and sets trusted locale/content state', () => {
         const response = splitTransportResponse(
             new NextRequest('https://renderer.internal/pt-br/split/guides/synthetic-guide', {
                 headers: {
