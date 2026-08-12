@@ -11,6 +11,10 @@ module.exports = {
         './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
         './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+        // src/lib composes class names too (fonts.ts `font-sans`, providers.tsx
+        // toast classes) — leaving it unscanned dropped `.font-sans` from the
+        // build and the whole site fell back to the browser serif.
+        './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
         borderWidth: {
