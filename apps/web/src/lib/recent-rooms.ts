@@ -57,9 +57,9 @@ const browserStorage = (): Storage | null => {
 /**
  * Pull a room credential out of a pasted Peanut Split link.
  *
- * Accepts the canonical production host, the host currently serving the app
- * (so localhost and preview deployments work), a bare `peanutsplit.com/r/...`
- * link, or a same-site `/r/...` path. Query strings and fragments are harmless
+ * Accepts the canonical production host, the former split.peanut.me alias,
+ * the host currently serving the app (so localhost and previews work), a bare
+ * `peanutsplit.com/r/...` link, or a same-site `/r/...` path. Query strings and fragments are harmless
  * chat-client decoration and are discarded. Everything else is rejected before
  * a request is made.
  */

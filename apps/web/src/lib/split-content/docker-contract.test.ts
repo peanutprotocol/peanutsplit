@@ -29,7 +29,7 @@ describe('Split content container release contract', () => {
         expect(compose).not.toContain('SPLIT_CONTENT_EDGE_MARKER')
         expect(compose).not.toContain('SEO_INDEXABLE')
         expect(workflow).toContain("SEO_INDEXABLE: 'false'")
-        expect(workflow).toContain('--build-arg NEXT_PUBLIC_BASE_URL=https://split.peanut.me')
+        expect(workflow).toContain('--build-arg NEXT_PUBLIC_BASE_URL=https://peanutsplit.com')
         expect(workflow).not.toContain('--build-arg SEO_INDEXABLE')
     })
 })

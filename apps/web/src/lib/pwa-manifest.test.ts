@@ -96,49 +96,49 @@ describe('the manifest request host boundary', () => {
     }
 
     it('accepts the exact canonical forwarded host, normalized for case and a default port', async () => {
-        await expect(boundary({ 'x-forwarded-host': 'SPLIT.PEANUT.ME:443' })).resolves.toEqual({
-            host: 'split.peanut.me',
+        await expect(boundary({ 'x-forwarded-host': 'PEANUTSPLIT.COM:443' })).resolves.toEqual({
+            host: 'peanutsplit.com',
             canonical: true,
         })
     })
 
     it('falls back to Host only when X-Forwarded-Host is absent', async () => {
-        await expect(boundary({ host: 'split.peanut.me' })).resolves.toEqual({
-            host: 'split.peanut.me',
+        await expect(boundary({ host: 'peanutsplit.com' })).resolves.toEqual({
+            host: 'peanutsplit.com',
             canonical: true,
         })
-        await expect(boundary({ host: 'split.peanut.me', 'x-forwarded-host': 'peanutsplit.com' })).resolves.toEqual({
-            host: 'peanutsplit.com',
+        await expect(boundary({ host: 'peanutsplit.com', 'x-forwarded-host': 'split.peanut.me' })).resolves.toEqual({
+            host: 'split.peanut.me',
             canonical: false,
         })
     })
 
     it.each([
         '',
-        ' split.peanut.me',
-        'split.peanut.me ',
-        'split.peanut.me, peanutsplit.com',
-        'https://split.peanut.me',
-        'user@split.peanut.me',
-        'split.peanut.me/path',
-        'split.peanut.me.',
-        '@split.peanut.me',
-        '//split.peanut.me',
-        'split.peanut.me/.',
-        'split%2epeanut%2eme',
-        'split.peanut.me?',
-        'split.peanut.me:',
-        'split.peanut.me:0443',
+        ' peanutsplit.com',
+        'peanutsplit.com ',
+        'peanutsplit.com, split.peanut.me',
+        'https://peanutsplit.com',
+        'user@peanutsplit.com',
+        'peanutsplit.com/path',
+        'peanutsplit.com.',
+        '@peanutsplit.com',
+        '//peanutsplit.com',
+        'peanutsplit.com/.',
+        'peanutsplit%2ecom',
+        'peanutsplit.com?',
+        'peanutsplit.com:',
+        'peanutsplit.com:0443',
     ])('rejects malformed forwarded host %j without falling through to Host', async (forwardedHost) => {
-        await expect(boundary({ host: 'split.peanut.me', 'x-forwarded-host': forwardedHost })).resolves.toEqual({
+        await expect(boundary({ host: 'peanutsplit.com', 'x-forwarded-host': forwardedHost })).resolves.toEqual({
             host: null,
             canonical: false,
         })
     })
 
     it('rejects a non-HTTPS production authority without rejecting its valid hostname', async () => {
-        await expect(boundary({ 'x-forwarded-host': 'split.peanut.me:444' })).resolves.toEqual({
-            host: 'split.peanut.me',
+        await expect(boundary({ 'x-forwarded-host': 'peanutsplit.com:444' })).resolves.toEqual({
+            host: 'peanutsplit.com',
             canonical: false,
         })
     })

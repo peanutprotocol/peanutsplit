@@ -24,6 +24,7 @@ jobs:
     env:
       # apps/api's integration suite talks to this; apps/web's unit tests don't.
       DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      # Deferred generated-content contract: intentionally historical while release gates stay dark.
       APP_ORIGIN: https://split.peanut.me
       CONTENT_ORIGIN: https://peanut.me
       SEO_INDEXABLE: 'false'
@@ -151,10 +152,12 @@ jobs:
           fi
 
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # APP_ORIGIN/CONTENT_ORIGIN below are the deferred generated-content contract,
+      # not the live app/SEO identity; its release controls remain dark.
       - run: >-
           docker build
           --build-arg NEXT_PUBLIC_SPLIT_V2_ENABLED=1
-          --build-arg NEXT_PUBLIC_BASE_URL=https://split.peanut.me
+          --build-arg NEXT_PUBLIC_BASE_URL=https://peanutsplit.com
           --build-arg APP_ORIGIN=https://split.peanut.me
           --build-arg CONTENT_ORIGIN=https://peanut.me
           apps/web

@@ -8,14 +8,14 @@
  * display server:
  *
  *   xvfb-run -a node scripts/verify-pwa-installability.mjs \
- *     https://split.peanut.me /r/<existing-room-slug> https://peanutsplit.com
+ *     https://peanutsplit.com /r/<existing-room-slug> https://split.peanut.me
  *
- * A loopback base automatically presents `x-forwarded-host: split.peanut.me`, matching the trusted
+ * A loopback base automatically presents `x-forwarded-host: peanutsplit.com`, matching the trusted
  * proxy contract used by the production-build PWA boundary suite. This exercises the final build
  * locally without weakening the runtime rule that production localhost is not a canonical host.
  *
  * The room slug is read-only and redacted from output. The optional third URL verifies that the
- * retired origin neither serves a manifest nor emits manifest discovery markup.
+ * compatibility alias redirects instead of serving a second install identity.
  */
 
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -23,10 +23,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { chromium } from '@playwright/test'
 
-const [, , baseArgument, roomArgument, legacyArgument] = process.argv
+const [, , baseArgument, roomArgument, aliasArgument] = process.argv
 
 if (!baseArgument || !roomArgument) {
-    console.error('Usage: node scripts/verify-pwa-installability.mjs <base-url> </r/existing-slug> [legacy-base-url]')
+    console.error('Usage: node scripts/verify-pwa-installability.mjs <base-url> </r/existing-slug> [alias-base-url]')
     process.exit(2)
 }
 
@@ -42,7 +42,7 @@ base.hash = ''
 
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]'])
 const isLoopback = (url) => LOOPBACK_HOSTS.has(url.hostname)
-const canonicalRequestHeaders = isLoopback(base) ? { 'x-forwarded-host': 'split.peanut.me' } : {}
+const canonicalRequestHeaders = isLoopback(base) ? { 'x-forwarded-host': 'peanutsplit.com' } : {}
 
 const roomUrl = new URL(roomArgument, base)
 if (roomUrl.origin !== base.origin || !/^\/r\/[^/]+\/?$/.test(roomUrl.pathname)) {
@@ -158,33 +158,28 @@ async function readInstallability(page, cdp, url) {
     }
 }
 
-async function verifyLegacyOrigin(legacyBaseArgument) {
-    const legacy = new URL(legacyBaseArgument)
-    legacy.pathname = '/'
-    legacy.search = ''
-    legacy.hash = ''
-    const legacyRequest = isLoopback(legacy) ? { headers: { 'x-forwarded-host': 'peanutsplit.com' } } : {}
+async function verifyAliasOrigin(aliasBaseArgument) {
+    const alias = new URL(aliasBaseArgument)
+    alias.pathname = '/'
+    alias.search = ''
+    alias.hash = ''
+    const aliasRequest = isLoopback(alias) ? { headers: { 'x-forwarded-host': 'split.peanut.me' } } : {}
 
-    const manifestResponse = await fetch(new URL('/manifest.webmanifest', legacy), {
-        ...legacyRequest,
+    const manifestResponse = await fetch(new URL('/manifest.webmanifest', alias), {
+        ...aliasRequest,
         redirect: 'manual',
     })
     invariant(
-        manifestResponse.status === 404 || manifestResponse.status === 410,
-        `Legacy manifest must fail closed (received HTTP ${manifestResponse.status})`
+        manifestResponse.status === 308 &&
+            manifestResponse.headers.get('location') === 'https://peanutsplit.com/manifest.webmanifest',
+        `Alias manifest must redirect to the canonical origin (received HTTP ${manifestResponse.status})`
     )
 
-    const documentResponse = await fetch(new URL('/app', legacy), { ...legacyRequest, redirect: 'manual' })
-    if (documentResponse.status === 200) {
-        const html = await documentResponse.text()
-        const headEnd = html.indexOf('</head>')
-        invariant(!html.slice(0, headEnd).includes('rel="manifest"'), 'Legacy document still advertises a manifest')
-    } else {
-        invariant(
-            documentResponse.status >= 300 && documentResponse.status < 400,
-            `Legacy /app must redirect or omit PWA markup (received HTTP ${documentResponse.status})`
-        )
-    }
+    const documentResponse = await fetch(new URL('/app', alias), { ...aliasRequest, redirect: 'manual' })
+    invariant(
+        documentResponse.status === 308 && documentResponse.headers.get('location') === 'https://peanutsplit.com/app',
+        `Alias /app must redirect to the canonical origin (received HTTP ${documentResponse.status})`
+    )
 
     return { manifestStatus: manifestResponse.status, appStatus: documentResponse.status }
 }
@@ -244,9 +239,9 @@ try {
     results.push(app)
     results.push(await readInstallability(page, cdp, room))
     results.push(await readInstallability(page, cdp, recap))
-    const legacy = legacyArgument ? await verifyLegacyOrigin(legacyArgument) : null
+    const alias = aliasArgument ? await verifyAliasOrigin(aliasArgument) : null
 
-    console.log(JSON.stringify({ ok: true, origin: base.origin, pages: results, legacy }, null, 2))
+    console.log(JSON.stringify({ ok: true, origin: base.origin, pages: results, alias }, null, 2))
 } catch (error) {
     // Playwright navigation errors include the target URL. Never print the room credential.
     const message = error instanceof Error ? error.message : error

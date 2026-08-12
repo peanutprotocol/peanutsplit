@@ -49,8 +49,8 @@ describe('room shortcut repair handoff', () => {
         const anchor = { href: '', rel: '', target: '', click: vi.fn() }
         vi.stubGlobal('window', {
             location: {
-                origin: 'https://split.peanut.me',
-                href: 'https://split.peanut.me/r/KUNC?utm_source=share#person',
+                origin: 'https://peanutsplit.com',
+                href: 'https://peanutsplit.com/r/KUNC?utm_source=share#person',
             },
             sessionStorage: {
                 getItem: (key: string) => {
@@ -72,7 +72,7 @@ describe('room shortcut repair handoff', () => {
 
         openInstallRepairSurface('settings')
 
-        expect(values.get(INSTALL_REPAIR_ROOM_URL_KEY)).toBe('https://split.peanut.me/r/KUNC')
+        expect(values.get(INSTALL_REPAIR_ROOM_URL_KEY)).toBe('https://peanutsplit.com/r/KUNC')
         expect(anchor).toMatchObject({
             href: '/app?install=1&repair=1&source=settings',
             rel: 'noreferrer',
@@ -81,7 +81,7 @@ describe('room shortcut repair handoff', () => {
         expect(anchor.click).toHaveBeenCalledOnce()
         expect(anchor.href).not.toContain('KUNC')
         expect(anchor.href).not.toContain('utm_source')
-        expect(readInstallRepairRoomUrl()).toBe('https://split.peanut.me/r/KUNC')
+        expect(readInstallRepairRoomUrl()).toBe('https://peanutsplit.com/r/KUNC')
     })
 
     it('keeps the room available for an ordinary cross-browser install without putting it in the URL', () => {
@@ -89,7 +89,7 @@ describe('room shortcut repair handoff', () => {
 
         openInstallSurface('auto')
 
-        expect(values.get(INSTALL_REPAIR_ROOM_URL_KEY)).toBe('https://split.peanut.me/r/KUNC')
+        expect(values.get(INSTALL_REPAIR_ROOM_URL_KEY)).toBe('https://peanutsplit.com/r/KUNC')
         expect(anchor).toMatchObject({ href: '/app?install=1&source=auto', rel: 'noreferrer', target: '_self' })
         expect(anchor.click).toHaveBeenCalledOnce()
         expect(anchor.href).not.toContain('KUNC')
@@ -111,7 +111,7 @@ describe('room shortcut repair handoff', () => {
 
     it('rejects nested room routes rather than restoring a recap as the room', () => {
         const { values } = stubWindow()
-        values.set(INSTALL_REPAIR_ROOM_URL_KEY, 'https://split.peanut.me/r/KUNC/recap')
+        values.set(INSTALL_REPAIR_ROOM_URL_KEY, 'https://peanutsplit.com/r/KUNC/recap')
 
         expect(readInstallRepairRoomUrl()).toBeNull()
     })

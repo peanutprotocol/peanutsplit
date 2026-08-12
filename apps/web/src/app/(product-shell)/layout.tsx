@@ -108,9 +108,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </head>
             <body className={bodyFontClassName}>
                 {canonicalPwa ? <RegisterProductServiceWorker /> : null}
-                {/* Legacy WebSite + Organization plus the app-origin SoftwareApplication,
-                    declared once so unmigrated page schema is host-consistent while the product
-                    entity keeps its split.peanut.me identity. Room pages are noindex. */}
+                {/* One WebSite, Organization and SoftwareApplication graph for the canonical
+                    peanutsplit.com identity. Room pages remain noindex. */}
                 <JsonLd data={siteSchema()} />
                 {/* No `messages` prop: rendered from a Server Component, the provider inherits
                     the request config, which serialises only the active catalog to the client.

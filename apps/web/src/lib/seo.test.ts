@@ -12,13 +12,13 @@ import {
     SITE_DESCRIPTION,
 } from './seo'
 import { COLLECTIONS, listDocs } from './content'
-import { LEGACY_APP_ORIGIN } from './domains'
+import { CANONICAL_ORIGIN } from './domains'
 import { siteUrl } from './site'
 
 describe('absoluteUrl', () => {
-    it('resolves unmigrated marketing paths against the fixed 200 legacy origin', () => {
-        expect(absoluteUrl('/blog')).toBe(`${LEGACY_APP_ORIGIN}/blog`)
-        expect(absoluteUrl('/')).toBe(LEGACY_APP_ORIGIN)
+    it('resolves public paths against the fixed canonical origin', () => {
+        expect(absoluteUrl('/blog')).toBe(`${CANONICAL_ORIGIN}/blog`)
+        expect(absoluteUrl('/')).toBe(CANONICAL_ORIGIN)
     })
 
     it('leaves an already-absolute URL alone', () => {
@@ -29,9 +29,9 @@ describe('absoluteUrl', () => {
 describe('pageMetadata', () => {
     it('points canonical and OG at the same path', () => {
         const meta = pageMetadata({ title: 'T', description: 'D', path: '/blog/x' })
-        expect(meta.metadataBase).toEqual(new URL(LEGACY_APP_ORIGIN))
-        expect(meta.alternates?.canonical).toBe(`${LEGACY_APP_ORIGIN}/blog/x`)
-        expect(meta.openGraph?.url).toBe(`${LEGACY_APP_ORIGIN}/blog/x`)
+        expect(meta.metadataBase).toEqual(new URL(CANONICAL_ORIGIN))
+        expect(meta.alternates?.canonical).toBe(`${CANONICAL_ORIGIN}/blog/x`)
+        expect(meta.openGraph?.url).toBe(`${CANONICAL_ORIGIN}/blog/x`)
     })
 
     it('omits article timestamps on a website-type page', () => {
@@ -59,7 +59,7 @@ describe('structured data', () => {
             { name: 'Guides', href: '/blog' },
         ])
         expect(schema.itemListElement.map((i) => i.position)).toEqual([1, 2])
-        expect(schema.itemListElement[1].item).toBe(`${LEGACY_APP_ORIGIN}/blog`)
+        expect(schema.itemListElement[1].item).toBe(`${CANONICAL_ORIGIN}/blog`)
     })
 
     it('drops an empty FAQ rather than emitting an invalid FAQPage', () => {
@@ -80,7 +80,7 @@ describe('structured data', () => {
             for (const doc of listDocs(collection)) {
                 const schema = articleSchema(doc)
                 expect(schema.url).toBe(schema.mainEntityOfPage)
-                expect(schema.url.startsWith(LEGACY_APP_ORIGIN), doc.slug).toBe(true)
+                expect(schema.url.startsWith(CANONICAL_ORIGIN), doc.slug).toBe(true)
                 expect(schema.dateModified >= schema.datePublished, doc.slug).toBe(true)
             }
         }
@@ -94,7 +94,7 @@ describe('structured data', () => {
         }
         const org = graph.find((node) => node['@type'] === 'Organization') as { '@id': string }
         expect(website.publisher['@id']).toBe(org['@id'])
-        expect(website.url).toBe(LEGACY_APP_ORIGIN)
+        expect(website.url).toBe(CANONICAL_ORIGIN)
     })
 
     /** Google reads name/description/applicationCategory/offers off this node; a missing one is

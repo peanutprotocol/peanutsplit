@@ -99,15 +99,15 @@ function fakeWindow({
         matchMedia: () => ({ matches: state.standalone }),
         navigator: { userAgent: ua, platform, maxTouchPoints },
         location: {
-            origin: 'https://split.peanut.me',
-            href: `https://split.peanut.me${pathname}${search}`,
+            origin: 'https://peanutsplit.com',
+            href: `https://peanutsplit.com${pathname}${search}`,
             pathname,
             search,
             hash: '',
         },
         performance: {
             getEntriesByType: (type: string) =>
-                type === 'navigation' ? [{ name: `https://split.peanut.me${initialPathname}${initialSearch}` }] : [],
+                type === 'navigation' ? [{ name: `https://peanutsplit.com${initialPathname}${initialSearch}` }] : [],
         },
         localStorage: {
             getItem: (key: string) => {

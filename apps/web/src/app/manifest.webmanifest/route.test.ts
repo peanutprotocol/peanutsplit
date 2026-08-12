@@ -8,7 +8,7 @@ const request = (forwardedHost: string) =>
 
 describe('the origin-bound PWA manifest route', () => {
     it('serves the manifest on the canonical Split host', async () => {
-        const response = GET(request('split.peanut.me'))
+        const response = GET(request('peanutsplit.com'))
 
         expect(response.status).toBe(200)
         expect(response.headers.get('content-type')).toBe('application/manifest+json')
@@ -17,14 +17,14 @@ describe('the origin-bound PWA manifest route', () => {
     })
 
     it.each([
-        'peanutsplit.com',
-        '@split.peanut.me',
-        '//split.peanut.me',
-        'split.peanut.me/.',
-        'split%2epeanut%2eme',
-        'split.peanut.me?',
-        'split.peanut.me:',
-        'split.peanut.me:444',
+        'split.peanut.me',
+        '@peanutsplit.com',
+        '//peanutsplit.com',
+        'peanutsplit.com/.',
+        'peanutsplit%2ecom',
+        'peanutsplit.com?',
+        'peanutsplit.com:',
+        'peanutsplit.com:444',
     ])('fails closed without publishing an install identity for authority %j', async (authority) => {
         const response = GET(request(authority))
 

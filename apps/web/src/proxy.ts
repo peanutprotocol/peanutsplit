@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
-import { cutoverRedirect } from '@/lib/cutover-redirects'
+import { canonicalRedirect } from '@/lib/canonical-redirect'
 import { localeFromNewRoomHandoff } from '@/lib/locale-handoff'
 import { splitContentHasIndexablePath, splitContentIndexable } from '@/lib/split-content/indexability'
 import { splitContentManifestSha256 } from '@/lib/split-content/manifest-attestation'
@@ -82,7 +82,7 @@ export function splitTransportResponse(
 
 /**
  * Tells the server what language a URL is in. It does not route or rewrite anything.
- * (The domain-cutover redirect runs first, and `/new?locale=…` persists a guide CTA's locale.)
+ * (The canonical-host redirect runs first, and `/new?locale=…` persists a guide CTA's locale.)
  *
  * The indexed pages live under `/es-419/…`, `/pt-br/…`, and the English originals they translate. Every
  * server component on them — the footer, the locale switcher, anything on `useTranslations` —
@@ -99,21 +99,21 @@ export function splitTransportResponse(
  * marketing.
  */
 export function proxy(request: NextRequest) {
-    // Renderer transport and the negative namespace firewall run before the legacy host cutover.
-    // Otherwise canonical-host content requests bounce to peanutsplit.com before React can render.
+    // Every public alias is compatibility-only. Canonicalise it before the dark content
+    // transport can render anything, so app, PWA and SEO have one public origin.
+    const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
+    const redirect = canonicalRedirect(host, request.nextUrl.pathname, request.nextUrl.search)
+    if (redirect) return NextResponse.redirect(redirect.target, redirect.status)
+
+    // The generated-content renderer remains fail-closed until its deferred publishing
+    // project is deliberately retargeted to peanutsplit.com.
     const transport = splitTransportResponse(request)
     if (transport) return transport
 
-    // Domain cutover (2026-08): app paths live on split.peanut.me, marketing stays on
-    // peanutsplit.com, and each host bounces the other's half across. The decision
-    // table is `lib/cutover-redirects.ts` — pure, unit-tested, inert off-production.
-    // The served hostname comes from the forwarded Host header, because behind the
-    // standalone container `request.url`'s origin is `0.0.0.0:3000` (the trap
-    // `api/share-target` documents); targets are built from `lib/domains.ts` literals,
-    // never from the request.
-    const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
-    const redirect = cutoverRedirect(host, request.nextUrl.pathname, request.nextUrl.search)
-    if (redirect) return NextResponse.redirect(redirect.target, redirect.status)
+    // API requests are matched only so requests to an alias can be canonicalised above.
+    // On the canonical host they must remain untouched: creation locale and request-origin
+    // checks belong to the API handlers themselves.
+    if (request.nextUrl.pathname.startsWith('/api/')) return NextResponse.next()
 
     // External release controls are meaningful only inside the authenticated transport branch
     // above. Scrub them from every other request before React sees any caller-controlled value.
@@ -137,18 +137,20 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-    // Pages only: no API routes, no Next internals, nothing with a file extension (`sw.js`,
-    // `robots.txt`, `icon.png`). `/api/*` stays excluded on purpose so `server/locale.ts`'s
-    // `creationLocale()` keeps stamping a new room with the creator's cookie language. A valid
-    // `/new?locale=…` handoff sets that cookie on the page response before the POST occurs.
+    // App pages plus the identity-bearing files and API routes. Canonical-host APIs pass
+    // through unchanged; matching them only lets the compatibility alias redirect safely.
     matcher: [
+        '/api/:path*',
         '/split-static/:path*',
         '/split-sitemap.xml/:path*',
-        // Next metadata routes contain dots, so the broad page matcher below excludes them.
-        // Include the two discovery files explicitly: on split.peanut.me they are marketing and
-        // must 302 to the 200 legacy host instead of becoming a second discovery surface.
+        // Next metadata and worker routes contain dots, so the broad matcher excludes them.
         '/sitemap.xml',
         '/robots.txt',
+        '/manifest.webmanifest',
+        '/sw.js',
+        '/favicon.ico',
+        '/icon.png',
+        '/icons/:path*',
         '/:locale/split/:path*',
         '/split/:path*',
         '/((?!api/|_next/|split-static/|split-sitemap\\.xml|.*\\.).*)',

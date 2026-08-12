@@ -41,7 +41,7 @@
             "recovery": {
                 "title": "¿Ya tenés el link de una sala?",
                 "label": "Pegá el link de la sala",
-                "placeholder": "split.peanut.me/r/tu-sala-…",
+                "placeholder": "peanutsplit.com/r/tu-sala-…",
                 "hint": "Revisamos el link y guardamos esa sala en este dispositivo. No crea una cuenta ni cambia quién puede entrar.",
                 "submit": "Agregar esta sala",
                 "invalid": "Pegá el link completo de una sala de Peanut Split.",
@@ -1504,13 +1504,6 @@
             "currencyHopper": "Saltamonedas",
             "theCloser": "Quien cierra",
             "hypeCrew": "La hinchada"
-        }
-    },
-    "cutover": {
-        "reinstall": {
-            "message": "Peanut Split se mudó a split.peanut.me. Instala la app de nuevo desde ahí: tus salas pasan solas.",
-            "open": "Abrir split.peanut.me",
-            "dismiss": "Cerrar"
         }
     }
 }

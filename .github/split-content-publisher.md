@@ -1,5 +1,10 @@
 # Split content pull publisher
 
+> **Deferred 2026-08-12:** this publisher belongs to the unfinished generated-content
+> project. Do not enable or merge artifact PRs until its producer, URLs, CTAs, sitemap,
+> and renderer are retargeted to `peanutsplit.com` without Peanut UI. See
+> [`docs/DOMAIN-ROLLBACK-2026-08-12.md`](../docs/DOMAIN-ROLLBACK-2026-08-12.md).
+
 This publisher is deliberately dark. `.github/workflows/split-content-pull.yml` has no schedule;
 only a manual proof run is possible. Do not add a schedule until the read-only clone, exact branch,
 exact-SHA CI dispatch, draft PR, and failure cases have all been observed on GitHub.

@@ -640,9 +640,10 @@ comments say the date.
 
 ## §9 Locale rules
 
-Three locales. **The codes, the URL shape and the framing rules are peanut.me's**, adopted whole
-under Konrad's binding ruling of 31 Jul: _"for localization use whatever we used on peanut.me mono
-content repo — for whatever dilemmas, always consult the choices on mono peanut content."_ The
+Three locales. **The codes and framing rules follow peanut.me's conventions, while every public
+URL stays on peanutsplit.com.** The localization conventions were adopted under Konrad's binding
+ruling of 31 Jul: _"for localization use whatever we used on peanut.me mono content repo — for
+whatever dilemmas, always consult the choices on mono peanut content."_ The
 extraction is [`research/mono-localization-conventions.md`](research/mono-localization-conventions.md);
 the two per-locale rulebooks that come out of it are
 [`localization.es-419.md`](localization.es-419.md) and [`localization.pt-br.md`](localization.pt-br.md).
@@ -659,11 +660,9 @@ the two per-locale rulebooks that come out of it are
   `es-ar` and `es-es` exist in mono and are **out of scope for Split** — they are added only on
   Argentina- or Spain-specific pages, and none is planned. If one is ever written, mono's two
   register files are the spec, unchanged.
-- **EN stays at the bare root — a deviation from mono, on purpose.** Mono redirects `peanut.me/` to
-  `peanut.me/en/` and gives English its own prefix. Split's EN pages are live and indexed at the
-  root, and the canonicals are due to move to `peanut.me/split/*` anyway (the Hugo-side rewrite
-  keystone). Retiring live URLs to buy a prefix, twice, buys nothing. `x-default` points at the root
-  EN page.
+- **EN stays at the bare root — a deviation from mono, on purpose.** Mono gives English its own
+  prefix. Split's EN pages are live and indexed at the peanutsplit.com root, so retiring those URLs
+  to buy a prefix buys nothing. `x-default` points at the root EN page.
 - **Canonical is self, per locale** — `/{locale}/{slug}`, never cross-canonical to EN
   (mono `seo.md` §9.1).
 - **An untranslated page does not exist** — it 404s, it leaves the sitemap, hreflang never points at

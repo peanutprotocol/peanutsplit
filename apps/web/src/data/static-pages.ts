@@ -22,7 +22,7 @@ export interface StaticPage {
     priority: number
     /** Show on the /blog hub. The LP is registered for the sitemap but is not a "guide". */
     inHub: boolean
-    /** False for app-owned routes that remain reserved here but must not enter legacy discovery. */
+    /** False for app-owned routes that remain reserved here but should not enter discovery. */
     inSitemap?: boolean
     /** Kept reserved and buildable, but omitted from v1 discovery. */
     v2Only?: boolean
@@ -58,8 +58,8 @@ export const STATIC_PAGES: StaticPage[] = [
         inHub: true,
     },
     {
-        // An app-owned tool, not a legacy guide. Keep it registered to reserve the route, but do
-        // not sitemap the peanutsplit.com URL that the cutover permanently redirects to the app.
+        // An app-owned tool, not an editorial guide. Keep it registered to reserve the route,
+        // but omit it from the editorial sitemap.
         href: '/import',
         title: 'Import from Splitwise',
         description: 'Turn a Splitwise group export into a Split room — expenses, payers and balances intact.',

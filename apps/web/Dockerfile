@@ -19,9 +19,10 @@ ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 ENV NEXT_TELEMETRY_DISABLED=1
 # NEXT_PUBLIC_* is inlined at build time — runtime env can't fix it later.
 # Dokploy passes this as a Docker build arg (buildArgs in the app settings).
-ARG NEXT_PUBLIC_BASE_URL
+ARG NEXT_PUBLIC_BASE_URL=https://peanutsplit.com
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
-# Split content URLs are server-owned and intentionally separate from the transport origin.
+# Deferred generated-content URL contract. It remains dark/fail-closed and must be
+# retargeted as one producer-to-renderer change before publication.
 ARG APP_ORIGIN=https://split.peanut.me
 ENV APP_ORIGIN=$APP_ORIGIN
 ARG CONTENT_ORIGIN=https://peanut.me

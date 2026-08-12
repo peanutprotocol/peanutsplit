@@ -1,8 +1,25 @@
+import { CANONICAL_ORIGIN, isLoopbackHost } from './domains'
+
 /**
- * Where the product app answers. Product metadata and schema resolve against it. Unmigrated
- * marketing canonicals/discovery remain on peanutsplit.com in `seo.ts` until each page moves;
- * new Split content uses CONTENT_ORIGIN through its own URL builders.
+ * The one origin used by product links and metadata.
  *
- * NEXT_PUBLIC_* is inlined at build time, so this is a build arg, not a runtime env var.
+ * `NEXT_PUBLIC_BASE_URL` remains a local/E2E convenience. A public hostname in that
+ * build argument is deliberately ignored so stale deployment configuration cannot move
+ * the product identity away from peanutsplit.com again.
  */
-export const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://peanutsplit.com'
+function configuredLoopbackOrigin(value: string | undefined): string | null {
+    if (!value) return null
+    try {
+        const url = new URL(value)
+        if ((url.protocol !== 'http:' && url.protocol !== 'https:') || !isLoopbackHost(url.hostname)) return null
+        return url.origin
+    } catch {
+        return null
+    }
+}
+
+export function resolveSiteUrl(value: string | undefined): string {
+    return configuredLoopbackOrigin(value) ?? CANONICAL_ORIGIN
+}
+
+export const siteUrl = resolveSiteUrl(process.env.NEXT_PUBLIC_BASE_URL)

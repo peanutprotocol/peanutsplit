@@ -5,19 +5,20 @@ Product status/milestones/decision log stay in the Notion project (linked from
 `mono/projects/peanut-split/`); this file is what's built, building, queued, and
 deliberately not built — with enough context to pick any item up cold.
 
-Owner of record for each open item is in brackets. Last full update: 2026-08-05.
+Owner of record for each open item is in brackets. Last full update: 2026-08-12.
 
-## Code-complete 2026-08-09 — domain cutover to split.peanut.me [Hugo]
+## Code-complete 2026-08-12 — one-domain rollback to peanutsplit.com [Konrad]
 
-- App moves to `split.peanut.me`; `peanutsplit.com` becomes a redirect shell for
-  app paths (302 now, 301 later) and keeps serving marketing. Host-aware
-  redirects live in `src/proxy.ts` over the pure table in
-  `src/lib/cutover-redirects.ts`; device state (`ps:*` localStorage) crosses
-  origins through the `/handoff` postMessage bridge, write-if-absent; an
-  installed legacy PWA gets a dismissible reinstall banner. Inert everywhere but
-  the two production hosts, so the code ships safely ahead of DNS. Decision
-  record: `apps/web/docs/SEO-DOMAIN-DECISIONS.md` (2026-08-09 update). Old-origin
-  service-worker retirement ships separately.
+- `peanutsplit.com` is again the only canonical origin for the app, PWA, native
+  SEO pages, sitemap, metadata, schema, and newly generated room links.
+- `split.peanut.me` may remain in DNS, but it is a compatibility alias only: all
+  matched paths redirect one way to the same path on `peanutsplit.com`. The
+  cross-origin localStorage bridge, reinstall banner, and old-origin worker
+  retirement were removed because this cutover had no users to migrate.
+- The generated `peanut.me/{locale}/split/*` publishing path remains dark and is
+  preserved as deferred work. It must be deliberately retargeted before any
+  generated artifact is published; no Peanut UI routing is part of the live
+  architecture. Decision record: `apps/web/docs/SEO-DOMAIN-DECISIONS.md`.
 
 ## Code-complete 2026-08-06 — exact-zero Former-member lifecycle
 
@@ -879,9 +880,3 @@ debt.)
   `meterRoomLookup` across ~8 write routes (moving it into `loadRoom` would
   double-meter the already-metered routes and every in-transaction reload), so it
   is not worth the blast radius today.
-- **[low, latent] Cutover `isAppPath` uses exact match — accepted latent debt.**
-  `APP_PATHS` is the exact Set `{'/app','/new','/import'}` plus `startsWith('/r/')`
-  (`src/lib/cutover-redirects.ts:39-40`), so a future `/app/*` subroute would 302
-  to the legacy host on the canonical origin. No `/app/*` subroutes exist today;
-  per the "do not scaffold deferred ideas" rule, the fix-site is whoever ships the
-  first `/app/*` page (treat `/app` as a prefix like `/r/*` then).

@@ -120,17 +120,18 @@ const questions: ExecutiveQuestion[] = [
     },
     {
         id: 'EXEC-04',
-        title: 'Peanut domain topology',
-        question: 'Where exactly should the product and SEO content live under the Peanut domain?',
+        title: 'Split domain topology',
+        question: 'Which origin should own the product, PWA, and SEO content?',
         consequence:
             '“Peanut domain + SEO” resolves the strategy but not the canonical URLs. This choice determines redirects, cookie scope, sitemap ownership, analytics boundaries, and the route architecture.',
         recommendation:
-            'Use split.peanut.me for the product and peanut.me/split for editorial SEO, matching the existing domain decision document. It keeps the app operationally isolated while content inherits the parent brand.',
+            'Decision recorded: keep the app, PWA, and native SEO on peanutsplit.com. Keep split.peanut.me only as a one-way compatibility alias; defer the separate generated-content pipeline until it is retargeted without peanut-ui.',
+        recordedChoice: 'peanutsplit-all',
         choices: [
             {
-                id: 'split-surfaces',
-                label: 'Split product and content',
-                description: 'App at split.peanut.me; SEO content at peanut.me/split.',
+                id: 'peanutsplit-all',
+                label: 'Everything on PeanutSplit',
+                description: 'App, PWA, and SEO content all live on peanutsplit.com.',
                 recommended: true,
             },
             {

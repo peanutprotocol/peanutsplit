@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { LEGACY_APP_ORIGIN } from '@/lib/domains'
+import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { siteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, HREFLANG, type Locale } from '@/i18n/locales'
 import type { Doc, Faq } from '@/lib/content'
@@ -9,9 +9,8 @@ import type { Doc, Faq } from '@/lib/content'
  * peanut.me's src/lib/seo — same schema types, Split's own publisher block — because the two
  * sites are different publishers with different canonical hosts and must be able to drift.
  *
- * The product app origin remains `siteUrl`. Unmigrated marketing/content URLs deliberately resolve
- * against the fixed legacy origin until each page moves to peanut.me. This avoids a canonical or
- * sitemap URL on split.peanut.me immediately redirecting back to the 200 page on peanutsplit.com.
+ * Public marketing/content URLs resolve against the fixed canonical origin. Product URLs use
+ * `siteUrl`, which is the same origin in production and may be loopback in local/E2E builds.
  */
 
 const SITE_NAME = 'Peanut Split'
@@ -40,33 +39,33 @@ const OG_LOCALE: Record<Locale, string> = {
 }
 
 /** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
-export const ORGANIZATION_ID = `${LEGACY_APP_ORIGIN}/#organization`
+export const ORGANIZATION_ID = `${CANONICAL_ORIGIN}/#organization`
 
 const PUBLISHER = {
     '@type': 'Organization' as const,
     '@id': ORGANIZATION_ID,
     name: SITE_NAME,
-    url: LEGACY_APP_ORIGIN,
+    url: CANONICAL_ORIGIN,
     logo: {
         '@type': 'ImageObject' as const,
-        url: `${LEGACY_APP_ORIGIN}/icons/icon-512.png`,
+        url: `${CANONICAL_ORIGIN}/icons/icon-512.png`,
     },
 }
 
-/** Legacy marketing root-relative path → absolute URL. Idempotent for absolute canonicals. */
+/** Public root-relative path → canonical absolute URL. Idempotent for absolute canonicals. */
 export function absoluteUrl(pathname: string): string {
     if (/^https?:\/\//.test(pathname)) return pathname
     const suffix = pathname === '/' ? '' : pathname
-    return `${LEGACY_APP_ORIGIN}${suffix.startsWith('/') || suffix === '' ? suffix : `/${suffix}`}`
+    return `${CANONICAL_ORIGIN}${suffix.startsWith('/') || suffix === '' ? suffix : `/${suffix}`}`
 }
 
-/** Metadata and sitemap hreflang values must name the same 200 legacy host as their canonical. */
+/** Metadata and sitemap hreflang values must name the same canonical host. */
 export function absoluteLanguages(languages: Record<string, string> | undefined): Record<string, string> | undefined {
     if (!languages) return undefined
     return Object.fromEntries(Object.entries(languages).map(([locale, href]) => [locale, absoluteUrl(href)]))
 }
 
-/** Product-owned app paths (currently `/import`) never enter the legacy canonical surface. */
+/** Product-owned paths use the local origin in development and the canonical origin in production. */
 export function absoluteAppUrl(pathname: string): string {
     if (/^https?:\/\//.test(pathname)) return pathname
     const suffix = pathname === '/' ? '' : pathname
@@ -104,7 +103,7 @@ export function pageMetadata({
     return {
         title,
         description,
-        metadataBase: new URL(LEGACY_APP_ORIGIN),
+        metadataBase: new URL(CANONICAL_ORIGIN),
         alternates: { canonical },
         openGraph: {
             type,
@@ -226,7 +225,7 @@ export function articleSchema(doc: Doc) {
         // Google lists `image` as required for an Article rich result. Deliberately the app icon
         // and not the unfurl card: Next hash-suffixes generated `opengraph-image` routes, so any
         // URL spelled out here would be a guess that breaks the next time the card is rebuilt.
-        image: `${LEGACY_APP_ORIGIN}/icons/icon-512.png`,
+        image: `${CANONICAL_ORIGIN}/icons/icon-512.png`,
         mainEntityOfPage: absoluteUrl(frontmatter.canonical ?? doc.href),
         url: absoluteUrl(frontmatter.canonical ?? doc.href),
     }
@@ -254,7 +253,7 @@ export function toolSchema({ path, title, description }: { path: string; title: 
         applicationCategory: 'FinanceApplication',
         operatingSystem: 'Web',
         inLanguage: HREFLANG[DEFAULT_LOCALE],
-        isPartOf: { '@id': `${LEGACY_APP_ORIGIN}/#website` },
+        isPartOf: { '@id': `${CANONICAL_ORIGIN}/#website` },
         publisher: { '@id': ORGANIZATION_ID },
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     }
@@ -271,8 +270,8 @@ export function siteSchema() {
         '@graph': [
             {
                 '@type': 'WebSite',
-                '@id': `${LEGACY_APP_ORIGIN}/#website`,
-                url: LEGACY_APP_ORIGIN,
+                '@id': `${CANONICAL_ORIGIN}/#website`,
+                url: CANONICAL_ORIGIN,
                 name: SITE_NAME,
                 publisher: { '@id': ORGANIZATION_ID },
             },

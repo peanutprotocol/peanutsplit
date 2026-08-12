@@ -20,21 +20,6 @@ declare global {
 // @ts-expect-error — service-worker global redeclaration intentional
 declare const self: ServiceWorkerGlobalScope
 
-// Domain cutover, retirement stage (2026-08-10): peanutsplit.com is a redirect shell now
-// that its app paths 301 to split.peanut.me, and a service worker registered there has
-// nothing left to do except keep a stale shell and its push subscriptions alive forever.
-// This build unregisters itself on the legacy origin the next time a client fetches it.
-// Push subscriptions die with the registration — the accepted retirement decision in
-// `docs/SEO-DOMAIN-DECISIONS.md`; opt-ins on the new origin replace them. The origin is a
-// literal, not `lib/domains.ts`: that module reads `process.env`, which does not exist in
-// a worker unless the serwist child compiler happens to inline it — a crash here would
-// take the share-target handler down with it.
-if (self.location.origin === 'https://peanutsplit.com') {
-    self.addEventListener('activate', (event) => {
-        event.waitUntil(self.registration.unregister())
-    })
-}
-
 const serwist = new Serwist({
     precacheEntries: self.__SW_MANIFEST,
     skipWaiting: true,
