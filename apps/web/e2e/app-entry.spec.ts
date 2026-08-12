@@ -62,3 +62,53 @@ test('explicit room options remain reachable when a saved room would normally re
     await expect(page.getByTestId('room-link-recovery')).toBeVisible()
     await expect(page).toHaveURL(/\/app\?manage=1$/)
 })
+
+test('install mode stays on the slug-free Split surface instead of resuming a saved room', async ({ page }) => {
+    await page.goto('/new')
+    await page.evaluate((slug) => {
+        localStorage.setItem('ps:recent', JSON.stringify([{ slug, name: 'KUNC', lastSeenAt: Date.now() }]))
+    }, NEWEST_SLUG)
+
+    await page.goto('/app?install=1&source=settings')
+
+    await expect(page).toHaveTitle('Split')
+    await expect(page).toHaveURL(/\/app\?install=1&source=settings$/)
+    await expect(page.getByTestId('install-app-surface')).toBeVisible()
+    await expect(page.getByTestId('app-boot')).toHaveCount(0)
+    await expect(page.getByTestId('app-home')).toHaveCount(0)
+    expect(new URL(page.url()).pathname).toBe('/app')
+    expect(page.url()).not.toContain(NEWEST_SLUG)
+
+    // Leaving help is neither installation nor a refusal. It opens the explicit chooser and
+    // must not recreate the retired 30-day snooze that hid the room CTA from affected devices.
+    await page.getByRole('link', { name: 'Back to Split' }).click()
+    await expect(page).toHaveURL(/\/app\?manage=1$/)
+    expect(
+        await page.evaluate(() => ({
+            legacy: localStorage.getItem('ps:pwa-snoozed-until'),
+            count: localStorage.getItem('ps:pwa-dismiss-count'),
+            at: localStorage.getItem('ps:pwa-dismissed-at'),
+        }))
+    ).toEqual({ legacy: null, count: null, at: null })
+})
+
+test('first boot removes the retired instruction snooze so the CTA can recover', async ({ page }) => {
+    await page.goto('/new')
+    await page.evaluate(() => {
+        localStorage.setItem('ps:pwa-snoozed-until', String(Date.now() + 30 * 24 * 60 * 60 * 1_000))
+        localStorage.setItem('ps:pwa-dismiss-count', '2')
+        localStorage.setItem('ps:pwa-dismissed-at', String(Date.now()))
+    })
+
+    await page.goto('/app?install=1')
+    await expect(page.getByTestId('install-app-surface')).toBeVisible()
+    await expect
+        .poll(() =>
+            page.evaluate(() => ({
+                legacy: localStorage.getItem('ps:pwa-snoozed-until'),
+                count: localStorage.getItem('ps:pwa-dismiss-count'),
+                at: localStorage.getItem('ps:pwa-dismissed-at'),
+            }))
+        )
+        .toEqual({ legacy: null, count: null, at: null })
+})

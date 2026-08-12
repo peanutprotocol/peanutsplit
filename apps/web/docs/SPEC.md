@@ -320,21 +320,34 @@ settings, both default ON, persisted in localStorage.
   **NetworkOnly for `/api/*`** (a stale RoomState is worse than a spinner; a prior app shipped a
   soft-lock bug from NetworkFirst on state endpoints), CacheFirst for hashed `/_next/static`,
   NetworkFirst (3s timeout) for navigations. Installation is a retention affordance, not an
-  activation gate: Device settings always provides a native action or truthful browser-menu
-  guidance. The room has one contextual guidance slot — identity/recovery, first expense,
+  activation gate: Device settings always provides a native action or a route to Split's
+  canonical, slug-free `/app?install=1` surface. On Chromium, use the manifest-backed native
+  **Install app** action; **Create shortcut** is not an equivalent and must never be recommended
+  from a room URL. The original room link may be kept only in tab-local sessionStorage for a
+  copy/reopen fallback when switching browsers. The room has one contextual guidance slot —
+  identity/recovery, first expense,
   post-activation Share, active forms, latecomer review, fresh All settled and achievements all
   outrank Install; Install is the inline fallback once none is active and the interaction is quiet.
   Temporary blockers suspend the same exposure, while competing-prompt refusals defer it.
-  Dismissals use an exponential backoff (24h→48h→…→30d cap) in localStorage. iOS gets a how-to
-  sheet (no `beforeinstallprompt` there; detect iPadOS-as-Mac via
+  Explicit **Not now** and native browser declines use an exponential backoff
+  (24h→48h→…→30d cap) in localStorage; merely reading install help does not. iOS gets concise
+  Home Screen steps on the canonical install surface (no `beforeinstallprompt` there; detect iPadOS-as-Mac via
   `maxTouchPoints > 1 && /Mac/`). [WebKit 17.2+ copies cookies but no other local storage into a newly
   installed iOS/iPadOS web app](https://webkit.org/blog/14787/webkit-features-in-safari-17-2/), so
-  opening the iOS instructions arms a 24-hour, one-time server handoff: an opaque host-only cookie
+  choosing the room's iOS install action first arms a 24-hour, one-time server handoff, then opens
+  the canonical steps: an opaque host-only cookie
   names a hashed transient row containing only the room, optional active member, and hash of the
   exact proof presented. The installed `/app` launch copies that narrow state into its own
   localStorage, verifies it, enters the room, and acknowledges/deletes the row in the background.
   It never creates an account, device map, or analytics link. Older WebKit and failed transfers
   fall back to reopening the room link once in the installed app.
+  Only an initial standalone navigation to the exact manifest start URL `/app` writes the
+  canonical-launch marker; a client transition from a room cannot certify an old shortcut. A
+  standalone room document without that marker gets a one-time, conditional
+  **Replace the old room icon** check for the PR11 shortcut regression; Device keeps
+  that check actionable even when standalone detection is ambiguous. It never reports into the
+  normal install-promotion funnel and never claims the browser can remove the old icon
+  automatically.
 - **Share:** native `navigator.share` with clipboard fallback that MUST NOT be swallowed by a
   silent catch (known bug in the reference UI).
 - **Landing:** one screen — what it does, create CTA, "your rooms" if localStorage has any,
