@@ -192,8 +192,10 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     useEffect(() => {
         if (!state) return
-        // Warm the exact image chat crawlers request before the share drawer
-        // opens. Preview failure is contained and cannot affect the room.
+        // Warm the exact image chat crawlers request — read out of this page's
+        // own head, so it is the URL Next serves rather than one we guessed —
+        // before the share drawer opens. Preview failure is contained and
+        // cannot affect the room.
         void prewarmRoomPreview(slug)
     }, [slug, state])
 

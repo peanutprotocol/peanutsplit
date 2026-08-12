@@ -7,7 +7,6 @@
  */
 import type { Metadata } from 'next'
 import { getTranslator } from '@/i18n/t'
-import { roomPreviewImagePath } from '@/lib/room-preview'
 import { prisma } from '@/server/db'
 
 /** Chat previews truncate hard; keep the room name inside the visible run. */
@@ -59,6 +58,14 @@ export function recapTitle(name: string, _emblem: string | null): string {
  * The slug is the credential, so `noindex` is non-negotiable — but the social
  * crawlers named in the robots policy still need real title/description to build
  * the unfurl, which is why they are set explicitly rather than left to inherit.
+ *
+ * `images` is deliberately absent and has to stay absent. The card is the sibling
+ * `opengraph-image.tsx`, and Next injects that tag itself under a URL only Next
+ * knows: the route group earns the route a build-scoped hash suffix, and the tag
+ * can carry a cache-busting query on top. Naming the image here replaced that
+ * with `/r/<slug>/opengraph-image`, which is not a route Next serves — every
+ * shared room unfurled imageless off a 404 until this was removed. `seo.ts`
+ * refuses to name it in structured data for the same reason.
  */
 export async function roomMetadata(slug: string): Promise<Metadata> {
     const room = await prisma.room
@@ -67,19 +74,13 @@ export async function roomMetadata(slug: string): Promise<Metadata> {
 
     const title = room ? roomTitle(room.name, room.emoji) : ROOM_FALLBACK_TITLE
     const description = room ? await roomDescription(room.locale) : ROOM_FALLBACK_DESCRIPTION
-    const previewImage = roomPreviewImagePath(slug)
 
     return {
         title,
         description,
         robots: { index: false, follow: false },
-        openGraph: {
-            type: 'website',
-            title,
-            description,
-            images: [{ url: previewImage, width: 1200, height: 630, alt: 'Peanut Split room preview' }],
-        },
-        twitter: { card: 'summary_large_image', title, description, images: [previewImage] },
+        openGraph: { type: 'website', title, description },
+        twitter: { card: 'summary_large_image', title, description },
     }
 }
 

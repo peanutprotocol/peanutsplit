@@ -8,7 +8,6 @@ import { writeIdentity } from '@/lib/identity'
 import { markRoomCreatedHere } from '@/lib/install-funnel'
 import { useCreateRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
-import { prewarmRoomPreview } from '@/lib/room-preview'
 import { useFeedback } from '@/lib/use-settings'
 
 export interface CreateRoomFields {
@@ -51,9 +50,10 @@ export function useCreateRoomFlow(fallbackMessage: string) {
             })
             markRoomCreatedHere(state.room.slug)
             rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
-            // Render the social preview while the creator is still at the
-            // roster checkpoint. It is an enhancement and never blocks this path.
-            void prewarmRoomPreview(state.room.slug)
+            // No preview warm from here. The room's card lives at a URL only Next
+            // knows and only the room document advertises — and this runs on `/new`
+            // or the landing hero, whose head is still describing that page. The
+            // warm happens where the room itself renders; see `room-preview.ts`.
             track('room_created', roomProps(state.room.slug, { currency: state.room.currency }))
             // A room came into being — the cork, not the pencil.
             feedback('pop')

@@ -121,8 +121,11 @@ export function LinkMoment({
     }, [surface])
 
     useEffect(() => {
-        // Begin before the gesture. Preview art may fail; the URL is still a
-        // complete invitation and this helper contains the failure.
+        // Begin before the gesture — when this card sits inside the room, whose
+        // head is the one place the preview's real URL is written. On the import
+        // screen there is nothing of this room's to warm and the helper says so
+        // quietly: preview art may fail, and the URL is a complete invitation
+        // either way.
         void prewarmRoomPreview(slug)
     }, [slug])
 

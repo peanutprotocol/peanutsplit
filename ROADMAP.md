@@ -744,14 +744,17 @@ locales.
 **Corrected 2026-08-06:** a private room invite is URL-first again. Its native
 payload is localized text plus the exact room URL and never a PNG attachment;
 some iOS share targets accept image + URL and silently deliver only the image.
-The URL still has a room-specific 1200×630 visual through its existing
-`/r/<slug>/opengraph-image` metadata route. Creation and room load proactively
-warm that same-origin image, whose browser/shared-cache lifetime is five minutes
-with a short stale-while-revalidate window. Preview failure never blocks the
-room or the share. Public achievement/recap keepsakes remain a separate,
-explicitly labelled image-only action with no URL, text or title in the native
-payload. `share_completed` therefore stays `native | clipboard`; there is no
-invite `card` method to add.
+The URL still has a room-specific 1200×630 visual through its
+`opengraph-image.tsx` metadata route. That route's URL is Next's to mint, not
+ours to spell — a route group earns it a build-scoped hash and a cache-buster —
+so the room page's own `<head>` is the only place it is written down, and room
+load warms whatever it finds there. Creation no longer warms anything: it runs
+on `/new`, whose head describes `/new`. The warmed image's browser/shared-cache
+lifetime is five minutes with a short stale-while-revalidate window. Preview
+failure never blocks the room or the share. Public achievement/recap keepsakes
+remain a separate, explicitly labelled image-only action with no URL, text or
+title in the native payload. `share_completed` therefore stays
+`native | clipboard`; there is no invite `card` method to add.
 
 The empty-room hierarchy was corrected in the same pass: Share room remains the
 sole primary share action until at least one real expense exists. A roster-only
