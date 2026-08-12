@@ -183,7 +183,7 @@ export const marketingCopy = {
                 },
                 {
                     q: 'Do we have to download an app?',
-                    a: 'No. It opens in a browser like any other page. If you want it to feel like an app, add it to your home screen — that is a phone feature, not an install.',
+                    a: 'No. Split opens in a browser. Installing it is optional and adds a launcher icon — there is no app store or account.',
                 },
                 {
                     q: 'Does it work without signal?',
@@ -204,7 +204,7 @@ export const marketingCopy = {
                 },
                 {
                     q: 'Does it work on my phone?',
-                    a: 'It is a website, so it works anywhere. You can add it to your home screen and it opens like an app.',
+                    a: 'It is a website, so it works anywhere. You can install it from a supported browser for a launcher icon and standalone window.',
                 },
             ],
         },

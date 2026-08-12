@@ -44,6 +44,72 @@ async function modelAndroidBrowser(page: Page): Promise<void> {
     })
 }
 
+async function modelStandaloneDisplay(page: Page): Promise<void> {
+    await page.addInitScript(() => {
+        const real = window.matchMedia.bind(window)
+        window.matchMedia = (query: string) =>
+            query.includes('display-mode: standalone')
+                ? ({
+                      matches: true,
+                      media: query,
+                      addEventListener() {},
+                      removeEventListener() {},
+                  } as MediaQueryList)
+                : real(query)
+    })
+}
+
+/**
+ * A healthy-but-busy room stream. Every poke refetches the room and rerenders RoomScreen while
+ * the install card's 1.5s quiet timer is running. A callback recreated by the parent render must
+ * not restart that timer forever.
+ */
+async function modelNoisyRoomEvents(page: Page): Promise<void> {
+    await page.addInitScript(() => {
+        const window_ = window as Window & { __pwaSsePokes?: number }
+        class NoisyEventSource {
+            static readonly CONNECTING = 0
+            static readonly OPEN = 1
+            static readonly CLOSED = 2
+            readonly CONNECTING = 0
+            readonly OPEN = 1
+            readonly CLOSED = 2
+            readonly url: string
+            readonly withCredentials = false
+            readyState = NoisyEventSource.CONNECTING
+            onopen: ((event: Event) => void) | null = null
+            onmessage: ((event: MessageEvent) => void) | null = null
+            onerror: ((event: Event) => void) | null = null
+            private pulse: ReturnType<typeof setInterval> | null = null
+
+            constructor(url: string | URL) {
+                this.url = String(url)
+                window.setTimeout(() => {
+                    this.readyState = NoisyEventSource.OPEN
+                    this.onopen?.(new Event('open'))
+                    this.pulse = window.setInterval(() => {
+                        window_.__pwaSsePokes = (window_.__pwaSsePokes ?? 0) + 1
+                        this.onmessage?.(new MessageEvent('message', { data: '{}' }))
+                    }, 175)
+                }, 0)
+            }
+
+            close() {
+                this.readyState = NoisyEventSource.CLOSED
+                if (this.pulse !== null) window.clearInterval(this.pulse)
+            }
+
+            addEventListener() {}
+            removeEventListener() {}
+            dispatchEvent() {
+                return true
+            }
+        }
+
+        Object.defineProperty(window, 'EventSource', { configurable: true, value: NoisyEventSource })
+    })
+}
+
 async function modelIOSBrowser(page: Page): Promise<void> {
     await page.addInitScript(() => {
         Object.defineProperties(window.navigator, {
@@ -115,11 +181,16 @@ test('empty-room and post-aha guidance own the slot, and skipping Share defers i
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
 })
 
-test('completed Share yields to an inline install card that upgrades, suspends for a drawer, and resumes', async ({
-    page,
-}) => {
+test('the install card survives realtime rerenders, fits 320px, upgrades, suspends, and resumes', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 844 })
     await modelAndroidBrowser(page)
+    await modelNoisyRoomEvents(page)
     await stubSuccessfulShare(page)
+    let roomReads = 0
+    page.on('request', (request) => {
+        const url = new URL(request.url())
+        if (request.method() === 'GET' && /^\/api\/rooms\/[^/]+$/.test(url.pathname)) roomReads += 1
+    })
     await createTwoPersonRoom(page, `Earned install ${Date.now()}`)
 
     await addExpense(page, 'Shared dinner', '60')
@@ -138,28 +209,44 @@ test('completed Share yields to an inline install card that upgrades, suspends f
 
     await postAha.getByTestId('finish-post-aha-share').click()
     await expect(postAha).toHaveCount(0)
+    const readsWhenQuietWindowStarted = roomReads
     const prompt = page.getByTestId('install-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt).toContainText('No store, no account')
+    await expect(prompt).toContainText('Get back to this room faster. No app store. No account.')
     await expect(prompt).toHaveAttribute('role', 'region')
     await expect(prompt).not.toHaveClass(/\bfixed\b/)
-    await expect(prompt.getByRole('button', { name: 'Show me how' })).toBeVisible()
+    await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+    await expect(prompt.getByRole('button', { name: 'Not now' })).toBeVisible()
+    await expect(prompt.locator('button')).toHaveCount(2)
+    await expect(prompt.getByRole('button', { name: /close/i })).toHaveCount(0)
+    expect(
+        await page.evaluate(() => (window as Window & { __pwaSsePokes?: number }).__pwaSsePokes ?? 0)
+    ).toBeGreaterThan(1)
+    expect(roomReads).toBeGreaterThan(readsWhenQuietWindowStarted)
 
     // This is an inline next step, not a bottom overlay competing with the room's
     // persistent actions. Bring it into view and prove it remains above the footer.
     await prompt.scrollIntoViewIfNeeded()
-    const [promptBox, footerActionBox] = await Promise.all([
+    const [promptBox, footerActionBox, installStepsBox, dismissBox] = await Promise.all([
         prompt.boundingBox(),
         page.getByTestId('open-add-expense').boundingBox(),
+        prompt.getByRole('button', { name: 'Show install steps' }).boundingBox(),
+        prompt.getByRole('button', { name: 'Not now' }).boundingBox(),
     ])
     expect(promptBox).not.toBeNull()
     expect(footerActionBox).not.toBeNull()
+    expect(installStepsBox).not.toBeNull()
+    expect(dismissBox).not.toBeNull()
+    expect(promptBox!.x).toBeGreaterThanOrEqual(0)
+    expect(promptBox!.x + promptBox!.width).toBeLessThanOrEqual(320)
     expect(promptBox!.y + promptBox!.height).toBeLessThanOrEqual(footerActionBox!.y)
+    expect(dismissBox!.y).toBeGreaterThan(installStepsBox!.y)
+    expect(Math.abs(dismissBox!.width - installStepsBox!.width)).toBeLessThanOrEqual(1)
 
     // A late browser event upgrades this same card instead of creating a second
     // impression or tearing away the fallback while somebody is considering it.
     await offerBrowserInstall(page, 'accepted')
-    await expect(prompt.getByRole('button', { name: 'Add Split' })).toBeVisible()
+    await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
 
     // Persistent utility controls do not permanently disqualify installation, but
     // the drawer they open temporarily owns the guidance slot.
@@ -170,9 +257,9 @@ test('completed Share yields to an inline install card that upgrades, suspends f
     await genericShare.getByTestId('close-share').click()
     await expect(genericShare).toHaveCount(0)
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt.getByRole('button', { name: 'Add Split' })).toBeVisible()
+    await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
 
-    await prompt.getByRole('button', { name: 'Add Split' }).click()
+    await prompt.getByRole('button', { name: 'Install Split' }).click()
     expect(
         await page.evaluate(
             () => (window as Window & { __installRetentionPrompts?: number }).__installRetentionPrompts ?? 0
@@ -317,24 +404,72 @@ test('a fresh browser entering a mature room gets the waiting/manual install pat
     await expect(bea.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
     await expect(bea.getByTestId('latecomer-banner')).toHaveCount(0)
 
-    // No share, contribution, or return happened on this device. A mature quiet
-    // room is enough, including while Chromium has not emitted its optional event.
+    // No share, contribution, or return happened on this device. A mature quiet room is enough,
+    // including while Chromium has not emitted its optional event. Manual installation must leave
+    // the room document before showing browser instructions.
     const prompt = bea.getByTestId('install-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt.getByRole('button', { name: 'Show me how' })).toBeVisible()
-    await prompt.getByRole('button', { name: 'Show me how' }).click()
+    await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+    const installNavigation = bea.waitForRequest((request) => {
+        const url = new URL(request.url())
+        return request.isNavigationRequest() && url.pathname === '/app' && url.searchParams.get('install') === '1'
+    })
+    await prompt.getByRole('button', { name: 'Show install steps' }).click()
 
-    const instructions = bea.getByRole('dialog', { name: 'Add Split from your browser' })
-    await expect(instructions).toBeVisible()
-    await expect(instructions).toContainText('split.peanut.me')
+    expect(await (await installNavigation).headerValue('referer')).toBeNull()
+    await expect(bea).toHaveURL(/\/app\?install=1&source=auto$/)
+    await expect(bea).toHaveTitle('Split')
+    const installSurface = bea.getByTestId('install-app-surface')
+    await expect(installSurface).toBeVisible()
+    await expect(installSurface.getByTestId('browser-install-steps')).toBeVisible()
+    expect(new URL(bea.url()).pathname).toBe('/app')
+    expect(bea.url()).not.toContain('/r/')
+    expect(await bea.evaluate(() => localStorage.getItem('ps:pwa-snoozed-until'))).toBeNull()
+    const appOrigin = new URL(bea.url()).origin
 
-    // Installing through the very browser menu these steps describe can report
-    // success while the sheet is open. It should close and restore the room's
-    // stable title landmark rather than leave focus on a removed action.
+    // A browser-menu install can complete while the canonical steps are open. The install surface
+    // should leave immediately; it must not mark reading help as a dismissal.
     await bea.evaluate(() => window.dispatchEvent(new Event('appinstalled')))
-    await expect(instructions).toHaveCount(0)
-    await expect(prompt).toHaveCount(0)
-    await expect(bea.getByTestId('open-room-switcher')).toBeFocused()
+    await expect(installSurface).toHaveCount(0)
+    await expect(bea).toHaveURL(`${appOrigin}/app`)
+    await expect(bea).toHaveTitle('Split')
+})
+
+test('a room-named standalone shortcut gets the one-time repair CTA after Join', async ({ page, newDevice }) => {
+    const roomUrl = await createTwoPersonRoom(page, `Standalone repair ${Date.now()}`)
+    await addExpense(page, 'Organizer dinner')
+    await page.getByTestId('skip-post-aha-share').click()
+
+    const bea = await newDevice()
+    await modelAndroidBrowser(bea)
+    await modelStandaloneDisplay(bea)
+    await bea.goto(roomUrl)
+    await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
+    await bea.locator('[data-testid="claim-member"][data-member="Bea"]').click()
+    await expect(bea.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
+
+    const prompt = bea.getByTestId('install-prompt')
+    await expect(prompt).toBeVisible({ timeout: 6_000 })
+    await expect(bea.locator('span[aria-live="polite"][aria-atomic="true"]')).toHaveText(
+        'A Split icon check is available.'
+    )
+    await expect(prompt).toContainText('Replace the old room icon')
+    await expect(prompt).toContainText('Does your icon show a room name? Replace it with Split.')
+    await expect(prompt.getByRole('button', { name: 'Check icon' })).toBeVisible()
+
+    // A late native event must not change the meaning of a repair notice that is already on
+    // screen. The next action remains an identifier-free repair check, not a normal install ask.
+    await offerBrowserInstall(bea, 'accepted')
+    await expect(prompt.getByRole('button', { name: 'Check icon' })).toBeVisible()
+    await expect(prompt.getByRole('button', { name: 'Install Split' })).toHaveCount(0)
+    await prompt.getByRole('button', { name: 'Check icon' }).click()
+
+    await expect(bea).toHaveURL(/\/app\?install=1&repair=1&source=auto$/)
+    await expect(bea).toHaveTitle('Split')
+    await expect(bea.getByTestId('install-repair-copy-room')).toBeVisible()
+    await expect(bea.getByTestId('install-app-surface')).toContainText('Open the original room link in Chrome.')
+    expect(bea.url()).not.toContain(new URL(roomUrl).pathname)
+    expect(await bea.evaluate(() => localStorage.getItem('ps:pwa-dismiss-count'))).toBeNull()
 })
 
 test('the all-settled arrival owns this visit, while a later visit gets next-trip installation', async ({
@@ -370,8 +505,20 @@ test('the all-settled arrival owns this visit, while a later visit gets next-tri
     await expect(bea.locator('main [data-testid="all-settled"]')).toBeVisible({ timeout: 15_000 })
     const prompt = bea.getByTestId('install-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt).toContainText('Keep Split one tap away for this trip and the next.')
-    await expect(prompt.getByRole('button', { name: 'Show me how' })).toBeVisible()
+    await expect(prompt).toContainText('Keep this trip—and the next one—one tap away.')
+    await prompt.getByRole('button', { name: 'Not now' }).click()
+    await expect(prompt).toHaveCount(0)
+    const refusal = await bea.evaluate(() => ({
+        count: localStorage.getItem('ps:pwa-dismiss-count'),
+        at: Number(localStorage.getItem('ps:pwa-dismissed-at')),
+        legacy: localStorage.getItem('ps:pwa-snoozed-until'),
+    }))
+    expect(refusal.count).toBe('1')
+    expect(Date.now() - refusal.at).toBeLessThan(10_000)
+    expect(refusal.legacy).toBeNull()
+    await bea.reload()
+    await bea.waitForTimeout(2_000)
+    await expect(bea.getByTestId('install-prompt')).toHaveCount(0)
 })
 
 test('the earned iOS offer withholds instructions on arm failure, then restores this exact room on retry', async ({
@@ -389,7 +536,7 @@ test('the earned iOS offer withholds instructions on arm failure, then restores 
 
     const prompt = page.getByTestId('install-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt.getByRole('button', { name: 'Show me how' })).toBeVisible()
+    await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
 
     await page.route('**/api/rooms/*/install-handoff', (route) =>
         route.fulfill({
@@ -398,17 +545,20 @@ test('the earned iOS offer withholds instructions on arm failure, then restores 
             body: JSON.stringify({ error: { code: 'INTERNAL', message: 'temporary failure' } }),
         })
     )
-    await prompt.getByRole('button', { name: 'Show me how' }).click()
+    await prompt.getByRole('button', { name: 'Show install steps' }).click()
     await expect(page.getByText('Couldn’t prepare this room. Try again in a moment.')).toBeVisible()
-    await expect(
-        page.getByText('Open Split from the new icon within 24 hours. If this room isn’t there, open its link once.')
-    ).toHaveCount(0)
+    await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
 
     await page.unroute('**/api/rooms/*/install-handoff')
-    await prompt.getByRole('button', { name: 'Show me how' }).click()
-    await expect(
-        page.getByText('Open Split from the new icon within 24 hours. If this room isn’t there, open its link once.')
-    ).toBeVisible({ timeout: 10_000 })
+    await prompt.getByRole('button', { name: 'Show install steps' }).click()
+    await expect(page).toHaveURL(/\/app\?install=1&source=auto$/, { timeout: 10_000 })
+    await expect(page).toHaveTitle('Split')
+    const installSurface = page.getByTestId('install-app-surface')
+    await expect(installSurface.getByRole('heading', { name: 'Add Split to your Home Screen' })).toBeVisible()
+    await expect(installSurface.locator('ol > li')).toHaveCount(4)
+    await expect(installSurface).toContainText('Then open Split from the new icon.')
+    await expect(installSurface).not.toContainText('within 24 hours')
+    expect(page.url()).not.toContain('/r/')
     const cookies = await page.context().cookies()
     expect(cookies.find((cookie) => cookie.name === '__Host-ps-install-handoff')).toMatchObject({
         httpOnly: true,
@@ -416,11 +566,14 @@ test('the earned iOS offer withholds instructions on arm failure, then restores 
         sameSite: 'Strict',
     })
 
-    await page.getByRole('button', { name: 'Got it' }).click()
-    const snoozedUntil = await page.evaluate(() => Number(localStorage.getItem('ps:pwa-snoozed-until')))
-    expect(snoozedUntil).toBeGreaterThan(Date.now() + 29 * 24 * 60 * 60 * 1000)
-    await expect(page.getByTestId('install-prompt')).toHaveCount(0)
-    await expect(page.getByTestId('open-room-switcher')).toBeFocused()
+    await installSurface.getByRole('link', { name: 'Back to Split' }).click()
+    await expect(page).toHaveURL(/\/app\?manage=1$/)
+    expect(
+        await page.evaluate(() => ({
+            legacy: localStorage.getItem('ps:pwa-snoozed-until'),
+            count: localStorage.getItem('ps:pwa-dismiss-count'),
+        }))
+    ).toEqual({ legacy: null, count: null })
 })
 
 test('a delayed iOS arm cannot open instructions over a newer room drawer', async ({ page }) => {
@@ -448,7 +601,7 @@ test('a delayed iOS arm cannot open instructions over a newer room drawer', asyn
         await route.continue()
     })
 
-    await prompt.getByRole('button', { name: 'Show me how' }).click()
+    await prompt.getByRole('button', { name: 'Show install steps' }).click()
     await prepareStarted
     await page.getByTestId('open-room-switcher').click()
     await expect(page.getByRole('dialog', { name: 'Rooms' })).toBeVisible()
@@ -458,9 +611,8 @@ test('a delayed iOS arm cannot open instructions over a newer room drawer', asyn
     releasePrepare?.()
     expect((await preparedResponse).status()).toBe(201)
     await page.waitForTimeout(100)
-    await expect(
-        page.getByText('Open Split from the new icon within 24 hours. If this room isn’t there, open its link once.')
-    ).toHaveCount(0)
+    await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
+    await expect(page).toHaveURL(/\/r\//)
     await expect(page.getByRole('dialog', { name: 'Rooms' })).toBeVisible()
     await expect
         .poll(async () => (await page.context().cookies()).some((cookie) => cookie.name.includes('install-handoff')))
@@ -501,7 +653,6 @@ test('closing Device settings cancels a late iOS handoff instead of arming a hid
     await expect
         .poll(async () => (await page.context().cookies()).some((cookie) => cookie.name.includes('install-handoff')))
         .toBe(false)
-    await expect(
-        page.getByText('Open Split from the new icon within 24 hours. If this room isn’t there, open its link once.')
-    ).toHaveCount(0)
+    await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
+    await expect(page).toHaveURL(/\/r\//)
 })
