@@ -1,5 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { appOrigin, appUrl, contentOrigin, contentUrl, guidePath, guideUrl } from './urls'
+import {
+    appOrigin,
+    appUrl,
+    contentOrigin,
+    contentUrl,
+    guidePath,
+    guideUrl,
+    splitCalculatorPath,
+    splitHubPath,
+    splitToolsHubPath,
+} from './urls'
 
 const priorAppOrigin = process.env.APP_ORIGIN
 const priorContentOrigin = process.env.CONTENT_ORIGIN
@@ -21,6 +31,9 @@ describe('Split app and content URL ownership', () => {
         expect(appUrl('/new?locale=en')).toBe('https://split.peanut.me/new?locale=en')
         expect(guidePath('pt-br', 'synthetic-guide')).toBe('/pt-br/split/guides/synthetic-guide')
         expect(guideUrl('pt-br', 'synthetic-guide')).toBe('https://peanut.me/pt-br/split/guides/synthetic-guide')
+        expect(splitHubPath('es-419')).toBe('/es-419/split')
+        expect(splitToolsHubPath()).toBe('/en/split/tools')
+        expect(splitCalculatorPath('rent-split-calculator')).toBe('/en/split/tools/rent-split-calculator')
     })
 
     it('accepts exact HTTPS origin overrides without consulting the transport origin', () => {
@@ -50,5 +63,6 @@ describe('Split app and content URL ownership', () => {
         delete process.env.CONTENT_ORIGIN
         expect(() => contentUrl('//attacker.example')).toThrow(/root-relative/)
         expect(() => guidePath('en', '../escape')).toThrow(/invalid Split content slug/)
+        expect(() => splitCalculatorPath('../escape')).toThrow(/invalid Split calculator slug/)
     })
 })

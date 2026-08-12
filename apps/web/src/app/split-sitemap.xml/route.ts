@@ -1,6 +1,7 @@
+import { headers } from 'next/headers'
 import { LOCALES } from '@/i18n/locales'
 import { guideAlternates, listSplitGuides } from '@/lib/split-content/artifact'
-import { splitContentIndexable } from '@/lib/split-content/indexability'
+import { splitContentIndexableFromHeaders } from '@/lib/split-content/indexability'
 import { contentUrl } from '@/lib/split-content/urls'
 
 export const dynamic = 'force-dynamic'
@@ -10,17 +11,21 @@ const xml = (value: string): string =>
 
 export function splitSitemapResponse({
     root,
-    indexable = splitContentIndexable(),
+    isPathIndexable = () => false,
 }: {
     root?: string
-    indexable?: boolean
+    isPathIndexable?: (publicPath: string) => boolean
 } = {}): Response {
-    const urls = indexable ? LOCALES.flatMap((locale) => listSplitGuides(locale, root)) : []
+    const urls = LOCALES.flatMap((locale) => listSplitGuides(locale, root)).filter((guide) =>
+        isPathIndexable(guide.href)
+    )
     const body = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
         ...urls.map((guide) => {
-            const alternates = guideAlternates(guide.slug, root) ?? {}
+            const alternates = Object.fromEntries(
+                Object.entries(guideAlternates(guide.slug, root) ?? {}).filter(([, href]) => isPathIndexable(href))
+            )
             return [
                 '  <url>',
                 `    <loc>${xml(contentUrl(guide.href))}</loc>`,
@@ -40,10 +45,17 @@ export function splitSitemapResponse({
         'cache-control': 'private, no-store',
         'content-type': 'application/xml; charset=utf-8',
     })
-    if (!indexable) headers.set('x-robots-tag', 'noindex, nofollow, noarchive')
+    if (urls.length === 0) headers.set('x-robots-tag', 'noindex, nofollow, noarchive')
     return new Response(body, { headers })
 }
 
-export function GET(): Response {
-    return splitSitemapResponse()
+export function splitSitemapResponseForHeaders(requestHeaders: Headers, root?: string): Response {
+    return splitSitemapResponse({
+        root,
+        isPathIndexable: (publicPath) => splitContentIndexableFromHeaders(requestHeaders, publicPath),
+    })
+}
+
+export async function GET(): Promise<Response> {
+    return splitSitemapResponseForHeaders(await headers())
 }

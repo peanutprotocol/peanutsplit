@@ -51,3 +51,16 @@ export function guidePath(locale: Locale, slug: string): string {
 export function guideUrl(locale: Locale, slug: string): string {
     return contentUrl(guidePath(locale, slug))
 }
+
+export function splitHubPath(locale: Locale): string {
+    return `/${locale}/split`
+}
+
+export function splitToolsHubPath(): string {
+    return '/en/split/tools'
+}
+
+export function splitCalculatorPath(slug: string): string {
+    if (!SLUG.test(slug)) throw new Error(`invalid Split calculator slug: ${slug}`)
+    return `${splitToolsHubPath()}/${slug}`
+}

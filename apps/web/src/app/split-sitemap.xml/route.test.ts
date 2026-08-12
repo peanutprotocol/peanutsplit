@@ -12,7 +12,7 @@ afterEach(() => {
 
 describe('the renderer-owned Split sitemap', () => {
     it('is valid, empty, noindex, and private when indexability is not explicitly enabled', async () => {
-        const response = splitSitemapResponse({ root: FIXTURE, indexable: false })
+        const response = splitSitemapResponse({ root: FIXTURE })
         const body = await response.text()
 
         expect(response.status).toBe(200)
@@ -26,7 +26,7 @@ describe('the renderer-owned Split sitemap', () => {
 
     it('lists only manifest-backed public URLs with reciprocal locale links after the exact flip', async () => {
         delete process.env.CONTENT_ORIGIN
-        const response = splitSitemapResponse({ root: FIXTURE, indexable: true })
+        const response = splitSitemapResponse({ root: FIXTURE, isPathIndexable: () => true })
         const body = await response.text()
 
         expect(response.headers.get('x-robots-tag')).toBeNull()
@@ -39,5 +39,24 @@ describe('the renderer-owned Split sitemap', () => {
         expect(body).toContain('hreflang="x-default"')
         expect(body).not.toContain('split.peanut.me')
         expect(body).not.toContain('renderer')
+    })
+
+    it('filters each path independently so a future cohort stays absent without deindexing released guides', async () => {
+        const releasedGuide = '/en/split/guides/synthetic-guide'
+        const released = new Set([releasedGuide])
+        const response = splitSitemapResponse({
+            root: FIXTURE,
+            isPathIndexable: (publicPath) => released.has(publicPath),
+        })
+        const body = await response.text()
+
+        expect(response.headers.get('x-robots-tag')).toBeNull()
+        expect(body.match(/<url>/g)).toHaveLength(1)
+        expect(body).toContain(`<loc>https://peanut.me${releasedGuide}</loc>`)
+        expect(body).toContain('hreflang="en"')
+        expect(body).toContain('hreflang="x-default"')
+        expect(body).not.toContain('/es-419/split/')
+        expect(body).not.toContain('/pt-br/split/')
+        expect(body).not.toContain('/en/split/tools')
     })
 })

@@ -116,6 +116,194 @@ function writeArtifact(root, sourceCommit = SOURCE_COMMIT) {
 	return manifest
 }
 
+const V2_SOURCE_INPUTS = [
+	'split-content/_system/generation-templates/page.md',
+	'split-content/_system/data/pages/synthetic.md',
+	'split-content/product/truths.md',
+	'split-content/_system/workflows/generate-page.md',
+	'split-content/_system/context/messaging.md',
+	'split-content/_system/guidelines/seo.md',
+]
+const V2_MILEAGE_CODES = ['AU', 'BE', 'BR', 'CA', 'FR', 'DE', 'IE', 'NL', 'PL', 'ES', 'GB', 'US']
+
+function v2GeneratedFrom() {
+	return {
+		template: V2_SOURCE_INPUTS[0],
+		data: [V2_SOURCE_INPUTS[1]],
+		product: [V2_SOURCE_INPUTS[2]],
+		workflow: V2_SOURCE_INPUTS[3],
+		context: [V2_SOURCE_INPUTS[4]],
+		guidelines: [V2_SOURCE_INPUTS[5]],
+	}
+}
+
+function v2CalculatorCopy() {
+	return {
+		intro: ['Synthetic calculator introduction.'],
+		result: {
+			title: 'Synthetic result',
+			hint: 'Enter the synthetic values.',
+			rounding_note: 'Synthetic values reconcile exactly.',
+			copy_label: 'Copy result',
+			copy_done: 'Copied',
+		},
+		method: null,
+		concession: { title: 'When a spreadsheet is better', body: 'Use one when the agreement is settled.' },
+		good_to_know: { title: 'Good to know', body: ['This is synthetic fixture copy.'] },
+		cta: {
+			title: 'Start a split',
+			body: 'Put the result in a room.',
+			label: 'Start a split',
+			hint: 'No account required.',
+			action: 'app_new',
+		},
+		faq_title: 'Questions',
+		faqs: [{ question: 'Is this synthetic?', answer: 'Yes.' }],
+		related: [{ label: 'All calculators', legacy_path: '/tools', public_path: '/en/split/tools' }],
+	}
+}
+
+function v2Payload(entry, entries) {
+	const siblings = entries.filter(
+		(candidate) => candidate.content_type === entry.content_type && candidate.slug === entry.slug
+	)
+	const alternates = Object.fromEntries(siblings.map((candidate) => [candidate.locale, candidate.output_path]))
+	let content
+	if (entry.content_type === 'hub') {
+		content = {
+			intro: [`Synthetic ${entry.locale} hub introduction.`],
+			primary_action: { kind: 'app_new', label: 'Start a split', hint: 'No account required.' },
+			cards: [
+				{
+					id: `card-${entry.locale}`,
+					kind: 'guide',
+					locale: entry.locale,
+					title: `Synthetic ${entry.locale} card`,
+					description: 'Synthetic card description.',
+					date: null,
+					tags: ['synthetic'],
+					legacy_path: `${entry.locale === 'en' ? '/blog' : `/${entry.locale}/blog`}/card-${entry.locale}`,
+					public_path: `/${entry.locale}/split/guides/card-${entry.locale}`,
+				},
+			],
+		}
+	} else if (entry.content_type === 'tools_hub') {
+		content = {
+			intro: ['Synthetic tools introduction.'],
+			app_card: {
+				title: 'Splitting a bill',
+				body: 'The app owns that job.',
+				label: 'Start a split',
+				hint: 'No account required.',
+				action: 'app_new',
+			},
+			calculator_slugs: ['rent-split-calculator', 'mileage-split-calculator'],
+		}
+	} else {
+		const mileage = entry.slug === 'mileage-split-calculator'
+		content = {
+			engine: mileage ? 'mileage_split_v1' : 'rent_split_v1',
+			copy: v2CalculatorCopy(),
+			data: mileage
+				? {
+						version: '2026-07-30',
+						retrieved_at: '2026-07-30',
+						rows: V2_MILEAGE_CODES.map((code) => ({
+							code,
+							label: `${code} synthetic rate`,
+							unit: code === 'GB' || code === 'US' ? 'mile' : 'km',
+							rate_decimal: ['BR', 'FR', 'IE', 'PL'].includes(code) ? null : '0.30',
+							currency: code === 'GB' ? 'GBP' : code === 'US' ? 'USD' : 'EUR',
+							note: 'Synthetic reviewed rate.',
+							source_label: 'Synthetic authority',
+							source_url: `https://example.com/rates/${code.toLowerCase()}`,
+						})),
+					}
+				: null,
+		}
+	}
+	return {
+		payload_schema_version: 1,
+		type: entry.content_type,
+		slug: entry.slug,
+		lang: entry.locale,
+		title: `Synthetic ${entry.content_type} ${entry.locale}`,
+		description: 'Synthetic structured payload used only by the publisher contract tests.',
+		canonical: `https://peanut.me${entry.public_path}`,
+		alternates,
+		claims: ['synthetic-only'],
+		schema_types:
+			entry.content_type === 'calculator' ? ['WebApplication', 'FAQPage'] : ['CollectionPage', 'ItemList'],
+		generated_from: v2GeneratedFrom(),
+		generated_at: '2026-08-11',
+		content,
+	}
+}
+
+function v2ArtifactManifest(sourceCommit = SOURCE_COMMIT) {
+	const entries = [
+		...LOCALES.map((locale) => ({
+			content_type: 'hub',
+			slug: 'split',
+			locale,
+			public_path: `/${locale}/split`,
+			legacy_paths: locale === 'en' ? ['/', '/blog'] : [`/${locale}/blog`],
+			output_path: `split-content/published/hubs/split/${locale}.json`,
+			output_sha256: '',
+			source_input_paths: [...V2_SOURCE_INPUTS],
+		})),
+		{
+			content_type: 'tools_hub',
+			slug: 'tools',
+			locale: 'en',
+			public_path: '/en/split/tools',
+			legacy_paths: ['/tools'],
+			output_path: 'split-content/published/tools-hubs/tools/en.json',
+			output_sha256: '',
+			source_input_paths: [...V2_SOURCE_INPUTS],
+		},
+		...['mileage-split-calculator', 'rent-split-calculator'].map((slug) => ({
+			content_type: 'calculator',
+			slug,
+			locale: 'en',
+			public_path: `/en/split/tools/${slug}`,
+			legacy_paths: [`/${slug}`],
+			output_path: `split-content/published/calculators/${slug}/en.json`,
+			output_sha256: '',
+			source_input_paths: [...V2_SOURCE_INPUTS],
+		})),
+	]
+	const outputs = new Map()
+	for (const entry of entries) {
+		const destination = entry.output_path.slice('split-content/published/'.length)
+		const bytes = Buffer.from(`${JSON.stringify(v2Payload(entry, entries), null, 2)}\n`)
+		outputs.set(destination, bytes)
+		entry.output_sha256 = sha256(bytes)
+	}
+	return {
+		outputs,
+		manifest: {
+			schema_version: 2,
+			source_repository: 'peanutprotocol/mono',
+			source_commit: sourceCommit,
+			content_root: 'split-content',
+			locales: LOCALES,
+			input_sha256: Object.fromEntries(
+				[...V2_SOURCE_INPUTS].sort().map((inputPath) => [inputPath, sha256(inputPath)])
+			),
+			entries,
+		},
+	}
+}
+
+function writeV2Artifact(root, sourceCommit = SOURCE_COMMIT) {
+	fs.rmSync(root, { recursive: true, force: true })
+	const { outputs, manifest } = v2ArtifactManifest(sourceCommit)
+	writeJson(path.join(root, 'manifest.json'), manifest)
+	for (const [relativePath, bytes] of outputs) writeFile(root, relativePath, bytes)
+	return manifest
+}
+
 function initTarget(root, prepare) {
 	const repoRoot = path.join(root, 'target')
 	fs.mkdirSync(repoRoot)
@@ -197,6 +385,161 @@ test('packs and installs one exact, manifest-backed artifact tree', (t) => {
 		fs.readFileSync(path.join(fixture.repoRoot, 'apps/web/src/generated/seo/manifest.json'), 'utf8')
 	)
 	assert.equal(copiedManifest.source_commit, SOURCE_COMMIT)
+})
+
+test('packs schema v2 as data while keeping the publisher bundle wire schema at v1', (t) => {
+	const fixture = makeFixture(t)
+	writeV2Artifact(fixture.artifactRoot)
+	const packed = pack(fixture)
+	assert.deepEqual(packed.files, [
+		'calculators/mileage-split-calculator/en.json',
+		'calculators/rent-split-calculator/en.json',
+		'hubs/split/en.json',
+		'hubs/split/es-419.json',
+		'hubs/split/pt-br.json',
+		'manifest.json',
+		'tools-hubs/tools/en.json',
+	])
+	const bundle = JSON.parse(fs.readFileSync(fixture.bundlePath, 'utf8'))
+	assert.equal(bundle.schema_version, 1)
+	assert.equal(
+		JSON.parse(Buffer.from(bundle.files.find((file) => file.path === 'manifest.json').content_base64, 'base64'))
+			.schema_version,
+		2
+	)
+})
+
+test('upgrades an exact installed v1 artifact to v2 but refuses a v2-to-v1 downgrade', (t) => {
+	const upgrade = makeFixture(t, {
+		prepareTarget(repoRoot) {
+			writeArtifact(path.join(repoRoot, 'apps/web/src/generated/seo'))
+		},
+		preparePrior(priorRoot) {
+			writeArtifact(priorRoot)
+		},
+	})
+	writeV2Artifact(upgrade.artifactRoot)
+	pack(upgrade)
+	const installed = install(upgrade)
+	assert.equal(installed.sourceCommit, SOURCE_COMMIT)
+	assert.equal(
+		JSON.parse(fs.readFileSync(path.join(upgrade.repoRoot, 'apps/web/src/generated/seo/manifest.json'), 'utf8'))
+			.schema_version,
+		2
+	)
+	assert.equal(fs.existsSync(path.join(upgrade.repoRoot, 'apps/web/src/generated/seo/guides')), false)
+
+	const downgrade = makeFixture(t, {
+		preparePrior(priorRoot) {
+			writeV2Artifact(priorRoot)
+		},
+	})
+	assert.throws(() => pack(downgrade), /refusing to downgrade.*schema v2.*schema v1/)
+})
+
+test('schema v2 rejects unknown versions, partial cohorts, and unsafe legacy ownership', (t) => {
+	const unknown = makeFixture(t)
+	writeV2Artifact(unknown.artifactRoot)
+	mutateManifest(unknown.artifactRoot, (manifest) => {
+		manifest.schema_version = 3
+	})
+	assert.throws(() => pack(unknown), /schema_version must be 1 or 2/)
+
+	const partial = makeFixture(t)
+	writeV2Artifact(partial.artifactRoot)
+	mutateManifest(partial.artifactRoot, (manifest) => {
+		manifest.entries = manifest.entries.filter((entry) => entry.slug !== 'rent-split-calculator')
+	})
+	fs.unlinkSync(path.join(partial.artifactRoot, 'calculators/rent-split-calculator/en.json'))
+	assert.throws(() => pack(partial), /calculator cohort mismatch/)
+
+	const duplicateLegacy = makeFixture(t)
+	writeV2Artifact(duplicateLegacy.artifactRoot)
+	mutateManifest(duplicateLegacy.artifactRoot, (manifest) => {
+		manifest.entries.at(-1).legacy_paths = ['/mileage-split-calculator']
+	})
+	assert.throws(() => pack(duplicateLegacy), /legacy paths.*duplicates/)
+
+	const reservedLegacy = makeFixture(t)
+	writeV2Artifact(reservedLegacy.artifactRoot)
+	mutateManifest(reservedLegacy.artifactRoot, (manifest) => {
+		manifest.entries.at(-1).legacy_paths = ['/import']
+	})
+	assert.throws(() => pack(reservedLegacy), /product or API namespace/)
+
+	const conflictingLegacy = makeFixture(t)
+	writeV2Artifact(conflictingLegacy.artifactRoot)
+	mutateManifest(conflictingLegacy.artifactRoot, (manifest) => {
+		manifest.entries.at(-1).legacy_paths = ['/en/split/tools']
+	})
+	assert.throws(() => pack(conflictingLegacy), /legacy path conflicts with a current public_path/)
+})
+
+test('schema v2 independently rejects noncanonical, active, falsely-provenanced, and wrong-typed JSON', (t) => {
+	const mutateOutput = (
+		fixture,
+		mutate,
+		{ canonical = true, select = (candidate) => candidate.content_type === 'hub' && candidate.locale === 'en' } = {}
+	) => {
+		const manifestPath = path.join(fixture.artifactRoot, 'manifest.json')
+		const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+		const entry = manifest.entries.find(select)
+		const outputPath = path.join(
+			fixture.artifactRoot,
+			...entry.output_path.slice('split-content/published/'.length).split('/')
+		)
+		const payload = JSON.parse(fs.readFileSync(outputPath, 'utf8'))
+		const changed = mutate(payload)
+		const contents = canonical ? `${JSON.stringify(changed, null, 2)}\n` : JSON.stringify(changed)
+		fs.writeFileSync(outputPath, contents)
+		entry.output_sha256 = sha256(contents)
+		writeJson(manifestPath, manifest)
+	}
+
+	const noncanonicalManifest = makeFixture(t)
+	writeV2Artifact(noncanonicalManifest.artifactRoot)
+	const manifestPath = path.join(noncanonicalManifest.artifactRoot, 'manifest.json')
+	fs.writeFileSync(manifestPath, JSON.stringify(JSON.parse(fs.readFileSync(manifestPath, 'utf8'))))
+	assert.throws(() => pack(noncanonicalManifest), /artifact manifest must use canonical two-space JSON/)
+
+	const reorderedEntry = makeFixture(t)
+	writeV2Artifact(reorderedEntry.artifactRoot)
+	mutateManifest(reorderedEntry.artifactRoot, (manifest) => {
+		const [first, ...rest] = manifest.entries
+		const { content_type, slug, ...remaining } = first
+		manifest.entries = [{ slug, content_type, ...remaining }, ...rest]
+	})
+	assert.throws(() => pack(reorderedEntry), /entries\[0\] keys must use the canonical order/)
+
+	const noncanonical = makeFixture(t)
+	writeV2Artifact(noncanonical.artifactRoot)
+	mutateOutput(noncanonical, (payload) => payload, { canonical: false })
+	assert.throws(() => pack(noncanonical), /canonical two-space JSON/)
+
+	const active = makeFixture(t)
+	writeV2Artifact(active.artifactRoot)
+	mutateOutput(active, (payload) => ({ ...payload, content: { ...payload.content, raw_html: '<script>x</script>' } }))
+	assert.throws(() => pack(active), /content keys must be exactly/)
+
+	const falseProvenance = makeFixture(t)
+	writeV2Artifact(falseProvenance.artifactRoot)
+	mutateOutput(falseProvenance, (payload) => ({
+		...payload,
+		generated_from: { ...payload.generated_from, data: ['split-content/_system/data/pages/other.md'] },
+	}))
+	assert.throws(() => pack(falseProvenance), /generated_from flattened paths/)
+
+	const numericRate = makeFixture(t)
+	writeV2Artifact(numericRate.artifactRoot)
+	mutateOutput(
+		numericRate,
+		(payload) => {
+			payload.content.data.rows[1].rate_decimal = 0.3
+			return payload
+		},
+		{ select: (candidate) => candidate.slug === 'mileage-split-calculator' }
+	)
+	assert.throws(() => pack(numericRate), /rate_decimal must be a non-negative decimal string or null/)
 })
 
 test('pins both the reviewed mirror Git blob and its bytes', (t) => {
