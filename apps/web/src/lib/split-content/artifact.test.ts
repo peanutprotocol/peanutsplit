@@ -13,6 +13,7 @@ import {
     listSplitCalculators,
     listSplitGuides,
     loadSplitContentManifest,
+    splitContentManifestSha256,
     splitContentPaths,
     splitGuidePaths,
 } from './artifact'
@@ -326,8 +327,26 @@ describe('generated Split artifact loader', () => {
         const root = fs.mkdtempSync(path.join(os.tmpdir(), 'split-a3-empty-'))
         temporaryRoots.push(root)
         expect(loadSplitContentManifest(root)).toBeNull()
+        expect(splitContentManifestSha256(root)).toBeNull()
         expect(listSplitGuides('en', root)).toEqual([])
         expect(getSplitGuide('en', 'synthetic-guide', root)).toBeNull()
+    })
+
+    it('attests the exact manifest bytes consumed by the loader, not parsed JSON semantics', () => {
+        const manifestPath = path.join(FIXTURE, 'manifest.json')
+        const source = fs.readFileSync(manifestPath)
+        expect(splitContentManifestSha256(FIXTURE)).toBe(createHash('sha256').update(source).digest('hex'))
+
+        const root = copiedFixture()
+        const copiedPath = path.join(root, 'manifest.json')
+        const parsed = JSON.parse(fs.readFileSync(copiedPath, 'utf8'))
+        fs.writeFileSync(copiedPath, JSON.stringify(parsed))
+
+        expect(loadSplitContentManifest(root)).not.toBeNull()
+        expect(splitContentManifestSha256(root)).toBe(
+            createHash('sha256').update(fs.readFileSync(copiedPath)).digest('hex')
+        )
+        expect(splitContentManifestSha256(root)).not.toBe(splitContentManifestSha256(FIXTURE))
     })
 
     it('fails closed when a locale is removed, so publication cannot delete a sibling downstream', () => {

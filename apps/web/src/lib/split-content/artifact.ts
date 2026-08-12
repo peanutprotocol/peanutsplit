@@ -4,10 +4,10 @@ import path from 'node:path'
 import matter from 'gray-matter'
 import { z } from 'zod'
 import { HREFLANG, LOCALES, type Locale } from '@/i18n/locales'
+import { readSplitContentManifestBytes, SPLIT_CONTENT_GENERATED_ROOT as GENERATED_ROOT } from './manifest-attestation'
 import { contentUrl, guidePath, splitCalculatorPath, splitHubPath, splitToolsHubPath } from './urls'
 
 const PUBLISHED_PREFIX = 'split-content/published/'
-const GENERATED_ROOT = path.join(process.cwd(), 'src/generated/seo')
 const SHA256 = /^[a-f0-9]{64}$/
 const COMMIT = /^[a-f0-9]{40}$/
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -288,6 +288,8 @@ export class SplitContentArtifactError extends Error {
 
 const sha256 = (bytes: Buffer | string): string => createHash('sha256').update(bytes).digest('hex')
 const compareAscii = (left: string, right: string): number => (left < right ? -1 : left > right ? 1 : 0)
+
+export { splitContentManifestSha256 } from './manifest-attestation'
 
 function artifactError(message: string): never {
     throw new SplitContentArtifactError(message)
@@ -788,10 +790,8 @@ function parseStructuredPage(
 }
 
 export function loadSplitContentManifest(root: string = GENERATED_ROOT): SplitContentManifest | null {
-    const manifestPath = path.join(root, 'manifest.json')
-    if (!fs.existsSync(manifestPath)) return null
-
-    const bytes = fs.readFileSync(manifestPath)
+    const bytes = readSplitContentManifestBytes(root)
+    if (!bytes) return null
     let raw: unknown
     try {
         raw = JSON.parse(bytes.toString('utf8'))

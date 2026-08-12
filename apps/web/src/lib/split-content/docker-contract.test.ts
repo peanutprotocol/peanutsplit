@@ -21,6 +21,7 @@ describe('Split content container release contract', () => {
         )
 
         expect(indexRelease).toContain('SPLIT_CONTENT_INDEX_RELEASED = false')
+        expect(indexRelease).toContain('SPLIT_CONTENT_INDEX_RELEASED_PATHS = []')
         expect(markerRelease).toContain(
             "SPLIT_EDGE_MARKER_SHA256 = '4307ae3e7601ca23faf31181ac9f268fd5c7c6c510d6ab56a49c1abb1a171dc4'"
         )

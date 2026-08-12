@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { HREFLANG } from '@/i18n/locales'
 import type { SplitGuide } from './artifact'
 import { contentOrigin, contentUrl } from './urls'
-import { splitContentIndexable } from './indexability'
 
 const OG_LOCALE = {
     en: 'en_US',
@@ -13,7 +12,7 @@ const OG_LOCALE = {
 export function splitGuideMetadata(
     guide: SplitGuide,
     alternates: Record<string, string> | undefined,
-    indexable = splitContentIndexable()
+    indexable = false
 ): Metadata {
     const canonical = contentUrl(guide.href)
     const languages = alternates

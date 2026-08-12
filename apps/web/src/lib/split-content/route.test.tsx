@@ -5,7 +5,8 @@ import { describe, expect, it } from 'vitest'
 import { SplitGuideLayout } from '@/components/split-content/GuideLayout'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
 import { getSplitGuide, splitGuidePaths } from './artifact'
-import { splitGuideMetadataFor, splitGuideStaticParams } from './route'
+import { splitGuideMetadataFor, splitGuideMetadataForHeaders, splitGuideStaticParams } from './route'
+import { SPLIT_CONTENT_INDEX_RENDER_HEADER, SPLIT_EDGE_INDEX_RELEASED_HEADER } from './transport'
 
 const FIXTURE = path.join(process.cwd(), 'src/lib/split-content/__fixtures__/valid')
 
@@ -31,6 +32,20 @@ describe('Split guide route contract', () => {
         })
         expect(metadata.robots).toMatchObject({ index: false, follow: false, noarchive: true })
         expect(await splitGuideMetadataFor('en', 'unknown-guide', FIXTURE, false)).toEqual({})
+    })
+
+    it('keeps metadata noindex and omits unreleased alternates despite a caller or edge index bit', async () => {
+        for (const requestHeaders of [
+            new Headers({ [SPLIT_EDGE_INDEX_RELEASED_HEADER]: '1' }),
+            new Headers({ [SPLIT_CONTENT_INDEX_RENDER_HEADER]: '1' }),
+        ]) {
+            const metadata = await splitGuideMetadataForHeaders('en', 'synthetic-guide', requestHeaders, FIXTURE)
+            expect(metadata.robots).toMatchObject({ index: false, follow: false, noarchive: true })
+            expect(metadata.alternates).toEqual({
+                canonical: 'https://peanut.me/en/split/guides/synthetic-guide',
+                languages: undefined,
+            })
+        }
     })
 
     it('renders the layout-owned H1 and the canary CTA contract without product-relative links', async () => {
