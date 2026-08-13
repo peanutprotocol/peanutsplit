@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { SplitGuideLayout } from '@/components/split-content/GuideLayout'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
-import { getSplitGuide, splitGuidePaths } from './artifact'
+import { getSplitGuide, guideAlternates, splitGuidePaths } from './artifact'
 import { splitGuideMetadataFor, splitGuideStaticParams } from './route'
 
 const FIXTURE = path.join(process.cwd(), 'src/lib/split-content/__fixtures__/valid')
@@ -44,7 +44,11 @@ describe('Split guide route contract', () => {
             locale: guide!.locale,
             guidePaths: splitGuidePaths(FIXTURE),
         })
-        const html = renderToStaticMarkup(<SplitGuideLayout guide={guide!}>{body}</SplitGuideLayout>)
+        const html = renderToStaticMarkup(
+            <SplitGuideLayout guide={guide!} alternates={guideAlternates('synthetic-guide', FIXTURE)}>
+                {body}
+            </SplitGuideLayout>
+        )
 
         expect(html.match(/<h1\b/g)).toHaveLength(1)
         expect(html).toContain('Synthetic English guide</h1>')

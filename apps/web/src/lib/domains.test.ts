@@ -29,6 +29,28 @@ describe('domain constants', () => {
         }
     })
 
+    /**
+     * The fully qualified spelling of the same name. `new URL()` keeps the root dot in `hostname`,
+     * so both of these used to walk past the guide prose-link guard and land on the product.
+     */
+    it('counts the fully qualified form of every product host, literal dot or percent-encoded', () => {
+        for (const href of [
+            'https://peanutsplit.com./new',
+            'https://peanutsplit.com%2e/new',
+            'https://www.peanutsplit.com./new',
+            'https://www.peanutsplit.com%2e/new',
+            'https://split.peanut.me./new',
+            'https://split.peanut.me%2e/new',
+            'http://peanutsplit.com.:8443/new',
+        ]) {
+            expect(isProductHost(new URL(href).hostname), href).toBe(true)
+        }
+        expect(isProductHost('peanutsplit.com')).toBe(true)
+        // One root dot is the name; two are not a name at all.
+        expect(isProductHost('peanutsplit.com..')).toBe(false)
+        expect(isProductHost('.')).toBe(false)
+    })
+
     it('allows local origins but ignores any public build-arg override', () => {
         expect(resolveSiteUrl('http://localhost:3100/path')).toBe('http://localhost:3100')
         expect(resolveSiteUrl('http://127.0.0.1:8777')).toBe('http://127.0.0.1:8777')

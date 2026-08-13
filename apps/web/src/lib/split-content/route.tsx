@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { SplitGuideLayout } from '@/components/split-content/GuideLayout'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
 import type { Locale } from '@/i18n/locales'
-import { getSplitGuide, listSplitGuides, splitGuidePaths } from './artifact'
+import { getSplitGuide, guideAlternates, listSplitGuides, splitGuidePaths } from './artifact'
 import { splitContentIndexable } from './indexability'
 import { splitGuideMetadata } from './metadata'
 import { releasedGuideAlternates } from './released'
@@ -31,7 +31,11 @@ export function splitGuideRoute(locale: Locale) {
             locale: guide.locale,
             guidePaths: splitGuidePaths(),
         })
-        return <SplitGuideLayout guide={guide}>{body}</SplitGuideLayout>
+        return (
+            <SplitGuideLayout guide={guide} alternates={guideAlternates(guide.slug)}>
+                {body}
+            </SplitGuideLayout>
+        )
     }
 }
 
