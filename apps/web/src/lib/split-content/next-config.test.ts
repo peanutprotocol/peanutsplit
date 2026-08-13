@@ -8,25 +8,30 @@ interface ConfigProbe {
     assetPrefix: string | undefined
     skipMiddlewareUrlNormalize: boolean | undefined
     rewrites: { source: string; destination: string }[]
+    redirects: { source: string; destination: string; permanent: boolean }[]
+}
+
+/** Reads the real config the way Next does, so a probe cannot drift from what ships. */
+function probeConfig(): ConfigProbe {
+    const configPath = path.resolve(process.cwd(), 'next.config.js')
+    const script = `
+        process.env.NODE_ENV = 'development'
+        const config = require(process.argv[1])
+        Promise.all([config.rewrites(), config.redirects()]).then(([rewrites, redirects]) => {
+            process.stdout.write(JSON.stringify({
+                assetPrefix: config.assetPrefix,
+                skipMiddlewareUrlNormalize: config.skipMiddlewareUrlNormalize,
+                rewrites,
+                redirects,
+            }))
+        })
+    `
+    return JSON.parse(execFileSync(process.execPath, ['-e', script, configPath], { encoding: 'utf8' })) as ConfigProbe
 }
 
 describe('the Split renderer build namespace', () => {
     it('uses the stable native asset prefix without a global URL-normalization change or prefix rewrite', () => {
-        const configPath = path.resolve(process.cwd(), 'next.config.js')
-        const script = `
-            process.env.NODE_ENV = 'development'
-            const config = require(process.argv[1])
-            Promise.resolve(config.rewrites()).then((rewrites) => {
-                process.stdout.write(JSON.stringify({
-                    assetPrefix: config.assetPrefix,
-                    skipMiddlewareUrlNormalize: config.skipMiddlewareUrlNormalize,
-                    rewrites,
-                }))
-            })
-        `
-        const result = JSON.parse(
-            execFileSync(process.execPath, ['-e', script, configPath], { encoding: 'utf8' })
-        ) as ConfigProbe
+        const result = probeConfig()
 
         expect(result.assetPrefix).toBe(SPLIT_ASSET_PREFIX)
         expect(result.skipMiddlewareUrlNormalize).not.toBe(true)
@@ -49,5 +54,23 @@ describe('the Split renderer build namespace', () => {
         expect(registrar).toContain("window.addEventListener('online', reloadOnOnline)")
         expect(registrar).toContain("window.removeEventListener('online', reloadOnOnline)")
         expect(contentRoot).not.toContain('RegisterProductServiceWorker')
+    })
+
+    /**
+     * The section root of nine indexed URLs is retired to the hub. The second half is the one that
+     * matters: a wildcard source here would 308 every indexed guide URL off itself and deindex the
+     * whole cohort, and it would still satisfy the first half.
+     */
+    it('retires the bare /guides section root without capturing a single guide URL', () => {
+        const { redirects } = probeConfig()
+
+        expect(redirects.filter((redirect) => redirect.source.includes('guides'))).toEqual([
+            { source: '/guides', destination: '/blog', permanent: true },
+            { source: '/es-419/guides', destination: '/es-419/blog', permanent: true },
+            { source: '/pt-br/guides', destination: '/pt-br/blog', permanent: true },
+        ])
+        for (const redirect of redirects) {
+            expect(redirect.source, redirect.source).not.toMatch(/guides\/:/)
+        }
     })
 })
