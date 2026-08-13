@@ -9,7 +9,7 @@ date: 2026-08-11
 tags: [synthetic, contract]
 claims: [synthetic-only]
 cast: []
-canonical: https://peanut.me/en/split/guides/synthetic-guide
+canonical: https://peanutsplit.com/guides/synthetic-guide
 schema_types: [BlogPosting]
 alternates:
     en: split-content/published/guides/synthetic-guide/en.md
@@ -35,8 +35,8 @@ This is synthetic body copy. It is not an authored Peanut Split page.
 
 The page layout owns the only top-level heading.
 
-<CTA text="Start a split" subtitle="Synthetic CTA compatibility proof." href="https://split.peanut.me/new?locale=en&utm_source=synthetic" variant="card" />
+<CTA text="Start a split" subtitle="Synthetic CTA compatibility proof." href="https://peanutsplit.com/new?locale=en&utm_source=synthetic" variant="card" />
 
 <RelatedPages title="Synthetic related pages">
-<RelatedLink href="/en/split/guides/synthetic-guide">Synthetic English guide</RelatedLink>
+<RelatedLink href="/guides/synthetic-guide">Synthetic English guide</RelatedLink>
 </RelatedPages>

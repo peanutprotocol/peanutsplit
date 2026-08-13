@@ -35,7 +35,7 @@ describe('the isolated Split content root document', () => {
 
     it('explicitly removes product metadata and theme chrome from the content branch', () => {
         expect(splitContentRootMetadata()).toMatchObject({
-            metadataBase: new URL('https://peanut.me'),
+            metadataBase: new URL('https://peanutsplit.com'),
             applicationName: null,
             appleWebApp: null,
             icons: null,
@@ -54,7 +54,6 @@ describe('the isolated Split content root document', () => {
         const productRoot = fs.readFileSync(path.join(process.cwd(), 'src/app/(product-shell)/layout.tsx'), 'utf8')
 
         expect(contentRoot).toContain('<SplitContentDocument')
-        expect(contentRoot).toContain('isSplitContentRender')
         expect(contentRoot).not.toContain('RegisterProductServiceWorker')
         expect(productRoot).toContain('canonicalPwa ? <RegisterProductServiceWorker /> : null')
         for (const forbidden of [

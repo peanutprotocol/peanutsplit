@@ -13,7 +13,6 @@ import {
     listSplitCalculators,
     listSplitGuides,
     loadSplitContentManifest,
-    splitContentManifestSha256,
     splitContentPaths,
     splitGuidePaths,
 } from './artifact'
@@ -171,7 +170,8 @@ function v2Payload(entry: MutableV2Entry, entries: MutableV2Entry[]) {
                     date: null,
                     tags: ['synthetic'],
                     legacy_path: `${entry.locale === 'en' ? '/blog' : `/${entry.locale}/blog`}/card-${entry.locale}`,
-                    public_path: `/${entry.locale}/split/guides/card-${entry.locale}`,
+                    public_path:
+                        entry.locale === 'en' ? '/guides/card-en' : `/${entry.locale}/guides/card-${entry.locale}`,
                 },
             ],
         }
@@ -217,7 +217,7 @@ function v2Payload(entry: MutableV2Entry, entries: MutableV2Entry[]) {
         lang: entry.locale,
         title: `Synthetic ${entry.content_type} ${entry.locale}`,
         description: 'Synthetic structured payload used only by the artifact contract tests.',
-        canonical: `https://peanut.me${entry.public_path}`,
+        canonical: `https://peanutsplit.com${entry.public_path}`,
         alternates,
         claims: ['synthetic-only'],
         schema_types:
@@ -312,14 +312,14 @@ describe('generated Split artifact loader', () => {
         expect(listSplitGuides('en', FIXTURE).map((guide) => guide.slug)).toEqual(['synthetic-guide'])
         expect(getSplitGuide('es-419', 'synthetic-guide', FIXTURE)).toMatchObject({
             locale: 'es-419',
-            href: '/es-419/split/guides/synthetic-guide',
+            href: '/es-419/guides/synthetic-guide',
             title: 'Guía sintética en español',
         })
         expect(guideAlternates('synthetic-guide', FIXTURE)).toEqual({
-            en: '/en/split/guides/synthetic-guide',
-            'es-419': '/es-419/split/guides/synthetic-guide',
-            'pt-BR': '/pt-br/split/guides/synthetic-guide',
-            'x-default': '/en/split/guides/synthetic-guide',
+            en: '/guides/synthetic-guide',
+            'es-419': '/es-419/guides/synthetic-guide',
+            'pt-BR': '/pt-br/guides/synthetic-guide',
+            'x-default': '/guides/synthetic-guide',
         })
     })
 
@@ -327,26 +327,18 @@ describe('generated Split artifact loader', () => {
         const root = fs.mkdtempSync(path.join(os.tmpdir(), 'split-a3-empty-'))
         temporaryRoots.push(root)
         expect(loadSplitContentManifest(root)).toBeNull()
-        expect(splitContentManifestSha256(root)).toBeNull()
         expect(listSplitGuides('en', root)).toEqual([])
         expect(getSplitGuide('en', 'synthetic-guide', root)).toBeNull()
     })
 
-    it('attests the exact manifest bytes consumed by the loader, not parsed JSON semantics', () => {
-        const manifestPath = path.join(FIXTURE, 'manifest.json')
-        const source = fs.readFileSync(manifestPath)
-        expect(splitContentManifestSha256(FIXTURE)).toBe(createHash('sha256').update(source).digest('hex'))
-
+    it('parses a schema-v1 manifest by JSON semantics rather than by exact byte formatting', () => {
         const root = copiedFixture()
         const copiedPath = path.join(root, 'manifest.json')
         const parsed = JSON.parse(fs.readFileSync(copiedPath, 'utf8'))
         fs.writeFileSync(copiedPath, JSON.stringify(parsed))
 
         expect(loadSplitContentManifest(root)).not.toBeNull()
-        expect(splitContentManifestSha256(root)).toBe(
-            createHash('sha256').update(fs.readFileSync(copiedPath)).digest('hex')
-        )
-        expect(splitContentManifestSha256(root)).not.toBe(splitContentManifestSha256(FIXTURE))
+        expect(fs.readFileSync(copiedPath)).not.toEqual(fs.readFileSync(path.join(FIXTURE, 'manifest.json')))
     })
 
     it('fails closed when a locale is removed, so publication cannot delete a sibling downstream', () => {
@@ -361,7 +353,7 @@ describe('generated Split artifact loader', () => {
         expect(() => loadSplitContentManifest(unresolved)).toThrow(/schema v1/)
 
         const wrongPath = copiedFixture()
-        mutateManifest(wrongPath, (manifest) => (manifest.entries[0].public_path = '/en/split/wrong'))
+        mutateManifest(wrongPath, (manifest) => (manifest.entries[0].public_path = '/guides/wrong'))
         expect(() => loadSplitContentManifest(wrongPath)).toThrow(/public_path mismatch/)
 
         const missing = copiedFixture()
@@ -379,7 +371,9 @@ describe('generated Split artifact loader', () => {
         expect(() => listSplitGuides('en', identity)).toThrow(/frontmatter disagrees with manifest identity/)
 
         const canonical = copiedFixture()
-        mutateOutput(canonical, 'en', (source) => source.replace('https://peanut.me/en/', 'https://wrong.example/en/'))
+        mutateOutput(canonical, 'en', (source) =>
+            source.replace('https://peanutsplit.com/guides/', 'https://wrong.example/guides/')
+        )
         expect(() => listSplitGuides('en', canonical)).toThrow(/canonical disagrees/)
 
         const h1 = copiedFixture()

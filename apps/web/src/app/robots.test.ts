@@ -24,7 +24,12 @@ describe('canonical discovery host', () => {
         }
     })
 
-    it('does not advertise the deferred peanut.me Split sitemap', () => {
-        expect(robots().sitemap).not.toBe('https://peanut.me/split-sitemap.xml')
+    it('keeps every generated Split guide out of the public sitemap while the index gate is shut', () => {
+        const pathnames = sitemap().flatMap((entry) => [
+            new URL(String(entry.url)).pathname,
+            ...Object.values(entry.alternates?.languages ?? {}).map((href) => new URL(String(href)).pathname),
+        ])
+
+        expect(pathnames.filter((pathname) => /^\/(?:[a-z0-9-]+\/)?guides\//.test(pathname))).toEqual([])
     })
 })

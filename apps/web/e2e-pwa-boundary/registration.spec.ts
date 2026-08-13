@@ -3,7 +3,6 @@ import { expect, test } from '@playwright/test'
 const port = Number(process.env.PWA_BOUNDARY_PORT ?? 8777)
 const productOrigin = process.env.PWA_BOUNDARY_PRODUCT_ORIGIN ?? `http://localhost:${port}`
 const contentOrigin = process.env.PWA_BOUNDARY_CONTENT_ORIGIN ?? `http://localhost:${port}`
-const contentMarker = process.env.PWA_BOUNDARY_CONTENT_MARKER
 
 declare global {
     interface Window {
@@ -49,19 +48,12 @@ function reportBrowserFailures(page: import('@playwright/test').Page) {
 }
 
 test('a fresh public guide creates no worker, cache, browser storage, or install surface', async ({ browser }) => {
-    expect(contentMarker, 'PWA_BOUNDARY_CONTENT_MARKER must be supplied by the trusted edge test').toBeTruthy()
-
-    const context = await browser.newContext({
-        extraHTTPHeaders: {
-            'x-forwarded-host': 'peanut.me',
-            'x-peanut-split-edge-marker': contentMarker!,
-        },
-    })
+    const context = await browser.newContext({ extraHTTPHeaders: { 'x-forwarded-host': 'peanutsplit.com' } })
     const page = await context.newPage()
     reportBrowserFailures(page)
     await instrumentRegistration(page)
 
-    const response = await page.goto(`${contentOrigin}/en/split/guides/split-a-group-trip-across-countries`, {
+    const response = await page.goto(`${contentOrigin}/guides/split-a-group-trip-across-countries`, {
         waitUntil: 'networkidle',
     })
     expect(response?.status()).toBe(200)

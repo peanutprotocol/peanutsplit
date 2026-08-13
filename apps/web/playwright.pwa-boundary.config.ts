@@ -16,8 +16,6 @@ export default defineConfig({
     use: {
         browserName: 'chromium',
         ignoreHTTPSErrors: true,
-        // A real run receives the raw edge marker as a request header. Never persist it in a
-        // Playwright trace, even on failure; the assertions and console diagnostics are enough.
         trace: 'off',
     },
     metadata: { productOrigin, contentOrigin },

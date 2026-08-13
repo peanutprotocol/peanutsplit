@@ -5,8 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { SplitGuideLayout } from '@/components/split-content/GuideLayout'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
 import { getSplitGuide, splitGuidePaths } from './artifact'
-import { splitGuideMetadataFor, splitGuideMetadataForHeaders, splitGuideStaticParams } from './route'
-import { SPLIT_CONTENT_INDEX_RENDER_HEADER, SPLIT_EDGE_INDEX_RELEASED_HEADER } from './transport'
+import { splitGuideMetadataFor, splitGuideStaticParams } from './route'
 
 const FIXTURE = path.join(process.cwd(), 'src/lib/split-content/__fixtures__/valid')
 
@@ -18,34 +17,24 @@ describe('Split guide route contract', () => {
         expect(splitGuideStaticParams('en', path.join(FIXTURE, 'absent'))).toEqual([])
     })
 
-    it('derives canonical and reciprocal language metadata from the public route', async () => {
-        const metadata = await splitGuideMetadataFor('pt-br', 'synthetic-guide', FIXTURE, false)
+    it('derives canonical metadata from the public route and stays noindex while the gate is shut', async () => {
+        const metadata = await splitGuideMetadataFor('pt-br', 'synthetic-guide', FIXTURE)
         expect(metadata.title).toBe('Guia sintética em português | Peanut')
         expect(metadata.alternates).toEqual({
-            canonical: 'https://peanut.me/pt-br/split/guides/synthetic-guide',
-            languages: {
-                en: 'https://peanut.me/en/split/guides/synthetic-guide',
-                'es-419': 'https://peanut.me/es-419/split/guides/synthetic-guide',
-                'pt-BR': 'https://peanut.me/pt-br/split/guides/synthetic-guide',
-                'x-default': 'https://peanut.me/en/split/guides/synthetic-guide',
-            },
+            canonical: 'https://peanutsplit.com/pt-br/guides/synthetic-guide',
+            languages: undefined,
         })
         expect(metadata.robots).toMatchObject({ index: false, follow: false, noarchive: true })
-        expect(await splitGuideMetadataFor('en', 'unknown-guide', FIXTURE, false)).toEqual({})
+        expect(await splitGuideMetadataFor('en', 'unknown-guide', FIXTURE)).toEqual({})
     })
 
-    it('keeps metadata noindex and omits unreleased alternates despite a caller or edge index bit', async () => {
-        for (const requestHeaders of [
-            new Headers({ [SPLIT_EDGE_INDEX_RELEASED_HEADER]: '1' }),
-            new Headers({ [SPLIT_CONTENT_INDEX_RENDER_HEADER]: '1' }),
-        ]) {
-            const metadata = await splitGuideMetadataForHeaders('en', 'synthetic-guide', requestHeaders, FIXTURE)
-            expect(metadata.robots).toMatchObject({ index: false, follow: false, noarchive: true })
-            expect(metadata.alternates).toEqual({
-                canonical: 'https://peanut.me/en/split/guides/synthetic-guide',
-                languages: undefined,
-            })
-        }
+    it('omits every unreleased alternate rather than advertising a noindex translation', async () => {
+        const metadata = await splitGuideMetadataFor('en', 'synthetic-guide', FIXTURE)
+        expect(metadata.robots).toMatchObject({ index: false, follow: false, noarchive: true })
+        expect(metadata.alternates).toEqual({
+            canonical: 'https://peanutsplit.com/guides/synthetic-guide',
+            languages: undefined,
+        })
     })
 
     it('renders the layout-owned H1 and the canary CTA contract without product-relative links', async () => {
@@ -60,18 +49,24 @@ describe('Split guide route contract', () => {
         expect(html.match(/<h1\b/g)).toHaveLength(1)
         expect(html).toContain('Synthetic English guide</h1>')
         expect(html).toContain('Synthetic CTA compatibility proof.')
-        expect(html).toContain('href="https://split.peanut.me/new?locale=en&amp;utm_source=synthetic"')
+        expect(html).toContain('href="https://peanutsplit.com/new?locale=en&amp;utm_source=synthetic"')
         expect(html).not.toMatch(/href="\/new/)
-        expect(html).toContain('href="/en/split/guides/synthetic-guide"')
+        expect(html).toContain('href="/guides/synthetic-guide"')
     })
 
     it('pins three force-dynamic, no-fallback route adapters in source', () => {
-        for (const locale of ['en', 'es-419', 'pt-br']) {
-            const file = path.join(process.cwd(), `src/app/(split-content)/${locale}/split/guides/[slug]/page.tsx`)
-            const source = fs.readFileSync(file, 'utf8')
-            expect(source).toContain("export const dynamic = 'force-dynamic'")
-            expect(source).toContain('export const dynamicParams = false')
-            expect(source).toContain(`splitGuideRoute('${locale}')`)
+        const files = {
+            en: 'src/app/(split-content)/guides/[slug]/page.tsx',
+            'es-419': 'src/app/(split-content)/es-419/guides/[slug]/page.tsx',
+            'pt-br': 'src/app/(split-content)/pt-br/guides/[slug]/page.tsx',
+        } as const
+
+        for (const [locale, file] of Object.entries(files)) {
+            const source = fs.readFileSync(path.join(process.cwd(), file), 'utf8')
+            expect(source, file).toContain("export const dynamic = 'force-dynamic'")
+            expect(source, file).toContain('export const dynamicParams = false')
+            expect(source, file).toContain(`splitGuideRoute('${locale}')`)
         }
+        expect(fs.existsSync(path.join(process.cwd(), 'src/app/(split-content)/en'))).toBe(false)
     })
 })

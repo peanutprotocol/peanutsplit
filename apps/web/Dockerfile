@@ -21,12 +21,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Dokploy passes this as a Docker build arg (buildArgs in the app settings).
 ARG NEXT_PUBLIC_BASE_URL=https://peanutsplit.com
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
-# Deferred generated-content URL contract. It remains dark/fail-closed and must be
-# retargeted as one producer-to-renderer change before publication.
-ARG APP_ORIGIN=https://split.peanut.me
-ENV APP_ORIGIN=$APP_ORIGIN
-ARG CONTENT_ORIGIN=https://peanut.me
-ENV CONTENT_ORIGIN=$CONTENT_ORIGIN
 ARG NEXT_PUBLIC_SPLIT_V2_ENABLED
 # Receipt scanning is public from the 2026-08-05 release. Keep the ARG declared
 # so the existing Dokploy build setting remains accepted, but bake the release
@@ -51,10 +45,6 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-ARG APP_ORIGIN=https://split.peanut.me
-ENV APP_ORIGIN=$APP_ORIGIN
-ARG CONTENT_ORIGIN=https://peanut.me
-ENV CONTENT_ORIGIN=$CONTENT_ORIGIN
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
