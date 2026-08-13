@@ -1,4 +1,4 @@
-import { CANONICAL_HOST, CANONICAL_ORIGIN, LEGACY_ALIAS_HOST } from './domains'
+import { CANONICAL_HOST, CANONICAL_ORIGIN, isProductHost } from './domains'
 
 export interface CanonicalRedirect {
     target: string
@@ -19,10 +19,7 @@ export function canonicalRedirect(host: string, pathname: string, search: string
     if (PROBE_PATHS.has(pathname)) return null
 
     const requestedHost = bareHost(host)
-    const isAlias =
-        requestedHost === LEGACY_ALIAS_HOST ||
-        requestedHost === `www.${LEGACY_ALIAS_HOST}` ||
-        requestedHost === `www.${CANONICAL_HOST}`
+    const isAlias = isProductHost(requestedHost) && requestedHost !== CANONICAL_HOST
     if (!isAlias) return null
 
     return { target: `${CANONICAL_ORIGIN}${pathname}${search}`, status: 308 }

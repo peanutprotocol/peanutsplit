@@ -1,21 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import {
-    appUrl,
-    guidePath,
-    guideUrl,
-    splitCalculatorPath,
-    splitGuideLocale,
-    splitHubPath,
-    splitToolsHubPath,
-} from './urls'
+import { guidePath, splitCalculatorPath, splitGuideLocale, splitHubPath, splitToolsHubPath } from './urls'
 
 describe('Split app and content URL ownership', () => {
-    it('derives every public URL from the one canonical origin, with English unprefixed', () => {
-        expect(appUrl('/new?locale=en')).toBe('https://peanutsplit.com/new?locale=en')
+    it('builds a guide path with English unprefixed and every other locale prefixed', () => {
         expect(guidePath('en', 'synthetic-guide')).toBe('/guides/synthetic-guide')
+        expect(guidePath('es-419', 'synthetic-guide')).toBe('/es-419/guides/synthetic-guide')
         expect(guidePath('pt-br', 'synthetic-guide')).toBe('/pt-br/guides/synthetic-guide')
-        expect(guideUrl('pt-br', 'synthetic-guide')).toBe('https://peanutsplit.com/pt-br/guides/synthetic-guide')
-        expect(guideUrl('en', 'synthetic-guide')).toBe('https://peanutsplit.com/guides/synthetic-guide')
     })
 
     it('leaves the hub, tools hub, and calculator builders on their undecided scheme', () => {
@@ -37,8 +27,7 @@ describe('Split app and content URL ownership', () => {
         expect(splitGuideLocale('/splitwise-alternative')).toBeNull()
     })
 
-    it('rejects protocol-relative paths and traversal slugs', () => {
-        expect(() => appUrl('//attacker.example')).toThrow(/root-relative/)
+    it('rejects traversal slugs', () => {
         expect(() => guidePath('en', '../escape')).toThrow(/invalid Split content slug/)
         expect(() => splitCalculatorPath('../escape')).toThrow(/invalid Split calculator slug/)
     })

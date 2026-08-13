@@ -1,6 +1,6 @@
 import type { Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
-import { CANONICAL_ORIGIN } from '@/lib/domains'
+import { CANONICAL_ORIGIN, isProductHost } from '@/lib/domains'
 
 interface MdxNode {
     type?: unknown
@@ -133,8 +133,11 @@ function checkedGuideHref(href: string, locale: Locale, guidePaths: ReadonlySet<
  * allowlist came to reject eight of fifteen guides.
  *
  * What stays rejected: every non-http(s) scheme (`javascript:`, `data:`, `mailto:`), embedded
- * credentials, and any link back to the product origin — reaching `/new` is the CTA's job and only
- * the CTA's, so a guide cannot smuggle its own entry point past the CTA's stricter checks.
+ * credentials, and any link to a host that answers as the product — reaching `/new` is the CTA's
+ * job and only the CTA's, so a guide cannot smuggle its own entry point past the CTA's stricter
+ * checks. That test is by host, not by origin: `http://peanutsplit.com/new`,
+ * `https://www.peanutsplit.com/new` and the `split.peanut.me` alias all land on the same product,
+ * so all of them are the same bypass.
  */
 function checkedProseHref(href: string, locale: Locale, guidePaths: ReadonlySet<string>, node: MdxNode): void {
     let url: URL
@@ -150,7 +153,7 @@ function checkedProseHref(href: string, locale: Locale, guidePaths: ReadonlySet<
         policyError('Split MDX link must be an http(s) citation or a manifest-backed guide path', node)
     }
     if (url.username || url.password) policyError('Split MDX link must not carry credentials', node)
-    if (url.origin === CANONICAL_ORIGIN) policyError('Split MDX reaches the product through a CTA, not a link', node)
+    if (isProductHost(url.hostname)) policyError('Split MDX reaches the product through a CTA, not a link', node)
 }
 
 /**

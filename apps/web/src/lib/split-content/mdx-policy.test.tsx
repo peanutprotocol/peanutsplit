@@ -98,6 +98,12 @@ Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
         // Citations point outward. The product is reached through the CTA, which checks the path
         // and the locale parameter, so a link cannot become a second, unchecked entry point.
         ['product-absolute Markdown link', '[create](https://peanutsplit.com/new)', /through a CTA, not a link/],
+        // Each of these reaches the same product and each passed the old exact-origin test.
+        ['plain-http product link', '[create](http://peanutsplit.com/new)', /through a CTA, not a link/],
+        ['www product link', '[create](https://www.peanutsplit.com/new)', /through a CTA, not a link/],
+        ['alias-host product link', '[create](https://split.peanut.me/new)', /through a CTA, not a link/],
+        ['www alias product link', '[create](http://www.split.peanut.me/new)', /through a CTA, not a link/],
+        ['ported product link', '[create](https://peanutsplit.com:8443/new)', /through a CTA, not a link/],
         ['MDX expression', '{process.env.SECRET}', /may hold a comment and nothing else/],
         ['inline MDX expression', 'Copy with {process.env.SECRET} inside.', /may hold a comment and nothing else/],
         [
