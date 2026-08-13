@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "source_repository": "peanutprotocol/mono",
-  "source_commit": "c39955b732526a2da72756f762887391cc9ecf00",
+  "source_commit": "4429149f5f3e388f3fcc0fe86f92d12c37a6ddf7",
   "content_root": "split-content",
   "locales": [
     "en",
@@ -14,7 +14,7 @@
     "split-content/_system/context/messaging.md": "e1582ea6ca790cf21cfd88ac4bfdd4525aaa4f1b4687a1d2b2bbaff32e031509",
     "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.es-419.md": "8174f2df62c71b561e9c33a5c375e53bd47c6316f0ca442848ceccb754cd2dff",
     "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.md": "0870667aee7c31bfa013bcab3e6f499b07a67865a047aa1ecc16ee1e9ad04cb6",
-    "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.pt-br.md": "840bc9d427c8a095605c5cd70ab1f0c457a2f07f1f714966e2007d47e1408c88",
+    "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.pt-br.md": "810d07a571e8fb2bcd84fd5b3c21a363f8651accb99862434be1fb2058c8f99e",
     "split-content/_system/data/guides/someone-drops-out-of-a-group-trip.md": "de28e0663c5bc892f17be7baf5252daf73e7bb9a949ad0534d7836a6dff03b79",
     "split-content/_system/data/guides/split-a-group-trip-across-countries.es-419.md": "ddea10ce463d27eb60c416a2c1201c8e4a23c64717ed92aa31ecd4a96b695ece",
     "split-content/_system/data/guides/split-a-group-trip-across-countries.md": "2640479375455daae4816a5516de124edf875d9e74da0db5b17e4f9f46f26f19",
@@ -25,9 +25,9 @@
     "split-content/_system/data/guides/split-holiday-house-per-person-or-per-room.md": "bcb745ceb0eec05750e313ceaf612be143dc5fcec3b71b535e669cd3809ece36",
     "split-content/_system/data/guides/split-shared-house-bills.md": "5be075dca5f01157d4e00ef91a5e5cb68041db878a5ecda1f2a1eb8a3081b2dc",
     "split-content/_system/data/guides/split-shared-house-bills.pt-br.md": "d03a75f819ddce86c7eb4fb255088abf0c1112b8250d5882769bb51fb8e4d8de",
-    "split-content/_system/data/guides/splitwise-currency-conversion.md": "5216d63f76dceb351de8bd23bfdc3f83c5e3a91a3c197092e222a48d7c359f07",
+    "split-content/_system/data/guides/splitwise-currency-conversion.md": "6f97569e4911618e02bc9024d33d1e1b39680757e34dfc6005f5daeaf70133d7",
     "split-content/_system/data/guides/splitwise-vs-settle-up.md": "941c08faedea6fc1b3ff98236fd77e59e9860d84863f8a7374e25bce01205cc0",
-    "split-content/_system/data/guides/why-do-i-owe-someone-i-never-paid.md": "90dbd6036f4e95bd962202fb23b79888238527606e3ee69a577dac8fdb7ef20f",
+    "split-content/_system/data/guides/why-do-i-owe-someone-i-never-paid.md": "1feda7d04ce6cb4c0f867be3fee46323aa21bede2dfb3a80ffd69e8ee2fb6856",
     "split-content/_system/generation-templates/guide.md": "e1efd062facf7f139034a25e5fb82422140ed47a8be8b71fa48c6f58ba08b580",
     "split-content/_system/guidelines/components.md": "808b531a50bc39a953a8b2c759403116b3e60c85864eb51c8303b1d27c066dd4",
     "split-content/_system/guidelines/intent-taxonomy.md": "92264a407cbf4581428b8fa93da6200f6a209569b830dda32dd3cef72638994c",
@@ -86,7 +86,7 @@
       "public_path": "/pt-br/guides/ask-a-friend-to-pay-you-back",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/ask-a-friend-to-pay-you-back/pt-br.md",
-      "output_sha256": "e1c60d32ac1dc5426f04808c8cfbaa3feb747f2d8cbd53e228c6e37cf8377fe9",
+      "output_sha256": "4f98b38ab7d4dca19b73a634c61c50cf17f1c03fd780e93f91613eed6e87d32d",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.md",
@@ -298,7 +298,7 @@
       "public_path": "/guides/splitwise-currency-conversion",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/splitwise-currency-conversion/en.md",
-      "output_sha256": "ed89917fd1af55131cd8becfc25065e38f17b5c252504d506a1f37f00a5f0772",
+      "output_sha256": "59ce594ba72015d64d59b31aec902559ac4f6c896219017a016a338440e0f35c",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/splitwise-currency-conversion.md",
@@ -338,7 +338,7 @@
       "public_path": "/guides/why-do-i-owe-someone-i-never-paid",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/why-do-i-owe-someone-i-never-paid/en.md",
-      "output_sha256": "4d5e28b4f599dd3b3231c1d0f6841183a285ad705e544a4eb8e41887c5304bf4",
+      "output_sha256": "dd370a4ef7352bd11c08d6ffb41854c7911c33ca0c5a2cab088cb89d9bb05ab9",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/why-do-i-owe-someone-i-never-paid.md",

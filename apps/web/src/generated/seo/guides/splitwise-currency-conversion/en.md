@@ -149,7 +149,6 @@ settle-up, the button it has does the job.
 
 <CTA text="Start a split" subtitle="Set the room currency once and add the receipts as they arrive." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=splitwise-currency-conversion&utm_content=final-cta" variant="card" />
 
-<RelatedPages title="Related guides">
+<RelatedPages title="Related guide">
 <RelatedLink href="/guides/splitwise-vs-settle-up">Splitwise vs Settle Up</RelatedLink>
-<RelatedLink href="/guides/split-expenses-across-currencies">How to split expenses across currencies</RelatedLink>
 </RelatedPages>

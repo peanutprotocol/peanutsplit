@@ -117,5 +117,5 @@ there, and it does not present the list as the shortest one that could exist.
 <CTA text="Start a split" subtitle="See the expenses that produced the number." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=why-do-i-owe-someone-i-never-paid&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
-<RelatedLink href="/guides/split-expenses-across-currencies">How to split expenses across currencies</RelatedLink>
+<RelatedLink href="/guides/ask-a-friend-to-pay-you-back">How to ask a friend to pay you back</RelatedLink>
 </RelatedPages>
