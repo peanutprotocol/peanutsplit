@@ -3,8 +3,8 @@
   "source_repository": "peanutprotocol/mono",
   "source_branch": "main",
   "mirror_script_path": "scripts/split-content-mirror.mjs",
-  "mirror_script_git_blob": "8c525375d5ef4b93057f913be58103ab066303f9",
-  "mirror_script_sha256": "e87c73a612e8909c28e70665b28b49faedc1db6ed3e8a7168725489b05393101",
+  "mirror_script_git_blob": "24c75543be70e914ca38b22bafa189faab238e8e",
+  "mirror_script_sha256": "f213692e152751e286f9b4af89347043b82369682f7184c4dd39f46a766205fd",
   "destination_root": "apps/web/src/generated/seo",
   "artifact_branch": "automation/split-content-artifacts",
   "ci_workflow": "ci.yml"
