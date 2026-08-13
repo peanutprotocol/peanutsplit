@@ -9,7 +9,7 @@ date: 2026-07-28
 tags: [trips, currencies, getting paid back]
 claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, free-forever, no-app]
 cast: []
-canonical: https://peanut.me/en/split/guides/split-a-group-trip-across-countries
+canonical: https://peanutsplit.com/guides/split-a-group-trip-across-countries
 schema_types: [BlogPosting]
 alternates:
   en: split-content/published/guides/split-a-group-trip-across-countries/en.md
@@ -86,8 +86,8 @@ If everyone is together, the balance is small, and the whole trip used one curre
 the matter before anyone leaves. Split earns its place when receipts arrive over time, currencies
 differ, or people will settle later.
 
-<CTA text="Start a split" subtitle="Set up the room before the first shared expense." href="https://split.peanut.me/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=split-a-group-trip-across-countries&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Set up the room before the first shared expense." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=split-a-group-trip-across-countries&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
-<RelatedLink href="/en/split/guides/split-expenses-across-currencies">How to split expenses across currencies</RelatedLink>
+<RelatedLink href="/guides/split-expenses-across-currencies">How to split expenses across currencies</RelatedLink>
 </RelatedPages>

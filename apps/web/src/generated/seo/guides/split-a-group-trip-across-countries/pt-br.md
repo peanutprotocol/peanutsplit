@@ -9,7 +9,7 @@ date: 2026-07-28
 tags: [viagens, moedas, receber]
 claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, free-forever, no-app]
 cast: []
-canonical: https://peanut.me/pt-br/split/guides/split-a-group-trip-across-countries
+canonical: https://peanutsplit.com/pt-br/guides/split-a-group-trip-across-countries
 schema_types: [BlogPosting]
 alternates:
   en: split-content/published/guides/split-a-group-trip-across-countries/en.md
@@ -90,8 +90,8 @@ Num bate-volta em que todos ainda estão juntos e usam uma só moeda, o dinheiro
 antes da volta. O Split ajuda quando a viagem passa por outros países, os recibos chegam em momentos
 diferentes ou o grupo vai acertar depois.
 
-<CTA text="Criar um split" subtitle="Comece o rateio antes da primeira despesa." href="https://split.peanut.me/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=split-a-group-trip-across-countries&utm_content=final-cta" variant="card" />
+<CTA text="Criar um split" subtitle="Comece o rateio antes da primeira despesa." href="https://peanutsplit.com/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=split-a-group-trip-across-countries&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Guia relacionado">
-<RelatedLink href="/pt-br/split/guides/split-expenses-across-currencies">Como dividir despesas em várias moedas</RelatedLink>
+<RelatedLink href="/pt-br/guides/split-expenses-across-currencies">Como dividir despesas em várias moedas</RelatedLink>
 </RelatedPages>

@@ -9,7 +9,7 @@ date: 2026-07-26
 tags: [moedas, viagens]
 claims: [automatic-currency-conversion, free-forever]
 cast: []
-canonical: https://peanut.me/pt-br/split/guides/split-expenses-across-currencies
+canonical: https://peanutsplit.com/pt-br/guides/split-expenses-across-currencies
 schema_types: [BlogPosting]
 alternates:
   en: split-content/published/guides/split-expenses-across-currencies/en.md
@@ -83,8 +83,8 @@ Se uma equipe precisa ligar cada recibo a um centro de custo e entregar tudo par
 uma planilha é a melhor ferramenta. Uma sala do Split ajuda a dividir despesas entre pessoas quando
 elas chegam em vários dias e todo mundo precisa conferir o mesmo registro.
 
-<CTA text="Criar um split" subtitle="Leve o rateio para fora da calculadora e do WhatsApp." href="https://split.peanut.me/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
+<CTA text="Criar um split" subtitle="Leve o rateio para fora da calculadora e do WhatsApp." href="https://peanutsplit.com/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Guia relacionado">
-<RelatedLink href="/pt-br/split/guides/split-a-group-trip-across-countries">Como dividir despesas de viagem entre países</RelatedLink>
+<RelatedLink href="/pt-br/guides/split-a-group-trip-across-countries">Como dividir despesas de viagem entre países</RelatedLink>
 </RelatedPages>
