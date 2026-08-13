@@ -231,6 +231,24 @@ test('a released guide links home, its own hub and every released sibling in its
     ])
 })
 
+test('the bare /guides section root retires to the hub while every guide URL stays put', async ({ request }) => {
+    for (const [from, to] of [
+        ['/guides', '/blog'],
+        ['/es-419/guides', '/es-419/blog'],
+        ['/pt-br/guides', '/pt-br/blog'],
+    ] as const) {
+        const response = await request.get(from, { maxRedirects: 0 })
+        expect(response.status(), from).toBe(308)
+        expect(response.headers()['location'], from).toBe(to)
+    }
+
+    // The half that matters more: a wildcard source would move all nine indexed URLs off themselves.
+    for (const path of RELEASED_GUIDE_PATHS) {
+        const response = await request.get(path, { maxRedirects: 0 })
+        expect(response.status(), path).toBe(200)
+    }
+})
+
 test('an installed app never strands an old root launcher at the marketing page', async ({ page }) => {
     await page.addInitScript(() => {
         Object.defineProperty(navigator, 'standalone', { configurable: true, value: true })

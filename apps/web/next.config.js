@@ -20,18 +20,27 @@ const nextConfig = {
     assetPrefix: SPLIT_ASSET_PREFIX,
 
     /**
-     * The Spanish pages shipped under `/es/…` before the locale codes carried a territory. They
-     * are `/es-419/…` now, and four indexed URLs would otherwise 404.
+     * Two retirements, neither of them locale detection: nothing here reads `Accept-Language` or a
+     * cookie, and no reader is ever moved off the language they asked for.
      *
-     * This is the ONE redirect the site has, and it is not locale detection: nothing here reads
-     * `Accept-Language` or a cookie, and no reader is ever moved off the language they asked for.
-     * It retires a path that moved, which is what a 308 is for. `/es` itself is not listed — it
-     * never resolved to anything, because the app shell answers at one URL in every language.
-     *
+     * `/es/…` — the Spanish pages shipped there before the locale codes carried a territory. They
+     * are `/es-419/…` now, and four indexed URLs would otherwise 404. `/es` itself is not listed:
+     * it never resolved to anything, because the app shell answers at one URL in every language.
      * Delete it once Search Console shows no impressions left on `/es/*`.
+     *
+     * `/guides` — the section root above nine indexed guide URLs, and a live 404. Google truncates
+     * a path to probe for its parent, so each of those URLs invites the probe. `/blog` is the one
+     * content hub in every language, so this retires a path that never resolved rather than
+     * building a second hub. The sources are exact strings on purpose: a `/guides/:path*` here
+     * would 308 all nine indexed guide URLs off themselves.
      */
     async redirects() {
-        return [{ source: '/es/:path*', destination: '/es-419/:path*', permanent: true }]
+        return [
+            { source: '/es/:path*', destination: '/es-419/:path*', permanent: true },
+            { source: '/guides', destination: '/blog', permanent: true },
+            { source: '/es-419/guides', destination: '/es-419/blog', permanent: true },
+            { source: '/pt-br/guides', destination: '/pt-br/blog', permanent: true },
+        ]
     },
 
     /**
