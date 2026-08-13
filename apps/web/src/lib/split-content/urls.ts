@@ -1,24 +1,18 @@
-import type { Locale } from '@/i18n/locales'
+import { localeFromPrefix, localizedPath } from '@/i18n/paths'
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales'
+import { CANONICAL_ORIGIN } from '@/lib/domains'
+import { absoluteUrl } from '@/lib/seo'
 
-const DEFAULT_APP_ORIGIN = 'https://split.peanut.me'
-const DEFAULT_CONTENT_ORIGIN = 'https://peanut.me'
+/**
+ * Split is standalone: app, PWA and generated content all answer on `peanutsplit.com`. There is no
+ * env seam between a product origin and a content origin, because there is no second host to point
+ * either half at — `CANONICAL_ORIGIN` is the single authority every other public URL already uses.
+ */
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-function configuredOrigin(name: 'APP_ORIGIN' | 'CONTENT_ORIGIN', fallback: string): string {
-    const raw = process.env[name] || fallback
-    let url: URL
-    try {
-        url = new URL(raw)
-    } catch {
-        throw new Error(`${name} must be an absolute HTTPS origin`)
-    }
-
-    if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
-        throw new Error(`${name} must be an absolute HTTPS origin with no path, credentials, query, or fragment`)
-    }
-    return url.origin
-}
+/** `/guides/<slug>` in English, `/<locale>/guides/<slug>` otherwise. */
+const GUIDE_PATH = /^(?:\/([a-z0-9-]+))?\/guides\/([a-z0-9]+(?:-[a-z0-9]+)*)$/
 
 function absoluteAt(origin: string, pathname: string): string {
     if (!pathname.startsWith('/') || pathname.startsWith('//')) {
@@ -27,29 +21,29 @@ function absoluteAt(origin: string, pathname: string): string {
     return `${origin}${pathname === '/' ? '' : pathname}`
 }
 
-export function appOrigin(): string {
-    return configuredOrigin('APP_ORIGIN', DEFAULT_APP_ORIGIN)
-}
-
-export function contentOrigin(): string {
-    return configuredOrigin('CONTENT_ORIGIN', DEFAULT_CONTENT_ORIGIN)
-}
-
 export function appUrl(pathname: string): string {
-    return absoluteAt(appOrigin(), pathname)
-}
-
-export function contentUrl(pathname: string): string {
-    return absoluteAt(contentOrigin(), pathname)
+    return absoluteAt(CANONICAL_ORIGIN, pathname)
 }
 
 export function guidePath(locale: Locale, slug: string): string {
     if (!SLUG.test(slug)) throw new Error(`invalid Split content slug: ${slug}`)
-    return `/${locale}/split/guides/${slug}`
+    return localizedPath(`/guides/${slug}`, locale)
 }
 
 export function guideUrl(locale: Locale, slug: string): string {
-    return contentUrl(guidePath(locale, slug))
+    return absoluteUrl(guidePath(locale, slug))
+}
+
+/**
+ * The inverse of `guidePath`: the locale a guide URL states, or null when the path is not one.
+ * The proxy uses it to decide which requests carry the content response headers.
+ */
+export function splitGuideLocale(pathname: string): Locale | null {
+    const match = GUIDE_PATH.exec(pathname)
+    if (!match) return null
+    const prefix = match[1]
+    if (prefix === undefined) return DEFAULT_LOCALE
+    return localeFromPrefix(prefix)
 }
 
 export function splitHubPath(locale: Locale): string {

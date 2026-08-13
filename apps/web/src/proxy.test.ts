@@ -1,54 +1,9 @@
-import { createHash } from 'node:crypto'
 import { NextRequest } from 'next/server'
-import { afterAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER } from '@/i18n/paths'
-import {
-    SPLIT_ASSET_PREFIX,
-    SPLIT_CONTENT_INDEX_RENDER_HEADER,
-    SPLIT_CONTENT_RENDER_HEADER,
-    SPLIT_DIAGNOSTIC_HEADERS,
-    SPLIT_EDGE_INDEX_RELEASED_HEADER,
-    SPLIT_EDGE_MARKER_HEADER,
-    SPLIT_MANIFEST_SHA256_HEADER,
-    SPLIT_SITEMAP_PATH,
-    type SplitTransportKind,
-} from '@/lib/split-content/transport'
-import { config, proxy, splitTransportResponse } from './proxy'
-
-const priorIndexable = process.env.SEO_INDEXABLE
-const MARKER = 'proxy-test-marker-with-at-least-thirty-two-characters'
-const MARKER_DIGEST = createHash('sha256').update(MARKER).digest('hex')
-const MANIFEST_DIGEST = createHash('sha256').update('proxy exact manifest bytes').digest('hex')
-
-function releaseHeaders(indexReleased: '0' | '1' = '0'): Record<string, string> {
-    return {
-        [SPLIT_EDGE_MARKER_HEADER]: MARKER,
-        [SPLIT_MANIFEST_SHA256_HEADER]: MANIFEST_DIGEST,
-        [SPLIT_EDGE_INDEX_RELEASED_HEADER]: indexReleased,
-    }
-}
-
-afterAll(() => {
-    if (priorIndexable === undefined) delete process.env.SEO_INDEXABLE
-    else process.env.SEO_INDEXABLE = priorIndexable
-})
-
-function expectSplitDiagnostics(
-    response: Response,
-    kind: SplitTransportKind,
-    markerValid: '0' | '1',
-    releaseValid: '0' | '1' = markerValid
-) {
-    expect(response.headers.get(SPLIT_DIAGNOSTIC_HEADERS.markerValid)).toBe(markerValid)
-    expect(response.headers.get(SPLIT_DIAGNOSTIC_HEADERS.releaseValid)).toBe(releaseValid)
-    for (const candidate of ['content', 'asset', 'sitemap'] as const) {
-        expect(response.headers.get(SPLIT_DIAGNOSTIC_HEADERS[candidate])).toBe(candidate === kind ? '1' : '0')
-    }
-    for (const header of Object.values(SPLIT_DIAGNOSTIC_HEADERS)) {
-        expect(response.headers.get(header)).toMatch(/^[01]$/)
-    }
-}
+import { SPLIT_ASSET_PREFIX } from '@/lib/domains'
+import { config, proxy } from './proxy'
 
 describe('proxy /new locale handoff', () => {
     it('matches identity-bearing files and APIs for alias canonicalisation', () => {
@@ -60,10 +15,18 @@ describe('proxy /new locale handoff', () => {
         expect(config.matcher).toContain('/icon.png')
         expect(config.matcher).toContain('/icons/:path*')
         expect(config.matcher).toContain('/api/:path*')
+        expect(config.matcher).toContain(`${SPLIT_ASSET_PREFIX}/:path*`)
+    })
+
+    it('no longer owns a /split namespace or a renderer-only sitemap route', () => {
+        expect(config.matcher).not.toContain('/split/:path*')
+        expect(config.matcher).not.toContain('/:locale/split/:path*')
+        expect(config.matcher).not.toContain('/split-sitemap.xml/:path*')
+        expect(config.matcher.join('\n')).not.toContain('split-sitemap')
     })
 
     it('redirects the former host before any app or content handling', () => {
-        for (const path of ['/app', '/r/trip-abc123', '/en/split/guides/synthetic-guide']) {
+        for (const path of ['/app', '/r/trip-abc123', '/guides/synthetic-guide']) {
             const response = proxy(
                 new NextRequest(`https://renderer.internal${path}?from=chat`, {
                     headers: { 'x-forwarded-host': 'split.peanut.me' },
@@ -77,22 +40,18 @@ describe('proxy /new locale handoff', () => {
     it('passes canonical APIs through without rewriting request headers', () => {
         const response = proxy(
             new NextRequest('https://renderer.internal/api/rooms', {
-                headers: {
-                    'x-forwarded-host': 'peanutsplit.com',
-                    cookie: 'ps-locale=pt-br',
-                    [SPLIT_EDGE_MARKER_HEADER]: 'caller-owned-api-value',
-                },
+                headers: { 'x-forwarded-host': 'peanutsplit.com', cookie: 'ps-locale=pt-br' },
             })
         )
 
         expect(response.status).toBe(200)
         expect(response.headers.get('location')).toBeNull()
-        expect(response.headers.get(`x-middleware-request-${SPLIT_EDGE_MARKER_HEADER}`)).toBeNull()
+        expect(response.headers.get(`x-middleware-request-${LOCALE_HEADER}`)).toBeNull()
     })
 
     it('sets first-paint locale context and persists it without redirecting or dropping query parameters', () => {
         const request = new NextRequest(
-            'http://localhost/new?locale=pt-br&utm_source=peanut.me&utm_campaign=split-content'
+            'http://localhost/new?locale=pt-br&utm_source=peanutsplit.com&utm_campaign=split-content'
         )
 
         const response = proxy(request)
@@ -104,7 +63,7 @@ describe('proxy /new locale handoff', () => {
         expect(response.headers.get('set-cookie')).toContain(`Max-Age=${LOCALE_COOKIE_MAX_AGE_SECONDS}`)
         expect(response.headers.get('set-cookie')).toContain('Path=/')
         expect(response.headers.get('set-cookie')).toContain('SameSite=lax')
-        expect(request.nextUrl.search).toBe('?locale=pt-br&utm_source=peanut.me&utm_campaign=split-content')
+        expect(request.nextUrl.search).toBe('?locale=pt-br&utm_source=peanutsplit.com&utm_campaign=split-content')
     })
 
     it('leaves invalid and absent handoffs on the existing cookie-decided path', () => {
@@ -117,259 +76,51 @@ describe('proxy /new locale handoff', () => {
     })
 })
 
-describe('proxy Split content transport boundary', () => {
-    it('keeps the committed verifier disabled even when a caller supplies a plausible raw marker', () => {
-        const response = proxy(
-            new NextRequest('https://renderer.internal/en/split/guides/synthetic-guide', {
-                headers: { [SPLIT_EDGE_MARKER_HEADER]: MARKER },
-            })
-        )
+describe('proxy Split guide responses', () => {
+    it('renders a guide while the index kill switch keeps it out of every index and cache', () => {
+        for (const pathname of ['/guides/synthetic-guide', '/es-419/guides/synthetic-guide']) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
 
-        expect(response.status).toBe(404)
-        expectSplitDiagnostics(response, 'content', '0')
-    })
-
-    it('fails missing markers closed on the renderer transport', () => {
-        const response = splitTransportResponse(
-            new NextRequest('https://renderer.internal/en/split/guides/synthetic-guide', {
-                headers: { host: 'split.peanut.me', 'x-forwarded-host': 'split.peanut.me' },
-            }),
-            MARKER_DIGEST
-        )!
-
-        expect(response.status).toBe(404)
-        expect(response.headers.get('location')).toBeNull()
-        expect(response.headers.get('x-robots-tag')).toContain('noindex')
-        expectSplitDiagnostics(response, 'content', '0')
-    })
-
-    it('accepts a valid marker, strips credentials, and sets trusted locale/content state', () => {
-        const response = splitTransportResponse(
-            new NextRequest('https://renderer.internal/pt-br/split/guides/synthetic-guide', {
-                headers: {
-                    host: 'split.peanut.me',
-                    'x-forwarded-host': 'peanut.me',
-                    cookie: 'private=value',
-                    authorization: 'Bearer private',
-                    ...releaseHeaders(),
-                    [SPLIT_CONTENT_RENDER_HEADER]: 'caller-controlled',
-                    [SPLIT_CONTENT_INDEX_RENDER_HEADER]: 'caller-controlled',
-                },
-            }),
-            MARKER_DIGEST,
-            MANIFEST_DIGEST
-        )!
-
-        expect(response.status).toBe(200)
-        expect(response.headers.get('location')).toBeNull()
-        expect(response.headers.get(SPLIT_DIAGNOSTIC_HEADERS.cookiePresent)).toBe('1')
-        expect(response.headers.get(SPLIT_DIAGNOSTIC_HEADERS.authorizationPresent)).toBe('1')
-        expectSplitDiagnostics(response, 'content', '1')
-        expect(response.headers.get(`x-middleware-request-${LOCALE_HEADER}`)).toBe('pt-br')
-        expect(response.headers.get(`x-middleware-request-${SPLIT_CONTENT_RENDER_HEADER}`)).toBe('1')
-        expect(response.headers.get(`x-middleware-request-${SPLIT_CONTENT_INDEX_RENDER_HEADER}`)).toBe('0')
-        expect(response.headers.get('x-middleware-request-cookie')).toBeNull()
-        expect(response.headers.get('x-middleware-request-authorization')).toBeNull()
-        expect(response.headers.get(`x-middleware-request-${SPLIT_EDGE_MARKER_HEADER}`)).toBeNull()
-        expect(response.headers.get(`x-middleware-request-${SPLIT_MANIFEST_SHA256_HEADER}`)).toBeNull()
-        expect(response.headers.get(`x-middleware-request-${SPLIT_EDGE_INDEX_RELEASED_HEADER}`)).toBeNull()
-        expect([...response.headers].flat().join('\n')).not.toContain(MARKER)
-        expect([...response.headers].flat().join('\n')).not.toContain(MANIFEST_DIGEST)
-    })
-
-    it('fails every owned marked route closed when the manifest or index attestation is missing or malformed', () => {
-        const routes: Array<[SplitTransportKind, string]> = [
-            ['content', '/en/split/guides/synthetic-guide'],
-            ['asset', `${SPLIT_ASSET_PREFIX}/_next/static/chunks/app.js`],
-            ['sitemap', SPLIT_SITEMAP_PATH],
-        ]
-        const invalidHeaders = [
-            { ...releaseHeaders(), [SPLIT_MANIFEST_SHA256_HEADER]: '' },
-            {
-                ...releaseHeaders(),
-                [SPLIT_MANIFEST_SHA256_HEADER]: createHash('sha256').update('wrong manifest').digest('hex'),
-            },
-            { ...releaseHeaders(), [SPLIT_MANIFEST_SHA256_HEADER]: MANIFEST_DIGEST.toUpperCase() },
-            { ...releaseHeaders(), [SPLIT_EDGE_INDEX_RELEASED_HEADER]: '' },
-            { ...releaseHeaders(), [SPLIT_EDGE_INDEX_RELEASED_HEADER]: 'true' },
-            { ...releaseHeaders(), [SPLIT_EDGE_INDEX_RELEASED_HEADER]: '1,0' },
-        ]
-
-        for (const [kind, pathname] of routes) {
-            for (const headers of invalidHeaders) {
-                const response = splitTransportResponse(
-                    new NextRequest(`https://renderer.internal${pathname}`, { headers }),
-                    MARKER_DIGEST,
-                    MANIFEST_DIGEST
-                )!
-                expect(response.status, `${kind} ${JSON.stringify(headers)}`).toBe(404)
-                expectSplitDiagnostics(response, kind, '1', '0')
-                expect(response.headers.get('x-robots-tag')).toContain('noindex')
-                const serialized = [...response.headers].flat().join('\n')
-                expect(serialized).not.toContain(MARKER)
-                expect(serialized).not.toContain(MANIFEST_DIGEST)
-            }
-        }
-    })
-
-    it('fails closed without throwing when the deployed manifest digest is missing or invalid', () => {
-        for (const expectedManifestDigest of [
-            null,
-            '',
-            'not-a-digest',
-            MANIFEST_DIGEST.toUpperCase(),
-            '0'.repeat(64),
-        ]) {
-            const response = splitTransportResponse(
-                new NextRequest('https://renderer.internal/en/split/guides/synthetic-guide', {
-                    headers: releaseHeaders(),
-                }),
-                MARKER_DIGEST,
-                expectedManifestDigest
-            )!
-
-            expect(response.status, String(expectedManifestDigest)).toBe(404)
-            expectSplitDiagnostics(response, 'content', '1', '0')
-            expect(response.headers.get(SPLIT_DIAGNOSTIC_HEADERS.manifestValid)).toBe('0')
-            expect(response.headers.get('x-robots-tag')).toContain('noindex')
-        }
-    })
-
-    it('forwards an exact edge index bit only as trusted internal state while the source gate stays dark', () => {
-        const response = splitTransportResponse(
-            new NextRequest('https://renderer.internal/en/split/guides/synthetic-guide', {
-                headers: releaseHeaders('1'),
-            }),
-            MARKER_DIGEST,
-            MANIFEST_DIGEST
-        )!
-
-        expect(response.status).toBe(200)
-        expectSplitDiagnostics(response, 'content', '1')
-        expect(response.headers.get(SPLIT_DIAGNOSTIC_HEADERS.indexReleased)).toBe('1')
-        expect(response.headers.get(`x-middleware-request-${SPLIT_CONTENT_INDEX_RENDER_HEADER}`)).toBe('1')
-        expect(response.headers.get(`x-middleware-request-${SPLIT_EDGE_INDEX_RELEASED_HEADER}`)).toBeNull()
-        expect(response.headers.get('x-robots-tag')).toContain('noindex')
-    })
-
-    it('reserves missing locales and every unknown Split subtree as true 404', () => {
-        for (const pathname of [
-            '/split',
-            '/en/split',
-            '/fr/split/guides/synthetic-guide',
-            '/en/split/unknown',
-            '/split-sitemap.xml/extra',
-        ]) {
-            const response = splitTransportResponse(
-                new NextRequest(`https://renderer.internal${pathname}`, {
-                    headers: { host: 'split.peanut.me', ...releaseHeaders() },
-                }),
-                MARKER_DIGEST,
-                MANIFEST_DIGEST
-            )!
-            expect(response.status, pathname).toBe(404)
+            expect(response.status, pathname).toBe(200)
             expect(response.headers.get('location'), pathname).toBeNull()
+            expect(response.headers.get('x-robots-tag'), pathname).toBe('noindex, nofollow, noarchive')
+            expect(response.headers.get('cache-control'), pathname).toBe('private, no-store')
         }
     })
 
-    it('protects the sitemap and method boundary with the same fail-closed contract', () => {
-        const missing = splitTransportResponse(
-            new NextRequest(`https://renderer.internal${SPLIT_SITEMAP_PATH}`),
-            MARKER_DIGEST
-        )!
-        const valid = splitTransportResponse(
-            new NextRequest(`https://renderer.internal${SPLIT_SITEMAP_PATH}`, {
-                headers: releaseHeaders(),
-            }),
-            MARKER_DIGEST,
-            MANIFEST_DIGEST
-        )!
-        const post = splitTransportResponse(
-            new NextRequest('https://renderer.internal/en/split/guides/synthetic-guide', {
-                method: 'POST',
-                headers: releaseHeaders(),
-            }),
-            MARKER_DIGEST,
-            MANIFEST_DIGEST
-        )!
+    it('states each guide locale from the path, English included', () => {
+        const cases = [
+            ['/guides/synthetic-guide', 'en'],
+            ['/es-419/guides/synthetic-guide', 'es-419'],
+            ['/pt-br/guides/synthetic-guide', 'pt-br'],
+        ] as const
 
-        expect(missing.status).toBe(404)
-        expectSplitDiagnostics(missing, 'sitemap', '0')
-        expect(valid.status).toBe(200)
-        expectSplitDiagnostics(valid, 'sitemap', '1')
-        expect(post.status).toBe(405)
-        expect(post.headers.get('allow')).toBe('GET, HEAD')
+        for (const [pathname, locale] of cases) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+            expect(response.headers.get(`x-middleware-request-${LOCALE_HEADER}`), pathname).toBe(locale)
+        }
     })
 
-    it('keeps markerless product chunks public but rejects an explicitly invalid asset marker', () => {
-        const pathname = `${SPLIT_ASSET_PREFIX}/_next/static/chunks/app.js`
-        const direct = splitTransportResponse(
-            new NextRequest(`https://renderer.internal${pathname}`, {
-                headers: {
-                    cookie: 'product-cookie=value',
-                    authorization: 'Bearer product-token',
-                    [SPLIT_MANIFEST_SHA256_HEADER]: 'caller-controlled',
-                    [SPLIT_EDGE_INDEX_RELEASED_HEADER]: '1',
-                    [SPLIT_CONTENT_INDEX_RENDER_HEADER]: '1',
-                },
-            }),
-            MARKER_DIGEST,
-            MANIFEST_DIGEST
-        )!
-        const invalid = splitTransportResponse(
-            new NextRequest(`https://renderer.internal${pathname}`, {
-                headers: { ...releaseHeaders(), [SPLIT_EDGE_MARKER_HEADER]: `${MARKER}-wrong` },
-            }),
-            MARKER_DIGEST,
-            MANIFEST_DIGEST
-        )!
-        const valid = splitTransportResponse(
-            new NextRequest(`https://renderer.internal${pathname}`, {
-                headers: releaseHeaders(),
-            }),
-            MARKER_DIGEST,
-            MANIFEST_DIGEST
-        )!
+    it('drops a caller-supplied locale header on every route rather than trusting it', () => {
+        for (const pathname of ['/app', '/guides/synthetic-guide']) {
+            const response = proxy(
+                new NextRequest(`https://renderer.internal${pathname}`, {
+                    headers: { [LOCALE_HEADER]: 'pt-br', cookie: 'product-cookie=value' },
+                })
+            )
 
-        expect(direct.status).toBe(200)
-        expect(direct.headers.get(SPLIT_DIAGNOSTIC_HEADERS.markerValid)).toBeNull()
-        expect(direct.headers.get('x-middleware-request-cookie')).toBe('product-cookie=value')
-        expect(direct.headers.get('x-middleware-request-authorization')).toBe('Bearer product-token')
-        expect(direct.headers.get(`x-middleware-request-${SPLIT_MANIFEST_SHA256_HEADER}`)).toBeNull()
-        expect(direct.headers.get(`x-middleware-request-${SPLIT_EDGE_INDEX_RELEASED_HEADER}`)).toBeNull()
-        expect(direct.headers.get(`x-middleware-request-${SPLIT_CONTENT_INDEX_RENDER_HEADER}`)).toBeNull()
-        expect(invalid.status).toBe(404)
-        expectSplitDiagnostics(invalid, 'asset', '0')
-        expect(valid.status).toBe(200)
-        expectSplitDiagnostics(valid, 'asset', '1')
+            // `/app` is cookie-localized, so nothing may set the header there at all.
+            const forwarded = response.headers.get(`x-middleware-request-${LOCALE_HEADER}`)
+            expect(forwarded, pathname).toBe(pathname === '/app' ? null : 'en')
+            expect(response.headers.get('x-middleware-request-cookie'), pathname).toBe('product-cookie=value')
+        }
     })
 
-    it('globally scrubs caller release and internal controls from unrelated React routes', () => {
-        const response = proxy(
-            new NextRequest('https://renderer.internal/app', {
-                headers: {
-                    cookie: 'product-cookie=value',
-                    authorization: 'Bearer product-token',
-                    ...releaseHeaders('1'),
-                    [SPLIT_CONTENT_RENDER_HEADER]: '1',
-                    [SPLIT_CONTENT_INDEX_RENDER_HEADER]: '1',
-                    [SPLIT_DIAGNOSTIC_HEADERS.releaseValid]: '1',
-                },
-            })
-        )
-
-        expect(response.status).toBe(200)
-        expect(response.headers.get('x-middleware-request-cookie')).toBe('product-cookie=value')
-        expect(response.headers.get('x-middleware-request-authorization')).toBe('Bearer product-token')
-        for (const header of [
-            SPLIT_EDGE_MARKER_HEADER,
-            SPLIT_MANIFEST_SHA256_HEADER,
-            SPLIT_EDGE_INDEX_RELEASED_HEADER,
-            SPLIT_CONTENT_RENDER_HEADER,
-            SPLIT_CONTENT_INDEX_RENDER_HEADER,
-            ...Object.values(SPLIT_DIAGNOSTIC_HEADERS),
-        ]) {
-            expect(response.headers.get(`x-middleware-request-${header}`), header).toBeNull()
+    it('no longer 404s the retired /split namespace in the proxy', () => {
+        for (const pathname of ['/split', '/split/anything', '/en/split/guides/synthetic-guide']) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+            expect(response.status, pathname).toBe(200)
+            expect(response.headers.get('x-robots-tag'), pathname).toBeNull()
         }
     })
 })

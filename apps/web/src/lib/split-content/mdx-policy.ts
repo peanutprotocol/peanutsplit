@@ -1,5 +1,6 @@
 import type { Locale } from '@/i18n/locales'
-import { appOrigin } from './urls'
+import { localizedPath } from '@/i18n/paths'
+import { CANONICAL_ORIGIN } from '@/lib/domains'
 
 interface MdxNode {
     type?: unknown
@@ -83,7 +84,7 @@ function checkedGuideHref(href: string, locale: Locale, guidePaths: ReadonlySet<
     if (!href.startsWith('/') || href.startsWith('//') || !guidePaths.has(href)) {
         policyError('Split MDX link must target a manifest-backed guide path', node)
     }
-    if (!href.startsWith(`/${locale}/split/guides/`)) {
+    if (!href.startsWith(localizedPath('/guides/', locale))) {
         policyError('Split MDX link must stay in the current guide locale', node)
     }
 }
@@ -97,7 +98,7 @@ function checkedCtaHref(href: string, locale: Locale, node: MdxNode): void {
     }
 
     if (
-        url.origin !== appOrigin() ||
+        url.origin !== CANONICAL_ORIGIN ||
         url.pathname !== '/new' ||
         url.username ||
         url.password ||
@@ -105,7 +106,7 @@ function checkedCtaHref(href: string, locale: Locale, node: MdxNode): void {
         url.searchParams.getAll('locale').length !== 1 ||
         url.searchParams.get('locale') !== locale
     ) {
-        policyError('Split MDX CTA must point to APP_ORIGIN/new in the guide locale', node)
+        policyError('Split MDX CTA must point to the canonical /new in the guide locale', node)
     }
 }
 

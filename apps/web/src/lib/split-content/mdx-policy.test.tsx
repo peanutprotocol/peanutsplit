@@ -17,7 +17,7 @@ describe('Split V1 MDX AST policy', () => {
         const html = await render(`
 ## Safe heading
 
-Plain **strong** copy and a [manifest sibling](/en/split/guides/synthetic-guide).
+Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
 
 - One safe list item.
 
@@ -29,17 +29,17 @@ Plain **strong** copy and a [manifest sibling](/en/split/guides/synthetic-guide)
 **Safe callout.** Literal content only.
 </Callout>
 
-<CTA text="Start a split" subtitle="Safe subtitle." href="https://split.peanut.me/new?locale=en" variant="card" />
+<CTA text="Start a split" subtitle="Safe subtitle." href="https://peanutsplit.com/new?locale=en" variant="card" />
 
 <RelatedPages title="Related guide">
-<RelatedLink href="/en/split/guides/synthetic-guide">Synthetic guide</RelatedLink>
+<RelatedLink href="/guides/synthetic-guide">Synthetic guide</RelatedLink>
 </RelatedPages>
 `)
 
         expect(html).toContain('Safe heading')
         expect(html).toContain('Safe callout.')
-        expect(html).toContain('https://split.peanut.me/new?locale=en')
-        expect(html).toContain('/en/split/guides/synthetic-guide')
+        expect(html).toContain('https://peanutsplit.com/new?locale=en')
+        expect(html).toContain('/guides/synthetic-guide')
     })
 
     it.each([
@@ -58,23 +58,19 @@ Plain **strong** copy and a [manifest sibling](/en/split/guides/synthetic-guide)
         ['unknown component attribute', '<Callout type="info" title="No">copy</Callout>', /must have exactly: type/],
         [
             'non-string expression attribute',
-            '<CTA text={"Start"} subtitle="No" href="https://split.peanut.me/new?locale=en" variant="card" />',
+            '<CTA text={"Start"} subtitle="No" href="https://peanutsplit.com/new?locale=en" variant="card" />',
             /only literal string attributes/,
         ],
-        ['wrong-locale Markdown link', '[Spanish](/es-419/split/guides/synthetic-guide)', /current guide locale/],
-        [
-            'unknown same-locale Markdown link',
-            '[Unknown](/en/split/guides/not-in-manifest)',
-            /manifest-backed guide path/,
-        ],
+        ['wrong-locale Markdown link', '[Spanish](/es-419/guides/synthetic-guide)', /current guide locale/],
+        ['unknown same-locale Markdown link', '[Unknown](/guides/not-in-manifest)', /manifest-backed guide path/],
         [
             'wrong-locale RelatedLink',
-            '<RelatedPages title="Related"><RelatedLink href="/pt-br/split/guides/synthetic-guide">No</RelatedLink></RelatedPages>',
+            '<RelatedPages title="Related"><RelatedLink href="/pt-br/guides/synthetic-guide">No</RelatedLink></RelatedPages>',
             /current guide locale/,
         ],
         [
             'unknown RelatedLink',
-            '<RelatedPages title="Related"><RelatedLink href="/en/split/guides/not-in-manifest">No</RelatedLink></RelatedPages>',
+            '<RelatedPages title="Related"><RelatedLink href="/guides/not-in-manifest">No</RelatedLink></RelatedPages>',
             /manifest-backed guide path/,
         ],
     ])('rejects %s', async (_name, body, message) => {

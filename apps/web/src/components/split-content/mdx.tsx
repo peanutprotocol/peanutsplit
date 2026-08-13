@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm'
 import { localizedMdxComponents } from '@/components/marketing/mdx/components'
 import { buttonClassName } from '@/components/ui/button-style'
 import type { Locale } from '@/i18n/locales'
-import { appOrigin } from '@/lib/split-content/urls'
+import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { remarkSplitMdxPolicy } from '@/lib/split-content/mdx-policy'
 
 const COLUMN = 'mx-auto w-full max-w-xl px-5'
@@ -16,8 +16,8 @@ function checkedProductHref(href: string): string {
     } catch {
         throw new Error('Split content CTA href must be an absolute product URL')
     }
-    if (url.origin !== appOrigin() || url.pathname !== '/new' || url.username || url.password) {
-        throw new Error('Split content CTA must point directly to APP_ORIGIN/new')
+    if (url.origin !== CANONICAL_ORIGIN || url.pathname !== '/new' || url.username || url.password) {
+        throw new Error('Split content CTA must point directly to the canonical /new')
     }
     return url.toString()
 }

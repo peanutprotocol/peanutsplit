@@ -6,8 +6,8 @@ export default function SplitContentNotFound() {
                 <p className="mt-3 text-sm leading-6 text-grey-1">
                     The link may be incomplete or the guide may have moved.
                 </p>
-                <a className="mt-5 inline-block underline underline-offset-2" href="https://peanut.me">
-                    Back to Peanut
+                <a className="mt-5 inline-block underline underline-offset-2" href="/">
+                    Back to Peanut Split
                 </a>
             </section>
         </main>

@@ -9,7 +9,7 @@ date: 2026-08-11
 tags: [sintético, contrato]
 claims: [synthetic-only]
 cast: []
-canonical: https://peanut.me/pt-br/split/guides/synthetic-guide
+canonical: https://peanutsplit.com/pt-br/guides/synthetic-guide
 schema_types: [BlogPosting]
 alternates:
     en: split-content/published/guides/synthetic-guide/en.md
@@ -37,8 +37,8 @@ Este conteúdo é sintético. Ele não é uma página editorial do Peanut Split.
 
 O layout da página é dono do único título principal.
 
-<CTA text="Criar um split" subtitle="Prova sintética de compatibilidade." href="https://split.peanut.me/new?locale=pt-br&utm_source=synthetic" variant="card" />
+<CTA text="Criar um split" subtitle="Prova sintética de compatibilidade." href="https://peanutsplit.com/new?locale=pt-br&utm_source=synthetic" variant="card" />
 
 <RelatedPages title="Páginas sintéticas relacionadas">
-<RelatedLink href="/pt-br/split/guides/synthetic-guide">Guia sintética em português</RelatedLink>
+<RelatedLink href="/pt-br/guides/synthetic-guide">Guia sintética em português</RelatedLink>
 </RelatedPages>

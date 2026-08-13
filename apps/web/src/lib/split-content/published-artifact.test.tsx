@@ -16,8 +16,8 @@ import {
     splitContentPaths,
     splitGuidePaths,
 } from './artifact'
+import { absoluteUrl } from '@/lib/seo'
 import { splitGuideMetadataFor, splitGuideStaticParams } from './route'
-import { contentUrl } from './urls'
 
 const configuredRoot = process.env.SPLIT_CONTENT_ARTIFACT_ROOT
 const artifactRoot = configuredRoot ? path.resolve(configuredRoot) : null
@@ -53,15 +53,16 @@ describe.runIf(artifactRoot)('installed generated Split artifact', () => {
             const guide = getSplitGuide(entry.locale, entry.slug, artifactRoot!)
             expect(guide, identity).not.toBeNull()
 
-            const metadata = await splitGuideMetadataFor(entry.locale, entry.slug, artifactRoot!, false)
+            const metadata = await splitGuideMetadataFor(entry.locale, entry.slug, artifactRoot!)
             const alternates = guideAlternates(entry.slug, artifactRoot!)
             expect(metadata.title, identity).toBe(`${guide!.title} | Peanut`)
             expect(metadata.description, identity).toBe(guide!.description)
+            // Every sibling resolves to a real manifest path, but none is advertised as an
+            // alternate while the index release registry is empty.
+            for (const href of Object.values(alternates ?? {})) expect(guidePaths, identity).toContain(href)
             expect(metadata.alternates, identity).toEqual({
-                canonical: contentUrl(entry.public_path),
-                languages: alternates
-                    ? Object.fromEntries(Object.entries(alternates).map(([locale, href]) => [locale, contentUrl(href)]))
-                    : undefined,
+                canonical: absoluteUrl(entry.public_path),
+                languages: undefined,
             })
             expect(metadata.robots, identity).toMatchObject({ index: false, follow: false, noarchive: true })
 
@@ -90,7 +91,7 @@ describe.runIf(artifactRoot)('installed generated Split artifact', () => {
             for (const slug of ['rent-split-calculator', 'mileage-split-calculator']) {
                 const calculator = getSplitCalculator(slug, artifactRoot!)
                 expect(calculator?.entry.public_path).toBe(`/en/split/tools/${slug}`)
-                expect(calculator?.payload.canonical).toBe(`https://peanut.me/en/split/tools/${slug}`)
+                expect(calculator?.payload.canonical).toBe(`https://peanutsplit.com/en/split/tools/${slug}`)
             }
         }
     })

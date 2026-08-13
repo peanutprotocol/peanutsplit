@@ -4,8 +4,9 @@ import path from 'node:path'
 import matter from 'gray-matter'
 import { z } from 'zod'
 import { HREFLANG, LOCALES, type Locale } from '@/i18n/locales'
+import { absoluteUrl } from '@/lib/seo'
 import { readSplitContentManifestBytes, SPLIT_CONTENT_GENERATED_ROOT as GENERATED_ROOT } from './manifest-attestation'
-import { contentUrl, guidePath, splitCalculatorPath, splitHubPath, splitToolsHubPath } from './urls'
+import { guidePath, splitCalculatorPath, splitHubPath, splitToolsHubPath } from './urls'
 
 const PUBLISHED_PREFIX = 'split-content/published/'
 const SHA256 = /^[a-f0-9]{64}$/
@@ -288,8 +289,6 @@ export class SplitContentArtifactError extends Error {
 
 const sha256 = (bytes: Buffer | string): string => createHash('sha256').update(bytes).digest('hex')
 const compareAscii = (left: string, right: string): number => (left < right ? -1 : left > right ? 1 : 0)
-
-export { splitContentManifestSha256 } from './manifest-attestation'
 
 function artifactError(message: string): never {
     throw new SplitContentArtifactError(message)
@@ -701,7 +700,7 @@ function validateStructuredPayload(
     if (payload.title.trim() !== payload.title || payload.description.trim() !== payload.description) {
         artifactError(`${label} title and description must be trimmed`)
     }
-    const expectedCanonical = `https://peanut.me${entry.public_path}`
+    const expectedCanonical = absoluteUrl(entry.public_path)
     if (payload.canonical !== expectedCanonical) artifactError(`${label} canonical must be ${expectedCanonical}`)
     assertDate(payload.generated_at, `${label}.generated_at`)
     assertUnique(payload.claims, `${label}.claims`)
@@ -884,8 +883,7 @@ function parseGuide(entry: SplitGuideManifestEntry, root: string, manifest?: Spl
     if (data.slug !== entry.slug || data.type !== 'guide' || data.lang !== entry.locale) {
         artifactError(`guide frontmatter disagrees with manifest identity: ${entry.output_path}`)
     }
-    const expectedCanonical =
-        manifest?.schema_version === 2 ? `https://peanut.me${entry.public_path}` : contentUrl(entry.public_path)
+    const expectedCanonical = absoluteUrl(entry.public_path)
     if (data.canonical !== expectedCanonical) {
         artifactError(`guide canonical disagrees with its derived public URL: ${entry.output_path}`)
     }

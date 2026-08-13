@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from 'next'
-import { contentOrigin } from './urls'
+import { CANONICAL_ORIGIN } from '@/lib/domains'
 
 /** Explicit nulls override Next's root special-file defaults on the content document. */
 export function splitContentRootMetadata(): Metadata {
     return {
-        metadataBase: new URL(contentOrigin()),
+        metadataBase: new URL(CANONICAL_ORIGIN),
         applicationName: null,
         appleWebApp: null,
         icons: null,

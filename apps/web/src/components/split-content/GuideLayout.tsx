@@ -3,8 +3,10 @@ import Link from 'next/link'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { HREFLANG, LOCALE_LABELS, LOCALES } from '@/i18n/locales'
 import type { SplitGuide } from '@/lib/split-content/artifact'
+import { CANONICAL_ORIGIN } from '@/lib/domains'
+import { absoluteUrl } from '@/lib/seo'
 import { splitGuideSchemas } from '@/lib/split-content/metadata'
-import { contentOrigin, contentUrl, guidePath } from '@/lib/split-content/urls'
+import { guidePath } from '@/lib/split-content/urls'
 
 const OTHER_LANGUAGES = {
     en: 'Other languages',
@@ -23,7 +25,7 @@ export function SplitGuideLayout({ guide, children }: { guide: SplitGuide; child
 
             <header className="border-b border-n-1 bg-primary-1">
                 <div className="mx-auto flex w-full max-w-xl items-center justify-between px-5 py-4">
-                    <a href={contentOrigin()} className="font-bold text-n-1 underline-offset-2 hover:underline">
+                    <a href={CANONICAL_ORIGIN} className="font-bold text-n-1 underline-offset-2 hover:underline">
                         Peanut
                     </a>
                     <span className="text-sm font-bold">Split</span>
@@ -62,7 +64,7 @@ export function SplitGuideLayout({ guide, children }: { guide: SplitGuide; child
 
             <footer className="border-t border-n-1 bg-white">
                 <div className="mx-auto w-full max-w-xl px-5 py-6 text-xs text-grey-1">
-                    <a href={contentUrl(guide.href)}>{guide.title}</a>
+                    <a href={absoluteUrl(guide.href)}>{guide.title}</a>
                 </div>
             </footer>
         </main>
