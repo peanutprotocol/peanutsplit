@@ -25,9 +25,18 @@ export const SPLIT_ASSET_PREFIX = '/split-static'
  */
 const PRODUCT_HOSTS = new Set([CANONICAL_HOST, `www.${CANONICAL_HOST}`, LEGACY_ALIAS_HOST, `www.${LEGACY_ALIAS_HOST}`])
 
-/** Accepts a raw request `Host` header or a parsed `URL.hostname`; the port and case do not count. */
+/**
+ * Accepts a raw request `Host` header or a parsed `URL.hostname`; the port, the case and a trailing
+ * root dot do not count.
+ *
+ * `peanutsplit.com.` is the fully qualified spelling of `peanutsplit.com` — same DNS name, same
+ * server, and `new URL()` keeps the dot in `hostname` rather than normalising it away. It also
+ * survives percent-encoding: `https://peanutsplit.com%2e/new` parses to the same host. Both forms
+ * reach the product, so both are the product. Only the single root dot is stripped: `…com..` is not
+ * a name anything resolves.
+ */
 export const isProductHost = (host: string): boolean =>
-    PRODUCT_HOSTS.has(host.trim().toLowerCase().replace(/:\d+$/, ''))
+    PRODUCT_HOSTS.has(host.trim().toLowerCase().replace(/:\d+$/, '').replace(/\.$/, ''))
 
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]'])
 

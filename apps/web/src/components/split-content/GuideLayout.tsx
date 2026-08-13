@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { JsonLd } from '@/components/marketing/JsonLd'
-import { HREFLANG, LOCALE_LABELS, LOCALES } from '@/i18n/locales'
+import { HREFLANG, LOCALE_LABELS, LOCALES, type Locale } from '@/i18n/locales'
 import type { SplitGuide } from '@/lib/split-content/artifact'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { absoluteUrl } from '@/lib/seo'
 import { splitGuideSchemas } from '@/lib/split-content/metadata'
-import { guidePath } from '@/lib/split-content/urls'
 
 const OTHER_LANGUAGES = {
     en: 'Other languages',
@@ -14,9 +13,41 @@ const OTHER_LANGUAGES = {
     'pt-br': 'Outros idiomas',
 } as const
 
-export function SplitGuideLayout({ guide, children }: { guide: SplitGuide; children: ReactNode }) {
+/**
+ * Links to the other languages of THIS guide — the ones that exist.
+ *
+ * `alternates` is `guideAlternates()`, so every href is a `public_path` the manifest lists rather
+ * than a path this component derived from the locale set. Nine of the fifteen guides ship in one
+ * locale only; building `guidePath(locale, slug)` for all three put two 404s on each of them.
+ *
+ * A locale that exists but is parked (permanently noindex) IS linked. Existence is the test, not
+ * indexability: a parked guide renders and answers 200, so the link works for the reader who wants
+ * it, and a crawler that follows it reads the page's own noindex and leaves. The crawl-facing
+ * signal is a separate layer — `releasedGuideAlternates` drops parked translations from hreflang,
+ * where advertising one really would misdirect. Filtering here would also make the markup depend on
+ * `SEO_INDEXABLE`, so a dark box would serve different HTML from the indexed one.
+ */
+function otherLanguageLinks(
+    guide: SplitGuide,
+    alternates: Record<string, string> | undefined
+): Array<{ locale: Locale; href: string }> {
+    return LOCALES.filter((locale) => locale !== guide.locale)
+        .map((locale) => ({ locale, href: alternates?.[HREFLANG[locale]] }))
+        .filter((link): link is { locale: Locale; href: string } => link.href !== undefined)
+}
+
+export function SplitGuideLayout({
+    guide,
+    alternates,
+    children,
+}: {
+    guide: SplitGuide
+    /** `guideAlternates(guide.slug)` — hreflang code to manifest `public_path`. */
+    alternates: Record<string, string> | undefined
+    children: ReactNode
+}) {
     const schemas = splitGuideSchemas(guide)
-    const otherLocales = LOCALES.filter((locale) => locale !== guide.locale)
+    const otherLanguages = otherLanguageLinks(guide, alternates)
 
     return (
         <main className="min-h-dvh bg-background text-n-1">
@@ -45,22 +76,24 @@ export function SplitGuideLayout({ guide, children }: { guide: SplitGuide; child
                 </div>
             </article>
 
-            <nav aria-label={OTHER_LANGUAGES[guide.locale]} className="mx-auto w-full max-w-xl px-5 pb-8 text-xs">
-                <span className="text-grey-1">{OTHER_LANGUAGES[guide.locale]}: </span>
-                {otherLocales.map((locale, index) => (
-                    <span key={locale}>
-                        {index > 0 && <span className="text-grey-1"> · </span>}
-                        <Link
-                            href={guidePath(locale, guide.slug)}
-                            hrefLang={HREFLANG[locale]}
-                            lang={HREFLANG[locale]}
-                            className="underline underline-offset-2"
-                        >
-                            {LOCALE_LABELS[locale]}
-                        </Link>
-                    </span>
-                ))}
-            </nav>
+            {otherLanguages.length > 0 && (
+                <nav aria-label={OTHER_LANGUAGES[guide.locale]} className="mx-auto w-full max-w-xl px-5 pb-8 text-xs">
+                    <span className="text-grey-1">{OTHER_LANGUAGES[guide.locale]}: </span>
+                    {otherLanguages.map(({ locale, href }, index) => (
+                        <span key={locale}>
+                            {index > 0 && <span className="text-grey-1"> · </span>}
+                            <Link
+                                href={href}
+                                hrefLang={HREFLANG[locale]}
+                                lang={HREFLANG[locale]}
+                                className="underline underline-offset-2"
+                            >
+                                {LOCALE_LABELS[locale]}
+                            </Link>
+                        </span>
+                    ))}
+                </nav>
+            )}
 
             <footer className="border-t border-n-1 bg-white">
                 <div className="mx-auto w-full max-w-xl px-5 py-6 text-xs text-grey-1">

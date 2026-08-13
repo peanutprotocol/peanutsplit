@@ -1,8 +1,10 @@
 import { NextRequest } from 'next/server'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER } from '@/i18n/paths'
 import { SPLIT_ASSET_PREFIX } from '@/lib/domains'
+import { splitGuidePaths } from '@/lib/split-content/artifact'
+import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from '@/lib/split-content/index-release'
 import { config, proxy } from './proxy'
 
 describe('proxy /new locale handoff', () => {
@@ -121,6 +123,72 @@ describe('proxy Split guide responses', () => {
             const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
             expect(response.status, pathname).toBe(200)
             expect(response.headers.get('x-robots-tag'), pathname).toBeNull()
+        }
+    })
+})
+
+/**
+ * The cases above run on `/guides/synthetic-guide`, which is a fixture slug and can never be in the
+ * release registry — so they only ever prove the parked half. These run the fifteen paths the
+ * installed artifact really serves, on a box that has claimed to be the indexed deployment.
+ *
+ * That is what makes a typo in the nine-path list visible: a mistyped entry releases nothing, so
+ * the real path keeps its noindex while the registry says it is out, and the split below stops
+ * matching.
+ */
+describe('proxy released and parked guide headers on the indexed deployment', () => {
+    const released: readonly string[] = SPLIT_CONTENT_INDEX_RELEASED_PATHS
+    const guidePaths = splitGuidePaths()
+    const parked = guidePaths.filter((publicPath) => !released.includes(publicPath))
+
+    afterEach(() => {
+        vi.unstubAllEnvs()
+    })
+
+    it('splits the installed cohort into the nine released and the six parked', () => {
+        expect(guidePaths).toHaveLength(15)
+        // Named one by one, so a typo in the registry fails on the path that does not exist rather
+        // than on an arithmetic mismatch.
+        for (const publicPath of released) expect(guidePaths, publicPath).toContain(publicPath)
+        expect(released).toHaveLength(9)
+        expect(parked).toHaveLength(6)
+    })
+
+    it('answers every released path without a noindex tag and without the private cache rule', () => {
+        vi.stubEnv('SEO_INDEXABLE', 'true')
+
+        for (const pathname of released) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+
+            expect(response.status, pathname).toBe(200)
+            expect(response.headers.get('location'), pathname).toBeNull()
+            expect(response.headers.get('x-robots-tag'), pathname).toBeNull()
+            expect(response.headers.get('cache-control'), pathname).toBeNull()
+        }
+    })
+
+    it('keeps every parked path noindex even once the deployment is the indexed one', () => {
+        vi.stubEnv('SEO_INDEXABLE', 'true')
+
+        for (const pathname of parked) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+
+            expect(response.status, pathname).toBe(200)
+            expect(response.headers.get('x-robots-tag'), pathname).toBe('noindex, nofollow, noarchive')
+            expect(response.headers.get('cache-control'), pathname).toBe('private, no-store')
+        }
+    })
+
+    it('keeps the whole cohort dark while the deployment has not claimed the flag', () => {
+        for (const runtimeValue of [undefined, 'false']) {
+            vi.stubEnv('SEO_INDEXABLE', runtimeValue)
+
+            for (const pathname of guidePaths) {
+                const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+                expect(response.headers.get('x-robots-tag'), `${runtimeValue} ${pathname}`).toBe(
+                    'noindex, nofollow, noarchive'
+                )
+            }
         }
     })
 })

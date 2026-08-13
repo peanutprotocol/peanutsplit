@@ -148,7 +148,11 @@ describe('installed generated Split artifact', () => {
             expect(metadata.robots, identity).toMatchObject({ index: false, follow: false, noarchive: true })
 
             const body = await renderSplitGuideBody(guide!.body, { locale: entry.locale, guidePaths })
-            const html = renderToStaticMarkup(<SplitGuideLayout guide={guide!}>{body}</SplitGuideLayout>)
+            const html = renderToStaticMarkup(
+                <SplitGuideLayout guide={guide!} alternates={alternates}>
+                    {body}
+                </SplitGuideLayout>
+            )
 
             expect(html.match(/<h1\b/g), identity).toHaveLength(1)
             expect(html, identity).toContain(`${guide!.title}</h1>`)
@@ -202,6 +206,54 @@ describe('installed generated Split artifact', () => {
             expect(html, identity).not.toContain('{/*')
         }
     )
+
+    /**
+     * Twelve dead links, on pages about to be crawlable: the layout used to build
+     * `guidePath(locale, slug)` for every locale in the set, and nine of the fifteen guides ship in
+     * one locale only. The synthetic fixture has all three locales, so the fixture-backed suite saw
+     * nothing wrong — which is why this reads the installed artifact.
+     *
+     * Two assertions, because they fail for different reasons: no guide-shaped link anywhere on the
+     * page may name a path the manifest does not list, and the language nav must be exactly the
+     * manifest's sibling rows for that slug.
+     */
+    it('links only the locales the manifest installs, on every installed guide', async () => {
+        const guidePaths = splitGuidePaths(artifactRoot)
+        const navSizes: number[] = []
+
+        for (const entry of guideEntries) {
+            const identity = `${entry.locale}/${entry.slug}`
+            const guide = getSplitGuide(entry.locale, entry.slug, artifactRoot)!
+            const body = await renderSplitGuideBody(guide.body, { locale: entry.locale, guidePaths })
+            const html = renderToStaticMarkup(
+                <SplitGuideLayout guide={guide} alternates={guideAlternates(entry.slug, artifactRoot)}>
+                    {body}
+                </SplitGuideLayout>
+            )
+
+            // Every root-relative guide link on the page: the language nav and the related links.
+            for (const [, href] of html.matchAll(/href="(\/(?:[a-z0-9-]+\/)?guides\/[^"#?]+)"/g)) {
+                expect(guidePaths, `${identity} links ${href}`).toContain(href)
+            }
+
+            // Read back from the manifest rows rather than from `guideAlternates`, so the nav has
+            // to agree with the inventory even if the alternates helper starts lying.
+            const siblings = manifest!.entries
+                .filter((row) => row.content_type === 'guide' && row.slug === entry.slug)
+                .map((row) => row.public_path)
+                .filter((publicPath) => publicPath !== entry.public_path)
+                .sort()
+            const nav = /<nav aria-label="[^"]*"[^>]*>([\s\S]*?)<\/nav>/.exec(html)
+            const navHrefs = [...(nav?.[1] ?? '').matchAll(/href="([^"]+)"/g)].map((match) => match[1]).sort()
+
+            expect(navHrefs, identity).toEqual(siblings)
+            navSizes.push(navHrefs.length)
+        }
+
+        // Guard the extractor itself: a regex that matched nothing would satisfy every check above.
+        expect(navSizes).toContain(2)
+        expect(navSizes).toContain(0)
+    })
 
     // Every construct the policy admits has to be exercised somewhere in the cohort. Without this
     // a future artifact that happens to drop blockquotes would quietly stop covering them.
