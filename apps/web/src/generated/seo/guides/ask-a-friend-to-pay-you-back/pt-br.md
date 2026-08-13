@@ -123,5 +123,5 @@ tirar de você a hora de pedir; quem paga e quando continua sendo decisão de ca
 <CTA text="Criar um split" subtitle="Abra a sala na mesma noite em que você paga algo do grupo." href="https://peanutsplit.com/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Guia relacionado">
-<RelatedLink href="/pt-br/guides/split-a-group-trip-across-countries">Como dividir despesas de viagem entre países</RelatedLink>
+<RelatedLink href="/pt-br/guides/split-shared-house-bills">Como dividir as contas da república e ficar quites</RelatedLink>
 </RelatedPages>
