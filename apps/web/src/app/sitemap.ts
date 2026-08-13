@@ -6,6 +6,15 @@ import { absoluteUrl } from '@/lib/seo'
 import { DEFAULT_LOCALE, LOCALES } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { splitV2Enabled } from '@/lib/flags'
+import { releasedGuideAlternates, releasedSplitGuides } from '@/lib/split-content/released'
+
+/**
+ * Guides are runtime-gated (`SEO_INDEXABLE` plus the reviewed registry), and a prerendered sitemap
+ * would freeze whichever answer the build box happened to give. One document, decided per request,
+ * is also why there is no second `/split-sitemap.xml`: the generated guides are Split's pages, and
+ * a crawler should not have to find a separate file to learn about half the site.
+ */
+export const dynamic = 'force-dynamic'
 
 /**
  * Derived, not maintained. Hand-built pages come from STATIC_PAGES; every article and every
@@ -83,7 +92,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
         }
     })
 
-    return [...staticEntries, ...tools, ...hubs, ...articles]
+    /**
+     * Generated guides, and only the ones released for indexing. A sitemap entry for a page that
+     * answers with `x-robots-tag: noindex` is a contradiction the crawler resolves against us, so
+     * this list is derived from the same policy that writes that header rather than from the
+     * artifact inventory — six installed guides are permanently parked and must never appear.
+     *
+     * Ranked with the blog: an informational query, earning its traffic over a longer horizon.
+     */
+    const guides: MetadataRoute.Sitemap = releasedSplitGuides().map((guide) => {
+        const languages = absolutise(releasedGuideAlternates(guide.slug))
+        return {
+            url: absoluteUrl(guide.href),
+            lastModified: guide.date,
+            changeFrequency: 'monthly' as const,
+            priority: PRIORITY.blog,
+            alternates: languages && { languages },
+        }
+    })
+
+    return [...staticEntries, ...tools, ...hubs, ...articles, ...guides]
 }
 
 /**

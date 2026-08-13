@@ -23,8 +23,12 @@ export default function robots(): MetadataRoute.Robots {
             { userAgent: 'facebookexternalhit', allow: ['/', '/r/'] },
             { userAgent: 'WhatsApp', allow: ['/', '/r/'] },
         ],
-        // Discovery for everything the content engine publishes. Without it a crawler only
-        // finds articles by following links, which is slower and misses anything newly added.
+        // Discovery for everything the content engine publishes, generated guides included —
+        // one document, no second `/split-sitemap.xml`. Without it a crawler only finds articles
+        // by following links, which is slower and misses anything newly added.
+        //
+        // Nothing disallows `/guides/`, deliberately: the parked guides are held back with
+        // `noindex`, and a crawler has to be allowed to fetch a page to read that.
         sitemap: absoluteUrl('/sitemap.xml'),
     }
 }

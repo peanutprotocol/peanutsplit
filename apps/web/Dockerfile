@@ -45,6 +45,12 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+# The nine reviewed guides are released to indexing, so the deployed image carries the flag rather
+# than depending on a Dokploy env var nobody can see in this repo. Runtime, not a build ARG: it is
+# read per request by the proxy, the guide metadata and the sitemap, and it is not client code.
+# Setting SEO_INDEXABLE to anything else in Dokploy still wins and turns indexing off — which is
+# the only direction runtime config is allowed to move it.
+ENV SEO_INDEXABLE=true
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 

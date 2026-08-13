@@ -1,19 +1,70 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { splitGuidePaths } from './artifact'
 import { SPLIT_CONTENT_INDEX_RELEASED, SPLIT_CONTENT_INDEX_RELEASED_PATHS } from './index-release'
 import { splitContentIndexable, splitContentIndexableFor } from './indexability'
 
-const GUIDE = '/guides/split-a-group-trip-across-countries'
-const LOCALIZED_GUIDE = '/es-419/guides/split-a-group-trip-across-countries'
+const GUIDE = '/guides/ask-a-friend-to-pay-you-back'
+const PARKED = [
+    '/guides/split-a-group-trip-across-countries',
+    '/es-419/guides/split-a-group-trip-across-countries',
+    '/pt-br/guides/split-a-group-trip-across-countries',
+    '/guides/split-expenses-across-currencies',
+    '/es-419/guides/split-expenses-across-currencies',
+    '/pt-br/guides/split-expenses-across-currencies',
+]
 const FUTURE_HUB = '/en/split'
 const FUTURE_TOOLS_HUB = '/en/split/tools'
 const FUTURE_CALCULATOR = '/en/split/tools/rent-split-calculator'
 
-describe('Split content indexability', () => {
-    it('ships with both source-controlled release authorities dark', () => {
-        expect(SPLIT_CONTENT_INDEX_RELEASED).toBe(false)
-        expect(SPLIT_CONTENT_INDEX_RELEASED_PATHS).toEqual([])
+afterEach(() => {
+    vi.unstubAllEnvs()
+})
+
+describe('Split content release registry', () => {
+    it('releases exactly the nine reviewed guide URLs', () => {
+        expect(SPLIT_CONTENT_INDEX_RELEASED).toBe(true)
+        expect([...SPLIT_CONTENT_INDEX_RELEASED_PATHS]).toEqual([
+            '/es-419/guides/ask-a-friend-to-pay-you-back',
+            '/guides/ask-a-friend-to-pay-you-back',
+            '/guides/someone-drops-out-of-a-group-trip',
+            '/guides/split-holiday-house-per-person-or-per-room',
+            '/guides/splitwise-currency-conversion',
+            '/guides/splitwise-vs-settle-up',
+            '/guides/why-do-i-owe-someone-i-never-paid',
+            '/pt-br/guides/ask-a-friend-to-pay-you-back',
+            '/pt-br/guides/split-shared-house-bills',
+        ])
     })
 
+    /**
+     * Both halves matter. A released path the artifact does not render is a sitemap entry pointing
+     * at a 404; the pinned order is what keeps a diff to the list readable as an addition or a
+     * removal rather than a reshuffle.
+     */
+    it('names only paths the installed artifact renders, in the artifact’s own order', () => {
+        const guidePaths = splitGuidePaths()
+        const released: readonly string[] = SPLIT_CONTENT_INDEX_RELEASED_PATHS
+
+        expect(guidePaths.filter((publicPath) => released.includes(publicPath))).toEqual([...released])
+    })
+
+    /**
+     * The two topics that already rank at `/blog/<slug>`. They stay installed as the validator's
+     * byte-pinned fixture and stay out of every index — releasing them would put two pages with
+     * one title on one domain.
+     */
+    it('keeps the six parked guides out of the registry in every locale', () => {
+        const released: readonly string[] = SPLIT_CONTENT_INDEX_RELEASED_PATHS
+        const guidePaths = splitGuidePaths()
+
+        for (const publicPath of PARKED) {
+            expect(guidePaths, publicPath).toContain(publicPath)
+            expect(released, publicPath).not.toContain(publicPath)
+        }
+    })
+})
+
+describe('Split content indexability', () => {
     it('cannot be enabled by runtime configuration while the source release bit is false', () => {
         for (const runtimeValue of [undefined, '', 'false', 'true', '1', 'TRUE', ' true ']) {
             expect(
@@ -25,8 +76,6 @@ describe('Split content indexability', () => {
                 })
             ).toBe(false)
         }
-        expect(splitContentIndexable(GUIDE)).toBe(false)
-        expect(splitContentIndexable(LOCALIZED_GUIDE)).toBe(false)
     })
 
     it('releases only exact source-reviewed paths after the global gate opens', () => {
@@ -39,7 +88,7 @@ describe('Split content indexability', () => {
             })
 
         expect(policy(GUIDE)).toBe(true)
-        expect(policy(LOCALIZED_GUIDE)).toBe(false)
+        expect(policy('/es-419/guides/ask-a-friend-to-pay-you-back')).toBe(false)
         expect(policy(FUTURE_HUB)).toBe(false)
         expect(policy(FUTURE_TOOLS_HUB)).toBe(false)
         expect(policy(FUTURE_CALCULATOR)).toBe(false)
@@ -65,5 +114,23 @@ describe('Split content indexability', () => {
                 publicPath: GUIDE,
             })
         ).toBe(true)
+    })
+
+    it('stays dark on a deployment that has not set the runtime flag, released path or not', () => {
+        for (const runtimeValue of [undefined, 'false']) {
+            vi.stubEnv('SEO_INDEXABLE', runtimeValue)
+            for (const publicPath of [...SPLIT_CONTENT_INDEX_RELEASED_PATHS, ...PARKED]) {
+                expect(splitContentIndexable(publicPath), `${runtimeValue} ${publicPath}`).toBe(false)
+            }
+        }
+    })
+
+    it('indexes the released nine and nothing else once the runtime flag is on', () => {
+        vi.stubEnv('SEO_INDEXABLE', 'true')
+
+        expect(splitGuidePaths().filter((publicPath) => splitContentIndexable(publicPath))).toEqual([
+            ...SPLIT_CONTENT_INDEX_RELEASED_PATHS,
+        ])
+        for (const publicPath of PARKED) expect(splitContentIndexable(publicPath), publicPath).toBe(false)
     })
 })

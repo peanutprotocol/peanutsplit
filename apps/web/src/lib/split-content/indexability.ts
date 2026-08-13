@@ -8,8 +8,15 @@ export interface SplitContentIndexabilityPolicy {
 }
 
 /**
- * Indexing needs the reviewed renderer registry to name this exact path. Runtime configuration
- * must explicitly enable that, but cannot release a path or expand the path set by itself.
+ * Two authorities, both required.
+ *
+ * The source registry — reviewed in git — names the exact public paths cleared for indexing and
+ * carries a one-line global stop. The runtime flag (`SEO_INDEXABLE`) decides whether THIS
+ * deployment is the one allowed to advertise them, which is what keeps CI and any other box
+ * serving the same commit dark.
+ *
+ * Runtime can only ever subtract: it cannot release a path the registry does not name, and it
+ * cannot widen the set.
  */
 export function splitContentIndexableFor({
     runtimeValue,

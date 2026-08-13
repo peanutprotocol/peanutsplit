@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation'
 import { SplitGuideLayout } from '@/components/split-content/GuideLayout'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
 import type { Locale } from '@/i18n/locales'
-import { getSplitGuide, guideAlternates, listSplitGuides, splitGuidePaths } from './artifact'
+import { getSplitGuide, listSplitGuides, splitGuidePaths } from './artifact'
 import { splitContentIndexable } from './indexability'
 import { splitGuideMetadata } from './metadata'
+import { releasedGuideAlternates } from './released'
 
 interface GuideRouteProps {
     params: Promise<{ slug: string }>
@@ -18,14 +19,7 @@ export function splitGuideStaticParams(locale: Locale, root?: string): Array<{ s
 export async function splitGuideMetadataFor(locale: Locale, slug: string, root?: string): Promise<Metadata> {
     const guide = getSplitGuide(locale, slug, root)
     if (!guide) return {}
-    const alternates = Object.fromEntries(
-        Object.entries(guideAlternates(slug, root) ?? {}).filter(([, publicPath]) => splitContentIndexable(publicPath))
-    )
-    return splitGuideMetadata(
-        guide,
-        Object.keys(alternates).length > 0 ? alternates : undefined,
-        splitContentIndexable(guide.href)
-    )
+    return splitGuideMetadata(guide, releasedGuideAlternates(slug, root), splitContentIndexable(guide.href))
 }
 
 export function splitGuideRoute(locale: Locale) {
