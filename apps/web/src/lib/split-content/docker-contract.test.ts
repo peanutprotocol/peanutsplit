@@ -3,20 +3,23 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 describe('Split content container release contract', () => {
-    it('bakes no URL origin, no secret, and no inaccessible index env into the image', () => {
+    it('carries the index flag as runtime env, not a build arg, and bakes no origin or secret', () => {
         const dockerfile = fs.readFileSync(path.join(process.cwd(), 'Dockerfile'), 'utf8')
 
         expect(dockerfile).not.toMatch(/(?:ARG|ENV) (?:APP_ORIGIN|CONTENT_ORIGIN)=/)
-        expect(dockerfile).not.toMatch(/(?:ARG|ENV) (?:SEO_INDEXABLE|SPLIT_CONTENT_EDGE_MARKER)=/)
+        expect(dockerfile).not.toMatch(/(?:ARG|ENV) SPLIT_CONTENT_EDGE_MARKER=/)
+
+        // Nobody here has Dokploy access, so the deployed image is where the released state lives.
+        expect(dockerfile).toContain('ENV SEO_INDEXABLE=true')
+        // A build ARG would inline it at build time and let a stale Dokploy build setting decide
+        // what the running container claims. It is read per request.
+        expect(dockerfile).not.toMatch(/ARG SEO_INDEXABLE/)
     })
 
-    it('keeps the source gate dark and local/CI config unable to open indexing or move the origin', () => {
+    it('keeps local and CI config from claiming to be the indexed deployment', () => {
         const compose = fs.readFileSync(path.join(process.cwd(), 'docker-compose.yml'), 'utf8')
         const workflow = fs.readFileSync(path.join(process.cwd(), '../../.github/workflows/ci.yml'), 'utf8')
-        const indexRelease = fs.readFileSync(path.join(process.cwd(), 'src/lib/split-content/index-release.ts'), 'utf8')
 
-        expect(indexRelease).toContain('SPLIT_CONTENT_INDEX_RELEASED = false')
-        expect(indexRelease).toContain('SPLIT_CONTENT_INDEX_RELEASED_PATHS = []')
         expect(compose).not.toContain('SPLIT_CONTENT_EDGE_MARKER')
         expect(compose).not.toContain('SEO_INDEXABLE')
         expect(workflow).toContain("SEO_INDEXABLE: 'false'")

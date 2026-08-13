@@ -137,8 +137,9 @@ describe('installed generated Split artifact', () => {
             const alternates = guideAlternates(entry.slug, artifactRoot)
             expect(metadata.title, identity).toBe(`${guide!.title} | Peanut`)
             expect(metadata.description, identity).toBe(guide!.description)
-            // Every sibling resolves to a real manifest path, but none is advertised as an
-            // alternate while the index release registry is empty.
+            // Every sibling resolves to a real manifest path. None is advertised as an alternate
+            // here, because this suite runs without `SEO_INDEXABLE` — a box that has not claimed
+            // to be the indexed deployment renders every guide noindex, released or not.
             for (const href of Object.values(alternates ?? {})) expect(guidePaths, identity).toContain(href)
             expect(metadata.alternates, identity).toEqual({
                 canonical: absoluteUrl(entry.public_path),
