@@ -5,12 +5,19 @@ import { localeFromNewRoomHandoff } from './locale-handoff'
 const resolve = (pathname: string, search = '') => localeFromNewRoomHandoff(pathname, new URLSearchParams(search))
 
 describe('localeFromNewRoomHandoff', () => {
+    // The query is the one every published guide CTA emits, copied from a rendered body:
+    // `locale` first, then the four campaign parameters. Guides ship from this repo and hand off
+    // to `/new` on this same origin, so the source is the guide, not a second site.
+    const ctaSearch = (locale: string) =>
+        `locale=${locale}&utm_medium=content&utm_source=split-guide` +
+        '&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta'
+
     it('accepts every canonical locale on /new without consuming the other query parameters', () => {
         for (const locale of LOCALES) {
-            const searchParams = new URLSearchParams(`utm_source=peanut.me&locale=${locale}&utm_campaign=split-content`)
+            const searchParams = new URLSearchParams(ctaSearch(locale))
 
             expect(localeFromNewRoomHandoff('/new', searchParams)).toBe(locale)
-            expect(searchParams.toString()).toBe(`utm_source=peanut.me&locale=${locale}&utm_campaign=split-content`)
+            expect(searchParams.toString()).toBe(ctaSearch(locale))
         }
     })
 

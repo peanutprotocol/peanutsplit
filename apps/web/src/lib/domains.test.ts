@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CANONICAL_APP_ENTRY, CANONICAL_HOST, CANONICAL_ORIGIN, LEGACY_ALIAS_HOST } from './domains'
+import { CANONICAL_APP_ENTRY, CANONICAL_HOST, CANONICAL_ORIGIN, isProductHost, LEGACY_ALIAS_HOST } from './domains'
 import { resolveSiteUrl } from './site'
 
 describe('domain constants', () => {
@@ -11,6 +11,22 @@ describe('domain constants', () => {
         expect(entry.search).toBe('')
         expect(entry.hash).toBe('')
         expect(LEGACY_ALIAS_HOST).toBe('split.peanut.me')
+    })
+
+    it('counts the canonical host, the alias, and both www forms as the product', () => {
+        for (const host of [
+            'peanutsplit.com',
+            'www.peanutsplit.com',
+            'split.peanut.me',
+            'www.split.peanut.me',
+            'PEANUTSPLIT.COM',
+            'peanutsplit.com:8443',
+        ]) {
+            expect(isProductHost(host)).toBe(true)
+        }
+        for (const host of ['peanut.me', 'splitwise.com', 'split.peanut.me.evil.example', 'peanutsplit.com.co', '']) {
+            expect(isProductHost(host)).toBe(false)
+        }
     })
 
     it('allows local origins but ignores any public build-arg override', () => {
