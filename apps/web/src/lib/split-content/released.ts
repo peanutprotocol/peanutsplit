@@ -1,6 +1,6 @@
-import { LOCALES } from '@/i18n/locales'
+import { LOCALES, type Locale } from '@/i18n/locales'
 import { guideAlternates, listSplitGuides, type SplitGuide } from './artifact'
-import { splitContentIndexable } from './indexability'
+import { splitContentIndexable, splitContentSourceReleased } from './indexability'
 
 /**
  * What this deployment is allowed to advertise: rendered from the artifact, named by the reviewed
@@ -15,6 +15,19 @@ export function releasedSplitGuides(root?: string): SplitGuide[] {
     return LOCALES.flatMap((locale) => listSplitGuides(locale, root)).filter((guide) =>
         splitContentIndexable(guide.href)
     )
+}
+
+/**
+ * What a reader may be linked to, in one language: named by the release registry, runtime flag
+ * ignored. The hub listing and the guide footer both answer from this, so their HTML is the same
+ * on a dev box, in CI and in production — which is the only way anyone can check it before it
+ * ships. The crawl-facing side (sitemap, hreflang, robots) keeps asking `releasedSplitGuides`.
+ *
+ * One locale per call: `loadSplitContentManifest` re-reads and re-validates all fifteen outputs
+ * every time and is not memoised, so never ask three times where one answer will do.
+ */
+export function sourceReleasedSplitGuides(locale: Locale, root?: string): SplitGuide[] {
+    return listSplitGuides(locale, root).filter((guide) => splitContentSourceReleased(guide.href))
 }
 
 /**

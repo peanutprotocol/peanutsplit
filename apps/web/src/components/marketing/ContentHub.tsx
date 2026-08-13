@@ -8,6 +8,7 @@ import { buttonClassName } from '@/components/ui/button-style'
 import { comparisonCopy } from '@/components/marketing/compare-copy'
 import { STATIC_PAGES } from '@/data/static-pages'
 import { listAllDocs } from '@/lib/content'
+import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
 import { absoluteUrl, breadcrumbSchema, formatDate } from '@/lib/seo'
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
@@ -42,7 +43,10 @@ export async function ContentHub({ locale }: { locale: Locale }) {
         { name: t('guides'), href: localizedPath('/blog', locale) },
     ]
 
-    const entries: HubEntry[] = [
+    // The generated guides are the other content system — same locale, same hub, different source
+    // tree. Merged before the sort so both families share one newest-first order rather than the
+    // guides landing after the dateless hand-built cards.
+    const dated: HubEntry[] = [
         ...listAllDocs(locale).map((doc) => ({
             href: doc.href,
             title: doc.frontmatter.title,
@@ -50,6 +54,17 @@ export async function ContentHub({ locale }: { locale: Locale }) {
             date: doc.frontmatter.date,
             tags: doc.frontmatter.tags,
         })),
+        ...sourceReleasedSplitGuides(locale).map((guide) => ({
+            href: guide.href,
+            title: guide.title,
+            description: guide.description,
+            date: guide.date,
+            tags: guide.tags,
+        })),
+    ].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
+
+    const entries: HubEntry[] = [
+        ...dated,
         ...STATIC_PAGES.filter((page) => page.inHub && (page.locales ?? [DEFAULT_LOCALE]).includes(locale)).map(
             (page) => {
                 const copy = page.href === '/splitwise-alternative' ? comparisonCopy[locale].meta : page
