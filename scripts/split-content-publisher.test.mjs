@@ -89,7 +89,7 @@ function artifactManifest(sourceCommit = SOURCE_COMMIT) {
 			content_type: 'guide',
 			slug: SLUG,
 			locale,
-			public_path: `/${locale}/split/guides/${SLUG}`,
+			public_path: locale === 'en' ? `/guides/${SLUG}` : `/${locale}/guides/${SLUG}`,
 			output_path: `split-content/published/${destinationPath}`,
 			output_sha256: sha256(outputs.get(destinationPath)),
 			source_input_paths: SOURCE_INPUTS,
@@ -183,7 +183,8 @@ function v2Payload(entry, entries) {
 					date: null,
 					tags: ['synthetic'],
 					legacy_path: `${entry.locale === 'en' ? '/blog' : `/${entry.locale}/blog`}/card-${entry.locale}`,
-					public_path: `/${entry.locale}/split/guides/card-${entry.locale}`,
+					public_path:
+						entry.locale === 'en' ? '/guides/card-en' : `/${entry.locale}/guides/card-${entry.locale}`,
 				},
 			],
 		}
@@ -229,7 +230,7 @@ function v2Payload(entry, entries) {
 		lang: entry.locale,
 		title: `Synthetic ${entry.content_type} ${entry.locale}`,
 		description: 'Synthetic structured payload used only by the publisher contract tests.',
-		canonical: `https://peanut.me${entry.public_path}`,
+		canonical: `https://peanutsplit.com${entry.public_path}`,
 		alternates,
 		claims: ['synthetic-only'],
 		schema_types:

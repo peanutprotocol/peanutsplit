@@ -93,6 +93,9 @@ const BUNDLE_KEYS = [
 const BUNDLE_FILE_KEYS = ['path', 'sha256', 'content_base64']
 const SOURCE_REPOSITORY = 'peanutprotocol/mono'
 const SOURCE_BRANCH = 'main'
+// Split is standalone on peanutsplit.com. This script runs with no renderer env in scope, so the
+// origin is a literal here exactly as it is in mono's two validators.
+const CANONICAL_ORIGIN = 'https://peanutsplit.com'
 const MIRROR_SCRIPT_PATH = 'scripts/split-content-mirror.mjs'
 const DESTINATION_ROOT = 'apps/web/src/generated/seo'
 const ARTIFACT_BRANCH = 'automation/split-content-artifacts'
@@ -330,10 +333,16 @@ function assertExactArray(actual, expected, label) {
 	}
 }
 
+// English is unprefixed on peanutsplit.com; the other two locales keep their one-segment prefix.
+// Extracted so the v1 matrix, the v2 matrix and the hub cards cannot drift from each other.
+function guidePublicPath(locale, slug) {
+	return locale === 'en' ? `/guides/${slug}` : `/${locale}/guides/${slug}`
+}
+
 function expectedV2Paths(entry) {
 	if (entry.content_type === 'guide') {
 		return {
-			publicPath: `/${entry.locale}/split/guides/${entry.slug}`,
+			publicPath: guidePublicPath(entry.locale, entry.slug),
 			outputPath: `${PUBLISHED_PREFIX}guides/${entry.slug}/${entry.locale}.md`,
 		}
 	}
@@ -470,7 +479,7 @@ function validateHubContent(value, payload, label) {
 
 		const expectedPublicPath =
 			card.kind === 'guide'
-				? `/${card.locale}/split/guides/${card.id}`
+				? guidePublicPath(card.locale, card.id)
 				: card.kind === 'alternative'
 					? `/${card.locale}/split/alternatives/${card.id}`
 					: '/en/split/tools'
@@ -602,7 +611,7 @@ function validateV2Payload(outputBytes, entry, entries, label) {
 	}
 	assertNonEmptyString(payload.title, `${label}.title`)
 	assertNonEmptyString(payload.description, `${label}.description`)
-	const expectedCanonical = `https://peanut.me${entry.public_path}`
+	const expectedCanonical = `${CANONICAL_ORIGIN}${entry.public_path}`
 	if (payload.canonical !== expectedCanonical) fail(`${label}.canonical must be ${expectedCanonical}`)
 
 	const siblings = entries
@@ -679,7 +688,7 @@ function validateManifestV1(files, sourceCommit) {
 			fail(`${label}.slug is invalid`)
 		}
 		if (!LOCALES.includes(entry.locale)) fail(`${label}.locale is unsupported`)
-		const expectedPublicPath = `/${entry.locale}/split/guides/${entry.slug}`
+		const expectedPublicPath = guidePublicPath(entry.locale, entry.slug)
 		if (entry.public_path !== expectedPublicPath) fail(`${label}.public_path must be ${expectedPublicPath}`)
 		const expectedOutputPath = `${PUBLISHED_PREFIX}guides/${entry.slug}/${entry.locale}.md`
 		if (entry.output_path !== expectedOutputPath) fail(`${label}.output_path must be ${expectedOutputPath}`)

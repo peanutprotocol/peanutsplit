@@ -1,13 +1,17 @@
 # Split content pull publisher
 
-> **Deferred 2026-08-12:** this publisher belongs to the unfinished generated-content
-> project. Do not enable or merge artifact PRs until its producer, URLs, CTAs, sitemap,
-> and renderer are retargeted to `peanutsplit.com` without Peanut UI. See
-> [`docs/DOMAIN-ROLLBACK-2026-08-12.md`](../docs/DOMAIN-ROLLBACK-2026-08-12.md).
+The workflow is operational. Run 31507419125 on 2026-08-11 completed green through both jobs and
+produced merged PR #18, which is how the installed artifact got there.
 
-This publisher is deliberately dark. `.github/workflows/split-content-pull.yml` has no schedule;
-only a manual proof run is possible. Do not add a schedule until the read-only clone, exact branch,
-exact-SHA CI dispatch, draft PR, and failure cases have all been observed on GitHub.
+`.github/workflows/split-content-pull.yml` still has no schedule; only a manual dispatch is
+possible. Do not add a schedule until the read-only clone, exact branch, exact-SHA CI dispatch,
+draft PR, and failure cases have all been observed on GitHub.
+
+**It cannot be dispatched for the 2026-08-13 peanutsplit.com retarget yet.** Dispatch clones mono
+`main` and runs `verify-lock` from PeanutSplit `main`, so both branches must first carry the
+retarget: mono needs the new guide scheme in `scripts/split-content-mirror.mjs` and its outputs,
+and PeanutSplit needs the retargeted publisher plus the re-pinned lock. Until then, mirror and
+install locally — mirror to a stage outside mono, then `pack` and `install`.
 
 ## Credential and environment
 
