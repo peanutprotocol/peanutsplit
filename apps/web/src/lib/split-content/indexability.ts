@@ -36,3 +36,13 @@ export function splitContentIndexable(publicPath: string): boolean {
         publicPath,
     })
 }
+
+/**
+ * The build-time half of the policy, alone: what the reviewed registry names, with no runtime flag.
+ * A reader-facing link must not change shape with `SEO_INDEXABLE`, or no box but production can
+ * verify the HTML it ships.
+ */
+export function splitContentSourceReleased(publicPath: string): boolean {
+    const releasedPaths: readonly string[] = SPLIT_CONTENT_INDEX_RELEASED_PATHS
+    return SPLIT_CONTENT_INDEX_RELEASED && releasedPaths.includes(publicPath)
+}

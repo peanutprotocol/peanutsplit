@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { splitGuidePaths } from './artifact'
 import { SPLIT_CONTENT_INDEX_RELEASED, SPLIT_CONTENT_INDEX_RELEASED_PATHS } from './index-release'
-import { splitContentIndexable, splitContentIndexableFor } from './indexability'
+import { splitContentIndexable, splitContentIndexableFor, splitContentSourceReleased } from './indexability'
+import { sourceReleasedSplitGuides } from './released'
 
 const GUIDE = '/guides/ask-a-friend-to-pay-you-back'
 const PARKED = [
@@ -132,5 +133,44 @@ describe('Split content indexability', () => {
             ...SPLIT_CONTENT_INDEX_RELEASED_PATHS,
         ])
         for (const publicPath of PARKED) expect(splitContentIndexable(publicPath), publicPath).toBe(false)
+    })
+})
+
+/**
+ * The reader-facing half. `splitContentIndexable` ends in `process.env.SEO_INDEXABLE`, which only
+ * the deployed image sets — using it to decide a link would make the hub list nine guides in
+ * production and none on any box that could check the markup before it shipped.
+ */
+describe('Split content source release, without the runtime flag', () => {
+    it('names the registry paths whatever the runtime flag says', () => {
+        for (const runtimeValue of [undefined, 'false', 'true']) {
+            vi.stubEnv('SEO_INDEXABLE', runtimeValue)
+            for (const publicPath of SPLIT_CONTENT_INDEX_RELEASED_PATHS) {
+                expect(splitContentSourceReleased(publicPath), `${runtimeValue} ${publicPath}`).toBe(true)
+            }
+            for (const publicPath of PARKED) {
+                expect(splitContentSourceReleased(publicPath), `${runtimeValue} ${publicPath}`).toBe(false)
+            }
+        }
+    })
+
+    it('lists one locale at a time, released only, on a box that never claimed to be indexed', () => {
+        vi.stubEnv('SEO_INDEXABLE', undefined)
+
+        expect(sourceReleasedSplitGuides('es-419').map((guide) => guide.href)).toEqual([
+            '/es-419/guides/ask-a-friend-to-pay-you-back',
+        ])
+        expect(sourceReleasedSplitGuides('pt-br').map((guide) => guide.href)).toEqual([
+            '/pt-br/guides/ask-a-friend-to-pay-you-back',
+            '/pt-br/guides/split-shared-house-bills',
+        ])
+        expect(sourceReleasedSplitGuides('en').map((guide) => guide.href)).toEqual([
+            '/guides/ask-a-friend-to-pay-you-back',
+            '/guides/someone-drops-out-of-a-group-trip',
+            '/guides/split-holiday-house-per-person-or-per-room',
+            '/guides/splitwise-currency-conversion',
+            '/guides/splitwise-vs-settle-up',
+            '/guides/why-do-i-owe-someone-i-never-paid',
+        ])
     })
 })

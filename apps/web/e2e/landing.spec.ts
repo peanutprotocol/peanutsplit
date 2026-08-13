@@ -4,6 +4,7 @@ import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es-419.json'
 import ptBRMessages from '../src/i18n/messages/pt-br.json'
 import { HREFLANG } from '../src/i18n/locales'
+import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from '../src/lib/split-content/index-release'
 import { enterCreatedRoom } from './helpers'
 import { slideToConfirm } from './slide-to-confirm'
 
@@ -158,6 +159,38 @@ test('supporting marketing surfaces route every creation-labelled link to the co
         const creationLinks = page.getByRole('link', { name: /Start (?:a split|a room)/i })
         expect(await creationLinks.count(), `${path} should expose at least one creation link`).toBeGreaterThan(0)
         for (const link of await creationLinks.all()) await expect(link).toHaveAttribute('href', '/new')
+    }
+})
+
+const RELEASED_GUIDE_PATHS: readonly string[] = SPLIT_CONTENT_INDEX_RELEASED_PATHS
+const PARKED_GUIDE_SLUGS = ['guides/split-a-group-trip-across-countries', 'guides/split-expenses-across-currencies']
+
+const hubPath = (locale: Locale) => (locale === 'en' ? '/blog' : `/${locale}/blog`)
+const releasedGuidesIn = (locale: Locale) =>
+    RELEASED_GUIDE_PATHS.filter((path) =>
+        locale === 'en' ? path.startsWith('/guides/') : path.startsWith(`/${locale}/`)
+    )
+
+/**
+ * Until this shipped nothing on the site linked a generated guide and the sitemap was their only
+ * way in. The webServer boots WITHOUT `SEO_INDEXABLE`, which is the point of the assertion: a
+ * listing derived from the runtime flag would be empty here and full only in production, where
+ * nobody could check it first.
+ */
+test('the content hub lists exactly the released guides for its own language', async ({ page }) => {
+    for (const locale of ['en', 'es-419', 'pt-br'] as const) {
+        const hub = hubPath(locale)
+        await page.goto(hub)
+
+        const hrefs = await page
+            .locator('a[href*="/guides/"]')
+            .evaluateAll((links) => links.map((link) => link.getAttribute('href')))
+        expect([...new Set(hrefs)].sort(), hub).toEqual([...releasedGuidesIn(locale)].sort())
+
+        // Covers the ItemList JSON-LD as well as the markup — a parked guide must not be
+        // advertised anywhere on a hub, and both places are built from the same list.
+        const html = await page.content()
+        for (const slug of PARKED_GUIDE_SLUGS) expect(html, `${hub} ${slug}`).not.toContain(slug)
     }
 })
 
