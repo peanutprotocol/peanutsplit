@@ -9,7 +9,7 @@ date: 2026-07-26
 tags: [currencies, trips]
 claims: [automatic-currency-conversion, free-forever]
 cast: []
-canonical: https://peanut.me/en/split/guides/split-expenses-across-currencies
+canonical: https://peanutsplit.com/guides/split-expenses-across-currencies
 schema_types: [BlogPosting]
 alternates:
   en: split-content/published/guides/split-expenses-across-currencies/en.md
@@ -81,8 +81,8 @@ If two people share one receipt in one currency and settle immediately, one calc
 they need. A Split room is useful when receipts arrive over time, currencies differ, or several
 people need to check the same running balance.
 
-<CTA text="Start a split" subtitle="Keep the receipts and the shared calculation together." href="https://split.peanut.me/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Keep the receipts and the shared calculation together." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
-<RelatedLink href="/en/split/guides/split-a-group-trip-across-countries">How to split a group trip across countries</RelatedLink>
+<RelatedLink href="/guides/split-a-group-trip-across-countries">How to split a group trip across countries</RelatedLink>
 </RelatedPages>
