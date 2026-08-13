@@ -194,6 +194,43 @@ test('the content hub lists exactly the released guides for its own language', a
     }
 })
 
+test('a released guide links home, its own hub and every released sibling in its language', async ({ page }) => {
+    await page.goto('/guides/why-do-i-owe-someone-i-never-paid')
+    await expect(
+        page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Home' })
+    ).toHaveAttribute('href', '/')
+    await expect(
+        page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Guides' })
+    ).toHaveAttribute('href', '/blog')
+    await expect(page.getByTestId('guide-footer-nav').getByRole('link', { name: 'Guides' })).toHaveAttribute(
+        'href',
+        '/blog'
+    )
+    await expect(page.getByTestId('guide-footer-nav').locator('a[href^="/guides/"]')).toHaveCount(
+        releasedGuidesIn('en').length - 1
+    )
+    // The footer used to hold one link: this page, pointing at itself.
+    await expect(page.getByTestId('guide-footer-nav').locator('a[href*="why-do-i-owe"]')).toHaveCount(0)
+
+    await page.goto('/pt-br/guides/ask-a-friend-to-pay-you-back')
+    await expect(page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link').last()).toHaveAttribute(
+        'href',
+        '/pt-br/blog'
+    )
+    await expect(page.getByTestId('guide-footer-nav').locator('a[href^="/pt-br/guides/"]')).toHaveCount(1)
+
+    const trail = await page.locator('script[type="application/ld+json"]').evaluateAll((nodes) => {
+        const parsed = nodes.map((node) => JSON.parse(node.textContent ?? '{}'))
+        return parsed.find((data) => data['@type'] === 'BreadcrumbList') as
+            { itemListElement: { position: number; name: string; item: string }[] } | undefined
+    })
+    expect(trail?.itemListElement.map((item) => item.item)).toEqual([
+        'https://peanutsplit.com',
+        'https://peanutsplit.com/pt-br/blog',
+        'https://peanutsplit.com/pt-br/guides/ask-a-friend-to-pay-you-back',
+    ])
+})
+
 test('an installed app never strands an old root launcher at the marketing page', async ({ page }) => {
     await page.addInitScript(() => {
         Object.defineProperty(navigator, 'standalone', { configurable: true, value: true })

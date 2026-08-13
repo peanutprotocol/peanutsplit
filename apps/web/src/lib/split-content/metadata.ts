@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { HREFLANG } from '@/i18n/locales'
+import { localizedPath } from '@/i18n/paths'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
-import { absoluteUrl } from '@/lib/seo'
+import { absoluteUrl, breadcrumbSchema, ORGANIZATION_NODE, type Breadcrumb } from '@/lib/seo'
 import type { SplitGuide } from './artifact'
 
 const OG_LOCALE = {
@@ -47,6 +48,33 @@ export function splitGuideMetadata(
     }
 }
 
+/**
+ * Crumb labels, hardcoded per locale and pinned to the catalogs by `metadata.test.ts`.
+ *
+ * `SplitGuideLayout` has to stay synchronous — two suites render it with `renderToStaticMarkup`,
+ * which does not await an async component — so `getTranslations` is not available here. Same
+ * reason `OTHER_LANGUAGES` in `GuideLayout.tsx` is a literal.
+ */
+export const GUIDE_CRUMBS = {
+    en: { home: 'Home', hub: 'Guides' },
+    'es-419': { home: 'Inicio', hub: 'Guías' },
+    'pt-br': { home: 'Início', hub: 'Guias' },
+} as const
+
+/**
+ * One trail, rendered and in the JSON-LD. The hub crumb points at `/blog`, which is Split's one
+ * content hub in every language — `/guides` is a section root nothing serves, and a BreadcrumbList
+ * item at a 404 is a broken link inside structured data.
+ */
+export function splitGuideCrumbs(guide: SplitGuide): Breadcrumb[] {
+    return [
+        // Bare `/`: the landing is app shell, so `/es-419` and `/pt-br` are live 404s.
+        { name: GUIDE_CRUMBS[guide.locale].home, href: '/' },
+        { name: GUIDE_CRUMBS[guide.locale].hub, href: localizedPath('/blog', guide.locale) },
+        { name: guide.title, href: guide.href },
+    ]
+}
+
 export function splitGuideSchemas(guide: SplitGuide) {
     const url = absoluteUrl(guide.href)
     return {
@@ -59,17 +87,18 @@ export function splitGuideSchemas(guide: SplitGuide) {
             headline: guide.title,
             description: guide.description,
             datePublished: guide.date,
+            dateModified: guide.date,
             inLanguage: HREFLANG[guide.locale],
-            author: { '@type': 'Organization', name: guide.author, url: CANONICAL_ORIGIN },
-            publisher: { '@type': 'Organization', name: 'Peanut', url: CANONICAL_ORIGIN },
+            // The site's one Organization, inline: a guide emits no site `@graph`, so a bare `@id`
+            // reference would dangle. Each guide used to declare a second Organization for the
+            // same URL under a different name.
+            author: ORGANIZATION_NODE,
+            publisher: ORGANIZATION_NODE,
+            // Google lists `image` as required for an Article rich result. The app icon rather than
+            // the unfurl card, for the reason `articleSchema` records: Next hash-suffixes generated
+            // `opengraph-image` routes, so a URL spelled out here is a guess.
+            image: `${CANONICAL_ORIGIN}/icons/icon-512.png`,
         },
-        breadcrumbs: {
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Peanut', item: CANONICAL_ORIGIN },
-                { '@type': 'ListItem', position: 2, name: guide.title, item: url },
-            ],
-        },
+        breadcrumbs: breadcrumbSchema(splitGuideCrumbs(guide)),
     }
 }

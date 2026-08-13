@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { HREFLANG, LOCALE_LABELS, LOCALES, type Locale } from '@/i18n/locales'
+import { localizedPath } from '@/i18n/paths'
 import type { SplitGuide } from '@/lib/split-content/artifact'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
-import { absoluteUrl } from '@/lib/seo'
-import { splitGuideSchemas } from '@/lib/split-content/metadata'
+import { GUIDE_CRUMBS, splitGuideCrumbs, splitGuideSchemas } from '@/lib/split-content/metadata'
+import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
 
 const OTHER_LANGUAGES = {
     en: 'Other languages',
@@ -48,6 +50,12 @@ export function SplitGuideLayout({
 }) {
     const schemas = splitGuideSchemas(guide)
     const otherLanguages = otherLanguageLinks(guide, alternates)
+    const crumbs = splitGuideCrumbs(guide)
+    const hubHref = localizedPath('/blog', guide.locale)
+    // Every released sibling rather than a slice: over six English guides a `slice(0, 3)` in
+    // manifest order leaves three of them with no inbound link at all, which is the defect this
+    // replaces. Revisit past about eight released guides in one locale.
+    const siblings = sourceReleasedSplitGuides(guide.locale).filter((sibling) => sibling.href !== guide.href)
 
     return (
         <main className="min-h-dvh bg-background text-n-1">
@@ -63,6 +71,8 @@ export function SplitGuideLayout({
                 </div>
             </header>
 
+            <Breadcrumbs crumbs={crumbs} />
+
             <article className="pb-8">
                 <div className="mx-auto w-full max-w-xl px-5 pb-3 pt-10">
                     <h1 className="text-h3 leading-tight">{guide.title}</h1>
@@ -77,7 +87,11 @@ export function SplitGuideLayout({
             </article>
 
             {otherLanguages.length > 0 && (
-                <nav aria-label={OTHER_LANGUAGES[guide.locale]} className="mx-auto w-full max-w-xl px-5 pb-8 text-xs">
+                <nav
+                    aria-label={OTHER_LANGUAGES[guide.locale]}
+                    data-testid="guide-language-nav"
+                    className="mx-auto w-full max-w-xl px-5 pb-8 text-xs"
+                >
                     <span className="text-grey-1">{OTHER_LANGUAGES[guide.locale]}: </span>
                     {otherLanguages.map(({ locale, href }, index) => (
                         <span key={locale}>
@@ -96,9 +110,26 @@ export function SplitGuideLayout({
             )}
 
             <footer className="border-t border-n-1 bg-white">
-                <div className="mx-auto w-full max-w-xl px-5 py-6 text-xs text-grey-1">
-                    <a href={absoluteUrl(guide.href)}>{guide.title}</a>
-                </div>
+                <nav
+                    aria-label={GUIDE_CRUMBS[guide.locale].hub}
+                    data-testid="guide-footer-nav"
+                    className="mx-auto w-full max-w-xl px-5 py-6 text-xs text-grey-1"
+                >
+                    <ul className="flex flex-col gap-2">
+                        <li>
+                            <Link href={hubHref} className="font-medium text-n-1 underline underline-offset-2">
+                                {GUIDE_CRUMBS[guide.locale].hub}
+                            </Link>
+                        </li>
+                        {siblings.map((sibling) => (
+                            <li key={sibling.href}>
+                                <Link href={sibling.href} className="underline underline-offset-2">
+                                    {sibling.title}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
             </footer>
         </main>
     )
