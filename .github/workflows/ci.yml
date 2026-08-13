@@ -100,22 +100,11 @@ jobs:
       # this they fail on missing relations while the unit tests pass.
       - run: pnpm --filter @peanut-split/api exec prisma migrate deploy
 
+      # Compiles every installed guide body through the production loader, MDX policy, route
+      # metadata and layout. That used to be a separate step here, behind an env variable no
+      # local command set, so eight guides could reach a shippable commit while `pnpm test` was
+      # green. The validator now reads the committed artifact directly and runs with the rest.
       - run: pnpm test
-
-      # Renderer-only branches have no generated destination. Artifact publication commits do,
-      # and must compile every real body through the production loader, MDX policy, route
-      # metadata, and layout rather than relying only on the synthetic A3 fixtures.
-      - name: Validate the installed generated Split artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-          artifact_root="${GITHUB_WORKSPACE}/apps/web/src/generated/seo"
-          if [[ ! -f "${artifact_root}/manifest.json" ]]; then
-            echo 'No generated Split artifact is installed in this commit.'
-            exit 0
-          fi
-          SPLIT_CONTENT_ARTIFACT_ROOT="${artifact_root}" \
-            pnpm --dir apps/web exec vitest run src/lib/split-content/published-artifact.test.tsx
 
       - run: pnpm build
 
