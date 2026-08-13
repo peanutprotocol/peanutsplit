@@ -41,7 +41,12 @@ const OG_LOCALE: Record<Locale, string> = {
 /** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
 export const ORGANIZATION_ID = `${CANONICAL_ORIGIN}/#organization`
 
-const PUBLISHER = {
+/**
+ * The site's one Organization, spelled out. Pages that emit the site `@graph` reference it by
+ * `@id`; a page that emits no graph — a guide — has to inline this node instead, or the reference
+ * dangles.
+ */
+export const ORGANIZATION_NODE = {
     '@type': 'Organization' as const,
     '@id': ORGANIZATION_ID,
     name: SITE_NAME,
@@ -276,7 +281,7 @@ export function siteSchema() {
                 publisher: { '@id': ORGANIZATION_ID },
             },
             {
-                ...PUBLISHER,
+                ...ORGANIZATION_NODE,
                 '@id': ORGANIZATION_ID,
             },
             {

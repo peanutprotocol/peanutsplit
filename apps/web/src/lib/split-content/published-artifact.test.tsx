@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { SplitGuideLayout } from '@/components/split-content/GuideLayout'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
 import { LOCALES } from '@/i18n/locales'
+import { localizedPath } from '@/i18n/paths'
 import {
     getSplitCalculator,
     getSplitGuide,
@@ -17,6 +18,7 @@ import {
     splitGuidePaths,
 } from './artifact'
 import { absoluteUrl } from '@/lib/seo'
+import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from './index-release'
 import { SPLIT_CONTENT_GENERATED_ROOT } from './manifest-attestation'
 import { splitGuideMetadataFor, splitGuideStaticParams } from './route'
 
@@ -87,6 +89,7 @@ function sourcePromises(body: string) {
 describe('installed generated Split artifact', () => {
     const manifest = loadSplitContentManifest(artifactRoot)
     const guideEntries = (manifest?.entries ?? []).filter((entry) => entry.content_type === 'guide')
+    const released: readonly string[] = SPLIT_CONTENT_INDEX_RELEASED_PATHS
 
     it('installs exactly the guide files the manifest lists', () => {
         expect(fs.statSync(path.join(artifactRoot, 'manifest.json')).isFile()).toBe(true)
@@ -157,6 +160,21 @@ describe('installed generated Split artifact', () => {
             expect(html.match(/<h1\b/g), identity).toHaveLength(1)
             expect(html, identity).toContain(`${guide!.title}</h1>`)
             expect(html, identity).not.toMatch(/href="\/(?:new|app|import|r)(?:[/?#"])/)
+
+            // Nothing on the site linked a guide before this: the layout owns the way out. Home,
+            // the locale's hub, and every OTHER released guide in the same language — a mesh, so
+            // no released guide depends on a slice landing on it.
+            expect(html, `${identity} home crumb`).toContain('href="/"')
+            expect(html, `${identity} hub link`).toContain(`href="${localizedPath('/blog', entry.locale)}"`)
+            const siblings = guideEntries.filter(
+                (row) =>
+                    row.locale === entry.locale &&
+                    row.public_path !== entry.public_path &&
+                    released.includes(row.public_path)
+            )
+            for (const sibling of siblings) {
+                expect(html, `${identity} sibling ${sibling.public_path}`).toContain(`href="${sibling.public_path}"`)
+            }
 
             const promised = sourcePromises(guide!.body)
 
@@ -243,7 +261,9 @@ describe('installed generated Split artifact', () => {
                 .map((row) => row.public_path)
                 .filter((publicPath) => publicPath !== entry.public_path)
                 .sort()
-            const nav = /<nav aria-label="[^"]*"[^>]*>([\s\S]*?)<\/nav>/.exec(html)
+            // Scoped by testid, not by "first aria-labelled nav": the breadcrumb trail and the
+            // footer nav are both labelled and both sit outside this one.
+            const nav = /<nav[^>]*data-testid="guide-language-nav"[^>]*>([\s\S]*?)<\/nav>/.exec(html)
             const navHrefs = [...(nav?.[1] ?? '').matchAll(/href="([^"]+)"/g)].map((match) => match[1]).sort()
 
             expect(navHrefs, identity).toEqual(siblings)
