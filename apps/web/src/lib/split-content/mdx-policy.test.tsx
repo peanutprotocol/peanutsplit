@@ -2,8 +2,7 @@ import path from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
-import { LOCALES } from '@/i18n/locales'
-import { listSplitGuides, loadSplitContentManifest, splitGuidePaths } from './artifact'
+import { splitGuidePaths } from './artifact'
 
 const FIXTURE = path.join(process.cwd(), 'src/lib/split-content/__fixtures__/valid')
 const GUIDE_PATHS = splitGuidePaths(FIXTURE)
@@ -42,6 +41,45 @@ Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
         expect(html).toContain('/guides/synthetic-guide')
     })
 
+    // Added 2026-08-13 with the 15-guide cohort. Every construct here comes from a real published
+    // body, and every one of them was a compile error — and so an HTTP 500 — before that day.
+    it('accepts the quoting grammar the competitor guides are written in', async () => {
+        const html = await render(`
+{/* checked 2026-08-12 */}
+
+## What they say
+
+> Keep track of shared expenses, balances, and who owes who.
+
+*[splitwise.com](https://www.splitwise.com/), checked 12 August 2026*
+
+| Bedroom | Weight | Cost |
+|---|---|---|
+| Ensuite double | 1.25 | £650 |
+| Bunk room | 0.75 | £390 |
+`)
+
+        expect(html).toContain('<blockquote')
+        expect(html).toContain('Keep track of shared expenses, balances, and who owes who.')
+        expect(html).toContain('<em')
+        expect(html).toContain('href="https://www.splitwise.com/"')
+        expect(html).toContain('rel="noopener noreferrer"')
+        expect(html).toContain('<table')
+        expect(html).toContain('Ensuite double')
+        expect(html).toContain('£390')
+        // The comment makes the page compile; it must not reach the reader.
+        expect(html).not.toContain('checked 2026-08-12')
+        expect(html).not.toContain('{/*')
+        // A four-column table is wider than the column on a phone, so it scrolls in its own box.
+        expect(html).toContain('overflow-x-auto')
+        expect(html).toContain('min-w-[32rem]')
+    })
+
+    it('accepts a plain http citation, because one published quote links one', async () => {
+        const html = await render('Read [the sign-up page](http://www.splitwise.com/signup).')
+        expect(html).toContain('href="http://www.splitwise.com/signup"')
+    })
+
     it.each([
         ['raw lowercase HTML', '<div>unsafe</div>', /unknown or lowercase element/],
         ['script', '<script>alert(1)</script>', /unknown or lowercase element/],
@@ -49,9 +87,25 @@ Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
         ['JSX image', '<img src="https://evil.example/pixel.png" />', /unknown or lowercase element/],
         ['Markdown image', '![pixel](https://evil.example/pixel.png)', /node type is not allowed: image/],
         ['product-relative Markdown link', '[create](/new)', /manifest-backed guide path/],
-        ['external Markdown link', '[leave](https://evil.example)', /manifest-backed guide path/],
-        ['javascript Markdown link', '[run](javascript:alert(1))', /manifest-backed guide path/],
-        ['MDX expression', '{process.env.SECRET}', /node type is not allowed: mdx(?:Flow|Text)Expression/],
+        [
+            'javascript Markdown link',
+            '[run](javascript:alert(1))',
+            /http\(s\) citation or a manifest-backed guide path/,
+        ],
+        ['data-URL Markdown link', '[open](data:text/html,<script>alert(1)</script>)', /http\(s\) citation/],
+        ['mailto Markdown link', '[write](mailto:someone@evil.example)', /http\(s\) citation/],
+        ['credentialled Markdown link', '[leave](https://user:pw@evil.example/)', /must not carry credentials/],
+        // Citations point outward. The product is reached through the CTA, which checks the path
+        // and the locale parameter, so a link cannot become a second, unchecked entry point.
+        ['product-absolute Markdown link', '[create](https://peanutsplit.com/new)', /through a CTA, not a link/],
+        ['MDX expression', '{process.env.SECRET}', /may hold a comment and nothing else/],
+        ['inline MDX expression', 'Copy with {process.env.SECRET} inside.', /may hold a comment and nothing else/],
+        [
+            'MDX expression hiding behind a comment',
+            '{/* looks inert */ process.env.SECRET}',
+            /may hold a comment and nothing else/,
+        ],
+        ['empty MDX expression', '{}', /may hold a comment and nothing else/],
         ['MDX import', "import Exploit from './exploit'", /node type is not allowed: mdxjsEsm/],
         ['MDX export', 'export const exploit = true', /node type is not allowed: mdxjsEsm/],
         ['unknown component', '<Hero title="No" />', /unknown or lowercase element/],
@@ -78,22 +132,7 @@ Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
     })
 })
 
-const mountedA1Root = process.env.SPLIT_CONTENT_A1_TEST_ROOT
-const mountedA1Test = mountedA1Root ? it : it.skip
-
-describe('mounted A1 artifact MDX compatibility', () => {
-    mountedA1Test('renders all six real A1 bodies without committing them to PeanutSplit', async () => {
-        const manifest = loadSplitContentManifest(mountedA1Root)
-        expect(manifest?.entries).toHaveLength(6)
-        const guidePaths = splitGuidePaths(mountedA1Root)
-        const guides = LOCALES.flatMap((locale) => listSplitGuides(locale, mountedA1Root))
-        expect(guides).toHaveLength(6)
-
-        for (const guide of guides) {
-            const html = renderToStaticMarkup(
-                await renderSplitGuideBody(guide.body, { locale: guide.locale, guidePaths })
-            )
-            expect(html.length).toBeGreaterThan(0)
-        }
-    })
-})
+// Removed 2026-08-13: a second env-gated block used to render a mounted six-guide cohort behind
+// SPLIT_CONTENT_A1_TEST_ROOT. It skipped silently everywhere, and its `toHaveLength(6)` had gone
+// stale against the fifteen guides now committed in-tree. published-artifact.test.tsx renders the
+// installed artifact unconditionally, which is what that block was reaching for.

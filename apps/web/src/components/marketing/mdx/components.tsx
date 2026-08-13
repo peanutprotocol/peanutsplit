@@ -73,6 +73,9 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     ),
     li: (props: HTMLAttributes<HTMLLIElement>) => <li className="text-base leading-7 text-grey-1" {...props} />,
     strong: (props: HTMLAttributes<HTMLElement>) => <strong className="font-bold text-n-1" {...props} />,
+    // Inherits colour on purpose: emphasis is the citation line under a quote, and it sits inside
+    // both `p` (grey) and `blockquote` (near-black) without wanting to override either.
+    em: (props: HTMLAttributes<HTMLElement>) => <em className="italic" {...props} />,
     blockquote: (props: HTMLAttributes<HTMLQuoteElement>) => (
         <blockquote
             className={`${COLUMN} mb-5 border-l-2 border-n-1 pl-3 text-base italic leading-7 text-n-1`}
@@ -85,10 +88,14 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
         </div>
     ),
     // GFM tables scroll inside their own box — the column is 36rem and a comparison table is not.
+    // `min-w-[32rem]` is what makes that true rather than decorative: without it `w-full` shrinks
+    // a four-column table to the 335px a 375px phone leaves, and every cell wraps to one word per
+    // line. 32rem is under the column's inner width, so the scrollbar appears on a phone and never
+    // on a desktop, and the page itself never scrolls sideways.
     table: (props: HTMLAttributes<HTMLTableElement>) => (
         <div className={`${COLUMN} my-8`}>
             <div className="overflow-x-auto rounded-sm border border-n-1 bg-white">
-                <table className="w-full border-collapse text-left text-sm" {...props} />
+                <table className="w-full min-w-[32rem] border-collapse text-left text-sm" {...props} />
             </div>
         </div>
     ),
