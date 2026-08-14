@@ -61,14 +61,13 @@ ruleset; the landing hero serves the room composer.
   should not enter discovery" — and its meta description is 175 chars (gate is 160).
   Pick one: `robots: noindex, follow` like `/new`, or `inSitemap: true` as a capture page.
   Either way trim the description.
-- [ ] **7. Released es-419 guide links the parked noindex cluster** — medium. The only
-  related-link on `/es-419/guides/ask-a-friend-to-pay-you-back` targets a permanently
-  parked guide; that one edge exposes all six parked pages to crawlers. Known dead end
-  (53dd70f documented it): es-419 has no released guide to repoint at, so the real fix is a
-  policy change — let `checkedGuideHref` (`mdx-policy.ts:117`) accept blog-collection
-  targets and reject unreleased guide targets, then repoint at
-  `/es-419/blog/split-a-group-trip-across-countries` (live, indexed).
-  (= guides-seo-tracker item 2, last edge.)
+- [x] **7. Released es-419 guide links the parked noindex cluster** — CLOSED same day by
+  guides-seo-tracker decision 12: the link stays (the es-419 manifest universe admits no
+  released target; the parked page renders 200 and the guide carries a hub link, so it is
+  not a dead end). Kept for any future reopen, the audit's addition: this single edge is
+  how a crawler enters the whole 6-page parked cluster, and an indexed blog twin exists at
+  `/es-419/blog/split-a-group-trip-across-countries` if `checkedGuideHref` ever learns
+  blog-collection targets.
 - [ ] **8. The mirror has no automation and no staleness alarm** — medium.
   `split-content-pull.yml` is deliberately dark (workflow_dispatch only); actual practice
   is same-session agent runs of `split-content-mirror.mjs` straight to prod main. If nobody
@@ -92,28 +91,34 @@ ruleset; the landing hero serves the room composer.
 - [ ] `/tools` declares `twitter:card=summary_large_image` but ships no `og:image` — the
   one page type with a broken unfurl. Add `opengraph-image.tsx` to the tools route
   (`seo.ts:123` hardcodes the card type for every `pageMetadata()` caller).
+  (= guides-seo-tracker item 10.)
 - [ ] `/splitwise-alternative` bypasses the length gate: title 63/62 chars (en/es), description
   171/169 (limits 60/160), no `| Peanut Split` suffix — its copy lives in
   `marketing/copy.ts`, outside `content.test.ts`. Trim, and gate `copy.ts` meta.
 - [ ] `/splitwise-alternative` is the only comparison page with no Article schema and no
   sitemap lastmod — the money page sends zero freshness signals.
 - [ ] Every Article/BlogPosting `image` site-wide is the 512px app icon (documented
-  workaround for hashed og routes). A stable `/og/<slug>` Route Handler would fix JSON-LD
-  and the hash-guessing problem at once.
+  workaround for hashed og routes). Constraint from guides-seo-tracker decision 17: the
+  file convention stays for `og:image` (the hash trap only bites hand-written URLs) — so
+  the fix is a stable image URL for JSON-LD specifically, never a hand-spelled og route.
 - [ ] Guide fonts: two knerd TTFs ship uncompressed (~101 KB, convert to woff2 — keep the
   TTFs for the OG renderer) AND the LP emits zero font preloads despite `next/font`
   marking all five files preload-eligible; the H1 those fonts style is the LCP element.
 - [ ] OG-image routes render for ANY slug (200 where the page 404s) — mirror the page
   contract: `dynamicParams = false` or 404 on lookup miss (`content-og.tsx:77`).
+  Guides-seo-tracker item 7 records the same behaviour for the guide cards (matches the
+  blog route; revisit if origin load matters).
 - [ ] `loadSplitContentManifest` re-validates all 15 artifact files per call; one
   `/sitemap.xml` fetch does ~12 full validations. Memoise per process.
 - [ ] `parseGuide` never asserts `generated_at >= date`; a violating mirror ships
   contradictory dates silently. One zod refinement in `artifact.ts`.
 - [ ] `GuideLayout.tsx:83` renders the raw ISO date to readers; use `formatDate()` like the
   blog does.
-- [ ] Guide sitemap lastmod = `generated_at`, so a corpus-wide mirror re-stamps every guide
-  as modified today (8 of 48 URLs on 14 Aug), diluting the freshness signal — contradicts
-  the sitemap's own doc comment.
+- [x] Guide sitemap lastmod = `generated_at`, so a corpus-wide mirror re-stamps every guide
+  as modified today (8 of 48 URLs on 14 Aug), diluting the freshness signal. CLOSED as
+  decided: guides-seo-tracker decisions 18 and 21 — `generated_at` is the only honest date
+  source in the image, the 14 Aug overstatement is acknowledged, and dates are not bumped
+  to tidy it.
 - [ ] `OG_LOCALE` map is defined twice (`seo.ts:35`, `split-content/metadata.ts:8`); export
   it once.
 - [ ] `/fair-split-calculator` is typed Article while rent/mileage emit WebApplication
@@ -136,7 +141,8 @@ ruleset; the landing hero serves the room composer.
   access). Do not "fix" it by editing the Dockerfile — it needs the deployment-topology
   decision guides-seo-tracker item 5 describes.
 - Title suffix: three conventions live (`| Peanut Split` markdown, `| Peanut` guides —
-  documented byte-budget choice — and none on hand-built pages). Decide one policy.
+  documented byte-budget choice — and none on hand-built pages). Decide one policy before
+  the next cohort (= guides-seo-tracker item 6).
 - Landing metadata stays English in every locale — documented deliberate
   (`(marketing)/page.tsx:11-17`); revisit only with the page's own comment in hand. Add
   `Vary: Accept-Language`/`Cookie` before any caching is ever put in front of `/`.
@@ -155,9 +161,9 @@ ruleset; the landing hero serves the room composer.
 - No HSTS header; add `strict-transport-security` at the edge when convenient.
 - LP ships ~2.3 MB decoded JS because the hero embeds the real composer — by design; watch
   it on low-end mobile.
-- Stale planning prose: mono `seo-backlog.md` still opens with the dead peanut.me/split
-  cutover as current, and `SEO-DOMAIN-DECISIONS.md` still says the generated pipeline
-  "remains dark" while 9 generated guides are live. Mark both.
+- Stale planning prose: mono `seo-backlog.md` was marked superseded twice on 2026-08-14
+  (mono 29b003d4) — done. Still open: `SEO-DOMAIN-DECISIONS.md` says the generated
+  pipeline "remains dark" while 9 generated guides are live and indexed. Mark it.
 - `/pt-br/guides/split-shared-house-bills` has no EN original — coherent at the I/O level
   (clean 404, no lying hreflang); editorial question only.
 - Process: three concurrent sessions produced on one checkout during the audit (a
