@@ -29,7 +29,7 @@ const COLUMN = 'mx-auto w-full max-w-xl px-5'
 function ProseLink({ href = '', ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
     const className = 'text-n-1 underline decoration-n-1/40 underline-offset-2 hover:decoration-n-1'
     if (/^https?:\/\//.test(href) || href.startsWith('mailto:')) {
-        return <a href={href} className={className} rel="noopener noreferrer" {...props} />
+        return <a href={href} className={className} rel="nofollow noopener noreferrer" {...props} />
     }
     return <Link href={href} className={className} {...props} />
 }

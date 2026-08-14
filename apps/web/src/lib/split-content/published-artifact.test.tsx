@@ -207,7 +207,7 @@ describe('installed generated Split artifact', () => {
             // the CTA keep theirs.
             for (const href of promised.externalHrefs) {
                 expect(html, `${identity} citation: ${href}`).toContain(`href="${escapeHtml(href)}"`)
-                expect(html, identity).toContain('rel="noopener noreferrer"')
+                expect(html, identity).toContain('rel="nofollow noopener noreferrer"')
             }
             for (const href of [...promised.ctaHrefs, ...promised.relatedHrefs]) {
                 expect(html, `${identity} href: ${href}`).toContain(`href="${escapeHtml(href)}"`)
