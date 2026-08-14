@@ -14,10 +14,10 @@ Owner of record for each open item is in brackets. Last full update: 2026-08-12.
   the production pipeline, the landing page, and the internal link graph.
 - The tracker with all items, ranked fix-first, is `docs/SEO-ISSUES.md`. It cross-links
   mono `projects/peanut-split/guides-seo-tracker.md` rather than repeating its open items.
-- Headline items: a wrong FX claim on the indexed currency blog post, claims-ID
-  enforcement missing for the native corpus, presence-based hreflang that would advertise
-  a draft translation, no search-engine submission loop, and zero analytics on content
-  pages.
+- Headline items: claims-ID enforcement missing for the native corpus, presence-based
+  hreflang that would advertise a draft translation, no search-engine submission loop,
+  and zero analytics on content pages. Two audit items were closed the same day by guide
+  tracker decisions 12 and 13; the file marks them CLOSED rather than deleting them.
 
 ## Production-verified 2026-08-12 — one-domain rollback to peanutsplit.com [Konrad]
 
