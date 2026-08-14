@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
+import { roomHistoryBySlug } from '@/server/history'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import { PATCH as patchRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
@@ -400,5 +401,33 @@ describe('room history', () => {
         })
         expect(history.body.events).toHaveLength(1)
         expect(history.body.events[0]).toMatchObject({ action: 'room_imported', actorMemberName: 'Ana' })
+    })
+
+    it('rejects a cursor above the signed 64-bit range as a clean invalid cursor, not a DB overflow', async () => {
+        const { body: created } = await call<RoomStateWithMember>(postRoom as Handler, {
+            path: '/api/rooms',
+            method: 'POST',
+            body: { name: 'Overflow', currency: 'EUR', creatorName: 'Ana' },
+        })
+        // One above int64 max: the `id` column overflows at the DB if this reaches
+        // the query, so the range guard must reject it first.
+        await expect(roomHistoryBySlug(created.room.slug, '9223372036854775808')).rejects.toMatchObject({
+            status: 400,
+            code: 'HISTORY_CURSOR_INVALID',
+        })
+    })
+
+    it('treats a cursor exactly at the signed 64-bit maximum as an in-range lookup that misses', async () => {
+        const { body: created } = await call<RoomStateWithMember>(postRoom as Handler, {
+            path: '/api/rooms',
+            method: 'POST',
+            body: { name: 'Boundary', currency: 'EUR', creatorName: 'Ana' },
+        })
+        // int64 max is in range, so it reaches the row lookup (bound is `>`, not
+        // `>=`) and misses — the not-found path, still the clean 400, never a 500.
+        await expect(roomHistoryBySlug(created.room.slug, '9223372036854775807')).rejects.toMatchObject({
+            status: 400,
+            code: 'HISTORY_CURSOR_INVALID',
+        })
     })
 })
