@@ -143,7 +143,7 @@ export function AnimatedMoney({ minor, currency, catalog, className, absolute, d
                 // now comes from the currency style rather than a manual prefix, so its placement
                 // (before in en, after in es) is localised too.
                 locales={locale}
-                format={moneyFormatOptions(info)}
+                format={moneyFormatOptions(info, locale)}
                 // A currency with no symbol prints its code after the amount, and `format` above only
                 // covers the digits for those. Without this a BEER balance counts up to a bare number.
                 suffix={currencySuffix(info)}

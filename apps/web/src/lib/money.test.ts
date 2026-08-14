@@ -329,7 +329,7 @@ describe('formatting', () => {
 
     it.each([
         ['en', '¥1,234,567', 'ARS\u00a0123,456,789.00'],
-        ['es-419', 'JPY\u00a01,234,567', 'ARS\u00a0123,456,789.00'],
+        ['es-419', '\u00a51,234,567', '$123,456,789.00'],
         ['pt-br', 'JP¥\u00a01.234.567', 'ARS\u00a0123.456.789,00'],
     ])('uses native JPY and ARS grouping in %s', (locale, jpy, ars) => {
         expect(formatMoney('1234567', 'JPY', undefined, locale)).toBe(jpy)
@@ -375,6 +375,22 @@ describe('formatting', () => {
     })
 
     /**
+     * es-419 resolved the default symbol display to the bare ISO code, so `$34.87` used to render
+     * as `USD 34.87` across the app and on the recap card. `narrowSymbol` restores the graphical
+     * symbol for Spanish; en (and pt-br) already resolve one, so the fix is a no-op there.
+     */
+    it('renders a currency symbol, not the ISO code, for es-419', () => {
+        const usd = formatMoney('3487', 'USD', undefined, 'es-419')
+        expect(usd).toContain('$')
+        expect(usd).not.toContain('USD')
+        const eur = formatMoney('9000', 'EUR', undefined, 'es-419')
+        expect(eur).toContain('€')
+        expect(eur).not.toContain('EUR')
+        // The fix is scoped to Spanish — English keeps its exact symbol, unchanged.
+        expect(formatMoney('3487', 'USD', undefined, 'en')).toBe('$34.87')
+    })
+
+    /**
      * 61 of the 162 catalog codes have no symbol, and every invented ticker has none either. Those
      * print `12.34 AED` — the rule lives in `currency-rules.ts` and BOTH sides import it, so the
      * balance in the app, the amount on the OG card and the number in an error all agree.
@@ -404,7 +420,7 @@ describe('formatting', () => {
 describe('dense overview money', () => {
     it.each([
         ['en', '¥1.2M', 'ARS\u00a0123.5M'],
-        ['es-419', 'JPY\u00a01.2\u00a0M', 'ARS\u00a0123.5\u00a0M'],
+        ['es-419', '\u00a51.2\u00a0M', '$123.5\u00a0M'],
         ['pt-br', 'JP¥\u00a01,2\u00a0mi', 'ARS\u00a0123,5\u00a0mi'],
     ])('uses the locale-native JPY and ARS compact convention in %s', (locale, jpy, ars) => {
         expect(formatCompactMoney('1234567', 'JPY', undefined, locale)).toBe(jpy)
@@ -431,13 +447,13 @@ describe('large raw-input preview', () => {
     it('stays quiet for ordinary values and groups large JPY without changing the field', () => {
         expect(formatLargeAmountPreview('9999', 'JPY', undefined, 'en')).toBeNull()
         expect(formatLargeAmountPreview('10000', 'JPY', undefined, 'en')).toBe('¥10,000')
-        expect(formatLargeAmountPreview('10000', 'JPY', undefined, 'es-419')).toBe('JPY\u00a010,000')
+        expect(formatLargeAmountPreview('10000', 'JPY', undefined, 'es-419')).toBe('\u00a510,000')
         expect(formatLargeAmountPreview('10000', 'JPY', undefined, 'pt-br')).toBe('JP¥\u00a010.000')
     })
 
     it('uses the reader locale for large ARS entry', () => {
         expect(formatLargeAmountPreview('12345678900', 'ARS', undefined, 'en')).toBe('ARS\u00a0123,456,789.00')
-        expect(formatLargeAmountPreview('12345678900', 'ARS', undefined, 'es-419')).toBe('ARS\u00a0123,456,789.00')
+        expect(formatLargeAmountPreview('12345678900', 'ARS', undefined, 'es-419')).toBe('$123,456,789.00')
         expect(formatLargeAmountPreview('12345678900', 'ARS', undefined, 'pt-br')).toBe('ARS\u00a0123.456.789,00')
     })
 })
