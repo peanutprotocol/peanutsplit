@@ -10,6 +10,7 @@ import {
     SplitRecipeError,
     pageChapterOrNull,
     pageRecipe,
+    pageRegisterOrNull,
     type PageKind,
 } from './recipe'
 
@@ -121,5 +122,26 @@ describe('pageChapterOrNull', () => {
 
     it('returns null instead of throwing for an unknown slug — a route-test fixture, never real content', () => {
         expect(pageChapterOrNull('blog', 'this-slug-does-not-exist', undefined, 'en')).toBeNull()
+    })
+})
+
+describe('pageRegisterOrNull', () => {
+    it('returns the same register as pageRecipe for every real slug', () => {
+        for (const [slug, kind] of KIND_BY_SLUG) {
+            expect(pageRegisterOrNull(kind, slug, undefined, 'en')).toBe(
+                pageRecipe(kind, slug, undefined, 'en').register
+            )
+        }
+    })
+
+    it("returns 'flat' for the one flat-register slug and 'default' for everything else", () => {
+        for (const [slug, kind] of KIND_BY_SLUG) {
+            const expected = FLAT_REGISTER_SLUGS.has(slug) ? 'flat' : 'default'
+            expect(pageRegisterOrNull(kind, slug, undefined, 'en'), slug).toBe(expected)
+        }
+    })
+
+    it('returns null instead of throwing for an unknown slug — a route-test fixture, never real content', () => {
+        expect(pageRegisterOrNull('blog', 'this-slug-does-not-exist', undefined, 'en')).toBeNull()
     })
 })

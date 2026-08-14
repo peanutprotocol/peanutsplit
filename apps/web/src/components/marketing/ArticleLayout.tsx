@@ -10,7 +10,7 @@ import { howToSchema } from '@/lib/howto-schema'
 import { absoluteUrl, articleSchema, breadcrumbSchema, faqSchema, formatDate, type Breadcrumb } from '@/lib/seo'
 import type { Locale } from '@/i18n/locales'
 import { basePathFor, type Doc } from '@/lib/content'
-import { pageChapterOrNull } from '@/lib/split-content/recipe'
+import { pageChapterOrNull, pageRegisterOrNull } from '@/lib/split-content/recipe'
 
 /**
  * The frame every content page shares: structured data, a visible trail, the body, the footer.
@@ -34,6 +34,9 @@ export async function ArticleLayout({
     const { frontmatter } = doc
     const t = await getTranslations({ locale: doc.locale, namespace: 'content' })
     const chapter = pageChapterOrNull(doc.collection, doc.slug, frontmatter.tags ?? [], doc.locale)
+    // Flat-register pages resolve a chapter (for analytics) but never get ChapterFrame — see
+    // pageRegisterOrNull's docstring.
+    const register = pageRegisterOrNull(doc.collection, doc.slug, frontmatter.tags ?? [], doc.locale)
 
     const articleBody = (
         <>
@@ -61,7 +64,11 @@ export async function ArticleLayout({
 
             <Breadcrumbs crumbs={crumbs} />
             <article className="pb-4">
-                {chapter ? <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame> : articleBody}
+                {chapter && register !== 'flat' ? (
+                    <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame>
+                ) : (
+                    articleBody
+                )}
             </article>
 
             <LanguageLinks path={basePathFor(doc.collection, doc.slug)} current={doc.locale} available={translations} />
