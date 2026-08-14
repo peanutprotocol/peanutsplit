@@ -225,6 +225,45 @@ describe('toRoomRecap', () => {
         const recap = toRoomRecap(row({ settlements: [{ fromId: 'a', toId: 'm', amountMinor: 83_000n }] }))
         expect(recap.settled).toBe(true)
     })
+
+    it('leaves a removed member out of the count and the roster', () => {
+        const recap = toRoomRecap(
+            row({
+                members: [
+                    { id: 'a', name: 'Ana' },
+                    { id: 'g', name: 'Gone', removedAt: date('2026-02-05T00:00:00Z') },
+                ],
+            })
+        )
+        expect(recap.memberCount).toBe(1)
+        expect(recap.members.map((m) => m.name)).toEqual(['Ana'])
+    })
+
+    it('keeps a removed member eligible as the historical top payer', () => {
+        const recap = toRoomRecap(
+            row({
+                members: [
+                    { id: 'a', name: 'Ana' },
+                    { id: 'g', name: 'Gone', removedAt: date('2026-02-05T00:00:00Z') },
+                ],
+                expenses: [
+                    {
+                        baseAmountMinor: 5_000n,
+                        paidById: 'g',
+                        date: date('2026-02-01T10:00:00Z'),
+                        shares: [
+                            { memberId: 'a', amountMinor: 2_500n },
+                            { memberId: 'g', amountMinor: 2_500n },
+                        ],
+                    },
+                ],
+            })
+        )
+        // The only expense was fronted by a now-removed member. Lifecycle must not
+        // rewrite who historically fronted the most, so filtering the roster here
+        // would turn this to null and fail the test.
+        expect(recap.topPayerName).toBe('Gone')
+    })
 })
 
 describe('toRecapCard', () => {
