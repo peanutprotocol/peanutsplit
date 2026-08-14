@@ -40,7 +40,7 @@ export function splitGuideMetadata(
             publishedTime: guide.date,
         },
         twitter: {
-            card: 'summary',
+            card: 'summary_large_image',
             title: guide.title,
             description: guide.description,
         },

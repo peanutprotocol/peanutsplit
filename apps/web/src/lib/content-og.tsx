@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { BrandCard, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/card'
 import { BODY_CHARS, ogFonts } from '@/server/og/fonts'
 import { getDoc, listSlugs } from '@/lib/content'
+import { getSplitGuide } from '@/lib/split-content/artifact'
 import type { ParamName, RouteCollections } from '@/lib/content-routes'
 import type { Locale } from '@/i18n/locales'
 
@@ -66,6 +67,17 @@ export function hubOgImage(locale: Locale) {
     return async function HubOgImage() {
         const t = await getTranslations({ locale, namespace: 'content' })
         return brandCardResponse(['SPLIT', 'GUIDES'], t('hubDescription'))
+    }
+}
+
+/**
+ * Unfurl for a generated guide. The title rides the tagline slot for the same reason a blog
+ * post's does: the display lines are Knerd at 108px and a sentence overflows them.
+ */
+export function splitGuideOgImage(locale: Locale) {
+    return async function SplitGuideOgImage({ params }: { params: Promise<{ slug: string }> }) {
+        const guide = getSplitGuide(locale, (await params).slug)
+        return brandCardResponse(['SPLIT', 'GUIDES'], guide?.title ?? 'Peanut Split')
     }
 }
 
