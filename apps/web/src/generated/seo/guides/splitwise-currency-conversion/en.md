@@ -22,12 +22,13 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 
 {/* Every Splitwise fact on this page comes from a Splitwise page opened on 2026-08-12:
@@ -94,7 +95,8 @@ A second thread asks for the same thing in different words.
 
 Neither ask has produced a field for the group's own rate. The help centre describes one conversion
 at the current market rate, so if that is not the rate the group agreed on, and not the rate the
-payer's card charged either, there is nowhere in Splitwise to put the right one.
+payer's card charged either, there is nowhere in Splitwise to put the right one. Where Settle Up
+stands on the same question is in [Splitwise vs Settle Up](/guides/splitwise-vs-settle-up).
 
 ## Default currency sits on the account, not on the group
 
@@ -133,7 +135,9 @@ bank's. Split fixes that rate on the expense as it is added, so history does not
 </Callout>
 
 A peso receipt entered on the second night keeps that night's rate, and a euro receipt entered on the
-last night keeps its own. The room total is those recorded values added up.
+last night keeps its own. The room total is those recorded values added up. Who ends up paying whom
+once the totals are added is a different question, and
+[why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid) answers it.
 
 ## Why Split does not put this behind a tier
 
@@ -145,7 +149,9 @@ and that is how Split gets paid for.
 If everyone paid in the same currency, none of this comes up, and a Splitwise group holding three
 years of flat splits is not worth moving for one weekend abroad. A group that already pays for Pro
 may need nothing else. If it is content with the market rate on the day and converts once at
-settle-up, the button it has does the job.
+settle-up, the button it has does the job. If the currency was never the problem, what is left is
+how the cost divides:
+[per person or per room on a holiday house](/guides/split-holiday-house-per-person-or-per-room).
 
 <CTA text="Start a split" subtitle="Set the room currency once and add the receipts as they arrive." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=splitwise-currency-conversion&utm_content=final-cta" variant="card" />
 

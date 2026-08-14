@@ -24,12 +24,13 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 
 You covered the table on Saturday, and a week later the money has not come back; you have counted it
@@ -68,8 +69,11 @@ everybody about one person is a public balance, and that costs more than the mon
 ## How to send a text message to ask a group for money owed
 
 Past two people, the message stops being an ask and becomes a statement of the total. Post the
-number once, to everyone, with the working under it, and put nobody's name in it. Everybody who
-reads it can then check their own share against the same lines.
+number once, to everyone, with the working under it, and put nobody's name in it. A house that
+families share divides differently,
+[per person or per room](/guides/split-holiday-house-per-person-or-per-room), so the working has to
+say which one produced the number. Everybody who reads it can then check their own share against the
+same lines.
 
 > The house was £240 and the van was £72, so it comes to £78 each. Here is what I paid and when.
 > Tell me if a line looks wrong.
@@ -88,7 +92,10 @@ in a month. Split opens in a browser, and no app store or account is required be
 join.
 
 The number then belongs to the room rather than to you. It sits beside the expense that produced it,
-and a friend who thinks it is wrong can argue with a line in the room rather than with you.
+and a friend who thinks it is wrong can argue with a line in the room rather than with you. The
+usual objection is that they never paid you, and
+[why the room can name somebody you never paid](/guides/why-do-i-owe-someone-i-never-paid) answers
+it.
 
 ### Keep the ask easy to answer
 
@@ -113,9 +120,11 @@ which is how Split gets paid for.
 
 One expense, one person, and you are seeing them on Friday: send the first message above and leave
 the room out of it. A room earns its place when expenses keep arriving, when more than two people
-are involved, or when the settling will happen weeks after the night itself. A room does not make
-anyone pay, and whether the money moves is still a decision a person makes. What it does is take the
-asking out of your hands and keep the figure somewhere neither of you has to hold in their head.
+are involved, or when the settling will happen weeks after the night itself. If the group has
+already installed something else, [Splitwise vs Settle Up](/guides/splitwise-vs-settle-up) sets out
+what each one asks of the people who did not pick it. A room does not make anyone pay, and whether
+the money moves is still a decision a person makes. What it does is take the asking out of your
+hands and keep the figure somewhere neither of you has to hold in their head.
 
 <CTA text="Start a split" subtitle="Open the room the night you pay for something shared." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta" variant="card" />
 

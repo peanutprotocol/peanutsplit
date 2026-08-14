@@ -22,12 +22,13 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 
 {/* Every statement about Splitwise or Settle Up on this page is a verbatim quote from a page opened
@@ -96,11 +97,17 @@ Settle Up also lets a group hold its own exchange rate steady.
 
 *[settleup.io/tips](https://settleup.io/tips), checked 12 August 2026*
 
+Splitwise's side of the same question is
+[what Splitwise does with more than one currency](/guides/splitwise-currency-conversion).
+
 And it lets a group switch off the netting that moves who pays whom.
 
 > It minimizes the number of transactions between people by transferring debts, so you might end up paying to somebody you don't directly owe. If you don't like that, you can turn off debt minimization in the Edit group screen.
 
 *[settleup.io/tips](https://settleup.io/tips), checked 12 August 2026*
+
+The arithmetic behind a reassigned payee is
+[why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid).
 
 ## Both of them need an account
 
@@ -153,7 +160,8 @@ position on that money without hedging it.
 
 *[settleup.io/lightning](https://settleup.io/lightning), checked 12 August 2026*
 
-Neither app is where the money is. Both are where the group agrees what the money was.
+Neither app is where the money is. Both are where the group agrees what the money was. Getting it to
+move is still [the message that asks for it back](/guides/ask-a-friend-to-pay-you-back).
 
 ## Neither company prints a price on the page that sells the tier
 

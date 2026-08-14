@@ -26,12 +26,13 @@ generated_from:
   context:
     - split-content/_system/context/messaging.md
     - split-content/_system/context/localization.pt-br.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 
 Você pagou o churrasco de sábado e, uma semana depois, o dinheiro ainda não voltou; o valor é pequeno
@@ -117,8 +118,10 @@ que mais gente conheça o Peanut, e é assim que o Split se paga.
 
 Uma despesa, uma pessoa e vocês vão se ver esta semana: mande a primeira frase e deixe a sala de
 lado. A sala compensa quando as despesas continuam chegando, quando são mais de duas pessoas ou
-quando o acerto vai acontecer semanas depois daquela noite. O que a sala faz é guardar o valor e
-tirar de você a hora de pedir; quem paga e quando continua sendo decisão de cada pessoa.
+quando o acerto vai acontecer semanas depois daquela noite. Despesas que chegam todo mês são o caso
+da república: [como dividir as contas da casa](/pt-br/guides/split-shared-house-bills). O que a sala
+faz é guardar o valor e tirar de você a hora de pedir; quem paga e quando continua sendo decisão de
+cada pessoa.
 
 <CTA text="Criar um split" subtitle="Abra a sala na mesma noite em que você paga algo do grupo." href="https://peanutsplit.com/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta" variant="card" />
 
