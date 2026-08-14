@@ -38,6 +38,7 @@ export function splitGuideMetadata(
             siteName: 'Peanut Split',
             locale: OG_LOCALE[guide.locale],
             publishedTime: guide.date,
+            modifiedTime: guide.generatedAt,
         },
         twitter: {
             card: 'summary_large_image',
@@ -87,7 +88,7 @@ export function splitGuideSchemas(guide: SplitGuide) {
             headline: guide.title,
             description: guide.description,
             datePublished: guide.date,
-            dateModified: guide.date,
+            dateModified: guide.generatedAt,
             inLanguage: HREFLANG[guide.locale],
             // The site's one Organization, inline: a guide emits no site `@graph`, so a bare `@id`
             // reference would dangle. Each guide used to declare a second Organization for the
