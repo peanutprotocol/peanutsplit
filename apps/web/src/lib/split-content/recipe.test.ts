@@ -4,7 +4,14 @@ import { describe, expect, it } from 'vitest'
 import { LOCALES } from '@/i18n/locales'
 import { listAllTranslations } from '@/lib/content'
 import { loadSplitContentManifest } from './artifact'
-import { CHAPTER_BY_SLUG, FLAT_REGISTER_SLUGS, SplitRecipeError, pageRecipe, type PageKind } from './recipe'
+import {
+    CHAPTER_BY_SLUG,
+    FLAT_REGISTER_SLUGS,
+    SplitRecipeError,
+    pageChapterOrNull,
+    pageRecipe,
+    type PageKind,
+} from './recipe'
 
 /** Every (slug, collection) pair that actually has a file under src/content/, deduped by slug. */
 const REAL_COLLECTION_SLUGS = [...new Map(listAllTranslations().map((doc) => [doc.slug, doc.collection])).entries()]
@@ -102,5 +109,17 @@ describe('pageRecipe', () => {
     it('maps exactly the real slug set — an unmapped slug is a test failure, not a silent default', () => {
         const realSlugs = new Set([...REAL_COLLECTION_DIR_SLUGS.map(([slug]) => slug), ...REAL_GUIDE_SLUGS])
         expect(new Set(Object.keys(CHAPTER_BY_SLUG))).toEqual(realSlugs)
+    })
+})
+
+describe('pageChapterOrNull', () => {
+    it('returns the same chapter as pageRecipe for every real slug', () => {
+        for (const [slug, kind] of KIND_BY_SLUG) {
+            expect(pageChapterOrNull(kind, slug, undefined, 'en')).toBe(pageRecipe(kind, slug, undefined, 'en').chapter)
+        }
+    })
+
+    it('returns null instead of throwing for an unknown slug — a route-test fixture, never real content', () => {
+        expect(pageChapterOrNull('blog', 'this-slug-does-not-exist', undefined, 'en')).toBeNull()
     })
 })

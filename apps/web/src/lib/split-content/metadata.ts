@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { HREFLANG } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
+import { howToSchema } from '@/lib/howto-schema'
 import { absoluteUrl, breadcrumbSchema, ORGANIZATION_NODE, type Breadcrumb } from '@/lib/seo'
 import type { SplitGuide } from './artifact'
 
@@ -101,5 +102,8 @@ export function splitGuideSchemas(guide: SplitGuide) {
             image: `${CANONICAL_ORIGIN}/icons/icon-512.png`,
         },
         breadcrumbs: breadcrumbSchema(splitGuideCrumbs(guide)),
+        // Null on every guide today — none render a <Steps> block yet — the same "nothing to
+        // declare" contract JsonLd already gives faqSchema.
+        howTo: howToSchema(guide.title, url, guide.body),
     }
 }

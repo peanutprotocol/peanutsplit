@@ -114,6 +114,11 @@ export type AnalyticsEvent =
     | 'achievement_seen'
     | 'achievement_share_opened'
     | 'achievement_shared'
+    // Content pageview + scroll depth (blog/alternatives/capture articles and guides).
+    // `template` and `chapter` are both closed enums that describe the PAGE, never the reader —
+    // no slug, no room, no scroll position beyond which of four milestones was crossed.
+    | 'content_pageview'
+    | 'content_scroll_depth'
 
 let ready = false
 

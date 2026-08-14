@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
+import { ContentAnalytics } from '@/components/marketing/ContentAnalytics'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { HREFLANG, LOCALE_LABELS, LOCALES, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import type { SplitGuide } from '@/lib/split-content/artifact'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { GUIDE_CRUMBS, splitGuideCrumbs, splitGuideSchemas } from '@/lib/split-content/metadata'
+import { pageChapterOrNull } from '@/lib/split-content/recipe'
 import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
 
 const OTHER_LANGUAGES = {
@@ -52,6 +54,7 @@ export function SplitGuideLayout({
     const otherLanguages = otherLanguageLinks(guide, alternates)
     const crumbs = splitGuideCrumbs(guide)
     const hubHref = localizedPath('/blog', guide.locale)
+    const chapter = pageChapterOrNull('guide', guide.slug, guide.tags, guide.locale)
     // Every released sibling rather than a slice: over six English guides a `slice(0, 3)` in
     // manifest order leaves three of them with no inbound link at all, which is the defect this
     // replaces. Revisit past about eight released guides in one locale.
@@ -59,8 +62,10 @@ export function SplitGuideLayout({
 
     return (
         <main className="min-h-dvh bg-background text-n-1">
+            {chapter && <ContentAnalytics template="guide" chapter={chapter} />}
             <JsonLd data={schemas.article} />
             <JsonLd data={schemas.breadcrumbs} />
+            <JsonLd data={schemas.howTo} />
 
             <header className="border-b border-n-1 bg-primary-1">
                 <div className="mx-auto flex w-full max-w-xl items-center justify-between px-5 py-4">

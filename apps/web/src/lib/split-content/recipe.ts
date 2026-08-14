@@ -105,3 +105,25 @@ export function pageRecipe(
         tokens: CHAPTER_TOKENS[chapter],
     }
 }
+
+/**
+ * `pageRecipe`'s chapter, or null for an unmapped slug — layout analytics wiring's only concern
+ * is that a resolver failure must never break a page render (the same reason `track()` in
+ * analytics.ts wraps `posthog.capture` in try/catch: "Analytics must never break a flow"). Real
+ * content's coverage is enforced by recipe.test.ts's exhaustive slug check, not by this guard —
+ * this exists for route tests that render a layout against a synthetic fixture slug
+ * (`synthetic-guide` and friends) that was never meant to be in `CHAPTER_BY_SLUG`.
+ */
+export function pageChapterOrNull(
+    kind: PageKind,
+    slug: string,
+    tags: readonly string[] | undefined,
+    locale: Locale
+): Chapter | null {
+    try {
+        return pageRecipe(kind, slug, tags, locale).chapter
+    } catch (error) {
+        if (error instanceof SplitRecipeError) return null
+        throw error
+    }
+}
