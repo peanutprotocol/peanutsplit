@@ -6,6 +6,10 @@ import { bodyFontClassName } from '@/lib/fonts'
 import { splitContentRootMetadata, SPLIT_CONTENT_VIEWPORT } from '@/lib/split-content/root-metadata'
 import '../../styles/globals.css'
 
+// Pinned, not a default left in place: SEO_INDEXABLE is read per-request by
+// splitContentIndexable() (src/lib/split-content/indexability.ts:31-33), so static/ISR would bake
+// one deployment's release-gate decision into cached HTML every other box would then also serve.
+// See docker-contract.test.ts for the runtime-vs-build-time contract this protects.
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = splitContentRootMetadata()
 export const viewport: Viewport = SPLIT_CONTENT_VIEWPORT

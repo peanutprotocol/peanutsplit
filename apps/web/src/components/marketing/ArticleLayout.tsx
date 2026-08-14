@@ -1,12 +1,15 @@
 import type { ReactNode } from 'react'
 import { getTranslations } from 'next-intl/server'
+import { ContentAnalytics } from './ContentAnalytics'
 import { JsonLd } from './JsonLd'
 import { Breadcrumbs } from './Breadcrumbs'
 import { SiteFooter } from './SiteFooter'
 import { LanguageLinks } from './LanguageLinks'
-import { articleSchema, breadcrumbSchema, faqSchema, formatDate, type Breadcrumb } from '@/lib/seo'
+import { howToSchema } from '@/lib/howto-schema'
+import { absoluteUrl, articleSchema, breadcrumbSchema, faqSchema, formatDate, type Breadcrumb } from '@/lib/seo'
 import type { Locale } from '@/i18n/locales'
 import { basePathFor, type Doc } from '@/lib/content'
+import { pageChapterOrNull } from '@/lib/split-content/recipe'
 
 /**
  * The frame every content page shares: structured data, a visible trail, the body, the footer.
@@ -29,12 +32,15 @@ export async function ArticleLayout({
 }) {
     const { frontmatter } = doc
     const t = await getTranslations({ locale: doc.locale, namespace: 'content' })
+    const chapter = pageChapterOrNull(doc.collection, doc.slug, frontmatter.tags ?? [], doc.locale)
 
     return (
         <main className="flex min-h-dvh flex-col bg-background">
+            {chapter && <ContentAnalytics template={doc.collection} chapter={chapter} />}
             <JsonLd data={articleSchema(doc)} />
             <JsonLd data={breadcrumbSchema(crumbs)} />
             <JsonLd data={faqSchema(frontmatter.faqs)} />
+            <JsonLd data={howToSchema(frontmatter.title, absoluteUrl(frontmatter.canonical ?? doc.href), doc.body)} />
 
             <Breadcrumbs crumbs={crumbs} />
             <article className="pb-4">
