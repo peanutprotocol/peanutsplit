@@ -388,13 +388,15 @@ export const labelForOrdinal = (ordinal: number | null): string | null => {
 }
 
 const PAGE_SIZE = 50
+const INT64_MAX = 9223372036854775807n
 
 export async function roomHistoryBySlug(slug: string, cursor?: string | null): Promise<RoomHistoryPage> {
     const room = await prisma.room.findUnique({ where: { slug }, select: { id: true } })
     if (!room) throw notFound('room not found')
 
     const cursorId = cursor && /^\d+$/.test(cursor) ? BigInt(cursor) : null
-    if (cursor && cursorId === null) throw badRequest('history cursor is invalid', 'HISTORY_CURSOR_INVALID')
+    if (cursor && (cursorId === null || cursorId > INT64_MAX))
+        throw badRequest('history cursor is invalid', 'HISTORY_CURSOR_INVALID')
     const cursorRow = cursorId
         ? await prisma.roomAuditEvent.findFirst({ where: { id: cursorId, roomId: room.id }, select: { id: true } })
         : null
