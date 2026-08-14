@@ -104,7 +104,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         const languages = absolutise(releasedGuideAlternates(guide.slug))
         return {
             url: absoluteUrl(guide.href),
-            lastModified: guide.date,
+            lastModified: guide.generatedAt,
             changeFrequency: 'monthly' as const,
             priority: PRIORITY.blog,
             alternates: languages && { languages },

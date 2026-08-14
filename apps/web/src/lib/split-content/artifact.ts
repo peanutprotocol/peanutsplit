@@ -270,6 +270,7 @@ export interface SplitGuide {
     description: string
     author: string
     date: string
+    generatedAt: string
     tags: string[]
     claims: string[]
     body: string
@@ -876,8 +877,9 @@ function parseGuide(entry: SplitGuideManifestEntry, root: string, manifest?: Spl
     const description = typeof data.description === 'string' ? data.description.trim() : ''
     const author = typeof data.author === 'string' ? data.author.trim() : ''
     const date = asDate(data.date)
+    const generatedAt = asDate(data.generated_at)
     const body = parsed.content.trim()
-    if (!title || !description || !author || !DATE.test(date) || !body) {
+    if (!title || !description || !author || !DATE.test(date) || !DATE.test(generatedAt) || !body) {
         artifactError(`guide frontmatter is missing required metadata: ${entry.output_path}`)
     }
     if (data.slug !== entry.slug || data.type !== 'guide' || data.lang !== entry.locale) {
@@ -914,6 +916,7 @@ function parseGuide(entry: SplitGuideManifestEntry, root: string, manifest?: Spl
         description,
         author,
         date,
+        generatedAt,
         tags: stringList(data.tags, 'tags'),
         claims: stringList(data.claims, 'claims'),
         body,
