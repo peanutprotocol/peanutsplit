@@ -143,16 +143,17 @@ export const isSettled = (room: BalanceInput): boolean =>
 /** Shape the raw room row into the recap. Exported for tests; no I/O. */
 export function toRoomRecap(room: RecapRoomRow): RoomRecap {
     const total = room.expenses.reduce((sum, e) => sum + e.baseAmountMinor, 0n)
+    const activeMembers = room.members.filter((m) => m.removedAt == null)
     return {
         name: room.name,
         emoji: room.emoji,
         currency: room.currency,
         totalMinor: total.toString(),
         expenseCount: room.expenses.length,
-        memberCount: room.members.length,
+        memberCount: activeMembers.length,
         dayCount: daySpan(room.expenses.map((e) => e.date)),
         settlementCount: room.settlements.length,
-        members: room.members.map((m) => ({
+        members: activeMembers.map((m) => ({
             name: m.name,
             avatar: m.avatar ?? null,
             avatarPalette: m.avatarPalette ?? null,
