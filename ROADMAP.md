@@ -7,6 +7,18 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-12.
 
+## Open — SEO issues tracker from the 2026-08-14 audit [Konrad]
+
+- A 14-agent audit (every finding reproduced by an independent verifier) confirmed 49
+  issues across live HTTP I/O, metadata/hreflang, structured data, the content engine,
+  the production pipeline, the landing page, and the internal link graph.
+- The tracker with all items, ranked fix-first, is `docs/SEO-ISSUES.md`. It cross-links
+  mono `projects/peanut-split/guides-seo-tracker.md` rather than repeating its open items.
+- Headline items: a wrong FX claim on the indexed currency blog post, claims-ID
+  enforcement missing for the native corpus, presence-based hreflang that would advertise
+  a draft translation, no search-engine submission loop, and zero analytics on content
+  pages.
+
 ## Production-verified 2026-08-12 — one-domain rollback to peanutsplit.com [Konrad]
 
 - `peanutsplit.com` is again the only canonical origin for the app, PWA, native
