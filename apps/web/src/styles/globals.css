@@ -269,8 +269,8 @@
     .landing-proof-scene,
     .landing-proof-copy,
     .landing-proof-visual,
-    .landing-proof-rail,
-    .landing-proof-rail li,
+    .landing-marquee-track,
+    .landing-marquee-run img,
     .landing-room-examples,
     .landing-room-examples-heading,
     .landing-room-examples ul,
@@ -288,8 +288,8 @@
 .reduce-animations .landing-proof-scene,
 .reduce-animations .landing-proof-copy,
 .reduce-animations .landing-proof-visual,
-.reduce-animations .landing-proof-rail,
-.reduce-animations .landing-proof-rail li,
+.reduce-animations .landing-marquee-track,
+.reduce-animations .landing-marquee-run img,
 .reduce-animations .landing-room-examples,
 .reduce-animations .landing-room-examples-heading,
 .reduce-animations .landing-room-examples ul,
@@ -1048,32 +1048,70 @@
     font-size: 0.9rem;
 }
 
-.landing-proof-rail {
-    display: grid;
-    min-height: 3.5rem;
-    grid-template-columns: repeat(4, 1fr);
-    align-items: center;
-    margin: 0;
-    padding: 0 1rem;
-    background: #211c17;
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    list-style: none;
-    text-align: center;
-    text-transform: uppercase;
+/* The claim strip. One track, the run twice, translated by exactly half — so the seam between
+   copies lands off-screen and the loop has no visible restart. Duration is fixed rather than
+   content-derived: the runs differ in width per locale, which changes the speed, not the loop. */
+.landing-marquee {
+    overflow: hidden;
+    border-top: 1.5px solid #211c17;
+    border-bottom: 1.5px solid #211c17;
+    background: white;
 }
 
-.landing-proof-rail li {
+.landing-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: landing-marquee 32s linear infinite;
+}
+
+.landing-marquee-run {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.landing-proof-rail li svg {
-    color: #ff90e8;
+.landing-marquee-run li {
+    display: flex;
+    min-height: 3.75rem;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1rem;
+    color: #211c17;
+    font-size: 1.125rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.landing-marquee-run img {
+    width: 2rem;
+    height: auto;
+    animation: thumbs-up 1.2s infinite;
+    transform-origin: bottom left;
+}
+
+@keyframes landing-marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* peanut.me's wave, kept beat for beat so the two strips read as one family. */
+@keyframes thumbs-up {
+    35% {
+        transform: rotate(-15deg);
+    }
+
+    50% {
+        transform: rotate(9deg);
+    }
+
+    60% {
+        transform: rotate(-5deg);
+    }
 }
 
 .landing-room-examples {
@@ -1447,21 +1485,15 @@
         justify-self: stretch;
     }
 
-    .landing-proof-rail {
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        padding: 0;
-        font-size: 0.62rem;
+    .landing-marquee-run li {
+        min-height: 3rem;
+        gap: 0.75rem;
+        padding: 0 0.75rem;
+        font-size: 0.95rem;
     }
 
-    .landing-proof-rail li {
-        min-height: 2.75rem;
-        padding: 0.5rem;
-        border-bottom: 1px solid rgb(255 255 255 / 20%);
-    }
-
-    .landing-proof-rail li:nth-child(odd) {
-        border-right: 1px solid rgb(255 255 255 / 20%);
+    .landing-marquee-run img {
+        width: 1.6rem;
     }
 
     .landing-room-examples {

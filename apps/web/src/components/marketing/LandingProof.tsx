@@ -7,6 +7,7 @@ import { Doodle } from '@/components/ui/Doodle'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { SLUG_TAIL_HINT } from '@/lib/slugify'
 import { LANDING_CAST, LandingPersona } from './LandingPersona'
+import { LandingMarquee } from './LandingMarquee'
 import { popVariants, riseSoftVariants, riseVariants, sceneKey, sceneProps, sceneVariants, useSceneArm } from './motion'
 
 /** The example cards are a list of names, not an argument — they cascade faster than a full scene. */
@@ -34,7 +35,6 @@ export function LandingProof() {
     const linkScene = useSceneArm<HTMLElement>(motionAllowed)
     const expensesScene = useSceneArm<HTMLElement>(motionAllowed)
     const planScene = useSceneArm<HTMLElement>(motionAllowed)
-    const railScene = useSceneArm<HTMLUListElement>(motionAllowed)
     const roomsScene = useSceneArm<HTMLElement>(motionAllowed)
     const examples = [
         { persona: LANDING_CAST.lisbon, name: t('examples.lisbon.name'), meta: t('examples.lisbon.meta') },
@@ -202,31 +202,7 @@ export function LandingProof() {
                 </motion.div>
             </motion.section>
 
-            <motion.ul
-                className="landing-proof-rail"
-                data-motion-surface
-                aria-label={t('suggestedPlan.planLabel')}
-                ref={railScene.ref}
-                key={sceneKey('proof-rail', railScene.armed)}
-                {...sceneProps(railScene.armed)}
-            >
-                <motion.li variants={riseSoftVariants} data-motion-surface>
-                    <Doodle name="iconsparkles" size={15} weight={1.8} />
-                    {t('rail.roomCreated')}
-                </motion.li>
-                <motion.li variants={riseSoftVariants} data-motion-surface>
-                    <Doodle name="iconsparkles" size={15} weight={1.8} />
-                    {t('rail.linkShared')}
-                </motion.li>
-                <motion.li variants={riseSoftVariants} data-motion-surface>
-                    <Doodle name="iconsparkles" size={15} weight={1.8} />
-                    {t('rail.friendJoined')}
-                </motion.li>
-                <motion.li variants={riseSoftVariants} data-motion-surface>
-                    <Doodle name="iconsparkles" size={15} weight={1.8} />
-                    {t('rail.roomEven')}
-                </motion.li>
-            </motion.ul>
+            <LandingMarquee />
 
             <motion.section
                 data-testid="room-examples"

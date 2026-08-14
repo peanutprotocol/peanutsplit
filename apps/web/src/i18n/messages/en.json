@@ -79,10 +79,12 @@
                 "paymentTwo": "You pay Jules · €40"
             },
             "rail": {
-                "roomCreated": "ROOM CREATED",
-                "linkShared": "LINK SHARED",
-                "friendJoined": "FRIEND JOINED",
-                "roomEven": "EVERYONE EVEN"
+                "free": "FREE FOREVER",
+                "noSignup": "NO SIGNUP",
+                "oneLink": "ONE LINK",
+                "anyCurrency": "ANY CURRENCY",
+                "noMath": "NO MATH",
+                "even": "EVEN"
             },
             "examples": {
                 "title": "SPLIT ANYTHING.",
