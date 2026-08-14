@@ -33,11 +33,15 @@ export async function expectBalance(page: Page, member: string, netMinor: string
  * Finish the shared creation boundary without depending on whichever action the
  * room offers next. Tests that need initial roster names add them at the visible
  * checkpoint before calling this helper.
+ *
+ * The checkpoint already stands on the room URL, so what has to settle after the
+ * single exit is `?roster=1` leaving it — that, not the path, is what makes the
+ * returned URL the room's permanent one.
  */
 export async function enterCreatedRoom(page: Page): Promise<string> {
     await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
     await page.getByTestId('go-to-room').click()
-    await page.waitForURL(/\/r\/[^/?]+/)
+    await expect(page).toHaveURL(/\/r\/[^/?]+$/)
     await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
     return page.url()
 }

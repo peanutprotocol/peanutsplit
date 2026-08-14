@@ -472,12 +472,14 @@ test('the real hero form creates a real room and retains the creator identity', 
     // The tail is the room's credential: 16 random bytes, base64url, 22 characters and no
     // padding. Matched by shape rather than by value, and never by length alone — a stem
     // that swallowed the separator would still pass a bare `.{22}`.
-    await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}$`), {
+    await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}\\?roster=1$`), {
         timeout: 20_000,
     })
     // Composing in a browser tab cannot forge the install marker: only an initial document
     // navigation to a bare `/app` writes it.
     expect(await page.evaluate((key) => localStorage.getItem(key), CANONICAL_LAUNCH_MARKER_KEY)).toBeNull()
+    // Both creation doors hand off to the roster checkpoint, so the room is one exit away.
+    await enterCreatedRoom(page)
     // The room has to have rendered before its absence means anything — a join gate is a
     // `fixed inset-0` overlay, so a blank shell would satisfy a bare count of zero.
     await expect(page.getByTestId('join-gate')).toHaveCount(0, { timeout: 15_000 })
@@ -679,7 +681,9 @@ test.describe('Pass-the-link default', () => {
 
         // Reaching the button is half of it: the keyboard has to be able to fire it too.
         await page.keyboard.press('Enter')
-        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}$`), { timeout: 20_000 })
+        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}\\?roster=1$`), {
+            timeout: 20_000,
+        })
     })
 
     test('form interaction settles the one-shot story and the final state holds', async ({ page }) => {

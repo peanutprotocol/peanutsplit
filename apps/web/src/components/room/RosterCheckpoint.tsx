@@ -6,14 +6,14 @@ import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { isApiError } from '@/lib/api'
-import type { ApiMember, RoomStateWithMember } from '@/lib/api-types'
+import type { ApiMember, RoomState } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
 import { useAddMember } from '@/lib/queries'
 import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from './MemberAvatar'
 
 interface RosterCheckpointProps {
-    created: RoomStateWithMember
+    state: RoomState
     onContinue: () => void
 }
 
@@ -23,16 +23,19 @@ interface RosterCheckpointProps {
  * Names added here are ordinary roster entries. The existing add-member mutation
  * keeps the room cache in sync while leaving the creator's device state alone.
  */
-export function RosterCheckpoint({ created, onContinue }: RosterCheckpointProps) {
+export function RosterCheckpoint({ state, onContinue }: RosterCheckpointProps) {
     const t = useTranslations('room.create.rosterCheckpoint')
     const errorMessage = useErrorMessage()
-    const addMember = useAddMember(created.room.slug)
+    const addMember = useAddMember(state.room.slug)
     const feedback = useFeedback()
     const inputRef = useRef<HTMLInputElement>(null)
-    const [members, setMembers] = useState<readonly ApiMember[]>(created.members)
+    const [members, setMembers] = useState<readonly ApiMember[]>(state.members)
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
-    const rosterChanged = members.length > created.members.length
+    // The add-member mutation writes straight into the room query, so `state` grows too.
+    // "Somebody was added" is measured against the roster this checkpoint opened with.
+    const [openedWith] = useState(state.members.length)
+    const rosterChanged = members.length > openedWith
 
     const add = async (event: React.FormEvent) => {
         event.preventDefault()
