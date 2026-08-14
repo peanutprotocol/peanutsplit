@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { getTranslations } from 'next-intl/server'
+import { ChapterFrame } from './ChapterFrame'
 import { ContentAnalytics } from './ContentAnalytics'
 import { JsonLd } from './JsonLd'
 import { Breadcrumbs } from './Breadcrumbs'
@@ -34,6 +35,22 @@ export async function ArticleLayout({
     const t = await getTranslations({ locale: doc.locale, namespace: 'content' })
     const chapter = pageChapterOrNull(doc.collection, doc.slug, frontmatter.tags ?? [], doc.locale)
 
+    const articleBody = (
+        <>
+            {children}
+            {frontmatter.date && (
+                <div className="mx-auto w-full max-w-xl px-5 pt-4">
+                    <time dateTime={frontmatter.date} className="block text-xs text-grey-1">
+                        {t('published', { date: formatDate(frontmatter.date, doc.locale) })}
+                        {frontmatter.updated && frontmatter.updated !== frontmatter.date
+                            ? ` · ${t('updated', { date: formatDate(frontmatter.updated, doc.locale) })}`
+                            : ''}
+                    </time>
+                </div>
+            )}
+        </>
+    )
+
     return (
         <main className="flex min-h-dvh flex-col bg-background">
             {chapter && <ContentAnalytics template={doc.collection} chapter={chapter} />}
@@ -44,17 +61,7 @@ export async function ArticleLayout({
 
             <Breadcrumbs crumbs={crumbs} />
             <article className="pb-4">
-                {children}
-                {frontmatter.date && (
-                    <div className="mx-auto w-full max-w-xl px-5 pt-4">
-                        <time dateTime={frontmatter.date} className="block text-xs text-grey-1">
-                            {t('published', { date: formatDate(frontmatter.date, doc.locale) })}
-                            {frontmatter.updated && frontmatter.updated !== frontmatter.date
-                                ? ` · ${t('updated', { date: formatDate(frontmatter.updated, doc.locale) })}`
-                                : ''}
-                        </time>
-                    </div>
-                )}
+                {chapter ? <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame> : articleBody}
             </article>
 
             <LanguageLinks path={basePathFor(doc.collection, doc.slug)} current={doc.locale} available={translations} />

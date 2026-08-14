@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { CHAPTER_TOKENS, ink28, type Chapter } from './chapter-tokens'
 
@@ -56,5 +58,28 @@ describe('ink28', () => {
 
     it('carries the chapter ink’s own RGB channels', () => {
         expect(ink28('trips')).toBe('rgba(77,108,196,0.28)')
+    })
+})
+
+/**
+ * Section-numeral CSS smoke check (fun-engine.md S3). `::before` content is paint-only — it never
+ * reaches server-rendered HTML (see ChapterFrame.test.tsx's own text-node assertion, which is a
+ * DOM check and therefore blind to this) — so the counter machinery is verified by reading the
+ * stylesheet source, the same idiom `fonts.tailwind.test.ts` and `use-motion.test.ts` use for
+ * CSS/source assertions vitest's `node` environment cannot render.
+ */
+describe('the section-numeral counter in globals.css', () => {
+    const css = readFileSync(path.resolve(__dirname, '../../styles/globals.css'), 'utf8')
+
+    it('resets the counter once per chapter-framed region', () => {
+        expect(css).toContain('[data-chapter] {')
+        expect(css).toContain('counter-reset: split-section;')
+    })
+
+    it('increments and paints the counter in chapter ink, scoped off the section heading class', () => {
+        expect(css).toContain('.split-section-heading::before {')
+        expect(css).toContain('content: counter(split-section, decimal-leading-zero)')
+        expect(css).toContain('counter-increment: split-section;')
+        expect(css).toContain('color: var(--chapter-ink, var(--split-ink));')
     })
 })

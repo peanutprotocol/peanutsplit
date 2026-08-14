@@ -95,14 +95,17 @@ export function Steps({ title, children }: { title?: string; children: ReactNode
     return (
         <section className={`${COLUMN} my-10`}>
             {title && <h2 className="text-h5">{title}</h2>}
-            <ol className="mt-4 flex flex-col gap-3">{children}</ol>
+            {/* `split-steps` resets the `split-step` counter that numbers each row's leader digit
+                (globals.css) — a receipt-grammar ledger mark, not a re-implementation of the `<ol>`'s
+                own semantic numbering. */}
+            <ol className="split-steps mt-4 flex flex-col gap-3">{children}</ol>
         </section>
     )
 }
 
 export function Step({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <li className="rounded-sm border border-n-1 bg-white p-4">
+        <li className="split-step relative rounded-sm border border-n-1 bg-white py-4 pl-11 pr-4">
             <h3 className="text-h7">{title}</h3>
             <div className="mt-2 text-sm leading-5 text-grey-1">{children}</div>
         </li>
@@ -135,7 +138,9 @@ export function FAQItem({ question, children }: { question: string; children: Re
 export function Callout({ title, children }: { title?: string; children: ReactNode }) {
     return (
         <aside className={`${COLUMN} my-8`}>
-            <div className="rounded-sm border border-n-1 bg-primary-3 p-4">
+            {/* Subtraction pass: no border/radius here (fun-engine.md S3) — the box reads as a
+                "taped note" from `split-callout`'s ::before tape strip (globals.css) alone. */}
+            <div className="split-callout relative bg-primary-3 p-4">
                 {title && <h3 className="text-h7">{title}</h3>}
                 <div className="mt-2 text-sm leading-5 text-n-1">{children}</div>
             </div>
@@ -152,8 +157,12 @@ export function Callout({ title, children }: { title?: string; children: ReactNo
 export function Quote({ children, source }: { children: ReactNode; source: string }) {
     return (
         <figure className={`${COLUMN} my-8`}>
-            <blockquote className="border-l-2 border-n-1 pl-3 text-sm italic leading-5 text-n-1">{children}</blockquote>
-            <figcaption className="mt-2 pl-3 text-h9 uppercase tracking-wide text-grey-1">{source}</figcaption>
+            {/* Evidence slip (fun-engine.md S3): a dashed top rule stands in for the left rule, so a
+                verbatim competitor quote reads as a torn-off receipt line rather than a callout. */}
+            <blockquote className="border-t border-dashed border-n-1 pt-3 text-sm italic leading-5 text-n-1">
+                {children}
+            </blockquote>
+            <figcaption className="mt-2 text-h9 uppercase tabular-nums tracking-wide text-grey-1">{source}</figcaption>
         </figure>
     )
 }
@@ -207,7 +216,9 @@ export function Checklist({ title, children }: { title?: string; children: React
 
 export function ChecklistItem({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <li className="flex items-start gap-3 rounded-sm border border-n-1 bg-white p-4">
+        // `split-checklist-item` punches a perforated tear-line out of the left border via
+        // mask-image (globals.css) — the border itself stays, per fun-engine.md S3's subtraction list.
+        <li className="split-checklist-item relative flex items-start gap-3 rounded-sm border border-n-1 bg-white p-4">
             <span
                 aria-hidden="true"
                 className="flex size-6 shrink-0 items-center justify-center rounded-full border border-n-1 bg-green-1"

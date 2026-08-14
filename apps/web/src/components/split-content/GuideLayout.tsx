@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
+import { ChapterFrame } from '@/components/marketing/ChapterFrame'
 import { ContentAnalytics } from '@/components/marketing/ContentAnalytics'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { HREFLANG, LOCALE_LABELS, LOCALES, type Locale } from '@/i18n/locales'
@@ -60,6 +61,21 @@ export function SplitGuideLayout({
     // replaces. Revisit past about eight released guides in one locale.
     const siblings = sourceReleasedSplitGuides(guide.locale).filter((sibling) => sibling.href !== guide.href)
 
+    const articleBody = (
+        <>
+            <div className="mx-auto w-full max-w-xl px-5 pb-3 pt-10">
+                <h1 className="text-h3 leading-tight">{guide.title}</h1>
+                <p className="mt-4 text-base leading-7 text-grey-1">{guide.description}</p>
+            </div>
+            {children}
+            <div className="mx-auto w-full max-w-xl px-5 pt-4">
+                <time dateTime={guide.date} className="text-xs text-grey-1">
+                    {guide.date}
+                </time>
+            </div>
+        </>
+    )
+
     return (
         <main className="min-h-dvh bg-background text-n-1">
             {chapter && <ContentAnalytics template="guide" chapter={chapter} />}
@@ -79,16 +95,7 @@ export function SplitGuideLayout({
             <Breadcrumbs crumbs={crumbs} />
 
             <article className="pb-8">
-                <div className="mx-auto w-full max-w-xl px-5 pb-3 pt-10">
-                    <h1 className="text-h3 leading-tight">{guide.title}</h1>
-                    <p className="mt-4 text-base leading-7 text-grey-1">{guide.description}</p>
-                </div>
-                {children}
-                <div className="mx-auto w-full max-w-xl px-5 pt-4">
-                    <time dateTime={guide.date} className="text-xs text-grey-1">
-                        {guide.date}
-                    </time>
-                </div>
+                {chapter ? <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame> : articleBody}
             </article>
 
             {otherLanguages.length > 0 && (

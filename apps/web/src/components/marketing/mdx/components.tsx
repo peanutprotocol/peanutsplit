@@ -52,11 +52,16 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
 
     // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by stylebook, so
     // its h1 is a markdown `#` — same typography as the hero's, inside the column instead of a band.
+    // Subtraction pass (fun-engine.md S3): this band's top margin was 2.5rem; a plain title needs
+    // less air above it than a coloured hero band does.
     h1: (props: HTMLAttributes<HTMLHeadingElement>) => (
-        <h1 className={`${COLUMN} mb-5 mt-10 text-h3 leading-tight text-n-1`} {...props} />
+        <h1 className={`${COLUMN} mb-5 mt-8 text-h3 leading-tight text-n-1`} {...props} />
     ),
+    // `split-section-heading` scopes the chapter-ink numeral (globals.css) to exactly this
+    // markdown-derived heading — never to the unrelated internal `<h2>`s Steps/Checklist/FAQ/CTA
+    // render for their own titles, which would otherwise collide on the bare `h2` tag.
     h2: (props: HTMLAttributes<HTMLHeadingElement>) => (
-        <h2 className={`${COLUMN} mb-3 mt-12 text-h5 text-n-1`} {...props} />
+        <h2 className={`${COLUMN} split-section-heading mb-3 mt-12 text-h5 text-n-1`} {...props} />
     ),
     h3: (props: HTMLAttributes<HTMLHeadingElement>) => (
         <h3 className={`${COLUMN} mb-2 mt-8 text-h6 text-n-1`} {...props} />
@@ -76,9 +81,13 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     // Inherits colour on purpose: emphasis is the citation line under a quote, and it sits inside
     // both `p` (grey) and `blockquote` (near-black) without wanting to override either.
     em: (props: HTMLAttributes<HTMLElement>) => <em className="italic" {...props} />,
+    // Evidence slip (fun-engine.md S3): the one Quote-family treatment that reaches generated
+    // guides for real this wave, since it's the shared prose `blockquote` used by both corpora —
+    // `<Quote>` (blocks.tsx) is native-only. Chapter ink at 28% keeps the dashed rule soft next to
+    // the near-black body italic it sits above.
     blockquote: (props: HTMLAttributes<HTMLQuoteElement>) => (
         <blockquote
-            className={`${COLUMN} mb-5 border-l-2 border-n-1 pl-3 text-base italic leading-7 text-n-1`}
+            className={`${COLUMN} mb-5 border-t border-dashed border-[color:var(--chapter-ink-28)] pt-3 text-base italic tabular-nums leading-7 text-n-1`}
             {...props}
         />
     ),
@@ -92,9 +101,11 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     // a four-column table to the 335px a 375px phone leaves, and every cell wraps to one word per
     // line. 32rem is under the column's inner width, so the scrollbar appears on a phone and never
     // on a desktop, and the page itself never scrolls sideways.
+    // Subtraction pass (fun-engine.md S3): a top/bottom hairline reads as a ledger rule; the
+    // boxed border and radius were doing no work the column edge doesn't already do.
     table: (props: HTMLAttributes<HTMLTableElement>) => (
         <div className={`${COLUMN} my-8`}>
-            <div className="overflow-x-auto rounded-sm border border-n-1 bg-white">
+            <div className="overflow-x-auto border-y border-n-1 bg-white">
                 <table className="w-full min-w-[32rem] border-collapse text-left text-sm" {...props} />
             </div>
         </div>
