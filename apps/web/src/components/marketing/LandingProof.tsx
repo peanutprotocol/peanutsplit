@@ -7,31 +7,12 @@ import { Doodle } from '@/components/ui/Doodle'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { SLUG_TAIL_HINT } from '@/lib/slugify'
 import { LANDING_CAST, LandingPersona } from './LandingPersona'
+import { popVariants, riseSoftVariants, riseVariants, sceneKey, sceneProps, sceneVariants, useSceneArm } from './motion'
 
-const sceneVariants: Variants = {
+/** The example cards are a list of names, not an argument — they cascade faster than a full scene. */
+const exampleListVariants: Variants = {
     hidden: { opacity: 0 },
-    shown: {
-        opacity: 1,
-        transition: { duration: 0.28, staggerChildren: 0.1, delayChildren: 0.04 },
-    },
-}
-
-const riseVariants: Variants = {
-    hidden: { opacity: 0, y: 24 },
-    shown: {
-        opacity: 1,
-        y: 0,
-        transition: { type: 'spring', stiffness: 210, damping: 24 },
-    },
-}
-
-const popVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.94 },
-    shown: {
-        opacity: 1,
-        scale: 1,
-        transition: { type: 'spring', stiffness: 260, damping: 20 },
-    },
+    shown: { opacity: 1, transition: { duration: 0.2, staggerChildren: 0.05 } },
 }
 
 /**
@@ -40,11 +21,21 @@ const popVariants: Variants = {
  * These are verified, illustrative fixtures: no room queries, no fabricated live activity and
  * no controls pretending to write data. They make the trust model visible before the detailed
  * FAQ takes over lower on the page.
+ *
+ * Each scene reveals as a scene, not as a screenshot: the copy splits into headline and body,
+ * and the card next to it fills piece by piece — the ticket, then the people, then the rows.
+ * Nested `sceneVariants` containers carry the stagger down; leaves pick `rise`, `riseSoft` or
+ * `pop` from the shared vocabulary in `./motion`.
  */
 export function LandingProof() {
     const t = useTranslations('marketing.proof')
     const tFooter = useTranslations('marketing.footer')
     const motionAllowed = useMotionAllowed()
+    const linkScene = useSceneArm<HTMLElement>(motionAllowed)
+    const expensesScene = useSceneArm<HTMLElement>(motionAllowed)
+    const planScene = useSceneArm<HTMLElement>(motionAllowed)
+    const railScene = useSceneArm<HTMLUListElement>(motionAllowed)
+    const roomsScene = useSceneArm<HTMLElement>(motionAllowed)
     const examples = [
         { persona: LANDING_CAST.lisbon, name: t('examples.lisbon.name'), meta: t('examples.lisbon.meta') },
         { persona: LANDING_CAST.flat, name: t('examples.flat.name'), meta: t('examples.flat.meta') },
@@ -57,19 +48,21 @@ export function LandingProof() {
             <motion.section
                 data-testid="proof-link-identity"
                 data-motion-surface
+                ref={linkScene.ref}
                 className="landing-proof-scene landing-proof-scene-link"
-                variants={sceneVariants}
-                initial={motionAllowed ? 'hidden' : false}
-                animate={motionAllowed ? undefined : 'shown'}
-                whileInView={motionAllowed ? 'shown' : undefined}
-                viewport={{ once: true, amount: 0.28 }}
+                key={sceneKey('proof-link', linkScene.armed)}
+                {...sceneProps(linkScene.armed)}
             >
-                <motion.div className="landing-proof-copy" variants={riseVariants} data-motion-surface>
-                    <h2>{t('linkIdentity.title')}</h2>
-                    <span>{t('linkIdentity.body')}</span>
+                <motion.div className="landing-proof-copy" variants={sceneVariants} data-motion-surface>
+                    <motion.h2 variants={riseVariants} data-motion-surface>
+                        {t('linkIdentity.title')}
+                    </motion.h2>
+                    <motion.span variants={riseSoftVariants} data-motion-surface>
+                        {t('linkIdentity.body')}
+                    </motion.span>
                 </motion.div>
 
-                <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
+                <motion.div className="landing-proof-visual" variants={sceneVariants} data-motion-surface>
                     <Link
                         href="/new"
                         aria-label={`${tFooter('createSplit')}: ${t('linkIdentity.title')}`}
@@ -77,28 +70,32 @@ export function LandingProof() {
                         className="landing-proof-object-link landing-proof-object-link-identity"
                     >
                         <div className="landing-proof-link-card" aria-hidden="true">
-                            <div className="landing-proof-ticket">
+                            <motion.div
+                                className="landing-proof-ticket"
+                                variants={riseSoftVariants}
+                                data-motion-surface
+                            >
                                 <Doodle name="link" size={34} weight={1.7} />
                                 <span>
                                     <small>{t('linkIdentity.linkLabel')}</small>
                                     <b>peanutsplit.com/r/lisbon-weekend{SLUG_TAIL_HINT}</b>
                                 </span>
-                            </div>
+                            </motion.div>
                             <div className="landing-proof-identity">
                                 <small>{t('linkIdentity.identityLabel')}</small>
                                 <ul>
-                                    <li>
+                                    <motion.li variants={popVariants} data-motion-surface>
                                         <LandingPersona persona={LANDING_CAST.you} size={32} />
                                         {t('linkIdentity.you')}
-                                    </li>
-                                    <li>
+                                    </motion.li>
+                                    <motion.li variants={popVariants} data-motion-surface>
                                         <LandingPersona persona={LANDING_CAST.bea} size={32} />
                                         {t('linkIdentity.friendOne')}
-                                    </li>
-                                    <li>
+                                    </motion.li>
+                                    <motion.li variants={popVariants} data-motion-surface>
                                         <LandingPersona persona={LANDING_CAST.jules} size={32} />
                                         {t('linkIdentity.friendTwo')}
-                                    </li>
+                                    </motion.li>
                                 </ul>
                             </div>
                         </div>
@@ -109,19 +106,21 @@ export function LandingProof() {
             <motion.section
                 data-testid="proof-everyone-adds"
                 data-motion-surface
+                ref={expensesScene.ref}
                 className="landing-proof-scene landing-proof-scene-expenses"
-                variants={sceneVariants}
-                initial={motionAllowed ? 'hidden' : false}
-                animate={motionAllowed ? undefined : 'shown'}
-                whileInView={motionAllowed ? 'shown' : undefined}
-                viewport={{ once: true, amount: 0.28 }}
+                key={sceneKey('proof-expenses', expensesScene.armed)}
+                {...sceneProps(expensesScene.armed)}
             >
-                <motion.div className="landing-proof-copy" variants={riseVariants} data-motion-surface>
-                    <h2>{t('everyoneAdds.title')}</h2>
-                    <span>{t('everyoneAdds.body')}</span>
+                <motion.div className="landing-proof-copy" variants={sceneVariants} data-motion-surface>
+                    <motion.h2 variants={riseVariants} data-motion-surface>
+                        {t('everyoneAdds.title')}
+                    </motion.h2>
+                    <motion.span variants={riseSoftVariants} data-motion-surface>
+                        {t('everyoneAdds.body')}
+                    </motion.span>
                 </motion.div>
 
-                <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
+                <motion.div className="landing-proof-visual" variants={sceneVariants} data-motion-surface>
                     <Link
                         href="/new"
                         aria-label={`${tFooter('createSplit')}: ${t('everyoneAdds.title')}`}
@@ -129,27 +128,30 @@ export function LandingProof() {
                         className="landing-proof-object-link landing-proof-object-link-expenses"
                     >
                         <ul className="landing-proof-expenses" aria-hidden="true">
-                            <li>
+                            {/* Each row fades and staggers its own contents rather than rising: the scattered
+                                resting tilt is a CSS `rotate` per row, and an animated transform would erase it.
+                                Same reason these rows carry no `data-motion-surface` — its `transform: none`. */}
+                            <motion.li variants={sceneVariants}>
                                 <LandingPersona persona={LANDING_CAST.bea} size={42} />
-                                <span>
+                                <motion.span variants={riseSoftVariants} data-motion-surface>
                                     <b>{t('everyoneAdds.expenseOne')}</b>
                                     <small>{t('everyoneAdds.expenseOneMeta')}</small>
-                                </span>
-                            </li>
-                            <li>
+                                </motion.span>
+                            </motion.li>
+                            <motion.li variants={sceneVariants}>
                                 <LandingPersona persona={LANDING_CAST.jules} size={42} />
-                                <span>
+                                <motion.span variants={riseSoftVariants} data-motion-surface>
                                     <b>{t('everyoneAdds.expenseTwo')}</b>
                                     <small>{t('everyoneAdds.expenseTwoMeta')}</small>
-                                </span>
-                            </li>
-                            <li>
+                                </motion.span>
+                            </motion.li>
+                            <motion.li variants={sceneVariants}>
                                 <LandingPersona persona={LANDING_CAST.ana} size={42} />
-                                <span>
+                                <motion.span variants={riseSoftVariants} data-motion-surface>
                                     <b>{t('everyoneAdds.expenseThree')}</b>
                                     <small>{t('everyoneAdds.expenseThreeMeta')}</small>
-                                </span>
-                            </li>
+                                </motion.span>
+                            </motion.li>
                         </ul>
                     </Link>
                 </motion.div>
@@ -158,19 +160,21 @@ export function LandingProof() {
             <motion.section
                 data-testid="proof-suggested-plan"
                 data-motion-surface
+                ref={planScene.ref}
                 className="landing-proof-scene landing-proof-scene-plan"
-                variants={sceneVariants}
-                initial={motionAllowed ? 'hidden' : false}
-                animate={motionAllowed ? undefined : 'shown'}
-                whileInView={motionAllowed ? 'shown' : undefined}
-                viewport={{ once: true, amount: 0.28 }}
+                key={sceneKey('proof-plan', planScene.armed)}
+                {...sceneProps(planScene.armed)}
             >
-                <motion.div className="landing-proof-copy" variants={riseVariants} data-motion-surface>
-                    <h2>{t('suggestedPlan.title')}</h2>
-                    <span>{t('suggestedPlan.body')}</span>
+                <motion.div className="landing-proof-copy" variants={sceneVariants} data-motion-surface>
+                    <motion.h2 variants={riseVariants} data-motion-surface>
+                        {t('suggestedPlan.title')}
+                    </motion.h2>
+                    <motion.span variants={riseSoftVariants} data-motion-surface>
+                        {t('suggestedPlan.body')}
+                    </motion.span>
                 </motion.div>
 
-                <motion.div className="landing-proof-visual" variants={popVariants} data-motion-surface>
+                <motion.div className="landing-proof-visual" variants={sceneVariants} data-motion-surface>
                     <Link
                         href="/new"
                         aria-label={`${tFooter('createSplit')}: ${t('suggestedPlan.title')}`}
@@ -178,19 +182,21 @@ export function LandingProof() {
                         className="landing-proof-object-link landing-proof-object-link-plan"
                     >
                         <div className="landing-proof-plan" aria-hidden="true">
-                            <span>{t('suggestedPlan.planLabel')}</span>
-                            <p>
+                            <motion.span variants={riseSoftVariants} data-motion-surface>
+                                {t('suggestedPlan.planLabel')}
+                            </motion.span>
+                            <motion.p variants={popVariants} data-motion-surface>
                                 <LandingPersona persona={LANDING_CAST.you} size={32} />
                                 <b>{t('suggestedPlan.paymentOne')}</b>
                                 <Doodle name="iconarrowright" size={25} weight={2.2} />
                                 <LandingPersona persona={LANDING_CAST.bea} size={32} />
-                            </p>
-                            <p>
+                            </motion.p>
+                            <motion.p variants={popVariants} data-motion-surface>
                                 <LandingPersona persona={LANDING_CAST.you} size={32} />
                                 <b>{t('suggestedPlan.paymentTwo')}</b>
                                 <Doodle name="iconarrowright" size={25} weight={2.2} />
                                 <LandingPersona persona={LANDING_CAST.jules} size={32} />
-                            </p>
+                            </motion.p>
                         </div>
                     </Link>
                 </motion.div>
@@ -200,25 +206,23 @@ export function LandingProof() {
                 className="landing-proof-rail"
                 data-motion-surface
                 aria-label={t('suggestedPlan.planLabel')}
-                variants={sceneVariants}
-                initial={motionAllowed ? 'hidden' : false}
-                animate={motionAllowed ? undefined : 'shown'}
-                whileInView={motionAllowed ? 'shown' : undefined}
-                viewport={{ once: true, amount: 0.7 }}
+                ref={railScene.ref}
+                key={sceneKey('proof-rail', railScene.armed)}
+                {...sceneProps(railScene.armed)}
             >
-                <motion.li variants={riseVariants} data-motion-surface>
+                <motion.li variants={riseSoftVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.roomCreated')}
                 </motion.li>
-                <motion.li variants={riseVariants} data-motion-surface>
+                <motion.li variants={riseSoftVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.linkShared')}
                 </motion.li>
-                <motion.li variants={riseVariants} data-motion-surface>
+                <motion.li variants={riseSoftVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.friendJoined')}
                 </motion.li>
-                <motion.li variants={riseVariants} data-motion-surface>
+                <motion.li variants={riseSoftVariants} data-motion-surface>
                     <Doodle name="iconsparkles" size={15} weight={1.8} />
                     {t('rail.roomEven')}
                 </motion.li>
@@ -227,22 +231,24 @@ export function LandingProof() {
             <motion.section
                 data-testid="room-examples"
                 data-motion-surface
+                ref={roomsScene.ref}
                 className="landing-room-examples"
-                variants={sceneVariants}
-                initial={motionAllowed ? 'hidden' : false}
-                animate={motionAllowed ? undefined : 'shown'}
-                whileInView={motionAllowed ? 'shown' : undefined}
-                viewport={{ once: true, amount: 0.2 }}
+                key={sceneKey('proof-rooms', roomsScene.armed)}
+                {...sceneProps(roomsScene.armed, 0.2)}
             >
-                <motion.div className="landing-room-examples-heading" variants={riseVariants} data-motion-surface>
+                <motion.div className="landing-room-examples-heading" variants={sceneVariants} data-motion-surface>
                     <div className="landing-room-examples-copy">
-                        <h2>{t('examples.title')}</h2>
-                        <span>{t('examples.body')}</span>
+                        <motion.h2 variants={riseVariants} data-motion-surface>
+                            {t('examples.title')}
+                        </motion.h2>
+                        <motion.span variants={riseSoftVariants} data-motion-surface>
+                            {t('examples.body')}
+                        </motion.span>
                     </div>
                 </motion.div>
-                <motion.ul variants={sceneVariants} data-motion-surface>
+                <motion.ul variants={exampleListVariants} data-motion-surface>
                     {examples.map((example) => (
-                        <motion.li key={example.name} variants={popVariants} data-motion-surface>
+                        <motion.li key={example.name} variants={riseSoftVariants} data-motion-surface>
                             <Link
                                 href="/new"
                                 aria-label={`${tFooter('createSplit')}: ${example.name}: ${example.meta}`}

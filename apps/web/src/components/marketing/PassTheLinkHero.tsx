@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { trackLanding } from '@/lib/analytics'
 import { useMotionAllowed } from '@/lib/use-motion'
-import { HeroCreateForm } from './HeroCreateForm'
+import { HeroCreateForm, heroBeat } from './HeroCreateForm'
 import { PassTheLinkStage, type PassTheLinkStageState } from './PassTheLinkStage'
 
 const STORY_STEPS: Array<{ state: PassTheLinkStageState; after: number }> = [
@@ -60,10 +60,17 @@ export function PassTheLinkHero() {
     }, [completeStory, motionAllowed])
 
     return (
-        <section data-testid="pass-link-hero" className="pass-link-hero border-b border-n-1 bg-secondary-1 text-n-1">
+        <section
+            data-testid="pass-link-hero"
+            data-motion={motionAllowed ? 'ready' : 'still'}
+            className="pass-link-hero border-b border-n-1 bg-secondary-1 text-n-1"
+        >
             <div className="pass-link-hero-inner">
+                {/* The fold arrives in beats — headline, conversation, then the form's own rows —
+                    rather than as one yellow block that fades. `heroBeat` explains why they are
+                    CSS. The band itself never animates: it is the page's first paint. */}
                 <div className="pass-link-layout">
-                    <div className="pass-link-copy">
+                    <div className="pass-link-copy" style={heroBeat(0, 420)} data-motion-surface>
                         <h1 data-testid="pass-link-headline">{t('titleAccessible')}</h1>
                     </div>
 

@@ -1,10 +1,13 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { motion } from 'motion/react'
 import { Button } from '@/components/ui/Button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
+import { useMotionAllowed } from '@/lib/use-motion'
+import { riseSoftVariants, sceneVariants } from './motion'
 
 /**
  * What the room link actually is, on demand.
@@ -20,6 +23,7 @@ import { Icon } from '@/components/ui/Icon'
  */
 export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () => void }) {
     const t = useTranslations('marketing.linkExplainer')
+    const motionAllowed = useMotionAllowed()
     const points = ['access', 'chat', 'remembered', 'money'] as const
 
     return (
@@ -30,10 +34,22 @@ export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () =>
                 </DrawerHeader>
 
                 <DrawerBody className="gap-4">
-                    <ul className="flex flex-col gap-3">
+                    {/* Four answers to one question read as a list to work through when they
+                        arrive together; a beat apart, they read as four short answers. This
+                        sheet is mounted on open, well after hydration, so motion/react is the
+                        right tool here in a way it is not for the server-rendered fold. */}
+                    <motion.ul
+                        className="flex flex-col gap-3"
+                        variants={sceneVariants}
+                        initial={motionAllowed ? 'hidden' : false}
+                        animate="shown"
+                        data-motion-surface
+                    >
                         {points.map((point) => (
-                            <li
+                            <motion.li
                                 key={point}
+                                variants={riseSoftVariants}
+                                data-motion-surface
                                 className="flex items-start gap-3 rounded-sm border border-n-1 bg-white p-4"
                             >
                                 <span
@@ -48,9 +64,9 @@ export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () =>
                                         {t(`${point}.body`)}
                                     </span>
                                 </span>
-                            </li>
+                            </motion.li>
                         ))}
-                    </ul>
+                    </motion.ul>
 
                     <Button variant="stroke" className="justify-center" onClick={onClose}>
                         {t('done')}

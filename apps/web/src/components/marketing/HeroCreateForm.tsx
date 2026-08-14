@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
+import { motion } from 'motion/react'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { DoodlePicker } from '@/components/room/DoodlePicker'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
@@ -17,11 +18,29 @@ import { roomDoodleFor } from '@/lib/room-doodle'
 import { SLUG_TAIL_HINT, slugStem } from '@/lib/slugify'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCreateRoomFlow } from '@/lib/use-create-room'
+import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { LinkExplainer } from './LinkExplainer'
 
 /** The server-rendered seed only; the real default is the device's top hint (effect below). */
 const DEFAULT_CURRENCY = 'EUR'
+
+/**
+ * One beat of the hero's entrance, as CSS rather than motion/react.
+ *
+ * The hero is server-rendered above the fold, so its reveal has to start at the first paint —
+ * and motion/react reads `initial` once, at mount, which is hydration. By then the browser has
+ * painted the finished hero, so a JS entrance can only hide what is already on screen. CSS runs
+ * from the first frame instead, and `globals.css` drops every animation for both motion
+ * preferences, leaving the resting styles: the still path needs no gate of its own.
+ *
+ * `backwards` rather than `both` leaves no transform behind, so a settled row never becomes a
+ * stacking context under the pickers. It lives in this file because the form is the one piece
+ * both hero variants render.
+ */
+export const heroBeat = (delayMs: number, durationMs = 340) => ({
+    animation: `ps-drawer-in ${durationMs}ms cubic-bezier(0.22, 1, 0.36, 1) ${delayMs}ms backwards`,
+})
 
 export interface HeroCreateFormProps {
     /** Controlled by the Pass-the-Link stage so the illustrative URL follows the real draft. */
@@ -69,6 +88,7 @@ export function HeroCreateForm({
     const tCreate = useTranslations('room.create')
     const router = useRouter()
     const feedback = useFeedback()
+    const motionAllowed = useMotionAllowed()
     const hints = useCurrencyHints()
     const { submit, error, pending } = useCreateRoomFlow(tCreate('failed'))
 
@@ -188,7 +208,7 @@ export function HeroCreateForm({
                 variant === 'compact' ? 'mt-6' : 'pass-link-form'
             )}
         >
-            <div className="flex items-stretch gap-2">
+            <div className="flex items-stretch gap-2" style={heroBeat(110)} data-motion-surface>
                 <BaseInput
                     ref={nameRef}
                     value={name}
@@ -210,12 +230,16 @@ export function HeroCreateForm({
                     onToggle={(event) => setPickerOpen((event.target as HTMLDetailsElement).open)}
                     className="relative"
                 >
-                    <summary
+                    {/* The one piece of the form that is a toy rather than a field, so it
+                        answers a tap the way a toy does. */}
+                    <motion.summary
                         aria-label={tCreate('emoji')}
+                        whileTap={{ scale: 0.88, rotate: -9 }}
+                        transition={{ type: 'spring', stiffness: 620, damping: 18 }}
                         className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 [&::-webkit-details-marker]:hidden"
                     >
                         <RoomEmblem value={shownEmblem} name={name} size={24} />
-                    </summary>
+                    </motion.summary>
                     <div className="shadow-4 absolute right-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
                         <DoodlePicker
                             value={shownEmblem}
@@ -231,12 +255,19 @@ export function HeroCreateForm({
             </div>
 
             {validationField === 'room' && (
-                <p id="hero-room-required" role="alert" className="text-sm font-bold text-error">
+                <motion.p
+                    id="hero-room-required"
+                    role="alert"
+                    initial={motionAllowed ? { opacity: 0, y: -4 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                    className="text-sm font-bold text-error"
+                >
                     {t('validation.roomRequired')}
-                </p>
+                </motion.p>
             )}
 
-            <div className="flex items-stretch gap-2">
+            <div className="flex items-stretch gap-2" style={heroBeat(160)} data-motion-surface>
                 <BaseInput
                     ref={creatorRef}
                     value={creatorName}
@@ -264,9 +295,16 @@ export function HeroCreateForm({
             </div>
 
             {validationField === 'creator' && (
-                <p id="hero-creator-required" role="alert" className="text-sm font-bold text-error">
+                <motion.p
+                    id="hero-creator-required"
+                    role="alert"
+                    initial={motionAllowed ? { opacity: 0, y: -4 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                    className="text-sm font-bold text-error"
+                >
                     {t('validation.creatorRequired')}
-                </p>
+                </motion.p>
             )}
 
             {/* An invented ticker has no rate, so this room converts nothing. Said at the pick,
@@ -278,16 +316,22 @@ export function HeroCreateForm({
             )}
 
             {/* The stem is real and the tail is honest about not existing yet. */}
-            <p className="flex items-center gap-1.5 font-mono text-xs leading-5 text-n-1">
+            <p
+                className="flex items-center gap-1.5 font-mono text-xs leading-5 text-n-1"
+                style={heroBeat(210)}
+                data-motion-surface
+            >
                 <span data-testid="hero-slug-preview">
                     peanutsplit.com/r/
                     <span className={stem ? '' : 'text-grey-1'}>{stem || tCreate('namePlaceholderSlug')}</span>
                     <span className="tracking-widest text-grey-1">{SLUG_TAIL_HINT}</span>
                 </span>
-                <button
+                <motion.button
                     type="button"
                     onClick={() => setExplainerOpen(true)}
                     aria-label={t('linkExplainerTrigger')}
+                    whileTap={{ scale: 0.82, rotate: -14 }}
+                    transition={{ type: 'spring', stiffness: 620, damping: 18 }}
                     // The padding is 41px of tap target cancelled by an equal negative
                     // margin, so the mark stays put and the row's width for the URL
                     // text above is unchanged — see RoomHeader's avatar button for the
@@ -296,13 +340,19 @@ export function HeroCreateForm({
                     data-testid="hero-link-explainer"
                 >
                     <Doodle name="question" size={17} weight={2.4} />
-                </button>
+                </motion.button>
             </p>
 
             {error && (
-                <p role="alert" className="text-sm font-bold text-error">
+                <motion.p
+                    role="alert"
+                    initial={motionAllowed ? { opacity: 0, y: -4 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                    className="text-sm font-bold text-error"
+                >
                     {error}
-                </p>
+                </motion.p>
             )}
 
             {/* Yellow carries the product's primary-action language and stands out cleanly
@@ -313,6 +363,9 @@ export function HeroCreateForm({
                 shadowSize="4"
                 loading={pending}
                 className="justify-center text-h6"
+                // The last beat, and no `data-motion-surface`: that rule flattens transforms,
+                // which would take the button's own press affordance with it.
+                style={heroBeat(250)}
                 data-testid="hero-create-room"
             >
                 <span>{t('cta')}</span>

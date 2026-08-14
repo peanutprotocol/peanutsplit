@@ -4,7 +4,7 @@ import { RoomEmblem } from '@/components/room/RoomEmblem'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion } from 'motion/react'
+import { motion, type Variants } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
@@ -21,8 +21,39 @@ import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { forgetRoomFromDevice } from '@/lib/use-identity'
+import { riseSoftVariants, sceneVariants } from './motion'
 
 const COLLAPSED_LIMIT = 5
+
+/** Only the link is a motion component: `whileTap` on the `<li>` would make motion give every card a tab stop. */
+const RoomCardLink = motion.create(Link)
+
+/**
+ * A function rather than `staggerChildren`, for two reasons: only the function form is applied
+ * to cards that mount after the scene has settled (the reveal control adds a second batch), and
+ * capping the index keeps a long history from cascading for a second.
+ */
+const roomListVariants: Variants = {
+    hidden: {},
+    shown: { transition: { delayChildren: (index: number) => Math.min(index, 5) * 0.06 } },
+}
+
+/** A saved room is a physical tile: it rises and settles rather than fading. */
+const roomCardVariants: Variants = {
+    hidden: { opacity: 0, y: 14, scale: 0.97 },
+    shown: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { type: 'spring', stiffness: 300, damping: 26, delayChildren: 0.04 },
+    },
+}
+
+/** The colour tile is what you actually recognise, so it lands last, and lands playing. */
+const emblemVariants: Variants = {
+    hidden: { opacity: 0, scale: 0.7, rotate: -10 },
+    shown: { opacity: 1, scale: 1, rotate: 0, transition: { type: 'spring', stiffness: 500, damping: 20 } },
+}
 
 /**
  * "3 hours ago" in whatever language the room list is being read in. Was pinned to 'en', which
@@ -178,10 +209,15 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
         // The list can only exist after a localStorage read, so it necessarily
         // arrives one frame late. Staggering it in turns that unavoidable pop
         // into something that looks intended.
+        //
+        // Mount-driven rather than `whileInView`: cards keep arriving after the
+        // scene has settled (the read on /app, the reveal control), and motion
+        // propagates an inherited `animate` to a late child but never an
+        // inherited `whileInView` — those cards would stay at opacity 0.
         <motion.section
-            initial={motionAllowed ? { opacity: 0, y: 10 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
+            variants={sceneVariants}
+            initial={motionAllowed ? 'hidden' : false}
+            animate="shown"
             data-motion={motionAllowed ? 'ready' : 'still'}
             data-motion-surface
             data-testid="recent-rooms"
@@ -190,33 +226,34 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
         >
             {recent.length > 0 && (
                 <>
-                    <div className="flex items-baseline justify-between gap-4">
+                    <motion.div
+                        variants={riseSoftVariants}
+                        data-motion-surface
+                        className="flex items-baseline justify-between gap-4"
+                    >
                         <h2 className="text-h5">{t('title')}</h2>
                         <span className="text-right text-sm text-grey-1">{t('subtitle')}</span>
-                    </div>
+                    </motion.div>
 
-                    <ul id="recent-room-list" data-testid="recent-room-list" className="mt-4 flex flex-col gap-3">
-                        {visible.map((room, index) => (
+                    <motion.ul
+                        variants={roomListVariants}
+                        id="recent-room-list"
+                        data-testid="recent-room-list"
+                        data-motion-surface
+                        className="mt-4 flex flex-col gap-3"
+                    >
+                        {visible.map((room) => (
                             <motion.li
                                 key={room.slug}
-                                initial={motionAllowed ? { opacity: 0, y: 8 } : false}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={
-                                    motionAllowed
-                                        ? {
-                                              type: 'spring',
-                                              stiffness: 340,
-                                              damping: 30,
-                                              delay: 0.05 + index * 0.05,
-                                          }
-                                        : { duration: 0 }
-                                }
+                                variants={roomCardVariants}
+                                whileHover={motionAllowed ? { y: -2 } : undefined}
                                 data-motion-surface
                                 className="shadow-4 flex overflow-hidden rounded-sm border border-n-1 bg-white"
                             >
-                                <Link
+                                <RoomCardLink
                                     href={`/r/${room.slug}`}
                                     data-focus-contained
+                                    whileTap={motionAllowed ? { scale: 0.97 } : undefined}
                                     onClick={() => feedback('whoosh')}
                                     aria-label={`${t('openLabel')}: ${room.name}`}
                                     className="flex min-w-0 flex-1 items-center gap-3 rounded-l-sm p-3 transition-colors hover:bg-primary-4/20"
@@ -226,13 +263,15 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                                         the colour is the thing you actually recognise, and it is the
                                         same colour the room's header will be a tap later. Lavender
                                         stays the literal fallback, so an unthemed room is unchanged. */}
-                                    <span
+                                    <motion.span
                                         aria-hidden="true"
+                                        variants={emblemVariants}
+                                        data-motion-surface
                                         style={room.theme ? { backgroundColor: themeFor(room.theme).field } : undefined}
                                         className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-primary-3 text-h5"
                                     >
                                         <RoomEmblem value={room.emoji} name={room.name} size={30} />
-                                    </span>
+                                    </motion.span>
                                     <span className="min-w-0 flex-1">
                                         <span className="block truncate text-h7">{room.name}</span>
                                         <span className="block text-sm text-grey-1">
@@ -240,7 +279,7 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                                         </span>
                                     </span>
                                     <Icon name="chevron-right" size={20} className="shrink-0 text-n-1" />
-                                </Link>
+                                </RoomCardLink>
                                 <button
                                     type="button"
                                     onClick={() => askForget(room)}
@@ -254,11 +293,16 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                                 </button>
                             </motion.li>
                         ))}
-                    </ul>
+                    </motion.ul>
 
                     {canCollapse && (
-                        <button
+                        // The press nudge moved from `active:translate-y-px` to `whileTap`: the entrance
+                        // holds an inline transform, which a Tailwind transform utility cannot outrank.
+                        <motion.button
                             type="button"
+                            variants={riseSoftVariants}
+                            whileTap={motionAllowed ? { y: 1 } : undefined}
+                            data-motion-surface
                             onClick={() => {
                                 setReveal(expanded ? 'fewer' : 'all')
                                 feedback('blip')
@@ -266,11 +310,11 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                             aria-expanded={expanded}
                             aria-controls="recent-room-list"
                             data-testid="more-rooms"
-                            className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-sm px-1 py-1 text-sm font-bold text-n-1 underline decoration-2 underline-offset-4 transition-transform active:translate-y-px"
+                            className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-sm px-1 py-1 text-sm font-bold text-n-1 underline decoration-2 underline-offset-4"
                         >
                             {expanded ? t('showLess') : t('showMore', { count: overflow })}
                             <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={17} aria-hidden="true" />
-                        </button>
+                        </motion.button>
                     )}
                 </>
             )}
