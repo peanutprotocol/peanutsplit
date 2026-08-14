@@ -1,7 +1,6 @@
 import { type Metadata, type Viewport } from 'next'
 import { headers } from 'next/headers'
 import { NextIntlClientProvider } from 'next-intl'
-import Script from 'next/script'
 import { getLocale } from 'next-intl/server'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { RegisterProductServiceWorker } from '@/components/pwa/RegisterProductServiceWorker'
@@ -97,14 +96,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                         {appleStartupImages().map(({ url, media }) => (
                             <link key={url} rel="apple-touch-startup-image" href={url} media={media} />
                         ))}
-                        <Script id="split-install-preflight" strategy="beforeInteractive">
-                            {installPromptPreflight}
-                        </Script>
+                        {/* Literal parser-blocking scripts, not next/script: App Router serialises
+                            `beforeInteractive` into the bootstrap, which lands ~150-350ms after
+                            first paint on a slow device — the exact window these must precede.
+                            The install one would miss `beforeinstallprompt` the same way. */}
+                        <script
+                            id="split-install-preflight"
+                            dangerouslySetInnerHTML={{ __html: installPromptPreflight }}
+                        />
                     </>
                 ) : null}
-                <Script id="split-motion-preflight" strategy="beforeInteractive">
-                    {motionPreferencePreflight}
-                </Script>
+                <script id="split-motion-preflight" dangerouslySetInnerHTML={{ __html: motionPreferencePreflight }} />
             </head>
             <body className={bodyFontClassName}>
                 {canonicalPwa ? <RegisterProductServiceWorker /> : null}

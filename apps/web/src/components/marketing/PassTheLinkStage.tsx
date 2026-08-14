@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Doodle } from '@/components/ui/Doodle'
 import { SLUG_TAIL_HINT, slugStem } from '@/lib/slugify'
+import { heroBeat } from './HeroCreateForm'
 import { LANDING_CAST, LandingPersona } from './LandingPersona'
 
 export type PassTheLinkStageState = 'question' | 'reply' | 'link' | 'complete'
@@ -36,7 +37,9 @@ export function PassTheLinkStage({ roomName, state }: PassTheLinkStageProps) {
     const shownRoomName = roomName.trim() || t('chat.defaultRoom')
 
     return (
-        <div className="pass-link-stage-shell">
+        // Second beat of the hero, one behind the headline: the conversation lands, and the
+        // chat's own story then plays inside it on the timeline `globals.css` owns.
+        <div className="pass-link-stage-shell" style={heroBeat(80, 420)} data-motion-surface>
             <p data-testid="pass-link-stage-summary" className="sr-only">
                 {t('stageSummary')}
             </p>
