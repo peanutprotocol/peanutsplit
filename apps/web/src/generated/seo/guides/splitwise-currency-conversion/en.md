@@ -135,9 +135,9 @@ bank's. Split fixes that rate on the expense as it is added, so history does not
 </Callout>
 
 A peso receipt entered on the second night keeps that night's rate, and a euro receipt entered on the
-last night keeps its own. The room total is those recorded values added up. Who ends up paying whom
-once the totals are added is a different question, and
-[why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid) answers it.
+last night keeps its own. The room total is those recorded values added up. The rate never decides
+who ends up paying whom, and
+[why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid) does that sum.
 
 ## Why Split does not put this behind a tier
 

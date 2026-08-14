@@ -151,10 +151,10 @@ key, so whoever holds it can open the room and add to it. There is no login and 
 recovery, so it needs to stay somewhere the whole group can still find it in a month.
 
 By Friday the cottage is on one card, the shopping on another and the wine on a third. Split nets
-those debts down, and the week ends on a short payment plan. The same netting is why the plan can
-name a household you never bought anything with.
-[Why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid) walks that
-arithmetic.
+those debts down, and the week ends on a short payment plan. Only the names on the transfers
+change, never the household totals, and
+[why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid) proves it with
+three people and two receipts.
 
 ### What to send with the number
 

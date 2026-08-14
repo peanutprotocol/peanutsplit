@@ -81,9 +81,9 @@ at £35 make £175, one each. Everybody going pays £335, and the unused sixth p
 the person who is not going.
 
 Working it out takes the longest. Nobody reopens it later, because every line names who it was
-bought for. Whether the house divides
-[per person or per room](/guides/split-holiday-house-per-person-or-per-room) is a separate decision,
-and the group makes it once.
+bought for. Splitting the house five equal ways assumes the bedrooms are worth the same. When they
+are not, the group decides
+[per person or per room](/guides/split-holiday-house-per-person-or-per-room), and it decides once.
 
 <Callout type="info">
 **All three pay for the same trip.** Each version collects £1,710: six shares of £285, five shares
@@ -107,8 +107,9 @@ which is why the method gets chosen in a moving car, or on the last redraft of a
 getting softer. Stop rewriting it!
 
 Pick the method, put it in a sentence, and post it where everybody can see it.
-[What to put in that message](/guides/ask-a-friend-to-pay-you-back) is a separate question. Agreeing
-the rule before anyone books is the better habit, and that is a job for the next trip.
+[What to put in that message](/guides/ask-a-friend-to-pay-you-back) is the number and the lines it
+came from. Agreeing the rule before anyone books is the better habit, and that is a job for the
+next trip.
 
 ## Put the number where the group can check it
 
