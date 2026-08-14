@@ -114,6 +114,82 @@
     }
 }
 
+/* ---------------------------------------------------------- chapter ink & receipt grammar
+   fun-engine.md S3. `[data-chapter]` (ChapterFrame.tsx) sets --chapter-wash/--chapter-ink/
+   --chapter-hairline/--chapter-ink-28 on one wrapper; every rule below reads them by CSS
+   inheritance, never by a prop threaded through the renderers. Every fallback repeats
+   `--split-ink` so a block rendered without a ChapterFrame ancestor (a unit test fixture, or a
+   resolver failure the layout already tolerates — see recipe.ts's `pageChapterOrNull`) still
+   paints something sane instead of an invalid custom property. None of these rules animate, so
+   none needs a prefers-reduced-motion entry alongside the ones above. */
+
+/* Section numerals: one counter per chapter-framed region, one leading digit per markdown `##`
+   heading. `split-section-heading` (components.tsx's `h2:` prose override) scopes this to that
+   heading alone — the internal `<h2>`s Steps/Checklist/FAQ/CTA render for their own titles
+   (blocks.tsx) never increment it. Pseudo-element content is paint-only and never reaches
+   server-rendered HTML, so this is verified by a CSS text assertion, not a DOM one — see
+   chapter-tokens.test.ts. */
+[data-chapter] {
+    counter-reset: split-section;
+}
+
+.split-section-heading::before {
+    content: counter(split-section, decimal-leading-zero) ' ';
+    counter-increment: split-section;
+    font-variant-numeric: tabular-nums;
+    color: var(--chapter-ink, var(--split-ink));
+}
+
+/* Steps: a leader digit per row (blocks.tsx's `split-steps`/`split-step`), same counter idiom. */
+.split-steps {
+    counter-reset: split-step;
+}
+
+.split-step {
+    counter-increment: split-step;
+}
+
+.split-step::before {
+    content: counter(split-step, decimal-leading-zero);
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--chapter-ink, var(--split-ink));
+}
+
+/* Callout: a taped note. blocks.tsx's subtraction pass drops the border/radius; this rotated
+   strip in chapter ink at 28% alpha is the only ornament left, and it never touches the text. */
+.split-callout::before {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 74px;
+    height: 16px;
+    margin-left: -37px;
+    background: var(--chapter-ink-28, rgba(33, 28, 23, 0.28));
+    border: 1px solid rgba(33, 28, 23, 0.18);
+    transform: rotate(1.6deg);
+}
+
+/* Checklist: a perforated tear-line along the item's left border (blocks.tsx's
+   `split-checklist-item`), via mask-image rather than a dashed border — a dashed border rounds at
+   the corners and cannot hold a fixed dot pitch. */
+.split-checklist-item::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: var(--chapter-ink, var(--split-ink));
+    -webkit-mask-image: repeating-linear-gradient(to bottom, #000 0, #000 3px, transparent 3px, transparent 7px);
+    mask-image: repeating-linear-gradient(to bottom, #000 0, #000 3px, transparent 3px, transparent 7px);
+}
+
 /* ------------------------------------------------------------------ motion
    The CSS half of the animation catalog. Everything spring-shaped lives in
    motion/react components and consults `useMotionAllowed()`; these three are
