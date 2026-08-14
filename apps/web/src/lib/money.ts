@@ -308,6 +308,7 @@ const isCurrencyCode = (code: string): boolean => /^[A-Za-z]{3}$/.test(code)
 export interface MoneyFormat {
     style: 'currency' | 'decimal'
     currency?: string
+    currencyDisplay?: 'narrowSymbol'
     minimumFractionDigits: number
     maximumFractionDigits: number
 }
@@ -338,6 +339,15 @@ type CompactMoneyFormat = Intl.NumberFormatOptions & {
 const printsSymbol = (info: CurrencyInfo): boolean => info.symbol !== '' && isCurrencyCode(info.code)
 
 /**
+ * Spanish resolves the default `currencyDisplay: 'symbol'` to the bare ISO code for most
+ * currencies — es-419 renders `USD 34.87`, `EUR 90.00`, `MXN 1,234.50` where a symbol belongs.
+ * `narrowSymbol` restores the `$`/`€`. Scoped to Spanish on purpose: en and pt-br already resolve
+ * a graphical symbol (and pt-br's `US$`/`JP¥` are the correct Brazilian forms), so widening this
+ * would collapse `MX$`/`A$`/`CA$` back to a bare `$` there.
+ */
+const prefersNarrowSymbol = (locale?: string): boolean => (locale ?? '').toLowerCase().startsWith('es')
+
+/**
  * The catalog's `decimals` always wins over the currency's Intl default. The API decides that a
  * JPY or COP room has no cents; letting Intl reintroduce them would print an amount that cannot
  * be typed back into the field.
@@ -345,10 +355,11 @@ const printsSymbol = (info: CurrencyInfo): boolean => info.symbol !== '' && isCu
  * In the decimal branch this formats the NUMBER only — the code is not part of it. Callers that
  * hand these options straight to a formatter (`AnimatedMoney`) must add the code themselves.
  */
-export function moneyFormatOptions(info: CurrencyInfo): MoneyFormat {
+export function moneyFormatOptions(info: CurrencyInfo, locale?: string): MoneyFormat {
     const digits = { minimumFractionDigits: info.decimals, maximumFractionDigits: info.decimals }
+    const narrow = prefersNarrowSymbol(locale) ? { currencyDisplay: 'narrowSymbol' as const } : {}
     return printsSymbol(info)
-        ? { style: 'currency', currency: info.code.toUpperCase(), ...digits }
+        ? { style: 'currency', currency: info.code.toUpperCase(), ...narrow, ...digits }
         : { style: 'decimal', ...digits }
 }
 
@@ -359,15 +370,16 @@ export function moneyFormatOptions(info: CurrencyInfo): MoneyFormat {
  * Currency minor-unit precision does not apply here: this is a rounded visual
  * summary, while the exact amount remains available to AT and in `title`.
  */
-function compactMoneyFormatOptions(info: CurrencyInfo): CompactMoneyFormat {
+function compactMoneyFormatOptions(info: CurrencyInfo, locale?: string): CompactMoneyFormat {
     const compact = {
         notation: 'compact' as const,
         compactDisplay: 'short' as const,
         minimumFractionDigits: 0,
         maximumFractionDigits: 1,
     }
+    const narrow = prefersNarrowSymbol(locale) ? { currencyDisplay: 'narrowSymbol' as const } : {}
     return printsSymbol(info)
-        ? { style: 'currency', currency: info.code.toUpperCase(), ...compact }
+        ? { style: 'currency', currency: info.code.toUpperCase(), ...narrow, ...compact }
         : { style: 'decimal', ...compact }
 }
 
@@ -387,7 +399,7 @@ export function moneyFormatter(locale: string, info: CurrencyInfo): Intl.NumberF
     const key = `${locale}|${info.code}|${info.decimals}`
     const cached = formatterCache.get(key)
     if (cached) return cached
-    const formatter = new Intl.NumberFormat(locale, moneyFormatOptions(info))
+    const formatter = new Intl.NumberFormat(locale, moneyFormatOptions(info, locale))
     formatterCache.set(key, formatter)
     return formatter
 }
@@ -396,7 +408,7 @@ function compactMoneyFormatter(locale: string, info: CurrencyInfo): Intl.NumberF
     const key = `${locale}|${info.code}|compact`
     const cached = compactFormatterCache.get(key)
     if (cached) return cached
-    const formatter = new Intl.NumberFormat(locale, compactMoneyFormatOptions(info))
+    const formatter = new Intl.NumberFormat(locale, compactMoneyFormatOptions(info, locale))
     compactFormatterCache.set(key, formatter)
     return formatter
 }
