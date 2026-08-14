@@ -63,7 +63,7 @@ Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
         expect(html).toContain('Keep track of shared expenses, balances, and who owes who.')
         expect(html).toContain('<em')
         expect(html).toContain('href="https://www.splitwise.com/"')
-        expect(html).toContain('rel="noopener noreferrer"')
+        expect(html).toContain('rel="nofollow noopener noreferrer"')
         expect(html).toContain('<table')
         expect(html).toContain('Ensuite double')
         expect(html).toContain('£390')
