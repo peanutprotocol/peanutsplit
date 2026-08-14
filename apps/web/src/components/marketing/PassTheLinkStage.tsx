@@ -21,7 +21,7 @@ const PEOPLE = [
 ] as const
 
 /**
- * A non-writing illustration of the handoff the app creates.
+ * A non-writing illustration of the handoff the real form creates.
  *
  * This is deliberately the distribution context, not a second product mockup: one recognisable
  * conversation, one dominant room card, and the people it reaches. The whole visible scene is
