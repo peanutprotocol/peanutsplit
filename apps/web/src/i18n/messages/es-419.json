@@ -79,10 +79,12 @@
                 "paymentTwo": "Le pagás a Jules · €40"
             },
             "rail": {
-                "roomCreated": "SALA CREADA",
-                "linkShared": "LINK COMPARTIDO",
-                "friendJoined": "AMIGO ADENTRO",
-                "roomEven": "CUENTAS SALDADAS"
+                "free": "GRATIS PARA SIEMPRE",
+                "noSignup": "SIN REGISTRO",
+                "oneLink": "UN LINK",
+                "anyCurrency": "CUALQUIER MONEDA",
+                "noMath": "CERO CUENTAS",
+                "even": "SIN DEUDAS"
             },
             "examples": {
                 "title": "DIVIDÍ LO QUE SEA.",

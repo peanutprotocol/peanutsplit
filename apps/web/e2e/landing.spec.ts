@@ -909,18 +909,23 @@ test.describe('Pass-the-link default', () => {
         }
     })
 
-    test('desktop proof milestones keep each icon attached to its label', async ({ page }) => {
+    test('the claim marquee keeps each thumbs-up attached to its claim', async ({ page }) => {
         await page.setViewportSize({ width: 1440, height: 900 })
         await page.emulateMedia({ reducedMotion: 'reduce' })
         await openLanding(page)
 
-        const milestones = page.locator('.landing-proof-rail li')
-        await expect(milestones).toHaveCount(4)
+        const marquee = page.getByTestId('landing-marquee')
+        // The run twice over: the second copy exists only to hide the loop's seam.
+        await expect(marquee.locator('.landing-marquee-run')).toHaveCount(2)
+        await expect(marquee.locator('.landing-marquee-run').nth(1)).toHaveAttribute('aria-hidden', 'true')
 
-        for (const milestone of await milestones.all()) {
-            const [iconBox, labelBox] = await Promise.all([
-                milestone.locator('svg').boundingBox(),
-                milestone.evaluate((element) => {
+        const claims = marquee.locator('.landing-marquee-run').first().locator('li')
+        await expect(claims).toHaveCount(6)
+
+        for (const claim of await claims.all()) {
+            const [imageBox, labelBox] = await Promise.all([
+                claim.locator('img').boundingBox(),
+                claim.evaluate((element) => {
                     const label = [...element.childNodes].find(
                         (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()
                     )
@@ -933,11 +938,25 @@ test.describe('Pass-the-link default', () => {
                 }),
             ])
 
-            expect(iconBox).not.toBeNull()
+            expect(imageBox).not.toBeNull()
             expect(labelBox).not.toBeNull()
-            expect(labelBox!.x - (iconBox!.x + iconBox!.width)).toBeGreaterThanOrEqual(0)
-            expect(labelBox!.x - (iconBox!.x + iconBox!.width)).toBeLessThanOrEqual(12)
+            expect(imageBox!.x - (labelBox!.x + labelBox!.width)).toBeGreaterThanOrEqual(0)
+            expect(imageBox!.x - (labelBox!.x + labelBox!.width)).toBeLessThanOrEqual(24)
         }
+    })
+
+    test('the claim marquee scrolls, and holds still when motion is refused', async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await openLanding(page)
+
+        const track = page.getByTestId('landing-marquee').locator('.landing-marquee-track')
+        const transform = () => track.evaluate((element) => getComputedStyle(element).transform)
+        const resting = await transform()
+        await expect.poll(transform).not.toBe(resting)
+
+        await page.emulateMedia({ reducedMotion: 'reduce' })
+        await openLanding(page)
+        await expect(track).toHaveCSS('animation-name', 'none')
     })
 
     for (const locale of ['en', 'es-419', 'pt-br'] as const) {
