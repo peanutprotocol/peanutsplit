@@ -22,12 +22,13 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 
 {/* Every Splitwise sentence on this page is a verbatim quote from
@@ -93,7 +94,9 @@ expense in the room, not only on the ones you were in.
 ## Pay the person the plan names
 
 The other route is the chain: you pay Bea, Bea waits for it to arrive, and Bea then passes it on to
-Jules. Every leg needs somebody to remember it and somebody to chase it. Spare yourself that!
+Jules. Every leg needs somebody to remember it and somebody to chase it, which means somebody
+writing [the message that asks for it back](/guides/ask-a-friend-to-pay-you-back). Spare yourself
+that!
 
 Settle it however you like: cash, a bank transfer, Peanut. Then record the payment in the room.
 Split records the payment, it does not make it. It does not verify with any bank and cannot.
@@ -109,7 +112,9 @@ Two people and one dinner need no netting at all, and the plan will hand back th
 knew about. Paying directly also wins when the money has to be seen to reach the person who fronted
 it. Splitwise makes its own version optional: "You can toggle this feature on or off from your
 group's settings." (Splitwise help centre,
-kb.splitwise.com/balances-and-expenses/what-is-simplify-debts, checked August 2026.)
+kb.splitwise.com/balances-and-expenses/what-is-simplify-debts, checked August 2026.) Where the two
+apps stop on this and on everything else is
+[Splitwise vs Settle Up](/guides/splitwise-vs-settle-up).
 
 What the room hands you is a plan rather than a proof: it does not show the route it took to get
 there, and it does not present the list as the shortest one that could exist.

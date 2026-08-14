@@ -24,12 +24,13 @@ generated_from:
   context:
     - split-content/_system/context/messaging.md
     - split-content/_system/context/localization.pt-br.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 A luz vem no nome de um morador, a internet sai do cartão de outro, o botijão alguém pagou em
 dinheiro, e depois de dois meses assim uma pessoa da casa pagou menos do que devia sem que ninguém
@@ -99,7 +100,8 @@ Um aparece com R$ 335,00 em aberto, desde o dia em que a conta de junho foi lan�
 as contas aparece com R$ 335,00 a receber.
 
 Ninguém precisou mandar mensagem para chegar nesse número. Quem abre a sala vê a mesma tela que todo
-mundo vê. O valor fica ao lado das despesas que o geraram.
+mundo vê. O valor fica ao lado das despesas que o geraram. Se a mensagem tiver que sair mesmo assim,
+[frases para cobrar sem climão](/pt-br/guides/ask-a-friend-to-pay-you-back) traz o texto.
 
 ### Antes de fechar o mês
 

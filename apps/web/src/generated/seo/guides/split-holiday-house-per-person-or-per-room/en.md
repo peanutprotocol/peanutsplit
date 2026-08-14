@@ -22,12 +22,13 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 
 {/* The Booking.com sentence on this page is a verbatim quote from
@@ -126,7 +127,8 @@ share-night.
 The house cost £2,080 whether anybody slept in it on the Sunday, so part-nights make nothing
 cheaper. Against the per-person shares of £780, £780 and £520, they move £120 off the couple and
 onto the two families, £60 each. Whether that is right is for the three households to agree between
-them.
+them. [A household that pulls out altogether](/guides/someone-drops-out-of-a-group-trip) is a
+different question with three defensible answers.
 
 ## Groceries by heads, wine among the drinkers
 
@@ -149,7 +151,10 @@ key, so whoever holds it can open the room and add to it. There is no login and 
 recovery, so it needs to stay somewhere the whole group can still find it in a month.
 
 By Friday the cottage is on one card, the shopping on another and the wine on a third. Split nets
-those debts down, and the week ends on a short payment plan.
+those debts down, and the week ends on a short payment plan. The same netting is why the plan can
+name a household you never bought anything with.
+[Why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid) walks that
+arithmetic.
 
 ### What to send with the number
 
@@ -171,8 +176,10 @@ which is how Split gets paid for.
 ## When a shared note is the better tool
 
 Two nights, two households and a total you could settle at the door: divide it by the people, write
-the one number in the shared note, and leave the weights out of it. On a short stay, running both
-methods to compare them costs more attention than the gap between them is worth. A Split room earns
+the one number in the shared note, and leave the weights out of it.
+[Asking for that one number back](/guides/ask-a-friend-to-pay-you-back) is a message, not a room. On
+a short stay, running both methods to compare them costs more attention than the gap between them is
+worth. A Split room earns
 its place when several people paid for different things and the settling happens after everyone has
 driven home. It does not make anybody pay and it does not decide what a child is worth; it keeps
 the working where both families can check it.

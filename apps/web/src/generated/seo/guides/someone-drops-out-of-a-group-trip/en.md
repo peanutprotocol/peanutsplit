@@ -22,12 +22,13 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-12
+generated_at: 2026-08-14
 ---
 
 Someone drops out of the holiday five weeks before it starts, the house in Pembrokeshire is paid
@@ -80,7 +81,9 @@ at £35 make £175, one each. Everybody going pays £335, and the unused sixth p
 the person who is not going.
 
 Working it out takes the longest. Nobody reopens it later, because every line names who it was
-bought for.
+bought for. Whether the house divides
+[per person or per room](/guides/split-holiday-house-per-person-or-per-room) is a separate decision,
+and the group makes it once.
 
 <Callout type="info">
 **All three pay for the same trip.** Each version collects £1,710: six shares of £285, five shares
@@ -103,8 +106,9 @@ Late notice does not change the maths. It changes how much patience the group ha
 which is why the method gets chosen in a moving car, or on the last redraft of a message that keeps
 getting softer. Stop rewriting it!
 
-Pick the method, put it in a sentence, and post it where everybody can see it. Agreeing the rule
-before anyone books is the better habit, and that is a job for the next trip.
+Pick the method, put it in a sentence, and post it where everybody can see it.
+[What to put in that message](/guides/ask-a-friend-to-pay-you-back) is a separate question. Agreeing
+the rule before anyone books is the better habit, and that is a job for the next trip.
 
 ## Put the number where the group can check it
 
@@ -114,7 +118,8 @@ no password recovery, so pin the link where the group will find it after the tri
 
 A reallocation also leaves a tangle of small debts, because one person paid for the house, another
 for the minibus and a third for the surf places. Split nets those debts down, so the group makes two
-or three transfers rather than working through every pair.
+or three transfers rather than working through every pair. That netting is
+[why the plan can name somebody you never paid](/guides/why-do-i-owe-someone-i-never-paid).
 
 ### Before you send the new number round
 
