@@ -12,8 +12,10 @@ Owner of record for each open item is in brackets. Last full update: 2026-08-12.
 - A 14-agent audit (every finding reproduced by an independent verifier) confirmed 49
   issues across live HTTP I/O, metadata/hreflang, structured data, the content engine,
   the production pipeline, the landing page, and the internal link graph.
-- The tracker with all items, ranked fix-first, is `docs/SEO-ISSUES.md`. It cross-links
-  mono `projects/peanut-split/guides-seo-tracker.md` rather than repeating its open items.
+- `docs/SEO-ISSUES.md` is the single open list for all Split SEO work — the guide
+  tracker's open items were consolidated into it on 2026-08-14. mono
+  `projects/peanut-split/guides-seo-tracker.md` keeps the decisions, the guides state
+  table, the traps, and the verify commands.
 - Headline items: claims-ID enforcement missing for the native corpus, presence-based
   hreflang that would advertise a draft translation, no search-engine submission loop,
   and zero analytics on content pages. Two audit items were closed the same day by guide
