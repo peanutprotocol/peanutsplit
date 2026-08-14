@@ -193,7 +193,7 @@ export function HeroCreateForm({
         const state = await submit({ name, emoji: shownEmblem, currency, creatorName })
         if (state) {
             trackLanding('landing_room_created', analyticsVariant)
-            router.push(`/r/${state.room.slug}`)
+            router.push(`/r/${state.room.slug}?roster=1`)
         }
     }
 

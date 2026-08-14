@@ -22,6 +22,7 @@ import {
     noteMatureRoomVisit,
     noteRoomShareCompleted,
     promotedRoomInstallTrigger,
+    readRoomInstallFunnel,
     type AutoInstallTrigger,
 } from '@/lib/install-funnel'
 import { useQueuedWrites } from '@/lib/offline-queue'
@@ -49,6 +50,7 @@ import { JoinGate } from './JoinGate'
 import { LatecomerBanner } from './LatecomerBanner'
 import { RoomErrorState, RoomHeaderSkeleton, RoomNotFound, RoomSkeleton } from './RoomStates'
 import { RoomHeader } from './RoomHeader'
+import { RosterCheckpoint } from './RosterCheckpoint'
 import { SettleDrawer } from './SettleDrawer'
 import { ShareDrawer } from './ShareDrawer'
 
@@ -74,6 +76,8 @@ export function RoomScreen({ slug }: { slug: string }) {
         () => params.share && params.shareMoment === 'post_aha'
     )
     const [installTrigger, setInstallTrigger] = useState<AutoInstallTrigger | null>(null)
+    /** Null until this device's created-here marker has been read. */
+    const [createdHere, setCreatedHere] = useState<boolean | null>(null)
     const [achievementOpen, setAchievementOpen] = useState(false)
     const matureVisitRecorded = useRef(false)
     // The banner intentionally unmounts when its manual row hands off to the
@@ -118,6 +122,14 @@ export function RoomScreen({ slug }: { slug: string }) {
             void setParams({ share: null, shareMoment: null }, { history: 'replace' })
         },
         [refreshInstallTrigger, setParams, shareSurface, slug]
+    )
+    const leaveRosterCheckpoint = useCallback(
+        // `replace`, not push: Back must leave the room the way it always did, never step
+        // back into a checkpoint that has already been answered.
+        () => {
+            void setParams({ roster: null }, { history: 'replace' })
+        },
+        [setParams]
     )
     const consumeSharedReceipt = useCallback(
         // `replace`, not the hook's default `push`: the drawer clears this param the instant it
@@ -234,6 +246,10 @@ export function RoomScreen({ slug }: { slug: string }) {
     const expenseSessionReady = loaded && !!state
     const canRecordMatureVisit =
         loaded && !needsJoin && hasActiveDebt && !settledUp && state?.room.hasReachedSharedBalance === true
+
+    useEffect(() => {
+        setCreatedHere(readRoomInstallFunnel(slug).origin === 'created_here')
+    }, [slug])
 
     useEffect(() => {
         matureVisitRecorded.current = false
@@ -455,6 +471,19 @@ export function RoomScreen({ slug }: { slug: string }) {
 
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} />
     if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
+
+    // Both halves of the creator proof are localStorage reads that land after the first
+    // paint, and the room's own state is already cached from creation. Hold the room back
+    // for exactly that frame, or the checkpoint arrives as a flash of the room it is
+    // meant to come before.
+    if (state && params.roster && (!loaded || createdHere === null)) return null
+
+    // Both creation doors land on `?roster=1`, and neither the member token nor the
+    // created-here marker travels in a link: a stranger sent this URL fails both and gets
+    // the ordinary room. The token also has to still name an ACTIVE member, so a device
+    // whose entry was removed meets the join gate rather than "Who's in?".
+    if (state && params.roster && createdHere && !!identity?.token && identityIsActive)
+        return <RosterCheckpoint state={state} onContinue={leaveRosterCheckpoint} />
 
     const closeDrawers = () => setParams({ add: null, expense: null, settle: null })
 

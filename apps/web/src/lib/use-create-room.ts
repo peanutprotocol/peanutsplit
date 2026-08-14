@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { roomProps, track } from '@/lib/analytics'
-import type { RoomStateWithMember } from '@/lib/api-types'
 import { useErrorMessage } from '@/lib/error-messages'
 import { writeIdentity } from '@/lib/identity'
 import { markRoomCreatedHere } from '@/lib/install-funnel'
@@ -29,7 +28,6 @@ export function useCreateRoomFlow(fallbackMessage: string) {
     const createRoom = useCreateRoom()
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
-    const [created, setCreated] = useState<RoomStateWithMember | null>(null)
     const [error, setError] = useState<string | null>(null)
 
     const submit = async (fields: CreateRoomFields) => {
@@ -57,7 +55,6 @@ export function useCreateRoomFlow(fallbackMessage: string) {
             track('room_created', roomProps(state.room.slug, { currency: state.room.currency }))
             // A room came into being — the cork, not the pencil.
             feedback('pop')
-            setCreated(state)
             return state
         } catch (err) {
             setError(errorMessage(err, fallbackMessage))
@@ -65,5 +62,5 @@ export function useCreateRoomFlow(fallbackMessage: string) {
         }
     }
 
-    return { submit, created, error, pending: createRoom.isPending }
+    return { submit, error, pending: createRoom.isPending }
 }
