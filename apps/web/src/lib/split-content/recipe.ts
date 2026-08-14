@@ -127,3 +127,29 @@ export function pageChapterOrNull(
         throw error
     }
 }
+
+/**
+ * `pageRecipe`'s register, or null for an unmapped slug — same null-on-resolver-failure contract
+ * as `pageChapterOrNull`, and for the same reason (a synthetic route-test fixture slug).
+ *
+ * Layouts consult this alongside `pageChapterOrNull` to decide whether a page is wrapped in
+ * `ChapterFrame`: `ChapterFrame` is the ONLY thing that sets `--chapter-ink`/`--chapter-wash`/
+ * `--chapter-hairline` (fun-engine.md S3), so wrapping a flat-register page in it paints the same
+ * chapter-colored section numerals, ledger leader digits and tape-strip as a warm page — exactly
+ * the "money-anxiety pages stay calm" case `FLAT_REGISTER_SLUGS` exists to prevent (Invariants
+ * #4: "no doodles, no play components, no jokes"). A flat page that resolves a chapter (for
+ * analytics/breadcrumb purposes) must still render unframed.
+ */
+export function pageRegisterOrNull(
+    kind: PageKind,
+    slug: string,
+    tags: readonly string[] | undefined,
+    locale: Locale
+): PageRecipe['register'] | null {
+    try {
+        return pageRecipe(kind, slug, tags, locale).register
+    } catch (error) {
+        if (error instanceof SplitRecipeError) return null
+        throw error
+    }
+}

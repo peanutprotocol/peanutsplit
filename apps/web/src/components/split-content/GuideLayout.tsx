@@ -9,7 +9,7 @@ import { localizedPath } from '@/i18n/paths'
 import type { SplitGuide } from '@/lib/split-content/artifact'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { GUIDE_CRUMBS, splitGuideCrumbs, splitGuideSchemas } from '@/lib/split-content/metadata'
-import { pageChapterOrNull } from '@/lib/split-content/recipe'
+import { pageChapterOrNull, pageRegisterOrNull } from '@/lib/split-content/recipe'
 import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
 
 const OTHER_LANGUAGES = {
@@ -56,6 +56,9 @@ export function SplitGuideLayout({
     const crumbs = splitGuideCrumbs(guide)
     const hubHref = localizedPath('/blog', guide.locale)
     const chapter = pageChapterOrNull('guide', guide.slug, guide.tags, guide.locale)
+    // Flat-register pages resolve a chapter (for analytics) but never get ChapterFrame — see
+    // pageRegisterOrNull's docstring.
+    const register = pageRegisterOrNull('guide', guide.slug, guide.tags, guide.locale)
     // Every released sibling rather than a slice: over six English guides a `slice(0, 3)` in
     // manifest order leaves three of them with no inbound link at all, which is the defect this
     // replaces. Revisit past about eight released guides in one locale.
@@ -95,7 +98,11 @@ export function SplitGuideLayout({
             <Breadcrumbs crumbs={crumbs} />
 
             <article className="pb-8">
-                {chapter ? <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame> : articleBody}
+                {chapter && register !== 'flat' ? (
+                    <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame>
+                ) : (
+                    articleBody
+                )}
             </article>
 
             {otherLanguages.length > 0 && (
