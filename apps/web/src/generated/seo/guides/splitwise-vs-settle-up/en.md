@@ -97,7 +97,8 @@ Settle Up also lets a group hold its own exchange rate steady.
 
 *[settleup.io/tips](https://settleup.io/tips), checked 12 August 2026*
 
-Splitwise's side of the same question is
+A rate the whole group agreed on is one fewer argument when the card statements land. Before you
+expect the same from the other app, check
 [what Splitwise does with more than one currency](/guides/splitwise-currency-conversion).
 
 And it lets a group switch off the netting that moves who pays whom.
@@ -106,7 +107,7 @@ And it lets a group switch off the netting that moves who pays whom.
 
 *[settleup.io/tips](https://settleup.io/tips), checked 12 August 2026*
 
-The arithmetic behind a reassigned payee is
+Turning it off trades a shorter payment list for never having to explain
 [why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid).
 
 ## Both of them need an account

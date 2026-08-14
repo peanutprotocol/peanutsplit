@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "source_repository": "peanutprotocol/mono",
-  "source_commit": "e8ef96732321d2b4e88b0164d69b274b711c0cd7",
+  "source_commit": "a4e66ea859447a4337dd52974bbf071215c483fc",
   "content_root": "split-content",
   "locales": [
     "en",
@@ -66,7 +66,7 @@
       "public_path": "/es-419/guides/ask-a-friend-to-pay-you-back",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/ask-a-friend-to-pay-you-back/es-419.md",
-      "output_sha256": "1cbc0ca2dab67400ed381c2bcddfae54410e9f595ce46f414cae97a95df4f0b0",
+      "output_sha256": "d3654aae5df13d97dd942bc4e9a3edeb4775a52b089caaf18b0fbd54748aa733",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.md",
@@ -112,7 +112,7 @@
       "public_path": "/guides/someone-drops-out-of-a-group-trip",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/someone-drops-out-of-a-group-trip/en.md",
-      "output_sha256": "71d53f69b7d7378a0f9d7b421f88c1383b27676c41bdb885532c3cc2661794d6",
+      "output_sha256": "d5eeb373983f27dcb10df558a36e7eea4ba1565354df0c1638508a8083e1db4f",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/someone-drops-out-of-a-group-trip.md",
@@ -261,7 +261,7 @@
       "public_path": "/guides/split-holiday-house-per-person-or-per-room",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/split-holiday-house-per-person-or-per-room/en.md",
-      "output_sha256": "a309cff1820b60f54ee57a14bd71134436b21e3d431b57c36224ae503f74c203",
+      "output_sha256": "d0f3585911f10fe2bb5f2cf99f4ff0d9120748f493a80f004fb0bee295c33f3a",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/split-holiday-house-per-person-or-per-room.md",
@@ -305,7 +305,7 @@
       "public_path": "/guides/splitwise-currency-conversion",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/splitwise-currency-conversion/en.md",
-      "output_sha256": "fcaa36aabffab2c489dcc2f10a0fcd10f331d436d62bd0b94a9cdfda40006d53",
+      "output_sha256": "2fbdf7b32200a342170cccc9961346e6f9fa22ff4923df242c8a62b4e4862e0a",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/splitwise-currency-conversion.md",
@@ -326,7 +326,7 @@
       "public_path": "/guides/splitwise-vs-settle-up",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/splitwise-vs-settle-up/en.md",
-      "output_sha256": "f02fc4db93e6d15f99159a13dd724b8fe32c131588b0c6c0b29a459d2a4c5584",
+      "output_sha256": "b52408d98a59aba20859be07fc181e14953ffe6594fd395eaa1a8e96c8df4e00",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/splitwise-vs-settle-up.md",
