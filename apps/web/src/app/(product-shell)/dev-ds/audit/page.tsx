@@ -477,7 +477,7 @@ const findings: Finding[] = [
             'apps/web/src/components/ui/button-style.ts — shared variant, shadow, width and press recipe',
             'apps/web/src/components/ui/Button.tsx — typed width API',
             'apps/web/scripts/tailwind-class-audit.mjs — nested anchor/button controls are rejected',
-            'apps/web/src/components/marketing/LandingAppLink.tsx — nested artwork disables duplicate press motion',
+            'apps/web/src/components/marketing/FinalCta.tsx — nested artwork disables duplicate press motion',
         ],
     },
     {

@@ -7,8 +7,9 @@ import { publicCurrencies, STATIC_USD_PER_UNIT } from '@/server/money'
  *
  * `hasRate` says the rate feed carries the code, which is a fact about the generated catalog and
  * moves only with a deploy. Reading it off the live rate table instead would put a database round
- * trip, and in the worst case a four-second upstream call, in front of the landing page's first
- * paint — `useCurrencies()` runs there.
+ * trip, and in the worst case a four-second upstream call, in front of the composer's and the room
+ * screen's first paint — `useCurrencies()` runs there. The landing hero bundles the catalog instead
+ * and never calls this route.
  *
  * One exception, and it is the whole reason this route is not a one-liner. `SPLIT_FX_MODE=static`
  * turns the rate feed off — that is dev, the unit suite and the e2e run — and the static table

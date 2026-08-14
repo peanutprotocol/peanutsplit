@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { trackLanding } from '@/lib/analytics'
 import { useMotionAllowed } from '@/lib/use-motion'
-import { LandingAppLink } from './LandingAppLink'
+import { HeroCreateForm } from './HeroCreateForm'
 import { PassTheLinkStage, type PassTheLinkStageState } from './PassTheLinkStage'
 
 const STORY_STEPS: Array<{ state: PassTheLinkStageState; after: number }> = [
@@ -16,14 +16,23 @@ const STORY_STEPS: Array<{ state: PassTheLinkStageState; after: number }> = [
 /**
  * The room's viral loop in one fold: make the real link, pass it to the chat, let the group in.
  *
- * The stage is a one-shot illustration, not another version of the product. The only action hands
- * off to `/new`; the public page cannot write room data.
+ * The stage is a one-shot illustration, not another version of the product. The form remains
+ * the only interactive surface and the only thing here that can write data. Its public room-name
+ * draft is lifted just far enough to keep the illustrated link honest.
  */
 export function PassTheLinkHero() {
     const t = useTranslations('marketing.hero')
     const motionAllowed = useMotionAllowed()
+    const [roomName, setRoomName] = useState('')
     const [stageState, setStageState] = useState<PassTheLinkStageState>('question')
+    const settledEarlyRef = useRef(false)
+
+    const settleStory = useCallback(() => {
+        settledEarlyRef.current = true
+        setStageState('complete')
+    }, [])
     const completeStory = useCallback(() => {
+        if (settledEarlyRef.current) return
         setStageState('complete')
         trackLanding('landing_preview_completed', 'pass_link')
     }, [])
@@ -37,7 +46,7 @@ export function PassTheLinkHero() {
             setStageState('complete')
             return
         }
-        setStageState('question')
+        if (!settledEarlyRef.current) setStageState('question')
         const timeouts = STORY_STEPS.map(({ state, after }) =>
             window.setTimeout(() => {
                 if (state === 'complete') {
@@ -58,10 +67,16 @@ export function PassTheLinkHero() {
                         <h1 data-testid="pass-link-headline">{t('titleAccessible')}</h1>
                     </div>
 
-                    <PassTheLinkStage roomName="" state={stageState} />
+                    <PassTheLinkStage roomName={roomName} state={stageState} />
 
                     <div className="pass-link-form-wrap">
-                        <LandingAppLink />
+                        <HeroCreateForm
+                            roomName={roomName}
+                            onRoomNameChange={setRoomName}
+                            onInteraction={settleStory}
+                            variant="pass-link"
+                            analyticsVariant="pass_link"
+                        />
                     </div>
                 </div>
             </div>
