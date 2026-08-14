@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "source_repository": "peanutprotocol/mono",
-  "source_commit": "a4e66ea859447a4337dd52974bbf071215c483fc",
+  "source_commit": "12205a6b43fdb86bb5797f0e6bc00275cb07f995",
   "content_root": "split-content",
   "locales": [
     "en",
@@ -305,7 +305,7 @@
       "public_path": "/guides/splitwise-currency-conversion",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/splitwise-currency-conversion/en.md",
-      "output_sha256": "2fbdf7b32200a342170cccc9961346e6f9fa22ff4923df242c8a62b4e4862e0a",
+      "output_sha256": "95c30b6a7651d3cfa9838f332c983016895ef2f0bf43eac7b0b5ebc9e52a525a",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/splitwise-currency-conversion.md",
