@@ -39,13 +39,13 @@ The cost is not arithmetic, it is sequence. Somebody has to say it out loud, and
 
 Assign every line to whoever ordered it. What it buys is a number nobody can argue with, which in a group of near-strangers is worth more than the money.
 
-What it costs is that the evening becomes a reconciliation, and everyone's choices get priced in front of each other. It also scales badly downwards: recovering four euros from a friend costs more than four euros, every time. It earns its place when the bill is long, the group is large, and the people in it are not close — a stag weekend, a fortnight in a villa, eleven people of whom four are somebody's colleagues. There the accuracy is the courtesy.
+What it costs is that the evening becomes a reconciliation, and everyone's choices get priced in front of each other. It also scales badly downwards: recovering four euros from a friend costs more than four euros, every time. It earns its place when the bill is long, the group is large, and the people in it are not close — a stag weekend, [a fortnight in a villa where the bedrooms are not the same size](/guides/split-holiday-house-per-person-or-per-room), eleven people of whom four are somebody's colleagues. There the accuracy is the courtesy.
 
 ## The quiet subsidy
 
 The fourth convention is the most common and the least discussed, because it is never proposed. It is defaulted into. One person notices the asymmetry, works out that raising it would cost more than absorbing it, and absorbs it. Nothing is said. The dinner ends well, once.
 
-[Starling Bank's 2023 survey](https://www.starlingbank.com/news/one-third-of-uk-adults-owed-money-by-friends-and-family/) of two thousand UK adults found that 46% of people owed money by friends or family were too embarrassed to ask for it, that getting it back took more than two months on average, and that 17% had begun to resent the person who owed them. The mechanism is asymmetry of memory: being owed is remembered, owing is not. Some people never bring it up at all, and carry a resentment that outlasts the friendship.
+[Starling Bank's 2023 survey](https://www.starlingbank.com/news/one-third-of-uk-adults-owed-money-by-friends-and-family/) of two thousand UK adults found that 46% of people owed money by friends or family were too embarrassed to ask for it, that getting it back took more than two months on average, and that 17% had begun to resent the person who owed them. The mechanism is asymmetry of memory: being owed is remembered, owing is not. Some people never bring it up at all, and carry a resentment that outlasts the friendship rather than send [a short message in the first week](/guides/ask-a-friend-to-pay-you-back).
 
 ## Three harder cases
 

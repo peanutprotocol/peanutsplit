@@ -56,7 +56,7 @@ If the "Scan receipt" button is not in your room, scanning is unavailable on tha
 
 ## Free forever, and what that means here
 
-Splitwise puts itemised receipt scanning behind Pro. This does not, and there is no tier to move you onto later — Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.
+Splitwise puts itemised receipt scanning behind Pro, and Settle Up sells [receipt photos on a paid tier of its own](/guides/splitwise-vs-settle-up). This does not, and there is no tier to move you onto later — Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.
 
 There is one number worth knowing: a room can scan 30 bills a day. That is a ceiling on what a single room can cost to run, not a plan you can upgrade past, and no dinner has ever come close to it.
 

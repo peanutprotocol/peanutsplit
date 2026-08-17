@@ -47,7 +47,7 @@ If you paid 3,200 baht, put in 3,200 baht — not your phone's guess at what tha
 
 With four people and two weeks of spending you can easily end up with twenty small debts pointing in every direction. Paying those off one by one is how a settled trip stays unsettled for a month.
 
-Split nets the debts against each other so you make two or three transfers instead of twenty. Four people almost always collapses that far, and each of those is a single decision by a single person rather than a group negotiation.
+Split nets the debts against each other so you make two or three transfers instead of twenty. Four people almost always collapses that far, and each of those is a single decision by a single person rather than a group negotiation — though [the arithmetic that picks the pairs](/guides/why-do-i-owe-someone-i-never-paid) will sometimes point you at somebody you never bought anything from.
 
 <Checklist title="What settled should actually look like">
 <ChecklistItem title="Two or three payments, not twenty">One person paying one person happens. Six people paying each other gets discussed.</ChecklistItem>

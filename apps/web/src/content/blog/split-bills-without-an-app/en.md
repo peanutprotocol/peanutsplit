@@ -33,7 +33,7 @@ Some people will make the account. In a group of six, two of them will not, and 
 <Step title="No account at all">Open the link, type a name, add expenses, see everything. There is no account to make because the room does not have users — it has a link and some names. This is the version where the sixth person actually joins.</Step>
 </Steps>
 
-Split is the third one. There is no email field anywhere in the product, because there is nothing to send you and nothing to log into.
+Split is the third one. There is no email field anywhere in the product, because there is nothing to send you and nothing to log into. Splitwise and Settle Up [both open with an account](/guides/splitwise-vs-settle-up), and the partial ways round it — a name in somebody's list, a view-only link — stop short of letting that person add the taxi.
 
 ## How a link can be the login
 

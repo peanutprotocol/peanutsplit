@@ -18,6 +18,7 @@ import {
 import { CAST_NAMES, isCastName } from './cast'
 import { findDroppedDiacritics } from './diacritics'
 import { STATIC_PAGES, staticPageSlugs } from '@/data/static-pages'
+import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from './split-content/index-release'
 import { DEFAULT_LOCALE, HREFLANG, LOCALES } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import sitemap from '@/app/sitemap'
@@ -327,6 +328,9 @@ describe('article bodies', () => {
             ...STATIC_PAGES.flatMap((page) =>
                 (page.locales ?? [DEFAULT_LOCALE]).map((locale) => localizedPath(page.href, locale))
             ),
+            // Released guides only — the reviewed registry, not the manifest. A body link to a
+            // parked guide must keep failing here.
+            ...SPLIT_CONTENT_INDEX_RELEASED_PATHS,
         ])
 
         for (const doc of ALL) {
