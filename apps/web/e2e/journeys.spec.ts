@@ -264,8 +264,9 @@ test('the locale cookie puts the room into Spanish', async ({ page, context, req
 
     await page.getByTestId('open-settle').click()
     await expect(page.getByTestId('transfer-row')).toBeVisible()
-    // Money stays in the room's currency and is formatted BY the chosen locale — which for es-419
-    // and a non-local currency is "EUR 30.00", a dot and the code. Latin American Spanish is not
-    // European Spanish, so asserting "30,00" here would be asserting the wrong Spanish.
-    await expect(page.getByTestId('transfer-row')).toContainText('EUR 30.00')
+    // Money stays in the room's currency and is formatted BY the chosen locale. Latin American
+    // Spanish is not European Spanish, so the separator is a dot — asserting "30,00" here would
+    // be asserting the wrong Spanish. The symbol, not the ISO code, is what `narrowSymbol` buys:
+    // Spanish resolves plain `currencyDisplay: 'symbol'` to "EUR 30.00", which `money.ts` fixes.
+    await expect(page.getByTestId('transfer-row')).toContainText('€30.00')
 })

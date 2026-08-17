@@ -8,6 +8,7 @@ import { createParser, parseAsString, useQueryStates } from 'nuqs'
  *
  * `?add=1` · `?expense=<id>` · `?settle=1` · `?share=1` · `?shareMoment=post_aha`
  * · `?balance=<memberId>` · `?shared=1` · `?settings=1` · `?rooms=1` · `?character=<memberId>`
+ * · `?roster=1`
  *
  * The header sheets arrived late: they used to live in `useState`, so on Android
  * the back gesture left the room instead of closing the sheet.
@@ -31,6 +32,8 @@ export const roomSearchParams = {
     settings: parseAsFlag,
     /** The focused recent-room switcher opened by the room title. */
     rooms: parseAsFlag,
+    /** The creation hand-off: both creation doors land here, and only the creating device sees it. */
+    roster: parseAsFlag,
     /** Member id — whose character sheet is open. */
     character: parseAsString.withDefault(''),
 }

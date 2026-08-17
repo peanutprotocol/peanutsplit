@@ -21,7 +21,6 @@ import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { CurrencySelect } from './CurrencySelect'
 import { DoodlePicker } from './DoodlePicker'
-import { RosterCheckpoint } from './RosterCheckpoint'
 import { RoomEmblem } from './RoomEmblem'
 
 /** The server-rendered seed only. The real default is the device's top hint, which cannot be
@@ -33,7 +32,7 @@ export function CreateRoomForm() {
     const t = useTranslations('room.create')
     const router = useRouter()
     const { data: currencies } = useCurrencies()
-    const { submit: createRoom, created, error, pending } = useCreateRoomFlow(t('failed'))
+    const { submit: createRoom, error, pending } = useCreateRoomFlow(t('failed'))
     const hints = useCurrencyHints()
 
     const feedback = useFeedback()
@@ -85,11 +84,8 @@ export function CreateRoomForm() {
     const submit = async (event: React.FormEvent) => {
         event.preventDefault()
         if (!canSubmit) return
-        await createRoom({ name, emoji: shownEmblem, currency, creatorName })
-    }
-
-    if (created) {
-        return <RosterCheckpoint created={created} onContinue={() => router.push(`/r/${created.room.slug}`)} />
+        const state = await createRoom({ name, emoji: shownEmblem, currency, creatorName })
+        if (state) router.push(`/r/${state.room.slug}?roster=1`)
     }
 
     return (
