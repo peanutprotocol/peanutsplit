@@ -39,4 +39,9 @@ describe('Working', () => {
         )
         expect(html).toContain(note)
     })
+
+    it('renders no note paragraph when roundingNote is omitted', () => {
+        const html = renderToStaticMarkup(<Working workings={workings} currency="EUR" catalog={CURRENCY_CATALOG} />)
+        expect(html).not.toContain('pt-2 leading-4')
+    })
 })

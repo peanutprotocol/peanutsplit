@@ -51,30 +51,16 @@ const EXCLUDED_PREFIXES = [path.join(SRC, 'components/tools'), path.join(SRC, 't
  *  - `components/ui/LocaleSwitcher.tsx` — reachable via `SiteFooter`, which `ArticleLayout`
  *    imports unconditionally for every blog/alternatives/capture route. Every content call site
  *    passes `showLocaleSwitcher={false}` (an indexed page states its language in its own URL), but
- *    that is a runtime prop, not an import boundary — the static import, and so the client
- *    module, predates this stage.
+ *    that is a runtime prop, not an import boundary — the static import predates this stage.
  *  - `components/marketing/ContentAnalytics.tsx` — this stage's own pageview/scroll-depth island,
  *    reachable from both `ArticleLayout` and `GuideLayout`.
- *  - `components/marketing/Island.tsx` — fun-engine.md S4: `<Script>` sits in `mdxComponents`
- *    (`components.tsx`), reachable from every content route regardless of whether any body
- *    actually authors a `<Script>` tag, and it wraps `Island` through `mdx/ScriptEnhancer.tsx`.
- *    `next/dynamic` was tried first, to keep this static import out of the graph entirely — a
- *    dynamic `import()` is invisible to this test on purpose (see `runtimeSpecifiers`'s docstring)
- *    — but `next/dynamic` resolves through Next's own request pipeline, which does not exist under
- *    plain `react-dom/server`: `Script.test.tsx`'s server-render snapshot, matching every other
- *    component test in this repo, came back with the static fallback missing. A component whose
- *    own test cannot see its "server HTML carries the full answer" (Invariants #3) is a worse bug
- *    than a wider budget, so the import stays static and is counted honestly below.
- *  - `components/marketing/mdx/ScriptEnhancer.tsx` — the `'use client'` half of `<Script>`; see
- *    `Script.tsx`'s docstring for why `Island`'s `render` prop cannot be built in a Server
- *    Component, which is what makes this file (rather than `Island` alone) the new leaf.
- *  - `lib/use-motion.ts`, `lib/use-settings.ts` — `Island`'s own `useMotionAllowed` chain. Already
- *    `'use client'` before this stage, but unreached: S2 shipped `Island` with "no consumer yet",
- *    so this is the first time anything pulls that chain into a content route's graph.
- * A count above this is a real regression this test exists to catch; a count below it means one of
- * the above was removed and this budget should shrink with it.
+ * `<Script>` (`mdxComponents` in `components.tsx`) loads its `'use client'` chain —
+ * `mdx/ScriptEnhancer.tsx` → `Island.tsx` → `lib/use-motion.ts`/`lib/use-settings.ts` — via
+ * `next/dynamic` (see `Script.tsx`), which is a dynamic `import()` and so invisible to this walk
+ * on purpose (see `runtimeSpecifiers`'s docstring); none of the four count here. A count above 2
+ * is a real regression; a count below it means one of the two above was removed.
  */
-const CONTENT_JS_BUDGET = 6
+const CONTENT_JS_BUDGET = 2
 
 function isExcluded(file: string): boolean {
     return EXCLUDED_PREFIXES.some((prefix) => file === prefix || file.startsWith(`${prefix}${path.sep}`))
@@ -178,14 +164,7 @@ describe('content route JS budget', () => {
         const { useClientFiles } = walkContentRoutes()
         const relative = [...useClientFiles].map((file) => path.relative(ROOT, file)).sort()
         expect(relative, relative.join(', ')).toEqual(
-            [
-                'src/components/marketing/ContentAnalytics.tsx',
-                'src/components/marketing/Island.tsx',
-                'src/components/marketing/mdx/ScriptEnhancer.tsx',
-                'src/components/ui/LocaleSwitcher.tsx',
-                'src/lib/use-motion.ts',
-                'src/lib/use-settings.ts',
-            ].sort()
+            ['src/components/marketing/ContentAnalytics.tsx', 'src/components/ui/LocaleSwitcher.tsx'].sort()
         )
         expect(relative.length).toBe(CONTENT_JS_BUDGET)
     })

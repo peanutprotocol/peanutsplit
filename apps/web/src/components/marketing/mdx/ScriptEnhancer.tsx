@@ -3,17 +3,38 @@
 import { useState, type ReactNode } from 'react'
 import { Island } from '@/components/marketing/Island'
 import { copyText } from '@/lib/clipboard'
+import { parseAmountToMinor } from '@/lib/money'
+import { Working } from './Working'
 
 /** The first currency-shaped token in the message — "€12", "12.50 EUR", "$8" — reused as both the
  *  displayed figure and the editable field's starting value. */
 const AMOUNT = /[€$£]\s?\d+(?:[.,]\d+)?|\d+(?:[.,]\d+)?\s?(?:EUR|USD|GBP)/i
 
-function EditableScript({ text }: { text: string }) {
+/** The three currencies `AMOUNT` can match, by symbol. Nothing else reaches this function. */
+const CURRENCY_BY_SYMBOL: Record<string, string> = { '€': 'EUR', $: 'USD', '£': 'GBP' }
+
+/** Which of the three currencies a matched amount is in, or null once editing has removed every
+ *  symbol/code trace of one — the confirmation row below just disappears in that case. */
+export function currencyOf(matched: string): string | null {
+    const symbol = matched.match(/[€$£]/)?.[0]
+    if (symbol) return CURRENCY_BY_SYMBOL[symbol]
+    return matched.match(/EUR|USD|GBP/i)?.[0].toUpperCase() ?? null
+}
+
+export function EditableScript({ text }: { text: string }) {
     const match = text.match(AMOUNT)?.[0] ?? ''
     const [amount, setAmount] = useState(match)
     const [copied, setCopied] = useState(false)
     const rest = match ? text.replace(match, '').trim() : text
     const toCopy = match ? `${rest} ${amount}`.trim() : text
+
+    // "€X each" (fun-engine.md S4): the same figure the reader is editing, run back through the
+    // app's one money formatter — via `Working`, fun-engine.md S4's shared derivation primitive —
+    // so a half-typed amount is confirmed in the format it will actually copy as.
+    const currency = currencyOf(amount)
+    // 2 decimals for all three: EUR/USD/GBP are the only currencies `currencyOf` ever returns, and
+    // the catalog gives each of them 2 (currency-catalog.ts).
+    const amountMinor = currency ? parseAmountToMinor(amount.replace(/[^\d.,]/g, ''), 2, 'en') : null
 
     return (
         <div className="border-t border-dashed border-n-1 pt-3 text-sm italic leading-5 text-n-1">
@@ -31,6 +52,11 @@ function EditableScript({ text }: { text: string }) {
                     </>
                 )}
             </p>
+            {currency && amountMinor !== null && (
+                <div className="not-italic">
+                    <Working workings={[{ label: 'Each', amountMinor: Number(amountMinor) }]} currency={currency} />
+                </div>
+            )}
             <button
                 type="button"
                 onClick={async () => setCopied(await copyText(toCopy))}
@@ -43,11 +69,9 @@ function EditableScript({ text }: { text: string }) {
 }
 
 /**
- * The `'use client'` half of `<Script>` (fun-engine.md S4): everything that needs interactivity —
- * `Island`'s `render` closure, the editable amount, the copy button — lives in this one module so
- * no function has to cross the Server-to-Client Component boundary. `text` and `children` (the
- * server-rendered fallback) are the only things `Script.tsx` hands across it, and both are legal:
- * a string is serialisable, and a Server Component's rendered output is a normal `children` slot.
+ * The `'use client'` half of `<Script>` (fun-engine.md S4). `Island`'s `render` prop is a function
+ * and cannot cross the Server-to-Client boundary, so it is built here rather than in `Script.tsx` —
+ * only `text` and `children` (the server-rendered fallback) cross, and both are legal to pass.
  */
 export function ScriptEnhancer({ text, children }: { text: string; children: ReactNode }) {
     return (
