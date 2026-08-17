@@ -62,15 +62,17 @@ export function Hero({
     locale?: Locale
 }) {
     return (
-        <section>
-            <div className="border-b border-n-1 bg-primary-1">
+        <section className="split-hero">
+            {/* `split-hero-band` is on the band itself, not the section: a rule on the ancestor
+                cannot repaint a child's own `bg-primary-1` (fun-engine.md Wave 2 / S2). */}
+            <div className="split-hero-band border-b border-n-1 bg-primary-1">
                 <div className={`${COLUMN} pb-8 pt-10`}>
                     {eyebrow && (
-                        <span className="inline-flex items-center rounded-sm border border-n-1 bg-white px-3 py-1 text-h9 uppercase tracking-wide text-n-1">
+                        <span className="split-hero-eyebrow inline-flex items-center rounded-sm border border-n-1 bg-white px-3 py-1 text-h9 uppercase tracking-wide text-n-1">
                             {eyebrow}
                         </span>
                     )}
-                    <h1 className="mt-5 text-h3 leading-tight text-n-1">{title}</h1>
+                    <h1 className="split-page-title mt-5 text-h3 leading-tight text-n-1">{title}</h1>
                     {subtitle && <p className="mt-4 text-base font-medium leading-6 text-n-1">{subtitle}</p>}
                 </div>
             </div>
@@ -79,7 +81,7 @@ export function Hero({
                 <div className={`${COLUMN} pt-6`}>
                     <Link
                         href={ctaHref}
-                        className={buttonClassName({ shadowSize: '4', className: 'justify-center text-h6' })}
+                        className={buttonClassName({ shadowSize: '4', className: 'split-btn justify-center text-h6' })}
                     >
                         {cta}
                     </Link>
@@ -103,12 +105,12 @@ export function CTA({
 }) {
     return (
         <section className={`${COLUMN} my-10`}>
-            <div className="rounded-sm border border-n-1 bg-white p-5">
-                {title && <h2 className="text-h5">{title}</h2>}
+            <div className="split-cta-card rounded-sm border border-n-1 bg-white p-5">
+                {title && <h2 className="split-block-title text-h5">{title}</h2>}
                 {body && <p className="mt-2 text-sm leading-5 text-grey-1">{body}</p>}
                 <Link
                     href={href}
-                    className={buttonClassName({ shadowSize: '4', className: 'mt-4 justify-center text-h6' })}
+                    className={buttonClassName({ shadowSize: '4', className: 'split-btn mt-4 justify-center text-h6' })}
                 >
                     {text}
                 </Link>
@@ -145,7 +147,7 @@ export function Steps({
 }) {
     return (
         <section className={`${COLUMN} my-10`}>
-            {title && <h2 className="text-h5">{title}</h2>}
+            {title && <h2 className="split-block-title text-h5">{title}</h2>}
             {/* `split-steps` resets the `split-step` counter that numbers each row's leader digit
                 (globals.css) — a receipt-grammar ledger mark, not a re-implementation of the `<ol>`'s
                 own semantic numbering. */}
@@ -181,7 +183,7 @@ export function FAQ({ title = 'Questions', children }: { title?: string; childre
     return (
         // `id="questions"` is the jump target `<ShortVersionSlot>`'s link points at.
         <section id="questions" className={`${COLUMN} my-10`}>
-            <h2 className="text-h5">{title}</h2>
+            <h2 className="split-block-title text-h5">{title}</h2>
             <dl className="mt-4 flex flex-col gap-3">{children}</dl>
         </section>
     )
@@ -189,7 +191,7 @@ export function FAQ({ title = 'Questions', children }: { title?: string; childre
 
 export function FAQItem({ question, children }: { question: string; children: ReactNode }) {
     return (
-        <div className="rounded-sm border border-n-1 bg-white p-4">
+        <div className="split-faq-item rounded-sm border border-n-1 bg-white p-4">
             <dt className="text-h7">{question}</dt>
             <dd className="mt-2 text-sm leading-5 text-grey-1">{children}</dd>
         </div>
@@ -217,7 +219,7 @@ export function Callout({ title, children }: { title?: string; children: ReactNo
  */
 export function Quote({ children, source }: { children: ReactNode; source: string }) {
     return (
-        <figure className={`${COLUMN} my-8`}>
+        <figure className={`${COLUMN} split-quote my-8`}>
             {/* Evidence slip (fun-engine.md S3): a dashed top rule stands in for the left rule, so a
                 verbatim competitor quote reads as a torn-off receipt line rather than a callout. */}
             <blockquote className="border-t border-dashed border-n-1 pt-3 text-sm italic leading-5 text-n-1">
@@ -260,7 +262,7 @@ export function Cast({
     const persona = castPersona(name)
     return (
         <figure className={`${COLUMN} my-8 flex items-center gap-4`}>
-            {persona && <LandingPersona persona={persona} size={CAST_SIZES[size]} />}
+            {persona && <LandingPersona persona={persona} size={CAST_SIZES[size]} className="split-cast-art" />}
             {caption && <figcaption className="flex-1 text-sm leading-5 text-grey-1">{caption}</figcaption>}
         </figure>
     )
@@ -278,7 +280,7 @@ export function Checklist({
 }) {
     return (
         <section className={`${COLUMN} my-10`}>
-            {title && <h2 className="text-h5">{title}</h2>}
+            {title && <h2 className="split-block-title text-h5">{title}</h2>}
             <ul className="mt-4 flex flex-col gap-3">{withSpotDoodles(children, context)}</ul>
         </section>
     )
@@ -299,7 +301,7 @@ export function ChecklistItem({
         <li className="split-checklist-item relative flex items-start gap-3 rounded-sm border border-n-1 bg-white p-4">
             <span
                 aria-hidden="true"
-                className="flex size-6 shrink-0 items-center justify-center rounded-full border border-n-1 bg-green-1"
+                className="split-tick flex size-6 shrink-0 items-center justify-center rounded-full border border-n-1 bg-green-1"
             >
                 <Icon name="check" size={14} className="text-n-1" />
             </span>
@@ -323,8 +325,8 @@ export function ChecklistItem({
 export function RelatedPages({ title = 'Keep reading', children }: { title?: string; children: ReactNode }) {
     return (
         <nav className={`${COLUMN} my-10`} aria-label={title}>
-            <h2 className="text-h5">{title}</h2>
-            <ul className="mt-4 flex flex-col gap-px overflow-hidden rounded-sm border border-n-1 [&>li:first-child>a]:rounded-t-sm [&>li:last-child>a]:rounded-b-sm">
+            <h2 className="split-block-title text-h5">{title}</h2>
+            <ul className="split-related-list mt-4 flex flex-col gap-px overflow-hidden rounded-sm border border-n-1 [&>li:first-child>a]:rounded-t-sm [&>li:last-child>a]:rounded-b-sm">
                 {children}
             </ul>
         </nav>

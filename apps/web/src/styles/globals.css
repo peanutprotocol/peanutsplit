@@ -190,6 +190,436 @@
     mask-image: repeating-linear-gradient(to bottom, #000 0, #000 3px, transparent 3px, transparent 7px);
 }
 
+/* ---------------------------------------------------------- sticker skin
+   fun-engine.md Wave 2 / S2. `ChapterFrame` and `SkinFrame` are the only things that set
+   `--skin-*`: they paint the whole palette plus `--skin-wall` onto one wrapper, beside
+   `data-skin`. Every rule below is scoped `[data-skin='sticker']`, so an unskinned page — every
+   generated guide, every flat-register page, the LP, the room — matches none of them and this
+   whole section is inert rather than absent.
+
+   Every `var()` repeats its literal as a fallback, the idiom the chapter block above states. The
+   wallpaper is the sharp case: `background-image: var(--skin-wall), radial-gradient(…)` is
+   invalid-at-computed-value-time if `--skin-wall` is ever unset, which would take the dot grid
+   down with it, so it carries an explicit `none`.
+
+   Every rule that paints a background also sets `color`. Two of them have no choice: the chapter
+   block's `.split-section-heading::before` and `.split-step::before` set
+   `color: var(--chapter-ink, …)`, and chapter ink on pink/yellow/green measures 2.44–3.85:1 across
+   all six chapters — skin-tokens.test.ts computes all 18 pairs and gates the source shape. The
+   rest follow the same rule so that gate can stay mechanical.
+
+   Nothing here animates, so none of it needs a prefers-reduced-motion entry.
+
+   Tradeoff: the calculator rules paint off `data-testid`, which couples paint to a test hook. It
+   is chosen over a parallel `data-skin-*` attribute set because those ids are already the contract
+   two e2e specs depend on, and a second set would be two things to keep in step. Where no testid
+   existed or it named the wrong node, a real class hook was added instead — `split-working`,
+   `split-tool-shares`, `split-tool-amount` and `aria-pressed`, all four in ToolCalculator.tsx. */
+
+/* Ground. The tiles scroll with the content: `background-attachment: fixed` repaints the whole
+   viewport on every scroll frame, which is the one thing that would cost the 60fps budget. */
+[data-skin='sticker'] {
+    background-color: var(--skin-paper, #faf4f0);
+    background-image: var(--skin-wall, none), radial-gradient(rgba(33, 28, 23, 0.05) 1px, transparent 1px);
+    background-size:
+        210px 210px,
+        5px 5px;
+    color: var(--skin-ink, #211c17);
+}
+
+[data-skin='sticker'] li::marker {
+    color: var(--skin-pink, #ff90e8);
+}
+
+/* Type. Keyed on `split-page-title`, not `.split-hero h1`: two of the four content pilots author
+   no `<Hero>` and take their h1 from components.tsx's markdown override, so keying the signature
+   treatment off the hero would ship it on half the pilot. */
+[data-skin='sticker'] .split-page-title {
+    color: var(--skin-ink, #211c17);
+    font-family: var(--skin-display, ui-sans-serif, system-ui, sans-serif);
+    font-stretch: var(--skin-display-stretch, 75%);
+    font-weight: 900;
+    text-shadow: 3px 3px 0 rgba(255, 144, 232, 0.5);
+    text-transform: uppercase;
+}
+
+/* Paper ground instead of the yellow band — the band's own `bg-primary-1` is on this element, so
+   an ancestor rule could not repaint it. */
+[data-skin='sticker'] .split-hero-band {
+    border-bottom: 2px solid var(--skin-ink, #211c17);
+    background: var(--skin-paper, #faf4f0);
+    color: var(--skin-ink, #211c17);
+}
+
+[data-skin='sticker'] .split-hero-eyebrow {
+    display: inline-block;
+    padding: 6px 11px;
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 999px;
+    background: var(--skin-pink, #ff90e8);
+    box-shadow: 0 0 0 4px var(--skin-halo, #ffffff);
+    color: var(--skin-ink, #211c17);
+    font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transform: rotate(-2deg);
+}
+
+[data-skin='sticker'] .split-section-heading {
+    font-family: var(--skin-display, ui-sans-serif, system-ui, sans-serif);
+    font-stretch: var(--skin-display-stretch, 75%);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+/* Repaints the numeral the chapter block already draws. `counter-increment` stays up there and is
+   deliberately not repeated. `content` is re-declared only to drop that rule's trailing space,
+   which would pad the pink pill lopsidedly, and `display: inline-block` is load-bearing: a
+   `::before` on an `<h2>` is a non-replaced inline box, `transform` does not apply to those, and
+   without it the tilt is silently dropped — the mock's `.num` is a real span carrying the same
+   declaration (sticker-sheet.html:91). `color` overrides the chapter ink; see the header. */
+[data-skin='sticker'] .split-section-heading::before {
+    display: inline-block;
+    margin-right: 0.5rem;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: var(--skin-pink, #ff90e8);
+    box-shadow: 0 0 0 4px var(--skin-halo, #ffffff);
+    color: var(--skin-ink, #211c17);
+    content: counter(split-section, decimal-leading-zero);
+    font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
+    font-size: 13px;
+    font-weight: 800;
+    transform: rotate(-2deg);
+}
+
+[data-skin='sticker'] .split-block-title {
+    font-family: var(--skin-display, ui-sans-serif, system-ui, sans-serif);
+    font-size: 15.5px;
+    font-stretch: var(--skin-display-stretch, 75%);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+/* The die-cut sticker recipe, and its three-step tilt cycle (the mock's `.stk` + `.t1/.t2/.t3`).
+   `.split-related-link` is deliberately absent: `RelatedPages` wraps its links in an
+   `overflow-hidden` "one card, many rows" `<ul>`, which would clip every child's halo, offset
+   shadow and rotated corners — so the LIST is the sticker instead, which is also closer to what
+   that markup already says. `[data-testid='tool-result']` keeps the treatment: its
+   `overflow-hidden` clips that element's children, never its own box-shadow. */
+[data-skin='sticker']
+    :is(
+        .split-step,
+        .split-checklist-item,
+        .split-faq-item,
+        .split-cta-card,
+        .split-related-list,
+        [data-script-block],
+        .split-calc,
+        [data-testid='tool-result']
+    ) {
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow:
+        0 0 0 5px var(--skin-halo, #ffffff),
+        6px 10px 0 rgba(33, 28, 23, 0.12);
+    color: var(--skin-ink, #211c17);
+}
+
+[data-skin='sticker']
+    :is(
+        .split-step,
+        .split-checklist-item,
+        .split-faq-item,
+        .split-cta-card,
+        .split-related-list,
+        [data-script-block],
+        .split-calc,
+        [data-testid='tool-result']
+    ):nth-child(3n + 1) {
+    transform: rotate(-0.7deg);
+}
+
+[data-skin='sticker']
+    :is(
+        .split-step,
+        .split-checklist-item,
+        .split-faq-item,
+        .split-cta-card,
+        .split-related-list,
+        [data-script-block],
+        .split-calc,
+        [data-testid='tool-result']
+    ):nth-child(3n + 2) {
+    transform: rotate(0.5deg);
+}
+
+[data-skin='sticker']
+    :is(
+        .split-step,
+        .split-checklist-item,
+        .split-faq-item,
+        .split-cta-card,
+        .split-related-list,
+        [data-script-block],
+        .split-calc,
+        [data-testid='tool-result']
+    ):nth-child(3n) {
+    transform: rotate(-0.4deg);
+}
+
+/* The list is the sticker now, so its own hairline grid goes: the `overflow-hidden` that would
+   clip the halo, and the `gap-px` rules between rows. */
+[data-skin='sticker'] .split-related-list {
+    overflow: visible;
+    gap: 0.75rem;
+}
+
+/* The step numeral becomes a yellow disc. Longhands rather than the mock's `font` shorthand: the
+   shorthand would reset the chapter block's `font-variant-numeric: tabular-nums` to normal. */
+[data-skin='sticker'] .split-step::before {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 50%;
+    background: var(--skin-yellow, #ffc900);
+    color: var(--skin-ink, #211c17);
+    font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 19px;
+    text-align: center;
+}
+
+/* The perforation is replaced by the sticker edge. */
+[data-skin='sticker'] .split-checklist-item::before {
+    display: none;
+}
+
+[data-skin='sticker'] .split-tick {
+    width: 23px;
+    height: 23px;
+    border: 2px solid var(--skin-ink, #211c17);
+    background: var(--skin-green, #98e9ab);
+    color: var(--skin-ink, #211c17);
+}
+
+/* Paper blocks: post-it, washi tape, evidence slip. */
+[data-skin='sticker'] .split-callout {
+    border-radius: 3px;
+    background: var(--skin-postit, #fff3c4);
+    box-shadow: 4px 6px 0 rgba(33, 28, 23, 0.08);
+    color: var(--skin-ink, #211c17);
+    transform: rotate(-0.6deg);
+}
+
+[data-skin='sticker'] .split-callout::before {
+    background: rgba(255, 144, 232, 0.55);
+    color: var(--skin-ink, #211c17);
+}
+
+/* The short-version slip drops its `border-l-4` ledger rule for a taped one. `position: relative`
+   is the tape's containing block — the `<p>` does not carry it otherwise. */
+[data-skin='sticker'] .split-short-version {
+    position: relative;
+    border: 0;
+    color: var(--skin-muted, #5f646d);
+}
+
+[data-skin='sticker'] .split-short-version::before {
+    position: absolute;
+    top: -8px;
+    left: 22px;
+    width: 58px;
+    height: 15px;
+    border: 1px solid rgba(33, 28, 23, 0.1);
+    background: rgba(255, 144, 232, 0.55);
+    color: var(--skin-ink, #211c17);
+    content: '';
+    transform: rotate(-2.5deg);
+}
+
+[data-skin='sticker'] .split-quote {
+    position: relative;
+    border-radius: 3px;
+    background: #ffffff;
+    box-shadow: 4px 6px 0 rgba(33, 28, 23, 0.08);
+    color: var(--skin-ink, #211c17);
+    transform: rotate(-0.4deg);
+}
+
+[data-skin='sticker'] .split-quote::before {
+    position: absolute;
+    top: -8px;
+    right: 18px;
+    width: 52px;
+    height: 14px;
+    border: 1px solid rgba(33, 28, 23, 0.1);
+    background: rgba(255, 201, 0, 0.6);
+    color: var(--skin-ink, #211c17);
+    content: '';
+    transform: rotate(2deg);
+}
+
+[data-skin='sticker'] blockquote {
+    padding-bottom: 0.75rem;
+    border-top: 2px dashed var(--skin-ink, #211c17);
+    border-bottom: 2px dashed var(--skin-ink, #211c17);
+}
+
+/* The cast chip. `LandingPersona` paints the persona's own art — background, ink and box — through
+   an inline `style`, which no stylesheet rule can outrank, so the mock's flat yellow disc and its
+   62px box are NOT re-declared here: the cast keeps its identity and the skin adds the die-cut
+   ring around it. Everything the mock's `.castchip` says that survives that is here. */
+[data-skin='sticker'] .split-cast-art {
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 4px var(--skin-halo, #ffffff),
+        3px 5px 0 rgba(255, 144, 232, 0.7);
+    transform: rotate(-3deg);
+}
+
+/* Actions. A `split-btn` hook rather than a descendant-anchor rule: `Hero` renders
+   `<ShortVersionSlot>` inside its own `<section>`, and that ends in an inline `#questions` anchor
+   mid-sentence, which any `:is(.split-cta-card, .split-hero) a[href]` rule would turn into a full
+   yellow pill in the middle of a paragraph. A child combinator does not help either — the hero's
+   CTA is nested inside the column div, not a direct child of the section. */
+[data-skin='sticker'] .split-btn {
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 999px;
+    background: var(--skin-yellow, #ffc900);
+    box-shadow:
+        0 0 0 4px #ffffff,
+        5px 8px 0 rgba(255, 144, 232, 0.7);
+    color: var(--skin-ink, #211c17);
+    font-weight: 800;
+}
+
+[data-skin='sticker'] [data-script-copy],
+[data-skin='sticker'] [data-testid='tool-copy'] {
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow:
+        0 0 0 3px #ffffff,
+        2px 3px 0 var(--skin-yellow, #ffc900);
+    color: var(--skin-ink, #211c17);
+    font-weight: 700;
+}
+
+/* Table — the versus page's side-by-side, our column tinted. */
+[data-skin='sticker'] table th {
+    border-bottom: 2px solid var(--skin-ink, #211c17);
+    color: var(--skin-ink, #211c17);
+    font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
+    text-transform: uppercase;
+}
+
+[data-skin='sticker'] table td:first-child {
+    color: var(--skin-ink, #211c17);
+    font-weight: 700;
+}
+
+[data-skin='sticker'] :is(table th, table td):last-child {
+    background: rgba(255, 144, 232, 0.14);
+    color: var(--skin-ink, #211c17);
+}
+
+/* Working strip. Applies to `Working.tsx`'s root div AND to the tool page's own inlined `<ul>`,
+   which carries the same class rather than the component (ToolCalculator does not import it). */
+[data-skin='sticker'] .split-working {
+    padding-top: 10px;
+    border-top: 2px dashed rgba(33, 28, 23, 0.25);
+    color: var(--skin-muted, #5f646d);
+}
+
+[data-skin='sticker'] .split-working li span:last-child {
+    font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The total gets the solid rule — `[data-calc-row='total']`, never `li:last-child`: `<Calc>`'s
+   rows run total, people, share, foot, so `:last-child` would rule off the footnote and leave the
+   total plain. Generic `<Working>` consumers carry no `data-calc-row` and correctly get nothing. */
+[data-skin='sticker'] [data-calc-row='total'] {
+    margin-top: 4px;
+    padding-top: 7px;
+    border-top: 2px solid var(--skin-ink, #211c17);
+    color: var(--skin-ink, #211c17);
+    font-weight: 800;
+}
+
+[data-skin='sticker'] [data-testid^='tool-preset-'] {
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--skin-ink, #211c17);
+    font-weight: 700;
+}
+
+[data-skin='sticker'] [data-testid^='tool-preset-'][aria-pressed='true'] {
+    background: var(--skin-yellow, #ffc900);
+    box-shadow:
+        0 0 0 3px #ffffff,
+        2px 3px 0 rgba(255, 144, 232, 0.7);
+    color: var(--skin-ink, #211c17);
+}
+
+/* The two `:not()`s are not decoration: the bare `tool-field-` prefix also matches `ScaleInput`'s
+   `<input type="range">` and `SwitchRow`'s `sr-only` checkbox, and a 2px border, white fill and
+   10px radius visibly destroy a native range track on every engine. */
+[data-skin='sticker'] input[data-testid^='tool-field-']:not([type='range']):not([type='checkbox']) {
+    border: 2px solid var(--skin-ink, #211c17);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--skin-ink, #211c17);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+}
+
+[data-skin='sticker'] [data-testid='tool-currency'] {
+    color: var(--skin-muted, #5f646d);
+    font-weight: 600;
+}
+
+[data-skin='sticker'] [data-testid='tool-builder-summary'] {
+    border: 2px dashed rgba(33, 28, 23, 0.4);
+    border-radius: 12px;
+}
+
+/* The per-person rows are `<dl><div>` rows, not `<li>` — the only `<li>` inside `tool-result` are
+   the workings, so the mock's `.res li` maps here and its `.wk li` maps there. */
+[data-skin='sticker'] .split-tool-shares > div {
+    padding-bottom: 8px;
+    border-bottom: 2px dashed rgba(33, 28, 23, 0.18);
+}
+
+[data-skin='sticker'] .split-tool-shares dt {
+    font-weight: 700;
+}
+
+[data-skin='sticker'] .split-tool-shares dd:not(.split-tool-amount) {
+    font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+}
+
+/* The headline amount. There is no `<output>` anywhere in ToolCalculator.tsx, so `.bigres strong`
+   lands on S3's `split-tool-amount` hook and on `<Calc>`'s own result strong (S4). */
+[data-skin='sticker'] :is(.split-tool-amount, .split-calc-result strong) {
+    color: var(--skin-ink, #211c17);
+    font-family: var(--skin-display, ui-sans-serif, system-ui, sans-serif);
+    font-size: 27px;
+    font-stretch: var(--skin-display-stretch, 75%);
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    text-shadow: 2px 2px 0 rgba(255, 144, 232, 0.5);
+}
+
 /* ------------------------------------------------------------------ motion
    The CSS half of the animation catalog. Everything spring-shaped lives in
    motion/react components and consults `useMotionAllowed()`; these three are

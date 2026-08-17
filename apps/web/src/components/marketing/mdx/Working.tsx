@@ -24,8 +24,11 @@ export function Working({
     currency: string
     catalog?: readonly CurrencyInfo[]
 }) {
+    // `split-working` carries the skin's working-strip treatment (globals.css). A class rather
+    // than a shared component because `ToolCalculator` inlines its own <ul> of the same shape;
+    // the class is the one thing the two have in common.
     return (
-        <div className="flex flex-col gap-1 text-xs text-grey-1">
+        <div className="split-working flex flex-col gap-1 text-xs text-grey-1">
             <ul className="flex flex-col gap-1">
                 {workings.map((working) => (
                     <li key={working.label} className="flex justify-between gap-3">

@@ -61,8 +61,10 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     // its h1 is a markdown `#` — same typography as the hero's, inside the column instead of a band.
     // Subtraction pass (fun-engine.md S3): this band's top margin was 2.5rem; a plain title needs
     // less air above it than a coloured hero band does.
+    // `split-page-title` is the skin's signature display face (globals.css). It is keyed here as
+    // well as on `Hero`'s h1 because two of the four Wave-2 pilot pages author no hero at all.
     h1: (props: HTMLAttributes<HTMLHeadingElement>) => (
-        <h1 className={`${COLUMN} mb-5 mt-8 text-h3 leading-tight text-n-1`} {...props} />
+        <h1 className={`${COLUMN} split-page-title mb-5 mt-8 text-h3 leading-tight text-n-1`} {...props} />
     ),
     // `split-section-heading` scopes the chapter-ink numeral (globals.css) to exactly this
     // markdown-derived heading — never to the unrelated internal `<h2>`s Steps/Checklist/FAQ/CTA
@@ -163,7 +165,7 @@ export function localizedMdxComponents(
         // right after it.
         h1: (props: HTMLAttributes<HTMLHeadingElement>) => (
             <>
-                <h1 className={`${COLUMN} mb-5 mt-8 text-h3 leading-tight text-n-1`} {...props} />
+                <h1 className={`${COLUMN} split-page-title mb-5 mt-8 text-h3 leading-tight text-n-1`} {...props} />
                 <ShortVersionSlot faq={context?.faq} locale={locale} />
             </>
         ),
