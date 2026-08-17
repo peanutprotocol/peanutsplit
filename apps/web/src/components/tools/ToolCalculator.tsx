@@ -202,6 +202,27 @@ function Calculator({ tool }: { tool: Tool }) {
                 data-motion-surface
                 className={composerSurfaceClassName()}
             >
+                {tool.presets && tool.presets.length > 0 && (
+                    <div className="flex flex-wrap gap-2 border-b border-dashed border-grey-2 px-3 pb-3 pt-3">
+                        {tool.presets.map((preset) => (
+                            <button
+                                key={preset.optionValue}
+                                type="button"
+                                data-testid={`tool-preset-${preset.optionValue}`}
+                                onClick={() => {
+                                    // Same pre-fill path the dropdown picker already uses (§ below) —
+                                    // a preset is a shortcut to an existing choice/option, not a
+                                    // second way to set fields.
+                                    const choice = choiceFields.find((field) => field.name === preset.choiceName)
+                                    if (choice) pick(choice, preset.optionValue)
+                                }}
+                                className="rounded-full border border-n-1 bg-white px-3 py-1 text-xs font-bold text-n-1"
+                            >
+                                {preset.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
                 {/* The headline number and the currency share the first line, exactly as they do on
                     the add-expense and create-room composers. Everything else is a row under it. */}
                 <div className="flex min-w-0 items-center gap-2 px-3 py-2">

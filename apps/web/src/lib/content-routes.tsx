@@ -13,6 +13,8 @@ import {
 } from '@/lib/content'
 import { renderArticle } from '@/lib/mdx'
 import { absoluteLanguages, pageMetadata, pageTitle } from '@/lib/seo'
+import { pageChapterOrNull, pageRegisterOrNull } from '@/lib/split-content/recipe'
+import { hashSlug } from '@/lib/split-content/seed'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { LOCALES, type Locale } from '@/i18n/locales'
 
@@ -155,7 +157,19 @@ export function articlePage(collections: RouteCollections, locale: Locale, param
         // at a Spanish URL, so there is no duplicate content to disambiguate later.
         if (!doc) notFound()
 
-        const body = await renderArticle(doc.body, doc.locale)
+        // fun-engine.md S4: `<ShortVersionSlot>` and the Steps/Checklist doodle placer both need
+        // this page's chapter/seed/register, and `<ShortVersionSlot>` also needs the first FAQ.
+        // Built here, once, and handed to `renderArticle` — a route-test fixture slug with no
+        // chapter mapping renders with no context rather than throwing (`pageChapterOrNull`'s own
+        // contract), so both features simply no-op for it.
+        const chapter = pageChapterOrNull(doc.collection, doc.slug, doc.frontmatter.tags ?? [], doc.locale)
+        const register = pageRegisterOrNull(doc.collection, doc.slug, doc.frontmatter.tags ?? [], doc.locale)
+        const context =
+            chapter && register
+                ? { faq: doc.frontmatter.faqs?.[0], chapter, seed: hashSlug(doc.slug), register }
+                : undefined
+
+        const body = await renderArticle(doc.body, doc.locale, context)
         const crumbs = await crumbsFor(locale, doc.collection, doc.frontmatter.title, doc.href)
 
         return (

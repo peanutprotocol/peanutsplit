@@ -823,6 +823,7 @@ function toolStrings(tool: Tool): string[] {
             choice.help ?? '',
             ...choice.options.flatMap((option) => [option.label, option.note ?? '', option.source?.label ?? '']),
         ]),
+        ...(tool.presets ?? []).map((preset) => preset.label),
         ...(tool.related ?? []).map((link) => link.label),
         ...tool.faqs.flatMap((faq) => [faq.question, faq.answer]),
         ...computedStrings(tool),
