@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { LOCALES } from '@/i18n/locales'
 import { listAllTranslations } from '@/lib/content'
 import { loadSplitContentManifest } from './artifact'
+import { SKIN_BY_SLUG } from './skin'
 import {
     CHAPTER_BY_SLUG,
     FLAT_REGISTER_SLUGS,
@@ -11,6 +12,7 @@ import {
     pageChapterOrNull,
     pageRecipe,
     pageRegisterOrNull,
+    pageSkinOrNull,
     type PageKind,
 } from './recipe'
 
@@ -68,6 +70,8 @@ describe('pageRecipe', () => {
         expect(() => pageRecipe('blog', 'this-slug-does-not-exist', undefined, 'en')).toThrow(SplitRecipeError)
     })
 
+    // `skin` is part of the recipe object, so the toEqual below covers it for free — a skin that
+    // ever varied by locale would fail here before it reached a page.
     it('is invariant to locale (and to tags) for every real slug', () => {
         for (const [slug, kind] of KIND_BY_SLUG) {
             const en = pageRecipe(kind, slug, ['tag-one'], 'en')
@@ -110,6 +114,37 @@ describe('pageRecipe', () => {
     it('maps exactly the real slug set — an unmapped slug is a test failure, not a silent default', () => {
         const realSlugs = new Set([...REAL_COLLECTION_DIR_SLUGS.map(([slug]) => slug), ...REAL_GUIDE_SLUGS])
         expect(new Set(Object.keys(CHAPTER_BY_SLUG))).toEqual(realSlugs)
+    })
+})
+
+describe('pageSkinOrNull', () => {
+    /** The four content slugs of the five-slug Wave-2 pilot; the fifth is a tool slug. */
+    const PILOT_CONTENT_SLUGS = Object.keys(SKIN_BY_SLUG).filter((slug) => slug in CHAPTER_BY_SLUG)
+
+    it('skins exactly the four pilot content slugs and nothing else', () => {
+        expect(PILOT_CONTENT_SLUGS).toHaveLength(4)
+        for (const [slug, kind] of KIND_BY_SLUG) {
+            const expected = PILOT_CONTENT_SLUGS.includes(slug) ? 'sticker' : 'none'
+            expect(pageSkinOrNull(kind, slug, undefined, 'en'), slug).toBe(expected)
+        }
+    })
+
+    it('leaves the flat-register slug unskinned, structurally — not by omission from the map', () => {
+        for (const slug of FLAT_REGISTER_SLUGS) {
+            const kind = KIND_BY_SLUG.get(slug) as PageKind
+            expect(pageRecipe(kind, slug, undefined, 'en').register).toBe('flat')
+            expect(pageRecipe(kind, slug, undefined, 'en').skin).toBe('none')
+        }
+    })
+
+    it('returns the same skin as pageRecipe for every real slug', () => {
+        for (const [slug, kind] of KIND_BY_SLUG) {
+            expect(pageSkinOrNull(kind, slug, undefined, 'en')).toBe(pageRecipe(kind, slug, undefined, 'en').skin)
+        }
+    })
+
+    it('returns null instead of throwing for an unknown slug — a route-test fixture, never real content', () => {
+        expect(pageSkinOrNull('blog', 'this-slug-does-not-exist', undefined, 'en')).toBeNull()
     })
 })
 
