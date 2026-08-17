@@ -5,7 +5,7 @@ import type { ToolWorking } from '@/tools/types'
 /**
  * The labelled-lines derivation strip behind a computed answer (fun-engine.md S4): one row per
  * `ToolWorking`, tabular-nums, an optional rounding sentence underneath. `ToolCalculator.tsx`
- * renders this exact shape inline for the two live calculators; `ScriptEnhancer.tsx` is the other
+ * renders this exact shape inline for the two live calculators; `Script.tsx` is the other
  * consumer, for a single confirmed-amount row with no rounding to explain, which is why
  * `roundingNote` is optional rather than required.
  *
