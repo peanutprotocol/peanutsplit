@@ -136,10 +136,15 @@ describe('block hooks', () => {
         ).toMatch(/^<span/)
     })
 
-    it("marks the quote figure and the cast's persona art", () => {
-        expect(
-            tagWith(renderToStaticMarkup(<Quote source="kb.splitwise.com">Four a day.</Quote>), 'split-quote')
-        ).toMatch(/^<figure/)
+    /** The hook is on the inner `<figure>`, never on the column wrapper: a slip painted on the
+     *  column is a full-bleed white band. The `<figcaption>` stays a direct child of that figure —
+     *  a level deeper it is not a caption at all and the figure loses its accessible name. */
+    it("marks the quote's inner figure, inside the column, and the cast's persona art", () => {
+        const quote = renderToStaticMarkup(<Quote source="kb.splitwise.com">Four a day.</Quote>)
+        expect(tagWith(quote, 'split-quote')).toMatch(/^<figure/)
+        expect(classesOf(tagWith(quote, 'split-quote')!)).not.toContain('px-5')
+        expect(quote).toMatch(/^<div class="[^"]*px-5[^"]*"><figure class="split-quote">/)
+        expect(quote).toMatch(/<\/blockquote><figcaption/)
         expect(tagWith(renderToStaticMarkup(<Cast name="ana" caption="The Lisbon room." />), 'split-cast-art')).toMatch(
             /^<span/
         )

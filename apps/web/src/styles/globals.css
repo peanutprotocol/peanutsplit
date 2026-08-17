@@ -210,11 +210,11 @@
 
    Nothing here animates, so none of it needs a prefers-reduced-motion entry.
 
-   Tradeoff: the calculator rules paint off `data-testid`, which couples paint to a test hook. It
-   is chosen over a parallel `data-skin-*` attribute set because those ids are already the contract
-   two e2e specs depend on, and a second set would be two things to keep in step. Where no testid
-   existed or it named the wrong node, a real class hook was added instead — `split-working`,
-   `split-tool-shares`, `split-tool-amount` and `aria-pressed`, all four in ToolCalculator.tsx. */
+   No rule here selects on `data-testid`. An earlier pass painted the calculator through its test
+   ids; that couples the design to a hook whose whole point is that a test may rename it, and the
+   class audit rejects it. Every calculator surface the skin touches carries a `split-tool-*` class
+   of its own instead (ToolCalculator.tsx, styling-free there), beside `split-working`,
+   `split-tool-shares`, `split-tool-amount` and the `aria-pressed` the preset chips gained. */
 
 /* Ground. The tiles scroll with the content: `background-attachment: fixed` repaints the whole
    viewport on every scroll frame, which is the one thing that would cost the 60fps budget. */
@@ -307,8 +307,8 @@
    `.split-related-link` is deliberately absent: `RelatedPages` wraps its links in an
    `overflow-hidden` "one card, many rows" `<ul>`, which would clip every child's halo, offset
    shadow and rotated corners — so the LIST is the sticker instead, which is also closer to what
-   that markup already says. `[data-testid='tool-result']` keeps the treatment: its
-   `overflow-hidden` clips that element's children, never its own box-shadow. */
+   that markup already says. `.split-tool-result` keeps the treatment: its `overflow-hidden` clips
+   that element's children, never its own box-shadow. */
 [data-skin='sticker']
     :is(
         .split-step,
@@ -318,7 +318,7 @@
         .split-related-list,
         [data-script-block],
         .split-calc,
-        [data-testid='tool-result']
+        .split-tool-result
     ) {
     border: 2px solid var(--skin-ink, #211c17);
     border-radius: 14px;
@@ -338,7 +338,7 @@
         .split-related-list,
         [data-script-block],
         .split-calc,
-        [data-testid='tool-result']
+        .split-tool-result
     ):nth-child(3n + 1) {
     transform: rotate(-0.7deg);
 }
@@ -352,7 +352,7 @@
         .split-related-list,
         [data-script-block],
         .split-calc,
-        [data-testid='tool-result']
+        .split-tool-result
     ):nth-child(3n + 2) {
     transform: rotate(0.5deg);
 }
@@ -366,7 +366,7 @@
         .split-related-list,
         [data-script-block],
         .split-calc,
-        [data-testid='tool-result']
+        .split-tool-result
     ):nth-child(3n) {
     transform: rotate(-0.4deg);
 }
@@ -379,7 +379,10 @@
 }
 
 /* The step numeral becomes a yellow disc. Longhands rather than the mock's `font` shorthand: the
-   shorthand would reset the chapter block's `font-variant-numeric: tabular-nums` to normal. */
+   shorthand would reset the chapter block's `font-variant-numeric: tabular-nums` to normal.
+   `content` is re-declared for the same reason the section-heading rule above re-declares its own:
+   the chapter block draws `01` and the mock's disc holds a bare `1`, and a leading zero inside a
+   22px circle at 12px mono does not fit. `counter-increment` stays up in the chapter block. */
 [data-skin='sticker'] .split-step::before {
     width: 22px;
     height: 22px;
@@ -387,6 +390,7 @@
     border-radius: 50%;
     background: var(--skin-yellow, #ffc900);
     color: var(--skin-ink, #211c17);
+    content: counter(split-step);
     font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
     font-size: 12px;
     font-weight: 800;
@@ -444,12 +448,12 @@
 
 /* The torn-receipt edges bracket the whole slip — quote AND its source line, the way the mock's
    `.quote` does. On the `<blockquote>` they would rule off the attribution instead, and unscoped
-   they would reach every markdown quote on the page. Only the vertical padding is set: the figure
-   is also the column, so its `px-5` gutter has to survive. */
+   they would reach every markdown quote on the page. `split-quote` is the inner `<figure>`, not
+   the column wrapper around it (blocks.tsx), so the mock's full `14px 14px 12px` applies here
+   without the ground running the width of the page. */
 [data-skin='sticker'] .split-quote {
     position: relative;
-    padding-top: 14px;
-    padding-bottom: 12px;
+    padding: 14px 14px 12px;
     border-top: 2px dashed var(--skin-ink, #211c17);
     border-bottom: 2px dashed var(--skin-ink, #211c17);
     border-radius: 3px;
@@ -457,6 +461,13 @@
     box-shadow: 4px 6px 0 rgba(33, 28, 23, 0.08);
     color: var(--skin-ink, #211c17);
     transform: rotate(-0.4deg);
+}
+
+/* The blockquote's own dashed rule and the slip's top edge are the same line drawn twice, 14px
+   apart. The slip wins; the mock's `.quote blockquote` carries no rule at all. */
+[data-skin='sticker'] .split-quote blockquote {
+    padding-top: 0;
+    border-top: 0;
 }
 
 [data-skin='sticker'] .split-quote::before {
@@ -502,7 +513,7 @@
 }
 
 [data-skin='sticker'] [data-script-copy],
-[data-skin='sticker'] [data-testid='tool-copy'] {
+[data-skin='sticker'] .split-tool-copy {
     border: 2px solid var(--skin-ink, #211c17);
     border-radius: 999px;
     background: #ffffff;
@@ -555,7 +566,9 @@
     font-weight: 800;
 }
 
-[data-skin='sticker'] [data-testid^='tool-preset-'] {
+/* The live chip is a pressed toggle, which is also what says so to a screen reader — the on-state
+   is the `aria-pressed` ToolCalculator sets, not a second class saying the same thing twice. */
+[data-skin='sticker'] .split-tool-preset {
     border: 2px solid var(--skin-ink, #211c17);
     border-radius: 999px;
     background: #ffffff;
@@ -563,7 +576,7 @@
     font-weight: 700;
 }
 
-[data-skin='sticker'] [data-testid^='tool-preset-'][aria-pressed='true'] {
+[data-skin='sticker'] .split-tool-preset[aria-pressed='true'] {
     background: var(--skin-yellow, #ffc900);
     box-shadow:
         0 0 0 3px #ffffff,
@@ -571,10 +584,10 @@
     color: var(--skin-ink, #211c17);
 }
 
-/* The two `:not()`s are not decoration: the bare `tool-field-` prefix also matches `ScaleInput`'s
-   `<input type="range">` and `SwitchRow`'s `sr-only` checkbox, and a 2px border, white fill and
-   10px radius visibly destroy a native range track on every engine. */
-[data-skin='sticker'] input[data-testid^='tool-field-']:not([type='range']):not([type='checkbox']) {
+/* The hook is on the text and number inputs only. `ScaleInput`'s range and `SwitchRow`'s `sr-only`
+   checkbox deliberately do not carry it: a 2px border, white fill and 10px radius visibly destroy a
+   native range track on every engine, and repainting a hidden checkbox means nothing. */
+[data-skin='sticker'] .split-tool-field {
     border: 2px solid var(--skin-ink, #211c17);
     border-radius: 10px;
     background: #ffffff;
@@ -583,12 +596,14 @@
     font-weight: 800;
 }
 
-[data-skin='sticker'] [data-testid='tool-currency'] {
+/* The currency slot, not the ticker inside it: `CurrencySelect` paints its own trigger, and the
+   slot is the one node in this app's markup that is only ever the currency. */
+[data-skin='sticker'] .split-tool-currency {
     color: var(--skin-muted, #5f646d);
     font-weight: 600;
 }
 
-[data-skin='sticker'] [data-testid='tool-builder-summary'] {
+[data-skin='sticker'] .split-tool-builder-summary {
     border: 2px dashed rgba(33, 28, 23, 0.4);
     border-radius: 12px;
 }
@@ -602,6 +617,17 @@
 
 [data-skin='sticker'] .split-tool-shares dt {
     font-weight: 700;
+}
+
+/* `.res .det` — the second line of the row's `<dt>`, which is the person's share expressed in
+   words rather than money. Without this it inherits the `.who` bold above and the two lines read as
+   equal weight. `span + span` rather than `:last-child`: a row whose tool authors no detail renders
+   the label span alone, and `:last-child` would then un-bold the name. The mock's `--pmut` is not
+   carried over — `--skin-muted` is the grey this text already paints in (skin.ts). */
+[data-skin='sticker'] .split-tool-shares dt span + span {
+    color: var(--skin-muted, #5f646d);
+    font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
+    font-weight: 500;
 }
 
 /* `.res .amt`. `split-tool-amount` is on the per-person `<dd>` and repeats once per row — it is a
