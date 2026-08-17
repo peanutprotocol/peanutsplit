@@ -16,7 +16,7 @@ interface CompareTableProps {
 export function CompareTable({ table }: CompareTableProps) {
     return (
         <section className="mx-auto w-full max-w-xl px-5">
-            <h2 className="text-h5">{table.title}</h2>
+            <h2 className="split-section-heading text-h5">{table.title}</h2>
             <ul className="mt-4 flex flex-col gap-3">
                 {table.rows.map((row) => (
                     <li key={row.feature} className="rounded-sm border border-n-1 bg-white p-4">
