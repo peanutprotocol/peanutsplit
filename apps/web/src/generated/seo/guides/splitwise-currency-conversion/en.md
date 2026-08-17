@@ -7,7 +7,7 @@ lang: en
 author: Peanut
 date: 2026-08-12
 tags: [currencies, splitwise]
-claims: [automatic-currency-conversion, free-forever]
+claims: [automatic-currency-conversion, netting-is-bounded-exact, free-forever]
 cast: []
 canonical: https://peanutsplit.com/guides/splitwise-currency-conversion
 schema_types: [BlogPosting]

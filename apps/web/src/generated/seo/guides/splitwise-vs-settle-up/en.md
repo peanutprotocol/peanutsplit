@@ -28,15 +28,17 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-17
 ---
 
 {/* Every statement about Splitwise or Settle Up on this page is a verbatim quote from a page opened
 on 2026-08-12: splitwise.com, splitwise.com/pro and three articles on kb.splitwise.com; settleup.io,
 settleup.io/tips, settleup.io/lightning, settleup.io/privacy_policy, and the Settle Up listing on
-apps.apple.com. A quotation is contiguous text from one place on the page, never a label welded to a
-list item. Do not add a statement you have not opened the page for, do not quote a price, and do not
-take a claim from a software directory. */}
+apps.apple.com. One more Splitwise page, the multiple-currencies article on kb.splitwise.com, was
+opened on 2026-08-17 and is the only source for the one currency sentence in "What Settle Up does
+well"; the other ten were not re-opened on that date. A quotation is contiguous text from one place
+on the page, never a label welded to a list item. Do not add a statement you have not opened the page
+for, do not quote a price, and do not take a claim from a software directory. */}
 
 Two people in the group chat have already named a different app, and the receipts keep arriving while
 the decision sits there; the trip ends with no app at all, and the deposit never comes back to
@@ -97,18 +99,26 @@ Settle Up also lets a group hold its own exchange rate steady.
 
 *[settleup.io/tips](https://settleup.io/tips), checked 12 August 2026*
 
-A rate the whole group agreed on is one fewer argument when the card statements land. Before you
-expect the same from the other app, check
-[what Splitwise does with more than one currency](/guides/splitwise-currency-conversion).
+A rate the whole group agreed on is one fewer argument when the card statements land.
+[Splitwise converts on a button](/guides/splitwise-currency-conversion) instead, and its help centre
+article on multiple currencies says how far one press reaches.
 
-And it lets a group switch off the netting that moves who pays whom.
+> The conversion applies to all expenses in the group or friendship, including ones that are already settled. This can affect balances for other people who share those expenses.
+
+*[Splitwise help centre](https://kb.splitwise.com/balances-and-expenses/how-can-i-manage-a-friendship-or-group-with-multiple-currencies), checked 17 August 2026*
+
+Settle Up's rate governs the expenses still to come. Splitwise's press reaches back over the ones the
+group had finished with.
+
+And it lets a group switch off the netting,
+[the arithmetic that reassigns the payee](/guides/why-do-i-owe-someone-i-never-paid).
 
 > It minimizes the number of transactions between people by transferring debts, so you might end up paying to somebody you don't directly owe. If you don't like that, you can turn off debt minimization in the Edit group screen.
 
 *[settleup.io/tips](https://settleup.io/tips), checked 12 August 2026*
 
-Turning it off trades a shorter payment list for never having to explain
-[why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid).
+Turning it off trades a shorter payment list for one where everybody pays the person they actually
+owe. That switch and the rate field are both the group's to set rather than Settle Up's.
 
 ## Both of them need an account
 
