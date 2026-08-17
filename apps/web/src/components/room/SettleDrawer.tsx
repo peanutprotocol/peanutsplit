@@ -37,8 +37,10 @@ interface SettleDrawerProps {
 }
 
 /** The Peanut link is the ONE place Peanut appears outside the footer mark, and
- *  it sits as an equal among cash and bank transfer — by product guardrail. */
-const PEANUT_URL = 'https://peanut.me/send?utm_source=split&utm_medium=settle'
+ *  it sits as an equal among cash and bank transfer — by product guardrail.
+ *  code=split gets a new user past peanut.me's invite wall (and awards the Split
+ *  badge); without it the settle link dead-ends for anyone not already invited. */
+const PEANUT_URL = 'https://peanut.me/send?utm_source=split&utm_medium=settle&code=split'
 
 /**
  * Built inside the component so the labels can be translated, but each key is still written out
