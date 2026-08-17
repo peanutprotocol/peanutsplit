@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -89,5 +90,19 @@ describe('ContentAnalytics component', () => {
         // component renders nothing extra — the pageview only fires once the browser mounts it.
         expect(html).toBe('')
         expect(trackMock).not.toHaveBeenCalled()
+    })
+})
+
+describe('Script enhancer wiring', () => {
+    // fun-engine.md S4/Invariants #3: `<Script>`'s copy/recompute behavior rides in on THIS
+    // island rather than its own client component, so this is the one place that has to call it.
+    const source = readFileSync(new URL('./ContentAnalytics.tsx', import.meta.url), 'utf8')
+
+    it('imports enhanceScriptBlocks from the plain-DOM module, not a component', () => {
+        expect(source).toContain("import { enhanceScriptBlocks } from '@/lib/script-enhancer-dom'")
+    })
+
+    it('calls it once on mount, over the whole document', () => {
+        expect(source).toContain('enhanceScriptBlocks(document)')
     })
 })

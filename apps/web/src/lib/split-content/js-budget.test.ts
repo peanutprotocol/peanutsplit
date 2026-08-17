@@ -47,20 +47,33 @@ const ENTRY_FILES = [
 const EXCLUDED_PREFIXES = [path.join(SRC, 'components/tools'), path.join(SRC, 'tools')]
 
 /**
- * The budget as it actually stands, not as a clean slate would prefer:
+ * Content pages ship exactly ONE client-code chunk that does real work: the content island
+ * (fun-engine.md Invariants #3). `Script` (`mdxComponents` in `components.tsx`) is a pure Server
+ * Component — no `'use client'` chain of its own — because that map is statically imported by
+ * every content route, so any client code it referenced would ship to every route regardless of
+ * whether that route's MDX ever authors the tag, and `next/dynamic` does NOT create a
+ * content-driven split boundary there (empirically proven: `pnpm build && next start`, curling
+ * content pages that author no `<Script>`, still served the chunk). Its copy-to-clipboard/
+ * live-recompute behavior instead rides in as plain DOM (`lib/script-enhancer-dom.ts`), imported
+ * and called by `components/marketing/ContentAnalytics.tsx` — the one island every content route
+ * already loads. The rule this test enforces: block components in `mdxComponents` must never be
+ * client components; enhancer behavior belongs in the one island every route pays for anyway, and
+ * the walk must count it there rather than lose it behind a dynamic import.
+ *
+ * The budget, itemised:
  *  - `components/ui/LocaleSwitcher.tsx` — reachable via `SiteFooter`, which `ArticleLayout`
  *    imports unconditionally for every blog/alternatives/capture route. Every content call site
  *    passes `showLocaleSwitcher={false}` (an indexed page states its language in its own URL), but
  *    that is a runtime prop, not an import boundary — the static import predates this stage.
- *  - `components/marketing/ContentAnalytics.tsx` — this stage's own pageview/scroll-depth island,
+ *  - `components/marketing/ContentAnalytics.tsx` — this stage's pageview/scroll-depth island,
  *    reachable from both `ArticleLayout` and `GuideLayout`.
- * `<Script>` (`mdxComponents` in `components.tsx`) loads its `'use client'` chain —
- * `mdx/ScriptEnhancer.tsx` → `Island.tsx` → `lib/use-motion.ts`/`lib/use-settings.ts` — via
- * `next/dynamic` (see `Script.tsx`), which is a dynamic `import()` and so invisible to this walk
- * on purpose (see `runtimeSpecifiers`'s docstring); none of the four count here. A count above 2
- * is a real regression; a count below it means one of the two above was removed.
+ *  - `lib/script-enhancer-dom.ts` — `<Script>`'s copy/recompute behavior (fun-engine.md S4),
+ *    statically imported by `ContentAnalytics.tsx` above. Its own `'use client'` directive is
+ *    otherwise redundant (nothing reaches it except an already-client file) — it stays so this
+ *    walk counts it rather than the module shipping invisibly.
+ * A count above 3 is a real regression; a count below it means one of the three above was removed.
  */
-const CONTENT_JS_BUDGET = 2
+const CONTENT_JS_BUDGET = 3
 
 function isExcluded(file: string): boolean {
     return EXCLUDED_PREFIXES.some((prefix) => file === prefix || file.startsWith(`${prefix}${path.sep}`))
@@ -101,8 +114,11 @@ function hasUseClientDirective(sourceFile: ts.SourceFile): boolean {
 /**
  * Every runtime module specifier a file imports or re-exports. `import type { X } from '…'` is
  * skipped entirely — it is erased before the bundle exists, so a file reached only through one
- * never ships. A dynamic `import(...)` is never visited at all: this only walks
- * `ImportDeclaration`/`ExportDeclaration` nodes, so a lazy chunk can never leak into this graph.
+ * never ships. A dynamic `import(...)` expression is never visited at all: this only walks
+ * `ImportDeclaration`/`ExportDeclaration` nodes, so a lazy chunk's contents can never leak into
+ * this graph — which is exactly why the guard below checks for a *static* `import ... from
+ * 'next/dynamic'` instead: that's the one part of a `dynamic()` call this walk can see, and its
+ * presence anywhere in the graph is the tell that a lazy chunk is hiding behind it.
  */
 function runtimeSpecifiers(sourceFile: ts.SourceFile): string[] {
     const specifiers: string[] = []
@@ -134,9 +150,10 @@ function parse(file: string): ts.SourceFile {
 
 /** Breadth-first over the whole entry set at once: one shared graph, one shared budget — a file
  *  reachable from any of the 9 routes counts once, not per route. */
-function walkContentRoutes(): { reachable: Set<string>; useClientFiles: Set<string> } {
+function walkContentRoutes(): { reachable: Set<string>; useClientFiles: Set<string>; dynamicImportFiles: Set<string> } {
     const reachable = new Set<string>()
     const useClientFiles = new Set<string>()
+    const dynamicImportFiles = new Set<string>()
     const queue = [...ENTRY_FILES]
 
     while (queue.length > 0) {
@@ -147,12 +164,14 @@ function walkContentRoutes(): { reachable: Set<string>; useClientFiles: Set<stri
 
         const sourceFile = parse(file)
         if (hasUseClientDirective(sourceFile)) useClientFiles.add(file)
-        for (const specifier of runtimeSpecifiers(sourceFile)) {
+        const specifiers = runtimeSpecifiers(sourceFile)
+        if (specifiers.includes('next/dynamic')) dynamicImportFiles.add(file)
+        for (const specifier of specifiers) {
             const resolved = resolveImport(file, specifier)
             if (resolved && !reachable.has(resolved)) queue.push(resolved)
         }
     }
-    return { reachable, useClientFiles }
+    return { reachable, useClientFiles, dynamicImportFiles }
 }
 
 describe('content route JS budget', () => {
@@ -164,7 +183,11 @@ describe('content route JS budget', () => {
         const { useClientFiles } = walkContentRoutes()
         const relative = [...useClientFiles].map((file) => path.relative(ROOT, file)).sort()
         expect(relative, relative.join(', ')).toEqual(
-            ['src/components/marketing/ContentAnalytics.tsx', 'src/components/ui/LocaleSwitcher.tsx'].sort()
+            [
+                'src/components/marketing/ContentAnalytics.tsx',
+                'src/components/ui/LocaleSwitcher.tsx',
+                'src/lib/script-enhancer-dom.ts',
+            ].sort()
         )
         expect(relative.length).toBe(CONTENT_JS_BUDGET)
     })
@@ -174,5 +197,11 @@ describe('content route JS budget', () => {
         const splitContentDir = path.join(SRC, 'components/split-content')
         const offenders = [...useClientFiles].filter((file) => file.startsWith(`${splitContentDir}${path.sep}`))
         expect(offenders).toEqual([])
+    })
+
+    it("never imports 'next/dynamic' anywhere in the walked graph — the proven blind spot: a dynamic() call inside a statically-imported module (like the old mdxComponents chain) hides its lazy chunk's contents from this walk entirely, so the only safe rule is to ban the import that creates one", () => {
+        const { dynamicImportFiles } = walkContentRoutes()
+        const relative = [...dynamicImportFiles].map((file) => path.relative(ROOT, file))
+        expect(relative, relative.join(', ')).toEqual([])
     })
 })
