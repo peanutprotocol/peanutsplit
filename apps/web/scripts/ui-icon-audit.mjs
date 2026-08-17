@@ -11,6 +11,7 @@ const rawSvgExceptions = new Map([
     ['src/components/ui/Doodle.tsx', 'the single generated doodle renderer'],
     ['src/components/ui/CustomRoomDrawing.tsx', 'renders strictly decoded custom room geometry'],
     ['src/server/og/emblem.ts', 'wraps a generated doodle path as a link-preview image'],
+    ['src/lib/split-content/wallpaper.ts', 'assembles the skin wallpaper tile from generated doodle paths'],
 ])
 const forbiddenImports = [
     { pattern: /from\s+['"]lucide(?:-react)?['"]/, label: 'Lucide' },

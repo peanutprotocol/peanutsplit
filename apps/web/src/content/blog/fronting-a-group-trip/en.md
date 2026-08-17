@@ -84,7 +84,7 @@ There is a card at the end of it too — what the trip cost and who fronted the 
   totalLabel="Trip total"
   peopleLabel="People"
   shareLabel="Fair share"
-  amountLabel="Trip total"
+  amountLabel="Fair share"
   footLabel="IOUs collapsed"
   footValue="20 → 3"
   note="Rounded to the cent. A room runs this continuously as expenses land." />

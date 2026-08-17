@@ -20,12 +20,17 @@ function parsePresets(presets: string, decimals: number): CalcPreset[] | null {
     if (entries.length === 0) return null
 
     const parsed: CalcPreset[] = []
+    const seen = new Set<string>()
     for (const entry of entries) {
         const separator = entry.indexOf('=')
         if (separator <= 0) return null
         const label = entry.slice(0, separator).trim()
         const minor = parseAmountToMinor(entry.slice(separator + 1).trim(), decimals)
         if (label.length === 0 || minor === null) return null
+        // A repeated label would press two chips at once and collapse to one key in
+        // `data-calc-presets` — the server and the enhancer would disagree about which one exists.
+        if (seen.has(label)) return null
+        seen.add(label)
         const value = Number(minor)
         if (!Number.isSafeInteger(value) || value <= 0) return null
         parsed.push({ label, minor: value })
