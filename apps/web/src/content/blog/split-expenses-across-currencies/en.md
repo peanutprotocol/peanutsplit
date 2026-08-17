@@ -56,7 +56,7 @@ The only fix is a different card — or being the person who pays in cash.
 
 ## Why conversion is not a paid feature here
 
-Groups that share a currency have easier options. The groups that genuinely need a splitter are the ones spread across countries — and charging those groups for the conversion is charging for the only part they came for.
+Groups that share a currency have easier options. The groups that genuinely need a splitter are the ones spread across countries — and charging those groups for the conversion is charging for the only part they came for, which is [what a free Splitwise group runs into](/guides/splitwise-currency-conversion): changing the currency on an expense relabels the amount and does not convert it.
 
 So it is free forever, and there is no tier above it.
 

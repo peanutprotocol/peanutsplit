@@ -45,7 +45,7 @@ Every booking landing on one card is a decision nobody actually made. It happene
 <Steps title="Three things to settle before the first booking">
 <Step title="Start the room, then pay the deposit">Paste the link in the group chat while everyone is still arguing about dates, and pin it there. The link is the key, so a room nobody else can find is a room only you are keeping. A room that opens on the second day of the trip has already missed the flights and the deposit, which are the two biggest numbers in it.</Step>
 <Step title="Hand the bookings out">You do not have to be the only card. Give the car hire to one person and the ferry to another. Three people fronting a third each is a trip. One person fronting all of it is a loan.</Step>
-<Step title="Say what happens if somebody drops out">Deposits are rarely refundable, and this is the argument that actually ruins trips. Agree it in March, while it is hypothetical and has nobody's name on it.</Step>
+<Step title="Say what happens if somebody drops out">Deposits are rarely refundable, and this is the argument that actually ruins trips. Agree it in March, while it is hypothetical and has nobody's name on it: [the three ways of dividing what is left](/guides/someone-drops-out-of-a-group-trip) are all easier to propose before one of them costs a named person money.</Step>
 </Steps>
 
 <Cast name="lisbon" size="md" caption="The Lisbon room was open before the first booking, so the deposit is the first line in it rather than a number somebody had to defend in August." />
@@ -86,7 +86,7 @@ Four facts about the room, worth having in March rather than in August.
 
 - **It is free forever, with nothing to upgrade to.** Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier waiting to be sold to you halfway through a trip.
 - **It does not move the money.** A settled row means somebody tapped to say they paid, not that a payment cleared. Split does not check with a bank and cannot, which is fine among friends and worth knowing about your own ledger.
-- **It will not chase anyone.** No reminder emails, no nudges into the group chat. If somebody goes quiet, that part is still yours.
+- **It will not chase anyone.** No reminder emails, no nudges into the group chat. If somebody goes quiet, that part is still yours, and all anyone can hand you is [what to write the first time and what to write when it needs repeating](/guides/ask-a-friend-to-pay-you-back).
 - **It holds up to twenty people.** A group, not a conference.
 
 <CTA

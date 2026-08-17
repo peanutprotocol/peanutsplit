@@ -57,7 +57,7 @@ Two honest limits, because the difference gets oversold everywhere else.
 
 You need a connection to **open** a room the first time on a device — the room lives on a server, not in the link. Once it is open, it is installable as an app, and the numbers you already loaded stay on screen. And a queued expense is on **one** device: it is not in the room, and nobody else can see it, until it sends.
 
-So the offline story is "keep typing, nothing is lost", not "the group ledger works in a Faraday cage". The first one is the one that actually happens on a trip.
+So the offline story is "keep typing, nothing is lost", not "the group ledger works in a Faraday cage". The first one is the one that actually happens on a trip, and if you genuinely need the second, [Settle Up runs without a connection and says so on its own listing](/guides/splitwise-vs-settle-up).
 
 <CTA
   title="Start the room before you lose signal"

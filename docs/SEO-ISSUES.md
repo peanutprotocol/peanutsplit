@@ -35,8 +35,11 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 
 ## Open — most valuable first
 
-- [ ] **1. Submit the sitemap in Search Console** and request indexing on the nine released
+- [x] **1. Submit the sitemap in Search Console** and request indexing on the nine released
   guides. Konrad — needs auth. 48 URLs, all verified 200, indexable and self-canonical.
+  Done 2026-08-17: sitemap submitted (48 URLs re-verified 200 the same day), indexing
+  requested on the three strongest `en` guides plus the holiday-house guide after item 15's
+  read; the remaining released URLs ride the sitemap crawl.
 - [ ] **2. Give publishing a push channel.** No IndexNow, no RSS (`/rss.xml`, `/feed.xml`,
   `/blog/feed.xml` all 404), no submission code anywhere. After item 1, add an IndexNow key
   file + one POST per publish batch so future batches stop waiting on organic crawl of a
@@ -105,16 +108,18 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
   the longer suffix breaks the 60-char cap on four of nine titles); every other page ends
   ` | Peanut Split`; hand-built pages (`/tools`, `/splitwise-alternative`) carry no suffix at
   all. Retitling indexed pages is churn — settle one policy before the next cohort.
-- [ ] **15. Topical overlap** between `/guides/split-holiday-house-per-person-or-per-room`
-  and `/split-airbnb-cost-unequal-rooms`. Needs a human read-and-compare before requesting
-  indexing on the holiday-house guide.
+- [x] **15. Topical overlap** between `/guides/split-holiday-house-per-person-or-per-room`
+  and `/split-airbnb-cost-unequal-rooms`. Read side by side 2026-08-17: one shared mechanic
+  (room weighting, one H3 of the guide vs the post's whole subject), different primary
+  intent, titles and worked examples. Complementary, not duplicative — hold lifted.
 - [ ] **16. Contextual links from the nine blog posts into the guides.** The guides now link
   each other; nothing on the authority-holding blog corpus links into them except the hub
   listing.
-- [ ] **17. `guidelines/locales.md:17` still says both guide slugs require all three locale
+- [x] **17. `guidelines/locales.md:17` still says both guide slugs require all three locale
   siblings.** False under manifest schema v2 — `split-shared-house-bills` ships `pt-br`
-  only; the sibling rule files were corrected on 2026-08-14, so the ruleset disagrees with
-  itself.
+  only. Fixed 2026-08-17 (mono `7454c153`). One premise of this item was wrong: the sibling
+  rule files were NOT all corrected on 2026-08-14 — `generation-templates/guide.md` lines 69
+  and 114 still carry the three-locale rule. That is now its own item 20 below.
 - [ ] **18. `/dev-ds` and `/dev-ds/audit` answer 200 on production** with no `x-robots-tag`
   (re-verified at consolidation). Absent from sitemap and unlinked, so discovery is
   unlikely, but an internal design-system surface is publicly crawlable.
@@ -122,6 +127,10 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
   `splitHubPath`/`splitToolsHubPath`/`splitCalculatorPath` in `urls.ts` still emit
   `/{locale}/split/...` and are load-bearing for the v2 manifest schema — changing them
   invalidates byte-pinned manifests, so the ruling belongs in the contract, not the code.
+- [ ] **20. `generation-templates/guide.md` still carries the three-locale sibling rule**
+  (lines 69 and 114: "List exactly the three sibling files under `alternates`" and the
+  exact-symmetry confirm step). Same falsehood item 17 fixed in `locales.md`, in a second
+  input with 15-way fan-out — needs its own fan-out record and mirror when corrected.
 
 ## Low — batchable polish
 
