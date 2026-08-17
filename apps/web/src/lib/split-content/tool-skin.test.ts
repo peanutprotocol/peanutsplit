@@ -23,10 +23,18 @@ describe('toolWallpaperChapter', () => {
         }
     })
 
-    it('gives every tool a real chapter pool to draw from', () => {
-        for (const slug of TOOL_SLUGS) {
-            expect(Object.keys(CHAPTER_TOKENS), slug).toContain(toolWallpaperChapter(slug))
+    /** Over the MAP, not over TOOL_SLUGS: the fallback answers `home` for anything unmapped, so a
+     *  loop over every tool would pass with the map emptied out. These are the entries someone
+     *  chose, and a typo in one of them is what this catches. */
+    it('names a real chapter in every entry it maps', () => {
+        expect(Object.keys(TOOL_WALLPAPER_CHAPTER).length).toBeGreaterThan(0)
+        for (const [slug, chapter] of Object.entries(TOOL_WALLPAPER_CHAPTER)) {
+            expect(Object.keys(CHAPTER_TOKENS), slug).toContain(chapter)
         }
+    })
+
+    it('falls back to a real chapter for a tool nobody mapped', () => {
+        expect(Object.keys(CHAPTER_TOKENS)).toContain(toolWallpaperChapter('this-is-not-a-tool'))
     })
 
     it('draws the mileage tile from the trips pool', () => {

@@ -219,14 +219,23 @@ export function Callout({ title, children }: { title?: string; children: ReactNo
  */
 export function Quote({ children, source }: { children: ReactNode; source: string }) {
     return (
-        <figure className={`${COLUMN} split-quote my-8`}>
+        // Two elements for the reason `Callout` needs two: the column wrapper is full-bleed, so a
+        // skin rule that paints `split-quote` a ground, a border and a tilt has to land on an inner
+        // box or the slip runs the whole page width. The inner box is the `<figure>` rather than a
+        // plain div because `<figcaption>` is only a caption as a direct child of one — nesting it
+        // a level deeper is invalid HTML and costs the figure its accessible name.
+        <div className={`${COLUMN} my-8`}>
             {/* Evidence slip (fun-engine.md S3): a dashed top rule stands in for the left rule, so a
                 verbatim competitor quote reads as a torn-off receipt line rather than a callout. */}
-            <blockquote className="border-t border-dashed border-n-1 pt-3 text-sm italic leading-5 text-n-1">
-                {children}
-            </blockquote>
-            <figcaption className="mt-2 text-h9 uppercase tabular-nums tracking-wide text-grey-1">{source}</figcaption>
-        </figure>
+            <figure className="split-quote">
+                <blockquote className="border-t border-dashed border-n-1 pt-3 text-sm italic leading-5 text-n-1">
+                    {children}
+                </blockquote>
+                <figcaption className="mt-2 text-h9 uppercase tabular-nums tracking-wide text-grey-1">
+                    {source}
+                </figcaption>
+            </figure>
+        </div>
     )
 }
 

@@ -45,6 +45,14 @@ import type { Tool, ToolChoiceField, ToolChoiceOption, ToolField, ToolInput } fr
  *
  * Amounts are parsed to minor units by the same parser the expense form uses, so "1.234,56" and
  * "1,234.56" both work and neither reaches the arithmetic as a float.
+ *
+ * The `split-tool-*` class names carry no styling here: they are the hooks the sticker skin paints
+ * this surface through (globals.css), so an unskinned tool page renders identically. They exist
+ * because a stylesheet must not select on `data-testid` — a test hook is free to move, a paint hook
+ * is not — which the class audit enforces. `split-tool-field` sits only on the text and number
+ * inputs, never on `ScaleInput`'s range or `SwitchRow`'s `sr-only` checkbox: the skin's 2px border,
+ * white fill and 10px radius visibly destroy a native range track, and repainting a hidden checkbox
+ * is meaningless.
  */
 
 const COLUMN = 'mx-auto w-full max-w-xl px-5'
@@ -220,7 +228,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                     const choice = choiceFields.find((field) => field.name === preset.choiceName)
                                     if (choice) pick(choice, preset.optionValue)
                                 }}
-                                className="rounded-full border border-n-1 bg-white px-3 py-1 text-xs font-bold text-n-1"
+                                className="split-tool-preset rounded-full border border-n-1 bg-white px-3 py-1 text-xs font-bold text-n-1"
                             >
                                 {preset.label}
                             </button>
@@ -242,10 +250,10 @@ function Calculator({ tool }: { tool: Tool }) {
                             step={hero.step}
                             aria-label={hero.label}
                             data-testid={`tool-field-${hero.name}`}
-                            className={composerBareInputClassName('h-12 px-1 text-h5 font-extrabold')}
+                            className={composerBareInputClassName('split-tool-field h-12 px-1 text-h5 font-extrabold')}
                         />
                     </label>
-                    <div className={COMPOSER_CURRENCY_SLOT}>
+                    <div className={cn(COMPOSER_CURRENCY_SLOT, 'split-tool-currency')}>
                         <CurrencySelect
                             value={currency}
                             onChange={(code) => {
@@ -297,7 +305,7 @@ function Calculator({ tool }: { tool: Tool }) {
                             data-testid="tool-builder-summary"
                             data-focus-contained
                             className={composerRowClassName(
-                                'flex min-h-14 w-full items-center gap-3 rounded-sm px-4 text-left'
+                                'split-tool-builder-summary flex min-h-14 w-full items-center gap-3 rounded-sm px-4 text-left'
                             )}
                         >
                             <Doodle name={tool.doodle} size={28} weight={1.8} />
@@ -432,7 +440,7 @@ function Calculator({ tool }: { tool: Tool }) {
                 </ul>
             )}
 
-            <div className={composerSurfaceClassName('bg-primary-3')} data-testid="tool-result">
+            <div className={composerSurfaceClassName('split-tool-result bg-primary-3')} data-testid="tool-result">
                 <div className="flex items-center gap-3 px-4 pt-4">
                     <Doodle name={tool.doodle} size={26} weight={1.8} />
                     <h2 className="text-h6">{tool.copy.resultTitle}</h2>
@@ -501,7 +509,7 @@ function Calculator({ tool }: { tool: Tool }) {
                         <div className="p-4">
                             <Button
                                 variant="stroke"
-                                className="justify-center"
+                                className="split-tool-copy justify-center"
                                 data-testid="tool-copy"
                                 onClick={() => {
                                     void navigator.clipboard?.writeText(pasteable)
@@ -611,7 +619,7 @@ function FieldRow({
                     max={field.max}
                     step={field.step}
                     data-testid={`tool-field-${field.name}`}
-                    className={composerBoxedInputClassName('w-24')}
+                    className={composerBoxedInputClassName('split-tool-field w-24')}
                 />
                 {field.unit && <span className="text-xs text-grey-1">{field.unit}</span>}
             </span>
@@ -668,7 +676,7 @@ function CompactInput({
                     max={field.max}
                     step={field.step}
                     data-testid={`tool-field-${field.name}`}
-                    className={composerBoxedInputClassName('w-full')}
+                    className={composerBoxedInputClassName('split-tool-field w-full')}
                 />
                 {field.unit && <span className="shrink-0 text-xs text-grey-1">{field.unit}</span>}
             </span>

@@ -131,7 +131,10 @@ for (const path of filesBelow(src)) {
     }
 
     if (path.endsWith('.css')) {
-        for (const match of source.matchAll(/\[data-testid(?:=|\])/g)) {
+        // Any attribute selector on the test id, not just `=` and the bare form: `[data-testid^=…]`
+        // couples paint to a test hook exactly as hard, and read past that prefix a test id is free
+        // to change.
+        for (const match of source.matchAll(/\[data-testid[^\]]*\]/g)) {
             const line = source.slice(0, match.index).split('\n').length
             failures.push(`${file}:${line} styles through data-testid; use a component, class or data-state attribute`)
         }
