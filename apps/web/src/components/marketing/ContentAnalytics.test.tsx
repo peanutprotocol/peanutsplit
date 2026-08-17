@@ -106,3 +106,17 @@ describe('Script enhancer wiring', () => {
         expect(source).toContain('enhanceScriptBlocks(document)')
     })
 })
+
+describe('Calc enhancer wiring', () => {
+    // Wave 2 / S4: `<Calc>`'s preset chips ride in on the same island, for the same reason — a
+    // client component in `mdxComponents` would ship to every content route.
+    const source = readFileSync(new URL('./ContentAnalytics.tsx', import.meta.url), 'utf8')
+
+    it('imports enhanceCalcBlocks from the plain-DOM module, not a component', () => {
+        expect(source).toContain("import { enhanceCalcBlocks } from '@/lib/calc-enhancer-dom'")
+    })
+
+    it('calls it from the same mount effect as the script enhancer', () => {
+        expect(source).toContain('enhanceScriptBlocks(document)\n        enhanceCalcBlocks(document)')
+    })
+})

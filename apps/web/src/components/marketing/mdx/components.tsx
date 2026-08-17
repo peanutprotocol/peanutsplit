@@ -17,6 +17,7 @@ import {
     Steps,
     type ContentRenderContext,
 } from './blocks'
+import { Calc } from './Calc'
 import { Script } from './Script'
 import { ShortVersionSlot } from './ShortVersionSlot'
 
@@ -56,6 +57,9 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     // COMPONENT_ATTRIBUTES allowlist (fun-engine.md Invariants #2), so a generated guide cannot
     // author one — validated by `mdx-policy.test.tsx`'s rejection tests, not duplicated here.
     Script,
+    // Same native-only group: `Calc` is absent from mdx-policy.ts's COMPONENT_ATTRIBUTES, so a
+    // generated guide authoring one is rejected — proven by `mdx-policy.test.tsx`, not here.
+    Calc,
 
     // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by stylebook, so
     // its h1 is a markdown `#` — same typography as the hero's, inside the column instead of a band.

@@ -11,15 +11,17 @@
  * are exported so their exact key set is provable without a DOM (see ContentAnalytics.test.tsx).
  *
  * Also the one place that wires `<Script>`'s copy/recompute behavior (fun-engine.md S4,
- * Invariants #3): `Script` sits in the shared `mdxComponents` map every content route statically
- * imports, so a block-specific client component there would ship to every route regardless of
- * whether its page ever authors a `<Script>` tag. `enhanceScriptBlocks` is plain DOM, not a
- * component, so calling it from this island's existing mount effect adds no new client chunk —
- * the JS-budget walk counts it honestly as part of this file (js-budget.test.ts).
+ * Invariants #3) and `<Calc>`'s preset chips (Wave 2 / S4): both sit in the shared `mdxComponents`
+ * map every content route statically imports, so a block-specific client component there would
+ * ship to every route regardless of whether its page ever authors the tag. `enhanceScriptBlocks`
+ * and `enhanceCalcBlocks` are plain DOM, not components, so calling them from this island's
+ * existing mount effect adds no new client chunk — the JS-budget walk counts them honestly
+ * (js-budget.test.ts).
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { track } from '@/lib/analytics'
+import { enhanceCalcBlocks } from '@/lib/calc-enhancer-dom'
 import type { Collection } from '@/lib/content'
 import { enhanceScriptBlocks } from '@/lib/script-enhancer-dom'
 import type { Chapter } from '@/lib/split-content/chapter-tokens'
@@ -60,6 +62,7 @@ export function ContentAnalytics({ template, chapter }: { template: ContentTempl
     // animation (Island.tsx's docstring makes the same call for activation).
     useEffect(() => {
         enhanceScriptBlocks(document)
+        enhanceCalcBlocks(document)
     }, [])
 
     // Measured after mount, never assumed: the document is not laid out yet during SSR.

@@ -71,9 +71,13 @@ const EXCLUDED_PREFIXES = [path.join(SRC, 'components/tools'), path.join(SRC, 't
  *    statically imported by `ContentAnalytics.tsx` above. Its own `'use client'` directive is
  *    otherwise redundant (nothing reaches it except an already-client file) — it stays so this
  *    walk counts it rather than the module shipping invisibly.
- * A count above 3 is a real regression; a count below it means one of the three above was removed.
+ *  - `lib/calc-enhancer-dom.ts` — `<Calc>`'s preset chips (Wave 2 / S4), statically imported by
+ *    `ContentAnalytics.tsx` for exactly the same reason and carrying its own `'use client'` for
+ *    exactly the same reason. It is a fourth file rather than more code inside
+ *    `script-enhancer-dom.ts` because that module's name would then be a lie about what it wires.
+ * A count above 4 is a real regression; a count below it means one of the four above was removed.
  */
-const CONTENT_JS_BUDGET = 3
+const CONTENT_JS_BUDGET = 4
 
 function isExcluded(file: string): boolean {
     return EXCLUDED_PREFIXES.some((prefix) => file === prefix || file.startsWith(`${prefix}${path.sep}`))
@@ -186,6 +190,7 @@ describe('content route JS budget', () => {
             [
                 'src/components/marketing/ContentAnalytics.tsx',
                 'src/components/ui/LocaleSwitcher.tsx',
+                'src/lib/calc-enhancer-dom.ts',
                 'src/lib/script-enhancer-dom.ts',
             ].sort()
         )
