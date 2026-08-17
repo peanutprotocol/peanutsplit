@@ -16,11 +16,13 @@ const JUMP_LABEL: Record<Locale, string> = { en: 'Questions', 'es-419': 'Pregunt
 export function ShortVersionSlot({ faq, locale }: { faq?: Faq; locale: Locale }) {
     if (!faq) return null
     return (
-        <p className={`${COLUMN} -mt-3 mb-6 text-sm leading-5 text-grey-1`}>
-            <span className="line-clamp-2">{faq.answer}</span>{' '}
-            <a href="#questions" className="whitespace-nowrap font-medium text-n-1 underline underline-offset-2">
-                {JUMP_LABEL[locale]}
-            </a>
-        </p>
+        <div className={`${COLUMN} mt-6`}>
+            <p className="rounded-sm border border-l-4 border-n-1 border-l-primary-1 bg-white p-4 text-sm leading-5 text-grey-1">
+                <span className="line-clamp-2">{faq.answer}</span>{' '}
+                <a href="#questions" className="whitespace-nowrap font-medium text-n-1 underline underline-offset-2">
+                    {JUMP_LABEL[locale]}
+                </a>
+            </p>
+        </div>
     )
 }

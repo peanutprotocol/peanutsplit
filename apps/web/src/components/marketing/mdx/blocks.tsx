@@ -71,10 +71,10 @@ export function Hero({
                         </span>
                     )}
                     <h1 className="mt-5 text-h3 leading-tight text-n-1">{title}</h1>
-                    <ShortVersionSlot faq={shortVersionFaq} locale={locale} />
                     {subtitle && <p className="mt-4 text-base font-medium leading-6 text-n-1">{subtitle}</p>}
                 </div>
             </div>
+            <ShortVersionSlot faq={shortVersionFaq} locale={locale} />
             {cta && (
                 <div className={`${COLUMN} pt-6`}>
                     <Link
