@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "source_repository": "peanutprotocol/mono",
-  "source_commit": "12205a6b43fdb86bb5797f0e6bc00275cb07f995",
+  "source_commit": "9513d0a888180f5966d5f962d548641bd5fde9c4",
   "content_root": "split-content",
   "locales": [
     "en",
@@ -11,7 +11,7 @@
   "input_sha256": {
     "split-content/_system/context/localization.es-419.md": "6682b0715261a2035c951703e6976516fc60d479dffbaf7d5c09dc0688380ef8",
     "split-content/_system/context/localization.pt-br.md": "5b040c01531ef47db8172b92a418905450ff4501b2f5038a3ee240bcf1d7ccfd",
-    "split-content/_system/context/messaging.md": "e1582ea6ca790cf21cfd88ac4bfdd4525aaa4f1b4687a1d2b2bbaff32e031509",
+    "split-content/_system/context/messaging.md": "0fc6a7b59534659d6bb165be5a830a47bbfd11612ed2c48ecf740920969b9df2",
     "split-content/_system/context/valid-links.md": "007f6424326198f33e7d14b3449c730962d007f24508a916979ee8bbff4dcf28",
     "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.es-419.md": "8174f2df62c71b561e9c33a5c375e53bd47c6316f0ca442848ceccb754cd2dff",
     "split-content/_system/data/guides/ask-a-friend-to-pay-you-back.md": "0870667aee7c31bfa013bcab3e6f499b07a67865a047aa1ecc16ee1e9ad04cb6",
@@ -26,13 +26,13 @@
     "split-content/_system/data/guides/split-holiday-house-per-person-or-per-room.md": "1735501ea774ad301a1b6e40cca5128aaae5c09982a322b51557c2384cea7044",
     "split-content/_system/data/guides/split-shared-house-bills.md": "5be075dca5f01157d4e00ef91a5e5cb68041db878a5ecda1f2a1eb8a3081b2dc",
     "split-content/_system/data/guides/split-shared-house-bills.pt-br.md": "d03a75f819ddce86c7eb4fb255088abf0c1112b8250d5882769bb51fb8e4d8de",
-    "split-content/_system/data/guides/splitwise-currency-conversion.md": "6f97569e4911618e02bc9024d33d1e1b39680757e34dfc6005f5daeaf70133d7",
-    "split-content/_system/data/guides/splitwise-vs-settle-up.md": "941c08faedea6fc1b3ff98236fd77e59e9860d84863f8a7374e25bce01205cc0",
+    "split-content/_system/data/guides/splitwise-currency-conversion.md": "d7123e5ee57057c4c982a2da48b11d0194bca5d2a3cef4b11fff738bfeaedcef",
+    "split-content/_system/data/guides/splitwise-vs-settle-up.md": "6be6fc82067eac171b11ac488c0183716c9748e67ca9b1758e9acb43eab6a9c1",
     "split-content/_system/data/guides/why-do-i-owe-someone-i-never-paid.md": "066dd24c90d23958204669c0466764789e7719ad3f70bedb5568117c49a1a141",
     "split-content/_system/generation-templates/guide.md": "4aa4079147a154630533d2644d30c0a7d95854ec35759291420d79d4a1e85734",
     "split-content/_system/guidelines/components.md": "9212104fc8a692d62c109ce21b28e22d7693e54f8cac6916449af3c9275b6c02",
     "split-content/_system/guidelines/intent-taxonomy.md": "8d720b4d49ea009e990a5838a7d3eb6b83adfb9b5099cc22b8a7214efbe1ad33",
-    "split-content/_system/guidelines/locales.md": "efebc317968d133868d38525e199f035f434137fb1f76441fab25c2813925211",
+    "split-content/_system/guidelines/locales.md": "a6b6f10ea374bdd621dd38eef57512b3972a24a9a0f3ba16a67df11ce6903b23",
     "split-content/_system/guidelines/seo.md": "01cba8988c9c6b637f5f0b715a695b192f6534514e51823486610f87e2b66746",
     "split-content/_system/workflows/generate-guide.md": "6e27f1834c0640902ce58fc8f730cb19c483db891da1144681a7b103ef92dda0",
     "split-content/product/truths.md": "ef2b8286ce806266e7e7b41f8f5c0c4a555deae38b14100d641a60af5e7da8ee"
@@ -305,7 +305,7 @@
       "public_path": "/guides/splitwise-currency-conversion",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/splitwise-currency-conversion/en.md",
-      "output_sha256": "95c30b6a7651d3cfa9838f332c983016895ef2f0bf43eac7b0b5ebc9e52a525a",
+      "output_sha256": "092d4226a3626888764ca864af8fc1c7db25e511ea5363a1e05463d399aaa511",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/splitwise-currency-conversion.md",
@@ -326,7 +326,7 @@
       "public_path": "/guides/splitwise-vs-settle-up",
       "legacy_paths": [],
       "output_path": "split-content/published/guides/splitwise-vs-settle-up/en.md",
-      "output_sha256": "b52408d98a59aba20859be07fc181e14953ffe6594fd395eaa1a8e96c8df4e00",
+      "output_sha256": "f2b8477024589f99773cf18730b58c17b61388f65c434f4fa0dfb90760dc6437",
       "source_input_paths": [
         "split-content/_system/generation-templates/guide.md",
         "split-content/_system/data/guides/splitwise-vs-settle-up.md",
