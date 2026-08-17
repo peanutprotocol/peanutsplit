@@ -11,7 +11,7 @@ interface CompareFaqProps {
 export function CompareFaq({ title, items = [] }: CompareFaqProps) {
     return (
         <section className="mx-auto w-full max-w-xl px-5">
-            <h2 className="text-h5">{title}</h2>
+            <h2 className="split-section-heading text-h5">{title}</h2>
             <ul className="mt-4 flex flex-col gap-3">
                 {items.map((item) => (
                     <li key={item.q} className="rounded-sm border border-n-1 bg-white p-4">
