@@ -90,11 +90,17 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
   instruction to go and click that declines to name Splitwise on the page whose job is naming
   both. Three sentences corpus-wide now end "…, and [why you owe someone i never paid]
   <verb>s it". Full sentence-level record: guide tracker history (mono `11fc6ce7`).
-- [ ] **11. The corpus repetition rule is not written down.** Decision 20 (no two sentences
+  2026-08-17: the settle-up sentence is fixed (mono `77c8ca25` — names Splitwise, quotes its
+  multiple-currencies KB article, new non-mold anchor), and the currency-conversion sentence
+  was already fixed 2026-08-14 per AUDITS. Residual — the shared anchor-host frame on the
+  two remaining pages — is now a §6.18.5 item and rides each page's next pass.
+- [x] **11. The corpus repetition rule is not written down.** Decision 20 (no two sentences
   across the fifteen guides may share a frame) has not landed as a numbered rule —
-  `messaging.md` §6.17/§6.16.3 are page- and locale-scoped. Writing it is a source-input
-  change, which pulls in regeneration and a new fingerprint; that is why both 2026-08-14
-  passes left it.
+  `messaging.md` §6.17/§6.16.3 are page- and locale-scoped. Landed 2026-08-17 as
+  `messaging.md` §6.18 (mono `7454c153`) — in amended form: Konrad retired the hard
+  uniqueness rule the same day; §6.18 is the second-guide read, claims boilerplate exempt,
+  flagged molds ride each page's next pass (§6.18.5), so no regeneration was pulled in.
+  Decision 20 in the tracker records both rulings.
 - [ ] **12. The rules and the outputs are unproven against each other.** The nine released
   outputs were edited in place, never re-run through `workflows/generate-guide.md`. The gap
   closes the first time a guide is authored from these rules; until then treat the ruleset
