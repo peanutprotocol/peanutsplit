@@ -2,10 +2,13 @@ import { getTranslations } from 'next-intl/server'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
+import { SkinFrame } from '@/components/marketing/SkinFrame'
 import { CTA, FAQ, FAQItem, RelatedLink, RelatedPages } from '@/components/marketing/mdx/blocks'
 import { ToolCalculator } from '@/components/tools/ToolCalculator'
 import { Doodle } from '@/components/ui/Doodle'
 import { breadcrumbSchema, faqSchema, toolSchema } from '@/lib/seo'
+import { hashSlug } from '@/lib/split-content/seed'
+import { toolSkin, toolWallpaperChapter } from '@/lib/split-content/tool-skin'
 import { toolPath } from '@/tools/registry'
 import type { Tool } from '@/tools/types'
 
@@ -35,14 +38,10 @@ export async function ToolPage({ tool }: { tool: Tool }) {
         { name: tool.copy.h1, href: path },
     ]
 
-    return (
-        <main className="flex min-h-dvh flex-col bg-background">
-            <JsonLd data={toolSchema({ path, title: tool.meta.title, description: tool.meta.description })} />
-            <JsonLd data={breadcrumbSchema(crumbs)} />
-            <JsonLd data={faqSchema(tool.faqs)} />
+    const skin = toolSkin(tool.slug)
 
-            <Breadcrumbs crumbs={crumbs} />
-
+    const body = (
+        <>
             <header className="mx-auto w-full max-w-xl px-5 pb-2 pt-4">
                 {/* One drawing, the same one the calculator and the hub row carry. Cast art, never
                     a character with a line — see §5 of the stylebook. */}
@@ -116,6 +115,35 @@ export async function ToolPage({ tool }: { tool: Tool }) {
                         </RelatedLink>
                     ))}
                 </RelatedPages>
+            )}
+        </>
+    )
+
+    return (
+        <main className="flex min-h-dvh flex-col bg-background">
+            <JsonLd data={toolSchema({ path, title: tool.meta.title, description: tool.meta.description })} />
+            <JsonLd data={breadcrumbSchema(crumbs)} />
+            <JsonLd data={faqSchema(tool.faqs)} />
+
+            <Breadcrumbs crumbs={crumbs} />
+
+            {/* The skin paints the page between the crumbs and the footer, and nothing else.
+                `SiteFooter` is `mt-auto`, which only finds free space while it is a direct flex
+                child of this column — put it inside the frame and a short page floats its footer
+                mid-viewport over bare background. `flex flex-1 flex-col` on the frame makes the
+                paper ground fill the column rather than hug its content. Same idiom as
+                `ArticleLayout`, which wraps the article body and never `<main>`'s children. */}
+            {skin === 'none' ? (
+                body
+            ) : (
+                <SkinFrame
+                    skin={skin}
+                    seed={hashSlug(tool.slug)}
+                    chapter={toolWallpaperChapter(tool.slug)}
+                    className="flex flex-1 flex-col"
+                >
+                    {body}
+                </SkinFrame>
             )}
 
             <SiteFooter showLocaleSwitcher={false} />

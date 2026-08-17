@@ -209,6 +209,10 @@ function Calculator({ tool }: { tool: Tool }) {
                                 key={preset.optionValue}
                                 type="button"
                                 data-testid={`tool-preset-${preset.optionValue}`}
+                                // A shortcut whose choice is live is a pressed toggle. Without
+                                // this the three presets look and read identically whether or not
+                                // their option is the one the fields below are filled from.
+                                aria-pressed={choices[preset.choiceName] === preset.optionValue}
                                 onClick={() => {
                                     // Same pre-fill path the dropdown picker already uses (§ below) —
                                     // a preset is a shortcut to an existing choice/option, not a
@@ -443,7 +447,7 @@ function Calculator({ tool }: { tool: Tool }) {
 
                 {outcome && !outcome.problem && (
                     <>
-                        <dl className="mt-3 flex flex-col">
+                        <dl className="split-tool-shares mt-3 flex flex-col">
                             {outcome.shares.map((share, index) => (
                                 <div
                                     key={index}
@@ -456,7 +460,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                         <span className="block text-xs text-grey-1">{share.detail}</span>
                                     </dt>
                                     {/* Counting rather than flickering — the app's own amount. */}
-                                    <dd className="shrink-0 text-h6">
+                                    <dd className="split-tool-amount shrink-0 text-h6">
                                         <AnimatedMoney
                                             minor={String(share.amountMinor)}
                                             currency={currency}
@@ -467,7 +471,13 @@ function Calculator({ tool }: { tool: Tool }) {
                             ))}
                         </dl>
 
-                        <ul className={composerRowClassName('flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1')}>
+                        {/* The same strip `<Working>` renders in an article, by class rather than
+                            by component — this list is inlined here, not built from that one. */}
+                        <ul
+                            className={composerRowClassName(
+                                'split-working flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1'
+                            )}
+                        >
                             {outcome.workings.map((working) => (
                                 <li key={working.label} className="flex justify-between gap-3">
                                     <span>{working.label}</span>
