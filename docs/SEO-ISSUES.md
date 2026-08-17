@@ -112,9 +112,11 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
   and `/split-airbnb-cost-unequal-rooms`. Read side by side 2026-08-17: one shared mechanic
   (room weighting, one H3 of the guide vs the post's whole subject), different primary
   intent, titles and worked examples. Complementary, not duplicative — hold lifted.
-- [ ] **16. Contextual links from the nine blog posts into the guides.** The guides now link
+- [x] **16. Contextual links from the nine blog posts into the guides.** The guides now link
   each other; nothing on the authority-holding blog corpus links into them except the hub
-  listing.
+  listing. Done 2026-08-17 (`2e00758`), verified on production: nine dofollow in-body links
+  across seven posts, every released `en` guide gains at least one; two posts carry none
+  by design (no honest placement).
 - [x] **17. `guidelines/locales.md:17` still says both guide slugs require all three locale
   siblings.** False under manifest schema v2 — `split-shared-house-bills` ships `pt-br`
   only. Fixed 2026-08-17 (mono `7454c153`). One premise of this item was wrong: the sibling
