@@ -60,6 +60,16 @@ describe('Calc server render', () => {
         })
     })
 
+    // The enhancer's other three selectors, pinned to shipping markup rather than to its test
+    // stub: renaming any of these in Calc.tsx would kill click-to-recompute with the suite green.
+    it('carries the selectors calc-enhancer-dom.ts queries beyond data-calc-*', () => {
+        expect(html).toContain('data-calc-each')
+        expect([...html.matchAll(/split-calc-chip-amount/g)]).toHaveLength(3)
+        for (const row of html.match(/data-calc-row="[a-z]+"[^]*?<\/li>/g) ?? []) {
+            expect(row).toContain('tabular-nums')
+        }
+    })
+
     it('presses exactly one chip, and it is the authored default', () => {
         expect([...html.matchAll(/aria-pressed="true"/g)]).toHaveLength(1)
         expect(html).toMatch(/data-calc-preset="Week" aria-pressed="true"/)
@@ -93,6 +103,7 @@ describe('Calc server render', () => {
 describe('Calc input validation', () => {
     it.each([
         ['a preset with no amount', { presets: 'Weekend|Week=1846' }],
+        ['a repeated preset label', { presets: 'Weekend=920|Weekend=1846' }],
         ['a non-numeric amount', { presets: 'Weekend=lots' }],
         ['an empty presets string', { presets: '' }],
         ['a headcount that is not a positive integer', { people: '0' }],
