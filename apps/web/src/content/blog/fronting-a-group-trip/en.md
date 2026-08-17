@@ -74,6 +74,21 @@ Four months of bookings and a week of small rounds comes out as debts pointing i
 
 There is a card at the end of it too — what the trip cost and who fronted the most money. If the deposit went on your card in March, [that last line](/blog/end-of-trip-expense-recap) is the only acknowledgement the trip is going to produce.
 
+<Calc
+  title="The damage, live"
+  presets="Weekend=920|Week=1846|Blowout=3210"
+  preset="Week"
+  currency="EUR"
+  people="4"
+  eachLabel="a head"
+  totalLabel="Trip total"
+  peopleLabel="People"
+  shareLabel="Fair share"
+  amountLabel="Trip total"
+  footLabel="IOUs collapsed"
+  footValue="20 → 3"
+  note="Rounded to the cent. A room runs this continuously as expenses land." />
+
 <Checklist title="What being paid back looks like when the room was open all along">
 <ChecklistItem title="One ledger, March to August">The deposit and Thursday's round are the same kind of line, both dated, and neither needs explaining.</ChecklistItem>
 <ChecklistItem title="Nobody gets named">The room shows balances, not blame. There is never a reason to post a list of who has not paid yet, and doing it is how a finished trip becomes a grudge.</ChecklistItem>

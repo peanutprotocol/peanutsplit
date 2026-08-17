@@ -119,6 +119,9 @@ Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
         ['MDX import', "import Exploit from './exploit'", /node type is not allowed: mdxjsEsm/],
         ['MDX export', 'export const exploit = true', /node type is not allowed: mdxjsEsm/],
         ['unknown component', '<Hero title="No" />', /unknown or lowercase element/],
+        // Native-only by absence from COMPONENT_ATTRIBUTES, the same mechanism that keeps `Script`
+        // and `Hero` out of a guide. The policy itself gained nothing for `<Calc>`; this is the proof.
+        ['native-only Calc', '<Calc title="No" presets="Weekend=920" />', /unknown or lowercase element/],
         ['unknown component attribute', '<Callout type="info" title="No">copy</Callout>', /must have exactly: type/],
         [
             'non-string expression attribute',
