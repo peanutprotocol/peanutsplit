@@ -231,7 +231,7 @@
     color: var(--skin-pink, #ff90e8);
 }
 
-/* Type. Keyed on `split-page-title`, not `.split-hero h1`: two of the four content pilots author
+/* Type. Keyed on `split-page-title`, not on an h1 under the hero: two of the four content pilots author
    no `<Hero>` and take their h1 from components.tsx's markdown override, so keying the signature
    treatment off the hero would ship it on half the pilot. */
 [data-skin='sticker'] .split-page-title {
@@ -442,8 +442,16 @@
     transform: rotate(-2.5deg);
 }
 
+/* The torn-receipt edges bracket the whole slip — quote AND its source line, the way the mock's
+   `.quote` does. On the `<blockquote>` they would rule off the attribution instead, and unscoped
+   they would reach every markdown quote on the page. Only the vertical padding is set: the figure
+   is also the column, so its `px-5` gutter has to survive. */
 [data-skin='sticker'] .split-quote {
     position: relative;
+    padding-top: 14px;
+    padding-bottom: 12px;
+    border-top: 2px dashed var(--skin-ink, #211c17);
+    border-bottom: 2px dashed var(--skin-ink, #211c17);
     border-radius: 3px;
     background: #ffffff;
     box-shadow: 4px 6px 0 rgba(33, 28, 23, 0.08);
@@ -464,12 +472,6 @@
     transform: rotate(2deg);
 }
 
-[data-skin='sticker'] blockquote {
-    padding-bottom: 0.75rem;
-    border-top: 2px dashed var(--skin-ink, #211c17);
-    border-bottom: 2px dashed var(--skin-ink, #211c17);
-}
-
 /* The cast chip. `LandingPersona` paints the persona's own art — background, ink and box — through
    an inline `style`, which no stylesheet rule can outrank, so the mock's flat yellow disc and its
    62px box are NOT re-declared here: the cast keeps its identity and the skin adds the die-cut
@@ -485,7 +487,7 @@
 
 /* Actions. A `split-btn` hook rather than a descendant-anchor rule: `Hero` renders
    `<ShortVersionSlot>` inside its own `<section>`, and that ends in an inline `#questions` anchor
-   mid-sentence, which any `:is(.split-cta-card, .split-hero) a[href]` rule would turn into a full
+   mid-sentence, which any `.split-cta-card a[href]`-style descendant rule would turn into a full
    yellow pill in the middle of a paragraph. A child combinator does not help either — the hero's
    CTA is nested inside the column div, not a direct child of the section. */
 [data-skin='sticker'] .split-btn {
@@ -602,15 +604,18 @@
     font-weight: 700;
 }
 
-[data-skin='sticker'] .split-tool-shares dd:not(.split-tool-amount) {
+/* `.res .amt`. `split-tool-amount` is on the per-person `<dd>` and repeats once per row — it is a
+   row amount, not a headline, so it takes the mono/tabular treatment and not `.bigres strong`. */
+[data-skin='sticker'] .split-tool-amount {
     font-family: var(--skin-meta, ui-monospace, Menlo, monospace);
     font-variant-numeric: tabular-nums;
     font-weight: 800;
 }
 
-/* The headline amount. There is no `<output>` anywhere in ToolCalculator.tsx, so `.bigres strong`
-   lands on S3's `split-tool-amount` hook and on `<Calc>`'s own result strong (S4). */
-[data-skin='sticker'] :is(.split-tool-amount, .split-calc-result strong) {
+/* The headline amount, `.bigres strong`. `<Calc>`'s result (S4) is the only one in the wave:
+   `ToolCalculator` renders no single result node — every amount it paints is a per-person row —
+   so pointing this at a calculator hook would set 27px display type on each of them. */
+[data-skin='sticker'] .split-calc-result strong {
     color: var(--skin-ink, #211c17);
     font-family: var(--skin-display, ui-sans-serif, system-ui, sans-serif);
     font-size: 27px;

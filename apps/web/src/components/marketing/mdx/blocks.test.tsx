@@ -48,8 +48,7 @@ const classesOf = (tag: string) => (tag.match(/class="([^"]*)"/)?.[1] ?? '').spl
 describe('Hero hooks', () => {
     const html = hero()
 
-    it('scopes the hero and puts the band hook on the element carrying bg-primary-1', () => {
-        expect(tagWith(html, 'split-hero')).toMatch(/^<section/)
+    it('puts the band hook on the element carrying bg-primary-1', () => {
         const band = tagWith(html, 'split-hero-band')
         expect(band).toBeDefined()
         expect(classesOf(band!)).toContain('bg-primary-1')
@@ -171,7 +170,7 @@ describe('block hooks', () => {
 })
 
 /**
- * The hooks are inert: `Hero` carries five of them and is the densest block, and with the hook
+ * The hooks are inert: `Hero` carries four of them and is the densest block, and with the hook
  * tokens filtered out of every class list its markup is byte-for-byte what `main` rendered before
  * this stage. Captured from `main` — not from this branch — so it cannot drift into agreement.
  *
