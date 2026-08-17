@@ -62,7 +62,7 @@ export function Hero({
     locale?: Locale
 }) {
     return (
-        <section className="split-hero">
+        <section>
             {/* `split-hero-band` is on the band itself, not the section: a rule on the ancestor
                 cannot repaint a child's own `bg-primary-1` (fun-engine.md Wave 2 / S2). */}
             <div className="split-hero-band border-b border-n-1 bg-primary-1">
