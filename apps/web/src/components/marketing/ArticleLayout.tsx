@@ -10,7 +10,8 @@ import { howToSchema } from '@/lib/howto-schema'
 import { absoluteUrl, articleSchema, breadcrumbSchema, faqSchema, formatDate, type Breadcrumb } from '@/lib/seo'
 import type { Locale } from '@/i18n/locales'
 import { basePathFor, type Doc } from '@/lib/content'
-import { pageChapterOrNull, pageRegisterOrNull } from '@/lib/split-content/recipe'
+import { pageChapterOrNull, pageRegisterOrNull, pageSkinOrNull } from '@/lib/split-content/recipe'
+import { hashSlug } from '@/lib/split-content/seed'
 
 /**
  * The frame every content page shares: structured data, a visible trail, the body, the footer.
@@ -37,6 +38,7 @@ export async function ArticleLayout({
     // Flat-register pages resolve a chapter (for analytics) but never get ChapterFrame — see
     // pageRegisterOrNull's docstring.
     const register = pageRegisterOrNull(doc.collection, doc.slug, frontmatter.tags ?? [], doc.locale)
+    const skin = pageSkinOrNull(doc.collection, doc.slug, frontmatter.tags ?? [], doc.locale)
 
     const articleBody = (
         <>
@@ -65,7 +67,9 @@ export async function ArticleLayout({
             <Breadcrumbs crumbs={crumbs} />
             <article className="pb-4">
                 {chapter && register !== 'flat' ? (
-                    <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame>
+                    <ChapterFrame chapter={chapter} skin={skin ?? 'none'} seed={hashSlug(doc.slug)}>
+                        {articleBody}
+                    </ChapterFrame>
                 ) : (
                     articleBody
                 )}

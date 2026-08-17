@@ -2,6 +2,7 @@ import type { Collection } from '@/lib/content'
 import type { Locale } from '@/i18n/locales'
 import { CHAPTER_TOKENS, type Chapter } from './chapter-tokens'
 import { hashSlug } from './seed'
+import { skinFor, type Skin } from './skin'
 
 /** Every routed page kind the recipe resolves for — the four Collections plus the standalone guide route. */
 export type PageKind = Collection | 'guide'
@@ -81,6 +82,7 @@ export interface PageRecipe {
     chapter: Chapter
     seed: number
     tokens: (typeof CHAPTER_TOKENS)[Chapter]
+    skin: Skin
 }
 
 /**
@@ -98,11 +100,13 @@ export function pageRecipe(
 ): PageRecipe {
     const chapter = CHAPTER_BY_SLUG[slug]
     if (!chapter) throw new SplitRecipeError(`pageRecipe: no chapter mapped for slug "${slug}"`)
+    const register = FLAT_REGISTER_SLUGS.has(slug) ? 'flat' : 'default'
     return {
-        register: FLAT_REGISTER_SLUGS.has(slug) ? 'flat' : 'default',
+        register,
         chapter,
         seed: hashSlug(slug),
         tokens: CHAPTER_TOKENS[chapter],
+        skin: skinFor(slug, register),
     }
 }
 
@@ -148,6 +152,28 @@ export function pageRegisterOrNull(
 ): PageRecipe['register'] | null {
     try {
         return pageRecipe(kind, slug, tags, locale).register
+    } catch (error) {
+        if (error instanceof SplitRecipeError) return null
+        throw error
+    }
+}
+
+/**
+ * `pageRecipe`'s skin, or null for an unmapped slug — same null-on-resolver-failure contract as
+ * `pageChapterOrNull` and `pageRegisterOrNull`, and for the same reason (a synthetic route-test
+ * fixture slug that was never meant to be in `CHAPTER_BY_SLUG`).
+ *
+ * Null and `'none'` mean the same thing to a layout; the null exists only so the three resolvers
+ * read alike at their call sites.
+ */
+export function pageSkinOrNull(
+    kind: PageKind,
+    slug: string,
+    tags: readonly string[] | undefined,
+    locale: Locale
+): Skin | null {
+    try {
+        return pageRecipe(kind, slug, tags, locale).skin
     } catch (error) {
         if (error instanceof SplitRecipeError) return null
         throw error

@@ -29,3 +29,22 @@ describe('ArticleLayout register gate', () => {
         expect(source).toContain("{chapter && register !== 'flat' ? (")
     })
 })
+
+/**
+ * The skin wiring, read the same way and for the same reason. The real DOM proof lives in
+ * ChapterFrame.test.tsx and in e2e/content-skin.spec.ts.
+ */
+describe('ArticleLayout skin wiring', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'src/components/marketing/ArticleLayout.tsx'), 'utf8')
+
+    it('resolves the skin alongside the chapter and the register', () => {
+        expect(source).toContain(
+            'const skin = pageSkinOrNull(doc.collection, doc.slug, frontmatter.tags ?? [], doc.locale)'
+        )
+    })
+
+    it('hands ChapterFrame the skin and the slug seed', () => {
+        expect(source).toContain("skin={skin ?? 'none'}")
+        expect(source).toContain('seed={hashSlug(doc.slug)}')
+    })
+})
