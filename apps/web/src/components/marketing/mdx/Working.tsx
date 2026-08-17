@@ -4,16 +4,14 @@ import type { ToolWorking } from '@/tools/types'
 
 /**
  * The labelled-lines derivation strip behind a computed answer (fun-engine.md S4): one row per
- * `ToolWorking`, tabular-nums, the rounding sentence underneath. A presentational extraction —
- * `ToolCalculator.tsx` already renders this exact shape inline for the two live calculators — so a
- * Wave 2 `<Calc>` block and `<Script>`'s "€X each" line have one place to reuse rather than a
- * second copy each. No consumer wires it in this stage.
+ * `ToolWorking`, tabular-nums, an optional rounding sentence underneath. `ToolCalculator.tsx`
+ * renders this exact shape inline for the two live calculators; `ScriptEnhancer.tsx` is the other
+ * consumer, for a single confirmed-amount row with no rounding to explain, which is why
+ * `roundingNote` is optional rather than required.
  *
- * A server component, and the STATIC `formatMoney` (`@/lib/money.ts`) rather than the animated
- * `<Money>`/`<AnimatedMoney>` (`@/components/room/Money.tsx`, which pulls in NumberFlow): nothing
- * here is live state to count up from, and a server component can never re-render to animate
- * anyway. Pulling the client formatter in would cost `CONTENT_JS_BUDGET`
- * (`js-budget.test.ts`) for zero benefit.
+ * A server component using the STATIC `formatMoney` (`@/lib/money.ts`), not the animated
+ * `<Money>`/`<AnimatedMoney>` (which pulls in NumberFlow): nothing here is live state to count up
+ * from, and pulling the client formatter in would cost `CONTENT_JS_BUDGET` for no benefit.
  */
 export function Working({
     workings,
@@ -22,7 +20,7 @@ export function Working({
     catalog,
 }: {
     workings: readonly ToolWorking[]
-    roundingNote: string
+    roundingNote?: string
     currency: string
     catalog?: readonly CurrencyInfo[]
 }) {
@@ -40,7 +38,7 @@ export function Working({
                     </li>
                 ))}
             </ul>
-            <p className="pt-2 leading-4">{roundingNote}</p>
+            {roundingNote && <p className="pt-2 leading-4">{roundingNote}</p>}
         </div>
     )
 }

@@ -1,7 +1,17 @@
 import { isValidElement, type ReactNode } from 'react'
-import { ScriptEnhancer } from './ScriptEnhancer'
+import dynamic from 'next/dynamic'
 
 const COLUMN = 'mx-auto w-full max-w-xl px-5'
+
+/**
+ * Loaded via `next/dynamic`, not a static import: a static import here put `ScriptEnhancer` (and
+ * the `Island`/`use-motion`/`use-settings` chain behind it) in every content route's client bundle,
+ * because `Script` sits in the shared `mdxComponents` map every route imports — regardless of
+ * whether that route's MDX ever authors a `<Script>` tag (js-budget.test.ts caught this). `dynamic`
+ * makes it a real code-split point: Next only fetches the chunk for a page that actually renders
+ * one, while still SSR-ing the full static answer (default `ssr: true`), matching Invariants #3.
+ */
+const ScriptEnhancer = dynamic(() => import('./ScriptEnhancer').then((mod) => mod.ScriptEnhancer))
 
 /** Plain-text join of a children tree — for the copy button and the editable-amount parse, both
  *  of which need a string, not a React tree. */
