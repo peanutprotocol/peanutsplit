@@ -208,6 +208,12 @@ export const mileageSplitCalculator: Tool = {
             options: countryOptions,
         },
     ],
+    // Labels are the exact `countryOptions` labels above, so this adds no new copy to gate.
+    presets: [
+        { label: 'United Kingdom (miles)', choiceName: 'country', optionValue: 'GB' },
+        { label: 'United States (miles)', choiceName: 'country', optionValue: 'US' },
+        { label: 'Germany (kilometres)', choiceName: 'country', optionValue: 'DE' },
+    ],
     fields: [
         {
             name: 'distance',

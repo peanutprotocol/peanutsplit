@@ -1,9 +1,16 @@
-import type { ReactNode } from 'react'
+import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
 import Link from 'next/link'
 import { LandingPersona } from '@/components/marketing/LandingPersona'
 import { buttonClassName } from '@/components/ui/button-style'
+import { Doodle } from '@/components/ui/Doodle'
+import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
+import type { Locale } from '@/i18n/locales'
 import { castPersona } from '@/lib/cast'
+import type { Faq } from '@/lib/content'
+import type { Chapter } from '@/lib/split-content/chapter-tokens'
+import { spotDoodle, spotPlan } from '@/lib/split-content/spot-placer'
+import { ShortVersionSlot } from './ShortVersionSlot'
 
 /**
  * The blocks an article can use. Split's article surface is one column at max-w-xl, the same
@@ -21,6 +28,19 @@ import { castPersona } from '@/lib/cast'
 
 const COLUMN = 'mx-auto w-full max-w-xl px-5'
 
+/**
+ * What the engine knows about the page a block is rendering on (fun-engine.md S4). Built once per
+ * render in `localizedMdxComponents` and handed down as ordinary props — never React Context,
+ * which a Server Component cannot create (see `ShortVersionSlot.tsx`'s docstring). `Hero`/the
+ * markdown `h1` override use `faq`; `Steps`/`Checklist` use the rest to place a doodle.
+ */
+export interface ContentRenderContext {
+    faq?: Faq
+    chapter: Chapter
+    seed: number
+    register: 'default' | 'flat'
+}
+
 export function Hero({
     eyebrow,
     title,
@@ -28,6 +48,8 @@ export function Hero({
     cta,
     ctaHref = '/new',
     ctaHint,
+    shortVersionFaq,
+    locale = 'en',
 }: {
     eyebrow?: string
     title: string
@@ -35,6 +57,9 @@ export function Hero({
     cta?: string
     ctaHref?: string
     ctaHint?: string
+    /** Not MDX-authored — bound in `localizedMdxComponents` from the page's own frontmatter. */
+    shortVersionFaq?: Faq
+    locale?: Locale
 }) {
     return (
         <section>
@@ -46,6 +71,7 @@ export function Hero({
                         </span>
                     )}
                     <h1 className="mt-5 text-h3 leading-tight text-n-1">{title}</h1>
+                    <ShortVersionSlot faq={shortVersionFaq} locale={locale} />
                     {subtitle && <p className="mt-4 text-base font-medium leading-6 text-n-1">{subtitle}</p>}
                 </div>
             </div>
@@ -91,21 +117,55 @@ export function CTA({
     )
 }
 
-export function Steps({ title, children }: { title?: string; children: ReactNode }) {
+/**
+ * Chapter-scoped doodle placement, shared by `Steps` and `Checklist` (fun-engine.md S4). `context`
+ * is absent for guides this wave (Invariants #2 — CSS-level treatment only), so `spotPlan` is
+ * simply never called and every child renders exactly as it did before this stage.
+ */
+function withSpotDoodles(children: ReactNode, context: ContentRenderContext | undefined): ReactNode {
+    if (!context) return children
+    const spots = spotPlan(context.seed, context.chapter, Children.count(children), context.register)
+    if (spots.length === 0) return children
+    return Children.map(children, (child, index) => {
+        if (!spots.includes(index) || !isValidElement(child)) return child
+        const doodle = spotDoodle(context.seed, context.chapter, index)
+        return cloneElement(child as ReactElement<{ doodle?: DoodleName }>, { doodle })
+    })
+}
+
+export function Steps({
+    title,
+    children,
+    context,
+}: {
+    title?: string
+    children: ReactNode
+    /** Not MDX-authored — bound in `localizedMdxComponents`. */
+    context?: ContentRenderContext
+}) {
     return (
         <section className={`${COLUMN} my-10`}>
             {title && <h2 className="text-h5">{title}</h2>}
             {/* `split-steps` resets the `split-step` counter that numbers each row's leader digit
                 (globals.css) — a receipt-grammar ledger mark, not a re-implementation of the `<ol>`'s
                 own semantic numbering. */}
-            <ol className="split-steps mt-4 flex flex-col gap-3">{children}</ol>
+            <ol className="split-steps mt-4 flex flex-col gap-3">{withSpotDoodles(children, context)}</ol>
         </section>
     )
 }
 
-export function Step({ title, children }: { title: string; children: ReactNode }) {
+export function Step({ title, children, doodle }: { title: string; children: ReactNode; doodle?: DoodleName }) {
     return (
         <li className="split-step relative rounded-sm border border-n-1 bg-white py-4 pl-11 pr-4">
+            {doodle && (
+                <Doodle
+                    name={doodle}
+                    size={20}
+                    weight={1.6}
+                    aria-hidden="true"
+                    className="absolute right-3 top-3 text-[color:var(--chapter-ink)]"
+                />
+            )}
             <h3 className="text-h7">{title}</h3>
             <div className="mt-2 text-sm leading-5 text-grey-1">{children}</div>
         </li>
@@ -119,7 +179,8 @@ export function Step({ title, children }: { title: string; children: ReactNode }
  */
 export function FAQ({ title = 'Questions', children }: { title?: string; children: ReactNode }) {
     return (
-        <section className={`${COLUMN} my-10`}>
+        // `id="questions"` is the jump target `<ShortVersionSlot>`'s link points at.
+        <section id="questions" className={`${COLUMN} my-10`}>
             <h2 className="text-h5">{title}</h2>
             <dl className="mt-4 flex flex-col gap-3">{children}</dl>
         </section>
@@ -205,16 +266,33 @@ export function Cast({
     )
 }
 
-export function Checklist({ title, children }: { title?: string; children: ReactNode }) {
+export function Checklist({
+    title,
+    children,
+    context,
+}: {
+    title?: string
+    children: ReactNode
+    /** Not MDX-authored — bound in `localizedMdxComponents`. */
+    context?: ContentRenderContext
+}) {
     return (
         <section className={`${COLUMN} my-10`}>
             {title && <h2 className="text-h5">{title}</h2>}
-            <ul className="mt-4 flex flex-col gap-3">{children}</ul>
+            <ul className="mt-4 flex flex-col gap-3">{withSpotDoodles(children, context)}</ul>
         </section>
     )
 }
 
-export function ChecklistItem({ title, children }: { title: string; children: ReactNode }) {
+export function ChecklistItem({
+    title,
+    children,
+    doodle,
+}: {
+    title: string
+    children: ReactNode
+    doodle?: DoodleName
+}) {
     return (
         // `split-checklist-item` punches a perforated tear-line out of the left border via
         // mask-image (globals.css) — the border itself stays, per fun-engine.md S3's subtraction list.
@@ -229,6 +307,15 @@ export function ChecklistItem({ title, children }: { title: string; children: Re
                 <span className="block text-h7">{title}</span>
                 <span className="mt-1 block text-sm leading-5 text-grey-1">{children}</span>
             </span>
+            {doodle && (
+                <Doodle
+                    name={doodle}
+                    size={20}
+                    weight={1.6}
+                    aria-hidden="true"
+                    className="absolute right-3 top-3 text-[color:var(--chapter-ink)]"
+                />
+            )}
         </li>
     )
 }

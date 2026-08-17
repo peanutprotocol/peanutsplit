@@ -266,6 +266,13 @@ export interface Tool {
     fields: ToolField[]
     /** Pickers, rendered above the numeric fields they pre-fill. */
     choices?: readonly ToolChoiceField[]
+    /**
+     * One-tap shortcuts rendered as a chip row above the fields, each one applying an existing
+     * `choices[].options[]` entry the same way picking it from the dropdown already does — this
+     * adds no new pre-fill mechanism, only a faster way to reach one that exists. `choiceName` must
+     * match a `choices[].name` and `optionValue` one of that choice's `options[].value`.
+     */
+    presets?: readonly { label: string; choiceName: string; optionValue: string }[]
     rows?: ToolRows
     /** The optional way to answer one field. At most one, because two folds is a form again. */
     builder?: ToolBuilder

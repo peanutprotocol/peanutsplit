@@ -15,7 +15,10 @@ import {
     RelatedPages,
     Step,
     Steps,
+    type ContentRenderContext,
 } from './blocks'
+import { Script } from './Script'
+import { ShortVersionSlot } from './ShortVersionSlot'
 
 /**
  * What markdown can reach. Custom blocks plus prose overrides — Split has no `prose` plugin, so
@@ -49,6 +52,10 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     ChecklistItem,
     RelatedPages,
     RelatedLink,
+    // Native-only, like Hero/Quote/Cast/Checklist above it: `Script` is not in mdx-policy.ts's
+    // COMPONENT_ATTRIBUTES allowlist (fun-engine.md Invariants #2), so a generated guide cannot
+    // author one — validated by `mdx-policy.test.tsx`'s rejection tests, not duplicated here.
+    Script,
 
     // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by stylebook, so
     // its h1 is a markdown `#` — same typography as the hero's, inside the column instead of a band.
@@ -130,8 +137,18 @@ const BLOCK_LABELS: Record<Locale, { faq: string; related: string }> = {
  * A translated file may still pass an explicit title, but omitting one can no longer drop an
  * English heading into the middle of a Spanish or Portuguese article. The locale comes from the
  * file being rendered, not from a cookie, so a build produces the same page every time.
+ *
+ * `context` (fun-engine.md S4) is how `<ShortVersionSlot>` and the Steps/Checklist doodle placer
+ * reach the page's own FAQ/chapter/seed/register — bound here by closure rather than by React
+ * Context, which a Server Component cannot create (`ShortVersionSlot.tsx`'s docstring). Guides
+ * call this with no `context` this wave (Invariants #2): `h1` never fires for a guide body — its
+ * headings are capped at H2 by mdx-policy.ts — and `Hero` is native-only, so only `Steps` actually
+ * runs with `context` undefined there, which is exactly `withSpotDoodles`' no-op case.
  */
-export function localizedMdxComponents(locale: Locale): Record<string, React.ComponentType<any>> {
+export function localizedMdxComponents(
+    locale: Locale,
+    context?: ContentRenderContext
+): Record<string, React.ComponentType<any>> {
     const labels = BLOCK_LABELS[locale]
     return {
         ...mdxComponents,
@@ -141,5 +158,20 @@ export function localizedMdxComponents(locale: Locale): Record<string, React.Com
         RelatedPages: ({ title, children }: { title?: string; children: ReactNode }) => (
             <RelatedPages title={title ?? labels.related}>{children}</RelatedPages>
         ),
+        // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by
+        // stylebook, so its h1 is a markdown `#` — same typography, and the same ShortVersion slot
+        // right after it.
+        h1: (props: HTMLAttributes<HTMLHeadingElement>) => (
+            <>
+                <h1 className={`${COLUMN} mb-5 mt-8 text-h3 leading-tight text-n-1`} {...props} />
+                <ShortVersionSlot faq={context?.faq} locale={locale} />
+            </>
+        ),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Hero: (props: any) => <Hero {...props} shortVersionFaq={context?.faq} locale={locale} />,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Steps: (props: any) => <Steps {...props} context={context} />,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Checklist: (props: any) => <Checklist {...props} context={context} />,
     }
 }
