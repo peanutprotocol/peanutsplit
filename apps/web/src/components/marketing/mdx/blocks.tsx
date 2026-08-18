@@ -58,6 +58,10 @@ export interface ContentRenderContext {
  *
  * Guides never reach here with a context (their CTA is `ContentCTA`), so the generated corpus is
  * untouched.
+ *
+ * Every block an article can point at `/new` calls this: `Hero`, `CTA`, and `RelatedLink` — the
+ * last because who-pays-for-the-wine ends its related list with one, and a single uncoded link on
+ * a pilot page is a hole in the only number this loop exists to produce.
  */
 function withCampaign(href: string, slug: string | undefined): string {
     return slug && href === '/new' ? `${href}?campaign=content-${slug}` : href
@@ -370,11 +374,21 @@ export function RelatedPages({ title = 'Keep reading', children }: { title?: str
     )
 }
 
-export function RelatedLink({ href, children }: { href: string; children: ReactNode }) {
+export function RelatedLink({
+    href,
+    children,
+    context,
+}: {
+    href: string
+    children: ReactNode
+    /** Not MDX-authored — bound in `localizedMdxComponents`. A related list is the one other place
+     *  an article authors `/new` (who-pays-for-the-wine does), so loop A has to reach it too. */
+    context?: ContentRenderContext
+}) {
     return (
         <li>
             <Link
-                href={href}
+                href={withCampaign(href, context?.slug)}
                 data-focus-contained
                 className="flex min-h-11 items-center gap-2 bg-white px-4 py-3 hover:bg-grey-3"
             >

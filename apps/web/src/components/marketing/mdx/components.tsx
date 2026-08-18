@@ -169,6 +169,11 @@ export function localizedMdxComponents(
         RelatedPages: ({ title, children }: { title?: string; children: ReactNode }) => (
             <RelatedPages title={title ?? labels.related}>{children}</RelatedPages>
         ),
+        RelatedLink: ({ href, children }: { href: string; children: ReactNode }) => (
+            <RelatedLink href={href} context={context}>
+                {children}
+            </RelatedLink>
+        ),
         // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by
         // stylebook, so its h1 is a markdown `#` — same typography, and the same ShortVersion slot
         // right after it.

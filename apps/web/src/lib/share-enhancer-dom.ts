@@ -28,9 +28,17 @@ export function enhanceShareBlock(block: Element): void {
     button.addEventListener('click', () => {
         // The share sheet is the better outcome and the one with no feedback to give: the OS owns
         // the UI from here, and a label swapped to "Copied" over a sheet the reader then cancelled
-        // would be a lie. A rejected share (the reader dismissed it) is deliberately silent too.
+        // would be a lie. So a dismissal — `AbortError`, the reader's own decision — stays silent.
+        // Any other rejection is a browser that advertises `share` and then refuses the payload,
+        // which leaves the reader holding nothing; fall through to the copy this button would have
+        // made had there been no sheet at all.
         if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-            void Promise.resolve(navigator.share({ url })).catch(() => {})
+            void Promise.resolve(navigator.share({ url })).catch((error: unknown) => {
+                if ((error as { name?: string } | null)?.name === 'AbortError') return
+                return copyText(url).then((copied) => {
+                    button.textContent = copied ? doneLabel : idleLabel
+                })
+            })
             return
         }
         // Script.tsx's copy button, exactly: the label admits failure rather than claiming a copy
