@@ -168,6 +168,9 @@
             "madeByPrefix": "hecho con amor por",
             "madeByBrand": "Squirrel Labs"
         },
+        "appHome": {
+            "landingLink": "¿Qué es Split?"
+        },
         "install": {
             "title": "Instala Split",
             "body": "Vuelve más rápido a esta sala. Sin tienda de apps. Sin cuenta.",

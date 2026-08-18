@@ -168,6 +168,9 @@
             "madeByPrefix": "створено з любов’ю командою",
             "madeByBrand": "Squirrel Labs"
         },
+        "appHome": {
+            "landingLink": "Що таке Split?"
+        },
         "install": {
             "title": "Установити Split",
             "body": "Повертайся до цієї кімнати швидше. Без магазину застосунків. Без облікового запису.",

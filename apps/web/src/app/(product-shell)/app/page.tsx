@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { YourRooms } from '@/components/marketing/YourRooms'
 import { CanonicalAppLaunchMarker } from '@/components/pwa/CanonicalAppLaunchMarker'
 import { InstallAppSurface } from '@/components/pwa/InstallAppSurface'
+import { LandingLink } from '@/components/pwa/LandingLink'
 import { RecentRoomAppEntry } from '@/components/pwa/RecentRoomAppEntry'
 import { Doodle } from '@/components/ui/Doodle'
 import { buttonClassName } from '@/components/ui/button-style'
@@ -31,8 +32,9 @@ export default async function AppHomePage({
 
     const fallback = (
         <main data-testid="app-home" className="mx-auto min-h-dvh w-full max-w-xl bg-background">
-            <header className="border-b border-n-1 bg-primary-1 px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
+            <header className="flex items-center justify-between gap-3 border-b border-n-1 bg-primary-1 px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
                 <h1 className="text-h4">Split</h1>
+                <LandingLink />
             </header>
 
             <nav aria-label="Split" className="grid gap-3 px-5 pt-6">
