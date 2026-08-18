@@ -70,6 +70,17 @@ describe('Calc server render', () => {
         }
     })
 
+    /**
+     * The headline amount's label is a visually-hidden span INSIDE `.split-calc-result` and BEFORE
+     * the `<strong>`. Not an `aria-label` on the `<strong>`: that element maps to a generic role and
+     * assistive tech drops the label, which is the bug this replaced. Not inside it either: the
+     * enhancer overwrites that node's whole `textContent` on every chip click.
+     */
+    it('announces the headline amount with the authored label, outside the node the enhancer rewrites', () => {
+        expect(html).not.toContain('aria-label')
+        expect(html).toContain('<span class="sr-only">Trip total</span><strong data-calc-each')
+    })
+
     it('presses exactly one chip, and it is the authored default', () => {
         expect([...html.matchAll(/aria-pressed="true"/g)]).toHaveLength(1)
         expect(html).toMatch(/data-calc-preset="Week" aria-pressed="true"/)

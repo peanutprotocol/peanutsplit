@@ -150,11 +150,14 @@ export function Calc({
                         </button>
                     ))}
                 </div>
+                {/* The label is a visually-hidden span BEFORE the `<strong>`, not an `aria-label` on
+                    it: `<strong>` maps to a generic role, and assistive tech ignores an aria-label
+                    on a generic element, so the headline amount was announced as a bare number.
+                    Inside the `<strong>` it would not survive either — the enhancer rewrites that
+                    node's whole `textContent` on every chip click. */}
                 <p className="split-calc-result mt-4 text-h6 text-n-1">
-                    <strong data-calc-each aria-label={amountLabel}>
-                        {money(share)}
-                    </strong>{' '}
-                    {eachLabel}
+                    <span className="sr-only">{amountLabel}</span>
+                    <strong data-calc-each>{money(share)}</strong> {eachLabel}
                 </p>
                 {/* Row order is a contract: globals.css rules the TOTAL off with
                     `[data-calc-row='total']` precisely so `foot` can sit last without being mistaken
