@@ -14,6 +14,7 @@ import {
     RelatedPages,
     Step,
     Steps,
+    type ContentRenderContext,
 } from './blocks'
 import { localizedMdxComponents, mdxComponents } from './components'
 import { ShortVersionSlot } from './ShortVersionSlot'
@@ -75,6 +76,47 @@ describe('Hero hooks', () => {
         const jump = [...withSlot.matchAll(/<a[^>]*>/g)].map(([tag]) => tag).find((tag) => tag.includes('#questions'))
         expect(jump).toBeDefined()
         expect(jump).not.toContain('split-btn')
+    })
+})
+
+/**
+ * SEO loop A. The campaign code is a link attribute and nothing else — no text node, no locale in
+ * it, and nothing at all without a context, which is what keeps the generated guide corpus and
+ * every `renderArticle` call that passes none exactly as they were.
+ */
+describe('the /new campaign code', () => {
+    const context: ContentRenderContext = {
+        chapter: 'trips',
+        seed: 7,
+        register: 'default',
+        slug: 'fronting-a-group-trip',
+        canonical: '/blog/fronting-a-group-trip',
+    }
+
+    it("codes the hero's CTA with the page slug", () => {
+        expect(hero({ context })).toContain('href="/new?campaign=content-fronting-a-group-trip"')
+    })
+
+    it('codes the CTA card the same way, from the same slug', () => {
+        const html = renderToStaticMarkup(<CTA text="Start a split" title="Open the room" context={context} />)
+        expect(html).toContain('href="/new?campaign=content-fronting-a-group-trip"')
+    })
+
+    it('leaves /new bare with no context — a guide CTA is unchanged', () => {
+        expect(hero()).toContain('href="/new"')
+        expect(renderToStaticMarkup(<CTA text="Start a split" />)).toContain('href="/new"')
+    })
+
+    /** An authored href that is not the bare `/new` is a deliberate destination; appending a second
+     *  `?` to one that already carries a query would break it. */
+    it('never touches an href that is not the bare /new', () => {
+        expect(hero({ context, ctaHref: '/blog' })).toContain('href="/blog"')
+        expect(hero({ context, ctaHref: '/new?locale=es-419' })).toContain('href="/new?locale=es-419"')
+    })
+
+    it('is a link attribute, never a word on the page', () => {
+        const html = hero({ context })
+        expect(html.replace(/<[^>]*>/g, '')).not.toContain('campaign')
     })
 })
 

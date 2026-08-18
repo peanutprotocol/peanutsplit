@@ -39,6 +39,28 @@ export interface ContentRenderContext {
     chapter: Chapter
     seed: number
     register: 'default' | 'flat'
+    /** The page's own slug. Both SEO loops key their campaign code off it — never the locale, so
+     *  the three translations of one article report as one campaign. */
+    slug: string
+    /** Root-relative canonical path — the same `frontmatter.canonical ?? doc.href` the metadata,
+     *  the JSON-LD and `ArticleLayout` already use. `<Share>` runs it through `absoluteUrl`. */
+    canonical: string
+}
+
+/**
+ * The room-creation link, campaign-coded when we know which article it is on (SEO loop A).
+ *
+ * Only the bare `/new` is rewritten: an authored `ctaHref` that already carries a query is a
+ * deliberate destination, and appending a second `?` would break it. The result is one plain link
+ * attribute — no text node, deterministic per slug and identical in every locale — which is what
+ * lets a content-sourced room be counted without any app-side change to `/new`. Precedent:
+ * `SettleDrawer`'s `campaign=split`.
+ *
+ * Guides never reach here with a context (their CTA is `ContentCTA`), so the generated corpus is
+ * untouched.
+ */
+function withCampaign(href: string, slug: string | undefined): string {
+    return slug && href === '/new' ? `${href}?campaign=content-${slug}` : href
 }
 
 export function Hero({
@@ -50,6 +72,7 @@ export function Hero({
     ctaHint,
     shortVersionFaq,
     locale = 'en',
+    context,
 }: {
     eyebrow?: string
     title: string
@@ -60,6 +83,8 @@ export function Hero({
     /** Not MDX-authored — bound in `localizedMdxComponents` from the page's own frontmatter. */
     shortVersionFaq?: Faq
     locale?: Locale
+    /** Not MDX-authored — bound in `localizedMdxComponents`. */
+    context?: ContentRenderContext
 }) {
     return (
         <section>
@@ -80,7 +105,7 @@ export function Hero({
             {cta && (
                 <div className={`${COLUMN} pt-6`}>
                     <Link
-                        href={ctaHref}
+                        href={withCampaign(ctaHref, context?.slug)}
                         className={buttonClassName({ shadowSize: '4', className: 'split-btn justify-center text-h6' })}
                     >
                         {cta}
@@ -97,11 +122,14 @@ export function CTA({
     href = '/new',
     title,
     body,
+    context,
 }: {
     text: string
     href?: string
     title?: string
     body?: string
+    /** Not MDX-authored — bound in `localizedMdxComponents`. */
+    context?: ContentRenderContext
 }) {
     return (
         <section className={`${COLUMN} my-10`}>
@@ -109,7 +137,7 @@ export function CTA({
                 {title && <h2 className="split-block-title text-h5">{title}</h2>}
                 {body && <p className="mt-2 text-sm leading-5 text-grey-1">{body}</p>}
                 <Link
-                    href={href}
+                    href={withCampaign(href, context?.slug)}
                     className={buttonClassName({ shadowSize: '4', className: 'split-btn mt-4 justify-center text-h6' })}
                 >
                     {text}

@@ -315,6 +315,7 @@
         .split-checklist-item,
         .split-faq-item,
         .split-cta-card,
+        .split-share-card,
         .split-related-list,
         [data-script-block],
         .split-calc,
@@ -335,6 +336,7 @@
         .split-checklist-item,
         .split-faq-item,
         .split-cta-card,
+        .split-share-card,
         .split-related-list,
         [data-script-block],
         .split-calc,
@@ -349,6 +351,7 @@
         .split-checklist-item,
         .split-faq-item,
         .split-cta-card,
+        .split-share-card,
         .split-related-list,
         [data-script-block],
         .split-calc,
@@ -363,6 +366,7 @@
         .split-checklist-item,
         .split-faq-item,
         .split-cta-card,
+        .split-share-card,
         .split-related-list,
         [data-script-block],
         .split-calc,
@@ -376,6 +380,30 @@
 [data-skin='sticker'] .split-related-list {
     overflow: visible;
     gap: 0.75rem;
+}
+
+/* The share card is a die-cut sticker with a strip of tape holding it down — the CTA card's box
+   plus the short-version slip's pink washi. Two blocks that both ask the reader to do something
+   sitting a screen apart would otherwise be the same white rectangle twice.
+
+   `position: relative` is the tape's containing block, exactly as it is on `.split-short-version`:
+   the card is a plain `<div>` and carries no positioning of its own. The button needs nothing here
+   — `Share.tsx` puts `split-btn` on it, so it takes the same yellow pill as every other CTA. */
+[data-skin='sticker'] .split-share-card {
+    position: relative;
+}
+
+[data-skin='sticker'] .split-share-card::before {
+    position: absolute;
+    top: -9px;
+    right: 26px;
+    width: 62px;
+    height: 15px;
+    border: 1px solid rgba(33, 28, 23, 0.1);
+    background: rgba(255, 144, 232, 0.55);
+    color: var(--skin-ink, #211c17);
+    content: '';
+    transform: rotate(2.5deg);
 }
 
 /* The step numeral becomes a yellow disc. Longhands rather than the mock's `font` shorthand: the

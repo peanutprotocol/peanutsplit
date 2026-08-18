@@ -11,12 +11,12 @@
  * are exported so their exact key set is provable without a DOM (see ContentAnalytics.test.tsx).
  *
  * Also the one place that wires `<Script>`'s copy/recompute behavior (fun-engine.md S4,
- * Invariants #3) and `<Calc>`'s preset chips (Wave 2 / S4): both sit in the shared `mdxComponents`
- * map every content route statically imports, so a block-specific client component there would
- * ship to every route regardless of whether its page ever authors the tag. `enhanceScriptBlocks`
- * and `enhanceCalcBlocks` are plain DOM, not components, so calling them from this island's
- * existing mount effect adds no new client chunk — the JS-budget walk counts them honestly
- * (js-budget.test.ts).
+ * Invariants #3), `<Calc>`'s preset chips (Wave 2 / S4) and `<Share>`'s share/copy button (SEO
+ * loop B): all three sit in the shared `mdxComponents` map every content route statically imports,
+ * so a block-specific client component there would ship to every route regardless of whether its
+ * page ever authors the tag. The three `enhance*Blocks` functions are plain DOM, not components, so
+ * calling them from this island's existing mount effect adds no new client chunk — the JS-budget
+ * walk counts them honestly (js-budget.test.ts).
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -24,6 +24,7 @@ import { track } from '@/lib/analytics'
 import { enhanceCalcBlocks } from '@/lib/calc-enhancer-dom'
 import type { Collection } from '@/lib/content'
 import { enhanceScriptBlocks } from '@/lib/script-enhancer-dom'
+import { enhanceShareBlocks } from '@/lib/share-enhancer-dom'
 import type { Chapter } from '@/lib/split-content/chapter-tokens'
 
 export const SCROLL_MILESTONES = [25, 50, 75, 100] as const
@@ -63,6 +64,7 @@ export function ContentAnalytics({ template, chapter }: { template: ContentTempl
     useEffect(() => {
         enhanceScriptBlocks(document)
         enhanceCalcBlocks(document)
+        enhanceShareBlocks(document)
     }, [])
 
     // Measured after mount, never assumed: the document is not laid out yet during SSR.

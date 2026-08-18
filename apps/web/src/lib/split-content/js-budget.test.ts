@@ -75,9 +75,12 @@ const EXCLUDED_PREFIXES = [path.join(SRC, 'components/tools'), path.join(SRC, 't
  *    `ContentAnalytics.tsx` for exactly the same reason and carrying its own `'use client'` for
  *    exactly the same reason. It is a fourth file rather than more code inside
  *    `script-enhancer-dom.ts` because that module's name would then be a lie about what it wires.
- * A count above 4 is a real regression; a count below it means one of the four above was removed.
+ *  - `lib/share-enhancer-dom.ts` — `<Share>`'s share-sheet/copy button (SEO loop B), a fifth file
+ *    on the same terms: statically imported by `ContentAnalytics.tsx`, carrying its own
+ *    `'use client'` so this walk sees it, and one module per block so a name stays true.
+ * A count above 5 is a real regression; a count below it means one of the five above was removed.
  */
-const CONTENT_JS_BUDGET = 4
+const CONTENT_JS_BUDGET = 5
 
 function isExcluded(file: string): boolean {
     return EXCLUDED_PREFIXES.some((prefix) => file === prefix || file.startsWith(`${prefix}${path.sep}`))
@@ -192,6 +195,7 @@ describe('content route JS budget', () => {
                 'src/components/ui/LocaleSwitcher.tsx',
                 'src/lib/calc-enhancer-dom.ts',
                 'src/lib/script-enhancer-dom.ts',
+                'src/lib/share-enhancer-dom.ts',
             ].sort()
         )
         expect(relative.length).toBe(CONTENT_JS_BUDGET)

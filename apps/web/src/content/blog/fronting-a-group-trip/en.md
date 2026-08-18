@@ -115,6 +115,12 @@ Four facts about the room, worth having in March rather than in August.
 <FAQItem question="How do I ask for the money without it being awkward?">Mostly by not having to ask. If the room has been open since the first booking, the total is not new information and the last step is a payment plan everyone can see. Send the room link rather than a number with an apology in front of it.</FAQItem>
 </FAQ>
 
+<Share
+  title="Send the split, not a lecture"
+  body="Whoever is about to put four months of bookings on one card is the person this is for. A link is easier to send in March than a number is to ask for in August."
+  buttonLabel="Send this to the group"
+  doneLabel="Link copied" />
+
 <RelatedPages>
 <RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip when nobody shares a bank</RelatedLink>
 <RelatedLink href="/blog/end-of-trip-expense-recap">The card that says what the trip cost</RelatedLink>

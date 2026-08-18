@@ -91,6 +91,12 @@ Agreeing a convention takes about eleven seconds while the menus are still on th
 <FAQItem question="Who owes who after a group dinner?">Work out what each person paid and what each person owes, then net the two against each other. A group of six usually collapses to two or three transfers instead of twenty, which is the difference between a bill that gets settled and one that gets forgotten.</FAQItem>
 </FAQ>
 
+<Share
+  title="Send this to the group chat"
+  body="Before the second bottle, ideally. The three sentences are logistics when they arrive with the menus and accusations when they arrive with the bill."
+  buttonLabel="Send it round"
+  doneLabel="Link copied" />
+
 <RelatedPages>
 <RelatedLink href="/blog/split-expenses-in-real-time">Adding the expense at the table, not a week later</RelatedLink>
 <RelatedLink href="/blog/end-of-trip-expense-recap">What a group's expenses read like at the end</RelatedLink>

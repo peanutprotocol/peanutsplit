@@ -164,9 +164,19 @@ export function articlePage(collections: RouteCollections, locale: Locale, param
         // contract), so both features simply no-op for it.
         const chapter = pageChapterOrNull(doc.collection, doc.slug, doc.frontmatter.tags ?? [], doc.locale)
         const register = pageRegisterOrNull(doc.collection, doc.slug, doc.frontmatter.tags ?? [], doc.locale)
+        // `slug` and `canonical` are what the two SEO loops key off: the `/new` campaign code on a
+        // Hero/CTA link, and `<Share>`'s campaign-coded share URL. The canonical path is spelled
+        // exactly as `articleMetadata` and `articleSchema` spell it, so all three resolve to one URL.
         const context =
             chapter && register
-                ? { faq: doc.frontmatter.faqs?.[0], chapter, seed: hashSlug(doc.slug), register }
+                ? {
+                      faq: doc.frontmatter.faqs?.[0],
+                      chapter,
+                      seed: hashSlug(doc.slug),
+                      register,
+                      slug: doc.slug,
+                      canonical: doc.frontmatter.canonical ?? doc.href,
+                  }
                 : undefined
 
         const body = await renderArticle(doc.body, doc.locale, context)

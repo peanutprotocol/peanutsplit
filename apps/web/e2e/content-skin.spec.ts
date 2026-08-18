@@ -75,6 +75,34 @@ test.describe('sticker skin', () => {
     })
 })
 
+/**
+ * The SEO loops, on the two blog pilots that author a `<Share>` block.
+ *
+ * The unit suites already prove the block's markup and the campaign helper in isolation; what only
+ * a browser can prove is that the context actually reaches them on a real route — the binding runs
+ * in `content-routes.tsx`, and a block rendering with no context renders nothing at all, which is
+ * exactly the failure a green unit suite would not notice.
+ */
+const SHARE_PILOTS = ['fronting-a-group-trip', 'who-pays-for-the-wine'] as const
+
+test.describe('content SEO loops', () => {
+    for (const slug of SHARE_PILOTS) {
+        test(`/blog/${slug} ships a share block carrying its own campaign-coded canonical`, async ({ page }) => {
+            await page.goto(`/blog/${slug}`)
+
+            const block = page.locator('[data-share-block]')
+            await expect(block).toHaveCount(1)
+            await expect(block).toHaveAttribute('data-share-url', `https://peanutsplit.com/blog/${slug}?campaign=share-${slug}`) // prettier-ignore
+            await expect(block.locator('[data-share-button]')).toBeVisible()
+        })
+    }
+
+    test('the fronting hero CTA points at a campaign-coded /new', async ({ page }) => {
+        await page.goto('/blog/fronting-a-group-trip')
+        await expect(page.locator('a[href="/new?campaign=content-fronting-a-group-trip"]').first()).toBeVisible()
+    })
+})
+
 test.describe('tool page footer pin', () => {
     /**
      * `ToolPage` wraps only the region between the breadcrumbs and the footer in `<SkinFrame>`;
