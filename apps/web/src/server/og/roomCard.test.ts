@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
-import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
+import { BODY_CHARS, BODY_FONT, DISPLAY_FONT, HEADLINE_CHARS, headlineFont, headlineWeight } from '@/server/og/fonts'
 import {
     MAX_AVATARS,
     MAX_MEMBER_CHARS,
@@ -18,8 +18,8 @@ import {
 import { ROOM_FALLBACK_TITLE, roomTitle } from '@/server/og/roomMeta'
 import { DEFAULT_THEME, themeFor } from '@/lib/themes'
 
-const drawableByDisplay = (value: string) => [...value].every((ch) => DISPLAY_CHARS.has(ch))
 const drawableByBody = (value: string) => [...value].every((ch) => BODY_CHARS.has(ch))
+const drawableByHeadline = (value: string) => [...value].every((ch) => HEADLINE_CHARS.has(ch))
 
 describe('sanitizeDisplayName', () => {
     it('keeps a plain ASCII name verbatim', () => {
@@ -34,8 +34,10 @@ describe('sanitizeDisplayName', () => {
         expect(sanitizeDisplayName('Ski trip 🎿')).toBe('Ski trip')
     })
 
-    it('falls back rather than render a name eaten down to digits', () => {
-        expect(sanitizeDisplayName('Кипр 2026')).toBe(NAME_FALLBACK)
+    it('keeps a Ukrainian name whole for the targeted Roboto fallback', () => {
+        expect(sanitizeDisplayName('Київ 2026')).toBe('Київ 2026')
+        expect(sanitizeDisplayName('Подорож до Європи')).toBe('Подорож до Європи')
+        expect(sanitizeDisplayName('Їдемо до Ґанку в Києві')).toBe('Їдемо до Ґанку в Києві')
     })
 
     it('falls back for a wholly non-Latin name', () => {
@@ -55,10 +57,18 @@ describe('sanitizeDisplayName', () => {
         expect(long.length).toBeLessThanOrEqual(MAX_NAME_CHARS + 3)
     })
 
-    it('only ever emits characters the display font can draw', () => {
-        for (const raw of ['Ski trip 🎿', 'Café Zürich', 'Кипр 2026', '東京旅行', 'A~B`C', 'Fête d’été']) {
-            expect(drawableByDisplay(sanitizeDisplayName(raw))).toBe(true)
+    it('only ever emits characters one of the headline fonts can draw', () => {
+        for (const raw of ['Ski trip 🎿', 'Café Zürich', 'Київ 2026', '東京旅行', 'A~B`C', 'Fête d’été']) {
+            expect(drawableByHeadline(sanitizeDisplayName(raw))).toBe(true)
         }
+    })
+
+    it('keeps Knerd for its supported alphabet and targets Roboto at Cyrillic', () => {
+        expect(headlineFont('Ski trip')).toBe(DISPLAY_FONT)
+        expect(headlineWeight('Ski trip')).toBe(400)
+        expect(headlineFont('Київ')).toBe(BODY_FONT)
+        expect(headlineWeight('Київ')).toBe(800)
+        expect(headlineFont('Ski trip Київ')).toBe(BODY_FONT)
     })
 })
 
@@ -69,6 +79,8 @@ describe('sanitizeMemberName', () => {
         expect(sanitizeMemberName('María')).toBe('María')
         expect(sanitizeMemberName('Zoë')).toBe('Zoë')
         expect(sanitizeMemberName('Błażej')).toBe('Błażej')
+        expect(sanitizeMemberName('Анастасія')).toBe('Анастасія')
+        expect(sanitizeMemberName('Ґанна')).toBe('Ґанна')
     })
 
     it('strips decoration without losing the name', () => {
@@ -76,7 +88,6 @@ describe('sanitizeMemberName', () => {
     })
 
     it('falls back rather than render a name eaten down to nothing', () => {
-        expect(sanitizeMemberName('Кипр')).toBe(MEMBER_FALLBACK)
         expect(sanitizeMemberName('東京')).toBe(MEMBER_FALLBACK)
         expect(sanitizeMemberName('  ')).toBe(MEMBER_FALLBACK)
     })
@@ -100,7 +111,7 @@ describe('sanitizeMemberName', () => {
     })
 
     it('only ever emits characters the body font can draw', () => {
-        for (const raw of ['María', '🥜🥜', 'Кипр', 'Ana~`', 'Zoë 東京', 'Fête']) {
+        for (const raw of ['María', '🥜🥜', 'Київ', 'Ana~`', 'Zoë 東京', 'Fête']) {
             expect(drawableByBody(sanitizeMemberName(raw))).toBe(true)
         }
     })
@@ -111,6 +122,7 @@ describe('avatars', () => {
         expect(avatarLetter('Ángela')).toBe('A')
         expect(avatarLetter('  jota')).toBe('J')
         expect(avatarLetter('99 problems')).toBe('9')
+        expect(avatarLetter('Їрина')).toBe('Ї')
     })
 
     it('never returns tofu for a non-Latin name', () => {
@@ -164,7 +176,7 @@ describe('statLine', () => {
     })
 
     it('swaps an undrawable symbol for the ISO code', () => {
-        // `฿` is outside Roboto Latin Extended's cmap — a gap here would read as a rendering bug.
+        // `฿` is outside the shipped Roboto cmap — a gap here would read as a rendering bug.
         expect(safeAmount(50000n, 'THB')).toBe('500.00 THB')
         expect(drawableByBody(statLine(1, 50000n, 'THB'))).toBe(true)
     })

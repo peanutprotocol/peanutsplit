@@ -48,19 +48,18 @@ const html = `<!doctype html>
 <main>
   <div class="eyebrow">Production evidence · 18 August 2026</div>
   <h1>Split locale expansion v1</h1>
-  <p class="lede">One place to review the complete Polish, German, and French product catalogs and the mobile surfaces they produce. Ukrainian is included for transparency but is dormant and cannot ship until a native speaker approves it.</p>
+  <p class="lede">The complete Polish, German, French, and Ukrainian product catalogs and the mobile surfaces they produce.</p>
 
-  <div class="banner"><span class="dot"></span><div><strong>Proposed production batch: Polish + German + French.</strong><p>The switcher, first-paint detection, product UI, room flows, share cards, and Latin-ext OG typography are wired. SEO/content routes remain English, Spanish, and Portuguese until authored translations exist.</p></div></div>
-  <div class="banner"><span class="dot amber"></span><div><strong>Ukrainian hold.</strong><p>The draft is structurally audited but intentionally absent from the runtime locale list. Human native-speaker approval is still mandatory; this AI review does not replace it.</p></div></div>
+  <div class="banner"><span class="dot"></span><div><strong>Runtime batch: Polish + German + French + Ukrainian.</strong><p>The switcher, first-paint detection, product UI, room flows, share cards, and OG typography are wired. SEO/content routes remain English, Spanish, and Portuguese until authored translations exist.</p></div></div>
 
   <section>
     <h2>Release evidence</h2>
     <div class="grid">
-      <article class="card"><div class="status">Catalog integrity</div><h3>${messageCount} / ${messageCount} keys</h3><p>Exact key and placeholder parity against English. Locale-required plural branches compile for Polish, German, French, and dormant Ukrainian.</p></article>
+      <article class="card"><div class="status">Catalog integrity</div><h3>${messageCount} / ${messageCount} keys</h3><p>Exact key and placeholder parity against English. Locale-required plural branches compile for all four expansion locales.</p></article>
       <article class="card"><div class="status">Repository gate</div><h3><code>pnpm verify</code> passed</h3><p>Typecheck, copy and icon audits, web and API tests, database integration checks, and the settlement loop passed in one run.</p></article>
-      <article class="card"><div class="status">Mobile walkthrough</div><h3>12 screenshots</h3><p>Home, room creation, populated room, and settlement were opened through Playwright at 390 × 844 for every proposed locale, with horizontal-overflow assertions.</p></article>
-      <article class="card"><div class="status">Rendering</div><h3>Polish OG glyphs preserved</h3><p>Body typography now uses the pinned Roboto Latin Extended fonts. Real Satori-to-PNG tests cover Polish copy and names; Knerd display branding remains unchanged.</p></article>
-      <article class="card"><div class="status">Scope cut</div><h3>Catalog-only v1</h3><p>No speculative translated SEO pages, hreflang entries, or sitemap URLs. Those require authored content and are recorded as v1.1 work.</p></article>
+      <article class="card"><div class="status">Mobile walkthrough</div><h3>17 screenshots</h3><p>Home, room creation, populated room, and settlement were opened through Playwright at 390 × 844 for all four expansion locales. Ukrainian also covers the settled recap. Every surface asserts against horizontal overflow.</p></article>
+      <article class="card"><div class="status">Rendering</div><h3>Latin and Cyrillic glyphs preserved</h3><p>Real Satori-to-PNG tests cover Polish and Ukrainian copy and names.</p></article>
+      <article class="card"><div class="status">Scope cut</div><h3>Product UI only</h3><p>No speculative translated SEO pages, hreflang entries, or sitemap URLs. Those require authored content and are recorded as v1.1 work.</p></article>
     </div>
   </section>
 
@@ -70,14 +69,14 @@ const html = `<!doctype html>
       <article class="card"><div class="status">PL · ready for gate</div><h3>Polski</h3><p>Informal singular voice. Core terms: <em>pokój, wydatek, saldo, rozliczenie, płatność</em>. Polish count morphology and neutral former-member copy are explicit.</p></article>
       <article class="card"><div class="status">DE · ready for gate</div><h3>Deutsch</h3><p>Informal <em>du/ihr</em>. Core terms: <em>Gruppe, Ausgabe, Saldo, Aufteilung, Ausgleichen, Zahlung</em>. Payment and accounting directions were independently checked.</p></article>
       <article class="card"><div class="status">FR · ready for gate</div><h3>Français</h3><p>Informal <em>tu</em>. Core terms: <em>groupe, dépense, solde, paiement, régler les comptes</em>. Elision, imported-payment behavior, and former-member action truth were rechecked.</p></article>
-      <article class="card"><div class="status hold">UK · dormant</div><h3>Українська</h3><p>AI-reviewed draft only. The runtime cannot select or auto-detect it. Native-speaker review remains the release gate.</p></article>
+      <article class="card"><div class="status">UK · runtime ready</div><h3>Українська</h3><p>Selectable, auto-detected from <code>uk</code> browser preferences, and covered by the full mobile room flow. The native-review hold was explicitly overridden.</p></article>
     </div>
   </section>
 
   <section>
     <h2>Opened mobile surfaces</h2>
     <div class="screens">
-      ${['pl', 'de', 'fr']
+      ${['pl', 'de', 'fr', 'uk']
           .map(
               (locale) =>
                   `<article class="shot-set"><h3>${locale.toUpperCase()} <span>390 × 844</span></h3><div class="shots">${[
@@ -85,6 +84,7 @@ const html = `<!doctype html>
                       ['new', 'Create room'],
                       ['room', 'Room + expenses'],
                       ['settle', 'Settle flow'],
+                      ...(locale === 'uk' ? [['recap', 'Settled recap']] : []),
                   ]
                       .map(
                           ([file, label]) =>
@@ -97,24 +97,39 @@ const html = `<!doctype html>
   </section>
 
   <section>
+    <h2>Ukrainian social previews</h2>
+    <p class="lede">These are the real PNG responses from the room unfurl and share-card routes, not browser mockups.</p>
+    <div class="screens">
+      <article class="shot-set"><h3>UK <span>1200 × 630</span></h3><div class="shots">${[
+          ['uk-og-room', 'Room unfurl'],
+          ['uk-card-invite', 'Invite card'],
+          ['uk-card-crew', 'Crew card'],
+          ['uk-card-recap', 'Settled recap card'],
+      ]
+          .map(
+              ([file, label]) =>
+                  `<figure><a href="screenshots/${file}.png"><img loading="lazy" src="screenshots/${file}.png" alt="${label} in Ukrainian"></a><figcaption>${label}</figcaption></figure>`
+          )
+          .join('')}</div></article>
+    </div>
+  </section>
+
+  <section>
     <h2>Complete catalog comparison</h2>
-    <p class="lede">Search by dotted key or text. English is the semantic source. Ukrainian is highlighted because it is review-only and excluded from this production batch.</p>
+    <p class="lede">Search by dotted key or text. English is the semantic source.</p>
     <div class="catalog-shell">
       <div class="toolbar">
         <input id="search" type="search" placeholder="Search ${messageCount} keys and translations…" autocomplete="off">
         ${localeCodes
             .map(
                 (locale) =>
-                    `<label><input type="checkbox" data-locale="${locale}" ${locale === 'uk' ? '' : 'checked'}> ${locale.toUpperCase()}</label>`
+                    `<label><input type="checkbox" data-locale="${locale}" checked> ${locale.toUpperCase()}</label>`
             )
             .join('')}
         <span class="count" id="count"></span>
       </div>
       <div class="table-wrap"><table><thead><tr><th>Message key</th>${localeCodes
-          .map(
-              (locale) =>
-                  `<th data-col="${locale}" class="locale-col ${locale === 'uk' ? 'uk hidden-col' : ''}">${locale}</th>`
-          )
+          .map((locale) => `<th data-col="${locale}" class="locale-col">${locale}</th>`)
           .join(
               ''
           )}</tr></thead><tbody id="catalog"></tbody></table><div class="empty" id="empty" hidden>No matching messages.</div></div>
@@ -122,7 +137,7 @@ const html = `<!doctype html>
   </section>
 
   <section>
-    <div class="banner"><span class="dot"></span><div><strong>Production authorized</strong><p>Polish, German, and French are approved for deployment. Ukrainian remains held.</p></div></div>
+    <div class="banner"><span class="dot"></span><div><strong>Release candidate authorized</strong><p>Polish, German, French, and Ukrainian are approved for end-to-end verification.</p></div></div>
   </section>
   <footer>Generated from the exact working-tree catalogs by <code>apps/web/scripts/build-locale-review.mjs</code>.</footer>
 </main>
@@ -138,7 +153,7 @@ function escapeHtml(value){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','
 function render(){
   const query=search.value.trim().toLocaleLowerCase();
   const visible=rows.filter(row=>!query||Object.values(row).some(value=>value.toLocaleLowerCase().includes(query)));
-  tbody.innerHTML=visible.map(row=>'<tr><td>'+escapeHtml(row.key)+'</td>'+locales.map(locale=>'<td data-col="'+locale+'" class="'+(locale==='uk'?'uk ':'')+(document.querySelector('[data-locale="'+locale+'"]').checked?'':'hidden-col')+'">'+escapeHtml(row[locale])+'</td>').join('')+'</tr>').join('');
+  tbody.innerHTML=visible.map(row=>'<tr><td>'+escapeHtml(row.key)+'</td>'+locales.map(locale=>'<td data-col="'+locale+'" class="'+(document.querySelector('[data-locale="'+locale+'"]').checked?'':'hidden-col')+'">'+escapeHtml(row[locale])+'</td>').join('')+'</tr>').join('');
   count.textContent=visible.length.toLocaleString()+' / '+rows.length.toLocaleString()+' messages';
   empty.hidden=visible.length!==0;
 }

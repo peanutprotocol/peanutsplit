@@ -168,6 +168,24 @@ describe('achievement cards', () => {
         expect(alterEgo.award).toBe('Domknięcie rozliczeń')
     })
 
+    it('keeps every Ukrainian letter in the share-card copy and room identity', async () => {
+        await prisma.room.update({ where: { slug: slugOf('uk') }, data: { name: 'Їдемо до Ґанку в Києві' } })
+        const invite = (await buildFixtureCard('invite', 'uk')) as Extract<AchievementCardData, { kind: 'invite' }>
+        expect(invite).toMatchObject({
+            name: 'Їдемо до Ґанку в Києві',
+            inviter: 'Запрошення:',
+            label: 'Спільні витрати групи',
+            line: 'Приєднуйся й додай свої витрати.',
+            rosterLabel: 'УЖЕ В РОЗПОДІЛІ',
+            rosterLine: '5 людей уже тут',
+            proof: 'без реєстрації · безкоштовно назавжди',
+        })
+
+        const landing = (await buildFixtureCard('landing', 'uk')) as Extract<AchievementCardData, { kind: 'landing' }>
+        expect(landing.title).toBe('БЕЗ БОРГІВ')
+        await prisma.room.update({ where: { slug: slugOf('uk') }, data: { name: FIXTURE_ROOM_NAME } })
+    })
+
     it('personalizes only from a member who actually belongs to this room', async () => {
         const [sharerId] = fixtureMemberIds.get('en') ?? []
         const personalized = (await loadInviteCard(slugOf('en'), sharerId)) as Extract<
@@ -381,6 +399,7 @@ describe('achievement cards', () => {
             'WSZYSCY ROZLICZENI',
             'ALLES AUSGEGLICHEN',
             'COMPTES RÉGLÉS',
+            'БЕЗ БОРГІВ',
         ])
     })
 })

@@ -10,8 +10,8 @@
  *    with `import(\`./messages/${locale}.json\`)` or an `fs.readFile`.
  *
  * 2. **One catalog per request, lazily.** The map holds *importers*, not modules, so a request
- *    serving `es-419` never pulls `en` or `pt-br` into memory. Eager-loading all three, or preloading
- *    the fallback alongside the active locale, is the measured regression this shape exists to
+ *    serving `es-419` never pulls any other catalog into memory. Eager-loading every catalog, or
+ *    preloading the fallback alongside the active locale, is the measured regression this shape exists to
  *    prevent.
  */
 
@@ -27,6 +27,7 @@ const LOADERS: Record<Locale, () => Promise<{ default: Messages }>> = {
     pl: () => import('./messages/pl.json'),
     de: () => import('./messages/de.json'),
     fr: () => import('./messages/fr.json'),
+    uk: () => import('./messages/uk.json'),
 }
 
 const cache = new Map<Locale, Messages>()

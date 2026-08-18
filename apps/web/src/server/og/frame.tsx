@@ -27,7 +27,7 @@ import { avatarPalette, avatarPaletteForIdentity, isAvatarPaletteKey } from '@/l
 import { avatarArt } from '@/lib/avatars'
 import { siteUrl } from '@/lib/site'
 import { doodleDataUri } from '@/server/og/emblem'
-import { BODY_FONT, DISPLAY_FONT } from '@/server/og/fonts'
+import { BODY_FONT, DISPLAY_FONT, headlineFont, headlineWeight } from '@/server/og/fonts'
 
 export const OG_SIZE = { width: 1200, height: 630 } as const
 export const OG_CONTENT_TYPE = 'image/png'
@@ -276,12 +276,19 @@ export function Tick({ size }: { size: number }) {
  * The settled stamp — off-axis, because a stamp that is square to the page reads
  * as a badge the layout put there rather than one somebody banged on.
  *
- * `label` is optional and the omission is the interesting case: the recap card
- * stamps the English word SETTLED beside its money, but the landing card's own
- * Knerd headline already says ALL SQUARE / A MANO / QUITES, so a word under it
- * would either repeat the headline or, unlocalized, make the card bilingual by
- * accident. There, the tick alone is the stamp.
+ * `label` is optional because the landing achievement already states the result
+ * in its localized headline. Recaps pass their localized settled verdict. Long
+ * German, Polish and Ukrainian labels step down rather than widening the stamp
+ * into the room name beside it.
  */
+export function settledStampFontSize(label: string): number {
+    const length = [...label].length
+    if (length <= 11) return 36
+    if (length <= 14) return 30
+    if (length <= 17) return 25
+    return 22
+}
+
 export function SettledStamp({ label }: { label?: string }) {
     return (
         <div
@@ -299,7 +306,17 @@ export function SettledStamp({ label }: { label?: string }) {
         >
             <Tick size={38} />
             {label ? (
-                <div style={{ display: 'flex', marginLeft: 12, fontFamily: DISPLAY_FONT, fontSize: 36, color: INK }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        marginLeft: 12,
+                        fontFamily: headlineFont(label),
+                        fontWeight: headlineWeight(label),
+                        fontSize: settledStampFontSize(label),
+                        lineHeight: 1,
+                        color: INK,
+                    }}
+                >
                     {label}
                 </div>
             ) : null}

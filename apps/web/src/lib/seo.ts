@@ -39,6 +39,7 @@ const OG_LOCALE: Record<Locale, string> = {
     pl: 'pl_PL',
     de: 'de_DE',
     fr: 'fr_FR',
+    uk: 'uk_UA',
 }
 
 /** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
@@ -157,6 +158,7 @@ const DATE_LOCALE: Record<Locale, string> = {
     pl: 'pl-PL',
     de: 'de-DE',
     fr: 'fr-FR',
+    uk: 'uk-UA',
 }
 
 export function formatDate(iso: string, locale: Locale = DEFAULT_LOCALE): string {

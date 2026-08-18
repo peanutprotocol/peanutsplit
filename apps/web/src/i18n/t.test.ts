@@ -6,6 +6,7 @@ describe('translate', () => {
     it('resolves in the requested locale', async () => {
         await expect(translate('es-419', 'dates.today')).resolves.toBe('Hoy')
         await expect(translate('pt-br', 'dates.today')).resolves.toBe('Hoje')
+        await expect(translate('uk', 'dates.today')).resolves.toBe('Сьогодні')
     })
 
     it('interpolates', async () => {
@@ -51,6 +52,7 @@ describe('asLocale', () => {
         expect(asLocale('es-ES')).toBe('es-419')
         expect(asLocale('pt-BR')).toBe('pt-br')
         expect(asLocale('pt')).toBe('pt-br')
+        expect(asLocale('uk-UA')).toBe('uk')
     })
 
     it('falls back to English for a language we do not ship', () => {

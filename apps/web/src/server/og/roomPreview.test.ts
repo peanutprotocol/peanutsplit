@@ -129,8 +129,8 @@ describe('every localized preview string is drawable', () => {
     const drawable = (value: string) => [...value].filter((ch) => !BODY_CHARS.has(ch))
 
     /**
-     * The load-bearing check. Spanish and Portuguese need Latin-1; Polish needs
-     * Latin Extended. The shipped body font covers both, but a catalog is edited
+     * The load-bearing check. Spanish and Portuguese need Latin-1, Polish needs
+     * Latin Extended and Ukrainian needs Cyrillic. The shipped body font covers all, but a catalog is edited
      * by people, and one pasted character outside its cmap would render as a gap
      * nobody would notice until it was in a group chat.
      */
@@ -169,6 +169,15 @@ describe('every localized preview string is drawable', () => {
         const copy = await cardCopy('pl')
         expect(statLine(4, 1250n, 'EUR', copy)).toBe('4 wydatki · łącznie €12.50')
         expect(peopleLine(4, copy)).toBe('4 osoby')
+    })
+
+    it('keeps Ukrainian Cyrillic instead of making a drawable but empty sentence', async () => {
+        const pangram = 'Ще не вмерла України ні слава, ні воля'
+        expect(bodySafe(pangram)).toBe(pangram)
+
+        const copy = await cardCopy('uk')
+        expect(statLine(4, 1250n, 'EUR', copy)).toBe('4 витрати · наразі €12.50')
+        expect(peopleLine(4, copy)).toBe('4 людини')
     })
 
     it.each(LOCALES)('%s says something rather than falling through to a key', async (locale) => {

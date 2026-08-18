@@ -23,6 +23,7 @@ import { emblemDataUri } from '@/server/og/emblem'
 import { ogFonts } from '@/server/og/fonts'
 import { loadRecap, toRecapCard } from '@/server/og/recapCard'
 import { RecapCard } from '@/server/og/recapCardArt'
+import { getTranslator } from '@/i18n/t'
 
 /**
  * The recap PNG for a slug, always 200.
@@ -50,7 +51,9 @@ export async function recapImageResponse(slug: string, onLookupMiss?: () => void
 
     if (lookup.missed) onLookupMiss?.()
 
-    const card = lookup.recap ? toRecapCard(lookup.recap) : null
+    // A crawler has no trustworthy locale cookie. The room itself owns the
+    // language of the card, exactly as it does for the ordinary room unfurl.
+    const card = lookup.recap ? toRecapCard(lookup.recap, await getTranslator(lookup.recap.locale ?? 'en')) : null
     const emojiSrc = card ? emblemDataUri(card.emblem) : null
 
     return new ImageResponse(

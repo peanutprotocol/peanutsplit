@@ -19,7 +19,7 @@
  */
 import type { ReactElement } from 'react'
 import type { CardKind } from '@/lib/achievements-contract'
-import { DISPLAY_FONT, INVITE_FONT } from '@/server/og/fonts'
+import { DISPLAY_FONT, INVITE_FONT, headlineFont, headlineWeight } from '@/server/og/fonts'
 import {
     BLOBS_LEFT,
     cardDomain,
@@ -47,7 +47,16 @@ import type { AchievementCardData, CurrencyStamp } from '@/server/og/achievement
 const Footer = ({ ink }: { ink: string }) => <Wordmark note={cardDomain()} noteColor={ink} height={88} />
 
 const Title = ({ text, size = 88 }: { text: string; size?: number }) => (
-    <div style={{ display: 'flex', fontFamily: DISPLAY_FONT, fontSize: size, lineHeight: 1.05, color: INK }}>
+    <div
+        style={{
+            display: 'flex',
+            fontFamily: headlineFont(text),
+            fontWeight: headlineWeight(text),
+            fontSize: size,
+            lineHeight: 1.05,
+            color: INK,
+        }}
+    >
         {text}
     </div>
 )

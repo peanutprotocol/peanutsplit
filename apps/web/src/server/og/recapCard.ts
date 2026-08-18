@@ -15,9 +15,17 @@
  */
 import { roomEmblemValue } from '@/lib/room-emblem'
 import { daySpan } from '@/lib/story'
+import type { Translator } from '@/i18n/t'
 import { prisma } from '@/server/db'
 import { balancesOf, type BalanceInput } from '@/server/roomState'
-import { MAX_AVATARS, safeAmount, sanitizeDisplayName, sanitizeMemberName } from '@/server/og/roomCard'
+import {
+    bodySafe,
+    headlineSafe,
+    MAX_AVATARS,
+    safeAmount,
+    sanitizeDisplayName,
+    sanitizeMemberName,
+} from '@/server/og/roomCard'
 
 /** The lean row shape `loadRecap` selects. Declared, not inferred, so the query
  *  and the derivation cannot drift apart silently. */
@@ -25,6 +33,7 @@ export interface RecapRoomRow {
     name: string
     emoji: string | null
     currency: string
+    locale: string | null
     members: {
         id: string
         name: string
@@ -60,6 +69,8 @@ export interface RoomRecap {
     name: string
     emoji: string | null
     currency: string
+    /** The room's creation locale, not the current viewer's cookie. */
+    locale: string | null
     /** Minor units as a decimal string — a BigInt never crosses into a client prop. */
     totalMinor: string
     expenseCount: number
@@ -81,10 +92,12 @@ export interface RecapCardData {
     emblem: string
     /** The hero number: "€2340.00". */
     total: string
-    /** "9 days · 14 expenses · 6 people" */
+    /** Localized "9 days · 14 expenses · 6 people". */
     stat: string
-    /** "María fronted the most", or null when the line would be silly. */
+    /** Localized top-payer sentence, or null when the line would be silly. */
     topPayer: string | null
+    /** Localized all-settled verdict, sanitized for the stamp's headline font. */
+    settledLabel: string
     /**
      * Avatar and reviewed palette keys, in roster order, capped at `MAX_AVATARS` — NOT letters.
      * The card draws the same personas the recap page draws, so the two halves of one artefact
@@ -148,6 +161,7 @@ export function toRoomRecap(room: RecapRoomRow): RoomRecap {
         name: room.name,
         emoji: room.emoji,
         currency: room.currency,
+        locale: room.locale,
         totalMinor: total.toString(),
         expenseCount: room.expenses.length,
         memberCount: activeMembers.length,
@@ -163,14 +177,17 @@ export function toRoomRecap(room: RecapRoomRow): RoomRecap {
     }
 }
 
-/** "9 days · 14 expenses · 6 people". The day count drops out of an empty room
- *  rather than printing "0 days" next to "0 expenses". */
-export function recapStatLine(recap: Pick<RoomRecap, 'dayCount' | 'expenseCount' | 'memberCount'>): string {
+/** Localized day / expense / people line. The day count drops out of an empty
+ * room rather than printing "0 days" next to "0 expenses". */
+export function recapStatLine(
+    recap: Pick<RoomRecap, 'dayCount' | 'expenseCount' | 'memberCount'>,
+    t: Translator
+): string {
     const parts: string[] = []
-    if (recap.dayCount > 0) parts.push(`${recap.dayCount} ${recap.dayCount === 1 ? 'day' : 'days'}`)
-    parts.push(`${recap.expenseCount} ${recap.expenseCount === 1 ? 'expense' : 'expenses'}`)
-    parts.push(`${recap.memberCount} ${recap.memberCount === 1 ? 'person' : 'people'}`)
-    return parts.join(' · ')
+    if (recap.dayCount > 0) parts.push(t('room.recap.days', { count: recap.dayCount }))
+    parts.push(t('room.recap.expenses', { count: recap.expenseCount }))
+    parts.push(t('room.recap.people', { count: recap.memberCount }))
+    return bodySafe(parts.join(' · '))
 }
 
 /**
@@ -179,7 +196,7 @@ export function recapStatLine(recap: Pick<RoomRecap, 'dayCount' | 'expenseCount'
  * The top-payer line is suppressed below two members: "Ana fronted the most" in
  * a room where Ana is the only person is a true sentence that reads as a bug.
  */
-export function toRecapCard(recap: RoomRecap): RecapCardData {
+export function toRecapCard(recap: RoomRecap, t: Translator): RecapCardData {
     const personas = recap.members.slice(0, MAX_AVATARS).map((member) => ({
         avatar: member.avatar,
         palette: member.avatarPalette,
@@ -187,7 +204,7 @@ export function toRecapCard(recap: RoomRecap): RecapCardData {
     const overflow = Math.max(0, recap.members.length - MAX_AVATARS)
     const topPayer =
         recap.topPayerName !== null && recap.memberCount > 1
-            ? `${sanitizeMemberName(recap.topPayerName)} fronted the most`
+            ? bodySafe(t('room.recap.topPayer', { name: sanitizeMemberName(recap.topPayerName) }))
             : null
     return {
         name: sanitizeDisplayName(recap.name),
@@ -197,8 +214,9 @@ export function toRecapCard(recap: RoomRecap): RecapCardData {
         // emblem follows what the room is actually called.
         emblem: roomEmblemValue(recap.emoji, recap.name),
         total: safeAmount(BigInt(recap.totalMinor), recap.currency),
-        stat: recapStatLine(recap),
+        stat: recapStatLine(recap, t),
         topPayer,
+        settledLabel: headlineSafe(t('room.recap.settledBadge')),
         personas,
         overflow,
         settled: recap.settled,
@@ -218,6 +236,7 @@ export async function loadRecap(slug: string): Promise<RoomRecap | null> {
             name: true,
             emoji: true,
             currency: true,
+            locale: true,
             // `avatar` is what the page draws each face with. Without it every
             // member on the recap fell through to the neutral peanut.
             members: {

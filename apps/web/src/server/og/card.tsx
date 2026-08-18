@@ -13,7 +13,7 @@
  */
 import { DEFAULT_THEME } from '@/lib/themes'
 import { doodleDataUri } from '@/server/og/emblem'
-import { DISPLAY_FONT } from '@/server/og/fonts'
+import { DISPLAY_FONT, headlineFont, headlineWeight } from '@/server/og/fonts'
 import { BLOBS_RIGHT, disc, Field, INK, MUTED, Sheet, Wordmark } from '@/server/og/frame'
 import { AVATAR_COLORS, ENGLISH_CARD_COPY, type OgAvatar, type RoomCardData } from '@/server/og/roomCard'
 
@@ -43,7 +43,8 @@ function AvatarRow({ avatars, overflow, people }: { avatars: OgAvatar[]; overflo
                     style={{
                         ...disc(80, avatar.color),
                         marginLeft: i === 0 ? 0 : -18,
-                        fontFamily: DISPLAY_FONT,
+                        fontFamily: headlineFont(avatar.letter),
+                        fontWeight: headlineWeight(avatar.letter),
                         fontSize: 34,
                     }}
                 >
@@ -80,7 +81,14 @@ export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: str
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={emojiSrc} width={128} height={128} alt="" style={{ flexShrink: 0 }} />
                     ) : (
-                        <div style={{ ...disc(128, card.theme.field), fontFamily: DISPLAY_FONT, fontSize: 60 }}>
+                        <div
+                            style={{
+                                ...disc(128, card.theme.field),
+                                fontFamily: headlineFont(card.name.slice(0, 1)),
+                                fontWeight: headlineWeight(card.name.slice(0, 1)),
+                                fontSize: 60,
+                            }}
+                        >
                             {card.name.slice(0, 1).toUpperCase()}
                         </div>
                     )}
@@ -89,7 +97,8 @@ export function RoomCard({ card, emojiSrc }: { card: RoomCardData; emojiSrc: str
                             display: 'flex',
                             marginLeft: 30,
                             maxWidth: 800,
-                            fontFamily: DISPLAY_FONT,
+                            fontFamily: headlineFont(card.name),
+                            fontWeight: headlineWeight(card.name),
                             fontSize: nameFontSize(card.name),
                             lineHeight: 1.1,
                             color: INK,

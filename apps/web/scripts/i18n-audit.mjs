@@ -38,8 +38,8 @@ const srcRoot = join(appRoot, 'src')
 const messagesRoot = join(srcRoot, 'i18n/messages')
 
 const DEFAULT_LOCALE = 'en'
-// `uk` is catalog-gated while its native-speaker approval is pending. It deliberately does not
-// appear in src/i18n/locales.ts yet, so it cannot be selected or auto-negotiated in production.
+// Keep this in lockstep with src/i18n/locales.ts. The audit runs without the TypeScript loader,
+// so the JSON catalog list remains explicit here.
 const LOCALES = ['en', 'es-419', 'pt-br', 'pl', 'de', 'fr', 'uk']
 
 // ---------------------------------------------------------------- catalogs

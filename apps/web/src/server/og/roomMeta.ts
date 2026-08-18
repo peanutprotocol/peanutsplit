@@ -30,9 +30,9 @@ export const ROOM_FALLBACK_DESCRIPTION = 'Split expenses with one link. No signu
  * The description is the sentence Split says on their behalf, which is the part
  * that was always English at somebody who does not read it.
  *
- * Unlike the OG image, this is HTML — no glyph budget, no sanitizing. A Cyrillic
- * room name renders fine in a tab title and in every chat preview; the image is
- * where the fonts bite, and `roomCard.ts` handles that end.
+ * Unlike the OG image, this is HTML — no glyph budget, no sanitizing. The image
+ * has to pick Knerd or the Cyrillic-capable Roboto face explicitly, which is why
+ * `roomCard.ts` handles that end.
  */
 const roomDescription = async (locale: string | null): Promise<string> =>
     (await getTranslator(locale ?? 'en'))('preview.roomDescription')
@@ -96,9 +96,8 @@ export async function roomMetadata(slug: string): Promise<Metadata> {
  * it. The room unfurl is a stranger's only look at the product before they decide
  * to tap; the recap is reached from inside a room by somebody already using it,
  * and what actually gets shared out of it is an image file rather than this link.
- * Its glyph budget is fine — the recap card draws in the same Latin Extended body font —
- * so this is scope, not capability, and it is a one-line change here plus the
- * card's own strings whenever the recap is worth localizing.
+ * The shared recap image is localized from the room's stored locale. Keeping this
+ * private page metadata in English is a scope choice, not a font limitation.
  */
 export async function recapMetadata(slug: string): Promise<Metadata> {
     const room = await prisma.room

@@ -58,14 +58,14 @@ describe('achievement card route', () => {
                 slug: SLUG,
                 // A hostile name, a legacy emoji emblem and a non-default theme, so
                 // the sanitizers and the theme catalog are on the same render.
-                name: 'Ski trip 🎿 東京 and a rather long tail besides',
+                name: 'Їдемо до Ґанку в Києві 🎿 東京',
                 emoji: '🎿',
                 currency: 'EUR',
                 theme: 'coral',
-                locale: 'pl',
+                locale: 'uk',
                 members: {
                     create: Array.from({ length: 11 }, (_, i) => ({
-                        name: `Member ${i}`,
+                        name: ['Їрина', 'Євген', 'Олена', 'Богдан', 'Андрій', 'Марія'][i % 6] + ` ${i}`,
                         token: `tok-${i}`,
                         avatar: i === 0 ? null : ['wizard-frog', 'disco-octopus', 'tea-dragon', 'cozy-ghost'][i % 4],
                     })),
@@ -99,7 +99,7 @@ describe('achievement card route', () => {
     afterAll(() => resetRateLimits())
 
     it.each(CARD_KINDS)(
-        'rasterizes the %s card',
+        'rasterizes the Ukrainian %s card',
         async (kind) => {
             const query = kind === 'alterego' ? '?a=theCloser&p=wizard-frog&c=lagoon-grape' : ''
             const { response, bytes } = await call(SLUG, kind, query)
@@ -108,7 +108,7 @@ describe('achievement card route', () => {
         30_000
     )
 
-    it('rasterizes a personalized invite without leaving a cacheable representation', async () => {
+    it('rasterizes a personalized Ukrainian invite without leaving a cacheable representation', async () => {
         const { response, bytes } = await postInvite(SLUG, SHARER_ID)
         expect(response.status).toBe(200)
         expect([...bytes.slice(0, 4)]).toEqual(PNG_MAGIC)
