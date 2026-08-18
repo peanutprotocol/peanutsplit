@@ -105,8 +105,8 @@ export type AchievementCardData =
  * Resolved through `getTranslator` for the reason `roomCard.ts` gives: this is
  * not a component, and `i18n/t.ts` is deliberately not an ICU implementation. So
  * `card.*` holds no plural syntax — the WRAPPED cards draw numerals beside
- * drawings instead of writing counts, which is what makes them free of plurals
- * in three languages.
+ * drawings instead of writing counts, which is what keeps them free of plural
+ * rules as the catalog set grows.
  */
 type Copy = (key: string, params?: Record<string, string | number>) => string | Promise<string>
 
@@ -222,7 +222,7 @@ export async function toAlterEgoCard(
         theme: themeFor(room.theme),
         title: displaySafe(await t('card.alterego.title')),
         line: bodySafe(await t('card.alterego.line')),
-        // Set in Sniglet by the art, not in Knerd: `Leyenda de la cuenta` is four
+        // Set in the body face by the art, not in Knerd: `Leyenda de la cuenta` is four
         // words, and the display face stops being a headline past two.
         award: bodySafe(await t(`card.award.${params.award}`)),
         persona: params.persona,

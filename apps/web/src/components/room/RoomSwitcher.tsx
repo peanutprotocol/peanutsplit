@@ -82,8 +82,6 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                     <CloseButton onClick={onClose} label={t('closeRoomSwitcher')} />
                 </DrawerHeader>
                 <DrawerBody>
-                    <p className="text-sm text-grey-1">{t('switchRoomsHint')}</p>
-
                     <div className="flex flex-col gap-2">
                         <div role="group" aria-label={room.name} className={cn(compoundRowClass, 'bg-primary-3')}>
                             <div aria-current="page" data-testid="room-switcher-current" className={rowBodyClass}>
@@ -162,15 +160,12 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                             </span>
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-bold">{t('addOrJoinRoom')}</span>
-                                <span className="block truncate text-sm text-grey-1">{t('roomOptionsHint')}</span>
                             </span>
                             <Icon name="chevron-right" size={18} className="shrink-0" aria-hidden="true" />
                         </Link>
                     </div>
 
-                    <p className="text-sm text-grey-1">
-                        {recent.length > 0 ? t('recentRoomsNote') : t('noOtherRoomsNote')}
-                    </p>
+                    {recent.length > 0 && <p className="text-sm text-grey-1">{t('recentRoomsNote')}</p>}
                 </DrawerBody>
             </DrawerContent>
         </Drawer>

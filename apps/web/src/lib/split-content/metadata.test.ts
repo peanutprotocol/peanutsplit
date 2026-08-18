@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import enMessages from '@/i18n/messages/en.json'
 import esMessages from '@/i18n/messages/es-419.json'
 import ptBrMessages from '@/i18n/messages/pt-br.json'
-import { LOCALES, type Locale } from '@/i18n/locales'
+import { INDEXED_LOCALES, type IndexedLocale } from '@/i18n/locales'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { ORGANIZATION_ID } from '@/lib/seo'
 import { getSplitGuide } from './artifact'
@@ -13,7 +13,7 @@ import { splitGuideCrumbs, splitGuideSchemas } from './metadata'
  * the hardcoded labels are the ones `/blog` renders — otherwise the same trail reads two ways on
  * two pages of the same site, and nothing would catch it.
  */
-const CATALOGS: Record<Locale, { content: { home: string; guides: string } }> = {
+const CATALOGS: Record<IndexedLocale, { content: { home: string; guides: string } }> = {
     en: enMessages,
     'es-419': esMessages,
     'pt-br': ptBrMessages,
@@ -23,7 +23,7 @@ const CATALOGS: Record<Locale, { content: { home: string; guides: string } }> = 
 const SLUG = 'ask-a-friend-to-pay-you-back'
 
 describe('Split guide breadcrumbs', () => {
-    it.each(LOCALES)('speaks %s in the same words the hub does', (locale) => {
+    it.each(INDEXED_LOCALES)('speaks %s in the same words the hub does', (locale) => {
         const guide = getSplitGuide(locale, SLUG)
         expect(guide, locale).not.toBeNull()
         const crumbs = splitGuideCrumbs(guide!)

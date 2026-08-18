@@ -75,7 +75,6 @@ export function HistorySheet({
                     <div className="flex items-end justify-between gap-3">
                         <div>
                             <DrawerTitle className="text-h5">{t('title')}</DrawerTitle>
-                            <p className="mt-1 text-sm text-grey-1">{t('intro')}</p>
                         </div>
                         <CloseButton onClick={onClose} label={t('close')} data-testid="close-history-sheet" />
                     </div>

@@ -18,8 +18,7 @@ import { riseSoftVariants, sceneVariants } from './motion'
  * on a page about money between friends.
  *
  * A sheet rather than more hero copy: the doubt arrives at a specific moment (looking at the
- * URL), and the answer is four sentences long — too much for the fold, too important to bury
- * behind a toggle most people never open.
+ * URL), and four self-contained answers are too much for the fold but useful on demand.
  */
 export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () => void }) {
     const t = useTranslations('marketing.linkExplainer')
@@ -60,9 +59,6 @@ export function LinkExplainer({ open, onClose }: { open: boolean; onClose: () =>
                                 </span>
                                 <span className="flex-1">
                                     <span className="block text-h7">{t(`${point}.title`)}</span>
-                                    <span className="mt-1 block text-sm leading-5 text-grey-1">
-                                        {t(`${point}.body`)}
-                                    </span>
                                 </span>
                             </motion.li>
                         ))}

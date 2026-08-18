@@ -5,7 +5,14 @@ const COLUMN = 'mx-auto w-full max-w-xl px-5'
 
 /** Copied from `BLOCK_LABELS.faq` in `components.tsx`, not new copy (Invariants #6) — not
  *  imported from there to avoid a circular import (`components.tsx` imports this module). */
-const JUMP_LABEL: Record<Locale, string> = { en: 'Questions', 'es-419': 'Preguntas', 'pt-br': 'Perguntas' }
+const JUMP_LABEL: Record<Locale, string> = {
+    en: 'Questions',
+    'es-419': 'Preguntas',
+    'pt-br': 'Perguntas',
+    pl: 'Pytania',
+    de: 'Fragen',
+    fr: 'Questions',
+}
 
 /**
  * The flat 2-line answer under an article's <h1> (fun-engine.md S4): the page's own first

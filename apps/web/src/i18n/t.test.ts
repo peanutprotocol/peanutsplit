@@ -24,7 +24,7 @@ describe('translate', () => {
     })
 
     it('treats an unsupported locale as English rather than failing to load a catalog', async () => {
-        await expect(translate('fr', 'dates.today')).resolves.toBe('Today')
+        await expect(translate('it', 'dates.today')).resolves.toBe('Today')
     })
 
     /**
@@ -54,7 +54,7 @@ describe('asLocale', () => {
     })
 
     it('falls back to English for a language we do not ship', () => {
-        expect(asLocale('fr')).toBe('en')
+        expect(asLocale('it')).toBe('en')
         expect(asLocale('')).toBe('en')
         expect(asLocale('not-a-tag')).toBe('en')
     })

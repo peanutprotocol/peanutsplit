@@ -36,6 +36,9 @@ const OG_LOCALE: Record<Locale, string> = {
     en: 'en_US',
     'es-419': 'es_LA',
     'pt-br': 'pt_BR',
+    pl: 'pl_PL',
+    de: 'de_DE',
+    fr: 'fr_FR',
 }
 
 /** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
@@ -147,7 +150,14 @@ export function appPageMetadata(input: PageMetaInput): Metadata {
  * the month name. `en-GB` rather than `en-US` for English — "28 July 2026" reads as a date in
  * both, where "July 28, 2026" reads as American to everyone else.
  */
-const DATE_LOCALE: Record<Locale, string> = { en: 'en-GB', 'es-419': 'es-419', 'pt-br': 'pt-BR' }
+const DATE_LOCALE: Record<Locale, string> = {
+    en: 'en-GB',
+    'es-419': 'es-419',
+    'pt-br': 'pt-BR',
+    pl: 'pl-PL',
+    de: 'de-DE',
+    fr: 'fr-FR',
+}
 
 export function formatDate(iso: string, locale: Locale = DEFAULT_LOCALE): string {
     const date = new Date(`${iso}T00:00:00Z`)

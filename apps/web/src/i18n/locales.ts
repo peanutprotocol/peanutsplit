@@ -1,9 +1,9 @@
 /**
  * The locale set, and nothing else.
  *
- * SPEC locks it to three, and four unrelated places need to agree on that list: the request
- * config, the tiny server helper, the switcher, and the audit script. Anything that hardcodes a
- * locale string somewhere else is how a fourth locale ships half-wired.
+ * The request config, tiny server helper, switcher, and audit script all need to agree on this
+ * list. Anything that hardcodes a private locale set somewhere else is how a new language ships
+ * half-wired.
  *
  * There is deliberately no routing here — no `[locale]` segment, no routing proxy. The locale is a
  * cookie, resolved server-side, so a room link is one URL in every language.
@@ -16,9 +16,19 @@
  * for it. The ONE place the standard casing appears is `HREFLANG`, below.
  */
 
-export const LOCALES = ['en', 'es-419', 'pt-br'] as const
+export const LOCALES = ['en', 'es-419', 'pt-br', 'pl', 'de', 'fr'] as const
 
 export type Locale = (typeof LOCALES)[number]
+
+/**
+ * Locales with authored, path-addressed marketing content. Product catalogs can ship without an
+ * SEO tree; keeping that distinction explicit prevents the sitemap from advertising a translated
+ * hub or comparison page that has no route yet.
+ */
+export const INDEXED_LOCALES = ['en', 'es-419', 'pt-br'] as const satisfies readonly Locale[]
+export type IndexedLocale = (typeof INDEXED_LOCALES)[number]
+export const isIndexedLocale = (value: unknown): value is IndexedLocale =>
+    INDEXED_LOCALES.includes(value as IndexedLocale)
 
 /**
  * The spelling a locale gets in HTML — `hreflang`, `lang`, `inLanguage`.
@@ -32,6 +42,9 @@ export const HREFLANG: Record<Locale, string> = {
     en: 'en',
     'es-419': 'es-419',
     'pt-br': 'pt-BR',
+    pl: 'pl',
+    de: 'de',
+    fr: 'fr',
 }
 
 /** Default when neither URL, cookie nor browser preferences resolve to a supported locale. */
@@ -58,7 +71,7 @@ export const isLocale = (value: unknown): value is Locale => LOCALES.includes(va
  * what keeps `room.locale` honest: the column holds whatever the creator's page rendered in, and
  * the rows written before the codes carried a territory hold `es` and `pt-BR`. Those are correct
  * language tags for the copy that was written, so they resolve to `es-419` and `pt-br` rather
- * than losing a Spanish room its Spanish unfurl. `fr` still lands on English.
+ * than losing a Spanish room its Spanish unfurl. Unsupported tags still land on English.
  */
 export const asLocale = (value: string): Locale =>
     isLocale(value) ? value : (localeFromLanguageTag(value) ?? DEFAULT_LOCALE)
@@ -84,14 +97,16 @@ export const LOCALE_LABELS: Record<Locale, string> = {
     en: 'English',
     'es-419': 'Español',
     'pt-br': 'Português',
+    pl: 'Polski',
+    de: 'Deutsch',
+    fr: 'Français',
 }
 
 /**
  * `es-AR`, `es-ES`, `pt`, `pt-PT` and friends all have to land somewhere. Matching on the
- * primary subtag is the whole rule — we ship one Spanish and one Portuguese, so a regional tag
- * that isn't ours is still better served by its own language than by English. That includes
- * `es-ES`: Peninsular Spanish reading LATAM copy is a register mismatch, English is a language
- * barrier.
+ * primary subtag is the whole rule — where we ship one language catalog, a regional tag that
+ * isn't ours is still better served by its own language than by English. That includes `es-ES`:
+ * Peninsular Spanish reading LATAM copy is a register mismatch, English is a language barrier.
  */
 export function localeFromLanguageTag(tag: string): Locale | null {
     const normalised = tag.trim().toLowerCase()
@@ -100,6 +115,9 @@ export function localeFromLanguageTag(tag: string): Locale | null {
     if (primary === 'en') return 'en'
     if (primary === 'es') return 'es-419'
     if (primary === 'pt') return 'pt-br'
+    if (primary === 'pl') return 'pl'
+    if (primary === 'de') return 'de'
+    if (primary === 'fr') return 'fr'
     return null
 }
 

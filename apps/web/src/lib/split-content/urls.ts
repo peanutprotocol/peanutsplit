@@ -1,5 +1,5 @@
 import { localeFromPrefix, localizedPath } from '@/i18n/paths'
-import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales'
+import { DEFAULT_LOCALE, isIndexedLocale, type Locale } from '@/i18n/locales'
 
 /**
  * Split is standalone: app, PWA and generated content all answer on `peanutsplit.com`. There is no
@@ -27,7 +27,8 @@ export function splitGuideLocale(pathname: string): Locale | null {
     if (!match) return null
     const prefix = match[1]
     if (prefix === undefined) return DEFAULT_LOCALE
-    return localeFromPrefix(prefix)
+    const locale = localeFromPrefix(prefix)
+    return isIndexedLocale(locale) ? locale : null
 }
 
 export function splitHubPath(locale: Locale): string {

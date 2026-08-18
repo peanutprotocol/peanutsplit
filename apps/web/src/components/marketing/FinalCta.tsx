@@ -102,13 +102,6 @@ export function FinalCta() {
                     <motion.h2 className="text-h5" variants={riseVariants} data-motion-surface>
                         {t('title')}
                     </motion.h2>
-                    <motion.p
-                        className="mt-2 text-sm leading-5 text-grey-1"
-                        variants={riseSoftVariants}
-                        data-motion-surface
-                    >
-                        {t('subtitle')}
-                    </motion.p>
                     {/*
                      * Not <Button>: a <button> inside an <a> is invalid HTML, and the whole card is the
                      * link now. It borrows Button's classes. The document root owns the native-catalog

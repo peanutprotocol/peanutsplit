@@ -125,10 +125,6 @@ export function BalanceDrawer({ open, onClose, state, currencies, memberId, meId
                         />
                     </motion.div>
 
-                    {/* Only where there is something to check — promising a sum that matches
-                        above an empty sheet is a boast, not an invitation. */}
-                    {derivation.lines.length > 0 && <p className="text-sm text-grey-1">{t('checkNote')}</p>}
-
                     <DerivationSheet
                         derivation={derivation}
                         currency={state.room.currency}

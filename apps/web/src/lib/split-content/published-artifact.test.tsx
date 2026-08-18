@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { SplitGuideLayout } from '@/components/split-content/GuideLayout'
 import { renderSplitGuideBody } from '@/components/split-content/mdx'
-import { LOCALES } from '@/i18n/locales'
+import { INDEXED_LOCALES } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import {
     getSplitCalculator,
@@ -117,7 +117,7 @@ describe('installed generated Split artifact', () => {
             manifest!.entries.map((entry) => entry.public_path).sort((left, right) => left.localeCompare(right))
         )
 
-        for (const locale of LOCALES) {
+        for (const locale of INDEXED_LOCALES) {
             const expectedSlugs = guideEntries
                 .filter((entry) => entry.locale === locale)
                 .map((entry) => entry.slug)

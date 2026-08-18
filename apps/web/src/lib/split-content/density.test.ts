@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LOCALES } from '@/i18n/locales'
+import { INDEXED_LOCALES } from '@/i18n/locales'
 import { listAllTranslations } from '@/lib/content'
 import { listSplitGuides } from './artifact'
 import { densityScore } from './density'
@@ -23,7 +23,7 @@ describe('densityScore', () => {
     })
 
     it('has no hard fails for any real guide, in any locale it ships', () => {
-        for (const locale of LOCALES) {
+        for (const locale of INDEXED_LOCALES) {
             for (const guide of listSplitGuides(locale)) {
                 const { hardFails } = densityScore('guide', guide.slug, guide.tags, guide.body)
                 expect(hardFails, `guide/${guide.slug}/${locale}`).toEqual([])

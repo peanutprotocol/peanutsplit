@@ -374,7 +374,9 @@ const ptBr = {
     },
 } satisfies ComparisonCopy
 
-export const comparisonCopy: Record<Locale, ComparisonCopy> = {
+// Catalog-only locales intentionally have no comparison page yet. Their absence is the content
+// system's no-fallback contract: no translated source means no indexed URL.
+export const comparisonCopy: Partial<Record<Locale, ComparisonCopy>> = {
     en: marketingCopy.compare,
     'es-419': es419,
     'pt-br': ptBr,

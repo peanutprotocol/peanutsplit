@@ -42,7 +42,7 @@
                 "title": "Já tem o link de uma sala?",
                 "label": "Cole o link da sala",
                 "placeholder": "peanutsplit.com/r/sua-sala-…",
-                "hint": "A gente confere o link e salva a sala neste aparelho. Não cria uma conta nem muda quem pode entrar.",
+                "hint": "Salva a sala neste aparelho.",
                 "submit": "Adicionar esta sala",
                 "invalid": "Cole o link completo de uma sala do Peanut Split.",
                 "notFound": "Não encontramos essa sala. Confira se você colou o link inteiro.",
@@ -53,8 +53,7 @@
         },
         "proof": {
             "linkIdentity": {
-                "title": "QUEM É VOCÊ?",
-                "body": "Toque no seu nome e pronto.",
+                "title": "ESCOLHA SEU NOME.",
                 "linkLabel": "LINK DA SALA",
                 "identityLabel": "Quem é você no Fim de semana em Lisboa?",
                 "you": "Você",
@@ -62,8 +61,7 @@
                 "friendTwo": "Jules"
             },
             "everyoneAdds": {
-                "title": "ZERO CONTA NO GRUPO.",
-                "body": "Qualquer pessoa pode lançar. É só escolher quem realmente pagou.",
+                "title": "TODO MUNDO ADICIONA OS GASTOS.",
                 "expenseOne": "Bea · trem",
                 "expenseOneMeta": "€60 · Bea pagou",
                 "expenseTwo": "Jules · jantar",
@@ -73,7 +71,6 @@
             },
             "suggestedPlan": {
                 "title": "QUEM PAGA QUEM. RESOLVIDO.",
-                "body": "O Split sugere um jeito simples de acertar.",
                 "planLabel": "PLANO DE PAGAMENTOS SUGERIDO",
                 "paymentOne": "Você paga Bea · €10",
                 "paymentTwo": "Você paga Jules · €40"
@@ -88,7 +85,6 @@
             },
             "examples": {
                 "title": "DIVIDA QUALQUER COISA.",
-                "body": "Viagens, jantares, contas de casa e o que vier.",
                 "lisbon": {
                     "name": "Fim de semana em Lisboa",
                     "meta": "4 amigos · EUR · 8 despesas"
@@ -110,59 +106,47 @@
         "how": {
             "title": "Como funciona",
             "step1": {
-                "title": "Comece uma divisão",
-                "body": "Dê um nome e escolha uma moeda — o Split desenha para você. Viagem de neve, contas da casa, jantar de terça."
+                "title": "Comece uma divisão"
             },
             "step2": {
-                "title": "Compartilhe o link",
-                "body": "Jogue no grupo."
+                "title": "Compartilhe o link"
             },
             "step3": {
-                "title": "Todo mundo lança os gastos",
-                "body": "Os saldos atualizam na hora e a conta fecha até o centavo."
+                "title": "Todo mundo lança os gastos"
             },
             "step4": {
-                "title": "Acertem as contas",
-                "body": "O Split sugere um plano de pagamentos que zera a sala. Pague em dinheiro, por transferência, ou mande com o Peanut quando nenhum dos dois alcança."
+                "title": "Acertem as contas"
             }
         },
         "uses": {
             "title": "O que as pessoas dividem aqui",
             "item1": {
-                "title": "Viagens em grupo",
-                "body": "Uma sala para a semana inteira, zerada antes do voo de volta."
+                "title": "Viagens em grupo"
             },
             "item2": {
-                "title": "Colegas de apê",
-                "body": "Aluguel, contas, o mercado. Uma sala nova por mês mantém tudo legível."
+                "title": "Colegas de apê"
             },
             "item3": {
-                "title": "Jantares e rodadas",
-                "body": "Seis pessoas, um cartão, ninguém fazendo conta na mesa."
+                "title": "Jantares e rodadas"
             },
             "item4": {
-                "title": "Times remotos",
-                "body": "Países diferentes, bancos diferentes, um só conjunto de números."
+                "title": "Times remotos"
             }
         },
         "finalCta": {
             "title": "SUA VEZ DE DIVIDIR.",
-            "subtitle": "Crie uma sala para a próxima coisa que o grupo pagar.",
             "button": "Começar uma divisão"
         },
         "honesty": {
             "title": "A parte honesta",
             "item1": {
-                "title": "Grátis para sempre",
-                "body": "Sem taxas, sem plano premium, não tem nada para comprar."
+                "title": "Grátis para sempre"
             },
             "item2": {
-                "title": "Sem conta",
-                "body": "Sem e-mail, sem senha, sem verificação de identidade. O link é a chave — deixe ele no grupo."
+                "title": "Sem conta"
             },
             "item3": {
-                "title": "Acerte do jeito que quiser",
-                "body": "Dinheiro, transferência ou o app que você já usa. A gente só registra."
+                "title": "Acerte do jeito que quiser"
             }
         },
         "footer": {
@@ -257,20 +241,16 @@
         "linkExplainer": {
             "title": "O que o link da sala faz",
             "access": {
-                "title": "Qualquer pessoa com o link abre a sala",
-                "body": "A sala não aparece em listas públicas. Compartilhe o link só com as pessoas do grupo."
+                "title": "Qualquer pessoa com o link abre a sala"
             },
             "chat": {
-                "title": "O link acompanha o grupo",
-                "body": "Deixe ele no chat do grupo para todo mundo voltar à mesma sala."
+                "title": "Deixe o link no chat do grupo"
             },
             "remembered": {
-                "title": "Salas abertas ficam neste aparelho",
-                "body": "O Split guarda essas salas na lista desta página para você voltar por aqui."
+                "title": "Salas abertas ficam neste aparelho"
             },
             "money": {
-                "title": "O Split guarda as contas, não o dinheiro",
-                "body": "Ele registra quem pagou e quem deve. Vocês acertam onde já fazem seus pagamentos."
+                "title": "O Split guarda as contas, não o dinheiro"
             },
             "done": "Entendi"
         },
@@ -283,29 +263,29 @@
                 "nameLabel": "Seu nome",
                 "namePlaceholder": "Tom",
                 "button": "Entrar na sala",
-                "body": "Um toque e um nome. Sem e-mail, sem senha e sem baixar nada — o que você pede a eles é menos do que pede a si mesmo."
+                "body": "Sem cadastro, senha ou download."
             },
             "features": {
                 "title": "O que o Split faz",
                 "currency": {
                     "title": "162 moedas para a sala",
-                    "body": "A sala conta em uma moeda. O Split converte despesas entre 156 moedas pela cotação indicativa do dia; seis funcionam apenas sem conversão."
+                    "body": "Conversão automática para 156 moedas; outras 6 funcionam sem conversão."
                 },
                 "splits": {
                     "title": "Divisões desiguais",
-                    "body": "Igual, por partes, por valores exatos, ou deixando alguém de fora de uma linha."
+                    "body": "Por igual, por porcentagem, por partes, por valores exatos ou entre pessoas escolhidas."
                 },
                 "exact": {
                     "title": "Fecha no centavo",
-                    "body": "Os saldos sempre somam zero, e dá para abrir qualquer saldo e ver exatamente como se chegou nele."
+                    "body": "Abra qualquer saldo para ver o cálculo."
                 },
                 "live": {
                     "title": "Todo mundo vê na hora",
-                    "body": "Lance uma despesa no ônibus e ela já está na tela dos outros antes de você descer."
+                    "body": "As despesas novas aparecem na hora para todo mundo."
                 },
                 "offline": {
                     "title": "Funciona sem sinal",
-                    "body": "Lance uma despesa num subsolo ou na montanha. Ela fica esperando no seu celular e vai sozinha quando o sinal volta."
+                    "body": "As despesas sincronizam quando o sinal volta."
                 },
                 "home": {
                     "title": "Coloque na tela de início",
@@ -313,12 +293,11 @@
                 },
                 "transfers": {
                     "title": "Um plano de pagamentos mais simples",
-                    "body": "O Split transforma uma rede de saldos em uma lista curta sugerida de quem deve pagar quem."
+                    "body": "Uma lista curta de quem deve pagar a quem."
                 }
             },
             "settle": {
-                "title": "Como você recebe de volta",
-                "body": "O Split diz quem paga a quem. Você manda o dinheiro do jeito que já mandaria, e a sala registra que mandou.",
+                "title": "Como acertar as contas",
                 "cash": "Dinheiro",
                 "bank": "Transferência",
                 "peanut": "Mandar com a Peanut"
@@ -406,14 +385,11 @@
             "youAre": "você é {name}",
             "roomsTitle": "Salas",
             "closeRoomSwitcher": "Fechar o seletor de salas",
-            "switchRoomsHint": "Escolha qualquer sala salva neste aparelho.",
             "currentRoom": "Sala atual",
             "openRoomSettings": "Abrir configurações de {room}",
             "settingsAction": "Ajustes",
             "addOrJoinRoom": "Adicionar ou entrar em uma sala",
-            "roomOptionsHint": "Criar, importar ou entrar",
             "recentRoomsNote": "As salas recentes ficam salvas apenas neste aparelho.",
-            "noOtherRoomsNote": "Não há outras salas salvas neste aparelho.",
             "roomName": "Nome da sala",
             "linkStaysTheSame": "O link continua o mesmo.",
             "nameFailed": "não foi possível renomear a sala — tente novamente",
@@ -509,7 +485,6 @@
         },
         "history": {
             "title": "Histórico da sala",
-            "intro": "Os números, as histórias e o registro completo de alterações da sala.",
             "close": "Fechar o histórico da sala",
             "statsTitle": "Estatísticas da sala",
             "statsIntro": "Somente despesas atuais e salvas. As edições substituem versões anteriores; despesas excluídas e reembolsos não alteram estes totais.",
@@ -631,7 +606,6 @@
         "expenses": {
             "title": "Gastos",
             "emptyTitle": "Sala pronta",
-            "emptyBody": "Nada por aqui ainda.",
             "someone": "Alguém",
             "formerName": "{name} · Antigo",
             "you": "Você",
@@ -676,7 +650,6 @@
         },
         "allSettled": {
             "title": "Tudo acertado",
-            "body": "Ninguém deve nada a ninguém. Aproveite.",
             "expenseCount": "{count, plural, one {# gasto} other {# gastos}}",
             "peopleCount": "{count, plural, one {# pessoa} other {# pessoas}}",
             "allSquare": "quites"
@@ -707,7 +680,6 @@
             "seeRecap": "Ver o resumo",
             "backToRoom": "Voltar para a sala",
             "ctaTitle": "Agora é a sua vez",
-            "ctaBody": "Um link, sem cadastro, grátis para sempre.",
             "cta": "Começar sua própria sala",
             "yourLine": "Você entrou com {amount} · {position}",
             "youOwe": "você deve {amount}",
@@ -753,7 +725,6 @@
             "paidBySummary": "{name} pagou",
             "choosePayer": "Escolher quem pagou",
             "whoPaid": "Quem pagou?",
-            "whoPaidHint": "Uma pessoa adiantou o dinheiro.",
             "addPayer": "Adicionar pessoa",
             "payerNamePlaceholder": "Nome da pessoa",
             "confirmPayer": "Adicionar pessoa",
@@ -843,17 +814,13 @@
             "listTitle": "Quem deve a quem",
             "recordTitle": "Registrar um pagamento",
             "nothingToSettle": "Nada para acertar ainda — lance um gasto primeiro.",
-            "intro": "Um plano curto de pagamentos que zera tudo. Pague como quiser — a gente só registra.",
             "you": "Você",
             "stillOutstanding": "Ainda em aberto",
             "howPaid": "Como foi pago?",
             "cash": "Dinheiro",
-            "cashHint": "na mão",
             "bank": "Banco",
-            "bankHint": "transferência",
             "peanut": "Peanut",
-            "peanutHint": "na hora, sem taxas",
-            "peanutNote": "Abre o peanut.me em outra aba para enviar — e registra o pagamento aqui de qualquer jeito.",
+            "peanutNote": "Abre o Peanut em outra aba. O Split registra o pagamento aqui mesmo se o dinheiro não for enviado.",
             "note": "Observação (opcional)",
             "notePlaceholder": "Mandei na sexta",
             "receiptLink": "Link do comprovante (opcional)",
@@ -869,12 +836,10 @@
             "amountFormatInvalid": "Confira os separadores e as casas decimais do valor.",
             "amountTooHigh": "Isso é mais do que {name} deve.",
             "recordedTitle": "Registrado agora",
-            "recordedHint": "Eles também ficam no histórico da sala, junto com o resto.",
             "amountTooHighYou": "Isso é mais do que você deve."
         },
         "share": {
             "title": "Compartilhar sala",
-            "subtitle": "Envie o link ao grupo.",
             "postAhaTitle": "Primeira divisão pronta",
             "postAhaSubtitle": "Compartilhe com o grupo.",
             "postAhaBalance": "{from} deve a {to}",
@@ -883,7 +848,6 @@
             "close": "Fechar compartilhamento"
         },
         "link": {
-            "subtitle": "sua sala de divisão",
             "scanToJoin": "Escaneie para entrar pessoalmente",
             "qrLabel": "Código QR para entrar em {room}",
             "roomLink": "Link da sala",
@@ -916,7 +880,7 @@
             "collapseDrawing": "Recolher desenhos da sala",
             "currency": "Moeda",
             "currencyLabel": "Moeda da sala",
-            "currencyHint": "As contas são fechadas nesta moeda. Cada gasto pode ser em qualquer outra.",
+            "currencyHint": "Os saldos usam esta moeda; as despesas podem usar outras.",
             "creatorName": "E você é…",
             "creatorNamePlaceholder": "Seu nome…",
             "submit": "Criar a sala",
@@ -1257,7 +1221,6 @@
     "derivation": {
         "title": "De onde vem esse número",
         "openLabel": "Ver de onde vem o saldo de {name}",
-        "checkNote": "Cada linha vem desta sala. Some você mesmo — bate certinho.",
         "paidTitle": "Gastos pagos",
         "shareTitle": "Sua parte de cada gasto",
         "settledTitle": "Pagamentos registrados",
@@ -1267,7 +1230,6 @@
         "receivedFrom": "Recebido de {name}",
         "total": "Dá um total de",
         "emptyTitle": "Nada ainda",
-        "emptyBody": "Sem gastos nem pagamentos — nada mexeu neste saldo.",
         "suggestedTitle": "Para ficar quite",
         "suggestedNote": "Os pagamentos sugeridos resumem a sala inteira em um plano curto, então quem paga quem nem sempre é quem gastou com quem. Os dois saldos estão aqui para conferir.",
         "sends": "Paga {name}",
@@ -1326,9 +1288,8 @@
     "import": {
         "drop": {
             "title": "Solte aqui sua exportação do Splitwise ou Split Pro",
-            "body": "Escolha o .csv de um grupo do Splitwise, o .csv de um contato do Split Pro ou splitpro_data.json. Seu navegador lê tudo aqui mesmo — o arquivo nunca sai do seu aparelho.",
             "cta": "Escolher um arquivo",
-            "privacy": "O arquivo fica no seu aparelho. O que a gente recebe são os gastos que o seu navegador leu dele, e só quando você toca no botão."
+            "privacy": "O arquivo não sai do seu aparelho. As despesas só são enviadas quando você confirma."
         },
         "howto": {
             "title": "Exportações aceitas",
@@ -1348,15 +1309,15 @@
             "pageSubtitle": "Adicione despesas de uma exportação do Splitwise ou Split Pro.",
             "backToRoom": "Voltar para a sala",
             "targetEyebrow": "Será adicionado a esta sala",
-            "targetBody": "As novas despesas são acrescentadas. O link e tudo que já está aqui continuam iguais.",
+            "targetBody": "Adiciona despesas sem alterar o que já está na sala.",
             "currencyLabel": "Moeda dos saldos",
             "currencyHint": "As despesas importadas mantêm a própria moeda. Uma linha só pode ser adicionada quando sua moeda coincide com {currency} ou tem uma cotação compatível.",
             "currencyUnsupportedTitle": "Algumas despesas não podem ser convertidas",
             "currencyUnsupportedBody": "Estas moedas do arquivo não podem ser convertidas para {currency}: {currencies}. Escolha um grupo cujas moedas coincidam com a sala ou use uma sala com uma moeda de acerto compatível.",
             "repeatTitle": "Antes de importar de novo",
-            "repeatBody": "Depois que uma importação é concluída nesta tela, enviar novamente aqui exatamente os mesmos dados de origem revisados não muda nada, mesmo que você altere a associação das pessoas. Despesas que já estão na sala talvez não tenham um registro de importação correspondente; por isso, a primeira importação adicional pode repeti-las. Uma exportação modificada é adicionada por inteiro. Se ela repetir parte do histórico anterior, algumas despesas podem aparecer duas vezes porque as exportações têm datas de calendário, não IDs estáveis de cada despesa.",
+            "repeatBody": "Importar os mesmos dados de novo não muda nada, mesmo que você altere as associações. Um arquivo modificado é adicionado por inteiro e pode duplicar despesas existentes.",
             "membersTitle": "Associe as pessoas",
-            "membersBody": "Escolha alguém que já está em {room} ou adicione uma pessoa nova. As correspondências exatas de nome ficam selecionadas para você revisar.",
+            "membersBody": "Para cada pessoa, escolha alguém de {room} ou adicione uma pessoa nova. Nomes iguais já vêm selecionados.",
             "sourceLabel": "No arquivo",
             "targetLabel": "Em {room}",
             "memberTargetLabel": "Para onde vai {name}?",

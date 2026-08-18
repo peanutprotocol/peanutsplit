@@ -8,11 +8,7 @@ import { Icon } from '@/components/ui/Icon'
 export function HonestyStrip() {
     const t = useTranslations('marketing.honesty')
     // Literal keys, so the audit script can verify all three exist in every catalog.
-    const items = [
-        { title: t('item1.title'), body: t('item1.body') },
-        { title: t('item2.title'), body: t('item2.body') },
-        { title: t('item3.title'), body: t('item3.body') },
-    ]
+    const items = [{ title: t('item1.title') }, { title: t('item2.title') }, { title: t('item3.title') }]
 
     return (
         <section className="mx-auto w-full max-w-xl px-5">
@@ -28,7 +24,6 @@ export function HonestyStrip() {
                         </span>
                         <span className="flex-1">
                             <span className="block text-h7">{item.title}</span>
-                            <span className="mt-1 block text-sm leading-5 text-grey-1">{item.body}</span>
                         </span>
                     </li>
                 ))}

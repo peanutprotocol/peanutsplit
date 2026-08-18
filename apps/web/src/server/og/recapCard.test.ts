@@ -339,7 +339,7 @@ describe('toRecapCard', () => {
     })
 
     it('swaps an undrawable currency symbol for the ISO code', () => {
-        // `฿` is outside Sniglet — a gap in the hero number would read as a bug.
+        // `฿` is outside Roboto Latin Extended — a gap in the hero number would read as a bug.
         const card = toRecapCard(recapOf({ currency: 'THB' }))
         expect(card.total).toBe('2340.00 THB')
         expect(drawableByBody(card.total)).toBe(true)

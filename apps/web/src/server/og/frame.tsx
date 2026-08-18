@@ -408,7 +408,7 @@ export function ConfettiScatter({
  *
  * The WRAPPED cards are made of these instead of sentences, and that is a
  * translation decision rather than a layout one: "3 days · 14 expenses · 6
- * people" is three plurals in three languages, and `i18n/t.ts` is deliberately
+ * people" is three plurals across every language, and `i18n/t.ts` is deliberately
  * not an ICU implementation. A numeral beside a calendar reads the same in all
  * three and costs no keys. `recapCardArt.tsx` already argues this for its story
  * strip: drawings are the one vocabulary a card can use without opening the

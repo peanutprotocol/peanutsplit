@@ -23,8 +23,8 @@ const exampleListVariants: Variants = {
  * no controls pretending to write data. They make the trust model visible before the detailed
  * FAQ takes over lower on the page.
  *
- * Each scene reveals as a scene, not as a screenshot: the copy splits into headline and body,
- * and the card next to it fills piece by piece — the ticket, then the people, then the rows.
+ * Each scene reveals as a scene, not as a screenshot: one self-contained headline lands before
+ * the card next to it fills piece by piece — the ticket, then the people, then the rows.
  * Nested `sceneVariants` containers carry the stagger down; leaves pick `rise`, `riseSoft` or
  * `pop` from the shared vocabulary in `./motion`.
  */
@@ -57,9 +57,6 @@ export function LandingProof() {
                     <motion.h2 variants={riseVariants} data-motion-surface>
                         {t('linkIdentity.title')}
                     </motion.h2>
-                    <motion.span variants={riseSoftVariants} data-motion-surface>
-                        {t('linkIdentity.body')}
-                    </motion.span>
                 </motion.div>
 
                 <motion.div className="landing-proof-visual" variants={sceneVariants} data-motion-surface>
@@ -115,9 +112,6 @@ export function LandingProof() {
                     <motion.h2 variants={riseVariants} data-motion-surface>
                         {t('everyoneAdds.title')}
                     </motion.h2>
-                    <motion.span variants={riseSoftVariants} data-motion-surface>
-                        {t('everyoneAdds.body')}
-                    </motion.span>
                 </motion.div>
 
                 <motion.div className="landing-proof-visual" variants={sceneVariants} data-motion-surface>
@@ -169,9 +163,6 @@ export function LandingProof() {
                     <motion.h2 variants={riseVariants} data-motion-surface>
                         {t('suggestedPlan.title')}
                     </motion.h2>
-                    <motion.span variants={riseSoftVariants} data-motion-surface>
-                        {t('suggestedPlan.body')}
-                    </motion.span>
                 </motion.div>
 
                 <motion.div className="landing-proof-visual" variants={sceneVariants} data-motion-surface>
@@ -217,9 +208,6 @@ export function LandingProof() {
                         <motion.h2 variants={riseVariants} data-motion-surface>
                             {t('examples.title')}
                         </motion.h2>
-                        <motion.span variants={riseSoftVariants} data-motion-surface>
-                            {t('examples.body')}
-                        </motion.span>
                     </div>
                 </motion.div>
                 <motion.ul variants={exampleListVariants} data-motion-surface>

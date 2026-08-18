@@ -17,7 +17,9 @@
  *      "Dani joined after 1 earlier expense" ships as "room.latecomer.title". A reader who has
  *      the value on screen right above it — the avatar, the name — sees a dotted identifier
  *      instead of the sentence. Caught for real on `room.latecomer.body`.
- *   4. Translation suppression appears below the document root. Native catalogs own the page;
+ *   4. A locale with grammatical plural categories omits one of them from an ICU plural. The
+ *      `other` branch prevents a crash but can silently render the wrong noun form.
+ *   5. Translation suppression appears below the document root. Native catalogs own the page;
  *      one root `translate="no"` policy replaces component-level translator workarounds.
  *
  * Computed keys (`t(someVariable)`, `t(\`a.${b}\`)`) cannot be resolved statically and are
@@ -36,7 +38,9 @@ const srcRoot = join(appRoot, 'src')
 const messagesRoot = join(srcRoot, 'i18n/messages')
 
 const DEFAULT_LOCALE = 'en'
-const LOCALES = ['en', 'es-419', 'pt-br']
+// `uk` is catalog-gated while its native-speaker approval is pending. It deliberately does not
+// appear in src/i18n/locales.ts yet, so it cannot be selected or auto-negotiated in production.
+const LOCALES = ['en', 'es-419', 'pt-br', 'pl', 'de', 'fr', 'uk']
 
 // ---------------------------------------------------------------- catalogs
 
@@ -138,6 +142,58 @@ const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').replac
  * inside a branch is one, and is found.
  */
 const placeholdersIn = (message) => new Set([...message.matchAll(/\{\s*(\w+)\s*[,}]/g)].map((m) => m[1]))
+
+/** Find the closing brace for an ICU argument, including nested branch bodies. */
+function closingBrace(message, open) {
+    let depth = 0
+    for (let index = open; index < message.length; index++) {
+        if (message[index] === '{') depth += 1
+        else if (message[index] === '}' && (depth -= 1) === 0) return index
+    }
+    return -1
+}
+
+/**
+ * Return every ICU plural in a message and its top-level selectors. Regex alone cannot parse a
+ * plural body because every selector owns a nested `{…}` branch, so the small scanner only reads
+ * selectors while it is outside those branch bodies. Nested plurals are found by the outer header
+ * scan in their own right.
+ */
+function pluralsIn(message) {
+    const plurals = []
+    const header = /\{\s*(\w+)\s*,\s*(plural|selectordinal)\s*,/g
+    for (const match of message.matchAll(header)) {
+        const close = closingBrace(message, match.index)
+        if (close === -1) continue // next-intl reports malformed ICU; this gate owns categories.
+
+        const body = message.slice(match.index + match[0].length, close)
+        const selectors = new Set()
+        let cursor = 0
+        let depth = 0
+        while (cursor < body.length) {
+            if (depth === 0) {
+                const offset = /^\s*offset\s*:\s*\d+/.exec(body.slice(cursor))
+                if (offset) {
+                    cursor += offset[0].length
+                    continue
+                }
+                const selector = /^\s*(=?[\w-]+)\s*\{/.exec(body.slice(cursor))
+                if (selector) {
+                    selectors.add(selector[1])
+                    cursor += selector[0].length
+                    depth = 1
+                    continue
+                }
+            }
+
+            if (body[cursor] === '{') depth += 1
+            else if (body[cursor] === '}') depth -= 1
+            cursor += 1
+        }
+        plurals.push({ argument: match[1], selectors })
+    }
+    return plurals
+}
 
 /** The text between a call's parentheses, found by balancing them. */
 function callArguments(source, openParen) {
@@ -348,6 +404,29 @@ for (const locale of LOCALES) {
     }
 }
 
+/**
+ * `other` is a legal fallback, so ICU will not throw when these branches are absent — it will say
+ * the wrong thing. German and French need the singular branch; Polish and Ukrainian also need the
+ * Slavic `few` and `many` forms. Existing en/es-419/pt-br contain a handful of deliberately
+ * plural-only facts, so this new strictness starts with the locale-expansion catalogs rather than
+ * rewriting already-shipped copy as collateral work.
+ */
+const REQUIRED_PLURAL_CATEGORIES = new Map([
+    ['de', ['one', 'other']],
+    ['fr', ['one', 'other']],
+    ['pl', ['one', 'few', 'many', 'other']],
+    ['uk', ['one', 'few', 'many', 'other']],
+])
+const missingPluralCategories = []
+for (const [locale, required] of REQUIRED_PLURAL_CATEGORIES) {
+    for (const [key, message] of catalogs.get(locale)) {
+        for (const { argument, selectors } of pluralsIn(message)) {
+            const missing = required.filter((category) => !selectors.has(category))
+            if (missing.length > 0) missingPluralCategories.push({ locale, key, argument, missing })
+        }
+    }
+}
+
 for (const locale of LOCALES) {
     console.log(`${locale.padEnd(6)} ${catalogs.get(locale).size} keys`)
 }
@@ -401,6 +480,12 @@ for (const { locale, key, wanted, has } of placeholderDrift) {
     failed = true
     console.error(`\n${locale}.json interpolates different arguments than ${DEFAULT_LOCALE}.json:`)
     console.error(`  ${key}  ${DEFAULT_LOCALE}: ${wanted.join(', ') || 'none'}  ${locale}: ${has.join(', ') || 'none'}`)
+}
+
+for (const { locale, key, argument, missing } of missingPluralCategories) {
+    failed = true
+    console.error(`\n${locale}.json is missing plural categories required by its grammar:`)
+    console.error(`  ${key}  {${argument}, plural, …} needs ${missing.join(', ')}`)
 }
 
 if (translationPolicyViolations.length > 0) {

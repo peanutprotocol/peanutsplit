@@ -11,7 +11,7 @@ import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { comparisonCopy } from '@/components/marketing/compare-copy'
 import { buttonClassName } from '@/components/ui/button-style'
 import { Icon } from '@/components/ui/Icon'
-import { HREFLANG, LOCALES, type Locale } from '@/i18n/locales'
+import { HREFLANG, INDEXED_LOCALES, type Locale } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { absoluteLanguages, breadcrumbSchema, pageMetadata } from '@/lib/seo'
 
@@ -32,7 +32,7 @@ export function splitwiseAlternativeMetadata(locale: Locale): Metadata {
         ...meta,
         alternates: {
             ...meta.alternates,
-            languages: absoluteLanguages(hreflangAlternates(BASE_PATH, [...LOCALES])),
+            languages: absoluteLanguages(hreflangAlternates(BASE_PATH, [...INDEXED_LOCALES])),
         },
     }
 }
@@ -196,7 +196,7 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                 </div>
             </ChapterFrame>
 
-            <LanguageLinks path={BASE_PATH} current={locale} available={[...LOCALES]} />
+            <LanguageLinks path={BASE_PATH} current={locale} available={[...INDEXED_LOCALES]} />
             <SiteFooter showCompareLink={false} showLocaleSwitcher={false} />
         </main>
     )

@@ -10,7 +10,7 @@ import { comparisonCopy } from '@/components/marketing/compare-copy'
 export const runtime = 'nodejs'
 export const size = OG_SIZE
 export const contentType = OG_CONTENT_TYPE
-const copy = comparisonCopy.en
+const copy = comparisonCopy.en!
 
 export const alt = copy.meta.title
 

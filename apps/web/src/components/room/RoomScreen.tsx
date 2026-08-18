@@ -689,7 +689,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 variant="stroke"
                                 icon="hand-coins"
                                 width="auto"
-                                className="shrink-0 justify-center px-4"
+                                className="min-w-0 flex-1 justify-center px-2 text-sm leading-tight sm:px-4 sm:text-base"
                                 onClick={() => setParams({ settle: true })}
                                 disabled={staleState}
                                 data-testid="open-settle"
@@ -701,7 +701,7 @@ export function RoomScreen({ slug }: { slug: string }) {
                             variant="primary"
                             shadowSize="4"
                             icon="plus"
-                            className="flex-1 justify-center text-h6"
+                            className="min-w-0 flex-1 justify-center px-2 text-sm leading-tight sm:px-4 sm:text-base"
                             onClick={() => setParams({ add: true })}
                             data-testid="open-add-expense"
                         >

@@ -40,7 +40,7 @@ interface LinkMomentProps {
     showQr?: boolean
     /** Headline. The creation screen and the share drawer say different things. */
     title: string
-    subtitle: string
+    subtitle?: string
     /**
      * Rank of the headline. `/new` is the default because there this headline is
      * the page's only one; inside the share drawer the room header already owns
@@ -223,7 +223,7 @@ export function LinkMoment({
                 className={`flex flex-col text-center ${dense ? 'gap-1' : 'gap-2'}`}
             >
                 <Heading className="text-h4">{title}</Heading>
-                <p className="text-sm text-grey-1">{subtitle}</p>
+                {subtitle && <p className="text-sm text-grey-1">{subtitle}</p>}
             </motion.div>
 
             {context}
@@ -291,7 +291,6 @@ export function LinkMoment({
                             </motion.span>
                             <div className="min-w-0">
                                 <p className="truncate text-h6">{roomName}</p>
-                                <p className="text-h10 uppercase tracking-wide text-n-1/70">{t('subtitle')}</p>
                             </div>
                         </div>
 

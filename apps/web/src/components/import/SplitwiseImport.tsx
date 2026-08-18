@@ -623,7 +623,6 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                 >
                     <Icon name="receipt" size={28} className="text-n-1" />
                     <p className="text-h7">{t('drop.title')}</p>
-                    <p className="max-w-sm text-sm leading-5 text-grey-1">{t('drop.body')}</p>
                     <input
                         ref={inputRef}
                         type="file"

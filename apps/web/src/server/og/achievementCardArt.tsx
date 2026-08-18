@@ -375,7 +375,7 @@ function AlterEgoCard(card: Extract<AchievementCardData, { kind: 'alterego' }>):
                     <PersonaDisc avatar={card.persona} palette={card.palette} size={250} />
                     <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 44 }}>
                         <Title text={card.title} size={72} />
-                        {/* Sniglet, not Knerd: `Leyenda de la cuenta` is four words,
+                        {/* Body face, not Knerd: `Leyenda de la cuenta` is four words,
                             and the display face stops being a headline past two. */}
                         <div
                             style={{

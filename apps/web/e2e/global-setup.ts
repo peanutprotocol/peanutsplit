@@ -17,6 +17,11 @@ import { recapImagePath } from '../src/lib/recap'
 const ROUTES = ['/', '/app', '/new', '/import']
 
 export default async function globalSetup(): Promise<void> {
+    // A manually managed server can already be warm (for example while collecting
+    // review screenshots). Keep the ordinary suite path unchanged while allowing
+    // that caller to avoid recompiling and seeding a disposable room.
+    if (process.env.E2E_SKIP_GLOBAL_SETUP === '1') return
+
     const port = Number(process.env.E2E_PORT ?? 3100)
     const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`
 
