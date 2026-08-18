@@ -60,9 +60,10 @@ describe('content tree', () => {
                 if (!entry.isDirectory()) continue
                 for (const file of fs.readdirSync(path.join(dir, entry.name))) {
                     const locale = file.replace(/\.md$/, '')
-                    expect(INDEXED_LOCALES, `${collection}/${entry.name}/${file} has no indexed locale route`).toContain(
-                        locale
-                    )
+                    expect(
+                        INDEXED_LOCALES,
+                        `${collection}/${entry.name}/${file} has no indexed locale route`
+                    ).toContain(locale)
                     expect(
                         getDoc(collection, entry.name, locale as (typeof INDEXED_LOCALES)[number]),
                         `${collection}/${entry.name}/${file} exists but did not parse`
@@ -324,9 +325,7 @@ describe('article bodies', () => {
      */
     it('only links internally to pages that exist', () => {
         const known = new Set<string>([
-            ...INDEXED_LOCALES.flatMap((locale) =>
-                ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))
-            ),
+            ...INDEXED_LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
             ...ALL.map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
             ...STATIC_PAGES.flatMap((page) =>
@@ -1177,9 +1176,7 @@ describe('tool registry', () => {
      */
     it('only links onward to pages that exist', () => {
         const known = new Set<string>([
-            ...INDEXED_LOCALES.flatMap((locale) =>
-                ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))
-            ),
+            ...INDEXED_LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
             ...listAllTranslations().map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
         ])

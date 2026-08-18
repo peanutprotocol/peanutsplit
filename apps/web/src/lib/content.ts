@@ -2,13 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import { staticPageSlugs } from '@/data/static-pages'
-import {
-    DEFAULT_LOCALE,
-    INDEXED_LOCALES,
-    isIndexedLocale,
-    type IndexedLocale,
-    type Locale,
-} from '@/i18n/locales'
+import { DEFAULT_LOCALE, INDEXED_LOCALES, isIndexedLocale, type IndexedLocale, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { splitV2Enabled } from '@/lib/flags'
 
@@ -298,7 +292,5 @@ export function listAllDocs(locale: Locale = DEFAULT_LOCALE): Doc[] {
  * hides only the Spanish URL.
  */
 export function listAllTranslations(): Doc[] {
-    return COLLECTIONS.flatMap((collection) =>
-        INDEXED_LOCALES.flatMap((locale) => listDocs(collection, locale))
-    )
+    return COLLECTIONS.flatMap((collection) => INDEXED_LOCALES.flatMap((locale) => listDocs(collection, locale)))
 }
