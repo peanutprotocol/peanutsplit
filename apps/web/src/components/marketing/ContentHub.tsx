@@ -10,7 +10,7 @@ import { STATIC_PAGES } from '@/data/static-pages'
 import { listAllDocs } from '@/lib/content'
 import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
 import { absoluteUrl, breadcrumbSchema, formatDate } from '@/lib/seo'
-import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/locales'
+import { DEFAULT_LOCALE, INDEXED_LOCALES, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 
 /**
@@ -67,7 +67,7 @@ export async function ContentHub({ locale }: { locale: Locale }) {
         ...dated,
         ...STATIC_PAGES.filter((page) => page.inHub && (page.locales ?? [DEFAULT_LOCALE]).includes(locale)).map(
             (page) => {
-                const copy = page.href === '/splitwise-alternative' ? comparisonCopy[locale].meta : page
+                const copy = page.href === '/splitwise-alternative' ? comparisonCopy[locale]!.meta : page
                 return {
                     href: localizedPath(page.href, locale),
                     title: copy.title,
@@ -148,7 +148,7 @@ export async function ContentHub({ locale }: { locale: Locale }) {
                 <p className="mt-3 text-center text-sm text-grey-1">{t('startRoomHint')}</p>
             </section>
 
-            <LanguageLinks path="/blog" current={locale} available={[...LOCALES]} />
+            <LanguageLinks path="/blog" current={locale} available={[...INDEXED_LOCALES]} />
 
             <SiteFooter showLocaleSwitcher={false} />
         </main>

@@ -1,0 +1,1472 @@
+{
+    "marketing": {
+        "hero": {
+            "title": "SCHICK DEN LINK WEITER",
+            "controlTitleAccessible": "SCHICK DEN LINK WEITER",
+            "titleAccessible": "LINK TEILEN. FERTIG.",
+            "subtitle": "weil faires Abrechnen Freundschaften schont",
+            "cta": "Link erstellen",
+            "linkExplainerTrigger": "So funktioniert der Link",
+            "chat": {
+                "defaultRoom": "Lissabon-Wochenende",
+                "participants": "Bea, Jules, Mo und du",
+                "questionSender": "Bea",
+                "question": "Wer hat das Abendessen bezahlt?",
+                "you": "du",
+                "reply": "ich – trag ich gerade ein",
+                "linkPrompt": "Alle tragen ihre Ausgaben selbst ein",
+                "joined": "Bea, Jules und Mo haben den Link geöffnet"
+            },
+            "stageSummary": "Ein Gruppenlink von Peanut Split wird im Gruppenchat geteilt, damit alle dieselbe Gruppe öffnen und ihre Ausgaben eintragen können.",
+            "validation": {
+                "roomRequired": "Gib der Gruppe zuerst einen Namen.",
+                "creatorRequired": "Sag uns, wer du bist."
+            }
+        },
+        "rooms": {
+            "title": "Deine Gruppen",
+            "subtitle": "Auf diesem Gerät gespeichert.",
+            "openLabel": "Gruppe öffnen",
+            "showMore": "{count, plural, one {# weitere Gruppe anzeigen} other {# weitere Gruppen anzeigen}}",
+            "showLess": "Weniger Gruppen anzeigen",
+            "forgetLabel": "{room} von diesem Gerät entfernen",
+            "confirmForgetTitle": "{room} von diesem Gerät entfernen?",
+            "confirmForgetBody": "Nur in dieser Liste ist die Gruppe auf diesem Gerät gespeichert. Split hat keine Konten; ohne den Gruppenlink kommst du also nicht wieder hinein. Für alle anderen bleiben die Gruppe, ihre Ausgaben und Salden erhalten.",
+            "confirmForget": "Von diesem Gerät entfernen",
+            "slideForget": "Zum Entfernen von diesem Gerät wischen",
+            "confirmForgetKeep": "Behalten",
+            "confirmForgetClose": "Schließen, ohne zu entfernen",
+            "forgotten": "{room} wurde von diesem Gerät entfernt. Alle mit dem Link können die gemeinsame Gruppe weiterhin öffnen.",
+            "forgetFailed": "{room} konnte nicht von diesem Gerät entfernt werden. Die Gruppe steht weiterhin in dieser Liste.",
+            "recovery": {
+                "title": "Du hast schon einen Gruppenlink?",
+                "label": "Gruppenlink einfügen",
+                "placeholder": "peanutsplit.com/r/your-room-…",
+                "hint": "Speichert die Gruppe auf diesem Gerät.",
+                "submit": "Gruppe hinzufügen",
+                "invalid": "Füge einen vollständigen Peanut Split-Gruppenlink ein.",
+                "notFound": "Wir konnten die Gruppe nicht finden. Prüfe, ob du den vollständigen Link eingefügt hast.",
+                "failed": "Wir konnten die Gruppe gerade nicht prüfen. Es wurde nichts gespeichert – versuche es noch einmal.",
+                "openingSaved": "{room} wird geöffnet und ist auf diesem Gerät gespeichert.",
+                "openingUnsaved": "{room} wird geöffnet. Dieser Browser konnte die Gruppe nicht für später speichern."
+            }
+        },
+        "proof": {
+            "linkIdentity": {
+                "title": "WÄHL DEINEN NAMEN.",
+                "linkLabel": "GRUPPENLINK",
+                "identityLabel": "Wer bist du beim Lissabon-Wochenende?",
+                "you": "Du",
+                "friendOne": "Bea",
+                "friendTwo": "Jules"
+            },
+            "everyoneAdds": {
+                "title": "ALLE TRAGEN AUSGABEN EIN.",
+                "expenseOne": "Bea · Zug",
+                "expenseOneMeta": "60 € · bezahlt von Bea",
+                "expenseTwo": "Jules · Abendessen",
+                "expenseTwoMeta": "90 € · bezahlt von Jules",
+                "expenseThree": "Ana · hat es eingetragen",
+                "expenseThreeMeta": "für Bea"
+            },
+            "suggestedPlan": {
+                "title": "WER ZAHLT WEM? GEKLÄRT.",
+                "planLabel": "VORGESCHLAGENER ZAHLUNGSPLAN",
+                "paymentOne": "Du zahlst Bea · 10 €",
+                "paymentTwo": "Du zahlst Jules · 40 €"
+            },
+            "rail": {
+                "free": "FÜR IMMER KOSTENLOS",
+                "noSignup": "KEINE ANMELDUNG",
+                "oneLink": "EIN LINK",
+                "anyCurrency": "JEDE WÄHRUNG",
+                "noMath": "KEIN RECHNEN",
+                "even": "AUSGEGLICHEN"
+            },
+            "examples": {
+                "title": "TEILT JEDE AUSGABE.",
+                "lisbon": {
+                    "name": "Lissabon-Wochenende",
+                    "meta": "4 Freunde · EUR · 8 Ausgaben"
+                },
+                "flat": {
+                    "name": "WG 4B",
+                    "meta": "3 Mitbewohner · GBP · diesen Monat"
+                },
+                "dinner": {
+                    "name": "Dienstags-Ramen",
+                    "meta": "6 Freunde · USD · eine Karte"
+                },
+                "retreat": {
+                    "name": "Team-Retreat",
+                    "meta": "6 Personen · 3 Währungen"
+                }
+            }
+        },
+        "how": {
+            "title": "So funktioniert’s",
+            "step1": {
+                "title": "Gruppe erstellen"
+            },
+            "step2": {
+                "title": "Link teilen"
+            },
+            "step3": {
+                "title": "Alle tragen Ausgaben ein"
+            },
+            "step4": {
+                "title": "Ausgleichen"
+            }
+        },
+        "uses": {
+            "title": "Was ihr hier aufteilen könnt",
+            "item1": {
+                "title": "Gruppenreisen"
+            },
+            "item2": {
+                "title": "WGs"
+            },
+            "item3": {
+                "title": "Abendessen und Runden"
+            },
+            "item4": {
+                "title": "Remote-Teams"
+            }
+        },
+        "finalCta": {
+            "title": "JETZT SEID IHR DRAN.",
+            "button": "Gruppe erstellen"
+        },
+        "honesty": {
+            "title": "Ganz ehrlich",
+            "item1": {
+                "title": "Für immer kostenlos"
+            },
+            "item2": {
+                "title": "Kein Konto nötig"
+            },
+            "item3": {
+                "title": "Zahlt, wie ihr möchtet"
+            }
+        },
+        "footer": {
+            "logoAlt": "Peanut",
+            "logoLinkLabel": "Peanut besuchen",
+            "colSplit": "Split",
+            "createSplit": "Gruppe erstellen",
+            "toolsLink": "Rechner",
+            "importLink": "Aus Splitwise importieren",
+            "colCompare": "Vergleich",
+            "compareLink": "Alternative zu Splitwise",
+            "colGuides": "Ratgeber",
+            "allGuides": "Alle Ratgeber",
+            "colPeanut": "Peanut",
+            "peanutHome": "Geld senden",
+            "peanutHelp": "Hilfe",
+            "peanutTerms": "Nutzungsbedingungen",
+            "peanutPrivacy": "Datenschutz",
+            "madeByPrefix": "mit Liebe gemacht von",
+            "madeByBrand": "Squirrel Labs"
+        },
+        "install": {
+            "title": "Split installieren",
+            "body": "Komm schneller zu dieser Gruppe zurück. Kein App-Store. Kein Konto.",
+            "bodySettled": "Diese Reise – und die nächste – erreichst du mit einem Fingertipp.",
+            "announcement": "Split kann installiert werden.",
+            "cta": "Split installieren",
+            "ctaSteps": "Installationsschritte anzeigen",
+            "dismiss": "Nicht jetzt",
+            "row": {
+                "label": "Split installieren",
+                "labelIos": "Split zum Home-Bildschirm hinzufügen",
+                "installed": "Split ist installiert.",
+                "preparing": "Wird vorbereitet…",
+                "checkLabel": "Split-Symbol",
+                "checkLabelIos": "Symbol auf dem Home-Bildschirm",
+                "checkAction": "Prüfen"
+            },
+            "browser": {
+                "title": "Split installieren",
+                "body": "Nutze die Installationsoption deines Browsers – nicht „Verknüpfung erstellen“.",
+                "bodyAndroid": "Öffne das Browsermenü. Wähle „App installieren“ – nicht „Verknüpfung erstellen“.",
+                "embedded": "In einer anderen App? Wähle zuerst „Im Browser öffnen“.",
+                "step1Android": "Öffne das Browsermenü.",
+                "step2Android": "Tippe auf „App installieren“. Die Option kann unter „Zum Startbildschirm hinzufügen“ stehen.",
+                "step3Android": "Achte darauf, dass der Name „Split“ lautet.",
+                "step4Android": "Tippe auf „Installieren“.",
+                "step1Other": "Öffne das Menü deines Browsers.",
+                "step2Other": "Wähle „App installieren“. Auf dem Mac wählst du „Zum Dock hinzufügen“.",
+                "step3Other": "Achte darauf, dass der Name „Split“ lautet, und bestätige.",
+                "noOption": "Keine Installationsoption? Öffne diese Seite in Chrome."
+            },
+            "ios": {
+                "title": "Split zum Home-Bildschirm hinzufügen",
+                "step1": "Tippe auf „Teilen“.",
+                "step2": "Tippe auf „Zum Home-Bildschirm“.",
+                "step3": "Aktiviere „Als Web-App öffnen“, falls die Option angezeigt wird.",
+                "step4": "Tippe auf „Hinzufügen“.",
+                "openAfter": "Öffne Split danach über das neue Symbol.",
+                "body": "Nutze das Teilen-Menü deines Browsers.",
+                "prepareFailed": "Diese Gruppe konnte nicht vorbereitet werden. Versuche es gleich noch einmal."
+            },
+            "repair": {
+                "announcement": "Du kannst dein Split-Symbol prüfen.",
+                "title": "Altes Gruppensymbol ersetzen",
+                "body": "Auf dem Symbol steht Split? Dann passt alles. Es zeigt einen Gruppennamen? Dann ersetze es.",
+                "cardBody": "Zeigt dein Symbol einen Gruppennamen? Ersetze es durch Split.",
+                "cta": "Symbol prüfen",
+                "copyFirst": "Kopiere den Gruppenlink, bevor du das alte Symbol entfernst.",
+                "step1": "Entferne das Symbol mit dem Gruppennamen.",
+                "step2ChromeCopied": "Öffne den kopierten Gruppenlink in Chrome.",
+                "step2ChromeOriginal": "Öffne den ursprünglichen Gruppenlink in Chrome.",
+                "step2IosCopied": "Öffne den kopierten Gruppenlink in deinem Browser.",
+                "step2IosOriginal": "Öffne den ursprünglichen Gruppenlink in deinem Browser.",
+                "step3Chrome": "Tippe auf ⋮ und dann auf „App installieren“.",
+                "step3Ios": "Tippe auf „Teilen“ und dann auf „Zum Home-Bildschirm“.",
+                "copy": "Gruppenlink kopieren",
+                "copied": "Gruppenlink kopiert.",
+                "copyFailed": "Der Link konnte nicht kopiert werden. Öffne ihn erneut dort, wo er geteilt wurde.",
+                "missing": "Hier ist kein Gruppenlink. Öffne ihn erneut dort, wo er geteilt wurde.",
+                "check": "Installiere nur, wenn der Name „Split“ lautet.",
+                "back": "Zurück zur Gruppe"
+            },
+            "page": {
+                "preparing": "Browser wird geprüft…",
+                "installed": "Split ist installiert.",
+                "continue": "Zurück zu Split",
+                "copyRoom": "Ursprünglichen Gruppenlink kopieren",
+                "roomRecovery": "Ist die Gruppe nach der Installation verschwunden? Öffne den ursprünglichen Gruppenlink einmal."
+            }
+        },
+        "linkExplainer": {
+            "title": "Was der Gruppenlink macht",
+            "access": {
+                "title": "Alle mit dem Link können die Gruppe öffnen"
+            },
+            "chat": {
+                "title": "Behalte den Link im Gruppenchat"
+            },
+            "remembered": {
+                "title": "Geöffnete Gruppen bleiben auf diesem Gerät"
+            },
+            "money": {
+                "title": "Split verwaltet die Abrechnung, nicht dein Geld"
+            },
+            "done": "Verstanden"
+        },
+        "readMore": {
+            "toggle": "NOCH NEUGIERIG?",
+            "toggleHint": "Wer Split gemacht hat, warum es für immer kostenlos ist und wie Gruppenlinks funktionieren.",
+            "join": {
+                "title": "Was deine Freunde sehen",
+                "roomName": "Skireise",
+                "nameLabel": "Dein Name",
+                "namePlaceholder": "Tom",
+                "button": "Gruppe beitreten",
+                "body": "Keine E-Mail, kein Passwort, kein Download."
+            },
+            "features": {
+                "title": "Was Split kann",
+                "currency": {
+                    "title": "162 Währungen für eure Gruppe",
+                    "body": "Automatische Umrechnung für 156 Währungen; sechs weitere funktionieren ohne Umrechnung."
+                },
+                "splits": {
+                    "title": "Ungleiche Aufteilungen",
+                    "body": "Gleich, prozentual, nach Anteilen, nach genauen Beträgen oder nur unter ausgewählten Personen."
+                },
+                "exact": {
+                    "title": "Geht auf den Cent genau auf",
+                    "body": "Öffne einen Saldo, um die Aufschlüsselung zu sehen."
+                },
+                "live": {
+                    "title": "Alle sehen alles sofort",
+                    "body": "Neue Ausgaben erscheinen sofort bei allen."
+                },
+                "offline": {
+                    "title": "Funktioniert ohne Empfang",
+                    "body": "Ausgaben werden synchronisiert, sobald du wieder online bist."
+                },
+                "home": {
+                    "title": "Zum Home-Bildschirm hinzufügen",
+                    "body": "Öffnet sich wie eine App."
+                },
+                "transfers": {
+                    "title": "Ein einfacherer Zahlungsplan",
+                    "body": "Eine kurze Liste, wer wem zahlt."
+                }
+            },
+            "settle": {
+                "title": "Zahlungsarten",
+                "cash": "Bar",
+                "bank": "Überweisung",
+                "peanut": "Mit Peanut senden"
+            },
+            "team": {
+                "title": "Das Team dahinter",
+                "intro": "Split hat noch keine Nutzer, also können wir nur uns selbst zitieren.",
+                "konrad": {
+                    "name": "Konrad",
+                    "role": "hat Split gebaut",
+                    "quote": "Jede Reise endete gleich: eine Tabelle, die niemand aktualisierte, und eine Person, die still auf den Kosten sitzen blieb."
+                },
+                "hugo": {
+                    "name": "Hugo",
+                    "role": "hat Split gebaut",
+                    "quote": "Ich wollte, dass alles nur ein Link ist. Wenn deine Freunde ein Konto anlegen müssen, tun sie es nicht."
+                }
+            },
+            "who": {
+                "title": "Wer das gemacht hat – und warum es für immer kostenlos ist",
+                "built": {
+                    "title": "Peanut hat Split gebaut",
+                    "body": "Peanut ist eine echte Zahlungs-App von einem echten Unternehmen – kein Wochenendprojekt, das wieder verschwindet."
+                },
+                "free": {
+                    "title": "Split bleibt für immer kostenlos, weil es Peanut bekannter macht",
+                    "body": "Kein Premium-Abo, kein späteres Upgrade-Angebot, nichts zu kaufen."
+                },
+                "data": {
+                    "title": "Hier gibt es kaum Daten, die nach außen dringen könnten",
+                    "body": "Gruppenlinks schließen wir aus unseren eigenen Analysen aus, denn der Link ist ein Schlüssel."
+                }
+            },
+            "faq": {
+                "title": "Was die Leute wirklich fragen",
+                "retype": {
+                    "q": "Muss ich alles aus dem Gruppenchat noch einmal eingeben?",
+                    "a": "Bei einer Reise, die schon vorbei ist: ja. Die Ausgaben werden einmal eingetragen. Das geht schneller als gedacht, weil alle in der Gruppe ihre eigenen Ausgaben eintragen können und nicht alles an dir hängen bleibt.",
+                    "import": "Wenn du von Splitwise kommst, übernimmt die Importseite eine ganze Gruppe in einem Schritt."
+                },
+                "access": {
+                    "q": "Wer kann unsere Gruppe sehen?",
+                    "a": "Alle mit dem Link. Er wird von Suchmaschinen ferngehalten und lässt sich nicht erraten. Aber er ist ein Schlüssel – behaltet ihn im Gruppenchat und teilt ihn nicht öffentlich."
+                },
+                "lost": {
+                    "q": "Wie kommen wir zurück zur Gruppe?",
+                    "a": "Lasst den Link im Gruppenchat, damit ihn alle dort finden. Split speichert geöffnete Gruppen außerdem auf diesem Gerät. Auf der Startseite kannst du den Link einfügen und die Gruppe wieder hinzufügen."
+                },
+                "limits": {
+                    "q": "Wie viele Ausgaben können wir eintragen?",
+                    "a": "So viele, wie ihr möchtet. Auch fünfzig an einem Nachmittag, wenn eure Reise eben so läuft."
+                }
+            },
+            "compare": {
+                "line": "Du kommst von einer anderen App zum Kostenteilen?",
+                "link": "Split mit Splitwise vergleichen"
+            }
+        }
+    },
+    "locale": {
+        "label": "Sprache"
+    },
+    "settings": {
+        "animations": {
+            "title": "Animationen"
+        }
+    },
+    "dates": {
+        "today": "Heute",
+        "yesterday": "Gestern",
+        "justNow": "gerade eben"
+    },
+    "room": {
+        "actions": {
+            "settleUp": "Ausgleichen",
+            "addExpense": "Ausgabe hinzufügen"
+        },
+        "header": {
+            "shareRoomLink": "Gruppenlink teilen",
+            "openSettings": "Einstellungen öffnen",
+            "openRoomSwitcher": "Gruppenauswahl öffnen",
+            "title": "Einstellungen",
+            "close": "Einstellungen schließen",
+            "closeSheet": "Schließen",
+            "youAre": "Du bist {name}",
+            "roomsTitle": "Gruppen",
+            "closeRoomSwitcher": "Gruppenauswahl schließen",
+            "currentRoom": "Aktuelle Gruppe",
+            "openRoomSettings": "Einstellungen für {room} öffnen",
+            "settingsAction": "Einstellungen",
+            "addOrJoinRoom": "Gruppe erstellen oder beitreten",
+            "recentRoomsNote": "Zuletzt verwendete Gruppen werden nur auf diesem Gerät gespeichert.",
+            "roomName": "Gruppenname",
+            "linkStaysTheSame": "Der Link bleibt gleich.",
+            "nameFailed": "Die Gruppe konnte nicht umbenannt werden – versuche es noch einmal",
+            "drawing": "Gruppenbild",
+            "drawingFailed": "Das Bild konnte nicht geändert werden – versuche es noch einmal",
+            "people": "Personen",
+            "addSomeone": "Person hinzufügen",
+            "personNamePlaceholder": "Name der Person",
+            "addPerson": "Hinzufügen",
+            "personDuplicate": "{name} ist bereits in der Gruppe.",
+            "personReactivate": "{name} steht unter „Ehemalige Mitglieder“. Reaktiviere unten dieselbe Person, statt sie doppelt hinzuzufügen.",
+            "personFailed": "Die Person konnte nicht hinzugefügt werden – versuche es noch einmal",
+            "formerPeople": "Ehemalige Mitglieder",
+            "formerExplanation": "Der Ausgaben- und Zahlungsverlauf bleibt in der Abrechnung. „Ehemalig“ heißt hier nur, dass die Person bei neuen Aufteilungen nicht berücksichtigt wird; der Gruppenlink bleibt gültig.",
+            "formerSettled": "Keine offenen Schulden · nicht in neuen Aufteilungen",
+            "formerBalanceOpen": "Eine frühere Änderung hat diesen Saldo wieder geöffnet",
+            "restore": "Reaktivieren",
+            "restoreFailed": "Die Person konnte nicht reaktiviert werden – versuche es noch einmal",
+            "you": "Du",
+            "switchPersonTitle": "Person wechseln?",
+            "switchPersonBody": "Danach ist dieses Gerät nicht mehr mit {name} verknüpft und erhält keine Benachrichtigungen für diese Gruppe. Anschließend wählst du deinen Namen erneut aus.",
+            "switchPerson": "Wechseln",
+            "slideSwitchPerson": "Zum Personenwechsel wischen",
+            "cancel": "Abbrechen",
+            "link": "Link",
+            "linkCopied": "Link kopiert",
+            "copyFailed": "Dein Browser hat das Kopieren blockiert.",
+            "importExport": "Import / Export",
+            "importExportFormats": "Splitwise · CSV · JSON",
+            "exportOnly": "Export",
+            "exportFormats": "CSV · JSON",
+            "history": "Verlauf",
+            "historyHint": "Vollständiges Änderungsprotokoll",
+            "device": "Dieses Gerät",
+            "reportProblem": "Problem melden",
+            "reportProblemHint": "Details privat senden",
+            "sound": "Ton",
+            "haptics": "Haptik",
+            "privacyNote": "Für immer kostenlos, keine Anmeldung. Alle mit dem Gruppenlink können die Gruppe öffnen."
+        },
+        "feedback": {
+            "title": "Problem melden",
+            "intro": "Sag uns, was schiefgelaufen ist. Gesendet wird erst, nachdem du alles geprüft und zugestimmt hast.",
+            "scopeNote": "Immer enthalten sind deine Nachricht und eine private Verknüpfung mit „{room}“, damit der Support die richtige Gruppe findet. Dein Eintrag als Gruppenmitglied wird nicht als Absender der Meldung angehängt.",
+            "close": "Problemmeldung schließen",
+            "messageLabel": "Was ist passiert?",
+            "messagePlaceholder": "Was hast du gemacht, was ist passiert und was hattest du erwartet?",
+            "messageHint": "Pflichtfeld · mindestens {minimum} Zeichen. Gruppenlinks in deinem Text werden vor dem Speichern entfernt.",
+            "attachmentsTitle": "Anhänge auswählen",
+            "attachmentsIntro": "Zunächst ist kein Anhang ausgewählt. Aktiviere nur, was der Peanut-Support erhalten soll.",
+            "deviceTitle": "Gerätedetails",
+            "deviceHint": "Browser und Betriebssystem, Ansichtsgröße, Zeitzone, App-Modus und Netzwerkstatus.",
+            "exactDeviceData": "Genaue Gerätedaten anzeigen",
+            "browser": "Browser / Betriebssystem",
+            "viewport": "Ansichtsgröße",
+            "timeZone": "Zeitzone",
+            "appMode": "App-Modus",
+            "network": "Netzwerk",
+            "unknown": "Unbekannt",
+            "online": "Online",
+            "offline": "Offline",
+            "roomTitle": "Gruppenkontext",
+            "roomHint": "Momentaufnahme beim Senden: Gruppe, Personen sowie bis zu {expenses, plural, one {# Ausgabeneintrag} other {# Ausgabeneinträge}} und bis zu {settlements, plural, one {# Zahlungseintrag} other {# Zahlungseinträge}}.",
+            "roomPreview": "{currency} · {members, plural, one {# Person} other {# Personen}} · {expenses, plural, one {# Ausgabe} other {# Ausgaben}} · {settlements, plural, one {# Zahlung} other {# Zahlungen}}",
+            "roomExcludes": "Enthält Gruppeneinstellungen; Namen, Figuren und Status der Personen; Anzahlen von Einträgen; sowie IDs, Zeitstempel, Beschreibungen, Währungen, Beträge, Wechselkurse, Kategorien, zahlende Personen, Aufteilungsdetails, Methoden, Notizen und Löschstatus der letzten Ausgaben und Zahlungen. Gruppenlink, Mitgliedsschlüssel, Push-Daten, Beleglinks und Änderungsprotokoll sind ausgeschlossen.",
+            "screenshotTitle": "Screenshot (optional)",
+            "screenshotHint": "Es wird nichts automatisch erfasst. Der Browser fragt, was du teilen möchtest, oder du wählst ein vorhandenes Bild.",
+            "captureScreen": "Bildschirm aufnehmen",
+            "uploadScreenshot": "Bild auswählen",
+            "screenshotAlt": "An diese Meldung angehängter Screenshot",
+            "removeScreenshot": "Entfernen",
+            "captureUnavailable": "Eine Bildschirmaufnahme ist hier nicht möglich. Wähle stattdessen ein vorhandenes Bild.",
+            "captureCancelled": "Es wurde kein Screenshot angehängt. Versuche es noch einmal oder wähle ein vorhandenes Bild.",
+            "imageTooLarge": "Das Bild ist zu groß. Wähle einen Screenshot unter 20 MB.",
+            "imageUnreadable": "Das Bild konnte nicht gelesen werden. Wähle einen Screenshot im Format JPEG, PNG oder WebP.",
+            "consentTitle": "Ich stimme dem Senden dieser Meldung zu",
+            "consentHint": "Der Peanut-Support kann deine Nachricht und nur die oben ausgewählten Anhänge lesen. Meldungen werden weder an Analysedienste gesendet noch in der Gruppe angezeigt; ihre Löschung ist nach 90 Tagen vorgesehen.",
+            "send": "Meldung senden",
+            "cancel": "Abbrechen",
+            "sendFailed": "Die Meldung konnte nicht gesendet werden – dein Text und Screenshot sind noch da.",
+            "successTitle": "Meldung gesendet",
+            "successBody": "Danke. Der Peanut-Support hat deine Nachricht und die ausgewählten Anhänge erhalten.",
+            "done": "Fertig"
+        },
+        "export": {
+            "importTitle": "Splitwise-Gruppe übernehmen",
+            "importBody": "Füge einen Export aus Splitwise oder Split Pro hinzu, dessen Ausgabenwährungen mit dieser Gruppe übereinstimmen oder einen Umrechnungskurs haben. Der Gruppenlink und vorhandene Ausgaben bleiben unverändert.",
+            "openImporter": "In diese Gruppe importieren",
+            "exportTitle": "Diese Gruppe exportieren",
+            "disclosure": "Die Datei enthält alle Namen sowie sämtliche Ausgaben und Zahlungen.",
+            "csv": "CSV herunterladen",
+            "json": "JSON herunterladen"
+        },
+        "history": {
+            "title": "Gruppenverlauf",
+            "close": "Gruppenverlauf schließen",
+            "statsTitle": "Gruppenstatistik",
+            "statsIntro": "Nur aktuell gespeicherte Ausgaben. Bearbeitungen ersetzen frühere Versionen; gelöschte Ausgaben und erfasste Zahlungen verändern diese Summen nicht.",
+            "statsEmpty": "Statistiken und Gruppengeschichten erscheinen nach der ersten Ausgabe.",
+            "totalSpent": "Gesamtausgaben",
+            "averageExpense": "Durchschnittliche Ausgabe",
+            "expenses": "Ausgaben",
+            "people": "Beteiligte Personen",
+            "notAvailable": "Nicht verfügbar",
+            "largestShare": "Größter persönlicher Anteil",
+            "frontedMost": "Am meisten vorgestreckt",
+            "ofRoomSpend": "{percent} % der Gruppenausgaben",
+            "spendRolesHint": "Der Anteil zeigt, welcher Betrag auf eine Person entfiel. „Vorgestreckt“ zeigt, wie viel sie zunächst für die Gruppe bezahlt hat.",
+            "formerName": "{name} · Ehemaliges Mitglied",
+            "unknownMember": "Unbekannte Person",
+            "unknownExpense": "Unbekannte Ausgabe",
+            "monthOverMonth": "Monatsvergleich",
+            "throughDay": "Bis Tag {day}",
+            "mtdNoSpend": "In keinem der beiden Zeiträume gab es Ausgaben.",
+            "mtdNewSpend": "Zu diesem Zeitpunkt gab es im letzten Monat noch keine Ausgaben.",
+            "mtdSame": "Genau so viel wie zu diesem Zeitpunkt im letzten Monat.",
+            "mtdMore": "{percent} % mehr als zu diesem Zeitpunkt im letzten Monat.",
+            "mtdLess": "{percent} % weniger als zu diesem Zeitpunkt im letzten Monat.",
+            "recentMonths": "Monatssummen der letzten Monate",
+            "roomLore": "Gruppengeschichten",
+            "topCategory": "Größte Ausgabenkategorie",
+            "categoryDetail": "{count, plural, one {# Ausgabe} other {# Ausgaben}}",
+            "crowdFavorite": "Lieblingsausgabe der Gruppe",
+            "reactionDetail": "{count, plural, one {# Reaktion} other {# Reaktionen}}",
+            "sharedTable": "Ausgabe mit den meisten Beteiligten",
+            "sharedTableDetail": "Aufgeteilt auf {count, plural, one {# Person} other {# Personen}}",
+            "currencyPassport": "Währungspass",
+            "currencyDetail": "{count, plural, one {# Ausgabenwährung} other {# Ausgabenwährungen}}",
+            "activityTitle": "Änderungen",
+            "downloadHint": "Enthält Namen, Beträge und jede erfasste Änderung. Gruppenlink und private Gerätezugangsdaten sind ausgeschlossen.",
+            "download": "Vollständiges Protokoll (.json) herunterladen",
+            "downloading": "Download wird vorbereitet…",
+            "downloaded": "Das vollständige Gruppenprotokoll wurde in deinen Downloads gespeichert.",
+            "downloadFailed": "Der Download konnte nicht vorbereitet werden. Versuche es noch einmal.",
+            "categories": {
+                "foodDrink": "Essen & Trinken",
+                "transport": "Transport",
+                "travelStays": "Reisen & Unterkünfte",
+                "homeBills": "Wohnen & Rechnungen",
+                "shopping": "Einkäufe",
+                "entertainment": "Unterhaltung & Freizeit",
+                "health": "Gesundheit & Wohlbefinden",
+                "familyEducation": "Familie & Bildung",
+                "workServices": "Arbeit & Dienstleistungen",
+                "techConnectivity": "Technik & Kommunikation",
+                "moneyAdmin": "Finanzen & Verwaltung",
+                "gifts": "Geschenke & Spenden",
+                "other": "Sonstiges"
+            },
+            "loading": "Verlauf wird geladen…",
+            "failed": "Der Gruppenverlauf konnte nicht geladen werden.",
+            "retry": "Noch einmal versuchen",
+            "loadOlder": "Ältere laden",
+            "device": "Gerät {label}",
+            "unknownDevice": "Unbekanntes Gerät",
+            "actor": "{device} als {name}",
+            "structuredData": "Strukturierte Daten",
+            "actions": {
+                "history_started": "Ab hier beginnt der Verlauf. Frühere Aktionen sind nicht verfügbar.",
+                "room_created": "hat die Gruppe erstellt",
+                "room_imported": "hat die Gruppe und frühere Ausgaben importiert",
+                "room_import_appended": "hat Ausgaben in die Gruppe importiert",
+                "room_settings_updated": "hat die Gruppeneinstellungen bearbeitet",
+                "member_joined": "ist der Gruppe beigetreten",
+                "member_added": "hat eine Person hinzugefügt",
+                "member_removed": "hat eine Person als „ehemalig“ markiert",
+                "member_restored": "hat eine Person reaktiviert",
+                "member_avatar_updated": "hat die Figur einer Person bearbeitet",
+                "expense_added": "hat eine Ausgabe hinzugefügt",
+                "expense_edited": "hat eine Ausgabe bearbeitet",
+                "expense_deleted": "hat eine Ausgabe gelöscht",
+                "expense_restored": "hat eine Ausgabe wiederhergestellt",
+                "reaction_added": "hat auf eine Ausgabe reagiert",
+                "reaction_removed": "hat eine Reaktion entfernt",
+                "settlement_recorded": "hat eine Zahlung erfasst",
+                "settlement_deleted": "hat einen Zahlungseintrag rückgängig gemacht",
+                "push_subscribed": "hat Gruppenbenachrichtigungen aktiviert",
+                "push_unsubscribed": "hat Gruppenbenachrichtigungen deaktiviert"
+            }
+        },
+        "join": {
+            "title": "Wer bist du?",
+            "roster": "{room} · bisher {count, plural, one {# Person} other {# Personen}}",
+            "thatsMe": "Das bin ich",
+            "imNew": "Ich bin neu hier",
+            "namePlaceholder": "Dein Name",
+            "submit": "Gruppe beitreten",
+            "alreadyOnList": "Ich stehe doch schon auf der Liste",
+            "duplicate": "{name} ist schon hier – tippe stattdessen oben auf den Namen.",
+            "reactivateTitle": "{name} reaktivieren?",
+            "reactivateBody": "Dadurch verwendest du denselben Eintrag in der Abrechnung weiter; der gesamte Verlauf bleibt erhalten. Die Person wird wieder in neuen Aufteilungen berücksichtigt.",
+            "reactivateConfirm": "{name} reaktivieren",
+            "reactivateCancel": "Anderen Namen verwenden",
+            "previousFormer": "{name} wurde als „ehemalig“ markiert. Wähle eine aktive Person, reaktiviere denselben Personeneintrag oder tritt unter einem anderen Namen bei.",
+            "previousChanged": "Der Mitgliedsschlüssel von {name} hat sich geändert. Wähle deinen Namen in der Liste der aktiven Personen erneut aus, um fortzufahren; dein Entwurf ist noch da.",
+            "failed": "Beitritt fehlgeschlagen – versuche es noch einmal"
+        },
+        "balances": {
+            "title": "Salden",
+            "you": "Du",
+            "settled": "ausgeglichen",
+            "owes": "schuldet",
+            "getsBack": "bekommt zurück",
+            "nothingYet": "noch nichts",
+            "youOwe": "du schuldest",
+            "youGetBack": "du bekommst zurück",
+            "former": "Ehemaliges Mitglied",
+            "pair": {
+                "owesYou": "{name} schuldet dir",
+                "youOwe": "Du schuldest {name}",
+                "owes": "{debtor} schuldet {creditor}"
+            }
+        },
+        "expenses": {
+            "title": "Ausgaben",
+            "emptyTitle": "Gruppe bereit",
+            "someone": "Jemand",
+            "formerName": "{name} · Ehemaliges Mitglied",
+            "you": "Du",
+            "paidBy": "{payer} hat bezahlt · {count, plural, one {# Person} other {# Personen}}",
+            "paidByCompact": "Bezahlt von {payer}",
+            "paidByYouCompact": "Von dir bezahlt",
+            "youLent": "du hast vorgestreckt",
+            "youBorrowed": "für dich ausgelegt",
+            "total": "gesamt",
+            "indicative": "Richtwert",
+            "savedManualRate": "Hier gespeichert · 1 {currency} = {rate} {roomCurrency}",
+            "paidByYou": "Du hast bezahlt · {count, plural, one {# Person} other {# Personen}}",
+            "filedBy": "Eingetragen von {name}",
+            "filedByYou": "Von dir eingetragen",
+            "filedByAnon": "Anonym eingetragen",
+            "personalImpact": {
+                "outgoingNamed": "Erhöht deine Schulden bei {name}",
+                "outgoing": "Erhöht deine Schulden",
+                "incomingNamed": "Erhöht den Betrag, den {name} dir schuldet",
+                "incoming": "Durch diese Ausgabe schulden dir andere mehr",
+                "neutral": "Keine Änderung an deinem Saldo",
+                "notInSplit": "Nicht an dieser Aufteilung beteiligt"
+            },
+            "emptyInvite": "Andere einladen",
+            "emptyShare": "Gruppe teilen",
+            "emptyAdd": "Ausgabe hinzufügen"
+        },
+        "states": {
+            "errorTitle": "Diese Gruppe konnte nicht geladen werden",
+            "errorBody": "Wahrscheinlich wackelt die Verbindung. Nichts geht verloren – versuche es noch einmal.",
+            "staleTitle": "Diese Gruppe ist möglicherweise nicht aktuell",
+            "staleBody": "Die zuletzt geladene Version der Gruppe wird angezeigt. Gespeicherte Ausgaben können erst nach einer Aktualisierung bearbeitet oder gelöscht werden; auch Zahlungen können bis dahin nicht erfasst werden. Neue Ausgaben kannst du weiterhin hinzufügen.",
+            "retry": "Noch einmal versuchen",
+            "pullToRefresh": {
+                "pull": "Zum Aktualisieren nach unten ziehen",
+                "release": "Zum Aktualisieren loslassen",
+                "refreshing": "Gruppe wird aktualisiert…"
+            },
+            "notFoundTitle": "Diese Gruppe gibt es nicht",
+            "notFoundBody": "Entweder wurde sie gelöscht oder im Link fehlt der letzte Teil – bei Gruppenlinks zählt auch Groß- und Kleinschreibung.",
+            "notFoundCta": "Gruppenoptionen öffnen"
+        },
+        "allSettled": {
+            "title": "Alles ausgeglichen",
+            "expenseCount": "{count, plural, one {# Ausgabe} other {# Ausgaben}}",
+            "peopleCount": "{count, plural, one {# Person} other {# Personen}}",
+            "allSquare": "alles ausgeglichen"
+        },
+        "story": {
+            "duo": "Nur ihr zwei – und kein Cent zwischen euch.",
+            "marathon": "{days, plural, one {# Tag lang hieß es: „Diesmal zahle ich.“} other {# Tage lang hieß es: „Diesmal zahle ich.“}} Alles ausgeglichen.",
+            "blitz": "Ein Tag, {rounds, plural, one {eine Runde „Ich übernehme“} other {# Runden „Ich übernehme“}}. Kein Groll.",
+            "bigGroup": "{count} Personen, und niemand musste seinem Geld hinterherlaufen.",
+            "default": "Niemand musste Buch führen. Das war unser Job."
+        },
+        "recap": {
+            "settledBadge": "Alles ausgeglichen",
+            "ongoingBadge": "Bisher",
+            "totalLabel": "Gesamtausgaben",
+            "days": "{count, plural, one {# Tag} other {# Tage}}",
+            "expenses": "{count, plural, one {# Ausgabe} other {# Ausgaben}}",
+            "people": "{count, plural, one {# Person} other {# Personen}}",
+            "settlements": "{count, plural, =0 {Noch keine Zahlung erfasst} one {# Zahlung erfasst} other {# Zahlungen erfasst}}",
+            "topPayer": "{name} hat am meisten vorgestreckt",
+            "share": "Geschichte teilen",
+            "sharing": "Wird vorbereitet…",
+            "shareTitle": "Peanut Split",
+            "shareText": "Wir haben alles ausgeglichen.",
+            "copied": "Rückblick kopiert – füge ihn ein, wo du möchtest.",
+            "downloaded": "Rückblick in deinen Downloads gespeichert.",
+            "shareFailed": "Die Rückblickkarte konnte nicht erstellt werden. Versuche es noch einmal.",
+            "seeRecap": "Rückblick ansehen",
+            "backToRoom": "Zurück zur Gruppe",
+            "ctaTitle": "Du bist dran",
+            "cta": "Eigene Aufteilung starten",
+            "yourLine": "Du hast {amount} beigesteuert · {position}",
+            "youOwe": "du schuldest {amount}",
+            "youGetBack": "du bekommst {amount} zurück",
+            "youSettled": "alles ausgeglichen"
+        },
+        "expenseDrawer": {
+            "addTitle": "Ausgabe hinzufügen",
+            "editTitle": "Ausgabe bearbeiten",
+            "close": "Ausgabenformular schließen",
+            "amount": "Betrag",
+            "currency": "Ausgabenwährung",
+            "foreignHint": "wird zum Richtkurs umgerechnet",
+            "manualRateTitle": "Eigenen Kurs festlegen",
+            "manualRateInputLabel": "Wert von 1 {currency} in {roomCurrency}",
+            "manualRateHint": "Dieser Kurs wird mit der Ausgabe gespeichert und ändert sich nicht automatisch.",
+            "manualRateFromExpense": "Nur für diese Ausgabe gespeichert: 1 {currency} = {rate} {roomCurrency}. Ändere den Kurs, um die Ausgabe neu zu berechnen.",
+            "manualRateRequired": "Gib ein, wie viel 1 {currency} in {roomCurrency} wert ist.",
+            "manualRateInvalid": "Gib einen positiven Kurs bis 999999999999 mit höchstens 12 Nachkommastellen ein.",
+            "manualRateRoundsToZero": "Mit diesem Kurs wird die Ausgabe in {roomCurrency} auf null gerundet. Erhöhe den Kurs oder den Betrag.",
+            "manualRateOverflow": "Dieser Kurs oder Betrag ist zu groß für die Abrechnung. Verringere einen der beiden Werte.",
+            "manualRatePreview": "Mit deinem Kurs werden aus {amount} genau {converted}.",
+            "description": "Wofür? (optional)",
+            "descriptionPlaceholder": "Abendessen, Taxi, Skipass … (optional)",
+            "amountPreview": "Formatiert: {amount}",
+            "category": "Bildkategorie",
+            "categoryAutomatic": "Automatisch",
+            "categories": {
+                "foodDrink": "Essen",
+                "transport": "Transport",
+                "travelStays": "Unterkunft",
+                "homeBills": "Wohnen",
+                "shopping": "Einkäufe",
+                "entertainment": "Freizeit",
+                "health": "Gesundheit",
+                "gifts": "Geschenke",
+                "other": "Sonstiges"
+            },
+            "fieldsSwapped": "Verstanden – Betrag und Beschreibung wurden vertauscht.",
+            "amountNormalised": "Als {amount} erkannt. Prüfe den Wert vor dem Speichern.",
+            "paidBy": "Bezahlt von",
+            "paid": "bezahlt",
+            "paidBySummary": "{name} hat bezahlt",
+            "choosePayer": "Zahlende Person auswählen",
+            "whoPaid": "Wer hat bezahlt?",
+            "addPayer": "Person hinzufügen",
+            "payerNamePlaceholder": "Name der Person",
+            "confirmPayer": "Person hinzufügen",
+            "cancelPayer": "Abbrechen",
+            "payerDuplicate": "{name} ist schon in der Gruppe – wähle die Person oben aus.",
+            "payerAddFailed": "Die Person konnte nicht hinzugefügt werden – versuche es noch einmal",
+            "formerName": "{name} · Ehemaliges Mitglied",
+            "formerDraftRoleWarning": "Eine ausgewählte Person wurde als „ehemalig“ markiert, während du diese Ausgabe eingegeben hast. Wähle eine andere zahlende Person oder entferne sie vor dem Speichern aus der Aufteilung; deine Beträge bleiben erhalten.",
+            "formerSavedRoleWarning": "In dieser gespeicherten Ausgabe ist eine Person enthalten, die inzwischen nicht mehr teilnimmt. Du kannst die Ausgabe unverändert lassen oder die Person daraus entfernen bzw. ersetzen. Einer Person, die nicht mehr teilnimmt, kannst du jedoch keine neue Rolle zuweisen.",
+            "split": "Aufteilung",
+            "whoShares": "Wer teilt sich diese Ausgabe?",
+            "everyone": "Alle",
+            "choosePeople": "Personen auswählen",
+            "peopleSummary": "{name} + {count}",
+            "splitSummary": "{people}, {mode}",
+            "splitMode": "Aufteilungsmethode",
+            "equally": "Gleichmäßig",
+            "exactAmounts": "Genaue Beträge",
+            "percentage": "Prozent",
+            "shares": "Anteile",
+            "moreOptions": "Weitere Optionen",
+            "exactAmountFor": "Genauer Betrag für {name}",
+            "percentageFor": "Prozentanteil für {name}",
+            "sharesFor": "Anzahl der Anteile für {name}",
+            "sharesUnit": "Anteile",
+            "putRemainderOn": "Restbetrag {name} zuweisen",
+            "addToSplit": "+ {name}",
+            "allocated": "Jeder Cent ist zugewiesen",
+            "overBy": "Zu viel",
+            "leftToAllocate": "Noch zu verteilen",
+            "amountsAreIn": "Beträge in {currency}",
+            "convertedAt": " – zum Richtkurs in {roomCurrency} umgerechnet",
+            "convertedAtManual": " – mit deinem Kurs in {roomCurrency} umgerechnet",
+            "allocatedOf": ". {allocated} von {total} zugewiesen.",
+            "percentageAllocated": "Genau 100 % zugewiesen",
+            "percentageOverBy": "Über 100 % um",
+            "percentageLeft": "Noch zu verteilen",
+            "percentageCaption": "Die Prozentsätze müssen genau 100 % ergeben.",
+            "sharesTotal": "Anteile insgesamt: {total}",
+            "sharesCaption": "Verwende positive ganze Zahlen. Leer oder null schließt eine Person aus.",
+            "when": "Zeitpunkt",
+            "whenWasIt": "Wann war das?",
+            "date": "Ausgabendatum",
+            "dateShort": "Datum",
+            "dateSummary": "Ausgabendatum: {date}",
+            "collapseSection": "Diesen Abschnitt einklappen",
+            "save": "Änderungen speichern",
+            "add": "Ausgabe hinzufügen",
+            "addWithAmount": "Ausgabe über {amount} hinzufügen",
+            "delete": "Löschen",
+            "confirmDelete": "Diese Ausgabe löschen? Die Ausgabe verschwindet aus dem Gruppenverlauf und alle Salden ändern sich.",
+            "confirmDeleteYes": "Löschen",
+            "slideDelete": "Zum Löschen wischen",
+            "deleting": "Wird gelöscht…",
+            "confirmDeleteNo": "Behalten",
+            "deletedToast": "„{description}“ gelöscht",
+            "deletedToastUnnamed": "Ausgabe gelöscht",
+            "undo": "Rückgängig",
+            "restored": "Wiederhergestellt",
+            "restoreFailed": "Konnte nicht rückgängig gemacht werden – aktualisiere die Gruppe und versuche es noch einmal",
+            "wasDeleted": "Diese Ausgabe wurde gelöscht. Mach die Löschung zuerst rückgängig und bearbeite sie dann.",
+            "saveFailed": "Die Ausgabe konnte nicht gespeichert werden – versuche es noch einmal",
+            "deleteFailed": "Die Ausgabe konnte nicht gelöscht werden",
+            "validation": {
+                "AMOUNT_REQUIRED": "Gib einen Betrag über null ein.",
+                "AMOUNT_INVALID": "Prüfe die Trennzeichen und Nachkommastellen des Betrags.",
+                "PAYER_REQUIRED": "Wähle aus, wer bezahlt hat.",
+                "NO_PARTICIPANTS": "Wähle mindestens eine Person für die Aufteilung aus.",
+                "SHARE_AMOUNT_INVALID": "Prüfe die Trennzeichen und Nachkommastellen der genauen Beträge.",
+                "SHARES_DO_NOT_ADD_UP": "Die genauen Beträge müssen zusammen die Gesamtsumme ergeben.",
+                "PERCENTAGE_INVALID": "Gib Prozentsätze mit höchstens zwei Nachkommastellen ein.",
+                "PERCENTAGES_DO_NOT_ADD_UP": "Die Prozentsätze müssen genau 100 % ergeben.",
+                "SHARE_WEIGHT_INVALID": "Anteile müssen positive ganze Zahlen sein.",
+                "AMOUNT_NEGATIVE": "Entferne das Minuszeichen – eine Ausgabe ist immer positiv."
+            },
+            "equallyHint": "Für alle gleich",
+            "exactAmountsHint": "Unterschiedliche Beträge",
+            "percentageHint": "Prozentanteil jeder Person festlegen",
+            "sharesHint": "Nach relativen Anteilen aufteilen",
+            "equallyShort": "gleichmäßig",
+            "exactShort": "genau",
+            "percentageShort": "nach Prozent",
+            "sharesShort": "nach Anteilen"
+        },
+        "settle": {
+            "formerName": "{name} · Ehemaliges Mitglied",
+            "listTitle": "Wer schuldet wem etwas?",
+            "recordTitle": "Zahlung erfassen",
+            "nothingToSettle": "Noch nichts auszugleichen – füge zuerst eine Ausgabe hinzu.",
+            "you": "Du",
+            "stillOutstanding": "Noch offen",
+            "howPaid": "Wie wurde bezahlt?",
+            "cash": "Bar",
+            "bank": "Bank",
+            "peanut": "Peanut",
+            "peanutNote": "Öffnet Peanut in einem neuen Tab. Split erfasst die Zahlung hier auch dann, wenn kein Geld gesendet wird.",
+            "note": "Notiz (optional)",
+            "notePlaceholder": "Am Freitag gesendet",
+            "receiptLink": "Beleglink (optional)",
+            "receiptLinkPlaceholder": "https://…",
+            "receiptLinkHint": "Wird nur als Nachweis gespeichert. Split öffnet oder prüft den Link nicht.",
+            "record": "Zahlung erfassen",
+            "back": "Zurück",
+            "recorded": "{from} hat an {to} gezahlt",
+            "failed": "Die Zahlung konnte nicht erfasst werden – versuche es noch einmal",
+            "amountLabel": "Wie viel wurde gezahlt?",
+            "amountHint": "Die gesamte Schuld beträgt",
+            "amountInvalid": "Gib einen Betrag über null ein.",
+            "amountFormatInvalid": "Prüfe die Trennzeichen und Nachkommastellen des Betrags.",
+            "amountTooHigh": "Das ist mehr, als {name} schuldet.",
+            "recordedTitle": "Gerade erfasst",
+            "amountTooHighYou": "Das ist mehr, als du schuldest."
+        },
+        "share": {
+            "title": "Gruppe teilen",
+            "postAhaTitle": "Erste Aufteilung fertig",
+            "postAhaSubtitle": "Teile sie mit der Gruppe.",
+            "postAhaBalance": "{from} schuldet {to}",
+            "notNow": "Nicht jetzt",
+            "done": "Fertig",
+            "close": "Teilen schließen"
+        },
+        "link": {
+            "scanToJoin": "Vor Ort zum Beitreten scannen",
+            "qrLabel": "QR-Code zum Beitritt zu {room}",
+            "roomLink": "Gruppenlink",
+            "inviteText": "Einladungstext",
+            "copyBlocked": "Dein Browser hat das Kopieren blockiert. Die vollständige Einladung ist oben markiert – kopiere sie von Hand.",
+            "copy": "Einladung kopieren",
+            "copied": "Kopiert!",
+            "share": "Gruppenlink teilen",
+            "shared": "Gruppenlink gesendet.",
+            "shareFailed": "Das Teilen-Menü wurde nicht geöffnet. Kopiere stattdessen die Einladung.",
+            "anyoneCanJoin": "Alle mit diesem Link können beitreten und Ausgaben hinzufügen.",
+            "shareTitle": "{room} · Peanut Split",
+            "shareText": "Öffne den Link, wähle deinen Namen und trage ein, was du bezahlt hast."
+        },
+        "create": {
+            "back": "Zurück",
+            "title": "Neue Aufteilung",
+            "name": "Was teilt ihr?",
+            "namePlaceholder": "Skireise …",
+            "emoji": "Oder wähle ein anderes Bild",
+            "emojiGroup": "Gruppenbild",
+            "emojiOption": "Bild: {emoji}",
+            "drawYourOwn": "Selbst zeichnen",
+            "drawTitle": "Zeichne ein Bild für eure Gruppe",
+            "drawHint": "Am besten funktioniert ein einfaches Motiv. Schief ist ausdrücklich erlaubt.",
+            "drawUndo": "Rückgängig",
+            "drawClear": "Leeren",
+            "drawCancel": "Abbrechen",
+            "drawUse": "Zeichnung verwenden",
+            "collapseDrawing": "Gruppenbilder einklappen",
+            "currency": "Währung",
+            "currencyLabel": "Gruppenwährung",
+            "currencyHint": "Die Salden verwenden diese Währung; Ausgaben können andere verwenden.",
+            "creatorName": "Und du bist …",
+            "creatorNamePlaceholder": "Dein Name …",
+            "submit": "Gruppe erstellen",
+            "failed": "Die Gruppe konnte nicht erstellt werden – versuche es noch einmal",
+            "rosterCheckpoint": {
+                "title": "Wer ist dabei?",
+                "subtitle": "Das kannst du später ändern.",
+                "namePlaceholder": "Name",
+                "add": "Hinzufügen",
+                "done": "Fertig",
+                "skip": "Überspringen",
+                "duplicate": "{name} ist bereits in dieser Gruppe.",
+                "failed": "Die Person konnte nicht hinzugefügt werden – versuche es noch einmal"
+            },
+            "namePlaceholderSlug": "eure-reise",
+            "currencyCustomHint": "„{code}“ ist eure eigene Währung. Alle Ausgaben dieser Gruppe verwenden sie – nichts wird umgerechnet."
+        },
+        "currency": {
+            "all": "Alle {count} Währungen durchsuchen",
+            "searchLabel": "Währungen durchsuchen",
+            "searchPlaceholder": "Suchen oder erfinden",
+            "clearSearch": "Suche löschen",
+            "results": "{count, plural, one {# Währung} other {# Währungen}}",
+            "noMatch": "Keine Währung namens „{query}“ gefunden – lege sie selbst an.",
+            "noMatchLong": "Keine Währung namens „{query}“. Ein Kürzel besteht aus drei oder vier Buchstaben.",
+            "useCustom": "„{code}“ verwenden",
+            "useCustomHint": "Eure eigene Währung – ohne Kurs und Umrechnung.",
+            "useCustomManualHint": "Lege für diese Ausgabe fest, wie viel 1 {code} in {roomCurrency} wert ist.",
+            "noRateChip": "kein Kurs",
+            "roomOnly": "Für {roomCurrency} gibt es keinen Kurs, daher sind alle Ausgaben dieser Gruppe in {roomCurrency}.",
+            "roomOnlyManual": "Nur {roomCurrency} – erfinde ein Kürzel und lege dafür einen manuellen Kurs fest."
+        },
+        "scan": {
+            "cta": "Beleg scannen",
+            "cameraTitle": "Beleg scannen",
+            "cameraStarting": "Kamera wird gestartet…",
+            "cameraReady": "Kamera bereit",
+            "cameraBlocked": "Der Kamerazugriff ist deaktiviert. Lade stattdessen ein Foto hoch.",
+            "cameraUnavailable": "Die Kamera ist hier nicht verfügbar. Lade stattdessen ein Foto hoch.",
+            "cameraFailed": "Die Kamera konnte nicht gestartet werden. Lade stattdessen ein Foto hoch.",
+            "cameraControls": "Steuerung für das Belegfoto",
+            "takePhoto": "Foto aufnehmen",
+            "upload": "Hochladen",
+            "framingHint": "Alle vier Ecken im Bild halten",
+            "captureFailed": "Das Foto konnte nicht aufgenommen werden. Versuche es noch einmal oder lade eines hoch.",
+            "termsNote": "Du stimmst den Bedingungen von OpenRouter und Gemini zu.",
+            "tryAgain": "Anderen Beleg versuchen",
+            "step1": "Beleg scannen · Positionen prüfen",
+            "step2": "Beleg scannen · Wer hatte was?",
+            "reading": "Beleg wird gelesen…",
+            "privacyNote": "Split sendet das Foto einmalig und speichert es nicht.",
+            "reviewTitle": "Positionen prüfen",
+            "reviewBody": "Korrigiere Fehler, lösche, was dir nicht gehört, und ergänze Fehlendes.",
+            "reviewFromMerchant": "Von {merchant}. Korrigiere Fehler und ergänze Fehlendes.",
+            "itemNumber": "Position {number}",
+            "itemContext": "Position {number}, {item}",
+            "itemNameFor": "Name für {item}",
+            "itemAmountFor": "Betrag für {item}",
+            "amountInvalid": "Prüfe bei jeder Position die Trennzeichen und Nachkommastellen.",
+            "itemPlaceholder": "Position",
+            "removeItemFor": "{item} entfernen",
+            "addItem": "Fehlende Position hinzufügen",
+            "noItems": "Auf diesem Beleg ist nichts mehr übrig.",
+            "itemsTotal": "Summe der Positionen",
+            "receiptTotal": "Belegsumme",
+            "mismatch": "Die Summen unterscheiden sich um {amount}. Ursache können Steuern, Trinkgeld, ein Rabatt oder eine fehlende Position sein. Du kannst trotzdem fortfahren.",
+            "continue": "Weiter: Wer hatte was?",
+            "cancel": "Abbrechen",
+            "assignTitle": "Wer hatte was?",
+            "assignBody": "Tippe bei jeder Position auf die entsprechenden Personen. Sind zwei oder mehr ausgewählt, wird die Position gleichmäßig aufgeteilt.",
+            "assignmentGroup": "Personen für {item}",
+            "assignMemberToItem": "{member} zu {item} zuordnen",
+            "assignEveryoneToItem": "Alle zu {item} zuordnen",
+            "everyone": "Alle",
+            "unassigned": "{count, plural, one {# Position ist noch niemandem zugeordnet} other {# Positionen sind noch niemandem zugeordnet}}",
+            "assignedTotal": "Gesamt",
+            "apply": "Diese Aufteilung verwenden",
+            "back": "Zurück zu den Positionen",
+            "defaultDescription": "Gescannter Beleg",
+            "errors": {
+                "tooLarge": "Das Foto ist auch nach dem Verkleinern zu groß zum Senden.",
+                "unreadable": "Die Datei konnte nicht als Bild geöffnet werden.",
+                "generic": "Der Beleg konnte nicht gelesen werden.",
+                "hint": "Fotografiere den ganzen Beleg gerade von oben und bei gutem Licht."
+            }
+        },
+        "theme": {
+            "title": "Design",
+            "pick": "Design „{name}“ verwenden",
+            "failed": "Das Design konnte nicht geändert werden – versuche es noch einmal",
+            "names": {
+                "classic": "Klassisch",
+                "bubblegum": "Kaugummi",
+                "lavender": "Lavendel",
+                "mint": "Minze",
+                "sky": "Himmel",
+                "coral": "Koralle",
+                "sand": "Sand",
+                "graphite": "Graphit"
+            }
+        },
+        "avatar": {
+            "titleFor": "Figur von {name}",
+            "open": "Deine Figur öffnen",
+            "option": "Figur „{name}“ verwenden",
+            "failed": "Die Figur konnte nicht geändert werden – versuche es noch einmal",
+            "shuffle": "Mischen",
+            "shuffleLabel": "Angebotene Figuren mischen",
+            "firstOpen": "Alle können die Figur jeder Person ändern.",
+            "close": "Figuren schließen"
+        },
+        "reactions": {
+            "formerName": "{name} · Ehemaliges Mitglied",
+            "add": "Darauf reagieren",
+            "close": "Reaktionen schließen",
+            "pick": "Mit {emoji} reagieren",
+            "remove": "Deine Reaktion {emoji} entfernen",
+            "reacted": "{emoji} – {count, plural, one {# Person} other {# Personen}}",
+            "needsToken": "Um zu reagieren, musst du bestätigen, dass du es wirklich bist. Tritt der Gruppe zuerst erneut unter deinem Namen bei.",
+            "failed": "Die Reaktion konnte nicht gespeichert werden – versuche es noch einmal",
+            "names": {
+                "wild": "Wow",
+                "laugh": "Lachen",
+                "ouch": "Autsch",
+                "love": "Liebe",
+                "clap": "Applaus",
+                "money": "Geld"
+            }
+        },
+        "latecomer": {
+            "sheetTitle": "Frühere Ausgaben für {name}",
+            "promptTitle": "War {name} an früheren Ausgaben beteiligt?",
+            "promptBody": "Prüfe {count, plural, one {# Ausgabe} other {# Ausgaben}} aus der Zeit vor dem Beitritt von {name}. Bis zu deiner Bestätigung ändert sich nichts.",
+            "review": "Ausgaben prüfen",
+            "notNow": "Nicht jetzt",
+            "reviewBody": "Wähle die Ausgaben aus, an denen {name} beteiligt war. Gleichmäßige Aufteilungen auf die gesamte Gruppe sind vorausgewählt; individuelle Aufteilungen musst du manuell bearbeiten.",
+            "selectedCount": "{count, plural, =0 {Nichts ausgewählt} one {# ausgewählt} other {# ausgewählt}}",
+            "noChange": "Keine rückwirkende Änderung",
+            "projectedOwe": "Nach der Aktualisierung schuldet {name} {amount}",
+            "projectedBack": "Nach der Aktualisierung bekommt {name} {amount} zurück",
+            "projectedSettled": "Nach der Aktualisierung ist der Saldo von {name} ausgeglichen",
+            "wholeGroup": "Gesamte Gruppe · {from} → {to} Personen",
+            "subset": "{count, plural, one {# Person} other {# Personen}} · prüfen, ob {name} dabei war",
+            "memberShare": "Anteil von {name}: {amount}",
+            "manualSplit": "{mode, select, EXACT {Genaue Beträge} PERCENTAGE {Prozentuale Aufteilung} SHARES {Eigene Anteile} other {Eigene Aufteilung}}",
+            "edit": "Bearbeiten",
+            "rowChanged": "Während der Prüfung geändert",
+            "confirmSelection": "{count, plural, one {# Ausgabe aktualisieren} other {# Ausgaben aktualisieren}}",
+            "leaveUnchanged": "Frühere Ausgaben unverändert lassen",
+            "settledWarningTitle": "Dadurch entstehen wieder offene Salden.",
+            "settledWarningBody": "Die ausgewählten Ausgaben erzeugen einen neuen offenen Betrag.",
+            "updating": "Wird aktualisiert…",
+            "changedBeforeApply": "{count, plural, one {# Ausgabe wurde} other {# Ausgaben wurden}} während deiner Prüfung geändert. Prüfe die aktuellen Zeilen und versuche es noch einmal.",
+            "failed": "Die Aktualisierung konnte nicht abgeschlossen werden. {done, plural, =0 {Keine Änderung wurde gespeichert.} one {# abgeschlossene Änderung wurde gespeichert.} other {# abgeschlossene Änderungen wurden gespeichert.}} Prüfe die übrigen Zeilen und versuche es noch einmal.",
+            "updated": "{count, plural, =0 {Prüfung} one {# Ausgabe} other {# Ausgaben}} für {name} aktualisiert.",
+            "undo": "Rückgängig",
+            "undoing": "Nachtrag wird rückgängig gemacht…",
+            "undone": "Nachtrag rückgängig gemacht",
+            "undoFailed": "Der Nachtrag konnte nicht vollständig rückgängig gemacht werden. Prüfe die Gruppe."
+        },
+        "timeline": {
+            "paymentLabel": "Zahlung",
+            "recordedBy": "erfasst von {name}",
+            "recordedByYou": "von dir erfasst",
+            "recordedByAnon": "anonym erfasst",
+            "receiptLink": "Beleglink öffnen · nicht geprüft",
+            "remove": "Diesen Zahlungseintrag rückgängig machen",
+            "confirmRemove": "Diesen Eintrag rückgängig machen? Das ändert den Gruppensaldo, nicht bereits gesendetes Geld.",
+            "confirmYes": "Eintrag rückgängig machen",
+            "slideRemove": "Zum Rückgängigmachen des Zahlungseintrags wischen",
+            "removing": "Wird rückgängig gemacht…",
+            "confirmNo": "Behalten",
+            "removed": "Zahlungseintrag rückgängig gemacht. Gruppensalden aktualisiert.",
+            "removeFailed": "Der Zahlungseintrag konnte nicht rückgängig gemacht werden – versuche es noch einmal."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, one {# Name in dieser Abrechnung} other {# Namen in dieser Abrechnung}}",
+                "body": "Alle, die in dieser Gruppe gemeinsam abrechnen."
+            },
+            "passport": {
+                "title": "{count, plural, one {# Währung} other {# Währungen}}",
+                "body": "Eine saubere Aufteilung – egal, in welcher Währung wir bezahlt haben."
+            },
+            "alterego": {
+                "title": "Deine Rolle auf dieser Reise",
+                "body": "Ausgewählt anhand dessen, was du wirklich getan hast."
+            },
+            "wrapped": {
+                "title": "Die Reise im Rückblick",
+                "body": "{count, plural, one {# Karte. Teile sie, wenn sie dir gefällt.} other {# Karten. Teile, was dir gefällt.}}"
+            },
+            "share": "Bild teilen",
+            "sharing": "Wird vorbereitet…",
+            "dismiss": "Nicht jetzt",
+            "shelfTitle": "Karten von dieser Reise",
+            "copied": "Karte kopiert – füge sie ein, wo du möchtest.",
+            "downloaded": "Karte in deinen Downloads gespeichert.",
+            "shareFailed": "Die Karte konnte nicht erstellt werden. Versuche es noch einmal.",
+            "award": {
+                "tripStarter": "Reisestarter",
+                "firstMover": "Vorreiter",
+                "ledgerLegend": "Abrechnungslegende",
+                "currencyHopper": "Währungsspringer",
+                "theCloser": "Ausgleicher",
+                "hypeCrew": "Stimmungsmacher"
+            },
+            "shareText": {
+                "crew": "Die Personen in unserer gemeinsamen Abrechnung.",
+                "passport": "Verschiedene Währungen, eine saubere Aufteilung.",
+                "alterego": "Das war meine Rolle auf dieser Reise.",
+                "stats": "Die Reise in Zahlen.",
+                "landing": "Alles ausgeglichen – und niemand musste seinem Geld hinterherlaufen."
+            },
+            "shareLabel": {
+                "crew": "Teamkarte teilen",
+                "passport": "Währungskarte teilen",
+                "alterego": "Deine Rollenkarte teilen",
+                "stats": "Reisekarte teilen",
+                "landing": "Karte „Alles ausgeglichen“ teilen"
+            }
+        },
+        "people": {
+            "remove": "{name} von der Liste entfernen",
+            "blocked": "Warum {name} auf der Liste bleibt",
+            "blockedReason": "{name} hat noch einen Saldo. Gleiche ihn zuerst exakt auf null aus; der bisherige Verlauf bleibt unverändert.",
+            "lastActiveReason": "{name} ist die letzte aktive Person. Reaktiviere jemand anderen, bevor du sie als „ehemalig“ markierst.",
+            "confirmTitle": "{name} von der Liste entfernen?",
+            "confirmBody": "Die Person wird als „ehemalig“ markiert und bei neuen Aufteilungen nicht berücksichtigt. Der gesamte Verlauf bleibt erhalten und alle mit dem Gruppenlink können die Gruppe weiterhin öffnen. Du kannst die Person später reaktivieren.",
+            "confirm": "Entfernen",
+            "cancel": "Abbrechen",
+            "removeFailed": "Die Person konnte nicht aus den aktiven Mitgliedern entfernt werden – versuche es noch einmal",
+            "removedToast": "{name} als „ehemalig“ markiert",
+            "undo": "Rückgängig",
+            "restoredToast": "{name} reaktiviert",
+            "restoreFailed": "Die Person konnte nicht reaktiviert werden"
+        }
+    },
+    "slideToConfirm": {
+        "release": "Zum Bestätigen loslassen",
+        "working": "Wird ausgeführt…",
+        "instructions": "Zieh den Regler bis zum Ende, nutze die Pfeiltasten oder drücke Eingabe bzw. Leertaste zum Bestätigen.",
+        "progress": "{progress} % abgeschlossen."
+    },
+    "push": {
+        "label": "Benachrichtigungen",
+        "notifyMe": "Benachrichtigungen zu {room}",
+        "on": "Ein",
+        "iosNeedsPwa": "Füge Split zu deinem Home-Bildschirm hinzu.",
+        "iosHow": "Wie?",
+        "denied": "In deinen Browsereinstellungen blockiert.",
+        "unknown": "Der Status konnte gerade nicht geprüft werden – möglicherweise erhält dieses Gerät weiterhin Benachrichtigungen.",
+        "needsToken": "Wähle deinen Namen erneut aus, um Benachrichtigungen zu aktivieren.",
+        "failed": "Benachrichtigungen konnten nicht geändert werden – versuche es noch einmal"
+    },
+    "routeStates": {
+        "error": {
+            "eyebrow": "Etwas ist schiefgelaufen",
+            "title": "Diese Seite konnte nicht geöffnet werden",
+            "body": "Diese Seite konnte nicht angezeigt werden. Versuche es noch einmal oder kehre zu deinen Gruppen zurück.",
+            "retry": "Noch einmal versuchen",
+            "exit": "Zurück zu deinen Gruppen"
+        },
+        "notFound": {
+            "eyebrow": "Nichts unter diesem Link",
+            "title": "Diese Seite wurde nicht gefunden",
+            "body": "Der Link ist möglicherweise unvollständig oder die Seite wurde verschoben.",
+            "action": "Zurück zu deinen Gruppen"
+        },
+        "loading": {
+            "eyebrow": "Erdnüsse werden gezählt",
+            "title": "Deine Gruppe wird geöffnet…",
+            "body": "Salden und Ausgaben werden aktualisiert.",
+            "exit": "Zurück zu deinen Gruppen"
+        }
+    },
+    "errors": {
+        "generic": "Etwas ist schiefgelaufen – versuche es noch einmal.",
+        "NETWORK_ERROR": "Der Server ist nicht erreichbar – prüfe deine Verbindung.",
+        "INTERNAL": "Bei uns ist etwas schiefgelaufen. Versuche es gleich noch einmal.",
+        "VALIDATION_ERROR": "Da stimmt etwas nicht – prüfe die Felder und versuche es noch einmal.",
+        "MALFORMED_JSON": "Beim Senden ist etwas schiefgelaufen – versuche es noch einmal.",
+        "JSON_REQUIRED": "Beim Senden ist etwas schiefgelaufen – versuche es noch einmal.",
+        "REQUEST_TOO_LARGE": "Diese Anfrage ist zu groß zum Senden.",
+        "CROSS_SITE_REQUEST": "Diese Anfrage konnte nicht bestätigt werden – öffne Split erneut und versuche es noch einmal.",
+        "NOT_FOUND": "Diese Gruppe gibt es nicht.",
+        "EXPENSE_NOT_FOUND": "Diese Ausgabe ist nicht mehr vorhanden – aktualisiere die Gruppe.",
+        "SETTLEMENT_NOT_FOUND": "Diese Zahlung ist nicht mehr vorhanden – aktualisiere die Gruppe.",
+        "SLUG_EXHAUSTED": "Gerade konnte kein Gruppenlink erstellt werden – versuche es noch einmal.",
+        "DUPLICATE_MEMBER_NAME": "Dieser Name ist schon in der Gruppe – wähle ihn stattdessen aus der Liste.",
+        "MEMBER_REACTIVATION_REQUIRED": "Diese Person steht unter „Ehemalige Mitglieder“. Reaktiviere ihren vorhandenen Eintrag in den Einstellungen, statt sie doppelt hinzuzufügen.",
+        "MEMBER_NAME_CONFLICT": "Eine andere aktive Person verwendet diesen Namen bereits. Benenne eine von beiden um, bevor du diese Person reaktivierst.",
+        "MEMBER_BALANCE_NOT_ZERO": "Gleiche den Saldo dieser Person exakt auf null aus, bevor du sie als „ehemalig“ markierst.",
+        "LAST_ACTIVE_MEMBER": "Die letzte aktive Person kann nicht gehen. Reaktiviere zuerst jemand anderen.",
+        "MEMBER_FORMER": "Diese Person nimmt nicht mehr teil und kann keiner neuen Aktivität hinzugefügt werden. Reaktiviere sie zuerst.",
+        "EXPENSE_DELETED": "Diese Ausgabe wurde gelöscht. Mach die Löschung zuerst rückgängig und bearbeite sie dann.",
+        "NEW_PAYER_ON_EDIT": "Wähle beim Bearbeiten eine vorhandene Person. Eine neue zahlende Person kannst du mit einer neuen Ausgabe hinzufügen.",
+        "CATCH_UP_REVIEW_CONFLICT": "Diese Ausgabe wurde nach der Prüfung geändert – öffne sie erneut und versuche es noch einmal.",
+        "HISTORY_CURSOR_INVALID": "Diese Stelle im Gruppenverlauf ist nicht mehr verfügbar – öffne den Verlauf erneut.",
+        "NOT_A_MEMBER": "Diese Person ist nicht in dieser Gruppe – aktualisiere die Gruppe und versuche es noch einmal.",
+        "AMOUNT_NOT_POSITIVE": "Der Betrag muss größer als null sein.",
+        "AMOUNT_TOO_LARGE": "Dieser Betrag ist zu groß, um ihn sicher zu speichern.",
+        "EXACT_SHARES_REQUIRED": "Bei einer genauen Aufteilung braucht jede Person einen Betrag.",
+        "SHARES_DO_NOT_ADD_UP": "Die genauen Beträge müssen zusammen die Gesamtsumme ergeben.",
+        "WEIGHTED_SHARES_REQUIRED": "Gib für mindestens eine Person einen Prozentwert oder eine Anzahl von Anteilen ein.",
+        "SPLIT_WEIGHT_NOT_POSITIVE": "Prozentwerte und Anteile müssen größer als null sein.",
+        "PERCENTAGES_DO_NOT_ADD_UP": "Die Prozentwerte müssen genau 100 % ergeben.",
+        "SPLIT_FIELDS_DO_NOT_MATCH_MODE": "Diese Aufteilung passt nicht mehr zur ausgewählten Methode – prüfe sie und versuche es noch einmal.",
+        "SPLIT_MODE_CONFLICT": "Die Aufteilungsmethode wurde geändert. Öffne die Ausgabe erneut und versuche es noch einmal.",
+        "NO_PARTICIPANTS": "Wähle mindestens eine Person für die Aufteilung aus.",
+        "DUPLICATE_PARTICIPANT": "Eine Person kommt in dieser Aufteilung doppelt vor.",
+        "SETTLEMENT_PAYER_NOT_MEMBER": "Die zahlende Person ist nicht in der Gruppe – aktualisiere die Gruppe und versuche es noch einmal.",
+        "SETTLEMENT_PAYEE_NOT_MEMBER": "Die empfangende Person ist nicht in der Gruppe – aktualisiere die Gruppe und versuche es noch einmal.",
+        "SETTLEMENT_SAME_MEMBER": "Für eine Zahlung werden zwei verschiedene Personen benötigt.",
+        "SETTLEMENT_EXCEEDS_DEBT": "Die Zahlung ist höher als die aktuelle Schuld – aktualisiere die Gruppe und prüfe den Betrag.",
+        "IDEMPOTENCY_KEY_REUSED": "Dieser Speicherschlüssel wurde bereits in einer anderen Gruppe verwendet – versuche erneut zu speichern.",
+        "MEMBER_TOKEN_INVALID": "Das war nicht dein Mitgliedsschlüssel – öffne die Gruppe erneut über deinen eigenen Link.",
+        "INSTALL_HANDOFF_UNAVAILABLE": "Die gespeicherten Installationsdaten sind nicht mehr verfügbar – öffne diese Gruppe im Browser und füge Split erneut hinzu.",
+        "SCAN_UNAVAILABLE": "Das Scannen von Belegen ist hier nicht aktiviert.",
+        "SCAN_IMAGE_TOO_LARGE": "Das Bild ist zu groß – nimm ein neues Foto auf.",
+        "SCAN_BAD_IMAGE": "Das Bild konnte nicht gesendet werden – fotografiere es noch einmal.",
+        "SCAN_NO_ITEMS": "Auf dem Foto wurden keine Positionen erkannt – fotografiere den Beleg gerader und bei mehr Licht.",
+        "SCAN_ROOM_LIMIT": "Diese Gruppe hat heute schon viele Belege gescannt – versuche es morgen wieder.",
+        "SCAN_FAILED": "Der Beleg konnte nicht gelesen werden – versuche es noch einmal.",
+        "IMPORT_TOO_LARGE": "Der Import ist zu groß zum Senden. Versuche es mit einer Gruppe mit weniger Verlauf.",
+        "IMPORT_UNAVAILABLE": "Importe sind vorübergehend pausiert – versuche es später noch einmal.",
+        "IMPORT_TARGET_CURRENCY_UNSUPPORTED": "In eine Gruppe mit eigener Währung kann nichts importiert werden. Füge die Ausgaben stattdessen manuell in der Gruppenwährung hinzu.",
+        "IMPORT_CURRENCY_CONVERSION_UNSUPPORTED": "Mindestens eine importierte Währung kann nicht in die Gruppenwährung umgerechnet werden. Nutze eine Gruppe, deren Währung zum Export passt oder einen geeigneten Umrechnungskurs hat.",
+        "UNSUPPORTED_PUSH_HOST": "Dieser Benachrichtigungsdienst wird nicht unterstützt.",
+        "PUSH_SUBSCRIPTION_LIMIT": "Zu viele Geräte erhalten Benachrichtigungen für diese Gruppe.",
+        "RATE_LIMITED": "Das waren viele Anfragen – warte eine Minute und versuche es noch einmal.",
+        "MEMBER_HAS_HISTORY": "Diese Person gehört jetzt zum Gruppenverlauf und kann nicht von der Liste entfernt werden.",
+        "NO_RATE": "Für diese Währung gibt es keinen Wechselkurs zur Gruppenwährung. Verwende stattdessen die Gruppenwährung.",
+        "MANUAL_FX_RATE_REQUIRED": "Gib für diese benutzerdefinierte Währung einen manuellen Kurs ein.",
+        "MANUAL_FX_RATE_INVALID": "Dieser Kurs ist ungültig oder rundet den umgerechneten Betrag auf null.",
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Manuelle Kurse sind nur bei benutzerdefinierten Ausgabenwährungen möglich."
+    },
+    "derivation": {
+        "title": "So kommt dieser Betrag zustande",
+        "openLabel": "Anzeigen, wie der Saldo von {name} zustande kommt",
+        "paidTitle": "Bezahlte Ausgaben",
+        "shareTitle": "Anteil an den Ausgaben",
+        "settledTitle": "Erfasste Zahlungen",
+        "paidBy": "bezahlt von {name}",
+        "paidByYou": "von dir bezahlt",
+        "sentTo": "An {name} gezahlt",
+        "receivedFrom": "Von {name} erhalten",
+        "total": "Ergibt",
+        "emptyTitle": "Noch nichts",
+        "suggestedTitle": "Zum Ausgleichen",
+        "suggestedNote": "Die vorgeschlagenen Zahlungen führen die Salden der ganzen Gruppe zu einem kurzen Plan zusammen. Deshalb stimmen die Paare bei „Wer zahlt wem?“ nicht immer mit denen bei „Wer hat für wen vorgestreckt?“ überein. Beide Salden kannst du hier prüfen.",
+        "sends": "Zahlt an {name}",
+        "receives": "Wird von {name} bezahlt",
+        "showOther": "Saldo von {name} anzeigen",
+        "hideOther": "Saldo von {name} ausblenden",
+        "someone": "Jemand",
+        "sendsYou": "Du zahlst an {name}",
+        "receivesYou": "{name} zahlt dir"
+    },
+    "content": {
+        "home": "Startseite",
+        "guides": "Ratgeber",
+        "hubTitle": "Ratgeber",
+        "hubDescription": "So teilt ihr Ausgaben ohne Konto, App-Installation oder Abo.",
+        "empty": "Noch nichts veröffentlicht.",
+        "startRoom": "Gruppe erstellen",
+        "startRoomHint": "Keine Anmeldung. Keine Installation. Für immer kostenlos.",
+        "published": "Veröffentlicht am {date}",
+        "updated": "aktualisiert am {date}",
+        "otherLanguages": "Auch verfügbar auf"
+    },
+    "offline": {
+        "rowHint": "In der Warteschlange – wird gesendet, sobald du wieder online bist",
+        "blockedRowHint": "Prüfung nötig – Personen in der Gruppe haben sich geändert",
+        "queuedToast": "Keine Verbindung. Diese Ausgabe ist auf deinem Handy gespeichert und wird gesendet, sobald du wieder online bist.",
+        "fullToast": "{count, plural, one {Die Warteschlange für Ausgaben ist voll. Deshalb konnte eine neue oder wieder freigegebene Ausgabe nicht gespeichert werden. Blockierte Entwürfe bleiben erhalten.} other {Die Warteschlange für Ausgaben ist voll. Deshalb konnten # neue oder wieder freigegebene Ausgaben nicht gespeichert werden. Blockierte Entwürfe bleiben erhalten.}}",
+        "rejectedToast": "{count, plural, one {Eine Ausgabe aus der Warteschlange konnte nicht gespeichert werden – füge sie erneut hinzu.} other {# Ausgaben aus der Warteschlange konnten nicht gespeichert werden – füge sie erneut hinzu.}}",
+        "blockedToast": "{count, plural, one {Eine Ausgabe in der Warteschlange muss geprüft werden, weil sich die Personen in der Gruppe geändert haben. Sie ist weiterhin auf diesem Handy gespeichert.} other {# Ausgaben in der Warteschlange müssen geprüft werden, weil sich die Personen in der Gruppe geändert haben. Sie sind weiterhin auf diesem Handy gespeichert.}}",
+        "blockedRosterToast": "{count, plural, one {Bei einer Ausgabe in der Warteschlange fehlt, auf wen sie aufgeteilt ist. Öffne sie und bestätige die Aufteilung; bis dahin bleibt sie auf diesem Handy.} other {Bei # Ausgaben in der Warteschlange fehlt, auf wen sie aufgeteilt sind. Öffne sie und bestätige jede Aufteilung; bis dahin bleiben sie auf diesem Handy.}}",
+        "blockedTitle": "Diese Ausgabe ist noch gespeichert",
+        "blockedBody": "Die Personen in der Gruppe haben sich geändert, bevor die Ausgabe gesendet werden konnte. Prüfe die ursprünglichen Angaben. Der Entwurf wird nur gelöscht, wenn du ihn ausdrücklich löschst.",
+        "blockedRosterUnknownBody": "Diese Ausgabe wurde von einer älteren App-Version ohne Momentaufnahme der beteiligten Personen gespeichert. Prüfe unten die aktuellen Personen und versuche es erneut, um sie zu bestätigen. Vorher wird die Ausgabe nicht gesendet.",
+        "blockedRosterUnknownRowHint": "Beteiligte Personen bestätigen",
+        "blockedFormerBody": "Eine beteiligte Person nimmt nicht mehr teil. Reaktiviere sie unter „Personen“ oder ordne ihre Rolle einer anderen aktiven Person zu und versuche es erneut.",
+        "blockedTokenBody": "Der Mitgliedsschlüssel dieses Geräts hat sich geändert. Tritt der Gruppe erneut bei und versuche es dann mit dem neuen Schlüssel.",
+        "blockedMissingBody": "Eine Person aus diesem älteren Entwurf ist nicht mehr aktiv. Prüfe die Angaben und ordne ihre Rolle neu zu, bevor du es noch einmal versuchst.",
+        "review": "Details prüfen",
+        "hideReview": "Details ausblenden",
+        "retry": "Noch einmal versuchen",
+        "retryFailed": "Dieses Handy konnte den neuen Versuch nicht speichern. Die Ausgabe wartet deshalb weiter auf deine Prüfung. Nichts ging verloren – versuche es noch einmal.",
+        "discard": "Entwurf löschen",
+        "discardConfirm": "Diesen Ausgabenentwurf von diesem Handy löschen? Das lässt sich nicht rückgängig machen.",
+        "reviewAmount": "Betrag",
+        "reviewPayer": "Zahlende Person",
+        "reviewSplit": "Aufgeteilt auf",
+        "remapPayer": "Zahlende Person {name} ersetzen",
+        "remapParticipant": "Beteiligte Person {name} ersetzen",
+        "chooseActive": "Aktive Person auswählen",
+        "equalValue": "gleicher Anteil",
+        "percentageValue": "{value} %",
+        "sharesValue": "{value, plural, one {# Anteil} other {# Anteile}}",
+        "insufficientActive": "Es ist keine andere aktive Person verfügbar. Reaktiviere jemanden unter „Personen“ oder behalte den Entwurf, bis du dich entscheiden kannst. Das Löschen des Entwurfs musst du immer ausdrücklich bestätigen.",
+        "sentToast": "{count, plural, one {Ausgabe gesendet} other {# Ausgaben gesendet}}"
+    },
+    "import": {
+        "drop": {
+            "title": "Zieh deinen Export aus Splitwise oder Split Pro hierher",
+            "cta": "Datei auswählen",
+            "privacy": "Die Datei bleibt auf diesem Gerät. Importdaten werden erst nach deiner Bestätigung gesendet."
+        },
+        "howto": {
+            "title": "Unterstützte Exporte",
+            "step1": "Splitwise: Öffne die Einstellungen einer Gruppe und wähle „Als Tabelle exportieren“.",
+            "step2": "Split Pro-Konto: Öffne „Konto“ und wähle „SplitPro-Daten herunterladen“.",
+            "step3": "Split Pro-Freund: Öffne die Saldoseite dieser Person und wähle „Exportieren“."
+        },
+        "groups": {
+            "label": "Gruppe aus der Datei",
+            "hint": "Der Download eines Split-Pro-Kontos kann mehrere Gruppen enthalten. Wähle eine davon aus, um daraus jetzt eine Gruppe zu erstellen.",
+            "existingHint": "Der Download eines Split-Pro-Kontos kann mehrere Gruppen enthalten. Wähle die Gruppe aus, deren Ausgaben du zu dieser Gruppe hinzufügen möchtest.",
+            "skippedTitle": "Einige Gruppen können nicht importiert werden",
+            "skipped": "{name}: {reason}"
+        },
+        "existing": {
+            "pageTitle": "In {room} importieren",
+            "pageSubtitle": "Ausgaben aus einem Export von Splitwise oder Split Pro hinzufügen.",
+            "backToRoom": "Zurück zur Gruppe",
+            "targetEyebrow": "Wird dieser Gruppe hinzugefügt",
+            "targetBody": "Fügt Ausgaben hinzu, ohne Vorhandenes zu ändern.",
+            "currencyLabel": "Abrechnungswährung",
+            "currencyHint": "Importierte Ausgaben behalten ihre Währung. Eine Zeile kann nur hinzugefügt werden, wenn ihre Währung {currency} entspricht oder einen geeigneten Umrechnungskurs hat.",
+            "currencyUnsupportedTitle": "Einige Ausgaben können nicht umgerechnet werden",
+            "currencyUnsupportedBody": "Diese Ausgangswährungen können nicht in {currency} umgerechnet werden: {currencies}. Wähle eine Quellgruppe, deren Währungen zu dieser Gruppe passen, oder importiere in eine Gruppe mit einer passenden Abrechnungswährung.",
+            "repeatTitle": "Bevor du erneut importierst",
+            "repeatBody": "Dieselben Daten erneut zu importieren ändert nichts, auch wenn du Zuordnungen änderst. Eine geänderte Datei wird vollständig hinzugefügt und kann vorhandene Ausgaben doppelt anlegen.",
+            "membersTitle": "Personen zuordnen",
+            "membersBody": "Ordne jede Person jemandem aus {room} zu oder füge sie neu hinzu. Exakte Namensübereinstimmungen sind vorausgewählt.",
+            "sourceLabel": "Aus der Datei",
+            "targetLabel": "In {room}",
+            "memberTargetLabel": "Welcher Person soll {name} zugeordnet werden?",
+            "addNew": "Als neue Person hinzufügen",
+            "newNameLabel": "Name der neuen Person",
+            "newNameAria": "Name, der für {name} hinzugefügt wird",
+            "atomicAddition": "Die Person wird nur hinzugefügt, wenn der gesamte Import gelingt.",
+            "emptyNewName": "Jede neue Person braucht einen Namen.",
+            "duplicateExistingMember": "Zwei Personen aus der Datei können nicht derselben Person in der Gruppe zugeordnet werden.",
+            "missingExistingMember": "Eine zugeordnete Person ist nicht mehr in der Gruppe. Wähle jetzt eine neue Zuordnung.",
+            "duplicateNewName": "Zwei neue Personen haben denselben Namen – gib ihnen unterschiedliche Namen.",
+            "newNameAlreadyExists": "Ein vorgeschlagener neuer Name ist bereits in der Gruppe. Ordne stattdessen diese Person zu oder verwende einen anderen Namen.",
+            "submit": "{count, plural, one {# Ausgabe zu {room} hinzufügen} other {# Ausgaben zu {room} hinzufügen}}",
+            "failed": "Es wurde nichts importiert. Prüfe deine Verbindung und versuche es noch einmal.",
+            "readyTitle": "Import hinzugefügt",
+            "readyBody": "{expenses, plural, one {# Ausgabe} other {# Ausgaben}} und {members, plural, =0 {keine neuen Personen} one {# neue Person} other {# neue Personen}} wurden um {time} hinzugefügt.",
+            "replayTitle": "Bereits importiert",
+            "replayBody": "Genau diese Quelldaten wurden bereits um {time} importiert. Es wurde nichts hinzugefügt.",
+            "importAnother": "Weitere Datei importieren",
+            "goToRoom": "Zur Gruppe",
+            "loadFailed": "Diese Gruppe konnte nicht geladen werden, daher kann nichts hinein importiert werden.",
+            "tryAgain": "Noch einmal versuchen",
+            "customCurrencyUnsupportedTitle": "Importe sind für Gruppen mit eigener Währung nicht verfügbar",
+            "customCurrencyUnsupportedBody": "Exporte aus Splitwise und Split Pro verwenden Standardwährungen, die dieser Importer nicht in {currency} umrechnen kann. Füge diese Ausgaben stattdessen manuell in {currency} hinzu."
+        },
+        "preview": {
+            "found": "{expenses, plural, one {# Ausgabe} other {# Ausgaben}} · {members, plural, one {# Person} other {# Personen}}",
+            "total": "Ergibt {total}",
+            "roomName": "Gruppe benennen",
+            "roomNamePlaceholder": "Skireise",
+            "fallbackName": "Importierte Gruppe",
+            "currency": "Währung",
+            "currencyLabel": "Gruppenwährung",
+            "currencyHint": "Die Salden werden in dieser Währung geführt. Jede Ausgabe behält die Währung, in der sie bezahlt wurde.",
+            "members": "Alle in der Gruppe",
+            "whoAreYou": "Korrigiere Namen, die fehlerhaft übernommen wurden, und wähle dich selbst aus der Liste.",
+            "balancesMatch": "Die Salden stimmen mit der Summenzeile von Splitwise überein.",
+            "balancesDifferTitle": "Diese Salden stimmen nicht mit Splitwise überein",
+            "balancesDiffer": "{count, plural, one {Der Saldo einer Person weicht von der Summenzeile deiner Datei ab} other {Die Salden von # Personen weichen von der Summenzeile deiner Datei ab}} – einige Zeilen konnten nicht gelesen werden. In die Gruppe fließen deshalb nur die lesbaren Zeilen ein. Die Warnungen unten zeigen, welche Zeilen betroffen sind.",
+            "thatsMe": "Ich bin {name}",
+            "submit": "Gruppe erstellen",
+            "startOver": "Andere Datei verwenden",
+            "driftShort": "{amount} zu wenig",
+            "driftOver": "{amount} zu viel"
+        },
+        "fx": {
+            "title": "Zu den Wechselkursen",
+            "body": "Die Ausgaben dieser Gruppe wurden in mehreren Währungen bezahlt. Splitwise exportiert nicht den jeweils verwendeten Tageskurs. Deshalb wird alles zum heutigen Kurs umgerechnet. Die Summen liegen nahe an den dort angezeigten Werten, stimmen aber nicht genau überein."
+        },
+        "warnings": {
+            "title": "Gut zu wissen",
+            "more": "… und {count, plural, one {# weiterer Hinweis} other {# weitere Hinweise}}.",
+            "ROW_UNBALANCED": "Zeile {row} geht schon in der Datei selbst nicht auf und wurde deshalb ausgelassen.",
+            "ROW_UNSUPPORTED_CURRENCY": "Zeile {row} verwendet {detail}, was Split noch nicht unterstützt, und wurde deshalb ausgelassen.",
+            "ROW_NO_PAYER": "In Zeile {row} fehlt, wer bezahlt hat. Die Zeile wurde deshalb ausgelassen.",
+            "ROW_ZERO_COST": "Zeile {row} enthält keinen Betrag und wurde deshalb ausgelassen.",
+            "ROW_BAD_AMOUNT": "Der Betrag in Zeile {row} konnte nicht gelesen werden. Die Zeile wurde deshalb ausgelassen.",
+            "ROW_BAD_DATE": "Das Datum in Zeile {row} konnte nicht gelesen werden – die Zeile wird mit einem festen Ersatzdatum importiert.",
+            "ROW_DESCRIPTION_TRUNCATED": "Zeile {row} hat eine sehr lange Beschreibung – sie wird gekürzt importiert.",
+            "ROW_CATEGORY_TRUNCATED": "Zeile {row} hat eine sehr lange Kategorie – sie wird gekürzt importiert.",
+            "MEMBER_NAME_TRUNCATED": "Ein Name war zu lang und wird gekürzt als „{detail}“ importiert. Du kannst ihn oben bearbeiten.",
+            "MULTI_PAYER_SPLIT": "„{detail}“ wurde von mehreren Personen bezahlt. Die Datei zeigt nicht, wer wie viel beigesteuert hat. Deshalb wird für jede zahlende Person eine eigene Ausgabe importiert. Die Salden stimmen exakt; wie der Betrag zwischen den zahlenden Personen aufgeteilt wird, ist unsere bestmögliche Rekonstruktion.",
+            "PAYMENT_ROWS": "Zahlungen zwischen Personen werden als Ausgaben statt als Ausgleichszahlungen importiert. Die Salden bleiben gleich.",
+            "MIXED_CURRENCY": "Die Datei mischt {detail}.",
+            "DUPLICATE_MEMBER_NAME": "Zwei Personen heißen {detail}. Die zweite wird deshalb als „{detail} (2)“ aufgeführt. Benenne sie unten um.",
+            "TRUNCATED_HISTORY": "Eine Gruppe ist auf 500 Ausgaben begrenzt. {count, plural, one {Die älteste Ausgabe wird deshalb stattdessen pro Person in einem einzigen Eintrag „Übertragener Saldo“ zusammengefasst.} other {Die # ältesten Ausgaben werden deshalb stattdessen pro Person in einem einzigen Eintrag „Übertragener Saldo“ zusammengefasst.}} Alle Salden bleiben gleich.",
+            "SPLITPRO_BALANCES_ONLY": "Der Konto-Download von Split Pro enthält aktuelle Salden, aber keinen Ausgabenverlauf. Sie werden als Einträge „Übertragener Saldo“ importiert. Die Salden aller Personen bleiben erhalten, die alte Ausgabenliste jedoch nicht.",
+            "SPLITPRO_PAIR_HISTORY": "Die Freunde-CSV von Split Pro zeigt nicht, zu welcher Gruppe eine Ausgabe gehörte. Alle Ausgaben dieser Datei werden gemeinsam in diese Gruppe importiert.",
+            "SPLITPRO_SPLIT_MODE_FLATTENED": "Prozent- und Anteilsaufteilungen aus Split Pro behalten ihre endgültigen Beträge, werden aber als feste Beträge importiert. Bei einer späteren Bearbeitung bleiben die ursprünglichen Gewichtungen nicht erhalten.",
+            "SPLITPRO_MISSING_NAMES": "{count, plural, one {Split Pro hat im Backup den Namen einer Person ausgelassen. Die betroffene Person steht unten als „Mitglied“ – benenne sie vor dem Erstellen der Gruppe um.} other {Split Pro hat im Backup die Namen von # Personen ausgelassen. Die betroffenen Personen stehen unten als „Mitglied“ – benenne sie vor dem Erstellen der Gruppe um.}}",
+            "SPLITPRO_BALANCES_SKIPPED": "{count, plural, one {Ein Saldo im Split Pro-Backup ist unvollständig und wurde deshalb ausgelassen} other {# Salden im Split Pro-Backup sind unvollständig und wurden deshalb ausgelassen}}. Vergleiche die Vorschau vor dem Erstellen der Gruppe mit Split Pro.",
+            "SPLITPRO_UNSUPPORTED_CURRENCY": "Split kann {detail} nicht umrechnen. Salden in dieser Währung wurden deshalb ausgelassen. Wähle einen anderen Export, wenn diese Salden wichtig sind."
+        },
+        "errors": {
+            "NOT_SPLITWISE_CSV": "Wir erkennen diese Datei nicht. Wähle eine .csv-Datei einer Splitwise-Gruppe, eine Freundes-CSV aus Split Pro oder die Datei splitpro_data.json von der Kontoseite in Split Pro.",
+            "MALFORMED_CSV": "Die CSV-Datei ist unvollständig oder beschädigt. Lade einen neuen Export herunter und verwende ihn ohne Änderungen.",
+            "MALFORMED_JSON": "Die JSON-Datei ist unvollständig oder beschädigt. Lade „SplitPro-Daten“ erneut von der Kontoseite in Split Pro herunter und verwende die neue Datei ohne Änderungen.",
+            "SPLITPRO_DIRECT_UNRESOLVED": "Dieses Split Pro-Backup zeigt nicht, welches Mitglied du bist. Salden außerhalb benannter Gruppen lassen sich deshalb nicht sicher trennen. Importiere die Gruppen oben und verwende für verbleibende Salden anschließend den CSV-Export der jeweiligen Person.",
+            "NO_MEMBERS": "Dieser Export enthält keine Personenliste. Exportiere in Splitwise eine Gruppe; nutze in Split Pro auf der Kontoseite „SplitPro-Daten herunterladen“.",
+            "NO_EXPENSES": "Diese Datei enthält nichts, das übernommen werden kann. Vielleicht ist die Gruppe bereits ausgeglichen oder jeder Saldo verwendet eine nicht unterstützte Währung. Prüfe die Salden in der Quell-App. Sind alle null, erstelle eine leere Gruppe.",
+            "TOO_MANY_MEMBERS": "Diese Gruppe hat mehr als 20 Personen. Entferne inaktive Personen in der Quell-App und exportiere erneut oder erstelle zwei kleinere Gruppen.",
+            "TOO_MANY_EXPENSES": "Dieser Export ist zu groß, um ihn sicher zu verarbeiten. Exportiere eine kleinere Gruppe oder nutze ein Split Pro-Konto-Backup, das aktuelle Salden statt jeder alten Ausgabe übernimmt.",
+            "FILE_TOO_BIG": "Diese Datei überschreitet das Importlimit von 1 MB. Exportiere eine einzelne Splitwise-Gruppe oder lade ein neues Split Pro-Konto-Backup herunter und versuche es mit dieser Datei.",
+            "READ_FAILED": "Dein Browser konnte die Datei nicht lesen. Lade einen neuen Export herunter, behalte das Format .csv oder .json bei und versuche es mit der neuen Kopie.",
+            "EMPTY_NAME": "Alle brauchen einen Namen.",
+            "DUPLICATE_NAMES": "Zwei Personen haben denselben Namen – gib ihnen unterschiedliche Namen, damit jede Ausgabe bei der richtigen Person landet.",
+            "failed": "Die Gruppe konnte nicht erstellt werden. Prüfe deine Verbindung und versuche es noch einmal; es wurde nichts importiert."
+        },
+        "ready": {
+            "title": "Deine Gruppe ist da",
+            "subtitle": "Schick diesen Link an alle. Alle tippen darauf, wählen ihren Namen und finden alles Importierte bereits vor.",
+            "goToRoom": "Zur Gruppe"
+        }
+    },
+    "preview": {
+        "roomDescription": "Tritt der Gruppe bei – sieh, wer wem wie viel schuldet, und trage ein, was du bezahlt hast.",
+        "statNone": "Noch keine Ausgaben",
+        "statOne": "1 Ausgabe · bisher {amount}",
+        "statMany": "{count} Ausgaben · bisher {amount}",
+        "peopleOne": "1 Person",
+        "peopleMany": "{count} Personen",
+        "emptyRoster": "Noch niemand beigetreten",
+        "tagline": "keine Anmeldung · für immer kostenlos"
+    },
+    "shareTarget": {
+        "pick": "Für welche Gruppe ist dieser Beleg?",
+        "empty": "Auf diesem Gerät gibt es noch keine Gruppen. Starte eine und teile das Foto dann erneut.",
+        "start": "Gruppe erstellen",
+        "expired": "Das Foto ist nicht angekommen. Teile es erneut.",
+        "unavailable": "Das Scannen von Belegen ist noch nicht aktiviert.",
+        "open": "Split öffnen"
+    },
+    "card": {
+        "invite": {
+            "label": "Gemeinsame Gruppenausgaben",
+            "line": "Alle tragen ihre Ausgaben ein. Split zeigt, wer wem wie viel schuldet.",
+            "inviter": "{name} lädt dich ein:",
+            "inviterFallback": "Du bist eingeladen:",
+            "roster": "SCHON DABEI",
+            "rosterEmpty": "STARTET GEMEINSAM",
+            "personOne": "1 Person ist schon dabei",
+            "peopleMany": "{count} Personen sind schon dabei",
+            "emptyAction": "Öffne den Link und trage ein, was du bezahlt hast"
+        },
+        "crew": {
+            "title": "TEAM",
+            "line": "Alle, die gemeinsam abrechnen."
+        },
+        "passport": {
+            "title": "WÄHRUNGSPASS",
+            "line": "{count} Währungen. Eine saubere Aufteilung."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Eine Reise, ein ganz eigener Stil."
+        },
+        "stats": {
+            "title": "UNSERE REISE"
+        },
+        "landing": {
+            "title": "ALLES AUSGEGLICHEN"
+        },
+        "award": {
+            "tripStarter": "Reisestarter",
+            "firstMover": "Vorreiter",
+            "ledgerLegend": "Abrechnungslegende",
+            "currencyHopper": "Währungsspringer",
+            "theCloser": "Ausgleicher",
+            "hypeCrew": "Stimmungsmacher"
+        }
+    }
+}

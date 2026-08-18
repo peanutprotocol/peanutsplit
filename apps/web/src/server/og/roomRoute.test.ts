@@ -42,6 +42,7 @@ describe('room opengraph-image', () => {
                 ]),
                 currency: 'EUR',
                 theme: 'coral',
+                locale: 'pl',
                 members: {
                     create: Array.from({ length: 8 }, (_, i) => ({ name: `Member ${i}`, token: `tok-${i}` })),
                 },

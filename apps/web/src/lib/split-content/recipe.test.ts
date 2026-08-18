@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { LOCALES } from '@/i18n/locales'
+import { INDEXED_LOCALES } from '@/i18n/locales'
 import { listAllTranslations } from '@/lib/content'
 import { loadSplitContentManifest } from './artifact'
 import { SKIN_BY_SLUG } from './skin'
@@ -75,7 +75,7 @@ describe('pageRecipe', () => {
     it('is invariant to locale (and to tags) for every real slug', () => {
         for (const [slug, kind] of KIND_BY_SLUG) {
             const en = pageRecipe(kind, slug, ['tag-one'], 'en')
-            for (const locale of LOCALES) {
+            for (const locale of INDEXED_LOCALES) {
                 if (locale === 'en') continue
                 expect(pageRecipe(kind, slug, ['a-different-tag'], locale)).toEqual(en)
             }

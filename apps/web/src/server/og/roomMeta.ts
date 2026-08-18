@@ -96,7 +96,7 @@ export async function roomMetadata(slug: string): Promise<Metadata> {
  * it. The room unfurl is a stranger's only look at the product before they decide
  * to tap; the recap is reached from inside a room by somebody already using it,
  * and what actually gets shared out of it is an image file rather than this link.
- * Its glyph budget is fine — the recap card draws in the same Latin-1 body font —
+ * Its glyph budget is fine — the recap card draws in the same Latin Extended body font —
  * so this is scope, not capability, and it is a one-line change here plus the
  * card's own strings whenever the recap is worth localizing.
  */

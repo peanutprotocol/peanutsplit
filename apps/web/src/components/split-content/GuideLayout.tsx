@@ -4,7 +4,7 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { ChapterFrame } from '@/components/marketing/ChapterFrame'
 import { ContentAnalytics } from '@/components/marketing/ContentAnalytics'
 import { JsonLd } from '@/components/marketing/JsonLd'
-import { HREFLANG, LOCALE_LABELS, LOCALES, type Locale } from '@/i18n/locales'
+import { HREFLANG, INDEXED_LOCALES, LOCALE_LABELS, type IndexedLocale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import type { SplitGuide } from '@/lib/split-content/artifact'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
@@ -35,10 +35,10 @@ const OTHER_LANGUAGES = {
 function otherLanguageLinks(
     guide: SplitGuide,
     alternates: Record<string, string> | undefined
-): Array<{ locale: Locale; href: string }> {
-    return LOCALES.filter((locale) => locale !== guide.locale)
+): Array<{ locale: IndexedLocale; href: string }> {
+    return INDEXED_LOCALES.filter((locale) => locale !== guide.locale)
         .map((locale) => ({ locale, href: alternates?.[HREFLANG[locale]] }))
-        .filter((link): link is { locale: Locale; href: string } => link.href !== undefined)
+        .filter((link): link is { locale: IndexedLocale; href: string } => link.href !== undefined)
 }
 
 export function SplitGuideLayout({

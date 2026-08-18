@@ -50,10 +50,10 @@ const PEANUT_URL = 'https://peanut.me/send?utm_source=split&utm_medium=settle&co
  */
 const methodOptions = (t: (key: string) => string) =>
     [
-        { id: 'cash', label: t('cash'), subtitle: t('cashHint'), icon: 'banknote' },
-        { id: 'bank', label: t('bank'), subtitle: t('bankHint'), icon: 'wallet' },
-        { id: 'peanut', label: t('peanut'), subtitle: t('peanutHint'), icon: 'sparkles' },
-    ] satisfies { id: SettlementMethod; label: string; subtitle: string; icon: 'banknote' | 'wallet' | 'sparkles' }[]
+        { id: 'cash', label: t('cash'), icon: 'banknote' },
+        { id: 'bank', label: t('bank'), icon: 'wallet' },
+        { id: 'peanut', label: t('peanut'), icon: 'sparkles' },
+    ] satisfies { id: SettlementMethod; label: string; icon: 'banknote' | 'wallet' | 'sparkles' }[]
 
 /** Stable identity for a suggested transfer — it has no id of its own. */
 const transferKey = (transfer: ApiTransfer) => `${transfer.fromId}-${transfer.toId}-${transfer.amountMinor}`
@@ -339,8 +339,6 @@ export function SettleDrawer({
 
                     {!nothingToSettle && !selected && (
                         <>
-                            <p className="text-sm text-grey-1">{t('intro')}</p>
-
                             <ul className="flex flex-col gap-2">
                                 {/* `initial` left on (the default) so the list deals itself
                                     out on open. The sheet unmounts when it closes, so this
@@ -556,7 +554,6 @@ export function SettleDrawer({
                                     </li>
                                 ))}
                             </ul>
-                            <p className="text-sm text-grey-1">{t('recordedHint')}</p>
                         </div>
                     )}
 
@@ -679,9 +676,6 @@ export function SettleDrawer({
                                             >
                                                 <Icon name={option.icon} size={20} />
                                                 <span className="text-h8">{option.label}</span>
-                                                <span className="text-h10 leading-tight text-grey-1">
-                                                    {option.subtitle}
-                                                </span>
                                             </button>
                                         )
                                     })}

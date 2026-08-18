@@ -12,11 +12,11 @@ import type { DoodleName } from '@/components/ui/doodles'
  */
 export function UseCases() {
     const t = useTranslations('marketing.uses')
-    const items: Array<{ doodle: DoodleName; title: string; body: string }> = [
-        { doodle: 'mountain', title: t('item1.title'), body: t('item1.body') },
-        { doodle: 'house', title: t('item2.title'), body: t('item2.body') },
-        { doodle: 'pizza', title: t('item3.title'), body: t('item3.body') },
-        { doodle: 'globe', title: t('item4.title'), body: t('item4.body') },
+    const items: Array<{ doodle: DoodleName; title: string }> = [
+        { doodle: 'mountain', title: t('item1.title') },
+        { doodle: 'house', title: t('item2.title') },
+        { doodle: 'pizza', title: t('item3.title') },
+        { doodle: 'globe', title: t('item4.title') },
     ]
 
     return (
@@ -27,7 +27,6 @@ export function UseCases() {
                     <li key={item.doodle} className="rounded-sm border border-n-1 bg-white p-4">
                         <Doodle name={item.doodle} size={30} weight={1.8} />
                         <span className="mt-2 block text-h7">{item.title}</span>
-                        <span className="mt-1 block text-sm leading-5 text-grey-1">{item.body}</span>
                     </li>
                 ))}
             </ul>

@@ -154,7 +154,6 @@ export function AllSettled({ compact = false, celebrate = false, summary, emblem
                 className="flex flex-col items-center gap-2"
             >
                 <p className={compact ? 'text-h5' : 'text-h3'}>{t('title')}</p>
-                <p className="max-w-[20rem] text-sm font-medium text-n-1">{t('body')}</p>
 
                 {/* The receipt: what actually got squared away. Without it the card
                     is a mood; with it, it is a result worth screenshotting. */}

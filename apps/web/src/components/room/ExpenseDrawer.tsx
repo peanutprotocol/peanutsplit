@@ -1416,10 +1416,7 @@ export function ExpenseDrawer({
                             className="shadow-4 overflow-hidden rounded-lg border-2 border-n-1 bg-white"
                         >
                             <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
-                                <div>
-                                    <h3 className="text-h8">{t('whoPaid')}</h3>
-                                    <p className="mt-1 text-xs text-grey-1">{t('whoPaidHint')}</p>
-                                </div>
+                                <h3 className="text-h8">{t('whoPaid')}</h3>
                                 <button
                                     type="button"
                                     onClick={() => dispatchWorkflow({ type: 'editor-closed' })}

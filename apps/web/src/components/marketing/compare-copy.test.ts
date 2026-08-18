@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import sitemap from '@/app/sitemap'
-import { LOCALES } from '@/i18n/locales'
+import { INDEXED_LOCALES } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { findDroppedDiacritics } from '@/lib/diacritics'
 import { absoluteUrl } from '@/lib/seo'
@@ -22,19 +22,19 @@ describe('localized Splitwise comparison', () => {
     })
 
     it('keeps competitor quotes byte-locked across locales', () => {
-        const source = comparisonCopy.en
-        for (const locale of LOCALES) {
-            expect(comparisonCopy[locale].why.items.map((item) => item.quote)).toEqual(
+        const source = comparisonCopy.en!
+        for (const locale of INDEXED_LOCALES) {
+            expect(comparisonCopy[locale]!.why.items.map((item) => item.quote)).toEqual(
                 source.why.items.map((item) => item.quote)
             )
-            expect(comparisonCopy[locale].migration.quote).toBe(source.migration.quote)
+            expect(comparisonCopy[locale]!.migration.quote).toBe(source.migration.quote)
         }
     })
 
     it('builds body links, canonicals and hreflang from the same locale', () => {
-        for (const locale of LOCALES) {
+        for (const locale of INDEXED_LOCALES) {
             const path = localizedPath('/splitwise-alternative', locale)
-            expect(comparisonCopy[locale].migration.moreHref).toBe(localizedPath('/splitwise-daily-limit', locale))
+            expect(comparisonCopy[locale]!.migration.moreHref).toBe(localizedPath('/splitwise-daily-limit', locale))
             const metadata = splitwiseAlternativeMetadata(locale)
             expect(metadata.alternates?.canonical).toBe(absoluteUrl(path))
             expect(metadata.alternates?.languages).toEqual({
@@ -49,7 +49,7 @@ describe('localized Splitwise comparison', () => {
     it('lists every locale in the sitemap with the same absolute alternates', () => {
         const entries = sitemap().filter((entry) => entry.url.endsWith('/splitwise-alternative'))
         expect(entries.map((entry) => entry.url)).toEqual(
-            LOCALES.map((locale) => absoluteUrl(localizedPath('/splitwise-alternative', locale)))
+            INDEXED_LOCALES.map((locale) => absoluteUrl(localizedPath('/splitwise-alternative', locale)))
         )
         const languages = {
             en: absoluteUrl('/splitwise-alternative'),

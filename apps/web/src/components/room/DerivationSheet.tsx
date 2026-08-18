@@ -65,7 +65,6 @@ export function DerivationSheet({ derivation, currency, currencies, meId }: Deri
             {derivation.lines.length === 0 ? (
                 <div className="flex flex-col items-center gap-1 py-6 text-center">
                     <p className="text-h7">{t('emptyTitle')}</p>
-                    <p className="max-w-[18rem] text-sm text-grey-1">{t('emptyBody')}</p>
                 </div>
             ) : (
                 SECTIONS.map((section) => {

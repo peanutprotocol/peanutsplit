@@ -69,7 +69,7 @@ describe('proxy /new locale handoff', () => {
     })
 
     it('leaves invalid and absent handoffs on the existing cookie-decided path', () => {
-        for (const query of ['', '?locale=es', '?locale=fr']) {
+        for (const query of ['', '?locale=es', '?locale=uk']) {
             const response = proxy(new NextRequest(`http://localhost/new${query}`))
 
             expect(response.headers.get(`x-middleware-request-${LOCALE_HEADER}`)).toBeNull()

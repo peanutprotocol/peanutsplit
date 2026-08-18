@@ -3,7 +3,7 @@ import { STATIC_PAGES } from '@/data/static-pages'
 import { TOOLS, toolPath } from '@/tools/registry'
 import { basePathFor, listAllTranslations, localesForSlug, type Collection } from '@/lib/content'
 import { absoluteUrl } from '@/lib/seo'
-import { DEFAULT_LOCALE, LOCALES } from '@/i18n/locales'
+import { DEFAULT_LOCALE, INDEXED_LOCALES } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { splitV2Enabled } from '@/lib/flags'
 import { releasedGuideAlternates, releasedSplitGuides } from '@/lib/split-content/released'
@@ -71,8 +71,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // The hub exists in every locale by construction — it lists whatever that locale has, even
     // when that is nothing yet.
-    const hubAlternates = absolutise(hreflangAlternates('/blog', [...LOCALES]))
-    const hubs: MetadataRoute.Sitemap = LOCALES.map((locale) => ({
+    const hubAlternates = absolutise(hreflangAlternates('/blog', [...INDEXED_LOCALES]))
+    const hubs: MetadataRoute.Sitemap = INDEXED_LOCALES.map((locale) => ({
         url: absoluteUrl(localizedPath('/blog', locale)),
         changeFrequency: 'weekly',
         priority: 0.6,

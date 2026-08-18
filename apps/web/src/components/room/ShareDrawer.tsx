@@ -101,7 +101,7 @@ export function ShareDrawer({
                         dense
                         showQr={surface !== 'post_aha'}
                         title={surface === 'post_aha' ? t('postAhaTitle') : t('title')}
-                        subtitle={surface === 'post_aha' ? t('postAhaSubtitle') : t('subtitle')}
+                        subtitle={surface === 'post_aha' ? t('postAhaSubtitle') : undefined}
                         onCompleted={shared}
                         context={
                             transfer && from && to ? (

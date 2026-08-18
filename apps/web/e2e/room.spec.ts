@@ -679,7 +679,7 @@ test('a link holder can export the room without exporting the room credential', 
     await expect(page.getByTestId('import-target-room')).toContainText('Export room')
     await expect(page.getByTestId('import-target-currency')).toHaveText('EUR')
     await expect(page.getByTestId('import-repeat-warning')).toContainText(
-        'submitting the exact same reviewed source data here changes nothing'
+        'Importing the same data again changes nothing'
     )
 
     // Backing out returns to the exact room settings context where this append

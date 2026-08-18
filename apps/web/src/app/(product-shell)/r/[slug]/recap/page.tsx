@@ -165,7 +165,6 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
                 one acquisition ask, tagged so the funnel can see it. */}
             <div className="mt-auto flex flex-col gap-3 rounded-sm border border-n-1 bg-white px-4 py-6 text-center">
                 <p className="text-h6">{t('ctaTitle')}</p>
-                <p className="text-sm text-grey-1">{t('ctaBody')}</p>
                 <Link
                     href="/app?utm_source=recap"
                     className={buttonClassName({ variant: 'stroke', className: 'justify-center' })}

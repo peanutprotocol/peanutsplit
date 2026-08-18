@@ -219,7 +219,7 @@ export function avatarsFor(
 
 /**
  * `formatMinor` output, guaranteed drawable. Thai baht is the live example: `฿`
- * is outside Sniglet, so the symbol gives way to the ISO code rather than a gap.
+ * is outside Roboto Latin Extended, so the symbol gives way to the ISO code rather than a gap.
  */
 export function safeAmount(totalMinor: bigint, code: string): string {
     let formatted: string
@@ -240,10 +240,10 @@ export function safeAmount(totalMinor: bigint, code: string): string {
  * Anything the body font cannot draw, dropped.
  *
  * `safeAmount` already does this for the amount, where the failure is a known one
- * (`฿` is outside Sniglet). A translated sentence is the other half: the shipped
- * copy is Latin-1 and draws fine, but a catalog is edited by people rather than
- * by this file, and one pasted typographic character nobody thought about would
- * put a blank rectangle in the middle of the product's storefront. The filter
+ * (`฿` is outside Roboto Latin Extended). A translated sentence is the other
+ * half: the shipped Latin and Latin Extended catalogs draw fine, but a catalog
+ * is edited by people rather than by this file, and one pasted character outside
+ * the cmap would put a blank rectangle in the product's storefront. The filter
  * costs nothing and removes the class.
  */
 export const fontSafe = (value: string, charset: ReadonlySet<string>): string =>

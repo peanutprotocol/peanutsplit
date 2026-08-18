@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
 import peanutLogo from '@/assets/logos/peanut-logo.svg'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
-import { asLocale } from '@/i18n/locales'
+import { INDEXED_LOCALES, asLocale, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { hrefFor, listDocs } from '@/lib/content'
 
@@ -55,6 +55,7 @@ export function SiteFooter({
     const t = useTranslations('marketing.footer')
     const tLocale = useTranslations('locale')
     const locale = asLocale(useLocale())
+    const hasIndexedContent = (INDEXED_LOCALES as readonly Locale[]).includes(locale)
 
     const guides = listDocs('blog', locale).slice(0, GUIDES_SHOWN)
     const alternatives = listDocs('alternatives', locale)
@@ -100,45 +101,52 @@ export function SiteFooter({
                         </ul>
                     </div>
 
-                    <div>
-                        <h2 className="text-h9 uppercase tracking-wide text-white">{t('colCompare')}</h2>
-                        <ul className="mt-2 flex flex-col gap-1.5">
-                            {showCompareLink && (
-                                <li>
-                                    <Link href={localizedPath('/splitwise-alternative', locale)} className={linkClass}>
-                                        {t('compareLink')}
-                                    </Link>
-                                </li>
-                            )}
-                            {alternatives.map((doc) => (
-                                <li key={doc.slug}>
-                                    <Link href={hrefFor('alternatives', doc.slug, locale)} className={linkClass}>
-                                        {doc.frontmatter.title}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {(hasIndexedContent || alternatives.length > 0) && (
+                        <div>
+                            <h2 className="text-h9 uppercase tracking-wide text-white">{t('colCompare')}</h2>
+                            <ul className="mt-2 flex flex-col gap-1.5">
+                                {showCompareLink && hasIndexedContent && (
+                                    <li>
+                                        <Link
+                                            href={localizedPath('/splitwise-alternative', locale)}
+                                            className={linkClass}
+                                        >
+                                            {t('compareLink')}
+                                        </Link>
+                                    </li>
+                                )}
+                                {alternatives.map((doc) => (
+                                    <li key={doc.slug}>
+                                        <Link href={hrefFor('alternatives', doc.slug, locale)} className={linkClass}>
+                                            {doc.frontmatter.title}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
-                    <div>
-                        <h2 className="text-h9 uppercase tracking-wide text-white">{t('colGuides')}</h2>
-                        <ul className="mt-2 flex flex-col gap-1.5">
-                            {guides.map((doc) => (
-                                <li key={doc.slug}>
-                                    <Link href={hrefFor('blog', doc.slug, locale)} className={linkClass}>
-                                        {doc.frontmatter.title}
-                                    </Link>
-                                </li>
-                            ))}
-                            {/* The hub is the only internal link every article shares — it is how
-                                a crawler that lands on any page finds the rest of them. */}
-                            <li>
-                                <Link href={localizedPath('/blog', locale)} className={linkClass}>
-                                    {t('allGuides')}
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
+                    {(hasIndexedContent || guides.length > 0) && (
+                        <div>
+                            <h2 className="text-h9 uppercase tracking-wide text-white">{t('colGuides')}</h2>
+                            <ul className="mt-2 flex flex-col gap-1.5">
+                                {guides.map((doc) => (
+                                    <li key={doc.slug}>
+                                        <Link href={hrefFor('blog', doc.slug, locale)} className={linkClass}>
+                                            {doc.frontmatter.title}
+                                        </Link>
+                                    </li>
+                                ))}
+                                {hasIndexedContent && (
+                                    <li>
+                                        <Link href={localizedPath('/blog', locale)} className={linkClass}>
+                                            {t('allGuides')}
+                                        </Link>
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+                    )}
 
                     <div>
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colPeanut')}</h2>

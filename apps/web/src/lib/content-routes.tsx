@@ -16,7 +16,7 @@ import { absoluteLanguages, pageMetadata, pageTitle } from '@/lib/seo'
 import { pageChapterOrNull, pageRegisterOrNull } from '@/lib/split-content/recipe'
 import { hashSlug } from '@/lib/split-content/seed'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
-import { LOCALES, type Locale } from '@/i18n/locales'
+import { INDEXED_LOCALES, type Locale } from '@/i18n/locales'
 
 /**
  * One implementation of the article page, bound to a locale and a set of collections by the route
@@ -137,7 +137,7 @@ export function hubMetadata(locale: Locale) {
             ...meta,
             alternates: {
                 ...meta.alternates,
-                languages: absoluteLanguages(hreflangAlternates('/blog', [...LOCALES])),
+                languages: absoluteLanguages(hreflangAlternates('/blog', [...INDEXED_LOCALES])),
             },
         }
     }

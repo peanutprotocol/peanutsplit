@@ -1,0 +1,1472 @@
+{
+    "marketing": {
+        "hero": {
+            "title": "FAIS TOURNER LE LIEN",
+            "controlTitleAccessible": "FAIS TOURNER LE LIEN",
+            "titleAccessible": "UN LIEN. ON PARTAGE. C’EST RÉGLÉ.",
+            "subtitle": "parce que les bons comptes font les bons amis",
+            "cta": "Créer le lien",
+            "linkExplainerTrigger": "Comment fonctionne le lien",
+            "chat": {
+                "defaultRoom": "Week-end à Lisbonne",
+                "participants": "Bea, Jules, Mo et toi",
+                "questionSender": "Bea",
+                "question": "qui a payé le dîner ?",
+                "you": "toi",
+                "reply": "moi — je l’ajoute",
+                "linkPrompt": "Chacun ajoute ce qu’il a payé",
+                "joined": "Bea, Jules et Mo ont ouvert le lien"
+            },
+            "stageSummary": "Un lien de groupe Peanut Split circule dans la conversation pour que tout le monde puisse ouvrir le même groupe et ajouter ses dépenses.",
+            "validation": {
+                "roomRequired": "Nomme d’abord le groupe.",
+                "creatorRequired": "Dis-nous qui tu es."
+            }
+        },
+        "rooms": {
+            "title": "Tes groupes",
+            "subtitle": "Enregistrés sur cet appareil.",
+            "openLabel": "Ouvrir le groupe",
+            "showMore": "Afficher {count, plural, one {# groupe supplémentaire} other {# groupes supplémentaires}}",
+            "showLess": "Afficher moins de groupes",
+            "forgetLabel": "Oublier {room} sur cet appareil",
+            "confirmForgetTitle": "Supprimer {room} de cet appareil ?",
+            "confirmForgetBody": "C’est le seul endroit où cet appareil conserve le groupe. Split n’a pas de comptes : il te faut donc le lien du groupe pour y revenir. Pour les autres, le groupe, ses dépenses et ses soldes restent inchangés.",
+            "confirmForget": "Supprimer de cet appareil",
+            "slideForget": "Fais glisser pour supprimer de cet appareil",
+            "confirmForgetKeep": "Conserver",
+            "confirmForgetClose": "Fermer sans supprimer",
+            "forgotten": "{room} a été supprimé de cet appareil. Le groupe partagé fonctionne toujours pour toute personne ayant son lien.",
+            "forgetFailed": "Nous n’avons pas pu supprimer {room} de cet appareil. Il figure toujours dans cette liste.",
+            "recovery": {
+                "title": "Tu as déjà un lien de groupe ?",
+                "label": "Colle le lien du groupe",
+                "placeholder": "peanutsplit.com/r/ton-groupe-…",
+                "hint": "Enregistre le groupe sur cet appareil.",
+                "submit": "Ajouter ce groupe",
+                "invalid": "Colle un lien complet de groupe Peanut Split.",
+                "notFound": "Nous n’avons pas trouvé ce groupe. Vérifie que tu as collé le lien en entier.",
+                "failed": "Nous n’avons pas pu vérifier ce groupe pour le moment. Rien n’a été enregistré — réessaie.",
+                "openingSaved": "Ouverture de {room}. Il est enregistré sur cet appareil.",
+                "openingUnsaved": "Ouverture de {room}. Ce navigateur n’a pas pu l’enregistrer pour plus tard."
+            }
+        },
+        "proof": {
+            "linkIdentity": {
+                "title": "CHOISIS TON NOM.",
+                "linkLabel": "LIEN DU GROUPE",
+                "identityLabel": "Qui es-tu dans Week-end à Lisbonne ?",
+                "you": "Toi",
+                "friendOne": "Bea",
+                "friendTwo": "Jules"
+            },
+            "everyoneAdds": {
+                "title": "TOUT LE MONDE AJOUTE SES DÉPENSES.",
+                "expenseOne": "Bea · train",
+                "expenseOneMeta": "60 € · payé par Bea",
+                "expenseTwo": "Jules · dîner",
+                "expenseTwoMeta": "90 € · payé par Jules",
+                "expenseThree": "Ana · l’a ajoutée",
+                "expenseThreeMeta": "pour Bea"
+            },
+            "suggestedPlan": {
+                "title": "QUI PAIE QUI ? C’EST RÉGLÉ.",
+                "planLabel": "PLAN DE PAIEMENT PROPOSÉ",
+                "paymentOne": "Tu paies Bea · 10 €",
+                "paymentTwo": "Tu paies Jules · 40 €"
+            },
+            "rail": {
+                "free": "GRATUIT POUR TOUJOURS",
+                "noSignup": "SANS INSCRIPTION",
+                "oneLink": "UN SEUL LIEN",
+                "anyCurrency": "162 DEVISES",
+                "noMath": "SANS CALCUL",
+                "even": "COMPTES RÉGLÉS"
+            },
+            "examples": {
+                "title": "TOUT SE PARTAGE.",
+                "lisbon": {
+                    "name": "Week-end à Lisbonne",
+                    "meta": "4 amis · EUR · 8 dépenses"
+                },
+                "flat": {
+                    "name": "Appartement 4B",
+                    "meta": "3 colocataires · GBP · ce mois-ci"
+                },
+                "dinner": {
+                    "name": "Ramen du mardi",
+                    "meta": "6 amis · USD · une carte"
+                },
+                "retreat": {
+                    "name": "Séminaire à distance",
+                    "meta": "6 personnes · 3 devises"
+                }
+            }
+        },
+        "how": {
+            "title": "Comment ça marche",
+            "step1": {
+                "title": "Crée un groupe"
+            },
+            "step2": {
+                "title": "Partage le lien"
+            },
+            "step3": {
+                "title": "Chacun ajoute ses dépenses"
+            },
+            "step4": {
+                "title": "Règle les comptes"
+            }
+        },
+        "uses": {
+            "title": "Les dépenses qu’on partage ici",
+            "item1": {
+                "title": "Voyages en groupe"
+            },
+            "item2": {
+                "title": "Colocataires"
+            },
+            "item3": {
+                "title": "Dîners et tournées"
+            },
+            "item4": {
+                "title": "Équipes à distance"
+            }
+        },
+        "finalCta": {
+            "title": "À TOI DE PARTAGER.",
+            "button": "Créer un groupe"
+        },
+        "honesty": {
+            "title": "En toute transparence",
+            "item1": {
+                "title": "Gratuit pour toujours"
+            },
+            "item2": {
+                "title": "Aucun compte nécessaire"
+            },
+            "item3": {
+                "title": "Règle comme tu veux"
+            }
+        },
+        "footer": {
+            "logoAlt": "Peanut",
+            "logoLinkLabel": "Visiter Peanut",
+            "colSplit": "Split",
+            "createSplit": "Créer un groupe",
+            "toolsLink": "Outils de calcul",
+            "importLink": "Importer depuis Splitwise",
+            "colCompare": "Comparer",
+            "compareLink": "Alternative à Splitwise",
+            "colGuides": "Guides",
+            "allGuides": "Tous les guides",
+            "colPeanut": "Peanut",
+            "peanutHome": "Envoyer de l’argent",
+            "peanutHelp": "Aide",
+            "peanutTerms": "Conditions d’utilisation",
+            "peanutPrivacy": "Confidentialité",
+            "madeByPrefix": "créé avec amour par",
+            "madeByBrand": "Squirrel Labs"
+        },
+        "install": {
+            "title": "Installer Split",
+            "body": "Retrouve ce groupe plus vite. Sans passer par une boutique d’applications. Sans compte.",
+            "bodySettled": "Garde ce voyage — et le prochain — à portée de main.",
+            "announcement": "Tu peux installer Split.",
+            "cta": "Installer Split",
+            "ctaSteps": "Afficher les étapes d’installation",
+            "dismiss": "Pas maintenant",
+            "row": {
+                "label": "Installer Split",
+                "labelIos": "Ajouter Split à l’écran d’accueil",
+                "installed": "Split est installé.",
+                "preparing": "Préparation…",
+                "checkLabel": "Icône Split",
+                "checkLabelIos": "Icône de l’écran d’accueil",
+                "checkAction": "Vérifier"
+            },
+            "browser": {
+                "title": "Installer Split",
+                "body": "Utilise l’option d’installation de ton navigateur — pas « Créer un raccourci ».",
+                "bodyAndroid": "Ouvre le menu de ton navigateur. Choisis « Installer l’application » — pas « Créer un raccourci ».",
+                "embedded": "Dans une autre application ? Choisis d’abord « Ouvrir dans le navigateur ».",
+                "step1Android": "Ouvre le menu de ton navigateur.",
+                "step2Android": "Touche « Installer l’application ». L’option peut se trouver sous « Ajouter à l’écran d’accueil ».",
+                "step3Android": "Vérifie que le nom est « Split ».",
+                "step4Android": "Touche « Installer ».",
+                "step1Other": "Ouvre le menu de ton navigateur.",
+                "step2Other": "Choisis « Installer l’application ». Sur Mac, choisis « Ajouter au Dock ».",
+                "step3Other": "Vérifie que le nom est « Split », puis confirme.",
+                "noOption": "Pas d’option d’installation ? Ouvre cette page dans Chrome."
+            },
+            "ios": {
+                "title": "Ajouter Split à ton écran d’accueil",
+                "step1": "Touche Partager.",
+                "step2": "Touche « Ajouter à l’écran d’accueil ».",
+                "step3": "Active « Ouvrir comme app web » si l’option apparaît.",
+                "step4": "Touche « Ajouter ».",
+                "openAfter": "Ouvre ensuite Split depuis la nouvelle icône.",
+                "body": "Utilise le menu Partager de ton navigateur.",
+                "prepareFailed": "Impossible de préparer ce groupe. Réessaie dans un instant."
+            },
+            "repair": {
+                "announcement": "Tu peux maintenant vérifier l’icône Split.",
+                "title": "Remplacer l’ancienne icône du groupe",
+                "body": "L’icône indique Split ? Tout est prêt. Elle affiche le nom d’un groupe ? Remplace-la.",
+                "cardBody": "L’icône affiche le nom d’un groupe ? Remplace-la par Split.",
+                "cta": "Vérifier l’icône",
+                "copyFirst": "Copie le lien du groupe avant de supprimer l’ancienne icône.",
+                "step1": "Supprime l’icône portant le nom du groupe.",
+                "step2ChromeCopied": "Ouvre le lien du groupe copié dans Chrome.",
+                "step2ChromeOriginal": "Ouvre le lien original du groupe dans Chrome.",
+                "step2IosCopied": "Ouvre le lien du groupe copié dans ton navigateur.",
+                "step2IosOriginal": "Ouvre le lien original du groupe dans ton navigateur.",
+                "step3Chrome": "Touche ⋮, puis « Installer l’application ».",
+                "step3Ios": "Touche Partager, puis « Ajouter à l’écran d’accueil ».",
+                "copy": "Copier le lien du groupe",
+                "copied": "Lien du groupe copié.",
+                "copyFailed": "Impossible de copier le lien. Rouvre-le depuis l’endroit où il a été partagé.",
+                "missing": "Aucun lien de groupe ici. Rouvre-le depuis l’endroit où il a été partagé.",
+                "check": "Installe uniquement si le nom indique « Split ».",
+                "back": "Retour au groupe"
+            },
+            "page": {
+                "preparing": "Vérification de ce navigateur…",
+                "installed": "Split est installé.",
+                "continue": "Retour à Split",
+                "copyRoom": "Copier le lien original du groupe",
+                "roomRecovery": "Le groupe a disparu après l’installation ? Ouvre une fois le lien original du groupe."
+            }
+        },
+        "linkExplainer": {
+            "title": "À quoi sert le lien du groupe",
+            "access": {
+                "title": "Toute personne ayant le lien peut ouvrir le groupe"
+            },
+            "chat": {
+                "title": "Garde le lien dans la conversation du groupe"
+            },
+            "remembered": {
+                "title": "Les groupes ouverts restent sur cet appareil"
+            },
+            "money": {
+                "title": "Split tient les comptes, pas ton argent"
+            },
+            "done": "Compris"
+        },
+        "readMore": {
+            "toggle": "ENVIE D’EN SAVOIR PLUS ?",
+            "toggleHint": "Qui a créé Split, pourquoi c’est gratuit pour toujours et comment fonctionnent les liens de groupe.",
+            "join": {
+                "title": "Ce que voient tes amis",
+                "roomName": "Séjour au ski",
+                "nameLabel": "Ton nom",
+                "namePlaceholder": "Tom",
+                "button": "Rejoindre le groupe",
+                "body": "Pas d’e-mail, de mot de passe ni de téléchargement."
+            },
+            "features": {
+                "title": "Ce que fait Split",
+                "currency": {
+                    "title": "162 devises pour ton groupe",
+                    "body": "Conversion automatique pour 156 devises ; six autres fonctionnent sans conversion."
+                },
+                "splits": {
+                    "title": "Des répartitions sur mesure",
+                    "body": "À parts égales, en pourcentage, par parts, par montants exacts ou entre certaines personnes."
+                },
+                "exact": {
+                    "title": "Toujours juste au centime près",
+                    "body": "Ouvre un solde pour voir le détail."
+                },
+                "live": {
+                    "title": "Tout le monde le voit immédiatement",
+                    "body": "Les nouvelles dépenses apparaissent immédiatement chez tout le monde."
+                },
+                "offline": {
+                    "title": "Fonctionne sans réseau",
+                    "body": "Les dépenses se synchronisent dès que tu es de nouveau en ligne."
+                },
+                "home": {
+                    "title": "Ajoute Split à ton écran d’accueil",
+                    "body": "Il s’ouvre comme une application."
+                },
+                "transfers": {
+                    "title": "Un plan de paiement plus simple",
+                    "body": "Une courte liste indiquant qui paie qui."
+                }
+            },
+            "settle": {
+                "title": "Comment régler",
+                "cash": "Espèces",
+                "bank": "Virement bancaire",
+                "peanut": "Envoyer avec Peanut"
+            },
+            "team": {
+                "title": "Les personnes qui l’ont créé",
+                "intro": "Split n’a pas encore d’utilisateurs, alors il n’y a que nous à citer.",
+                "konrad": {
+                    "name": "Konrad",
+                    "role": "a créé Split",
+                    "quote": "Chaque voyage se terminait de la même façon : un tableur que personne ne mettait à jour et quelqu’un qui, sans rien dire, en était de sa poche."
+                },
+                "hugo": {
+                    "name": "Hugo",
+                    "role": "a créé Split",
+                    "quote": "Je voulais que tout tienne dans un lien. Si tes amis doivent créer un compte, ils ne le feront pas."
+                }
+            },
+            "who": {
+                "title": "Qui a créé ça, et pourquoi c’est gratuit pour toujours",
+                "built": {
+                    "title": "Peanut a créé Split",
+                    "body": "Peanut est une application de paiement proposée par une entreprise bien réelle, avec un vrai produit — pas un projet de week-end voué à disparaître."
+                },
+                "free": {
+                    "title": "Split est gratuit pour toujours parce qu’il fait découvrir Peanut",
+                    "body": "Pas de formule premium, pas d’offre payante à venir, rien à acheter."
+                },
+                "data": {
+                    "title": "Très peu de données peuvent fuiter",
+                    "body": "Les liens de groupe sont exclus de nos propres outils d’analyse, car un lien est une clé."
+                }
+            },
+            "faq": {
+                "title": "Les vraies questions",
+                "retype": {
+                    "q": "Dois-je tout ressaisir depuis la conversation du groupe ?",
+                    "a": "Pour un voyage déjà terminé, oui : les dépenses doivent être saisies une fois. C’est plus simple qu’il n’y paraît, car chacun peut ajouter les siennes au lieu que tout repose sur toi.",
+                    "import": "Si tu viens de Splitwise, la page d’importation transfère tout un groupe en une seule étape."
+                },
+                "access": {
+                    "q": "Qui peut voir notre groupe ?",
+                    "a": "Toute personne ayant le lien. Il n’est pas référencé par les moteurs de recherche et son URL est impossible à deviner, mais c’est une clé : garde-le dans la conversation du groupe, pas en public."
+                },
+                "lost": {
+                    "q": "Comment revenir au groupe ?",
+                    "a": "Laisse le lien dans la conversation du groupe pour que chacun puisse le retrouver. Split enregistre aussi les groupes ouverts sur cet appareil, et tu peux coller le lien sur la page d’accueil pour l’ajouter de nouveau."
+                },
+                "limits": {
+                    "q": "Y a-t-il une limite au nombre de dépenses que nous pouvons ajouter ?",
+                    "a": "Non. Ajoute-en cinquante en un après-midi si c’est ce genre de voyage."
+                }
+            },
+            "compare": {
+                "line": "Tu viens d’une autre application de partage ?",
+                "link": "Voir comment Split se compare à Splitwise"
+            }
+        }
+    },
+    "locale": {
+        "label": "Langue"
+    },
+    "settings": {
+        "animations": {
+            "title": "Animations"
+        }
+    },
+    "dates": {
+        "today": "Aujourd’hui",
+        "yesterday": "Hier",
+        "justNow": "à l’instant"
+    },
+    "room": {
+        "actions": {
+            "settleUp": "Régler les comptes",
+            "addExpense": "Ajouter une dépense"
+        },
+        "header": {
+            "shareRoomLink": "Partager le lien du groupe",
+            "openSettings": "Ouvrir les réglages",
+            "openRoomSwitcher": "Ouvrir le sélecteur de groupes",
+            "title": "Réglages",
+            "close": "Fermer les réglages",
+            "closeSheet": "Fermer",
+            "youAre": "tu es {name}",
+            "roomsTitle": "Groupes",
+            "closeRoomSwitcher": "Fermer le sélecteur de groupes",
+            "currentRoom": "Groupe actuel",
+            "openRoomSettings": "Ouvrir les réglages de {room}",
+            "settingsAction": "Réglages",
+            "addOrJoinRoom": "Ajouter ou rejoindre un groupe",
+            "recentRoomsNote": "Les groupes récents sont enregistrés uniquement sur cet appareil.",
+            "roomName": "Nom du groupe",
+            "linkStaysTheSame": "Le lien reste le même.",
+            "nameFailed": "impossible de renommer le groupe — réessaie",
+            "drawing": "Illustration du groupe",
+            "drawingFailed": "impossible de modifier l’illustration — réessaie",
+            "people": "Personnes",
+            "addSomeone": "Ajouter quelqu’un",
+            "personNamePlaceholder": "Nom de la personne",
+            "addPerson": "Ajouter",
+            "personDuplicate": "{name} est déjà dans le groupe.",
+            "personReactivate": "{name} ne participe plus. Réactive cette même personne ci-dessous au lieu de créer un doublon.",
+            "personFailed": "impossible d’ajouter cette personne — réessaie",
+            "formerPeople": "Personnes qui ne participent plus",
+            "formerExplanation": "L’historique de leurs dépenses et paiements enregistrés reste dans le registre. Le statut « ne participe plus » signifie seulement que ces personnes sont exclues des nouveaux partages ; le lien du groupe reste valide.",
+            "formerSettled": "Comptes réglés · hors des nouveaux partages",
+            "formerBalanceOpen": "Un changement historique a rouvert ce solde",
+            "restore": "Réactiver",
+            "restoreFailed": "impossible de réactiver cette personne — réessaie",
+            "you": "Toi",
+            "switchPersonTitle": "Changer de personne ?",
+            "switchPersonBody": "Cet appareil ne sera plus associé à {name} et ne recevra plus les notifications de ce groupe. Tu choisiras ensuite à nouveau ton nom.",
+            "switchPerson": "Changer",
+            "slideSwitchPerson": "Fais glisser pour changer de personne",
+            "cancel": "Annuler",
+            "link": "Lien",
+            "linkCopied": "Lien copié",
+            "copyFailed": "Ton navigateur a bloqué la copie.",
+            "importExport": "Importer / exporter",
+            "importExportFormats": "Splitwise · CSV · JSON",
+            "exportOnly": "Exporter",
+            "exportFormats": "CSV · JSON",
+            "history": "Historique",
+            "historyHint": "Journal complet des modifications",
+            "device": "Cet appareil",
+            "reportProblem": "Signaler un problème",
+            "reportProblemHint": "Envoyer les détails en privé",
+            "sound": "Son",
+            "haptics": "Vibrations",
+            "privacyNote": "Gratuit pour toujours, sans inscription. Toute personne ayant le lien d’un groupe peut l’ouvrir."
+        },
+        "feedback": {
+            "title": "Signaler un problème",
+            "intro": "Dis-nous ce qui s’est passé. Rien n’est envoyé avant que tu aies vérifié et donné ton accord.",
+            "scopeNote": "Toujours inclus : ton message et une référence interne au groupe « {room} », afin que le support retrouve le bon groupe. Ton profil de membre n’est pas indiqué comme auteur du signalement.",
+            "close": "Fermer le signalement",
+            "messageLabel": "Que s’est-il passé ?",
+            "messagePlaceholder": "Qu’as-tu fait, que s’est-il passé et qu’attendais-tu ?",
+            "messageHint": "Obligatoire · au moins {minimum} caractères. Les liens de groupe présents dans ton texte sont supprimés avant l’enregistrement.",
+            "attachmentsTitle": "Choisis les éléments à joindre",
+            "attachmentsIntro": "Aucune pièce jointe n’est sélectionnée au départ. Active uniquement ce que tu veux envoyer au support Peanut.",
+            "deviceTitle": "Détails de l’appareil",
+            "deviceHint": "Navigateur et système, taille d’affichage, fuseau horaire, mode de l’application et état du réseau.",
+            "exactDeviceData": "Voir les données exactes de l’appareil",
+            "browser": "Navigateur / système",
+            "viewport": "Taille d’affichage",
+            "timeZone": "Fuseau horaire",
+            "appMode": "Mode de l’application",
+            "network": "Réseau",
+            "unknown": "Inconnu",
+            "online": "En ligne",
+            "offline": "Hors ligne",
+            "roomTitle": "Contexte du groupe",
+            "roomHint": "Instantané au moment de l’envoi : groupe, liste des membres, jusqu’à {expenses, plural, one {# dépense} other {# dépenses}} et jusqu’à {settlements, plural, one {# enregistrement de paiement} other {# enregistrements de paiement}}.",
+            "roomPreview": "{currency} · {members, plural, one {# personne} other {# personnes}} · {expenses, plural, one {# dépense} other {# dépenses}} · {settlements, plural, one {# enregistrement de paiement} other {# enregistrements de paiement}}",
+            "roomExcludes": "Inclut les réglages du groupe ; les noms, illustrations et statuts des membres ; le nombre d’enregistrements ; ainsi que les identifiants, horodatages, descriptions, devises, montants, taux de change, catégories, payeurs, répartitions, moyens de paiement, notes et états de suppression des dépenses et des paiements enregistrés récents. Le lien du groupe, les clés de membre, les détails des notifications push, les liens de reçus et le journal d’audit sont exclus.",
+            "screenshotTitle": "Capture d’écran (facultatif)",
+            "screenshotHint": "Rien n’est capturé automatiquement. Le navigateur te demande quoi partager, ou tu peux choisir une image existante.",
+            "captureScreen": "Capturer l’écran",
+            "uploadScreenshot": "Choisir une image",
+            "screenshotAlt": "Capture d’écran jointe à ce signalement",
+            "removeScreenshot": "Supprimer",
+            "captureUnavailable": "Impossible de faire une capture d’écran ici. Choisis plutôt une image existante.",
+            "captureCancelled": "Aucune capture d’écran n’a été jointe. Réessaie ou choisis une image existante.",
+            "imageTooLarge": "Cette image est trop volumineuse. Choisis une capture de moins de 20 Mo.",
+            "imageUnreadable": "Cette image n’a pas pu être lue. Choisis une capture JPEG, PNG ou WebP.",
+            "consentTitle": "J’accepte d’envoyer ce signalement",
+            "consentHint": "Le support Peanut peut lire ton message et uniquement les pièces jointes sélectionnées ci-dessus. Les signalements ne sont pas envoyés aux outils d’analyse ni affichés dans le groupe, et leur suppression est prévue après 90 jours.",
+            "send": "Envoyer le signalement",
+            "cancel": "Annuler",
+            "sendFailed": "Impossible d’envoyer le signalement — ton texte et ta capture sont toujours là.",
+            "successTitle": "Signalement envoyé",
+            "successBody": "Merci. Le support Peanut a reçu le message et les pièces jointes que tu as sélectionnées.",
+            "done": "Terminé"
+        },
+        "export": {
+            "importTitle": "Importer un groupe Splitwise ou Split Pro",
+            "importBody": "Ajoute un export Splitwise ou Split Pro dont les devises correspondent à ce groupe ou disposent d’un taux de conversion. Le lien du groupe et les dépenses déjà présentes restent inchangés.",
+            "openImporter": "Importer dans ce groupe",
+            "exportTitle": "Exporter ce groupe",
+            "disclosure": "Le fichier contient les noms de tout le monde, chaque dépense et chaque paiement enregistré.",
+            "csv": "Télécharger le CSV",
+            "json": "Télécharger le JSON"
+        },
+        "history": {
+            "title": "Historique du groupe",
+            "close": "Fermer l’historique du groupe",
+            "statsTitle": "Statistiques du groupe",
+            "statsIntro": "Dépenses actuellement enregistrées uniquement. Les modifications remplacent les versions précédentes ; les dépenses supprimées et les paiements enregistrés ne changent pas ces totaux.",
+            "statsEmpty": "Les statistiques et les anecdotes apparaîtront après la première dépense.",
+            "totalSpent": "Total dépensé",
+            "averageExpense": "Dépense moyenne",
+            "expenses": "Dépenses",
+            "people": "Personnes concernées",
+            "notAvailable": "Indisponible",
+            "largestShare": "Plus grande part personnelle",
+            "frontedMost": "Plus forte avance",
+            "ofRoomSpend": "{percent} % des dépenses du groupe",
+            "spendRolesHint": "La part correspond au montant attribué à une personne. L’avance correspond au montant qu’elle a d’abord payé pour le groupe.",
+            "formerName": "{name} · Ne participe plus",
+            "unknownMember": "Personne inconnue",
+            "unknownExpense": "Dépense inconnue",
+            "monthOverMonth": "Comparaison avec le mois précédent",
+            "throughDay": "Jusqu’au jour {day}",
+            "mtdNoSpend": "Aucune dépense sur l’une ou l’autre période.",
+            "mtdNewSpend": "Aucune dépense à ce stade le mois dernier.",
+            "mtdSame": "Identique au mois dernier à ce stade.",
+            "mtdMore": "{percent} % de plus qu’au même moment le mois dernier.",
+            "mtdLess": "{percent} % de moins qu’au même moment le mois dernier.",
+            "recentMonths": "Totaux des derniers mois",
+            "roomLore": "Anecdotes du groupe",
+            "topCategory": "Catégorie au montant le plus élevé",
+            "categoryDetail": "{count, plural, one {# dépense} other {# dépenses}}",
+            "crowdFavorite": "Dépense préférée du groupe",
+            "reactionDetail": "{count, plural, one {# réaction} other {# réactions}}",
+            "sharedTable": "Dépense avec le plus de participants",
+            "sharedTableDetail": "Répartie entre {count, plural, one {# personne} other {# personnes}}",
+            "currencyPassport": "Passeport des devises",
+            "currencyDetail": "{count, plural, one {# devise de dépense} other {# devises de dépense}}",
+            "activityTitle": "Changements",
+            "downloadHint": "Inclut les noms, les montants et chaque changement enregistré. Le lien du groupe et les identifiants privés de l’appareil sont exclus.",
+            "download": "Télécharger le journal complet (.json)",
+            "downloading": "Préparation du téléchargement…",
+            "downloaded": "Le journal complet du groupe a été enregistré dans tes téléchargements.",
+            "downloadFailed": "Impossible de préparer le téléchargement. Réessaie.",
+            "categories": {
+                "foodDrink": "Nourriture et boissons",
+                "transport": "Transport",
+                "travelStays": "Voyages et hébergement",
+                "homeBills": "Maison et factures",
+                "shopping": "Achats",
+                "entertainment": "Divertissement et loisirs",
+                "health": "Santé et bien-être",
+                "familyEducation": "Famille et éducation",
+                "workServices": "Travail et services",
+                "techConnectivity": "Technologie et communication",
+                "moneyAdmin": "Argent et administratif",
+                "gifts": "Cadeaux et dons",
+                "other": "Autre"
+            },
+            "loading": "Chargement de l’historique…",
+            "failed": "Impossible de charger l’historique du groupe.",
+            "retry": "Réessayer",
+            "loadOlder": "Charger les entrées précédentes",
+            "device": "Appareil {label}",
+            "unknownDevice": "Appareil inconnu",
+            "actor": "{device} utilisé par {name}",
+            "structuredData": "Données structurées",
+            "actions": {
+                "history_started": "L’historique commence ici. Les actions précédentes sont indisponibles.",
+                "room_created": "a créé le groupe",
+                "room_imported": "a importé le groupe et ses anciennes dépenses",
+                "room_import_appended": "a importé des dépenses dans le groupe",
+                "room_settings_updated": "a modifié les réglages du groupe",
+                "member_joined": "a rejoint le groupe",
+                "member_added": "a ajouté une personne",
+                "member_removed": "a indiqué qu’une personne ne participe plus",
+                "member_restored": "a réactivé une personne",
+                "member_avatar_updated": "a modifié l’illustration d’une personne",
+                "expense_added": "a ajouté une dépense",
+                "expense_edited": "a modifié une dépense",
+                "expense_deleted": "a supprimé une dépense",
+                "expense_restored": "a restauré une dépense",
+                "reaction_added": "a réagi à une dépense",
+                "reaction_removed": "a supprimé une réaction",
+                "settlement_recorded": "a enregistré un paiement",
+                "settlement_deleted": "a supprimé un enregistrement de paiement",
+                "push_subscribed": "a activé les notifications du groupe",
+                "push_unsubscribed": "a désactivé les notifications du groupe"
+            }
+        },
+        "join": {
+            "title": "Qui es-tu ?",
+            "roster": "{room} · {count, plural, one {# personne} other {# personnes}} pour le moment",
+            "thatsMe": "C’est moi",
+            "imNew": "Je ne suis pas encore dans le groupe",
+            "namePlaceholder": "Ton nom",
+            "submit": "Rejoindre le groupe",
+            "alreadyOnList": "En fait, mon nom est déjà dans la liste",
+            "duplicate": "{name} est déjà ici — touche son nom ci-dessus.",
+            "reactivateTitle": "Réactiver {name} ?",
+            "reactivateBody": "Le même profil sera réutilisé dans le registre et tout son historique sera conservé. Cette personne sera de nouveau incluse dans les nouveaux partages.",
+            "reactivateConfirm": "Réactiver {name}",
+            "reactivateCancel": "Utiliser un autre nom",
+            "previousFormer": "{name} ne participe plus. Choisis une personne active, réactive le même profil ou rejoins le groupe avec un autre nom.",
+            "previousChanged": "La clé de membre de {name} a changé. Choisis à nouveau ton profil actif pour continuer ; ton brouillon est toujours là.",
+            "failed": "impossible de rejoindre le groupe — réessaie"
+        },
+        "balances": {
+            "title": "Soldes",
+            "you": "Toi",
+            "settled": "comptes réglés",
+            "owes": "doit",
+            "getsBack": "doit recevoir",
+            "nothingYet": "rien pour le moment",
+            "youOwe": "tu dois",
+            "youGetBack": "on te doit",
+            "former": "Ne participe plus",
+            "pair": {
+                "owesYou": "{name} te doit",
+                "youOwe": "Tu dois à {name}",
+                "owes": "{debtor} doit à {creditor}"
+            }
+        },
+        "expenses": {
+            "title": "Dépenses",
+            "emptyTitle": "Groupe prêt",
+            "someone": "Quelqu’un",
+            "formerName": "{name} · Ne participe plus",
+            "you": "Toi",
+            "paidBy": "{payer} a payé · {count, plural, one {# personne} other {# personnes}}",
+            "paidByCompact": "{payer} a payé",
+            "paidByYouCompact": "Tu as payé",
+            "youLent": "tu as avancé",
+            "youBorrowed": "avancé pour toi",
+            "total": "total",
+            "indicative": "indicatif",
+            "savedManualRate": "Enregistré ici · 1 {currency} = {rate} {roomCurrency}",
+            "paidByYou": "Tu as payé · {count, plural, one {# personne} other {# personnes}}",
+            "filedBy": "Saisie par {name}",
+            "filedByYou": "Saisie par toi",
+            "filedByAnon": "Saisie par Anon",
+            "personalImpact": {
+                "outgoingNamed": "Augmente ce que tu dois à {name}",
+                "outgoing": "Augmente ce que tu dois",
+                "incomingNamed": "Augmente ce que {name} te doit",
+                "incoming": "Cette dépense augmente ce que les autres te doivent",
+                "neutral": "Aucun changement sur ton solde",
+                "notInSplit": "Tu ne participes pas à cette répartition"
+            },
+            "emptyInvite": "Inviter les autres",
+            "emptyShare": "Partager le groupe",
+            "emptyAdd": "Ajouter une dépense"
+        },
+        "states": {
+            "errorTitle": "Impossible de charger ce groupe",
+            "errorBody": "La connexion semble instable. Rien n’est perdu — réessaie.",
+            "staleTitle": "Ce groupe n’est peut-être plus à jour",
+            "staleBody": "La dernière version chargée du groupe est affichée. Tu ne peux pas modifier ni supprimer les dépenses enregistrées, ni enregistrer de paiement, avant d’avoir actualisé le groupe. Tu peux toujours ajouter une dépense.",
+            "retry": "Réessayer",
+            "pullToRefresh": {
+                "pull": "Tire vers le bas pour actualiser",
+                "release": "Relâche pour actualiser",
+                "refreshing": "Actualisation du groupe…"
+            },
+            "notFoundTitle": "Ce partage n’existe pas",
+            "notFoundBody": "Il a peut-être été supprimé, ou il manque la fin du lien — les liens de groupe respectent aussi la casse.",
+            "notFoundCta": "Ouvrir les options du groupe"
+        },
+        "allSettled": {
+            "title": "Tout est réglé",
+            "expenseCount": "{count, plural, one {# dépense} other {# dépenses}}",
+            "peopleCount": "{count, plural, one {# personne} other {# personnes}}",
+            "allSquare": "tout est réglé"
+        },
+        "story": {
+            "duo": "Juste vous deux, et pas un centime entre vous.",
+            "marathon": "{days, plural, one {# jour à entendre « Cette fois, c’est moi qui paie. »} other {# jours à entendre « Cette fois, c’est moi qui paie. »}} Tous les comptes sont réglés.",
+            "blitz": "Un jour, {rounds, plural, one {# tournée de « C’est moi qui paie. »} other {# tournées de « C’est moi qui paie. »}} Sans rancune.",
+            "bigGroup": "{count, plural, one {# personne, et personne n’a dû courir après son argent.} other {# personnes, et personne n’a dû courir après son argent.}}",
+            "default": "Personne ne tenait les comptes. C’était notre travail."
+        },
+        "recap": {
+            "settledBadge": "Tout est réglé",
+            "ongoingBadge": "Pour le moment",
+            "totalLabel": "Total dépensé",
+            "days": "{count, plural, one {# jour} other {# jours}}",
+            "expenses": "{count, plural, one {# dépense} other {# dépenses}}",
+            "people": "{count, plural, one {# personne} other {# personnes}}",
+            "settlements": "{count, plural, =0 {Aucun paiement enregistré pour le moment} one {# paiement enregistré} other {# paiements enregistrés}}",
+            "topPayer": "{name} a le plus avancé",
+            "share": "Partager le récapitulatif",
+            "sharing": "Préparation…",
+            "shareTitle": "Peanut Split",
+            "shareText": "On a réglé tous les comptes.",
+            "copied": "Récapitulatif copié — colle-le où tu veux.",
+            "downloaded": "Récapitulatif enregistré dans tes téléchargements.",
+            "shareFailed": "Impossible de créer la carte récapitulative. Réessaie.",
+            "seeRecap": "Voir le récapitulatif",
+            "backToRoom": "Retour au groupe",
+            "ctaTitle": "À toi de jouer",
+            "cta": "Créer ton propre groupe",
+            "yourLine": "Tu as avancé {amount} · {position}",
+            "youOwe": "tu dois {amount}",
+            "youGetBack": "tu récupères {amount}",
+            "youSettled": "tout est réglé"
+        },
+        "expenseDrawer": {
+            "addTitle": "Ajouter une dépense",
+            "editTitle": "Modifier la dépense",
+            "close": "Fermer le formulaire de dépense",
+            "amount": "Montant",
+            "currency": "Devise de la dépense",
+            "foreignHint": "converti à un taux indicatif",
+            "manualRateTitle": "Définir un taux manuel",
+            "manualRateInputLabel": "Valeur de 1 {currency} en {roomCurrency}",
+            "manualRateHint": "Ce taux est enregistré avec cette dépense. Il ne change pas automatiquement.",
+            "manualRateFromExpense": "Enregistré uniquement pour cette dépense : 1 {currency} = {rate} {roomCurrency}. Modifie le taux pour recalculer cette dépense.",
+            "manualRateRequired": "Indique combien vaut 1 {currency} en {roomCurrency}.",
+            "manualRateInvalid": "Saisis un taux positif jusqu’à 999999999999, avec au plus 12 décimales.",
+            "manualRateRoundsToZero": "Ce taux arrondit cette dépense à zéro en {roomCurrency}. Augmente le taux ou le montant.",
+            "manualRateOverflow": "Ce taux ou ce montant est trop élevé pour le registre. Réduis le taux ou le montant.",
+            "manualRatePreview": "Avec ton taux manuel, {amount} devient {converted}.",
+            "description": "Objet de la dépense (facultatif)",
+            "descriptionPlaceholder": "Dîner, taxi, forfait de ski… (facultatif)",
+            "amountPreview": "Formaté : {amount}",
+            "category": "Catégorie de l’illustration",
+            "categoryAutomatic": "Auto",
+            "categories": {
+                "foodDrink": "Nourriture",
+                "transport": "Transport",
+                "travelStays": "Hébergement",
+                "homeBills": "Maison",
+                "shopping": "Achats",
+                "entertainment": "Loisirs",
+                "health": "Santé",
+                "gifts": "Cadeaux",
+                "other": "Autre"
+            },
+            "fieldsSwapped": "Compris — le montant et la description ont été inversés.",
+            "amountNormalised": "Interprété comme {amount}. Vérifie le montant avant d’enregistrer.",
+            "paidBy": "Payé par",
+            "paid": "a payé",
+            "paidBySummary": "{name} a payé",
+            "choosePayer": "Choisir le payeur",
+            "whoPaid": "Qui a payé ?",
+            "addPayer": "Ajouter une personne",
+            "payerNamePlaceholder": "Nom de la personne",
+            "confirmPayer": "Ajouter la personne",
+            "cancelPayer": "Annuler",
+            "payerDuplicate": "{name} est déjà dans le groupe — choisis cette personne ci-dessus.",
+            "payerAddFailed": "impossible d’ajouter cette personne — réessaie",
+            "formerName": "{name} · Ne participe plus",
+            "formerDraftRoleWarning": "Une personne sélectionnée a cessé de participer pendant la saisie de cette dépense. Change de payeur ou retire cette personne du partage avant d’enregistrer ; tes montants sont conservés.",
+            "formerSavedRoleWarning": "Une personne qui ne participe plus figure encore dans cette dépense enregistrée, dans son rôle d’origine. Tu peux laisser la dépense telle quelle, remplacer cette personne ou la retirer, mais pas lui attribuer un nouveau rôle.",
+            "split": "Partage",
+            "whoShares": "Qui partage cette dépense ?",
+            "everyone": "Tout le monde",
+            "choosePeople": "Choisir les personnes",
+            "peopleSummary": "{name} + {count}",
+            "splitSummary": "{people}, {mode}",
+            "splitMode": "Méthode de partage",
+            "equally": "À parts égales",
+            "exactAmounts": "Montants exacts",
+            "percentage": "Pourcentage",
+            "shares": "Parts",
+            "moreOptions": "Plus d’options",
+            "exactAmountFor": "Montant exact pour {name}",
+            "percentageFor": "Pourcentage pour {name}",
+            "sharesFor": "Nombre de parts pour {name}",
+            "sharesUnit": "parts",
+            "putRemainderOn": "Attribuer le reste à {name}",
+            "addToSplit": "+ {name}",
+            "allocated": "Chaque centime est réparti",
+            "overBy": "Dépassement de",
+            "leftToAllocate": "Reste à répartir",
+            "amountsAreIn": "Les montants sont en {currency}",
+            "convertedAt": " — converti en {roomCurrency} à un taux indicatif",
+            "convertedAtManual": " — converti en {roomCurrency} à ton taux manuel",
+            "allocatedOf": ". Montant réparti : {allocated} sur {total}.",
+            "percentageAllocated": "Exactement 100 % réparti",
+            "percentageOverBy": "Dépassement de 100 % de",
+            "percentageLeft": "Reste à répartir",
+            "percentageCaption": "Les pourcentages doivent totaliser exactement 100 %.",
+            "sharesTotal": "Total des parts : {total}",
+            "sharesCaption": "Utilise des nombres entiers positifs. Une valeur vide ou nulle exclut la personne.",
+            "when": "Quand",
+            "whenWasIt": "Quand était-ce ?",
+            "date": "Date de la dépense",
+            "dateShort": "date",
+            "dateSummary": "Date de la dépense : {date}",
+            "collapseSection": "Réduire cette section",
+            "save": "Enregistrer les changements",
+            "add": "Ajouter la dépense",
+            "addWithAmount": "Ajouter une dépense de {amount}",
+            "delete": "Supprimer",
+            "confirmDelete": "Supprimer cette dépense ? Elle quittera l’historique du groupe et tous les soldes changeront.",
+            "confirmDeleteYes": "La supprimer",
+            "slideDelete": "Fais glisser pour supprimer",
+            "deleting": "Suppression…",
+            "confirmDeleteNo": "La conserver",
+            "deletedToast": "« {description} » supprimée",
+            "deletedToastUnnamed": "Dépense supprimée",
+            "undo": "Annuler la suppression",
+            "restored": "Dépense restaurée",
+            "restoreFailed": "Impossible d’annuler la suppression — actualise le groupe puis réessaie",
+            "wasDeleted": "Cette dépense a été supprimée. Annule d’abord sa suppression, puis modifie-la.",
+            "saveFailed": "impossible d’enregistrer la dépense — réessaie",
+            "deleteFailed": "impossible de supprimer la dépense",
+            "validation": {
+                "AMOUNT_REQUIRED": "Saisis un montant supérieur à zéro.",
+                "AMOUNT_INVALID": "Vérifie les séparateurs et les décimales du montant.",
+                "PAYER_REQUIRED": "Choisis qui a payé.",
+                "NO_PARTICIPANTS": "Choisis au moins une personne avec qui partager cette dépense.",
+                "SHARE_AMOUNT_INVALID": "Vérifie les séparateurs et les décimales des montants exacts.",
+                "SHARES_DO_NOT_ADD_UP": "Les montants exacts doivent totaliser le montant global.",
+                "PERCENTAGE_INVALID": "Saisis des pourcentages avec au plus deux décimales.",
+                "PERCENTAGES_DO_NOT_ADD_UP": "Les pourcentages doivent totaliser exactement 100 %.",
+                "SHARE_WEIGHT_INVALID": "Les parts doivent être des nombres entiers positifs.",
+                "AMOUNT_NEGATIVE": "Retire le signe moins — le montant d’une dépense est toujours positif."
+            },
+            "equallyHint": "La même part pour tout le monde",
+            "exactAmountsHint": "Des montants différents",
+            "percentageHint": "Définis le pourcentage de chacun",
+            "sharesHint": "Répartir selon des parts relatives",
+            "equallyShort": "à parts égales",
+            "exactShort": "exact",
+            "percentageShort": "en pourcentage",
+            "sharesShort": "par parts"
+        },
+        "settle": {
+            "formerName": "{name} · Ne participe plus",
+            "listTitle": "Qui doit à qui",
+            "recordTitle": "Enregistrer un paiement",
+            "nothingToSettle": "Rien à régler pour le moment.",
+            "you": "Toi",
+            "stillOutstanding": "Encore dû",
+            "howPaid": "Comment le paiement a-t-il été effectué ?",
+            "cash": "Espèces",
+            "bank": "Banque",
+            "peanut": "Peanut",
+            "peanutNote": "Ouvre Peanut dans un nouvel onglet. Split enregistre le paiement ici même si aucun argent n’est envoyé.",
+            "note": "Note (facultatif)",
+            "notePlaceholder": "Envoyé vendredi",
+            "receiptLink": "Lien du reçu (facultatif)",
+            "receiptLinkPlaceholder": "https://…",
+            "receiptLinkHint": "Enregistré uniquement à titre de référence. Split n’ouvre pas le lien et ne le vérifie pas.",
+            "record": "Enregistrer le paiement",
+            "back": "Retour",
+            "recorded": "{from} a payé {to}",
+            "failed": "impossible d’enregistrer ce paiement — réessaie",
+            "amountLabel": "Quel montant a été payé ?",
+            "amountHint": "La dette totale est de",
+            "amountInvalid": "Saisis un montant supérieur à zéro.",
+            "amountFormatInvalid": "Vérifie les séparateurs et les décimales du montant.",
+            "amountTooHigh": "C’est plus que ce que {name} doit.",
+            "recordedTitle": "Enregistré à l’instant",
+            "amountTooHighYou": "C’est plus que ce que tu dois."
+        },
+        "share": {
+            "title": "Partager le groupe",
+            "postAhaTitle": "Premier partage terminé",
+            "postAhaSubtitle": "Partage-le avec le groupe.",
+            "postAhaBalance": "{from} doit à {to}",
+            "notNow": "Pas maintenant",
+            "done": "Terminé",
+            "close": "Fermer le partage"
+        },
+        "link": {
+            "scanToJoin": "Scanner pour rejoindre en personne",
+            "qrLabel": "Code QR pour rejoindre {room}",
+            "roomLink": "Lien du groupe",
+            "inviteText": "Texte d’invitation",
+            "copyBlocked": "Ton navigateur a bloqué la copie. L’invitation complète est sélectionnée ci-dessus — copie-la manuellement.",
+            "copy": "Copier l’invitation",
+            "copied": "Copié !",
+            "share": "Partager le lien du groupe",
+            "shared": "Lien du groupe partagé.",
+            "shareFailed": "La fenêtre de partage ne s’est pas ouverte. Copie plutôt l’invitation.",
+            "anyoneCanJoin": "Toute personne ayant ce lien peut rejoindre le groupe et ajouter des dépenses.",
+            "shareTitle": "{room} · Peanut Split",
+            "shareText": "Ouvre le lien, choisis ton nom, puis ajoute ce que tu as payé."
+        },
+        "create": {
+            "back": "Retour",
+            "title": "Nouveau groupe",
+            "name": "Que partages-tu ?",
+            "namePlaceholder": "Séjour au ski…",
+            "emoji": "Ou choisis une autre illustration",
+            "emojiGroup": "Illustration du groupe",
+            "emojiOption": "Illustration : {emoji}",
+            "drawYourOwn": "Dessine la tienne",
+            "drawTitle": "Dessine une illustration pour ton groupe",
+            "drawHint": "Un motif simple fonctionne mieux. Les formes bancales sont les bienvenues.",
+            "drawUndo": "Annuler le dernier trait",
+            "drawClear": "Effacer",
+            "drawCancel": "Annuler",
+            "drawUse": "Utiliser l’illustration",
+            "collapseDrawing": "Masquer les illustrations du groupe",
+            "currency": "Devise",
+            "currencyLabel": "Devise du groupe",
+            "currencyHint": "Les soldes utilisent cette devise ; les dépenses peuvent en utiliser d’autres.",
+            "creatorName": "Et toi, tu t’appelles…",
+            "creatorNamePlaceholder": "Ton nom…",
+            "submit": "Créer le groupe",
+            "failed": "impossible de créer le groupe — réessaie",
+            "rosterCheckpoint": {
+                "title": "Qui participe ?",
+                "subtitle": "Tu pourras modifier cette liste plus tard.",
+                "namePlaceholder": "Nom",
+                "add": "Ajouter",
+                "done": "Terminé",
+                "skip": "Passer",
+                "duplicate": "{name} est déjà dans ce groupe.",
+                "failed": "impossible d’ajouter cette personne — réessaie"
+            },
+            "namePlaceholderSlug": "ton-voyage",
+            "currencyCustomHint": "« {code} » est ta devise personnalisée. Toutes les dépenses de ce groupe l’utilisent — rien n’est converti."
+        },
+        "currency": {
+            "all": "Rechercher parmi les {count} devises",
+            "searchLabel": "Rechercher des devises",
+            "searchPlaceholder": "Rechercher ou inventer",
+            "clearSearch": "Effacer la recherche",
+            "results": "{count, plural, one {# devise} other {# devises}}",
+            "noMatch": "Aucune devise appelée « {query} » — crée-la.",
+            "noMatchLong": "Aucune devise appelée « {query} ». Un code comporte trois ou quatre lettres.",
+            "useCustom": "Utiliser « {code} »",
+            "useCustomHint": "Ta devise personnalisée — aucun taux, aucune conversion.",
+            "useCustomManualHint": "Définis la valeur de 1 {code} en {roomCurrency} pour cette dépense.",
+            "noRateChip": "sans taux",
+            "roomOnly": "{roomCurrency} n’a pas de taux, toutes les dépenses de ce groupe sont donc en {roomCurrency}.",
+            "roomOnlyManual": "{roomCurrency} uniquement — invente un code et définis son taux manuel."
+        },
+        "scan": {
+            "cta": "Scanner un reçu",
+            "cameraTitle": "Scanner un reçu",
+            "cameraStarting": "Démarrage de l’appareil photo…",
+            "cameraReady": "Appareil photo prêt",
+            "cameraBlocked": "L’accès à l’appareil photo est désactivé. Importe plutôt une photo.",
+            "cameraUnavailable": "L’appareil photo n’est pas disponible ici. Importe plutôt une photo.",
+            "cameraFailed": "Impossible de démarrer l’appareil photo. Importe plutôt une photo.",
+            "cameraControls": "Commandes de la photo du reçu",
+            "takePhoto": "Prendre une photo",
+            "upload": "Importer",
+            "framingHint": "Garde les quatre coins dans le cadre",
+            "captureFailed": "Impossible de capturer cette photo. Réessaie ou importe-en une.",
+            "termsNote": "Tu acceptes les conditions d’OpenRouter et de Gemini.",
+            "tryAgain": "Scanner une autre facture",
+            "step1": "Scanner une facture · vérifier les articles",
+            "step2": "Scanner une facture · qui a pris quoi",
+            "reading": "Lecture de la facture…",
+            "privacyNote": "Split envoie la photo une seule fois et ne la conserve pas.",
+            "reviewTitle": "Vérifier les articles",
+            "reviewBody": "Corrige les erreurs, supprime ce qui ne doit pas être inclus et ajoute ce qui manque.",
+            "reviewFromMerchant": "Facture de {merchant}. Corrige les erreurs et ajoute ce qui manque.",
+            "itemNumber": "Article {number}",
+            "itemContext": "Article {number}, {item}",
+            "itemNameFor": "Nom de {item}",
+            "itemAmountFor": "Montant de {item}",
+            "amountInvalid": "Vérifie les séparateurs et les décimales de chaque article.",
+            "itemPlaceholder": "Article",
+            "removeItemFor": "Supprimer {item}",
+            "addItem": "Ajouter un article oublié",
+            "noItems": "Il ne reste rien sur cette facture.",
+            "itemsTotal": "Le total des articles est de",
+            "receiptTotal": "Le reçu indique",
+            "mismatch": "Les totaux diffèrent de {amount}. Il peut s’agir de taxes, d’un pourboire, d’une remise ou d’une ligne manquante. Tu peux continuer.",
+            "continue": "Suivant : qui a pris quoi",
+            "cancel": "Annuler",
+            "assignTitle": "Qui a pris quoi",
+            "assignBody": "Touche les personnes concernées pour chaque article. Si tu en sélectionnes plusieurs, l’article est réparti entre elles à parts égales.",
+            "assignmentGroup": "Personnes pour {item}",
+            "assignMemberToItem": "Attribuer {item} à {member}",
+            "assignEveryoneToItem": "Attribuer {item} à tout le monde",
+            "everyone": "Tout le monde",
+            "unassigned": "{count, plural, one {# article n’appartient encore à personne} other {# articles n’appartiennent encore à personne}}",
+            "assignedTotal": "Total",
+            "apply": "Utiliser ce partage",
+            "back": "Retour aux articles",
+            "defaultDescription": "Facture scannée",
+            "errors": {
+                "tooLarge": "Cette photo est trop volumineuse pour être envoyée, même réduite.",
+                "unreadable": "Impossible d’ouvrir ce fichier comme image.",
+                "generic": "Impossible de lire cette facture.",
+                "hint": "Prends la photo bien de face, avec toute la facture dans le cadre et suffisamment de lumière."
+            }
+        },
+        "theme": {
+            "title": "Thème",
+            "pick": "Utiliser le thème {name}",
+            "failed": "impossible de changer le thème — réessaie",
+            "names": {
+                "classic": "Classique",
+                "bubblegum": "Chewing-gum",
+                "lavender": "Lavande",
+                "mint": "Menthe",
+                "sky": "Ciel",
+                "coral": "Corail",
+                "sand": "Sable",
+                "graphite": "Graphite"
+            }
+        },
+        "avatar": {
+            "titleFor": "Illustration de {name}",
+            "open": "Ouvrir ton illustration",
+            "option": "Utiliser l’illustration {name}",
+            "failed": "impossible de changer cette illustration — réessaie",
+            "shuffle": "Mélanger",
+            "shuffleLabel": "Mélanger les illustrations proposées",
+            "firstOpen": "Tout le monde peut modifier l’illustration de tout le monde.",
+            "close": "Fermer les illustrations"
+        },
+        "reactions": {
+            "formerName": "{name} · Ne participe plus",
+            "add": "Réagir",
+            "close": "Fermer les réactions",
+            "pick": "Choisir la réaction « {emoji} »",
+            "remove": "Supprimer ta réaction {emoji}",
+            "reacted": "{emoji} — {count, plural, one {# personne} other {# personnes}}",
+            "needsToken": "Pour réagir, confirme d’abord que c’est bien toi en rejoignant de nouveau le groupe avec ton nom.",
+            "failed": "impossible d’enregistrer cette réaction — réessaie",
+            "names": {
+                "wild": "dingue",
+                "laugh": "rire",
+                "ouch": "aïe",
+                "love": "amour",
+                "clap": "applaudissements",
+                "money": "argent"
+            }
+        },
+        "latecomer": {
+            "sheetTitle": "Dépenses antérieures pour {name}",
+            "promptTitle": "{name} a participé à des dépenses antérieures ?",
+            "promptBody": "Vérifie {count, plural, one {# dépense enregistrée avant l’arrivée de {name}} other {# dépenses enregistrées avant l’arrivée de {name}}}. Rien ne change avant ta confirmation.",
+            "review": "Vérifier les dépenses",
+            "notNow": "Pas maintenant",
+            "reviewBody": "Sélectionne les dépenses auxquelles {name} participait. Les dépenses réparties à parts égales entre tout le groupe sont présélectionnées ; les répartitions personnalisées doivent être modifiées à la main.",
+            "selectedCount": "{count, plural, =0 {Rien de sélectionné} one {# sélectionnée} other {# sélectionnées}}",
+            "noChange": "Aucune modification rétroactive",
+            "projectedOwe": "Après la mise à jour, {name} doit {amount}",
+            "projectedBack": "Après la mise à jour, {name} récupère {amount}",
+            "projectedSettled": "Après la mise à jour, les comptes de {name} sont réglés",
+            "wholeGroup": "Tout le groupe · {from} → {to} personnes",
+            "subset": "{count, plural, one {# personne} other {# personnes}} · vérifie si {name} participait",
+            "memberShare": "Part de {name} : {amount}",
+            "manualSplit": "{mode, select, EXACT {Montants exacts saisis} PERCENTAGE {Partage en pourcentage} SHARES {Parts personnalisées} other {Partage personnalisé}}",
+            "edit": "Modifier",
+            "rowChanged": "Modifiée pendant ta vérification",
+            "confirmSelection": "Mettre à jour {count, plural, one {# dépense} other {# dépenses}}",
+            "leaveUnchanged": "Laisser les dépenses antérieures inchangées",
+            "settledWarningTitle": "Cela recréera des soldes à régler.",
+            "settledWarningBody": "Les dépenses sélectionnées créent un nouveau montant dû.",
+            "updating": "Mise à jour…",
+            "changedBeforeApply": "{count, plural, one {# dépense a changé} other {# dépenses ont changé}} pendant ta vérification. Vérifie les lignes actuelles et réessaie.",
+            "failed": "Impossible de terminer la mise à jour. {done, plural, =0 {Aucune modification n’a été enregistrée.} one {# modification a bien été enregistrée.} other {# modifications ont bien été enregistrées.}} Vérifie les lignes restantes et réessaie.",
+            "updated": "{count, plural, =0 {Vérification terminée} one {# dépense mise à jour} other {# dépenses mises à jour}} pour {name}.",
+            "undo": "Annuler",
+            "undoing": "Annulation de la mise à jour rétroactive…",
+            "undone": "Mise à jour rétroactive annulée",
+            "undoFailed": "Impossible de terminer l’annulation de la mise à jour rétroactive. Vérifie le groupe."
+        },
+        "timeline": {
+            "paymentLabel": "Paiement",
+            "recordedBy": "enregistré par {name}",
+            "recordedByYou": "enregistré par toi",
+            "recordedByAnon": "enregistré par Anon",
+            "receiptLink": "Ouvrir le lien du reçu · non vérifié",
+            "remove": "Annuler cet enregistrement de paiement",
+            "confirmRemove": "Annuler cet enregistrement ? Cela modifie le solde du groupe, pas l’argent déjà envoyé.",
+            "confirmYes": "Annuler l’enregistrement",
+            "slideRemove": "Fais glisser pour annuler l’enregistrement du paiement",
+            "removing": "Annulation…",
+            "confirmNo": "Le conserver",
+            "removed": "Enregistrement du paiement annulé. Soldes du groupe mis à jour.",
+            "removeFailed": "Impossible d’annuler cet enregistrement de paiement — réessaie."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, one {# nom dans ce registre} other {# noms dans ce registre}}",
+                "body": "Toutes les personnes dont ce groupe tient les comptes."
+            },
+            "passport": {
+                "title": "{count, plural, one {# devise} other {# devises}}",
+                "body": "Un partage clair, quelle que soit la devise utilisée."
+            },
+            "alterego": {
+                "title": "Ton rôle pendant ce voyage",
+                "body": "Ce rôle correspond à ce que tu as vraiment fait."
+            },
+            "wrapped": {
+                "title": "Le voyage, en résumé",
+                "body": "{count, plural, one {# carte. Partage-la si elle te plaît.} other {# cartes. Partage celles qui te plaisent.}}"
+            },
+            "share": "Partager l’image",
+            "sharing": "Préparation…",
+            "dismiss": "Pas maintenant",
+            "shelfTitle": "Cartes de ce voyage",
+            "copied": "Carte copiée — colle-la où tu veux.",
+            "downloaded": "Carte enregistrée dans tes téléchargements.",
+            "shareFailed": "Impossible de créer cette carte. Réessaie.",
+            "award": {
+                "tripStarter": "Coup d’envoi",
+                "firstMover": "Premier pas",
+                "ledgerLegend": "As des comptes",
+                "currencyHopper": "Globe-trotteur des devises",
+                "theCloser": "As du règlement",
+                "hypeCrew": "Pro de l’ambiance"
+            },
+            "shareText": {
+                "crew": "Les noms inscrits dans notre registre partagé.",
+                "passport": "Des devises différentes, un partage clair.",
+                "alterego": "Voici qui j’étais pendant ce voyage.",
+                "stats": "Le voyage en chiffres.",
+                "landing": "Tous les comptes sont réglés, et personne n’a dû courir après son argent."
+            },
+            "shareLabel": {
+                "crew": "Partager la carte de l’équipe",
+                "passport": "Partager la carte des devises",
+                "alterego": "Partager ta carte de rôle",
+                "stats": "Partager la carte du voyage",
+                "landing": "Partager la carte « Comptes réglés »"
+            }
+        },
+        "people": {
+            "remove": "Retirer {name} de la liste",
+            "blocked": "Pourquoi {name} reste dans la liste",
+            "blockedReason": "{name} a encore un solde. Ramène-le exactement à zéro ; son historique restera inchangé.",
+            "lastActiveReason": "{name} est la dernière personne active. Réactive quelqu’un d’autre avant qu’elle cesse de participer.",
+            "confirmTitle": "Retirer {name} de la liste ?",
+            "confirmBody": "Cette personne cessera de participer et sera exclue des nouveaux partages. Son historique complet restera accessible, et toute personne ayant le lien du groupe pourra toujours l’ouvrir. Tu pourras la réactiver plus tard.",
+            "confirm": "Retirer",
+            "cancel": "Annuler",
+            "removeFailed": "impossible de retirer cette personne — réessaie",
+            "removedToast": "{name} ne participe plus",
+            "undo": "Réactiver",
+            "restoredToast": "{name} participe à nouveau",
+            "restoreFailed": "Impossible de réactiver cette personne"
+        }
+    },
+    "slideToConfirm": {
+        "release": "Relâche pour confirmer",
+        "working": "Traitement…",
+        "instructions": "Fais glisser la poignée jusqu’au bout, utilise les touches fléchées ou appuie sur Entrée ou Espace pour confirmer.",
+        "progress": "{progress} % terminé."
+    },
+    "push": {
+        "label": "Notifications",
+        "notifyMe": "M’avertir à propos de {room}",
+        "on": "Activées",
+        "iosNeedsPwa": "Ajoute Split à ton écran d’accueil.",
+        "iosHow": "Comment ?",
+        "denied": "Bloquées dans les réglages de ton navigateur.",
+        "unknown": "Impossible de vérifier maintenant — cet appareil reçoit peut-être encore les notifications.",
+        "needsToken": "Choisis à nouveau ton nom pour activer cette option.",
+        "failed": "impossible de modifier les notifications — réessaie"
+    },
+    "routeStates": {
+        "error": {
+            "eyebrow": "Un petit problème",
+            "title": "Impossible d’ouvrir cette page",
+            "body": "Nous ne pouvons pas afficher cette page. Réessaie ou retourne à tes groupes.",
+            "retry": "Réessayer",
+            "exit": "Retour à tes groupes"
+        },
+        "notFound": {
+            "eyebrow": "Rien à ce lien",
+            "title": "Page introuvable",
+            "body": "Le lien est peut-être incomplet ou la page a peut-être été déplacée.",
+            "action": "Retour à tes groupes"
+        },
+        "loading": {
+            "eyebrow": "Comptage des cacahuètes",
+            "title": "Ouverture de ton groupe…",
+            "body": "Les soldes et les dépenses sont mis à jour.",
+            "exit": "Retour à tes groupes"
+        }
+    },
+    "errors": {
+        "generic": "Un problème est survenu — réessaie.",
+        "NETWORK_ERROR": "Impossible de joindre le serveur — vérifie ta connexion.",
+        "INTERNAL": "Un problème est survenu de notre côté. Réessaie dans un instant.",
+        "VALIDATION_ERROR": "Certains champs semblent incorrects — vérifie-les et réessaie.",
+        "MALFORMED_JSON": "Un problème est survenu lors de l’envoi — réessaie.",
+        "JSON_REQUIRED": "Un problème est survenu lors de l’envoi — réessaie.",
+        "REQUEST_TOO_LARGE": "Cette requête est trop volumineuse pour être envoyée.",
+        "CROSS_SITE_REQUEST": "Cette requête n’a pas pu être vérifiée — rouvre Split et réessaie.",
+        "NOT_FOUND": "Ce groupe n’existe pas.",
+        "EXPENSE_NOT_FOUND": "Cette dépense n’est plus là — actualise le groupe.",
+        "SETTLEMENT_NOT_FOUND": "Cet enregistrement de paiement n’existe plus — actualise le groupe.",
+        "SLUG_EXHAUSTED": "Impossible de créer un lien de groupe pour le moment — réessaie.",
+        "DUPLICATE_MEMBER_NAME": "Ce nom est déjà dans ce groupe — choisis-le dans la liste.",
+        "MEMBER_REACTIVATION_REQUIRED": "Cette personne ne participe plus. Réactive son entrée existante dans les réglages au lieu de créer un doublon.",
+        "MEMBER_NAME_CONFLICT": "Une autre personne active utilise déjà ce nom. Renomme l’une d’elles avant de réactiver cette personne.",
+        "MEMBER_BALANCE_NOT_ZERO": "Ramène le solde de cette personne exactement à zéro avant qu’elle cesse de participer.",
+        "LAST_ACTIVE_MEMBER": "La dernière personne active ne peut pas partir. Réactive d’abord quelqu’un d’autre.",
+        "MEMBER_FORMER": "Cette personne ne participe plus et ne peut pas être incluse dans de nouvelles opérations. Réactive-la d’abord.",
+        "EXPENSE_DELETED": "Cette dépense a été supprimée. Annule d’abord sa suppression, puis modifie-la.",
+        "NEW_PAYER_ON_EDIT": "Choisis une personne existante lors d’une modification. Ajoute un nouveau payeur avec une nouvelle dépense.",
+        "CATCH_UP_REVIEW_CONFLICT": "Cette dépense a changé après la vérification — rouvre-la et réessaie.",
+        "HISTORY_CURSOR_INVALID": "Ce point de l’historique du groupe n’est plus disponible — rouvre l’historique.",
+        "NOT_A_MEMBER": "Cette personne n’est pas dans ce groupe — actualise et réessaie.",
+        "AMOUNT_NOT_POSITIVE": "Le montant doit être supérieur à zéro.",
+        "AMOUNT_TOO_LARGE": "Ce montant est trop élevé pour être enregistré sans risque.",
+        "EXACT_SHARES_REQUIRED": "Un partage exact nécessite un montant pour chaque personne.",
+        "SHARES_DO_NOT_ADD_UP": "Les montants exacts doivent totaliser le montant global.",
+        "WEIGHTED_SHARES_REQUIRED": "Ajoute un pourcentage ou un nombre de parts pour au moins une personne.",
+        "SPLIT_WEIGHT_NOT_POSITIVE": "Les pourcentages et les parts doivent être supérieurs à zéro.",
+        "PERCENTAGES_DO_NOT_ADD_UP": "Les pourcentages doivent totaliser exactement 100 %.",
+        "SPLIT_FIELDS_DO_NOT_MATCH_MODE": "Ce partage ne correspond plus à la méthode sélectionnée — vérifie-le et réessaie.",
+        "SPLIT_MODE_CONFLICT": "La méthode de partage a changé. Rouvre la dépense et réessaie.",
+        "NO_PARTICIPANTS": "Choisis au moins une personne avec qui partager cette dépense.",
+        "DUPLICATE_PARTICIPANT": "Une personne apparaît deux fois dans ce partage.",
+        "SETTLEMENT_PAYER_NOT_MEMBER": "Le payeur n’est pas dans ce groupe — actualise et réessaie.",
+        "SETTLEMENT_PAYEE_NOT_MEMBER": "La personne payée n’est pas dans ce groupe — actualise et réessaie.",
+        "SETTLEMENT_SAME_MEMBER": "Un paiement nécessite deux personnes différentes.",
+        "SETTLEMENT_EXCEEDS_DEBT": "Ce paiement dépasse le montant actuellement dû — actualise et vérifie le montant.",
+        "IDEMPOTENCY_KEY_REUSED": "Cette clé d’enregistrement a déjà été utilisée dans un autre groupe — réessaie.",
+        "MEMBER_TOKEN_INVALID": "Cette clé de membre n’était pas la tienne — rouvre le groupe depuis ton propre lien.",
+        "INSTALL_HANDOFF_UNAVAILABLE": "Les données d’installation enregistrées ne sont plus disponibles — ouvre ce groupe dans ton navigateur et ajoute à nouveau Split.",
+        "SCAN_UNAVAILABLE": "Le scan de factures n’est pas activé ici.",
+        "SCAN_IMAGE_TOO_LARGE": "Cette image est trop volumineuse — prends une nouvelle photo.",
+        "SCAN_BAD_IMAGE": "Cette image n’a pas pu être envoyée — prends une nouvelle photo.",
+        "SCAN_NO_ITEMS": "Aucun article n’a pu être lu sur cette photo — reprends-la bien de face, avec davantage de lumière.",
+        "SCAN_ROOM_LIMIT": "Ce groupe a scanné beaucoup de factures aujourd’hui — réessaie demain.",
+        "SCAN_FAILED": "Impossible de lire cette facture — réessaie.",
+        "IMPORT_TOO_LARGE": "Cet import est trop volumineux. Essaie un groupe avec moins d’historique.",
+        "IMPORT_UNAVAILABLE": "Les imports sont temporairement suspendus — réessaie plus tard.",
+        "IMPORT_TARGET_CURRENCY_UNSUPPORTED": "Les imports ne peuvent pas être ajoutés à un groupe utilisant une devise personnalisée. Ajoute plutôt les dépenses manuellement dans la devise du groupe.",
+        "IMPORT_CURRENCY_CONVERSION_UNSUPPORTED": "Une ou plusieurs devises importées ne peuvent pas être converties dans la devise de ce groupe. Utilise un groupe dont la devise correspond à l’export ou dispose d’un taux de conversion compatible.",
+        "UNSUPPORTED_PUSH_HOST": "Ce service de notifications n’est pas pris en charge.",
+        "PUSH_SUBSCRIPTION_LIMIT": "Trop d’appareils reçoivent les notifications de ce groupe.",
+        "RATE_LIMITED": "Cela fait beaucoup de requêtes — attends une minute puis réessaie.",
+        "MEMBER_HAS_HISTORY": "Cette personne fait désormais partie de l’historique du groupe — elle ne peut pas être retirée de la liste.",
+        "NO_RATE": "Il n’existe aucun taux de change entre cette devise et celle du groupe. Utilise la devise du groupe.",
+        "MANUAL_FX_RATE_REQUIRED": "Saisis un taux manuel pour cette devise personnalisée.",
+        "MANUAL_FX_RATE_INVALID": "Ce taux manuel est invalide ou arrondit le montant converti à zéro.",
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Les taux manuels sont disponibles uniquement pour les devises de dépense personnalisées."
+    },
+    "derivation": {
+        "title": "Comment ce solde est calculé",
+        "openLabel": "Voir comment le solde de {name} est calculé",
+        "paidTitle": "Dépenses payées",
+        "shareTitle": "Part des dépenses",
+        "settledTitle": "Paiements enregistrés",
+        "paidBy": "payé par {name}",
+        "paidByYou": "tu as payé",
+        "sentTo": "Payé à {name}",
+        "receivedFrom": "Reçu de {name}",
+        "total": "Total",
+        "emptyTitle": "Rien pour le moment",
+        "suggestedTitle": "Pour ramener ce solde à zéro",
+        "suggestedNote": "Les paiements proposés regroupent les soldes de tout le groupe en un plan court. Les paires « qui paie qui » ne correspondent donc pas toujours à « qui a avancé de l’argent pour qui ». Tu peux vérifier les deux soldes ici.",
+        "sends": "Paie {name}",
+        "receives": "Reçoit un paiement de {name}",
+        "showOther": "Afficher le solde de {name}",
+        "hideOther": "Masquer le solde de {name}",
+        "someone": "Quelqu’un",
+        "sendsYou": "Tu paies {name}",
+        "receivesYou": "{name} te paie"
+    },
+    "content": {
+        "home": "Accueil",
+        "guides": "Guides",
+        "hubTitle": "Guides",
+        "hubDescription": "Comment partager des dépenses sans compte, sans installer d’application ni souscrire d’abonnement.",
+        "empty": "Rien de publié pour le moment.",
+        "startRoom": "Créer un groupe",
+        "startRoomHint": "Sans inscription. Sans installation. Gratuit pour toujours.",
+        "published": "Publié le {date}",
+        "updated": "mis à jour le {date}",
+        "otherLanguages": "Également en"
+    },
+    "offline": {
+        "rowHint": "En attente — sera envoyée dès que tu seras de nouveau en ligne",
+        "blockedRowHint": "À vérifier — la liste des membres a changé",
+        "queuedToast": "Pas de connexion. Cette dépense est enregistrée sur ton téléphone et sera envoyée dès que tu seras de nouveau en ligne.",
+        "fullToast": "{count, plural, one {La file d’attente des dépenses est pleine : une nouvelle dépense ou une dépense débloquée n’a donc pas pu être conservée. Les brouillons bloqués ont été préservés.} other {La file d’attente des dépenses est pleine : # nouvelles dépenses ou dépenses débloquées n’ont donc pas pu être conservées. Les brouillons bloqués ont été préservés.}}",
+        "rejectedToast": "{count, plural, one {Une dépense en attente n’a pas pu être enregistrée — ajoute-la à nouveau.} other {# dépenses en attente n’ont pas pu être enregistrées — ajoute-les à nouveau.}}",
+        "blockedToast": "{count, plural, one {Une dépense en attente doit être vérifiée car la liste des personnes du groupe a changé. Elle est toujours enregistrée sur ce téléphone.} other {# dépenses en attente doivent être vérifiées car la liste des personnes du groupe a changé. Elles sont toujours enregistrées sur ce téléphone.}}",
+        "blockedRosterToast": "{count, plural, one {Une dépense en attente n’indique pas quelles personnes se la partagent. Ouvre-la et confirme le partage ; elle reste sur ce téléphone jusque-là.} other {# dépenses en attente n’indiquent pas quelles personnes se les partagent. Ouvre-les et confirme chaque partage ; elles restent sur ce téléphone jusque-là.}}",
+        "blockedTitle": "Cette dépense est toujours enregistrée",
+        "blockedBody": "La liste des personnes du groupe a changé avant l’envoi de cette dépense. Vérifie les détails d’origine. Rien n’est supprimé tant que tu ne choisis pas toi-même de supprimer le brouillon.",
+        "blockedRosterUnknownBody": "Cette dépense a été enregistrée par une ancienne version de l’application sans la liste des participants. Vérifie les personnes actuelles ci-dessous, puis réessaie pour les confirmer. Elle ne sera pas envoyée avant cela.",
+        "blockedRosterUnknownRowHint": "Confirmer les participants",
+        "blockedFormerBody": "Une personne de ce partage ne participe plus. Réactive-la dans « Personnes » ou attribue son rôle à une autre personne active, puis réessaie.",
+        "blockedTokenBody": "La clé de membre de cet appareil a changé. Rejoins le groupe, puis réessaie avec la nouvelle clé.",
+        "blockedMissingBody": "Une personne mentionnée dans cet ancien brouillon n’est plus active. Vérifie les informations et réattribue son rôle avant de réessayer.",
+        "review": "Vérifier les détails",
+        "hideReview": "Masquer les détails",
+        "retry": "Réessayer",
+        "retryFailed": "La nouvelle tentative n’a pas pu être enregistrée sur ce téléphone ; la dépense attend donc toujours ta vérification. Rien n’est perdu — réessaie.",
+        "discard": "Supprimer le brouillon",
+        "discardConfirm": "Supprimer ce brouillon de dépense de ce téléphone ? Cette action est irréversible.",
+        "reviewAmount": "Montant",
+        "reviewPayer": "Payeur",
+        "reviewSplit": "Partagé avec",
+        "remapPayer": "Remplacer le payeur {name}",
+        "remapParticipant": "Remplacer le participant {name}",
+        "chooseActive": "Choisir une personne active",
+        "equalValue": "part égale",
+        "percentageValue": "{value} %",
+        "sharesValue": "{value} parts",
+        "insufficientActive": "Aucune autre personne active n’est disponible. Réactive quelqu’un dans « Personnes » ou conserve ce brouillon jusqu’à pouvoir décider. La suppression du brouillon doit toujours être confirmée explicitement.",
+        "sentToast": "{count, plural, one {Dépense envoyée} other {# dépenses envoyées}}"
+    },
+    "import": {
+        "drop": {
+            "title": "Dépose ici ton export Splitwise ou Split Pro",
+            "cta": "Choisir un fichier",
+            "privacy": "Le fichier reste sur cet appareil. Les données importées ne sont envoyées qu’après ta confirmation."
+        },
+        "howto": {
+            "title": "Exports acceptés",
+            "step1": "Splitwise : ouvre les réglages d’un groupe et choisis « Exporter comme feuille de calcul ».",
+            "step2": "Compte Split Pro : ouvre Compte et choisis « Télécharger les données SplitPro ».",
+            "step3": "Ami Split Pro : ouvre la page de solde de cette personne et choisis « Exporter »."
+        },
+        "groups": {
+            "label": "Groupe du fichier",
+            "hint": "Un téléchargement de compte Split Pro peut contenir plusieurs groupes. Choisis celui pour lequel tu veux créer un groupe maintenant.",
+            "existingHint": "Un téléchargement de compte Split Pro peut contenir plusieurs groupes. Choisis le groupe source dont tu veux ajouter les dépenses ici.",
+            "skippedTitle": "Certains groupes ne peuvent pas être importés",
+            "skipped": "{name} : {reason}"
+        },
+        "existing": {
+            "pageTitle": "Importer dans {room}",
+            "pageSubtitle": "Ajoute des dépenses depuis un export Splitwise ou Split Pro.",
+            "backToRoom": "Retour au groupe",
+            "targetEyebrow": "Ajout à ce groupe",
+            "targetBody": "Ajoute des dépenses sans modifier l’existant.",
+            "currencyLabel": "Devise de règlement",
+            "currencyHint": "Les dépenses importées conservent leur devise. Une ligne ne peut être ajoutée que si sa devise correspond à {currency} ou dispose d’un taux de conversion compatible.",
+            "currencyUnsupportedTitle": "Certaines dépenses ne peuvent pas être converties",
+            "currencyUnsupportedBody": "Ces devises sources ne peuvent pas être converties en {currency} : {currencies}. Choisis un groupe source dont les devises sont compatibles avec la devise de ce groupe, ou importe les dépenses dans un groupe doté d’une devise de règlement compatible.",
+            "repeatTitle": "Avant de réimporter",
+            "repeatBody": "Réimporter les mêmes données ne change rien, même si tu modifies les associations. Un fichier modifié est ajouté en entier et peut dupliquer des dépenses existantes.",
+            "membersTitle": "Associer les personnes",
+            "membersBody": "Associe chaque personne à quelqu’un de {room}, ou ajoute-la. Les noms identiques sont présélectionnés.",
+            "sourceLabel": "Dans le fichier",
+            "targetLabel": "Dans {room}",
+            "memberTargetLabel": "À quelle personne associer {name} ?",
+            "addNew": "Ajouter comme nouvelle personne",
+            "newNameLabel": "Nom de la nouvelle personne",
+            "newNameAria": "Nom à ajouter pour {name}",
+            "atomicAddition": "Elle sera ajoutée uniquement si l’import complet réussit.",
+            "emptyNewName": "Chaque nouvelle personne doit avoir un nom.",
+            "duplicateExistingMember": "Deux personnes du fichier ne peuvent pas être associées à la même personne du groupe.",
+            "missingExistingMember": "Une personne que tu avais associée n’est plus dans le groupe. Choisis maintenant à qui l’associer.",
+            "duplicateNewName": "Deux nouvelles personnes ont le même nom : donne-leur des noms différents.",
+            "newNameAlreadyExists": "Ce nom existe déjà dans le groupe. Associe la personne à ce membre, ou choisis un autre nom.",
+            "submit": "{count, plural, one {Ajouter # dépense à {room}} other {Ajouter # dépenses à {room}}}",
+            "failed": "Rien n’a été importé. Vérifie ta connexion et réessaie.",
+            "readyTitle": "Import terminé",
+            "readyBody": "{expenses, plural, one {# dépense} other {# dépenses}} et {members, plural, =0 {aucune nouvelle personne} one {# nouvelle personne} other {# nouvelles personnes}} ont été ajoutées à {time}.",
+            "replayTitle": "Déjà importé",
+            "replayBody": "Ces données sources exactes ont déjà été importées à {time}. Rien n’a été ajouté.",
+            "importAnother": "Importer un autre fichier",
+            "goToRoom": "Accéder au groupe",
+            "loadFailed": "Ce groupe n’a pas pu être chargé : rien ne peut y être importé.",
+            "tryAgain": "Réessayer",
+            "customCurrencyUnsupportedTitle": "Les imports ne sont pas disponibles pour les groupes avec une devise personnalisée",
+            "customCurrencyUnsupportedBody": "Les exports Splitwise et Split Pro utilisent des devises standard, que cet outil ne peut pas convertir en {currency}. Ajoute plutôt ces dépenses manuellement en {currency}."
+        },
+        "preview": {
+            "found": "{expenses, plural, one {# dépense} other {# dépenses}} · {members, plural, one {# personne} other {# personnes}}",
+            "total": "Total : {total}",
+            "roomName": "Nomme le groupe",
+            "roomNamePlaceholder": "Voyage au ski",
+            "fallbackName": "Groupe importé",
+            "currency": "Devise",
+            "currencyLabel": "Devise du groupe",
+            "currencyHint": "Les soldes sont tenus dans cette devise. Chaque dépense conserve celle dans laquelle elle a été payée.",
+            "members": "Tout le monde dans le groupe",
+            "whoAreYou": "Corrige les noms mal importés et choisis le tien dans la liste.",
+            "balancesMatch": "Les soldes correspondent au total indiqué par Splitwise.",
+            "balancesDifferTitle": "Ces soldes ne correspondront pas à Splitwise",
+            "balancesDiffer": "{count, plural, one {Le solde d’une personne diffère du total indiqué dans ton fichier} other {Les soldes de # personnes diffèrent du total indiqué dans ton fichier}} — certaines lignes n’ont pas pu être lues : le groupe ne reprend donc que les lignes qui ont pu être lues. Les avertissements ci-dessous indiquent les lignes concernées.",
+            "thatsMe": "C’est moi : {name}",
+            "submit": "Créer le groupe",
+            "startOver": "Utiliser un autre fichier",
+            "driftShort": "Il manque {amount}",
+            "driftOver": "{amount} en plus"
+        },
+        "fx": {
+            "title": "À propos des taux de change",
+            "body": "Ce groupe a dépensé dans plusieurs devises. Splitwise n’exporte pas le taux utilisé le jour même : tout est donc converti au taux d’aujourd’hui. Les totaux seront proches, mais pas identiques à ceux affichés là-bas."
+        },
+        "warnings": {
+            "title": "À savoir",
+            "more": "… et {count, plural, one {# autre} other {# autres}}.",
+            "ROW_UNBALANCED": "Les montants de la ligne {row} ne s’équilibrent pas dans le fichier ; elle a donc été ignorée.",
+            "ROW_UNSUPPORTED_CURRENCY": "La ligne {row} est en {detail}, une devise que Split ne gère pas encore. Elle a donc été ignorée.",
+            "ROW_NO_PAYER": "La ligne {row} n’indique pas qui a payé, elle a donc été ignorée.",
+            "ROW_ZERO_COST": "La ligne {row} n’a aucun montant, elle a donc été ignorée.",
+            "ROW_BAD_AMOUNT": "Le montant de la ligne {row} n’a pas pu être lu, elle a donc été ignorée.",
+            "ROW_BAD_DATE": "La date de la ligne {row} n’a pas pu être lue : une date provisoire fixe lui a été attribuée.",
+            "ROW_DESCRIPTION_TRUNCATED": "La description de la ligne {row} est très longue : elle a été raccourcie.",
+            "ROW_CATEGORY_TRUNCATED": "La catégorie de la ligne {row} est très longue : elle a été raccourcie.",
+            "MEMBER_NAME_TRUNCATED": "Un nom était trop long et a été raccourci en « {detail} ». Tu peux le modifier ci-dessus.",
+            "MULTI_PAYER_SPLIT": "La dépense « {detail} » a été payée par plusieurs personnes. Le fichier n’indique pas la contribution de chacune : elle est donc importée sous la forme d’une dépense par payeur. Les soldes sont exacts ; la répartition entre les payeurs est notre meilleure interprétation.",
+            "PAYMENT_ROWS": "Les paiements entre personnes sont importés comme des dépenses plutôt que comme des paiements enregistrés. Les soldes restent identiques.",
+            "MIXED_CURRENCY": "Le fichier contient plusieurs devises : {detail}.",
+            "DUPLICATE_MEMBER_NAME": "Deux personnes s’appellent {detail} : la seconde est donc affichée comme « {detail} (2) ». Renomme-les ci-dessous.",
+            "TRUNCATED_HISTORY": "Un groupe peut contenir 500 dépenses. {count, plural, one {La dépense la plus ancienne est donc regroupée} other {Les # dépenses les plus anciennes sont donc regroupées}} dans une entrée « Solde reporté » par personne. Le solde de chacun reste identique.",
+            "SPLITPRO_BALANCES_ONLY": "Le téléchargement de compte Split Pro contient les soldes actuels, mais pas l’historique des dépenses. Ils sont importés comme des entrées « Solde reporté » : le total de chacun est conservé, mais pas la liste des anciennes dépenses.",
+            "SPLITPRO_PAIR_HISTORY": "Le fichier CSV d’ami Split Pro n’indique pas à quel groupe appartenait chaque dépense. Toutes les dépenses de ce fichier sont donc ajoutées ensemble à ce groupe.",
+            "SPLITPRO_SPLIT_MODE_FLATTENED": "Les répartitions en pourcentage/parts de Split Pro conservent les mêmes montants finaux, mais sont importées comme des montants fixes. Les modifier ensuite ne conservera pas les proportions d’origine.",
+            "SPLITPRO_MISSING_NAMES": "Split Pro a omis {count, plural, one {le nom d’une personne} other {les noms de # personnes}} dans la sauvegarde. {count, plural, one {Cette personne est indiquée comme « Membre » ci-dessous : renomme-la} other {Elles sont indiquées comme « Membre » ci-dessous : renomme-les}} avant de créer le groupe.",
+            "SPLITPRO_BALANCES_SKIPPED": "{count, plural, one {Un solde de la sauvegarde Split Pro est incomplet et a été ignoré} other {# soldes de la sauvegarde Split Pro sont incomplets et ont été ignorés}}. Compare l’aperçu avec Split Pro avant de créer le groupe.",
+            "SPLITPRO_UNSUPPORTED_CURRENCY": "Split ne peut pas convertir {detail} : les soldes dans cette devise ont donc été ignorés. Choisis un autre export si ces soldes sont importants."
+        },
+        "errors": {
+            "NOT_SPLITWISE_CSV": "Nous ne reconnaissons pas ce fichier. Choisis un fichier CSV de groupe Splitwise, un fichier CSV d’ami Split Pro ou le fichier splitpro_data.json depuis la page Compte de Split Pro.",
+            "MALFORMED_CSV": "Ce fichier CSV est incomplet ou endommagé. Télécharge un nouvel export et utilise-le sans le modifier.",
+            "MALFORMED_JSON": "Ce fichier JSON est incomplet ou endommagé. Télécharge à nouveau « Données SplitPro » depuis la page Compte de Split Pro et utilise le nouveau fichier sans le modifier.",
+            "SPLITPRO_DIRECT_UNRESOLVED": "Cette sauvegarde Split Pro ne permet pas de savoir quel membre correspond à ton profil. Les soldes hors des groupes nommés ne peuvent donc pas être séparés en toute sécurité. Importe les groupes ci-dessus, puis utilise l’export CSV de chaque ami pour les soldes restants.",
+            "NO_MEMBERS": "Cet export ne contient pas la liste des membres du groupe. Dans Splitwise, exporte un groupe ; dans Split Pro, utilise « Télécharger les données SplitPro » depuis la page Compte.",
+            "NO_EXPENSES": "Ce fichier ne contient aucune dépense à importer. Les comptes du groupe sont peut-être déjà réglés, ou tous les soldes utilisent une devise non prise en charge. Vérifie les soldes dans l’application source, puis crée un groupe vide s’ils sont tous à zéro.",
+            "TOO_MANY_MEMBERS": "Ce groupe compte plus de 20 personnes. Supprime les personnes inactives dans l’application source et exporte-le à nouveau, ou crée deux groupes plus petits.",
+            "TOO_MANY_EXPENSES": "Cet export est trop volumineux pour être traité en toute sécurité. Exporte un groupe plus petit ou utilise une sauvegarde de compte Split Pro, qui importe les soldes actuels plutôt que toutes les anciennes dépenses.",
+            "FILE_TOO_BIG": "Ce fichier dépasse la limite d’import de 1 Mo. Exporte un seul groupe Splitwise ou télécharge une nouvelle sauvegarde de compte Split Pro, puis réessaie avec ce fichier.",
+            "READ_FAILED": "Ton navigateur n’a pas pu lire ce fichier. Télécharge un nouvel export, conserve-le au format .csv ou .json, puis essaie cette nouvelle copie.",
+            "EMPTY_NAME": "Tout le monde doit avoir un nom.",
+            "DUPLICATE_NAMES": "Deux personnes ont le même nom : donne-leur des noms différents pour que chaque dépense soit attribuée à la bonne personne.",
+            "failed": "Le groupe n’a pas pu être créé. Vérifie ta connexion et réessaie ; rien n’a été importé."
+        },
+        "ready": {
+            "title": "Ton groupe est prêt",
+            "subtitle": "Envoie ce lien à tout le monde. Chacun appuie dessus, choisit son nom et retrouve immédiatement tout ce que tu as importé.",
+            "goToRoom": "Accéder au groupe"
+        }
+    },
+    "preview": {
+        "roomDescription": "Rejoins le groupe : vois qui doit quoi et ajoute ce que tu as payé.",
+        "statNone": "Aucune dépense pour l’instant",
+        "statOne": "1 dépense · {amount} au total",
+        "statMany": "{count} dépenses · {amount} au total",
+        "peopleOne": "1 personne",
+        "peopleMany": "{count} personnes",
+        "emptyRoster": "Personne n’a encore rejoint",
+        "tagline": "sans inscription · gratuit pour toujours"
+    },
+    "shareTarget": {
+        "pick": "Pour quel groupe est ce reçu ?",
+        "empty": "Aucun groupe sur cet appareil. Crée-en un, puis partage à nouveau la photo.",
+        "start": "Créer un groupe",
+        "expired": "La photo n’est pas arrivée. Partage-la à nouveau.",
+        "unavailable": "Le scan de reçus n’est pas encore disponible.",
+        "open": "Ouvrir Split"
+    },
+    "card": {
+        "invite": {
+            "label": "Dépenses partagées du groupe",
+            "line": "Chacun ajoute ses dépenses. Split indique qui doit quoi.",
+            "inviter": "{name} t’invite à rejoindre",
+            "inviterFallback": "Invitation à rejoindre",
+            "roster": "DÉJÀ DANS LE GROUPE",
+            "rosterEmpty": "LANCE LE PARTAGE AVEC LES AUTRES",
+            "personOne": "1 personne déjà dans le groupe",
+            "peopleMany": "{count} personnes déjà dans le groupe",
+            "emptyAction": "Ouvre le lien et ajoute ce que tu as payé"
+        },
+        "crew": {
+            "title": "ÉQUIPE",
+            "line": "Les noms inscrits dans notre registre partagé."
+        },
+        "passport": {
+            "title": "PASSEPORT",
+            "line": "{count} devises. Un partage limpide."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Un voyage, un geste qui te ressemble."
+        },
+        "stats": {
+            "title": "NOTRE VOYAGE"
+        },
+        "landing": {
+            "title": "COMPTES RÉGLÉS"
+        },
+        "award": {
+            "tripStarter": "Coup d’envoi",
+            "firstMover": "Premier pas",
+            "ledgerLegend": "As des comptes",
+            "currencyHopper": "Globe-trotteur des devises",
+            "theCloser": "As du règlement",
+            "hypeCrew": "Pro de l’ambiance"
+        }
+    }
+}

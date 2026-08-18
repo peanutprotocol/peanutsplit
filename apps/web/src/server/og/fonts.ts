@@ -18,9 +18,13 @@ const ROBOTO_DIR = path.join(process.cwd(), 'node_modules', '@fontsource', 'robo
 
 /** Display face — the Peanut hero font. Latin-1-ish, no `£`, no `·`, no `~`. */
 export const DISPLAY_FONT = 'Knerd'
-/** Body face — Sniglet, the app's `font-display`. Full ASCII + Latin-1. */
-export const BODY_FONT = 'Sniglet'
-/** Neutral app face used by the landing page and room UI. */
+/**
+ * Body face — Roboto Latin Extended. The product catalogs now include Polish,
+ * whose letters sit beyond Latin-1; using the old Sniglet subset silently
+ * removed them from room unfurls and achievement cards before Satori rendered.
+ */
+export const BODY_FONT = 'Roboto'
+/** Neutral app face used by the invite card, landing page and room UI. */
 export const INVITE_FONT = 'Roboto'
 
 const ASCII_NO_BACKTICK_TILDE =
@@ -32,13 +36,23 @@ export const DISPLAY_CHARS: ReadonlySet<string> = new Set([
     ...'¢¥©®±ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýÿĐđŁłŒœŠšŸŽž˜‘’“”‰€™−',
 ])
 
-/** Sniglet covers all of ASCII + Latin-1 + common typography. `฿` is NOT in it. */
+const range = (start: number, end: number): string[] =>
+    Array.from({ length: end - start + 1 }, (_, index) => String.fromCodePoint(start + index))
+
+/**
+ * Verbatim printable cmap of Fontsource's Roboto Latin Extended subset. Keeping
+ * this list aligned with the actual file is what lets `bodySafe` distinguish a
+ * drawable Polish letter from a symbol Satori would turn into a gap. `฿` is
+ * deliberately absent, so `safeAmount` still falls back to the ISO code.
+ */
 export const BODY_CHARS: ReadonlySet<string> = new Set([
-    ...ASCII_NO_BACKTICK_TILDE,
-    '`',
-    '~',
-    ...Array.from({ length: 0x60 }, (_, i) => String.fromCharCode(0xa0 + i)),
-    ...'ıŁłŒœŠšŸŽžƒ–—‘’‚“”„†‡•…‰‹›€™−',
+    ...range(0x20, 0x7e),
+    ...range(0xa0, 0x17f),
+    ...'ƏƒƠơƯưǰǺǻǼǽǾǿȘșȚțȷəʼˆ˚˜',
+    ...'ḀḁḾḿẀẁẂẃẄẅỲỳỴỵỶỷỸỹ',
+    ...'  ​–—‘’‚“”„†•…′″‹›⁄⁴₣₤₦₧₨₩₪₫€₱₹₺₼₽ℓ™−',
+    '\uFEFF',
+    '\uFFFD',
 ])
 
 export type OgFont = {
@@ -66,8 +80,8 @@ const loadRoboto = async (file: string): Promise<ArrayBuffer> => {
 export async function ogFonts(): Promise<OgFont[]> {
     const [display, body, bodyBold] = await Promise.all([
         load('knerd-filled.ttf'),
-        load('sniglet-regular.ttf'),
-        load('sniglet-extrabold.ttf'),
+        loadRoboto('roboto-latin-ext-400-normal.woff'),
+        loadRoboto('roboto-latin-ext-900-normal.woff'),
     ])
     return [
         { name: DISPLAY_FONT, data: display, weight: 400, style: 'normal' },
@@ -83,8 +97,8 @@ export async function ogFonts(): Promise<OgFont[]> {
  */
 export async function inviteFonts(): Promise<OgFont[]> {
     const [regular, bold] = await Promise.all([
-        loadRoboto('roboto-latin-400-normal.woff'),
-        loadRoboto('roboto-latin-900-normal.woff'),
+        loadRoboto('roboto-latin-ext-400-normal.woff'),
+        loadRoboto('roboto-latin-ext-900-normal.woff'),
     ])
     return [
         { name: INVITE_FONT, data: regular, weight: 400, style: 'normal' },

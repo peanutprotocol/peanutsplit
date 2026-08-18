@@ -140,6 +140,9 @@ const BLOCK_LABELS: Record<Locale, { faq: string; related: string }> = {
     en: { faq: 'Questions', related: 'Keep reading' },
     'es-419': { faq: 'Preguntas', related: 'Sigue leyendo' },
     'pt-br': { faq: 'Perguntas', related: 'Continue lendo' },
+    pl: { faq: 'Pytania', related: 'Czytaj dalej' },
+    de: { faq: 'Fragen', related: 'Weiterlesen' },
+    fr: { faq: 'Questions', related: 'Continuer la lecture' },
 }
 
 /**

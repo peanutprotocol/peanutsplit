@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, LOCALES } from '@/i18n/locales'
+import { DEFAULT_LOCALE, INDEXED_LOCALES } from '@/i18n/locales'
 import { listAllTranslations, type Doc } from '@/lib/content'
 import { getSplitGuide, loadSplitContentManifest, type SplitGuide } from '@/lib/split-content/artifact'
 import { CHAPTER_TOKENS, type Chapter } from '@/lib/split-content/chapter-tokens'
@@ -90,7 +90,7 @@ function guideRows(): ContactSheetRow[] {
     if (!manifest) return []
     const slugs = [...new Set(manifest.entries.filter((entry) => entry.content_type === 'guide').map((e) => e.slug))]
     return slugs.map((slug) => {
-        const guide = LOCALES.map((locale) => getSplitGuide(locale, slug)).find(
+        const guide = INDEXED_LOCALES.map((locale) => getSplitGuide(locale, slug)).find(
             (candidate): candidate is SplitGuide => candidate !== null
         )
         if (!guide) throw new Error(`dev-ds/content: manifest guide slug "${slug}" has no locale on disk`)

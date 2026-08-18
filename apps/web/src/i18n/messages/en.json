@@ -42,7 +42,7 @@
                 "title": "Already have a room link?",
                 "label": "Paste the room link",
                 "placeholder": "peanutsplit.com/r/your-room-…",
-                "hint": "We check the link, then save that room on this device. No account or ownership change.",
+                "hint": "Saves the room on this device.",
                 "submit": "Add this room",
                 "invalid": "Paste a complete Peanut Split room link.",
                 "notFound": "We could not find that room. Check that the whole link was pasted.",
@@ -53,8 +53,7 @@
         },
         "proof": {
             "linkIdentity": {
-                "title": "WHO ARE YOU?",
-                "body": "Tap your name and you’re in.",
+                "title": "PICK YOUR NAME.",
                 "linkLabel": "ROOM LINK",
                 "identityLabel": "Who are you in Lisbon weekend?",
                 "you": "You",
@@ -62,8 +61,7 @@
                 "friendTwo": "Jules"
             },
             "everyoneAdds": {
-                "title": "ZERO GROUP MATH.",
-                "body": "Anyone can add. Just pick who actually paid.",
+                "title": "EVERYONE ADDS EXPENSES.",
                 "expenseOne": "Bea · train",
                 "expenseOneMeta": "€60 · paid by Bea",
                 "expenseTwo": "Jules · dinner",
@@ -73,7 +71,6 @@
             },
             "suggestedPlan": {
                 "title": "WHO PAYS WHO. SORTED.",
-                "body": "Split suggests a simple way to settle.",
                 "planLabel": "SUGGESTED PAYMENT PLAN",
                 "paymentOne": "You pay Bea · €10",
                 "paymentTwo": "You pay Jules · €40"
@@ -88,7 +85,6 @@
             },
             "examples": {
                 "title": "SPLIT ANYTHING.",
-                "body": "Trips, dinners, flat bills, and whatever comes next.",
                 "lisbon": {
                     "name": "Lisbon weekend",
                     "meta": "4 friends · EUR · 8 expenses"
@@ -110,59 +106,47 @@
         "how": {
             "title": "How it works",
             "step1": {
-                "title": "Start a split",
-                "body": "Name it and pick a currency — Split draws it for you. Ski trip, flat bills, Tuesday dinner."
+                "title": "Start a split"
             },
             "step2": {
-                "title": "Share the link",
-                "body": "Drop it in the group chat."
+                "title": "Share the link"
             },
             "step3": {
-                "title": "Everyone adds expenses",
-                "body": "Balances update live, and the maths reconciles to the cent."
+                "title": "Everyone adds expenses"
             },
             "step4": {
-                "title": "Settle up",
-                "body": "Split suggests a payment plan that clears the room. Pay in cash, by bank, or send it with Peanut when neither of those reaches."
+                "title": "Settle up"
             }
         },
         "uses": {
             "title": "What people split here",
             "item1": {
-                "title": "Group trips",
-                "body": "One room for the whole week, cleared before the flight home."
+                "title": "Group trips"
             },
             "item2": {
-                "title": "Flatmates",
-                "body": "Rent, bills, the shop. A new room each month keeps it readable."
+                "title": "Flatmates"
             },
             "item3": {
-                "title": "Dinners and rounds",
-                "body": "Six people, one card, nobody doing arithmetic at the table."
+                "title": "Dinners and rounds"
             },
             "item4": {
-                "title": "Remote crews",
-                "body": "Different countries, different banks, still one set of numbers."
+                "title": "Remote crews"
             }
         },
         "finalCta": {
             "title": "YOUR TURN TO SPLIT.",
-            "subtitle": "Make a room for the next thing your group pays for.",
             "button": "Start a split"
         },
         "honesty": {
             "title": "The honest bit",
             "item1": {
-                "title": "Free forever",
-                "body": "No fees, no premium tier, nothing to upgrade to."
+                "title": "Free forever"
             },
             "item2": {
-                "title": "No account needed",
-                "body": "No email, no password, no ID checks. The link is the key — keep it in the group."
+                "title": "No account needed"
             },
             "item3": {
-                "title": "Settle however you like",
-                "body": "Cash, bank transfer, or whatever app you already use. We just record it."
+                "title": "Settle however you like"
             }
         },
         "footer": {
@@ -257,20 +241,16 @@
         "linkExplainer": {
             "title": "What the room link does",
             "access": {
-                "title": "Anyone with the link can open the room",
-                "body": "The room is not listed publicly. Share the link only with people who should be in the group."
+                "title": "Anyone with the link can open the room"
             },
             "chat": {
-                "title": "The link travels with the group",
-                "body": "Keep it in the group chat so everyone can return to the same room."
+                "title": "Keep the link in the group chat"
             },
             "remembered": {
-                "title": "Opened rooms stay on this device",
-                "body": "Split keeps them in the list on this page so you can return from here."
+                "title": "Opened rooms stay on this device"
             },
             "money": {
-                "title": "Split keeps the maths, not the money",
-                "body": "It records who paid and who owes. You settle wherever you already pay."
+                "title": "Split keeps the maths, not the money"
             },
             "done": "Got it"
         },
@@ -283,29 +263,29 @@
                 "nameLabel": "Your name",
                 "namePlaceholder": "Tom",
                 "button": "Join the room",
-                "body": "One tap and a name. No email, no password, nothing to download — what you are asking of them is smaller than what you are asking of yourself."
+                "body": "No email, password, or download."
             },
             "features": {
                 "title": "What Split does",
                 "currency": {
                     "title": "162 room currencies",
-                    "body": "The room counts in one currency. Split converts expenses across 156 currencies at the indicative rate for the day; six work only without conversion."
+                    "body": "Automatic conversion for 156 currencies; six more work without conversion."
                 },
                 "splits": {
                     "title": "Splits that are not even",
-                    "body": "Equal, by shares, by exact amounts, or with some people left out of a line."
+                    "body": "Equal, percentages, shares, exact amounts, or selected people."
                 },
                 "exact": {
                     "title": "Reconciles to the cent",
-                    "body": "Balances always sum to zero, and you can open any balance to see exactly how it was reached."
+                    "body": "Open any balance to see the breakdown."
                 },
                 "live": {
                     "title": "Everyone sees it at once",
-                    "body": "Add something on the bus and it is on everyone else’s screen before you get off."
+                    "body": "New expenses appear for everyone immediately."
                 },
                 "offline": {
                     "title": "Works with no signal",
-                    "body": "Type an expense in a basement or up a mountain. It waits on your phone and goes when the signal comes back."
+                    "body": "Expenses sync when you are back online."
                 },
                 "home": {
                     "title": "Add it to your home screen",
@@ -313,12 +293,11 @@
                 },
                 "transfers": {
                     "title": "A simpler payment plan",
-                    "body": "Split turns a web of balances into a short suggested list of who should pay whom."
+                    "body": "A short list of who pays whom."
                 }
             },
             "settle": {
-                "title": "How you get paid back",
-                "body": "Split tells you who should pay whom. You send the money the way you already would, and the room records that you did.",
+                "title": "Ways to settle",
                 "cash": "Cash",
                 "bank": "Bank transfer",
                 "peanut": "Send it with Peanut"
@@ -406,14 +385,11 @@
             "youAre": "you are {name}",
             "roomsTitle": "Rooms",
             "closeRoomSwitcher": "Close room switcher",
-            "switchRoomsHint": "Choose any room saved on this device.",
             "currentRoom": "Current room",
             "openRoomSettings": "Open settings for {room}",
             "settingsAction": "Settings",
             "addOrJoinRoom": "Add or join a room",
-            "roomOptionsHint": "Create, import or join",
             "recentRoomsNote": "Recent rooms are saved only on this device.",
-            "noOtherRoomsNote": "No other rooms are saved on this device.",
             "roomName": "Room name",
             "linkStaysTheSame": "The link stays the same.",
             "nameFailed": "could not rename the room — try again",
@@ -509,7 +485,6 @@
         },
         "history": {
             "title": "Room history",
-            "intro": "The room’s numbers, lore, and complete change log.",
             "close": "Close room history",
             "statsTitle": "Room stats",
             "statsIntro": "Current, saved expenses only. Edits replace earlier versions; deleted expenses and repayments do not change these totals.",
@@ -631,7 +606,6 @@
         "expenses": {
             "title": "Expenses",
             "emptyTitle": "Room ready",
-            "emptyBody": "Nothing here yet.",
             "someone": "Someone",
             "formerName": "{name} · Former",
             "you": "You",
@@ -676,7 +650,6 @@
         },
         "allSettled": {
             "title": "All settled up",
-            "body": "Nobody owes anybody anything. Enjoy the rare feeling.",
             "expenseCount": "{count, plural, one {# expense} other {# expenses}}",
             "peopleCount": "{count, plural, one {# person} other {# people}}",
             "allSquare": "all square"
@@ -707,7 +680,6 @@
             "seeRecap": "See the recap",
             "backToRoom": "Back to the room",
             "ctaTitle": "Your turn",
-            "ctaBody": "One link, no signup, free forever.",
             "cta": "Start your own split",
             "yourLine": "You put in {amount} · {position}",
             "youOwe": "you owe {amount}",
@@ -753,7 +725,6 @@
             "paidBySummary": "{name} paid",
             "choosePayer": "Choose payer",
             "whoPaid": "Who paid?",
-            "whoPaidHint": "One person fronted the money.",
             "addPayer": "Add person",
             "payerNamePlaceholder": "Person’s name",
             "confirmPayer": "Add person",
@@ -843,17 +814,13 @@
             "listTitle": "Who owes whom",
             "recordTitle": "Record a payment",
             "nothingToSettle": "Nothing to settle yet — add an expense first.",
-            "intro": "A short payment plan that clears everything. Pay however you like — we just record it.",
             "you": "You",
             "stillOutstanding": "Still outstanding",
             "howPaid": "How was it paid?",
             "cash": "Cash",
-            "cashHint": "handed over",
             "bank": "Bank",
-            "bankHint": "transfer",
             "peanut": "Peanut",
-            "peanutHint": "instant, no fees",
-            "peanutNote": "Opens peanut.me in a new tab to send it — and records the payment here either way.",
+            "peanutNote": "Opens Peanut in a new tab. Split records the payment here even if no money is sent.",
             "note": "Note (optional)",
             "notePlaceholder": "Sent on Friday",
             "receiptLink": "Receipt link (optional)",
@@ -869,12 +836,10 @@
             "amountFormatInvalid": "Check the separators and decimal places in the amount.",
             "amountTooHigh": "That is more than {name} owes.",
             "recordedTitle": "Recorded just now",
-            "recordedHint": "These are in the room history too, with everything else.",
             "amountTooHighYou": "That is more than you owe."
         },
         "share": {
             "title": "Share room",
-            "subtitle": "Send the link to the group.",
             "postAhaTitle": "First split done",
             "postAhaSubtitle": "Share it with the group.",
             "postAhaBalance": "{from} owes {to}",
@@ -883,7 +848,6 @@
             "close": "Close sharing"
         },
         "link": {
-            "subtitle": "your split room",
             "scanToJoin": "Scan to join in person",
             "qrLabel": "QR code to join {room}",
             "roomLink": "Room link",
@@ -916,7 +880,7 @@
             "collapseDrawing": "Collapse room drawings",
             "currency": "Currency",
             "currencyLabel": "Room currency",
-            "currencyHint": "Balances settle in this currency. Individual expenses can be in any of them.",
+            "currencyHint": "Balances use this currency; expenses can use others.",
             "creatorName": "And you are…",
             "creatorNamePlaceholder": "Your name…",
             "submit": "Create the room",
@@ -1257,7 +1221,6 @@
     "derivation": {
         "title": "How this adds up",
         "openLabel": "See how {name}’s balance adds up",
-        "checkNote": "Every line comes from this room. Add them up yourself — it matches.",
         "paidTitle": "Expenses paid",
         "shareTitle": "Share of expenses",
         "settledTitle": "Payments recorded",
@@ -1267,7 +1230,6 @@
         "receivedFrom": "Received from {name}",
         "total": "Adds up to",
         "emptyTitle": "Nothing yet",
-        "emptyBody": "No expenses, no payments — nothing has touched this balance.",
         "suggestedTitle": "To clear this",
         "suggestedNote": "Suggested payments net the whole room into a short plan, so who pays whom isn’t always who spent on whom. Both balances are here to check.",
         "sends": "Pays {name}",
@@ -1326,9 +1288,8 @@
     "import": {
         "drop": {
             "title": "Drop your Splitwise or Split Pro export here",
-            "body": "Choose a Splitwise group .csv, a Split Pro friend .csv, or splitpro_data.json. Your browser reads it right here — the file itself never leaves your device.",
             "cta": "Choose a file",
-            "privacy": "The file stays on your device. What we receive is the expenses your browser read out of it, and only when you press the button."
+            "privacy": "The file stays on this device. Import data is sent only after you confirm."
         },
         "howto": {
             "title": "Accepted exports",
@@ -1348,15 +1309,15 @@
             "pageSubtitle": "Add expenses from a Splitwise or Split Pro export.",
             "backToRoom": "Back to room",
             "targetEyebrow": "Adding to this room",
-            "targetBody": "New expenses are appended. The room link and everything already here stay unchanged.",
+            "targetBody": "Adds expenses without changing what is already here.",
             "currencyLabel": "Settlement currency",
             "currencyHint": "Imported expenses keep their currency. A row can be added only when its currency matches {currency} or has a compatible conversion rate.",
             "currencyUnsupportedTitle": "Some expenses can’t be converted",
             "currencyUnsupportedBody": "These source currencies cannot be converted into {currency}: {currencies}. Choose a group whose currencies match the room, or use a room with a compatible settlement currency.",
             "repeatTitle": "Before you import again",
-            "repeatBody": "After an import is completed on this screen, submitting the exact same reviewed source data here changes nothing, even if you change the people mapping. Expenses already in the room may not have a matching import record, so the first append can repeat them. A changed export is added in full. If it overlaps earlier history, those expenses can appear twice because source exports have calendar dates, not stable expense IDs.",
+            "repeatBody": "Importing the same data again changes nothing, even if mappings change. A changed file is added in full and may duplicate existing expenses.",
             "membersTitle": "Match people",
-            "membersBody": "Choose someone already in {room}, or add a new person. Exact name matches are selected for you to review.",
+            "membersBody": "Match each person to someone in {room}, or add them as new. Exact name matches are preselected.",
             "sourceLabel": "From the file",
             "targetLabel": "In {room}",
             "memberTargetLabel": "Where should {name} go?",

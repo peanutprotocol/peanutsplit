@@ -1,4 +1,4 @@
-import { LOCALES, type Locale } from '@/i18n/locales'
+import { INDEXED_LOCALES, type Locale } from '@/i18n/locales'
 import { guideAlternates, listSplitGuides, type SplitGuide } from './artifact'
 import { splitContentIndexable, splitContentSourceReleased } from './indexability'
 
@@ -12,7 +12,7 @@ import { splitContentIndexable, splitContentSourceReleased } from './indexabilit
  * manifest.
  */
 export function releasedSplitGuides(root?: string): SplitGuide[] {
-    return LOCALES.flatMap((locale) => listSplitGuides(locale, root)).filter((guide) =>
+    return INDEXED_LOCALES.flatMap((locale) => listSplitGuides(locale, root)).filter((guide) =>
         splitContentIndexable(guide.href)
     )
 }

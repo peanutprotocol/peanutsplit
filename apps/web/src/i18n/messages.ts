@@ -24,6 +24,9 @@ const LOADERS: Record<Locale, () => Promise<{ default: Messages }>> = {
     en: () => import('./messages/en.json'),
     'es-419': () => import('./messages/es-419.json'),
     'pt-br': () => import('./messages/pt-br.json'),
+    pl: () => import('./messages/pl.json'),
+    de: () => import('./messages/de.json'),
+    fr: () => import('./messages/fr.json'),
 }
 
 const cache = new Map<Locale, Messages>()

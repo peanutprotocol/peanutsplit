@@ -151,6 +151,23 @@ describe('achievement cards', () => {
         expect(card.personas[0]).toEqual({ avatar: 'wizard-frog', palette: 'lagoon-grape' })
     })
 
+    it('keeps every Polish letter in the share-card copy', async () => {
+        const invite = (await buildFixtureCard('invite', 'pl')) as Extract<AchievementCardData, { kind: 'invite' }>
+        expect(invite).toMatchObject({
+            inviter: 'Zaproszenie:',
+            label: 'Wspólne wydatki grupy',
+            line: 'Dołącz i dodaj swoje wydatki.',
+            rosterLine: '5 osób już jest',
+            proof: 'bez rejestracji · za darmo na zawsze',
+        })
+
+        const alterEgo = (await buildFixtureCard('alterego', 'pl')) as Extract<
+            AchievementCardData,
+            { kind: 'alterego' }
+        >
+        expect(alterEgo.award).toBe('Domknięcie rozliczeń')
+    })
+
     it('personalizes only from a member who actually belongs to this room', async () => {
         const [sharerId] = fixtureMemberIds.get('en') ?? []
         const personalized = (await loadInviteCard(slugOf('en'), sharerId)) as Extract<
@@ -354,9 +371,16 @@ describe('achievement cards', () => {
         }
     })
 
-    it('translates every card into all three catalogs', async () => {
+    it('translates the landing card into every shipped catalog', async () => {
         const titles = await Promise.all(LOCALES.map(async (l) => (await buildFixtureCard('landing', l)) as never))
         const values = titles.map((card: { title: string }) => card.title)
-        expect(values).toEqual(['ALL SQUARE', 'A MANO', 'QUITES'])
+        expect(values).toEqual([
+            'ALL SQUARE',
+            'A MANO',
+            'QUITES',
+            'WSZYSCY ROZLICZENI',
+            'ALLES AUSGEGLICHEN',
+            'COMPTES RÉGLÉS',
+        ])
     })
 })

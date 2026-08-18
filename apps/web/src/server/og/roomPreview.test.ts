@@ -15,7 +15,7 @@ import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { createRoom } from '@/server/rooms'
 import { BODY_CHARS } from '@/server/og/fonts'
-import { ENGLISH_CARD_COPY, cardCopy, loadRoomCard, peopleLine, statLine } from '@/server/og/roomCard'
+import { ENGLISH_CARD_COPY, bodySafe, cardCopy, loadRoomCard, peopleLine, statLine } from '@/server/og/roomCard'
 import { ROOM_FALLBACK_DESCRIPTION, ROOM_FALLBACK_TITLE, roomMetadata } from '@/server/og/roomMeta'
 
 const newRoom = (locale: string | null) =>
@@ -129,11 +129,10 @@ describe('every localized preview string is drawable', () => {
     const drawable = (value: string) => [...value].filter((ch) => !BODY_CHARS.has(ch))
 
     /**
-     * The load-bearing check. Spanish brings `¿ ¡ á é í ó ú ñ` and Portuguese
-     * brings `ã õ ç â ê ô`; all of them sit inside Latin-1, which Sniglet covers
-     * in full — but a catalog is edited by people, and one pasted character from
-     * outside that block would render as a gap nobody would notice until it was
-     * in a group chat.
+     * The load-bearing check. Spanish and Portuguese need Latin-1; Polish needs
+     * Latin Extended. The shipped body font covers both, but a catalog is edited
+     * by people, and one pasted character outside its cmap would render as a gap
+     * nobody would notice until it was in a group chat.
      */
     it.each(LOCALES)('%s draws with the shipped body font', async (locale) => {
         const copy = await cardCopy(locale)
@@ -161,6 +160,15 @@ describe('every localized preview string is drawable', () => {
         expect(drawable(statLine(0, 0n, 'EUR', copy))).toEqual([])
         expect(drawable(peopleLine(0, copy))).toEqual([])
         expect(drawable(peopleLine(9, copy))).toEqual([])
+    })
+
+    it('keeps Polish letters instead of making a drawable but corrupted sentence', async () => {
+        const pangram = 'Zażółć gęślą jaźń'
+        expect(bodySafe(pangram)).toBe(pangram)
+
+        const copy = await cardCopy('pl')
+        expect(statLine(4, 1250n, 'EUR', copy)).toBe('4 wydatki · łącznie €12.50')
+        expect(peopleLine(4, copy)).toBe('4 osoby')
     })
 
     it.each(LOCALES)('%s says something rather than falling through to a key', async (locale) => {

@@ -1,0 +1,1472 @@
+{
+    "marketing": {
+        "hero": {
+            "title": "PODAJ DALEJ",
+            "controlTitleAccessible": "PODAJ DALEJ",
+            "titleAccessible": "KTO KOMU ILE? SPLIT TO POLICZY.",
+            "subtitle": "bo dobre rozliczenia sprzyjają przyjaźni",
+            "cta": "Stwórz link",
+            "linkExplainerTrigger": "Jak działa link",
+            "chat": {
+                "defaultRoom": "Weekend w Lizbonie",
+                "participants": "Bea, Jules, Mo i ty",
+                "questionSender": "Bea",
+                "question": "kto zapłacił za kolację?",
+                "you": "ty",
+                "reply": "ja — już dodaję",
+                "linkPrompt": "Każdy dodaje swoje wydatki",
+                "joined": "Bea, Jules i Mo otworzyli link"
+            },
+            "stageSummary": "Link do pokoju Peanut Split trafia na czat grupowy, żeby każdy mógł otworzyć ten sam pokój i dodać swoje wydatki.",
+            "validation": {
+                "roomRequired": "Najpierw nazwij pokój.",
+                "creatorRequired": "Powiedz nam, kim jesteś."
+            }
+        },
+        "rooms": {
+            "title": "Twoje pokoje",
+            "subtitle": "Zapisane na tym urządzeniu.",
+            "openLabel": "Otwórz pokój",
+            "showMore": "Pokaż jeszcze {count, plural, one {# pokój} few {# pokoje} many {# pokoi} other {# pokoju}}",
+            "showLess": "Pokaż mniej pokoi",
+            "forgetLabel": "Usuń z tego urządzenia: {room}",
+            "confirmForgetTitle": "Usunąć z tego urządzenia: {room}?",
+            "confirmForgetBody": "To jedyne miejsce, w którym ten pokój jest zapisany na tym urządzeniu. Split nie wymaga konta, więc do pokoju wrócisz tylko przez jego link. Pozostali nadal mają dostęp do pokoju, wydatków i sald.",
+            "confirmForget": "Usuń z tego urządzenia",
+            "slideForget": "Przesuń, aby usunąć z urządzenia",
+            "confirmForgetKeep": "Zostaw",
+            "confirmForgetClose": "Zamknij bez usuwania",
+            "forgotten": "Usunięto z tego urządzenia: {room}. Wspólny pokój nadal jest dostępny dla wszystkich, którzy mają link.",
+            "forgetFailed": "Nie udało się usunąć z tego urządzenia: {room}. Pokój nadal jest na liście.",
+            "recovery": {
+                "title": "Masz już link do pokoju?",
+                "label": "Wklej link do pokoju",
+                "placeholder": "peanutsplit.com/r/twoj-pokoj-…",
+                "hint": "Zapisze pokój na tym urządzeniu.",
+                "submit": "Dodaj ten pokój",
+                "invalid": "Wklej pełny link do pokoju Peanut Split.",
+                "notFound": "Nie znaleźliśmy tego pokoju. Sprawdź, czy wklejono cały link.",
+                "failed": "Nie możemy teraz sprawdzić tego pokoju. Nic nie zapisano — spróbuj ponownie.",
+                "openingSaved": "Otwieramy pokój: {room}. Zapisaliśmy go na tym urządzeniu.",
+                "openingUnsaved": "Otwieramy pokój: {room}. Ta przeglądarka nie mogła zapisać go na później."
+            }
+        },
+        "proof": {
+            "linkIdentity": {
+                "title": "WYBIERZ SWOJE IMIĘ.",
+                "linkLabel": "LINK DO POKOJU",
+                "identityLabel": "Kim jesteś w pokoju „Weekend w Lizbonie”?",
+                "you": "Ty",
+                "friendOne": "Bea",
+                "friendTwo": "Jules"
+            },
+            "everyoneAdds": {
+                "title": "KAŻDY DODAJE WYDATKI.",
+                "expenseOne": "Bea · pociąg",
+                "expenseOneMeta": "60 € · zapłaciła Bea",
+                "expenseTwo": "Jules · kolacja",
+                "expenseTwoMeta": "90 € · zapłacił Jules",
+                "expenseThree": "Ana · dodała wydatek",
+                "expenseThreeMeta": "w imieniu Bei"
+            },
+            "suggestedPlan": {
+                "title": "OD RAZU WIDAĆ, KTO KOMU PŁACI.",
+                "planLabel": "SUGEROWANY PLAN PŁATNOŚCI",
+                "paymentOne": "Płacisz Bei · 10 €",
+                "paymentTwo": "Płacisz Julesowi · 40 €"
+            },
+            "rail": {
+                "free": "ZA DARMO NA ZAWSZE",
+                "noSignup": "BEZ REJESTRACJI",
+                "oneLink": "JEDEN LINK",
+                "anyCurrency": "DOWOLNA WALUTA",
+                "noMath": "BEZ LICZENIA",
+                "even": "BEZ DŁUGÓW"
+            },
+            "examples": {
+                "title": "DZIEL DOWOLNE KOSZTY.",
+                "lisbon": {
+                    "name": "Weekend w Lizbonie",
+                    "meta": "4 znajomych · EUR · 8 wydatków"
+                },
+                "flat": {
+                    "name": "Mieszkanie 4B",
+                    "meta": "3 współlokatorów · GBP · ten miesiąc"
+                },
+                "dinner": {
+                    "name": "Wtorkowy ramen",
+                    "meta": "6 znajomych · USD · jedna karta"
+                },
+                "retreat": {
+                    "name": "Wyjazd zdalnego zespołu",
+                    "meta": "6 osób · 3 waluty"
+                }
+            }
+        },
+        "how": {
+            "title": "Jak to działa",
+            "step1": {
+                "title": "Zacznij rozliczenie"
+            },
+            "step2": {
+                "title": "Udostępnij link"
+            },
+            "step3": {
+                "title": "Każdy dodaje wydatki"
+            },
+            "step4": {
+                "title": "Rozlicz się"
+            }
+        },
+        "uses": {
+            "title": "Co rozliczają tu inni",
+            "item1": {
+                "title": "Wyjazdy grupowe"
+            },
+            "item2": {
+                "title": "Współlokatorzy"
+            },
+            "item3": {
+                "title": "Kolacje i kolejki"
+            },
+            "item4": {
+                "title": "Zdalne ekipy"
+            }
+        },
+        "finalCta": {
+            "title": "TERAZ TWOJA KOLEJ.",
+            "button": "Utwórz pokój"
+        },
+        "honesty": {
+            "title": "Warto wiedzieć",
+            "item1": {
+                "title": "Za darmo na zawsze"
+            },
+            "item2": {
+                "title": "Bez konta"
+            },
+            "item3": {
+                "title": "Rozliczaj się, jak chcesz"
+            }
+        },
+        "footer": {
+            "logoAlt": "Peanut",
+            "logoLinkLabel": "Odwiedź Peanut",
+            "colSplit": "Split",
+            "createSplit": "Zacznij rozliczenie",
+            "toolsLink": "Kalkulatory",
+            "importLink": "Import ze Splitwise",
+            "colCompare": "Porównaj",
+            "compareLink": "Alternatywa dla Splitwise",
+            "colGuides": "Poradniki",
+            "allGuides": "Wszystkie poradniki",
+            "colPeanut": "Peanut",
+            "peanutHome": "Wyślij pieniądze",
+            "peanutHelp": "Pomoc",
+            "peanutTerms": "Regulamin",
+            "peanutPrivacy": "Prywatność",
+            "madeByPrefix": "stworzone z miłością przez",
+            "madeByBrand": "Squirrel Labs"
+        },
+        "install": {
+            "title": "Zainstaluj Split",
+            "body": "Wracaj szybciej do tego pokoju. Bez sklepu z aplikacjami. Bez konta.",
+            "bodySettled": "Otwieraj rozliczenie tego wyjazdu — i następnego — jednym dotknięciem.",
+            "announcement": "Możesz zainstalować Split.",
+            "cta": "Zainstaluj Split",
+            "ctaSteps": "Pokaż kroki instalacji",
+            "dismiss": "Nie teraz",
+            "row": {
+                "label": "Zainstaluj Split",
+                "labelIos": "Dodaj Split do ekranu początkowego",
+                "installed": "Split jest zainstalowany.",
+                "preparing": "Przygotowujemy…",
+                "checkLabel": "Ikona Split",
+                "checkLabelIos": "Ikona na ekranie początkowym",
+                "checkAction": "Sprawdź"
+            },
+            "browser": {
+                "title": "Zainstaluj Split",
+                "body": "Użyj opcji instalacji w przeglądarce — nie „Utwórz skrót”.",
+                "bodyAndroid": "Otwórz menu przeglądarki. Wybierz „Zainstaluj aplikację” — nie „Utwórz skrót”.",
+                "embedded": "Jesteś w innej aplikacji? Najpierw wybierz „Otwórz w przeglądarce”.",
+                "step1Android": "Otwórz menu przeglądarki.",
+                "step2Android": "Dotknij „Zainstaluj aplikację”. Opcja może być pod „Dodaj do ekranu głównego”.",
+                "step3Android": "Upewnij się, że nazwa to „Split”.",
+                "step4Android": "Dotknij „Zainstaluj”.",
+                "step1Other": "Otwórz menu przeglądarki.",
+                "step2Other": "Wybierz „Zainstaluj aplikację”. Na Macu wybierz „Dodaj do Docka”.",
+                "step3Other": "Upewnij się, że nazwa to „Split”, i potwierdź.",
+                "noOption": "Brak opcji instalacji? Otwórz tę stronę w Chrome."
+            },
+            "ios": {
+                "title": "Dodaj Split do ekranu początkowego",
+                "step1": "Stuknij „Udostępnij”.",
+                "step2": "Dotknij „Do ekranu początkowego”.",
+                "step3": "Włącz „Otwieraj jako aplikację internetową”, jeśli widzisz tę opcję.",
+                "step4": "Dotknij „Dodaj”.",
+                "openAfter": "Potem otwórz Split z nowej ikony.",
+                "body": "Otwórz menu „Udostępnij” w przeglądarce.",
+                "prepareFailed": "Nie udało się przygotować tego pokoju. Spróbuj ponownie za chwilę."
+            },
+            "repair": {
+                "announcement": "Możesz sprawdzić ikonę Split.",
+                "title": "Zastąp starą ikonę pokoju",
+                "body": "Pod ikoną widzisz nazwę „Split”? Wszystko gotowe. Widzisz nazwę pokoju? Zastąp ikonę.",
+                "cardBody": "Czy pod ikoną widzisz nazwę pokoju? Usuń tę ikonę i dodaj ikonę „Split”.",
+                "cta": "Sprawdź ikonę",
+                "copyFirst": "Skopiuj link do pokoju przed usunięciem starej ikony.",
+                "step1": "Usuń ikonę z nazwą pokoju.",
+                "step2ChromeCopied": "Otwórz skopiowany link do pokoju w Chrome.",
+                "step2ChromeOriginal": "Otwórz oryginalny link do pokoju w Chrome.",
+                "step2IosCopied": "Otwórz skopiowany link do pokoju w przeglądarce.",
+                "step2IosOriginal": "Otwórz oryginalny link do pokoju w przeglądarce.",
+                "step3Chrome": "Dotknij ⋮, a potem „Zainstaluj aplikację”.",
+                "step3Ios": "Stuknij „Udostępnij”, a potem „Do ekranu początkowego”.",
+                "copy": "Skopiuj link do pokoju",
+                "copied": "Skopiowano link do pokoju.",
+                "copyFailed": "Nie udało się skopiować linku. Otwórz go ponownie z miejsca udostępnienia.",
+                "missing": "Nie ma tu linku do pokoju. Otwórz go ponownie z miejsca udostępnienia.",
+                "check": "Zainstaluj tylko wtedy, gdy nazwa brzmi „Split”.",
+                "back": "Wróć do pokoju"
+            },
+            "page": {
+                "preparing": "Sprawdzamy tę przeglądarkę…",
+                "installed": "Split jest zainstalowany.",
+                "continue": "Wróć do aplikacji Split",
+                "copyRoom": "Skopiuj oryginalny link do pokoju",
+                "roomRecovery": "Po instalacji brakuje pokoju? Otwórz raz jego oryginalny link."
+            }
+        },
+        "linkExplainer": {
+            "title": "Jak działa link do pokoju",
+            "access": {
+                "title": "Każdy, kto ma link, może otworzyć pokój"
+            },
+            "chat": {
+                "title": "Zachowaj link na czacie grupowym"
+            },
+            "remembered": {
+                "title": "Otwarte pokoje zostają na tym urządzeniu"
+            },
+            "money": {
+                "title": "Split pilnuje rozliczeń, nie pieniędzy"
+            },
+            "done": "Rozumiem"
+        },
+        "readMore": {
+            "toggle": "CHCESZ WIEDZIEĆ WIĘCEJ?",
+            "toggleHint": "Kto stworzył Split, dlaczego zawsze będzie darmowy i jak działają linki do pokoi.",
+            "join": {
+                "title": "Co widzą znajomi",
+                "roomName": "Wyjazd na narty",
+                "nameLabel": "Twoje imię",
+                "namePlaceholder": "Tomek",
+                "button": "Dołącz do pokoju",
+                "body": "Bez e-maila, hasła ani pobierania."
+            },
+            "features": {
+                "title": "Co potrafi Split",
+                "currency": {
+                    "title": "162 waluty do wyboru",
+                    "body": "Automatyczne przeliczanie 156 walut; 6 kolejnych działa bez przeliczania."
+                },
+                "splits": {
+                    "title": "Nierówne podziały",
+                    "body": "Po równo, procentowo, na udziały, dokładne kwoty lub wybrane osoby."
+                },
+                "exact": {
+                    "title": "Wszystko zgadza się co do grosza",
+                    "body": "Otwórz dowolne saldo, aby zobaczyć wyliczenie."
+                },
+                "live": {
+                    "title": "Wszyscy widzą zmiany od razu",
+                    "body": "Nowe wydatki od razu pojawiają się u wszystkich."
+                },
+                "offline": {
+                    "title": "Działa bez zasięgu",
+                    "body": "Wydatki synchronizują się po odzyskaniu zasięgu."
+                },
+                "home": {
+                    "title": "Dodaj do ekranu początkowego",
+                    "body": "Otwiera się jak aplikacja."
+                },
+                "transfers": {
+                    "title": "Prostszy plan płatności",
+                    "body": "Krótka lista: kto komu płaci."
+                }
+            },
+            "settle": {
+                "title": "Jak się rozliczyć",
+                "cash": "Gotówka",
+                "bank": "Przelew bankowy",
+                "peanut": "Wyślij przez Peanut"
+            },
+            "team": {
+                "title": "Kto to zbudował",
+                "intro": "Split nie ma jeszcze użytkowników, więc możemy zacytować tylko siebie.",
+                "konrad": {
+                    "name": "Konrad",
+                    "role": "stworzył Split",
+                    "quote": "Każdy wyjazd kończył się tak samo: arkuszem, którego nikt nie aktualizował, i jedną osobą, która po cichu wciąż czekała na zwrot pieniędzy."
+                },
+                "hugo": {
+                    "name": "Hugo",
+                    "role": "stworzył Split",
+                    "quote": "Chciałem, żeby całość sprowadzała się do jednego linku. Jeśli znajomi będą musieli zakładać konto, po prostu tego nie zrobią."
+                }
+            },
+            "who": {
+                "title": "Kto to stworzył i dlaczego zawsze będzie za darmo",
+                "built": {
+                    "title": "Peanut stworzył Split",
+                    "body": "Peanut to działająca aplikacja płatnicza i firma z realnym produktem — nie weekendowy projekt, który za chwilę zniknie."
+                },
+                "free": {
+                    "title": "Jest za darmo na zawsze, bo pomaga poznać Peanut",
+                    "body": "Nie będzie wersji premium ani namawiania do płatnych dodatków — nie ma tu nic do kupienia."
+                },
+                "data": {
+                    "title": "Nie ma tu zbyt wielu danych, które mogłyby wyciec",
+                    "body": "Linków do pokoi nie zapisujemy nawet we własnej analityce, bo link jest kluczem."
+                }
+            },
+            "faq": {
+                "title": "Pytania, które naprawdę padają",
+                "retype": {
+                    "q": "Czy muszę przepisać wszystko z czatu grupowego?",
+                    "a": "Jeśli wyjazd już się odbył, tak: wydatki trzeba wpisać raz. To mniej pracy, niż się wydaje, bo każdy w pokoju może dodać własne wydatki, zamiast zostawiać wszystko tobie.",
+                    "import": "Jeśli przechodzisz ze Splitwise, strona importu przenosi całą grupę za jednym razem."
+                },
+                "access": {
+                    "q": "Kto może zobaczyć nasz pokój?",
+                    "a": "Każdy, kto ma link. Nie pokazujemy go w wyszukiwarkach i nie da się go odgadnąć, ale jest kluczem — zachowaj go na czacie grupowym, a nie publicznie."
+                },
+                "lost": {
+                    "q": "Jak wrócić do pokoju?",
+                    "a": "Zostaw link na czacie grupowym, żeby każdy mógł go tam znaleźć. Split zapisuje też pokoje otwarte na tym urządzeniu, a ty możesz wkleić link na stronie głównej, aby ponownie dodać pokój."
+                },
+                "limits": {
+                    "q": "Czy liczba wydatków jest ograniczona?",
+                    "a": "Nie. Jeśli tak wygląda twój wyjazd, możesz dodać nawet pięćdziesiąt wydatków w jedno popołudnie."
+                }
+            },
+            "compare": {
+                "line": "Korzystasz teraz z innej aplikacji do dzielenia wydatków?",
+                "link": "Zobacz, jak Split wypada na tle Splitwise"
+            }
+        }
+    },
+    "locale": {
+        "label": "Język"
+    },
+    "settings": {
+        "animations": {
+            "title": "Animacje"
+        }
+    },
+    "dates": {
+        "today": "Dzisiaj",
+        "yesterday": "Wczoraj",
+        "justNow": "przed chwilą"
+    },
+    "room": {
+        "actions": {
+            "settleUp": "Rozlicz się",
+            "addExpense": "Dodaj wydatek"
+        },
+        "header": {
+            "shareRoomLink": "Udostępnij link do pokoju",
+            "openSettings": "Otwórz ustawienia",
+            "openRoomSwitcher": "Otwórz wybór pokoju",
+            "title": "Ustawienia",
+            "close": "Zamknij ustawienia",
+            "closeSheet": "Zamknij",
+            "youAre": "Jesteś: {name}",
+            "roomsTitle": "Pokoje",
+            "closeRoomSwitcher": "Zamknij wybór pokoju",
+            "currentRoom": "Obecny pokój",
+            "openRoomSettings": "Otwórz ustawienia pokoju: {room}",
+            "settingsAction": "Ustawienia",
+            "addOrJoinRoom": "Dodaj pokój lub dołącz do istniejącego",
+            "recentRoomsNote": "Tylko na tym urządzeniu.",
+            "roomName": "Nazwa pokoju",
+            "linkStaysTheSame": "Link pozostanie bez zmian.",
+            "nameFailed": "nie udało się zmienić nazwy pokoju — spróbuj ponownie",
+            "drawing": "Grafika pokoju",
+            "drawingFailed": "nie udało się zmienić grafiki — spróbuj ponownie",
+            "people": "Osoby",
+            "addSomeone": "Dodaj osobę",
+            "personNamePlaceholder": "Imię osoby",
+            "addPerson": "Dodaj",
+            "personDuplicate": "{name} już jest w pokoju.",
+            "personReactivate": "{name} jest wśród nieaktywnych. Aktywuj ten profil poniżej.",
+            "personFailed": "nie udało się dodać tej osoby — spróbuj ponownie",
+            "formerPeople": "Nieaktywne osoby",
+            "formerExplanation": "Nie uczestniczą w nowych podziałach. Historia i dostęp przez link zostają.",
+            "formerSettled": "Bez długów · poza nowymi podziałami",
+            "formerBalanceOpen": "Zmiana w historii ponownie otworzyła to saldo",
+            "restore": "Aktywuj ponownie",
+            "restoreFailed": "nie udało się ponownie aktywować tej osoby — spróbuj ponownie",
+            "you": "Ty",
+            "switchPersonTitle": "Przełączyć osobę?",
+            "switchPersonBody": "Na tym urządzeniu przestaniesz korzystać z profilu „{name}” i otrzymywać powiadomienia z tego pokoju. Potem ponownie wybierzesz swoje imię.",
+            "switchPerson": "Przełącz",
+            "slideSwitchPerson": "Przesuń, aby przełączyć osobę",
+            "cancel": "Anuluj",
+            "link": "Link",
+            "linkCopied": "Skopiowano link",
+            "copyFailed": "Przeglądarka zablokowała kopiowanie.",
+            "importExport": "Import / eksport",
+            "importExportFormats": "Splitwise · CSV · JSON",
+            "exportOnly": "Eksport",
+            "exportFormats": "CSV · JSON",
+            "history": "Historia",
+            "historyHint": "Pełny dziennik zmian",
+            "device": "To urządzenie",
+            "reportProblem": "Zgłoś problem",
+            "reportProblemHint": "Wyślij szczegóły prywatnie",
+            "sound": "Dźwięk",
+            "haptics": "Wibracje",
+            "privacyNote": "Każdy z linkiem może otworzyć pokój."
+        },
+        "feedback": {
+            "title": "Zgłoś problem",
+            "intro": "Opisz, co poszło nie tak. Nic nie wyślemy, dopóki nie przejrzysz zgłoszenia i nie wyrazisz zgody.",
+            "scopeNote": "Zawsze dołączamy twoją wiadomość i wewnętrzne powiązanie z pokojem „{room}”, aby zespół pomocy mógł znaleźć właściwy pokój. Wybrana przez ciebie osoba w pokoju nie zostanie wskazana jako autor zgłoszenia.",
+            "close": "Zamknij zgłoszenie problemu",
+            "messageLabel": "Co się stało?",
+            "messagePlaceholder": "Opisz wykonane kroki, ich rezultat i oczekiwany efekt.",
+            "messageHint": "Wymagane · co najmniej {minimum} znaków. Linki do pokoi w tekście są usuwane przed zapisem.",
+            "attachmentsTitle": "Wybierz załączniki",
+            "attachmentsIntro": "Początkowo wszystkie załączniki są wyłączone. Włącz tylko te, które chcesz wysłać zespołowi pomocy Peanut.",
+            "deviceTitle": "Dane urządzenia",
+            "deviceHint": "Przeglądarka i system operacyjny, rozmiar widoku, strefa czasowa, tryb aplikacji oraz stan sieci.",
+            "exactDeviceData": "Pokaż dokładne dane urządzenia",
+            "browser": "Przeglądarka / system",
+            "viewport": "Rozmiar widoku",
+            "timeZone": "Strefa czasowa",
+            "appMode": "Tryb aplikacji",
+            "network": "Sieć",
+            "unknown": "Nieznane",
+            "online": "Online",
+            "offline": "Offline",
+            "roomTitle": "Kontekst pokoju",
+            "roomHint": "Dane z chwili wysłania: pokój, lista osób oraz do {expenses, plural, one {# rekordu wydatku} few {# rekordów wydatków} many {# rekordów wydatków} other {# rekordu wydatku}} i {settlements, plural, one {# rekordu płatności} few {# rekordów płatności} many {# rekordów płatności} other {# rekordu płatności}}.",
+            "roomPreview": "{currency} · osoby: {members} · wydatki: {expenses} · płatności: {settlements}",
+            "roomExcludes": "Obejmuje ustawienia pokoju; imiona, postacie i statusy osób; liczbę rekordów; a także identyfikatory, znaczniki czasu, opisy, waluty, kwoty, kursy wymiany, kategorie, płatników, szczegóły podziału, metody, notatki oraz informacje o usunięciu ostatnich wydatków i płatności. Nie obejmuje linku do pokoju, kluczy osób, danych powiadomień push, linków do potwierdzeń ani dziennika zmian.",
+            "screenshotTitle": "Zrzut ekranu (opcjonalnie)",
+            "screenshotHint": "Nic nie jest przechwytywane automatycznie. Przeglądarka zapyta, co udostępnić, albo możesz wybrać istniejący obraz.",
+            "captureScreen": "Przechwyć ekran",
+            "uploadScreenshot": "Wybierz obraz",
+            "screenshotAlt": "Zrzut ekranu dołączony do tego zgłoszenia",
+            "removeScreenshot": "Usuń",
+            "captureUnavailable": "Nie można tutaj przechwycić ekranu. Zamiast tego wybierz istniejący obraz.",
+            "captureCancelled": "Nie dołączono zrzutu ekranu. Spróbuj ponownie lub wybierz istniejący obraz.",
+            "imageTooLarge": "Ten obraz jest za duży. Wybierz zrzut ekranu mniejszy niż 20 MB.",
+            "imageUnreadable": "Nie udało się odczytać obrazu. Wybierz zrzut ekranu JPEG, PNG lub WebP.",
+            "consentTitle": "Zgadzam się na wysłanie tego zgłoszenia",
+            "consentHint": "Zespół pomocy Peanut może przeczytać twoją wiadomość oraz tylko wybrane powyżej załączniki. Zgłoszenia nie trafiają do analityki ani nie są wyświetlane w pokoju; ich usunięcie jest planowane po 90 dniach.",
+            "send": "Wyślij zgłoszenie",
+            "cancel": "Anuluj",
+            "sendFailed": "Nie udało się wysłać zgłoszenia — tekst i zrzut ekranu nadal tu są.",
+            "successTitle": "Wysłano zgłoszenie",
+            "successBody": "Dziękujemy. Zespół pomocy Peanut otrzymał wiadomość i wybrane załączniki.",
+            "done": "Gotowe"
+        },
+        "export": {
+            "importTitle": "Przenieś grupę ze Splitwise",
+            "importBody": "Dodaj eksport ze Splitwise lub Split Pro, którego waluty wydatków są zgodne z walutą tego pokoju albo można je na nią przeliczyć. Link do tego pokoju i jego dotychczasowe wydatki pozostaną bez zmian.",
+            "openImporter": "Importuj do tego pokoju",
+            "exportTitle": "Eksportuj ten pokój",
+            "disclosure": "Plik zawiera imiona wszystkich osób oraz każdy wydatek i każdą płatność.",
+            "csv": "Pobierz CSV",
+            "json": "Pobierz JSON"
+        },
+        "history": {
+            "title": "Historia pokoju",
+            "close": "Zamknij historię pokoju",
+            "statsTitle": "Statystyki pokoju",
+            "statsIntro": "Tylko bieżące, zapisane wydatki. Edycje zastępują wcześniejsze wersje; usunięte wydatki i zapisane płatności nie wpływają na te sumy.",
+            "statsEmpty": "Statystyki i ciekawostki o pokoju pojawią się po pierwszym wydatku.",
+            "totalSpent": "Łączne wydatki",
+            "averageExpense": "Średni wydatek",
+            "expenses": "Wydatki",
+            "people": "Zaangażowane osoby",
+            "notAvailable": "Brak danych",
+            "largestShare": "Największy udział w kosztach",
+            "frontedMost": "Najwięcej z własnej kieszeni",
+            "ofRoomSpend": "{percent}% wydatków pokoju",
+            "spendRolesHint": "Udział to część kosztów przypisana danej osobie. „Z własnej kieszeni” oznacza kwotę zapłaconą za całą grupę.",
+            "formerName": "{name} · Nie uczestniczy",
+            "unknownMember": "Nieznana osoba",
+            "unknownExpense": "Nieznany wydatek",
+            "monthOverMonth": "Porównanie miesiąc do miesiąca",
+            "throughDay": "Do {day}. dnia miesiąca",
+            "mtdNoSpend": "Brak wydatków w obu okresach.",
+            "mtdNewSpend": "W tym momencie zeszłego miesiąca nie było wydatków.",
+            "mtdSame": "Tyle samo co w tym momencie zeszłego miesiąca.",
+            "mtdMore": "O {percent}% więcej niż w tym momencie zeszłego miesiąca.",
+            "mtdLess": "O {percent}% mniej niż w tym momencie zeszłego miesiąca.",
+            "recentMonths": "Sumy z ostatnich miesięcy",
+            "roomLore": "Ciekawostki o pokoju",
+            "topCategory": "Największa kategoria wydatków",
+            "categoryDetail": "{count, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}}",
+            "crowdFavorite": "Ulubiony wydatek grupy",
+            "reactionDetail": "{count, plural, one {# reakcja} few {# reakcje} many {# reakcji} other {# reakcji}}",
+            "sharedTable": "Wydatek podzielony między najwięcej osób",
+            "sharedTableDetail": "Liczba osób w podziale: {count}",
+            "currencyPassport": "Paszport walutowy",
+            "currencyDetail": "{count, plural, one {# waluta wydatku} few {# waluty wydatków} many {# walut wydatków} other {# waluty wydatku}}",
+            "activityTitle": "Zmiany",
+            "downloadHint": "Zawiera imiona, kwoty i wszystkie zapisane zmiany. Link do pokoju i prywatne dane dostępowe urządzenia są pominięte.",
+            "download": "Pobierz pełny dziennik (.json)",
+            "downloading": "Przygotowujemy plik…",
+            "downloaded": "Pełny dziennik pokoju zapisano w pobranych plikach.",
+            "downloadFailed": "Nie udało się przygotować pliku. Spróbuj ponownie.",
+            "categories": {
+                "foodDrink": "Jedzenie i napoje",
+                "transport": "Transport",
+                "travelStays": "Podróże i noclegi",
+                "homeBills": "Dom i rachunki",
+                "shopping": "Zakupy",
+                "entertainment": "Rozrywka i czas wolny",
+                "health": "Zdrowie i dobre samopoczucie",
+                "familyEducation": "Rodzina i edukacja",
+                "workServices": "Praca i usługi",
+                "techConnectivity": "Technologia i łączność",
+                "moneyAdmin": "Finanse i formalności",
+                "gifts": "Prezenty i darowizny",
+                "other": "Inne"
+            },
+            "loading": "Wczytujemy historię…",
+            "failed": "Nie udało się wczytać historii pokoju.",
+            "retry": "Spróbuj ponownie",
+            "loadOlder": "Wczytaj starsze",
+            "device": "Urządzenie {label}",
+            "unknownDevice": "Nieznane urządzenie",
+            "actor": "{device} jako {name}",
+            "structuredData": "Dane strukturalne",
+            "actions": {
+                "history_started": "Tu zaczyna się historia. Wcześniejsze działania są niedostępne.",
+                "room_created": "tworzy pokój",
+                "room_imported": "importuje pokój i jego wcześniejsze wydatki",
+                "room_import_appended": "importuje wydatki do pokoju",
+                "room_settings_updated": "zmienia ustawienia pokoju",
+                "member_joined": "dołącza do pokoju",
+                "member_added": "dodaje osobę",
+                "member_removed": "oznacza osobę jako nieaktywną",
+                "member_restored": "ponownie aktywuje osobę",
+                "member_avatar_updated": "zmienia postać osoby",
+                "expense_added": "dodaje wydatek",
+                "expense_edited": "zmienia wydatek",
+                "expense_deleted": "usuwa wydatek",
+                "expense_restored": "przywraca wydatek",
+                "reaction_added": "reaguje na wydatek",
+                "reaction_removed": "usuwa reakcję",
+                "settlement_recorded": "zapisuje płatność",
+                "settlement_deleted": "usuwa zapis płatności",
+                "push_subscribed": "włącza powiadomienia z pokoju",
+                "push_unsubscribed": "wyłącza powiadomienia z pokoju"
+            }
+        },
+        "join": {
+            "title": "Kim jesteś?",
+            "roster": "{room} · na razie {count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "thatsMe": "to ja",
+            "imNew": "nie ma mnie na liście",
+            "namePlaceholder": "Twoje imię",
+            "submit": "Dołącz do pokoju",
+            "alreadyOnList": "Właściwie już jestem na liście",
+            "duplicate": "{name} już tu jest — dotknij tego imienia powyżej.",
+            "reactivateTitle": "Ponownie aktywować: {name}?",
+            "reactivateBody": "Przywróci to ten sam profil wraz z całą historią. Ta osoba znów będzie uwzględniana w nowych podziałach.",
+            "reactivateConfirm": "Aktywuj ponownie: {name}",
+            "reactivateCancel": "Użyj innego imienia",
+            "previousFormer": "Profil „{name}” jest nieaktywny. Wybierz aktywną osobę, przywróć ten sam profil albo dołącz pod innym imieniem.",
+            "previousChanged": "Zmieniły się dane dostępu profilu „{name}”. Wybierz ponownie swój aktywny profil, aby kontynuować; szkic nadal tu jest.",
+            "failed": "nie udało się dołączyć — spróbuj ponownie"
+        },
+        "balances": {
+            "title": "Salda",
+            "you": "Ty",
+            "settled": "bez długów",
+            "owes": "ma do oddania",
+            "getsBack": "ma do odzyskania",
+            "nothingYet": "jeszcze nic",
+            "youOwe": "masz do oddania",
+            "youGetBack": "masz do odzyskania",
+            "former": "Nie uczestniczy",
+            "pair": {
+                "owesYou": "{name} ma ci oddać",
+                "youOwe": "Masz oddać: {name}",
+                "owes": "{debtor} ma oddać: {creditor}"
+            }
+        },
+        "expenses": {
+            "title": "Wydatki",
+            "emptyTitle": "Pokój gotowy",
+            "someone": "Ktoś",
+            "formerName": "{name} · Nie uczestniczy",
+            "you": "Ty",
+            "paidBy": "Płatnik: {payer} · {count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "paidByCompact": "Płatnik: {payer}",
+            "paidByYouCompact": "Płatnik: ty",
+            "youLent": "masz do odzyskania",
+            "youBorrowed": "masz do oddania",
+            "total": "łącznie",
+            "indicative": "orientacyjnie",
+            "savedManualRate": "Zapisano tutaj · 1 {currency} = {rate} {roomCurrency}",
+            "paidByYou": "Płatnik: ty · {count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "filedBy": "Autor wpisu: {name}",
+            "filedByYou": "Dodane przez ciebie",
+            "filedByAnon": "Dodane anonimowo",
+            "personalImpact": {
+                "outgoingNamed": "Więcej do oddania dla {name}",
+                "outgoing": "Więcej do oddania",
+                "incomingNamed": "{name} ma ci oddać więcej",
+                "incoming": "Więcej do odzyskania",
+                "neutral": "Bez zmiany salda",
+                "notInSplit": "Poza tym podziałem"
+            },
+            "emptyInvite": "Zaproś resztę",
+            "emptyShare": "Udostępnij pokój",
+            "emptyAdd": "Dodaj wydatek"
+        },
+        "states": {
+            "errorTitle": "Nie udało się wczytać tego pokoju",
+            "errorBody": "Prawdopodobnie połączenie szwankuje. Nic nie zginęło — spróbuj ponownie.",
+            "staleTitle": "Ten pokój może być nieaktualny",
+            "staleBody": "Pokazujemy ostatnio wczytany stan pokoju. Edycja i usuwanie zapisanych wydatków oraz rozliczanie są wstrzymane do czasu odświeżenia. Nadal możesz dodać wydatek.",
+            "retry": "Spróbuj ponownie",
+            "pullToRefresh": {
+                "pull": "Pociągnij w dół, aby odświeżyć",
+                "release": "Puść, aby odświeżyć",
+                "refreshing": "Odświeżamy pokój…"
+            },
+            "notFoundTitle": "To rozliczenie nie istnieje",
+            "notFoundBody": "Zostało usunięte albo w linku brakuje ostatniej części — linki do pokoi rozróżniają też wielkość liter.",
+            "notFoundCta": "Otwórz opcje pokoju"
+        },
+        "allSettled": {
+            "title": "Wszystko rozliczone",
+            "expenseCount": "{count, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}}",
+            "peopleCount": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "allSquare": "wszyscy rozliczeni"
+        },
+        "story": {
+            "duo": "Tylko was dwoje i ani grosza między wami.",
+            "marathon": "Przez {days, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}}: „Ja stawiam”. Wszyscy rozliczeni.",
+            "blitz": "W jeden dzień {rounds, plural, one {raz padło} few {# razy padło} many {# razy padło} other {# raza padło}} „Ja płacę”. Bez pretensji.",
+            "bigGroup": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}} i nikt nie musiał upominać się o pieniądze.",
+            "default": "Nikt nie prowadził rachunków. Tym zajęliśmy się my."
+        },
+        "recap": {
+            "settledBadge": "Wszystko rozliczone",
+            "ongoingBadge": "Jak dotąd",
+            "totalLabel": "Łączne wydatki",
+            "days": "{count, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}}",
+            "expenses": "{count, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}}",
+            "people": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "settlements": "{count, plural, =0 {Nie zapisano jeszcze płatności} one {Zapisano # płatność} few {Zapisano # płatności} many {Zapisano # płatności} other {Zapisano # płatności}}",
+            "topPayer": "Najwięcej z własnej kieszeni: {name}",
+            "share": "Udostępnij historię",
+            "sharing": "Przygotowujemy…",
+            "shareTitle": "Peanut Split",
+            "shareText": "Wspólne wydatki rozliczone.",
+            "copied": "Skopiowano podsumowanie — wklej je gdzie chcesz.",
+            "downloaded": "Podsumowanie zapisano w pobranych plikach.",
+            "shareFailed": "Nie udało się utworzyć karty podsumowania. Spróbuj ponownie.",
+            "seeRecap": "Zobacz podsumowanie",
+            "backToRoom": "Wróć do pokoju",
+            "ctaTitle": "Teraz twoja kolej",
+            "cta": "Utwórz pokój",
+            "yourLine": "Z twojej kieszeni: {amount} · {position}",
+            "youOwe": "masz do oddania {amount}",
+            "youGetBack": "masz do odzyskania {amount}",
+            "youSettled": "bez długów"
+        },
+        "expenseDrawer": {
+            "addTitle": "Dodaj wydatek",
+            "editTitle": "Edytuj wydatek",
+            "close": "Zamknij formularz wydatku",
+            "amount": "Kwota",
+            "currency": "Waluta wydatku",
+            "foreignHint": "przeliczono po orientacyjnym kursie",
+            "manualRateTitle": "Ustaw własny kurs",
+            "manualRateInputLabel": "Wartość 1 {currency} w {roomCurrency}",
+            "manualRateHint": "Ten kurs jest przypisany do tego wydatku. Nie zmienia się automatycznie.",
+            "manualRateFromExpense": "Kurs zapisany tylko dla tego wydatku: 1 {currency} = {rate} {roomCurrency}. Zmień go, aby ponownie przeliczyć wydatek.",
+            "manualRateRequired": "Wpisz wartość 1 {currency} w {roomCurrency}.",
+            "manualRateInvalid": "Wpisz dodatni kurs nie większy niż 999999999999, z maksymalnie 12 miejscami po przecinku.",
+            "manualRateRoundsToZero": "Po tym kursie wydatek zaokrągla się do zera w {roomCurrency}. Zwiększ kurs lub kwotę.",
+            "manualRateOverflow": "Jedna z tych wartości jest za duża dla rejestru. Zmniejsz kurs lub kwotę.",
+            "manualRatePreview": "Po ustawionym kursie {amount} to {converted}.",
+            "description": "Za co? (opcjonalnie)",
+            "descriptionPlaceholder": "Kolacja, taksówka, karnet…",
+            "amountPreview": "Po sformatowaniu: {amount}",
+            "category": "Kategoria grafiki",
+            "categoryAutomatic": "Automatycznie",
+            "categories": {
+                "foodDrink": "Jedzenie",
+                "transport": "Transport",
+                "travelStays": "Noclegi",
+                "homeBills": "Dom",
+                "shopping": "Zakupy",
+                "entertainment": "Rozrywka",
+                "health": "Zdrowie",
+                "gifts": "Prezenty",
+                "other": "Inne"
+            },
+            "fieldsSwapped": "Zamieniono kwotę i opis.",
+            "amountNormalised": "Odczytano jako {amount}. Sprawdź przed zapisaniem.",
+            "paidBy": "Płatnik",
+            "paid": "płatnik",
+            "paidBySummary": "Płatnik: {name}",
+            "choosePayer": "Wybierz płatnika",
+            "whoPaid": "Kto zapłacił?",
+            "addPayer": "Dodaj osobę",
+            "payerNamePlaceholder": "Imię osoby",
+            "confirmPayer": "Dodaj osobę",
+            "cancelPayer": "Anuluj",
+            "payerDuplicate": "{name} już jest w pokoju — wybierz tę osobę powyżej.",
+            "payerAddFailed": "nie udało się dodać tej osoby — spróbuj ponownie",
+            "formerName": "{name} · Nie uczestniczy",
+            "formerDraftRoleWarning": "Wybrana osoba stała się nieaktywna podczas wpisywania wydatku. Przed zapisaniem zmień płatnika lub usuń tę osobę z podziału; kwoty zostały zachowane.",
+            "formerSavedRoleWarning": "Ten zapisany wydatek obejmuje nieaktywną osobę w jej pierwotnej roli. Możesz zachować tę historię albo zmienić lub usunąć tę osobę, ale nie możesz przypisać jej nowej roli.",
+            "split": "Podział",
+            "whoShares": "Kogo obejmuje?",
+            "everyone": "Wszyscy",
+            "choosePeople": "Wybierz osoby",
+            "peopleSummary": "{name} + {count}",
+            "splitSummary": "{people}, {mode}",
+            "splitMode": "Sposób podziału",
+            "equally": "Po równo",
+            "exactAmounts": "Dokładne kwoty",
+            "percentage": "Procentowo",
+            "shares": "Udziały",
+            "moreOptions": "Więcej opcji",
+            "exactAmountFor": "Dokładna kwota · {name}",
+            "percentageFor": "Procent · {name}",
+            "sharesFor": "Liczba udziałów · {name}",
+            "sharesUnit": "udziały",
+            "putRemainderOn": "Przypisz resztę: {name}",
+            "addToSplit": "+ {name}",
+            "allocated": "Cała kwota przydzielona",
+            "overBy": "Przekroczono o",
+            "leftToAllocate": "Pozostało do przydzielenia",
+            "amountsAreIn": "Kwoty są w {currency}",
+            "convertedAt": " — przeliczono na {roomCurrency} po orientacyjnym kursie",
+            "convertedAtManual": " — przeliczono na {roomCurrency} po twoim kursie",
+            "allocatedOf": ". Przydzielono {allocated} z {total}.",
+            "percentageAllocated": "Przydzielono dokładnie 100%",
+            "percentageOverBy": "Przekroczono 100% o",
+            "percentageLeft": "Pozostało do przydzielenia",
+            "percentageCaption": "Procenty muszą sumować się dokładnie do 100%.",
+            "sharesTotal": "Łączna liczba udziałów: {total}",
+            "sharesCaption": "Użyj dodatnich liczb całkowitych. Puste pole lub zero pomija daną osobę.",
+            "when": "Kiedy",
+            "whenWasIt": "Kiedy to było?",
+            "date": "Data wydatku",
+            "dateShort": "data",
+            "dateSummary": "Data wydatku: {date}",
+            "collapseSection": "Zwiń tę sekcję",
+            "save": "Zapisz zmiany",
+            "add": "Dodaj wydatek",
+            "addWithAmount": "Dodaj wydatek {amount}",
+            "delete": "Usuń",
+            "confirmDelete": "Usunąć ten wydatek? Zniknie z historii pokoju, a każde saldo się zmieni.",
+            "confirmDeleteYes": "Usuń",
+            "slideDelete": "Przesuń, aby usunąć",
+            "deleting": "Usuwamy…",
+            "confirmDeleteNo": "Zostaw",
+            "deletedToast": "Usunięto „{description}”",
+            "deletedToastUnnamed": "Usunięto wydatek",
+            "undo": "Cofnij",
+            "restored": "Przywrócono",
+            "restoreFailed": "Nie udało się cofnąć — odśwież i spróbuj ponownie",
+            "wasDeleted": "Ten wydatek został usunięty. Najpierw cofnij usunięcie, a potem go edytuj.",
+            "saveFailed": "nie udało się zapisać wydatku — spróbuj ponownie",
+            "deleteFailed": "nie udało się usunąć wydatku",
+            "validation": {
+                "AMOUNT_REQUIRED": "Wpisz kwotę większą od zera.",
+                "AMOUNT_INVALID": "Sprawdź separatory i miejsca po przecinku w kwocie.",
+                "PAYER_REQUIRED": "Wybierz płatnika.",
+                "NO_PARTICIPANTS": "Wybierz co najmniej jedną osobę objętą podziałem.",
+                "SHARE_AMOUNT_INVALID": "Sprawdź separatory i miejsca po przecinku w dokładnych kwotach.",
+                "SHARES_DO_NOT_ADD_UP": "Dokładne kwoty muszą sumować się do całości.",
+                "PERCENTAGE_INVALID": "Wpisz procenty z maksymalnie dwoma miejscami po przecinku.",
+                "PERCENTAGES_DO_NOT_ADD_UP": "Procenty muszą sumować się dokładnie do 100%.",
+                "SHARE_WEIGHT_INVALID": "Udziały muszą być dodatnimi liczbami całkowitymi.",
+                "AMOUNT_NEGATIVE": "Usuń znak minus — kwota wydatku jest zawsze dodatnia."
+            },
+            "equallyHint": "Tyle samo dla wszystkich",
+            "exactAmountsHint": "Różne kwoty",
+            "percentageHint": "Ustaw procent każdej osoby",
+            "sharesHint": "Podziel proporcjonalnie do udziałów",
+            "equallyShort": "po równo",
+            "exactShort": "dokładne kwoty",
+            "percentageShort": "procentowo",
+            "sharesShort": "według udziałów"
+        },
+        "settle": {
+            "formerName": "{name} · Nie uczestniczy",
+            "listTitle": "Kto komu jest winien",
+            "recordTitle": "Zapisz płatność",
+            "nothingToSettle": "Nie ma czego rozliczać.",
+            "you": "Ty",
+            "stillOutstanding": "Pozostało do zapłaty",
+            "howPaid": "Jak zapłacono?",
+            "cash": "Gotówka",
+            "bank": "Bank",
+            "peanut": "Peanut",
+            "peanutNote": "Otwiera Peanut w nowej karcie. Split zapisze płatność tutaj, nawet jeśli pieniądze nie zostaną wysłane.",
+            "note": "Notatka (opcjonalnie)",
+            "notePlaceholder": "Wysłano w piątek",
+            "receiptLink": "Link do potwierdzenia (opcjonalnie)",
+            "receiptLinkPlaceholder": "https://…",
+            "receiptLinkHint": "Split nie otwiera ani nie weryfikuje tego linku.",
+            "record": "Zapisz płatność",
+            "back": "Wstecz",
+            "recorded": "Płatność: {from} → {to}",
+            "failed": "nie udało się zapisać tej płatności — spróbuj ponownie",
+            "amountLabel": "Ile przekazano?",
+            "amountHint": "Cały dług wynosi",
+            "amountInvalid": "Wpisz kwotę większą od zera.",
+            "amountFormatInvalid": "Sprawdź separatory i miejsca po przecinku w kwocie.",
+            "amountTooHigh": "To więcej, niż {name} ma do oddania.",
+            "recordedTitle": "Zapisano przed chwilą",
+            "amountTooHighYou": "To więcej, niż masz do oddania."
+        },
+        "share": {
+            "title": "Udostępnij pokój",
+            "postAhaTitle": "Pierwsze rozliczenie gotowe",
+            "postAhaSubtitle": "Udostępnij go grupie.",
+            "postAhaBalance": "Dług: {from} → {to}",
+            "notNow": "Nie teraz",
+            "done": "Gotowe",
+            "close": "Zamknij udostępnianie"
+        },
+        "link": {
+            "scanToJoin": "Zeskanuj, aby dołączyć na miejscu",
+            "qrLabel": "Kod QR pozwalający dołączyć do pokoju: {room}",
+            "roomLink": "Link do pokoju",
+            "inviteText": "Tekst zaproszenia",
+            "copyBlocked": "Przeglądarka zablokowała kopiowanie. Pełne zaproszenie jest zaznaczone powyżej — skopiuj je ręcznie.",
+            "copy": "Skopiuj zaproszenie",
+            "copied": "Skopiowano!",
+            "share": "Udostępnij link do pokoju",
+            "shared": "Wysłano link do pokoju.",
+            "shareFailed": "Panel udostępniania się nie otworzył. Zamiast tego skopiuj zaproszenie.",
+            "anyoneCanJoin": "Każdy z linkiem może wejść i dodawać wydatki.",
+            "shareTitle": "{room} · Peanut Split",
+            "shareText": "Dołącz i dodaj swoje wydatki."
+        },
+        "create": {
+            "back": "Wstecz",
+            "title": "Nowe rozliczenie",
+            "name": "Co rozliczasz?",
+            "namePlaceholder": "Wyjazd na narty…",
+            "emoji": "Wybierz lub narysuj",
+            "emojiGroup": "Grafika pokoju",
+            "emojiOption": "Grafika: {emoji}",
+            "drawYourOwn": "Narysuj własną",
+            "drawTitle": "Narysuj swój pokój",
+            "drawHint": "Najlepiej sprawdzi się jedna prosta rzecz. Krzywe linie mile widziane.",
+            "drawUndo": "Cofnij",
+            "drawClear": "Wyczyść",
+            "drawCancel": "Anuluj",
+            "drawUse": "Użyj rysunku",
+            "collapseDrawing": "Zwiń grafiki pokoju",
+            "currency": "Waluta",
+            "currencyLabel": "Waluta pokoju",
+            "currencyHint": "Waluta sald. Wydatki mogą być w innych walutach.",
+            "creatorName": "Twoje imię",
+            "creatorNamePlaceholder": "Twoje imię…",
+            "submit": "Utwórz pokój",
+            "failed": "nie udało się utworzyć pokoju — spróbuj ponownie",
+            "rosterCheckpoint": {
+                "title": "Kto dołącza?",
+                "subtitle": "Możesz to później zmienić.",
+                "namePlaceholder": "Imię",
+                "add": "Dodaj",
+                "done": "Gotowe",
+                "skip": "Pomiń",
+                "duplicate": "{name} już jest w tym pokoju.",
+                "failed": "nie udało się dodać tej osoby — spróbuj ponownie"
+            },
+            "namePlaceholderSlug": "twoj-wyjazd",
+            "currencyCustomHint": "„{code}” to twoja własna waluta. Każdy wydatek w tym pokoju jest w niej — nic nie jest przeliczane."
+        },
+        "currency": {
+            "all": "Przeszukaj wszystkie waluty ({count})",
+            "searchLabel": "Szukaj walut",
+            "searchPlaceholder": "Wyszukaj lub wymyśl",
+            "clearSearch": "Wyczyść wyszukiwanie",
+            "results": "{count, plural, one {# waluta} few {# waluty} many {# walut} other {# waluty}}",
+            "noMatch": "Nie ma waluty „{query}” — utwórz ją.",
+            "noMatchLong": "Nie ma waluty „{query}”. Kod waluty ma trzy lub cztery litery.",
+            "useCustom": "Użyj „{code}”",
+            "useCustomHint": "Twoja własna waluta — bez kursu i przeliczania.",
+            "useCustomManualHint": "Ustaw wartość 1 {code} w {roomCurrency} dla tego wydatku.",
+            "noRateChip": "brak kursu",
+            "roomOnly": "{roomCurrency} nie ma kursu, więc każdy wydatek w tym pokoju jest w {roomCurrency}.",
+            "roomOnlyManual": "Tylko {roomCurrency} — wpisz własny kod waluty, aby ustawić własny kurs."
+        },
+        "scan": {
+            "cta": "Skanuj paragon",
+            "cameraTitle": "Skanuj paragon",
+            "cameraStarting": "Uruchamiamy aparat…",
+            "cameraReady": "Aparat gotowy",
+            "cameraBlocked": "Dostęp do aparatu jest wyłączony. Zamiast tego prześlij zdjęcie.",
+            "cameraUnavailable": "Aparat nie jest tutaj dostępny. Zamiast tego prześlij zdjęcie.",
+            "cameraFailed": "Nie udało się uruchomić aparatu. Zamiast tego prześlij zdjęcie.",
+            "cameraControls": "Elementy sterujące zdjęciem paragonu",
+            "takePhoto": "Zrób zdjęcie",
+            "upload": "Prześlij",
+            "framingHint": "Wszystkie cztery rogi powinny być w kadrze",
+            "captureFailed": "Nie udało się zrobić tego zdjęcia. Spróbuj ponownie lub prześlij plik.",
+            "termsNote": "Akceptujesz warunki korzystania z usług OpenRouter i Gemini.",
+            "tryAgain": "Spróbuj z innym paragonem",
+            "step1": "Zeskanuj rachunek · sprawdź pozycje",
+            "step2": "Zeskanuj rachunek · do kogo należy każda pozycja",
+            "reading": "Odczytujemy rachunek…",
+            "privacyNote": "Split wysyła zdjęcie jednorazowo i go nie przechowuje.",
+            "reviewTitle": "Sprawdź pozycje",
+            "reviewBody": "Popraw błędnie odczytane dane, usuń pozycje, które nie są twoje, i dodaj pominięte.",
+            "reviewFromMerchant": "Sprzedawca: {merchant}. Popraw błędnie odczytane dane i dodaj pominięte pozycje.",
+            "itemNumber": "Pozycja {number}",
+            "itemContext": "Pozycja {number}: {item}",
+            "itemNameFor": "Nazwa pozycji „{item}”",
+            "itemAmountFor": "Kwota pozycji „{item}”",
+            "amountInvalid": "Sprawdź separatory i miejsca po przecinku w każdej pozycji.",
+            "itemPlaceholder": "Pozycja",
+            "removeItemFor": "Usuń pozycję „{item}”",
+            "addItem": "Dodaj pominiętą pozycję",
+            "noItems": "Na tym rachunku nie zostały żadne pozycje.",
+            "itemsTotal": "Suma pozycji",
+            "receiptTotal": "Suma na rachunku",
+            "mismatch": "Sumy różnią się o {amount}. Przyczyną może być podatek, napiwek, rabat lub pominięta pozycja. Nadal możesz kontynuować.",
+            "continue": "Dalej: do kogo należy każda pozycja",
+            "cancel": "Anuluj",
+            "assignTitle": "Do kogo należy każda pozycja",
+            "assignBody": "Przy każdej pozycji wybierz odpowiednie osoby. Wybranie co najmniej dwóch osób dzieli tę pozycję między nie po równo.",
+            "assignmentGroup": "Osoby przypisane do pozycji „{item}”",
+            "assignMemberToItem": "Przypisz osobę „{member}” do pozycji „{item}”",
+            "assignEveryoneToItem": "Przypisz wszystkich do pozycji „{item}”",
+            "everyone": "Wszyscy",
+            "unassigned": "{count, plural, one {# pozycja nadal nie jest nikomu przypisana} few {# pozycje nadal nie są nikomu przypisane} many {# pozycji nadal nie przypisano nikomu} other {# pozycji nadal nie przypisano nikomu}}",
+            "assignedTotal": "Łącznie",
+            "apply": "Użyj tego podziału",
+            "back": "Wróć do pozycji",
+            "defaultDescription": "Zeskanowany rachunek",
+            "errors": {
+                "tooLarge": "To zdjęcie jest za duże do wysłania nawet po zmniejszeniu.",
+                "unreadable": "Nie udało się otworzyć tego pliku jako obrazu.",
+                "generic": "Nie udało się odczytać rachunku.",
+                "hint": "Zrób zdjęcie na wprost, obejmij cały rachunek i zadbaj o dobre oświetlenie."
+            }
+        },
+        "theme": {
+            "title": "Motyw",
+            "pick": "Wybierz motyw: {name}",
+            "failed": "nie udało się zmienić motywu — spróbuj ponownie",
+            "names": {
+                "classic": "Klasyczny",
+                "bubblegum": "Guma balonowa",
+                "lavender": "Lawenda",
+                "mint": "Mięta",
+                "sky": "Niebo",
+                "coral": "Koral",
+                "sand": "Piasek",
+                "graphite": "Grafit"
+            }
+        },
+        "avatar": {
+            "titleFor": "Postać: {name}",
+            "open": "Otwórz swoją postać",
+            "option": "Wybierz postać: {name}",
+            "failed": "nie udało się zmienić tej postaci — spróbuj ponownie",
+            "shuffle": "Losuj",
+            "shuffleLabel": "Wylosuj inny zestaw postaci",
+            "firstOpen": "Każdy może zmienić postać dowolnej osoby.",
+            "close": "Zamknij wybór postaci"
+        },
+        "reactions": {
+            "formerName": "{name} · Nie uczestniczy",
+            "add": "Zareaguj",
+            "close": "Zamknij wybór reakcji",
+            "pick": "Zareaguj: {emoji}",
+            "remove": "Usuń swoją reakcję: {emoji}",
+            "reacted": "{emoji} — {count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "needsToken": "Aby zareagować, musimy potwierdzić, że to naprawdę ty — najpierw ponownie dołącz do pokoju pod swoim imieniem.",
+            "failed": "nie udało się zapisać tej reakcji — spróbuj ponownie",
+            "names": {
+                "wild": "szaleństwo",
+                "laugh": "śmiech",
+                "ouch": "auć",
+                "love": "miłość",
+                "clap": "oklaski",
+                "money": "pieniądze"
+            }
+        },
+        "latecomer": {
+            "sheetTitle": "Wcześniejsze wydatki · {name}",
+            "promptTitle": "Czy {name} ma udział we wcześniejszych wydatkach?",
+            "promptBody": "Przejrzyj {count, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}} z okresu przed dołączeniem: {name}. Nic się nie zmieni, dopóki nie potwierdzisz.",
+            "review": "Przejrzyj wydatki",
+            "notNow": "Nie teraz",
+            "reviewBody": "Osoba: {name}. Wybierz wcześniejsze wydatki, w których ta osoba uczestniczyła. Podziały po równo dla całej grupy są wstępnie zaznaczone; podziały niestandardowe wymagają ręcznej edycji.",
+            "selectedCount": "{count, plural, =0 {Nic nie wybrano} one {Wybrano #} few {Wybrano #} many {Wybrano #} other {Wybrano #}}",
+            "noChange": "Bez zmian we wcześniejszych wydatkach",
+            "projectedOwe": "Po aktualizacji {name} będzie mieć do oddania {amount}",
+            "projectedBack": "Po aktualizacji {name} będzie mieć do odzyskania {amount}",
+            "projectedSettled": "Po aktualizacji: {name} — bez długów",
+            "wholeGroup": "Cała grupa · {from} → {to, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "subset": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}} · sprawdź udział: {name}",
+            "memberShare": "Udział: {name} · {amount}",
+            "manualSplit": "{mode, select, EXACT {Wpisane dokładne kwoty} PERCENTAGE {Podział procentowy} SHARES {Niestandardowe udziały} other {Niestandardowy podział}}",
+            "edit": "Edytuj",
+            "rowChanged": "Wydatek zmienił się podczas przeglądania",
+            "confirmSelection": "Zaktualizuj {count, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}}",
+            "leaveUnchanged": "Nie zmieniaj wcześniejszych wydatków",
+            "settledWarningTitle": "Po tej zmianie znów pojawią się długi.",
+            "settledWarningBody": "Wybrane wydatki spowodują, że ktoś znów będzie mieć kwotę do oddania.",
+            "updating": "Aktualizujemy…",
+            "changedBeforeApply": "Podczas przeglądania zmieniono {count, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}}. Sprawdź aktualne wersje wydatków i spróbuj ponownie.",
+            "failed": "Nie udało się dokończyć aktualizacji. {done, plural, =0 {Nie zapisano żadnych zmian.} one {Zapisano # zmianę.} few {Zapisano # zmiany.} many {Zapisano # zmian.} other {Zapisano # zmiany.}} Przejrzyj pozostałe pozycje i spróbuj ponownie.",
+            "updated": "Zaktualizowano {count, plural, =0 {przegląd} one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}} · osoba: {name}.",
+            "undo": "Cofnij",
+            "undoing": "Cofamy zmiany we wcześniejszych wydatkach…",
+            "undone": "Cofnięto zmiany we wcześniejszych wydatkach",
+            "undoFailed": "Nie udało się dokończyć cofania zmian. Sprawdź pokój."
+        },
+        "timeline": {
+            "paymentLabel": "Płatność",
+            "recordedBy": "Autor wpisu: {name}",
+            "recordedByYou": "zapisane przez ciebie",
+            "recordedByAnon": "zapisane anonimowo",
+            "receiptLink": "Otwórz link do potwierdzenia · niezweryfikowany",
+            "remove": "Cofnij ten zapis płatności",
+            "confirmRemove": "Cofnąć ten zapis? Zmieni to saldo pokoju, ale nie wpłynie na już wysłane pieniądze.",
+            "confirmYes": "Cofnij zapis",
+            "slideRemove": "Przesuń, aby cofnąć zapis płatności",
+            "removing": "Cofamy…",
+            "confirmNo": "Zostaw",
+            "removed": "Cofnięto zapis płatności. Salda pokoju zostały zaktualizowane.",
+            "removeFailed": "Nie udało się cofnąć zapisu płatności — spróbuj ponownie."
+        },
+        "achievements": {
+            "crew": {
+                "title": "{count, plural, one {# osoba w tym rejestrze} few {# osoby w tym rejestrze} many {# osób w tym rejestrze} other {# osoby w tym rejestrze}}",
+                "body": "Wszystkie osoby uwzględnione w tym pokoju."
+            },
+            "passport": {
+                "title": "{count, plural, one {# waluta} few {# waluty} many {# walut} other {# waluty}}",
+                "body": "Jedno przejrzyste rozliczenie, niezależnie od waluty."
+            },
+            "alterego": {
+                "title": "Twoja rola na tym wyjeździe",
+                "body": "Na podstawie twoich działań."
+            },
+            "wrapped": {
+                "title": "Wyjazd w pigułce",
+                "body": "{count, plural, one {# karta. Udostępnij ją, jeśli ci się podoba.} few {# karty. Udostępnij te, które lubisz.} many {# kart. Udostępnij te, które lubisz.} other {# karty. Udostępnij te, które lubisz.}}"
+            },
+            "share": "Udostępnij grafikę",
+            "sharing": "Przygotowujemy…",
+            "dismiss": "Nie teraz",
+            "shelfTitle": "Karty z tego wyjazdu",
+            "copied": "Skopiowano kartę — wklej ją gdzie chcesz.",
+            "downloaded": "Kartę zapisano w pobranych plikach.",
+            "shareFailed": "Nie udało się utworzyć tej karty. Spróbuj ponownie.",
+            "award": {
+                "tripStarter": "Start wyjazdu",
+                "firstMover": "Pierwszy wpis",
+                "ledgerLegend": "Legenda rejestru",
+                "currencyHopper": "Podróż po walutach",
+                "theCloser": "Domknięcie rozliczeń",
+                "hypeCrew": "Dobra energia"
+            },
+            "shareText": {
+                "crew": "Osoby w naszym wspólnym rozliczeniu.",
+                "passport": "Różne waluty, jedno przejrzyste rozliczenie.",
+                "alterego": "Oto moja rola na tym wyjeździe.",
+                "stats": "Wyjazd w liczbach.",
+                "landing": "Wszyscy rozliczeni i nikt nie musiał upominać się o pieniądze."
+            },
+            "shareLabel": {
+                "crew": "Udostępnij kartę ekipy",
+                "passport": "Udostępnij kartę walut",
+                "alterego": "Udostępnij kartę swojej roli",
+                "stats": "Udostępnij kartę wyjazdu",
+                "landing": "Udostępnij kartę pełnego rozliczenia"
+            }
+        },
+        "people": {
+            "remove": "Usuń z listy: {name}",
+            "blocked": "Dlaczego {name} zostaje na liście",
+            "blockedReason": "Saldo profilu „{name}” wciąż nie wynosi zera. Najpierw rozlicz je dokładnie do zera; dotychczasowa historia pozostanie bez zmian.",
+            "lastActiveReason": "{name} to ostatnia aktywna osoba. Zanim oznaczysz ją jako nieaktywną, ponownie aktywuj kogoś innego.",
+            "confirmTitle": "Usunąć z listy: {name}?",
+            "confirmBody": "Ta osoba zostanie oznaczona jako nieaktywna i pominięta w nowych podziałach. Cała jej historia pozostanie, a każdy, kto ma link, nadal będzie mógł otworzyć pokój. Później możesz ją ponownie aktywować.",
+            "confirm": "Usuń",
+            "cancel": "Anuluj",
+            "removeFailed": "nie udało się usunąć tej osoby z listy — spróbuj ponownie",
+            "removedToast": "Profil „{name}” jest teraz nieaktywny",
+            "undo": "Cofnij",
+            "restoredToast": "Profil „{name}” znów jest aktywny",
+            "restoreFailed": "Nie udało się ponownie aktywować tej osoby"
+        }
+    },
+    "slideToConfirm": {
+        "release": "Puść, aby potwierdzić",
+        "working": "Pracujemy…",
+        "instructions": "Przeciągnij uchwyt do końca, użyj klawiszy strzałek albo naciśnij Enter lub spację, aby potwierdzić.",
+        "progress": "Ukończono {progress}%."
+    },
+    "push": {
+        "label": "Powiadomienia",
+        "notifyMe": "Włącz powiadomienia dla pokoju: {room}",
+        "on": "Wł.",
+        "iosNeedsPwa": "Dodaj Split do ekranu początkowego.",
+        "iosHow": "Jak?",
+        "denied": "Zablokowane w ustawieniach przeglądarki.",
+        "unknown": "Nie udało się teraz sprawdzić — to urządzenie może nadal je otrzymywać.",
+        "needsToken": "Wybierz ponownie swoje imię, aby je włączyć.",
+        "failed": "nie udało się zmienić powiadomień — spróbuj ponownie"
+    },
+    "routeStates": {
+        "error": {
+            "eyebrow": "Coś nam umknęło",
+            "title": "Nie udało się otworzyć tej strony",
+            "body": "Nie mogliśmy wyświetlić tej strony. Spróbuj jeszcze raz lub wróć do swoich pokoi.",
+            "retry": "Spróbuj ponownie",
+            "exit": "Wróć do swoich pokoi"
+        },
+        "notFound": {
+            "eyebrow": "Nic pod tym linkiem",
+            "title": "Nie znaleziono tej strony",
+            "body": "Link może być niepełny albo strona została przeniesiona.",
+            "action": "Wróć do swoich pokoi"
+        },
+        "loading": {
+            "eyebrow": "Liczymy orzeszki",
+            "title": "Otwieramy twój pokój…",
+            "body": "Aktualizujemy salda i wydatki.",
+            "exit": "Wróć do swoich pokoi"
+        }
+    },
+    "errors": {
+        "generic": "Coś poszło nie tak — spróbuj ponownie.",
+        "NETWORK_ERROR": "Nie udało się połączyć z serwerem — sprawdź połączenie.",
+        "INTERNAL": "Coś poszło nie tak po naszej stronie. Spróbuj ponownie za chwilę.",
+        "VALIDATION_ERROR": "Coś tu się nie zgadza — sprawdź pola i spróbuj ponownie.",
+        "MALFORMED_JSON": "Coś poszło nie tak podczas wysyłania — spróbuj ponownie.",
+        "JSON_REQUIRED": "Coś poszło nie tak podczas wysyłania — spróbuj ponownie.",
+        "REQUEST_TOO_LARGE": "Przesyłane dane są za duże.",
+        "CROSS_SITE_REQUEST": "Nie udało się potwierdzić tego działania — otwórz ponownie Split i spróbuj jeszcze raz.",
+        "NOT_FOUND": "Ten pokój nie istnieje.",
+        "EXPENSE_NOT_FOUND": "Tego wydatku już tu nie ma — odśwież pokój.",
+        "SETTLEMENT_NOT_FOUND": "Tej płatności już tu nie ma — odśwież pokój.",
+        "SLUG_EXHAUSTED": "Nie udało się teraz utworzyć linku do pokoju — spróbuj ponownie.",
+        "DUPLICATE_MEMBER_NAME": "To imię już jest w pokoju — zamiast tego wybierz je z listy.",
+        "MEMBER_REACTIVATION_REQUIRED": "Ta osoba jest wśród nieaktywnych. Zamiast dodawać duplikat, ponownie aktywuj jej dotychczasowy wpis w Ustawieniach.",
+        "MEMBER_NAME_CONFLICT": "Inna aktywna osoba już używa tego imienia. Zmień imię jednej z nich przed ponowną aktywacją.",
+        "MEMBER_BALANCE_NOT_ZERO": "Rozlicz tę osobę dokładnie do zera, zanim oznaczysz ją jako nieaktywną.",
+        "LAST_ACTIVE_MEMBER": "Ostatnia aktywna osoba nie może odejść. Najpierw ponownie aktywuj kogoś innego.",
+        "MEMBER_FORMER": "Ta osoba jest nieaktywna i nie można jej dodać do nowego wydatku ani płatności. Najpierw aktywuj ją ponownie.",
+        "EXPENSE_DELETED": "Ten wydatek został usunięty. Najpierw cofnij usunięcie, a potem go edytuj.",
+        "NEW_PAYER_ON_EDIT": "Podczas edycji wybierz istniejącą osobę. Nowego płatnika dodaj wraz z nowym wydatkiem.",
+        "CATCH_UP_REVIEW_CONFLICT": "Ten wydatek zmienił się po przeglądzie — otwórz go ponownie i spróbuj jeszcze raz.",
+        "HISTORY_CURSOR_INVALID": "Ten punkt w historii pokoju nie jest już dostępny — otwórz historię ponownie.",
+        "NOT_A_MEMBER": "Tej osoby nie ma w pokoju — odśwież i spróbuj ponownie.",
+        "AMOUNT_NOT_POSITIVE": "Kwota musi być większa od zera.",
+        "AMOUNT_TOO_LARGE": "Ta kwota jest za duża, aby bezpiecznie ją zapisać.",
+        "EXACT_SHARES_REQUIRED": "Dokładny podział wymaga kwoty dla każdej osoby.",
+        "SHARES_DO_NOT_ADD_UP": "Dokładne kwoty muszą sumować się do całości.",
+        "WEIGHTED_SHARES_REQUIRED": "Dodaj procent lub liczbę udziałów co najmniej jednej osoby.",
+        "SPLIT_WEIGHT_NOT_POSITIVE": "Procenty i udziały muszą być większe od zera.",
+        "PERCENTAGES_DO_NOT_ADD_UP": "Procenty muszą sumować się dokładnie do 100%.",
+        "SPLIT_FIELDS_DO_NOT_MATCH_MODE": "Ten podział nie odpowiada już wybranej metodzie — sprawdź go i spróbuj ponownie.",
+        "SPLIT_MODE_CONFLICT": "Sposób podziału się zmienił. Otwórz wydatek ponownie i spróbuj jeszcze raz.",
+        "NO_PARTICIPANTS": "Wybierz co najmniej jedną osobę objętą podziałem.",
+        "DUPLICATE_PARTICIPANT": "Ktoś pojawia się w tym podziale dwa razy.",
+        "SETTLEMENT_PAYER_NOT_MEMBER": "Osoby, która zapłaciła, nie ma w tym pokoju — odśwież i spróbuj ponownie.",
+        "SETTLEMENT_PAYEE_NOT_MEMBER": "Osoby, która otrzymała płatność, nie ma w tym pokoju — odśwież i spróbuj ponownie.",
+        "SETTLEMENT_SAME_MEMBER": "Płatność wymaga dwóch różnych osób.",
+        "SETTLEMENT_EXCEEDS_DEBT": "Ta płatność przekracza bieżący dług — odśwież i sprawdź kwotę.",
+        "IDEMPOTENCY_KEY_REUSED": "Nie udało się bezpiecznie powtórzyć zapisu — spróbuj zapisać ponownie.",
+        "MEMBER_TOKEN_INVALID": "Nie udało się potwierdzić, kim jesteś — otwórz pokój ponownie ze swojego linku.",
+        "INSTALL_HANDOFF_UNAVAILABLE": "Zapisane dane instalacji nie są już dostępne — otwórz ten pokój w przeglądarce i dodaj Split ponownie.",
+        "SCAN_UNAVAILABLE": "Skanowanie rachunków nie jest tutaj włączone.",
+        "SCAN_IMAGE_TOO_LARGE": "To zdjęcie jest za duże — zrób nowe.",
+        "SCAN_BAD_IMAGE": "Nie udało się wysłać tego zdjęcia — spróbuj zrobić je ponownie.",
+        "SCAN_NO_ITEMS": "Nie udało się odczytać żadnej pozycji ze zdjęcia — zrób je na wprost i przy lepszym świetle.",
+        "SCAN_ROOM_LIMIT": "W tym pokoju zeskanowano dziś wiele rachunków — spróbuj ponownie jutro.",
+        "SCAN_FAILED": "Nie udało się odczytać rachunku — spróbuj ponownie.",
+        "IMPORT_TOO_LARGE": "Ten import jest za duży do wysłania. Spróbuj z grupą o krótszej historii.",
+        "IMPORT_UNAVAILABLE": "Import jest tymczasowo wstrzymany — spróbuj ponownie później.",
+        "IMPORT_TARGET_CURRENCY_UNSUPPORTED": "Nie można importować do pokoju z własną walutą. Zamiast tego dodaj wydatki ręcznie w walucie pokoju.",
+        "IMPORT_CURRENCY_CONVERSION_UNSUPPORTED": "Co najmniej jednej importowanej waluty nie można przeliczyć na walutę tego pokoju. Użyj pokoju, którego waluta odpowiada eksportowi albo ma zgodny kurs wymiany.",
+        "UNSUPPORTED_PUSH_HOST": "Ta usługa powiadomień nie jest obsługiwana.",
+        "PUSH_SUBSCRIPTION_LIMIT": "Zbyt wiele urządzeń otrzymuje powiadomienia z tego pokoju.",
+        "RATE_LIMITED": "Za dużo działań naraz — odczekaj minutę i spróbuj ponownie.",
+        "MEMBER_HAS_HISTORY": "Ta osoba jest już częścią historii pokoju — nie można jej usunąć z listy.",
+        "NO_RATE": "Nie ma kursu między tą walutą a walutą pokoju, więc nie można jej przeliczyć. Użyj waluty pokoju.",
+        "MANUAL_FX_RATE_REQUIRED": "Wpisz własny kurs tej niestandardowej waluty.",
+        "MANUAL_FX_RATE_INVALID": "Wpisany kurs jest nieprawidłowy albo sprawia, że przeliczona kwota zaokrągla się do zera.",
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Własne kursy są dostępne tylko dla niestandardowych walut wydatków."
+    },
+    "derivation": {
+        "title": "Skąd ta suma",
+        "openLabel": "Zobacz rozliczenie salda: {name}",
+        "paidTitle": "Opłacone wydatki",
+        "shareTitle": "Udział w wydatkach",
+        "settledTitle": "Zapisane płatności",
+        "paidBy": "płatnik: {name}",
+        "paidByYou": "płatnik: ty",
+        "sentTo": "Odbiorca płatności: {name}",
+        "receivedFrom": "Nadawca płatności: {name}",
+        "total": "Łącznie",
+        "emptyTitle": "Jeszcze nic",
+        "suggestedTitle": "Aby wyzerować saldo",
+        "suggestedNote": "Plan rozlicza cały pokój, dlatego odbiorca nie zawsze jest osobą, która za ciebie zapłaciła.",
+        "sends": "Płaci · odbiorca: {name}",
+        "receives": "Otrzymuje płatność · nadawca: {name}",
+        "showOther": "Pokaż saldo: {name}",
+        "hideOther": "Ukryj saldo: {name}",
+        "someone": "Ktoś",
+        "sendsYou": "Płacisz · odbiorca: {name}",
+        "receivesYou": "{name} płaci tobie"
+    },
+    "content": {
+        "home": "Strona główna",
+        "guides": "Poradniki",
+        "hubTitle": "Poradniki",
+        "hubDescription": "Jak dzielić wydatki bez konta, instalowania aplikacji i subskrypcji.",
+        "empty": "Jeszcze nic nie opublikowano.",
+        "startRoom": "Utwórz pokój",
+        "startRoomHint": "Bez rejestracji. Bez instalacji. Za darmo na zawsze.",
+        "published": "Opublikowano {date}",
+        "updated": "aktualizacja {date}",
+        "otherLanguages": "Inne wersje językowe"
+    },
+    "offline": {
+        "rowHint": "W kolejce — wyśle się automatycznie po odzyskaniu połączenia",
+        "blockedRowHint": "Wymaga sprawdzenia — zmieniła się lista osób w pokoju",
+        "queuedToast": "Brak połączenia. Wydatek zapisano na telefonie i zostanie wysłany automatycznie po odzyskaniu połączenia.",
+        "fullToast": "{count, plural, one {Osiągnięto limit wydatków w kolejce, dlatego nie udało się zachować jednego nowego lub odblokowanego wydatku. Zablokowane szkice pozostają zapisane.} few {Osiągnięto limit wydatków w kolejce, dlatego nie udało się zachować # nowych lub odblokowanych wydatków. Zablokowane szkice pozostają zapisane.} many {Osiągnięto limit wydatków w kolejce, dlatego nie udało się zachować # nowych lub odblokowanych wydatków. Zablokowane szkice pozostają zapisane.} other {Osiągnięto limit wydatków w kolejce, dlatego nie udało się zachować # nowego lub odblokowanego wydatku. Zablokowane szkice pozostają zapisane.}}",
+        "rejectedToast": "{count, plural, one {Nie udało się zapisać wydatku z kolejki — dodaj go ponownie.} few {Nie udało się zapisać # wydatków z kolejki — dodaj je ponownie.} many {Nie udało się zapisać # wydatków z kolejki — dodaj je ponownie.} other {Nie udało się zapisać # wydatku z kolejki — dodaj go ponownie.}}",
+        "blockedToast": "{count, plural, one {Wydatek z kolejki wymaga sprawdzenia, ponieważ zmieniła się lista osób w pokoju. Nadal jest zapisany na tym telefonie.} few {# wydatki z kolejki wymagają sprawdzenia, ponieważ zmieniła się lista osób w pokoju. Nadal są zapisane na tym telefonie.} many {# wydatków z kolejki wymaga sprawdzenia, ponieważ zmieniła się lista osób w pokoju. Nadal są zapisane na tym telefonie.} other {# wydatku z kolejki wymaga sprawdzenia, ponieważ zmieniła się lista osób w pokoju. Nadal jest zapisane na tym telefonie.}}",
+        "blockedRosterToast": "{count, plural, one {Wydatek z kolejki nie wskazuje osób objętych podziałem. Otwórz go i potwierdź podział; do tego czasu pozostanie na tym telefonie.} few {# wydatki z kolejki nie wskazują osób objętych podziałem. Otwórz je i potwierdź każdy podział; do tego czasu pozostaną na tym telefonie.} many {# wydatków z kolejki nie wskazuje osób objętych podziałem. Otwórz je i potwierdź każdy podział; do tego czasu pozostaną na tym telefonie.} other {# wydatku z kolejki nie wskazuje osób objętych podziałem. Otwórz go i potwierdź podział; do tego czasu pozostanie na tym telefonie.}}",
+        "blockedTitle": "Ten wydatek jest nadal zapisany",
+        "blockedBody": "Lista osób w pokoju zmieniła się, zanim udało się wysłać ten wydatek. Sprawdź pierwotne dane; szkic pozostanie zapisany, dopóki sam go nie usuniesz.",
+        "blockedRosterUnknownBody": "Ten wydatek zapisała starsza wersja aplikacji bez listy uczestników. Sprawdź poniższe osoby, a potem spróbuj ponownie, aby potwierdzić podział. Do tego czasu wydatek nie zostanie wysłany.",
+        "blockedRosterUnknownRowHint": "Potwierdź osoby w podziale",
+        "blockedFormerBody": "Jedna z osób objętych podziałem nie jest już aktywna. Przywróć ją w sekcji Osoby albo przypisz jej rolę innej aktywnej osobie, a potem spróbuj ponownie.",
+        "blockedTokenBody": "Dane dostępu przypisane do tego urządzenia uległy zmianie. Dołącz ponownie do pokoju, a potem spróbuj jeszcze raz.",
+        "blockedMissingBody": "Osoba wskazana w tym starszym szkicu nie jest już aktywna. Sprawdź dane, przypisz jej rolę innej osobie, a potem spróbuj ponownie.",
+        "review": "Sprawdź dane",
+        "hideReview": "Ukryj dane",
+        "retry": "Spróbuj ponownie",
+        "retryFailed": "Nie udało się zapisać poprawionej wersji, więc wydatek nadal czeka na sprawdzenie. Nic nie zginęło — spróbuj ponownie.",
+        "discard": "Usuń szkic",
+        "discardConfirm": "Usunąć ten wydatek z kolejki na tym telefonie? Tej operacji nie można cofnąć.",
+        "reviewAmount": "Kwota",
+        "reviewPayer": "Płatnik",
+        "reviewSplit": "Osoby w podziale",
+        "remapPayer": "Zmień płatnika: {name}",
+        "remapParticipant": "Zmień przypisanie osoby: {name}",
+        "chooseActive": "Wybierz aktywną osobę",
+        "equalValue": "równy udział",
+        "percentageValue": "{value}%",
+        "sharesValue": "udziały: {value}",
+        "insufficientActive": "Brak innej aktywnej osoby. Przywróć kogoś w sekcji Osoby albo zachowaj szkic do czasu decyzji; odrzucenie zawsze wymaga wyraźnego potwierdzenia.",
+        "sentToast": "{count, plural, one {Wysłano wydatek} few {Wysłano # wydatki} many {Wysłano # wydatków} other {Wysłano # wydatku}}"
+    },
+    "import": {
+        "drop": {
+            "title": "Przeciągnij tutaj plik eksportu ze Splitwise lub Split Pro",
+            "cta": "Wybierz plik",
+            "privacy": "Plik zostaje na tym urządzeniu. Dane są wysyłane dopiero po potwierdzeniu."
+        },
+        "howto": {
+            "title": "Obsługiwane pliki eksportu",
+            "step1": "Splitwise: otwórz ustawienia grupy i wybierz „Eksportuj jako arkusz kalkulacyjny”.",
+            "step2": "Konto Split Pro: otwórz Konto i wybierz „Pobierz dane SplitPro”.",
+            "step3": "Znajomy w Split Pro: otwórz stronę salda tej osoby i wybierz „Eksportuj”."
+        },
+        "groups": {
+            "label": "Grupa z pliku",
+            "hint": "Pobrane dane konta Split Pro mogą zawierać kilka grup. Wybierz jedną grupę, z której chcesz teraz utworzyć pokój.",
+            "existingHint": "Pobrane dane konta Split Pro mogą zawierać kilka grup. Wybierz jedną grupę, z której chcesz dodać wydatki do tego pokoju.",
+            "skippedTitle": "Niektórych grup nie można zaimportować",
+            "skipped": "{name}: {reason}"
+        },
+        "existing": {
+            "pageTitle": "Importuj do pokoju „{room}”",
+            "pageSubtitle": "Dodaj wydatki z eksportu Splitwise lub Split Pro.",
+            "backToRoom": "Wróć do pokoju",
+            "targetEyebrow": "Import do tego pokoju",
+            "targetBody": "Dodaje wydatki bez zmieniania tego, co już jest w pokoju.",
+            "currencyLabel": "Waluta rozliczenia",
+            "currencyHint": "Importowane wydatki zachowują swoją walutę. Wiersz można dodać tylko wtedy, gdy jego waluta to {currency} albo można ją na tę walutę przeliczyć.",
+            "currencyUnsupportedTitle": "Niektórych wydatków nie można przeliczyć",
+            "currencyUnsupportedBody": "Tych walut źródłowych nie można przeliczyć na {currency}: {currencies}. Wybierz grupę, której waluty odpowiadają walucie pokoju, albo pokój ze zgodną walutą rozliczenia.",
+            "repeatTitle": "Zanim zaimportujesz ponownie",
+            "repeatBody": "Ponowny import tych samych danych niczego nie zmienia, nawet po zmianie przypisań. Zmieniony plik jest dodawany w całości i może powielić istniejące wydatki.",
+            "membersTitle": "Dopasuj osoby",
+            "membersBody": "Przypisz każdą osobę do kogoś z pokoju „{room}” albo dodaj ją jako nową. Identyczne imiona są wstępnie dopasowane.",
+            "sourceLabel": "W pliku",
+            "targetLabel": "W pokoju „{room}”",
+            "memberTargetLabel": "Profil z pliku: {name}. Do kogo go dopasować?",
+            "addNew": "Dodaj jako nową osobę",
+            "newNameLabel": "Imię nowej osoby",
+            "newNameAria": "Profil z pliku: {name}. Wpisz imię nowej osoby.",
+            "atomicAddition": "Osoba zostanie dodana tylko wtedy, gdy cały import się powiedzie.",
+            "emptyNewName": "Każda nowa osoba musi mieć imię.",
+            "duplicateExistingMember": "Dwóch osób z pliku nie można przypisać do tej samej osoby w pokoju.",
+            "missingExistingMember": "Wybranej osoby nie ma już w pokoju. Wybierz inne dopasowanie.",
+            "duplicateNewName": "Dwie nowe osoby mają to samo imię — zmień jedno z nich.",
+            "newNameAlreadyExists": "Osoba o proponowanym imieniu jest już w pokoju. Dopasuj ją albo użyj innego imienia.",
+            "submit": "{count, plural, one {Dodaj # wydatek do pokoju „{room}”} few {Dodaj # wydatki do pokoju „{room}”} many {Dodaj # wydatków do pokoju „{room}”} other {Dodaj # wydatku do pokoju „{room}”}}",
+            "failed": "Nic nie zaimportowano. Sprawdź połączenie i spróbuj ponownie.",
+            "readyTitle": "Import zakończony",
+            "readyBody": "O {time} dodano {expenses, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}}. {members, plural, =0 {Nie dodano nowych osób.} one {Dodano # nową osobę.} few {Dodano # nowe osoby.} many {Dodano # nowych osób.} other {Dodano # nowej osoby.}}",
+            "replayTitle": "Już zaimportowano",
+            "replayBody": "Te dokładne dane źródłowe zaimportowano już o {time}. Nic nie dodano.",
+            "importAnother": "Importuj inny plik",
+            "goToRoom": "Przejdź do pokoju",
+            "loadFailed": "Nie udało się wczytać tego pokoju, więc nie można niczego do niego zaimportować.",
+            "tryAgain": "Spróbuj ponownie",
+            "customCurrencyUnsupportedTitle": "Import nie jest dostępny w pokojach z własną walutą",
+            "customCurrencyUnsupportedBody": "Eksporty Splitwise i Split Pro używają standardowych walut, których ten importer nie może przeliczyć na {currency}. Zamiast tego dodaj wydatki ręcznie w {currency}."
+        },
+        "preview": {
+            "found": "{expenses, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}} · {members, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+            "total": "Łącznie {total}",
+            "roomName": "Nazwij pokój",
+            "roomNamePlaceholder": "Wyjazd na narty",
+            "fallbackName": "Zaimportowana grupa",
+            "currency": "Waluta",
+            "currencyLabel": "Waluta pokoju",
+            "currencyHint": "Salda rozliczają się w tej walucie. Każdy wydatek zachowuje walutę, w której go opłacono.",
+            "members": "Wszyscy w grupie",
+            "whoAreYou": "Popraw źle przeniesione imiona i wskaż na liście, kim jesteś.",
+            "balancesMatch": "Salda zgadzają się z wierszem podsumowania w Splitwise.",
+            "balancesDifferTitle": "Te salda nie będą się zgadzać z saldami w Splitwise",
+            "balancesDiffer": "{count, plural, one {Saldo jednej osoby będzie inne niż w wierszu podsumowania w pliku} few {Salda # osób będą inne niż w wierszu podsumowania w pliku} many {Salda # osób będą inne niż w wierszu podsumowania w pliku} other {Saldo # osoby będzie inne niż w wierszu podsumowania w pliku}} — niektórych wierszy nie udało się odczytać, dlatego saldo pokoju uwzględnia tylko dane, które udało się odczytać. Poniższe ostrzeżenia wskazują pominięte wiersze.",
+            "thatsMe": "To ja: {name}",
+            "submit": "Utwórz pokój",
+            "startOver": "Użyj innego pliku",
+            "driftShort": "brakuje {amount}",
+            "driftOver": "nadwyżka {amount}"
+        },
+        "fx": {
+            "title": "O kursach wymiany",
+            "body": "Wydatki w tej grupie są w więcej niż jednej walucie. Splitwise nie podaje w eksporcie kursu użytego danego dnia, więc wszystko jest przeliczane po dzisiejszym kursie — sumy będą zbliżone, ale nie identyczne z tymi widocznymi w Splitwise."
+        },
+        "warnings": {
+            "title": "Warto wiedzieć",
+            "more": "…i jeszcze {count, plural, one {# ostrzeżenie} few {# ostrzeżenia} many {# ostrzeżeń} other {# ostrzeżenia}}.",
+            "ROW_UNBALANCED": "Wartości w wierszu {row} nie sumują się już w samym pliku, dlatego wiersz został pominięty.",
+            "ROW_UNSUPPORTED_CURRENCY": "Wiersz {row} ma walutę {detail}, której Split jeszcze nie obsługuje, więc został pominięty.",
+            "ROW_NO_PAYER": "Wiersz {row} nie wskazuje płatnika, więc został pominięty.",
+            "ROW_ZERO_COST": "Wiersz {row} nie ma kwoty, więc został pominięty.",
+            "ROW_BAD_AMOUNT": "Wiersz {row} ma kwotę, której nie udało się odczytać, więc został pominięty.",
+            "ROW_BAD_DATE": "Wiersz {row} ma datę, której nie udało się odczytać — zostanie użyta stała data zastępcza.",
+            "ROW_DESCRIPTION_TRUNCATED": "Wiersz {row} ma bardzo długi opis — zostanie on skrócony.",
+            "ROW_CATEGORY_TRUNCATED": "Wiersz {row} ma bardzo długą kategorię — zostanie ona skrócona.",
+            "MEMBER_NAME_TRUNCATED": "Jedno imię było za długie i zostało skrócone do „{detail}”. Możesz je edytować powyżej.",
+            "MULTI_PAYER_SPLIT": "„{detail}” opłaciła więcej niż jedna osoba. Plik nie podaje wkładu każdej z nich, więc wydatek trafia tu jako osobna pozycja dla każdego płatnika — salda są dokładne, a podział między płatnikami to nasza najlepsza interpretacja.",
+            "PAYMENT_ROWS": "Płatności między osobami są importowane jako wydatki, a nie jako zapisane płatności. Salda pozostają bez zmian.",
+            "MIXED_CURRENCY": "Plik zawiera kilka walut: {detail}.",
+            "DUPLICATE_MEMBER_NAME": "Dwie osoby mają na imię {detail}, więc druga widnieje jako „{detail} (2)”. Zmień ich imiona poniżej.",
+            "TRUNCATED_HISTORY": "Pokój mieści 500 wydatków, dlatego {count, plural, one {# najstarszy wydatek zostanie zastąpiony} few {# najstarsze wydatki zostaną zastąpione} many {# najstarszych wydatków zostanie zastąpionych} other {# najstarszego wydatku zostanie zastąpione}} zbiorczą pozycją „Saldo początkowe” dla każdej osoby. Salda wszystkich osób pozostaną bez zmian.",
+            "SPLITPRO_BALANCES_ONLY": "Pobrane dane konta Split Pro zawierają bieżące salda, ale nie historię wydatków. Salda trafiają tu jako pozycje „Saldo początkowe”, dzięki czemu saldo każdej osoby zostaje zachowane, ale wcześniejsza lista wydatków nie.",
+            "SPLITPRO_PAIR_HISTORY": "Plik CSV znajomego ze Split Pro nie wskazuje, do której grupy należał każdy wydatek. Wszystkie wydatki z tego pliku trafią razem do tego pokoju.",
+            "SPLITPRO_SPLIT_MODE_FLATTENED": "Podziały procentowe i udziałowe ze Split Pro zachowują końcowe kwoty, ale trafiają tu jako dokładne kwoty. Późniejsza edycja nie zachowa pierwotnych proporcji.",
+            "SPLITPRO_MISSING_NAMES": "Split Pro pominął w kopii {count, plural, one {imię jednej osoby} few {imiona # osób} many {imiona # osób} other {imię # osoby}}. Każdy brak zastąpiono poniżej nazwą „Osoba” — uzupełnij imiona przed utworzeniem pokoju.",
+            "SPLITPRO_BALANCES_SKIPPED": "{count, plural, one {Jedno saldo w kopii Split Pro jest niepełne, więc zostało pominięte} few {# salda w kopii Split Pro są niepełne, więc zostały pominięte} many {# sald w kopii Split Pro jest niepełnych, więc zostało pominiętych} other {# salda w kopii Split Pro jest niepełne, więc zostało pominięte}}. Przed utworzeniem pokoju porównaj podgląd ze Split Pro.",
+            "SPLITPRO_UNSUPPORTED_CURRENCY": "Split nie może przeliczyć {detail}, więc salda w tej walucie zostały pominięte. Jeśli są ważne, wybierz inny eksport."
+        },
+        "errors": {
+            "NOT_SPLITWISE_CSV": "Nie rozpoznajemy tego pliku. Wybierz plik CSV grupy Splitwise, plik CSV znajomego ze Split Pro albo plik splitpro_data.json ze strony Konto w Split Pro.",
+            "MALFORMED_CSV": "Ten plik CSV jest niepełny lub uszkodzony. Pobierz nowy plik eksportu i użyj go bez edycji.",
+            "MALFORMED_JSON": "Ten plik JSON jest niepełny lub uszkodzony. Ponownie pobierz „Dane SplitPro” ze strony Konto w Split Pro i użyj nowego pliku bez edycji.",
+            "SPLITPRO_DIRECT_UNRESOLVED": "Ta kopia Split Pro nie wskazuje, która osoba to ty, więc nie można bezpiecznie rozdzielić sald spoza nazwanych grup. Zaimportuj grupy powyżej, a następnie użyj eksportu CSV każdego znajomego dla pozostałych sald.",
+            "NO_MEMBERS": "Ten eksport nie zawiera listy osób w grupie. W Splitwise wyeksportuj grupę; w Split Pro użyj „Pobierz dane SplitPro” na stronie Konto.",
+            "NO_EXPENSES": "Ten plik nie zawiera niczego do przeniesienia. Grupa może być już rozliczona albo każde saldo może używać nieobsługiwanej waluty. Sprawdź salda w aplikacji źródłowej, a jeśli wszystkie wynoszą zero, utwórz pusty pokój.",
+            "TOO_MANY_MEMBERS": "Ta grupa ma ponad 20 osób. Usuń nieaktywne osoby w aplikacji źródłowej i ponownie ją wyeksportuj albo utwórz dwa mniejsze pokoje.",
+            "TOO_MANY_EXPENSES": "Ten eksport jest za duży do bezpiecznego przetworzenia. Wyeksportuj mniejszą grupę albo użyj kopii konta Split Pro, która przenosi bieżące salda zamiast wszystkich wcześniejszych wydatków.",
+            "FILE_TOO_BIG": "Ten plik przekracza limit importu wynoszący 1 MB. Wyeksportuj jedną grupę Splitwise albo pobierz nową kopię danych konta Split Pro i spróbuj ponownie.",
+            "READ_FAILED": "Przeglądarka nie mogła odczytać tego pliku. Pobierz nowy plik eksportu, zachowaj rozszerzenie .csv lub .json i spróbuj ponownie.",
+            "EMPTY_NAME": "Każda osoba musi mieć imię.",
+            "DUPLICATE_NAMES": "Dwie osoby mają to samo imię — zmień jedno, aby każdy wydatek trafił do właściwej osoby.",
+            "failed": "Nie udało się utworzyć pokoju. Sprawdź połączenie i spróbuj ponownie; nic nie zaimportowano."
+        },
+        "ready": {
+            "title": "Twoja grupa jest gotowa",
+            "subtitle": "Wyślij ten link wszystkim. Po otwarciu wybiorą swoje imię, a zaimportowane dane będą już na miejscu.",
+            "goToRoom": "Przejdź do pokoju"
+        }
+    },
+    "preview": {
+        "roomDescription": "Dołącz do wspólnego rozliczenia.",
+        "statNone": "Jeszcze bez wydatków",
+        "statOne": "1 wydatek · łącznie {amount}",
+        "statMany": "{count, plural, one {# wydatek} few {# wydatki} many {# wydatków} other {# wydatku}} · łącznie {amount}",
+        "peopleOne": "1 osoba",
+        "peopleMany": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+        "emptyRoster": "Nikt jeszcze nie dołączył",
+        "tagline": "bez rejestracji · za darmo na zawsze"
+    },
+    "shareTarget": {
+        "pick": "Którego pokoju dotyczy ten rachunek?",
+        "empty": "Na tym urządzeniu nie ma jeszcze pokoi. Utwórz jeden, a potem ponownie udostępnij zdjęcie.",
+        "start": "Utwórz pokój",
+        "expired": "To zdjęcie nie dotarło. Udostępnij je ponownie.",
+        "unavailable": "Skanowanie rachunków nie jest jeszcze włączone.",
+        "open": "Otwórz Split"
+    },
+    "card": {
+        "invite": {
+            "label": "Wspólne wydatki grupy",
+            "line": "Dołącz i dodaj swoje wydatki.",
+            "inviter": "{name} zaprasza:",
+            "inviterFallback": "Zaproszenie:",
+            "roster": "JUŻ W ROZLICZENIU",
+            "rosterEmpty": "ZACZNIJCIE RAZEM",
+            "personOne": "1 osoba już jest",
+            "peopleMany": "{count, plural, one {# osoba już jest} few {# osoby już są} many {# osób już jest} other {# osoby już jest}}",
+            "emptyAction": "Dodaj pierwszy wydatek"
+        },
+        "crew": {
+            "title": "EKIPA",
+            "line": "Osoby w naszym wspólnym rozliczeniu."
+        },
+        "passport": {
+            "title": "PASZPORT",
+            "line": "{count, plural, one {# waluta} few {# waluty} many {# walut} other {# waluty}}. Jedno przejrzyste rozliczenie."
+        },
+        "alterego": {
+            "title": "ALTER EGO",
+            "line": "Jeden wyjazd, jeden znak rozpoznawczy."
+        },
+        "stats": {
+            "title": "NASZ WYJAZD"
+        },
+        "landing": {
+            "title": "WSZYSCY ROZLICZENI"
+        },
+        "award": {
+            "tripStarter": "Start wyjazdu",
+            "firstMover": "Pierwszy wpis",
+            "ledgerLegend": "Legenda rejestru",
+            "currencyHopper": "Podróż po walutach",
+            "theCloser": "Domknięcie rozliczeń",
+            "hypeCrew": "Dobra energia"
+        }
+    }
+}

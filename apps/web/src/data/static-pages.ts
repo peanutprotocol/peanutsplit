@@ -1,5 +1,6 @@
 import { TOOL_SLUGS } from '@/tools/registry'
-import { LOCALES, type Locale } from '@/i18n/locales'
+import { INDEXED_LOCALES, type Locale } from '@/i18n/locales'
+import { PREFIXED_LOCALES } from '@/i18n/paths'
 
 /**
  * The hand-built pages, registered so the sitemap and the /blog hub don't have to special-case
@@ -44,7 +45,7 @@ export const STATIC_PAGES: StaticPage[] = [
         description: "What Splitwise's own Pro page says it puts behind a paywall, and what Split does instead.",
         priority: 0.8,
         inHub: true,
-        locales: [...LOCALES],
+        locales: [...INDEXED_LOCALES],
     },
     {
         // The calculators' one hub. It carries no calculator of its own, so it is a listing rather
@@ -93,10 +94,8 @@ const RESERVED_ROOT_SEGMENTS = [
     'sitemap.xml',
     'manifest.webmanifest',
     'icon.png',
-    // The locale prefixes: the request proxy reads them as a language, so a page slugged
-    // `es-419` would be served at /es-419 and then tagged Spanish.
-    'es-419',
-    'pt-br',
+    // Locale prefixes: the request proxy reads each as a language, so none can also be a page slug.
+    ...PREFIXED_LOCALES,
 ]
 
 /**

@@ -7,7 +7,6 @@ describe('the empty-room funnel copy', () => {
     it('presents sharing and adding an expense without teaching invite-first', () => {
         expect(en.room.expenses).toMatchObject({
             emptyTitle: 'Room ready',
-            emptyBody: 'Nothing here yet.',
             emptyShare: 'Share room',
             emptyAdd: 'Add expense',
         })

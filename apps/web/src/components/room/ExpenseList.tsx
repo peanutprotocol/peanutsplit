@@ -375,7 +375,6 @@ export function ExpenseList({
                     />
                 </motion.div>
                 <p className="text-h6">{t('emptyTitle')}</p>
-                <p className="max-w-[18rem] text-sm text-grey-1">{t('emptyBody')}</p>
                 <div className="flex w-full max-w-[18rem] flex-col gap-3">
                     <Button
                         variant="primary"

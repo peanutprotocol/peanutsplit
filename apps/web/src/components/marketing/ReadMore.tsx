@@ -247,14 +247,7 @@ export function ReadMore() {
                     </Fold>
 
                     <Fold title={t('settle.title')} onToggle={onToggle} motionAllowed={motionAllowed}>
-                        <motion.p
-                            className="max-w-xl text-sm leading-5 text-grey-1"
-                            variants={riseSoftVariants}
-                            data-motion-surface
-                        >
-                            {t('settle.body')}
-                        </motion.p>
-                        <motion.ul className="mt-4 grid grid-cols-3 gap-2" variants={sceneVariants} data-motion-surface>
+                        <motion.ul className="grid grid-cols-3 gap-2" variants={sceneVariants} data-motion-surface>
                             {methods.map(({ key, doodle }) => (
                                 <motion.li
                                     key={key}

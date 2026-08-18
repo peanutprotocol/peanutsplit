@@ -2,7 +2,13 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import { staticPageSlugs } from '@/data/static-pages'
-import { DEFAULT_LOCALE, LOCALES, isLocale, type Locale } from '@/i18n/locales'
+import {
+    DEFAULT_LOCALE,
+    INDEXED_LOCALES,
+    isIndexedLocale,
+    type IndexedLocale,
+    type Locale,
+} from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { splitV2Enabled } from '@/lib/flags'
 
@@ -94,7 +100,7 @@ export interface Doc {
     collection: Collection
     slug: string
     /** The language this doc was written in. Never a fallback — the file exists or the doc does not. */
-    locale: Locale
+    locale: IndexedLocale
     /** Path the page is served at, leading slash, no origin, locale prefix included. */
     href: string
     frontmatter: Frontmatter
@@ -134,7 +140,7 @@ function docPath(collection: Collection, slug: string, locale: Locale): string {
  * language links on the page, so it must reflect files on disk rather than the locale list —
  * offering a translation that is not there is worse than offering none.
  */
-export function localesForSlug(collection: Collection, slug: string): Locale[] {
+export function localesForSlug(collection: Collection, slug: string): IndexedLocale[] {
     let entries: string[]
     try {
         entries = fs.readdirSync(path.join(collectionDir(collection), slug))
@@ -142,9 +148,9 @@ export function localesForSlug(collection: Collection, slug: string): Locale[] {
         return []
     }
     const present = new Set(entries.filter((f) => f.endsWith('.md')).map((f) => f.replace(/\.md$/, '')))
-    // Ordered by LOCALES, not by readdir — directory order is filesystem-dependent and would
+    // Ordered by INDEXED_LOCALES, not by readdir — directory order is filesystem-dependent and would
     // make the rendered hreflang block change between machines for no reason.
-    return LOCALES.filter((locale) => present.has(locale))
+    return INDEXED_LOCALES.filter((locale) => present.has(locale))
 }
 
 /** A frontmatter date may come back from YAML as a Date; the rest of the app wants YYYY-MM-DD. */
@@ -177,7 +183,7 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
     // the pattern, and `path.join` then throws on a non-string — a 500 where a 404 belonged.
     if (typeof slug !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null
     // Same reasoning for the locale, which is a path segment on every non-English route.
-    if (!isLocale(locale)) return null
+    if (!isIndexedLocale(locale)) return null
 
     const filePath = docPath(collection, slug, locale)
 
@@ -292,5 +298,7 @@ export function listAllDocs(locale: Locale = DEFAULT_LOCALE): Doc[] {
  * hides only the Spanish URL.
  */
 export function listAllTranslations(): Doc[] {
-    return COLLECTIONS.flatMap((collection) => LOCALES.flatMap((locale) => listDocs(collection, locale)))
+    return COLLECTIONS.flatMap((collection) =>
+        INDEXED_LOCALES.flatMap((locale) => listDocs(collection, locale))
+    )
 }

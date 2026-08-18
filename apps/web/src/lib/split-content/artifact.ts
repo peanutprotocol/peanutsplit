@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import { z } from 'zod'
-import { HREFLANG, LOCALES, type Locale } from '@/i18n/locales'
+import { HREFLANG, INDEXED_LOCALES, type IndexedLocale, type Locale } from '@/i18n/locales'
 import { absoluteUrl } from '@/lib/seo'
 import { readSplitContentManifestBytes, SPLIT_CONTENT_GENERATED_ROOT as GENERATED_ROOT } from './manifest-attestation'
 import { guidePath, splitCalculatorPath, splitHubPath, splitToolsHubPath } from './urls'
@@ -59,7 +59,7 @@ const manifestEntryV1Schema = z
     .object({
         content_type: z.literal('guide'),
         slug: z.string().regex(SLUG),
-        locale: z.enum(LOCALES),
+        locale: z.enum(INDEXED_LOCALES),
         public_path: z.string(),
         output_path: z.string(),
         output_sha256: z.string().regex(SHA256),
@@ -69,7 +69,7 @@ const manifestEntryV1Schema = z
 
 const manifestEntryV2Fields = {
     slug: z.string().regex(SLUG),
-    locale: z.enum(LOCALES),
+    locale: z.enum(INDEXED_LOCALES),
     public_path: z.string(),
     legacy_paths: z.array(z.string()),
     output_path: z.string(),
@@ -127,7 +127,7 @@ const hubCardSchema = z
     .object({
         id: z.string().regex(SLUG),
         kind: z.enum(['guide', 'alternative', 'tools_hub']),
-        locale: z.enum(LOCALES),
+        locale: z.enum(INDEXED_LOCALES),
         title: z.string().min(1),
         description: z.string().min(1),
         date: z.string().regex(DATE).nullable(),
@@ -211,7 +211,7 @@ const calculatorContentSchema = z
 const payloadBaseFields = {
     payload_schema_version: z.literal(1),
     slug: z.string().regex(SLUG),
-    lang: z.enum(LOCALES),
+    lang: z.enum(INDEXED_LOCALES),
     title: z.string().min(1),
     description: z.string().min(1),
     canonical: z.string().url(),
@@ -263,7 +263,7 @@ export type SplitStructuredPayload = z.infer<typeof structuredPayloadSchema>
 
 export interface SplitGuide {
     entry: SplitGuideManifestEntry
-    locale: Locale
+    locale: IndexedLocale
     slug: string
     href: string
     title: string
@@ -418,7 +418,7 @@ function validateV1Matrix(entries: z.infer<typeof manifestEntryV1Schema>[]): voi
         bySlug.set(entry.slug, locales)
     }
     for (const [slug, locales] of bySlug) {
-        if (LOCALES.some((locale) => !locales.has(locale))) {
+        if (INDEXED_LOCALES.some((locale) => !locales.has(locale))) {
             artifactError(`guide ${slug} must contain the exact en/es-419/pt-br locale matrix`)
         }
     }
@@ -492,7 +492,7 @@ function validateV2Matrix(entries: z.infer<typeof manifestEntryV2Schema>[]): voi
         (left, right) =>
             CONTENT_TYPE_RANK.indexOf(left.content_type) - CONTENT_TYPE_RANK.indexOf(right.content_type) ||
             compareAscii(left.slug, right.slug) ||
-            LOCALES.indexOf(left.locale) - LOCALES.indexOf(right.locale)
+            INDEXED_LOCALES.indexOf(left.locale) - INDEXED_LOCALES.indexOf(right.locale)
     )
     if (entries.some((entry, index) => entry !== expectedOrder[index])) {
         artifactError('schema v2 entries must be sorted by type, slug, and locale')
@@ -501,7 +501,7 @@ function validateV2Matrix(entries: z.infer<typeof manifestEntryV2Schema>[]): voi
     for (const [key, locales] of groups) {
         const [contentType] = key.split('/')
         assertUnique(locales, `schema v2 matrix for ${key}`)
-        if (contentType === 'hub') assertExactArray(locales, LOCALES, `schema v2 matrix for ${key}`)
+        if (contentType === 'hub') assertExactArray(locales, INDEXED_LOCALES, `schema v2 matrix for ${key}`)
         if (contentType === 'tools_hub' || contentType === 'calculator') {
             assertExactArray(locales, ['en'], `schema v2 matrix for ${key}`)
         }
@@ -511,7 +511,7 @@ function validateV2Matrix(entries: z.infer<typeof manifestEntryV2Schema>[]): voi
         const hubs = structuredEntries.filter((entry) => entry.content_type === 'hub')
         const toolsHubs = structuredEntries.filter((entry) => entry.content_type === 'tools_hub')
         const calculators = structuredEntries.filter((entry) => entry.content_type === 'calculator')
-        if (hubs.length !== LOCALES.length || toolsHubs.length !== 1) {
+        if (hubs.length !== INDEXED_LOCALES.length || toolsHubs.length !== 1) {
             artifactError('schema v2 structured pages must contain the complete three-hub and one-tools-hub cohort')
         }
         assertExactArray(
@@ -708,7 +708,7 @@ function validateStructuredPayload(
 
     const siblings = entries
         .filter((candidate) => candidate.content_type === entry.content_type && candidate.slug === entry.slug)
-        .sort((left, right) => LOCALES.indexOf(left.locale) - LOCALES.indexOf(right.locale))
+        .sort((left, right) => INDEXED_LOCALES.indexOf(left.locale) - INDEXED_LOCALES.indexOf(right.locale))
     const alternateLocales = siblings.map((candidate) => candidate.locale)
     assertExactOrderedKeys(payload.alternates, alternateLocales, `${label}.alternates`)
     for (const sibling of siblings) {
@@ -900,7 +900,7 @@ function parseGuide(entry: SplitGuideManifestEntry, root: string, manifest?: Spl
     if (manifest?.schema_version === 2) {
         const siblings = manifest.entries
             .filter((candidate) => candidate.content_type === 'guide' && candidate.slug === entry.slug)
-            .sort((left, right) => LOCALES.indexOf(left.locale) - LOCALES.indexOf(right.locale))
+            .sort((left, right) => INDEXED_LOCALES.indexOf(left.locale) - INDEXED_LOCALES.indexOf(right.locale))
         const expectedAlternates = Object.fromEntries(siblings.map((sibling) => [sibling.locale, sibling.output_path]))
         if (JSON.stringify(data.alternates) !== JSON.stringify(expectedAlternates)) {
             artifactError(`guide alternates disagree with manifest siblings: ${entry.output_path}`)
@@ -928,7 +928,8 @@ function orderedGuideEntries(manifest: SplitContentManifest): SplitGuideManifest
         .filter((entry): entry is SplitGuideManifestEntry => entry.content_type === 'guide')
         .sort(
             (left, right) =>
-                left.slug.localeCompare(right.slug) || LOCALES.indexOf(left.locale) - LOCALES.indexOf(right.locale)
+                left.slug.localeCompare(right.slug) ||
+                INDEXED_LOCALES.indexOf(left.locale) - INDEXED_LOCALES.indexOf(right.locale)
         )
 }
 

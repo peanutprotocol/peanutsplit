@@ -68,6 +68,7 @@ describe('sanitizeMemberName', () => {
     it('keeps a name the body font can draw', () => {
         expect(sanitizeMemberName('María')).toBe('María')
         expect(sanitizeMemberName('Zoë')).toBe('Zoë')
+        expect(sanitizeMemberName('Błażej')).toBe('Błażej')
     })
 
     it('strips decoration without losing the name', () => {
@@ -163,7 +164,7 @@ describe('statLine', () => {
     })
 
     it('swaps an undrawable symbol for the ISO code', () => {
-        // `฿` is outside Sniglet's cmap — a gap here would read as a rendering bug.
+        // `฿` is outside Roboto Latin Extended's cmap — a gap here would read as a rendering bug.
         expect(safeAmount(50000n, 'THB')).toBe('500.00 THB')
         expect(drawableByBody(statLine(1, 50000n, 'THB'))).toBe(true)
     })

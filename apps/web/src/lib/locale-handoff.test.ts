@@ -28,7 +28,7 @@ describe('localeFromNewRoomHandoff', () => {
             'locale=es',
             'locale=pt-BR',
             'locale=EN',
-            'locale=fr',
+            'locale=it',
             'locale=%20en%20',
         ]) {
             expect(resolve('/new', search)).toBeNull()

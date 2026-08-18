@@ -19,7 +19,7 @@ import { CAST_NAMES, isCastName } from './cast'
 import { findDroppedDiacritics } from './diacritics'
 import { STATIC_PAGES, staticPageSlugs } from '@/data/static-pages'
 import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from './split-content/index-release'
-import { DEFAULT_LOCALE, HREFLANG, LOCALES } from '@/i18n/locales'
+import { DEFAULT_LOCALE, HREFLANG, INDEXED_LOCALES, LOCALES } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import sitemap from '@/app/sitemap'
 import { absoluteUrl, pageTitle } from './seo'
@@ -60,9 +60,11 @@ describe('content tree', () => {
                 if (!entry.isDirectory()) continue
                 for (const file of fs.readdirSync(path.join(dir, entry.name))) {
                     const locale = file.replace(/\.md$/, '')
-                    expect(LOCALES, `${collection}/${entry.name}/${file} is not a known locale`).toContain(locale)
+                    expect(INDEXED_LOCALES, `${collection}/${entry.name}/${file} has no indexed locale route`).toContain(
+                        locale
+                    )
                     expect(
-                        getDoc(collection, entry.name, locale as (typeof LOCALES)[number]),
+                        getDoc(collection, entry.name, locale as (typeof INDEXED_LOCALES)[number]),
                         `${collection}/${entry.name}/${file} exists but did not parse`
                     ).not.toBeNull()
                 }
@@ -84,7 +86,7 @@ describe('content tree', () => {
      * author meant.
      */
     it('never gives two root-level collections the same slug', () => {
-        for (const locale of LOCALES) {
+        for (const locale of INDEXED_LOCALES) {
             const slugs = ROOT_COLLECTIONS.flatMap((collection) => listSlugs(collection, locale))
             expect(new Set(slugs).size, `duplicate root slug in ${locale}`).toBe(slugs.length)
         }
@@ -322,7 +324,9 @@ describe('article bodies', () => {
      */
     it('only links internally to pages that exist', () => {
         const known = new Set<string>([
-            ...LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
+            ...INDEXED_LOCALES.flatMap((locale) =>
+                ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))
+            ),
             ...ALL.map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
             ...STATIC_PAGES.flatMap((page) =>
@@ -924,7 +928,7 @@ describe('diacritic gate', () => {
 
     /** The gate is only worth having if a locale page is actually reaching it. */
     it('runs over at least one page in each translated locale', () => {
-        for (const locale of LOCALES) {
+        for (const locale of INDEXED_LOCALES) {
             if (locale === 'en') continue
             expect(
                 ALL.some((doc) => doc.locale === locale),
@@ -959,8 +963,9 @@ describe('locale routing', () => {
         for (const collection of COLLECTIONS) {
             for (const slug of listSlugs(collection)) {
                 const present = localesForSlug(collection, slug)
+                const presentSet = new Set<string>(present)
                 for (const locale of LOCALES) {
-                    if (present.includes(locale)) continue
+                    if (presentSet.has(locale)) continue
                     expect(getDoc(collection, slug, locale), `${slug}/${locale}.md does not exist`).toBeNull()
                 }
             }
@@ -1030,7 +1035,7 @@ describe('locale routing', () => {
     /** No page is kept out of the index — the whole point of one URL per language. */
     it('sitemaps every locale of the guides hub and nothing twice', () => {
         const urls = sitemap().map((entry) => entry.url)
-        for (const locale of LOCALES) {
+        for (const locale of INDEXED_LOCALES) {
             expect(urls).toContain(absoluteUrl(localizedPath('/blog', locale)))
         }
         expect(new Set(urls).size).toBe(urls.length)
@@ -1059,7 +1064,7 @@ describe('tool registry', () => {
         for (const tool of TOOLS) {
             expect(staticPageSlugs.has(tool.slug), `${tool.slug} is not reserved`).toBe(true)
             for (const collection of ROOT_COLLECTIONS) {
-                for (const locale of LOCALES) {
+                for (const locale of INDEXED_LOCALES) {
                     expect(listSlugs(collection, locale), `${tool.slug} collides with ${collection}`).not.toContain(
                         tool.slug
                     )
@@ -1172,7 +1177,9 @@ describe('tool registry', () => {
      */
     it('only links onward to pages that exist', () => {
         const known = new Set<string>([
-            ...LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
+            ...INDEXED_LOCALES.flatMap((locale) =>
+                ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))
+            ),
             ...listAllTranslations().map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
         ])
@@ -1208,7 +1215,7 @@ describe('localized content gates', () => {
     })
 
     it('dates every comparison against a source in the page language', () => {
-        const phrase: Record<(typeof LOCALES)[number], RegExp> = {
+        const phrase: Record<(typeof INDEXED_LOCALES)[number], RegExp> = {
             en: /checked\s+against[\s\S]{0,100}\d{4}-\d{2}-\d{2}/i,
             'es-419': /verificad[ao]s? contra[\s\S]{0,100}\d{4}-\d{2}-\d{2}/i,
             'pt-br': /conferid[ao]s? (?:contra|no)[\s\S]{0,120}\d{4}-\d{2}-\d{2}/i,

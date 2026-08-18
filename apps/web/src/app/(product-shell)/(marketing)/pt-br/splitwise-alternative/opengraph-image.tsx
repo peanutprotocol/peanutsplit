@@ -3,7 +3,7 @@ import { comparisonCopy } from '@/components/marketing/compare-copy'
 import { BrandCard, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/card'
 import { ogFonts } from '@/server/og/fonts'
 
-const copy = comparisonCopy['pt-br']
+const copy = comparisonCopy['pt-br']!
 
 export const runtime = 'nodejs'
 export const size = OG_SIZE

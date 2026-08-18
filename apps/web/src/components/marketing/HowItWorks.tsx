@@ -15,10 +15,10 @@ import { useTranslations } from 'next-intl'
 export function HowItWorks() {
     const t = useTranslations('marketing.how')
     const steps = [
-        { n: '1', title: t('step1.title'), body: t('step1.body') },
-        { n: '2', title: t('step2.title'), body: t('step2.body') },
-        { n: '3', title: t('step3.title'), body: t('step3.body') },
-        { n: '4', title: t('step4.title'), body: t('step4.body') },
+        { n: '1', title: t('step1.title') },
+        { n: '2', title: t('step2.title') },
+        { n: '3', title: t('step3.title') },
+        { n: '4', title: t('step4.title') },
     ]
 
     return (
@@ -41,7 +41,6 @@ export function HowItWorks() {
                                 </span>
                                 <span className="flex-1">
                                     <span className="block text-h7">{step.title}</span>
-                                    <span className="mt-1 block text-sm leading-5 text-grey-1">{step.body}</span>
                                 </span>
                             </li>
                         ))}
