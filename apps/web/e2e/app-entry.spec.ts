@@ -46,6 +46,16 @@ test('the app entry reveals the existing usable home when no room is saved', asy
     await expect(page.getByTestId('app-import')).toHaveAttribute('href', '/import')
     await expect(page.getByTestId('room-link-recovery')).toBeVisible()
     await expect(page).toHaveURL(/\/app$/)
+
+    // Browsing, not installed: the way back to the landing stays in this tab.
+    const landingLink = page.getByTestId('app-landing-link')
+    await expect(landingLink).toBeVisible()
+    await expect(landingLink).toHaveAttribute('href', '/')
+    expect(await landingLink.getAttribute('target')).toBeNull()
+
+    await landingLink.click()
+    await expect(page).toHaveURL('/')
+    await expect(page.getByTestId('marketing-home')).toBeVisible()
 })
 
 test('explicit room options remain reachable when a saved room would normally resume', async ({ page }) => {

@@ -191,6 +191,10 @@ test('the landing composes a room in a browser while the installed app keeps its
     await expect(page.getByTestId('app-new-split')).toHaveAttribute('href', '/new')
     await expect(page.getByTestId('app-import')).toHaveAttribute('href', '/import')
     await expect(page.getByTestId('room-link-recovery')).toBeVisible()
+    // A tab can show the landing in place, so the link back to it carries no target.
+    await expect(page.getByTestId('app-landing-link')).toBeVisible()
+    await expect(page.getByTestId('app-landing-link')).toHaveAttribute('href', '/')
+    expect(await page.getByTestId('app-landing-link').getAttribute('target')).toBeNull()
     await expect(page.getByTestId('marketing-home')).toHaveCount(0)
     await expect(page.getByTestId('landing-proof')).toHaveCount(0)
     await expect(page.getByTestId('read-more')).toHaveCount(0)
@@ -202,7 +206,12 @@ test('the landing composes a room in a browser while the installed app keeps its
     })
     await page.goto('/')
     await expect(page).toHaveURL('/app')
+    await expect(page.getByTestId('app-home')).toBeVisible()
     await expect(page.getByTestId('hero-room-name')).toHaveCount(0)
+    // Here the same link must leave the app: in place it would be bounced straight back.
+    await expect(page.getByTestId('app-landing-link')).toHaveAttribute('href', '/')
+    await expect(page.getByTestId('app-landing-link')).toHaveAttribute('target', '_blank')
+    await expect(page.getByTestId('app-landing-link')).toHaveAttribute('rel', /noopener/)
     expect(roomWrites).toEqual([])
 })
 
