@@ -44,9 +44,18 @@ async function nativeBody(collection: 'blog' | 'capture'): Promise<RenderedBody>
     if (!doc) throw new Error(`page-weight: no ${collection} doc to measure`)
     const chapter = pageChapterOrNull(doc.collection, doc.slug, doc.frontmatter.tags ?? [], doc.locale)
     const register = pageRegisterOrNull(doc.collection, doc.slug, doc.frontmatter.tags ?? [], doc.locale)
+    // The same context `content-routes.tsx` builds, share block and campaign codes included — this
+    // measures the page that ships, so it has to carry what the real route hands the renderer.
     const context =
         chapter && register
-            ? { faq: doc.frontmatter.faqs?.[0], chapter, seed: hashSlug(doc.slug), register }
+            ? {
+                  faq: doc.frontmatter.faqs?.[0],
+                  chapter,
+                  seed: hashSlug(doc.slug),
+                  register,
+                  slug: doc.slug,
+                  canonical: doc.frontmatter.canonical ?? doc.href,
+              }
             : undefined
     const body = await renderArticle(doc.body, doc.locale, context)
     return { label: `${collection}/${doc.slug}`, html: renderToStaticMarkup(body) }

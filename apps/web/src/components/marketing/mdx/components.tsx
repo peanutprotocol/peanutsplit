@@ -19,6 +19,7 @@ import {
 } from './blocks'
 import { Calc } from './Calc'
 import { Script } from './Script'
+import { Share } from './Share'
 import { ShortVersionSlot } from './ShortVersionSlot'
 
 /**
@@ -60,6 +61,10 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     // Same native-only group: `Calc` is absent from mdx-policy.ts's COMPONENT_ATTRIBUTES, so a
     // generated guide authoring one is rejected — proven by `mdx-policy.test.tsx`, not here.
     Calc,
+    // And `Share` (SEO loop B), for the same reason. Listed here without a context, so a compile
+    // that has no page behind it — `mdx.test.ts`, `split-content/mdx.tsx` — renders nothing at all
+    // rather than a share button pointing at a URL the engine had to invent.
+    Share,
 
     // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by stylebook, so
     // its h1 is a markdown `#` — same typography as the hero's, inside the column instead of a band.
@@ -174,10 +179,17 @@ export function localizedMdxComponents(
             </>
         ),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Hero: (props: any) => <Hero {...props} shortVersionFaq={context?.faq} locale={locale} />,
+        Hero: (props: any) => <Hero {...props} shortVersionFaq={context?.faq} locale={locale} context={context} />,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Steps: (props: any) => <Steps {...props} context={context} />,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Checklist: (props: any) => <Checklist {...props} context={context} />,
+        // Both SEO loops bind here, where the doc is known: `Hero`/`CTA` read `context.slug` for the
+        // `/new` campaign code, `Share` reads the canonical too. A guide calls this with no context
+        // and gets exactly the behaviour it had before — an uncoded `/new` and no share block.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        CTA: (props: any) => <CTA {...props} context={context} />,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Share: (props: any) => <Share {...props} context={context} />,
     }
 }

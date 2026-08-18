@@ -359,7 +359,7 @@ describe('article bodies', () => {
 
     /** next-mdx-remote parses the body as MDX, so an unbalanced brace is a build failure. */
     it('has balanced custom-component tags', () => {
-        const paired = ['Hero', 'CTA', 'Steps', 'Step', 'FAQ', 'FAQItem', 'Callout', 'Quote', 'Cast', 'Checklist', 'ChecklistItem', 'RelatedPages', 'RelatedLink', 'Calc'] // prettier-ignore
+        const paired = ['Hero', 'CTA', 'Steps', 'Step', 'FAQ', 'FAQItem', 'Callout', 'Quote', 'Cast', 'Checklist', 'ChecklistItem', 'RelatedPages', 'RelatedLink', 'Calc', 'Share'] // prettier-ignore
         for (const doc of ALL) {
             for (const tag of paired) {
                 const opens = (doc.body.match(new RegExp(`<${tag}[\\s>]`, 'g')) ?? []).length

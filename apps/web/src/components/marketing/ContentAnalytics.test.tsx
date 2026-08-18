@@ -120,3 +120,17 @@ describe('Calc enhancer wiring', () => {
         expect(source).toContain('enhanceScriptBlocks(document)\n        enhanceCalcBlocks(document)')
     })
 })
+
+describe('Share enhancer wiring', () => {
+    // SEO loop B: `<Share>`'s share-sheet/copy button rides in on the same island, for the same
+    // reason — a client component in `mdxComponents` would ship to every content route.
+    const source = readFileSync(new URL('./ContentAnalytics.tsx', import.meta.url), 'utf8')
+
+    it('imports enhanceShareBlocks from the plain-DOM module, not a component', () => {
+        expect(source).toContain("import { enhanceShareBlocks } from '@/lib/share-enhancer-dom'")
+    })
+
+    it('calls it from the same mount effect as the other two enhancers', () => {
+        expect(source).toContain('enhanceCalcBlocks(document)\n        enhanceShareBlocks(document)')
+    })
+})

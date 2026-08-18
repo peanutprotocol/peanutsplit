@@ -122,6 +122,10 @@ Plain **strong** copy and a [manifest sibling](/guides/synthetic-guide).
         // Native-only by absence from COMPONENT_ATTRIBUTES, the same mechanism that keeps `Script`
         // and `Hero` out of a guide. The policy itself gained nothing for `<Calc>`; this is the proof.
         ['native-only Calc', '<Calc title="No" presets="Weekend=920" />', /unknown or lowercase element/],
+        // Same mechanism again for `<Share>` (SEO loop B). It is the sharper case of the three: a
+        // guide authoring one would be asking the engine to emit a URL for a page whose canonical
+        // the native context never supplies.
+        ['native-only Share', '<Share title="No" buttonLabel="Send" doneLabel="Sent" />', /unknown or lowercase element/], // prettier-ignore
         ['unknown component attribute', '<Callout type="info" title="No">copy</Callout>', /must have exactly: type/],
         [
             'non-string expression attribute',
