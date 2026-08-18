@@ -82,12 +82,32 @@ describe('enhanceShareBlock with a platform share sheet', () => {
     })
 
     it('stays silent when the reader dismisses the sheet — a rejection is not a failure to report', async () => {
-        vi.stubGlobal('navigator', { share: () => Promise.reject(new Error('AbortError')) })
+        // The real dismissal is a DOMException whose `name` is AbortError; the enhancer branches on
+        // that name, so the stub has to carry it rather than merely spell it in a message.
+        const dismissal = Object.assign(new Error('share cancelled'), { name: 'AbortError' })
+        vi.stubGlobal('navigator', { share: () => Promise.reject(dismissal), clipboard: { writeText: vi.fn() } })
         const { root, button } = block()
 
         enhanceShareBlock(root as unknown as Element)
         await expect(button.fire('click')).resolves.toBeUndefined()
         expect(button.textContent).toBe('Send it round')
+        expect(navigator.clipboard.writeText).not.toHaveBeenCalled()
+    })
+
+    /** A browser that advertises `share` and then refuses the payload (no user activation it
+     *  recognises, an unsupported field) would otherwise leave the button a silent no-op — the one
+     *  outcome worse than the copy fallback this module already has. */
+    it('falls back to copying when the sheet fails for any reason but a dismissal', async () => {
+        const writeText = vi.fn(() => Promise.resolve())
+        const refusal = Object.assign(new Error('refused'), { name: 'NotAllowedError' })
+        vi.stubGlobal('navigator', { share: () => Promise.reject(refusal), clipboard: { writeText } })
+        const { root, button } = block()
+
+        enhanceShareBlock(root as unknown as Element)
+        await button.fire('click')
+
+        expect(writeText).toHaveBeenCalledWith(URL_WITH_CAMPAIGN)
+        expect(button.textContent).toBe('Link copied')
     })
 })
 

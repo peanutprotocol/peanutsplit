@@ -17,7 +17,7 @@ const CONTEXT: ContentRenderContext = {
 
 const PROPS = {
     title: 'Send this to the group chat',
-    body: 'Before the second bottle, ideally.',
+    body: 'Before the second bottle, ideally. The three sentences are logistics when they arrive with the menus and accusations when they arrive with the bill.',
     buttonLabel: 'Send it round',
     doneLabel: 'Link copied',
 }
@@ -60,11 +60,11 @@ describe('Share server render', () => {
      * `Calc.test.tsx` holds. Anything `Share.tsx` itself wrote, down to a stray separator, fails here.
      */
     it('renders zero words of its own: every token is authored copy', () => {
-        const authored = Object.values(PROPS).join(' ')
+        // A SET, not a substring of the joined props: `includes('to')` is true of almost any prose,
+        // so a substring test waves through the short common words most likely to be self-authored.
+        const authored = new Set(Object.values(PROPS).join(' ').split(/\s+/).filter(Boolean))
         for (const token of textOf(html).split(/\s+/).filter(Boolean)) {
-            expect(authored.includes(token), `"${token}" is a word Share.tsx authored — it must arrive as a prop`).toBe(
-                true
-            )
+            expect(authored.has(token), `"${token}" is a word Share.tsx authored — it must arrive as a prop`).toBe(true)
         }
     })
 

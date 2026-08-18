@@ -101,10 +101,22 @@ describe('Calc server render', () => {
      * between a chip's label and its amount, a hardcoded "each", a stray "of" — fails here.
      */
     it('renders zero words of its own: every token is authored copy or formatted money', () => {
-        const authored = Object.values(PROPS).join(' ')
+        // A SET of authored tokens, not a substring of the joined props: `authored.includes('to')`
+        // is true of almost any prose, so a substring test waves through exactly the short common
+        // words a component is most likely to have written itself.
+        //
+        // Split on `|` and `=` as well as whitespace, because `presets` is one prop carrying its own
+        // authored grammar (`Weekend=920|Week=1846`) — the chip labels on screen are its keys, and
+        // splitting on spaces alone would leave them unrecognised inside a single long token.
+        const authored = new Set(
+            Object.values(PROPS)
+                .join(' ')
+                .split(/[\s|=]+/)
+                .filter(Boolean)
+        )
         for (const token of textOf(html).split(/\s+/).filter(Boolean)) {
             expect(
-                authored.includes(token) || /^[\d.,€$÷→-]+$/.test(token),
+                authored.has(token) || /^[\d.,€$÷→-]+$/.test(token),
                 `"${token}" is a word Calc.tsx authored — it must arrive as a prop`
             ).toBe(true)
         }
