@@ -12,6 +12,7 @@ const JUMP_LABEL: Record<Locale, string> = {
     pl: 'Pytania',
     de: 'Fragen',
     fr: 'Questions',
+    uk: 'Питання',
 }
 
 /**

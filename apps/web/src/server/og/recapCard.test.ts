@@ -1,11 +1,12 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { isAvatarKey } from '@/lib/avatars'
 import { isAvatarPaletteKey } from '@/lib/avatar-palettes'
 import { type RoomWithRelations } from '@/server/roomState'
-import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
+import { BODY_CHARS, HEADLINE_CHARS } from '@/server/og/fonts'
+import { settledStampFontSize } from '@/server/og/frame'
 import { MEMBER_FALLBACK } from '@/server/og/roomCard'
 import {
     isSettled,
@@ -14,6 +15,7 @@ import {
     toRecapCard,
     toRoomRecap,
     topPayerName,
+    type RecapCardData,
     type RecapRoomRow,
     type RoomRecap,
 } from '@/server/og/recapCard'
@@ -24,11 +26,22 @@ import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
 import { POST as postSettlement } from '@/app/api/rooms/[slug]/settlements/route'
 import type { RoomState, RoomStateWithMember } from '@/lib/api-types'
+import { getTranslator, type Translator } from '@/i18n/t'
+import { LOCALES } from '@/i18n/locales'
 
-const drawableByDisplay = (value: string) => [...value].every((ch) => DISPLAY_CHARS.has(ch))
+const drawableByHeadline = (value: string) => [...value].every((ch) => HEADLINE_CHARS.has(ch))
 const drawableByBody = (value: string) => [...value].every((ch) => BODY_CHARS.has(ch))
 
 const date = (iso: string) => new Date(iso)
+
+let english: Translator
+let ukrainian: Translator
+
+beforeAll(async () => {
+    const translators = await Promise.all([getTranslator('en'), getTranslator('uk')])
+    english = translators[0]
+    ukrainian = translators[1]
+})
 
 // ------------------------------------------------------------------ pure bits
 
@@ -77,15 +90,25 @@ describe('topPayerName', () => {
 
 describe('recapStatLine', () => {
     it('reads naturally in the singular', () => {
-        expect(recapStatLine({ dayCount: 1, expenseCount: 1, memberCount: 1 })).toBe('1 day · 1 expense · 1 person')
+        expect(recapStatLine({ dayCount: 1, expenseCount: 1, memberCount: 1 }, english)).toBe(
+            '1 day · 1 expense · 1 person'
+        )
     })
 
     it('reads the way the card promises', () => {
-        expect(recapStatLine({ dayCount: 9, expenseCount: 14, memberCount: 6 })).toBe('9 days · 14 expenses · 6 people')
+        expect(recapStatLine({ dayCount: 9, expenseCount: 14, memberCount: 6 }, english)).toBe(
+            '9 days · 14 expenses · 6 people'
+        )
     })
 
     it('drops the day count rather than print "0 days"', () => {
-        expect(recapStatLine({ dayCount: 0, expenseCount: 0, memberCount: 3 })).toBe('0 expenses · 3 people')
+        expect(recapStatLine({ dayCount: 0, expenseCount: 0, memberCount: 3 }, english)).toBe('0 expenses · 3 people')
+    })
+
+    it('uses Ukrainian plural categories without an English fallback', () => {
+        expect(recapStatLine({ dayCount: 3, expenseCount: 4, memberCount: 5 }, ukrainian)).toBe(
+            '3 дні · 4 витрати · 5 людей'
+        )
     })
 })
 
@@ -171,6 +194,7 @@ const row = (overrides: Partial<RecapRoomRow> = {}): RecapRoomRow => ({
     name: 'Ski trip 🎿',
     emoji: '🎿',
     currency: 'EUR',
+    locale: 'en',
     members: [
         { id: 'a', name: 'Ana' },
         { id: 'm', name: 'María' },
@@ -206,6 +230,7 @@ describe('toRoomRecap', () => {
         expect(recap.expenseCount).toBe(2)
         expect(recap.memberCount).toBe(2)
         expect(recap.dayCount).toBe(9)
+        expect(recap.locale).toBe('en')
         expect(recap.topPayerName).toBe('María')
         expect(recap.settled).toBe(false)
         // Raw, not sanitized — the HTML page has no glyph budget.
@@ -268,13 +293,15 @@ describe('toRoomRecap', () => {
 
 describe('toRecapCard', () => {
     const recapOf = (overrides: Partial<RecapRoomRow> = {}): RoomRecap => toRoomRecap(row(overrides))
+    const cardOf = (recap: RoomRecap, t: Translator = english): RecapCardData => toRecapCard(recap, t)
 
     it('reduces the trip to strings the card can draw', () => {
-        const card = toRecapCard(recapOf())
+        const card = cardOf(recapOf())
         expect(card.name).toBe('Ski trip')
         expect(card.total).toBe('€2340.00')
         expect(card.stat).toBe('9 days · 2 expenses · 2 people')
         expect(card.topPayer).toBe('María fronted the most')
+        expect(card.settledLabel).toBe('All settled')
         // A legacy row carries no avatar key; the card passes the null through and the disc
         // falls back, rather than inventing a face the recap page would not draw.
         expect(card.personas).toEqual([
@@ -285,7 +312,7 @@ describe('toRecapCard', () => {
     })
 
     it('gives every member their own persona rather than a letter', () => {
-        const card = toRecapCard(
+        const card = cardOf(
             recapOf({
                 members: [
                     { id: 'a', name: 'Ana', avatar: 'wizard-frog', avatarPalette: 'lagoon-grape' },
@@ -299,34 +326,62 @@ describe('toRecapCard', () => {
         ])
     })
 
-    it('sanitizes a hostile room name instead of drawing blank boxes', () => {
-        const card = toRecapCard(recapOf({ name: 'Кипр 2026' }))
-        expect(card.name).toBe('A split')
-        expect(drawableByDisplay(card.name)).toBe(true)
+    it('preserves a Ukrainian room name for the Cyrillic headline fallback', () => {
+        const card = cardOf(recapOf({ name: 'Київ 2026' }), ukrainian)
+        expect(card.name).toBe('Київ 2026')
+        expect(card.stat).toBe('9 днів · 2 витрати · 2 людини')
+        expect(card.topPayer).toBe('Найбільший внесок за групу: María')
+        expect(card.settledLabel).toBe('Усі розрахувалися')
+        expect(drawableByHeadline(card.name)).toBe(true)
+        expect(drawableByBody(card.stat)).toBe(true)
+        expect(drawableByBody(card.topPayer as string)).toBe(true)
+    })
+
+    it('steps long localized stamp labels down before they can crowd the room name', () => {
+        expect(settledStampFontSize('All settled')).toBe(36)
+        expect(settledStampFontSize('Tout est réglé')).toBe(30)
+        expect(settledStampFontSize('Усі розрахувалися')).toBe(25)
+        expect(settledStampFontSize('Wszystko rozliczone')).toBe(22)
+    })
+
+    it('keeps every shipped settled verdict intact and drawable', async () => {
+        const labels = await Promise.all(
+            LOCALES.map(async (locale) => cardOf(recapOf(), await getTranslator(locale)).settledLabel)
+        )
+        expect(labels).toEqual([
+            'All settled',
+            'Todo saldado',
+            'Tudo acertado',
+            'Wszystko rozliczone',
+            'Alles ausgeglichen',
+            'Tout est réglé',
+            'Усі розрахувалися',
+        ])
+        for (const label of labels) expect(drawableByHeadline(label)).toBe(true)
     })
 
     it('carries a stored doodle name through as the emblem', () => {
-        const card = toRecapCard(recapOf({ emoji: 'pizza' }))
+        const card = cardOf(recapOf({ emoji: 'pizza' }))
         expect(card.emblem).toBe('pizza')
     })
 
     it('preserves a custom drawing for the recap artwork', () => {
         const custom = encodeRoomDrawing([[{ x: 0.5, y: 0.5 }]])
-        expect(toRecapCard(recapOf({ emoji: custom })).emblem).toBe(custom)
+        expect(cardOf(recapOf({ emoji: custom })).emblem).toBe(custom)
     })
 
     it('translates a legacy emoji emblem to its drawing', () => {
-        const card = toRecapCard(recapOf({ emoji: '🎿' }))
+        const card = cardOf(recapOf({ emoji: '🎿' }))
         expect(card.emblem).toBe('ski')
     })
 
     it('falls back to the peanut for junk emblems, exactly like RoomEmblem does', () => {
-        expect(toRecapCard(recapOf({ emoji: '🦖', name: 'Ski trip' })).emblem).toBe('peanut')
-        expect(toRecapCard(recapOf({ emoji: null, name: 'zzz' })).emblem).toBe('peanut')
+        expect(cardOf(recapOf({ emoji: '🦖', name: 'Ski trip' })).emblem).toBe('peanut')
+        expect(cardOf(recapOf({ emoji: null, name: 'zzz' })).emblem).toBe('peanut')
     })
 
     it('sanitizes a hostile member name inside the top-payer line', () => {
-        const card = toRecapCard(
+        const card = cardOf(
             recapOf({
                 members: [
                     { id: 'a', name: 'Ana' },
@@ -339,18 +394,18 @@ describe('toRecapCard', () => {
     })
 
     it('swaps an undrawable currency symbol for the ISO code', () => {
-        // `฿` is outside Roboto Latin Extended — a gap in the hero number would read as a bug.
-        const card = toRecapCard(recapOf({ currency: 'THB' }))
+        // `฿` is outside the shipped Roboto cmap — a gap in the hero number would read as a bug.
+        const card = cardOf(recapOf({ currency: 'THB' }))
         expect(card.total).toBe('2340.00 THB')
         expect(drawableByBody(card.total)).toBe(true)
     })
 
     it('every string it emits is drawable', () => {
         for (const currency of ['USD', 'EUR', 'GBP', 'BRL', 'CHF', 'THB', 'JPY', 'COP']) {
-            const card = toRecapCard(recapOf({ currency }))
+            const card = cardOf(recapOf({ currency }))
             expect(drawableByBody(card.total)).toBe(true)
             expect(drawableByBody(card.stat)).toBe(true)
-            expect(drawableByDisplay(card.name)).toBe(true)
+            expect(drawableByHeadline(card.name)).toBe(true)
             // The faces carry no text at all now — a persona is a drawing, so there is no
             // codepoint for the two shipped fonts to be missing.
         }
@@ -370,20 +425,18 @@ describe('toRecapCard', () => {
         })
         // True, and it reads as a bug: there was nobody to front more than.
         expect(solo.topPayerName).toBe('Ana')
-        expect(toRecapCard(solo).topPayer).toBeNull()
+        expect(cardOf(solo).topPayer).toBeNull()
     })
 
     it('collapses a big roster into +N', () => {
         const many = recapOf({ members: Array.from({ length: 9 }, (_, i) => ({ id: `m${i}`, name: `Member ${i}` })) })
-        expect(toRecapCard(many).personas).toHaveLength(6)
-        expect(toRecapCard(many).overflow).toBe(3)
+        expect(cardOf(many).personas).toHaveLength(6)
+        expect(cardOf(many).overflow).toBe(3)
     })
 
     it('stamps SETTLED only on a room that reached zero', () => {
-        expect(toRecapCard(recapOf()).settled).toBe(false)
-        expect(toRecapCard(recapOf({ settlements: [{ fromId: 'a', toId: 'm', amountMinor: 83_000n }] })).settled).toBe(
-            true
-        )
+        expect(cardOf(recapOf()).settled).toBe(false)
+        expect(cardOf(recapOf({ settlements: [{ fromId: 'a', toId: 'm', amountMinor: 83_000n }] })).settled).toBe(true)
     })
 })
 
@@ -482,6 +535,7 @@ describe('loadRecap', () => {
         expect(recap?.members.every((member) => isAvatarKey(member.avatar))).toBe(true)
         expect(recap?.members.every((member) => isAvatarPaletteKey(member.avatarPalette))).toBe(true)
         expect(recap?.topPayerName).toBe('Maria')
+        expect(recap?.locale).toBeNull()
         expect(recap?.settled).toBe(false)
     })
 
@@ -518,6 +572,6 @@ describe('loadRecap', () => {
         const recap = await loadRecap(slug)
         expect(recap?.settled).toBe(true)
         expect(recap?.settlementCount).toBe(1)
-        expect(toRecapCard(recap as RoomRecap).settled).toBe(true)
+        expect(toRecapCard(recap as RoomRecap, english).settled).toBe(true)
     })
 })

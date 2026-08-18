@@ -39,18 +39,15 @@ docker compose up --build    # app on :3000, migrations applied at boot
 
 ## Languages
 
-Three: `en` (default), `es` (es-419 tone), `pt-BR`. There is no `[locale]` URL segment and no
-middleware — a room link is the product and a link that carries a language arrives in the wrong
-one the moment it is forwarded. The locale comes from the `ps-locale` cookie, falling back to
-`Accept-Language`, falling back to English, and is resolved in `src/i18n/request.ts` before
-anything renders. The consequence, and it is deliberate: every route is server-rendered per
-request, because no static HTML can be correct for three languages at once.
+The product UI ships in `en` (default), `es-419`, `pt-br`, `pl`, `de`, `fr`, and `uk`. Room and
+app URLs have no locale segment — a room link is the product, and a forwarded link should open in
+the recipient's language. The locale comes from the `ps-locale` cookie, then `Accept-Language`,
+then English, and is resolved in `src/i18n/request.ts` before anything renders. Authored SEO and
+guide pages use locale-prefixed URLs only where the translated content exists.
 
-Strings live in `src/i18n/messages/{en,es,pt-BR}.json` and are read with `useTranslations`.
+Strings live in `src/i18n/messages/*.json` and are read with `useTranslations`.
 `pnpm i18n:audit` is the gate and runs in CI — a key that is missing renders as its own dotted
 path, which throws nothing, fails no test, and ships.
 
-Two surfaces stay English on purpose: the OG images (`src/server/og/`, whose fonts have no
-accented glyphs) and the Splitwise comparison page (`components/marketing/copy.ts`, whose body
-must match the English `<title>` and FAQPage JSON-LD a crawler is served). The shell around the
-article pages — nav, footer, language switcher — is translated.
+Room unfurls and share cards are localized. Their pinned Knerd/Roboto font pipeline preserves the
+Latin Extended and Cyrillic catalogs without a runtime font fetch.

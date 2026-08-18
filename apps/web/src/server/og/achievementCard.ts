@@ -26,7 +26,7 @@ import { daySpan } from '@/lib/story'
 import { themeFor, type RoomTheme } from '@/lib/themes'
 import { getTranslator } from '@/i18n/t'
 import { prisma } from '@/server/db'
-import { bodySafe, displaySafe, hash, sanitizeDisplayName, sanitizeMemberName } from '@/server/og/roomCard'
+import { bodySafe, hash, headlineSafe, sanitizeDisplayName, sanitizeMemberName } from '@/server/og/roomCard'
 
 /** Faces in the crew lineup. Higher than the unfurl's six on purpose: the crew
  *  card's whole subject is how many people are in the room, and it has the whole
@@ -59,7 +59,7 @@ export interface CardPersona {
 export type AchievementCardData =
     | (CardFrame & {
           kind: 'invite'
-          /** The ROOM's name, display-font-safe and already truncated. */
+          /** The ROOM's name, headline-font-safe and already truncated. */
           name: string
           /** The proven current sharer, or the localized anonymous fallback. */
           inviter: string
@@ -155,7 +155,7 @@ export async function toCrewCard(
     return {
         kind: 'crew',
         theme: themeFor(room.theme),
-        title: displaySafe(await t('card.crew.title')),
+        title: headlineSafe(await t('card.crew.title')),
         line: bodySafe(await t('card.crew.line')),
         count: room.members.length,
         personas: shown.map((m) => ({ avatar: m.avatar, palette: m.avatarPalette })),
@@ -196,7 +196,7 @@ export async function toPassportCard(
     return {
         kind: 'passport',
         theme: themeFor(room.theme),
-        title: displaySafe(await t('card.passport.title')),
+        title: headlineSafe(await t('card.passport.title')),
         line: bodySafe(await t('card.passport.line', { count: distinctCurrencies(codes).length })),
         stamps,
     }
@@ -220,7 +220,7 @@ export async function toAlterEgoCard(
     return {
         kind: 'alterego',
         theme: themeFor(room.theme),
-        title: displaySafe(await t('card.alterego.title')),
+        title: headlineSafe(await t('card.alterego.title')),
         line: bodySafe(await t('card.alterego.line')),
         // Set in the body face by the art, not in Knerd: `Leyenda de la cuenta` is four
         // words, and the display face stops being a headline past two.
@@ -237,7 +237,7 @@ export async function toStatsCard(
     return {
         kind: 'stats',
         theme: themeFor(room.theme),
-        title: displaySafe(await t('card.stats.title')),
+        title: headlineSafe(await t('card.stats.title')),
         days: daySpan(room.expenses.map((e) => e.date)),
         expenses: room.expenses.length,
         people: room.members.length,
@@ -251,7 +251,7 @@ export async function toLandingCard(
     return {
         kind: 'landing',
         theme: themeFor(room.theme),
-        title: displaySafe(await t('card.landing.title')),
+        title: headlineSafe(await t('card.landing.title')),
         people: room.members.length,
         // Settlements RECORDED. Nothing here claims a transfer was saved or that
         // money moved — the settle path is unverified by design.

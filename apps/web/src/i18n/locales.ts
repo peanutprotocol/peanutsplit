@@ -16,7 +16,7 @@
  * for it. The ONE place the standard casing appears is `HREFLANG`, below.
  */
 
-export const LOCALES = ['en', 'es-419', 'pt-br', 'pl', 'de', 'fr'] as const
+export const LOCALES = ['en', 'es-419', 'pt-br', 'pl', 'de', 'fr', 'uk'] as const
 
 export type Locale = (typeof LOCALES)[number]
 
@@ -45,6 +45,7 @@ export const HREFLANG: Record<Locale, string> = {
     pl: 'pl',
     de: 'de',
     fr: 'fr',
+    uk: 'uk',
 }
 
 /** Default when neither URL, cookie nor browser preferences resolve to a supported locale. */
@@ -100,6 +101,7 @@ export const LOCALE_LABELS: Record<Locale, string> = {
     pl: 'Polski',
     de: 'Deutsch',
     fr: 'Français',
+    uk: 'Українська',
 }
 
 /**
@@ -118,6 +120,7 @@ export function localeFromLanguageTag(tag: string): Locale | null {
     if (primary === 'pl') return 'pl'
     if (primary === 'de') return 'de'
     if (primary === 'fr') return 'fr'
+    if (primary === 'uk') return 'uk'
     return null
 }
 

@@ -37,6 +37,7 @@ const PREFIX_BY_LOCALE: Record<Locale, string> = {
     pl: 'pl',
     de: 'de',
     fr: 'fr',
+    uk: 'uk',
 }
 
 const LOCALE_BY_PREFIX = new Map<string, Locale>(

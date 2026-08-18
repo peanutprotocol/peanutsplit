@@ -31,3 +31,22 @@ test('native catalogs own the document and migrate existing locale choices', asy
             .toBe(entry.locale)
     }
 })
+
+test('a Ukrainian browser gets Ukrainian on its first paint', async ({ browser }, testInfo) => {
+    const context = await browser.newContext({ baseURL: testInfo.project.use.baseURL, locale: 'uk-UA' })
+    const page = await context.newPage()
+    try {
+        await page.goto('/')
+
+        await expect(page.locator('html')).toHaveAttribute('lang', 'uk')
+        await expect(page.getByTestId('pass-link-headline')).toHaveText('ХТО КОМУ СКІЛЬКИ? SPLIT ПОРАХУЄ.')
+        await expect(page.getByTestId('locale-uk')).toHaveAttribute('aria-pressed', 'true')
+    } finally {
+        await context.close()
+    }
+})
+
+test('Ukrainian stays on the shared product URLs instead of inventing an SEO route', async ({ page }) => {
+    const response = await page.goto('/uk')
+    expect(response?.status()).toBe(404)
+})

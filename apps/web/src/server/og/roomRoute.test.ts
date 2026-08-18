@@ -12,6 +12,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { prisma, truncateAll } from '@/server/test/db'
+import { loadRoomCard } from '@/server/og/roomCard'
 import RoomOgImage from '@/app/(product-shell)/r/[slug]/opengraph-image'
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47]
@@ -33,7 +34,7 @@ describe('room opengraph-image', () => {
         const room = await prisma.room.create({
             data: {
                 slug: 'ski-trip-room01',
-                name: 'Ski trip 🎿 東京',
+                name: 'Їдемо до Ґанку в Києві 🎿 東京',
                 emoji: encodeRoomDrawing([
                     [
                         { x: 0.15, y: 0.2 },
@@ -42,9 +43,11 @@ describe('room opengraph-image', () => {
                 ]),
                 currency: 'EUR',
                 theme: 'coral',
-                locale: 'pl',
+                locale: 'uk',
                 members: {
-                    create: Array.from({ length: 8 }, (_, i) => ({ name: `Member ${i}`, token: `tok-${i}` })),
+                    create: ['Їрина', 'Євген', 'Олена', 'Богдан', 'Андрій', 'Марія', 'Софія', 'Тарас'].map(
+                        (name, i) => ({ name, token: `tok-${i}` })
+                    ),
                 },
             },
             include: { members: true },
@@ -77,6 +80,15 @@ describe('room opengraph-image', () => {
     }, 30_000)
 
     it('rasterizes a themed room, overflow chip and empty seat and all', async () => {
+        const card = await loadRoomCard(slug)
+        expect(card).toMatchObject({
+            name: 'Їдемо до Ґанку в Києві',
+            stat: '1 витрата · наразі €2340.00',
+            people: '8 людей',
+            tagline: 'без реєстрації · безкоштовно назавжди',
+        })
+        expect(card?.avatars.map(({ letter }) => letter)).toEqual(['Ї', 'Є', 'О', 'Б', 'А', 'М'])
+
         const { response, bytes } = await render(slug)
         expect(response.status).toBe(200)
         expect([...bytes.slice(0, 4)]).toEqual(PNG_MAGIC)

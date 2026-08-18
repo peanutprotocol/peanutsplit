@@ -4,7 +4,8 @@
  *
  * Deliberately NOT the invite card. The invite is a yellow field whose headline
  * is the room name and whose job is "tap this". The recap is a green field whose
- * headline is the MONEY, stamped SETTLED, and whose job is "look what we did".
+ * headline is the MONEY, stamped with the localized settled verdict, and whose
+ * job is "look what we did".
  * Someone who has seen both in the same chat should not have to read them to
  * tell them apart.
  *
@@ -22,7 +23,7 @@
  * in `frame.tsx`, which is what the note this file carried asked for.
  */
 import { doodleDataUri, emblemDataUri } from '@/server/og/emblem'
-import { DISPLAY_FONT } from '@/server/og/fonts'
+import { DISPLAY_FONT, headlineFont, headlineWeight } from '@/server/og/fonts'
 import {
     BLOBS_LEFT,
     cardDomain,
@@ -138,7 +139,14 @@ export function RecapCard({ card, emojiSrc }: { card: RecapCardData; emojiSrc: s
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={emojiSrc} width={72} height={72} alt="" style={{ flexShrink: 0 }} />
                         ) : (
-                            <div style={{ ...disc(72, FIELD), fontFamily: DISPLAY_FONT, fontSize: 34 }}>
+                            <div
+                                style={{
+                                    ...disc(72, FIELD),
+                                    fontFamily: headlineFont(card.name.slice(0, 1)),
+                                    fontWeight: headlineWeight(card.name.slice(0, 1)),
+                                    fontSize: 34,
+                                }}
+                            >
                                 {card.name.slice(0, 1).toUpperCase()}
                             </div>
                         )}
@@ -150,7 +158,8 @@ export function RecapCard({ card, emojiSrc }: { card: RecapCardData; emojiSrc: s
                                 display: 'block',
                                 marginLeft: 22,
                                 maxWidth: 620,
-                                fontFamily: DISPLAY_FONT,
+                                fontFamily: headlineFont(card.name),
+                                fontWeight: headlineWeight(card.name),
                                 fontSize: nameFontSize(card.name),
                                 lineHeight: 1.1,
                                 color: INK,
@@ -166,7 +175,7 @@ export function RecapCard({ card, emojiSrc }: { card: RecapCardData; emojiSrc: s
                     </div>
                     {/* Only a room that actually reached zero gets the stamp. A
                         mid-trip recap is a scoreboard, not a result. */}
-                    {card.settled ? <SettledStamp label="SETTLED" /> : null}
+                    {card.settled ? <SettledStamp label={card.settledLabel} /> : null}
                 </div>
 
                 <div

@@ -9,6 +9,7 @@ describe('indexed locale boundary', () => {
         expect(isIndexedLocale('pl')).toBe(false)
         expect(isIndexedLocale('de')).toBe(false)
         expect(isIndexedLocale('fr')).toBe(false)
+        expect(isIndexedLocale('uk')).toBe(false)
     })
 })
 
@@ -21,10 +22,11 @@ describe('localeFromLanguageTag', () => {
         expect(localeFromLanguageTag('pl-PL')).toBe('pl')
         expect(localeFromLanguageTag('de-AT')).toBe('de')
         expect(localeFromLanguageTag('fr-CA')).toBe('fr')
+        expect(localeFromLanguageTag('uk-UA')).toBe('uk')
     })
 
     it('does not invent support for another language', () => {
-        expect(localeFromLanguageTag('uk-UA')).toBeNull()
+        expect(localeFromLanguageTag('it-IT')).toBeNull()
         expect(localeFromLanguageTag('')).toBeNull()
     })
 })
@@ -50,13 +52,14 @@ describe('localeFromStoredPreference', () => {
         expect(localeFromStoredPreference('pl')).toBe('pl')
         expect(localeFromStoredPreference('de')).toBe('de')
         expect(localeFromStoredPreference('fr')).toBe('fr')
+        expect(localeFromStoredPreference('uk')).toBe('uk')
         expect(localeFromStoredPreference('es')).toBe('es-419')
         expect(localeFromStoredPreference('pt-BR')).toBe('pt-br')
     })
 
     it('rejects arbitrary cookie values', () => {
         expect(localeFromStoredPreference('es-ES')).toBeNull()
-        expect(localeFromStoredPreference('uk')).toBeNull()
+        expect(localeFromStoredPreference('it')).toBeNull()
         expect(localeFromStoredPreference(undefined)).toBeNull()
     })
 })

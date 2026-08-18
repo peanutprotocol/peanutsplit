@@ -19,7 +19,7 @@ import { setLocaleAndReload } from '@/lib/locale-cookie'
 /**
  * `compact` is the footer-bar form: language names on a dark ground, no boxes and no heading,
  * allowed to wrap beside the maker credit. The full form is a bordered grid
- * control, which needs a heading to explain what the three words are.
+ * control, which needs a heading to identify the language names.
  *
  * Both forms are the same buttons doing the same thing, so the testids match — a test
  * does not care which skin the switcher is wearing.

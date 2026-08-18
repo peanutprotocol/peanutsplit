@@ -42,6 +42,7 @@ describe('locale prefixes', () => {
         expect(localePrefix('pl')).toBe('/pl')
         expect(localePrefix('de')).toBe('/de')
         expect(localePrefix('fr')).toBe('/fr')
+        expect(localePrefix('uk')).toBe('/uk')
     })
 
     it('keeps a locale to exactly one path segment', () => {
@@ -64,7 +65,7 @@ describe('locale prefixes', () => {
     it('does not treat English as a prefix', () => {
         expect(localeFromPrefix('en')).toBeNull()
         expect(localeFromPrefix('blog')).toBeNull()
-        expect(PREFIXED_LOCALES).toEqual(['es-419', 'pt-br', 'pl', 'de', 'fr'])
+        expect(PREFIXED_LOCALES).toEqual(['es-419', 'pt-br', 'pl', 'de', 'fr', 'uk'])
     })
 
     /** The bare `es` that shipped before the codes carried a territory is not a locale now. */

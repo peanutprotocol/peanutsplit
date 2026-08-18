@@ -17,8 +17,10 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
+import { getTranslator } from '@/i18n/t'
 import { recapImagePath } from '@/lib/recap'
 import { prisma, truncateAll } from '@/server/test/db'
+import { loadRecap, toRecapCard } from '@/server/og/recapCard'
 import {
     enforceRateLimit,
     enforceRateLimitPreflight,
@@ -60,7 +62,7 @@ describe('recap card routes', () => {
         const room = await prisma.room.create({
             data: {
                 slug: 'ski-trip-recap1',
-                name: 'Ski trip 🎿 東京',
+                name: 'Їдемо до Ґанку в Києві 🎿 東京',
                 emoji: encodeRoomDrawing([
                     [
                         { x: 0.15, y: 0.2 },
@@ -68,10 +70,11 @@ describe('recap card routes', () => {
                     ],
                 ]),
                 currency: 'EUR',
+                locale: 'uk',
                 members: {
                     create: [
-                        { name: 'Ana', token: 'tok-ana' },
-                        { name: 'María', token: 'tok-maria' },
+                        { name: 'Ірина', token: 'tok-iryna' },
+                        { name: 'Марія', token: 'tok-mariia' },
                     ],
                 },
             },
@@ -105,6 +108,18 @@ describe('recap card routes', () => {
 
     afterAll(() => resetRateLimits())
 
+    const expectUkrainianCard = async () => {
+        const recap = await loadRecap(slug)
+        expect(recap?.locale).toBe('uk')
+        const card = toRecapCard(recap!, await getTranslator(recap!.locale ?? 'en'))
+        expect(card).toMatchObject({
+            name: 'Їдемо до Ґанку в Києві',
+            stat: '1 день · 1 витрата · 2 людини',
+            topPayer: 'Найбільший внесок за групу: Марія',
+            settledLabel: 'Усі розрахувалися',
+        })
+    }
+
     /**
      * The check that would have caught the incident, at unit speed.
      *
@@ -126,7 +141,8 @@ describe('recap card routes', () => {
         expect(existsSync(join(process.cwd(), 'src/app/(product-shell)/r/[slug]', segment, 'route.ts'))).toBe(true)
     })
 
-    it('rasterizes a settled room through the route the share button fetches', async () => {
+    it('rasterizes a localized Ukrainian room through the route the share button fetches', async () => {
+        await expectUkrainianCard()
         const { response, bytes } = await fetchCard(slug)
         expectPng(response, bytes)
         expect(response.headers.get('Cache-Control')).toContain('max-age=300')
@@ -178,7 +194,8 @@ describe('recap card routes', () => {
             expect(response.headers.get('Cache-Control')).toContain('max-age=300')
         }, 30_000)
 
-        it('rasterizes a settled room, stamp and all', async () => {
+        it('rasterizes the same localized Ukrainian room, stamp and all', async () => {
+            await expectUkrainianCard()
             const { response, bytes } = await render(slug)
             expectPng(response, bytes)
         }, 30_000)

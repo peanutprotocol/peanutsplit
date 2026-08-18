@@ -9,7 +9,7 @@
 import { getTranslator } from '@/i18n/t'
 import { prisma } from '@/server/db'
 import { formatMinor } from '@/server/money'
-import { BODY_CHARS, DISPLAY_CHARS } from '@/server/og/fonts'
+import { BODY_CHARS, HEADLINE_CHARS } from '@/server/og/fonts'
 import { themeFor, type RoomTheme } from '@/lib/themes'
 import { roomEmblemValue } from '@/lib/room-emblem'
 
@@ -93,7 +93,7 @@ export async function cardCopy(locale: string | null | undefined): Promise<CardC
 }
 
 export interface RoomCardData {
-    /** Display-font-safe, already truncated. */
+    /** Headline-font-safe, already truncated. Knerd for Latin, Roboto for Cyrillic. */
     name: string
     /** The room's drawing, already resolved — a stored emblem, or the one its name gives. */
     emblem: string
@@ -157,7 +157,7 @@ export function sanitizeForFont(
         .replace(/\s+/g, ' ')
         .trim()
 
-    if (!/[A-Za-z0-9]/.test(kept)) return options.fallback
+    if (!/[\p{L}\p{N}]/u.test(kept)) return options.fallback
 
     const meaningful = countMeaningful(raw)
     if (meaningful > 0 && countMeaningful(kept) / meaningful < 0.7) return options.fallback
@@ -167,19 +167,19 @@ export function sanitizeForFont(
 
 /** The room's own name, as the unfurl's headline. */
 export const sanitizeDisplayName = (raw: string): string =>
-    sanitizeForFont(raw, { charset: DISPLAY_CHARS, fallback: NAME_FALLBACK, max: MAX_NAME_CHARS })
+    sanitizeForFont(raw, { charset: HEADLINE_CHARS, fallback: NAME_FALLBACK, max: MAX_NAME_CHARS })
 
 /** A member's name, as it appears inside a recap sentence. */
 export const sanitizeMemberName = (raw: string): string =>
     sanitizeForFont(raw, { charset: BODY_CHARS, fallback: MEMBER_FALLBACK, max: MAX_MEMBER_CHARS })
 
-/** First drawable letter of a member's name, diacritics folded away. Checked
- *  against the display font because that is what the avatar discs render in. */
+/** First drawable letter of a member's name. Latin diacritics fold to Knerd's
+ * base letter; Cyrillic stays intact and the art selects Roboto for that disc. */
 export function avatarLetter(name: string): string {
     const folded = name.normalize('NFD').replace(/\p{M}/gu, '')
     const ascii = folded.match(/[A-Za-z0-9]/)
     if (ascii) return ascii[0].toUpperCase()
-    const drawable = [...name].find((ch) => DISPLAY_CHARS.has(ch) && /\S/.test(ch))
+    const drawable = [...name].find((ch) => BODY_CHARS.has(ch) && /[\p{L}\p{N}]/u.test(ch))
     return drawable ? drawable.toUpperCase() : '?'
 }
 
@@ -219,7 +219,7 @@ export function avatarsFor(
 
 /**
  * `formatMinor` output, guaranteed drawable. Thai baht is the live example: `฿`
- * is outside Roboto Latin Extended, so the symbol gives way to the ISO code rather than a gap.
+ * is outside the shipped Roboto cmap, so the symbol gives way to the ISO code rather than a gap.
  */
 export function safeAmount(totalMinor: bigint, code: string): string {
     let formatted: string
@@ -240,8 +240,8 @@ export function safeAmount(totalMinor: bigint, code: string): string {
  * Anything the body font cannot draw, dropped.
  *
  * `safeAmount` already does this for the amount, where the failure is a known one
- * (`฿` is outside Roboto Latin Extended). A translated sentence is the other
- * half: the shipped Latin and Latin Extended catalogs draw fine, but a catalog
+ * (`฿` is outside the shipped Roboto cmap). A translated sentence is the other
+ * half: the shipped Latin, Latin Extended and Cyrillic catalogs draw fine, but a catalog
  * is edited by people rather than by this file, and one pasted character outside
  * the cmap would put a blank rectangle in the product's storefront. The filter
  * costs nothing and removes the class.
@@ -255,9 +255,9 @@ export const fontSafe = (value: string, charset: ReadonlySet<string>): string =>
 
 export const bodySafe = (value: string): string => fontSafe(value, BODY_CHARS)
 
-/** The same, for a Knerd headline. The display face has the narrower cmap of the
- *  two, so a headline is the string most likely to lose a character. */
-export const displaySafe = (value: string): string => fontSafe(value, DISPLAY_CHARS)
+/** Localized headline copy. Knerd remains the first choice in the artwork;
+ * this wider sanitizer lets the targeted Roboto fallback keep Cyrillic whole. */
+export const headlineSafe = (value: string): string => fontSafe(value, HEADLINE_CHARS)
 
 export function statLine(
     expenseCount: number,
