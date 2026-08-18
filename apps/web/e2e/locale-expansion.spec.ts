@@ -153,8 +153,7 @@ for (const { locale, messages } of cases) {
                     () =>
                         wrappedCards.evaluateAll(
                             (images) =>
-                                images.length > 0 &&
-                                images.every((image) => image.complete && image.naturalWidth > 0)
+                                images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0)
                         ),
                     { timeout: 30_000 }
                 )
