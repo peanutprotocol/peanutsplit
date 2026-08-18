@@ -211,7 +211,12 @@ test('supporting marketing surfaces route every creation-labelled link to the co
         await page.goto(path)
         const creationLinks = page.getByRole('link', { name: /Start (?:a split|a room)/i })
         expect(await creationLinks.count(), `${path} should expose at least one creation link`).toBeGreaterThan(0)
-        for (const link of await creationLinks.all()) await expect(link).toHaveAttribute('href', '/new')
+        // The destination is the assertion; the query is not. An article's creation links carry
+        // `?campaign=content-<slug>` (SEO loop A, blocks.tsx's `withCampaign`) so a content-sourced
+        // room can be counted, and `/blog/split-bills-without-an-app` above is one such article.
+        // The pattern still pins the path to the composer and allows nothing but a campaign code.
+        for (const link of await creationLinks.all())
+            await expect(link).toHaveAttribute('href', /^\/new(\?campaign=[\w-]+)?$/)
     }
 })
 
