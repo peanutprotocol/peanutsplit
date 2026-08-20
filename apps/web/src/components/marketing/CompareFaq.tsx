@@ -14,7 +14,7 @@ export function CompareFaq({ title, items = [] }: CompareFaqProps) {
             <h2 className="split-section-heading text-h5">{title}</h2>
             <ul className="mt-4 flex flex-col gap-3">
                 {items.map((item) => (
-                    <li key={item.q} className="rounded-sm border border-n-1 bg-white p-4">
+                    <li key={item.q} className="split-faq-item rounded-sm border border-n-1 bg-white p-4">
                         <h3 className="text-h7">{item.q}</h3>
                         <p className="mt-2 text-sm leading-5 text-grey-1">{item.a}</p>
                     </li>

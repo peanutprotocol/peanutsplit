@@ -47,7 +47,7 @@ export async function ToolPage({ tool }: { tool: Tool }) {
                     a character with a line — see §5 of the stylebook. */}
                 <div className="flex items-center gap-3">
                     <Doodle name={tool.doodle} size={38} weight={1.5} />
-                    <h1 className="text-h4 leading-tight text-n-1">{tool.copy.h1}</h1>
+                    <h1 className="split-page-title text-h4 leading-tight text-n-1">{tool.copy.h1}</h1>
                 </div>
                 {tool.copy.intro.map((paragraph) => (
                     <p key={paragraph} className="mt-4 text-base leading-6 text-n-1">

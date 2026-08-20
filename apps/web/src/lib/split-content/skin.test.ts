@@ -26,10 +26,11 @@ describe('skinFor', () => {
         }
     })
 
-    /** The gate keys on the register ARGUMENT, not on the slug: `splitwise-daily-limit` is
-     *  flat-register content, but this function has never heard of `FLAT_REGISTER_SLUGS` —
-     *  `pageRecipe` is what supplies the `'flat'`, and recipe.test.ts asserts that end to end. */
-    it('skins even the flat-register slug when it is handed the default register', () => {
+    /** The gate keys on the register ARGUMENT, not on the slug: this function has never heard of
+     *  `FLAT_REGISTER_SLUGS`, and `pageRecipe` is the only thing that supplies a `'flat'`. Held on
+     *  `splitwise-daily-limit`, which left that set on 20 Aug — the argument still decides, which
+     *  is the whole point, and is why the same slug now takes the skin on the real route. */
+    it('answers on the register it is handed, not on the slug — the same slug both ways', () => {
         expect(skinFor('splitwise-daily-limit', 'default')).toBe('sticker')
         expect(skinFor('splitwise-daily-limit', 'flat')).toBe('none')
     })

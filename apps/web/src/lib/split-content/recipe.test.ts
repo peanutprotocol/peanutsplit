@@ -81,13 +81,12 @@ describe('pageRecipe', () => {
         }
     })
 
-    it('maps the one flat-register slug to a real alternatives/* directory name', () => {
-        expect(FLAT_REGISTER_SLUGS.size).toBe(1)
-        const alternativesDirs = fs
-            .readdirSync(path.join(process.cwd(), 'src/content/alternatives'), { withFileTypes: true })
-            .filter((entry) => entry.isDirectory())
-            .map((entry) => entry.name)
-        for (const slug of FLAT_REGISTER_SLUGS) expect(alternativesDirs).toContain(slug)
+    /** Empty by Konrad's 20 Aug ruling (see recipe.ts): the Splitwise-migration family's flat
+     *  visual treatment is overruled site-wide, so no live page takes the flat register. Asserted
+     *  rather than dropped — the set is still the seam a future flat page joins, and re-pinning a
+     *  slug should fail here first rather than silently unskin a page. */
+    it('is empty — no live slug takes the flat register', () => {
+        expect(FLAT_REGISTER_SLUGS.size).toBe(0)
     })
 
     it('resolves every capture/* slug to the default register', () => {
@@ -119,15 +118,16 @@ describe('pageRecipe', () => {
 describe('pageSkinOrNull', () => {
     /** Over the whole map rather than KIND_BY_SLUG: `kind` is not an input to any recipe field, and
      *  the map is asserted above to be exactly the real slug set. */
-    it('skins every mapped slug — the flat register is the one exception', () => {
+    it('skins every mapped slug — the flat register is empty, so nothing opts out', () => {
         for (const slug of Object.keys(CHAPTER_BY_SLUG)) {
             const kind = KIND_BY_SLUG.get(slug) ?? 'guide'
-            const expected = FLAT_REGISTER_SLUGS.has(slug) ? 'none' : 'sticker'
-            expect(pageSkinOrNull(kind, slug, undefined, 'en'), slug).toBe(expected)
+            expect(pageSkinOrNull(kind, slug, undefined, 'en'), slug).toBe('sticker')
         }
     })
 
-    it('leaves the flat-register slug unskinned, structurally — not by omission from the map', () => {
+    /** Vacuous while the set is empty, and kept for the day a slug rejoins it: what it pins is
+     *  that a flat slug is unskinned structurally, not by being left out of `SKIN_BY_SLUG`. */
+    it('leaves any flat-register slug unskinned structurally — not by omission from the map', () => {
         for (const slug of FLAT_REGISTER_SLUGS) {
             const kind = KIND_BY_SLUG.get(slug) as PageKind
             expect(pageRecipe(kind, slug, undefined, 'en').register).toBe('flat')
@@ -167,7 +167,7 @@ describe('pageRegisterOrNull', () => {
         }
     })
 
-    it("returns 'flat' for the one flat-register slug and 'default' for everything else", () => {
+    it("mirrors FLAT_REGISTER_SLUGS — 'flat' for a member, 'default' for everything else (all of it today)", () => {
         for (const [slug, kind] of KIND_BY_SLUG) {
             const expected = FLAT_REGISTER_SLUGS.has(slug) ? 'flat' : 'default'
             expect(pageRegisterOrNull(kind, slug, undefined, 'en'), slug).toBe(expected)

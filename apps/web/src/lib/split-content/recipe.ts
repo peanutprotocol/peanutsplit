@@ -57,18 +57,21 @@ export const CHAPTER_BY_SLUG: Record<string, Chapter> = {
 }
 
 /**
- * The one live flat-register page this wave.
+ * Empty, by Konrad's 20 Aug ruling: the Splitwise-migration family's flat VISUAL treatment is
+ * overruled site-wide, so `splitwise-daily-limit` — the only entry this set ever held — leaves it.
+ * The copy register in the markdown is untouched; this turns the visual machinery back on — and
+ * retires flat-register.test.ts's play-tier scan with it, since that scan iterates this set.
+ * `/splitwise-daily-limit` now resolves the default register, which is what hands it
+ * `ChapterFrame` (chapter `versus`), `spotPlan`'s doodles and the skin, all through the
+ * `ArticleLayout` path it already routed down.
  *
- * CORRECTED from an earlier draft that denylisted all four capture/* slugs — capture is the
- * Default register per stylebook.md §2's collections table, not flat. The real flat families are
- * stylebook.md §3.10 / §5.5: Splitwise migration, couples splitting by income, and rent-and-
- * utilities fairness. Of those, only the Splitwise-migration family has a live Collection-scoped
- * slug today: `/splitwise-alternative` is named in §5.5 but is not a live directory
- * (alternatives/* has no such slug — see recipe.test.ts), and the by-income and rent-and-utilities
- * families have no live Collection-scoped page yet either. That leaves splitwise-daily-limit as
- * the only real entry; the other two families get a denylist entry once they ship a page.
+ * The set stays as the seam rather than being deleted: a page that genuinely earns flatness — the
+ * couples-by-income or rent-and-utilities families of stylebook.md §3.10 / §5.5, once either ships
+ * a live Collection-scoped slug — adds its slug here and gets the whole gate (register governor,
+ * spot placer, skin) for free. Every mechanism that reads it keys on the register argument, so all
+ * three stay tested against `'flat'` while no real slug supplies one.
  */
-export const FLAT_REGISTER_SLUGS: ReadonlySet<string> = new Set(['splitwise-daily-limit'])
+export const FLAT_REGISTER_SLUGS: ReadonlySet<string> = new Set<string>()
 
 export class SplitRecipeError extends Error {
     constructor(message: string) {
