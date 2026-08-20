@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import { INDEXED_LOCALES } from '@/i18n/locales'
 import { listAllTranslations } from '@/lib/content'
 import { loadSplitContentManifest } from './artifact'
-import { SKIN_BY_SLUG } from './skin'
 import {
     CHAPTER_BY_SLUG,
     FLAT_REGISTER_SLUGS,
@@ -118,13 +117,12 @@ describe('pageRecipe', () => {
 })
 
 describe('pageSkinOrNull', () => {
-    /** The four content slugs of the five-slug Wave-2 pilot; the fifth is a tool slug. */
-    const PILOT_CONTENT_SLUGS = Object.keys(SKIN_BY_SLUG).filter((slug) => slug in CHAPTER_BY_SLUG)
-
-    it('skins exactly the four pilot content slugs and nothing else', () => {
-        expect(PILOT_CONTENT_SLUGS).toHaveLength(4)
-        for (const [slug, kind] of KIND_BY_SLUG) {
-            const expected = PILOT_CONTENT_SLUGS.includes(slug) ? 'sticker' : 'none'
+    /** Over the whole map rather than KIND_BY_SLUG: `kind` is not an input to any recipe field, and
+     *  the map is asserted above to be exactly the real slug set. */
+    it('skins every mapped slug — the flat register is the one exception', () => {
+        for (const slug of Object.keys(CHAPTER_BY_SLUG)) {
+            const kind = KIND_BY_SLUG.get(slug) ?? 'guide'
+            const expected = FLAT_REGISTER_SLUGS.has(slug) ? 'none' : 'sticker'
             expect(pageSkinOrNull(kind, slug, undefined, 'en'), slug).toBe(expected)
         }
     })

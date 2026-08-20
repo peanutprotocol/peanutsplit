@@ -5,14 +5,14 @@ import { CHAPTER_BY_SLUG } from './recipe'
 import { TOOL_WALLPAPER_CHAPTER, toolSkin, toolWallpaperChapter } from './tool-skin'
 
 describe('toolSkin', () => {
-    it('skins the one tool in the Wave-2 pilot, and no other', () => {
+    it('skins both tools — a tool has no register, so it always takes SKIN_DEFAULT', () => {
         expect(toolSkin('mileage-split-calculator')).toBe('sticker')
-        expect(toolSkin('rent-split-calculator')).toBe('none')
+        expect(toolSkin('rent-split-calculator')).toBe('sticker')
     })
 
-    it("returns 'none' for a slug that is not a tool at all, and never throws", () => {
+    it('skins a slug that is not a tool at all, and never throws', () => {
         expect(() => toolSkin('this-is-not-a-tool')).not.toThrow()
-        expect(toolSkin('this-is-not-a-tool')).toBe('none')
+        expect(toolSkin('this-is-not-a-tool')).toBe('sticker')
     })
 })
 

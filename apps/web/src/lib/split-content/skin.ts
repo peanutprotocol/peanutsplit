@@ -55,35 +55,39 @@ export const SKIN_TOKENS: Record<Exclude<Skin, 'none'>, SkinToken> = {
     },
 }
 
-/**
- * The Wave-2 pilot. Five slugs; four content, one tool. Not a taxonomy — a rollout gate.
- *
- * The tool slug sits alongside the four content ones deliberately: the whole engine is keyed on
- * slug, and `src/data/static-pages.ts` reserves tool slugs against the content tree, so one flat
- * map stays honest. `pageRecipe` never sees a tool slug (it would throw on the missing chapter);
- * S3's `toolSkin()` reads the same map. CHAPTER_BY_SLUG must NOT grow a tool slug in sympathy —
- * recipe.test.ts asserts it maps exactly the real content slug set.
- */
-export const SKIN_BY_SLUG: Record<string, Skin> = {
-    'fronting-a-group-trip': 'sticker',
-    'who-pays-for-the-wine': 'sticker',
-    'splitwise-vs-tricount': 'sticker',
-    'fair-split-calculator': 'sticker',
-    'mileage-split-calculator': 'sticker',
-}
+/** The skin a slug gets when nothing overrides it. Wave 3: the whole corpus wears the sticker. */
+export const SKIN_DEFAULT: Skin = 'sticker'
 
 /**
- * A skin is decoration: an unmapped slug is `'none'`, never a throw — unlike a chapter, whose
- * absence is a content bug.
+ * Per-slug overrides on top of `SKIN_DEFAULT` — opt-outs to `'none'`, and where a second skin would
+ * be keyed once there is one. Empty today, and empty is the correct state: Wave 3 flipped the whole
+ * corpus, so this is an override seam, not the rollout gate it was in Wave 2.
+ *
+ * Content and tool slugs share it deliberately: the whole engine is keyed on slug, and
+ * `src/data/static-pages.ts` reserves tool slugs against the content tree, so one flat map stays
+ * honest. `pageRecipe` never sees a tool slug (it would throw on the missing chapter); S3's
+ * `toolSkin()` reads the same map. CHAPTER_BY_SLUG must NOT grow a tool slug in sympathy —
+ * recipe.test.ts asserts it maps exactly the real content slug set.
+ */
+export const SKIN_BY_SLUG: Record<string, Skin> = {}
+
+/**
+ * A skin is decoration: an unmapped slug takes `SKIN_DEFAULT`, never a throw — unlike a chapter,
+ * whose absence is a content bug.
  *
  * `register` is consulted BEFORE the map, the same shape `spotPlan` refuses a flat page: the flat
  * register gets no skin (Invariants #5), and putting the gate here means no call site can get the
  * ordering wrong. This is why `splitwise-daily-limit` is pinned structurally rather than by being
  * left out of `SKIN_BY_SLUG` — a later hand adding it to the map still cannot skin it.
+ *
+ * That gate keys on the register ARGUMENT, not on the slug: a flat-family page that never routes
+ * through `pageRecipe` (a hand-built route, or a new flat Collection slug) has to earn its `'flat'`
+ * some other way — a `FLAT_REGISTER_SLUGS` entry, or a `'none'` override above. Same contract as
+ * recipe.ts's note on that set.
  */
 export function skinFor(slug: string, register: 'default' | 'flat'): Skin {
     if (register === 'flat') return 'none'
-    return SKIN_BY_SLUG[slug] ?? 'none'
+    return SKIN_BY_SLUG[slug] ?? SKIN_DEFAULT
 }
 
 /**

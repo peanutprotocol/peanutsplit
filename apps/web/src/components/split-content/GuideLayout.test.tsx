@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
@@ -48,5 +49,28 @@ describe('SplitGuideLayout register gate', () => {
     it('emits data-chapter (ChapterFrame present) for a default-register page with the same chapter', () => {
         mocks.register = 'default'
         expect(renderGuide()).toContain('data-chapter="trips"')
+    })
+})
+
+/**
+ * The skin wiring, read as source rather than rendered — the fixture slug (`synthetic-guide`) is in
+ * no map, so `pageSkinOrNull` answers null for it and a rendered assertion would prove nothing
+ * about the wiring. Same idiom as ArticleLayout.test.tsx; the real DOM proof lives in
+ * ChapterFrame.test.tsx and e2e/content-skin.spec.ts.
+ */
+describe('SplitGuideLayout skin wiring', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'src/components/split-content/GuideLayout.tsx'), 'utf8')
+
+    it('resolves the skin alongside the chapter and the register', () => {
+        expect(source).toContain("const skin = pageSkinOrNull('guide', guide.slug, guide.tags, guide.locale)")
+    })
+
+    it('hands ChapterFrame the skin and the slug seed', () => {
+        expect(source).toContain("skin={skin ?? 'none'}")
+        expect(source).toContain('seed={hashSlug(guide.slug)}')
+    })
+
+    it("carries the skin's display-face hook on the h1 no guide body can author", () => {
+        expect(source).toContain('className="split-page-title text-h3 leading-tight"')
     })
 })
