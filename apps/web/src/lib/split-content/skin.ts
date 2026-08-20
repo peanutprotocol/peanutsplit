@@ -77,8 +77,8 @@ export const SKIN_BY_SLUG: Record<string, Skin> = {}
  *
  * `register` is consulted BEFORE the map, the same shape `spotPlan` refuses a flat page: the flat
  * register gets no skin (Invariants #5), and putting the gate here means no call site can get the
- * ordering wrong. This is why `splitwise-daily-limit` is pinned structurally rather than by being
- * left out of `SKIN_BY_SLUG` — a later hand adding it to the map still cannot skin it.
+ * ordering wrong. It is also why a flat page is pinned structurally rather than by being left out
+ * of `SKIN_BY_SLUG` — a later hand adding it to the map still cannot skin it.
  *
  * That gate keys on the register ARGUMENT, not on the slug: a flat-family page that never routes
  * through `pageRecipe` (a hand-built route, or a new flat Collection slug) has to earn its `'flat'`

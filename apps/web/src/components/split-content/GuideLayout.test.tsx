@@ -11,9 +11,9 @@ import { getSplitGuide, guideAlternates } from '@/lib/split-content/artifact'
  * same chapter-ink numerals and ledger leader digits as a warm page, defeating the reason the
  * register exists (fun-engine.md Invariants #4).
  *
- * No real guide slug is flat-register today (`FLAT_REGISTER_SLUGS` covers one `alternatives/*`
- * slug, not a guide), so this stubs `pageChapterOrNull`/`pageRegisterOrNull` rather than relying
- * on real content — the point under test is the layout's own conditional, not the resolver table.
+ * No real slug is flat-register today at all (`FLAT_REGISTER_SLUGS` is empty by Konrad's 20 Aug
+ * ruling), so this stubs `pageChapterOrNull`/`pageRegisterOrNull` rather than relying on real
+ * content — the point under test is the layout's own conditional, not the resolver table.
  */
 const mocks = vi.hoisted(() => ({ register: 'default' as 'flat' | 'default' }))
 

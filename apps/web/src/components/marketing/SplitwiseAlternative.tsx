@@ -14,6 +14,8 @@ import { Icon } from '@/components/ui/Icon'
 import { HREFLANG, INDEXED_LOCALES, type Locale } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import { absoluteLanguages, breadcrumbSchema, pageMetadata } from '@/lib/seo'
+import { hashSlug } from '@/lib/split-content/seed'
+import { skinFor } from '@/lib/split-content/skin'
 
 const BASE_PATH = '/splitwise-alternative'
 
@@ -75,16 +77,25 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
             <Breadcrumbs crumbs={crumbs} />
 
             {/* Hand-built page, so the chapter is passed literally — `versus` is not a content-tree
-                slug and deliberately absent from CHAPTER_BY_SLUG. */}
-            <ChapterFrame chapter="versus">
+                slug and deliberately absent from CHAPTER_BY_SLUG. The skin and its seed are resolved
+                from the same literal slug, at the default register every page now takes. */}
+            {/* The register is passed literally, so a future FLAT_REGISTER_SLUGS entry cannot
+                reach this call site — unskinning this page takes a SKIN_BY_SLUG 'none' override. */}
+            <ChapterFrame
+                chapter="versus"
+                skin={skinFor('splitwise-alternative', 'default')}
+                seed={hashSlug('splitwise-alternative')}
+            >
                 <div className="flex flex-col gap-10">
                     <section>
-                        <div className="border-b border-n-1 bg-primary-1">
+                        <div className="split-hero-band border-b border-n-1 bg-primary-1">
                             <div className="mx-auto w-full max-w-xl px-5 pb-8 pt-10">
-                                <span className="inline-flex items-center rounded-sm border border-n-1 bg-white px-3 py-1 text-h9 uppercase tracking-wide text-n-1">
+                                <span className="split-hero-eyebrow inline-flex items-center rounded-sm border border-n-1 bg-white px-3 py-1 text-h9 uppercase tracking-wide text-n-1">
                                     {compare.hero.eyebrow}
                                 </span>
-                                <h1 className="mt-5 text-h3 leading-tight text-n-1">{compare.hero.title}</h1>
+                                <h1 className="split-page-title mt-5 text-h3 leading-tight text-n-1">
+                                    {compare.hero.title}
+                                </h1>
                                 <p className="mt-4 text-base font-medium leading-6 text-n-1">{compare.hero.body}</p>
                             </div>
                         </div>
@@ -92,7 +103,10 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                         <div className="mx-auto w-full max-w-xl px-5 pt-6">
                             <Link
                                 href="/new"
-                                className={buttonClassName({ shadowSize: '4', className: 'justify-center text-h6' })}
+                                className={buttonClassName({
+                                    shadowSize: '4',
+                                    className: 'split-btn justify-center text-h6',
+                                })}
                             >
                                 {compare.hero.cta}
                             </Link>
@@ -179,14 +193,14 @@ export async function SplitwiseAlternative({ locale }: { locale: Locale }) {
                     <CompareFaq title={compare.faq.title} items={compareFaqItems} />
 
                     <section className="mx-auto w-full max-w-xl px-5">
-                        <div className="rounded-sm border border-n-1 bg-white p-5">
+                        <div className="split-cta-card rounded-sm border border-n-1 bg-white p-5">
                             <h2 className="text-h5">{compare.cta.title}</h2>
                             <p className="mt-2 text-sm leading-5 text-grey-1">{compare.cta.body}</p>
                             <Link
                                 href="/new"
                                 className={buttonClassName({
                                     shadowSize: '4',
-                                    className: 'mt-4 justify-center text-h6',
+                                    className: 'split-btn mt-4 justify-center text-h6',
                                 })}
                             >
                                 {compare.cta.button}

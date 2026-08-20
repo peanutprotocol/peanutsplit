@@ -12,16 +12,23 @@ import { expect, test, type Page } from '@playwright/test'
  */
 
 /**
- * One route per template the Wave-3 flip reaches: the two Wave-2 regressions, a standard blog
- * page, a versus page, a capture page, three guides (including the first guide to draw a
+ * One route per template the flip reaches: the two Wave-2 regressions, a standard blog page, a
+ * versus page, a capture page, three guides (including the first guide to draw a
  * `getting-paid-back` wallpaper and one on a prefixed locale), both tools, and one more locale —
  * `SKIN_DEFAULT` is keyed on slug alone, so a locale that differed would be the bug.
+ *
+ * The two Splitwise routes are Wave 3b (Konrad's 20 Aug ruling, which dropped Wave 3's carve-outs)
+ * and are here for a reason no other entry covers: `/splitwise-alternative` is the hand-built page,
+ * the only route that passes `ChapterFrame` a skin literally, and `/splitwise-daily-limit` reaches
+ * a frame at all only because `FLAT_REGISTER_SLUGS` is now empty.
  */
 const SKINNED = [
     '/blog/fronting-a-group-trip',
     '/blog/split-bills-without-an-app',
     '/settle-up-alternative',
     '/group-trip-expenses',
+    '/splitwise-alternative',
+    '/splitwise-daily-limit',
     '/guides/splitwise-vs-settle-up',
     '/guides/why-do-i-owe-someone-i-never-paid',
     '/pt-br/guides/split-shared-house-bills',
@@ -29,14 +36,6 @@ const SKINNED = [
     '/mileage-split-calculator',
     '/es-419/blog/split-expenses-across-currencies',
 ] as const
-
-/** The one carve-out: the Splitwise-migration family is flat register per stylebook §3.10/§5.5, so
- *  `/splitwise-alternative` keeps its own hand-built `ChapterFrame` with no skin prop. It renders
- *  the frame, so the attribute is present and reads `"none"` — absence would be a different bug. */
-const UNSKINNED = '/splitwise-alternative'
-
-/** The flat register (`FLAT_REGISTER_SLUGS`), which never reaches `ChapterFrame` at all. */
-const FLAT = '/splitwise-daily-limit'
 
 /** Chrome, not content: a hub has no frame call site, so it carries no `data-skin` at all. */
 const HUB = '/blog'
@@ -74,19 +73,6 @@ test.describe('sticker skin', () => {
             }
         })
     }
-
-    test('the flat-family carve-out keeps its frame and stays unskinned', async ({ page }) => {
-        await page.goto(UNSKINNED)
-        await expect(page.locator('[data-chapter]')).toHaveCount(1)
-        await expect(page.locator('[data-skin="none"]')).toHaveCount(1)
-        await expect(page.locator('[data-skin="sticker"]')).toHaveCount(0)
-    })
-
-    test('the flat register renders no chapter frame at all, so it cannot carry a skin', async ({ page }) => {
-        await page.goto(FLAT)
-        await expect(page.locator('[data-chapter]')).toHaveCount(0)
-        await expect(page.locator('[data-skin]')).toHaveCount(0)
-    })
 
     test('a hub is chrome, not content — no frame, so no skin attribute either', async ({ page }) => {
         await page.goto(HUB)

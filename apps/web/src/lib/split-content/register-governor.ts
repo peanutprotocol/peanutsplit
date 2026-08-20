@@ -4,8 +4,8 @@
  *
  * `PLAY_TIER_COMPONENT_NAMES` now lists `<Script>`, the one play-tier component that exists
  * (fun-engine.md S4). Doodle placement is enforced separately, by `spotPlan` returning `[]` for a
- * flat page rather than by this list — see `flat-register.test.ts`, which is the real corpus-level
- * enforcement test for both mechanisms together, run against the one live flat page.
+ * flat page rather than by this list — see `flat-register.test.ts`, which is the corpus-level
+ * enforcement test for both mechanisms together — vacuous while `FLAT_REGISTER_SLUGS` is empty.
  */
 
 export const PLAY_TIER_COMPONENT_NAMES: readonly string[] = ['Script']

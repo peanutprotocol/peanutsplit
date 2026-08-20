@@ -6,8 +6,14 @@ import { spotPlan } from './spot-placer'
 
 /**
  * The corpus enforcement test fun-engine.md Invariants #4 asks for — run against every real
- * `FLAT_REGISTER_SLUGS` entry (today, one: `splitwise-daily-limit`) rather than two mechanisms
- * tested only in isolation from each other, and rather than one slug hardcoded here a second time.
+ * `FLAT_REGISTER_SLUGS` entry rather than two mechanisms tested only in isolation from each other,
+ * and rather than one slug hardcoded here a second time.
+ *
+ * That set is empty today (Konrad's 20 Aug ruling — see recipe.ts), so every case below is
+ * generated from nothing and this file asserts vacuously. Kept, not deleted: it is the corpus gate
+ * that runs the moment a page earns the flat register, and it needs no edit to pick that page up.
+ * The mechanisms themselves stay covered against a literal `'flat'` by skin.test.ts,
+ * spot-placer.test.ts and register-governor.test.ts.
  */
 const allTranslations = listAllTranslations()
 const flatDocs = [...FLAT_REGISTER_SLUGS].map((slug) => {
@@ -16,7 +22,7 @@ const flatDocs = [...FLAT_REGISTER_SLUGS].map((slug) => {
     return doc
 })
 
-it('has at least one real flat-register page to check against', () => {
+it('found a published en.md for every flat-register slug — none to find today', () => {
     expect(flatDocs.length).toBe(FLAT_REGISTER_SLUGS.size)
 })
 
