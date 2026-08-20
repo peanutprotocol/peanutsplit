@@ -12,3 +12,9 @@ pnpm-lock.yaml
 # A hand-minified design scratch, rendered once to strip.png. Expanding it
 # would say nothing about anything.
 strip.html
+
+# The steward's own record — written and pushed by the agent on the ax41 box, not
+# by a human with a formatter (see ops/steward/README.md). Formatting it here just
+# loses the race to the next bot push, and INCIDENTS.md is append-only by its own
+# first line, so a reflow of it is exactly the rewrite it forbids.
+ops/steward/
