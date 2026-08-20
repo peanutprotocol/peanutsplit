@@ -1,31 +1,45 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * The only spec that drives a skinned page (Wave 2 ship gate).
+ * The only spec that drives a skinned page (Wave 3 ship gate).
  *
  * Everything the sticker skin paints is CSS keyed on `[data-skin='sticker']` plus a wallpaper
  * data-URI on the frame, so the unit suite can prove the frame emits the attribute and the
  * stylesheet scopes its rules — but only a browser can prove the two meet on a real route, and
  * only a browser can measure what a 2px border, a 5px halo and a rotation do to a card inside a
- * `max-w-xl` column. Nothing else in the suite navigates a pilot URL: `landing.spec.ts`'s
+ * `max-w-xl` column. Nothing else in the suite navigates a skinned URL: `landing.spec.ts`'s
  * multi-viewport test drives `/`, which renders no `ChapterFrame` and cannot match a skin rule.
  */
 
-/** The Wave-2 pilot: four content routes and one tool route (`SKIN_BY_SLUG`). */
-const PILOTS = [
+/**
+ * One route per template the Wave-3 flip reaches: the two Wave-2 regressions, a standard blog
+ * page, a versus page, a capture page, three guides (including the first guide to draw a
+ * `getting-paid-back` wallpaper and one on a prefixed locale), both tools, and one more locale —
+ * `SKIN_DEFAULT` is keyed on slug alone, so a locale that differed would be the bug.
+ */
+const SKINNED = [
     '/blog/fronting-a-group-trip',
-    '/blog/who-pays-for-the-wine',
-    '/splitwise-vs-tricount',
-    '/fair-split-calculator',
+    '/blog/split-bills-without-an-app',
+    '/settle-up-alternative',
+    '/group-trip-expenses',
+    '/guides/splitwise-vs-settle-up',
+    '/guides/why-do-i-owe-someone-i-never-paid',
+    '/pt-br/guides/split-shared-house-bills',
+    '/rent-split-calculator',
     '/mileage-split-calculator',
+    '/es-419/blog/split-expenses-across-currencies',
 ] as const
 
-/** A default-register content page outside the pilot — the proof the skin is a rollout gate and
- *  not something every chapter page picked up. */
-const UNSKINNED = '/blog/end-of-trip-expense-recap'
+/** The one carve-out: the Splitwise-migration family is flat register per stylebook §3.10/§5.5, so
+ *  `/splitwise-alternative` keeps its own hand-built `ChapterFrame` with no skin prop. It renders
+ *  the frame, so the attribute is present and reads `"none"` — absence would be a different bug. */
+const UNSKINNED = '/splitwise-alternative'
 
 /** The flat register (`FLAT_REGISTER_SLUGS`), which never reaches `ChapterFrame` at all. */
 const FLAT = '/splitwise-daily-limit'
+
+/** Chrome, not content: a hub has no frame call site, so it carries no `data-skin` at all. */
+const HUB = '/blog'
 
 /** The same list `landing.spec.ts` measures its no-overflow test at, so a column that only breaks
  *  at 320px is caught here too. */
@@ -45,7 +59,7 @@ const horizontalOverflow = (page: Page) =>
     })
 
 test.describe('sticker skin', () => {
-    for (const url of PILOTS) {
+    for (const url of SKINNED) {
         test(`${url} wears the skin and never scrolls sideways`, async ({ page }) => {
             for (const viewport of viewports) {
                 await page.setViewportSize(viewport)
@@ -61,7 +75,7 @@ test.describe('sticker skin', () => {
         })
     }
 
-    test('a default-register page outside the pilot stays unskinned', async ({ page }) => {
+    test('the flat-family carve-out keeps its frame and stays unskinned', async ({ page }) => {
         await page.goto(UNSKINNED)
         await expect(page.locator('[data-chapter]')).toHaveCount(1)
         await expect(page.locator('[data-skin="none"]')).toHaveCount(1)
@@ -71,6 +85,11 @@ test.describe('sticker skin', () => {
     test('the flat register renders no chapter frame at all, so it cannot carry a skin', async ({ page }) => {
         await page.goto(FLAT)
         await expect(page.locator('[data-chapter]')).toHaveCount(0)
+        await expect(page.locator('[data-skin]')).toHaveCount(0)
+    })
+
+    test('a hub is chrome, not content — no frame, so no skin attribute either', async ({ page }) => {
+        await page.goto(HUB)
         await expect(page.locator('[data-skin]')).toHaveCount(0)
     })
 })

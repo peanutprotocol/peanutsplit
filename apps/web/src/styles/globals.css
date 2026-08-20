@@ -552,7 +552,12 @@
     font-weight: 700;
 }
 
-/* Table — the versus page's side-by-side, our column tinted. */
+/* Table — the versus page's side-by-side. No column tint: a GFM table has no per-column hook, so
+   the only selector available is positional, and the corpus disagrees on position — the Wave-2
+   pilot `splitwise-vs-tricount` puts us last, every other comparison (`settle-up-alternative`,
+   `tricount-alternative`, × en/es-419/pt-br) puts the rival last. A positional tint in the page's
+   own accent pink would read as an endorsement of whichever column it landed on. The `th`
+   mono/uppercase and the bold first column carry the sticker read instead. */
 [data-skin='sticker'] table th {
     border-bottom: 2px solid var(--skin-ink, #211c17);
     color: var(--skin-ink, #211c17);
@@ -563,11 +568,6 @@
 [data-skin='sticker'] table td:first-child {
     color: var(--skin-ink, #211c17);
     font-weight: 700;
-}
-
-[data-skin='sticker'] :is(table th, table td):last-child {
-    background: rgba(255, 144, 232, 0.14);
-    color: var(--skin-ink, #211c17);
 }
 
 /* Working strip. Applies to `Working.tsx`'s root div AND to the tool page's own inlined `<ul>`,

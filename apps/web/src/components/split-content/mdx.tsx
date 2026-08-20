@@ -36,11 +36,11 @@ function ContentCTA({
     if (variant && variant !== 'card') throw new Error(`unsupported Split content CTA variant: ${variant}`)
     return (
         <section className={`${COLUMN} my-10`}>
-            <div className="rounded-sm border border-n-1 bg-white p-5">
+            <div className="split-cta-card rounded-sm border border-n-1 bg-white p-5">
                 {subtitle && <p className="text-sm leading-5 text-grey-1">{subtitle}</p>}
                 <a
                     href={checkedProductHref(href)}
-                    className={buttonClassName({ shadowSize: '4', className: 'mt-4 justify-center text-h6' })}
+                    className={buttonClassName({ shadowSize: '4', className: 'split-btn mt-4 justify-center text-h6' })}
                 >
                     {text}
                 </a>

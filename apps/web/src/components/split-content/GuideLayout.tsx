@@ -9,8 +9,9 @@ import { localizedPath } from '@/i18n/paths'
 import type { SplitGuide } from '@/lib/split-content/artifact'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { GUIDE_CRUMBS, splitGuideCrumbs, splitGuideSchemas } from '@/lib/split-content/metadata'
-import { pageChapterOrNull, pageRegisterOrNull } from '@/lib/split-content/recipe'
+import { pageChapterOrNull, pageRegisterOrNull, pageSkinOrNull } from '@/lib/split-content/recipe'
 import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
+import { hashSlug } from '@/lib/split-content/seed'
 
 const OTHER_LANGUAGES = {
     en: 'Other languages',
@@ -59,6 +60,7 @@ export function SplitGuideLayout({
     // Flat-register pages resolve a chapter (for analytics) but never get ChapterFrame — see
     // pageRegisterOrNull's docstring.
     const register = pageRegisterOrNull('guide', guide.slug, guide.tags, guide.locale)
+    const skin = pageSkinOrNull('guide', guide.slug, guide.tags, guide.locale)
     // Every released sibling rather than a slice: over six English guides a `slice(0, 3)` in
     // manifest order leaves three of them with no inbound link at all, which is the defect this
     // replaces. Revisit past about eight released guides in one locale.
@@ -67,7 +69,9 @@ export function SplitGuideLayout({
     const articleBody = (
         <>
             <div className="mx-auto w-full max-w-xl px-5 pb-3 pt-10">
-                <h1 className="text-h3 leading-tight">{guide.title}</h1>
+                {/* `split-page-title` is the skin's display face. A guide can never author its own
+                    h1 (mdx-policy caps the body at H2), so this is the only place to hook it. */}
+                <h1 className="split-page-title text-h3 leading-tight">{guide.title}</h1>
                 <p className="mt-4 text-base leading-7 text-grey-1">{guide.description}</p>
             </div>
             {children}
@@ -99,7 +103,9 @@ export function SplitGuideLayout({
 
             <article className="pb-8">
                 {chapter && register !== 'flat' ? (
-                    <ChapterFrame chapter={chapter}>{articleBody}</ChapterFrame>
+                    <ChapterFrame chapter={chapter} skin={skin ?? 'none'} seed={hashSlug(guide.slug)}>
+                        {articleBody}
+                    </ChapterFrame>
                 ) : (
                     articleBody
                 )}

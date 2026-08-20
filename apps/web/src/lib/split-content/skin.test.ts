@@ -1,46 +1,37 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { TOOL_SLUGS } from '@/tools/registry'
-import { CHAPTER_BY_SLUG } from './recipe'
-import { SKIN_BY_SLUG, SKIN_TOKENS, skinFor, skinVars, type Skin } from './skin'
+import { SKIN_BY_SLUG, SKIN_DEFAULT, SKIN_TOKENS, skinFor, skinVars, type Skin } from './skin'
 import { wallpaperDataUri } from './wallpaper'
 
-const MAPPED_SLUGS = Object.keys(SKIN_BY_SLUG)
-
 describe('SKIN_BY_SLUG', () => {
-    it('is the five-slug pilot: four content slugs plus one tool slug', () => {
-        expect(MAPPED_SLUGS).toHaveLength(5)
-
-        const contentSlugs = MAPPED_SLUGS.filter((slug) => slug in CHAPTER_BY_SLUG)
-        const toolSlugs = MAPPED_SLUGS.filter((slug) => TOOL_SLUGS.includes(slug))
-
-        expect(contentSlugs).toHaveLength(4)
-        expect(toolSlugs).toEqual(['mileage-split-calculator'])
-        // A slug is one or the other, never both — static-pages.ts reserves tool slugs against the
-        // content tree, and CHAPTER_BY_SLUG growing a tool slug would fail recipe.test.ts.
-        expect([...contentSlugs, ...toolSlugs].sort()).toEqual([...MAPPED_SLUGS].sort())
-    })
-
-    it('maps every pilot slug to the sticker skin', () => {
-        for (const slug of MAPPED_SLUGS) expect(SKIN_BY_SLUG[slug], slug).toBe('sticker')
+    /** Empty is the correct state: the map is an override seam (opt-outs, a future second skin),
+     *  not the rollout gate it was in Wave 2. Asserted, so re-pinning a slug is a deliberate act. */
+    it('is empty — every page takes SKIN_DEFAULT unless a slug opts out', () => {
+        expect(Object.keys(SKIN_BY_SLUG)).toHaveLength(0)
     })
 })
 
 describe('skinFor', () => {
-    it("refuses the flat register before the map is consulted — 'none' even for a mapped slug", () => {
-        for (const slug of MAPPED_SLUGS) expect(skinFor(slug, 'flat'), slug).toBe('none')
-    })
-
-    it('resolves every mapped slug on the default register', () => {
-        for (const slug of MAPPED_SLUGS) expect(skinFor(slug, 'default'), slug).toBe('sticker')
-    })
-
-    it("returns 'none' for an unmapped slug and never throws — a skin is decoration", () => {
+    it('gives an unmapped slug SKIN_DEFAULT, and never throws — a skin is decoration', () => {
+        expect(SKIN_DEFAULT).toBe('sticker')
         expect(() => skinFor('this-slug-does-not-exist', 'default')).not.toThrow()
-        expect(skinFor('this-slug-does-not-exist', 'default')).toBe('none')
-        expect(skinFor('', 'default')).toBe('none')
-        expect(skinFor('splitwise-daily-limit', 'default')).toBe('none')
+        expect(skinFor('this-slug-does-not-exist', 'default')).toBe('sticker')
+        expect(skinFor('', 'default')).toBe('sticker')
+    })
+
+    it('refuses the flat register before either the map or the default is consulted', () => {
+        for (const slug of ['this-slug-does-not-exist', 'splitwise-daily-limit', '']) {
+            expect(skinFor(slug, 'flat'), slug).toBe('none')
+        }
+    })
+
+    /** The gate keys on the register ARGUMENT, not on the slug: `splitwise-daily-limit` is
+     *  flat-register content, but this function has never heard of `FLAT_REGISTER_SLUGS` —
+     *  `pageRecipe` is what supplies the `'flat'`, and recipe.test.ts asserts that end to end. */
+    it('skins even the flat-register slug when it is handed the default register', () => {
+        expect(skinFor('splitwise-daily-limit', 'default')).toBe('sticker')
+        expect(skinFor('splitwise-daily-limit', 'flat')).toBe('none')
     })
 })
 
