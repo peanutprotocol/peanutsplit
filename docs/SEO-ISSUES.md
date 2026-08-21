@@ -167,9 +167,15 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       reaches the HTML head (reproduced on a minimal app; manifest, lookup and `preloadFont`
       all fire). So knerd moved out of `next/font`: woff2 files (75→26 KB, 140→47 KB) in
       `public/fonts/`, `@font-face` + vars in `globals.css`, and `Title.tsx` renders two
-      `<link rel="preload">` React hoists into the head of every page that paints knerd —
-      the LP H1 included. TTFs stay for the OG renderer. Roboto/Sniglet stay on `next/font`
-      (woff2 already) and stay unpreloaded until the framework defect is fixed.
+      `<link rel="preload">` React hoists into the head of every page that paints knerd.
+      Scope correction (same day): the "H1 those fonts style is the LCP element" premise
+      went stale when the `pass_link` hero became the default — the shipping LP H1 paints
+      Roboto Flex, not knerd, so the knerd preloads land only where `Title` renders: the
+      `control`-variant LP (rollback flag). `/dev-ds` paints knerd without them. The LP
+      keeps emitting zero font preloads: Roboto/Sniglet stay on `next/font` (woff2, hashed
+      URLs) and stay unpreloaded until the framework defect is fixed — preloading the LP's
+      real LCP face would mean self-hosting the app-wide body font, out of scope here.
+      TTFs stay for the OG renderer.
 - [x] OG-image routes render for ANY slug (200 where the page 404s). Closed 2026-08-21:
       every content og route now carries `dynamicParams = false`; guide og routes mirror the
       page's force-dynamic contract and 404 on lookup miss. Guide cards still render per
