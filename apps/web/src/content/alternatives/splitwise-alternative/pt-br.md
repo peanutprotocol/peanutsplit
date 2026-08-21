@@ -6,7 +6,7 @@ updated: 2026-08-21
 tags: [alternativas]
 faqs:
     - question: É grátis para sempre?
-      answer: É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.
+      answer: É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas.
     - question: Preciso de conta?
       answer: Não, e nem quem receber o link. Não tem e-mail, não tem senha e não tem cadastro em lugar nenhum do Split.
     - question: Tem limite de quantas despesas dá para lançar?
@@ -119,7 +119,7 @@ O Splitwise lê recibo, importa cartão e desenha gráficos, e tem app nas duas 
   text="Criar um split" />
 
 <FAQ title="Perguntas que as pessoas realmente fazem">
-<FAQItem question="É grátis para sempre?">É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.</FAQItem>
+<FAQItem question="É grátis para sempre?">É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas.</FAQItem>
 <FAQItem question="Preciso de conta?">Não, e nem quem receber o link. Não tem e-mail, não tem senha e não tem cadastro em lugar nenhum do Split.</FAQItem>
 <FAQItem question="Tem limite de quantas despesas dá para lançar?">Não tem. Lance cinquenta numa tarde, se a viagem for desse tipo.</FAQItem>
 <FAQItem question="Precisamos baixar um app?">Não. Abre no navegador como qualquer página. Se você quer que pareça um app, adicione à tela de início: isso é função do celular, não instalação.</FAQItem>
