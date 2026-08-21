@@ -6,7 +6,7 @@ updated: 2026-08-21
 tags: [alternatives]
 faqs:
     - question: Is it free forever?
-      answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
+      answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut.
     - question: Do I need an account?
       answer: No, and neither does anyone you send the link to. There is no email, no password and no ID check anywhere in Split.
     - question: Is there a limit on how many expenses we can add?
@@ -122,7 +122,7 @@ Splitwise scans receipts, does card imports and draws charts, and it has apps in
   text="Start a split" />
 
 <FAQ title="Questions people actually ask">
-<FAQItem question="Is it free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
+<FAQItem question="Is it free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut.</FAQItem>
 <FAQItem question="Do I need an account?">No, and neither does anyone you send the link to. There is no email, no password and no ID check anywhere in Split.</FAQItem>
 <FAQItem question="Is there a limit on how many expenses we can add?">No. Add fifty in an afternoon if that is the kind of trip it is.</FAQItem>
 <FAQItem question="Do we have to download an app?">No. Split opens in a browser. Installing it is optional and adds a launcher icon — there is no app store or account.</FAQItem>
