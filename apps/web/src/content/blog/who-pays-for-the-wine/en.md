@@ -4,6 +4,10 @@ description: An even split is the easiest convention at a table and the most qui
 date: 2026-07-30
 type: editorial
 tags: [fairness, groups]
+claims:
+    - netting-is-bounded-exact
+    - settle-is-a-record
+    - link-is-the-key
 faqs:
     - question: How do you split a dinner bill when someone didn't drink?
       answer: Take the drinks off the top, divide them among the people who ordered them, and split the food evenly. It is two lines of arithmetic and it removes most of the difference. It lands better when a drinker proposes it than when the person on tap water does.

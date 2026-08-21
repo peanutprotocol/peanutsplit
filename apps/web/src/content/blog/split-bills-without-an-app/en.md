@@ -3,6 +3,11 @@ title: How to split bills without an app
 description: Every person you ask to install something is a person who drops out of the split. How to share expenses with a group using nothing but a link.
 date: 2026-07-24
 tags: [no signup, groups]
+claims:
+    - link-is-the-key
+    - no-app
+    - netting-is-bounded-exact
+    - settle-is-a-record
 faqs:
     - question: Can I split expenses without an account?
       answer: Yes. A Split room is a link — whoever opens it types a name and starts adding expenses. No email, no password, no ID check.

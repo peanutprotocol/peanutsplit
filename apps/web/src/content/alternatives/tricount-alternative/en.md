@@ -2,7 +2,20 @@
 title: Tricount alternative for cross-border groups
 description: Tricount settles up through a bank account and a bunq card. If your group shares neither, here is what a link-based split does instead.
 date: 2026-07-28
+type: comparison
 tags: [alternatives, currencies]
+claims:
+    - free-forever
+    - no-app
+    - link-is-the-key
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - settle-is-a-record
+competitorClaims:
+    - tricount-tracks-who-paid
+    - tricount-settle-to-bank
+    - tricount-bunq-card
+    - tricount-100-free
 faqs:
     - question: Is Split free forever?
       answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.

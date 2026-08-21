@@ -4,6 +4,9 @@ description: Photograph the bill, check the lines it read, tap who had what. Rec
 date: 2026-07-28
 v2Only: true
 tags: [receipts, dinners]
+claims:
+    - free-forever
+    - link-is-the-key
 faqs:
     - question: Is receipt scanning free forever?
       answer: Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.

@@ -3,6 +3,9 @@ title: Splitting expenses across currencies
 description: You paid in baht, the room counts in euros, your card settled in pounds. Which rate matters, which one does not, and where the group loses money.
 date: 2026-07-26
 tags: [currencies, trips]
+claims:
+    - automatic-currency-conversion
+    - free-forever
 faqs:
     - question: Which exchange rate should the group use?
       answer: Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative — a daily reference rate, not your bank's — so treat the totals as exact and the conversion as close enough to split by.

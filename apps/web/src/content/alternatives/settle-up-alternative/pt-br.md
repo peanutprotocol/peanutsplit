@@ -2,7 +2,23 @@
 title: Alternativa ao Settle Up que dispensa conta
 description: Uma sala é um link, e quem abre já lança o que pagou. O Settle Up sincroniza por uma conta, e o grupo enxerga o seu e-mail. Veja o que muda de verdade.
 date: 2026-07-30
+type: comparison
 tags: [alternativas, sem-conta]
+claims:
+    - link-is-the-key
+    - free-forever
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - offline-creates-only
+    - settle-is-a-record
+    - room-size-20
+competitorClaims:
+    - settleup-keeps-track
+    - settleup-group-sees-email
+    - settleup-link-is-view-only
+    - settleup-works-offline
+    - settleup-transfers-debts
 faqs:
     - question: Preciso de conta para usar o Split?
       answer: 'Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail, sem senha.'

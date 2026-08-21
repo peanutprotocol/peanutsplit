@@ -2,7 +2,33 @@
 title: 'Splitwise vs Tricount: qual dos dois usar'
 description: Os dois fazem a conta. Eles se separam no limite do plano grátis, nas moedas e na hora de acertar. O que o site de cada um diz, conferido em julho de 2026.
 date: 2026-07-30
+type: comparison
 tags: [alternativas, moedas]
+claims:
+    - free-forever
+    - link-is-the-key
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - offline-creates-only
+    - settle-is-a-record
+competitorClaims:
+    - splitwise-keep-track
+    - tricount-tracks-who-paid
+    - splitwise-limit-exists
+    - splitwise-free-daily-cap
+    - splitwise-limit-workarounds
+    - tricount-100-free-long
+    - splitwise-pro-ad-free
+    - splitwise-pro-only-converts
+    - splitwise-simplify-per-currency
+    - tricount-converts-currency
+    - splitwise-everyone-logs-in
+    - splitwise-one-invite-one-reminder
+    - tricount-share-link
+    - splitwise-settle-record
+    - tricount-settle-to-bank
+    - tricount-bunq-card
 faqs:
     - question: O Splitwise limita as despesas grátis?
       answer: Limita. O centro de ajuda deles descreve um limite diário no plano grátis e diz que uma assinatura Pro tira esse limite. O número está citado acima, na página do próprio Splitwise. A página de comparação do Tricount dá outro, e é por isso que a fonte importa mais que o número.

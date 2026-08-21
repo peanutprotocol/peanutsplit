@@ -3,7 +3,21 @@ title: Splitwise alternative, free with no signup
 description: A Splitwise alternative that is free forever, with no account and no app. Share one link, everyone adds what they paid, and nothing is capped or sold as Pro.
 date: 2026-07-25
 updated: 2026-08-21
+type: comparison
 tags: [alternatives]
+claims:
+    - free-forever
+    - link-is-the-key
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - offline-creates-only
+    - settle-is-a-record
+competitorClaims:
+    - splitwise-pro-expenses
+    - splitwise-pro-currency
+    - splitwise-pro-ad-free
+    - splitwise-free-daily-cap
 faqs:
     - question: Is it free forever?
       answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut.

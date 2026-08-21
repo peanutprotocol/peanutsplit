@@ -2,7 +2,23 @@
 title: Settle Up alternative with no account
 description: Settle Up syncs your group through an account, and the group can see your email. What a link-based room does instead, and what moving actually costs.
 date: 2026-07-30
+type: comparison
 tags: [alternatives, no-account]
+claims:
+    - link-is-the-key
+    - free-forever
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - offline-creates-only
+    - settle-is-a-record
+    - room-size-20
+competitorClaims:
+    - settleup-keeps-track
+    - settleup-group-sees-email
+    - settleup-link-is-view-only
+    - settleup-works-offline
+    - settleup-transfers-debts
 faqs:
     - question: Do I need an account for Split?
       answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email, no password.

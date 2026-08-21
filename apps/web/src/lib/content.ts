@@ -88,6 +88,15 @@ export interface Frontmatter {
      * contract, and `content.test.ts` is what enforces it.
      */
     intent?: string
+    /** Stylebook page type (§11.3): capture, comparison, editorial or guide. Drives the claims gate. */
+    type?: string
+    /**
+     * IDs of the product truths this page's prose rests on, resolved against
+     * `_system/product-truths.md` (stylebook §7.5). Not rendered — `content.test.ts` enforces it.
+     */
+    claims?: string[]
+    /** IDs from the `_system/competitor-claims.md` register. Required on `type: comparison`. */
+    competitorClaims?: string[]
 }
 
 export interface Doc {
@@ -146,6 +155,11 @@ export function localesForSlug(collection: Collection, slug: string): IndexedLoc
 function coerceDate(value: unknown): string {
     if (value instanceof Date) return value.toISOString().slice(0, 10)
     return typeof value === 'string' ? value : ''
+}
+
+function coerceStringArray(value: unknown): string[] | undefined {
+    if (!Array.isArray(value)) return undefined
+    return value.filter((item): item is string => typeof item === 'string')
 }
 
 function coerceFaqs(value: unknown): Faq[] | undefined {
@@ -207,12 +221,15 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
             date,
             updated: data.updated ? coerceDate(data.updated) : undefined,
             author: typeof data.author === 'string' ? data.author : undefined,
-            tags: Array.isArray(data.tags) ? data.tags.filter((t): t is string => typeof t === 'string') : undefined,
+            tags: coerceStringArray(data.tags),
             faqs: coerceFaqs(data.faqs),
             published: data.published !== false,
             v2Only: data.v2Only === true,
             canonical: typeof data.canonical === 'string' ? data.canonical : undefined,
             intent: typeof data.intent === 'string' ? data.intent.trim() || undefined : undefined,
+            type: typeof data.type === 'string' ? data.type : undefined,
+            claims: coerceStringArray(data.claims),
+            competitorClaims: coerceStringArray(data.competitorClaims),
         },
         body: content.trim(),
     }

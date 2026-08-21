@@ -2,7 +2,20 @@
 title: Alternativa ao Tricount sem banco em comum
 description: Uma sala é um link, e o acerto não passa pelo banco de ninguém. O Tricount recebe por conta bancária e cartão bunq. Veja o que muda num grupo espalhado.
 date: 2026-07-28
+type: comparison
 tags: [alternativas, moedas]
+claims:
+    - free-forever
+    - no-app
+    - link-is-the-key
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - settle-is-a-record
+competitorClaims:
+    - tricount-tracks-who-paid
+    - tricount-settle-to-bank
+    - tricount-bunq-card
+    - tricount-100-free
 faqs:
     - question: O Split é grátis para sempre?
       answer: É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.

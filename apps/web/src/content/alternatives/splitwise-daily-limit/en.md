@@ -2,7 +2,26 @@
 title: Splitwise's free limit is 4 expenses a day
 description: Splitwise's own help centre says free users get 4 expenses a day, not 3. What the limit does, and how to move a group to a room with no cap.
 date: 2026-07-30
+type: comparison
 tags: [alternatives]
+claims:
+    - free-forever
+    - link-is-the-key
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - settle-is-a-record
+competitorClaims:
+    - splitwise-free-daily-cap
+    - splitwise-limit-exists
+    - splitwise-limit-workarounds
+    - splitwise-trip-pass
+    - splitwise-pay-removes-limit
+    - splitwise-ads-position
+    - splitwise-price-varies
+    - splitwise-reduced-ads
+    - splitwise-plan-shapes
+    - splitwise-pro-ad-free
 faqs:
     - question: How many expenses can I add to Splitwise for free?
       answer: Four a day. Splitwise's help centre says free users can add up to 4 expenses each day, and it is the only Splitwise page that gives a number at all.
