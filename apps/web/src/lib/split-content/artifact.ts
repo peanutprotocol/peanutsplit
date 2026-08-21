@@ -789,7 +789,23 @@ function parseStructuredPage(
     return { entry, payload: parsed.data } as SplitStructuredPage
 }
 
+/**
+ * The artifact is immutable for the life of a process — it is baked into the image — so one full
+ * validation per root is enough. A sitemap fetch was re-validating every output a dozen times.
+ * Failures stay uncached: an invalid artifact must fail closed on every call.
+ */
+const manifestCache = new Map<string, SplitContentManifest | null>()
+
 export function loadSplitContentManifest(root: string = GENERATED_ROOT): SplitContentManifest | null {
+    const cacheKey = path.resolve(root)
+    const cached = manifestCache.get(cacheKey)
+    if (cached !== undefined) return cached
+    const manifest = validateSplitContentManifest(root)
+    manifestCache.set(cacheKey, manifest)
+    return manifest
+}
+
+function validateSplitContentManifest(root: string): SplitContentManifest | null {
     const bytes = readSplitContentManifestBytes(root)
     if (!bytes) return null
     let raw: unknown
@@ -881,6 +897,11 @@ function parseGuide(entry: SplitGuideManifestEntry, root: string, manifest?: Spl
     const body = parsed.content.trim()
     if (!title || !description || !author || !DATE.test(date) || !DATE.test(generatedAt) || !body) {
         artifactError(`guide frontmatter is missing required metadata: ${entry.output_path}`)
+    }
+    // ISO calendar dates compare correctly as strings. A generation stamp before the publication
+    // date is a contradiction no mirror should ship silently.
+    if (generatedAt < date) {
+        artifactError(`guide generated_at must not precede date: ${entry.output_path}`)
     }
     if (data.slug !== entry.slug || data.type !== 'guide' || data.lang !== entry.locale) {
         artifactError(`guide frontmatter disagrees with manifest identity: ${entry.output_path}`)

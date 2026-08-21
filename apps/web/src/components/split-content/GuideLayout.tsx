@@ -8,6 +8,7 @@ import { HREFLANG, INDEXED_LOCALES, LOCALE_LABELS, type IndexedLocale } from '@/
 import { localizedPath } from '@/i18n/paths'
 import type { SplitGuide } from '@/lib/split-content/artifact'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
+import { formatDate } from '@/lib/seo'
 import { GUIDE_CRUMBS, splitGuideCrumbs, splitGuideSchemas } from '@/lib/split-content/metadata'
 import { pageChapterOrNull, pageRegisterOrNull, pageSkinOrNull } from '@/lib/split-content/recipe'
 import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
@@ -77,7 +78,7 @@ export function SplitGuideLayout({
             {children}
             <div className="mx-auto w-full max-w-xl px-5 pt-4">
                 <time dateTime={guide.date} className="text-xs text-grey-1">
-                    {guide.date}
+                    {formatDate(guide.date, guide.locale)}
                 </time>
             </div>
         </>

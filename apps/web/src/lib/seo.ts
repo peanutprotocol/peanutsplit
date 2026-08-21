@@ -32,7 +32,7 @@ export const SITE_DESCRIPTION =
  * than a single country. This is the only place a locale is spelled as something other than its
  * code or its `HREFLANG` value, and it is OG's constraint, not ours.
  */
-const OG_LOCALE: Record<Locale, string> = {
+export const OG_LOCALE: Record<Locale, string> = {
     en: 'en_US',
     'es-419': 'es_LA',
     'pt-br': 'pt_BR',

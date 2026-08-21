@@ -16,6 +16,9 @@ export const alt = 'Peanut Split'
 const contentParams = contentOgStaticParams(ROOT_COLLECTIONS, LOCALE, 'page')
 const ContentCard = contentOgImage(ROOT_COLLECTIONS, LOCALE, 'page')
 
+// Mirrors the page route's contract: a slug outside the params set is a 404, not a card.
+export const dynamicParams = false
+
 export function generateStaticParams() {
     return [...toolStaticParams('page')(), ...contentParams()]
 }
