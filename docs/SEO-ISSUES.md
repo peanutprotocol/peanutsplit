@@ -159,9 +159,17 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       workaround for hashed og routes). Constraint from guide-tracker decision 17: the file
       convention stays for `og:image` (the hash trap only bites hand-written URLs) — so the fix
       is a stable image URL for JSON-LD specifically, never a hand-spelled og route.
-- [ ] Guide fonts: two knerd TTFs ship uncompressed (~101 KB, convert to woff2 — keep the
+- [x] Guide fonts: two knerd TTFs ship uncompressed (~101 KB, convert to woff2 — keep the
       TTFs for the OG renderer) AND the LP emits zero font preloads despite `next/font`
       marking all five files preload-eligible; the H1 those fonts style is the LCP element.
+      Closed 2026-08-21: the missing preloads are a Next 16.2 defect, not a declaration
+      problem — on dynamic pages the font preload hint rides only the RSC payload and never
+      reaches the HTML head (reproduced on a minimal app; manifest, lookup and `preloadFont`
+      all fire). So knerd moved out of `next/font`: woff2 files (75→26 KB, 140→47 KB) in
+      `public/fonts/`, `@font-face` + vars in `globals.css`, and `Title.tsx` renders two
+      `<link rel="preload">` React hoists into the head of every page that paints knerd —
+      the LP H1 included. TTFs stay for the OG renderer. Roboto/Sniglet stay on `next/font`
+      (woff2 already) and stay unpreloaded until the framework defect is fixed.
 - [x] OG-image routes render for ANY slug (200 where the page 404s). Closed 2026-08-21:
       every content og route now carries `dynamicParams = false`; guide og routes mirror the
       page's force-dynamic contract and 404 on lookup miss. Guide cards still render per
@@ -178,7 +186,12 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       `#tool` nodes — the page named "calculator" carries no calculator entity. Also `/tools`
       ("Calculators") lists only the 2 registry calculators; 3 of 6 capture pages hang off the
       site by one `/blog` card each.
-- [ ] `/guides/` (trailing slash) reaches `/blog` in two 308 hops; add the direct rule.
+- [x] `/guides/` (trailing slash) reaches `/blog` in two 308 hops; add the direct rule.
+      Closed 2026-08-21: no config rule could do it — Next's own slash-strip redirect is
+      unshifted with priority ahead of every user rule. `skipTrailingSlashRedirect` turns
+      that off, the exact-string sources already match trailing-slash variants (`(?:/)?$`),
+      and the proxy now owns the general one-hop strip (dotted paths matched too). All
+      locale variants single-hop; `/es/…/` now also collapses in one hop.
 - [ ] Marketing pages all serve `no-store` — no CDN/ISR shield for crawler traffic. Keep
       `force-dynamic` for the sitemap and gated guides; consider s-maxage + SWR elsewhere.
       Landing must stay uncached (cookie-localized).

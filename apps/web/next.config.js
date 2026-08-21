@@ -19,6 +19,12 @@ const nextConfig = {
     // `${assetPrefix}/_next/*` natively; adding an internal rewrite masks that contract.
     assetPrefix: SPLIT_ASSET_PREFIX,
 
+    // Next's built-in slash-strip redirect outranks every rule below, which forced
+    // `/guides/` through two 308s (`/guides` first, `/blog` second). With it off, the
+    // exact-string sources below already match their trailing-slash variants in one hop,
+    // and the proxy owns the general strip for everything else.
+    skipTrailingSlashRedirect: true,
+
     /**
      * Two retirements, neither of them locale detection: nothing here reads `Accept-Language` or a
      * cookie, and no reader is ever moved off the language they asked for.

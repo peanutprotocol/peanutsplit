@@ -30,8 +30,8 @@ describe('the sticker skin display face', () => {
         expect(call.slice(0, call.indexOf('})'))).toContain("axes: ['wdth']")
     })
 
-    it('adds no font: two localFont calls, two Google families, and nothing else', () => {
-        expect(fontsSource.match(/localFont\(/g)).toHaveLength(2)
+    it('adds no font: two Google families and nothing else — knerd ships from globals.css', () => {
+        expect(fontsSource).not.toContain('localFont(')
         expect(fontsSource).toContain("import { Roboto_Flex, Sniglet } from 'next/font/google'")
         expect(fontsSource.match(/from 'next\/font\/google'/g)).toHaveLength(1)
     })

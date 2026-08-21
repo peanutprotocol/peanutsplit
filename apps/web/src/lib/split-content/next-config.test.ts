@@ -7,6 +7,7 @@ import { SPLIT_ASSET_PREFIX } from '@/lib/domains'
 interface ConfigProbe {
     assetPrefix: string | undefined
     skipMiddlewareUrlNormalize: boolean | undefined
+    skipTrailingSlashRedirect: boolean | undefined
     rewrites: { source: string; destination: string }[]
     redirects: { source: string; destination: string; permanent: boolean }[]
 }
@@ -21,6 +22,7 @@ function probeConfig(): ConfigProbe {
             process.stdout.write(JSON.stringify({
                 assetPrefix: config.assetPrefix,
                 skipMiddlewareUrlNormalize: config.skipMiddlewareUrlNormalize,
+                skipTrailingSlashRedirect: config.skipTrailingSlashRedirect,
                 rewrites,
                 redirects,
             }))
@@ -62,8 +64,11 @@ describe('the Split renderer build namespace', () => {
      * whole cohort, and it would still satisfy the first half.
      */
     it('retires the bare /guides section root without capturing a single guide URL', () => {
-        const { redirects } = probeConfig()
+        const { redirects, skipTrailingSlashRedirect } = probeConfig()
 
+        // Exact sources match their trailing-slash variants only while Next's own
+        // slash-strip (which outranks them) stays off; the proxy strips for the rest.
+        expect(skipTrailingSlashRedirect).toBe(true)
         expect(redirects.filter((redirect) => redirect.source.includes('guides'))).toEqual([
             { source: '/guides', destination: '/blog', permanent: true },
             { source: '/es-419/guides', destination: '/es-419/blog', permanent: true },
