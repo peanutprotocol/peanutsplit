@@ -27,7 +27,7 @@ export function splitGuideMetadata(
         title: `${guide.title} | Peanut`,
         description: guide.description,
         metadataBase: new URL(CANONICAL_ORIGIN),
-        alternates: { canonical, languages },
+        alternates: { canonical, languages, types: { 'application/rss+xml': `${CANONICAL_ORIGIN}/rss.xml` } },
         robots: indexable
             ? { index: true, follow: true }
             : { index: false, follow: false, noarchive: true, googleBot: { index: false, follow: false } },

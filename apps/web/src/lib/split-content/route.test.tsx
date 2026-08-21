@@ -23,6 +23,7 @@ describe('Split guide route contract', () => {
         expect(metadata.alternates).toEqual({
             canonical: 'https://peanutsplit.com/pt-br/guides/synthetic-guide',
             languages: undefined,
+            types: { 'application/rss+xml': 'https://peanutsplit.com/rss.xml' },
         })
         expect(metadata.robots).toMatchObject({ index: false, follow: false, noarchive: true })
         expect(await splitGuideMetadataFor('en', 'unknown-guide', FIXTURE)).toEqual({})
@@ -34,6 +35,7 @@ describe('Split guide route contract', () => {
         expect(metadata.alternates).toEqual({
             canonical: 'https://peanutsplit.com/guides/synthetic-guide',
             languages: undefined,
+            types: { 'application/rss+xml': 'https://peanutsplit.com/rss.xml' },
         })
     })
 
