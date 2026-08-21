@@ -62,11 +62,13 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       `ContentCTA` links `/new` with no source param. Content URLs carry no room secrets, so a
       path-allowlisted `$pageview` (blog, guides, capture, tools — never `/r/`) plus one
       `content_cta_clicked` event is compatible with the privacy rules in `CLAUDE.md`.
-- [ ] **6. `/import` intent contradiction.** Indexable (no noindex, self-canonical),
+- [x] **6. `/import` intent contradiction.** Indexable (no noindex, self-canonical),
       footer-linked from ~40 pages, yet `static-pages.ts` excludes it from the sitemap "so it
       should not enter discovery" — and its meta description is 175 chars (gate is 160). Pick
       one: `robots: noindex, follow` like `/new`, or `inSitemap: true` as a capture page. Either
-      way trim the description.
+      way trim the description. Fixed 2026-08-21: `robots: noindex, follow` like `/new`, and
+      the description trimmed to 156 chars. The `inSitemap: true` capture-page route was not
+      taken; reversible.
 - [ ] **7. The mirror has no automation and no staleness alarm.** `split-content-pull.yml` is
       deliberately dark (workflow_dispatch only); actual practice is same-session agent runs of
       `split-content-mirror.mjs` straight to prod main. If nobody runs it, mono-side corrections
@@ -128,9 +130,12 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       only. Fixed 2026-08-17 (mono `7454c153`). One premise of this item was wrong: the sibling
       rule files were NOT all corrected on 2026-08-14 — `generation-templates/guide.md` lines 69
       and 114 still carry the three-locale rule. That is now its own item 20 below.
-- [ ] **18. `/dev-ds` and `/dev-ds/audit` answer 200 on production** with no `x-robots-tag`
+- [x] **18. `/dev-ds` and `/dev-ds/audit` answer 200 on production** with no `x-robots-tag`
       (re-verified at consolidation). Absent from sitemap and unlinked, so discovery is
-      unlikely, but an internal design-system surface is publicly crawlable.
+      unlikely, but an internal design-system surface is publicly crawlable. Closed 2026-08-21:
+      `dev-ds/layout.tsx` has carried `robots: { index: false, follow: false }` since `005a942`
+      (2026-08-11); prod serves `<meta name="robots" content="noindex, nofollow">` on both
+      routes. The header is absent but the meta directive does the same job.
 - [ ] **19. Write the "hub is `/blog`" ruling into the mono generation contract.**
       `splitHubPath`/`splitToolsHubPath`/`splitCalculatorPath` in `urls.ts` still emit
       `/{locale}/split/...` and are load-bearing for the v2 manifest schema — changing them
