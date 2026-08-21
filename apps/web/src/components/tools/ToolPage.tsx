@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
+import { ContentAnalytics } from '@/components/marketing/ContentAnalytics'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { SkinFrame } from '@/components/marketing/SkinFrame'
@@ -86,7 +87,9 @@ export async function ToolPage({ tool }: { tool: Tool }) {
             </section>
 
             {/*
-             * Straight to `/new`, with nothing carried across. `CreateRoomForm` holds its three
+             * Straight to `/new`, campaign-coded like an article's CTA (`withCampaign` in
+             * blocks.tsx) but with none of the calculator's numbers carried across.
+             * `CreateRoomForm` holds its three
              * fields in local state and reads no search params, and `POST /api/rooms` takes a body
              * rather than a query — so there is nothing to prefill against today, and inventing a
              * link shape the form ignores would be a CTA that silently drops what the reader typed.
@@ -97,7 +100,12 @@ export async function ToolPage({ tool }: { tool: Tool }) {
              * CTA building the query from the calculator's own state — which would make it a
              * client component. No API change either way; the create endpoint is untouched.
              */}
-            <CTA title={tool.copy.cta.title} body={tool.copy.cta.body} text={tool.copy.cta.label} href="/new" />
+            <CTA
+                title={tool.copy.cta.title}
+                body={tool.copy.cta.body}
+                text={tool.copy.cta.label}
+                href={`/new?campaign=content-${tool.slug}`}
+            />
 
             <FAQ title={tool.copy.faqTitle}>
                 {tool.faqs.map((faq) => (
@@ -123,6 +131,8 @@ export async function ToolPage({ tool }: { tool: Tool }) {
 
     return (
         <main className="flex min-h-dvh flex-col bg-background">
+            {/* No chapter on purpose: `toolWallpaperChapter` is ruled wallpaper-only. */}
+            <ContentAnalytics template="tool" source={tool.slug} />
             <JsonLd data={toolSchema({ path, title: tool.meta.title, description: tool.meta.description })} />
             <JsonLd data={breadcrumbSchema(crumbs)} />
             <JsonLd data={faqSchema(tool.faqs)} />

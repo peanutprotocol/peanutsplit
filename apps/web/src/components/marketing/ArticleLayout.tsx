@@ -58,7 +58,7 @@ export async function ArticleLayout({
 
     return (
         <main className="flex min-h-dvh flex-col bg-background">
-            {chapter && <ContentAnalytics template={doc.collection} chapter={chapter} />}
+            {chapter && <ContentAnalytics template={doc.collection} chapter={chapter} source={doc.slug} />}
             <JsonLd data={articleSchema(doc)} />
             <JsonLd data={breadcrumbSchema(crumbs)} />
             <JsonLd data={faqSchema(frontmatter.faqs)} />

@@ -57,6 +57,59 @@ describe('contentPageviewProps / contentScrollDepthProps', () => {
             expect(Object.keys(bag).every((key) => ['template', 'chapter', 'milestone'].includes(key))).toBe(true)
         }
     })
+
+    it('omits the chapter for a tool page instead of inventing one — the wallpaper chapter is ruled out', async () => {
+        const { contentPageviewProps, contentScrollDepthProps } = await import('./ContentAnalytics')
+        expect(contentPageviewProps('tool')).toEqual({ template: 'tool' })
+        expect(contentScrollDepthProps('tool', undefined, 75)).toEqual({ template: 'tool', milestone: 75 })
+    })
+})
+
+describe('contentCtaClickedProps', () => {
+    it('carries exactly template and source — the source is the page slug, a fact about the page', async () => {
+        const { contentCtaClickedProps } = await import('./ContentAnalytics')
+        expect(contentCtaClickedProps('guide', 'splitwise-vs-settle-up')).toEqual({
+            template: 'guide',
+            source: 'splitwise-vs-settle-up',
+        })
+        expect(Object.keys(contentCtaClickedProps('tool', 'rent-split-calculator')).sort()).toEqual([
+            'source',
+            'template',
+        ])
+    })
+})
+
+describe('isRoomCreationLink', () => {
+    const origin = 'https://peanutsplit.com'
+
+    it('accepts /new on the page own origin and on any product host', async () => {
+        const { isRoomCreationLink } = await import('./ContentAnalytics')
+        expect(isRoomCreationLink({ origin, hostname: 'peanutsplit.com', pathname: '/new' }, origin)).toBe(true)
+        expect(
+            isRoomCreationLink(
+                { origin: 'https://www.peanutsplit.com', hostname: 'www.peanutsplit.com', pathname: '/new' },
+                origin
+            )
+        ).toBe(true)
+        expect(
+            isRoomCreationLink(
+                { origin: 'http://localhost:3000', hostname: 'localhost', pathname: '/new' },
+                'http://localhost:3000'
+            )
+        ).toBe(true)
+    })
+
+    it('stays silent for every other destination — rooms, hubs, foreign hosts', async () => {
+        const { isRoomCreationLink } = await import('./ContentAnalytics')
+        expect(
+            isRoomCreationLink({ origin, hostname: 'peanutsplit.com', pathname: '/r/ski-trip-x7k2m9' }, origin)
+        ).toBe(false)
+        expect(isRoomCreationLink({ origin, hostname: 'peanutsplit.com', pathname: '/blog' }, origin)).toBe(false)
+        expect(isRoomCreationLink({ origin, hostname: 'peanutsplit.com', pathname: '/newsletter' }, origin)).toBe(false)
+        expect(
+            isRoomCreationLink({ origin: 'https://evil.test', hostname: 'evil.test', pathname: '/new' }, origin)
+        ).toBe(false)
+    })
 })
 
 describe('markScrollMilestone', () => {
@@ -84,7 +137,9 @@ describe('markScrollMilestone', () => {
 describe('ContentAnalytics component', () => {
     it('renders nothing before mount and calls track zero times during the server pass', async () => {
         const { ContentAnalytics } = await import('./ContentAnalytics')
-        const html = renderToStaticMarkup(<ContentAnalytics template="blog" chapter="trips" />)
+        const html = renderToStaticMarkup(
+            <ContentAnalytics template="blog" chapter="trips" source="fronting-a-group-trip" />
+        )
 
         // Effects never run under renderToStaticMarkup, so pageHeight stays null and the
         // component renders nothing extra — the pageview only fires once the browser mounts it.
