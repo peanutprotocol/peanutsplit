@@ -130,21 +130,16 @@ function docPath(collection: Collection, slug: string, locale: Locale): string {
 }
 
 /**
- * Which languages this article actually exists in, English first. Drives hreflang and the
- * language links on the page, so it must reflect files on disk rather than the locale list —
- * offering a translation that is not there is worse than offering none.
+ * Which languages this article is actually published in, English first. Drives hreflang, the
+ * sitemap alternates and the language links on the page, so it must reflect docs a reader can
+ * reach rather than files on disk — a committed draft or an unparseable translation 404s, and
+ * hreflang pointing at a 404 is worse than offering nothing.
  */
 export function localesForSlug(collection: Collection, slug: string): IndexedLocale[] {
-    let entries: string[]
-    try {
-        entries = fs.readdirSync(path.join(collectionDir(collection), slug))
-    } catch {
-        return []
-    }
-    const present = new Set(entries.filter((f) => f.endsWith('.md')).map((f) => f.replace(/\.md$/, '')))
-    // Ordered by INDEXED_LOCALES, not by readdir — directory order is filesystem-dependent and would
-    // make the rendered hreflang block change between machines for no reason.
-    return INDEXED_LOCALES.filter((locale) => present.has(locale))
+    return INDEXED_LOCALES.filter((locale) => {
+        const doc = getDoc(collection, slug, locale)
+        return doc !== null && isDocAvailable(doc)
+    })
 }
 
 /** A frontmatter date may come back from YAML as a Date; the rest of the app wants YYYY-MM-DD. */

@@ -287,10 +287,20 @@ describe('loader, against a scratch tree', () => {
             expect(listSlugs('blog', 'pt-br')).toEqual(['newer'])
         })
 
-        it('reports the locales a slug has, in a stable order', () => {
+        it('reports only the locales a slug is published in, in a stable order', () => {
             expect(localesForSlug('blog', 'newer')).toEqual(['en', 'es-419', 'pt-br'])
-            expect(localesForSlug('blog', 'dateless')).toEqual(['en'])
+            // `older` has a live English page beside a committed Spanish draft; `dateless` and
+            // `broken` never parse. A file that 404s must not enter hreflang or the sitemap.
+            expect(localesForSlug('blog', 'older')).toEqual(['en'])
+            expect(localesForSlug('blog', 'dateless')).toEqual([])
+            expect(localesForSlug('blog', 'broken')).toEqual([])
             expect(localesForSlug('blog', 'no-such-slug')).toEqual([])
+        })
+
+        it('keeps the draft translation out of its live sibling page hreflang', () => {
+            // Exactly what `alternatesFor` and the sitemap build: with the draft removed, `older`
+            // has one language left, which is not a set of alternates.
+            expect(hreflangAlternates(basePathFor('blog', 'older'), localesForSlug('blog', 'older'))).toBeUndefined()
         })
 
         it('prefixes non-default locales and leaves English bare', () => {
