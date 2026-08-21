@@ -33,12 +33,17 @@ const { importPage } = marketingCopy
  * The tool sits above the fold and above the prose, because someone who arrived with a file in
  * hand should not have to scroll past an argument for the thing they already decided to do.
  */
-export const metadata: Metadata = appPageMetadata({
-    title: importPage.meta.title,
-    description: importPage.meta.description,
-    path: '/import',
-    type: 'article',
-})
+export const metadata: Metadata = {
+    ...appPageMetadata({
+        title: importPage.meta.title,
+        description: importPage.meta.description,
+        path: '/import',
+        type: 'article',
+    }),
+    // Footer-linked but deliberately out of the sitemap — the page's own directive should match
+    // that intent rather than contradict it, same as /new.
+    robots: { index: false, follow: true },
+}
 
 const crumbs = [
     { name: 'Home', href: '/app' },

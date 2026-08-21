@@ -26,7 +26,7 @@ export const marketingCopy = {
         meta: {
             title: 'Import your Splitwise group — free forever, no account',
             description:
-                'Move a Splitwise group to Peanut Split in one step: export the group as a spreadsheet, drop the file in, and get a shareable room with the expenses and balances already in it.',
+                'Move a Splitwise group to Peanut Split in one step: export it as a spreadsheet, drop the file in, and get a shareable room with expenses and balances in it.',
         },
         hero: {
             eyebrow: 'splitwise import',
