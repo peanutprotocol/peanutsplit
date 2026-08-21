@@ -222,7 +222,8 @@ test('supporting marketing surfaces route every creation-labelled link to the co
         expect(await creationLinks.count(), `${path} should expose at least one creation link`).toBeGreaterThan(0)
         // The destination is the assertion; the query is not. An article's creation links carry
         // `?campaign=content-<slug>` (SEO loop A, blocks.tsx's `withCampaign`) so a content-sourced
-        // room can be counted, and `/blog/split-bills-without-an-app` above is one such article.
+        // room can be counted. Two paths above are now such articles: `/blog/split-bills-without-an-app`
+        // and `/splitwise-alternative`, which stopped being a hand-built page in Wave 3c.
         // The pattern still pins the path to the composer and allows nothing but a campaign code.
         for (const link of await creationLinks.all())
             await expect(link).toHaveAttribute('href', /^\/new(\?campaign=[\w-]+)?$/)

@@ -111,7 +111,6 @@ for (const path of filesBelow(resolve(root, 'src/content'), new Set(['.md', '.md
 
 for (const local of [
     'src/components/marketing/copy.ts',
-    'src/components/marketing/compare-copy.ts',
     'src/app/(product-shell)/(marketing)/tools/page.tsx',
     'src/lib/seo.ts',
     'src/server/og/roomCard.ts',

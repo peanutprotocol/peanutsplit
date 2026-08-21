@@ -5,7 +5,6 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { LanguageLinks } from '@/components/marketing/LanguageLinks'
 import { buttonClassName } from '@/components/ui/button-style'
-import { comparisonCopy } from '@/components/marketing/compare-copy'
 import { STATIC_PAGES } from '@/data/static-pages'
 import { listAllDocs } from '@/lib/content'
 import { sourceReleasedSplitGuides } from '@/lib/split-content/released'
@@ -20,8 +19,8 @@ import { localizedPath } from '@/i18n/paths'
  * whole job — an article nothing links to is one Google finds late and re-crawls rarely. It
  * lists whatever markdown exists for the locale, so a new file shows up with no edit here.
  *
- * Hand-built pages declare the locales they actually serve. The Splitwise page is present in all
- * three and takes its card copy from the same object as its metadata; the tools remain English-only.
+ * Hand-built pages declare the locales they actually serve, and the calculators' hub is the only
+ * one left that asks for a card here — English-only, so it appears on the English hub alone.
  */
 
 interface HubEntry {
@@ -66,14 +65,11 @@ export async function ContentHub({ locale }: { locale: Locale }) {
     const entries: HubEntry[] = [
         ...dated,
         ...STATIC_PAGES.filter((page) => page.inHub && (page.locales ?? [DEFAULT_LOCALE]).includes(locale)).map(
-            (page) => {
-                const copy = page.href === '/splitwise-alternative' ? comparisonCopy[locale]!.meta : page
-                return {
-                    href: localizedPath(page.href, locale),
-                    title: copy.title,
-                    description: copy.description,
-                }
-            }
+            (page) => ({
+                href: localizedPath(page.href, locale),
+                title: page.title,
+                description: page.description,
+            })
         ),
     ]
 

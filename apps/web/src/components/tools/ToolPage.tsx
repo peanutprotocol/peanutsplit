@@ -44,8 +44,10 @@ export async function ToolPage({ tool }: { tool: Tool }) {
         <>
             <header className="mx-auto w-full max-w-xl px-5 pb-2 pt-4">
                 {/* One drawing, the same one the calculator and the hub row carry. Cast art, never
-                    a character with a line — see §5 of the stylebook. */}
-                <div className="flex items-center gap-3">
+                    a character with a line — see §5 of the stylebook. Top-aligned, not centred: a
+                    title that wraps to two lines pushed a vertically-centred drawing down beside
+                    its second line, which reads as a bullet rather than a mark on the heading. */}
+                <div className="flex items-start gap-3">
                     <Doodle name={tool.doodle} size={38} weight={1.5} />
                     <h1 className="split-page-title text-h4 leading-tight text-n-1">{tool.copy.h1}</h1>
                 </div>

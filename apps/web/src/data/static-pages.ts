@@ -1,12 +1,12 @@
 import { TOOL_SLUGS } from '@/tools/registry'
-import { INDEXED_LOCALES, type Locale } from '@/i18n/locales'
+import { type Locale } from '@/i18n/locales'
 import { PREFIXED_LOCALES } from '@/i18n/paths'
 
 /**
  * The hand-built pages, registered so the sitemap and the /blog hub don't have to special-case
- * them. Two implementations of a marketing page coexist on purpose: the flagship pages are
- * bespoke React (they carry interactive comparison tables and copy that is argued over line by
- * line), and the long tail is markdown through the content engine. This file is the seam.
+ * them. Two implementations of a marketing page coexist on purpose: the landing and the
+ * calculators' hub are app surfaces built in React, and everything editorial is markdown through
+ * the content engine. This file is the seam.
  *
  * Rule: a page belongs in exactly one of the two. If a slug here also exists in src/content/,
  * the static route wins in Next's router and the markdown version becomes unreachable while
@@ -38,14 +38,6 @@ export const STATIC_PAGES: StaticPage[] = [
         description: 'Accountless, link-based expense splitting.',
         priority: 1,
         inHub: false,
-    },
-    {
-        href: '/splitwise-alternative',
-        title: 'Splitwise alternative',
-        description: "What Splitwise's own Pro page says it puts behind a paywall, and what Split does instead.",
-        priority: 0.8,
-        inHub: true,
-        locales: [...INDEXED_LOCALES],
     },
     {
         // The calculators' one hub. It carries no calculator of its own, so it is a listing rather

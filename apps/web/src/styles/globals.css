@@ -190,6 +190,33 @@
     mask-image: repeating-linear-gradient(to bottom, #000 0, #000 3px, transparent 3px, transparent 7px);
 }
 
+/* Table scroll cue (components.tsx's `table` wrapper). A comparison table is wider than the 36rem
+   column and scrolls inside its own box, which on a phone reads as a table that simply ends at the
+   screen edge. The four-layer background is the whole affordance: two white covers painted in the
+   box's own ground sit over the left and right edges with `background-attachment: local`, so they
+   travel WITH the content and slide out of view as it scrolls, uncovering two `scroll`-attached
+   shadows that stay pinned to the box. Fully scrolled either way, that side's cover is back over
+   its shadow and the cue disappears. No listener, no ResizeObserver, no extra element. */
+.split-table-scroll {
+    background-image:
+        linear-gradient(to right, #ffffff 55%, rgba(255, 255, 255, 0)),
+        linear-gradient(to left, #ffffff 55%, rgba(255, 255, 255, 0)),
+        linear-gradient(to right, rgba(33, 28, 23, 0.18), rgba(33, 28, 23, 0)),
+        linear-gradient(to left, rgba(33, 28, 23, 0.18), rgba(33, 28, 23, 0));
+    background-repeat: no-repeat;
+    background-position:
+        left center,
+        right center,
+        left center,
+        right center;
+    background-size:
+        2rem 100%,
+        2rem 100%,
+        0.75rem 100%,
+        0.75rem 100%;
+    background-attachment: local, local, scroll, scroll;
+}
+
 /* ---------------------------------------------------------- sticker skin
    fun-engine.md Wave 2 / S2. `ChapterFrame` and `SkinFrame` are the only things that set
    `--skin-*`: they paint the whole palette plus `--skin-wall` onto one wrapper, beside

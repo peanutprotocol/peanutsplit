@@ -13,7 +13,7 @@ export type PageKind = Collection | 'guide'
  * translation silently repaint the page). A slug that is both a blog/* directory and a generated
  * guide must resolve to the same chapter, which a flat map gives for free — see recipe.test.ts.
  *
- * Covers the 24 real slugs live today: the 4 alternatives/*, 9 blog/*, 4 capture/* directory
+ * Covers the 25 real slugs live today: the 5 alternatives/*, 9 blog/*, 4 capture/* directory
  * names, plus the 9 unique guide slugs in src/generated/seo/manifest.json (2 of which —
  * split-a-group-trip-across-countries, split-expenses-across-currencies — are also blog/*
  * directories and share one entry below). recipe.test.ts cross-checks this map against the real
@@ -25,6 +25,7 @@ export type PageKind = Collection | 'guide'
 export const CHAPTER_BY_SLUG: Record<string, Chapter> = {
     // alternatives/*
     'settle-up-alternative': 'versus',
+    'splitwise-alternative': 'versus',
     'splitwise-daily-limit': 'versus',
     'splitwise-vs-tricount': 'versus',
     'tricount-alternative': 'versus',
