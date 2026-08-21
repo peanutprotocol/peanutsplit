@@ -40,24 +40,43 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       Done 2026-08-17: sitemap submitted (48 URLs re-verified 200 the same day), indexing
       requested on the three strongest `en` guides plus the holiday-house guide after item 15's
       read; the remaining released URLs ride the sitemap crawl.
-- [ ] **2. Give publishing a push channel.** No IndexNow, no RSS (`/rss.xml`, `/feed.xml`,
+- [x] **2. Give publishing a push channel.** No IndexNow, no RSS (`/rss.xml`, `/feed.xml`,
       `/blog/feed.xml` all 404), no submission code anywhere. After item 1, add an IndexNow key
       file + one POST per publish batch so future batches stop waiting on organic crawl of a
-      near-zero-authority domain.
-- [ ] **3. Claims IDs are unenforced for the native corpus** — the audit's one HIGH.
+      near-zero-authority domain. Done 2026-08-21 (`d1f05da`), verified on production: `/rss.xml`
+      serves RSS 2.0 built from the same loaders as the sitemap, the IndexNow key file answers 200. Submission = `apps/web/scripts/indexnow-submit.mjs`, run from a dev machine after each
+      publish batch (containers have no egress); not wired into deploy on purpose.
+- [x] **3. Claims IDs are unenforced for the native corpus** — the audit's one HIGH.
+      Done 2026-08-21 (`bf4b633`): `Frontmatter` parses `type`/`claims`/`competitorClaims`, a
+      claims-gate suite in `content.test.ts` resolves every ID against the `_system` truth files
+      and fails on unresolvable IDs, typed pages with no claims, or a comparison with zero
+      `competitorClaims`; all 15 alternatives + 12 blog files annotated; both failure modes
+      proven by mutation. Editorial residue (prose numbers with no truth entry yet): real-time
+      reconnect timings, the 30-bills/day scan cap, the 30-queued-offline-expenses cap,
+      recap-card facts — each needs a product-truths block before its page can cite it.
       Stylebook §7.5 says a claim with no ID does not ship; no content page carries
       `claims:`/`competitorClaims:`, the `Frontmatter` interface (`apps/web/src/lib/content.ts:63`)
       discards the keys, and no test resolves an ID. The generated pipeline enforces this (mono
       `scripts/split-content.mjs:939`) — port that gate: add the keys to `Frontmatter`, require
       them per §11.3 by type, resolve every ID against `_system/product-truths.md` and
       `_system/competitor-claims.md` in `content.test.ts`.
-- [ ] **4. hreflang advertises drafts.** `localesForSlug` (`apps/web/src/lib/content.ts:137`)
+- [x] **4. hreflang advertises drafts.** Done 2026-08-21 (`7713011`): `localesForSlug` now
+      derives alternates from published, parseable, available docs (`getDoc` + `isDocAvailable`),
+      and the test oracle is inverted — fixtures with `published: false`/broken files must NOT
+      appear in alternates. No prod behavior changed (the corpus carried no drafts); the latent
+      path is closed at test level. Original text: `localesForSlug` (`apps/web/src/lib/content.ts:137`)
       gates on file presence only, so a committed `published: false` (or unparseable) translation
       enters page hreflang and sitemap alternates while its route 404s. Trap:
       `content.test.ts:999-1022` uses `localesForSlug` as its own oracle, so the suite asserts
       the bug — the fix must also invert that test. Derive alternates from published docs (the
       split-content engine already does: `released.ts:44-51`).
-- [ ] **5. Content pages emit zero analytics.** `posthog.init` has `capture_pageview: false`
+- [x] **5. Content pages emit zero analytics.** Done 2026-08-21 (`e805158`) — the item was
+      partly stale: `content_pageview` + scroll depth already shipped via the ContentAnalytics
+      island. Added: `content_cta_clicked` (delegated listener in the island, destination
+      allowlist, `{template, source}` props only), the island now mounts on `/tools` + tool
+      pages, and tool CTAs carry `campaign=content-{slug}` params matching the article
+      convention. Privacy rules held — no slug/name/amount properties. Original text:
+      `posthog.init` has `capture_pageview: false`
       and no content or tool component fires any event (`apps/web/src/lib/analytics.ts:167`);
       `ContentCTA` links `/new` with no source param. Content URLs carry no room secrets, so a
       path-allowlisted `$pageview` (blog, guides, capture, tools — never `/r/`) plus one
@@ -150,11 +169,12 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 - [x] `/tools` declares `twitter:card=summary_large_image` but ships no `og:image` — the
       one page type with a broken unfurl. Closed 2026-08-21: `tools/opengraph-image.tsx`
       ships the brand card, same pattern as `/import`.
-- [ ] `/splitwise-alternative` bypasses the length gate: title 63/62 chars (en/es), description
-      171/169 (limits 60/160), no suffix — its copy lives in `marketing/copy.ts`, outside
-      `content.test.ts`. Trim, and gate `copy.ts` meta.
-- [ ] `/splitwise-alternative` is the only comparison page with no Article schema and no
-      sitemap lastmod — the money page sends zero freshness signals.
+- [x] `/splitwise-alternative` bypasses the length gate. Closed 2026-08-21 by the engine
+      rebuild (`061ce0c`, bespoke page retired): copy now lives in `content/alternatives/` under
+      `content.test.ts` gates; prod title 57 chars with suffix, description 157.
+- [x] `/splitwise-alternative` no Article schema / no sitemap lastmod. Closed 2026-08-21 by the
+      same rebuild: prod serves Article JSON-LD and `<lastmod>` via the engine like every other
+      comparison page.
 - [ ] Every Article/BlogPosting `image` site-wide is the 512px app icon (documented
       workaround for hashed og routes). Constraint from guide-tracker decision 17: the file
       convention stays for `og:image` (the hash trap only bites hand-written URLs) — so the fix
