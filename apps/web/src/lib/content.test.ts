@@ -1427,3 +1427,123 @@ describe('cast references', () => {
         }
     })
 })
+
+describe('claims gate', () => {
+    /**
+     * Stylebook §7.5: every product number cites a `claims:` ID, every competitor fact a
+     * `competitorClaims:` ID, and a claim with no ID does not ship. The generated pipeline has
+     * enforced this since it existed (mono `scripts/split-content.mjs`); this is the same gate for
+     * the native corpus. The truth files are the register: a claim heading in `product-truths.md`,
+     * a backticked id in the `competitor-claims.md` tables. An ID that resolves in neither is a
+     * fact the page asserts and nobody can defend.
+     */
+    const systemDir = path.join(process.cwd(), 'src/content/_system')
+    const idPattern = '[a-z0-9]+(?:-[a-z0-9]+)*'
+    const productTruthIds = new Set(
+        [
+            ...fs
+                .readFileSync(path.join(systemDir, 'product-truths.md'), 'utf8')
+                .matchAll(new RegExp(`^## (${idPattern})$`, 'gm')),
+        ].map((m) => m[1])
+    )
+    const competitorClaimIds = new Set(
+        [
+            ...fs
+                .readFileSync(path.join(systemDir, 'competitor-claims.md'), 'utf8')
+                .matchAll(new RegExp(`^\\| \`(${idPattern})\``, 'gm')),
+        ].map((m) => m[1])
+    )
+
+    /** An empty register would make every resolution test below pass vacuously. */
+    it('reads a non-empty register from both truth files', () => {
+        expect(productTruthIds.size).toBeGreaterThan(0)
+        expect(competitorClaimIds.size).toBeGreaterThan(0)
+    })
+
+    it('resolves every claims ID against product-truths.md', () => {
+        for (const doc of ALL) {
+            for (const id of doc.frontmatter.claims ?? []) {
+                expect(
+                    productTruthIds.has(id),
+                    `${doc.collection}/${doc.slug}/${doc.locale}.md cites claims ID "${id}", which is not a heading in _system/product-truths.md`
+                ).toBe(true)
+            }
+        }
+    })
+
+    it('resolves every competitorClaims ID against competitor-claims.md', () => {
+        for (const doc of ALL) {
+            for (const id of doc.frontmatter.competitorClaims ?? []) {
+                expect(
+                    competitorClaimIds.has(id),
+                    `${doc.collection}/${doc.slug}/${doc.locale}.md cites competitorClaims ID "${id}", which is not a row in _system/competitor-claims.md`
+                ).toBe(true)
+            }
+        }
+    })
+
+    /** §11.3 knows four page types. A fifth is a typo, and a typo'd type dodges every typed gate. */
+    it('only uses stylebook page types', () => {
+        for (const doc of ALL) {
+            if (doc.frontmatter.type === undefined) continue
+            expect(
+                ['capture', 'comparison', 'editorial', 'guide'],
+                `${doc.collection}/${doc.slug}/${doc.locale}.md has an unknown type`
+            ).toContain(doc.frontmatter.type)
+        }
+    })
+
+    /** §11.3 requires the `claims` key on all four page types. */
+    it('declares claims on every typed page', () => {
+        for (const doc of ALL) {
+            if (doc.frontmatter.type === undefined) continue
+            expect(
+                doc.frontmatter.claims?.length,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md is type: ${doc.frontmatter.type} but declares no claims (§11.3)`
+            ).toBeGreaterThan(0)
+        }
+    })
+
+    /**
+     * Every alternatives page is a comparison — that is what the collection is for — and the
+     * competitorClaims requirement below binds by type, so an alternatives page that omitted its
+     * type would silently leave the gate.
+     */
+    it('types every alternatives page as a comparison', () => {
+        for (const doc of ALL.filter((doc) => doc.collection === 'alternatives')) {
+            expect(doc.frontmatter.type, `alternatives/${doc.slug}/${doc.locale}.md is not typed as a comparison`).toBe(
+                'comparison'
+            )
+        }
+    })
+
+    /** The audit's HIGH: a comparison asserting competitor facts with no register row behind them. */
+    it('requires competitorClaims on every comparison', () => {
+        for (const doc of ALL) {
+            if (doc.frontmatter.type !== 'comparison') continue
+            expect(
+                doc.frontmatter.competitorClaims?.length,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md is a comparison with zero competitorClaims`
+            ).toBeGreaterThan(0)
+        }
+    })
+
+    /**
+     * A translation asserts the same facts as its English page, so it rests on the same IDs.
+     * Divergence means one of the two was annotated and the other forgotten — the drift this
+     * file exists to prevent.
+     */
+    it('keeps a translation on the same claims as its English page', () => {
+        for (const doc of ALL) {
+            if (doc.locale === DEFAULT_LOCALE) continue
+            const en = getDoc(doc.collection, doc.slug, DEFAULT_LOCALE)
+            if (!en) continue
+            for (const key of ['claims', 'competitorClaims'] as const) {
+                expect(
+                    doc.frontmatter[key] ?? [],
+                    `${doc.collection}/${doc.slug}/${doc.locale}.md declares different ${key} than en.md`
+                ).toEqual(en.frontmatter[key] ?? [])
+            }
+        }
+    })
+})

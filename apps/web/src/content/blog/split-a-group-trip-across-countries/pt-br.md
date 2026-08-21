@@ -3,6 +3,12 @@ title: Dividir despesas de viagem entre países
 description: Quatro pessoas, quatro bancos, três moedas, um jantar. Como manter as despesas da viagem em ordem e, principalmente, como receber depois.
 date: 2026-07-28
 tags: [viagens, moedas, receber]
+claims:
+    - link-is-the-key
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - settle-is-a-record
 faqs:
     - question: Todo mundo precisa instalar alguma coisa?
       answer: Não. Uma sala do Split é um link. Quem abre digita um nome e começa a lançar despesas — sem app, sem conta, sem e-mail.

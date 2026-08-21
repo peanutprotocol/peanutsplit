@@ -3,7 +3,21 @@ title: Alternativa ao Splitwise, grátis e sem limite
 description: Um link só, e todo mundo lança o que pagou, sem conta e sem app. Alternativa ao Splitwise grátis para sempre, sem limite diário e sem plano pago para assinar.
 date: 2026-07-25
 updated: 2026-08-21
+type: comparison
 tags: [alternativas]
+claims:
+    - free-forever
+    - link-is-the-key
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - offline-creates-only
+    - settle-is-a-record
+competitorClaims:
+    - splitwise-pro-expenses
+    - splitwise-pro-currency
+    - splitwise-pro-ad-free
+    - splitwise-free-daily-cap
 faqs:
     - question: É grátis para sempre?
       answer: É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas.

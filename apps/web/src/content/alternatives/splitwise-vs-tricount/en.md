@@ -2,7 +2,33 @@
 title: 'Splitwise vs Tricount: which one to pick'
 description: Both do the maths. They differ on the free-tier limit, on currencies and on how you settle up. What each one's own site says, checked July 2026.
 date: 2026-07-30
+type: comparison
 tags: [alternatives, currencies]
+claims:
+    - free-forever
+    - link-is-the-key
+    - no-app
+    - automatic-currency-conversion
+    - netting-is-bounded-exact
+    - offline-creates-only
+    - settle-is-a-record
+competitorClaims:
+    - splitwise-keep-track
+    - tricount-tracks-who-paid
+    - splitwise-limit-exists
+    - splitwise-free-daily-cap
+    - splitwise-limit-workarounds
+    - tricount-100-free-long
+    - splitwise-pro-ad-free
+    - splitwise-pro-only-converts
+    - splitwise-simplify-per-currency
+    - tricount-converts-currency
+    - splitwise-everyone-logs-in
+    - splitwise-one-invite-one-reminder
+    - tricount-share-link
+    - splitwise-settle-record
+    - tricount-settle-to-bank
+    - tricount-bunq-card
 faqs:
     - question: Does Splitwise limit free expenses?
       answer: Yes. Its help centre states a daily cap on the free tier and says a Pro subscription removes it. The figure is quoted above, from Splitwise's own page. Tricount's comparison page gives a different one, which is why the source matters more than the number.

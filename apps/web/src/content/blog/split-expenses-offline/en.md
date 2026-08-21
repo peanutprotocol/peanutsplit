@@ -3,6 +3,10 @@ title: Splitting expenses offline, with no signal
 description: Basements, ski lifts, festival fields and dead SIMs. What a shared expense room can record with no connection, what it deliberately refuses to, and why.
 date: 2026-07-28
 tags: [offline, trips]
+claims:
+    - offline-creates-only
+    - settle-is-a-record
+    - link-is-the-key
 faqs:
     - question: Can I add an expense with no internet?
       answer: Yes. The expense is saved on your phone with a "queued" mark on the row and sends itself the moment you are back online. You do not have to remember it, retype it, or keep the tab open.
