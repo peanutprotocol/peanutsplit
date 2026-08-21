@@ -10,5 +10,7 @@ export const size = ogImageExports.size
 export const contentType = ogImageExports.contentType
 export const alt = 'Peanut Split guide'
 
+// Mirrors the page route's contract: a slug outside the params set is a 404, not a card.
+export const dynamicParams = false
 export const generateStaticParams = contentOgStaticParams(['blog'], LOCALE, 'slug')
 export default contentOgImage(['blog'], LOCALE, 'slug')

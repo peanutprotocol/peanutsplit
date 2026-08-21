@@ -147,9 +147,9 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 
 ## Low — batchable polish
 
-- [ ] `/tools` declares `twitter:card=summary_large_image` but ships no `og:image` — the
-      one page type with a broken unfurl. Add `opengraph-image.tsx` to the tools route
-      (`seo.ts:123` hardcodes the card type for every `pageMetadata()` caller).
+- [x] `/tools` declares `twitter:card=summary_large_image` but ships no `og:image` — the
+      one page type with a broken unfurl. Closed 2026-08-21: `tools/opengraph-image.tsx`
+      ships the brand card, same pattern as `/import`.
 - [ ] `/splitwise-alternative` bypasses the length gate: title 63/62 chars (en/es), description
       171/169 (limits 60/160), no suffix — its copy lives in `marketing/copy.ts`, outside
       `content.test.ts`. Trim, and gate `copy.ts` meta.
@@ -162,18 +162,18 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 - [ ] Guide fonts: two knerd TTFs ship uncompressed (~101 KB, convert to woff2 — keep the
       TTFs for the OG renderer) AND the LP emits zero font preloads despite `next/font`
       marking all five files preload-eligible; the H1 those fonts style is the LCP element.
-- [ ] OG-image routes render for ANY slug (200 where the page 404s) and guide cards render
-      per request (no `generateStaticParams`, 0.47s TTFB vs 0.12s cached blog card). Mirror the
-      page contract (`dynamicParams = false` or 404 on lookup miss, `content-og.tsx:77`);
-      revisit render cost if origin load matters.
-- [ ] `loadSplitContentManifest` re-validates all 15 artifact files per call; one
-      `/sitemap.xml` fetch does ~12 full validations. Memoise per process.
-- [ ] `parseGuide` never asserts `generated_at >= date`; a violating mirror ships
-      contradictory dates silently. One zod refinement in `artifact.ts`.
-- [ ] `GuideLayout.tsx:83` renders the raw ISO date to readers; use `formatDate()` like the
-      blog does.
-- [ ] `OG_LOCALE` map is defined twice (`seo.ts:35`, `split-content/metadata.ts:8`); export
-      it once.
+- [x] OG-image routes render for ANY slug (200 where the page 404s). Closed 2026-08-21:
+      every content og route now carries `dynamicParams = false`; guide og routes mirror the
+      page's force-dynamic contract and 404 on lookup miss. Guide cards still render per
+      request — revisit render cost if origin load matters.
+- [x] `loadSplitContentManifest` re-validates all 15 artifact files per call. Closed
+      2026-08-21: memoised per process, keyed by resolved root; failures stay uncached.
+- [x] `parseGuide` never asserts `generated_at >= date`. Closed 2026-08-21: `parseGuide`
+      rejects a generation stamp that precedes the publication date.
+- [x] `GuideLayout.tsx` renders the raw ISO date to readers. Closed 2026-08-21: renders
+      `formatDate()` in the guide's locale, like the blog.
+- [x] `OG_LOCALE` map is defined twice. Closed 2026-08-21: `seo.ts` exports the one map;
+      `split-content/metadata.ts` imports it.
 - [ ] `/fair-split-calculator` is typed Article while rent/mileage emit WebApplication
       `#tool` nodes — the page named "calculator" carries no calculator entity. Also `/tools`
       ("Calculators") lists only the 2 registry calculators; 3 of 6 capture pages hang off the

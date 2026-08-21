@@ -3,14 +3,8 @@ import { HREFLANG } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { howToSchema } from '@/lib/howto-schema'
-import { absoluteUrl, breadcrumbSchema, ORGANIZATION_NODE, type Breadcrumb } from '@/lib/seo'
+import { absoluteUrl, breadcrumbSchema, OG_LOCALE, ORGANIZATION_NODE, type Breadcrumb } from '@/lib/seo'
 import type { SplitGuide } from './artifact'
-
-const OG_LOCALE = {
-    en: 'en_US',
-    'es-419': 'es_LA',
-    'pt-br': 'pt_BR',
-} as const
 
 export function splitGuideMetadata(
     guide: SplitGuide,

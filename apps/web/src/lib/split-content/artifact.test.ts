@@ -323,6 +323,10 @@ describe('generated Split artifact loader', () => {
         })
     })
 
+    it('validates an artifact once per process and reuses the result', () => {
+        expect(loadSplitContentManifest(FIXTURE)).toBe(loadSplitContentManifest(FIXTURE))
+    })
+
     it('treats a renderer-only branch with no generated destination as an empty route set', () => {
         const root = fs.mkdtempSync(path.join(os.tmpdir(), 'split-a3-empty-'))
         temporaryRoots.push(root)
@@ -381,6 +385,12 @@ describe('generated Split artifact loader', () => {
             source.replace('This is synthetic body copy.', '# Duplicate H1\n\nThis is synthetic body copy.')
         )
         expect(() => listSplitGuides('en', h1)).toThrow(/must not own an H1/)
+    })
+
+    it('rejects a generation stamp that precedes the publication date', () => {
+        const root = copiedFixture()
+        mutateOutput(root, 'en', (source) => source.replace('generated_at: 2026-08-11', 'generated_at: 2026-08-10'))
+        expect(() => listSplitGuides('en', root)).toThrow(/generated_at must not precede date/)
     })
 
     it('requires each output generated_from block to exactly match its ordered manifest sources', () => {
