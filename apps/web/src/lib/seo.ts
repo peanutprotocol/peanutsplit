@@ -113,7 +113,7 @@ export function pageMetadata({
         title,
         description,
         metadataBase: new URL(CANONICAL_ORIGIN),
-        alternates: { canonical },
+        alternates: { canonical, types: { 'application/rss+xml': `${CANONICAL_ORIGIN}/rss.xml` } },
         openGraph: {
             type,
             url: canonical,

@@ -147,6 +147,7 @@ describe('installed generated Split artifact', () => {
             expect(metadata.alternates, identity).toEqual({
                 canonical: absoluteUrl(entry.public_path),
                 languages: undefined,
+                types: { 'application/rss+xml': absoluteUrl('/rss.xml') },
             })
             expect(metadata.robots, identity).toMatchObject({ index: false, follow: false, noarchive: true })
 
