@@ -114,11 +114,14 @@ export type AnalyticsEvent =
     | 'achievement_seen'
     | 'achievement_share_opened'
     | 'achievement_shared'
-    // Content pageview + scroll depth (blog/alternatives/capture articles and guides).
+    // Content pageview + scroll depth (blog/alternatives/capture articles, guides and tool pages).
     // `template` and `chapter` are both closed enums that describe the PAGE, never the reader —
     // no slug, no room, no scroll position beyond which of four milestones was crossed.
     | 'content_pageview'
     | 'content_scroll_depth'
+    // A content CTA click through to `/new`. `source` is the page's own public slug — the same
+    // value its URL shows every reader — so it names the PAGE, never the person who clicked.
+    | 'content_cta_clicked'
 
 let ready = false
 

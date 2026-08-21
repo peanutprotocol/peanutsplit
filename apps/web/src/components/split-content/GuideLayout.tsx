@@ -85,7 +85,7 @@ export function SplitGuideLayout({
 
     return (
         <main className="min-h-dvh bg-background text-n-1">
-            {chapter && <ContentAnalytics template="guide" chapter={chapter} />}
+            {chapter && <ContentAnalytics template="guide" chapter={chapter} source={guide.slug} />}
             <JsonLd data={schemas.article} />
             <JsonLd data={schemas.breadcrumbs} />
             <JsonLd data={schemas.howTo} />

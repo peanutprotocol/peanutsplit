@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
+import { ContentAnalytics } from '@/components/marketing/ContentAnalytics'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { Doodle } from '@/components/ui/Doodle'
@@ -67,6 +68,7 @@ const listSchema = {
 export default function ToolsHubPage() {
     return (
         <main className="flex min-h-dvh flex-col bg-background">
+            <ContentAnalytics template="tool" source="tools" />
             <JsonLd data={breadcrumbSchema(crumbs)} />
             <JsonLd data={listSchema} />
 
@@ -81,7 +83,7 @@ export default function ToolsHubPage() {
 
             <section className="mx-auto w-full max-w-xl px-5 py-8">
                 <Link
-                    href="/new"
+                    href="/new?campaign=content-tools"
                     className="shadow-4 flex items-start gap-3 rounded-lg border-2 border-n-1 bg-primary-3 p-4 transition-transform hover:-translate-y-0.5"
                 >
                     <Doodle name="wine" size={34} weight={1.6} className="mt-0.5" />
