@@ -20,6 +20,24 @@ describe('proxy /new locale handoff', () => {
         expect(config.matcher).toContain(`${SPLIT_ASSET_PREFIX}/:path*`)
     })
 
+    it('strips one trailing slash in one hop, keeping the query, before any other handling', () => {
+        const response = proxy(new NextRequest('http://localhost/blog/?utm_source=chat'))
+
+        expect(response.status).toBe(308)
+        expect(response.headers.get('location')).toBe('http://localhost/blog?utm_source=chat')
+    })
+
+    it('leaves the root and doubled slashes alone, like the built-in strip it replaces', () => {
+        for (const path of ['/', '/blog', '/blog//']) {
+            const response = proxy(new NextRequest(`http://localhost${path}`))
+            expect(response.headers.get('location'), path).toBeNull()
+        }
+    })
+
+    it('matches dotted trailing-slash paths so the strip covers them too', () => {
+        expect(config.matcher).toContain('/((?!api/|_next/|split-static/).*\\..*)/')
+    })
+
     it('no longer owns a /split namespace or a renderer-only sitemap route', () => {
         expect(config.matcher).not.toContain('/split/:path*')
         expect(config.matcher).not.toContain('/:locale/split/:path*')

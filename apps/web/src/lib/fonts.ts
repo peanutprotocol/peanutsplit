@@ -1,5 +1,4 @@
 import { Roboto_Flex, Sniglet } from 'next/font/google'
-import localFont from 'next/font/local'
 
 const roboto = Roboto_Flex({
     subsets: ['latin'],
@@ -15,16 +14,6 @@ const sniglet = Sniglet({
     variable: '--font-sniglet',
 })
 
-const knerdOutline = localFont({
-    src: '../assets/fonts/knerd-outline.ttf',
-    variable: '--font-knerd-outline',
-    display: 'swap',
-})
-
-const knerdFilled = localFont({
-    src: '../assets/fonts/knerd-filled.ttf',
-    variable: '--font-knerd-filled',
-    display: 'swap',
-})
-
-export const bodyFontClassName = `${roboto.variable} ${sniglet.variable} ${knerdOutline.variable} ${knerdFilled.variable} font-sans`
+// The knerd faces live in globals.css (@font-face over public/fonts woff2), not here:
+// next/font would hash their URLs, and Title.tsx preloads them by stable URL.
+export const bodyFontClassName = `${roboto.variable} ${sniglet.variable} font-sans`

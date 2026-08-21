@@ -25,6 +25,15 @@ import { splitGuideLocale } from '@/lib/split-content/urls'
  * cookie-localized public marketing.
  */
 export function proxy(request: NextRequest) {
+    // The trailing-slash strip Next no longer applies (`skipTrailingSlashRedirect` in
+    // next.config.js). First, where Next's built-in ran, so `/guides/` and friends have
+    // already been retired in one hop by the config redirects before reaching here. A
+    // doubled slash never matched the built-in either, so it still falls through to 404.
+    const { pathname } = request.nextUrl
+    if (pathname !== '/' && pathname.endsWith('/') && !pathname.endsWith('//')) {
+        return NextResponse.redirect(new URL(pathname.slice(0, -1) + request.nextUrl.search, request.url), 308)
+    }
+
     // Every public alias is compatibility-only. Canonicalise it first, so app, PWA and SEO
     // have one public origin.
     const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
@@ -83,5 +92,8 @@ export const config = {
         '/icon.png',
         '/icons/:path*',
         '/((?!api/|_next/|split-static/|.*\\.).*)',
+        // Dotted paths with a trailing slash (`/sitemap.xml/`) — the broad matcher skips
+        // anything with a dot, and the strip above is what redirects these now.
+        '/((?!api/|_next/|split-static/).*\\..*)/',
     ],
 }

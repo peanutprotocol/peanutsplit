@@ -9,6 +9,24 @@
     --secondary-color: #211c17;
     --accent-color: #ff90e8;
     --split-ink: #211c17;
+    --font-knerd-outline: 'Knerd Outline';
+    --font-knerd-filled: 'Knerd Filled';
+}
+
+/* Knerd is declared by hand, not through next/font: Next 16.2 drops font preload links
+   from dynamic-page HTML (the hint rides only the RSC payload), and preloading the LCP
+   H1's faces needs stable URLs Title.tsx can <link rel="preload"> itself. The TTF
+   originals stay on disk for the OG renderer. */
+@font-face {
+    font-family: 'Knerd Outline';
+    src: url('/fonts/knerd-outline.woff2') format('woff2');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Knerd Filled';
+    src: url('/fonts/knerd-filled.woff2') format('woff2');
+    font-display: swap;
 }
 
 @layer base {

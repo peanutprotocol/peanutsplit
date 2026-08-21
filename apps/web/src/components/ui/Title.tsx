@@ -10,6 +10,11 @@ const Title = ({
 } & React.HTMLAttributes<HTMLParagraphElement>) => {
     return (
         <div className="relative inline-block">
+            {/* React hoists these into <head>. Rendered here rather than in a layout so every
+                page whose first paint sets type in knerd — the landing H1 is the LCP element —
+                preloads exactly the two faces it is about to paint. */}
+            <link rel="preload" href="/fonts/knerd-filled.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+            <link rel="preload" href="/fonts/knerd-outline.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
             <p className={twMerge('relative font-knerd-filled text-white', offset && 'translate-x-[3px]', className)}>
                 {text}
             </p>
