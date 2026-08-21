@@ -360,6 +360,37 @@ describe('article bodies', () => {
         }
     })
 
+    /**
+     * A competitor's words are evidence, and evidence is not translated (`competitor-claims.md`).
+     * Every `<Quote>` on a translated page therefore has to be the same bytes as one on the
+     * English page for the same slug — a Spanish page that "quotes" a Spanish rendering of an
+     * English sentence is quoting nobody, and a quote that drifted by a character while being
+     * carried across three files is no longer verbatim on any of them.
+     *
+     * Byte-identical on the trimmed body, so re-wrapping a long quote is still a failure: the
+     * three files should hold one string, not three renderings of it.
+     */
+    it('quotes the same source bytes in every language of a page', () => {
+        const quotes = (body: string) => [...body.matchAll(/<Quote[^>]*>([\s\S]*?)<\/Quote>/g)].map((m) => m[1].trim())
+
+        for (const doc of ALL) {
+            if (doc.locale === DEFAULT_LOCALE) continue
+            const translated = quotes(doc.body)
+            if (translated.length === 0) continue
+
+            const english = getDoc(doc.collection, doc.slug, DEFAULT_LOCALE)
+            expect(english, `${doc.collection}/${doc.slug}/${doc.locale}.md quotes a source its en.md does not`) //
+                .not.toBeNull()
+            const source = new Set(quotes(english!.body))
+            for (const quote of translated) {
+                expect(
+                    source.has(quote),
+                    `${doc.collection}/${doc.slug}/${doc.locale}.md: "${quote}" is not byte-identical to a <Quote> in the same slug's en.md — a competitor's words are evidence and are never translated or re-typed`
+                ).toBe(true)
+            }
+        }
+    })
+
     /** next-mdx-remote parses the body as MDX, so an unbalanced brace is a build failure. */
     it('has balanced custom-component tags', () => {
         const paired = ['Hero', 'CTA', 'Steps', 'Step', 'FAQ', 'FAQItem', 'Callout', 'Quote', 'Cast', 'Checklist', 'ChecklistItem', 'RelatedPages', 'RelatedLink', 'Calc', 'Share'] // prettier-ignore

@@ -17,10 +17,11 @@ import { expect, test, type Page } from '@playwright/test'
  * `getting-paid-back` wallpaper and one on a prefixed locale), both tools, and one more locale —
  * `SKIN_DEFAULT` is keyed on slug alone, so a locale that differed would be the bug.
  *
- * The two Splitwise routes are Wave 3b (Konrad's 20 Aug ruling, which dropped Wave 3's carve-outs)
- * and are here for a reason no other entry covers: `/splitwise-alternative` is the hand-built page,
- * the only route that passes `ChapterFrame` a skin literally, and `/splitwise-daily-limit` reaches
- * a frame at all only because `FLAT_REGISTER_SLUGS` is now empty.
+ * The two Splitwise routes are Wave 3b/3c (Konrad's 20 Aug ruling, which dropped Wave 3's
+ * carve-outs) and are here for a reason no other entry covers: `/splitwise-alternative` was the
+ * last hand-built marketing page and is now three markdown files through the engine, so the URL
+ * that used to pass `ChapterFrame` a skin literally must still wear one after the flip; and
+ * `/splitwise-daily-limit` reaches a frame at all only because `FLAT_REGISTER_SLUGS` is now empty.
  */
 const SKINNED = [
     '/blog/fronting-a-group-trip',

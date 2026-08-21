@@ -35,8 +35,8 @@ const PEANUT_LINKS = [
  * The guide and comparison columns are read off disk for the current locale, so a new markdown
  * file appears here without anyone editing this component. That is the point: a page nothing
  * links to is one Google finds late and re-crawls rarely, and the footer is the one component
- * every page shares. The hand-built Splitwise comparison has a route in every locale and follows
- * `localizedPath`; `/import` remains English-only and is deliberately left bare.
+ * every page shares. Nothing in either column is hardcoded any more — the Splitwise comparison
+ * was the last one, and it is markdown now; `/import` remains English-only and is left bare.
  *
  * `showLocaleSwitcher` exists for the indexed pages. The switcher sets a cookie and reloads,
  * which is right for the app — one URL, three languages. An indexed page states its language in
@@ -45,13 +45,7 @@ const PEANUT_LINKS = [
  * translates. Every indexed page passes `false` and offers real links to the translations that
  * exist instead (see ArticleLayout / ContentHub).
  */
-export function SiteFooter({
-    showCompareLink = true,
-    showLocaleSwitcher = true,
-}: {
-    showCompareLink?: boolean
-    showLocaleSwitcher?: boolean
-}) {
+export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?: boolean }) {
     const t = useTranslations('marketing.footer')
     const tLocale = useTranslations('locale')
     const locale = asLocale(useLocale())
@@ -105,16 +99,6 @@ export function SiteFooter({
                         <div>
                             <h2 className="text-h9 uppercase tracking-wide text-white">{t('colCompare')}</h2>
                             <ul className="mt-2 flex flex-col gap-1.5">
-                                {showCompareLink && hasIndexedContent && (
-                                    <li>
-                                        <Link
-                                            href={localizedPath('/splitwise-alternative', locale)}
-                                            className={linkClass}
-                                        >
-                                            {t('compareLink')}
-                                        </Link>
-                                    </li>
-                                )}
                                 {alternatives.map((doc) => (
                                     <li key={doc.slug}>
                                         <Link href={hrefFor('alternatives', doc.slug, locale)} className={linkClass}>

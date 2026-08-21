@@ -121,9 +121,11 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     // on a desktop, and the page itself never scrolls sideways.
     // Subtraction pass (fun-engine.md S3): a top/bottom hairline reads as a ledger rule; the
     // boxed border and radius were doing no work the column edge doesn't already do.
+    // `split-table-scroll` (globals.css) is the pure-CSS cue that the box scrolls — without it a
+    // phone shows a table that appears to end at the screen edge.
     table: (props: HTMLAttributes<HTMLTableElement>) => (
         <div className={`${COLUMN} my-8`}>
-            <div className="overflow-x-auto border-y border-n-1 bg-white">
+            <div className="split-table-scroll overflow-x-auto border-y border-n-1 bg-white">
                 <table className="w-full min-w-[32rem] border-collapse text-left text-sm" {...props} />
             </div>
         </div>
