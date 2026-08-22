@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { renderArticle } from './mdx'
-import { COLLECTIONS, listDocs } from './content'
+import { listAllTranslations } from './content'
 
 /**
  * The deploy gate is `typecheck && test && format` and a push to main goes straight to
@@ -9,10 +9,11 @@ import { COLLECTIONS, listDocs } from './content'
  * predicts, and it fails at build time, after the push.
  */
 
-const ALL = COLLECTIONS.flatMap((collection) => listDocs(collection))
+// Every locale, not just English: a translation compiles at build time too, and fails there.
+const ALL = listAllTranslations()
 
 describe('article compilation', () => {
-    it.each(ALL.map((doc) => [doc.slug, doc] as const))('compiles %s', async (_slug, doc) => {
+    it.each(ALL.map((doc) => [`${doc.locale}/${doc.slug}`, doc] as const))('compiles %s', async (_id, doc) => {
         await expect(renderArticle(doc.body, doc.locale)).resolves.toBeTruthy()
     })
 
@@ -25,7 +26,7 @@ describe('article compilation', () => {
             // `{/* … */}` is an MDX comment and is meant to disappear — that is what it is for.
             const prose = doc.body.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
             const unescaped = [...prose.matchAll(/(^|[^\\])\{/g)]
-            expect(unescaped.length, `${doc.slug}: unescaped { would vanish from the page`).toBe(0)
+            expect(unescaped.length, `${doc.locale}/${doc.slug}: unescaped { would vanish from the page`).toBe(0)
         }
     })
 
