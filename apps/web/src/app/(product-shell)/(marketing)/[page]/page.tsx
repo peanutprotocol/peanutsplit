@@ -4,6 +4,7 @@ import { ROOT_COLLECTIONS } from '@/lib/content'
 import { toolMetadata, toolStaticParams } from '@/lib/tool-routes'
 import { ToolPage } from '@/components/tools/ToolPage'
 import { getTool } from '@/tools/registry'
+import { mileageCountryLinks } from '@/tools/mileage-split-calculator.countries'
 
 /**
  * English pages served from a root-level slug — comparison pages, intent-capture pages and the
@@ -48,5 +49,10 @@ export async function generateMetadata(props: PageParams): Promise<Metadata> {
 
 export default async function RootSlugPage(props: PageParams) {
     const tool = getTool((await props.params).page, LOCALE)
-    return tool ? <ToolPage tool={tool} locale={LOCALE} /> : ArticleRoute(props)
+    // The calculator with a country family lists it; every other tool is handed undefined.
+    return tool ? (
+        <ToolPage tool={tool} locale={LOCALE} rates={mileageCountryLinks(tool.slug, LOCALE)} />
+    ) : (
+        ArticleRoute(props)
+    )
 }

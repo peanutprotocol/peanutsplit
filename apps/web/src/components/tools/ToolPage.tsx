@@ -38,9 +38,24 @@ import type { IndexedLocale } from '@/i18n/locales'
  * would be a second design system to keep in step. The calculator inside it is built from the
  * app's own components for the same reason, one step further in — see `ToolCalculator`.
  */
-export async function ToolPage({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
+export async function ToolPage({
+    tool,
+    locale,
+    variant,
+    rates,
+}: {
+    tool: Tool
+    locale: IndexedLocale
+    /** A page that is not the tool's own URL: the same calculator, opened on one picker option. */
+    variant?: { path: string; start: Record<string, string> }
+    /** Pages this calculator is the parent of, listed under the questions. */
+    rates?: { title: string; links: readonly { href: string; label: string }[] }
+}) {
     const t = await getTranslations({ locale, namespace: 'content' })
-    const path = toolPath(tool, locale)
+    const path = variant?.path ?? toolPath(tool, locale)
+    // A variant page measures and campaign-codes as itself: one country's page is the unit this
+    // family would be judged by, and `mileage-split-calculator` would hide all of them.
+    const source = variant ? variant.path.slice(1).replace(/\//g, '-') : tool.slug
     const crumbs = [
         { name: t('home'), href: '/' },
         { name: tool.copy.h1, href: path },
@@ -66,7 +81,7 @@ export async function ToolPage({ tool, locale }: { tool: Tool; locale: IndexedLo
                 ))}
             </header>
 
-            <ToolCalculator slug={tool.slug} locale={locale} />
+            <ToolCalculator slug={tool.slug} locale={locale} start={variant?.start} />
 
             {tool.copy.method && (
                 <section className="mx-auto w-full max-w-xl px-5 py-6">
@@ -111,7 +126,7 @@ export async function ToolPage({ tool, locale }: { tool: Tool; locale: IndexedLo
                 title={tool.copy.cta.title}
                 body={tool.copy.cta.body}
                 text={tool.copy.cta.label}
-                href={`/new?campaign=content-${tool.slug}`}
+                href={`/new?campaign=content-${source}`}
             />
 
             <FAQ title={tool.copy.faqTitle}>
@@ -121,6 +136,16 @@ export async function ToolPage({ tool, locale }: { tool: Tool; locale: IndexedLo
                     </FAQItem>
                 ))}
             </FAQ>
+
+            {rates && rates.links.length > 0 && (
+                <RelatedPages title={rates.title}>
+                    {rates.links.map((link) => (
+                        <RelatedLink key={link.href} href={link.href}>
+                            {link.label}
+                        </RelatedLink>
+                    ))}
+                </RelatedPages>
+            )}
 
             {/* Same block an article ends on, for the same reason: a page nothing links onward from
                 is where a reader's session ends and where a crawler turns round. */}
@@ -139,7 +164,7 @@ export async function ToolPage({ tool, locale }: { tool: Tool; locale: IndexedLo
     return (
         <main className="flex min-h-dvh flex-col bg-background">
             {/* No chapter on purpose: `toolWallpaperChapter` is ruled wallpaper-only. */}
-            <ContentAnalytics template="tool" source={tool.slug} />
+            <ContentAnalytics template="tool" source={source} />
             <JsonLd data={toolSchema({ path, title: tool.meta.title, description: tool.meta.description, locale })} />
             <JsonLd data={breadcrumbSchema(crumbs)} />
             <JsonLd data={faqSchema(tool.faqs)} />

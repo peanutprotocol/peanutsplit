@@ -78,10 +78,27 @@ const optionOf = (
         .find((choice) => choice.name === preset.choiceName)
         ?.options.find((option) => option.value === preset.optionValue)
 
-export function ToolCalculator({ slug, locale = 'en' }: { slug: string; locale?: IndexedLocale }) {
+/** A country page opens the picker on its own row: the same options, a different one selected. */
+const openedOn = (tool: Tool, start: Record<string, string>): Tool => ({
+    ...tool,
+    choices: tool.choices?.map((choice) =>
+        start[choice.name] ? { ...choice, defaultValue: start[choice.name] } : choice
+    ),
+})
+
+export function ToolCalculator({
+    slug,
+    locale = 'en',
+    start,
+}: {
+    slug: string
+    locale?: IndexedLocale
+    /** Picker options to open on, keyed by choice name. Their pre-fills load with the page. */
+    start?: Record<string, string>
+}) {
     const tool = getTool(slug, locale)
     if (!tool) return null
-    return <Calculator tool={tool} locale={locale} />
+    return <Calculator tool={start ? openedOn(tool, start) : tool} locale={locale} />
 }
 
 function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {

@@ -26,6 +26,10 @@ import type { ToolDataRow } from './types'
  * pays a daily maximum with no distance term in it. There is no national per-kilometre rate to
  * ship, and the local and sectoral figures that exist are not a substitute for one.
  *
+ * **A row with a rate also has a page of its own**, at `/mileage-split-calculator/{slug}` — see
+ * `mileage-split-calculator.countries.ts`. The four rows above have none, because a page titled
+ * for a rate that does not exist would have nothing on it.
+ *
  * **What is deliberately not modelled.** The UK's 10,000-mile and Canada's 5,000-km thresholds
  * reset annually and a single trip does not reach either, so they are stated in the note and left
  * out of the arithmetic. Australia's 5,000-km method cap, Canada's tax-year label, the UK's
@@ -38,6 +42,10 @@ import type { ToolDataRow } from './types'
 export interface MileageRate extends ToolDataRow {
     /** ISO 3166-1 alpha-2, or `other` for the country this list does not cover. */
     code: string
+    /** How the country's own page names it. The picker's label names the unit too; a title cannot. */
+    name: string
+    /** Second segment of that page's URL. Separate from `name` so a reworded name never moves a URL. */
+    slug: string
     /** As the picker prints it, with the distance unit named so the reader knows what to type. */
     label: string
     /** Distance the rate is quoted per. Decides the wording of the working and the input's unit. */
@@ -65,6 +73,8 @@ export const MILEAGE_RATES_RETRIEVED = '2026-07-30'
 export const MILEAGE_RATES: readonly MileageRate[] = [
     {
         code: 'AU',
+        name: 'Australia',
+        slug: 'australia',
         label: 'Australia (kilometres)',
         unit: 'km',
         rate: 0.91,
@@ -75,6 +85,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'BE',
+        name: 'Belgium',
+        slug: 'belgium',
         label: 'Belgium (kilometres)',
         unit: 'km',
         rate: 0.444,
@@ -86,6 +98,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'BR',
+        name: 'Brazil',
+        slug: 'brazil',
         label: 'Brazil (kilometres)',
         unit: 'km',
         rate: null,
@@ -96,6 +110,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'CA',
+        name: 'Canada',
+        slug: 'canada',
         label: 'Canada (kilometres)',
         unit: 'km',
         rate: 0.72,
@@ -106,6 +122,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'FR',
+        name: 'France',
+        slug: 'france',
         label: 'France (kilometres)',
         unit: 'km',
         rate: null,
@@ -116,6 +134,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'DE',
+        name: 'Germany',
+        slug: 'germany',
         label: 'Germany (kilometres)',
         unit: 'km',
         rate: 0.2,
@@ -126,6 +146,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'IE',
+        name: 'Ireland',
+        slug: 'ireland',
         label: 'Ireland (kilometres)',
         unit: 'km',
         rate: null,
@@ -137,6 +159,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'NL',
+        name: 'Netherlands',
+        slug: 'netherlands',
         label: 'Netherlands (kilometres)',
         unit: 'km',
         rate: 0.25,
@@ -148,6 +172,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'PL',
+        name: 'Poland',
+        slug: 'poland',
         label: 'Poland (kilometres)',
         unit: 'km',
         rate: null,
@@ -158,6 +184,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'ES',
+        name: 'Spain',
+        slug: 'spain',
         label: 'Spain (kilometres)',
         unit: 'km',
         rate: 0.26,
@@ -168,6 +196,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'GB',
+        name: 'UK',
+        slug: 'uk',
         label: 'United Kingdom (miles)',
         unit: 'mile',
         rate: 0.55,
@@ -179,6 +209,8 @@ export const MILEAGE_RATES: readonly MileageRate[] = [
     },
     {
         code: 'US',
+        name: 'US',
+        slug: 'us',
         label: 'United States (miles)',
         unit: 'mile',
         rate: 0.76,
