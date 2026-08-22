@@ -3,7 +3,7 @@ title: Como dividir contas sem baixar um app
 description: Cada pessoa que você pede para instalar algo é uma pessoa que sai do rateio. Como dividir despesas em grupo usando só um link.
 date: 2026-07-24
 type: guide
-tags: [no signup, groups]
+tags: [sem-conta, grupos]
 claims:
     - link-is-the-key
     - no-app
@@ -41,7 +41,7 @@ Algumas pessoas vão criar a conta. Num grupo de seis, duas não vão, e as desp
 <Step title="Nenhuma conta">Abra o link, digite um nome, lance as despesas, veja tudo. Não há conta pra criar porque a sala não tem usuários. Ela tem um link e alguns nomes. É a versão em que a sexta pessoa realmente entra.</Step>
 </Steps>
 
-O Peanut Split é o terceiro. Não existe campo de e-mail em lugar nenhum do produto, porque não há nada pra te enviar e nada pra fazer login. Splitwise e Settle Up [começam os dois com uma conta](/guides/splitwise-vs-settle-up), e os meios-termos (um nome na lista de alguém, um link só de leitura) param antes de deixar essa pessoa lançar o táxi.
+O Split é o terceiro. Não existe campo de e-mail em lugar nenhum do produto, porque não há nada pra te enviar e nada pra fazer login. Splitwise e Settle Up [começam os dois com uma conta](/guides/splitwise-vs-settle-up), e os meios-termos (um nome na lista de alguém, um link só de leitura) param antes de deixar essa pessoa lançar o táxi.
 
 ## Como um link pode ser o login
 

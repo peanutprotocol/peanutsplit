@@ -5,7 +5,7 @@ date: 2026-07-30
 type: capture
 headTerm: dividir conta sem cadastro
 intent: app para dividir conta sem cadastro
-tags: [no signup, groups]
+tags: [sem-conta, grupos]
 claims:
     - link-is-the-key
     - no-app
@@ -21,11 +21,11 @@ faqs:
     - question: Dá para dividir as despesas sem baixar um app?
       answer: Dá. O Split é um site, então abre em qualquer navegador. Adicionar à tela inicial é um recurso do celular, não uma instalação, e pular isso não muda nada.
     - question: Dá para mandar o link do split no WhatsApp?
-      answer: Dá. Cola no grupo onde todo mundo já conversa e deixa lá. O link é a chave, então uma sala que só existe no seu navegador está a um celular perdido de sumir.
+      answer: Dá. Cole no grupo onde todo mundo já conversa e deixe lá. O link é a chave, então uma sala que só existe no seu navegador está a um celular perdido de sumir.
 draft: true
 ---
 
-# Dividir a conta sem cadastro quando ninguém quer criar conta
+# Dividir a conta sem cadastro, porque ninguém quer fazer mais um
 
 "Mais um app? Mais um cadastro?", eles dizem. Não tem nenhum dos dois. A sala é um link, e quem abre digita um nome e começa a lançar o que pagou.
 
@@ -43,7 +43,7 @@ No fim, a sala junta as dívidas, então o grupo faz duas ou três transferênci
 
 ## Bom saber
 
-O Split é grátis para sempre, sem nada para desbloquear pagando. O Peanut faz o Split para apresentar as pessoas ao Peanut, e é assim que o Split se paga — então não existe plano pago aqui, nem nada para esconder atrás de um depois.
+O Split é grátis para sempre, sem nada para desbloquear pagando. A Peanut faz o Split para apresentar as pessoas à Peanut, e é assim que o Split se paga — então não existe plano pago aqui, nem nada para esconder atrás de um depois.
 
 O Split não confere com nenhum banco e não teria como, então uma linha acertada quer dizer que alguém tocou para dizer que pagou. Ele foi feito para um grupo, não para uma multidão: até vinte pessoas.
 
@@ -55,7 +55,7 @@ O Split não confere com nenhum banco e não teria como, então uma linha acerta
 <FAQ>
 <FAQItem question="Dá para dividir a conta sem cadastro?">Dá. Não existe campo de e-mail em nenhum lugar do Split, então não tem conta para criar nem nada para confirmar depois.</FAQItem>
 <FAQItem question="Dá para dividir as despesas sem baixar um app?">Dá. O Split é um site, então abre em qualquer navegador. Adicionar à tela inicial é um recurso do celular, não uma instalação, e pular isso não muda nada.</FAQItem>
-<FAQItem question="Dá para mandar o link do split no WhatsApp?">Dá. Cola no grupo onde todo mundo já conversa e deixa lá. O link é a chave, então uma sala que só existe no seu navegador está a um celular perdido de sumir.</FAQItem>
+<FAQItem question="Dá para mandar o link do split no WhatsApp?">Dá. Cole no grupo onde todo mundo já conversa e deixe lá. O link é a chave, então uma sala que só existe no seu navegador está a um celular perdido de sumir.</FAQItem>
 </FAQ>
 
 <RelatedPages>

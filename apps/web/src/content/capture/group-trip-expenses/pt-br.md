@@ -5,7 +5,7 @@ date: 2026-07-30
 type: capture
 headTerm: despesas de viagem em grupo
 intent: modelo de planilha de despesas de viagem em grupo
-tags: [trips, spreadsheets]
+tags: [viagens, planilhas]
 claims:
     - link-is-the-key
     - room-size-20
@@ -46,7 +46,7 @@ A sala não faz nada disso. Ela conta o que cada um pagou, reduz o total a quem 
 
 ## Bom saber
 
-O Split é grátis para sempre, sem nada para desbloquear. A Peanut criou o Split para apresentar as pessoas à Peanut, e é assim que o Split se paga — não existe versão paga, e nada vai passar para trás de uma depois.
+O Split é grátis para sempre, sem nada para desbloquear. A Peanut criou o Split para apresentar as pessoas à Peanut, e é assim que o Split se paga — não existe versão paga, nem nada para esconder atrás de uma depois.
 
 Ele converte automaticamente 156 moedas pela taxa indicativa do dia, não a do seu banco. O Split não confere com banco nenhum, e não tem como: duas pessoas acertam do jeito que acertam, e uma delas toca para registrar. Registrar esse toque precisa de conexão, de propósito, porque um pagamento anotado duas vezes é pior do que um anotado com atraso.
 

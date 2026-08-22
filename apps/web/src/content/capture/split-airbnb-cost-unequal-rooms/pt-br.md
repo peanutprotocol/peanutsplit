@@ -5,7 +5,7 @@ date: 2026-07-31
 type: capture
 headTerm: dividir custo do Airbnb
 intent: como dividir custo do airbnb quando os quartos não são iguais
-tags: [trips, fairness]
+tags: [viagens, justiça]
 claims:
     - link-is-the-key
     - netting-is-bounded-exact
@@ -67,7 +67,6 @@ Conversão automática para 156 moedas pela taxa indicativa do dia, não a do se
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/rent-split-calculator">Divisão do aluguel por tamanho do quarto, com a conta à mostra</RelatedLink>
+<RelatedLink href="/pt-br/rent-split-calculator">Divisão do aluguel por tamanho do quarto, com a conta à mostra</RelatedLink>
 <RelatedLink href="/pt-br/group-trip-expenses">Despesas de viagem em grupo sem planilha</RelatedLink>
-<RelatedLink href="/tools">As calculadoras</RelatedLink>
 </RelatedPages>

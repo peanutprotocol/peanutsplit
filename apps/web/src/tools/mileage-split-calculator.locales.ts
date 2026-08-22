@@ -5,9 +5,11 @@ import type { ToolWords } from './types'
  *
  * Transcreated, not translated (stylebook §9.7). The country notes keep every figure, currency
  * code and source link exactly as the government published them — those are the evidence — and
- * only the sentence around them is re-authored. Figures keep the punctuation the input boxes use
- * rather than the locale's, because a note reading "0,91" beside a box that parses `0.91` is a
- * page arguing with itself; thousands are written in words for the same reason.
+ * only the sentence around them is re-authored. A note quotes the figure the picker types into the
+ * rate box, so it keeps that box's punctuation rather than the locale's: `rate` is a
+ * `kind: 'number'` field parsed with `Number()`, so `0,91` in the box is `NaN` and no result at
+ * all. Thousands are written in words for the same reason. The derivation is the other way round —
+ * it is read, never typed, so `allocate.ts` writes it in the locale's own marks (§5).
  *
  * **Brazil is a verified negative and the Portuguese page says so out loud.** `mileage-rates.ts`
  * records that the federal instrument pays a daily maximum with no distance term in it, so a
@@ -25,7 +27,7 @@ export const mileageSplitEs419: ToolWords = {
         h1: 'Calculadora para dividir un viaje en auto',
         intro: [
             'Di cuánto anduvo el auto y cuántas personas iban adentro. El viaje se calcula al valor oficial de reembolso del país que elijas, y abajo está lo que cada pasajero le debe a quien manejó.',
-            'Un valor justo por kilómetro nunca es solo el combustible. Está parado por los neumáticos, el servicio que llega antes de tiempo y el valor que el auto pierde mientras lo disfrutas, y por eso una cifra oficial queda bastante arriba de lo que sugeriría el ticket del combustible. Escríbele encima si conoces el auto mejor que el estado, o arma el tuyo con lo que consume. Deja que Split by Peanut haga el cobro después, para que quien manejó no tenga que sacar el tema en el chat del grupo.',
+            'Un valor justo por kilómetro nunca es solo el combustible. Cubre los neumáticos, el mantenimiento que se adelanta y el valor que el auto va perdiendo mientras lo disfrutas, y por eso una cifra oficial queda bastante arriba de lo que sugeriría el ticket del combustible. Cámbialo si conoces el auto mejor que el estado, o arma el tuyo con lo que consume. Deja que Split by Peanut se encargue de pedir después, para que quien manejó no tenga que sacar el tema en el chat del grupo.',
         ],
         resultTitle: 'Quién le debe qué a quien manejó',
         resultHint: 'Di cuántas personas iban con quien manejó.',
@@ -42,7 +44,7 @@ export const mileageSplitEs419: ToolWords = {
         },
         concession: {
             title: 'Cuando el ticket del combustible es la mejor herramienta',
-            body: 'Un tanque, un ticket, un viaje: divide lo que cobró el surtidor y para ahí. Un valor por kilómetro se gana su lugar en un auto que alguien tiene, donde el costo está repartido en años de servicios cuyos papeles nadie guardó. En un auto rentado la factura más el combustible es la cifra más honesta, y ya está escrita.',
+            body: 'Un tanque, un ticket, un viaje: divide lo que cobró el surtidor y para ahí. Un valor por kilómetro se gana su lugar en un auto que alguien tiene, donde el costo está repartido en años de servicios cuyos papeles nadie guardó. En un auto alquilado la factura más el combustible es la cifra más honesta, y ya está escrita.',
         },
         goodToKnow: {
             title: 'Bueno saberlo',
@@ -67,7 +69,7 @@ export const mileageSplitEs419: ToolWords = {
         },
         rate: {
             label: 'Valor por milla o kilómetro',
-            help: 'Elegir un país llena esto y cambia la moneda con él. Escríbele encima con lo que de verdad cuesta andar el auto.',
+            help: 'Elegir un país llena esto y cambia la moneda con él. Cámbialo por lo que de verdad cuesta mantener el auto.',
         },
         passengers: { label: 'Pasajeros', help: 'Todos los del auto menos quien maneja.' },
         driverShares: {
@@ -92,7 +94,7 @@ export const mileageSplitEs419: ToolWords = {
                 },
                 BR: {
                     label: 'Brasil (kilómetros)',
-                    note: 'Brasil no tiene un valor federal por kilómetro. La regla federal paga un máximo diario sin distancia adentro, así que aquí no hay nada por lo que dividir un viaje. Pon lo que le cuesta andar al auto.',
+                    note: 'Brasil no tiene un valor federal por kilómetro. La regla federal paga un máximo diario sin distancia adentro, así que aquí no hay nada por lo que dividir un viaje. Pon lo que cuesta mantener el auto en la calle.',
                 },
                 CA: {
                     label: 'Canadá (kilómetros)',
@@ -100,7 +102,7 @@ export const mileageSplitEs419: ToolWords = {
                 },
                 FR: {
                     label: 'Francia (kilómetros)',
-                    note: 'Francia publica una escala, no un valor. Está atada a los caballos fiscales del auto, y su tramo del medio suma una cifra fija encima de un valor por kilómetro, así que de ahí no sale un número solo. Pon lo que le cuesta andar al auto.',
+                    note: 'Francia publica una escala, no un valor. Está atada a los caballos fiscales del auto, y su tramo del medio suma una cifra fija encima de un valor por kilómetro, así que de ahí no sale un número solo. Pon lo que cuesta mantener el auto en la calle.',
                 },
                 DE: {
                     label: 'Alemania (kilómetros)',
@@ -108,7 +110,7 @@ export const mileageSplitEs419: ToolWords = {
                 },
                 IE: {
                     label: 'Irlanda (kilómetros)',
-                    note: 'Los valores de Irlanda se mueven en tramos que dependen de cuánto anduvo ya el auto este año, y suben antes de bajar. Un viaje solo no tiene valor propio. Pon lo que le cuesta andar al auto.',
+                    note: 'Los valores de Irlanda se mueven en tramos que dependen de cuánto anduvo ya el auto este año, y suben antes de bajar. Un viaje solo no tiene valor propio. Pon lo que cuesta mantener el auto en la calle.',
                 },
                 NL: {
                     label: 'Países Bajos (kilómetros)',
@@ -169,11 +171,11 @@ export const mileageSplitEs419: ToolWords = {
     faqs: [
         {
             question: '¿Por qué dividir el combustible al valor oficial de un gobierno?',
-            answer: 'Porque es el único número del auto que nadie del auto eligió. Cada uno de estos es la estimación de trabajo de un gobierno sobre lo que una distancia en un auto particular le cuesta a quien lo tiene, y está publicado, fechado y abierto a que lo leas. Dividir solo el ticket del surtidor le cobra de menos a quien es dueño, y hacer las cuentas de la depreciación durante un fin de semana afuera es como un favor termina en resentimiento.',
+            answer: 'Porque es el único número del auto que nadie del auto eligió. Cada uno de estos es la estimación de trabajo de un gobierno sobre lo que una distancia en un auto particular le cuesta a quien lo tiene, y está publicado, fechado y abierto a que lo leas. Dividir solo el ticket del surtidor le cobra de menos a quien es dueño, y hacer las cuentas de la depreciación durante un fin de semana afuera es así como un favor termina en resentimiento.',
         },
         {
-            question: '¿Y si el auto es rentado y no de alguien del grupo?',
-            answer: 'Entonces el valor no tiene nada que agregar. Una rentadora ya metió el desgaste en la tarifa diaria, así que la cifra honesta es la factura de la renta más lo que se cargó al tanque, y las dos son tickets que puedes poner en una sala como gastos normales. Los valores por kilómetro existen para el auto que no tiene factura, porque es de una de ustedes.',
+            question: '¿Y si el auto es alquilado y no de alguien del grupo?',
+            answer: 'Entonces el valor no tiene nada que agregar. Una empresa de alquiler ya metió el desgaste en la tarifa diaria, así que la cifra honesta es la factura del alquiler más lo que se cargó al tanque, y las dos son tickets que puedes poner en una sala como gastos normales. Los valores por kilómetro existen para el auto que no tiene factura, porque es de una de ustedes.',
         },
         {
             question: '¿Qué debería incluir un valor por kilómetro además del combustible?',
@@ -252,7 +254,7 @@ export const mileageSplitPtBr: ToolWords = {
     fields: {
         distance: {
             label: 'Distância rodada',
-            help: 'A viagem inteira, ida e volta se todo mundo voltou. Na unidade que o seletor nomeia.',
+            help: 'A viagem inteira, ida e volta se todo mundo voltou. Na unidade que o seletor está usando.',
         },
         rate: {
             label: 'Taxa por milha ou quilômetro',
@@ -338,7 +340,7 @@ export const mileageSplitPtBr: ToolWords = {
             },
             fuelPrice: {
                 label: 'Quanto custa um litro',
-                help: 'Na moeda acima. O preço da placa, não o do clube de desconto.',
+                help: 'Na moeda acima. O preço da bomba, não o do clube de desconto.',
             },
             wear: {
                 label: 'Desgaste e perda de valor em cima',
@@ -366,11 +368,11 @@ export const mileageSplitPtBr: ToolWords = {
         },
         {
             question: 'E se o carro for alugado e não de alguém do grupo?',
-            answer: 'Aí a taxa não tem nada a acrescentar. A locadora já colocou o desgaste na diária, então o número honesto é a nota do aluguel mais o que foi para o tanque, e os dois são comprovantes que vocês colocam numa sala como despesas normais. Taxa por quilômetro existe para o carro que não tem nota, porque ele é de uma de vocês.',
+            answer: 'Aí a taxa não tem nada a acrescentar. A locadora já colocou o desgaste na diária, então o número honesto é a nota do aluguel mais o que foi para o tanque, e os dois são comprovantes que vocês colocam numa sala como despesas normais. Taxa por quilômetro existe para o carro que não tem nota, porque ele é de alguém do grupo.',
         },
         {
             question: 'O que uma taxa por quilômetro deve incluir além do combustível?',
-            answer: 'Tudo o que a distância gasta, não tudo o que o dia custa. O combustível é a parte com comprovante, e é a parte menor: os pneus se gastam, a revisão chega antes e um carro com mais quilômetros vale menos que o mesmo carro sem eles. Por isso o bloco de montar mostra o combustível numa linha só dele e depois pergunta o que vai em cima. Uma taxa parada no piso do combustível cobra a gasolina de quem dirige e deixa o resto com ela.',
+            answer: 'Tudo o que a distância gasta, não tudo o que o dia custa. O combustível é a parte com comprovante, e é a parte menor: os pneus se gastam, a revisão chega antes e um carro com mais quilômetros vale menos que o mesmo carro sem eles. Por isso o bloco de montar mostra o combustível numa linha só dele e depois pergunta o que vai em cima. Uma taxa parada no piso do combustível cobra a gasolina de quem dirige e deixa o resto para quem dirige.',
         },
         {
             question: 'Quem dirige também deve pagar uma cota da viagem?',
@@ -392,6 +394,6 @@ export const mileageSplitPtBr: ToolWords = {
         costLabel: 'O que a viagem custou',
         shareDetail: '{share} de {total} cotas',
         driverLabel: 'Quem dirigiu',
-        driverDetail: 'a cota dela mesma, que ninguém entrega',
+        driverDetail: 'a própria cota, que ninguém entrega',
     },
 }

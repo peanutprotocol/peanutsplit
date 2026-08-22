@@ -3,7 +3,7 @@ title: Dividir despesas offline, sem sinal
 description: Porões, teleféricos, campos de festival e chips sem sinal. O que uma sala de despesas registra sem conexão, o que ela recusa de propósito e por quê.
 date: 2026-07-28
 type: guide
-tags: [offline, trips]
+tags: [sem-conexão, viagens]
 claims:
     - offline-creates-only
     - settle-is-a-record

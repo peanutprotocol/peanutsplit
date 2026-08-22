@@ -138,7 +138,8 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
     ),
 }
 
-const BLOCK_LABELS: Record<Locale, { faq: string; related: string }> = {
+/** The two block headings a translated page must not fall back to English on. Shared with `ToolPage`. */
+export const BLOCK_LABELS: Record<Locale, { faq: string; related: string }> = {
     en: { faq: 'Questions', related: 'Keep reading' },
     'es-419': { faq: 'Preguntas', related: 'Sigue leyendo' },
     'pt-br': { faq: 'Perguntas', related: 'Continue lendo' },

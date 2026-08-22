@@ -3,7 +3,7 @@ title: Bancar a viagem do grupo sem virar o banco
 description: Você reservou o Airbnb e o depósito saiu do seu cartão. Como organizar o dinheiro da viagem para o grupo dever um número que todos já viram, não um favor.
 date: 2026-07-30
 type: guide
-tags: [trips, fronting, getting paid back]
+tags: [viagens, adiantar, receber]
 claims:
     - link-is-the-key
     - automatic-currency-conversion
@@ -38,7 +38,7 @@ draft: true
 
 Se esse dinheiro volta importa mais do que o valor em si. Quando não volta, quem bancou costuma não falar nada, para de ser quem organiza as coisas, e as viagens acabam sem ninguém decidir acabar com elas.
 
-Deixe o Peanut Split cuidar do controle desde a primeira reserva. A sala abre em uns dez segundos, não tem conta para criar nem nada para baixar, e o que qualquer um lança aparece na tela de todo mundo na hora em que é lançado. Em agosto o total já é história velha, e a última mensagem no grupo é um plano de pagamento, não um pedido.
+Deixe o Split by Peanut cuidar do controle desde a primeira reserva. A sala abre em uns dez segundos, não tem conta para criar nem nada para baixar, e o que qualquer um lança aparece na tela de todo mundo na hora em que é lançado. Em agosto o total já é história velha, e a última mensagem no grupo é um plano de pagamento, não um pedido.
 
 ## A sala entra antes do depósito
 
@@ -101,9 +101,9 @@ No fim também tem um cartão — quanto a viagem custou e quem bancou mais. Se 
 
 Quatro fatos sobre a sala, que vale a pena ter em março, e não em agosto.
 
-- **É grátis para sempre, e não há nada a mais para contratar.** O Peanut faz isso para apresentar as pessoas ao Peanut, e é assim que o Split se paga, então não tem plano pago esperando para te empurrar no meio de uma viagem.
+- **É grátis para sempre, e não há nada a mais para contratar.** A Peanut faz isso para apresentar as pessoas à Peanut, e é assim que o Split se paga, então não tem plano pago esperando para te empurrar no meio de uma viagem.
 - **Ele não movimenta o dinheiro.** Uma linha acertada quer dizer que alguém tocou para dizer que pagou, não que um pagamento caiu. O Split não confere com nenhum banco e não tem como, o que é tranquilo entre amigos e vale saber sobre o seu próprio controle.
-- **Ele não vai cobrar ninguém.** Sem e-mails de lembrete, sem cutucadas no grupo. Se alguém some, essa parte ainda é sua, e tudo que dá para te oferecer é [o que escrever na primeira vez e o que escrever quando precisa repetir](/guides/ask-a-friend-to-pay-you-back).
+- **Ele não vai cobrar ninguém.** Sem e-mails de lembrete, sem cutucadas no grupo. Se alguém some, essa parte ainda é sua, e tudo que dá para te oferecer é [o que escrever na primeira vez e o que escrever quando precisa repetir](/pt-br/guides/ask-a-friend-to-pay-you-back).
 - **Ele comporta até vinte pessoas.** Um grupo, não um congresso.
 
 <CTA
@@ -127,5 +127,5 @@ Quatro fatos sobre a sala, que vale a pena ter em março, e não em agosto.
 <RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir uma viagem quando ninguém compartilha banco</RelatedLink>
 <RelatedLink href="/pt-br/blog/end-of-trip-expense-recap">O cartão que diz quanto a viagem custou</RelatedLink>
 <RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir quando você pagou em uma moeda e deve em outra</RelatedLink>
-<RelatedLink href="/mileage-split-calculator">Quanto a viagem de carro custou, dividido entre os passageiros</RelatedLink>
+<RelatedLink href="/pt-br/mileage-split-calculator">Quanto a viagem de carro custou, dividido entre os passageiros</RelatedLink>
 </RelatedPages>

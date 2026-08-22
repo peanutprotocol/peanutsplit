@@ -128,6 +128,7 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | flatmate                                | colega de apartamento / colega de apê      | companheiro de casa                                                  |
 | group chat                              | o grupo (do WhatsApp)                      | o chat                                                               |
 | email                                   | **e-mail**                                 | email (mono prefers `e-mail` 47:31, and so does the live Split page) |
+| Peanut (the company)                    | **a Peanut**                               | o Peanut (BR names a company feminine — `a empresa`)                 |
 
 **`dividir` / `rachar` / `rateio` / `acertar` are strategy, not taste.** Stylebook §9.3 is binding and
 is not restated here. In one line: `dividir` owns titles, H1s and slugs; `rachar` is body and
