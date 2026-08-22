@@ -6,7 +6,8 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { Doodle } from '@/components/ui/Doodle'
 import { Icon } from '@/components/ui/Icon'
-import { absoluteUrl, breadcrumbSchema, pageMetadata, pageTitle } from '@/lib/seo'
+import { listDocs } from '@/lib/content'
+import { absoluteUrl, breadcrumbSchema, isCalculatorDoc, pageMetadata, pageTitle } from '@/lib/seo'
 import { TOOLS, toolPath } from '@/tools/registry'
 
 /**
@@ -15,7 +16,9 @@ import { TOOLS, toolPath } from '@/tools/registry'
  * The tools were reachable from the sitemap and from nowhere a person could click, which is the
  * shape a set of pages takes when each one was shipped on its own. This is the fix: one hub, read
  * off the registry so a new calculator appears here by existing, linked from the footer of every
- * page and listed on the guides hub like any other page the site has.
+ * page and listed on the guides hub like any other page the site has. A content page whose head
+ * term names a calculator (`isCalculatorDoc`) is listed after the registry for the same reason:
+ * without this row its only inlink was one card on `/blog`.
  *
  * **The first card is the app, not a tool.** Splitting a bill between people is the product, so
  * offering a form for it here would be competing with ourselves and losing — a calculator hands
@@ -53,24 +56,47 @@ const crumbs = [
     { name: copy.h1, href: PATH },
 ]
 
-/** ItemList tells a crawler this is a listing and gives it the crawl order the registry intends. */
-const listSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    itemListElement: TOOLS.map((tool, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        url: absoluteUrl(toolPath(tool)),
-        name: tool.copy.h1,
-    })),
+/** One row per calculator, registry first, then the calculator-shaped content pages. */
+function calculatorRows() {
+    return [
+        ...TOOLS.map((tool) => ({
+            slug: tool.slug,
+            href: toolPath(tool),
+            doodle: tool.doodle,
+            title: tool.copy.h1,
+            description: tool.meta.description,
+        })),
+        ...listDocs('capture')
+            .filter(isCalculatorDoc)
+            .map((doc) => ({
+                slug: doc.slug,
+                href: doc.href,
+                doodle: 'question' as const,
+                title: doc.frontmatter.title,
+                description: doc.frontmatter.description,
+            })),
+    ]
 }
 
+/** ItemList tells a crawler this is a listing and gives it the crawl order the registry intends. */
+const listSchema = (rows: ReturnType<typeof calculatorRows>) => ({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: rows.map((row, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: absoluteUrl(row.href),
+        name: row.title,
+    })),
+})
+
 export default function ToolsHubPage() {
+    const rows = calculatorRows()
     return (
         <main className="flex min-h-dvh flex-col bg-background">
             <ContentAnalytics template="tool" source="tools" />
             <JsonLd data={breadcrumbSchema(crumbs)} />
-            <JsonLd data={listSchema} />
+            <JsonLd data={listSchema(rows)} />
 
             <Breadcrumbs crumbs={crumbs} />
 
@@ -99,19 +125,17 @@ export default function ToolsHubPage() {
                 <p className="mt-3 text-center text-sm text-grey-1">{copy.app.hint}</p>
 
                 <ul className="mt-8 flex flex-col gap-px overflow-hidden rounded-sm border border-n-1 [&>li:first-child>a]:rounded-t-sm [&>li:last-child>a]:rounded-b-sm">
-                    {TOOLS.map((tool) => (
-                        <li key={tool.slug}>
+                    {rows.map((row) => (
+                        <li key={row.slug}>
                             <Link
-                                href={toolPath(tool)}
+                                href={row.href}
                                 data-focus-contained
                                 className="flex items-start gap-3 bg-white px-4 py-4 hover:bg-grey-3"
                             >
-                                <Doodle name={tool.doodle} size={28} weight={1.8} className="mt-0.5" />
+                                <Doodle name={row.doodle} size={28} weight={1.8} className="mt-0.5" />
                                 <span className="min-w-0 flex-1">
-                                    <span className="block text-h7 text-n-1">{tool.copy.h1}</span>
-                                    <span className="mt-1 block text-sm leading-5 text-grey-1">
-                                        {tool.meta.description}
-                                    </span>
+                                    <span className="block text-h7 text-n-1">{row.title}</span>
+                                    <span className="mt-1 block text-sm leading-5 text-grey-1">{row.description}</span>
                                 </span>
                             </Link>
                         </li>

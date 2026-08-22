@@ -1,10 +1,14 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
     absoluteUrl,
     appBreadcrumbSchema,
     appPageMetadata,
+    ARTICLE_IMAGE_URL,
     articleSchema,
     breadcrumbSchema,
+    calculatorSchema,
     faqSchema,
     pageMetadata,
     pageTitle,
@@ -93,6 +97,32 @@ describe('structured data', () => {
                 expect(schema.url.startsWith(CANONICAL_ORIGIN), doc.slug).toBe(true)
                 expect(schema.dateModified >= schema.datePublished, doc.slug).toBe(true)
             }
+        }
+    })
+
+    /** Google lists `image` as required for an Article rich result. A hashed og route cannot be
+     *  spelled here (guide tracker decision 17), so every article names one static file — and
+     *  that file has to exist, be a PNG, and stay small enough to fetch on every crawl. */
+    it('points every article image at one static PNG that ships', () => {
+        const file = path.join(process.cwd(), 'public', new URL(ARTICLE_IMAGE_URL).pathname)
+        const bytes = fs.readFileSync(file)
+        expect([...bytes.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47])
+        expect(bytes.byteLength).toBeLessThan(300 * 1024)
+        for (const doc of listAllTranslations()) expect(articleSchema(doc).image, doc.slug).toBe(ARTICLE_IMAGE_URL)
+    })
+
+    it('gives a calculator-shaped capture page the tool entity, and no other page', () => {
+        const docs = listDocs('capture')
+        const calculator = docs.find((doc) => doc.slug === 'fair-split-calculator')!
+        expect(calculatorSchema(calculator)).toMatchObject({
+            '@type': 'WebApplication',
+            '@id': `${CANONICAL_ORIGIN}/fair-split-calculator#tool`,
+            inLanguage: 'en',
+        })
+        for (const doc of docs.filter((entry) => entry !== calculator))
+            expect(calculatorSchema(doc), doc.slug).toBeNull()
+        for (const doc of [...listDocs('blog'), ...listDocs('alternatives')]) {
+            expect(calculatorSchema(doc), doc.slug).toBeNull()
         }
     })
 

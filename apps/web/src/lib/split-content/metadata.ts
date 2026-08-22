@@ -3,7 +3,14 @@ import { HREFLANG } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { howToSchema } from '@/lib/howto-schema'
-import { absoluteUrl, breadcrumbSchema, OG_LOCALE, ORGANIZATION_NODE, type Breadcrumb } from '@/lib/seo'
+import {
+    absoluteUrl,
+    ARTICLE_IMAGE_URL,
+    breadcrumbSchema,
+    OG_LOCALE,
+    ORGANIZATION_NODE,
+    type Breadcrumb,
+} from '@/lib/seo'
 import type { SplitGuide } from './artifact'
 
 export function splitGuideMetadata(
@@ -90,10 +97,9 @@ export function splitGuideSchemas(guide: SplitGuide) {
             // same URL under a different name.
             author: ORGANIZATION_NODE,
             publisher: ORGANIZATION_NODE,
-            // Google lists `image` as required for an Article rich result. The app icon rather than
-            // the unfurl card, for the reason `articleSchema` records: Next hash-suffixes generated
-            // `opengraph-image` routes, so a URL spelled out here is a guess.
-            image: `${CANONICAL_ORIGIN}/icons/icon-512.png`,
+            // Google lists `image` as required for an Article rich result. The stable file, for the
+            // reason `ARTICLE_IMAGE_URL` records: a generated og route carries a hash.
+            image: ARTICLE_IMAGE_URL,
         },
         breadcrumbs: breadcrumbSchema(splitGuideCrumbs(guide)),
         // Null on every guide today — none render a <Steps> block yet — the same "nothing to

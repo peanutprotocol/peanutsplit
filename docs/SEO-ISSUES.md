@@ -195,6 +195,11 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       workaround for hashed og routes). Constraint from guide-tracker decision 17: the file
       convention stays for `og:image` (the hash trap only bites hand-written URLs) — so the fix
       is a stable image URL for JSON-LD specifically, never a hand-spelled og route.
+      Fixed 2026-08-22: `public/og-default.png` (1200x630, 60 KB) is the landing card rendered
+      once through the project's own `ImageResponse` renderer; `ARTICLE_IMAGE_URL` in `seo.ts`
+      is the one place every Article/BlogPosting node (native and generated) reads it from.
+      `seo.test.ts` fails if the file is missing, not a PNG, or over 300 KB. The og routes are
+      untouched. Tick after the push lands.
 - [x] Guide fonts: two knerd TTFs ship uncompressed (~101 KB, convert to woff2 — keep the
       TTFs for the OG renderer) AND the LP emits zero font preloads despite `next/font`
       marking all five files preload-eligible; the H1 those fonts style is the LCP element.
@@ -228,6 +233,12 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       `#tool` nodes — the page named "calculator" carries no calculator entity. Also `/tools`
       ("Calculators") lists only the 2 registry calculators; 3 of 6 capture pages hang off the
       site by one `/blog` card each.
+      Fixed 2026-08-22: `isCalculatorDoc` (a capture page whose `headTerm` names a calculator)
+      is the one predicate; `ArticleLayout` emits `calculatorSchema(doc)` — the same
+      `WebApplication #tool` node the registry tools get — and `/tools` lists those pages after
+      the registry calculators, in the ItemList too. Today that is `/fair-split-calculator`
+      alone; the other capture pages are not calculator-shaped and keep their `/blog` card.
+      Tick after the push lands.
 - [x] `/guides/` (trailing slash) reaches `/blog` in two 308 hops; add the direct rule.
       Closed 2026-08-21: no config rule could do it — Next's own slash-strip redirect is
       unshifted with priority ahead of every user rule. `skipTrailingSlashRedirect` turns
@@ -239,8 +250,14 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       Landing must stay uncached (cookie-localized).
 - [ ] Native corpus has no `_system/AUDITS.md` though stylebook §11.4 mandates appending to
       it; create it with mono's record format or amend §11.4.
+      Fixed 2026-08-22: created `apps/web/src/content/_system/AUDITS.md` in mono's dated-section
+      format, seeded with the claims gate (`bf4b633`) and this change; listed in the `_system`
+      README table. §11.4 stands as written. Tick after the push lands.
 - [ ] Footer Help/Terms/Privacy links take a 307 locale hop on peanut.me; link `/en/...`
       directly or accept.
+      Fixed 2026-08-22: `SiteFooter` links `/en/help`, `/en/terms`, `/en/privacy` — each
+      verified 200 with `curl -sI --max-redirs 0` (the bare paths 307 to exactly those). The
+      root link stays bare; `https://peanut.me` answers 200. Tick after the push lands.
 
 ## Notes and open decisions
 

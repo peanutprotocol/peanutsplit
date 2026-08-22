@@ -61,6 +61,15 @@ export const ORGANIZATION_NODE = {
     },
 }
 
+/**
+ * The one image every Article/BlogPosting node names. A static render of the landing card, so
+ * the URL never moves: Next hash-suffixes every generated `opengraph-image` route, and a hashed
+ * URL written into structured data is a guess that breaks the next time the card is rebuilt
+ * (guide tracker decision 17 keeps the og routes on the file convention for that reason). The
+ * unfurl still comes from the routes; this file exists for JSON-LD only.
+ */
+export const ARTICLE_IMAGE_URL = `${CANONICAL_ORIGIN}/og-default.png`
+
 /** Public root-relative path → canonical absolute URL. Idempotent for absolute canonicals. */
 export function absoluteUrl(pathname: string): string {
     if (/^https?:\/\//.test(pathname)) return pathname
@@ -239,10 +248,8 @@ export function articleSchema(doc: Doc) {
         dateModified: frontmatter.updated ?? frontmatter.date,
         author: frontmatter.author ? { '@type': 'Person', name: frontmatter.author } : { '@id': ORGANIZATION_ID },
         publisher: { '@id': ORGANIZATION_ID },
-        // Google lists `image` as required for an Article rich result. Deliberately the app icon
-        // and not the unfurl card: Next hash-suffixes generated `opengraph-image` routes, so any
-        // URL spelled out here would be a guess that breaks the next time the card is rebuilt.
-        image: `${CANONICAL_ORIGIN}/icons/icon-512.png`,
+        // Google lists `image` as required for an Article rich result.
+        image: ARTICLE_IMAGE_URL,
         mainEntityOfPage: absoluteUrl(frontmatter.canonical ?? doc.href),
         url: absoluteUrl(frontmatter.canonical ?? doc.href),
     }
@@ -259,7 +266,17 @@ export function articleSchema(doc: Doc) {
  * The free assertion is the same commitment `siteSchema()` makes, from the same source (§7.3,
  * _price_). If that ever changes, both change together.
  */
-export function toolSchema({ path, title, description }: { path: string; title: string; description: string }) {
+export function toolSchema({
+    path,
+    title,
+    description,
+    locale = DEFAULT_LOCALE,
+}: {
+    path: string
+    title: string
+    description: string
+    locale?: Locale
+}) {
     return {
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
@@ -269,11 +286,30 @@ export function toolSchema({ path, title, description }: { path: string; title: 
         url: absoluteUrl(path),
         applicationCategory: 'FinanceApplication',
         operatingSystem: 'Web',
-        inLanguage: HREFLANG[DEFAULT_LOCALE],
+        inLanguage: HREFLANG[locale],
         isPartOf: { '@id': `${CANONICAL_ORIGIN}/#website` },
         publisher: { '@id': ORGANIZATION_ID },
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     }
+}
+
+/**
+ * A capture page whose head term names a calculator. It answers the same query a registry tool
+ * does, so it gets the tool's entity and the tool hub's listing — `toolSchema` and `/tools` both
+ * read this one predicate, so a page cannot be a calculator in one place and not the other.
+ */
+export const isCalculatorDoc = (doc: Doc): boolean =>
+    doc.collection === 'capture' && /\bcalculator\b/i.test(doc.frontmatter.headTerm ?? '')
+
+/** `toolSchema` for a calculator-shaped content page; null for every other doc. */
+export function calculatorSchema(doc: Doc) {
+    if (!isCalculatorDoc(doc)) return null
+    return toolSchema({
+        path: doc.href,
+        title: doc.frontmatter.title,
+        description: doc.frontmatter.description,
+        locale: doc.locale,
+    })
 }
 
 /**
