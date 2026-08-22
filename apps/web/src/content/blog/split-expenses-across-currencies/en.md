@@ -10,7 +10,7 @@ claims:
 cast: []
 faqs:
     - question: Which exchange rate should the group use?
-      answer: Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative — a daily reference rate, not your bank's — so treat the totals as exact and the conversion as close enough to split by.
+      answer: Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative (a daily reference rate, not your bank's), so treat the totals as exact and the conversion as close enough to split by.
     - question: Should I enter the amount I paid or what it cost me?
       answer: Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.
     - question: Does Split charge for converting currencies?
@@ -50,7 +50,7 @@ The receipt says 3,200, and it is the one number in the chain that is not an est
 
 When you pay 3,200 baht on a card that bills in pounds, your bank picks a rate and usually adds something to it. That happens between you and your bank, days later, and no expense splitter can see it or change it. If your statement says £71.40 and the group's maths says the equivalent of £69.80, that £1.60 is what your card charged you, not an error in the split.
 
-The only fix is a different card — or being the person who pays in cash.
+The only fix is a different card, or being the person who pays in cash.
 
 <Checklist title="Keeping a room clean across currencies">
 <ChecklistItem title="Pick the room currency before the first expense">Choose whatever most of the spending is actually in, not whatever your own bank uses.</ChecklistItem>
@@ -61,7 +61,7 @@ The only fix is a different card — or being the person who pays in cash.
 
 ## Why conversion is not a paid feature here
 
-Groups that share a currency have easier options. The groups that genuinely need a splitter are the ones spread across countries — and charging those groups for the conversion is charging for the only part they came for, which is [what a free Splitwise group runs into](/guides/splitwise-currency-conversion): changing the currency on an expense relabels the amount and does not convert it.
+Groups that share a currency have easier options. The groups that genuinely need a splitter are the ones spread across countries, and charging those groups for the conversion is charging for the only part they came for, which is [what a free Splitwise group runs into](/guides/splitwise-currency-conversion): changing the currency on an expense relabels the amount and does not convert it.
 
 So it is free forever, and there is no tier above it.
 
@@ -71,7 +71,7 @@ So it is free forever, and there is no tier above it.
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Which exchange rate should the group use?">Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative — a daily reference rate, not your bank's — so treat the totals as exact and the conversion as close enough to split by.</FAQItem>
+<FAQItem question="Which exchange rate should the group use?">Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative (a daily reference rate, not your bank's), so treat the totals as exact and the conversion as close enough to split by.</FAQItem>
 <FAQItem question="Should I enter the amount I paid or what it cost me?">Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.</FAQItem>
 <FAQItem question="Does Split charge for converting currencies?">No. Converting currencies is free forever, with no paid tier to upgrade to.</FAQItem>
 </FAQ>

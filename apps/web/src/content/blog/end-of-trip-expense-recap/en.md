@@ -13,7 +13,7 @@ faqs:
     - question: What is on the recap?
       answer: The room's total spend, how many days it ran, how many expenses and people were in it, how many payments got recorded, and who fronted the most money. It carries a settled stamp once everybody is square.
     - question: Can I share the recap as a link?
-      answer: No, and that is on purpose. A room's address is also its key — anyone who opens the recap URL can drop the last part of it and land in a ledger they can write to. So the recap is shared as an image instead.
+      answer: No, and that is on purpose. A room's address is also its key. Anyone who opens the recap URL can drop the last part of it and land in a ledger they can write to. So the recap is shared as an image instead.
     - question: When can I share it?
       answer: Once the room actually reaches zero. You can look at a recap of so far at any point during the trip, but the share button waits for settled, because a card stamped "settled" on a room that is 400 apart would be a lie.
     - question: Does the card show anyone's balance?
@@ -38,7 +38,7 @@ That is a strange place to stop, given the room has been counting the entire tim
 <ChecklistItem title="How long it ran">Calendar days from the first expense to the last, both ends included. Counted the same way wherever the person reading it is, so nobody's copy says nine days and somebody else's says ten.</ChecklistItem>
 <ChecklistItem title="Expenses and people">The shape of the trip in two numbers.</ChecklistItem>
 <ChecklistItem title="Payments recorded">How many settle-ups were logged getting from "we owe each other things" to zero.</ChecklistItem>
-<ChecklistItem title="Who fronted the most">The person who put the most on their own card. Not who spent the most on themselves — who carried the group.</ChecklistItem>
+<ChecklistItem title="Who fronted the most">The person who put the most on their own card. Not who spent the most on themselves: who carried the group.</ChecklistItem>
 <ChecklistItem title="A settled stamp">Only once everybody is genuinely square, and only when there was something to square in the first place. An empty room is not settled, it is empty.</ChecklistItem>
 </Checklist>
 
@@ -71,7 +71,7 @@ The trade is honest: someone who sees the card cannot click into your trip. That
 
 <FAQ>
 <FAQItem question="What is on the recap?">The room's total spend, how many days it ran, how many expenses and people were in it, how many payments got recorded, and who fronted the most money. It carries a settled stamp once everybody is square.</FAQItem>
-<FAQItem question="Can I share the recap as a link?">No, and that is on purpose. A room's address is also its key — anyone who opens the recap URL can drop the last part of it and land in a ledger they can write to. So the recap is shared as an image instead.</FAQItem>
+<FAQItem question="Can I share the recap as a link?">No, and that is on purpose. A room's address is also its key. Anyone who opens the recap URL can drop the last part of it and land in a ledger they can write to. So the recap is shared as an image instead.</FAQItem>
 <FAQItem question="When can I share it?">Once the room actually reaches zero. You can look at a recap of so far at any point during the trip, but the share button waits for settled.</FAQItem>
 <FAQItem question="Does the card show anyone's balance?">No. It shows what the group spent together and who fronted the most, not what any one person owes.</FAQItem>
 </FAQ>

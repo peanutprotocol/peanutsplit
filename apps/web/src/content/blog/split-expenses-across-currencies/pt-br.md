@@ -50,7 +50,7 @@ O recibo diz 3.200, e é o único número da cadeia inteira que não é estimati
 
 Quando você paga 3.200 bahts num cartão que cobra em libras, seu banco escolhe uma taxa e normalmente acrescenta alguma coisa. Isso acontece entre você e o seu banco, dias depois, e nenhum divisor de despesas enxerga ou muda. Se a sua fatura diz £ 71,40 e a conta do grupo diz o equivalente a £ 69,80, esses £ 1,60 são o que o seu cartão cobrou de você, não um erro da divisão.
 
-A única solução é outro cartão — ou ser a pessoa que paga em dinheiro.
+A única solução é outro cartão, ou ser a pessoa que paga em dinheiro.
 
 <Checklist title="Como manter limpa uma sala em várias moedas">
 <ChecklistItem title="Escolha a moeda da sala antes da primeira despesa">Use aquela em que o dinheiro está realmente saindo, não a do seu banco.</ChecklistItem>
@@ -61,7 +61,7 @@ A única solução é outro cartão — ou ser a pessoa que paga em dinheiro.
 
 ## Por que aqui converter não é recurso pago
 
-Grupos que compartilham moeda têm opções mais fáceis. Os grupos que realmente precisam de um divisor são os espalhados por países — e cobrar deles justamente pela conversão é cobrar pela única parte que os trouxe até aqui.
+Grupos que compartilham moeda têm opções mais fáceis. Os grupos que realmente precisam de um divisor são os espalhados por países, e cobrar deles justamente pela conversão é cobrar pela única parte que os trouxe até aqui.
 
 Então é grátis para sempre, e não existe plano acima.
 

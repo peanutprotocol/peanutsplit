@@ -21,7 +21,7 @@ faqs:
     - question: Is Split free forever?
       answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
     - question: Do I have to download anything?
-      answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.
+      answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email.
     - question: Can we still settle by bank transfer or cash?
       answer: Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.
     - question: How do I get back into a room?
@@ -65,12 +65,12 @@ A group of four in Berlin will have a fine time. A group of four in Berlin, Buen
 
 ## What the Tricount alternative does differently
 
-|                 | Peanut Split                                                                         | Tricount                                                 |
-| --------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| Cost            | Free forever, no paid tier                                                           | "100% free"                                              |
-| Doing the maths | Balances reconcile to the cent                                                       | "tricount does the math for you"                         |
-| Settling up     | Whatever the two people can actually use — cash, a local transfer, or a payment link | "get paid directly to your bank account", or a bunq card |
-| Best case       | Group spread across countries, banks and currencies                                  | Group that shares banking rails                          |
+|                 | Peanut Split                                                                        | Tricount                                                 |
+| --------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Cost            | Free forever, no paid tier                                                          | "100% free"                                              |
+| Doing the maths | Balances reconcile to the cent                                                      | "tricount does the math for you"                         |
+| Settling up     | Whatever the two people can actually use: cash, a local transfer, or a payment link | "get paid directly to your bank account", or a bunq card |
+| Best case       | Group spread across countries, banks and currencies                                 | Group that shares banking rails                          |
 
 Quotes taken from tricount.com/en in July 2026.
 
@@ -87,7 +87,7 @@ Settling up is the row that matters. The rest is close enough that it should not
 
 If your group shares a bank — or several of you hold a bunq card — Tricount will be smoother than this. Split is smaller and does less.
 
-There is no card that logs your spending for you, and there is no bank behind us doing the transfer. Two people settle however they settle, and one of them taps to record it — Split does not check with a bank, and cannot.
+There is no card that logs your spending for you, and there is no bank behind us doing the transfer. Two people settle however they settle, and one of them taps to record it. Split does not check with a bank, and cannot.
 
 That is the trade. Less product, fewer assumptions about who you bank with.
 
@@ -98,7 +98,7 @@ That is the trade. Less product, fewer assumptions about who you bank with.
 
 <FAQ>
 <FAQItem question="Is Split free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
-<FAQItem question="Do I have to download anything?">No. A room is a web link. Whoever opens it types a name and starts adding expenses — no app store, no account, no email.</FAQItem>
+<FAQItem question="Do I have to download anything?">No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email.</FAQItem>
 <FAQItem question="Can we still settle by bank transfer or cash?">Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.</FAQItem>
 <FAQItem question="How do I get back into a room?">Open the link again. There is no login to recover and no password to reset, so the link is the key. Keep it pinned in the group chat, where anybody who needs it can find it.</FAQItem>
 </FAQ>

@@ -28,13 +28,13 @@ faqs:
     - question: Is there a limit on how many expenses we can add?
       answer: No. Add fifty in an afternoon if that is the kind of trip it is.
     - question: Do we have to download an app?
-      answer: No. Split opens in a browser. Installing it is optional and adds a launcher icon — there is no app store or account.
+      answer: No. Split opens in a browser. Installing it is optional and adds a launcher icon. There is no app store or account.
     - question: Does it work without signal?
-      answer: Expenses do. Anything you type with no connection is held on your phone — up to thirty of them — and sent the moment there is one. Recording a settle-up waits for a connection on purpose, because a payment written down twice is worse than one written down late.
+      answer: Expenses do. Anything you type with no connection is held on your phone, up to thirty of them, and sent the moment there is one. Recording a settle-up waits for a connection on purpose, because a payment written down twice is worse than one written down late.
     - question: Is it in Spanish or Portuguese?
-      answer: Yes — English, Spanish and Brazilian Portuguese, picked from whatever the phone opening the link is set to. This comparison page exists in all three too.
+      answer: Yes, in English, Spanish and Brazilian Portuguese, picked from whatever the phone opening the link is set to. This comparison page exists in all three too.
     - question: Can I import my Splitwise history?
-      answer: Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import — the expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.
+      answer: Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import. The expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.
     - question: How do we get back to a room?
       answer: Keep the link in the group chat so everyone can find it there. Split also saves opened rooms on this device, and you can paste a room link on the home page to add it back.
     - question: Does it work on my phone?
@@ -141,10 +141,10 @@ Splitwise scans receipts, does card imports and draws charts, and it has apps in
 <FAQItem question="Is it free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut.</FAQItem>
 <FAQItem question="Do I need an account?">No, and neither does anyone you send the link to. There is no email, no password and no ID check anywhere in Split.</FAQItem>
 <FAQItem question="Is there a limit on how many expenses we can add?">No. Add fifty in an afternoon if that is the kind of trip it is.</FAQItem>
-<FAQItem question="Do we have to download an app?">No. Split opens in a browser. Installing it is optional and adds a launcher icon — there is no app store or account.</FAQItem>
-<FAQItem question="Does it work without signal?">Expenses do. Anything you type with no connection is held on your phone — up to thirty of them — and sent the moment there is one. Recording a settle-up waits for a connection on purpose, because a payment written down twice is worse than one written down late.</FAQItem>
-<FAQItem question="Is it in Spanish or Portuguese?">Yes — English, Spanish and Brazilian Portuguese, picked from whatever the phone opening the link is set to. This comparison page exists in all three too.</FAQItem>
-<FAQItem question="Can I import my Splitwise history?">Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import — the expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.</FAQItem>
+<FAQItem question="Do we have to download an app?">No. Split opens in a browser. Installing it is optional and adds a launcher icon. There is no app store or account.</FAQItem>
+<FAQItem question="Does it work without signal?">Expenses do. Anything you type with no connection is held on your phone, up to thirty of them, and sent the moment there is one. Recording a settle-up waits for a connection on purpose, because a payment written down twice is worse than one written down late.</FAQItem>
+<FAQItem question="Is it in Spanish or Portuguese?">Yes, in English, Spanish and Brazilian Portuguese, picked from whatever the phone opening the link is set to. This comparison page exists in all three too.</FAQItem>
+<FAQItem question="Can I import my Splitwise history?">Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import. The expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.</FAQItem>
 <FAQItem question="How do we get back to a room?">Keep the link in the group chat so everyone can find it there. Split also saves opened rooms on this device, and you can paste a room link on the home page to add it back.</FAQItem>
 <FAQItem question="Does it work on my phone?">It is a website, so it works anywhere. You can install it from a supported browser for a launcher icon and standalone window.</FAQItem>
 </FAQ>
