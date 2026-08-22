@@ -39,10 +39,16 @@ const nextConfig = {
      * content hub in every language, so this retires a path that never resolved rather than
      * building a second hub. The sources are exact strings on purpose: a `/guides/:path*` here
      * would 308 all nine indexed guide URLs off themselves.
+     *
+     * The locale roots are the same 404-parent probe one level up, and `/pt` is `/es` again: a
+     * bare language code that never carried a territory, pointed at the hub rather than deindexed.
      */
     async redirects() {
         return [
             { source: '/es/:path*', destination: '/es-419/:path*', permanent: true },
+            { source: '/pt/:path*', destination: '/pt-br/:path*', permanent: true },
+            { source: '/es-419', destination: '/es-419/blog', permanent: true },
+            { source: '/pt-br', destination: '/pt-br/blog', permanent: true },
             { source: '/guides', destination: '/blog', permanent: true },
             { source: '/es-419/guides', destination: '/es-419/blog', permanent: true },
             { source: '/pt-br/guides', destination: '/pt-br/blog', permanent: true },
