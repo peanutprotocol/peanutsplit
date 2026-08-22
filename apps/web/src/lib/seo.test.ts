@@ -8,8 +8,8 @@ import {
     ARTICLE_IMAGE_URL,
     articleSchema,
     breadcrumbSchema,
-    calculatorSchema,
     faqSchema,
+    isCalculatorDoc,
     pageMetadata,
     pageTitle,
     siteSchema,
@@ -112,19 +112,14 @@ describe('structured data', () => {
         for (const doc of listAllTranslations()) expect(articleSchema(doc).image, doc.slug).toBe(ARTICLE_IMAGE_URL)
     })
 
-    it('gives a calculator-shaped capture page the tool entity, and no other page', () => {
+    it('lists only the calculator-shaped capture page on the tools hub, with no tool entity', () => {
         const docs = listDocs('capture')
         const calculator = docs.find((doc) => doc.slug === 'fair-split-calculator')!
-        expect(calculatorSchema(calculator)).toMatchObject({
-            '@type': 'WebApplication',
-            '@id': `${CANONICAL_ORIGIN}/fair-split-calculator#tool`,
-            inLanguage: 'en',
-        })
+        expect(isCalculatorDoc(calculator)).toBe(true)
         for (const doc of docs.filter((entry) => entry !== calculator))
-            expect(calculatorSchema(doc), doc.slug).toBeNull()
-        for (const doc of [...listDocs('blog'), ...listDocs('alternatives')]) {
-            expect(calculatorSchema(doc), doc.slug).toBeNull()
-        }
+            expect(isCalculatorDoc(doc), doc.slug).toBe(false)
+        for (const doc of [...listDocs('blog'), ...listDocs('alternatives')])
+            expect(isCalculatorDoc(doc), doc.slug).toBe(false)
     })
 
     it('links the WebSite node to the Organization node by @id', () => {

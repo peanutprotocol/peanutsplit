@@ -7,15 +7,7 @@ import { Breadcrumbs } from './Breadcrumbs'
 import { SiteFooter } from './SiteFooter'
 import { LanguageLinks } from './LanguageLinks'
 import { howToSchema } from '@/lib/howto-schema'
-import {
-    absoluteUrl,
-    articleSchema,
-    breadcrumbSchema,
-    calculatorSchema,
-    faqSchema,
-    formatDate,
-    type Breadcrumb,
-} from '@/lib/seo'
+import { absoluteUrl, articleSchema, breadcrumbSchema, faqSchema, formatDate, type Breadcrumb } from '@/lib/seo'
 import type { Locale } from '@/i18n/locales'
 import { basePathFor, type Doc } from '@/lib/content'
 import { pageChapterOrNull, pageRegisterOrNull, pageSkinOrNull } from '@/lib/split-content/recipe'
@@ -68,7 +60,6 @@ export async function ArticleLayout({
         <main className="flex min-h-dvh flex-col bg-background">
             {chapter && <ContentAnalytics template={doc.collection} chapter={chapter} source={doc.slug} />}
             <JsonLd data={articleSchema(doc)} />
-            <JsonLd data={calculatorSchema(doc)} />
             <JsonLd data={breadcrumbSchema(crumbs)} />
             <JsonLd data={faqSchema(frontmatter.faqs)} />
             <JsonLd data={howToSchema(frontmatter.title, absoluteUrl(frontmatter.canonical ?? doc.href), doc.body)} />
