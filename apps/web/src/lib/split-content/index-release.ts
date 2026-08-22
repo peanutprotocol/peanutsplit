@@ -10,13 +10,15 @@ export const SPLIT_CONTENT_INDEX_RELEASED = true
  * separate from artifact inventory lets a new manifest cohort soak behind noindex without
  * deindexing an already released guide cohort.
  *
- * Nine of the fifteen rendered guides. The six absent ones — `split-a-group-trip-across-countries`
- * and `split-expenses-across-currencies`, in all three locales — are deliberately and permanently
- * parked: peanutsplit.com already publishes both topics at `/blog/<slug>`, those posts are indexed
- * and hold the authority, and a second page with the same title on the same domain would only
- * split one query between two URLs. The guide versions stay installed as the byte-pinned fixture
- * the content validator regression-tests against. They are never a public page, so do not
- * "finish the set" by adding them here.
+ * Nine of the sixteen rendered guides. Six of the seven absent ones —
+ * `split-a-group-trip-across-countries` and `split-expenses-across-currencies`, in all three
+ * locales — are deliberately and permanently parked: peanutsplit.com already publishes both topics
+ * at `/blog/<slug>`, those posts are indexed and hold the authority, and a second page with the
+ * same title on the same domain would only split one query between two URLs. The guide versions
+ * stay installed as the byte-pinned fixture the content validator regression-tests against. They
+ * are never a public page, so do not "finish the set" by adding them here. The seventh,
+ * `/es-419/guides/why-do-i-owe-someone-i-never-paid`, is a new cohort soaking behind noindex — it
+ * joins the list when a human has read it on the live site.
  *
  * Ordered the way `splitGuidePaths()` orders the artifact, and pinned to that order by
  * `indexability.test.ts` — so a diff to this list reads as an addition or a removal, never as a
