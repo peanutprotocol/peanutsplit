@@ -3,6 +3,7 @@ import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
 import { canonicalRedirect } from '@/lib/canonical-redirect'
 import { localeFromNewRoomHandoff } from '@/lib/locale-handoff'
+import { MARKETING_CACHE_CONTROL, marketingCacheable } from '@/lib/marketing-cache'
 import { splitContentIndexable } from '@/lib/split-content/indexability'
 import { splitGuideLocale } from '@/lib/split-content/urls'
 
@@ -60,6 +61,12 @@ export function proxy(request: NextRequest) {
 
     forwarded.set(LOCALE_HEADER, locale)
     const response = NextResponse.next({ request: { headers: forwarded } })
+
+    // Only a path that states its locale can be shared: `/` and the app shell returned above
+    // with the cookie still deciding their language, so they keep Next's `no-store`.
+    if (marketingCacheable(request.nextUrl.pathname)) {
+        response.headers.set('cache-control', MARKETING_CACHE_CONTROL)
+    }
 
     if (isGuide && !splitContentIndexable(request.nextUrl.pathname)) {
         response.headers.set('x-robots-tag', 'noindex, nofollow, noarchive')
