@@ -17,6 +17,7 @@ without being handed a second path.
 | `product-truths.md`      | One fact, one place. Each claim has an ID, safe phrasing, unsafe phrasing, source. | Always.                                     |
 | `competitor-claims.md`   | Verbatim-quote register. What we may assert about somebody else's product.         | Drafting or editing an `alternatives` page. |
 | `cast.md`                | Which character appears where, and how much.                                       | Putting a `<Cast>` in a page.               |
+| `AUDITS.md`              | Dated review findings, newest last. Each one becomes a stylebook rule (§11.4).     | Closing a review or a cold read.            |
 
 ## The collections
 

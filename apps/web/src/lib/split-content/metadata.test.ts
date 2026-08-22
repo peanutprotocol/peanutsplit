@@ -59,7 +59,7 @@ describe('Split guide article schema', () => {
 
         expect(article.author).toMatchObject({ '@id': ORGANIZATION_ID, name: 'Peanut Split' })
         expect(article.publisher).toMatchObject({ '@id': ORGANIZATION_ID, name: 'Peanut Split' })
-        expect(article.image).toBe(`${CANONICAL_ORIGIN}/icons/icon-512.png`)
+        expect(article.image).toBe(`${CANONICAL_ORIGIN}/og-default.png`)
         // dateModified is the artifact's generated_at, not a copy of date: a regenerated body
         // moves one and not the other. Nothing upstream asserts generated_at >= date.
         expect(article.dateModified).toBe(guide.generatedAt)

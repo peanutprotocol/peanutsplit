@@ -12,12 +12,14 @@ import { hrefFor, listDocs } from '@/lib/content'
 const GUIDES_SHOWN = 4
 
 /** Paths on peanut.me, which is a different app with its own routing — nothing here can be
- *  derived from Split's own route table, so it is written out once. */
+ *  derived from Split's own route table, so it is written out once. The locale prefix is
+ *  deliberate: peanut.me 307s `/help` to `/en/help`, and a link that lands on the final URL
+ *  costs a crawler no hop. */
 const PEANUT_LINKS = [
     { key: 'peanutHome', path: '' },
-    { key: 'peanutHelp', path: '/help' },
-    { key: 'peanutTerms', path: '/terms' },
-    { key: 'peanutPrivacy', path: '/privacy' },
+    { key: 'peanutHelp', path: '/en/help' },
+    { key: 'peanutTerms', path: '/en/terms' },
+    { key: 'peanutPrivacy', path: '/en/privacy' },
 ] as const
 
 /**
