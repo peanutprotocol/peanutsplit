@@ -78,4 +78,17 @@ describe('the Split renderer build namespace', () => {
             expect(redirect.source, redirect.source).not.toMatch(/guides\/:/)
         }
     })
+
+    /** Same probe one level up: the locale roots 404ed, and `/pt` never carried a territory. */
+    it('sends the locale roots and the territory-less /pt to a hub', () => {
+        const { redirects } = probeConfig()
+
+        for (const [source, destination] of [
+            ['/es-419', '/es-419/blog'],
+            ['/pt-br', '/pt-br/blog'],
+            ['/pt/:path*', '/pt-br/:path*'],
+        ]) {
+            expect(redirects).toContainEqual({ source, destination, permanent: true })
+        }
+    })
 })

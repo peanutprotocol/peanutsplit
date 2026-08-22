@@ -54,7 +54,7 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       proven by mutation. Editorial residue (prose numbers with no truth entry yet): real-time
       reconnect timings, the 30-bills/day scan cap, the 30-queued-offline-expenses cap,
       recap-card facts — each needs a product-truths block before its page can cite it.
-      Stylebook §7.5 says a claim with no ID does not ship; no content page carries
+      Original text: Stylebook §7.5 says a claim with no ID does not ship; no content page carries
       `claims:`/`competitorClaims:`, the `Frontmatter` interface (`apps/web/src/lib/content.ts:63`)
       discards the keys, and no test resolves an ID. The generated pipeline enforces this (mono
       `scripts/split-content.mjs:939`) — port that gate: add the keys to `Frontmatter`, require
@@ -231,8 +231,6 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 - Landing metadata stays English in every locale — documented deliberate
   (`(marketing)/page.tsx:11-17`); revisit only with the page's own comment in hand. Add
   `Vary: Accept-Language`/`Cookie` before any caching is ever put in front of `/`.
-- Locale roots `/es-419`, `/pt-br` 404 (and legacy `/es` redirects into that 404); cheap
-  insurance would be a 308 to `/` if old `/es` backlinks exist.
 - Parked guides self-canonicalize to noindexed URLs; pointing canonicals at the blog twins
   would recycle any accidental external link. Open question, not a defect.
 - Localized pages footer-link the English-only `/tools` as "Calculadoras"; hide it on
@@ -260,6 +258,15 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 
 ## Closed
 
+- **Locale roots 404 and `/pt` had no redirect** — closed 2026-08-22 (the commit after
+  `83a48a4`), verified on production: `/es-419` and `/pt-br` 308 to their `/blog` hub, and
+  `/pt/:path*` joins `/es/:path*` as a territory-less legacy prefix. Both roots were live 404s,
+  which is the parent-probe every deep locale URL invites. The two roots are exact-string
+  sources — a wildcard there would 308 the whole localized corpus off itself.
+- **The MDX gate compiled English only** — closed 2026-08-22 (`83a48a4`): `mdx.test.ts` ran
+  `listDocs(collection)`, which defaults to `DEFAULT_LOCALE`, so no es-419 or pt-br body was
+  ever compiled before the push that ships it. Now on `listAllTranslations()`: 17 compile
+  cases -> 31, all passing (no translated body was broken).
 - **Wrong FX claim on the indexed currency page** — closed by guide-tracker decision 13:
   a misreading, not a contradiction. The subject is "The rates" (plural), the freeze is
   stated positively one clause earlier, and per-expense freezing means the trip genuinely
