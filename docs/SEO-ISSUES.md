@@ -126,15 +126,26 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       outputs were edited in place, never re-run through `workflows/generate-guide.md`. The gap
       closes the first time a guide is authored from these rules; until then treat the ruleset
       as untested.
-- [ ] **13. `SEO_INDEXABLE=true` is baked into the Docker runner stage**, so any container of
+- [x] **13. `SEO_INDEXABLE=true` is baked into the Docker runner stage**, so any container of
       the prod image claims to be the indexed deployment. This is a decided, test-pinned
       trade-off (`docker-contract.test.ts` asserts the exact line; nobody here has Dokploy
       access) — do NOT "fix" it by editing the Dockerfile. It needs a deployment-topology
-      decision, not a code edit.
-- [ ] **14. Title suffix is split-brained.** Guides end ` | Peanut` (byte-budget choice:
+      decision, not a code edit. Decided 2026-08-22: accepted risk. peanutsplit has exactly one
+      deployment of the prod image (Dokploy on the Hetzner box) and no staging container, so the
+      pin is correct. Reopen the day a second deployment of the image exists; until then the
+      Dockerfile and `docker-contract.test.ts` stay as they are.
+- [x] **14. Title suffix is split-brained.** Guides end ` | Peanut` (byte-budget choice:
       the longer suffix breaks the 60-char cap on four of nine titles); every other page ends
       ` | Peanut Split`; hand-built pages (`/tools`, `/splitwise-alternative`) carry no suffix at
       all. Retitling indexed pages is churn — settle one policy before the next cohort.
+      Policy, decided 2026-08-22: every indexable page ends ` | Peanut Split`. The nine generated
+      guides keep ` | Peanut` as the documented byte-budget exception while they are indexed; a
+      guide may retitle only on its next content pass and only inside the 60-char cap. The LP is
+      the one page that leads with the name (`Peanut Split — …`) instead of ending with it.
+      Done the same day: `/tools` takes the long suffix via `pageTitle()` (54 chars;
+      `/splitwise-alternative` already had it from the engine rebuild), and `seo.test.ts` walks
+      every indexable page type — LP, `/tools`, the tools, the three hubs, every article
+      translation, every generated guide — and asserts the suffix rule and the 60-char cap.
 - [x] **15. Topical overlap** between `/guides/split-holiday-house-per-person-or-per-room`
       and `/split-airbnb-cost-unequal-rooms`. Read side by side 2026-08-17: one shared mechanic
       (room weighting, one H3 of the guide vs the post's whole subject), different primary
@@ -247,9 +258,6 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 - No HSTS header; add `strict-transport-security` at the edge when convenient.
 - LP ships ~2.3 MB decoded JS because the hero embeds the real composer — by design; watch
   it on low-end mobile.
-- `SEO-DOMAIN-DECISIONS.md` still says the generated pipeline "remains dark" while 9
-  generated guides are live and indexed — mark it. (mono `seo-backlog.md` was already
-  marked superseded on 2026-08-14.)
 - `/pt-br/guides/split-shared-house-bills` has no EN original — coherent at the I/O level
   (clean 404, no lying hreflang); editorial question only.
 - Process: three concurrent sessions produced on one checkout during the audit (a
@@ -258,6 +266,10 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 
 ## Closed
 
+- **`SEO_INDEXABLE` pinned in the Docker runner stage** — closed 2026-08-22 as accepted risk
+  (item 13): one deployment of the image, no staging container, nothing to confuse it with.
+- **`SEO-DOMAIN-DECISIONS.md` said the generated pipeline "remains dark"** — corrected in place
+  2026-08-22: nine generated guides are live and indexed, and the section says so.
 - **No heading carried the head term, and the site was not in Bing's index** — closed
   2026-08-22: `site:peanutsplit.com` returned nothing on DuckDuckGo/Bing while a six-month-old
   AdSense site (expensessplit.com, GitHub Pages, zero links) sat at #3 for "free splitwise
