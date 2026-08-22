@@ -14,6 +14,7 @@ claims:
     - netting-is-bounded-exact
     - offline-creates-only
     - settle-is-a-record
+    - offline-queue-30
 competitorClaims:
     - splitwise-pro-expenses
     - splitwise-pro-currency

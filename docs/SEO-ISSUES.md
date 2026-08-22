@@ -51,9 +51,14 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       claims-gate suite in `content.test.ts` resolves every ID against the `_system` truth files
       and fails on unresolvable IDs, typed pages with no claims, or a comparison with zero
       `competitorClaims`; all 15 alternatives + 12 blog files annotated; both failure modes
-      proven by mutation. Editorial residue (prose numbers with no truth entry yet): real-time
-      reconnect timings, the 30-bills/day scan cap, the 30-queued-offline-expenses cap,
-      recap-card facts — each needs a product-truths block before its page can cite it.
+      proven by mutation. Editorial residue closed 2026-08-22: five new product-truths blocks
+      (`live-room-stream`, `receipt-scan-30-a-day`, `receipt-photo-handling`, `offline-queue-30`,
+      `recap-card`), each sourced to the constant or handler that decides it, cited from the
+      real-time, scan, offline, recap and fronting posts and the splitwise-alternative FAQ (all
+      three locales). Every prose number matched the code; no prose changed. The native
+      `automatic-currency-conversion` block already matched mono's 156-currency truth, and no
+      native page says twelve. The seven untyped blog slugs (11 files) are `type: guide` with
+      `cast: []`, so the per-type claims gate now covers the whole corpus.
       Original text: Stylebook §7.5 says a claim with no ID does not ship; no content page carries
       `claims:`/`competitorClaims:`, the `Frontmatter` interface (`apps/web/src/lib/content.ts:63`)
       discards the keys, and no test resolves an ID. The generated pipeline enforces this (mono

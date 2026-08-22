@@ -2,6 +2,7 @@
 title: How to split a group trip across countries
 description: Four people, four banks, three currencies, one dinner bill. How to keep a trip's expenses straight and actually get paid back afterwards.
 date: 2026-07-28
+type: guide
 tags: [trips, currencies, getting paid back]
 claims:
     - link-is-the-key
@@ -9,6 +10,7 @@ claims:
     - automatic-currency-conversion
     - netting-is-bounded-exact
     - settle-is-a-record
+cast: []
 faqs:
     - question: Does everyone need to install something?
       answer: No. A Split room is a web link. Whoever opens it types a name and starts adding expenses. No app, no account, no email.

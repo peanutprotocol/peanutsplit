@@ -13,6 +13,7 @@ claims:
     - room-size-20
     - free-forever
     - no-app
+    - recap-card
 cast:
     - lisbon
     - mo
