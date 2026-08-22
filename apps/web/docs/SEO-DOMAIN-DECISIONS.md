@@ -35,12 +35,13 @@ reinstall banner, and `peanutsplit.com` service-worker retirement are removed.
 The separate, same-origin iOS install handoff remains; it solves an install-flow
 problem and is not domain-migration code.
 
-## Deferred generated-content work
+## Generated-content work (deferred until 2026-08-13, now live)
 
 The source-first pipeline in mono and the renderer/publisher code in this repo
-are preserved, but remain dark. Their existing `peanut.me/{locale}/split/*` and
-`split.peanut.me` URL contracts are historical inputs, not live architecture.
-Before that work can publish, a separate scoped change must:
+are live: as of 2026-08-22 nine generated guides serve indexable at
+`peanutsplit.com/{locale}/guides/*` and sit in the sitemap. Their earlier
+`peanut.me/{locale}/split/*` and `split.peanut.me` URL contracts are historical
+inputs, not live architecture. The scoped change that got them there had to:
 
 1. choose `peanutsplit.com` paths for the generated pages;
 2. retarget producer data, generated artifacts, renderer URL validation, sitemap,

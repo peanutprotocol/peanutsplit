@@ -11,9 +11,19 @@ import {
     siteSchema,
     SITE_DESCRIPTION,
 } from './seo'
-import { COLLECTIONS, listDocs } from './content'
+import { COLLECTIONS, listAllTranslations, listDocs } from './content'
 import { CANONICAL_ORIGIN } from './domains'
 import { siteUrl } from './site'
+import { toolMetadata } from './tool-routes'
+import { listSplitGuides } from './split-content/artifact'
+import { splitGuideMetadata } from './split-content/metadata'
+import { INDEXED_LOCALES } from '@/i18n/locales'
+import { TOOLS } from '@/tools/registry'
+import { metadata as landingMetadata } from '@/app/(product-shell)/(marketing)/page'
+import { metadata as toolsHubMetadata } from '@/app/(product-shell)/(marketing)/tools/page'
+import enMessages from '@/i18n/messages/en.json'
+import esMessages from '@/i18n/messages/es-419.json'
+import ptBrMessages from '@/i18n/messages/pt-br.json'
 
 describe('absoluteUrl', () => {
     it('resolves public paths against the fixed canonical origin', () => {
@@ -110,5 +120,50 @@ describe('structured data', () => {
         expect(app.operatingSystem).toBe('Web')
         expect(app.offers).toMatchObject({ price: '0', priceCurrency: 'USD' })
         expect(app.url).toBe(siteUrl)
+    })
+})
+
+/**
+ * SEO-ISSUES item 14: every indexable page ends " | Peanut Split". The generated guides keep
+ * " | Peanut" while they are indexed — the long suffix breaks the 60-char cap on four of nine
+ * titles, and retitling an indexed page is churn — and may retitle only on a content pass. The LP
+ * leads with the name instead of ending with it; it is the one page whose title IS the brand.
+ */
+describe('title suffix policy', () => {
+    const HUB_TITLES = {
+        en: enMessages.content.hubTitle,
+        'es-419': esMessages.content.hubTitle,
+        'pt-br': ptBrMessages.content.hubTitle,
+    }
+    const titleOf = (metadata: { title?: unknown }) => metadata.title as string
+
+    const handBuilt = [
+        ['/', titleOf(landingMetadata)],
+        ['/tools', titleOf(toolsHubMetadata)],
+        ...TOOLS.map((tool) => [tool.slug, titleOf(toolMetadata(tool))]),
+        ...INDEXED_LOCALES.map((locale) => [`${locale} hub`, pageTitle(HUB_TITLES[locale])]),
+        ...listAllTranslations().map((doc) => [`${doc.locale}/${doc.slug}`, pageTitle(doc.frontmatter.title)]),
+    ] as const
+    const guides = INDEXED_LOCALES.flatMap((locale) =>
+        listSplitGuides(locale).map((guide) => [guide.href, titleOf(splitGuideMetadata(guide, undefined))] as const)
+    )
+
+    it('ends every hand-built page with the long suffix', () => {
+        expect(handBuilt.length).toBeGreaterThan(5)
+        for (const [page, title] of handBuilt) {
+            if (page === '/') expect(title, page).toMatch(/^Peanut Split — /)
+            else expect(title, page).toMatch(/ \| Peanut Split$/)
+        }
+    })
+
+    it('lets a generated guide keep the short suffix, and nothing else', () => {
+        expect(guides.length).toBeGreaterThan(0)
+        for (const [page, title] of guides) expect(title, page).toMatch(/ \| Peanut( Split)?$/)
+    })
+
+    it('keeps every indexable title inside what Google renders', () => {
+        for (const [page, title] of [...handBuilt, ...guides]) {
+            expect(title.length, `${page}: ${title}`).toBeLessThanOrEqual(60)
+        }
     })
 })

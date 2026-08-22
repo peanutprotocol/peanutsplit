@@ -6,7 +6,7 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { Doodle } from '@/components/ui/Doodle'
 import { Icon } from '@/components/ui/Icon'
-import { absoluteUrl, breadcrumbSchema, pageMetadata } from '@/lib/seo'
+import { absoluteUrl, breadcrumbSchema, pageMetadata, pageTitle } from '@/lib/seo'
 import { TOOLS, toolPath } from '@/tools/registry'
 
 /**
@@ -41,7 +41,7 @@ const copy = {
 }
 
 export const metadata: Metadata = pageMetadata({
-    title: TITLE,
+    title: pageTitle(TITLE),
     description:
         'Calculators for rent by room size and for a shared car costed at the official mileage rate. Splitting a bill is the app itself.',
     path: PATH,
