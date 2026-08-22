@@ -22,6 +22,7 @@ import { decimalsOf, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { getTool } from '@/tools/registry'
+import type { IndexedLocale } from '@/i18n/locales'
 import type { Tool, ToolChoiceField, ToolChoiceOption, ToolField, ToolInput } from '@/tools/types'
 
 /**
@@ -68,13 +69,22 @@ interface RowState {
 const initialOption = (choice: ToolChoiceField): ToolChoiceOption =>
     choice.options.find((option) => option.value === choice.defaultValue) ?? choice.options[0]
 
-export function ToolCalculator({ slug }: { slug: string }) {
-    const tool = getTool(slug)
+/** The option a preset chip stands for. Its label is the chip's label — see `Tool.presets`. */
+const optionOf = (
+    choices: readonly ToolChoiceField[],
+    preset: { choiceName: string; optionValue: string }
+): ToolChoiceOption | undefined =>
+    choices
+        .find((choice) => choice.name === preset.choiceName)
+        ?.options.find((option) => option.value === preset.optionValue)
+
+export function ToolCalculator({ slug, locale = 'en' }: { slug: string; locale?: IndexedLocale }) {
+    const tool = getTool(slug, locale)
     if (!tool) return null
-    return <Calculator tool={tool} />
+    return <Calculator tool={tool} locale={locale} />
 }
 
-function Calculator({ tool }: { tool: Tool }) {
+function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
     const choiceFields = tool.choices ?? []
     const startingOptions = choiceFields.map(initialOption)
     const builder = tool.builder
@@ -176,7 +186,9 @@ function Calculator({ tool }: { tool: Tool }) {
             toggles,
             choices,
             rows: visibleRows.map((row) => ({
-                name: row.name.trim() || 'Someone',
+                // The table's own noun, not a hardcoded word: a blanked name reads as "Passageiro"
+                // on a Portuguese page rather than as English nobody translated.
+                name: row.name.trim() || (rowSpec?.namePrefix ?? ''),
                 values: Object.fromEntries(
                     (rowSpec?.columns ?? []).map((column) => [
                         column.name,
@@ -185,6 +197,7 @@ function Calculator({ tool }: { tool: Tool }) {
                 ),
             })),
             decimals,
+            phrases: tool.phrases,
         }
         return tool.compute(input)
     }, [incomplete, text, toggles, choices, visibleRows, decimals, tool])
@@ -198,7 +211,7 @@ function Calculator({ tool }: { tool: Tool }) {
         return builder.derive(values)
     }, [builder, text, decimals])
 
-    const money = (minor: number) => formatMoney(String(minor), currency, CURRENCY_CATALOG, 'en')
+    const money = (minor: number) => formatMoney(String(minor), currency, CURRENCY_CATALOG, locale)
     const pasteable = outcome?.shares.map((share) => `${share.label} ${money(share.amountMinor)}`).join(', ') ?? ''
 
     return (
@@ -230,7 +243,7 @@ function Calculator({ tool }: { tool: Tool }) {
                                 }}
                                 className="split-tool-preset rounded-full border border-n-1 bg-white px-3 py-1 text-xs font-bold text-n-1"
                             >
-                                {preset.label}
+                                {optionOf(choiceFields, preset)?.label}
                             </button>
                         ))}
                     </div>

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { rentSplitCalculator } from './rent-split-calculator'
 import type { ToolOutcome } from './types'
 
-const { compute } = rentSplitCalculator
+const { compute, phrases } = rentSplitCalculator
 
 /** `rich` is the slider notch, one to five. Left out, every room sits on the same notch. */
 function split(rent: number, rooms: { size: number; rich?: number }[]): ToolOutcome {
@@ -15,6 +15,7 @@ function split(rent: number, rooms: { size: number; rich?: number }[]): ToolOutc
             values: { size: room.size, rich: room.rich ?? 3 },
         })),
         decimals: 2,
+        phrases,
     })
 }
 

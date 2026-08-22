@@ -26,6 +26,7 @@ import { getTool } from '@/tools/registry'
  */
 const LOCALE = 'en' as const
 
+const toolParams = toolStaticParams('page', LOCALE)
 const articleParams = articleStaticParams(ROOT_COLLECTIONS, LOCALE, 'page')
 const articleMeta = articleMetadata(ROOT_COLLECTIONS, LOCALE, 'page')
 const ArticleRoute = articlePage(ROOT_COLLECTIONS, LOCALE, 'page')
@@ -37,15 +38,15 @@ interface PageParams {
 export const dynamicParams = false
 
 export function generateStaticParams() {
-    return [...toolStaticParams('page')(), ...articleParams()]
+    return [...toolParams(), ...articleParams()]
 }
 
 export async function generateMetadata(props: PageParams): Promise<Metadata> {
-    const tool = getTool((await props.params).page)
-    return tool ? toolMetadata(tool) : articleMeta(props)
+    const tool = getTool((await props.params).page, LOCALE)
+    return tool ? toolMetadata(tool, LOCALE) : articleMeta(props)
 }
 
 export default async function RootSlugPage(props: PageParams) {
-    const tool = getTool((await props.params).page)
-    return tool ? <ToolPage tool={tool} /> : ArticleRoute(props)
+    const tool = getTool((await props.params).page, LOCALE)
+    return tool ? <ToolPage tool={tool} locale={LOCALE} /> : ArticleRoute(props)
 }

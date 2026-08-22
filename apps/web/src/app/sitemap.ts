@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { STATIC_PAGES } from '@/data/static-pages'
-import { TOOLS, toolPath } from '@/tools/registry'
+import { TOOLS, toolLocales, toolPath } from '@/tools/registry'
 import { basePathFor, listAllTranslations, localesForSlug, type Collection } from '@/lib/content'
 import { absoluteUrl } from '@/lib/seo'
 import { DEFAULT_LOCALE, INDEXED_LOCALES } from '@/i18n/locales'
@@ -59,15 +59,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     /**
      * Calculators, from the registry. Ranked with the comparison pages rather than below them:
      * both answer a commercial query typed as-is, and a tool page has an answer on it before the
-     * reader does anything. No `alternates` — tools are English-only, and advertising a
-     * translation that does not exist is the one thing hreflang must never do.
+     * reader does anything. Alternates come from the languages the tool is actually written in,
+     * exactly as an article's do — advertising a translation that does not exist is the one thing
+     * hreflang must never do.
      */
-    const tools: MetadataRoute.Sitemap = TOOLS.map((tool) => ({
-        url: absoluteUrl(toolPath(tool)),
-        lastModified: tool.updated,
-        changeFrequency: 'monthly',
-        priority: 0.8,
-    }))
+    const tools: MetadataRoute.Sitemap = TOOLS.flatMap((tool) => {
+        const locales = toolLocales(tool)
+        const languages = absolutise(hreflangAlternates(`/${tool.slug}`, locales))
+        return locales.map((locale) => ({
+            url: absoluteUrl(toolPath(tool, locale)),
+            lastModified: tool.updated,
+            changeFrequency: 'monthly' as const,
+            priority: 0.8,
+            alternates: languages && { languages },
+        }))
+    })
 
     // The hub exists in every locale by construction — it lists whatever that locale has, even
     // when that is nothing yet.

@@ -3,7 +3,7 @@ import { MILEAGE_RATES } from './mileage-rates'
 import { buildCustomRate, mileageSplitCalculator } from './mileage-split-calculator'
 import type { ToolOutcome } from './types'
 
-const { compute } = mileageSplitCalculator
+const { compute, phrases } = mileageSplitCalculator
 
 interface Options {
     rate?: number
@@ -22,6 +22,7 @@ function drive(distance: number, passengers: number, options: Options = {}): Too
         choices: { country: options.country ?? 'GB' },
         rows: shares.map((share, index) => ({ name: `Passenger ${index + 1}`, values: { share } })),
         decimals: options.decimals ?? 2,
+        phrases,
     })
 }
 

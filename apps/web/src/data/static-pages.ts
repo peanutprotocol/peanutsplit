@@ -98,6 +98,11 @@ const RESERVED_ROOT_SEGMENTS = [
  * are one registry that `/[page]` resolves before the content tree, and the sitemap reads that
  * registry directly. What they share with a static route is the only thing this set is about — the
  * slug is taken, so a markdown file that claimed it would be listed and unreachable.
+ *
+ * A slug is reserved in every language at once, because the reservation is by slug and every
+ * locale serves the same slug from its own `[page]` folder. A tool translated into Spanish takes
+ * `/es-419/{slug}` the same way it takes `/{slug}`, so an es-419 markdown file of that name is as
+ * unreachable as an English one.
  */
 export const staticPageSlugs = new Set([
     ...STATIC_PAGES.map((page) => page.href.replace(/^\//, '')).filter(Boolean),
