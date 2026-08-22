@@ -77,6 +77,12 @@ export interface Frontmatter {
     faqs?: Faq[]
     /** Set false to keep a draft in the repo but out of routes, sitemap and hub. */
     published?: boolean
+    /**
+     * A machine draft awaiting review. Same effect as `published: false` and a different word on
+     * purpose: `published` is an editor's decision to hold a page, `draft` marks copy no human has
+     * read yet. Held to every shape and style gate, routable by nothing.
+     */
+    draft?: boolean
     /** Available only in builds that explicitly expose the v2 product surface. */
     v2Only?: boolean
     /** Overrides the derived canonical path. Only needed for pages that moved. */
@@ -233,6 +239,7 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
             tags: coerceStringArray(data.tags),
             faqs: coerceFaqs(data.faqs),
             published: data.published !== false,
+            draft: data.draft === true,
             v2Only: data.v2Only === true,
             canonical: typeof data.canonical === 'string' ? data.canonical : undefined,
             intent: typeof data.intent === 'string' ? data.intent.trim() || undefined : undefined,
@@ -275,8 +282,39 @@ function isShadowed(doc: Doc): boolean {
 
 /** Product-version visibility is separate from publishing: v2 content stays
  * valid and testable in v1 builds, but is not routable or discoverable. */
-export function isDocAvailable(doc: Doc): boolean {
+function isReleased(doc: Doc): boolean {
     return !doc.frontmatter.v2Only || splitV2Enabled()
+}
+
+/** Routable or not. Both reasons a valid page is withheld — unreviewed draft, unreleased version. */
+export function isDocAvailable(doc: Doc): boolean {
+    return doc.frontmatter.draft !== true && isReleased(doc)
+}
+
+/**
+ * Everything in a collection whose copy is reviewable: the published docs plus the drafts hidden
+ * from them. Not a routing list — nothing that serves a URL may call this. It exists so
+ * `content.test.ts` can hold a draft to the same shape and style gates as a live page, which is
+ * the only thing that makes a machine draft worth reviewing.
+ */
+export function listAuthoredDocs(collection: Collection, locale: Locale = DEFAULT_LOCALE): Doc[] {
+    return readCollection(collection, locale)
+        .filter((doc) => doc.frontmatter.published !== false && !isShadowed(doc) && isReleased(doc))
+        .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date))
+}
+
+/** `listAuthoredDocs` over every collection and locale — the review surface, drafts included. */
+export function listAllAuthoredTranslations(): Doc[] {
+    return COLLECTIONS.flatMap((collection) =>
+        INDEXED_LOCALES.flatMap((locale) => listAuthoredDocs(collection, locale))
+    )
+}
+
+/** `getDoc` without the draft gate, so a draft on disk still has to parse. */
+export function getAuthoredDoc(collection: Collection, slug: string, locale: Locale = DEFAULT_LOCALE): Doc | null {
+    const doc = parseDoc(collection, slug, locale)
+    if (!doc || doc.frontmatter.published === false || isShadowed(doc)) return null
+    return doc
 }
 
 /**
@@ -284,9 +322,7 @@ export function isDocAvailable(doc: Doc): boolean {
  * use. A doc with no file in `locale` is absent, not substituted — see the module docstring.
  */
 export function listDocs(collection: Collection, locale: Locale = DEFAULT_LOCALE): Doc[] {
-    return readCollection(collection, locale)
-        .filter((doc) => doc.frontmatter.published !== false && !isShadowed(doc) && isDocAvailable(doc))
-        .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date))
+    return listAuthoredDocs(collection, locale).filter(isDocAvailable)
 }
 
 /** Published slugs in a collection — what generateStaticParams and the sitemap iterate. */
@@ -294,11 +330,10 @@ export function listSlugs(collection: Collection, locale: Locale = DEFAULT_LOCAL
     return listDocs(collection, locale).map((doc) => doc.slug)
 }
 
-/** One published doc, or null. Unpublished, shadowed or untranslated all read as missing. */
+/** One published doc, or null. Draft, unpublished, shadowed or untranslated all read as missing. */
 export function getDoc(collection: Collection, slug: string, locale: Locale = DEFAULT_LOCALE): Doc | null {
-    const doc = parseDoc(collection, slug, locale)
-    if (!doc || doc.frontmatter.published === false || isShadowed(doc)) return null
-    return doc
+    const doc = getAuthoredDoc(collection, slug, locale)
+    return doc && doc.frontmatter.draft !== true ? doc : null
 }
 
 /** Everything published in one language, across collections, newest first. Powers the hub. */
