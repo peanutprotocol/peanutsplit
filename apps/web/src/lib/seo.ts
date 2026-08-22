@@ -295,22 +295,11 @@ export function toolSchema({
 
 /**
  * A capture page whose head term names a calculator. It answers the same query a registry tool
- * does, so it gets the tool's entity and the tool hub's listing — `toolSchema` and `/tools` both
- * read this one predicate, so a page cannot be a calculator in one place and not the other.
+ * does, so the `/tools` hub lists it after the registry rows. It gets no WebApplication node:
+ * the page explains the split and states it has no calculator, so the markup would contradict it.
  */
 export const isCalculatorDoc = (doc: Doc): boolean =>
     doc.collection === 'capture' && /\bcalculator\b/i.test(doc.frontmatter.headTerm ?? '')
-
-/** `toolSchema` for a calculator-shaped content page; null for every other doc. */
-export function calculatorSchema(doc: Doc) {
-    if (!isCalculatorDoc(doc)) return null
-    return toolSchema({
-        path: doc.href,
-        title: doc.frontmatter.title,
-        description: doc.frontmatter.description,
-        locale: doc.locale,
-    })
-}
 
 /**
  * WebSite + SoftwareApplication for the LP. The price assertion is the one claim here that

@@ -11,15 +11,16 @@ section last. Name the commit that closed the finding.
 - Rule: every page declares the product-truth IDs its prose rests on. A comparison page declares
   its register rows too. `content.test.ts` fails an ID that resolves nowhere, a comparison with
   zero `competitorClaims`, and a translation whose IDs drift from its English page.
-- Residue closed the same day in `9c2f083`: five truth blocks added, every blog post typed.
+- Residue closed the next day (2026-08-22) in `9c2f083`: five truth blocks added, every blog post typed.
 
 ## 2026-08-22 — SEO low items
 
 - Finding: this file did not exist, so §11.4 pointed at nothing. Created and seeded with the
   record above and this one.
-- Finding: `/fair-split-calculator` emitted Article JSON-LD only, while the registry calculators
-  emit a WebApplication node. A capture page whose head term names a calculator now emits that
-  node too (`calculatorSchema`), and `/tools` lists it after the registry calculators.
+- Finding: `/fair-split-calculator` hung off the site by one `/blog` card. A capture page whose
+  head term names a calculator (`isCalculatorDoc`) is now listed on `/tools` after the registry
+  calculators. It gets no WebApplication node: the page states it has no calculator, so the
+  markup would contradict it (a first pass added the node; reverted 2026-08-22).
 - Finding: every Article and BlogPosting `image` was the 512px app icon. It is now
   `/og-default.png`, a static render of the landing card. The og routes keep the file
   convention (guide tracker decision 17).
