@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import {
+    TOOL_LOCALES,
     buildBundle,
     internalLinks,
     localizeLink,
@@ -10,6 +11,8 @@ import {
     unfence,
     withDraftFlag,
 } from '../../scripts/draft-translation.mjs'
+import { TOOLS, toolLocales } from '@/tools/registry'
+import { DEFAULT_LOCALE } from '@/i18n/locales'
 
 /**
  * `scripts/draft-translation.mjs`, minus the model.
@@ -75,12 +78,23 @@ describe('draft-translation bundle', () => {
         ['/blog/translated', '/es-419/blog/translated'],
         ['/blog/guide', '/blog/guide'],
         ['/tools', '/tools'],
-        ['/new', '/es-419/new'],
+        // Cookie-localized, no prefixed twin — `/es-419/new` does not route.
+        ['/new', '/new'],
         ['/blog', '/es-419/blog'],
+        ['/rent-split-calculator', '/es-419/rent-split-calculator'],
     ]
 
     it.each(links)('maps %s to %s', (from, to) => {
         expect(localizeLink(from, 'es-419', root)).toBe(to)
+    })
+
+    /** The script cannot import the registry, so the copy of it has to be gated against the real one. */
+    it('carries the same tool locales the registry publishes', () => {
+        expect(TOOL_LOCALES).toEqual(
+            Object.fromEntries(
+                TOOLS.map((tool) => [tool.slug, toolLocales(tool).filter((locale) => locale !== DEFAULT_LOCALE)])
+            )
+        )
     })
 
     it('reads both MDX link spellings and drops the fragment', () => {

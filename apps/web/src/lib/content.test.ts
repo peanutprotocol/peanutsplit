@@ -389,12 +389,19 @@ describe('article bodies', () => {
      * unchecked, which is most of the links a capture page has — its whole job is routing the
      * reader onward. A fragment or a query is cut off before the lookup: `/tools#rent` rots when
      * `/tools` does, and the anchor is not a page.
+     *
+     * Two sets, because a draft is not a page: `getDoc` returns null for one and every route pins
+     * `dynamicParams = false`. Publishing is deleting one line (`_system/README.md`), so a
+     * published page linking to a still-draft sibling is a live 404 the moment that line goes —
+     * which is why only a draft may link to a draft. `/` and `/new` are cookie-localized and have
+     * no prefixed twin, so they are seeded unprefixed only.
      */
     it('only links internally to pages that exist', () => {
-        const known = new Set<string>([
-            ...INDEXED_LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
-            ...ALL.map((doc) => doc.href),
+        const routed = new Set<string>([
+            ...INDEXED_LOCALES.map((locale) => localizedPath('/blog', locale)),
+            ...listAllTranslations().map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
+            ...TOOLS.flatMap((tool) => toolLocales(tool).map((locale) => toolPath(tool, locale))),
             ...STATIC_PAGES.flatMap((page) =>
                 (page.locales ?? [DEFAULT_LOCALE]).map((locale) => localizedPath(page.href, locale))
             ),
@@ -402,14 +409,16 @@ describe('article bodies', () => {
             // parked guide must keep failing here.
             ...SPLIT_CONTENT_INDEX_RELEASED_PATHS,
         ])
+        const authored = new Set<string>([...routed, ...ALL.map((doc) => doc.href)])
 
         for (const doc of ALL) {
+            const known = doc.frontmatter.draft === true ? authored : routed
             const links = [
                 ...[...doc.body.matchAll(/href="(\/[^"#?]*)"/g)].map((m) => m[1]),
                 ...[...doc.body.matchAll(/\]\((\/[^)]*)\)/g)].map((m) => m[1].replace(/[#?].*$/, '')),
             ].filter(Boolean)
             for (const link of links) {
-                expect(known.has(link), `${doc.slug} links to missing ${link}`).toBe(true)
+                expect(known.has(link), `${doc.slug}/${doc.locale} links to missing ${link}`).toBe(true)
             }
         }
     })
@@ -887,6 +896,10 @@ describe('page style gate', () => {
  * article (no exclamation mark at all), the reason is in the test.
  */
 
+/** The `{name}` slots in one phrase, sorted — what `fill()` will be asked to resolve. */
+const placeholders = (template: string | undefined): string[] =>
+    [...(template ?? '').matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort()
+
 /** Every string a reader can see, including the ones `compute` produces. */
 function toolStrings(tool: Tool): string[] {
     const { copy } = tool
@@ -1192,6 +1205,19 @@ const TRANSLATED_TOOLS = TOOLS.flatMap((tool) =>
 )
 
 describe('tool registry', () => {
+    /** A chip wears its option's label, so a preset pointing at nothing renders a button with no words. */
+    it('points every preset at an option that exists', () => {
+        for (const tool of TOOLS) {
+            for (const preset of tool.presets ?? []) {
+                const choice = tool.choices?.find((entry) => entry.name === preset.choiceName)
+                expect(
+                    choice?.options.some((option) => option.value === preset.optionValue),
+                    `${tool.slug}: preset ${preset.choiceName}/${preset.optionValue} names no option`
+                ).toBe(true)
+            }
+        }
+    })
+
     it('gives every tool a slug that a route can serve', () => {
         for (const tool of TOOLS) {
             expect(tool.slug, `${tool.slug} is not a slug`).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
@@ -1627,6 +1653,10 @@ describe('tool locales', () => {
      * localized page comes out half-written is a missing key — an unlabelled field, an option with
      * no note, a phrase `compute` reaches for and does not find — and each of those renders as a
      * gap or as English at a translated URL.
+     *
+     * Compared against the English string rather than against emptiness, because `registry.ts`
+     * fills a missing key with the English one: an assertion that the label is truthy passes on
+     * the very fallback `ToolWords` says never happens.
      */
     it.each(TRANSLATED_TOOLS)('%s says everything the English tool says', (id, source, locale) => {
         const said = getTool(source.slug, locale)
@@ -1640,7 +1670,7 @@ describe('tool locales', () => {
         ]
         for (const field of allFields(source)) {
             const mirrored = allFields(twin).find((entry) => entry.name === field.name)
-            expect(mirrored?.label, `${id}: field ${field.name} has no label`).toBeTruthy()
+            expect(mirrored?.label, `${id}: field ${field.name} is still English`).not.toBe(field.label)
             expect(Boolean(mirrored?.help), `${id}: field ${field.name} help`).toBe(Boolean(field.help))
             expect(Boolean(mirrored?.unit), `${id}: field ${field.name} unit`).toBe(Boolean(field.unit))
             expect(mirrored?.notches?.length ?? 0, `${id}: field ${field.name} notches`).toBe(
@@ -1650,11 +1680,12 @@ describe('tool locales', () => {
 
         for (const choice of source.choices ?? []) {
             const mirrored = twin.choices?.find((entry) => entry.name === choice.name)
-            expect(mirrored?.label, `${id}: picker ${choice.name} has no label`).toBeTruthy()
+            expect(mirrored?.label, `${id}: picker ${choice.name} is still English`).not.toBe(choice.label)
             for (const option of choice.options) {
                 const localized = mirrored?.options.find((entry) => entry.value === option.value)
-                expect(localized?.label, `${id}: ${option.value} has no label`).toBeTruthy()
+                expect(localized?.label, `${id}: ${option.value} is still English`).not.toBe(option.label)
                 expect(Boolean(localized?.note), `${id}: ${option.value} note`).toBe(Boolean(option.note))
+                expect(localized?.note, `${id}: ${option.value} note is still English`).not.toBe(option.note)
                 // Provenance and money are evidence, not copy: both stay exactly as published.
                 expect(localized?.source, `${id}: ${option.value} lost its source`).toEqual(option.source)
                 expect(localized?.currency, `${id}: ${option.value} changed currency`).toBe(option.currency)
@@ -1664,6 +1695,13 @@ describe('tool locales', () => {
         expect(Object.keys(twin.phrases).sort(), `${id}: compute would print a blank`).toEqual(
             Object.keys(source.phrases).sort()
         )
+        // And the placeholders inside them: a translated `{unit}` is a literal `{unidad}` on the
+        // page, because `fill()` leaves what it cannot resolve standing.
+        for (const [key, template] of Object.entries(source.phrases)) {
+            expect(placeholders(twin.phrases[key]), `${id}: phrase ${key} moved a placeholder`).toEqual(
+                placeholders(template)
+            )
+        }
         expect(twin.faqs.length, `${id}: too few questions`).toBeGreaterThanOrEqual(2)
         expect(Boolean(twin.copy.method), `${id}: §8.1 method note`).toBe(Boolean(source.copy.method))
     })
