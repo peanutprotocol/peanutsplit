@@ -128,11 +128,16 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settled                                 | saldado / saldadas                           | cerrado, finiquitado                                                            |
 | who owes who                            | **quién le debe a quién**                    | quién debe qué                                                                  |
 | free forever                            | **gratis para siempre**                      | gratuito, sin costo, versión gratis                                             |
-| automatic conversion for 156 currencies | conversión automática para 156 monedas       | multimoneda, cualquier moneda, 150+ (stylebook §6.7)                            |
+| automatic conversion for 156 currencies | conversión automática para 156 monedas       | doce monedas, multimoneda, cualquier moneda, 150+ (stylebook §6.7)              |
 | converted at the day's rate             | al tipo de cambio del día                    | tipo de cambio en vivo / en tiempo real (stylebook §6.6)                        |
 | flatmate                                | roomie / compañero de departamento           | **compañero de piso** (Spain), piso                                             |
 | flat                                    | departamento                                 | piso (Spain)                                                                    |
 | group chat                              | el chat del grupo                            | el grupo de WhatsApp (unscoped)                                                 |
+
+**Claims.** `product-truths.md` decides the content of every claim; this rulebook decides grammar and
+vocabulary only. A figure or mechanism in a row above is a vocabulary example, not a source — where it
+differs from the truths block, the block wins. A factual use of a query term (`sin cuenta`,
+`sin registrarse`) cites its claim ID like any other claim (stylebook §7.5).
 
 **`plata` — Split deviates from mono, on purpose.** Mono's `es-419` table permits _"dinero / plata
 (informal)"_; mono's `es-es` bans it. Split has no `es-es`, so `es-419` is also the page a reader in
@@ -353,13 +358,13 @@ For Split:
 
 ---
 
-## 10. The diacritic gate (spec — not built)
+## 10. The diacritic gate (built)
 
 **Decision 6c.** Mono's live corpus has files that lost their accents in generation:
 `content/pay-with/pix/es-419.md` has **5 accented characters in the whole file** (`instantaneos`,
 `codigo`, `camara`, `Como Empezar`), `content/countries/brazil/es-419.md` has 20, against 187 in a
-healthy one (conventions doc §8, trap 1). Mono has no rule; Split adds one. Spec only — implement in
-`apps/web/scripts/marketing-copy-audit.mjs`, wired into `pnpm test`, when batch 2 lands.
+healthy one (conventions doc §8, trap 1). Mono has no rule; Split adds one. Built: the `diacritic gate`
+suite in `src/lib/content.test.ts` runs it on every `pnpm test`.
 
 **Scope:** files matching `src/content/**/es-419.md`. Run over `ownProse()` — the existing helper that
 strips `<Quote>` blocks — so an English byte-locked quote (§6) never trips the gate or drags the
