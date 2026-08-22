@@ -326,3 +326,13 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 - **Guide sitemap lastmod re-stamps the whole class on corpus-wide mirrors** — closed as
   decided by decisions 18 and 21: `generated_at` is the only honest date source in the
   image, the 14 Aug overstatement is acknowledged, and dates are not bumped to tidy it.
+- **Localized calculators, 8 mileage country pages, and the draft gate** — closed 2026-08-22, `9589468..84540d9`,
+  verified on production. (A) rent + mileage calculators at `/es-419/…` and `/pt-br/…`, en/es-419/pt-BR/x-default
+  hreflang, self canonicals, per-locale og:image. (B) 8 English-only `/mileage-split-calculator/{country}` pages, no
+  hreflang by design. (C) a `draft: true` gate + `draft-translation.mjs`, 22 translations held back. Live: 12/12 new
+  URLs 200 (og:image 200 image/png), 22 drafts + 5 negative routes 404, 8/8 regressions 200 with canonicals intact,
+  sitemap holds the 12 and zero drafts, rss clean; IndexNow HTTP 200 for the 12 + sitemap. Open for Konrad: (i) the 8
+  country pages differ only in title/description/intro/note/FAQ — arithmetic, picker and CTA are identical, so either
+  research per-country copy or prune to the countries with query volume; (ii) Belgium prints 0.444 in title and
+  description against the official 0.4440 in its note; (iii) the 22 drafts await a native read (publishing = delete the
+  `draft: true` line), and scan-a-receipt (`v2Only`) sits outside the copy gates.
