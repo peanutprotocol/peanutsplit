@@ -70,7 +70,7 @@ export const STATIC_PAGES: StaticPage[] = [
  * STATIC_PAGES alone is not enough: it only knows about marketing pages, not about `/app`, `/new`,
  * `/api` or the metadata routes. Keep this in step with the top level of src/app/.
  */
-const RESERVED_ROOT_SEGMENTS = [
+export const RESERVED_ROOT_SEGMENTS = [
     'app',
     'new',
     'r',
