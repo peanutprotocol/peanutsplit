@@ -1105,7 +1105,8 @@ describe('locale routing', () => {
         const entries = sitemap()
         const byUrl = new Map(entries.map((entry) => [entry.url, entry]))
 
-        for (const doc of ALL) {
+        // The routed set, not ALL: a draft is deliberately absent from the sitemap.
+        for (const doc of listAllTranslations()) {
             const url = absoluteUrl(doc.frontmatter.canonical ?? doc.href)
             const entry = byUrl.get(url)
             expect(entry, `${doc.collection}/${doc.slug}/${doc.locale}.md is missing from the sitemap`).toBeDefined()

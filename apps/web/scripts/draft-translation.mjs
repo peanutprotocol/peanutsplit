@@ -201,7 +201,17 @@ function main(argv) {
         return 2
     }
 
-    writeFileSync(outFile, withDraftFlag(unfence(claude.stdout)))
+    // A model that answers with prose instead of a file is a normal outcome, not a crash: say so
+    // and write nothing, so a re-run is the whole fix.
+    let page
+    try {
+        page = withDraftFlag(unfence(claude.stdout))
+    } catch (error) {
+        console.error(`${collection}/${slug}/${locale}.md not written — ${error.message}. Run it again.`)
+        return 1
+    }
+
+    writeFileSync(outFile, page)
     console.log(`wrote ${path.relative(webRoot, outFile)} (draft — unpublished until reviewed)`)
     return 0
 }
