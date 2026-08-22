@@ -121,7 +121,7 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settled                                 | acertado / acertadas                       | liquidado                                                            |
 | who owes who                            | **quem deve a quem**                       | quem deve o quê                                                      |
 | free forever                            | **grátis para sempre**                     | gratuito, sem custo, versão grátis                                   |
-| automatic conversion for 156 currencies | conversão automática para 156 moedas       | multimoeda, qualquer moeda, 150+ (stylebook §6.7)                    |
+| automatic conversion for 156 currencies | conversão automática para 156 moedas       | doze moedas, multimoeda, qualquer moeda, 150+ (stylebook §6.7)       |
 | converted at the day's rate             | pela taxa do dia                           | taxa ao vivo / em tempo real (stylebook §6.6)                        |
 | the split (the operation)               | **o rateio**                               | a divisão (vague), o acerto                                          |
 | each person's share                     | **a cota**                                 | a parte, a fatia                                                     |
@@ -129,6 +129,11 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | group chat                              | o grupo (do WhatsApp)                      | o chat                                                               |
 | email                                   | **e-mail**                                 | email (mono prefers `e-mail` 47:31, and so does the live Split page) |
 | Peanut (the company)                    | **a Peanut**                               | o Peanut (BR names a company feminine — `a empresa`)                 |
+
+**Claims.** `product-truths.md` decides the content of every claim; this rulebook decides grammar and
+vocabulary only. A figure or mechanism in a row above is a vocabulary example, not a source — where it
+differs from the truths block, the block wins. A factual use of a query term (`sem cadastro`,
+`sem conta`) cites its claim ID like any other claim (stylebook §7.5).
 
 **`dividir` / `rachar` / `rateio` / `acertar` are strategy, not taste.** Stylebook §9.3 is binding and
 is not restated here. In one line: `dividir` owns titles, H1s and slugs; `rachar` is body and
@@ -378,13 +383,13 @@ For Split:
 
 ---
 
-## 11. The diacritic gate (spec — not built)
+## 11. The diacritic gate (built)
 
 **Decision 6c.** Mono's live corpus has files that lost their accents in generation:
 `content/pay-with/pix/es-419.md` has **5 accented characters in the whole file**,
 `content/countries/brazil/es-419.md` has 20, against 187 in a healthy one (conventions doc §8, trap 1).
-Mono has no rule; Split adds one. Spec only — implement in `apps/web/scripts/marketing-copy-audit.mjs`,
-wired into `pnpm test`, when batch 2 lands.
+Mono has no rule; Split adds one. Built: the `diacritic gate` suite in `src/lib/content.test.ts` runs it
+on every `pnpm test`.
 
 **Scope:** files matching `src/content/**/pt-br.md`. Run over `ownProse()` — the existing helper that
 strips `<Quote>` blocks — so an English byte-locked quote (§7) never trips the gate or drags the
