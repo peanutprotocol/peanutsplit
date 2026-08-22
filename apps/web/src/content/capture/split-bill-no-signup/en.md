@@ -3,6 +3,7 @@ title: Split a bill with no sign-up and no app
 description: No downloads and no accounts. The link is the room, everyone types in what they paid, and the maths at the end says who pays whom.
 date: 2026-07-30
 type: capture
+headTerm: split bill no sign up
 intent: split bill app no sign up
 tags: [no signup, groups]
 claims:

@@ -4,6 +4,7 @@ description: A Splitwise alternative that is free forever, with no account and n
 date: 2026-07-25
 updated: 2026-08-21
 type: comparison
+headTerm: splitwise alternative
 tags: [alternatives]
 claims:
     - free-forever
@@ -104,7 +105,7 @@ Running two ledgers for one trip is worth it for the days the counter is in the 
 
 [What the daily cap does, and how to move a group mid-trip](/splitwise-daily-limit)
 
-## The difference, plainly
+## The Splitwise alternative, plainly
 
 |                      | Peanut Split                                   | Splitwise                                            |
 | -------------------- | ---------------------------------------------- | ---------------------------------------------------- |

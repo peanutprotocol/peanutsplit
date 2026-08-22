@@ -4,6 +4,7 @@ description: Um link só, e todo mundo lança o que pagou, sem conta e sem app. 
 date: 2026-07-25
 updated: 2026-08-21
 type: comparison
+headTerm: alternativa splitwise
 tags: [alternativas]
 claims:
     - free-forever
@@ -101,7 +102,7 @@ Tocar dois registros para uma viagem só compensa nos dias em que o contador atr
 
 [O que o limite diário faz, e como mudar um grupo no meio da viagem](/pt-br/splitwise-daily-limit)
 
-## A diferença, sem rodeio
+## A alternativa ao Splitwise, sem rodeio
 
 |                        | Peanut Split                                     | Splitwise                                             |
 | ---------------------- | ------------------------------------------------ | ----------------------------------------------------- |

@@ -88,6 +88,15 @@ export interface Frontmatter {
      * contract, and `content.test.ts` is what enforces it.
      */
     intent?: string
+    /**
+     * The head term of that query — the two-to-four words a person types before the long tail,
+     * written in this file's language. Required on `capture` and `comparison` pages. Not rendered:
+     * `content.test.ts` checks that every word of it is in the `<title>` and in at least one
+     * heading the page renders. Search engines that weigh a heading match heavily (Bing, and the
+     * engines and assistants that read its index) will not rank a page whose headings are all
+     * voice and no term — see stylebook §11.2, "Head term".
+     */
+    headTerm?: string
     /** Stylebook page type (§11.3): capture, comparison, editorial or guide. Drives the claims gate. */
     type?: string
     /**
@@ -227,6 +236,7 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
             v2Only: data.v2Only === true,
             canonical: typeof data.canonical === 'string' ? data.canonical : undefined,
             intent: typeof data.intent === 'string' ? data.intent.trim() || undefined : undefined,
+            headTerm: typeof data.headTerm === 'string' ? data.headTerm.trim() || undefined : undefined,
             type: typeof data.type === 'string' ? data.type : undefined,
             claims: coerceStringArray(data.claims),
             competitorClaims: coerceStringArray(data.competitorClaims),

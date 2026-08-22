@@ -3,6 +3,7 @@ title: Alternativa ao Settle Up que dispensa conta
 description: Uma sala é um link, e quem abre já lança o que pagou. O Settle Up sincroniza por uma conta, e o grupo enxerga o seu e-mail. Veja o que muda de verdade.
 date: 2026-07-30
 type: comparison
+headTerm: alternativa settle up
 tags: [alternativas, sem-conta]
 claims:
     - link-is-the-key
@@ -78,7 +79,7 @@ No app required: Share a group link so friends can view the balance in their bro
 
 Dá para **ver** o saldo. Quem nunca criou conta acompanha os números mexendo; lançar uma despesa é para o que a conta serve.
 
-## Onde os dois se separam
+## Onde a alternativa ao Settle Up se separa
 
 |                          | Peanut Split                                                                       | Settle Up                                                  |
 | ------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |

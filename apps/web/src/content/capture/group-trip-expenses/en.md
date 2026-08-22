@@ -3,6 +3,7 @@ title: Group trip expenses without a spreadsheet
 description: Skip the sheet. One link in the group chat, everybody adds their own expenses as they pay, and the totals are right before the trip ends.
 date: 2026-07-30
 type: capture
+headTerm: group trip expenses
 intent: group trip expense spreadsheet template
 tags: [trips, spreadsheets]
 claims:

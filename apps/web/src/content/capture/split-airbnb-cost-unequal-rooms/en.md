@@ -3,6 +3,7 @@ title: Split an Airbnb cost when rooms differ
 description: Give each bedroom a weight, add the weights up, and everybody pays that share of the booking. The method, the working, and where it stops being worth running.
 date: 2026-07-31
 type: capture
+headTerm: split airbnb cost
 intent: how to split airbnb cost when rooms are not equal
 tags: [trips, fairness]
 claims:
@@ -23,7 +24,7 @@ faqs:
       answer: One card paid the booking, so the room opens with everybody owing one person. That stops being true once the taxis and the food shop are in. The room nets the lot down, so the group makes two or three transfers instead of twenty.
 ---
 
-# How to split an Airbnb when the rooms are not equal
+# How to split an Airbnb cost when the rooms are not equal
 
 Give each bedroom a weight, add the weights up, and everybody pays that share of the booking. The master with its own bathroom counts for more than the attic room you have to duck to get into, and the sofa bed counts for less than either.
 

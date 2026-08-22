@@ -3,6 +3,7 @@ title: 'Splitwise vs Tricount: which one to pick'
 description: Both do the maths. They differ on the free-tier limit, on currencies and on how you settle up. What each one's own site says, checked July 2026.
 date: 2026-07-30
 type: comparison
+headTerm: splitwise vs tricount
 tags: [alternatives, currencies]
 claims:
     - free-forever
@@ -189,7 +190,7 @@ Tricount is owned by bunq, a bank, and the card-based automatic tracking runs in
 
 **Who this decides it for:** nobody, mostly. Neither one moves the money unless your group already shares a rail.
 
-## Side by side
+## Splitwise vs Tricount, side by side
 
 |                       | Splitwise                                                        | Tricount                                           | Peanut Split                                                            |
 | --------------------- | ---------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------- |

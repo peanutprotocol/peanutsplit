@@ -3,6 +3,7 @@ title: 'Limite grátis do Splitwise: 4 despesas ao dia'
 description: Uma sala não conta quantas despesas você lança. O centro de ajuda do Splitwise diz 4 por dia no plano grátis, não 3. Veja o que o limite faz e como sair dele.
 date: 2026-07-30
 type: comparison
+headTerm: limite grátis splitwise
 tags: [alternativas]
 claims:
     - free-forever
@@ -61,7 +62,7 @@ sem a rota, o link é um 404. */}
   cta="Criar um split"
   ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
 
-## O que as próprias páginas do Splitwise dizem
+## O que as próprias páginas do Splitwise dizem sobre o limite grátis
 
 O limite existe e o Splitwise documenta ele:
 

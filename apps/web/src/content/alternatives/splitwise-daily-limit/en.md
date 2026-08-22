@@ -3,6 +3,7 @@ title: Splitwise's free limit is 4 expenses a day
 description: Splitwise's own help centre says free users get 4 expenses a day, not 3. What the limit does, and how to move a group to a room with no cap.
 date: 2026-07-30
 type: comparison
+headTerm: splitwise free limit
 tags: [alternatives]
 claims:
     - free-forever
@@ -54,7 +55,7 @@ with the importer rather than the AI-entry v2 flag. */}
   cta="Start a split"
   ctaHint="Takes ten seconds. No email, no password, no download." />
 
-## What Splitwise's own pages say
+## What Splitwise's own pages say about the free limit
 
 The limit is real and Splitwise documents it:
 

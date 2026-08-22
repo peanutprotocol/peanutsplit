@@ -3,6 +3,7 @@ title: Fair split calculator for an uneven split
 description: Which sum you want depends on what is uneven — a room, a drive, or a bill. Each one goes somewhere different, and one of them is not a calculator at all.
 date: 2026-07-31
 type: capture
+headTerm: fair split calculator
 intent: split bill by income calculator
 tags: [fairness, groups]
 claims:
