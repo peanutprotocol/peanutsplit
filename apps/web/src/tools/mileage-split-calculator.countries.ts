@@ -18,6 +18,14 @@ import type { Tool } from './types'
  * Words only, keyed off one row — the same division `ToolWords` draws for a translation. Nothing
  * here touches `compute`, `fields` or `data`, so a country page cannot answer differently from the
  * calculator it is a view of.
+ *
+ * **What makes one of these its own page rather than a near-duplicate.** The picker, the arithmetic
+ * and the product facts are shared by design; what cannot be shared is the row's `note`, which is
+ * the one paragraph of body prose this page has and the other eight do not. So it is promoted out
+ * of the picker caption into `copy.method`, and the inherited FAQ list is cut to the two questions
+ * that note does not already answer — nine copies of one FAQPage block on one domain is nine
+ * chances to rank the wrong URL. A row whose note is thin is a row whose page is thin: the honest
+ * fix there is research, not another shared paragraph.
  */
 
 export interface MileageCountryPage {
@@ -61,18 +69,33 @@ function countryPage(row: MileageRate, rate: number): MileageCountryPage {
                 h1,
                 // The heading above names the country and the picker below prints the row's note, so
                 // neither is repeated here. The authority stays out too — half the source labels are
-                // bodies and half are statutes, and no one article fits both. The FAQ cites it.
+                // bodies and half are statutes, and no one article fits both. The method note cites it.
                 intro: [
                     `Say how far the car went and how many people were in it. The drive is costed at the official rate, ${rateWords}, and underneath is what each passenger owes whoever drove.`,
                     'Type over it if you know the car better than the state does, or build your own from what it drinks. The picker keeps every other country a tap away, and Split by Peanut can do the asking afterwards, so the driver never has to raise it in the group chat.',
                 ],
+                // The row's own words, promoted out of the picker caption into prose. This is the
+                // only paragraph on the page the other eight do not also carry, so it replaces the
+                // shared method note rather than sitting beside it.
+                method: {
+                    title: `What the ${row.name} rate is, and what it leaves for the receipts`,
+                    body: [
+                        row.note,
+                        `That figure was read off ${row.sourceLabel} on ${formatDate(MILEAGE_RATES_RETRIEVED)}, and the page it came from is linked under the picker above. It prices distance and nothing else: tolls, ferries, parking and the coffee at the services have receipts of their own, and those go in the room with the rest of the trip.`,
+                    ],
+                },
             },
+            // Three questions, not five. The four generic ones are the same words on all nine
+            // pages, and a FAQPage block repeated verbatim nine times on one domain is nine
+            // chances for Google to pick the wrong URL; the two kept are the ones a reader of THIS
+            // page still has after the method note above.
             faqs: [
                 {
                     question: `What is the official ${row.name} mileage rate?`,
-                    answer: `${row.note} That figure was read off ${row.sourceLabel} on ${formatDate(MILEAGE_RATES_RETRIEVED)}, and the page it came from is linked under the picker above.`,
+                    answer: `${rateWords}, read off ${row.sourceLabel} on ${formatDate(MILEAGE_RATES_RETRIEVED)}. What it covers and what it leaves out is set out above, and the page it came from is linked under the picker.`,
                 },
-                ...mileageSplitCalculator.faqs,
+                mileageSplitCalculator.faqs[0],
+                mileageSplitCalculator.faqs[3],
             ],
             related: [
                 { href: `/${mileageSplitCalculator.slug}`, label: 'Mileage split calculator for any country' },

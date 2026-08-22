@@ -266,8 +266,12 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
   `Vary: Accept-Language`/`Cookie` before any caching is ever put in front of `/`.
 - Parked guides self-canonicalize to noindexed URLs; pointing canonicals at the blog twins
   would recycle any accidental external link. Open question, not a defect.
-- Localized pages footer-link the English-only `/tools` as "Calculadoras"; hide it on
-  localized pages or accept.
+- Localized pages footer-link `/tools` as "Calculadoras"/"As calculadoras". The calculators
+  themselves are trilingual since b18fabf; the HUB is not, and stays English — it is a listing,
+  not a ranking surface. Ruled 2026-08-22: accept the footer link, and give localized pages
+  their inlinks by linking the sibling calculator's own `/es-419/…` / `/pt-br/…` URL from the
+  body instead of routing through the hub. The `/tools` `<RelatedLink>` rows were dropped from
+  the localized drafts for that reason. Reopen if the hub is ever translated.
 - Guide CTAs mint 15 crawlable `/new?locale&utm_*` variants; verifier ruled the current
   noindex+canonical handling correct — do NOT robots-disallow `/new` (it would hide the
   noindex).

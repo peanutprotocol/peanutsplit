@@ -80,10 +80,11 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                                     {t('createSplit')}
                                 </Link>
                             </li>
-                            {/* One link, not three. The calculators are English-only, and their own
-                                hub is where a reader picks between them — a footer that lists all
-                                of them is a footer that grows by one line every time a calculator
-                                ships. */}
+                            {/* One link, not three: the hub is where a reader picks between the
+                                calculators, and a footer that lists them grows by a line every
+                                time one ships. The hub itself is English, so a localized page's
+                                inlinks to its own calculators come from the page body — see the
+                                ruling in docs/SEO-ISSUES.md. */}
                             <li>
                                 <Link href="/tools" className={linkClass}>
                                     {t('toolsLink')}
