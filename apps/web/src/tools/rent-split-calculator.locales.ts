@@ -12,7 +12,8 @@ import type { ToolWords } from './types'
  * Figures inside a sentence keep the punctuation the input boxes use, not the locale's. A note
  * reading "0,91" beside a box the reader has to fill with `0.91` is a page arguing with itself,
  * and `kind: 'number'` fields parse with `Number()`. Thousands are written in words for the same
- * reason — "10 mil millas", never a separator that could be read as a decimal point.
+ * reason — "10 mil millas", never a separator that could be read as a decimal point. The
+ * derivation is not typed into anything, so it takes the locale's own marks — see `allocate.ts`.
  */
 
 export const rentSplitEs419: ToolWords = {
