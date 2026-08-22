@@ -147,7 +147,7 @@ describe('proxy Split guide responses', () => {
 
 /**
  * The cases above run on `/guides/synthetic-guide`, which is a fixture slug and can never be in the
- * release registry — so they only ever prove the parked half. These run the fifteen paths the
+ * release registry — so they only ever prove the parked half. These run the sixteen paths the
  * installed artifact really serves, on a box that has claimed to be the indexed deployment.
  *
  * That is what makes a typo in the nine-path list visible: a mistyped entry releases nothing, so
@@ -163,13 +163,13 @@ describe('proxy released and parked guide headers on the indexed deployment', ()
         vi.unstubAllEnvs()
     })
 
-    it('splits the installed cohort into the nine released and the six parked', () => {
-        expect(guidePaths).toHaveLength(15)
+    it('splits the installed cohort into the nine released and the seven parked', () => {
+        expect(guidePaths).toHaveLength(16)
         // Named one by one, so a typo in the registry fails on the path that does not exist rather
         // than on an arithmetic mismatch.
         for (const publicPath of released) expect(guidePaths, publicPath).toContain(publicPath)
         expect(released).toHaveLength(9)
-        expect(parked).toHaveLength(6)
+        expect(parked).toHaveLength(7)
     })
 
     it('answers every released path without a noindex tag and without the private cache rule', () => {
