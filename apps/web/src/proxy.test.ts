@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER } from '@/i18n/paths'
 import { SPLIT_ASSET_PREFIX } from '@/lib/domains'
+import { MARKETING_CACHE_CONTROL } from '@/lib/marketing-cache'
 import { splitGuidePaths } from '@/lib/split-content/artifact'
 import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from '@/lib/split-content/index-release'
 import { config, proxy } from './proxy'
@@ -93,6 +94,38 @@ describe('proxy /new locale handoff', () => {
             expect(response.headers.get(`x-middleware-request-${LOCALE_HEADER}`)).toBeNull()
             expect(response.cookies.get(LOCALE_COOKIE)).toBeUndefined()
         }
+    })
+})
+
+describe('proxy marketing page cache rule', () => {
+    it('shares the indexable marketing pages for ten minutes with an hour of stale-while-revalidate', () => {
+        expect(MARKETING_CACHE_CONTROL).toBe('public, max-age=0, s-maxage=600, stale-while-revalidate=3600')
+
+        for (const pathname of [
+            '/blog',
+            '/es-419/blog/split-expenses-across-currencies',
+            '/tools',
+            '/tricount-alternative',
+        ]) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+
+            expect(response.status, pathname).toBe(200)
+            expect(response.headers.get('cache-control'), pathname).toBe(MARKETING_CACHE_CONTROL)
+        }
+    })
+
+    it("leaves the cookie-localized landing and shell on Next's no-store", () => {
+        for (const pathname of ['/', '/app', '/new', '/r/trip-abc123', '/import']) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+
+            expect(response.status, pathname).toBe(200)
+            expect(response.headers.get('cache-control'), pathname).toBeNull()
+        }
+    })
+
+    it('keeps the handoff on /new uncached even though it states a locale', () => {
+        const response = proxy(new NextRequest('https://renderer.internal/new?locale=pt-br'))
+        expect(response.headers.get('cache-control')).toBeNull()
     })
 })
 
