@@ -127,7 +127,7 @@ test('import into an existing room appends in place and an exact retry is a no-o
     await page.waitForURL(`${roomPath}/import`)
     await expect(page.getByTestId('import-target-room')).toContainText('Existing import target')
     await expect(page.getByTestId('import-target-currency')).toHaveText('EUR')
-    await expect(page.getByTestId('import-repeat-warning')).toContainText('A changed export is added in full')
+    await expect(page.getByTestId('import-repeat-warning')).toContainText('A changed file is added in full')
 
     await page.getByTestId('import-file').setInputFiles({
         name: 'Existing group.csv',

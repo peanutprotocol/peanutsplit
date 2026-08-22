@@ -53,7 +53,7 @@ test('an only room keeps an inert body and one settings action', async ({ page }
     await expect(manage).toHaveAttribute('href', '/app?manage=1')
     await expect(manage).toContainText('Add or join a room')
     await expect(sheet.locator('a a, a button, button a, button button')).toHaveCount(0)
-    await expect(sheet.getByText('No other rooms are saved on this device.')).toBeVisible()
+    await expect(sheet.getByText('Recent rooms are saved only on this device.')).toHaveCount(0)
     expect(new URL(page.url()).pathname).toBe(path)
 })
 
