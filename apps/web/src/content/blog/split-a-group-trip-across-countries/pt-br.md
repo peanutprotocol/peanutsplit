@@ -75,7 +75,7 @@ Em ordem de preferência:
 - **Uma transferência local entre as duas pessoas que compartilham país.** Compensem as dívidas para que o máximo possível de pagamentos seja local.
 - **Um link de pagamento para o resto.** Um manda o link, o outro paga com o que tiver. Isso contorna o problema do "qual app você tem", que é o que realmente trava tudo.
 
-O Split registra o pagamento quando quem pagou diz que pagou. Ele não se importa com o caminho que o dinheiro fez, e não confere com o banco — uma linha acertada quer dizer que alguém tocou, não que o dinheiro caiu.
+O Split registra o pagamento quando quem pagou diz que pagou. Ele não se importa com o caminho que o dinheiro fez, e não confere com o banco. Uma linha acertada quer dizer que alguém tocou, não que o dinheiro caiu.
 
 <CTA
   title="Abra a sala antes da viagem, não depois"

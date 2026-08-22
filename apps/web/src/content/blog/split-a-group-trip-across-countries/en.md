@@ -75,7 +75,7 @@ In order of preference:
 - **A domestic transfer between whichever two people share a country.** Net the debts so that as many payments as possible are local.
 - **A payment link for the rest.** One person sends a link, the other pays it from whatever they have. It sidesteps the "which app do you have" problem, which is the problem that actually stalls things.
 
-Split records the payment when whoever paid says they paid it. It does not care how the money moved, and it does not check with a bank — a settled row means someone tapped, not that the money cleared.
+Split records the payment when whoever paid says they paid it. It does not care how the money moved, and it does not check with a bank. A settled row means someone tapped, not that the money cleared.
 
 <CTA
   title="Start the room before the trip, not after"

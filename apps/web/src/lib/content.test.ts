@@ -516,6 +516,8 @@ interface StyleRule {
     why: string
     /** Collections the rule applies to. Omitted means all of them. */
     collections?: readonly Collection[]
+    /** Locales the rule applies to. Omitted means all of them. */
+    locales?: readonly IndexedLocale[]
 }
 
 export const NEVER_STRINGS: readonly StyleRule[] = [
@@ -571,6 +573,137 @@ export const NEVER_STRINGS: readonly StyleRule[] = [
         target: 'meta',
         pattern: /\p{Extended_Pictographic}/u,
         why: 'Google renders the title and description as plain text; an emoji there is a truncated character',
+    },
+    {
+        id: 'marketing-adjective',
+        target: 'prose',
+        pattern:
+            /seamless|effortless|robust|powerful|world-class|cutting-edge|game-changing|revolutionary|empower|supercharge|truly|incredibly|\bsimply\b/i,
+        why: '§6.4 bans the marketing adjective — state what the product does',
+    },
+    {
+        id: 'contrast-frame',
+        target: 'prose',
+        pattern: /not just|isn['’]t just|is not just|it['’]s not about|whether you['’]re|whether you are/i,
+        why: 'say the thing, not what it is not (§11.1)',
+    },
+    {
+        id: 'transition-tell',
+        target: 'prose',
+        pattern:
+            /\bimagine\b|picture this|let['’]s dive|in today['’]s world|look no further|now that we['’]ve|now that we have covered/i,
+        why: 'a sentence that announces the next sentence carries nothing (§11.1) — delete it',
+    },
+    {
+        id: 'split-bills-tagline',
+        target: 'prose',
+        pattern: /split bills,? not friendships/i,
+        why: "the line is Splid's and PartyTab's (§6.10)",
+    },
+    {
+        id: 'concession-title',
+        target: 'prose',
+        pattern: /split (?:is )?not good at|split does not do|the honest bit/i,
+        why: 'title the concession from the §4.1 table (§4.3)',
+    },
+    {
+        id: 'gamification',
+        target: 'prose',
+        pattern: /streak|level up|achievement|badge|confetti|woohoo/i,
+        why: 'no celebration and no gamification register (§6.1/§6.3)',
+    },
+    {
+        id: 'burned-phrase',
+        target: 'prose',
+        pattern: /punished for earning more|wanderlust|unforgettable memories/i,
+        why: 'retired phrase (§11.1) — write the concrete line item instead',
+    },
+    {
+        id: 'uk-slang',
+        target: 'prose',
+        pattern: /\blads\b|\bquid\b|\bskint\b|venmo me|😂/i,
+        why: 'no dated slang and no 😂 (§6.2/§6.9)',
+    },
+    {
+        id: 'es-spain-forms',
+        locales: ['es-419'],
+        target: 'prose',
+        pattern: /vosotros|estáis|habéis|vuestr[oa]|a escote|a pachas|\bcoger\b/i,
+        why: 'Spain-only grammar (§9.2) — es-419 uses tú and ustedes',
+    },
+    {
+        id: 'es-spain-slang',
+        locales: ['es-419'],
+        target: 'prose',
+        pattern: /\bpasta\b|\bguita\b|\blana\b|\bplata\b|\bchaval|\btío\b|\bguay\b|compañero de piso/i,
+        why: 'dinero, roomie, compañero de departamento (localization.es-419.md §3)',
+    },
+    {
+        id: 'es-bote',
+        locales: ['es-419'],
+        target: 'prose',
+        pattern: /\bbote\b(?! común)/i,
+        why: '"bote" is legal only as "bote común" in a Spain-scoped block (§11.1)',
+    },
+    {
+        // Whole words only: "pagándole" and "enviábamos" are tuteo, and `\b` cannot see past an accent.
+        id: 'es-voseo',
+        locales: ['es-419'],
+        target: 'prose',
+        pattern: /vos podés|\bsos\b|dejalo|probalo|(?<!\p{L})(?:pagá|enviá|poné)s?(?!\p{L})/iu,
+        why: 'tú is locked (§9.2) — no voseo',
+    },
+    {
+        id: 'es-no-account-overclaim',
+        locales: ['es-419'],
+        target: 'prose',
+        pattern: /saltarte el registro|sin identificarte|sin documentos|elimina esa barrera/i,
+        why: 'frame no-account as "sin registrarse", from the no-app claim block (localization.es-419.md §4)',
+    },
+    {
+        id: 'es-concession-title',
+        locales: ['es-419'],
+        target: 'prose',
+        pattern: /no es bueno|la parte honesta/i,
+        why: 'title the concession from the §4.1 table (§4.3)',
+    },
+    {
+        id: 'pt-acerto-de-contas',
+        locales: ['pt-br'],
+        target: 'meta',
+        pattern: /acerto de contas/i,
+        why: 'never in a title or description (§11.1) — rateio, acerto, "quem deve a quem"',
+    },
+    {
+        // The noun. "racha" is also the você-present of "rachar", which localization.pt-br.md
+        // conjugates on purpose, so only a determiner in front of it marks the banned sense.
+        id: 'pt-racha',
+        locales: ['pt-br'],
+        target: 'prose',
+        pattern: /\b(?:o|um|do|no|ao|num|pelo|esse|este|aquele|nosso|seu|meu|outro|mesmo)\s+racha\b/i,
+        why: 'the standalone token is banned (§11.1) — "rachar a conta"',
+    },
+    {
+        id: 'pt-dated-slang',
+        locales: ['pt-br'],
+        target: 'prose',
+        pattern: /passar a régua|lacrou|arrasou/i,
+        why: 'slang with a shelf life (§6.9)',
+    },
+    {
+        id: 'pt-no-account-overclaim',
+        locales: ['pt-br'],
+        target: 'prose',
+        pattern:
+            /sem CPF|pular o cadastro|furar a fila|burlar|driblar|sem precisar se identificar|sem documentos|elimina essa barreira/i,
+        why: 'frame no-account from the no-app claim block (localization.pt-br.md §6)',
+    },
+    {
+        id: 'pt-concession-title',
+        locales: ['pt-br'],
+        target: 'prose',
+        pattern: /não é bom|a parte honesta/i,
+        why: 'title the concession from the §4.1 table (§4.3)',
     },
 ]
 
@@ -659,6 +792,7 @@ describe('style gate', () => {
     it.each(STYLE_RULES.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
         for (const doc of ALL) {
             if (rule.collections && !rule.collections.includes(doc.collection)) continue
+            if (rule.locales && !rule.locales.includes(doc.locale)) continue
             const subject =
                 rule.target === 'meta' ? `${doc.frontmatter.title} ${doc.frontmatter.description}` : ownProse(doc)
             const hit = subject.match(rule.pattern)
@@ -842,14 +976,25 @@ describe('page style gate', () => {
      * than the product. Counting the header would force the one page whose job is that comparison
      * to name itself less clearly than it names its competitor.
      */
-    it('names "Peanut Split" in full once, then calls it Split', () => {
+    it('names the product in full once, then calls it Split', () => {
         for (const doc of ALL) {
             const prose = bodyProse(doc).replace(/^\s*\|.*$/gm, ' ')
-            const count = (prose.match(/Peanut Split/g) ?? []).length
+            const count = (prose.match(/Peanut Split|Split by Peanut/g) ?? []).length
             expect(
                 count,
-                `${doc.collection}/${doc.slug}/${doc.locale}.md: the product enters by name once (§3.17) — every later mention is "Split"`
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: an approved full name enters once (§3.17/§10.1) — every later mention is "Split"`
             ).toBeLessThanOrEqual(1)
+        }
+    })
+
+    /** §11.2: three em-dashes per page; the fourth is a comma, a full stop or a colon. */
+    it('spends at most three em-dashes per page', () => {
+        for (const doc of ALL) {
+            const count = (bodyProse(doc).match(/—/g) ?? []).length
+            expect(
+                count,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md: at most three em-dashes per page (§11.2) — the rest are commas and full stops`
+            ).toBeLessThanOrEqual(3)
         }
     })
 
@@ -1491,7 +1636,8 @@ describe('localized content gates', () => {
 
 describe('tool style gate', () => {
     it.each(STYLE_RULES.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
-        for (const [id, tool] of GATED_PAGES) {
+        for (const [id, tool, locale] of GATED_PAGES) {
+            if (rule.locales && !rule.locales.includes(locale)) continue
             const subject =
                 rule.target === 'meta' ? `${tool.meta.title} ${tool.meta.description}` : toolStrings(tool).join('\n')
             expect(subject.match(rule.pattern)?.[0], `${id}: ${rule.why}`).toBeUndefined()

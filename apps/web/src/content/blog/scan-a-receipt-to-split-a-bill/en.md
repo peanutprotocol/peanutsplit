@@ -41,7 +41,7 @@ The arithmetic was never the hard part. The typing was.
 <Step title="Tap who had what">Tap the people on each item. Two or more on the same line splits that line equally between them. The wine goes to four people, the tasting menu goes to one.</Step>
 </Steps>
 
-What lands in the room at the end is an ordinary expense with exact amounts per person — the same row you would have produced by hand, through the same tested path. Nothing about the money is special-cased because a camera was involved.
+What lands in the room at the end is an ordinary expense with exact amounts per person, the same row you would have produced by hand, through the same tested path. Nothing about the money is special-cased because a camera was involved.
 
 ## The honest part about the photo
 

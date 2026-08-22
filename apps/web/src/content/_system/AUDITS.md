@@ -26,3 +26,19 @@ section last. Name the commit that closed the finding.
   convention (guide tracker decision 17).
 - Finding: the footer Help, Terms and Privacy links took a 307 locale hop on peanut.me. They
   link `/en/...` directly.
+
+## 2026-08-22 — §11.1 never-strings ported into the native gate
+
+- Finding: `content.test.ts` enforced about a third of §11.1. The marketing adjectives, the
+  contrast frames, the transition tells, the gamification register, the UK slang and every
+  es-419 and pt-br token ban were a cold read only; voseo and "plata" shipped once that way.
+  The entrance cap counted "Peanut Split" alone, and the em-dash cap did not exist.
+- Rule: the mono validator's rows (`scripts/split-content.mjs`, mono `16ebbf3d`) now sit in
+  `NEVER_STRINGS` too, locale-scoped where the ban is. Two rows are narrower than the mono
+  copy on purpose: `es-voseo` matches whole words, because "pagándole" is tuteo and a plain
+  `pagá` failed it; `pt-racha` needs a determiner in front, because "racha" is also the
+  você-present of `rachar`, which `localization.pt-br.md` conjugates. The entrance cap counts
+  "Split by Peanut" as well; a new cap holds em-dashes to three per page.
+- Residue: nine pages carried four to ten em-dashes. Each one past three became a comma, a
+  full stop, a colon or a bracket pair; no sentence changed meaning. Two of those swaps had to
+  avoid `: ` inside an unquoted YAML answer, which the loader reads as a mapping.
