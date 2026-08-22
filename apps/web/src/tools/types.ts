@@ -13,11 +13,13 @@
  * formatting stays in one place. A `compute` that returned "€12.34" would be a second money
  * formatter, and the two would disagree the first time somebody picked a zero-decimal currency.
  *
- * **Every string a reader sees lives in `copy`, `meta`, `fields` or `faqs`.** They are gated as a
- * set in `content.test.ts`. Copy written inline in a component is copy nothing checks.
+ * **Every string a reader sees lives in `copy`, `meta`, `fields`, `faqs` or `phrases`.** They are
+ * gated as a set in `content.test.ts`, in every locale. Copy written inline in a component — or
+ * inline in `compute` — is copy nothing checks and nothing can translate.
  */
 
 import type { DoodleName } from '@/components/ui/doodles'
+import type { IndexedLocale } from '@/i18n/locales'
 
 /**
  * What kind of number a field holds, which is also how it is parsed and rendered.
@@ -143,6 +145,8 @@ export interface ToolChoiceField {
 export interface ToolInput {
     /** Scalar fields. `amount` fields are already minor units. */
     values: Record<string, number>
+    /** The page's own language, handed in as words. See `Tool.phrases`. */
+    phrases: Record<string, string>
     toggles: Record<string, boolean>
     /** Picked option values, keyed by choice-field name. */
     choices: Record<string, string>
@@ -239,6 +243,59 @@ export interface ToolCopy {
     faqTitle: string
 }
 
+/**
+ * A tool in one language.
+ *
+ * Structure is not copy: which fields exist, what kind they are, what they default to and what the
+ * arithmetic does are the same in every language, and repeating them per locale would be three
+ * calculators to keep in step. So a translation supplies words only, keyed by the name the English
+ * config already gave the thing — a field by `name`, a picker option by `value`.
+ *
+ * Nothing here falls back to English. A locale that omits a string gets a page missing that string,
+ * which `content.test.ts` fails on, rather than a Spanish page with an English sentence in it.
+ */
+export interface ToolFieldWords {
+    label: string
+    help?: string
+    unit?: string
+    notches?: readonly string[]
+}
+
+export interface ToolChoiceWords {
+    label: string
+    help?: string
+    /** Keyed by `options[].value`. The number, the currency and the source URL are not words. */
+    options: Record<string, { label: string; note?: string }>
+}
+
+export interface ToolBuilderWords {
+    summary: string
+    title: string
+    intro: string
+    floorLabel: string
+    totalLabel: string
+    applyLabel: string
+    appliedLabel: string
+    fields: Record<string, ToolFieldWords>
+}
+
+export interface ToolWords {
+    meta: { title: string; description: string }
+    copy: ToolCopy
+    /** Scalar fields and row columns alike, keyed by `name`. Builder fields live under `builder`. */
+    fields: Record<string, ToolFieldWords>
+    rows?: { nameLabel: string; namePrefix: string }
+    choices?: Record<string, ToolChoiceWords>
+    builder?: ToolBuilderWords
+    /**
+     * Onward links, replaced wholesale rather than relabelled: a Spanish reader is sent to the
+     * Spanish pages that exist, which are not the same pages the English one links to.
+     */
+    related?: readonly { href: string; label: string }[]
+    faqs: readonly ToolFaq[]
+    phrases: Record<string, string>
+}
+
 export interface Tool {
     /** Root-level path, no leading slash. Reserved against the content tree by `static-pages.ts`. */
     slug: string
@@ -271,8 +328,11 @@ export interface Tool {
      * `choices[].options[]` entry the same way picking it from the dropdown already does — this
      * adds no new pre-fill mechanism, only a faster way to reach one that exists. `choiceName` must
      * match a `choices[].name` and `optionValue` one of that choice's `options[].value`.
+     *
+     * A chip wears its option's own label. Repeating the words here would be a second copy of a
+     * string to translate, and the two would disagree in one language before they disagreed in all.
      */
-    presets?: readonly { label: string; choiceName: string; optionValue: string }[]
+    presets?: readonly { choiceName: string; optionValue: string }[]
     rows?: ToolRows
     /** The optional way to answer one field. At most one, because two folds is a form again. */
     builder?: ToolBuilder
@@ -284,5 +344,20 @@ export interface Tool {
      * exist by `content.test.ts`, the same way an article's `<RelatedLink>` is.
      */
     related?: readonly { href: string; label: string }[]
+    /**
+     * The sentences `compute` prints — the problems it can report, its working labels, its per-row
+     * detail — handed to it through `ToolInput` rather than written inside it. `{name}` placeholders
+     * are filled by `fill()`.
+     *
+     * This is what keeps `compute` locale-free: it does the arithmetic and reaches for a phrase by
+     * key, and one implementation serves every language. A sentence written inline in `compute`
+     * would be an English string that a Spanish page renders and no gate reads.
+     */
+    phrases: Record<string, string>
+    /**
+     * The languages this tool is published in, English aside. A locale listed here is routed,
+     * sitemapped and advertised in hreflang; a locale absent from it does not exist for this tool.
+     */
+    locales?: Partial<Record<Exclude<IndexedLocale, 'en'>, ToolWords>>
     compute: (input: ToolInput) => ToolOutcome
 }

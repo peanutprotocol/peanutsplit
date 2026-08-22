@@ -1,4 +1,6 @@
 import { allocateByWeights, formatFigure, formatShareOfWhole, MAX_SAFE_MINOR } from './allocate'
+import { fill } from './phrases'
+import { rentSplitEs419, rentSplitPtBr } from './rent-split-calculator.locales'
 import type { Tool, ToolInput, ToolOutcome, ToolWorking } from './types'
 
 /**
@@ -28,14 +30,13 @@ const EQUAL = (count: number) => 1 / count
 const TOP_NOTCH = 5
 const notchOf = (value: number): number => Math.min(TOP_NOTCH, Math.max(1, Math.round(value) || 1))
 
-function computeRentSplit({ values, rows }: ToolInput): ToolOutcome {
+function computeRentSplit({ values, rows, phrases }: ToolInput): ToolOutcome {
     const rent = Math.trunc(values.rent ?? 0)
     const empty: ToolOutcome = { shares: [], totalMinor: 0, workings: [] }
 
-    if (rows.length === 0) return { ...empty, problem: 'Say how many people are on the rent.' }
-    if (rent < 0) return { ...empty, problem: 'Rent cannot be less than nothing.' }
-    if (!Number.isSafeInteger(rent) || rent > MAX_SAFE_MINOR)
-        return { ...empty, problem: 'That is a bigger rent than this page divides.' }
+    if (rows.length === 0) return { ...empty, problem: phrases.noPeople }
+    if (rent < 0) return { ...empty, problem: phrases.negativeRent }
+    if (!Number.isSafeInteger(rent) || rent > MAX_SAFE_MINOR) return { ...empty, problem: phrases.rentTooBig }
 
     const sizes = rows.map((row) => Math.max(0, row.values.size ?? 0))
     const notches = rows.map((row) => notchOf(row.values.rich ?? 1))
@@ -56,18 +57,25 @@ function computeRentSplit({ values, rows }: ToolInput): ToolOutcome {
 
     const amounts = allocateByWeights(rent, weights)
     const workings: ToolWorking[] = [
-        { label: 'Rent', amountMinor: rent },
-        { label: 'Floor area measured', value: `${formatFigure(floorArea)} sqm` },
+        { label: phrases.rentLabel, amountMinor: rent },
+        { label: phrases.floorAreaLabel, value: fill(phrases.areaValue, { area: formatFigure(floorArea) }) },
     ]
-    if (tilted) workings.push({ label: 'Where the sliders sit', value: notches.join(', ') })
+    if (tilted) workings.push({ label: phrases.slidersLabel, value: notches.join(', ') })
 
     return {
         shares: rows.map((row, index) => ({
             label: row.name,
             amountMinor: amounts[index],
             detail: tilted
-                ? `room ${formatShareOfWhole(roomShares[index], 1)}, notch ${notches[index]}, so ${formatShareOfWhole(weights[index], 1)} of the rent`
-                : `${formatFigure(sizes[index])} sqm, ${formatShareOfWhole(roomShares[index], 1)} of the rent`,
+                ? fill(phrases.detailTilted, {
+                      room: formatShareOfWhole(roomShares[index], 1),
+                      notch: notches[index],
+                      share: formatShareOfWhole(weights[index], 1),
+                  })
+                : fill(phrases.detailPlain, {
+                      size: formatFigure(sizes[index]),
+                      share: formatShareOfWhole(roomShares[index], 1),
+                  }),
         })),
         totalMinor: rent,
         workings,
@@ -155,6 +163,18 @@ export const rentSplitCalculator: Tool = {
         { href: '/splitwise-alternative', label: 'How Split compares to Splitwise' },
         { href: '/tools', label: 'The other calculator' },
     ],
+    phrases: {
+        noPeople: 'Say how many people are on the rent.',
+        negativeRent: 'Rent cannot be less than nothing.',
+        rentTooBig: 'That is a bigger rent than this page divides.',
+        rentLabel: 'Rent',
+        floorAreaLabel: 'Floor area measured',
+        areaValue: '{area} sqm',
+        slidersLabel: 'Where the sliders sit',
+        detailTilted: 'room {room}, notch {notch}, so {share} of the rent',
+        detailPlain: '{size} sqm, {share} of the rent',
+    },
+    locales: { 'es-419': rentSplitEs419, 'pt-br': rentSplitPtBr },
     faqs: [
         {
             question: 'How do you split rent by room size?',

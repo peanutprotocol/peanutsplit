@@ -20,13 +20,13 @@ const ContentCard = contentOgImage(ROOT_COLLECTIONS, LOCALE, 'page')
 export const dynamicParams = false
 
 export function generateStaticParams() {
-    return [...toolStaticParams('page')(), ...contentParams()]
+    return [...toolStaticParams('page', LOCALE)(), ...contentParams()]
 }
 
 export default async function RootSlugOgImage(props: { params: Promise<Record<string, string>> }) {
     // Same walk as the page route, tools first. Without it a calculator shared into a group chat
     // unfurls under the site's own name rather than under the thing the link opens.
-    const tool = getTool((await props.params).page)
+    const tool = getTool((await props.params).page, LOCALE)
     if (tool) return brandCardResponse(['SPLIT', 'IT'], tool.copy.h1)
     return ContentCard(props)
 }

@@ -22,7 +22,7 @@ import { toolMetadata } from './tool-routes'
 import { listSplitGuides } from './split-content/artifact'
 import { splitGuideMetadata } from './split-content/metadata'
 import { INDEXED_LOCALES } from '@/i18n/locales'
-import { TOOLS } from '@/tools/registry'
+import { toolsIn } from '@/tools/registry'
 import { metadata as landingMetadata } from '@/app/(product-shell)/(marketing)/page'
 import { metadata as toolsHubMetadata } from '@/app/(product-shell)/(marketing)/tools/page'
 import enMessages from '@/i18n/messages/en.json'
@@ -170,7 +170,9 @@ describe('title suffix policy', () => {
     const handBuilt = [
         ['/', titleOf(landingMetadata)],
         ['/tools', titleOf(toolsHubMetadata)],
-        ...TOOLS.map((tool) => [tool.slug, titleOf(toolMetadata(tool))]),
+        ...INDEXED_LOCALES.flatMap((locale) =>
+            toolsIn(locale).map((tool) => [`${locale}/${tool.slug}`, titleOf(toolMetadata(tool, locale))] as const)
+        ),
         ...INDEXED_LOCALES.map((locale) => [`${locale} hub`, pageTitle(HUB_TITLES[locale])]),
         ...listAllTranslations().map((doc) => [`${doc.locale}/${doc.slug}`, pageTitle(doc.frontmatter.title)]),
     ] as const

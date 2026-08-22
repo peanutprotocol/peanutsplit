@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { ContentAnalytics } from '@/components/marketing/ContentAnalytics'
 import { JsonLd } from '@/components/marketing/JsonLd'
+import { LanguageLinks } from '@/components/marketing/LanguageLinks'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { SkinFrame } from '@/components/marketing/SkinFrame'
 import { CTA, FAQ, FAQItem, RelatedLink, RelatedPages } from '@/components/marketing/mdx/blocks'
@@ -10,8 +11,9 @@ import { Doodle } from '@/components/ui/Doodle'
 import { breadcrumbSchema, faqSchema, toolSchema } from '@/lib/seo'
 import { hashSlug } from '@/lib/split-content/seed'
 import { toolSkin, toolWallpaperChapter } from '@/lib/split-content/tool-skin'
-import { toolPath } from '@/tools/registry'
+import { toolLocales, toolPath } from '@/tools/registry'
 import type { Tool } from '@/tools/types'
+import type { IndexedLocale } from '@/i18n/locales'
 
 /**
  * The frame every tool renders through: structured data, the intro, the calculator, the method
@@ -26,14 +28,19 @@ import type { Tool } from '@/tools/types'
  * (§8.1) sits between the result and the concession, where the reader has just seen a number they
  * might be about to over-apply.
  *
+ * The tool arrives already in the page's language — `getTool(slug, locale)` swapped its words —
+ * so nothing below reads a locale except the crumb labels, the money format and the links out to
+ * the other languages. Those last ones are the only control that crosses to a translated page,
+ * which is why the footer's cookie switcher stays hidden here as it does on an article.
+ *
  * Blocks are reused from the MDX set rather than re-styled here. A tool page and an article are
  * the same column at the same width on purpose — a calculator that looked like a different site
  * would be a second design system to keep in step. The calculator inside it is built from the
  * app's own components for the same reason, one step further in — see `ToolCalculator`.
  */
-export async function ToolPage({ tool }: { tool: Tool }) {
-    const t = await getTranslations({ locale: 'en', namespace: 'content' })
-    const path = toolPath(tool)
+export async function ToolPage({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
+    const t = await getTranslations({ locale, namespace: 'content' })
+    const path = toolPath(tool, locale)
     const crumbs = [
         { name: t('home'), href: '/' },
         { name: tool.copy.h1, href: path },
@@ -59,7 +66,7 @@ export async function ToolPage({ tool }: { tool: Tool }) {
                 ))}
             </header>
 
-            <ToolCalculator slug={tool.slug} />
+            <ToolCalculator slug={tool.slug} locale={locale} />
 
             {tool.copy.method && (
                 <section className="mx-auto w-full max-w-xl px-5 py-6">
@@ -133,7 +140,7 @@ export async function ToolPage({ tool }: { tool: Tool }) {
         <main className="flex min-h-dvh flex-col bg-background">
             {/* No chapter on purpose: `toolWallpaperChapter` is ruled wallpaper-only. */}
             <ContentAnalytics template="tool" source={tool.slug} />
-            <JsonLd data={toolSchema({ path, title: tool.meta.title, description: tool.meta.description })} />
+            <JsonLd data={toolSchema({ path, title: tool.meta.title, description: tool.meta.description, locale })} />
             <JsonLd data={breadcrumbSchema(crumbs)} />
             <JsonLd data={faqSchema(tool.faqs)} />
 
@@ -157,6 +164,8 @@ export async function ToolPage({ tool }: { tool: Tool }) {
                     {body}
                 </SkinFrame>
             )}
+
+            <LanguageLinks path={`/${tool.slug}`} current={locale} available={toolLocales(tool)} />
 
             <SiteFooter showLocaleSwitcher={false} />
         </main>

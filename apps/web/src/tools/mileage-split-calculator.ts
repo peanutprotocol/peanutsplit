@@ -1,5 +1,7 @@
 import { allocateByWeights, formatFigure, MAX_SAFE_MINOR } from './allocate'
 import { MILEAGE_RATES, MILEAGE_RATES_RETRIEVED, MILEAGE_RATES_VERSION, mileageRate } from './mileage-rates'
+import { mileageSplitEs419, mileageSplitPtBr } from './mileage-split-calculator.locales'
+import { fill } from './phrases'
 import type { Tool, ToolChoiceOption, ToolInput, ToolOutcome, ToolWorking } from './types'
 
 /**
@@ -71,29 +73,30 @@ export function buildCustomRate(values: Record<string, number>): { floor: number
     return { floor, total: round4(floor + wear) }
 }
 
-function computeMileageSplit({ values, toggles, choices, rows, decimals }: ToolInput): ToolOutcome {
+function computeMileageSplit({ values, toggles, choices, rows, decimals, phrases }: ToolInput): ToolOutcome {
     const empty: ToolOutcome = { shares: [], totalMinor: 0, workings: [] }
     const distance = values.distance ?? 0
     const rate = values.rate ?? 0
     const country = mileageRate(choices.country)
-    const perUnit = country?.unit === 'mile' ? 'mile' : 'kilometre'
+    // The unit is a word in the sentence and a symbol beside a figure. The word is copy; `mi` and
+    // `km` are international symbols and stay put.
+    const perUnit = country?.unit === 'mile' ? phrases.unitMile : phrases.unitKilometre
     const short = country?.unit === 'mile' ? 'mi' : 'km'
 
-    if (rows.length === 0) return { ...empty, problem: 'Say how many people are riding with the driver.' }
-    if (!Number.isFinite(distance) || distance < 0) return { ...empty, problem: 'A distance cannot be less than nothing.' } // prettier-ignore
-    if (!Number.isFinite(rate) || rate < 0) return { ...empty, problem: 'A rate cannot be less than nothing.' }
+    if (rows.length === 0) return { ...empty, problem: phrases.noRiders }
+    if (!Number.isFinite(distance) || distance < 0) return { ...empty, problem: phrases.negativeDistance }
+    if (!Number.isFinite(rate) || rate < 0) return { ...empty, problem: phrases.negativeRate }
     // An empty box is a form the reader has not finished, and the countries with no official rate
     // arrive here on purpose — say which number is missing rather than dividing nothing three ways.
-    if (distance === 0) return { ...empty, problem: 'Put in how far the car went.' }
-    if (rate === 0) return { ...empty, problem: `Put in a rate for each ${perUnit}.` }
+    if (distance === 0) return { ...empty, problem: phrases.noDistance }
+    if (rate === 0) return { ...empty, problem: fill(phrases.noRate, { unit: perUnit }) }
 
     // The rate is major units and carries more decimals than the currency does, so the money is
     // made here rather than at the input: 0.4440 a kilometre is a real rate and 44.4 cents is not
     // a real amount.
     const cost = Math.round(distance * rate * 10 ** decimals)
     // Past this the doubles stop counting whole cents, and a wrong number is worse than no number.
-    if (!Number.isSafeInteger(cost) || cost > MAX_SAFE_MINOR)
-        return { ...empty, problem: 'That is a longer drive than this page divides.' }
+    if (!Number.isSafeInteger(cost) || cost > MAX_SAFE_MINOR) return { ...empty, problem: phrases.driveTooLong }
 
     const driverToo = toggles.driverShares === true
 
@@ -101,31 +104,27 @@ function computeMileageSplit({ values, toggles, choices, rows, decimals }: ToolI
     // The driver's share is one, not a row: the table asks about the people who owe money.
     const weights = driverToo ? [1, ...riders] : riders
     const shareCount = weights.reduce((running, weight) => running + weight, 0)
-    if (shareCount <= 0) return { ...empty, problem: 'Every share is set to nothing, so there is nothing to divide.' }
+    if (shareCount <= 0) return { ...empty, problem: phrases.noShares }
 
     const amounts = allocateByWeights(cost, weights)
     const passengers = rows.map((row, index) => ({
         label: row.name,
         amountMinor: amounts[driverToo ? index + 1 : index],
-        detail: `${formatFigure(riders[index])} of ${formatFigure(shareCount)} shares`,
+        detail: fill(phrases.shareDetail, {
+            share: formatFigure(riders[index]),
+            total: formatFigure(shareCount),
+        }),
     }))
 
     const workings: ToolWorking[] = [
-        { label: 'Distance', value: `${formatFigure(distance)} ${short}` },
-        { label: `Rate for each ${perUnit}`, value: rateText(rate) },
-        { label: 'What the drive cost', amountMinor: cost },
+        { label: phrases.distanceLabel, value: `${formatFigure(distance)} ${short}` },
+        { label: fill(phrases.rateLabel, { unit: perUnit }), value: rateText(rate) },
+        { label: phrases.costLabel, amountMinor: cost },
     ]
 
     return {
         shares: driverToo
-            ? [
-                  {
-                      label: 'The driver',
-                      amountMinor: amounts[0],
-                      detail: 'their own share, which nobody hands over',
-                  },
-                  ...passengers,
-              ]
+            ? [{ label: phrases.driverLabel, amountMinor: amounts[0], detail: phrases.driverDetail }, ...passengers]
             : passengers,
         totalMinor: cost,
         workings,
@@ -208,11 +207,11 @@ export const mileageSplitCalculator: Tool = {
             options: countryOptions,
         },
     ],
-    // Labels are the exact `countryOptions` labels above, so this adds no new copy to gate.
+    // Each chip wears its option's own label, so this adds no copy to gate or to translate.
     presets: [
-        { label: 'United Kingdom (miles)', choiceName: 'country', optionValue: 'GB' },
-        { label: 'United States (miles)', choiceName: 'country', optionValue: 'US' },
-        { label: 'Germany (kilometres)', choiceName: 'country', optionValue: 'DE' },
+        { choiceName: 'country', optionValue: 'GB' },
+        { choiceName: 'country', optionValue: 'US' },
+        { choiceName: 'country', optionValue: 'DE' },
     ],
     fields: [
         {
@@ -312,6 +311,24 @@ export const mileageSplitCalculator: Tool = {
         retrievedAt: MILEAGE_RATES_RETRIEVED,
         rows: MILEAGE_RATES,
     },
+    phrases: {
+        noRiders: 'Say how many people are riding with the driver.',
+        negativeDistance: 'A distance cannot be less than nothing.',
+        negativeRate: 'A rate cannot be less than nothing.',
+        noDistance: 'Put in how far the car went.',
+        noRate: 'Put in a rate for each {unit}.',
+        driveTooLong: 'That is a longer drive than this page divides.',
+        noShares: 'Every share is set to nothing, so there is nothing to divide.',
+        unitMile: 'mile',
+        unitKilometre: 'kilometre',
+        distanceLabel: 'Distance',
+        rateLabel: 'Rate for each {unit}',
+        costLabel: 'What the drive cost',
+        shareDetail: '{share} of {total} shares',
+        driverLabel: 'The driver',
+        driverDetail: 'their own share, which nobody hands over',
+    },
+    locales: { 'es-419': mileageSplitEs419, 'pt-br': mileageSplitPtBr },
     related: [
         { href: '/blog/fronting-a-group-trip', label: 'Fronting a group trip without being the bank' },
         { href: '/group-trip-expenses', label: 'Group trip expenses without a spreadsheet' },

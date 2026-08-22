@@ -21,11 +21,12 @@ import { CAST_NAMES, isCastName } from './cast'
 import { findDroppedDiacritics } from './diacritics'
 import { STATIC_PAGES, staticPageSlugs } from '@/data/static-pages'
 import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from './split-content/index-release'
-import { DEFAULT_LOCALE, HREFLANG, INDEXED_LOCALES, LOCALES } from '@/i18n/locales'
+import { DEFAULT_LOCALE, HREFLANG, INDEXED_LOCALES, LOCALES, type IndexedLocale } from '@/i18n/locales'
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import sitemap from '@/app/sitemap'
 import { absoluteUrl, pageTitle } from './seo'
-import { TOOLS } from '@/tools/registry'
+import { TOOLS, getTool, toolLocales, toolPath, toolsIn } from '@/tools/registry'
+import { toolMetadata } from './tool-routes'
 import type { Tool, ToolField } from '@/tools/types'
 
 /**
@@ -924,9 +925,9 @@ function toolStrings(tool: Tool): string[] {
             choice.help ?? '',
             ...choice.options.flatMap((option) => [option.label, option.note ?? '', option.source?.label ?? '']),
         ]),
-        ...(tool.presets ?? []).map((preset) => preset.label),
         ...(tool.related ?? []).map((link) => link.label),
         ...tool.faqs.flatMap((faq) => [faq.question, faq.answer]),
+        ...Object.values(tool.phrases),
         ...computedStrings(tool),
     ].filter(Boolean)
 }
@@ -978,6 +979,7 @@ function computedStrings(tool: Tool): string[] {
                     choices,
                     rows: rowsAt(spread),
                     decimals: 2,
+                    phrases: tool.phrases,
                 })
                 return [
                     outcome.problem ?? '',
@@ -1135,8 +1137,41 @@ describe('locale routing', () => {
     })
 })
 
-/** §4.1 — the only approved shapes for the one concession section a page carries. */
-const CONCESSION_TITLE = /^When .+ (?:is the better tool|still wins)$/
+/** §4.1 — the only approved shapes for the one concession section a page carries, per locale. */
+const CONCESSION_TITLE: Record<IndexedLocale, RegExp> = {
+    en: /^When .+ (?:is the better tool|still wins)$/,
+    'es-419': /^Cuando .+ es la mejor herramienta$/,
+    'pt-br': /^Quando .+ é a melhor ferramenta$/,
+}
+
+/**
+ * §8.1's objection, in each language's own household. Whole words, because unanchored `loo` sits
+ * inside "floor" and a page about floor area says that in its first line.
+ */
+const COMMUNAL_SPACE: Record<IndexedLocale, RegExp> = {
+    en: /\b(?:loo|lights|kitchen)\b/i,
+    'es-419': /\b(?:baño|luces|cocina)\b/i,
+    'pt-br': /\b(?:banheiro|luz|cozinha)\b/i,
+}
+
+/**
+ * Every tool page the site serves: its id, the tool in that language, and the language.
+ *
+ * The mechanical gates run over this rather than over `TOOLS`, because a translated calculator is
+ * a published page and a 70-character Spanish title is exactly the kind of thing nobody re-reads.
+ * What stays on the English set is the handful of rules that are English grammar — §3.18's "just",
+ * the own-voice question count — which have no meaning in the other two languages.
+ */
+const TOOL_PAGES = INDEXED_LOCALES.flatMap((locale) =>
+    toolsIn(locale).map((tool) => [`${tool.slug}/${locale}`, tool, locale] as const)
+)
+
+/** The same list minus English, paired with the ENGLISH tool — the source a translation answers to. */
+const TRANSLATED_TOOLS = TOOLS.flatMap((tool) =>
+    toolLocales(tool)
+        .filter((locale) => locale !== DEFAULT_LOCALE)
+        .map((locale) => [`${tool.slug}/${locale}`, tool, locale] as const)
+)
 
 describe('tool registry', () => {
     it('gives every tool a slug that a route can serve', () => {
@@ -1166,11 +1201,9 @@ describe('tool registry', () => {
         }
     })
 
-    it('keeps titles and descriptions inside what Google renders', () => {
-        for (const tool of TOOLS) {
-            expect(pageTitle(tool.meta.title).length, `${tool.slug} title too long`).toBeLessThanOrEqual(60)
-            expect(tool.meta.description.length, `${tool.slug} description too long`).toBeLessThanOrEqual(160)
-        }
+    it.each(TOOL_PAGES)('keeps %s inside what Google renders', (id, tool) => {
+        expect(pageTitle(tool.meta.title).length, `${id} title too long`).toBeLessThanOrEqual(60)
+        expect(tool.meta.description.length, `${id} description too long`).toBeLessThanOrEqual(160)
     })
 
     it('asks for every field once, and only for fields it uses', () => {
@@ -1273,11 +1306,12 @@ describe('tool registry', () => {
             ...INDEXED_LOCALES.flatMap((locale) => ['/', '/new', '/blog'].map((path) => localizedPath(path, locale))),
             ...listAllTranslations().map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
+            ...TOOLS.flatMap((tool) => toolLocales(tool).map((locale) => toolPath(tool, locale))),
         ])
-        for (const tool of TOOLS) {
+        for (const [id, tool] of TOOL_PAGES) {
             for (const link of tool.related ?? []) {
-                expect(known.has(link.href), `${tool.slug} links to missing ${link.href}`).toBe(true)
-                expect(link.label.length, `${tool.slug}: ${link.href} has no label`).toBeGreaterThan(0)
+                expect(known.has(link.href), `${id} links to missing ${link.href}`).toBe(true)
+                expect(link.label.length, `${id}: ${link.href} has no label`).toBeGreaterThan(0)
             }
         }
     })
@@ -1340,10 +1374,10 @@ describe('localized content gates', () => {
 
 describe('tool style gate', () => {
     it.each(STYLE_RULES.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
-        for (const tool of TOOLS) {
+        for (const [id, tool] of TOOL_PAGES) {
             const subject =
                 rule.target === 'meta' ? `${tool.meta.title} ${tool.meta.description}` : toolStrings(tool).join('\n')
-            expect(subject.match(rule.pattern)?.[0], `${tool.slug}: ${rule.why}`).toBeUndefined()
+            expect(subject.match(rule.pattern)?.[0], `${id}: ${rule.why}`).toBeUndefined()
         }
     })
 
@@ -1354,9 +1388,9 @@ describe('tool style gate', () => {
      * table cells, a CTA and an FAQ — there is nowhere left for the interjection to stand.
      */
     it('spends no exclamation mark at all', () => {
-        for (const tool of TOOLS) {
+        for (const [id, tool] of TOOL_PAGES) {
             for (const line of toolStrings(tool)) {
-                expect(line.includes('!'), `${tool.slug}: "${line}" — a tool page has nowhere to put one (§11.2)`) //
+                expect(line.includes('!'), `${id}: "${line}" — a tool page has nowhere to put one (§11.2)`) //
                     .toBe(false)
             }
         }
@@ -1388,13 +1422,13 @@ describe('tool style gate', () => {
      * and "Split by Peanut" in the CTA has entered twice.
      */
     it('names the product in full once, then calls it Split', () => {
-        for (const tool of TOOLS) {
+        for (const [id, tool] of TOOL_PAGES) {
             const count = (
                 toolStrings(tool)
                     .join('\n')
                     .match(/Peanut Split|Split by Peanut/g) ?? []
             ).length
-            expect(count, `${tool.slug}: the product enters by name once (§3.17)`).toBeLessThanOrEqual(1)
+            expect(count, `${id}: the product enters by name once (§3.17)`).toBeLessThanOrEqual(1)
         }
     })
 
@@ -1421,11 +1455,11 @@ describe('tool style gate', () => {
 
     /** §4.1: one concession, and its title names the tool that wins rather than what we lack. */
     it('concedes to something named, in the approved words', () => {
-        for (const tool of TOOLS) {
-            expect(tool.copy.concession.title, `${tool.slug}: see §4.1 for the approved titles`).toMatch(
-                CONCESSION_TITLE
+        for (const [id, tool, locale] of TOOL_PAGES) {
+            expect(tool.copy.concession.title, `${id}: see §4.1 for the approved titles`).toMatch(
+                CONCESSION_TITLE[locale]
             )
-            expect(tool.copy.concession.body.length, `${tool.slug}: the concession is empty`).toBeGreaterThan(40)
+            expect(tool.copy.concession.body.length, `${id}: the concession is empty`).toBeGreaterThan(40)
         }
     })
 
@@ -1444,14 +1478,109 @@ describe('tool style gate', () => {
      * area says that in the first line, so the gate passed on the phrase it exists to require.
      */
     it('pre-empts the communal-space objection on a fairness page', () => {
-        for (const tool of TOOLS) {
+        for (const [id, tool, locale] of TOOL_PAGES) {
             if (!/rent-split|utilities|alquiler|habitaciones/.test(tool.slug)) continue
-            const prose = toolStrings(tool).join('\n')
             expect(
-                /\b(?:loo|lights|kitchen)\b/i.test(prose),
-                `${tool.slug}: name the objection and give the boundary (§8.1)`
+                COMMUNAL_SPACE[locale].test(toolStrings(tool).join('\n')),
+                `${id}: name the objection and give the boundary (§8.1)`
             ).toBe(true)
         }
+    })
+})
+
+/**
+ * The locale dimension on a tool, held to the contract an article's already is: one URL per
+ * language, canonical to itself, and hreflang listing exactly the translations that exist.
+ */
+describe('tool locales', () => {
+    it.each(TOOLS.map((tool) => [tool.slug, tool] as const))(
+        '%s is routed, sitemapped and advertised in the same set of languages',
+        (slug, tool) => {
+            const locales = toolLocales(tool)
+            expect(locales, `${slug} lost its English source`).toContain(DEFAULT_LOCALE)
+            const byUrl = new Map(sitemap().map((entry) => [entry.url, entry]))
+
+            for (const locale of INDEXED_LOCALES) {
+                const published = locales.includes(locale)
+                const entry = byUrl.get(absoluteUrl(toolPath(tool, locale)))
+                // Routing and the sitemap are the same answer twice: a sitemapped URL that does
+                // not route is a crawler sent to a 404, and a routed URL nobody lists is invisible.
+                expect(getTool(slug, locale) !== null, `${slug}/${locale} routes`).toBe(published)
+                expect(entry !== undefined, `${slug}/${locale} is sitemapped`).toBe(published)
+                if (!entry) continue
+
+                const languages = (entry.alternates?.languages ?? {}) as Record<string, string>
+                expect(Object.keys(languages).sort(), `${slug}/${locale} advertises the wrong set`).toEqual(
+                    [...locales.map((other) => HREFLANG[other]), 'x-default'].sort()
+                )
+                for (const other of locales) {
+                    expect(languages[HREFLANG[other]]).toBe(absoluteUrl(toolPath(tool, other)))
+                }
+                // x-default is the bare English URL, spelled the way `hreflangAlternates` spells it.
+                expect(languages['x-default']).toBe(absoluteUrl(`/${tool.slug}`))
+            }
+        }
+    )
+
+    it.each(TOOL_PAGES)("%s canonicalises to itself and carries the sitemap's alternates", (id, tool, locale) => {
+        const alternates = toolMetadata(tool, locale).alternates
+        expect(alternates?.canonical, id).toBe(absoluteUrl(toolPath(tool, locale)))
+        const languages = (alternates?.languages ?? {}) as Record<string, string>
+        expect(languages[HREFLANG[locale]], `${id}: missing from its own hreflang set`).toBe(
+            absoluteUrl(toolPath(tool, locale))
+        )
+    })
+
+    /**
+     * A translation says everything the English tool says. Structure is shared, so the one way a
+     * localized page comes out half-written is a missing key — an unlabelled field, an option with
+     * no note, a phrase `compute` reaches for and does not find — and each of those renders as a
+     * gap or as English at a translated URL.
+     */
+    it.each(TRANSLATED_TOOLS)('%s says everything the English tool says', (id, source, locale) => {
+        const said = getTool(source.slug, locale)
+        expect(said, `${id} does not route`).not.toBeNull()
+        const twin = said as Tool
+
+        const allFields = (tool: Tool): ToolField[] => [
+            ...tool.fields,
+            ...(tool.rows?.columns ?? []),
+            ...(tool.builder?.fields ?? []),
+        ]
+        for (const field of allFields(source)) {
+            const mirrored = allFields(twin).find((entry) => entry.name === field.name)
+            expect(mirrored?.label, `${id}: field ${field.name} has no label`).toBeTruthy()
+            expect(Boolean(mirrored?.help), `${id}: field ${field.name} help`).toBe(Boolean(field.help))
+            expect(Boolean(mirrored?.unit), `${id}: field ${field.name} unit`).toBe(Boolean(field.unit))
+            expect(mirrored?.notches?.length ?? 0, `${id}: field ${field.name} notches`).toBe(
+                field.notches?.length ?? 0
+            )
+        }
+
+        for (const choice of source.choices ?? []) {
+            const mirrored = twin.choices?.find((entry) => entry.name === choice.name)
+            expect(mirrored?.label, `${id}: picker ${choice.name} has no label`).toBeTruthy()
+            for (const option of choice.options) {
+                const localized = mirrored?.options.find((entry) => entry.value === option.value)
+                expect(localized?.label, `${id}: ${option.value} has no label`).toBeTruthy()
+                expect(Boolean(localized?.note), `${id}: ${option.value} note`).toBe(Boolean(option.note))
+                // Provenance and money are evidence, not copy: both stay exactly as published.
+                expect(localized?.source, `${id}: ${option.value} lost its source`).toEqual(option.source)
+                expect(localized?.currency, `${id}: ${option.value} changed currency`).toBe(option.currency)
+            }
+        }
+
+        expect(Object.keys(twin.phrases).sort(), `${id}: compute would print a blank`).toEqual(
+            Object.keys(source.phrases).sort()
+        )
+        expect(twin.faqs.length, `${id}: too few questions`).toBeGreaterThanOrEqual(2)
+        expect(Boolean(twin.copy.method), `${id}: §8.1 method note`).toBe(Boolean(source.copy.method))
+    })
+
+    /** The same rule the content tree runs on: a page nobody who speaks the language has read. */
+    it.each(TRANSLATED_TOOLS)('%s never drops an accent', (id, source, locale) => {
+        const hits = findDroppedDiacritics(toolStrings(getTool(source.slug, locale) as Tool).join('\n'), locale)
+        expect(hits.map((hit) => `"${hit.found}" \u2192 "${hit.expected}"`).join(', '), id).toBe('')
     })
 })
 
