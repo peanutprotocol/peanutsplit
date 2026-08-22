@@ -4,7 +4,7 @@ description: Fotografe a conta, confira as linhas e toque em quem pediu o quê. 
 date: 2026-07-28
 type: guide
 v2Only: true
-tags: [receipts, dinners]
+tags: [recibos, jantares]
 claims:
     - free-forever
     - link-is-the-key

@@ -3,7 +3,7 @@ title: Dividir despesas em tempo real
 description: Todo mundo vê o mesmo total no próprio celular, sem ninguém atualizar. O que uma lista de despesas ao vivo resolve na mesa, e o que ela ainda não faz.
 date: 2026-07-28
 type: guide
-tags: [groups, live]
+tags: [grupos, ao-vivo]
 claims:
     - settle-is-a-record
     - link-is-the-key

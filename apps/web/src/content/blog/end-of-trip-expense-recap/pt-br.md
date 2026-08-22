@@ -3,7 +3,7 @@ title: O resumo no fim da viagem
 description: Quanto a viagem custou de verdade, quantos dias durou e quem mais bancou. Um card pro grupo quando a viagem acaba e todo mundo fica quites.
 date: 2026-07-28
 type: guide
-tags: [trips, recap]
+tags: [viagens, resumo]
 claims:
     - link-is-the-key
     - settle-is-a-record

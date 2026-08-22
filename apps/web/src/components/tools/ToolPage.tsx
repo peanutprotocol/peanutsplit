@@ -6,12 +6,13 @@ import { LanguageLinks } from '@/components/marketing/LanguageLinks'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { SkinFrame } from '@/components/marketing/SkinFrame'
 import { CTA, FAQ, FAQItem, RelatedLink, RelatedPages } from '@/components/marketing/mdx/blocks'
+import { BLOCK_LABELS } from '@/components/marketing/mdx/components'
 import { ToolCalculator } from '@/components/tools/ToolCalculator'
 import { Doodle } from '@/components/ui/Doodle'
 import { breadcrumbSchema, faqSchema, toolSchema } from '@/lib/seo'
 import { hashSlug } from '@/lib/split-content/seed'
 import { toolSkin, toolWallpaperChapter } from '@/lib/split-content/tool-skin'
-import { toolLocales, toolPath } from '@/tools/registry'
+import { getTool, toolLocales, toolPath } from '@/tools/registry'
 import type { Tool } from '@/tools/types'
 import type { IndexedLocale } from '@/i18n/locales'
 
@@ -56,8 +57,12 @@ export async function ToolPage({
     // A variant page measures and campaign-codes as itself: one country's page is the unit this
     // family would be judged by, and `mileage-split-calculator` would hide all of them.
     const source = variant ? variant.path.slice(1).replace(/\//g, '-') : tool.slug
+    // A variant's URL has the calculator in it, so its trail does too — otherwise the breadcrumb
+    // JSON-LD claims one level where the path has two. Same slug, so the registry has the parent.
+    const parent = variant ? getTool(tool.slug, locale) : null
     const crumbs = [
         { name: t('home'), href: '/' },
+        ...(parent ? [{ name: parent.copy.h1, href: toolPath(parent, locale) }] : []),
         { name: tool.copy.h1, href: path },
     ]
 
@@ -150,7 +155,7 @@ export async function ToolPage({
             {/* Same block an article ends on, for the same reason: a page nothing links onward from
                 is where a reader's session ends and where a crawler turns round. */}
             {tool.related && tool.related.length > 0 && (
-                <RelatedPages>
+                <RelatedPages title={BLOCK_LABELS[locale].related}>
                     {tool.related.map((link) => (
                         <RelatedLink key={link.href} href={link.href}>
                             {link.label}

@@ -3,7 +3,7 @@ title: Quem paga o vinho
 description: Dividir por igual é a convenção mais fácil da mesa e a que mais gera ressentimento calado. Quatro formas de rachar a conta, e quando cada uma se defende.
 date: 2026-07-30
 type: editorial
-tags: [fairness, groups]
+tags: [justiça, grupos]
 claims:
     - netting-is-bounded-exact
     - settle-is-a-record
@@ -50,7 +50,7 @@ O que custa é que a noite vira uma prestação de contas, e as escolhas de cada
 
 A quarta convenção é a mais comum e a menos discutida, porque nunca é proposta. Você cai nela por padrão. Uma pessoa percebe a assimetria, conclui que levantar o assunto custaria mais do que absorver, e absorve. Nada é dito. O jantar termina bem, uma vez.
 
-[Uma pesquisa de 2023 do Starling Bank](https://www.starlingbank.com/news/one-third-of-uk-adults-owed-money-by-friends-and-family/) com dois mil adultos no Reino Unido descobriu que 46% das pessoas a quem amigos ou família deviam dinheiro tinham vergonha demais de cobrar, que receber de volta levava mais de dois meses em média, e que 17% já tinham começado a guardar rancor de quem devia. O mecanismo é a assimetria da memória: ser credor se lembra, ser devedor não. Tem gente que nunca toca no assunto, e carrega um rancor que dura mais que a amizade em vez de mandar [uma mensagem curta na primeira semana](/guides/ask-a-friend-to-pay-you-back).
+[Uma pesquisa de 2023 do Starling Bank](https://www.starlingbank.com/news/one-third-of-uk-adults-owed-money-by-friends-and-family/) com dois mil adultos no Reino Unido descobriu que 46% das pessoas a quem amigos ou família deviam dinheiro tinham vergonha demais de cobrar, que receber de volta levava mais de dois meses em média, e que 17% já tinham começado a guardar rancor de quem devia. O mecanismo é a assimetria da memória: ser credor se lembra, ser devedor não. Tem gente que nunca toca no assunto, e carrega um rancor que dura mais que a amizade em vez de mandar [uma mensagem curta na primeira semana](/pt-br/guides/ask-a-friend-to-pay-you-back).
 
 ## Três casos mais difíceis
 
@@ -80,7 +80,7 @@ Nada disso é obrigatório, e nada disso sobrevive a ser introduzido tarde. Se n
 
 Existe também um piso abaixo do qual o exercício custa mais do que recupera. Se um mês de jantares em disputa soma menos do que um desses jantares, a conversa é a parte cara.
 
-Nenhuma ferramenta faz a metade social. O Peanut Split mostra o número e mostra como chegou nele, que é a metade sobre a qual as pessoas menos discutem. Ele não tem opinião sobre qual convenção a sua mesa deve usar, não confere com nenhum banco e não teria como, e acertar as contas é um toque que registra o que duas pessoas já fizeram.
+Nenhuma ferramenta faz a metade social. O Split mostra o número e mostra como chegou nele, que é a metade sobre a qual as pessoas menos discutem. Ele não tem opinião sobre qual convenção a sua mesa deve usar, não confere com nenhum banco e não teria como, e acertar as contas é um toque que registra o que duas pessoas já fizeram.
 
 Combinar uma convenção leva uns onze segundos com os cardápios ainda na mesa. Uma sala do Split é um link, e ela mantém a conta sem entrar na discussão.
 
@@ -97,14 +97,14 @@ Combinar uma convenção leva uns onze segundos com os cardápios ainda na mesa.
 </FAQ>
 
 <Share
-  title="Manda no grupo do WhatsApp"
+  title="Mande no grupo do WhatsApp"
   body="Antes da segunda garrafa, de preferência. As três frases são logística quando chegam com os cardápios e acusação quando chegam com a conta."
-  buttonLabel="Manda pro grupo"
+  buttonLabel="Mandar pro grupo"
   doneLabel="Link copiado" />
 
 <RelatedPages>
 <RelatedLink href="/pt-br/blog/split-expenses-in-real-time">Lançar a despesa na mesa, não uma semana depois</RelatedLink>
 <RelatedLink href="/pt-br/blog/end-of-trip-expense-recap">Como ficam as despesas de um grupo no fim</RelatedLink>
 <RelatedLink href="/pt-br/blog/split-bills-without-an-app">Dividir a conta sem obrigar ninguém a se cadastrar</RelatedLink>
-<RelatedLink href="/pt-br/new">Coloque a conta onde todo mundo possa ver</RelatedLink>
+<RelatedLink href="/new">Coloque a conta onde todo mundo possa ver</RelatedLink>
 </RelatedPages>

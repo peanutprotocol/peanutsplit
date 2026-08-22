@@ -28,15 +28,15 @@ draft: true
 
 Justo é uma palavra que faz vários papéis, e a conta que você quer depende do que está desigual. Um quarto maior é uma pergunta; uma viagem de carro mais longa é outra; e um jantar em que uma pessoa pediu o menu degustação e outra só uma sopa é a terceira.
 
-Errar nisso raramente é dramático. É a pessoa que fez a conta virando a pessoa que tem que defendê-la, três semanas depois, no grupo do WhatsApp, com os cálculos no celular e em nenhum outro lugar. O Peanut Split guarda o número para ninguém precisar ser essa pessoa.
+Errar nisso raramente é dramático. É a pessoa que fez a conta virando a pessoa que tem que defendê-la, três semanas depois, no grupo do WhatsApp, com os cálculos no celular e em nenhum outro lugar. O Split by Peanut guarda o número para ninguém precisar ser essa pessoa.
 
 ## Qual conta você realmente quer
 
-Se for os quartos, o número segue a área: meça os quartos privativos, deixe as áreas comuns de fora, e cada pessoa paga a fração do aluguel que o quarto dela representa do total. Essa é a [calculadora de divisão de aluguel](/rent-split-calculator), que coloca um controle deslizante ao lado de cada nome para a metade que a área não resolve.
+Se for os quartos, o número segue a área: meça os quartos privativos, deixe as áreas comuns de fora, e cada pessoa paga a fração do aluguel que o quarto dela representa do total. Essa é a [calculadora de divisão de aluguel](/pt-br/rent-split-calculator), que coloca um controle deslizante ao lado de cada nome para a metade que a área não resolve.
 
-Se for a direção, o número segue a distância a uma taxa que precifica o carro, não a gasolina. Um valor justo por quilômetro cobre os pneus, a revisão e o valor que o carro perde com o tempo, e por isso o número oficial fica acima do preço da bomba. A [calculadora de divisão por quilometragem](/mileage-split-calculator) calcula uma viagem assim e a divide entre todo mundo que estava dentro.
+Se for a direção, o número segue a distância a uma taxa que precifica o carro, não a gasolina. Um valor justo por quilômetro cobre os pneus, a revisão e o valor que o carro perde com o tempo, e por isso o número oficial fica acima do preço da bomba. A [calculadora de divisão por quilometragem](/pt-br/mileage-split-calculator) calcula uma viagem assim e a divide entre todo mundo que estava dentro.
 
-Se for uma despesa entre pessoas, aqui não tem calculadora e não vai ter. Um número num formulário é um número que uma pessoa redigita no grupo do WhatsApp, e esse é o trabalho inteiro. [Abra uma sala](/pt-br/new): cada um lança o que pagou, e tudo se reduz a dois ou três pagamentos em vez de vinte.
+Se for uma despesa entre pessoas, aqui não tem calculadora e não vai ter. Um número num formulário é um número que uma pessoa redigita no grupo do WhatsApp, e esse é o trabalho inteiro. [Abra uma sala](/new): cada um lança o que pagou, e tudo se reduz a dois ou três pagamentos em vez de vinte.
 
 ## Onde isso deixa de valer a pena
 
@@ -66,7 +66,6 @@ As calculadoras fazem a ponderação e a sala mantém o saldo. Ela converte auto
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/rent-split-calculator">Divisão de aluguel por tamanho do quarto, com um controle deslizante para quem está em melhor situação</RelatedLink>
-<RelatedLink href="/mileage-split-calculator">Um carro compartilhado, calculado pela taxa oficial</RelatedLink>
-<RelatedLink href="/tools">As calculadoras</RelatedLink>
+<RelatedLink href="/pt-br/rent-split-calculator">Divisão de aluguel por tamanho do quarto, com um controle deslizante para quem está em melhor situação</RelatedLink>
+<RelatedLink href="/pt-br/mileage-split-calculator">Um carro compartilhado, calculado pela taxa oficial</RelatedLink>
 </RelatedPages>
