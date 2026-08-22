@@ -123,6 +123,15 @@ describe('proxy marketing page cache rule', () => {
         }
     })
 
+    it('leaves the health probes on their own no-store, which a proxy header would override', () => {
+        for (const pathname of ['/healthcheck', '/readiness']) {
+            const response = proxy(new NextRequest(`https://renderer.internal${pathname}`))
+
+            expect(response.status, pathname).toBe(200)
+            expect(response.headers.get('cache-control'), pathname).toBeNull()
+        }
+    })
+
     it('keeps the handoff on /new uncached even though it states a locale', () => {
         const response = proxy(new NextRequest('https://renderer.internal/new?locale=pt-br'))
         expect(response.headers.get('cache-control')).toBeNull()

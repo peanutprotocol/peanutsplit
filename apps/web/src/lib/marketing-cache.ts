@@ -1,3 +1,4 @@
+import { RESERVED_ROOT_SEGMENTS } from '@/data/static-pages'
 import { DEFAULT_LOCALE, isIndexedLocale } from '@/i18n/locales'
 import { localeFromPathname, localePrefix } from '@/i18n/paths'
 
@@ -18,20 +19,23 @@ const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*'
  * The blog hub and its articles, the calculators hub, and a root-level page (comparison, capture,
  * calculator) with its country pages. Mirrors `(marketing)` in `src/app`.
  */
-const MARKETING_SURFACES = new RegExp(`^(?:/blog(?:/${SLUG})?|/tools|/${SLUG}(?:/${SLUG})?)$`)
+const MARKETING_SURFACES = new RegExp(`^(?:/blog(?:/${SLUG})?|/tools|/(${SLUG})(?:/${SLUG})?)$`)
 
 /**
- * Root segments that sit at a marketing-shaped URL but are not a pure function of it: `/import`
- * reads the locale cookie and `Accept-Language` for the importer it wraps, `/dev-ds` is a noindex
- * design-system surface, and a guide is release-gated per request.
+ * Root segments that sit at a marketing-shaped URL but are not served by `[page]`: every root path
+ * Next already owns (`/healthcheck` and `/readiness` answer `no-store` themselves, and a proxy
+ * header would win over theirs), the metadata image routes, `/import`, which reads the locale
+ * cookie and `Accept-Language` for the importer it wraps, `/dev-ds`, a noindex design-system
+ * surface, and a guide, which is release-gated per request.
  */
-const PER_REQUEST_SEGMENTS = new Set(['import', 'dev-ds', 'guides'])
+const PER_REQUEST_SEGMENTS = new Set([...RESERVED_ROOT_SEGMENTS, 'opengraph-image', 'import', 'dev-ds', 'guides'])
 
 export function marketingCacheable(pathname: string): boolean {
     const locale = localeFromPathname(pathname)
     if (!locale || !isIndexedLocale(locale)) return false
     const path = locale === DEFAULT_LOCALE ? pathname : pathname.slice(localePrefix(locale).length)
-    if (!MARKETING_SURFACES.test(path)) return false
-    const [, first = ''] = path.split('/')
-    return !PER_REQUEST_SEGMENTS.has(first)
+    const match = MARKETING_SURFACES.exec(path)
+    if (!match) return false
+    const [, root] = match
+    return root === undefined || !PER_REQUEST_SEGMENTS.has(root)
 }
