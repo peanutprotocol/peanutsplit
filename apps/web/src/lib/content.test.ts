@@ -26,7 +26,10 @@ import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import sitemap from '@/app/sitemap'
 import { absoluteUrl, pageTitle } from './seo'
 import { TOOLS, getTool, toolLocales, toolPath, toolsIn } from '@/tools/registry'
-import { toolMetadata } from './tool-routes'
+import { MILEAGE_RATES } from '@/tools/mileage-rates'
+import { mileageSplitCalculator } from '@/tools/mileage-split-calculator'
+import { MILEAGE_COUNTRY_PAGES, mileageCountryLinks } from '@/tools/mileage-split-calculator.countries'
+import { getToolCountry, toolMetadata } from './tool-routes'
 import type { Tool, ToolField } from '@/tools/types'
 
 /**
@@ -1167,6 +1170,20 @@ const TOOL_PAGES = INDEXED_LOCALES.flatMap((locale) =>
     toolsIn(locale).map((tool) => [`${tool.slug}/${locale}`, tool, locale] as const)
 )
 
+/**
+ * The country pages, in the same shape: they are tool pages at their own URLs, so every mechanical
+ * gate reads them too. They have no locale dimension by construction — the family is English — so
+ * the routing and hreflang tests below keep to `TOOL_PAGES`.
+ */
+const COUNTRY_PAGES: (readonly [string, Tool, IndexedLocale])[] = MILEAGE_COUNTRY_PAGES.map((page) => [
+    page.path.slice(1),
+    page.tool,
+    'en',
+])
+
+/** Every page the site renders from a tool config. What the mechanical gates run over. */
+const GATED_PAGES = [...TOOL_PAGES, ...COUNTRY_PAGES]
+
 /** The same list minus English, paired with the ENGLISH tool — the source a translation answers to. */
 const TRANSLATED_TOOLS = TOOLS.flatMap((tool) =>
     toolLocales(tool)
@@ -1202,7 +1219,7 @@ describe('tool registry', () => {
         }
     })
 
-    it.each(TOOL_PAGES)('keeps %s inside what Google renders', (id, tool) => {
+    it.each(GATED_PAGES)('keeps %s inside what Google renders', (id, tool) => {
         expect(pageTitle(tool.meta.title).length, `${id} title too long`).toBeLessThanOrEqual(60)
         expect(tool.meta.description.length, `${id} description too long`).toBeLessThanOrEqual(160)
     })
@@ -1309,7 +1326,7 @@ describe('tool registry', () => {
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
             ...TOOLS.flatMap((tool) => toolLocales(tool).map((locale) => toolPath(tool, locale))),
         ])
-        for (const [id, tool] of TOOL_PAGES) {
+        for (const [id, tool] of GATED_PAGES) {
             for (const link of tool.related ?? []) {
                 expect(known.has(link.href), `${id} links to missing ${link.href}`).toBe(true)
                 expect(link.label.length, `${id}: ${link.href} has no label`).toBeGreaterThan(0)
@@ -1323,6 +1340,79 @@ describe('tool registry', () => {
             const questions = tool.faqs.map((faq) => faq.question)
             expect(new Set(questions).size, `${tool.slug} asks the same question twice`).toBe(questions.length)
             for (const faq of tool.faqs) expect(faq.answer.length, `${tool.slug}: ${faq.question}`).toBeGreaterThan(20)
+        }
+    })
+})
+
+/**
+ * The per-country mileage pages. Their copy is gated with every other tool page above; what is
+ * left here is the family itself — which rows get one, where they are listed, and what happens to
+ * a URL that looks like one and is not.
+ */
+describe('mileage country pages', () => {
+    const byCode = new Set(MILEAGE_COUNTRY_PAGES.map((page) => page.row.code))
+
+    /** The data decides. A row with no single official figure would title a page after nothing. */
+    it.each(MILEAGE_RATES.map((row) => [row.code, row] as const))('gives %s a page iff it has a rate', (code, row) => {
+        expect(byCode.has(code), `${code}: a page exists iff the row carries a rate`).toBe(row.rate !== null)
+    })
+
+    it('lists exactly those pages in the sitemap, ranked with the calculator', () => {
+        const prefix = absoluteUrl(`/${mileageSplitCalculator.slug}/`)
+        const listed = sitemap().filter((entry) => entry.url.startsWith(prefix))
+        expect(listed.map((entry) => entry.url).sort()).toEqual(
+            MILEAGE_COUNTRY_PAGES.map((page) => absoluteUrl(page.path)).sort()
+        )
+        for (const entry of listed) {
+            expect(entry.priority, `${entry.url} is not ranked with the tools`).toBe(0.8)
+            // English only: an alternates map here would advertise a page that does not exist.
+            expect(entry.alternates?.languages, `${entry.url} advertises a translation`).toBeUndefined()
+        }
+    })
+
+    /** What `dynamicParams = false` 404s, asserted on the lookup the route and the OG card share. */
+    it('resolves a country page only under its own calculator', () => {
+        expect(getToolCountry(mileageSplitCalculator.slug, 'uk')?.path).toBe('/mileage-split-calculator/uk')
+        expect(getToolCountry(mileageSplitCalculator.slug, 'narnia')).toBeNull()
+        expect(getToolCountry(mileageSplitCalculator.slug, 'brazil')).toBeNull()
+        expect(getToolCountry('rent-split-calculator', 'uk')).toBeNull()
+        expect(getToolCountry(undefined, undefined)).toBeNull()
+    })
+
+    /**
+     * A country page sits one segment under a slug the content tree is already kept off, so the
+     * collision it can still have is with itself or with a page at the same URL.
+     */
+    it('never takes a URL another page owns', () => {
+        const owned = new Set<string>([
+            ...listAllTranslations().map((doc) => doc.href),
+            ...[...staticPageSlugs].map((slug) => `/${slug}`),
+            ...TOOLS.flatMap((tool) => toolLocales(tool).map((locale) => toolPath(tool, locale))),
+            ...SPLIT_CONTENT_INDEX_RELEASED_PATHS,
+        ])
+        const paths = MILEAGE_COUNTRY_PAGES.map((page) => page.path)
+        expect(new Set(paths).size, 'two countries claim one URL').toBe(paths.length)
+        for (const page of MILEAGE_COUNTRY_PAGES) {
+            expect(owned.has(page.path), `${page.path} is already served by something else`).toBe(false)
+            expect(page.slug, `${page.slug} is not a slug`).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+            // `opengraph-image` is Next's own name inside this folder, and the picker's escape
+            // hatch is not a country.
+            expect(['opengraph-image', 'other'], `${page.slug} is a reserved segment`).not.toContain(page.slug)
+        }
+    })
+
+    /** The list on the calculator is these pages and only these, and only in English. */
+    it('is linked from the calculator it hangs under, in English only', () => {
+        expect(mileageCountryLinks(mileageSplitCalculator.slug, 'en')?.links.map((link) => link.href)).toEqual(
+            MILEAGE_COUNTRY_PAGES.map((page) => page.path)
+        )
+        expect(mileageCountryLinks(mileageSplitCalculator.slug, 'es-419')).toBeUndefined()
+        expect(mileageCountryLinks('rent-split-calculator', 'en')).toBeUndefined()
+        // And back the other way: every country page returns the reader to the calculator and the hub.
+        for (const page of MILEAGE_COUNTRY_PAGES) {
+            const hrefs = (page.tool.related ?? []).map((link) => link.href)
+            expect(hrefs, `${page.path} does not link back`).toContain(`/${mileageSplitCalculator.slug}`)
+            expect(hrefs, `${page.path} does not link to the hub`).toContain('/tools')
         }
     })
 })
@@ -1375,7 +1465,7 @@ describe('localized content gates', () => {
 
 describe('tool style gate', () => {
     it.each(STYLE_RULES.map((rule) => [rule.id, rule] as const))('never says %s', (_id, rule) => {
-        for (const [id, tool] of TOOL_PAGES) {
+        for (const [id, tool] of GATED_PAGES) {
             const subject =
                 rule.target === 'meta' ? `${tool.meta.title} ${tool.meta.description}` : toolStrings(tool).join('\n')
             expect(subject.match(rule.pattern)?.[0], `${id}: ${rule.why}`).toBeUndefined()
@@ -1389,7 +1479,7 @@ describe('tool style gate', () => {
      * table cells, a CTA and an FAQ — there is nowhere left for the interjection to stand.
      */
     it('spends no exclamation mark at all', () => {
-        for (const [id, tool] of TOOL_PAGES) {
+        for (const [id, tool] of GATED_PAGES) {
             for (const line of toolStrings(tool)) {
                 expect(line.includes('!'), `${id}: "${line}" — a tool page has nowhere to put one (§11.2)`) //
                     .toBe(false)
@@ -1423,7 +1513,7 @@ describe('tool style gate', () => {
      * and "Split by Peanut" in the CTA has entered twice.
      */
     it('names the product in full once, then calls it Split', () => {
-        for (const [id, tool] of TOOL_PAGES) {
+        for (const [id, tool] of GATED_PAGES) {
             const count = (
                 toolStrings(tool)
                     .join('\n')
@@ -1456,7 +1546,7 @@ describe('tool style gate', () => {
 
     /** §4.1: one concession, and its title names the tool that wins rather than what we lack. */
     it('concedes to something named, in the approved words', () => {
-        for (const [id, tool, locale] of TOOL_PAGES) {
+        for (const [id, tool, locale] of GATED_PAGES) {
             expect(tool.copy.concession.title, `${id}: see §4.1 for the approved titles`).toMatch(
                 CONCESSION_TITLE[locale]
             )

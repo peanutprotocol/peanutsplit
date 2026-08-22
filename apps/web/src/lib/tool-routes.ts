@@ -3,6 +3,7 @@ import { absoluteLanguages, pageMetadata, pageTitle } from '@/lib/seo'
 import { toolLocales, toolPath, toolsIn } from '@/tools/registry'
 import type { Tool } from '@/tools/types'
 import type { ParamName } from '@/lib/content-routes'
+import { MILEAGE_COUNTRY_PAGES, type MileageCountryPage } from '@/tools/mileage-split-calculator.countries'
 import { hreflangAlternates } from '@/i18n/paths'
 import type { IndexedLocale } from '@/i18n/locales'
 
@@ -37,4 +38,35 @@ export function toolMetadata(tool: Tool, locale: IndexedLocale): Metadata {
             languages: absoluteLanguages(hreflangAlternates(`/${tool.slug}`, toolLocales(tool))),
         },
     }
+}
+
+/**
+ * The country pages under a calculator's own slug — `/mileage-split-calculator/uk`.
+ *
+ * English only in this version: they answer English queries, so they carry no hreflang, and
+ * `/es-419/{slug}/{country}` is not a route rather than being an English page at a Spanish URL.
+ */
+const COUNTRY_LOCALE = 'en' satisfies IndexedLocale
+
+export function toolCountryParams(paramName: ParamName, countryParam: string) {
+    return () => MILEAGE_COUNTRY_PAGES.map((page) => ({ [paramName]: page.toolSlug, [countryParam]: page.slug }))
+}
+
+/**
+ * The page for a pair of route params, or null. Unvalidated on both sides, like `getTool`: a
+ * country nobody researched, a calculator with no country family, and a missing param all have to
+ * read as "not a page" so the route can 404 rather than throw.
+ */
+export function getToolCountry(slug: string | undefined, country: string | undefined): MileageCountryPage | null {
+    return MILEAGE_COUNTRY_PAGES.find((page) => page.toolSlug === slug && page.slug === country) ?? null
+}
+
+export function toolCountryMetadata(page: MileageCountryPage): Metadata {
+    return pageMetadata({
+        title: pageTitle(page.tool.meta.title),
+        description: page.tool.meta.description,
+        path: page.path,
+        type: 'website',
+        locale: COUNTRY_LOCALE,
+    })
 }

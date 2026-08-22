@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { STATIC_PAGES } from '@/data/static-pages'
 import { TOOLS, toolLocales, toolPath } from '@/tools/registry'
+import { MILEAGE_COUNTRY_PAGES } from '@/tools/mileage-split-calculator.countries'
 import { basePathFor, listAllTranslations, localesForSlug, type Collection } from '@/lib/content'
 import { absoluteUrl } from '@/lib/seo'
 import { DEFAULT_LOCALE, INDEXED_LOCALES } from '@/i18n/locales'
@@ -75,6 +76,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
         }))
     })
 
+    /**
+     * A country page is the calculator answering a narrower query, so it is ranked with it. No
+     * alternates: the family is English, and hreflang must never advertise a page that is not there.
+     */
+    const countries: MetadataRoute.Sitemap = MILEAGE_COUNTRY_PAGES.map((page) => ({
+        url: absoluteUrl(page.path),
+        lastModified: page.tool.updated,
+        changeFrequency: 'monthly' as const,
+        priority: 0.8,
+    }))
+
     // The hub exists in every locale by construction — it lists whatever that locale has, even
     // when that is nothing yet.
     const hubAlternates = absolutise(hreflangAlternates('/blog', [...INDEXED_LOCALES]))
@@ -117,7 +129,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         }
     })
 
-    return [...staticEntries, ...tools, ...hubs, ...articles, ...guides]
+    return [...staticEntries, ...tools, ...countries, ...hubs, ...articles, ...guides]
 }
 
 /**

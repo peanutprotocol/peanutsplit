@@ -23,6 +23,7 @@ import { listSplitGuides } from './split-content/artifact'
 import { splitGuideMetadata } from './split-content/metadata'
 import { INDEXED_LOCALES } from '@/i18n/locales'
 import { toolsIn } from '@/tools/registry'
+import { MILEAGE_COUNTRY_PAGES } from '@/tools/mileage-split-calculator.countries'
 import { metadata as landingMetadata } from '@/app/(product-shell)/(marketing)/page'
 import { metadata as toolsHubMetadata } from '@/app/(product-shell)/(marketing)/tools/page'
 import enMessages from '@/i18n/messages/en.json'
@@ -173,6 +174,7 @@ describe('title suffix policy', () => {
         ...INDEXED_LOCALES.flatMap((locale) =>
             toolsIn(locale).map((tool) => [`${locale}/${tool.slug}`, titleOf(toolMetadata(tool, locale))] as const)
         ),
+        ...MILEAGE_COUNTRY_PAGES.map((page) => [page.path, pageTitle(page.tool.meta.title)] as const),
         ...INDEXED_LOCALES.map((locale) => [`${locale} hub`, pageTitle(HUB_TITLES[locale])]),
         ...listAllTranslations().map((doc) => [`${doc.locale}/${doc.slug}`, pageTitle(doc.frontmatter.title)]),
     ] as const

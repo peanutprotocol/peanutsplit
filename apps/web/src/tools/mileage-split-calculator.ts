@@ -47,7 +47,7 @@ const ELSEWHERE = 'other'
  * be a different number from the one on the official page, so the rate is a plain figure here
  * rather than a money amount — the currency is named once, by the selector above it.
  */
-function rateText(rate: number): string {
+export function rateText(rate: number): string {
     const written = String(rate)
     const places = written.includes('.') ? written.split('.')[1].length : 0
     return rate.toFixed(Math.max(2, places))
@@ -151,7 +151,7 @@ const countryOptions: readonly ToolChoiceOption[] = [
 
 export const mileageSplitCalculator: Tool = {
     slug: 'mileage-split-calculator',
-    updated: '2026-07-30',
+    updated: '2026-08-22',
     doodle: 'car',
     register: 'default',
     meta: {
