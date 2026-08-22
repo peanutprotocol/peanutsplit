@@ -52,16 +52,28 @@ export function internalLinks(body) {
 }
 
 /**
+ * The tools that answer at a prefixed URL, per locale.
+ *
+ * Written out because this script cannot import TypeScript. `draft-translation.test.ts` compares
+ * it against `TOOLS`/`toolLocales` and fails when the registry moves without this.
+ */
+export const TOOL_LOCALES = {
+    'rent-split-calculator': ['es-419', 'pt-br'],
+    'mileage-split-calculator': ['es-419', 'pt-br'],
+}
+
+/**
  * What each of those links becomes in the target language.
  *
- * Only a content page moves under a locale prefix, and only once that language's file exists —
- * `content.ts` never falls back to English at a translated URL, so a prefix in front of a page
- * that has no such file is a link to a 404. Tools, guides and the marketing routes answer at one
- * URL in every language and keep their path. Re-running the script after a sibling is drafted
- * re-points the link.
+ * A page moves under a locale prefix only once that language's version exists — `content.ts` and
+ * the tool registry both refuse to serve English at a translated URL, so a prefix in front of a
+ * page that has none is a link to a 404. `/new` and `/` are cookie-localized and have no prefixed
+ * twin at all (`proxy.ts`), so they never take one; guides and the `/tools` hub keep their path.
+ * Re-running the script after a sibling is drafted re-points the link.
  */
 export function localizeLink(link, locale, root = webRoot) {
-    if (['/new', '/blog'].includes(link)) return `/${locale}${link}`
+    if (link === '/blog') return `/${locale}${link}`
+    if (TOOL_LOCALES[link.slice(1)]?.includes(locale)) return `/${locale}${link}`
     for (const collection of COLLECTIONS) {
         const slug = link.startsWith('/blog/') ? link.slice('/blog/'.length) : link.slice(1)
         const base = collection === 'blog' ? `/blog/${slug}` : `/${slug}`
@@ -173,7 +185,8 @@ function main(argv) {
 
     const outFile = path.join(dir, `${locale}.md`)
     // A reviewed page is a human's work. Only a draft may be redrafted.
-    if (existsSync(outFile) && !/^draft:\s*true$/m.test(read(outFile))) {
+    // Frontmatter only: the same line in body prose or a fenced block is not a draft flag.
+    if (existsSync(outFile) && !/^draft:\s*true$/m.test(read(outFile).match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '')) {
         console.error(
             `${collection}/${slug}/${locale}.md exists and is not a draft — delete it first if you mean to replace it`
         )
@@ -192,7 +205,7 @@ function main(argv) {
         maxBuffer: 32 * 1024 * 1024,
     })
     if (claude.status !== 0 || !claude.stdout?.trim()) {
-        const file = path.join(promptDir(), `${slug}.${locale}.md`)
+        const file = path.join(promptDir(), `${collection}.${slug}.${locale}.md`)
         mkdirSync(path.dirname(file), { recursive: true })
         writeFileSync(file, bundle)
         console.error(
