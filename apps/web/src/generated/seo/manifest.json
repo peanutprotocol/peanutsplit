@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "source_repository": "peanutprotocol/mono",
-  "source_commit": "9513d0a888180f5966d5f962d548641bd5fde9c4",
+  "source_commit": "2241c1f4ad494d0dcecea3b4100cda2995ffcae2",
   "content_root": "split-content",
   "locales": [
     "en",
@@ -33,7 +33,7 @@
     "split-content/_system/guidelines/components.md": "9212104fc8a692d62c109ce21b28e22d7693e54f8cac6916449af3c9275b6c02",
     "split-content/_system/guidelines/intent-taxonomy.md": "8d720b4d49ea009e990a5838a7d3eb6b83adfb9b5099cc22b8a7214efbe1ad33",
     "split-content/_system/guidelines/locales.md": "a6b6f10ea374bdd621dd38eef57512b3972a24a9a0f3ba16a67df11ce6903b23",
-    "split-content/_system/guidelines/seo.md": "01cba8988c9c6b637f5f0b715a695b192f6534514e51823486610f87e2b66746",
+    "split-content/_system/guidelines/seo.md": "edb66f8d1956c1012c8f201e6eecc77521fa022bf3be693c8271abf31a60f30a",
     "split-content/_system/workflows/generate-guide.md": "6e27f1834c0640902ce58fc8f730cb19c483db891da1144681a7b103ef92dda0",
     "split-content/product/truths.md": "ef2b8286ce806266e7e7b41f8f5c0c4a555deae38b14100d641a60af5e7da8ee"
   },
