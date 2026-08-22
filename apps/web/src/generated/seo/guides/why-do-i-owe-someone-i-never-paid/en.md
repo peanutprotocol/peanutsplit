@@ -13,6 +13,7 @@ canonical: https://peanutsplit.com/guides/why-do-i-owe-someone-i-never-paid
 schema_types: [BlogPosting]
 alternates:
   en: split-content/published/guides/why-do-i-owe-someone-i-never-paid/en.md
+  es-419: split-content/published/guides/why-do-i-owe-someone-i-never-paid/es-419.md
 generated_from:
   template: split-content/_system/generation-templates/guide.md
   data:
