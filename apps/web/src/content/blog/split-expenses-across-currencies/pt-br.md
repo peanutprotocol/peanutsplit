@@ -2,10 +2,12 @@
 title: Dividir despesas em várias moedas
 description: Você pagou em bahts, a sala conta em euros, seu cartão cobrou em libras. Qual câmbio importa, qual não importa, e onde o grupo perde dinheiro.
 date: 2026-07-26
+type: guide
 tags: [moedas, viagens]
 claims:
     - automatic-currency-conversion
     - free-forever
+cast: []
 faqs:
     - question: Que câmbio o grupo deve usar?
       answer: Combinem a moeda da sala uma vez e deixem o Split converter cada despesa no momento do lançamento. As taxas são de referência, não as do seu banco, então trate os totais como exatos e a conversão como perto o bastante para dividir.

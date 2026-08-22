@@ -1,5 +1,5 @@
 ---
-last_verified: 2026-08-05
+last_verified: 2026-08-22
 ---
 
 # Product truths
@@ -164,3 +164,113 @@ home screen is a phone feature, not an install"
 
 **source:** live product copy — the landing page and the comparison pages already say this, and it is
 the pitch, so "the app" (peanut.me's own house style) is unusable here.
+
+---
+
+## live-room-stream
+
+**claim:** Every open room holds an event stream. A change on the server pokes the stream and the
+phone refetches the room, so other people see it within seconds and nobody reloads. Polling never
+stops: every 45 seconds while the stream is open, every eight seconds while it is not. A dropped
+stream reconnects in the background with full-jitter backoff from one second, doubling to a
+30-second ceiling. Balances are recomputed from the full list on every fetch.
+
+**safe:** "shows up on the other phones a second or two later" · "no refresh, no tap" · "checks every
+45 seconds as a backstop while the stream is open" · "about every eight seconds when the stream is
+down" · "reconnects in the background with a growing, randomised delay"
+
+**unsafe:** "instant" · "real-time" as a guarantee · "never misses an update" · "no polling" · a fixed
+number of seconds for a reconnect · anything implying the stream carries the data (it only says when
+to ask)
+
+**source:** `apps/web/src/lib/queries/reads.ts` (`LIVE_POLL_MS = 45_000`, `FALLBACK_POLL_MS = 8_000`)
+· `apps/web/src/lib/realtime.ts` (`BASE_BACKOFF_MS = 1_000`, `MAX_BACKOFF_MS = 30_000`,
+`backoffDelay` full jitter) · `apps/web/src/app/api/rooms/[slug]/events/route.ts` (the poke carries
+no data)
+
+---
+
+## receipt-scan-30-a-day
+
+**claim:** A room can scan 30 bills a day. The limit is a token bucket of 30 per room over 24 hours
+that refills gradually, counted per container, so it is roughly a day, not a midnight reset. It is
+a ceiling on what one room can cost in model calls, not a tier.
+
+**safe:** "a room can scan up to 30 bills a day" · "a limit on the cost of running it, not a tier you
+can buy your way out of"
+
+**unsafe:** "unlimited scans" · "30 per person" · "resets at midnight" · anything implying a paid
+tier lifts it
+
+**source:** `apps/web/src/server/receipt.ts` (`ROOM_SCAN_LIMIT = { capacity: 30, windowMs: 24h }`,
+and the comment on why it is a bucket) · `apps/web/src/app/api/rooms/[slug]/receipt-parse/route.ts`
+(`enforceRoomScanLimit`, after the per-IP limiter)
+
+---
+
+## receipt-photo-handling
+
+**claim:** The photo goes to a Gemini model, over OpenRouter when that key is set (the request
+demands `data_collection: deny` and zero data retention from the provider) or directly to Gemini
+only when the operator confirms a paid-tier project. The server keeps no image, merchant name or
+line, and logs none of it. The model's arithmetic is re-summed and compared with the printed total.
+A photo shared into the installed Android app is parked on the device in Cache Storage, handed to
+one room once, rejected after ten minutes, and an expired copy is cleared on the next app boot.
+Only the expense the person approves is saved.
+
+**safe:** "Split sends the photo to Gemini for reading, either through OpenRouter or directly" ·
+"its server does not save the image or extracted lines" · "single-use and rejected after ten
+minutes" · "what Split saves is the expense you approve" · "Google's paid-tier terms allow
+temporary logging for abuse monitoring"
+
+**unsafe:** "processed on your device" · "never leaves your phone" · "encrypted" · "deleted" as if
+Split had stored it · any retention period stated for Google or a provider beyond their own terms
+
+**source:** `apps/web/src/server/model.ts` (transport choice, `provider: { data_collection: 'deny',
+zdr: true }`, `SPLIT_GEMINI_PAID_TIER_CONFIRMED`, nothing persisted or logged) ·
+`apps/web/src/server/receipt.ts` (image never persisted, sum recomputed beside the model's total) ·
+`apps/web/src/lib/shared-receipt.ts` (`SHARE_TTL_MS = 10 min`, `takeSharedReceipt` one-shot,
+`sweepSharedReceipt` on boot)
+
+---
+
+## offline-queue-30
+
+**claim:** The offline queue holds at most 30 expenses per device, across rooms. Past that the
+oldest draft that is not blocked for review is dropped and the person is told; if all 30 are
+blocked, the new one is refused. The queue drains one expense at a time in the order typed.
+
+**safe:** "thirty expenses per device" · "up to thirty of them" · "past that the oldest is dropped
+and you are told" · "sends in the order you typed, never in parallel"
+
+**unsafe:** "unlimited" · "thirty per room" · any guarantee that nothing is dropped · any number
+other than thirty
+
+**source:** `apps/web/src/lib/offline-queue.ts` (`MAX_QUEUED = 30`, `appendQueued` evicts the
+oldest unblocked draft and returns it so the UI can say so, sequential drain)
+
+---
+
+## recap-card
+
+**claim:** The recap is shared as a PNG, never as a URL, because the recap URL carries the room
+slug and the slug is the credential. The file is named `peanut-split-recap.png` and the card prints
+the product domain, not the room address. It shows the room's total spend, expense count, people
+count, day count, recorded payments and who fronted the most; it shows no per-person balance. The
+settled stamp appears only when the room has at least one expense and every net balance is zero.
+The recap screen renders for an unsettled room as a recap so far; the share button renders only
+once the room is settled.
+
+**safe:** "shared as an image instead" · "the card shows what the group spent and who fronted the
+most, not what anyone owes" · "a settled stamp once everybody is square" · "an empty room is not
+settled, it is empty" · "the share button waits for settled"
+
+**unsafe:** "share the recap link" · "anonymous" · "the card shows balances" · "settled" on a room
+with open balances or no expenses
+
+**source:** `apps/web/src/lib/recap.ts` (the image-not-link argument, `RECAP_FILE_NAME`) ·
+`apps/web/src/components/room/RecapShareButton.tsx` (`navigator.share({ files })`) ·
+`apps/web/src/server/og/recapCard.ts` (`isSettled`: expenses present and every balance `0n`; the
+card fields) · `apps/web/src/server/og/recapCardArt.tsx` (stamp only when settled; printed domain)
+· `apps/web/src/app/(product-shell)/r/[slug]/recap/page.tsx` and
+`apps/web/src/components/room/WrappedDeck.tsx` (share button inside the settled-only deck)

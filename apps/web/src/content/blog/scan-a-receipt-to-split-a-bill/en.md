@@ -2,11 +2,15 @@
 title: Scan a receipt to split a bill by item
 description: Photograph the bill, check the lines it read, tap who had what. Receipt splitting is free forever, with no premium tier or account to make first.
 date: 2026-07-28
+type: guide
 v2Only: true
 tags: [receipts, dinners]
 claims:
     - free-forever
     - link-is-the-key
+    - receipt-scan-30-a-day
+    - receipt-photo-handling
+cast: []
 faqs:
     - question: Is receipt scanning free forever?
       answer: Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.

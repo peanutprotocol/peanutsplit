@@ -2,10 +2,13 @@
 title: The end-of-trip expense recap
 description: What the week actually cost, how many days it ran and who fronted the most. One card to put in the group chat when the trip is over and everyone is square.
 date: 2026-07-28
+type: guide
 tags: [trips, recap]
 claims:
     - link-is-the-key
     - settle-is-a-record
+    - recap-card
+cast: []
 faqs:
     - question: What is on the recap?
       answer: The room's total spend, how many days it ran, how many expenses and people were in it, how many payments got recorded, and who fronted the most money. It carries a settled stamp once everybody is square.

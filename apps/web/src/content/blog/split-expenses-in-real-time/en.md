@@ -2,10 +2,13 @@
 title: Splitting expenses in real time
 description: Everyone watching the same total on their own phone, with nobody refreshing. What a live shared expense list fixes at the table, and what it still cannot do.
 date: 2026-07-28
+type: guide
 tags: [groups, live]
 claims:
     - settle-is-a-record
     - link-is-the-key
+    - live-room-stream
+cast: []
 faqs:
     - question: Do the other people have to refresh to see my expense?
       answer: No. Every open room holds a stream, and an expense you add shows up on the other phones a second or two later. Nobody has to reload, and nobody has to be told to.
