@@ -63,5 +63,6 @@ no route, sitemap entry or hub card can reach it, every gate still runs on it, a
 `templates/` and `workflows/` (one file per content type, one per drafting pass) and `AUDITS.md`
 (dated cold-read findings, each landing as a stylebook line).
 
-`stylebook.md` here is the operative copy — read it, draft against it. It is synced from mono at
-`projects/peanut-split/seo/stylebook.md`, which is where an edit to the rules goes.
+`stylebook.md` here is the master for this corpus — read it, draft against it, and edit the rules
+here. Mono `projects/peanut-split/seo/stylebook.md` is history, and mono `split-content/_system/`
+rules the generated guides, not these pages.

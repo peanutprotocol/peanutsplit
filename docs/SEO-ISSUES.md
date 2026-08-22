@@ -93,18 +93,40 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       way trim the description. Fixed 2026-08-21: `robots: noindex, follow` like `/new`, and
       the description trimmed to 156 chars. The `inSitemap: true` capture-page route was not
       taken; reversible.
-- [ ] **7. The mirror has no automation and no staleness alarm.** `split-content-pull.yml` is
+- [x] **7. The mirror has no automation and no staleness alarm.** Done 2026-08-22 (mono
+      `096fdb54` + `9075d5b0`): ruling = do not finish the dark publisher, add the watchdog.
+      `.github/workflows/split-content-watchdog.yml` runs daily (06:23 UTC) and on dispatch,
+      fetches peanutsplit main's `apps/web/src/generated/seo/manifest.json` with
+      `PEANUT_ALL_READ_TOKEN`, and requires byte equality with mono main's manifest after the
+      one rewrite the mirror makes (the `source_commit` token). Drift fails the run with both
+      shas and the mirror command. First dispatched run 2026-08-22 09:53Z: "in sync". Tracker
+      decision 23. Original text: `split-content-pull.yml` is
       deliberately dark (workflow_dispatch only); actual practice is same-session agent runs of
       `split-content-mirror.mjs` straight to prod main. If nobody runs it, mono-side corrections
       never ship and nothing notices. Either finish the disposable proof and schedule the
       workflow, or add a watchdog comparing mono's `split-content/_system/generated/manifest.json`
       hash against the deployed artifact.
-- [ ] **8. The declared stylebook master is stale and disavowed.** `_system/README.md` says
+- [x] **8. The declared stylebook master is stale and disavowed.** Done 2026-08-22 (mono
+      `e36c3b79`, peanutsplit `cc428d0` + this commit). Ruling: the generated guides are ruled by
+      mono `split-content/_system/`; the native corpus is ruled by `apps/web/src/content/_system/stylebook.md`
+      in this repo (`_system/README.md` now says so); mono `projects/peanut-split/seo/` is history
+      and its stylebook + two locale rulebooks carry a superseded banner. The native
+      `localization.*.md` gained the claims clamp, the `doce monedas`/`doze moedas` ban and a
+      corrected diacritic-gate section; URL scheme and CTA pinning differ by corpus on purpose.
+      Original text: `_system/README.md` says
       rule edits go to mono `projects/peanut-split/seo/stylebook.md`; that copy still teaches
       "twelve currencies" as the safe phrasing (now a banned never-string) and mono's
       `split-content/README.md` disavows the folder. Pick one home, reconcile both READMEs in
       the same commit; same fix for the three drifting copies of the locale rulebooks.
-- [ ] **9. Stylebook enforcement covers about a third of §11.** ~24 machine gates exist;
+- [x] **9. Stylebook enforcement covers about a third of §11.** Done 2026-08-22, both halves:
+      mono `16ebbf3d` gave the generated-guide validator its first prose gates (26
+      `NEVER_STRINGS` rows + `PROSE_CAPS`, green on all 15 outputs); peanutsplit `46b2739` ported
+      them into `content.test.ts` as data rows with a `locales` field (19 new rows; 7 already
+      existed as `ANTI_AI_STRINGS`), the entrance cap counts `Split by Peanut`, and an em-dash cap
+      (≤3 per page) landed after 26 dash-to-punctuation swaps on nine pages. Two rows are
+      narrower on purpose: `es-voseo` matches whole words (accents defeat `\b`) and `pt-racha`
+      needs a determiner (`rachar` is a verb Split uses). Left out: the "that is where" pair
+      (one literal use in a guide). Original text: ~24 machine gates exist;
       wholly unenforced: §6.4 adjectives, §6.7 currency-claim variants, all es-419 and pt-br
       token bans (voseo/plata already shipped once, seo-backlog.md:47), quote byte-lock, cast
       rules, em-dash cap. The doc entrance gate counts only "Peanut Split", so "Split by Peanut"
@@ -127,7 +149,14 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       uniqueness rule the same day; §6.18 is the second-guide read, claims boilerplate exempt,
       flagged molds ride each page's next pass (§6.18.5), so no regeneration was pulled in.
       Decision 20 in the tracker records both rulings.
-- [ ] **12. The rules and the outputs are unproven against each other.** The nine released
+- [x] **12. The rules and the outputs are unproven against each other.** Done 2026-08-22 (mono
+      `47c79577`, peanutsplit `67b3d39`): `/es-419/guides/why-do-i-owe-someone-i-never-paid` was
+      authored end to end from `workflows/generate-guide.md` (new es-419 brief, transcreated,
+      flat register, claims from `product/truths.md`, links only to released es-419 paths). No
+      rule needed a lift — the ruleset held. It ships PARKED (`noindex, nofollow, noarchive`,
+      absent from the sitemap, verified live); release = add the path to `index-release.ts` after a
+      human reads the rendered page (tracker rule), and it then becomes the es-419 repoint target
+      the decision-12 residue in Closed asks for. Original text: The nine released
       outputs were edited in place, never re-run through `workflows/generate-guide.md`. The gap
       closes the first time a guide is authored from these rules; until then treat the ruleset
       as untested.
@@ -171,11 +200,18 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       `dev-ds/layout.tsx` has carried `robots: { index: false, follow: false }` since `005a942`
       (2026-08-11); prod serves `<meta name="robots" content="noindex, nofollow">` on both
       routes. The header is absent but the meta directive does the same job.
-- [ ] **19. Write the "hub is `/blog`" ruling into the mono generation contract.**
+- [x] **19. Write the "hub is `/blog`" ruling into the mono generation contract.** Done
+      2026-08-22: the ruling sits in `split-content/_system/guidelines/seo.md` (mono `2241c1f4`,
+      with its 15-way fan-out record) and as tracker decision 22 (`cd0280ee`); the manifest was
+      mirrored (peanutsplit `03d940b`). `urls.ts` untouched by design. Original text:
       `splitHubPath`/`splitToolsHubPath`/`splitCalculatorPath` in `urls.ts` still emit
       `/{locale}/split/...` and are load-bearing for the v2 manifest schema — changing them
       invalidates byte-pinned manifests, so the ruling belongs in the contract, not the code.
-- [ ] **20. `generation-templates/guide.md` still carries the three-locale sibling rule**
+- [x] **20. `generation-templates/guide.md` still carries the three-locale sibling rule**
+      Done 2026-08-22 (mono `a14cd7da`): intro, alternates rule and validation step now state the
+      schema-v2 locale-subset rule from `locales.md`; 15-way byte-identical fan-out record in
+      AUDITS.md, manifest rehash, mirrored to peanutsplit `9da9932` (manifest only, second mirror
+      pass no-op). No rendered page changed. Original text:
       (lines 69 and 114: "List exactly the three sibling files under `alternates`" and the
       exact-symmetry confirm step). Same falsehood item 17 fixed in `locales.md`, in a second
       input with 15-way fan-out — needs its own fan-out record and mirror when corrected.
@@ -191,7 +227,7 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 - [x] `/splitwise-alternative` no Article schema / no sitemap lastmod. Closed 2026-08-21 by the
       same rebuild: prod serves Article JSON-LD and `<lastmod>` via the engine like every other
       comparison page.
-- [ ] Every Article/BlogPosting `image` site-wide is the 512px app icon (documented
+- [x] Every Article/BlogPosting `image` site-wide is the 512px app icon (documented
       workaround for hashed og routes). Constraint from guide-tracker decision 17: the file
       convention stays for `og:image` (the hash trap only bites hand-written URLs) — so the fix
       is a stable image URL for JSON-LD specifically, never a hand-spelled og route.
@@ -199,7 +235,8 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       once through the project's own `ImageResponse` renderer; `ARTICLE_IMAGE_URL` in `seo.ts`
       is the one place every Article/BlogPosting node (native and generated) reads it from.
       `seo.test.ts` fails if the file is missing, not a PNG, or over 300 KB. The og routes are
-      untouched. Tick after the push lands.
+      untouched. Verified live 2026-08-22: `/og-default.png` 200, 59,703 B; article JSON-LD
+      `image` points at it.
 - [x] Guide fonts: two knerd TTFs ship uncompressed (~101 KB, convert to woff2 — keep the
       TTFs for the OG renderer) AND the LP emits zero font preloads despite `next/font`
       marking all five files preload-eligible; the H1 those fonts style is the LCP element.
@@ -229,7 +266,7 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       `formatDate()` in the guide's locale, like the blog.
 - [x] `OG_LOCALE` map is defined twice. Closed 2026-08-21: `seo.ts` exports the one map;
       `split-content/metadata.ts` imports it.
-- [ ] `/fair-split-calculator` is typed Article while rent/mileage emit WebApplication
+- [x] `/fair-split-calculator` is typed Article while rent/mileage emit WebApplication
       `#tool` nodes — the page named "calculator" carries no calculator entity. Also `/tools`
       ("Calculators") lists only the 2 registry calculators; 3 of 6 capture pages hang off the
       site by one `/blog` card each.
@@ -238,28 +275,42 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
       `WebApplication #tool` node the registry tools get — and `/tools` lists those pages after
       the registry calculators, in the ItemList too. Today that is `/fair-split-calculator`
       alone; the other capture pages are not calculator-shaped and keep their `/blog` card.
-      Tick after the push lands.
+      Reversed in part 2026-08-22 (`8c86dd8`): the page itself states it has no calculator, so
+      the `WebApplication` node contradicted the content — dropped; the `/tools` listing stays.
+      Verified live: `/tools` links `/fair-split-calculator`, its JSON-LD carries no
+      `WebApplication`.
 - [x] `/guides/` (trailing slash) reaches `/blog` in two 308 hops; add the direct rule.
       Closed 2026-08-21: no config rule could do it — Next's own slash-strip redirect is
       unshifted with priority ahead of every user rule. `skipTrailingSlashRedirect` turns
       that off, the exact-string sources already match trailing-slash variants (`(?:/)?$`),
       and the proxy now owns the general one-hop strip (dotted paths matched too). All
       locale variants single-hop; `/es/…/` now also collapses in one hop.
-- [ ] Marketing pages all serve `no-store` — no CDN/ISR shield for crawler traffic. Keep
+- [x] Marketing pages all serve `no-store` — no CDN/ISR shield for crawler traffic. Keep
       `force-dynamic` for the sitemap and gated guides; consider s-maxage + SWR elsewhere.
       Landing must stay uncached (cookie-localized).
-- [ ] Native corpus has no `_system/AUDITS.md` though stylebook §11.4 mandates appending to
+      Fixed 2026-08-22 (`681d6ff` + `1118e0f`): the proxy sets `Cache-Control: public,
+max-age=0, s-maxage=600, stale-while-revalidate=3600` on the blog hub and articles,
+      `/tools`, and the root comparison/capture/calculator pages with their country pages, in all
+      three indexed locales (`src/lib/marketing-cache.ts`, wired in `src/proxy.ts`). `/`, `/app`,
+      `/new`, `/r/*`, `/share-target`, `/import`, `/healthcheck`, `/readiness` stay on Next's
+      `no-store`; every guide route, `/sitemap.xml` and `/api/*` are unchanged. No CDN sits in
+      front of the box today, so this is the shield for whichever one is added.
+- [x] Native corpus has no `_system/AUDITS.md` though stylebook §11.4 mandates appending to
       it; create it with mono's record format or amend §11.4.
       Fixed 2026-08-22: created `apps/web/src/content/_system/AUDITS.md` in mono's dated-section
       format, seeded with the claims gate (`bf4b633`) and this change; listed in the `_system`
-      README table. §11.4 stands as written. Tick after the push lands.
-- [ ] Footer Help/Terms/Privacy links take a 307 locale hop on peanut.me; link `/en/...`
+      README table. §11.4 stands as written.
+- [x] Footer Help/Terms/Privacy links take a 307 locale hop on peanut.me; link `/en/...`
       directly or accept.
       Fixed 2026-08-22: `SiteFooter` links `/en/help`, `/en/terms`, `/en/privacy` — each
       verified 200 with `curl -sI --max-redirs 0` (the bare paths 307 to exactly those). The
-      root link stays bare; `https://peanut.me` answers 200. Tick after the push lands.
+      root link stays bare; `https://peanut.me` answers 200. Verified live 2026-08-22.
 
 ## Notes and open decisions
+
+- Bookkeeping from the 2026-08-22 localization ship review: `robots.ts` never disallowed
+  `/api/` (an agent's expectation, not a regression); hreflang is emitted as React's
+  `hrefLang=` — case-insensitive for crawlers, but a case-sensitive grep misses it.
 
 - Landing metadata stays English in every locale — documented deliberate
   (`(marketing)/page.tsx:11-17`); revisit only with the page's own comment in hand. Add
