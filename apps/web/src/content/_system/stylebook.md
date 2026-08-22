@@ -817,6 +817,9 @@ into `pnpm test`.
 
 ### §11.1 Never-strings — fail on any match in `src/content/**` (case-insensitive)
 
+**The enforcer is `apps/web/src/lib/content.test.ts`, and it is the source of truth for
+never-strings.** This list mirrors it; where the two differ, the test wins — add the rule there.
+
 ```
 seamless | effortless | robust | powerful | world-class | cutting-edge | game-changing
 revolutionary | empower | supercharge | truly | incredibly | \bsimply\b
@@ -949,6 +952,6 @@ exception and stays on the list above.
 ### §11.4 The audit loop
 
 Every Konrad review and cold-read pass appends dated findings to `_system/AUDITS.md`, and **each
-finding must land as a numbered rule in this file** or it recurs. Split has no CI gate and `main` is
-prod in five minutes, so this loop plus §11.1–11.3 is the only durable tone control. Fix by removing
+finding must land as a numbered rule in this file** or it recurs. `main` is prod in five minutes, so
+this loop plus §11.1–11.3 and the `content.test.ts` gate are the durable tone control. Fix by removing
 the source of a violation, never by adding prose that names the banned thing.
