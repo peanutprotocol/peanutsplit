@@ -6,8 +6,10 @@ import {
     COLLECTIONS,
     ROOT_COLLECTIONS,
     basePathFor,
+    getAuthoredDoc,
     getDoc,
     hrefFor,
+    listAllAuthoredTranslations,
     listAllDocs,
     listAllTranslations,
     listDocs,
@@ -38,7 +40,8 @@ import type { Tool, ToolField } from '@/tools/types'
  * FAQ/schema agreement are properties of a published page — a translation is a published page,
  * and checking only `en` is how a 70-character Spanish title ships unnoticed.
  */
-const ALL = listAllTranslations()
+/** Drafts included: an unreviewed draft is held to every rule below, it is only kept off routes. */
+const ALL = listAllAuthoredTranslations()
 
 /** Lowercased, accent-folded words — the unit the head-term check compares. */
 const words = (text: string): string[] =>
@@ -87,7 +90,7 @@ describe('content tree', () => {
                         `${collection}/${entry.name}/${file} has no indexed locale route`
                     ).toContain(locale)
                     expect(
-                        getDoc(collection, entry.name, locale as (typeof INDEXED_LOCALES)[number]),
+                        getAuthoredDoc(collection, entry.name, locale as (typeof INDEXED_LOCALES)[number]),
                         `${collection}/${entry.name}/${file} exists but did not parse`
                     ).not.toBeNull()
                 }

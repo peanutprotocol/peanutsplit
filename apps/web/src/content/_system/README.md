@@ -53,6 +53,10 @@ Which of those keys, and which blocks, each `type` uses is in `stylebook.md`, no
 5. Anything mechanical that a reviewer catches twice belongs in `NEVER_STRINGS` in
    `src/lib/content.test.ts`, not in a paragraph here. A rule nobody runs is a rule nobody keeps.
 
+**Translating an existing page.** From `apps/web`, `node scripts/draft-translation.mjs <collection>/<slug> <locale>`
+assembles the files above into one brief and writes the answer with `draft: true` in frontmatter —
+no route, sitemap entry or hub card can reach it, every gate still runs on it, and review is deleting that line.
+
 ## What is not here yet
 
 `templates/` and `workflows/` (one file per content type, one per drafting pass) and `AUDITS.md`
