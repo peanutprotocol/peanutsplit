@@ -57,6 +57,9 @@ import type { Tool, ToolChoiceField, ToolChoiceOption, ToolField, ToolInput } fr
  */
 
 const COLUMN = 'mx-auto w-full max-w-xl px-5'
+/** Shell chrome rather than a tool's words: the same control sits on every calculator. */
+const CURRENCY_LABEL: Record<IndexedLocale, string> = { en: 'Currency', 'es-419': 'Moneda', 'pt-br': 'Moeda' }
+
 /** A field's starting text. Amounts are typed in major units, so the default is shown as typed. */
 const initialText = (field: ToolField): string => (field.kind === 'toggle' ? '' : String(field.defaultValue))
 
@@ -193,13 +196,13 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
         rowCount < 1 ||
         scalars.some(
             (field) =>
-                (field.kind === 'amount' || field.kind === 'count') && !Number.isFinite(parse(field, text[field.name], decimals)) // prettier-ignore
+                (field.kind === 'amount' || field.kind === 'count') && !Number.isFinite(parse(field, text[field.name], decimals, locale)) // prettier-ignore
         )
 
     const outcome = useMemo(() => {
         if (incomplete) return null
         const input: ToolInput = {
-            values: Object.fromEntries(scalars.map((field) => [field.name, zeroed(parse(field, text[field.name], decimals))])), // prettier-ignore
+            values: Object.fromEntries(scalars.map((field) => [field.name, zeroed(parse(field, text[field.name], decimals, locale))])), // prettier-ignore
             toggles,
             choices,
             rows: visibleRows.map((row) => ({
@@ -209,24 +212,25 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
                 values: Object.fromEntries(
                     (rowSpec?.columns ?? []).map((column) => [
                         column.name,
-                        zeroed(parse(column, row.values[column.name], decimals)),
+                        zeroed(parse(column, row.values[column.name], decimals, locale)),
                     ])
                 ),
             })),
             decimals,
+            locale,
             phrases: tool.phrases,
         }
         return tool.compute(input)
-    }, [incomplete, text, toggles, choices, visibleRows, decimals, tool])
+    }, [incomplete, text, toggles, choices, visibleRows, decimals, locale, tool])
 
     /** The builder's arithmetic, run live, so the reader watches the number being assembled. */
     const built = useMemo(() => {
         if (!builder) return null
         const values = Object.fromEntries(
-            builder.fields.map((field) => [field.name, zeroed(parse(field, text[field.name], decimals))])
+            builder.fields.map((field) => [field.name, zeroed(parse(field, text[field.name], decimals, locale))])
         )
         return builder.derive(values)
-    }, [builder, text, decimals])
+    }, [builder, text, decimals, locale])
 
     const money = (minor: number) => formatMoney(String(minor), currency, CURRENCY_CATALOG, locale)
     const pasteable = outcome?.shares.map((share) => `${share.label} ${money(share.amountMinor)}`).join(', ') ?? ''
@@ -293,7 +297,7 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
                             }}
                             currencies={CURRENCY_CATALOG}
                             variant="sm"
-                            aria-label="Currency"
+                            aria-label={CURRENCY_LABEL[locale]}
                             data-testid="tool-currency"
                         />
                     </div>
@@ -751,12 +755,15 @@ function ScaleInput({ field, value, onChange }: { field: ToolField; value: strin
     )
 }
 
-/** Amounts go through the money parser; everything else is a plain number the browser validated. */
-function parse(field: ToolField, raw: string | undefined, decimals: number): number {
+/**
+ * Amounts go through the money parser; everything else is a plain number the browser validated.
+ * Parsed in the page's own language, so the thousands form its result column prints is one it takes.
+ */
+function parse(field: ToolField, raw: string | undefined, decimals: number, locale: IndexedLocale): number {
     const text = (raw ?? '').trim()
     if (text === '') return Number.NaN
     if (field.kind === 'amount') {
-        const minor = parseAmountToMinor(text, decimals, 'en')
+        const minor = parseAmountToMinor(text, decimals, locale)
         return minor === null ? Number.NaN : Number(minor)
     }
     return Number(text)

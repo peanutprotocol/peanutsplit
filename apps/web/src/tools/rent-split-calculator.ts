@@ -30,7 +30,7 @@ const EQUAL = (count: number) => 1 / count
 const TOP_NOTCH = 5
 const notchOf = (value: number): number => Math.min(TOP_NOTCH, Math.max(1, Math.round(value) || 1))
 
-function computeRentSplit({ values, rows, phrases }: ToolInput): ToolOutcome {
+function computeRentSplit({ values, rows, phrases, locale }: ToolInput): ToolOutcome {
     const rent = Math.trunc(values.rent ?? 0)
     const empty: ToolOutcome = { shares: [], totalMinor: 0, workings: [] }
 
@@ -58,7 +58,7 @@ function computeRentSplit({ values, rows, phrases }: ToolInput): ToolOutcome {
     const amounts = allocateByWeights(rent, weights)
     const workings: ToolWorking[] = [
         { label: phrases.rentLabel, amountMinor: rent },
-        { label: phrases.floorAreaLabel, value: fill(phrases.areaValue, { area: formatFigure(floorArea) }) },
+        { label: phrases.floorAreaLabel, value: fill(phrases.areaValue, { area: formatFigure(floorArea, locale) }) },
     ]
     if (tilted) workings.push({ label: phrases.slidersLabel, value: notches.join(', ') })
 
@@ -68,13 +68,13 @@ function computeRentSplit({ values, rows, phrases }: ToolInput): ToolOutcome {
             amountMinor: amounts[index],
             detail: tilted
                 ? fill(phrases.detailTilted, {
-                      room: formatShareOfWhole(roomShares[index], 1),
+                      room: formatShareOfWhole(roomShares[index], 1, locale),
                       notch: notches[index],
-                      share: formatShareOfWhole(weights[index], 1),
+                      share: formatShareOfWhole(weights[index], 1, locale),
                   })
                 : fill(phrases.detailPlain, {
-                      size: formatFigure(sizes[index]),
-                      share: formatShareOfWhole(roomShares[index], 1),
+                      size: formatFigure(sizes[index], locale),
+                      share: formatShareOfWhole(roomShares[index], 1, locale),
                   }),
         })),
         totalMinor: rent,

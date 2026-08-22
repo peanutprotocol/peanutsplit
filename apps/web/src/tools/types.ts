@@ -154,6 +154,12 @@ export interface ToolInput {
     rows: ToolRowInput[]
     /** Minor units the chosen currency uses — 2 for EUR, 0 for JPY. */
     decimals: number
+    /**
+     * The page's language, for number punctuation only — the words all arrive in `phrases`. A
+     * derivation printed with English separators beside money the shell formats in the locale is
+     * one page in two conventions (localization.<locale>.md §5).
+     */
+    locale?: IndexedLocale
 }
 
 export interface ToolShare {

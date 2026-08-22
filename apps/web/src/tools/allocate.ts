@@ -1,3 +1,5 @@
+import type { IndexedLocale } from '@/i18n/locales'
+
 /**
  * Dividing a total into whole minor units that add back up to it.
  *
@@ -64,15 +66,34 @@ export function allocateByWeights(totalMinor: number, weights: readonly number[]
     return shares
 }
 
-/** Trims a proportion to one decimal place of a percentage — "24.5%". Never money. */
-export function formatShareOfWhole(part: number, whole: number): string {
-    if (!(whole > 0)) return '0%'
-    const percent = (part / whole) * 100
-    return `${Number(percent.toFixed(1))}%`
+/**
+ * How each language writes a plain number, from that locale's own rulebook (§5) rather than from
+ * CLDR — CLDR reads `es-419` as dot-decimal and `localization.es-419.md` pins the comma.
+ *
+ * These figures sit in the derivation beside money the shell formats in the same locale, so a
+ * result row printing "33.3%" under "R$ 1.234,56" is one page in two conventions.
+ */
+const MARKS = {
+    en: { decimal: '.', group: ',', percent: '%' },
+    'es-419': { decimal: ',', group: '.', percent: ' %' },
+    'pt-br': { decimal: ',', group: '.', percent: ' %' },
+} as const satisfies Record<IndexedLocale, { decimal: string; group: string; percent: string }>
+
+/** `places` at most, trailing zeros dropped, thousands grouped. Never money — the shell owns that. */
+function written(value: number, places: number, locale: IndexedLocale): string {
+    const { decimal, group } = MARKS[locale]
+    const [whole, fraction] = String(Number(value.toFixed(places))).split('.')
+    return whole.replace(/\B(?=(\d{3})+(?!\d))/g, group) + (fraction ? decimal + fraction : '')
+}
+
+/** Trims a proportion to one decimal place of a percentage — "24.5%", "24,5 %". Never money. */
+export function formatShareOfWhole(part: number, whole: number, locale: IndexedLocale = 'en'): string {
+    if (!(whole > 0)) return `0${MARKS[locale].percent}`
+    return `${written((part / whole) * 100, 1, locale)}${MARKS[locale].percent}`
 }
 
 /** "18" not "18.0", "1.5" not "1.500". Row details print counts, sizes and shares, never money. */
-export function formatFigure(value: number): string {
+export function formatFigure(value: number, locale: IndexedLocale = 'en'): string {
     if (!Number.isFinite(value)) return '0'
-    return `${Number(value.toFixed(2))}`
+    return written(value, 2, locale)
 }

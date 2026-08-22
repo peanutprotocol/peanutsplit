@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { allocateByWeights, formatFigure, formatShareOfWhole, MAX_SAFE_MINOR } from './allocate'
+import type { IndexedLocale } from '@/i18n/locales'
 
 const sum = (values: readonly number[]) => values.reduce((running, value) => running + value, 0)
 
@@ -101,5 +102,22 @@ describe('figures', () => {
         expect(formatFigure(18)).toBe('18')
         expect(formatFigure(1.5)).toBe('1.5')
         expect(formatFigure(Number.NaN)).toBe('0')
+    })
+
+    /**
+     * The derivation sits beside money the shell formats in the same locale, so it is written in
+     * that locale's marks — from the rulebook (§5), which pins a comma decimal for es-419 where
+     * CLDR would give a dot.
+     */
+    const written: readonly (readonly [IndexedLocale, string, string, string])[] = [
+        ['en', '33.3%', '1,234.5', '30,000'],
+        ['es-419', '33,3 %', '1.234,5', '30.000'],
+        ['pt-br', '33,3 %', '1.234,5', '30.000'],
+    ]
+
+    it.each(written)('writes %s figures in its own marks', (locale, percent, grouped, whole) => {
+        expect(formatShareOfWhole(1, 3, locale)).toBe(percent)
+        expect(formatFigure(1234.5, locale)).toBe(grouped)
+        expect(formatFigure(30_000, locale)).toBe(whole)
     })
 })

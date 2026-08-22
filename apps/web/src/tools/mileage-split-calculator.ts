@@ -3,6 +3,7 @@ import { MILEAGE_RATES, MILEAGE_RATES_RETRIEVED, MILEAGE_RATES_VERSION, mileageR
 import { mileageSplitEs419, mileageSplitPtBr } from './mileage-split-calculator.locales'
 import { fill } from './phrases'
 import type { Tool, ToolChoiceOption, ToolInput, ToolOutcome, ToolWorking } from './types'
+import type { IndexedLocale } from '@/i18n/locales'
 
 /**
  * What a shared car cost, and what each passenger owes the person who drove it.
@@ -45,7 +46,9 @@ const ELSEWHERE = 'other'
  *
  * Belgium's is 0.4440 and Germany's is 0.30. Printing either at the currency's own precision would
  * be a different number from the one on the official page, so the rate is a plain figure here
- * rather than a money amount — the currency is named once, by the selector above it.
+ * rather than a money amount — the currency is named once, by the selector above it. Written in the
+ * input's convention in every language: it is the string the picker types into the rate box, and
+ * `kind: 'number'` fields parse with `Number()`.
  */
 export function rateText(rate: number): string {
     const written = String(rate)
@@ -73,7 +76,7 @@ export function buildCustomRate(values: Record<string, number>): { floor: number
     return { floor, total: round4(floor + wear) }
 }
 
-function computeMileageSplit({ values, toggles, choices, rows, decimals, phrases }: ToolInput): ToolOutcome {
+function computeMileageSplit({ values, toggles, choices, rows, decimals, phrases, locale }: ToolInput): ToolOutcome {
     const empty: ToolOutcome = { shares: [], totalMinor: 0, workings: [] }
     const distance = values.distance ?? 0
     const rate = values.rate ?? 0
@@ -111,13 +114,13 @@ function computeMileageSplit({ values, toggles, choices, rows, decimals, phrases
         label: row.name,
         amountMinor: amounts[driverToo ? index + 1 : index],
         detail: fill(phrases.shareDetail, {
-            share: formatFigure(riders[index]),
-            total: formatFigure(shareCount),
+            share: formatFigure(riders[index], locale),
+            total: formatFigure(shareCount, locale),
         }),
     }))
 
     const workings: ToolWorking[] = [
-        { label: phrases.distanceLabel, value: `${formatFigure(distance)} ${short}` },
+        { label: phrases.distanceLabel, value: `${formatFigure(distance, locale)} ${short}` },
         { label: fill(phrases.rateLabel, { unit: perUnit }), value: rateText(rate) },
         { label: phrases.costLabel, amountMinor: cost },
     ]
